@@ -3,6 +3,7 @@
 CVOL=/dev/vdb
 precleanup=true
 adminip=192.168.124.10
+cloudsource=${cloudsource:-Beta1}
 
 function cleanup()
 {
@@ -25,7 +26,7 @@ function prepare()
     lvcreate -n node$i -L 20G cloud
   done
   cd /tmp
-  wget http://openqa.suse.de/sle/img/SP2-64.img.gz
+  wget -nc http://openqa.suse.de/sle/img/SP2-64.img.gz
   gzip -cd SP2-64.img.gz > /dev/cloud/admin
 
   # make a bigger partition 2
@@ -177,7 +178,7 @@ EOF
 
   sleep 25 # for sshd to start
   echo "connecting to crowbar admin server at $adminip"
-  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=Beta1 part2=false bash -x qa_crowbarsetup.sh virtual"
+  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource part2=false bash -x qa_crowbarsetup.sh virtual"
 }
 
 
@@ -242,13 +243,14 @@ EOLIBVIRT
     virsh create /tmp/cloud-node$i.xml
   done
 
-  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=Beta1 part1=false bash -x qa_crowbarsetup.sh virtual"
+  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource part1=false bash -x qa_crowbarsetup.sh virtual"
 
 }
 
 
 
 ## MAIN ##
+
 
 case $1 in
   part1)
