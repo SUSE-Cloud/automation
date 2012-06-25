@@ -164,6 +164,12 @@ EOF
     echo -n "."
   done
 
+  n=150 ; while test $n -gt 0 && ! nc -z $adminip 22 ; do
+    sleep 1
+    n=$(expr $n - 1)
+    echo -n "."
+  done
+
   if [ $n = 0 ] ; then
     echo "admin VM not reachable - something must have gone wrong... exiting"
     exit 57
