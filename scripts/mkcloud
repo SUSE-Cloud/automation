@@ -2,47 +2,192 @@
 
 CVOL=/dev/vdb
 precleanup=true
+adminip=192.168.124.10
 
-if $precleanup ; then
+function cleanup()
+{
 	# cleanup leftover from last run
-	virsh destroy cloud-admin ; virsh undefine cloud-admin ; virsh net-destroy cloud-admin ; rclibvirtd stop ; killall -9 libvirtd ; ifdown virbr1 ; brctl delbr virbr1 ; tunctl -d virbr1-nic ; killall dnsmasq
-fi
+  if $precleanup ; then
+    virsh destroy cloud-admin ; virsh undefine cloud-admin ; virsh net-destroy cloud-admin ; rclibvirtd stop ; killall -9 libvirtd ; ifdown virbr1 ; brctl delbr virbr1 ; tunctl -d virbr1-nic ; killall dnsmasq
+  fi
+}
+
+function prepare()
+{
+  zypper --non-interactive in --no-recommends libvirt kvm lvm2 wget bridge-utils dnsmasq netcat-openbsd
+
+  pvcreate $CVOL
+  vgcreate cloud $CVOL
+  vgchange -ay cloud # for later boots
+
+  lvcreate -n admin -L 15G cloud
+  for i in 1 2 ; do
+    lvcreate -n node$i -L 20G cloud
+  done
+  cd /tmp
+  wget http://openqa.suse.de/sle/img/SP2-64.img.gz
+  gzip -cd SP2-64.img.gz > /dev/cloud/admin
+
+  # make a bigger partition 2
+  echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/cloud/admin
+  losetup -o $(expr 2056192 \* 512) /dev/loop0 /dev/cloud/admin
+  fsck -f /dev/loop0
+  resize2fs /dev/loop0
+  sync
+  losetup -d /dev/loop0
+}
+
+function sshrun()
+{
+  ssh -o NumberOfPasswordPrompts=0 -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" root@$adminip "$@"
+}
+
+function part1()
+{
+  echo "Creating key for controlling our VMs..."
+  [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
+  echo "Injecting public key into image..."
+  pubkey=`cut -d" " -f2 ~/.ssh/id_dsa.pub`
+  mount -o loop,offset=$(expr 2056192 \* 512) /dev/cloud/admin /mnt
+  mkdir -p /mnt/root/.ssh
+  grep -q $pubkey /mnt/root/.ssh/authorized_keys2 2>/dev/null || cat ~/.ssh/id_dsa.pub >> /mnt/root/.ssh/authorized_keys2
+  umount /mnt
+
+  cat > /tmp/cloud-admin.xml <<EOLIBVIRT
+  <domain type='kvm'>
+    <name>cloud-admin</name>
+    <uuid>169738f2-63a1-3fef-2ee8-1fef03498574</uuid>
+    <memory>2097152</memory>
+    <currentMemory>2097152</currentMemory>
+    <vcpu>1</vcpu>
+    <os>
+      <type arch='x86_64' machine='pc-0.15'>hvm</type>
+      <boot dev='hd'/>
+    </os>
+    <features>
+      <acpi/>
+      <apic/>
+      <pae/>
+    </features>
+    <clock offset='utc'/>
+    <on_poweroff>preserve</on_poweroff>
+    <on_reboot>restart</on_reboot>
+    <on_crash>restart</on_crash>
+    <devices>
+      <emulator>/usr/bin/qemu-kvm</emulator>
+      <disk type='block' device='disk'>
+        <driver name='qemu' type='raw'/>
+        <source dev='/dev/cloud/admin'/>
+        <target dev='vda' bus='virtio'/>
+        <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+      </disk>
+      <interface type='network'>
+        <mac address='52:54:00:bb:92:d2'/>
+        <source network='cloud-admin'/>
+        <model type='virtio'/>
+        <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+      </interface>
+      <serial type='pty'>
+        <target port='0'/>
+      </serial>
+      <console type='pty'>
+        <target type='serial' port='0'/>
+      </console>
+      <input type='mouse' bus='ps2'/>
+      <graphics type='vnc' port='-1' autoport='yes'/>
+      <video>
+        <model type='cirrus' vram='9216' heads='1'/>
+        <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
+      </video>
+      <memballoon model='virtio'>
+        <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
+      </memballoon>
+    </devices>
+  </domain>
+EOLIBVIRT
+
+  # dont specify range
+  # this allows to use the same network for cloud-nodes that get DHCP from crowbar
+  # doc: http://libvirt.org/formatnetwork.html
+  cat > /tmp/cloud-admin.net.xml <<EOLIBVIRTNET
+  <network>
+    <name>cloud-admin</name>
+    <uuid>76b08f53-4fe0-3bb6-8220-d4cfc7b23423</uuid>
+    <bridge name='virbr1' stp='on' delay='0' />
+    <mac address='52:54:00:AB:B1:77'/>
+    <ip address='192.168.124.1' netmask='255.255.255.0'>
+      <dhcp>
+        <host mac="52:54:00:bb:92:d2" name="crowbar.example.com" ip="$adminip" />
+      </dhcp>
+    </ip>
+    <forward mode='nat'>
+    </forward>
+  </network>
+EOLIBVIRTNET
 
 
-if false
-then
-zypper in --no-recommends libvirt kvm lvm2 wget bridge-utils dnsmasq netcat-openbsd
+  # configure bridge
+  if [ ! -e /etc/sysconfig/network/ifcfg-br1 ] ; then
+          echo "net.ipv4.conf.all.proxy_arp = 1" >> /etc/sysctl.conf
+          cat >/etc/sysconfig/network/ifcfg-br1 <<EOF
+BOOTPROTO='static'
+BRIDGE='yes'
+BRIDGE_FORWARDDELAY='0'
+BRIDGE_PORTS=''
+BRIDGE_STP='off'
+BROADCAST=''
+ETHTOOL_OPTIONS=''
+IPADDR='192.168.55.1/24'
+MTU=''
+NETMASK=''
+NETWORK=''
+REMOTE_IPADDR=''
+STARTMODE='onboot'
+USERCONTROL='no'
+EOF
+    ifup br1
+  fi
 
-pvcreate $CVOL
-vgcreate cloud $CVOL
-vgchange -ay cloud # for later boots
+  modprobe kvm-amd
+  insserv libvirtd
+  rclibvirtd start
+  echo "Waiting for libvirt startup..."
+  sleep 5
+  [ -e /etc/libvirt/qemu/networks/cloud-admin.xml ] || virsh net-create /tmp/cloud-admin.net.xml
+  [ -e /etc/libvirt/qemu/cloud-admin.xml ] || virsh create /tmp/cloud-admin.xml
 
-lvcreate -n admin -L 15G cloud
-cd /tmp
-wget http://openqa.suse.de/sle/img/SP2-64.img.gz
-gzip -cd SP2-64.img.gz > /dev/cloud/admin
+  #sleep 60 # time to boot up
+  #adminip=`grep 52:54:00:bb:92:d2 /var/lib/libvirt/dnsmasq/cloud-admin.leases | cut -d" " -f3`
+  echo "waiting for crowbar admin VM to become reachable"
+  n=150 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $adminip >/dev/null ; do
+    n=$(expr $n - 1)
+    echo -n "."
+  done
 
-fi
+  if [ $n = 0 ] ; then
+    echo "admin VM not reachable - something must have gone wrong... exiting"
+    exit 57
+  fi
 
-echo "Creating key for controlling our VMs..."
-[ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
-echo "Injecting public key into image..."
-pubkey=`cut -d" " -f2 ~/.ssh/id_dsa.pub`
-mount -o loop,offset=$(expr 2056192 \* 512) /dev/cloud/admin /mnt
-mkdir -p /mnt/root/.ssh
-grep -q $pubkey /mnt/root/.ssh/authorized_keys 2>/dev/null || cat ~/.ssh/id_dsa.pub >> /mnt/root/.ssh/authorized_keys
-umount /mnt
+  sleep 25 # for sshd to start
+  echo "connecting to crowbar admin server at $adminip"
+  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=Beta1 part2=false bash -x qa_crowbarsetup.sh virtual"
+}
 
-cat > /tmp/cloud-admin.xml <<EOLIBVIRT
+
+
+function part2()
+{
+  for i in 1 2 ; do
+    cat > /tmp/cloud-node$i.xml <<EOLIBVIRT
 <domain type='kvm'>
-  <name>cloud-admin</name>
-  <uuid>169738f2-63a1-3fef-2ee8-1fef03498574</uuid>
+  <name>cloud-node$i</name>
+  <uuid>169738f2-63b$i-3fef-2ee8-1fef03498574</uuid>
   <memory>2097152</memory>
   <currentMemory>2097152</currentMemory>
   <vcpu>1</vcpu>
   <os>
     <type arch='x86_64' machine='pc-0.15'>hvm</type>
-    <boot dev='hd'/>
   </os>
   <features>
     <acpi/>
@@ -50,28 +195,24 @@ cat > /tmp/cloud-admin.xml <<EOLIBVIRT
     <pae/>
   </features>
   <clock offset='utc'/>
-  <on_poweroff>destroy</on_poweroff>
+  <on_poweroff>preserve</on_poweroff>
   <on_reboot>restart</on_reboot>
   <on_crash>restart</on_crash>
   <devices>
     <emulator>/usr/bin/qemu-kvm</emulator>
     <disk type='block' device='disk'>
       <driver name='qemu' type='raw'/>
-      <source dev='/dev/cloud/admin'/>
+      <source dev='/dev/cloud/node$i'/>
       <target dev='vda' bus='virtio'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+      <boot order='2'/>
     </disk>
     <interface type='network'>
-      <mac address='52:54:00:bb:92:d2'/>
+      <mac address='52:54:00:77:92:c$i'/>
       <source network='cloud-admin'/>
       <model type='virtio'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
-    </interface>
-    <interface type='bridge'>
-      <mac address='52:54:00:bb:93:d3'/>
-      <source bridge='br1'/>
-      <model type='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+      <boot order='1'/>
     </interface>
     <serial type='pty'>
       <target port='0'/>
@@ -92,76 +233,32 @@ cat > /tmp/cloud-admin.xml <<EOLIBVIRT
 </domain>
 EOLIBVIRT
 
-# dont specify range
-# this allows to use the same network for cloud-nodes that get DHCP from crowbar
-# doc: http://libvirt.org/formatnetwork.html
-cat > /tmp/cloud-admin.net.xml <<EOLIBVIRTNET
-<network>
-  <name>cloud-admin</name>
-  <uuid>76b08f53-4fe0-3bb6-8220-d4cfc7b23423</uuid>
-  <bridge name='virbr1' stp='on' delay='0' />
-  <mac address='52:54:00:AB:B1:77'/>
-  <ip address='192.168.124.1' netmask='255.255.255.0'>
-    <dhcp>
-      <host mac="52:54:00:bb:92:d2" name="crowbar.example.com" ip="192.168.124.10" />
-    </dhcp>
-  </ip>
-  <forward mode='nat'>
-  </forward>
-</network>
-EOLIBVIRTNET
+    virsh create /tmp/cloud-node$i.xml
+  done
 
+  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=Beta1 part1=false bash -x qa_crowbarsetup.sh virtual"
 
-# configure bridge
-if [ ! -e /etc/sysconfig/network/ifcfg-br1 ] ; then
-        echo "net.ipv4.conf.all.proxy_arp = 1" >> /etc/sysctl.conf
-        cat >/etc/sysconfig/network/ifcfg-br1 <<EOF
-BOOTPROTO='static'
-BRIDGE='yes'
-BRIDGE_FORWARDDELAY='0'
-BRIDGE_PORTS=''
-BRIDGE_STP='off'
-BROADCAST=''
-ETHTOOL_OPTIONS=''
-IPADDR='192.168.55.1/24'
-MTU=''
-NETMASK=''
-NETWORK=''
-REMOTE_IPADDR=''
-STARTMODE='onboot'
-USERCONTROL='no'
-EOF
-  ifup br1
-fi
-
-modprobe kvm-amd
-insserv libvirtd
-rclibvirtd start
-[ -e /etc/libvirt/qemu/networks/cloud-admin.xml ] || virsh net-create /tmp/cloud-admin.net.xml
-[ -e /etc/libvirt/qemu/cloud-admin.xml ] || virsh create /tmp/cloud-admin.xml
-
-#sleep 60 # time to boot up
-adminip=192.168.124.10
-#adminip=`grep 52:54:00:bb:92:d2 /var/lib/libvirt/dnsmasq/cloud-admin.leases | cut -d" " -f3`
-echo "waiting for crowbar admin VM to become reachable"
-n=150 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $adminip >/dev/null ; do
-  n=$(expr $n - 1)
-  echo -n "."
-done
-
-if [ $n = 0 ] ; then
-	echo "admin VM not reachable - something must have gone wrong... exiting"
-	exit 57
-fi
-
-sleep 25 # for sshd to start
-echo "connecting to crowbar admin server at $adminip"
-ssh -o NumberOfPasswordPrompts=0 -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" root@$adminip
+}
 
 
 
-# notes:
-# virsh list --all
-# virsh destroy cloud-admin
-# virsh undefine cloud-admin
-# virsh net-destroy cloud-admin
+## MAIN ##
+
+case $1 in
+  part1)
+    cleanup
+    #prepare
+    part1
+  ;;
+  part2)
+    part2
+  ;;
+  prepare)
+    prepare
+  ;;
+  cleanup)
+    cleanup
+  ;;
+  *) echo "$0 prepare|part1|part2|cleanup";
+  ;;
+esac
