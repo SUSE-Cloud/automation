@@ -100,12 +100,14 @@ mount -o loop,ro $CLOUDDISTURL/*.iso /mnt/cloud
 rsync -a --delete-after /mnt/cloud/ . ; umount /mnt/cloud
 rm -rf "dist.suse.de"
 zypper ar /srv/tftpboot/repos/Cloud Cloud
-zypper -v --gpg-auto-import-keys -n ref
-zypper -n in crowbar
+# --no-gpg-checks for Devel:Cloud repo
+zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
+zypper --no-gpg-checks -n in -t pattern cloud_admin # for Beta2
+zypper --no-gpg-checks -n in crowbar # for Beta1
 
 cd /tmp
 if [ ! -e "/srv/tftpboot/suse-11.2/install/media.1/" ] ; then
-	wget -nc http://dist.suse.de/install/SLES-11-SP2-GM/SLES-11-SP2-DVD-x86_64-GM-DVD1.iso
+	wget -q -nc http://dist.suse.de/install/SLES-11-SP2-GM/SLES-11-SP2-DVD-x86_64-GM-DVD1.iso
 	mount -o loop,ro *.iso /mnt
 	rsync -a /mnt/ /srv/tftpboot/suse-11.2/install/
 	umount /mnt
@@ -135,6 +137,9 @@ if [ ! -e "/srv/tftpboot/repos/SLES11-SP2-Updates" ] ; then
     -e "s/<domain>[^<]*</<domain>$cloud.cloud.suse.de</" \
     /opt/dell/barclamps/provisioner/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
 fi
+if [ ! -e /srv/tftpboot/repos/SLES11-SP2-Core ] ; then
+	sed -i.bak2 -e 's#<media_url>http://<%= @admin_node_ip %>:8091/repos/SLES11-SP1-Pool/#<media_url>http://euklid.suse.de/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1-POOL/#' -e 's#/repos/SLES11-SP2-Core/#/suse-11.2/install/#' /opt/dell/barclamps/provisioner/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
+fi
 
 rm -f /tmp/chef-ready
 # run in screen to not lose session in the middle when network is reconfigured:
@@ -149,6 +154,7 @@ if [ $n = 0 ] ; then
 	echo "timed out waiting for chef-ready"
 	exit 83
 fi
+sleep 20
 if ! curl -s http://localhost:3000 > /dev/null ; then
 	echo "crowbar self-test failed"
 	exit 84
