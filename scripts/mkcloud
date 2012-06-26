@@ -178,7 +178,7 @@ EOF
 
   sleep 25 # for sshd to start
   echo "connecting to crowbar admin server at $adminip"
-  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource part2=false bash -x qa_crowbarsetup.sh virtual"
+  sshrun "echo `hostname` > cloud ; wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource part2=false bash -x qa_crowbarsetup.sh virtual"
 }
 
 
