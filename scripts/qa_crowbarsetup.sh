@@ -4,8 +4,6 @@ test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
 #resize2fs /dev/vda2
 
 cloud=${1:-d2}
-part1=${part1:-true}
-part2=${part2:-true}
 
 case $cloud in
 	d1)
@@ -44,7 +42,7 @@ case $cloud in
 	;;
 esac	
 
-if $part1 ; then
+if [ -n "$installcrowbar" ] ; then
 
 echo configure static IP and absolute + resolvable hostname crowbar.$cloud.cloud.suse.de gw:$net.1
 cat > /etc/sysconfig/network/ifcfg-eth0 <<EOF
@@ -161,7 +159,7 @@ if ! curl -s http://localhost:3000 > /dev/null ; then
 fi
 fi
 
-if $part2 ; then
+if [ -n "$allocate" ] ; then
 . /etc/profile.d/crowbar.sh
 
 #chef-client
@@ -185,11 +183,13 @@ for m in `crowbar machines list | grep ^d` ; do
 	crowbar machines allocate "$m"
 done
 
+fi
+
+if [ -n "$proposal" ] ; then
 for service in postgresql keystone glance nova nova_dashboard ; do
 	crowbar "$service" proposal create default
 	crowbar "$service" proposal commit default
 done
-
 fi
 
 

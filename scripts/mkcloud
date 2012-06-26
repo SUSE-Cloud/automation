@@ -178,7 +178,7 @@ EOF
 
   sleep 25 # for sshd to start
   echo "connecting to crowbar admin server at $adminip"
-  sshrun "echo `hostname` > cloud ; wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource part2=false bash -x qa_crowbarsetup.sh virtual"
+  sshrun "echo `hostname` > cloud ; wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource installcrowbar=1 bash -x qa_crowbarsetup.sh virtual"
 }
 
 
@@ -243,11 +243,15 @@ EOLIBVIRT
     virsh create /tmp/cloud-node$i.xml
   done
 
-  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource part1=false bash -x qa_crowbarsetup.sh virtual"
+  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource allocate=1 bash -x qa_crowbarsetup.sh virtual"
 
 }
 
 
+function part3()
+{
+  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource proposal=1 bash -x qa_crowbarsetup.sh virtual"
+}
 
 ## MAIN ##
 
@@ -261,12 +265,15 @@ case $1 in
   part2)
     part2
   ;;
+  part3)
+    part3
+  ;;
   prepare)
     prepare
   ;;
   cleanup)
     cleanup
   ;;
-  *) echo "$0 prepare|part1|part2|cleanup";
+  *) echo "$0 prepare|part1|part2|part3|cleanup";
   ;;
 esac
