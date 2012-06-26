@@ -43,7 +43,7 @@ function sshrun()
   ssh -o NumberOfPasswordPrompts=0 -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" root@$adminip "$@"
 }
 
-function part1()
+function instadmin()
 {
   echo "Creating key for controlling our VMs..."
   [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
@@ -185,7 +185,7 @@ EOF
 
 
 
-function part2()
+function instcompute()
 {
   for i in 1 2 ; do
     cat > /tmp/cloud-node$i.xml <<EOLIBVIRT
@@ -260,7 +260,7 @@ EOLIBVIRT
 }
 
 
-function part3()
+function proposal()
 {
   sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource proposal=1 bash -x qa_crowbarsetup.sh virtual"
 }
@@ -269,16 +269,16 @@ function part3()
 
 
 case $1 in
-  part1)
+  instadmin)
     cleanup
     #prepare
-    part1
+    instadmin
   ;;
-  part2)
-    part2
+  instcompute)
+    instcompute
   ;;
-  part3)
-    part3
+  proposal)
+    proposal
   ;;
   prepare)
     prepare
@@ -286,6 +286,13 @@ case $1 in
   cleanup)
     cleanup
   ;;
-  *) echo "$0 prepare|part1|part2|part3|cleanup";
+  all)
+    cleanup
+    prepare
+    instadmin
+    instcompute
+    proposal
+  ;;
+  *) echo "$0 all|cleanup|prepare|instadmin|instcompute|proposal";
   ;;
 esac
