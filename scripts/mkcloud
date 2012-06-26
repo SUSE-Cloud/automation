@@ -83,7 +83,7 @@ function part1()
         <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
       </disk>
       <interface type='network'>
-        <mac address='52:54:00:bb:92:d2'/>
+        <mac address='52:54:00:77:77:70'/>
         <source network='cloud-admin'/>
         <model type='virtio'/>
         <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
@@ -118,7 +118,7 @@ EOLIBVIRT
     <mac address='52:54:00:AB:B1:77'/>
     <ip address='192.168.124.1' netmask='255.255.255.0'>
       <dhcp>
-        <host mac="52:54:00:bb:92:d2" name="crowbar.example.com" ip="$adminip" />
+        <host mac="52:54:00:77:77:70" name="crowbar.example.com" ip="$adminip"/>
       </dhcp>
     </ip>
     <forward mode='nat'>
@@ -158,12 +158,14 @@ EOF
   [ -e /etc/libvirt/qemu/cloud-admin.xml ] || virsh create /tmp/cloud-admin.xml
 
   #sleep 60 # time to boot up
-  #adminip=`grep 52:54:00:bb:92:d2 /var/lib/libvirt/dnsmasq/cloud-admin.leases | cut -d" " -f3`
+  #adminip=`grep 52:54:00:77:77:70 /var/lib/libvirt/dnsmasq/cloud-admin.leases | cut -d" " -f3`
   echo "waiting for crowbar admin VM to become reachable"
   n=150 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $adminip >/dev/null ; do
     n=$(expr $n - 1)
     echo -n "."
   done
+  echo 'iptables -t nat -F PREROUTING ; for i in 22 3000 4000 ; do iptables -I FORWARD -p tcp --dport $i -j ACCEPT ; iptables -t nat -I PREROUTING -p tcp --dport $(expr $i + 2000) -j DNAT --to-destination 192.168.124.10:$i ; done' >> /etc/init.d/boot.local
+  /etc/init.d/boot.local
 
   n=150 ; while test $n -gt 0 && ! nc -z $adminip 22 ; do
     sleep 1
@@ -215,7 +217,7 @@ function part2()
       <boot order='2'/>
     </disk>
     <interface type='network'>
-      <mac address='52:54:00:77:92:c$i'/>
+      <mac address='52:54:00:77:77:7$i'/>
       <source network='cloud-admin'/>
       <model type='virtio'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
