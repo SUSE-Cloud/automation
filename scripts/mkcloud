@@ -26,8 +26,8 @@ function prepare()
     lvcreate -n node$i -L 20G cloud
   done
   cd /tmp
-  wget -nc http://openqa.suse.de/sle/img/SP2-64.img.gz
-  gzip -cd SP2-64.img.gz > /dev/cloud/admin
+  wget -nc http://openqa.suse.de/sle/img/SP2-64up.img.gz
+  gzip -cd SP2-64up.img.gz > /dev/cloud/admin
 
   # make a bigger partition 2
   echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/cloud/admin
@@ -246,6 +246,16 @@ EOLIBVIRT
   done
 
   sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource allocate=1 bash -x qa_crowbarsetup.sh virtual"
+
+  echo "Waiting for the installation of the nodes ..."
+  for i in 1 2 ; do
+    echo -n "Waiting for node $i"
+    while ! ssh 192.168.124.8$i rpm -q yast2-core 2>/dev/null ; do
+      sleep 10
+      echo -n "."
+    done
+    echo "node $i ready"
+  done
 
 }
 
