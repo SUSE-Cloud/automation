@@ -5,6 +5,12 @@ precleanup=true
 adminip=192.168.124.10
 cloudsource=${cloudsource:-Beta1}
 
+if [ ! -e qa_crowbarsetup.sh ] ; then
+  echo "Thank you for using $0."
+  echo "For proper functionality you also need to copy the script qa_crowbarsetup.sh here."
+  exit 87
+fi
+
 function cleanup()
 {
 	# cleanup leftover from last run
@@ -16,6 +22,12 @@ function cleanup()
 function prepare()
 {
   zypper --non-interactive in --no-recommends libvirt kvm lvm2 wget bridge-utils dnsmasq netcat-openbsd
+
+  grep -q NumberOfPasswordPrompts ~/.ssh/config 2>/dev/null || cat > ~/.ssh/config <<EOSSH
+NumberOfPasswordPrompts 0
+UserKnownHostsFile /dev/null
+StrictHostKeyChecking no
+EOSSH
 
   pvcreate $CVOL
   vgcreate cloud $CVOL
@@ -40,7 +52,7 @@ function prepare()
 
 function sshrun()
 {
-  ssh -o NumberOfPasswordPrompts=0 -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" root@$adminip "$@"
+  ssh root@$adminip "$@"
 }
 
 function instadmin()
@@ -181,7 +193,8 @@ EOF
   echo "waiting some more for sshd+named to start"
   sleep 25
   echo "connecting to crowbar admin server at $adminip"
-  sshrun "echo `hostname` > cloud ; wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource installcrowbar=1 bash -x qa_crowbarsetup.sh virtual"
+  scp qa_crowbarsetup.sh root@$adminip:
+  sshrun "echo `hostname` > cloud ; cloudsource=$cloudsource installcrowbar=1 bash -x qa_crowbarsetup.sh virtual"
 }
 
 
@@ -246,7 +259,8 @@ EOLIBVIRT
     virsh create /tmp/cloud-node$i.xml
   done
 
-  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource allocate=1 bash -x qa_crowbarsetup.sh virtual"
+  scp qa_crowbarsetup.sh root@$adminip:
+  sshrun "cloudsource=$cloudsource allocate=1 bash -x qa_crowbarsetup.sh virtual"
 
   echo "Waiting for the installation of the nodes ..."
   sshrun '
@@ -265,7 +279,8 @@ EOLIBVIRT
 
 function proposal()
 {
-  sshrun "wget -Oqa_crowbarsetup.sh http://w3.suse.de/~bwiedemann/cloud/qa_crowbarsetup.sh ; cloudsource=$cloudsource proposal=1 bash -x qa_crowbarsetup.sh virtual"
+  scp qa_crowbarsetup.sh root@$adminip:
+  sshrun "cloudsource=$cloudsource proposal=1 bash -x qa_crowbarsetup.sh virtual"
 }
 
 ## MAIN ##

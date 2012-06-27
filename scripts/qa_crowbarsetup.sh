@@ -145,7 +145,7 @@ screen -d -m -L /bin/bash -c '/opt/dell/bin/install-chef-suse.sh ; touch /tmp/ch
 n=300
 while [ $n -gt 0 ] && [ ! -e /tmp/chef-ready ] ; do
 	n=$(expr $n - 1)
-	sleep 1;
+	sleep 5;
 	echo -n .
 done
 if [ $n = 0 ] ; then
@@ -154,6 +154,7 @@ if [ $n = 0 ] ; then
 fi
 sleep 20
 if ! curl -s http://localhost:3000 > /dev/null ; then
+	tail -30 /tmp/screenlog.0
 	echo "crowbar self-test failed"
 	exit 84
 fi
