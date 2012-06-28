@@ -172,7 +172,7 @@ EOF
   #sleep 60 # time to boot up
   #adminip=`grep 52:54:00:77:77:70 /var/lib/libvirt/dnsmasq/cloud-admin.leases | cut -d" " -f3`
   echo "waiting for crowbar admin VM to become reachable"
-  n=150 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $adminip >/dev/null ; do
+  n=300 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $adminip >/dev/null ; do
     n=$(expr $n - 1)
     echo -n "."
   done
