@@ -289,8 +289,6 @@ function proposal()
 
 case $1 in
   instadmin)
-    cleanup
-    #prepare
     instadmin
   ;;
   instcompute)
