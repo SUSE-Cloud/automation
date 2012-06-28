@@ -194,7 +194,7 @@ done
 fi
 
 if [ -n "$proposal" ] ; then
-for service in postgresql keystone glance nova nova_dashboard ; do
+for service in database postgresql keystone glance nova nova_dashboard ; do
 	crowbar "$service" proposal create default
 	crowbar "$service" proposal commit default
 done
@@ -207,7 +207,7 @@ fi
 
 # undo propsal create+commit
 if false; then
-for service in nova_dashboard nova glance keystone postgresql ; do
+for service in nova_dashboard nova glance keystone postgresql database ; do
         crowbar "$service" proposal delete default
         crowbar "$service" delete default
 done
