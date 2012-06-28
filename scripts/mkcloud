@@ -176,7 +176,7 @@ EOF
     n=$(expr $n - 1)
     echo -n "."
   done
-  echo 'iptables -t nat -F PREROUTING ; for i in 22 3000 4000 ; do iptables -I FORWARD -p tcp --dport $i -j ACCEPT ; iptables -t nat -I PREROUTING -p tcp --dport $(expr $i + 2000) -j DNAT --to-destination 192.168.124.10:$i ; done' >> /etc/init.d/boot.local
+  grep "iptables -t nat -F PREROUTING" /etc/init.d/boot.local || echo 'iptables -t nat -F PREROUTING ; for i in 22 80 3000 4000 4040 ; do iptables -I FORWARD -p tcp --dport $i -j ACCEPT ; for host in 10 81 82 ; do iptables -t nat -I PREROUTING -p tcp --dport $(expr $i + $host % 10 + 1100) -j DNAT --to-destination 192.168.124.$host:$i ; done ; done ' >> /etc/init.d/boot.local
   /etc/init.d/boot.local
 
   n=150 ; while test $n -gt 0 && ! nc -z $adminip 22 ; do
@@ -193,8 +193,9 @@ EOF
   echo "waiting some more for sshd+named to start"
   sleep 25
   echo "connecting to crowbar admin server at $adminip"
+  scp -p install-chef-suse.sh root@$adminip:/tmp/
   scp qa_crowbarsetup.sh root@$adminip:
-  sshrun "echo `hostname` > cloud ; cloudsource=$cloudsource installcrowbar=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "echo `hostname` > cloud ; cloudsource=$cloudsource TESTHEAD=$TESTHEAD installcrowbar=1 bash -x qa_crowbarsetup.sh virtual"
 }
 
 

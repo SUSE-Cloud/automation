@@ -58,6 +58,9 @@ rm -f /etc/sysconfig/network/ifcfg-br0
 echo "default $net.1 - -" > /etc/sysconfig/network/routes
 echo "crowbar.$cloud.cloud.suse.de" > /etc/HOSTNAME
 hostname `cat /etc/HOSTNAME`
+# these vars are used by rabbitmq
+export HOSTNAME=`cat /etc/HOSTNAME`
+export HOST=$HOSTNAME
 grep -q "$net.*crowbar" /etc/hosts || echo $net.10 crowbar.$cloud.cloud.suse.de crowbar >> /etc/hosts
 rcnetwork restart
 hostname -f # make sure it is a FQDN
@@ -98,6 +101,9 @@ mount -o loop,ro $CLOUDDISTURL/*.iso /mnt/cloud
 rsync -a --delete-after /mnt/cloud/ . ; umount /mnt/cloud
 rm -rf "dist.suse.de"
 zypper ar /srv/tftpboot/repos/Cloud Cloud
+if [ -n "$TESTHEAD" ] ; then
+	zypper ar http://download.suse.de/ibs/Devel:/Cloud/SLE_11_SP2/Devel:Cloud.repo
+fi
 # --no-gpg-checks for Devel:Cloud repo
 zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
 zypper --no-gpg-checks -n in -t pattern cloud_admin # for Beta2
@@ -141,7 +147,7 @@ fi
 
 rm -f /tmp/chef-ready
 # run in screen to not lose session in the middle when network is reconfigured:
-screen -d -m -L /bin/bash -c '/opt/dell/bin/install-chef-suse.sh ; touch /tmp/chef-ready'
+screen -d -m -L /bin/bash -c 'if [ -e /tmp/install-chef-suse.sh ] ; then /tmp/install-chef-suse.sh ; else /opt/dell/bin/install-chef-suse.sh ; fi ; touch /tmp/chef-ready'
 n=300
 while [ $n -gt 0 ] && [ ! -e /tmp/chef-ready ] ; do
 	n=$(expr $n - 1)
