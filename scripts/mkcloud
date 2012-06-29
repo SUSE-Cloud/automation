@@ -270,7 +270,7 @@ EOLIBVIRT
   echo "Waiting for the installation of the nodes ..."
   sshrun '
   for i in 1 2 ; do
-    echo -n "Waiting for node $i... "
+    echo -n "Waiting for node $i: "
     while ! ssh -o NumberOfPasswordPrompts=0 -o "StrictHostKeyChecking no" 192.168.124.8$i rpm -q yast2-core 2>/dev/null 1>&2; do
       sleep 10
       echo -n "."
