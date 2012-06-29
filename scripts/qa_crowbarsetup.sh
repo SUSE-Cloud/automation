@@ -132,7 +132,8 @@ if [ $cloud != virtual ] ; then
               -e "s/500/$vlan_fixed/g" \
 		$netfiles
 else
-              sed -i.netbak -e 's/"use_vlan": true/"use_vlan": false/' $netfiles
+    sed -i.netbak -e 's/"use_vlan": true/"use_vlan": false/' $netfiles
+    sed -i.netbak -e 's#"router": "192.168.122.1"#"router": "192.168.124.1"#' $netfiles
 fi
 if [ $cloud = p ] ; then
 	# production cloud has a /21 network
