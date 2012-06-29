@@ -121,6 +121,7 @@ if [ ! -e "/srv/tftpboot/suse-11.2/install/media.1/" ] ; then
 	rm *.iso
 fi
 
+netfiles="/opt/dell/barclamps/network/chef/data_bags/crowbar/bc-template-network.json /opt/dell/chef/data_bags/crowbar/bc-template-network.json"
 if [ $cloud != virtual ] ; then
 	sed -i.netbak -e "s/192.168.124/$net/g" \
               -e "s/192.168.125/10.122.$net_storage/g" \
@@ -129,11 +130,13 @@ if [ $cloud != virtual ] ; then
               -e "s/200/$vlan_storage/g" \
               -e "s/300/$vlan_public/g" \
               -e "s/500/$vlan_fixed/g" \
-              /opt/dell/barclamps/network/chef/data_bags/crowbar/bc-template-network.json
+		$netfiles
+else
+              sed -i.netbak -e 's/"use_vlan": true/"use_vlan": false/' $netfiles
 fi
 if [ $cloud = p ] ; then
 	# production cloud has a /21 network
-	perl -i.perlbak -pe 'if(m/255.255.255.0/){$n++} if($n==3){s/255.255.255.0/255.255.248.0/}' /opt/dell/barclamps/network/chef/data_bags/crowbar/bc-template-network.json
+	perl -i.perlbak -pe 'if(m/255.255.255.0/){$n++} if($n==3){s/255.255.255.0/255.255.248.0/}' $netfiles
 fi
 
 #+bmc router
