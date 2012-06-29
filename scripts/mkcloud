@@ -261,6 +261,7 @@ function instcompute()
 </domain>
 EOLIBVIRT
 
+    virsh destroy cloud-node$i
     virsh create /tmp/cloud-node$i.xml
   done
 
