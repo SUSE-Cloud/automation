@@ -97,6 +97,8 @@ case $cloudsource in
 	;;
 esac
 wget -q -r -np -nc -A "$CLOUDDISTISO" http://$CLOUDDISTURL/
+echo $CLOUDDISTURL/*.iso > /etc/cloudversion
+echo -n "This cloud was installed from: " | cat - /etc/cloudversion >> /etc/motd
 mount -o loop,ro $CLOUDDISTURL/*.iso /mnt/cloud
 rsync -a --delete-after /mnt/cloud/ . ; umount /mnt/cloud
 rm -rf "dist.suse.de"
