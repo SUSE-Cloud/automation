@@ -40,7 +40,7 @@ case $cloud in
 		echo "Unknown Cloud"
 		exit 1
 	;;
-esac	
+esac
 
 if [ -n "$installcrowbar" ] ; then
 
@@ -87,7 +87,7 @@ case $cloudsource in
 		CLOUDDISTISO="SLE-CLOUD*Media1.iso"
 	;;
 	Beta*)
-		
+
 		CLOUDDISTURL=$d/install/SLE-11-SP2-CLOUD-$cloudsource/
 		CLOUDDISTISO="SLE-CLOUD*$cloudsource-DVD1.iso"
 	;;
@@ -171,7 +171,14 @@ if ! curl -s http://localhost:3000 > /dev/null ; then
 	echo "crowbar self-test failed"
 	exit 84
 fi
+
+if ! (rcxinetd status && rcdhcpd status) ; then
+   echo "Error: provisioner failed to configure all needed services!"
+   echo "Please fix manually."
+   exit 67
 fi
+
+fi # -n "$installcrowbar"
 
 if [ -n "$allocate" ] ; then
 . /etc/profile.d/crowbar.sh
