@@ -152,6 +152,10 @@ if [ ! -e /srv/tftpboot/repos/SLES11-SP2-Core ] ; then
 	sed -i.bak2 -e 's#<media_url>http://<%= @admin_node_ip %>:8091/repos/SLES11-SP1-Pool/#<media_url>http://euklid.suse.de/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1-POOL/#' -e 's#/repos/SLES11-SP2-Core/#/suse-11.2/install/#' /opt/dell/barclamps/provisioner/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
 fi
 
+# to allow integration into external DNS:
+f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
+grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
+
 rm -f /tmp/chef-ready
 # run in screen to not lose session in the middle when network is reconfigured:
 screen -d -m -L /bin/bash -c 'if [ -e /tmp/install-chef-suse.sh ] ; then /tmp/install-chef-suse.sh ; else /opt/dell/bin/install-chef-suse.sh ; fi ; touch /tmp/chef-ready'
