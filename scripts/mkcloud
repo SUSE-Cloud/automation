@@ -265,6 +265,10 @@ EOLIBVIRT
     virsh destroy cloud-node$i
     virsh create /tmp/cloud-node$i.xml
   done
+  sleep 14
+  for i in 2 ; do # work around bridge forward delay or something causing pxelinux transfer fail on one node
+    virsh send-key cloud-node$i KEY_RIGHTCTRL KEY_RIGHTALT KEY_DELETE
+  done
 
   scp qa_crowbarsetup.sh root@$adminip:
   sshrun "cloudsource=$cloudsource allocate=1 bash -x qa_crowbarsetup.sh virtual"
