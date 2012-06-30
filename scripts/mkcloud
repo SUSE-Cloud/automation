@@ -41,9 +41,10 @@ EOSSH
   for i in 1 2 ; do
     lvcreate -n node$i -L 20G cloud
   done
-  cd /tmp
+  pushd /tmp
   wget -nc http://openqa.suse.de/sle/img/SP2-64up.img.gz
   gzip -cd SP2-64up.img.gz > /dev/cloud/admin
+  popd
 
   # make a bigger partition 2
   echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/cloud/admin
