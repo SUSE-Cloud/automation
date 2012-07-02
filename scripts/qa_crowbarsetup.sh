@@ -217,6 +217,42 @@ for service in database postgresql keystone glance nova nova_dashboard ; do
 done
 fi
 
+if [ -n "$testsetup" ] ; then
+	novacontroller=`crowbar nova proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova']['elements']['nova-multi-controller']"`
+	if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
+		echo "no nova contoller - something went wrong"
+		exit 62
+	fi
+	echo "openstack nova contoller: $novacontroller"
+	ssh $novacontroller '
+		. .openrc
+		nova list
+		glance index
+		curl http://openqa.suse.de/sle/img/SP2-64up.img.gz | gzip -cd | glance add name=SP2-64 is_public=True disk_format=raw container_format=bare
+		nova keypair-add --pub_key /root/.ssh/id_rsa.pub testkey
+		nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
+		nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
+		nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
+		nova boot --image SP2-64 --flavor 1 --key_name testkey testvm | tee boot.out
+		instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
+		sleep 30
+		vmip=`nova show $instanceid | perl -ne "m/ nova_fixed.network [ |]*([0-9.]+)/ && print \\$1"`
+		n=300 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $vmip >/dev/null ; do
+		  n=$(expr $n - 1)
+		  echo -n .
+		done
+		if [ $n = 0 ] ; then
+			echo testvm boot or net failed
+			exit 94
+		fi
+		if ! ssh $vmip curl www3.zq1.de/test ; then
+			echo could not reach internet
+			exit 95
+		fi
+	'
+	ret=$?
+	echo ret:$ret
+fi
 
 
 #BMCs at 10.122.178.163-6 #node 6-9
