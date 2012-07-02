@@ -53,6 +53,8 @@ EOSSH
   resize2fs /dev/loop0
   sync
   losetup -d /dev/loop0
+
+  grep -q crowbar /etc/hosts || echo "192.168.124.10  crowbar.virtual.cloud.suse.de crowbar" >> /etc/hosts
 }
 
 function sshrun()
@@ -203,10 +205,30 @@ EOF
   sshrun "echo `hostname` > cloud ; cloudsource=$cloudsource TESTHEAD=$TESTHEAD installcrowbar=1 bash -x qa_crowbarsetup.sh virtual"
 }
 
+function mkvlan()
+{
+  DEFVLAN=$1 ; shift
+  IP=$1 ; shift
+  cat > /etc/sysconfig/network/ifcfg-virbr1.$DEFVLAN <<EONET
+# VLAN Interface for the xxx network
+USERCONTROL='no'
+STARTMODE='auto'
+BOOTPROTO='static'
+ETHERDEVICE='virbr1'
+IPADDR='$IP/24'
+VLAN_ID=$DEFVLAN
+EONET
 
+  ifup virbr1.$DEFVLAN
+}
 
 function instcompute()
 {
+  # public = 300
+  mkvlan 300 192.168.122.1
+  # nova-fixed = 500
+  mkvlan 500 192.168.123.254
+
   for i in 1 2 ; do
     cat > /tmp/cloud-node$i.xml <<EOLIBVIRT
 <domain type='kvm'>
