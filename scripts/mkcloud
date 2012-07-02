@@ -42,7 +42,7 @@ EOSSH
     lvcreate -n node$i -L 20G cloud
   done
   pushd /tmp
-  wget -nc http://openqa.suse.de/sle/img/SP2-64up.img.gz
+  wget -nc http://clouddata.cloud.suse.de/images/SP2-64up.img.gz
   gzip -cd SP2-64up.img.gz > /dev/cloud/admin
   popd
 
@@ -55,6 +55,9 @@ EOSSH
   losetup -d /dev/loop0
 
   grep -q crowbar /etc/hosts || echo "192.168.124.10  crowbar.virtual.cloud.suse.de crowbar" >> /etc/hosts
+  for i in 1 2 ; do
+    grep -q node$i /etc/hosts || echo "192.168.124.8$i  node$i.virtual.cloud.suse.de node$i" >> /etc/hosts
+  done
 }
 
 function sshrun()
