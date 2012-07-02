@@ -209,6 +209,9 @@ if [ $cloud != virtual ] ; then
 	wait
 fi
 
+# Another location for the 'crowbar' binary, useful when used with 'mkcloud'
+export PATH=/opt/dell/barclamps/crowbar/bin/:$PATH
+
 echo "Waiting for nodes to come up..."
 while ! crowbar machines list | grep ^d ; do sleep 10 ; done
 echo "Found one node"
