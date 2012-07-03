@@ -3,7 +3,12 @@
 CVOL=/dev/vdb
 precleanup=true
 adminip=192.168.124.10
-cloudsource=${cloudsource:-Beta1}
+
+if [ -z $cloudsource ] ; then
+  echo "Please set the env variable:"
+  echo "export cloudsource=Beta?|develcloud|susecloud"
+  exit 1
+fi
 
 if [ ! -e qa_crowbarsetup.sh ] ; then
   echo "Thank you for using $0."
