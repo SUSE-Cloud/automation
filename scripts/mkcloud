@@ -23,6 +23,7 @@ function cleanup()
   done
   umount /mnt
   losetup -d /dev/loop0
+  return 0
 }
 
 function prepare()
@@ -65,6 +66,7 @@ EOSSH
 function sshrun()
 {
   ssh root@$adminip "$@"
+  return $?
 }
 
 function instadmin()
@@ -208,6 +210,7 @@ EOF
   scp -p install-chef-suse.sh root@$adminip:/tmp/
   scp qa_crowbarsetup.sh root@$adminip:
   sshrun "echo `hostname` > cloud ; cloudsource=$cloudsource TESTHEAD=$TESTHEAD installcrowbar=1 bash -x qa_crowbarsetup.sh virtual"
+  return $?
 }
 
 function mkvlan()
@@ -299,6 +302,8 @@ EOLIBVIRT
 
   scp qa_crowbarsetup.sh root@$adminip:
   sshrun "cloudsource=$cloudsource allocate=1 bash -x qa_crowbarsetup.sh virtual"
+  ret=$?
+  [ $ret != 0 ] && return $ret
 
   echo "Waiting for the installation of the nodes ..."
   sshrun '
@@ -311,7 +316,7 @@ EOLIBVIRT
     echo "node $i ready"
   done
   '
-
+  return $?
 }
 
 
@@ -319,6 +324,7 @@ function proposal()
 {
   scp qa_crowbarsetup.sh root@$adminip:
   sshrun "cloudsource=$cloudsource proposal=1 bash -x qa_crowbarsetup.sh virtual"
+  return $?
 }
 
 ## MAIN ##
@@ -341,10 +347,10 @@ case $1 in
     cleanup
   ;;
   all)
-    cleanup
-    prepare
-    instadmin
-    instcompute
+    cleanup && \
+    prepare && \
+    instadmin && \
+    instcompute && \
     proposal
   ;;
   *) echo "$0 all|cleanup|prepare|instadmin|instcompute|proposal";
