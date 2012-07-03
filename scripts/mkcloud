@@ -28,6 +28,7 @@ function cleanup()
   done
   umount /mnt
   losetup -d /dev/loop0
+  rm -f /var/run/libvirt/qemu/cloud*.xml /var/lib/libvirt/network/cloud*.xml
   return 0
 }
 
