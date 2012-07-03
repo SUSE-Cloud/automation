@@ -21,6 +21,8 @@ function cleanup()
   for node in node1 node2 ; do
     dd if=/dev/zero of=/dev/cloud/$node count=1 bs=512
   done
+  umount /mnt
+  losetup -d /dev/loop0
 }
 
 function prepare()
@@ -138,7 +140,7 @@ EOLIBVIRT
     <uuid>76b08f53-4fe0-3bb6-8220-d4cfc7b23423</uuid>
     <bridge name='virbr1' stp='on' delay='0' />
     <mac address='52:54:00:AB:B1:77'/>
-    <ip address='192.168.124.1' netmask='255.255.255.0'>
+    <ip address='192.168.124.1' netmask='255.255.248.0'>
       <dhcp>
         <host mac="52:54:00:77:77:70" name="crowbar.example.com" ip="$adminip"/>
       </dhcp>
