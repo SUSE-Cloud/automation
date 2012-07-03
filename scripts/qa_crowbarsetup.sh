@@ -197,6 +197,12 @@ if ! curl -s http://localhost:3000 > /dev/null ; then
 	exit 84
 fi
 
+if ! crowbar machines list | grep -q crowbar.$cloud ; then
+	tail -30 /tmp/screenlog.0
+	echo "crowbar 2nd self-test failed"
+	exit 85
+fi
+
 if ! (rcxinetd status && rcdhcpd status) ; then
    echo "Error: provisioner failed to configure all needed services!"
    echo "Please fix manually."
@@ -205,8 +211,8 @@ fi
 
 fi # -n "$installcrowbar"
 
-if [ -n "$allocate" ] ; then
 . /etc/profile.d/crowbar.sh
+if [ -n "$allocate" ] ; then
 
 #chef-client
 if [ $cloud != virtual ] ; then
@@ -218,9 +224,6 @@ if [ $cloud != virtual ] ; then
 	done
 	wait
 fi
-
-# Another location for the 'crowbar' binary, useful when used with 'mkcloud'
-export PATH=/opt/dell/barclamps/crowbar/bin/:$PATH
 
 echo "Waiting for nodes to come up..."
 while ! crowbar machines list | grep ^d ; do sleep 10 ; done
