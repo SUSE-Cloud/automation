@@ -98,9 +98,15 @@ case $cloudsource in
 esac
 wget -q -r -np -nc -A "$CLOUDDISTISO" http://$CLOUDDISTURL/
 echo $CLOUDDISTURL/*.iso > /etc/cloudversion
-echo -n "This cloud was installed from: " | cat - /etc/cloudversion >> /etc/motd
-mount -o loop,ro $CLOUDDISTURL/*.iso /mnt/cloud
+echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
+mount -o loop,ro -t iso9660 $CLOUDDISTURL/*.iso /mnt/cloud
 rsync -a --delete-after /mnt/cloud/ . ; umount /mnt/cloud
+if [ ! -e "/srv/tftpboot/repos/Cloud/media.1" ] ; then
+	echo "We do not have cloud install media - giving up"
+	exit 35
+fi
+
+
 rm -rf "dist.suse.de"
 zypper ar /srv/tftpboot/repos/Cloud Cloud
 if [ -n "$TESTHEAD" ] ; then
@@ -130,10 +136,14 @@ cd /tmp
 # just as a fallback if nfs did not work
 if [ ! -e "/srv/tftpboot/suse-11.2/install/media.1/" ] ; then
 	wget -q -nc http://dist.suse.de/install/SLES-11-SP2-GM/SLES-11-SP2-DVD-x86_64-GM-DVD1.iso
-	mount -o loop,ro *.iso /mnt
+	mount -o loop,ro -t iso9660 *.iso /mnt
 	rsync -a /mnt/ /srv/tftpboot/suse-11.2/install/
 	umount /mnt
 	rm *.iso
+fi
+if [ ! -e "/srv/tftpboot/suse-11.2/install/media.1/" ] ; then
+	echo "We do not have SLES install media - giving up"
+	exit 34
 fi
 
 netfiles="/opt/dell/barclamps/network/chef/data_bags/crowbar/bc-template-network.json /opt/dell/chef/data_bags/crowbar/bc-template-network.json"
