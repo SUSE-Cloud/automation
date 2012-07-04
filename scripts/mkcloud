@@ -340,6 +340,13 @@ function proposal()
   return $?
 }
 
+function testsetup()
+{
+  scp qa_crowbarsetup.sh root@$adminip:
+  sshrun "cloudsource=$cloudsource testsetup=1 bash -x qa_crowbarsetup.sh virtual"
+  return $?
+}
+
 ## MAIN ##
 
 
@@ -359,13 +366,24 @@ case $1 in
   cleanup)
     cleanup
   ;;
+  testsetup)
+    testsetup
+  ;;
   all)
+    cleanup && \
+    prepare && \
+    instadmin && \
+    instcompute && \
+    proposal && \
+    testsetup
+  ;;
+  plain)
     cleanup && \
     prepare && \
     instadmin && \
     instcompute && \
     proposal
   ;;
-  *) echo "$0 all|cleanup|prepare|instadmin|instcompute|proposal";
+  *) echo "$0 all|plain|cleanup|prepare|instadmin|instcompute|proposal|testsetup";
   ;;
 esac
