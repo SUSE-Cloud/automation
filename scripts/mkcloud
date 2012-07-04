@@ -6,7 +6,7 @@ adminip=192.168.124.10
 
 SCRIPT=$(basename $0)
 # must be > 2 as the backticks count as well as separate process with the same name
-if [ `ps aux | grep -v grep | grep $SCRIPT | wc -l` -gt 2 ]  ; then
+if [ `ps aux | grep -v -e grep -e SCREEN | grep $SCRIPT | wc -l` -gt 2 ]  ; then
   echo "Warning: mkcloud was started twice."
   echo "This is not supported ... exiting."
   exit 33
