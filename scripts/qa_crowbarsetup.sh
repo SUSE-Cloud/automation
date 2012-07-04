@@ -190,6 +190,9 @@ if [ $n = 0 ] ; then
 	echo "timed out waiting for chef-ready"
 	exit 83
 fi
+
+. /etc/profile.d/crowbar.sh
+
 sleep 20
 if ! curl -s http://localhost:3000 > /dev/null ; then
 	tail -30 /tmp/screenlog.0
