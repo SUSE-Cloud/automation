@@ -48,33 +48,26 @@ UserKnownHostsFile /dev/null
 StrictHostKeyChecking no
 EOSSH
 
+  pvcreate $CVOL
+  vgcreate cloud $CVOL
   vgchange -ay cloud # for later boots
-  if [ -e /dev/cloud/admin-template ] ; then
-    echo "Using existing LVM snapshot for admin node."
-  else
-    pvcreate $CVOL
-    vgcreate cloud $CVOL
-    lvcreate -n admin-template -L 12G cloud
-    pushd /tmp
-    wget -nc http://clouddata.cloud.suse.de/images/SP2-64up.img.gz
-    gzip -cd SP2-64up.img.gz > /dev/cloud/admin-template
-    popd
-    # make a bigger partition 2
-    echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/cloud/admin-template
-    losetup -o $(expr 2056192 \* 512) /dev/loop0 /dev/cloud/admin-template
-    fsck -f /dev/loop0
-    resize2fs /dev/loop0
-    sync
-    losetup -d /dev/loop0
-  fi
-  # create lvm snapshot
-  lvremove --force /dev/cloud/admin
-  lvcreate -L 12G -s -n admin /dev/cloud/admin-template
 
-  # create node lvms
+  lvcreate -n admin -L 15G cloud
   for i in 1 2 ; do
     lvcreate -n node$i -L 20G cloud
   done
+  pushd /tmp
+  wget -nc http://clouddata.cloud.suse.de/images/SP2-64up.img.gz
+  gzip -cd SP2-64up.img.gz > /dev/cloud/admin
+  popd
+
+  # make a bigger partition 2
+  echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/cloud/admin
+  losetup -o $(expr 2056192 \* 512) /dev/loop0 /dev/cloud/admin
+  fsck -f /dev/loop0
+  resize2fs /dev/loop0
+  sync
+  losetup -d /dev/loop0
 
   grep -q crowbar /etc/hosts || echo "192.168.124.10  crowbar.virtual.cloud.suse.de crowbar" >> /etc/hosts
   for i in 1 2 ; do
