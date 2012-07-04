@@ -240,11 +240,42 @@ done
 
 fi
 
+function nodeready()
+{
+  test x`crowbar machines show $1 | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['state']"` = xready
+}
+
+function waitnodes()
+{
+  echo -n "Waiting for nodes to get ready before deploying $1: "
+  for i in 1 2 ; do
+    n=200
+    while test $n -gt 0 && ! nodeready d52-54-00-77-77-7$i.$cloud.cloud.suse.de ; do
+      sleep 5
+      n=$((n-1))
+      echo -n "."
+    done
+    echo "node $i ready"
+  done
+
+  if [ $n == 0 ] ; then
+    echo "Error: Waiting for the nodes timed out. Exiting."
+    exit 74
+  fi
+}
+
 if [ -n "$proposal" ] ; then
 for service in database postgresql keystone glance nova nova_dashboard ; do
     [ $service == "postgresql" -a $cloudsource != "Beta1" ] && continue
+    waitnodes $service
 	crowbar "$service" proposal create default
 	crowbar "$service" proposal commit default
+    ret=$?
+    echo "exitcode: $ret"
+    if [ $ret != 0 ] ; then
+      echo "Error: commiting the crowbar proposal for '$service' failed ($ret)."
+      exit 73
+    fi
 done
 fi
 
