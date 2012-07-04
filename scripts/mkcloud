@@ -203,7 +203,7 @@ EOF
     n=$(expr $n - 1)
     echo -n "."
   done
-  grep "iptables -t nat -F PREROUTING" /etc/init.d/boot.local || echo 'iptables -t nat -F PREROUTING ; for i in 22 80 3000 4000 4040 ; do iptables -I FORWARD -p tcp --dport $i -j ACCEPT ; for host in 10 81 82 ; do iptables -t nat -I PREROUTING -p tcp --dport $(expr $i + $host % 10 + 1100) -j DNAT --to-destination 192.168.124.$host:$i ; done ; done ' >> /etc/init.d/boot.local
+  grep "iptables -t nat -F PREROUTING" /etc/init.d/boot.local || echo 'iptables -t nat -F PREROUTING ; for i in 22 80 3000 4000 4040 ; do iptables -I FORWARD -p tcp --dport $i -j ACCEPT ; for host in 10 81 82 ; do iptables -t nat -I PREROUTING -p tcp --dport $(expr $i + $host % 10 + 1100) -j DNAT --to-destination 192.168.124.$host:$i ; done ; done ; echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter' >> /etc/init.d/boot.local
   /etc/init.d/boot.local
 
   n=150 ; while test $n -gt 0 && ! nc -z $adminip 22 ; do
