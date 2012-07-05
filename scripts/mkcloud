@@ -200,7 +200,11 @@ EOLIBVIRTNET
   echo "Waiting for libvirt startup..."
   sleep 5
   [ -e /etc/libvirt/qemu/networks/cloud-admin.xml ] || virsh net-create /tmp/cloud-admin.net.xml
-  [ -e /etc/libvirt/qemu/cloud-admin.xml ] || virsh create /tmp/cloud-admin.xml
+  if ! virsh create /tmp/cloud-admin.xml ; then
+    echo "=====================================================>>"
+    echo "Error: Could not create VM for: cloud-admin"
+    exit 76
+  fi
 
   #sleep 60 # time to boot up
   #adminip=`grep 52:54:00:77:77:70 /var/lib/libvirt/dnsmasq/cloud-admin.leases | cut -d" " -f3`
@@ -313,7 +317,11 @@ function instcompute()
 EOLIBVIRT
 
     virsh destroy cloud-node$i
-    virsh create /tmp/cloud-node$i.xml
+    if ! virsh create /tmp/cloud-node$i.xml ; then
+      echo "=====================================================>>"
+      echo "Error: Could not create VM for: node$i"
+      exit 74
+    fi
   done
   sleep 14
   for i in 2 ; do # work around bridge forward delay or something causing pxelinux transfer fail on one node
