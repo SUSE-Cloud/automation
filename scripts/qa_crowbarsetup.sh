@@ -265,11 +265,13 @@ function waitnodes()
 }
 
 if [ -n "$proposal" ] ; then
+waitnodes $service
 for service in database postgresql keystone glance nova nova_dashboard ; do
     [ $service == "postgresql" -a $cloudsource != "Beta1" ] && continue
-    waitnodes $service
 	crowbar "$service" proposal create default
 	crowbar "$service" proposal commit default
+    waitnodes $service
+    sleep 10
     ret=$?
     echo "exitcode: $ret"
     if [ $ret != 0 ] ; then
