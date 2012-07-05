@@ -194,28 +194,6 @@ EOLIBVIRT
 EOLIBVIRTNET
 
 
-  # configure bridge
-  if [ ! -e /etc/sysconfig/network/ifcfg-br1 ] ; then
-          echo "net.ipv4.conf.all.proxy_arp = 1" >> /etc/sysctl.conf
-          cat >/etc/sysconfig/network/ifcfg-br1 <<EOF
-BOOTPROTO='static'
-BRIDGE='yes'
-BRIDGE_FORWARDDELAY='0'
-BRIDGE_PORTS=''
-BRIDGE_STP='off'
-BROADCAST=''
-ETHTOOL_OPTIONS=''
-IPADDR='192.168.55.1/24'
-MTU=''
-NETMASK=''
-NETWORK=''
-REMOTE_IPADDR=''
-STARTMODE='onboot'
-USERCONTROL='no'
-EOF
-    ifup br1
-  fi
-
   modprobe kvm-amd
   insserv libvirtd
   rclibvirtd start
