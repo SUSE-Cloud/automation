@@ -70,6 +70,7 @@ function prepare()
   zypper --non-interactive in --no-recommends libvirt kvm lvm2 wget bridge-utils dnsmasq netcat-openbsd ebtables
 
   grep -q NumberOfPasswordPrompts ~/.ssh/config 2>/dev/null || cat > ~/.ssh/config <<EOSSH
+Host crowbar 192.168.124.10
 NumberOfPasswordPrompts 0
 UserKnownHostsFile /dev/null
 StrictHostKeyChecking no
@@ -316,7 +317,7 @@ function instcompute()
 </domain>
 EOLIBVIRT
 
-    virsh destroy cloud-node$i
+    virsh destroy cloud-node$i 2>/dev/null
     if ! virsh create /tmp/cloud-node$i.xml ; then
       echo "=====================================================>>"
       echo "Error: Could not create VM for: node$i"
