@@ -1,4 +1,33 @@
 #!/bin/bash
+#
+# mkcloud - Setup a virtual cloud on one system (physical or even virtual)
+#
+# Authors: J. Daniel Schmidt <jdsn@suse.de>
+#          Bernhard M. Wiedemann <bwiedemann@suse.de>
+#
+# 2012, SUSE LINUX Products GmbH
+#
+
+# Quick introduction:
+#
+# This tool relies on the script qa_crowbarsetup.sh (in the same directory)
+# Please 'export' environment variables according to your needs:
+#
+# CVOL=/dev/vdx  (default=/dev/vdb)
+#       device where a LVM physical volume can be created
+#       should be at least 80 GB
+#       the volume group will be called "cloud"
+#
+# cloudsource=develcloud|susecloud|Beta?   (required, no default)
+#       defines the source for the installation of the cloud product
+#       develcloud : product from IBS Devel:Cloud
+#       susecloud  : product from IBS SUSE:Cloud
+#       Beta?      : uses official Beta? ISO image (? is a number)
+#
+# TESTHEAD=''|1   (default='')
+#                will use latest published packages from Devel:Cloud
+#                even if there is no new ISO created yet
+
 
 CVOL=${CVOL:-/dev/vdb}
 if grep -q $CVOL /proc/mounts ; then
