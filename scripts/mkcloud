@@ -32,6 +32,25 @@ if [ ! -e qa_crowbarsetup.sh ] ; then
   exit 87
 fi
 
+
+cpuflags="<cpu match='minimum'>
+    <model>qemu64</model>
+    <feature policy='require' name='fxsr_opt'/>
+    <feature policy='require' name='mmxext'/>
+    <feature policy='require' name='lahf_lm'/>
+    <feature policy='require' name='sse4a'/>
+    <feature policy='require' name='abm'/>
+    <feature policy='require' name='cr8legacy'/>
+    <feature policy='require' name='misalignsse'/>
+    <feature policy='require' name='popcnt'/>
+    <feature policy='require' name='pdpe1gb'/>
+    <feature policy='require' name='cx16'/>
+    <feature policy='require' name='3dnowprefetch'/>
+    <feature policy='require' name='cmp_legacy'/>
+    <feature policy='require' name='monitor'/>
+  </cpu>"
+grep -q "flags.* npt" /proc/cpuinfo || cpuflags=""
+
 function cleanup()
 {
   # cleanup leftover from last run
@@ -117,6 +136,7 @@ function instadmin()
       <apic/>
       <pae/>
     </features>
+    $cpuflags
     <clock offset='utc'/>
     <on_poweroff>preserve</on_poweroff>
     <on_reboot>restart</on_reboot>
@@ -274,6 +294,7 @@ function instcompute()
     <apic/>
     <pae/>
   </features>
+  $cpuflags
   <clock offset='utc'/>
   <on_poweroff>preserve</on_poweroff>
   <on_reboot>restart</on_reboot>
