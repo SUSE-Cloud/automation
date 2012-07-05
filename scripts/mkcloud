@@ -1,6 +1,14 @@
 #!/bin/bash
 
-CVOL=/dev/vdb
+CVOL=${CVOL:-/dev/vdb}
+if grep -q $CVOL /proc/mounts ; then
+  echo "The device $CVOL seems to be used. Exiting."
+  exit 92
+fi
+if [ ! -e $CVOL ] ; then
+  echo "Please set the cloud volume group: export CVOL=/dev/sdx"
+  exit 93
+fi
 precleanup=true
 adminip=192.168.124.10
 
