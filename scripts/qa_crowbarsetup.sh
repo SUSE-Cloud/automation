@@ -240,6 +240,11 @@ done
 
 fi
 
+function proposalsuccess()
+{
+  test x`crowbar $1 proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$1']['crowbar-status']"` = xsuccess
+}
+
 function nodeready()
 {
   test x`crowbar machines show $1 | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['state']"` = xready
@@ -247,30 +252,51 @@ function nodeready()
 
 function waitnodes()
 {
-  echo -n "Waiting for nodes to get ready before deploying $1: "
-  for i in 1 2 ; do
-    n=800
-    while test $n -gt 0 && ! nodeready d52-54-00-77-77-7$i.$cloud.cloud.suse.de ; do
-      sleep 5
-      n=$((n-1))
-      echo -n "."
-    done
-    echo "node $i ready"
-  done
+  n=800
+  mode=$1
+  proposal=$2
+  case $mode in
+    nodes)
+      echo -n "Waiting for nodes to get ready: "
+      for i in 1 2 ; do
+        while test $n -gt 0 && \
+              ! nodeready d52-54-00-77-77-7$i.$cloud.cloud.suse.de ; do
+          sleep 5
+          n=$((n-1))
+          echo -n "."
+        done
+        echo "node $i ready"
+      done
+      ;;
+    proposal)
+      echo -n "Waiting for proposal to get successful: "
+      while test $n -gt 0 && \
+            ! proposalsuccess $proposal ; do
+        sleep 5
+        n=$((n-1))
+        echo -n "."
+      done
+      echo "proposal $proposal successful"
+      ;;
+    default)
+      echo "Error: waitnodes was called with wrong parameters"
+      exit 72
+      ;;
+  esac
 
   if [ $n == 0 ] ; then
-    echo "Error: Waiting for the nodes timed out. Exiting."
+    echo "Error: Waiting timed out. Exiting."
     exit 74
   fi
 }
 
 if [ -n "$proposal" ] ; then
-waitnodes $service
+waitnodes nodes
 for service in database postgresql keystone glance nova nova_dashboard ; do
     [ $service == "postgresql" -a $cloudsource != "Beta1" ] && continue
 	crowbar "$service" proposal create default
 	crowbar "$service" proposal commit default
-    waitnodes $service
+    waitnodes proposal $service
     sleep 10
     ret=$?
     echo "exitcode: $ret"
