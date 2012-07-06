@@ -39,7 +39,7 @@ if [ ! -e $CVOL ] ; then
   exit 93
 fi
 
-if grep "devpts.*mode=.00" /proc/mounts ; then
+if grep "devpts.*[^x]mode=.00" /proc/mounts ; then
   echo "Error: /dev/pts is not accessible for libvirt, maybe you use autobuild on your system."
   echo "Please remount it using the following command:"
   echo " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
