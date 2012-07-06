@@ -249,7 +249,7 @@ function waitnodes()
 {
   echo -n "Waiting for nodes to get ready before deploying $1: "
   for i in 1 2 ; do
-    n=200
+    n=800
     while test $n -gt 0 && ! nodeready d52-54-00-77-77-7$i.$cloud.cloud.suse.de ; do
       sleep 5
       n=$((n-1))
@@ -310,10 +310,24 @@ if [ -n "$testsetup" ] ; then
 			echo testvm boot or net failed
 			exit 94
 		fi
+		sleep 30 # time for ssh to start
 		if ! ssh $vmip curl www3.zq1.de/test ; then
 			echo could not reach internet
 			exit 95
 		fi
+		ssh $vmip modprobe acpiphp
+		nova volume-create 1 ; sleep 2
+		nova volume-list
+		lvscan | grep .
+		volumecreateret=$?
+		nova volume-attach $instanceid 1 /dev/vdb
+		sleep 15
+		ssh $vmip fdisk -l /dev/vdb | grep 1073741824
+		volumeattachret=$?
+		nova floating-ip-create | tee floating-ip-create.out
+		floatingip=$(perl -ne "if(/192\.168\.\d+\.\d+/){print \$&}" floating-ip-create.out)
+		nova add-floating-ip $instanceid $floatingip # insufficient permissions
+		test $volumecreateret = 0 && $volumeattachret = 0
 	'
 	ret=$?
 	echo ret:$ret
