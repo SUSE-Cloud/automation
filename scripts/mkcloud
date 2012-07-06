@@ -227,8 +227,19 @@ EOLIBVIRTNET
   modprobe kvm-amd
   insserv libvirtd
   rclibvirtd start
-  echo "Waiting for libvirt startup..."
-  sleep 5
+  echo -n "Waiting for libvirt startup: "
+  n=100 ; while test $n -gt 0 && ! [ -S /var/run/libvirt/libvirt-sock ] ; do
+    echo -n .
+    sleep 3
+  done
+  echo
+  if [ $n = 0 ] ; then
+    echo "Error: libvirtd socket was not created within reasonable time."
+    exit 71
+  else
+    echo "Libvirtd socked created. Continuing."
+  fi
+
   [ -e /etc/libvirt/qemu/networks/cloud-admin.xml ] || virsh net-create /tmp/cloud-admin.net.xml
   if ! virsh create /tmp/cloud-admin.xml ; then
     echo "=====================================================>>"
