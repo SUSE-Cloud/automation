@@ -191,7 +191,7 @@ fi
 f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
 grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
 
-sed -i -e "s#</drive>#<fstopt>data=writeback,barrier=0,noatime</fstopt>&#" /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
+sed -i -e "s#<\(partitions.*\)/>#<\1><partition><mount>swap</mount><size>auto</size></partition><partition><mount>/</mount><size>max</size><fstopt>data=writeback,barrier=0,noatime</fstopt></partition></partitions>#" /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
 
 rm -f /tmp/chef-ready
 # run in screen to not lose session in the middle when network is reconfigured:
