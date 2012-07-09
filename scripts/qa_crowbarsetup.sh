@@ -307,7 +307,7 @@ function waitnodes()
 if [ -n "$proposal" ] ; then
 waitnodes nodes
 for service in database postgresql keystone glance nova nova_dashboard ; do
-    [ $service == "postgresql" -a $cloudsource != "Beta1" ] && continue
+    [ "$service" = "postgresql" -a "$cloudsource" != "Beta1" ] && continue
 	crowbar "$service" proposal create default
 	crowbar "$service" proposal commit default
     waitnodes proposal $service
