@@ -336,14 +336,14 @@ if [ -n "$testsetup" ] ; then
 			echo testvm boot or net failed
 			exit 94
 		fi
-        echo -n "Waiting for the nova controller to come up: "
-        n=500 ; while test $n -gt 0 && ! nc -z $vmip 22 ; do
+        echo -n "Waiting for the VM to come up: "
+        n=500 ; while test $n -gt 0 && ! netcat -z $vmip 22 ; do
           sleep 1
           n=$(($n - 1))
           echo -n "."
         done
         if [ $n = 0 ] ; then
-          echo "nova controller not accessible in reasonable time, exiting."
+          echo "VM not accessible in reasonable time, exiting."
           exit 96
         fi
 		if ! ssh $vmip curl www3.zq1.de/test ; then
