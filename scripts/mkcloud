@@ -91,7 +91,7 @@ grep -q "flags.* npt" /proc/cpuinfo || cpuflags=""
 function cleanup()
 {
   # cleanup leftover from last run
-  for n in admin node1 node2 ; do virsh destroy cloud-$n ; virsh undefine cloud-$n ; done ; virsh net-destroy cloud-admin ; rclibvirtd stop ; killall -9 libvirtd ; ifdown virbr1 ; brctl delbr virbr1 ; tunctl -d virbr1-nic ; killall dnsmasq qemu-kvm ; iptables -F FORWARD
+  for n in admin node1 node2 ; do virsh destroy cloud-$n ; virsh undefine cloud-$n ; done ; virsh net-destroy cloud-admin ; rclibvirtd stop ; killall -9 libvirtd ; ifdown virbr1 ; brctl delbr virbr1 ; tunctl -d virbr1-nic ; killall dnsmasq qemu-kvm ; iptables -F FORWARD ; iptables -F POSTROUTING -t nat
   # zero node volumes to prevent accidental booting
   for node in node1 node2 ; do
     dd if=/dev/zero of=/dev/cloud/$node count=1 bs=512
