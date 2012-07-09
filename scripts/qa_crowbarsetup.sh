@@ -115,8 +115,22 @@ if [ -n "$TESTHEAD" ] ; then
 fi
 # --no-gpg-checks for Devel:Cloud repo
 zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
-zypper --no-gpg-checks -n in -t pattern cloud_admin # for Beta2
-zypper --no-gpg-checks -n in crowbar # for Beta1
+
+if [ $cloudsource = "Beta1" ] ; then
+  zypper --no-gpg-checks -n in crowbar # for Beta1
+  ret=$?
+else
+  zypper --no-gpg-checks -n in -t pattern cloud_admin # for Beta2
+  ret=$?
+fi
+if [ $ret = 0 ] ; then
+  echo "The cloud admin successfully installed."
+  echo ".... continuing"
+else
+  echo "Error: zypper returned with exit code $? when installing cloud admin"
+  exit 86
+fi
+
 
 mkdir -p /srv/tftpboot/suse-11.2/install
 if ! grep -q suse-11.2 /etc/fstab ; then
