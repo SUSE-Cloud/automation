@@ -361,6 +361,9 @@ if [ -n "$testsetup" ] ; then
           echo "VM not accessible in reasonable time, exiting."
           exit 96
         fi
+        WAITSSH=200
+        echo "Waiting $WAITSSH seconds for the SSH keys to be copied over"
+        sleep $WAITSSH
 		if ! ssh $vmip curl www3.zq1.de/test ; then
 			echo could not reach internet
 			exit 95
