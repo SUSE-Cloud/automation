@@ -307,17 +307,17 @@ function waitnodes()
 if [ -n "$proposal" ] ; then
 waitnodes nodes
 for service in database postgresql keystone glance nova nova_dashboard ; do
-    [ "$service" = "postgresql" -a "$cloudsource" != "Beta1" ] && continue
-	crowbar "$service" proposal create default
-	crowbar "$service" proposal commit default
-    waitnodes proposal $service
-    sleep 10
-    ret=$?
-    echo "exitcode: $ret"
-    if [ $ret != 0 ] ; then
-      echo "Error: commiting the crowbar proposal for '$service' failed ($ret)."
-      exit 73
-    fi
+  [ "$service" = "postgresql" -a "$cloudsource" != "Beta1" ] && continue
+  crowbar "$service" proposal create default
+  crowbar "$service" proposal commit default
+  waitnodes proposal $service
+  sleep 10
+  ret=$?
+  echo "exitcode: $ret"
+  if [ $ret != 0 ] ; then
+    echo "Error: commiting the crowbar proposal for '$service' failed ($ret)."
+    exit 73
+  fi
 done
 fi
 
