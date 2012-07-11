@@ -107,7 +107,7 @@ function prepare()
   zypper --non-interactive in --no-recommends libvirt kvm lvm2 wget bridge-utils dnsmasq netcat-openbsd ebtables
 
   grep -q NumberOfPasswordPrompts ~/.ssh/config 2>/dev/null || cat > ~/.ssh/config <<EOSSH
-Host crowbar 192.168.124.10
+Host crowbar $adminip
 NumberOfPasswordPrompts 0
 UserKnownHostsFile /dev/null
 StrictHostKeyChecking no
@@ -134,7 +134,7 @@ EOSSH
   sync
   losetup -d /dev/loop0
 
-  grep -q crowbar /etc/hosts || echo "192.168.124.10  crowbar.virtual.cloud.suse.de crowbar" >> /etc/hosts
+  grep -q crowbar /etc/hosts || echo "$adminip crowbar.virtual.cloud.suse.de crowbar" >> /etc/hosts
   for i in 1 2 ; do
     grep -q node$i /etc/hosts || echo "192.168.124.8$i  node$i.virtual.cloud.suse.de node$i" >> /etc/hosts
   done
