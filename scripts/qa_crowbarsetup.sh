@@ -345,6 +345,10 @@ if [ -n "$testsetup" ] ; then
 		sleep 30
 		vmip=`nova show $instanceid | perl -ne "m/ nova_fixed.network [ |]*([0-9.]+)/ && print \\$1"`
 		echo "VM IP address: $vmip"
+        if [ -z $vmip ] ; then
+          echo "Error: VM IP is empty. Exiting"
+          exit 38
+        fi
 		n=1000 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $vmip >/dev/null ; do
 		  n=$(expr $n - 1)
 		  echo -n .
