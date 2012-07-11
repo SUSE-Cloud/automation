@@ -382,7 +382,7 @@ if [ -n "$testsetup" ] ; then
 		nova floating-ip-create | tee floating-ip-create.out
 		floatingip=$(perl -ne "if(/192\.168\.\d+\.\d+/){print \$&}" floating-ip-create.out)
 		nova add-floating-ip $instanceid $floatingip # insufficient permissions
-		test $volumecreateret = 0 && $volumeattachret = 0
+		test $volumecreateret = 0 -a $volumeattachret = 0
 	'
 	ret=$?
 	echo ret:$ret
