@@ -27,6 +27,10 @@
 # TESTHEAD=''|1   (default='')
 #                will use latest published packages from Devel:Cloud
 #                even if there is no new ISO created yet
+#
+# cephenable=''|1 (default='')
+#                will create a separate 20GB partition for the nodes
+#                for ceph testing
 
 
 CVOL=${CVOL:-/dev/vdb}
@@ -121,6 +125,13 @@ EOSSH
   for i in 1 2 ; do
     lvcreate -n node$i -L 20G cloud
   done
+
+  if [ -n $cephenable ] ; then
+    for i in 1 2 ; do
+    lvcreate -n node$i-ceph -L 20G cloud
+  done
+  fi
+
   pushd /tmp
   wget -nc http://clouddata.cloud.suse.de/images/SP2-64up.img.gz
   gzip -cd SP2-64up.img.gz > /dev/cloud/admin
@@ -309,7 +320,19 @@ function instcompute()
   # nova-fixed = 500
   mkvlan 500 192.168.123.254
 
+
   for i in 1 2 ; do
+    cephvolume="<disk type='block' device='disk'>
+      <serial>cloud-node$i-ceph</serial>
+      <driver name='qemu' type='raw'/>
+      <source dev='/dev/cloud/node$i-ceph'/>
+      <target dev='vdb' bus='virtio'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+    </disk>"
+    if [ -z $cephenable ] ; then
+      cephvolume=''
+    fi
+
     cat > /tmp/cloud-node$i.xml <<EOLIBVIRT
 <domain type='kvm'>
   <name>cloud-node$i</name>
@@ -339,6 +362,7 @@ function instcompute()
       <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
       <boot order='2'/>
     </disk>
+    $cephvolume
     <interface type='network'>
       <mac address='52:54:00:77:77:7$i'/>
       <source network='cloud-admin'/>
