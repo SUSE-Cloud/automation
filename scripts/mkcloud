@@ -126,7 +126,7 @@ EOSSH
     lvcreate -n node$i -L 20G cloud
   done
 
-  if [ -z $cephenable ] ; then
+  if [ ! -z $cephenable ] ; then
     for i in 1 2 ; do
       lvcreate -n node$i-ceph -L 20G cloud
     done
