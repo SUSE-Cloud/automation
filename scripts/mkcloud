@@ -416,22 +416,22 @@ function testsetup()
 
 case $1 in
   instadmin)
-    instadmin
+    instadmin || exit $?
   ;;
   instcompute)
-    instcompute
+    instcompute || exit $?
   ;;
   proposal)
-    proposal
+    proposal || exit $?
   ;;
   prepare)
-    prepare
+    prepare || exit $?
   ;;
   cleanup)
-    cleanup
+    cleanup || exit $?
   ;;
   testsetup)
-    testsetup
+    testsetup || exit $?
   ;;
   all)
     cleanup && \
@@ -439,14 +439,16 @@ case $1 in
     instadmin && \
     instcompute && \
     proposal && \
-    testsetup
+    testsetup || \
+    exit $?
   ;;
   plain)
     cleanup && \
     prepare && \
     instadmin && \
     instcompute && \
-    proposal
+    proposal || \
+    exit $?
   ;;
   *) echo "$0 all|plain|cleanup|prepare|instadmin|instcompute|proposal|testsetup";
   ;;
