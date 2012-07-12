@@ -256,16 +256,6 @@ done
 
 fi
 
-function proposalsuccess()
-{
-  test x`crowbar $1 proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$1']['crowbar-status']"` = xsuccess
-}
-
-function nodeready()
-{
-  test x`crowbar machines show $1 | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['state']"` = xready
-}
-
 function waitnodes()
 {
   n=800
@@ -275,8 +265,13 @@ function waitnodes()
     nodes)
       echo -n "Waiting for nodes to get ready: "
       for i in 1 2 ; do
-        while test $n -gt 0 && \
-              ! nodeready d52-54-00-77-77-7$i.$cloud.cloud.suse.de ; do
+        machinestatus=''
+        while test $n -gt 0 && ! test "x$machinestatus" = "xready" ; do
+          machinestatus=`crowbar machines show d52-54-00-77-77-7$i.$cloud.cloud.suse.de | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['state']"`
+          if test "x$machinestatus" = "xfailed" ; then
+            echo "Error: machine status is failed. Exiting"
+            exit 39
+          fi
           sleep 5
           n=$((n-1))
           echo -n "."
@@ -286,8 +281,13 @@ function waitnodes()
       ;;
     proposal)
       echo -n "Waiting for proposal to get successful: "
-      while test $n -gt 0 && \
-            ! proposalsuccess $proposal ; do
+      proposalstatus=''
+      while test $n -gt 0 && ! test "x$proposalstatus" = "xready" ; do
+        proposalstatus=`crowbar $proposal proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$1']['crowbar-status']"`
+        if test "x$proposalstatus" = "xfailed" ; then
+          echo "Error: proposal failed. Exiting."
+          exit 40
+        fi
         sleep 5
         n=$((n-1))
         echo -n "."
