@@ -32,6 +32,12 @@
 #                will create a separate 20GB partition for the nodes
 #                for ceph testing
 
+if test `id -u` != 0 ; then
+  echo "Error: This script needs to be run as root"
+  echo "  Please be aware that this script will create a LVM"
+  echo "  and kill all current VMs on this host."
+  exit 1
+fi
 
 CVOL=${CVOL:-/dev/vdb}
 if grep -q $CVOL /proc/mounts ; then
@@ -39,8 +45,17 @@ if grep -q $CVOL /proc/mounts ; then
   exit 92
 fi
 if [ ! -e $CVOL ] ; then
-  echo "Please set the cloud volume group: export CVOL=/dev/sdx"
+  echo "Error: $CVOL does not exist."
+  echo "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx"
+  echo "Running 'partprobe' may help to let the device appear."
   exit 93
+fi
+
+if rcSuSEfirewall2 status ; then
+  echo "Error: SuSEfirewall is running - it will interfere with the iptables rules done by libvirt"
+  echo "Please stop the SuSEfirewall completely and run mkcloud again"
+  echo "Run:  rcSuSEfirewall2 stop && insserv -r SuSEfirewall2_setup && insserv -r SuSEfirewall2_init"
+  exit 91
 fi
 
 if grep "devpts.*[^x]mode=.00" /proc/mounts ; then
@@ -50,7 +65,6 @@ if grep "devpts.*[^x]mode=.00" /proc/mounts ; then
   exit 13
 fi
 
-precleanup=true
 adminip=192.168.124.10
 
 SCRIPT=$(basename $0)
@@ -58,6 +72,8 @@ SCRIPT=$(basename $0)
 if [ `ps aux | grep -v -e grep -e SCREEN | grep $SCRIPT | wc -l` -gt 2 ]  ; then
   echo "Warning: mkcloud was started twice."
   echo "This is not supported ... exiting."
+  echo
+  echo 'Maybe you just have a "$EDITOR mkcloud" process running. Please close it.'
   exit 33
 fi
 
@@ -391,7 +407,7 @@ EOLIBVIRT
 
     virsh destroy cloud-node$i 2>/dev/null
     if ! virsh create /tmp/cloud-node$i.xml ; then
-      echo "=====================================================>>"
+      echo "====>>"
       echo "Error: Could not create VM for: node$i"
       exit 74
     fi
@@ -435,45 +451,92 @@ function testsetup()
   return $?
 }
 
+
+function usage()
+{
+  echo "Usage:"
+  echo "$0 <command> [<command>,...]"
+  echo
+  echo "  'command' is one of:"
+  echo "   all instonly plain cleanup prepare instadmin instcompute proposal testsetup help"
+  echo
+  echo "   all      -> expands to: plain testsetup"
+  echo "   plain    -> expands to: cleanup prepare instadmin instcompute proposal"
+  echo "   instonly -> expands to: cleanup prepare instadmin instcompute"
+  echo
+  echo "   cleanup:     kill all running VMs, zero out boot sectors of all lvm volumes"
+  echo "   prepare:     create lvm volumes, setup libvirt networks"
+  echo "   instadmin:   create the admin node and install the cloud product"
+  echo "   instcompute: create the compute nodes and let crowbar install them"
+  echo "   testsetup:   start a VM in the cloud"
+  echo "   help:        this usage"
+  echo
+  exit 1
+}
+
 ## MAIN ##
 
+allcmds="all instonly plain cleanup prepare instadmin instcompute proposal testsetup help"
+wantedcmds=$@
+runcmds=''
 
-case $1 in
-  instadmin)
-    instadmin || exit $?
-  ;;
-  instcompute)
-    instcompute || exit $?
-  ;;
-  proposal)
-    proposal || exit $?
-  ;;
-  prepare)
-    prepare || exit $?
-  ;;
-  cleanup)
-    cleanup || exit $?
-  ;;
-  testsetup)
-    testsetup || exit $?
-  ;;
-  all)
-    cleanup && \
-    prepare && \
-    instadmin && \
-    instcompute && \
-    proposal && \
-    testsetup || \
-    exit $?
-  ;;
-  plain)
-    cleanup && \
-    prepare && \
-    instadmin && \
-    instcompute && \
-    proposal || \
-    exit $?
-  ;;
-  *) echo "$0 all|plain|cleanup|prepare|instadmin|instcompute|proposal|testsetup";
-  ;;
-esac
+# parse the commands and expand the aliases
+for cmd in $wantedcmds ; do
+  if [ "$cmd" = "help" -o "$cmd" = "--help" -o "$cmd" = "usage" ] ; then
+    usage
+  fi
+
+  ok=0
+  for onecmd in $allcmds ; do
+    if [ $onecmd = $cmd ] ; then
+      ok=1
+      case $cmd in
+        all)
+          runcmds="$runcmds cleanup prepare instadmin instcompute proposal testsetup"
+        ;;
+        plain)
+          runcmds="$runcmds cleanup prepare instadmin instcompute proposal"
+        ;;
+        instonly)
+          runcmds="$runcmds cleanup prepare instadmin instcompute"
+        ;;
+        *)
+          runcmds="$runcmds $cmd"
+        ;;
+      esac
+    fi
+  done
+
+  if [ $ok = 0 ] ; then
+    echo "Error: Command $cmd unknown."
+    usage
+  fi
+done
+
+echo "You choose to run these mkcloud steps:"
+echo "  $runcmds"
+echo
+sleep 2
+
+for cmd in `echo $runcmds` ; do
+  echo
+  echo "============> MKCLOUD STEP START <============"
+  echo
+  echo "Now running step: $cmd"
+  echo
+  sleep 2
+  $cmd
+  ret=$?
+  if [ $ret != 0 ] ; then
+    echo
+    echo '$h1!!'
+    echo "Error detected. Stopping mkcloud."
+    echo "The step '$cmd' returned with exit code $ret"
+    echo "Please refer to the $cmd function in this script when debugging the issue."
+    echo
+    exit $ret
+  fi
+  echo
+  echo "^^^^^^^^^^^^= MKCLOUD STEP DONE  =^^^^^^^^^^^^"
+  echo
+done
