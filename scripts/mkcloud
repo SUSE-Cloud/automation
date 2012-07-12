@@ -31,6 +31,12 @@
 # cephenable=''|1 (default='')
 #                will create a separate 20GB partition for the nodes
 #                for ceph testing
+#
+# nodenumber     (default 2)
+#                sets the number of nodes to be created
+#
+# vcpus          (default 1)
+#                sets the number of CPU cores assigned to each node (admin and compute)
 
 if test `id -u` != 0 ; then
   echo "Error: This script needs to be run as root"
@@ -89,6 +95,14 @@ if [ ! -e qa_crowbarsetup.sh ] ; then
   exit 87
 fi
 
+nodenumber=${nodenumber:-2}
+allnodeids=`seq 1 $nodenumber`
+vcpus=${vcpus:-1}
+
+if [ $nodenumber -gt 9 ] ; then
+  echo "Error: maximal 9 nodes supported. You requested $nodenumber."
+  exit 7
+fi
 
 cpuflags="<cpu match='minimum'>
     <model>qemu64</model>
@@ -111,10 +125,11 @@ grep -q "flags.* npt" /proc/cpuinfo || cpuflags=""
 function cleanup()
 {
   # cleanup leftover from last run
-  for n in admin node1 node2 ; do virsh destroy cloud-$n ; virsh undefine cloud-$n ; done ; virsh net-destroy cloud-admin ; rclibvirtd stop ; killall -9 libvirtd ; ifdown virbr1 ; brctl delbr virbr1 ; tunctl -d virbr1-nic ; killall dnsmasq qemu-kvm ; iptables -F FORWARD ; iptables -F POSTROUTING -t nat
+  allnodenames=`for i in $allnodeids ; do echo -n "node\$i " ; done`
+  for n in admin $allnodenames ; do virsh destroy cloud-$n ; virsh undefine cloud-$n ; done ; virsh net-destroy cloud-admin ; rclibvirtd stop ; killall -9 libvirtd ; ifdown virbr1 ; brctl delbr virbr1 ; tunctl -d virbr1-nic ; killall dnsmasq qemu-kvm ; iptables -F FORWARD ; iptables -F POSTROUTING -t nat
   # zero node volumes to prevent accidental booting
-  for node in node1 node2 ; do
-    dd if=/dev/zero of=/dev/cloud/$node count=1 bs=512
+  for node in $allnodeids ; do
+    dd if=/dev/zero of=/dev/cloud/node$node count=1 bs=512
   done
   umount /mnt
   losetup -d /dev/loop0
@@ -138,13 +153,13 @@ EOSSH
   vgchange -ay cloud # for later boots
 
   lvcreate -n admin -L 15G cloud
-  for i in 1 2 ; do
+  for i in $allnodeids ; do
     lvcreate -n node$i -L 20G cloud
   done
 
   if [ ! -z $cephenable ] ; then
-    for i in 1 2 ; do
-      lvcreate -n node$i-ceph -L 20G cloud
+    for i in $allnodeids ; do
+      lvcreate -n node$i-ceph -L 10G cloud
     done
   fi
 
@@ -162,14 +177,14 @@ EOSSH
   losetup -d /dev/loop0
 
   grep -q crowbar /etc/hosts || echo "$adminip crowbar.virtual.cloud.suse.de crowbar" >> /etc/hosts
-  for i in 1 2 ; do
+  for i in $allnodeids ; do
     grep -q node$i /etc/hosts || echo "192.168.124.8$i  node$i.virtual.cloud.suse.de node$i" >> /etc/hosts
   done
 }
 
 function sshrun()
 {
-  ssh root@$adminip "$@"
+  ssh root@$adminip "export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; $@"
   return $?
 }
 
@@ -191,7 +206,7 @@ function instadmin()
     <uuid>169738f2-63a1-3fef-2ee8-1fef03498574</uuid>
     <memory>2097152</memory>
     <currentMemory>2097152</currentMemory>
-    <vcpu>1</vcpu>
+    <vcpu>$vcpus</vcpu>
     <os>
       <type arch='x86_64' machine='pc-0.15'>hvm</type>
       <boot dev='hd'/>
@@ -308,7 +323,7 @@ EOLIBVIRTNET
   echo "connecting to crowbar admin server at $adminip"
   scp -p install-chef-suse.sh root@$adminip:/tmp/
   scp qa_crowbarsetup.sh root@$adminip:
-  sshrun "echo `hostname` > cloud ; cloudsource=$cloudsource TESTHEAD=$TESTHEAD installcrowbar=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "echo `hostname` > cloud ; installcrowbar=1 bash -x qa_crowbarsetup.sh virtual"
   return $?
 }
 
@@ -337,7 +352,7 @@ function instcompute()
   mkvlan 500 192.168.123.254
 
 
-  for i in 1 2 ; do
+  for i in $allnodeids ; do
     cephvolume="<disk type='block' device='disk'>
       <serial>cloud-node$i-ceph</serial>
       <driver name='qemu' type='raw'/>
@@ -355,7 +370,7 @@ function instcompute()
   <uuid>169738f2-63b$i-3fef-2ee8-1fef03498574</uuid>
   <memory>2097152</memory>
   <currentMemory>2097152</currentMemory>
-  <vcpu>1</vcpu>
+  <vcpu>$vcpus</vcpu>
   <os>
     <type arch='x86_64' machine='pc-0.15'>hvm</type>
   </os>
@@ -413,18 +428,20 @@ EOLIBVIRT
     fi
   done
   sleep 14
-  for i in 2 ; do # work around bridge forward delay or something causing pxelinux transfer fail on one node
+  for i in $allnodeids ; do # work around bridge forward delay or something causing pxelinux transfer fail on one node
+    [ $i = 1 ] && continue
     virsh send-key cloud-node$i KEY_RIGHTCTRL KEY_RIGHTALT KEY_DELETE
+    sleep 1
   done
 
   scp qa_crowbarsetup.sh root@$adminip:
-  sshrun "cloudsource=$cloudsource allocate=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "allocate=1 bash -x qa_crowbarsetup.sh virtual"
   ret=$?
   [ $ret != 0 ] && return $ret
 
   echo "Waiting for the installation of the nodes ..."
-  sshrun '
-  for i in 1 2 ; do
+  sshrun "
+  for i in $allnodeids ; do"'
     echo -n "Waiting for node $i: "
     while ! ssh -o NumberOfPasswordPrompts=0 -o "StrictHostKeyChecking no" 192.168.124.8$i rpm -q yast2-core 2>/dev/null 1>&2; do
       sleep 10
@@ -440,14 +457,14 @@ EOLIBVIRT
 function proposal()
 {
   scp qa_crowbarsetup.sh root@$adminip:
-  sshrun "cloudsource=$cloudsource proposal=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "proposal=1 bash -x qa_crowbarsetup.sh virtual"
   return $?
 }
 
 function testsetup()
 {
   scp qa_crowbarsetup.sh root@$adminip:
-  sshrun "cloudsource=$cloudsource testsetup=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "testsetup=1 bash -x qa_crowbarsetup.sh virtual"
   return $?
 }
 
@@ -470,6 +487,25 @@ function usage()
   echo "   instcompute: create the compute nodes and let crowbar install them"
   echo "   testsetup:   start a VM in the cloud"
   echo "   help:        this usage"
+  echo
+  echo " Environment variables (need to be exported):"
+  echo
+  echo " Mandatory"
+  echo "   CVOL=/dev/vdx (default /dev/vdb)"
+  echo "       :  LVM will be created on this device (at least 80GB)"
+  echo "   cloudsource=develcloud | susecloud | Beta?  (default '')"
+  echo "       : defines the installation source"
+  echo
+  echo " Optional"
+  echo "   TESTHEAD='' | 1  (default='')"
+  echo "       : use latest published packages from Devel:Cloud"
+  echo "   cephenable='' | 1  (default='')"
+  echo "       : create a separate 10GB partition per node for ceph"
+  echo "         note: proposal step does NOT contain a ceph proposal, do it manually"
+  echo "   nodenumber=2    (default 2)"
+  echo "       : set the number of nodes to be created (excl. admin node)"
+  echo "   vcpus=1         (default 1)"
+  echo "       : set the number of CPU cores per node (admin and compute)"
   echo
   exit 1
 }

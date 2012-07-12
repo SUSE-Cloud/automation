@@ -4,6 +4,7 @@ test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
 #resize2fs /dev/vda2
 
 cloud=${1:-d2}
+nodenumber=${nodenumber:-2}
 
 case $cloud in
 	d1)
@@ -247,7 +248,7 @@ fi
 echo "Waiting for nodes to come up..."
 while ! crowbar machines list | grep ^d ; do sleep 10 ; done
 echo "Found one node"
-while test $(crowbar machines list | grep ^d|wc -l) -lt 2 ; do sleep 10 ; done
+while test $(crowbar machines list | grep ^d|wc -l) -lt $nodenumber ; do sleep 10 ; done
 echo "Sleeping 50 more seconds..."
 sleep 50
 for m in `crowbar machines list | grep ^d` ; do
@@ -264,7 +265,7 @@ function waitnodes()
   case $mode in
     nodes)
       echo -n "Waiting for nodes to get ready: "
-      for i in 1 2 ; do
+      for i in `seq 1 $nodenumber` ; do
         machinestatus=''
         while test $n -gt 0 && ! test "x$machinestatus" = "xready" ; do
           machinestatus=`crowbar machines show d52-54-00-77-77-7$i.$cloud.cloud.suse.de | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['state']"`
