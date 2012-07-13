@@ -188,7 +188,7 @@ function sshrun()
   return $?
 }
 
-function instadmin()
+function setupadmin()
 {
   echo "Creating key for controlling our VMs..."
   [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
@@ -320,6 +320,11 @@ EOLIBVIRTNET
 
   echo "waiting some more for sshd+named to start"
   sleep 25
+  echo "you can now proceed with installing crowbar"
+}
+
+function instcrowbar()
+{
   echo "connecting to crowbar admin server at $adminip"
   scp -p install-chef-suse.sh root@$adminip:/tmp/
   scp qa_crowbarsetup.sh root@$adminip:
@@ -344,7 +349,7 @@ EONET
   ifup virbr1.$DEFVLAN
 }
 
-function instcompute()
+function setupcompute()
 {
   # public = 300
   mkvlan 300 192.168.122.1
@@ -475,16 +480,17 @@ function usage()
   echo "$0 <command> [<command>,...]"
   echo
   echo "  'command' is one of:"
-  echo "   all instonly plain cleanup prepare instadmin instcompute proposal testsetup help"
+  echo "   all instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup help"
   echo
   echo "   all      -> expands to: plain testsetup"
-  echo "   plain    -> expands to: cleanup prepare instadmin instcompute proposal"
-  echo "   instonly -> expands to: cleanup prepare instadmin instcompute"
+  echo "   plain    -> expands to: cleanup prepare setupadmin instcrowbar setupcompute proposal"
+  echo "   instonly -> expands to: cleanup prepare setupadmin instcrowbar setupcompute"
   echo
   echo "   cleanup:     kill all running VMs, zero out boot sectors of all lvm volumes"
   echo "   prepare:     create lvm volumes, setup libvirt networks"
-  echo "   instadmin:   create the admin node and install the cloud product"
-  echo "   instcompute: create the compute nodes and let crowbar install them"
+  echo "   setupadmin:  create the admin node and install the cloud product"
+  echo "   instcrowbar: install crowbar and chef on the admin node"
+  echo "   setupcompute:create the compute nodes and let crowbar install them"
   echo "   testsetup:   start a VM in the cloud"
   echo "   help:        this usage"
   echo
@@ -512,7 +518,7 @@ function usage()
 
 ## MAIN ##
 
-allcmds="all instonly plain cleanup prepare instadmin instcompute proposal testsetup help"
+allcmds="all instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup help"
 wantedcmds=$@
 runcmds=''
 
@@ -528,13 +534,13 @@ for cmd in $wantedcmds ; do
       ok=1
       case $cmd in
         all)
-          runcmds="$runcmds cleanup prepare instadmin instcompute proposal testsetup"
+          runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup"
         ;;
         plain)
-          runcmds="$runcmds cleanup prepare instadmin instcompute proposal"
+          runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute proposal"
         ;;
         instonly)
-          runcmds="$runcmds cleanup prepare instadmin instcompute"
+          runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute"
         ;;
         *)
           runcmds="$runcmds $cmd"
