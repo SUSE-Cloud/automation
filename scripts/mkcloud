@@ -440,8 +440,8 @@ EOLIBVIRT
   [ $ret != 0 ] && return $ret
 
   echo "Waiting for the installation of the nodes ..."
-  sshrun "
-  for i in $allnodeids ; do"'
+  sshrun '
+  for i in `seq $nodenumber` ; do
     echo -n "Waiting for node $i: "
     while ! ssh -o NumberOfPasswordPrompts=0 -o "StrictHostKeyChecking no" 192.168.124.8$i rpm -q yast2-core 2>/dev/null 1>&2; do
       sleep 10
