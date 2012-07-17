@@ -284,7 +284,7 @@ function waitnodes()
       echo -n "Waiting for proposal to get successful: "
       proposalstatus=''
       while test $n -gt 0 && ! test "x$proposalstatus" = "xready" ; do
-        proposalstatus=`crowbar $proposal proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$1']['crowbar-status']"`
+        proposalstatus=`crowbar $proposal proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
         if test "x$proposalstatus" = "xfailed" ; then
           echo "Error: proposal failed. Exiting."
           exit 40
