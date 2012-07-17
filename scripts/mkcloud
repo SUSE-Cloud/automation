@@ -317,12 +317,15 @@ EOLIBVIRTNET
     echo -n "."
   done
   if ! grep -q "iptables -t nat -F PREROUTING" /etc/init.d/boot.local; then
-      cat >> /etc/init.d/boot.local <<'EOS'
+      nodehostips=$(echo `seq 81 $((80 + $nodenumber))`)
+      cat >> /etc/init.d/boot.local <<EOS
 iptables -t nat -F PREROUTING
 for i in 22 80 3000 4000 4040 ; do
-    iptables -I FORWARD -p tcp --dport $i -j ACCEPT
-    for host in 10 81 82 ; do
-        iptables -t nat -I PREROUTING -p tcp --dport $(expr $i + $host % 10 + 1100) -j DNAT --to-destination 192.168.124.$host:$i
+    iptables -I FORWARD -p tcp --dport \$i -j ACCEPT
+    for host in 10 $nodehostips ; do
+EOS
+      cat >> /etc/init.d/boot.local <<'EOS'
+        iptables -t nat -I PREROUTING -p tcp --dport $(($i + $host % 10 + 1100)) -j DNAT --to-destination 192.168.124.$host:$i
     done
 done
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
