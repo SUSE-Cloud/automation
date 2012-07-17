@@ -81,7 +81,7 @@ d=dist.suse.de
 case $cloudsource in
 	develcloud)
 		CLOUDDISTURL=$d/ibs/Devel:/Cloud/images/iso
-		CLOUDDISTISO="SUSE-CLOUD*Media1.iso"
+		CLOUDDISTISO="S*-CLOUD*Media1.iso"
 	;;
 	susecloud)
 		CLOUDDISTURL=$d/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/images/iso
