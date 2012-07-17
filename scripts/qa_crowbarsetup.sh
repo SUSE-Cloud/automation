@@ -85,12 +85,12 @@ case $cloudsource in
 	;;
 	susecloud)
 		CLOUDDISTURL=$d/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/images/iso
-		CLOUDDISTISO="SLE-CLOUD*Media1.iso"
+		CLOUDDISTISO="S*-CLOUD*Media1.iso"
 	;;
 	Beta*)
 
 		CLOUDDISTURL=$d/install/SLE-11-SP2-CLOUD-$cloudsource/
-		CLOUDDISTISO="SLE-CLOUD*$cloudsource-DVD1.iso"
+		CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
 	;;
 	*)
 		echo "Error: you must set environment variable cloudsource=develcloud|susecloud|Beta1"
