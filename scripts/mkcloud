@@ -545,6 +545,10 @@ allcmds="all instonly plain cleanup prepare setupadmin instcrowbar setupcompute 
 wantedcmds=$@
 runcmds=''
 
+if [ -z $wantedcmds ] ; then
+  usage
+fi
+
 # parse the commands and expand the aliases
 for cmd in $wantedcmds ; do
   if [ "$cmd" = "help" -o "$cmd" = "--help" -o "$cmd" = "usage" ] ; then
