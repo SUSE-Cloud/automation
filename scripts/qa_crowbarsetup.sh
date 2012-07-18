@@ -112,7 +112,9 @@ rm -rf "dist.suse.de"
 zypper ar /srv/tftpboot/repos/Cloud Cloud
 if [ -n "$TESTHEAD" ] ; then
 	zypper ar http://download.suse.de/ibs/Devel:/Cloud/SLE_11_SP2/Devel:Cloud.repo
+	zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Crowbar/SLE_11_SP2/Devel:Cloud:Crowbar.repo
 	zypper mr -p 70 Devel_Cloud # more important
+	zypper mr -p 60 Devel_Cloud_Crowbar # even more important
 fi
 # --no-gpg-checks for Devel:Cloud repo
 zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
