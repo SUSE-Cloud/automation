@@ -391,6 +391,7 @@ if [ -n "$testsetup" ] ; then
 	'
 	ret=$?
 	echo ret:$ret
+	exit $ret
 fi
 
 
