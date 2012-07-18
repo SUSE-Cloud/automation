@@ -1,0 +1,3 @@
+# drop this file in /etc/apicheck.cred
+$USER="username";
+$PASSWORD="password";
