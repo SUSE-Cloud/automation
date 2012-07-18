@@ -102,11 +102,6 @@ nodenumber=${nodenumber:-2}
 allnodeids=`seq 1 $nodenumber`
 vcpus=${vcpus:-1}
 
-if [ $nodenumber -gt 9 ] ; then
-  echo "Error: maximal 9 nodes supported. You requested $nodenumber."
-  exit 7
-fi
-
 cpuflags="<cpu match='minimum'>
     <model>qemu64</model>
     <feature policy='require' name='fxsr_opt'/>
@@ -193,7 +188,7 @@ EOSSH
 
   grep -q crowbar /etc/hosts || echo "$adminip crowbar.virtual.cloud.suse.de crowbar" >> /etc/hosts
   for i in $allnodeids ; do
-    grep -q node$i /etc/hosts || echo "192.168.124.8$i  node$i.virtual.cloud.suse.de node$i" >> /etc/hosts
+    grep -q node$i /etc/hosts || echo "192.168.124.$((80+$i)) node$i.virtual.cloud.suse.de node$i" >> /etc/hosts
   done
 }
 
@@ -477,7 +472,7 @@ EOLIBVIRT
   sshrun '
   for i in `seq $nodenumber` ; do
     echo -n "Waiting for node $i: "
-    while ! ssh -o NumberOfPasswordPrompts=0 -o "StrictHostKeyChecking no" 192.168.124.8$i rpm -q yast2-core 2>/dev/null 1>&2; do
+    while ! ssh -o NumberOfPasswordPrompts=0 -o "StrictHostKeyChecking no" 192.168.124.$((80+$i)) rpm -q yast2-core 2>/dev/null 1>&2; do
       sleep 10
       echo -n "."
     done

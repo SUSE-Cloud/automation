@@ -277,6 +277,12 @@ function waitnodes()
           n=$((n-1))
           echo -n "."
         done
+        vmip=$net.$((80+$i))
+        n=500 ; while test $n -gt 0 && ! netcat -z $vmip 22 ; do
+          sleep 1
+          n=$(($n - 1))
+          echo -n "."
+        done
         echo "node $i ready"
       done
       ;;
