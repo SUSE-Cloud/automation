@@ -1,0 +1,268 @@
+#!/usr/bin/perl -w
+
+#
+# track an upstream source service in an OBS package
+#
+# 2012 J. Daniel Schmidt <jdsn@suse.de>, Bernhard M. Wiedemann <bwiedemann@suse.de>
+#
+
+
+# Prepare packages: for i in python-keystoneclient python-novaclient ; do ibs copypac Devel:Cloud $i Devel:Cloud:Head ; ibs co $i ; done
+
+# prepare node:
+#   zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools/SLE_11_SP1 openSUSE_Tools-SLE_11_SP1
+#   zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools/SLE_11_SP2 openSUSE_Tools
+#   zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools:/Unstable/SLE_11_SP2/ openSUSE_Tools_Unstable
+#   zypper ar http://download.opensuse.org/repositories/devel:/tools:/scm/SLE_11_SP1/ devel_tools_scm
+#   zypper in osc=VERSION_from_openSUSE_Tools_Unstable
+#   zypper in build obs-service-tar_scm obs-service-source_validator obs-service-set_version obs-service-recompress obs-service-verify_file obs-service-format_spec_file
+#
+# cd $IBS_CHECKOUT; osc co Devel:Cloud:Head
+# cd $choose_one_package; osc build (and select to trust the required repos)
+
+
+use strict;
+use POSIX;
+use XML::LibXML;
+#use Data::Dumper;
+
+# global
+our $xmldom;
+our $gitremote;
+our $gitrepo;
+our $project;
+our $SDIR = $ENV{PWD};
+our $xmlfile = '_service';
+my $OSCAPI = $ENV{OSCAPI} ? " -A $ENV{OSCAPI}" : '';
+my $OSCRC  = $ENV{OSCRC} ? " -c $ENV{OSCRC}" : '';
+our @OSCBASE=('osc');
+push @OSCBASE, $OSCRC  if $OSCRC;
+push @OSCBASE, $OSCAPI if $OSCAPI;
+our $OSC_BUILD_ARCH = $ENV{OSC_BUILD_ARCH} || '';
+our $OSC_BUILD_DIST = $ENV{OSC_BUILD_DIST} || 'SLE_11_SP2';
+our $OSC_BUILD_LOG;
+our $OSC_BUILD_LOG_OLD;
+our @tarballfiles;
+our @oldtarballfiles;
+
+sub servicefile_read_xml($)
+{
+  my $file = shift || die "Error: no input file to read the service xml data from.";
+  open (my $FH, '<', $file) or die $!;
+  binmode $FH;
+  #my $xml = XML::LibXML->load_xml(IO => $FH);
+  my $parser=XML::LibXML->new();
+  my $xml = $parser->parse_fh($FH);
+  close $FH;
+  return $xml;
+}
+
+sub servicefile_write($$)
+{
+  my ($file, $data) = @_;
+  open (my $FH, '>', $file) or die $!;
+  binmode $FH;
+  print $FH $data;
+  close $FH;
+}
+
+sub xml_replace_text($$$)
+{
+  my ($node, $path, $text) = @_;
+  die "Error: node, path or text undefined." unless ($node && $path && defined $text);
+  my $nodeL = $node->find($path);
+  my $onenode;
+  $onenode = $nodeL->pop() if $nodeL->size() > 0;
+  die "Error: Could not find an xml element with the statement $path, exiting." unless $onenode;
+  $onenode->removeChildNodes();
+  $onenode->addChild(XML::LibXML::Text->new($text));
+}
+
+sub xml_get_text($$)
+{
+  my ($node, $path) = @_;
+  die "Error: node or path undefined." unless ($node && $path);
+  my $nodeL = $node->find($path);
+  my $onenode;
+  $onenode = $nodeL->pop() if $nodeL->size() > 0;
+  die "Error: Could not find an xml element with the statement $path, exiting." unless $onenode;
+  return $onenode->textContent();
+}
+
+sub servicefile_modify($)
+{
+  my $gitrev= shift || '';
+
+  local $XML::LibXML::skipXMLDeclaration = 1;
+  my $xmlorig = $xmldom->toString() . "\n";
+
+  xml_replace_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="revision"][1]', $gitrev);
+  my $xmlnewrev = $xmldom->toString()."\n";
+  servicefile_write($xmlfile, $xmlnewrev);
+  #xml_replace_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="url"][1]', $gitrepo);
+}
+
+
+sub pack_cleanup(@)
+{
+  my @deletes = @_;
+  foreach my $del (@deletes) {
+    `rm -fv $del`;
+  }
+}
+
+sub pack_servicerun()
+{
+  my @cmd = (@OSCBASE, qw(service disabledrun));
+  my $exitcode = system(@cmd);
+  return $exitcode >> 8;
+}
+
+
+sub osc_build()
+{
+  #my @cmd = (@OSCBASE, 'build', '--no-verify', $OSC_BUILD_DIST, $OSC_BUILD_ARCH);
+  #my $exitcode = system(@cmd);
+  local $| = 1;
+  my $cmd = "yes | ".join(' ',@OSCBASE)." build --no-verify $OSC_BUILD_DIST $OSC_BUILD_ARCH 2>&1 | ";
+  open (my $FH, $cmd) or die $!;
+  open (my $LOGFH, '>', $OSC_BUILD_LOG) or die $!;
+  while (<$FH>)
+  {
+    print;
+    print $LOGFH $_;
+  }
+  close $LOGFH;
+  close $FH;
+  #my $exitcode = system($cmd);
+  my $exitcode = $?;
+  return $exitcode >> 8;
+}
+
+sub osc_st($)
+{
+  my $FLAGS = shift || 'ADMR';
+  my $cmd = join(' ', @OSCBASE). ' st | grep -e "^['.$FLAGS.']" | sed -e "s/^.\s\+//" ';
+  my @lines;
+  push @lines, `$cmd`;
+  return @lines;
+}
+
+sub die_on_error($$)
+{
+  my $mode = shift || '--unknown--';
+  my $exitcode = shift;
+  die "Error: non-numeric exitcode" unless (defined $exitcode && $exitcode =~ /^\d+$/);
+  print "\n-->\n--> Checking last exitcode: ";
+
+  if ($exitcode == 0)
+  {
+    print "0 - Good!\n\n";
+  }
+  else
+  {
+    print "$exitcode - Error detected in $mode. Exiting.\n";
+
+    if ($mode eq 'build')
+    {
+      # switch back to a consistent IBS checkout
+      system('osc', 'rm', '--force', @tarballfiles) && die "Error: Could not 'osc rm' the broken files. Please check manually.";
+      system('osc', 'revert', @oldtarballfiles) && die "Error: Could not 'osc revert' the latest changes. Please check manually.";
+
+      #TODO fetch the last lines of the log
+      print "\nTODO: display the last lines of the build log here\n\n";
+    }
+
+    exit $exitcode;
+  }
+}
+
+
+sub osc_checkin()
+{
+  my $gitrev = '';
+  for my $ADDPACK (@tarballfiles)
+  {
+    if ($ADDPACK =~ /\.([a-f0-9]+)\.tar\.\w+$/) { $gitrev = $1; }
+  }
+  system(@OSCBASE, 'ci', '-m', 'autocheckin from jenkins, revision: '.$gitrev);
+}
+
+#### MAIN ####
+
+
+  die "Error: can not find .osc project in this directory: " unless ( -d '.osc');
+  $project = `osc info | grep "Package name" | sed -e "s/.*: //"`;
+  chomp $project;
+
+  system(@OSCBASE, 'up') && die "Error: osc up failed, maybe due to local changes. Please check manually.";
+
+  $xmldom = servicefile_read_xml($xmlfile);
+  $gitremote = xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="url"][1]');
+  my $revision = $ENV{GITREV} || '';
+
+  my $tarballbase = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="file"][1]');
+  my $tarballext  = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="compression"][1]');
+  my $tarball = "$tarballbase.$tarballext";
+  push @oldtarballfiles, glob($tarball);
+  #pack_cleanup(($tarball,));
+
+  @oldtarballfiles || die "Error: Could not find any current tarball. Please check the state of the osc checkout manually.";
+  system('osc', 'rm', @oldtarballfiles) && die "Error: osc rm failed. Please check manually.";
+
+  #servicefile_modify($revision);
+
+  my $exitcode;
+  # run source service
+  $exitcode = pack_servicerun();
+  die_on_error('service', $exitcode);
+  push @tarballfiles, glob($tarball);
+
+  my @changedfiles = osc_st('ADM');
+  if (scalar(@changedfiles) == 0)
+  {
+    print "\n-->\n";
+    print "--> No changes detected. Skipping build and submit.\n";
+    # revert all deleted packages to get back to a consistent checkout
+    print "-->\n";
+    print "--> Reverting back to consistent checkout.\n";
+    system('osc', 'rm', @tarballfiles) && die "Error: Could not 'osc rm' the new broken files. Please cleanup manually.";
+    system('osc', 'revert', @oldtarballfiles) && die "Error: Could not revert the deleted packages. Please cleanup manually.";
+    print "-->\n";
+    print "--> Successfully reverted back.\n";
+    exit 0;
+  }
+  else
+  {
+    print "\n-->\n";
+    print "--> Detected ".scalar(@changedfiles)." changed files.\n";
+    print "--> Now trying to build package.\n";
+  }
+
+  system('osc', 'add', @tarballfiles) && die "Error: osc add failed. Please check manually.";
+
+  my @revertedfiles = osc_st('R');
+  if (scalar(@revertedfiles) > 0)
+  {
+    # we only have reverted files and no changes, switch back to consistent checkout
+    print "-->\n";
+    print "--> Sorry. The new files are just the same as the old ones.\n";
+    print "--> Reverting back to consistent checkout.\n";
+    system('osc', 'rm', @tarballfiles) && die "Error: Could not 'osc rm' the new broken files. Please cleanup manually.";
+    system('osc', 'revert', @oldtarballfiles) && die "Error: Could not revert the deleted packages. Please cleanup manually.";
+    print "-->\n";
+    print "--> Successfully reverted back.\n";
+    exit 0;
+  }
+
+  # run osc build
+  $OSC_BUILD_LOG="../$project.build.log.0";
+  $OSC_BUILD_LOG_OLD="../$project.build.log.1";
+  rename($OSC_BUILD_LOG, $OSC_BUILD_LOG_OLD);
+  $exitcode = osc_build();
+  die_on_error('build', $exitcode);
+
+  osc_checkin();
+
+  die_on_error('checkin', $exitcode);
+
