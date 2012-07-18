@@ -515,6 +515,7 @@ function usage()
   echo "   setupadmin:  create the admin node and install the cloud product"
   echo "   instcrowbar: install crowbar and chef on the admin node"
   echo "   setupcompute:create the compute nodes and let crowbar install them"
+  echo "   proposal:    create and apply proposals for default setup"
   echo "   testsetup:   start a VM in the cloud"
   echo "   help:        this usage"
   echo
