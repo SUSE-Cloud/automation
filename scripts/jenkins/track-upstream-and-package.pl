@@ -29,6 +29,8 @@
 
 
 use strict;
+use Digest::SHA qw(sha256_hex);
+use File::Basename;
 use POSIX;
 use XML::LibXML;
 #use Data::Dumper;
@@ -50,7 +52,9 @@ our $OSC_BUILD_DIST = $ENV{OSC_BUILD_DIST} || 'SLE_11_SP2';
 our $OSC_BUILD_LOG;
 our $OSC_BUILD_LOG_OLD;
 our @tarballfiles;
+our $gitrev;
 our @oldtarballfiles;
+our $oldgitrev;
 
 sub servicefile_read_xml($)
 {
@@ -185,13 +189,84 @@ sub die_on_error($$)
 }
 
 
+sub add_changes_entry() {
+  return 0 if ($oldgitrev eq $gitrev || $oldgitrev eq '' || $gitrev eq '');
+
+  return 0 if (! -e $ENV{'HOME'}.'/.obs/tar_scm');
+
+  my $tar_scm_cache = '';
+  open (my $TARSCMFH, '<', $ENV{'HOME'}.'/.obs/tar_scm') or die $!;
+  while (<$TARSCMFH>)
+  {
+    if (/^\s*CACHEDIRECTORY=["'](.*)["']\s*$/)
+    {
+      $tar_scm_cache=$1;
+    }
+  }
+  close $TARSCMFH;
+
+  return 0 if ($tar_scm_cache eq '');
+
+  # yes, newline character is intended
+  my $gitremotesha = sha256_hex($gitremote.'
+');
+  my $gitdir = $tar_scm_cache.'/repo/'.$gitremotesha.'/.git';
+  my $file = basename($SDIR).'.changes';
+  my @lines;
+
+  return 0 if (! -d $gitdir);
+  return 0 if (! -e $file);
+
+  my $cmd = "git --git-dir='".$gitdir."' log --pretty=format:%s --no-merges ".$oldgitrev."..".$gitrev;
+  push @lines, `$cmd`;
+  @lines = reverse(@lines);
+  chomp(@lines);
+
+  return 0 if (scalar(@lines) == 0);
+
+  chomp(my $date = `LC_ALL=POSIX TZ=UTC date`);
+
+  open (my $FH, '>', $file.'.new') or die $!;
+  print $FH "-------------------------------------------------------------------\n";
+  print $FH $date." - jenkins\@suse.de\n";
+  print $FH "\n";
+  print $FH "- Update to latest git (".$gitrev."):\n";
+  for my $line (@lines)
+  {
+    print $FH '  + '.$line."\n";
+  }
+  print $FH "\n";
+
+  open (my $OLDFH, '<', $file) or die $!;
+  while (<$OLDFH>)
+  {
+    print $FH $_;
+  }
+
+  close $OLDFH;
+  close $FH;
+
+  rename $file.'.new', $file;
+
+  return 1;
+}
+
+
+sub find_gitrev($)
+{
+  my $files = shift || die "Error: no argument passed to find_gitrev()";
+  my $retval = '';
+  for my $PACK (@{$files})
+  {
+    if ($PACK =~ /\.([a-f0-9]+)\.tar\.\w+$/) { $retval = $1; }
+  }
+
+  return $retval;
+}
+
+
 sub osc_checkin()
 {
-  my $gitrev = '';
-  for my $ADDPACK (@tarballfiles)
-  {
-    if ($ADDPACK =~ /\.([a-f0-9]+)\.tar\.\w+$/) { $gitrev = $1; }
-  }
   system(@OSCBASE, 'ci', '-m', 'autocheckin from jenkins, revision: '.$gitrev);
 }
 
@@ -212,6 +287,7 @@ sub osc_checkin()
   my $tarballext  = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="compression"][1]');
   my $tarball = "$tarballbase.$tarballext";
   push @oldtarballfiles, glob($tarball);
+  $oldgitrev = find_gitrev(\@oldtarballfiles);
   #pack_cleanup(($tarball,));
 
   @oldtarballfiles || die "Error: Could not find any current tarball. Please check the state of the osc checkout manually.";
@@ -224,6 +300,7 @@ sub osc_checkin()
   $exitcode = pack_servicerun();
   die_on_error('service', $exitcode);
   push @tarballfiles, glob($tarball);
+  $gitrev = find_gitrev(\@tarballfiles);
 
   my @changedfiles = osc_st('ADM');
   if (scalar(@changedfiles) == 0)
@@ -239,12 +316,14 @@ sub osc_checkin()
     print "--> Successfully reverted back.\n";
     exit 0;
   }
-  else
-  {
-    print "\n-->\n";
-    print "--> Detected ".scalar(@changedfiles)." changed files.\n";
-    print "--> Now trying to build package.\n";
-  }
+
+  print "\n-->\n";
+  print "--> Detected ".scalar(@changedfiles)." changed files.\n";
+
+  add_changes_entry() || die "Error: Could not create a changes entry.";
+  print "--> Added a changes entry.\n";
+
+  print "--> Now trying to build package.\n";
 
   system('osc', 'add', @tarballfiles) && die "Error: osc add failed. Please check manually.";
 
