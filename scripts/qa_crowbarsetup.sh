@@ -43,6 +43,16 @@ case $cloud in
 	;;
 esac
 
+function intercept()
+{
+  if [ -n $shell ] ; then
+    echo "Now starting bash for manual intervention..."
+    echo "When ready exit this shell to continue with $1"
+    bash
+  fi
+}
+
+
 if [ -n "$installcrowbar" ] ; then
 
 echo configure static IP and absolute + resolvable hostname crowbar.$cloud.cloud.suse.de gw:$net.1
@@ -195,6 +205,9 @@ f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
 grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
 
 sed -i -e "s#<\(partitions.*\)/>#<\1><partition><mount>swap</mount><size>auto</size></partition><partition><mount>/</mount><size>max</size><fstopt>data=writeback,barrier=0,noatime</fstopt></partition></partitions>#" /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
+
+
+intercept "install-chef-suse.sh"
 
 rm -f /tmp/chef-ready
 # run in screen to not lose session in the middle when network is reconfigured:
