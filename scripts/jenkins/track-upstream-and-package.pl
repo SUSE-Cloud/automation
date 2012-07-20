@@ -19,6 +19,13 @@
 #
 # cd $IBS_CHECKOUT; osc co Devel:Cloud:Head
 # cd $choose_one_package; osc build (and select to trust the required repos)
+#
+# prepare caching for disabled runs:
+#   mkdir -p ~/.obs/cache/tar_scm/{incoming,repo,repourl}
+#   echo 'CACHEDIRECTORY="$HOME/.obs/cache/tar_scm"' > ~/.obs/tar_scm
+#
+#
+#
 
 
 use strict;
