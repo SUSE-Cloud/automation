@@ -320,11 +320,6 @@ sub osc_checkin()
   print "\n-->\n";
   print "--> Detected ".scalar(@changedfiles)." changed files.\n";
 
-  add_changes_entry() || die "Error: Could not create a changes entry.";
-  print "--> Added a changes entry.\n";
-
-  print "--> Now trying to build package.\n";
-
   system('osc', 'add', @tarballfiles) && die "Error: osc add failed. Please check manually.";
 
   my @revertedfiles = osc_st('R');
@@ -340,6 +335,11 @@ sub osc_checkin()
     print "--> Successfully reverted back.\n";
     exit 0;
   }
+
+  add_changes_entry() || die "Error: Could not create a changes entry.";
+  print "--> Added a changes entry.\n";
+
+  print "--> Now trying to build package.\n";
 
   # run osc build
   $OSC_BUILD_LOG="../$project.build.log.0";
