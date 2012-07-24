@@ -89,15 +89,15 @@ sub xml_replace_text($$$)
   $onenode->addChild(XML::LibXML::Text->new($text));
 }
 
-sub xml_get_text($$)
+sub xml_get_text($$;$)
 {
-  my ($node, $path) = @_;
+  my ($node, $path, $attribute) = @_;
   die "Error: node or path undefined." unless ($node && $path);
   my $nodeL = $node->find($path);
   my $onenode;
   $onenode = $nodeL->pop() if $nodeL->size() > 0;
   die "Error: Could not find an xml element with the statement $path, exiting." unless $onenode;
-  return $onenode->textContent();
+  return $attribute ? $onenode->getAttribute($attribute) : $onenode->textContent();
 }
 
 sub servicefile_modify($)
@@ -270,6 +270,28 @@ sub osc_checkin()
   system(@OSCBASE, 'ci', '-m', 'autocheckin from jenkins, revision: '.$gitrev);
 }
 
+sub get_osc_package_info()
+{
+  # read xml info from .osc/_files and return a hash
+  # later may be extended to make an api call and return all possible information
+  my $file = ".osc/_files";
+  open (my $FH, '<', $file) or die $!;
+  binmode $FH;
+  my $parser=XML::LibXML->new();
+  my $xmldom = $parser->parse_fh($FH);
+  # print Data::Dumper->Dump([$xmldom],["XML"]);
+  #print $xmldom->toString();
+  close $FH;
+
+  my %info = ();
+  $info{project} = `cat .osc/_project`;
+  chomp($info{project});
+  $info{package} = xml_get_text($xmldom, '/directory[@name][1]', 'name');
+  $info{_link_project} = xml_get_text($xmldom, '/directory/linkinfo[@project][1]', 'project');
+
+  return \%info;
+}
+
 #### MAIN ####
 
 
@@ -278,6 +300,19 @@ sub osc_checkin()
   chomp $project;
 
   system(@OSCBASE, 'up') && die "Error: osc up failed, maybe due to local changes. Please check manually.";
+  system(@OSCBASE, 'pull'); # exit code does not count
+
+  # check for conflict
+  if (osc_st('C'))
+  {
+    # rebranch
+    my $info = get_osc_package_info();
+    system(@OSCBASE, 'branch', '--force', $info->{_link_project}, $info->{package}, $info->{project});
+    sleep 60;
+    chdir("..");
+    system("rm -rf $info->{package} ; osc co $info->{package}");
+    chdir($info->{package});
+  }
 
   $xmldom = servicefile_read_xml($xmlfile);
   $gitremote = xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="url"][1]');
