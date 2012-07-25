@@ -45,31 +45,6 @@ if test `id -u` != 0 ; then
   exit 1
 fi
 
-CVOL=${CVOL:-/dev/vdb}
-if grep -q $CVOL /proc/mounts ; then
-  echo "The device $CVOL seems to be used. Exiting."
-  exit 92
-fi
-if [ ! -e $CVOL ] ; then
-  echo "Error: $CVOL does not exist."
-  echo "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx"
-  echo "Running 'partprobe' may help to let the device appear."
-  exit 93
-fi
-
-if rcSuSEfirewall2 status ; then
-  echo "Error: SuSEfirewall is running - it will interfere with the iptables rules done by libvirt"
-  echo "Please stop the SuSEfirewall completely and run mkcloud again"
-  echo "Run:  rcSuSEfirewall2 stop && insserv -r SuSEfirewall2_setup && insserv -r SuSEfirewall2_init"
-  exit 91
-fi
-
-if grep "devpts.*[^x]mode=.00" /proc/mounts ; then
-  echo "Error: /dev/pts is not accessible for libvirt, maybe you use autobuild on your system."
-  echo "Please remount it using the following command:"
-  echo " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
-  exit 13
-fi
 
 adminip=192.168.124.10
 
@@ -85,12 +60,6 @@ if [ `grep -v -e grep -e SCREEN $PSFILE | grep $SCRIPT | wc -l` -gt 1 ]  ; then
   exit 33
 fi
 rm $PSFILE
-
-if [ -z $cloudsource ] ; then
-  echo "Please set the env variable:"
-  echo "export cloudsource=Beta?|develcloud|susecloud"
-  exit 1
-fi
 
 if [ ! -e qa_crowbarsetup.sh ] ; then
   echo "Thank you for using $0."
@@ -541,6 +510,42 @@ function usage()
   exit 1
 }
 
+function sanity_checks()
+{
+  if [ -z $cloudsource ] ; then
+    echo "Please set the env variable:"
+    echo "export cloudsource=Beta?|develcloud|susecloud"
+    exit 1
+  fi
+
+  CVOL=${CVOL:-/dev/vdb}
+  if grep -q $CVOL /proc/mounts ; then
+    echo "The device $CVOL seems to be used. Exiting."
+    exit 92
+  fi
+  if [ ! -e $CVOL ] ; then
+    echo "Error: $CVOL does not exist."
+    echo "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx"
+    echo "Running 'partprobe' may help to let the device appear."
+    exit 93
+  fi
+
+  if [ -e /etc/init.d/SuSEfirewall2_init ] && rcSuSEfirewall2 status ; then
+    echo "Error: SuSEfirewall is running - it will interfere with the iptables rules done by libvirt"
+    echo "Please stop the SuSEfirewall completely and run mkcloud again"
+    echo "Run:  rcSuSEfirewall2 stop && insserv -r SuSEfirewall2_setup && insserv -r SuSEfirewall2_init"
+    exit 91
+  fi
+
+  if grep "devpts.*[^x]mode=.00" /proc/mounts ; then
+    echo "Error: /dev/pts is not accessible for libvirt, maybe you use autobuild on your system."
+    echo "Please remount it using the following command:"
+    echo " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
+    exit 13
+  fi
+}
+
+
 ## MAIN ##
 
 allcmds="all instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup help"
@@ -583,6 +588,8 @@ for cmd in $wantedcmds ; do
     usage
   fi
 done
+
+sanity_checks
 
 echo "You choose to run these mkcloud steps:"
 echo "  $runcmds"
