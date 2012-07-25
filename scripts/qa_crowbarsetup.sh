@@ -280,10 +280,10 @@ function waitnodes()
   case $mode in
     nodes)
       echo -n "Waiting for nodes to get ready: "
-      for i in `seq 1 $nodenumber` ; do
+      for i in `crowbar machines list | grep ^d` ; do
         machinestatus=''
         while test $n -gt 0 && ! test "x$machinestatus" = "xready" ; do
-          machinestatus=`crowbar machines show d52-54-00-77-77-7$i.$cloud.cloud.suse.de | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['state']"`
+          machinestatus=`crowbar machines show $i | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['state']"`
           if test "x$machinestatus" = "xfailed" ; then
             echo "Error: machine status is failed. Exiting"
             exit 39
@@ -292,8 +292,7 @@ function waitnodes()
           n=$((n-1))
           echo -n "."
         done
-        vmip=$net.$((80+$i))
-        n=500 ; while test $n -gt 0 && ! netcat -z $vmip 22 ; do
+        n=500 ; while test $n -gt 0 && ! netcat -z $i 22 ; do
           sleep 1
           n=$(($n - 1))
           echo -n "."
