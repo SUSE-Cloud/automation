@@ -28,8 +28,8 @@
 #                will use latest published packages from Devel:Cloud
 #                even if there is no new ISO created yet
 #
-# cephenable=''|1 (default='')
-#                will create a separate 20GB partition for the nodes
+# cephvolumenumber (default 0)
+#                sets the number of 5GB ceph volumes that will be created per node
 #                for ceph testing
 #
 # nodenumber     (default 2)
@@ -68,6 +68,7 @@ if [ ! -e qa_crowbarsetup.sh ] ; then
 fi
 
 nodenumber=${nodenumber:-2}
+cephvolumenumber=${cephvolumenumber:-0}
 allnodeids=`seq 1 $nodenumber`
 vcpus=${vcpus:-1}
 
@@ -136,9 +137,11 @@ EOSSH
     lvcreate -n node$i -L 20G cloud
   done
 
-  if [ ! -z $cephenable ] ; then
+  if [ $cephvolumenumber -gt 0 ] ; then
     for i in $allnodeids ; do
-      lvcreate -n node$i-ceph -L 10G cloud
+      for n in $(echo `seq 1 $cephvolumenumber`) ; do
+        lvcreate -n node$i-ceph$n -L 5G cloud
+      done
     done
   fi
 
@@ -349,17 +352,22 @@ function setupcompute()
   # nova-fixed = 500
   mkvlan 500 192.168.123.254
 
-
+  c=1
+  alldevices=$(echo {b..z} {a..z}{a..z})
   for i in $allnodeids ; do
-    cephvolume="<disk type='block' device='disk'>
-      <serial>cloud-node$i-ceph</serial>
+    cephvolume=""
+    if [ $cephvolumenumber -gt 0 ] ; then
+      for n in $(echo `seq 1 $cephvolumenumber`) ; do
+        dev=vd$(echo $alldevices | cut -d" " -f$c)
+        c=$(($c + 1))
+        cephvolume="$cephvolume
+    <disk type='block' device='disk'>
+      <serial>cloud-node$i-ceph$n</serial>
       <driver name='qemu' type='raw'/>
-      <source dev='/dev/cloud/node$i-ceph'/>
-      <target dev='vdb' bus='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+      <source dev='/dev/cloud/node$i-ceph$n'/>
+      <target dev='$dev' bus='virtio'/>
     </disk>"
-    if [ -z $cephenable ] ; then
-      cephvolume=''
+      done
     fi
 
     cat > /tmp/cloud-node$i.xml <<EOLIBVIRT
@@ -499,8 +507,8 @@ function usage()
   echo " Optional"
   echo "   TESTHEAD='' | 1  (default='')"
   echo "       : use latest published packages from Devel:Cloud"
-  echo "   cephenable='' | 1  (default='')"
-  echo "       : create a separate 10GB partition per node for ceph"
+  echo "   cephvolumenumber  (default=0)"
+  echo "       : the number of 5GB ceph volumes that will be created per node"
   echo "         note: proposal step does NOT contain a ceph proposal, do it manually"
   echo "   nodenumber=2    (default 2)"
   echo "       : set the number of nodes to be created (excl. admin node)"
