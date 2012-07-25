@@ -45,7 +45,7 @@ esac
 
 function intercept()
 {
-  if [ -n $shell ] ; then
+  if [ -n "$shell" ] ; then
     echo "Now starting bash for manual intervention..."
     echo "When ready exit this shell to continue with $1"
     bash
@@ -151,7 +151,7 @@ if ! grep -q suse-11.2 /etc/fstab ; then
   mount /srv/tftpboot/suse-11.2/install
 fi
 
-for REPO in SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Updates Cloud-PTF ; do
+for REPO in SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Updates ; do
   grep -q $REPO /etc/fstab && continue
   mkdir -p /srv/tftpboot/repos/$REPO
   echo "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO  /srv/tftpboot/repos/$REPO   nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
