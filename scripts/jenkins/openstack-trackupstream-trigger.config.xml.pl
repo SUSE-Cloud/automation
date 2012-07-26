@@ -48,6 +48,12 @@ my %tutrigger = (
  ) ]
 );
 
+
+foreach my $subp (keys %tutrigger)
+{
+  open (my $FH, '>', "$subp.config.xml") or die $@;
+  select $FH;
+
 print
 q{<?xml version='1.0' encoding='UTF-8'?>
 <project>
@@ -64,7 +70,7 @@ q{<?xml version='1.0' encoding='UTF-8'?>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
     <hudson.triggers.TimerTrigger>
-      <spec>0 0 * * *</spec>
+      <spec></spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
@@ -74,8 +80,6 @@ q{<?xml version='1.0' encoding='UTF-8'?>
       <configs>
 };
 
-foreach my $subp (keys %tutrigger)
-{
   foreach my $pack (@{$tutrigger{$subp}})
   {
     print
@@ -94,7 +98,6 @@ SUBPROJECT=$subp
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
 ~;
   }
-}
 
 
 print
@@ -104,4 +107,19 @@ q{
   </publishers>
   <buildWrappers/>
 </project>
+};
+
+select STDOUT;
+close $FH;
+
+}
+
+print "\nConfigs created locally\n";
+print "Please update the jenkins config by running these commands:\n";
+
+foreach my $subp (keys %tutrigger)
+{
+  my $jobname=lc($subp);
+  $jobname="openstack" if ($jobname eq 'head');
+  print '# curl -X POST --data-binary @'."$subp.config.xml http://river.suse.de/job/cloud-trackupstream-$jobname-trigger/config.xml\n";
 }
