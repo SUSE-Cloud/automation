@@ -24,6 +24,7 @@ my %tutrigger = (
     python-novaclient
     python-quantumclient
     python-melangeclient
+    python-swiftclient
   ) ],
   Crowbar => [ qw(
     crowbar
