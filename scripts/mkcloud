@@ -166,7 +166,7 @@ EOSSH
 
 function sshrun()
 {
-  ssh root@$adminip "export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; $@"
+  ssh root@$adminip "export shell=$shell ; export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; $@"
   return $?
 }
 
