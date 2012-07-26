@@ -353,6 +353,7 @@ if [ -n "$testsetup" ] ; then
 	echo "openstack nova contoller: $novacontroller"
 	ssh $novacontroller '
 		. .openrc
+		curl -s w3.suse.de/~bwiedemann/cloud/defaultsuseusers.pl | perl
 		nova list
 		glance index
         glance index|grep -q SP2-64 || curl http://clouddata.cloud.suse.de/images/SP2-64up.img.gz | gzip -cd | glance add name=SP2-64 is_public=True disk_format=raw container_format=bare
