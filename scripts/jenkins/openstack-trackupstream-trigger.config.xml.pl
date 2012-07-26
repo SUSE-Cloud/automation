@@ -5,10 +5,7 @@
 # Adapt the %tutrigger hash at the top and then run:
 #  ./openstack-trackupstream-trigger.config.xml.pl > config.xml
 # This file can be uploaded to river.suse.de with this command:
-#  curl -X POST -d@config.xml  http://river.suse.de/job/openstack-trackupstream-trigger/config.xml
-#
-# Note: Due to a bug in Jenkins (bug: JENKINS-7501 https://issues.jenkins-ci.org/browse/JENKINS-7501)
-#       we currently use a temporarily adapted format for the COMPONENT variable. See below for details.
+#  curl -X POST --data-binary @config.xml  http://river.suse.de/job/openstack-trackupstream-trigger/config.xml
 #
 
 my %tutrigger = (
@@ -86,7 +83,9 @@ qq~
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>COMPONENT=$subp+$pack</properties>
+              <properties>COMPONENT=$pack
+SUBPROJECT=$subp
+</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-trackupstream, </projects>
@@ -96,17 +95,6 @@ qq~
 ~;
   }
 }
-
-#
-# Due to a bug in Jenkins (bug: JENKINS-7501 https://issues.jenkins-ci.org/browse/JENKINS-7501)
-#  we use a temporarily adapted format for the COMPONENT variable.
-# Now we use:
-#  COMPONENT=<subproject>+<package>
-#
-# Later it will be:
-#  COMPONENT=<package>
-#  SUBPROJECT=<subproject>
-#
 
 
 print
