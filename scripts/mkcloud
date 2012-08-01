@@ -606,9 +606,7 @@ sleep 2
 
 for cmd in `echo $runcmds` ; do
   echo
-  echo "============> MKCLOUD STEP START <============"
-  echo
-  echo "Now running step: $cmd"
+  echo "============> MKCLOUD STEP START: $cmd <============"
   echo
   sleep 2
   $cmd
@@ -623,6 +621,6 @@ for cmd in `echo $runcmds` ; do
     exit $ret
   fi
   echo
-  echo "^^^^^^^^^^^^= MKCLOUD STEP DONE  =^^^^^^^^^^^^"
+  echo "^^^^^^^^^^^^= MKCLOUD STEP DONE: $cmd =^^^^^^^^^^^^"
   echo
 done
