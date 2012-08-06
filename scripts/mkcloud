@@ -520,7 +520,7 @@ function usage()
 
 function sanity_checks()
 {
-  if [ -z $cloudsource ] ; then
+  if [ -z "$cloudsource" ] ; then
     echo "Please set the env variable:"
     echo "export cloudsource=Beta?|develcloud|susecloud"
     exit 1
@@ -560,7 +560,7 @@ allcmds="all instonly plain cleanup prepare setupadmin instcrowbar setupcompute 
 wantedcmds=$@
 runcmds=''
 
-if [ -z $wantedcmds ] ; then
+if [ -z "$wantedcmds" ] ; then
   usage
 fi
 
