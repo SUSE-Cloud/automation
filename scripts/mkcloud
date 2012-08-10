@@ -190,7 +190,7 @@ function setupadmin()
     <currentMemory>2097152</currentMemory>
     <vcpu>$vcpus</vcpu>
     <os>
-      <type arch='x86_64' machine='pc-0.15'>hvm</type>
+      <type arch='x86_64' machine='pc-0.14'>hvm</type>
       <boot dev='hd'/>
     </os>
     <features>
@@ -378,7 +378,7 @@ function setupcompute()
   <currentMemory>2097152</currentMemory>
   <vcpu>$vcpus</vcpu>
   <os>
-    <type arch='x86_64' machine='pc-0.15'>hvm</type>
+    <type arch='x86_64' machine='pc-0.14'>hvm</type>
   </os>
   <features>
     <acpi/>
