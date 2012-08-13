@@ -90,6 +90,13 @@ cpuflags="<cpu match='minimum'>
   </cpu>"
 grep -q "flags.* npt" /proc/cpuinfo || cpuflags=""
 
+if grep -q "vendor_id.*GenuineIntel" /proc/cpuinfo; then
+    cpuflags="<cpu mode='custom' match='exact'>
+    <model fallback='allow'>core2duo</model>
+    <feature policy='require' name='vmx'/>
+  </cpu>"
+fi
+
 function cleanup()
 {
   # cleanup leftover from last run
