@@ -61,6 +61,8 @@ if [ `grep -v -e grep -e SCREEN $PSFILE | grep $SCRIPT | wc -l` -gt 1 ]  ; then
 fi
 rm $PSFILE
 
+wget -O qa_crowbarsetup.sh "https://raw.github.com/SUSE/cloud/master/scripts/qa_crowbarsetup.sh?login=bmwiedemann&token=c33f525d5d7f5111f5eede6e9a07ab64"
+
 if [ ! -e qa_crowbarsetup.sh ] ; then
   echo "Thank you for using $0."
   echo "For proper functionality you also need to copy the script qa_crowbarsetup.sh here."
