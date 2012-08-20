@@ -442,7 +442,7 @@ EOLIBVIRT
       exit 74
     fi
   done
-  sleep 14
+  sleep 24
   for i in $allnodeids ; do # work around bridge forward delay or something causing pxelinux transfer fail on one node
     [ $i = 1 ] && continue
     virsh send-key cloud-node$i KEY_RIGHTCTRL KEY_RIGHTALT KEY_DELETE
