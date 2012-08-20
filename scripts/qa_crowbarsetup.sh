@@ -3,8 +3,8 @@
 test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
 #resize2fs /dev/vda2
 
-cloud=${1:-d2}
-nodenumber=${nodenumber:-2}
+export cloud=${1:-d2}
+export nodenumber=${nodenumber:-2}
 
 case $cloud in
 	d1)
@@ -327,11 +327,28 @@ function waitnodes()
   fi
 }
 
+export nodes=`crowbar machines list | grep ^d`
 if [ -n "$proposal" ] ; then
 waitnodes nodes
-for service in database postgresql keystone glance nova nova_dashboard ; do
+for service in database postgresql keystone ceph glance nova nova_dashboard ; do
   [ "$service" = "postgresql" -a "$cloudsource" != "Beta1" ] && continue
+  [ "$service" = "ceph" -a "$nodenumber" -lt 3 ] && continue
   crowbar "$service" proposal create default
+  if [ "$service" = "ceph" ] ; then
+    # configure nodes and devices for ceph
+    crowbar ceph proposal show default |
+      ruby -e "require 'rubygems';require 'json';
+        nodes=ENV['nodes'].split(\"\n\");
+        controller=nodes.shift;
+        j=JSON.parse(STDIN.read);
+        e=j['deployment']['ceph']['elements'];
+        e['ceph-mon-master']=[controller];
+        e['ceph-mon']=nodes[0..1];
+        e['ceph-store']=nodes;
+        j['attributes']['ceph']['devices'] = ENV['cloud']=='virtual'?['/dev/vdb','/dev/vdc']:['/dev/sdb'];
+      puts JSON.pretty_generate(j)" > /root/cephproposal
+    crowbar ceph proposal --file=/root/cephproposal edit default
+  fi
   crowbar "$service" proposal commit default
   waitnodes proposal $service
   sleep 10
@@ -405,7 +422,7 @@ if [ -n "$testsetup" ] ; then
 		sleep 15
 		ssh $vmip fdisk -l /dev/vdb | grep 1073741824
 		volumeattachret=$?
-		nova volume-detach $instanceid 1
+		nova volume-detach $instanceid 1 ; sleep 10
 		nova volume-attach $instanceid 1 /dev/vdb
 		ssh $vmip fdisk -l /dev/vdc | grep 1073741824 || volumeattachret=57
 		nova floating-ip-create | tee floating-ip-create.out
