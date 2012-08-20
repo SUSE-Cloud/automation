@@ -226,7 +226,7 @@ fi
 . /etc/profile.d/crowbar.sh
 
 sleep 20
-if ! curl -s http://localhost:3000 > /dev/null ; then
+if ! curl -s http://localhost:3000 > /dev/null || ! curl -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
 	tail -30 /tmp/screenlog.0
 	echo "crowbar self-test failed"
 	exit 84
