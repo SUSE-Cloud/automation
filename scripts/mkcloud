@@ -38,37 +38,7 @@
 # vcpus          (default 1)
 #                sets the number of CPU cores assigned to each node (admin and compute)
 
-if test `id -u` != 0 ; then
-  echo "Error: This script needs to be run as root"
-  echo "  Please be aware that this script will create a LVM"
-  echo "  and kill all current VMs on this host."
-  exit 1
-fi
-
-
 adminip=192.168.124.10
-
-SCRIPT=$(basename $0)
-PSFILE=`mktemp /tmp/mkcloud.XXXXXX`
-ps ax > $PSFILE
-if [ `grep -v -e grep -e SCREEN $PSFILE | grep $SCRIPT | wc -l` -gt 1 ]  ; then
-  echo "Warning: mkcloud was started twice."
-  echo "This is not supported ... exiting."
-  echo
-  echo 'Maybe you just have a "$EDITOR mkcloud" process running. Please close it.'
-  rm $PSFILE
-  exit 33
-fi
-rm $PSFILE
-
-wget -O qa_crowbarsetup.sh "https://raw.github.com/SUSE/cloud/master/scripts/qa_crowbarsetup.sh?login=bmwiedemann&token=c33f525d5d7f5111f5eede6e9a07ab64"
-
-if [ ! -e qa_crowbarsetup.sh ] ; then
-  echo "Thank you for using $0."
-  echo "For proper functionality you also need to copy the script qa_crowbarsetup.sh here."
-  exit 87
-fi
-
 nodenumber=${nodenumber:-2}
 cephvolumenumber=${cephvolumenumber:-0}
 allnodeids=`seq 1 $nodenumber`
@@ -98,6 +68,7 @@ if grep -q "vendor_id.*GenuineIntel" /proc/cpuinfo; then
     <feature policy='require' name='vmx'/>
   </cpu>"
 fi
+
 
 function wait_for()
 {
@@ -519,8 +490,38 @@ function usage()
   exit 1
 }
 
+
 function sanity_checks()
 {
+  if test `id -u` != 0 ; then
+    echo "Error: This script needs to be run as root"
+    echo "  Please be aware that this script will create a LVM"
+    echo "  and kill all current VMs on this host."
+    exit 1
+  fi
+
+  SCRIPT=$(basename $0)
+  PSFILE=`mktemp /tmp/mkcloud.XXXXXX`
+  ps ax > $PSFILE
+  if [ `grep -v -e grep -e SCREEN $PSFILE | grep $SCRIPT | wc -l` -gt 1 ]  ; then
+    echo "Error: mkcloud was started twice."
+    echo "This is not supported ... exiting."
+    echo
+    echo 'Maybe you just have a "$EDITOR mkcloud" process running. Please close it.'
+    rm $PSFILE
+    exit 33
+  fi
+  rm $PSFILE
+
+  # always fetch the latest version
+  wget -O qa_crowbarsetup.sh "https://raw.github.com/SUSE/cloud/master/scripts/qa_crowbarsetup.sh?login=bmwiedemann&token=c33f525d5d7f5111f5eede6e9a07ab64"
+
+  if [ ! -e qa_crowbarsetup.sh ] ; then
+    echo "Error: qa_crowbarsetup.sh not found in same directory"
+    echo "Please put the latest version of this script in the same directory."
+    exit 87
+  fi
+
   if [ -z "$cloudsource" ] ; then
     echo "Please set the env variable:"
     echo "export cloudsource=Beta?|develcloud|susecloud"
