@@ -327,6 +327,45 @@ function waitnodes()
   fi
 }
 
+
+function manual_2device_ceph_proposal()
+{
+  # configure nodes and devices for ceph
+  crowbar ceph proposal show default |
+    ruby -e "require 'rubygems';require 'json';
+      nodes=ENV['nodes'].split(\"\n\");
+      controller=nodes.shift;
+      j=JSON.parse(STDIN.read);
+      e=j['deployment']['ceph']['elements'];
+      e['ceph-mon-master']=[controller];
+      e['ceph-mon']=nodes[0..1];
+      e['ceph-store']=nodes;
+      j['attributes']['ceph']['devices'] = ENV['cloud']=='virtual'?['/dev/vdb','/dev/vdc']:['/dev/sdb'];
+    puts JSON.pretty_generate(j)" > /root/cephproposal
+  crowbar ceph proposal --file=/root/cephproposal edit default
+}
+
+function enable_ssl_for_nova-dashboard()
+{
+  echo "FIXME: edit the proposal"
+}
+
+function custom_configuration()
+{
+  service=$1
+  case $service in
+    ceph) manual_2device_ceph_proposal
+    ;;
+    nova-dashboard)
+      if [[ $all_with_ssl = 1 || $novadashboard_with_ssl = 1 ]] ; then
+        enable_ssl_for_nova-dashboard
+      fi
+    ;;
+    *) echo "No hooks defined for service: $service"
+    ;;
+  esac
+}
+
 export nodes=`crowbar machines list | grep ^d`
 if [ -n "$proposal" ] ; then
 waitnodes nodes
@@ -334,21 +373,8 @@ for service in database postgresql keystone ceph glance nova nova_dashboard ; do
   [ "$service" = "postgresql" -a "$cloudsource" != "Beta1" ] && continue
   [ "$service" = "ceph" -a "$nodenumber" -lt 3 ] && continue
   crowbar "$service" proposal create default
-  if [ "$service" = "ceph" ] ; then
-    # configure nodes and devices for ceph
-    crowbar ceph proposal show default |
-      ruby -e "require 'rubygems';require 'json';
-        nodes=ENV['nodes'].split(\"\n\");
-        controller=nodes.shift;
-        j=JSON.parse(STDIN.read);
-        e=j['deployment']['ceph']['elements'];
-        e['ceph-mon-master']=[controller];
-        e['ceph-mon']=nodes[0..1];
-        e['ceph-store']=nodes;
-        j['attributes']['ceph']['devices'] = ENV['cloud']=='virtual'?['/dev/vdb','/dev/vdc']:['/dev/sdb'];
-      puts JSON.pretty_generate(j)" > /root/cephproposal
-    crowbar ceph proposal --file=/root/cephproposal edit default
-  fi
+  # hook for changing proposals:
+  custom_configuration $service
   crowbar "$service" proposal commit default
   waitnodes proposal $service
   sleep 10
