@@ -252,7 +252,7 @@ EOLIBVIRT
   <network>
     <name>cloud-admin</name>
     <uuid>76b08f53-4fe0-3bb6-8220-d4cfc7b23423</uuid>
-    <bridge name='virbr1' stp='on' delay='0' />
+    <bridge name='virbr1' stp='off' delay='0' />
     <mac address='52:54:00:AB:B1:77'/>
     <ip address='192.168.124.1' netmask='255.255.248.0'>
       <dhcp>
@@ -441,12 +441,6 @@ EOLIBVIRT
       echo "Error: Could not create VM for: node$i"
       exit 74
     fi
-  done
-  sleep 24
-  for i in $allnodeids ; do # work around bridge forward delay or something causing pxelinux transfer fail on one node
-    [ $i = 1 ] && continue
-    virsh send-key cloud-node$i KEY_RIGHTCTRL KEY_RIGHTALT KEY_DELETE
-    sleep 1
   done
 
   scp qa_crowbarsetup.sh root@$adminip:
