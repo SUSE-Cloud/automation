@@ -43,31 +43,7 @@ nodenumber=${nodenumber:-2}
 cephvolumenumber=${cephvolumenumber:-0}
 allnodeids=`seq 1 $nodenumber`
 vcpus=${vcpus:-1}
-
-cpuflags="<cpu match='minimum'>
-    <model>qemu64</model>
-    <feature policy='require' name='fxsr_opt'/>
-    <feature policy='require' name='mmxext'/>
-    <feature policy='require' name='lahf_lm'/>
-    <feature policy='require' name='sse4a'/>
-    <feature policy='require' name='abm'/>
-    <feature policy='require' name='cr8legacy'/>
-    <feature policy='require' name='misalignsse'/>
-    <feature policy='require' name='popcnt'/>
-    <feature policy='require' name='pdpe1gb'/>
-    <feature policy='require' name='cx16'/>
-    <feature policy='require' name='3dnowprefetch'/>
-    <feature policy='require' name='cmp_legacy'/>
-    <feature policy='require' name='monitor'/>
-  </cpu>"
-grep -q "flags.* npt" /proc/cpuinfo || cpuflags=""
-
-if grep -q "vendor_id.*GenuineIntel" /proc/cpuinfo; then
-    cpuflags="<cpu mode='custom' match='exact'>
-    <model fallback='allow'>core2duo</model>
-    <feature policy='require' name='vmx'/>
-  </cpu>"
-fi
+cpuflags=''
 
 
 function wait_for()
@@ -173,19 +149,41 @@ function sshrun()
   return $?
 }
 
-function setupadmin()
-{
-  echo "Creating key for controlling our VMs..."
-  [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
-  echo "Injecting public key into image..."
-  pubkey=`cut -d" " -f2 ~/.ssh/id_dsa.pub`
-  mount -o loop,offset=$(expr 2056192 \* 512) /dev/cloud/admin /mnt
-  mkdir -p /mnt/root/.ssh
-  grep -q $pubkey /mnt/root/.ssh/authorized_keys2 2>/dev/null || cat ~/.ssh/id_dsa.pub >> /mnt/root/.ssh/authorized_keys2
-  umount /mnt
-  sync
 
-  cat > /tmp/cloud-admin.xml <<EOLIBVIRT
+function h_cpuflags_settings()
+{ # used for admin and compute nodes
+  cpuflags="<cpu match='minimum'>
+      <model>qemu64</model>
+      <feature policy='require' name='fxsr_opt'/>
+      <feature policy='require' name='mmxext'/>
+      <feature policy='require' name='lahf_lm'/>
+      <feature policy='require' name='sse4a'/>
+      <feature policy='require' name='abm'/>
+      <feature policy='require' name='cr8legacy'/>
+      <feature policy='require' name='misalignsse'/>
+      <feature policy='require' name='popcnt'/>
+      <feature policy='require' name='pdpe1gb'/>
+      <feature policy='require' name='cx16'/>
+      <feature policy='require' name='3dnowprefetch'/>
+      <feature policy='require' name='cmp_legacy'/>
+      <feature policy='require' name='monitor'/>
+    </cpu>"
+  grep -q "flags.* npt" /proc/cpuinfo || cpuflags=""
+
+  if grep -q "vendor_id.*GenuineIntel" /proc/cpuinfo; then
+      cpuflags="<cpu mode='custom' match='exact'>
+      <model fallback='allow'>core2duo</model>
+      <feature policy='require' name='vmx'/>
+    </cpu>"
+  fi
+}
+
+
+function h_create_libvirt_adminnode_config()
+{
+  h_cpuflags_settings
+
+  cat > $1 <<EOLIBVIRT
   <domain type='kvm'>
     <name>cloud-admin</name>
     <uuid>169738f2-63a1-3fef-2ee8-1fef03498574</uuid>
@@ -239,10 +237,15 @@ function setupadmin()
   </domain>
 EOLIBVIRT
 
+
+}
+
+function h_create_libvirt_admin_network_config()
+{
   # dont specify range
   # this allows to use the same network for cloud-nodes that get DHCP from crowbar
   # doc: http://libvirt.org/formatnetwork.html
-  cat > /tmp/cloud-admin.net.xml <<EOLIBVIRTNET
+  cat > $1 <<EOLIBVIRTNET
   <network>
     <name>cloud-admin</name>
     <uuid>76b08f53-4fe0-3bb6-8220-d4cfc7b23423</uuid>
@@ -257,7 +260,24 @@ EOLIBVIRT
     </forward>
   </network>
 EOLIBVIRTNET
+}
 
+
+function setupadmin()
+{
+  echo "Creating key for controlling our VMs..."
+  [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
+  echo "Injecting public key into image..."
+  pubkey=`cut -d" " -f2 ~/.ssh/id_dsa.pub`
+  mount -o loop,offset=$(expr 2056192 \* 512) /dev/cloud/admin /mnt
+  mkdir -p /mnt/root/.ssh
+  grep -q $pubkey /mnt/root/.ssh/authorized_keys2 2>/dev/null || cat ~/.ssh/id_dsa.pub >> /mnt/root/.ssh/authorized_keys2
+  umount /mnt
+  sync
+
+  h_create_libvirt_adminnode_config /tmp/cloud-admin.xml
+
+  h_create_libvirt_admin_network_config /tmp/cloud-admin.net.xml
 
   modprobe kvm-amd
   insserv libvirtd
@@ -323,32 +343,15 @@ EONET
   ifup virbr1.$DEFVLAN
 }
 
-function setupcompute()
+
+function h_create_libvirt_computenode_config()
 {
-  # public = 300
-  mkvlan 300 192.168.122.1
-  # nova-fixed = 500
-  mkvlan 500 192.168.123.254
+  h_cpuflags_settings
+  nodeconfigfile=$1
+  nodecounter=$2
+  cephvolume=$3
 
-  c=1
-  for i in $allnodeids ; do
-    alldevices=$(echo {b..z} {a..z}{a..z})
-    cephvolume=""
-    if [ $cephvolumenumber -gt 0 ] ; then
-      for n in $(echo `seq 1 $cephvolumenumber`) ; do
-        dev=vd$(echo $alldevices | cut -d" " -f$c)
-        c=$(($c + 1))
-        cephvolume="$cephvolume
-    <disk type='block' device='disk'>
-      <serial>cloud-node$i-ceph$n</serial>
-      <driver name='qemu' type='raw'/>
-      <source dev='/dev/cloud/node$i-ceph$n'/>
-      <target dev='$dev' bus='virtio'/>
-    </disk>"
-      done
-    fi
-
-    cat > /tmp/cloud-node$i.xml <<EOLIBVIRT
+  cat > $nodeconfigfile <<EOLIBVIRT
 <domain type='kvm'>
   <name>cloud-node$i</name>
   <uuid>169738f2-63b$i-3fef-2ee8-1fef03498574</uuid>
@@ -403,6 +406,36 @@ function setupcompute()
   </devices>
 </domain>
 EOLIBVIRT
+
+}
+
+
+function setupcompute()
+{
+  # public = 300
+  mkvlan 300 192.168.122.1
+  # nova-fixed = 500
+  mkvlan 500 192.168.123.254
+
+  c=1
+  for i in $allnodeids ; do
+    alldevices=$(echo {b..z} {a..z}{a..z})
+    cephvolume=""
+    if [ $cephvolumenumber -gt 0 ] ; then
+      for n in $(echo `seq 1 $cephvolumenumber`) ; do
+        dev=vd$(echo $alldevices | cut -d" " -f$c)
+        c=$(($c + 1))
+        cephvolume="$cephvolume
+    <disk type='block' device='disk'>
+      <serial>cloud-node$i-ceph$n</serial>
+      <driver name='qemu' type='raw'/>
+      <source dev='/dev/cloud/node$i-ceph$n'/>
+      <target dev='$dev' bus='virtio'/>
+    </disk>"
+      done
+    fi
+
+    h_create_libvirt_computenode_config /tmp/cloud-node$i.xml $i $cephvolume
 
     virsh destroy cloud-node$i 2>/dev/null
     if ! virsh create /tmp/cloud-node$i.xml ; then
