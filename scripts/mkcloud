@@ -99,6 +99,29 @@ if grep -q "vendor_id.*GenuineIntel" /proc/cpuinfo; then
   </cpu>"
 fi
 
+function wait_for()
+{
+  timecount=${1:-300}
+  timesleep=${2:-1}
+  condition=${3:-'/bin/true'}
+  waitfor=${4:-'unknown process'}
+
+  n=$timecount
+  while test $n -gt 0 && ! eval $condition
+  do
+    echo -n .
+    sleep $timesleep
+  done
+
+  if [ $n = 0 ] ; then
+    echo "Error: Waiting for '$waitfor' timed out."
+    echo "This check was used: $condition"
+    exit 11
+  fi
+}
+
+
+
 function cleanup()
 {
   # cleanup leftover from last run
@@ -268,18 +291,7 @@ EOLIBVIRTNET
   modprobe kvm-amd
   insserv libvirtd
   rclibvirtd start
-  echo -n "Waiting for libvirt startup: "
-  n=100 ; while test $n -gt 0 && ! [ -S /var/run/libvirt/libvirt-sock ] ; do
-    echo -n .
-    sleep 3
-  done
-  echo
-  if [ $n = 0 ] ; then
-    echo "Error: libvirtd socket was not created within reasonable time."
-    exit 71
-  else
-    echo "Libvirtd socked created. Continuing."
-  fi
+  wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 
   [ -e /etc/libvirt/qemu/networks/cloud-admin.xml ] || virsh net-create /tmp/cloud-admin.net.xml
   if ! virsh create /tmp/cloud-admin.xml ; then
@@ -288,13 +300,8 @@ EOLIBVIRTNET
     exit 76
   fi
 
-  #sleep 60 # time to boot up
-  #adminip=`grep 52:54:00:77:77:70 /var/lib/libvirt/dnsmasq/cloud-admin.leases | cut -d" " -f3`
-  echo "waiting for crowbar admin VM to become reachable"
-  n=300 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $adminip >/dev/null ; do
-    n=$(expr $n - 1)
-    echo -n "."
-  done
+  wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
+
   if ! grep -q "iptables -t nat -F PREROUTING" /etc/init.d/boot.local; then
       nodehostips=$(echo `seq 81 $((80 + $nodenumber))`)
       cat >> /etc/init.d/boot.local <<EOS
@@ -312,16 +319,7 @@ EOS
   fi
   /etc/init.d/boot.local
 
-  n=150 ; while test $n -gt 0 && ! nc -z $adminip 22 ; do
-    sleep 1
-    n=$(expr $n - 1)
-    echo -n "."
-  done
-
-  if [ $n = 0 ] ; then
-    echo "admin VM not reachable - something must have gone wrong... exiting"
-    exit 57
-  fi
+  wait_for 150 1 "nc -z $adminip 22" 'starting ssh daemon'
 
   echo "waiting some more for sshd+named to start"
   sleep 25
