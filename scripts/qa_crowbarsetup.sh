@@ -424,7 +424,7 @@ if [ -n "$testsetup" ] ; then
 		ssh $vmip fdisk -l /dev/vdb | grep 1073741824
 		volumeattachret=$?
 		nova volume-detach $instanceid 1 ; sleep 10
-		nova volume-attach $instanceid 1 /dev/vdb
+		nova volume-attach $instanceid 1 /dev/vdb ; sleep 10
 		ssh $vmip fdisk -l /dev/vdc | grep 1073741824 || volumeattachret=57
 		nova floating-ip-create | tee floating-ip-create.out
 		floatingip=$(perl -ne "if(/192\.168\.\d+\.\d+/){print \$&}" floating-ip-create.out)
