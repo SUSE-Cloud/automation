@@ -59,6 +59,7 @@ function wait_for()
   do
     echo -n .
     sleep $timesleep
+    n=$(($n - 1))
   done
   echo
 

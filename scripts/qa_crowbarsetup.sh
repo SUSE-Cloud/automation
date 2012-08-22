@@ -74,6 +74,7 @@ function wait_for()
   do
     echo -n .
     sleep $timesleep
+    n=$(($n - 1))
   done
   echo
 
@@ -532,7 +533,7 @@ if [ -n "$waitforrebootcompute" ] ; then
   nova reboot testvm
   nova list
   vmip=`nova show testvm | perl -ne 'm/ nova_fixed.network [ |]*([0-9.]+)/ && print $1'`
-  wait_for 300 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
+  wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
 fi
 
 #BMCs at 10.122.178.163-6 #node 6-9
