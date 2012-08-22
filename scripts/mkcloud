@@ -484,7 +484,7 @@ function rebootcrowbar()
   # reboot the crowbar instance
   #  and test if everything is up and running afterwards
   sshrun "reboot"
-  wait_for 300 3 "nc -z $adminip 22" 'crowbar to be back online'
+  wait_for 500 3 "nc -z $adminip 22" 'crowbar to be back online'
   echo "waiting another 180 seconds for services"
   sleep 180
   echo "checking if there are machines"
