@@ -212,6 +212,7 @@ fi
 f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
 grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
 
+# workaround for performance bug (bnc#770083)
 sed -i -e "s#<\(partitions.*\)/>#<\1><partition><mount>swap</mount><size>auto</size></partition><partition><mount>/</mount><size>max</size><fstopt>data=writeback,barrier=0,noatime</fstopt></partition></partitions>#" /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
 
 
