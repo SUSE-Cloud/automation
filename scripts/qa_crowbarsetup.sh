@@ -6,6 +6,7 @@ test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
 novacontroller=
 export cloud=${1}
 export nodenumber=${nodenumber:-2}
+export nodes=
 
 if [ -z $cloud ] ; then
   echo "Error: Parameter missing that defines the cloud name"
@@ -254,7 +255,7 @@ if [ $n = 0 ] ; then
 	exit 83
 fi
 
-. /etc/profile.d/crowbar.sh
+[ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
 sleep 20
 if ! curl -s http://localhost:3000 > /dev/null || ! curl -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
@@ -277,7 +278,6 @@ fi
 
 fi # -n "$installcrowbar"
 
-. /etc/profile.d/crowbar.sh
 if [ -n "$allocate" ] ; then
 
 #chef-client
@@ -397,7 +397,13 @@ function custom_configuration()
   esac
 }
 
-export nodes=`crowbar machines list | grep ^d`
+function get_crowbarnodes()
+{
+  #FIXME this is ugly
+  [ -x /opt/dell/bin/crowbar ] && nodes=`crowbar machines list | grep ^d`
+}
+
+get_crowbarnodes
 if [ -n "$proposal" ] ; then
 waitnodes nodes
 for service in database postgresql keystone ceph glance nova nova_dashboard ; do
@@ -513,25 +519,21 @@ if [ -n "$rebootcompute" ] ; then
   echo "Waiting another 20 seconds"
   sleep 20
 
-  ssh $novacontroller '
-    . .openrc
-    nova list
-    nova reboot testvm
-    waitsec=60
-    echo "Waiting $waitsec seconds for testvm to boot"
-    sleep $waitsec
-    nova list
-    vmip=`nova show testvm | perl -ne "m/ nova_fixed.network [ |]*([0-9.]+)/ && print \\$1"`
-    if ! ssh $vmip ip a ; then
-      echo "could not access the testvm"
-      exit 97
-    fi
-  '
+  scp $0 $novacontroller:
+  ssh $novacontroller "waitforrebootcompute=1 ./$0 $cloud"
   ret=$?
   echo "ret:$ret"
   exit $ret
 fi
 
+if [ -n "$waitforrebootcompute" ] ; then
+  . .openrc
+  nova list
+  nova reboot testvm
+  nova list
+  vmip=`nova show testvm | perl -ne 'm/ nova_fixed.network [ |]*([0-9.]+)/ && print $1'`
+  wait_for 300 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
+fi
 
 #BMCs at 10.122.178.163-6 #node 6-9
 #BMCs at 10.122.$net.163-4 #node 11-12
