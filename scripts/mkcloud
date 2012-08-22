@@ -633,7 +633,7 @@ for cmd in $wantedcmds ; do
       ok=1
       case $cmd in
         all)
-          runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup"
+          runcmds="$runcmds cleanup prepare setupadmin instcrowbar rebootcrowbar setupcompute proposal testsetup rebootcompute"
         ;;
         plain)
           runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute proposal"
