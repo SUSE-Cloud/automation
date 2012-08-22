@@ -442,8 +442,7 @@ if [ -n "$testsetup" ] ; then
 		set -x
 		ssh $vmip modprobe acpiphp
 		nova volume-create 1 ; sleep 2
-		nova volume-list
-		lvscan | grep .
+		nova volume-list | grep available
 		volumecreateret=$?
 		nova volume-attach $instanceid 1 /dev/vdb
 		sleep 15
