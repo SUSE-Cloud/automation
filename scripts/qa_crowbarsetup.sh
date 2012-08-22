@@ -3,6 +3,7 @@
 test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
 #resize2fs /dev/vda2
 
+novacontroller=
 export cloud=${1:-d2}
 export nodenumber=${nodenumber:-2}
 
@@ -387,8 +388,13 @@ for service in database postgresql keystone ceph glance nova nova_dashboard ; do
 done
 fi
 
+function get_novacontroller()
+{
+  novacontroller=`crowbar nova proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova']['elements']['nova-multi-controller']"`
+}
+
 if [ -n "$testsetup" ] ; then
-	novacontroller=`crowbar nova proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova']['elements']['nova-multi-controller']"`
+    get_novacontroller
 	if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
 		echo "no nova contoller - something went wrong"
 		exit 62
@@ -459,6 +465,45 @@ if [ -n "$testsetup" ] ; then
 	ret=$?
 	echo ret:$ret
 	exit $ret
+fi
+
+
+if [ -n "$rebootcompute" ] ; then
+  get_novacontroller
+
+  cmachines=`crowbar machines list | grep ^d`
+  for m in $cmachines ; do
+    ssh $m "reboot"
+  done
+
+  for m in $cmachines ; do
+    echo -n "Waiting for node $m: "
+    n=200; while test $n -gt 0 && ! nc -z $m 22 >/dev/null ; do
+      n=$(expr $n - 1)
+      echo -n .
+      sleep 3
+    done
+    echo
+    echo "Waiting another 20 seconds"
+    sleep 20
+  done
+
+  ssh novacontroller '
+    . .openrc
+    nova list
+    nova reboot testvm
+    echo "Waiting 30 seconds for testvm to boot"
+    sleep 30
+    nova list
+    vmip=`nova show testvm | perl -ne "m/ nova_fixed.network [ |]*([0-9.]+)/ && print \\$1"`
+    if ! ssh $vmip ip a ; then
+      echo "could not access the testvm"
+      exit 97
+    fi
+  '
+  ret=$?
+  echo "ret:$ret"
+  exit $ret
 fi
 
 

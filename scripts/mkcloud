@@ -479,6 +479,26 @@ function testsetup()
   return $?
 }
 
+function rebootcrowbar()
+{
+  # reboot the crowbar instance
+  #  and test if everything is up and running afterwards
+  sshrun "reboot"
+  wait_for 300 3 "nc -z $adminip 22" 'crowbar to be back online'
+  echo "waiting another 180 seconds for services"
+  sleep 180
+  echo "checking if there are machines"
+  sshrun "crowbar machines list"
+  return $?
+}
+
+function rebootcompute()
+{
+  # reboot compute nodes
+  #  and test if everthing is up and running afterwards
+  sshrun "rebootcompute=1 bash -x qa_crowbarsetup.sh virtual"
+  return $?
+}
 
 function usage()
 {
@@ -486,7 +506,7 @@ function usage()
   echo "$0 <command> [<command>,...]"
   echo
   echo "  'command' is one of:"
-  echo "   all instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup help"
+  echo "   all instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup rebootcrowbar rebootcompute help"
   echo
   echo "   all      -> expands to: plain testsetup"
   echo "   plain    -> expands to: cleanup prepare setupadmin instcrowbar setupcompute proposal"
@@ -499,6 +519,8 @@ function usage()
   echo "   setupcompute:create the compute nodes and let crowbar install them"
   echo "   proposal:    create and apply proposals for default setup"
   echo "   testsetup:   start a VM in the cloud"
+  echo "   rebootcrowbar: reboot the crowbar instance and wait for it being up and running"
+  echo "   rebootcompute: reboot the compute nodes and wait for them being up and running"
   echo "   help:        this usage"
   echo
   echo " Environment variables (need to be exported):"
@@ -591,7 +613,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup help"
+allcmds="all instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup rebootcrowbar rebootcompute help"
 wantedcmds=$@
 runcmds=''
 
