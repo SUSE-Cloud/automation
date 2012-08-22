@@ -417,9 +417,9 @@ function setupcompute()
   # nova-fixed = 500
   mkvlan 500 192.168.123.254
 
-  c=1
+  alldevices=$(echo {b..z} {a..z}{a..z})
   for i in $allnodeids ; do
-    alldevices=$(echo {b..z} {a..z}{a..z})
+    c=1
     cephvolume=""
     if [ $cephvolumenumber -gt 0 ] ; then
       for n in $(echo `seq 1 $cephvolumenumber`) ; do
