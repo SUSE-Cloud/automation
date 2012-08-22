@@ -4,8 +4,15 @@ test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
 #resize2fs /dev/vda2
 
 novacontroller=
-export cloud=${1:-d2}
+export cloud=${1}
 export nodenumber=${nodenumber:-2}
+
+if [ -z $cloud ] ; then
+  echo "Error: Parameter missing that defines the cloud name"
+  echo "Possible values: [d1, d2, p, virtual]"
+  echo "Example: $0 d2"
+  exit 101
+fi
 
 case $cloud in
 	d1)
