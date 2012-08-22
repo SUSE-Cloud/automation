@@ -71,6 +71,12 @@ function wait_for()
 }
 
 
+function sshrun()
+{
+  ssh root@$adminip "export cephvolumenumber=$cephvolumenumber ; export shell=$shell ; export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; $@"
+  return $?
+}
+
 
 function cleanup()
 {
@@ -99,17 +105,8 @@ function cleanup()
   return 0
 }
 
-function prepare()
+function h_create_cloud_lvm()
 {
-  zypper --non-interactive in --no-recommends libvirt kvm lvm2 wget bridge-utils dnsmasq netcat-openbsd ebtables
-
-  grep -q NumberOfPasswordPrompts ~/.ssh/config 2>/dev/null || cat > ~/.ssh/config <<EOSSH
-Host crowbar $adminip
-NumberOfPasswordPrompts 0
-UserKnownHostsFile /dev/null
-StrictHostKeyChecking no
-EOSSH
-
   pvcreate $CVOL
   vgcreate cloud $CVOL
   vgchange -ay cloud # for later boots
@@ -126,7 +123,10 @@ EOSSH
       done
     done
   fi
+}
 
+function h_deploy_admin_image()
+{
   pushd /tmp
   wget -nc http://clouddata.cloud.suse.de/images/SP2-64up.img.gz
   gzip -cd SP2-64up.img.gz > /dev/cloud/admin
@@ -139,17 +139,30 @@ EOSSH
   resize2fs /dev/loop0
   sync
   losetup -d /dev/loop0
+}
 
+function h_add_etchosts_entries()
+{
   grep -q crowbar /etc/hosts || echo "$adminip crowbar.virtual.cloud.suse.de crowbar" >> /etc/hosts
   for i in $allnodeids ; do
     grep -q node$i /etc/hosts || echo "192.168.124.$((80+$i)) node$i.virtual.cloud.suse.de node$i" >> /etc/hosts
   done
 }
 
-function sshrun()
+function prepare()
 {
-  ssh root@$adminip "export cephvolumenumber=$cephvolumenumber ; export shell=$shell ; export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; $@"
-  return $?
+  zypper --non-interactive in --no-recommends libvirt kvm lvm2 wget bridge-utils dnsmasq netcat-openbsd ebtables
+
+  grep -q NumberOfPasswordPrompts ~/.ssh/config 2>/dev/null || cat > ~/.ssh/config <<EOSSH
+Host crowbar $adminip
+NumberOfPasswordPrompts 0
+UserKnownHostsFile /dev/null
+StrictHostKeyChecking no
+EOSSH
+
+  h_create_cloud_lvm
+  h_deploy_admin_image
+  h_add_etchosts_entries
 }
 
 
@@ -239,8 +252,6 @@ function h_create_libvirt_adminnode_config()
     </devices>
   </domain>
 EOLIBVIRT
-
-
 }
 
 function h_create_libvirt_admin_network_config()
