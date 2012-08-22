@@ -379,8 +379,8 @@ export nodes=`crowbar machines list | grep ^d`
 if [ -n "$proposal" ] ; then
 waitnodes nodes
 for service in database postgresql keystone ceph glance nova nova_dashboard ; do
-  [ "$service" = "postgresql" -a "$cloudsource" != "Beta1" ] && continue
-  [ "$service" = "ceph" -a "$nodenumber" -lt 3 ] && continue
+  [[ "$service" = "postgresql" && "$cloudsource" != "Beta1" ]] && continue
+  [[ "$service" = "ceph" && ( "$nodenumber" < 3 || "$cephvolumenumber" < 1 ) ]] && continue
   crowbar "$service" proposal create default
   # hook for changing proposals:
   custom_configuration $service
