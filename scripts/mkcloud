@@ -53,12 +53,14 @@ function wait_for()
   condition=${3:-'/bin/true'}
   waitfor=${4:-'unknown process'}
 
+  echo "Waiting for: $waitfor"
   n=$timecount
   while test $n -gt 0 && ! eval $condition
   do
     echo -n .
     sleep $timesleep
   done
+  echo
 
   if [ $n = 0 ] ; then
     echo "Error: Waiting for '$waitfor' timed out."

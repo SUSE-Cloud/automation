@@ -60,6 +60,28 @@ function intercept()
   fi
 }
 
+function wait_for()
+{
+  timecount=${1:-300}
+  timesleep=${2:-1}
+  condition=${3:-'/bin/true'}
+  waitfor=${4:-'unknown process'}
+
+  echo "Waiting for: $waitfor"
+  n=$timecount
+  while test $n -gt 0 && ! eval $condition
+  do
+    echo -n .
+    sleep $timesleep
+  done
+  echo
+
+  if [ $n = 0 ] ; then
+    echo "Error: Waiting for '$waitfor' timed out."
+    echo "This check was used: $condition"
+    exit 11
+  fi
+}
 
 if [ -n "$installcrowbar" ] ; then
 
@@ -482,26 +504,22 @@ if [ -n "$rebootcompute" ] ; then
   cmachines=`crowbar machines list | grep ^d`
   for m in $cmachines ; do
     ssh $m "reboot"
+    wait_for 100 1 " ! netcat -z $m 22 >/dev/null" "node $m to go down"
   done
 
   for m in $cmachines ; do
-    echo -n "Waiting for node $m: "
-    n=200; while test $n -gt 0 && ! nc -z $m 22 >/dev/null ; do
-      n=$(expr $n - 1)
-      echo -n .
-      sleep 3
-    done
-    echo
-    echo "Waiting another 20 seconds"
-    sleep 20
+    wait_for 200 3 "netcat -z $m 22 >/dev/null" "node $m to be back online"
   done
+  echo "Waiting another 20 seconds"
+  sleep 20
 
-  ssh novacontroller '
+  ssh $novacontroller '
     . .openrc
     nova list
     nova reboot testvm
-    echo "Waiting 30 seconds for testvm to boot"
-    sleep 30
+    waitsec=60
+    echo "Waiting $waitsec seconds for testvm to boot"
+    sleep $waitsec
     nova list
     vmip=`nova show testvm | perl -ne "m/ nova_fixed.network [ |]*([0-9.]+)/ && print \\$1"`
     if ! ssh $vmip ip a ; then
