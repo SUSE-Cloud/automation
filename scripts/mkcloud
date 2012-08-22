@@ -349,7 +349,7 @@ function h_create_libvirt_computenode_config()
   h_cpuflags_settings
   nodeconfigfile=$1
   nodecounter=$2
-  cephvolume=$3
+  cephvolume="$3"
 
   cat > $nodeconfigfile <<EOLIBVIRT
 <domain type='kvm'>
@@ -435,7 +435,7 @@ function setupcompute()
       done
     fi
 
-    h_create_libvirt_computenode_config /tmp/cloud-node$i.xml $i $cephvolume
+    h_create_libvirt_computenode_config /tmp/cloud-node$i.xml $i "$cephvolume"
 
     virsh destroy cloud-node$i 2>/dev/null
     if ! virsh create /tmp/cloud-node$i.xml ; then
