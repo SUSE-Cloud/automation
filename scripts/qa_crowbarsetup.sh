@@ -353,7 +353,7 @@ function manual_2device_ceph_proposal()
   crowbar ceph proposal --file=/root/cephproposal edit default
 }
 
-function enable_ssl_for_nova-dashboard()
+function enable_ssl_for_nova_dashboard()
 {
   echo "FIXME: edit the proposal"
 }
@@ -366,7 +366,7 @@ function custom_configuration()
     ;;
     nova-dashboard)
       if [[ $all_with_ssl = 1 || $novadashboard_with_ssl = 1 ]] ; then
-        enable_ssl_for_nova-dashboard
+        enable_ssl_for_nova_dashboard
       fi
     ;;
     *) echo "No hooks defined for service: $service"
