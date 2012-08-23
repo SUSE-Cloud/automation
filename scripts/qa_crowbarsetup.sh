@@ -279,6 +279,7 @@ fi
 
 fi # -n "$installcrowbar"
 
+[ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 if [ -n "$allocate" ] ; then
 
 #chef-client
