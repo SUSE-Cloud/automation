@@ -262,13 +262,13 @@ fi
 
 sleep 20
 if ! curl -s http://localhost:3000 > /dev/null || ! curl -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
-	tail -30 /tmp/screenlog.0
+	tail -90 /tmp/screenlog.0
 	echo "crowbar self-test failed"
 	exit 84
 fi
 
 if ! crowbar machines list | grep -q crowbar.$cloud ; then
-	tail -30 /tmp/screenlog.0
+	tail -90 /tmp/screenlog.0
 	echo "crowbar 2nd self-test failed"
 	exit 85
 fi
@@ -422,6 +422,7 @@ for service in database postgresql keystone ceph glance nova nova_dashboard ; do
   ret=$?
   echo "exitcode: $ret"
   if [ $ret != 0 ] ; then
+    tail -90 /opt/dell/crowbar_framework/log/d*.log
     echo "Error: commiting the crowbar proposal for '$service' failed ($ret)."
     exit 73
   fi
@@ -457,6 +458,7 @@ if [ -n "$testsetup" ] ; then
 		vmip=`nova show $instanceid | perl -ne "m/ nova_fixed.network [ |]*([0-9.]+)/ && print \\$1"`
 		echo "VM IP address: $vmip"
         if [ -z "$vmip" ] ; then
+          tail -90 /var/log/nova/*
           echo "Error: VM IP is empty. Exiting"
           exit 38
         fi
