@@ -129,7 +129,7 @@ case $cloudsource in
 		CLOUDDISTURL=$d/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/images/iso
 		CLOUDDISTISO="S*-CLOUD*Media1.iso"
 	;;
-	Beta*)
+	Beta*|RC*)
 
 		CLOUDDISTURL=$d/install/SLE-11-SP2-CLOUD-$cloudsource/
 		CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
