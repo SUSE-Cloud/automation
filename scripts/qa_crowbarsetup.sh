@@ -245,6 +245,7 @@ sed -i -e "s#<\(partitions.*\)/>#<\1><partition><mount>swap</mount><size>auto</s
 intercept "install-chef-suse.sh"
 
 rm -f /tmp/chef-ready
+rpm -Va crowbar\*
 # run in screen to not lose session in the middle when network is reconfigured:
 screen -d -m -L /bin/bash -c 'if [ -e /tmp/install-chef-suse.sh ] ; then /tmp/install-chef-suse.sh ; else /opt/dell/bin/install-chef-suse.sh ; fi ; touch /tmp/chef-ready'
 n=300
@@ -257,6 +258,7 @@ if [ $n = 0 ] ; then
 	echo "timed out waiting for chef-ready"
 	exit 83
 fi
+rpm -Va crowbar\*
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
