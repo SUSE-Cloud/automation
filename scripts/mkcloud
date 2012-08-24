@@ -45,6 +45,15 @@ allnodeids=`seq 1 $nodenumber`
 vcpus=${vcpus:-1}
 cpuflags=''
 
+function error_exit()
+{
+	exitcode=$1
+	message=$2
+	ssh root@crowbar supportconfig
+	scp root@crowbar:/var/log/*tbz .artifacts/
+	echo $message
+	exit $exitcode
+}
 
 function wait_for()
 {
@@ -686,8 +695,7 @@ for cmd in `echo $runcmds` ; do
     echo "Error detected. Stopping mkcloud."
     echo "The step '$cmd' returned with exit code $ret"
     echo "Please refer to the $cmd function in this script when debugging the issue."
-    echo
-    exit $ret
+    error_exit $ret ""
   fi
   echo
   echo "^^^^^^^^^^^^= MKCLOUD STEP DONE: $cmd =^^^^^^^^^^^^"
