@@ -159,6 +159,9 @@ function prepare()
 {
   zypper --non-interactive in --no-recommends libvirt kvm lvm2 wget bridge-utils dnsmasq netcat-openbsd ebtables
 
+  echo "Creating key for controlling our VMs..."
+  [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
+
   grep -q NumberOfPasswordPrompts ~/.ssh/config 2>/dev/null || cat > ~/.ssh/config <<EOSSH
 Host crowbar $adminip
 NumberOfPasswordPrompts 0
@@ -285,8 +288,6 @@ EOLIBVIRTNET
 
 function setupadmin()
 {
-  echo "Creating key for controlling our VMs..."
-  [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
   echo "Injecting public key into image..."
   pubkey=`cut -d" " -f2 ~/.ssh/id_dsa.pub`
   mount -o loop,offset=$(expr 2056192 \* 512) /dev/cloud/admin /mnt
