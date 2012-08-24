@@ -425,6 +425,7 @@ for service in database postgresql keystone ceph glance nova nova_dashboard ; do
   # hook for changing proposals:
   custom_configuration $service
   crowbar "$service" proposal commit default
+  echo $?
   waitnodes proposal $service
   sleep 10
   ret=$?
