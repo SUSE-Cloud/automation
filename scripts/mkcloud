@@ -144,9 +144,6 @@ function h_deploy_admin_image()
 function h_add_etchosts_entries()
 {
   grep -q crowbar /etc/hosts || echo "$adminip crowbar.virtual.cloud.suse.de crowbar" >> /etc/hosts
-  for i in $allnodeids ; do
-    grep -q node$i /etc/hosts || echo "192.168.124.$((80+$i)) node$i.virtual.cloud.suse.de node$i" >> /etc/hosts
-  done
 }
 
 function prepare()
