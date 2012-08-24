@@ -635,7 +635,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_no_reboot instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup rebootcrowbar rebootcompute help"
+allcmds="all all_noreboot instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup rebootcrowbar rebootcompute help"
 wantedcmds=$@
 runcmds=''
 
