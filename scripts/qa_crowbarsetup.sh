@@ -185,6 +185,11 @@ if ! grep -q suse-11.2 /etc/fstab ; then
   mount /srv/tftpboot/suse-11.2/install
 fi
 
+for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
+  mkdir -p /srv/tftpboot/repos/$REPO
+  cd /srv/tftpboot/repos/$REPO
+  createrepo .
+done
 for REPO in SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Updates ; do
   grep -q $REPO /etc/fstab && continue
   mkdir -p /srv/tftpboot/repos/$REPO
