@@ -343,6 +343,7 @@ function waitnodes()
       while test $n -gt 0 && ! test "x$proposalstatus" = "xsuccess" ; do
         proposalstatus=`crowbar $proposal proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
         if test "x$proposalstatus" = "xfailed" ; then
+          tail -90 /opt/dell/crowbar_framework/log/d*.log
           echo "Error: proposal failed. Exiting."
           exit 40
         fi
