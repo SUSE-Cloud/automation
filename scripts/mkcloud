@@ -529,7 +529,8 @@ function usage()
   echo "  'command' is one of:"
   echo "   all instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup rebootcrowbar rebootcompute help"
   echo
-  echo "   all      -> expands to: plain testsetup"
+  echo "   all      -> expands to: cleanup prepare setupadmin instcrowbar rebootcrowbar setupcompute proposal testsetup rebootcompute"
+  echo "   all_noreboot -> exp to: cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup"
   echo "   plain    -> expands to: cleanup prepare setupadmin instcrowbar setupcompute proposal"
   echo "   instonly -> expands to: cleanup prepare setupadmin instcrowbar setupcompute"
   echo
@@ -634,7 +635,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup rebootcrowbar rebootcompute help"
+allcmds="all all_no_reboot instonly plain cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup rebootcrowbar rebootcompute help"
 wantedcmds=$@
 runcmds=''
 
@@ -655,6 +656,9 @@ for cmd in $wantedcmds ; do
       case $cmd in
         all)
           runcmds="$runcmds cleanup prepare setupadmin instcrowbar rebootcrowbar setupcompute proposal testsetup rebootcompute"
+        ;;
+        all_noreboot)
+          runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute proposal testsetup"
         ;;
         plain)
           runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute proposal"
