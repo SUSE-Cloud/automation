@@ -314,6 +314,23 @@ done
 
 fi
 
+sshtest()
+{
+        perl -e "alarm 10 ; exec qw{ssh -o NumberOfPasswordPrompts=0 -o StrictHostKeyChecking=no}, @ARGV" "$@"
+}
+
+if [ -n "$waitcompute" ] ; then
+  for node in $(crowbar machines list | grep ^d) ; do
+    echo "Waiting for node $node: "
+    while ! sshtest $node rpm -q yast2-core 2>/dev/null 1>&2; do
+      sleep 10
+      echo -n "."
+    done
+    echo "node $node ready"
+  done
+fi
+
+
 function waitnodes()
 {
   n=800

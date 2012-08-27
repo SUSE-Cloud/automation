@@ -472,16 +472,7 @@ function setupcompute()
   [ $ret != 0 ] && return $ret
 
   echo "Waiting for the installation of the nodes ..."
-  sshrun '
-  for i in `seq $nodenumber` ; do
-    echo -n "Waiting for node $i: "
-    while ! ssh -o NumberOfPasswordPrompts=0 -o "StrictHostKeyChecking no" 192.168.124.$((80+$i)) rpm -q yast2-core 2>/dev/null 1>&2; do
-      sleep 10
-      echo -n "."
-    done
-    echo "node $i ready"
-  done
-  '
+  sshrun 'waitcompute=1 bash -x qa_crowbarsetup.sh virtual'
   return $?
 }
 
