@@ -314,7 +314,6 @@ echo "Sleeping 50 more seconds..."
 sleep 50
 for m in `crowbar machines list | grep ^d` ; do
 	crowbar machines allocate "$m"
-        sleep 10 # to avoid race (bnc#773041)
 done
 
 fi
