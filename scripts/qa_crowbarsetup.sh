@@ -576,7 +576,7 @@ fi
 
 # undo propsal create+commit
 if false; then
-for service in nova_dashboard nova glance keystone postgresql database ; do
+for service in nova_dashboard nova glance ceph swift keystone database ; do
         crowbar "$service" proposal delete default
         crowbar "$service" delete default
 done
