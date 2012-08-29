@@ -50,7 +50,7 @@ function error_exit()
 	exitcode=$1
 	message=$2
 	ssh root@crowbar supportconfig
-	scp root@crowbar:/var/log/*tbz .artifacts/
+	scp root@crowbar:/var/log/*tbz $WORKSPACE/.artifacts/
 	echo $message
 	exit $exitcode
 }
