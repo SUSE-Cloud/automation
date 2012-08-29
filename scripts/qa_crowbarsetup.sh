@@ -143,7 +143,7 @@ wget -q -r -np -nc -A "$CLOUDDISTISO" http://$CLOUDDISTURL/
 echo $CLOUDDISTURL/*.iso > /etc/cloudversion
 echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
 mount -o loop,ro -t iso9660 $(ls $CLOUDDISTURL/*.iso|tail -1) /mnt/cloud
-rsync -a --delete-after /mnt/cloud/ . ; umount /mnt/cloud
+rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
 if [ ! -e "/srv/tftpboot/repos/Cloud/media.1" ] ; then
 	echo "We do not have cloud install media - giving up"
 	exit 35
