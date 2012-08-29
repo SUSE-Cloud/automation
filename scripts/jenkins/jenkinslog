@@ -105,7 +105,7 @@ class JenkinsProject
 
 end
 
-p = JenkinsProject.new('openstack-mkcloud')
+p = JenkinsProject.new(project)
 
 # action: list, show ID, get [ID]
 case action
