@@ -1,0 +1,141 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+#require 'logger'
+require 'nokogiri'
+require 'open-uri'
+require 'fileutils'
+require 'time'
+
+#LOG
+#http://river.suse.de/job/openstack-mkcloud/255/consoleText
+
+#STATUS
+#http://river.suse.de/job/openstack-mkcloud/255/api/xml
+
+#JOB DETAILS
+#http://river.suse.de/job/openstack-mkcloud/api/xml
+
+#log = Logger.new(STDOUT)
+#log.level = Logger::INFO
+#log.error "Usage: #{$0} <project> <action> [<number>]" and exit(1) if ARGV.size < 1 || ARGV.size > 4
+
+project = ARGV[0]
+action = ARGV[1] || 'list'
+number = ARGV[2].to_i || nil
+numberup = ARGV[3].to_i || 0
+
+action = 'help' if ARGV.size < 1 || ARGV.size > 4
+
+class JenkinsProject
+  attr_reader :name, :base_url
+
+  def initialize(name, url='http://river.suse.de')
+    @name = name
+    @base_url = url
+    @detail=Hash.new
+    get_job_details # || raise "Error: Failed to fetch project details."
+  end
+
+  def get_job_details
+    jdetail_url = @base_url+"/job/#{@name}/api/xml"
+    @jdetail = Nokogiri::XML(open(jdetail_url))
+    #puts @jdetail.inspect
+    @jdetail.xpath("/freeStyleProject/build").each{ |b|
+      @detail[b.xpath('number').first.content.to_i] = { :url => b.xpath('url').first.content } }
+    #puts @bdetail.inspect
+  end
+
+  def list_builds(count=10)
+    i = @detail.size - 1
+    k = i - count
+    k = 0 if k < 0
+    @detail.keys.sort[k..i].each do |b|
+      d = get_build_detail b
+      success = 'BUILDING NOW' if d[:building]
+      puts "Build #{b} :: #{d[:result]} :: #{d[:id]}"
+      # duration and timestamp calculation is somehow broken
+      #puts "      took: #{d[:duration]} at: #{d[:timestamp]}"
+    end
+  end
+
+  def get_build_detail(id)
+    ret = {:building => '', :duration => '', :timestamp => '', :id => '', :result => ''}
+    bdetail_url = @base_url+"/job/#{@name}/#{id}/api/xml"
+    begin
+      xml = open(bdetail_url)
+      bdetail = Nokogiri::XML(xml).xpath("/freeStyleBuild")
+      ret[:building] = (bdetail.xpath('building').first.content || '' ) == 'true' ? 1:0,
+      ret[:duration] = (bdetail.xpath('duration').first.content || 0).to_i ,
+      ret[:timestamp] = Time.at(bdetail.xpath('timestamp').first.content.to_i || 0).utc,
+      ret[:id] = bdetail.xpath('id').first.content.gsub(/_/, ' '),
+      ret[:result] = (bdetail.xpath('result').first ? bdetail.xpath('result').first.content : '' ).downcase
+    rescue OpenURI::HTTPError
+      # nothing
+    end
+
+    return ret
+  end
+
+  def fetch_build_log(bid)
+    bdetail_url = @base_url+"/job/#{@name}/#{bid}/consoleText"
+    begin
+      ret = open(bdetail_url)
+    rescue OpenURI::HTTPError
+      ret = StringIO.new
+    end
+    return ret
+  end
+
+  def get_build_log(number, numberup=0)
+    return unless number
+    r = [number]
+    r = number..numberup if numberup > number
+    r.each do |i|
+      log = fetch_build_log i
+      d = get_build_detail i
+      t = d[:id].gsub(/ /, '_')
+      File.open("#{@name}-#{i}-#{t}.log", 'w') { |f| f.write(log.read) }
+    end
+  end
+
+  def show_build_log(number)
+    puts fetch_build_log(number).read
+  end
+
+end
+
+p = JenkinsProject.new('openstack-mkcloud')
+
+# action: list, show ID, get [ID]
+case action
+  when 'list'
+    number = 10 if number == nil || number == 0
+    p.list_builds number
+  when 'get'
+    puts number
+    puts numberup
+    p.get_build_log(number, numberup)
+  when 'show'
+    p.show_build_log number
+  when 'help'
+    puts "Usage: #{$0} <project> <action> [<number> <uppernum>]"
+    puts
+    puts '  project:  a jenkins project name'
+    puts '  action:   list | show | get | help'
+    puts '  number:   the number of builds to list, get or show'
+    puts '  uppernum: the upper number for a range (only for get)'
+    puts '  For the list action <number> means amount,'
+    puts '    otherwise number stands for build numbers.'
+    puts
+    puts 'Examples:'
+    puts "  #{$0} list 20      : list 20 build results"
+    puts "  #{$0} list         : number defaults to 10"
+    puts "  #{$0} show 256     : show build log of build 256"
+    puts "  #{$0} get 240 256  : download build logs of builds 240 through 256"
+    puts "                       creates files in the current directory"
+  else
+    puts "Error: The action #{action} is not implemented."
+    exit 1
+end
+
