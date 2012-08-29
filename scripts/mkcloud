@@ -44,6 +44,7 @@ cephvolumenumber=${cephvolumenumber:-0}
 allnodeids=`seq 1 $nodenumber`
 vcpus=${vcpus:-1}
 cpuflags=''
+working_dir_orig=`pwd`
 
 function error_exit()
 {
@@ -56,7 +57,7 @@ function error_exit()
 	    scp $node:/var/log/*tbz /var/log/
 	  done
 	'
-	scp root@crowbar:/var/log/*tbz $WORKSPACE/.artifacts/
+	scp root@crowbar:/var/log/*tbz $working_dir_orig/.artifacts/
 	echo $message
 	exit $exitcode
 }
