@@ -269,13 +269,13 @@ rpm -Va crowbar\*
 
 sleep 20
 if ! curl -s http://localhost:3000 > /dev/null || ! curl -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
-	tail -90 /tmp/screenlog.0
+	tail -n 90 /tmp/screenlog.0
 	echo "crowbar self-test failed"
 	exit 84
 fi
 
 if ! crowbar machines list | grep -q crowbar.$cloud ; then
-	tail -90 /tmp/screenlog.0
+	tail -n 90 /tmp/screenlog.0
 	echo "crowbar 2nd self-test failed"
 	exit 85
 fi
@@ -369,7 +369,7 @@ function waitnodes()
       while test $n -gt 0 && ! test "x$proposalstatus" = "xsuccess" ; do
         proposalstatus=`crowbar $proposal proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
         if test "x$proposalstatus" = "xfailed" ; then
-          tail -90 /opt/dell/crowbar_framework/log/d*.log
+          tail -n 90 /opt/dell/crowbar_framework/log/d*.log
           echo "Error: proposal failed. Exiting."
           exit 40
         fi
@@ -452,7 +452,7 @@ for service in database postgresql keystone ceph glance nova nova_dashboard ; do
   ret=$?
   echo "exitcode: $ret"
   if [ $ret != 0 ] ; then
-    tail -90 /opt/dell/crowbar_framework/log/d*.log
+    tail -n 90 /opt/dell/crowbar_framework/log/d*.log
     echo "Error: commiting the crowbar proposal for '$service' failed ($ret)."
     exit 73
   fi
@@ -488,7 +488,7 @@ if [ -n "$testsetup" ] ; then
 		vmip=`nova show $instanceid | perl -ne "m/ nova_fixed.network [ |]*([0-9.]+)/ && print \\$1"`
 		echo "VM IP address: $vmip"
         if [ -z "$vmip" ] ; then
-          tail -90 /var/log/nova/*
+          tail -n 90 /var/log/nova/*
           echo "Error: VM IP is empty. Exiting"
           exit 38
         fi
