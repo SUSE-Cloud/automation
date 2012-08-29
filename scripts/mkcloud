@@ -51,11 +51,11 @@ function error_exit()
 	exitcode=$1
 	message=$2
 	ssh root@crowbar '
-	  supportconfig
 	  for node in $(crowbar machines list | grep ^d) ; do
-	    ssh $node supportconfig
-	    scp $node:/var/log/*tbz /var/log/
+	    ssh $node supportconfig | wc
+	    scp $node:/var/log/\*tbz /var/log/
 	  done
+	  supportconfig | wc
 	'
 	scp root@crowbar:/var/log/*tbz $working_dir_orig/.artifacts/
 	echo $message
