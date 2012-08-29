@@ -365,19 +365,20 @@ function waitnodes()
       done
       ;;
     proposal)
-      echo -n "Waiting for proposal to get successful: "
+      echo -n "Waiting for proposal $proposal to get successful: "
       proposalstatus=''
       while test $n -gt 0 && ! test "x$proposalstatus" = "xsuccess" ; do
         proposalstatus=`crowbar $proposal proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
         if test "x$proposalstatus" = "xfailed" ; then
           tail -n 90 /opt/dell/crowbar_framework/log/d*.log
-          echo "Error: proposal failed. Exiting."
+          echo "Error: proposal $proposal failed. Exiting."
           exit 40
         fi
         sleep 5
         n=$((n-1))
         echo -n "."
       done
+      echo
       echo "proposal $proposal successful"
       ;;
     default)
