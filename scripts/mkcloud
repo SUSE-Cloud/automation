@@ -57,6 +57,7 @@ function error_exit()
 	  done
 	  supportconfig | wc
 	'
+    mkdir -p $working_dir_orig/.artifacts/
 	scp root@crowbar:/var/log/*tbz $working_dir_orig/.artifacts/
 	echo $message
 	exit $exitcode
