@@ -584,7 +584,7 @@ if $teardown ; then
     crowbar "$service" delete default
   done
 
-  for node in $(crowbar machines list) | grep ^d ; do
+  for node in `echo $(crowbar machines list) | grep ^d` ; do
     crowbar machines delete $node
   done
 fi
