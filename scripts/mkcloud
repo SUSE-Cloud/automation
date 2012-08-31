@@ -45,6 +45,24 @@ allnodeids=`seq 1 $nodenumber`
 vcpus=${vcpus:-1}
 cpuflags=''
 working_dir_orig=`pwd`
+start_time=`date`
+
+
+function show_environment()
+{
+  end_time=`date`
+  echo "Environment Details"
+  echo "-------------------------------"
+  echo "    hostname: `hostname`"
+  echo "     started: $start_time"
+  echo "       ended: $end_time"
+  echo "-------------------------------"
+  echo " cloudsource: $cloudsource"
+  echo "    TESTHEAD: $TESTHEAD"
+  echo "  nodenumber: $nodenumber"
+  echo "        CVOL: $CVOL"
+  echo "-------------------------------"
+}
 
 function error_exit()
 {
@@ -60,6 +78,7 @@ function error_exit()
     mkdir -p $working_dir_orig/.artifacts/
 	scp root@crowbar:/var/log/*tbz $working_dir_orig/.artifacts/
 	echo $message
+	show_environment
 	exit $exitcode
 }
 
@@ -705,3 +724,5 @@ for cmd in `echo $runcmds` ; do
   echo "^^^^^^^^^^^^= MKCLOUD STEP DONE: $cmd =^^^^^^^^^^^^"
   echo
 done
+
+show_environment
