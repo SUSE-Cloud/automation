@@ -578,7 +578,7 @@ fi
 #BMCs at 10.122.$net.163-4 #node 11-12
 
 # undo propsal create+commit
-if $teardown ; then
+if [ -n "$teardown" ] ; then
   for service in nova_dashboard nova glance ceph swift keystone database ; do
     crowbar "$service" proposal delete default
     crowbar "$service" delete default
