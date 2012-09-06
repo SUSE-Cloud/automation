@@ -113,8 +113,6 @@ case action
     number = 10 if number == nil || number == 0
     p.list_builds number
   when 'get'
-    puts number
-    puts numberup
     p.get_build_log(number, numberup)
   when 'show'
     p.show_build_log number
