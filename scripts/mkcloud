@@ -48,6 +48,7 @@ working_dir_orig=`pwd`
 artifacts_dir=${artifacts_dir:-$working_dir_orig/.artifacts}
 start_time=`date`
 
+trap 'error_exit $? "error caught by trap"' TERM
 
 function show_environment()
 {
