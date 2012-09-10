@@ -67,6 +67,7 @@ function wait_for()
   timesleep=${2:-1}
   condition=${3:-'/bin/true'}
   waitfor=${4:-'unknown process'}
+  error_cmd=${5:-'exit 11'}
 
   echo "Waiting for: $waitfor"
   n=$timecount
@@ -81,7 +82,7 @@ function wait_for()
   if [ $n = 0 ] ; then
     echo "Error: Waiting for '$waitfor' timed out."
     echo "This check was used: $condition"
-    exit 11
+    eval "$error_cmd"
   fi
 }
 
@@ -319,18 +320,30 @@ done
 
 fi
 
-sshtest()
+function sshtest()
 {
         perl -e "alarm 10 ; exec qw{ssh -o NumberOfPasswordPrompts=0 -o StrictHostKeyChecking=no}, @ARGV" "$@"
 }
 
+function ssh_password()
+{
+  SSH_ASKPASS=/root/echolinux
+  cat > $SSH_ASKPASS <<EOSSHASK
+#!/bin/sh
+echo linux
+EOSSHASK
+  chmod +x $SSH_ASKPASS
+  DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh "$@"
+}
+
+function check_node_resolvconf()
+{
+  ssh_password $1 'grep "^nameserver" /etc/resolv.conf || echo fail'
+}
+
 if [ -n "$waitcompute" ] ; then
   for node in $(crowbar machines list | grep ^d) ; do
-    echo "Waiting for node $node: "
-    while ! sshtest $node rpm -q yast2-core 2>/dev/null 1>&2; do
-      sleep 10
-      echo -n "."
-    done
+    wait_for 180 10 "sshtest $node rpm -q yast2-core 2>/dev/null 1>&2" "node $node" "check_node_resolvconf $node; exit 12"
     echo "node $node ready"
   done
 fi
