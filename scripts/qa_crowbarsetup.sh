@@ -112,15 +112,15 @@ ping -c 1 `hostname -f`
 zypper ar http://clouddata.cloud.suse.de/suse-11.2/install/ sle11sp2latest
 
 if [ "x$WITHUPDATES" != "x" ] ; then
-  zypper ar "http://euklid.suse.de/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1/" sp1-updates
-  zypper ar "http://euklid.suse.de/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP2/" sp2-updates
+  zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1/" sp1-updates
+  zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP2/" sp2-updates
 fi
 
 mkdir -p /mnt/dist /mnt/cloud
 mkdir -p /srv/tftpboot/repos/Cloud/
 cd /srv/tftpboot/repos/Cloud/
 
-d=dist.suse.de
+d=download.suse.de
 case $cloudsource in
 	develcloud)
 		CLOUDDISTURL=$d/ibs/Devel:/Cloud/images/iso
@@ -151,7 +151,7 @@ if [ ! -e "/srv/tftpboot/repos/Cloud/media.1" ] ; then
 fi
 
 
-rm -rf "dist.suse.de"
+rm -rf "download.suse.de"
 zypper ar /srv/tftpboot/repos/Cloud Cloud
 if [ -n "$TESTHEAD" ] ; then
 	zypper ar http://download.suse.de/ibs/Devel:/Cloud/SLE_11_SP2/Devel:Cloud.repo
@@ -202,7 +202,7 @@ done
 cd /tmp
 # just as a fallback if nfs did not work
 if [ ! -e "/srv/tftpboot/suse-11.2/install/media.1/" ] ; then
-	wget -q -nc http://dist.suse.de/install/SLES-11-SP2-GM/SLES-11-SP2-DVD-x86_64-GM-DVD1.iso
+	wget -q -nc http://download.suse.de/install/SLES-11-SP2-GM/SLES-11-SP2-DVD-x86_64-GM-DVD1.iso
 	mount -o loop,ro -t iso9660 *.iso /mnt
 	rsync -a /mnt/ /srv/tftpboot/suse-11.2/install/
 	umount /mnt
@@ -232,12 +232,12 @@ fi
 #+bmc router
 #fix autoyast xml.erb update channels
 if [ ! -d "/srv/tftpboot/repos/SLES11-SP2-Updates/repodata" ] ; then
-	sed -i.bak -e 's#<media_url>http://<%= @admin_node_ip %>:8091/repos/SLES11-SP\(.\)-Updates/</media_url>#<media_url>http://euklid.suse.de/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP\1/</media_url>#'\
+	sed -i.bak -e 's#<media_url>http://<%= @admin_node_ip %>:8091/repos/SLES11-SP\(.\)-Updates/</media_url>#<media_url>http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP\1/</media_url>#'\
     -e "s/<domain>[^<]*</<domain>$cloud.cloud.suse.de</" \
     /opt/dell/barclamps/provisioner/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
 fi
 if [ ! -d "/srv/tftpboot/repos/SLES11-SP2-Core/repodata" ] ; then
-	sed -i.bak2 -e 's#<media_url>http://<%= @admin_node_ip %>:8091/repos/SLES11-SP1-Pool/#<media_url>http://euklid.suse.de/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1-POOL/#' -e 's#/repos/SLES11-SP2-Core/#/suse-11.2/install/#' /opt/dell/barclamps/provisioner/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
+	sed -i.bak2 -e 's#<media_url>http://<%= @admin_node_ip %>:8091/repos/SLES11-SP1-Pool/#<media_url>http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1-POOL/#' -e 's#/repos/SLES11-SP2-Core/#/suse-11.2/install/#' /opt/dell/barclamps/provisioner/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
 fi
 
 # to allow integration into external DNS:
