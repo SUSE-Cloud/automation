@@ -109,6 +109,11 @@ grep -q "$net.*crowbar" /etc/hosts || echo $net.10 crowbar.$cloud.cloud.suse.de 
 rcnetwork restart
 hostname -f # make sure it is a FQDN
 ping -c 1 `hostname -f`
+longdistance=${longdistance:-false}
+if [[ $(ping -q -c1 clouddata.cloud.suse.de|perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') > 100 ]] ; then
+  longdistance=true
+fi
+
 zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://download.nue.suse.com/install/SLP/SLE-11-SP2-SDK-LATEST/x86_64/DVD1/ sles
 
 if [ "x$WITHUPDATES" != "x" ] ; then
@@ -120,7 +125,7 @@ mkdir -p /mnt/dist /mnt/cloud
 mkdir -p /srv/tftpboot/repos/Cloud/
 cd /srv/tftpboot/repos/Cloud/
 
-d=download.suse.de
+d=download.nue.suse.com
 case $cloudsource in
 	develcloud)
 		CLOUDDISTPATH=/ibs/Devel:/Cloud/images/iso
@@ -153,8 +158,8 @@ fi
 
 zypper ar /srv/tftpboot/repos/Cloud Cloud
 if [ -n "$TESTHEAD" ] ; then
-	zypper ar http://download.suse.de/ibs/Devel:/Cloud/SLE_11_SP2/Devel:Cloud.repo
-	zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Crowbar/SLE_11_SP2/Devel:Cloud:Crowbar.repo
+	zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud/SLE_11_SP2/Devel:Cloud.repo
+	zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Crowbar/SLE_11_SP2/Devel:Cloud:Crowbar.repo
 	zypper ar http://clouddata.cloud.suse.de/repos/Crowbar/ DCCdirect
 	zypper mr -p 70 Devel_Cloud # more important
 	zypper mr -p 60 Devel_Cloud_Crowbar # even more important
@@ -180,7 +185,7 @@ fi
 
 
 mkdir -p /srv/tftpboot/suse-11.2/install
-if ! grep -q suse-11.2 /etc/fstab ; then
+if ! $longdistance && ! grep -q suse-11.2 /etc/fstab ; then
   echo "clouddata.cloud.suse.de:/srv/nfs/suse-11.2/install /srv/tftpboot/suse-11.2/install    nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
   mount /srv/tftpboot/suse-11.2/install
 fi
@@ -197,20 +202,19 @@ for REPO in SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Update
   mount /srv/tftpboot/repos/$REPO
 done
 
-
-cd /tmp
 # just as a fallback if nfs did not work
 if [ ! -e "/srv/tftpboot/suse-11.2/install/media.1/" ] ; then
-	wget -q -nc http://download.suse.de/install/SLES-11-SP2-GM/SLES-11-SP2-DVD-x86_64-GM-DVD1.iso
-	mount -o loop,ro -t iso9660 *.iso /mnt
-	rsync -a /mnt/ /srv/tftpboot/suse-11.2/install/
-	umount /mnt
-	rm *.iso
+  f=SLES-11-SP2-DVD-x86_64-GM-DVD1.iso
+  p=/srv/tftpboot/suse-11.2/$f
+  wget -q -nc -O$p http://download.nue.suse.com/install/SLES-11-SP2-GM/$f
+  echo $p /srv/tftpboot/suse-11.2/install/ iso9660 loop,ro >> /etc/fstab
+  mount /srv/tftpboot/suse-11.2/install/
 fi
 if [ ! -e "/srv/tftpboot/suse-11.2/install/media.1/" ] ; then
 	echo "We do not have SLES install media - giving up"
 	exit 34
 fi
+cd /tmp
 
 netfiles="/opt/dell/barclamps/network/chef/data_bags/crowbar/bc-template-network.json /opt/dell/chef/data_bags/crowbar/bc-template-network.json"
 if [ $cloud != virtual ] ; then
