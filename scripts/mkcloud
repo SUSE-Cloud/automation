@@ -166,8 +166,8 @@ function h_create_cloud_lvm()
 function h_deploy_admin_image()
 {
   pushd /tmp
-  wget -nc http://clouddata.cloud.suse.de/images/SP2-64up.img.gz
-  gzip -cd SP2-64up.img.gz > /dev/cloud/admin
+  wget -nc http://clouddata.cloud.suse.de/images/SP2-64up.qcow2
+  qemu-img convert SP2-64up.qcow2 /dev/cloud/admin
   popd
 
   # make a bigger partition 2
