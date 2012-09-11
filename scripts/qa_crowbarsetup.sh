@@ -123,16 +123,16 @@ cd /srv/tftpboot/repos/Cloud/
 d=download.suse.de
 case $cloudsource in
 	develcloud)
-		CLOUDDISTURL=$d/ibs/Devel:/Cloud/images/iso
+		CLOUDDISTPATH=/ibs/Devel:/Cloud/images/iso
 		CLOUDDISTISO="S*-CLOUD*Media1.iso"
 	;;
 	susecloud)
-		CLOUDDISTURL=$d/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/images/iso
+		CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/images/iso
 		CLOUDDISTISO="S*-CLOUD*Media1.iso"
 	;;
 	Beta*|RC*)
 
-		CLOUDDISTURL=$d/install/SLE-11-SP2-CLOUD-$cloudsource/
+		CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-$cloudsource/
 		CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
 	;;
 	*)
@@ -140,10 +140,10 @@ case $cloudsource in
 		exit 76
 	;;
 esac
-wget -q -r -np -nc -A "$CLOUDDISTISO" http://$CLOUDDISTURL/
-echo $CLOUDDISTURL/*.iso > /etc/cloudversion
+wget -q -r -np -nc -A "$CLOUDDISTISO" http://$d$CLOUDDISTPATH/
+echo $CLOUDDISTPATH/*.iso > /etc/cloudversion
 echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
-mount -o loop,ro -t iso9660 $(ls $CLOUDDISTURL/*.iso|tail -1) /mnt/cloud
+mount -o loop,ro -t iso9660 $(ls */$CLOUDDISTPATH/*.iso|tail -1) /mnt/cloud
 rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
 if [ ! -e "/srv/tftpboot/repos/Cloud/media.1" ] ; then
 	echo "We do not have cloud install media - giving up"
@@ -151,7 +151,6 @@ if [ ! -e "/srv/tftpboot/repos/Cloud/media.1" ] ; then
 fi
 
 
-rm -rf "download.suse.de"
 zypper ar /srv/tftpboot/repos/Cloud Cloud
 if [ -n "$TESTHEAD" ] ; then
 	zypper ar http://download.suse.de/ibs/Devel:/Cloud/SLE_11_SP2/Devel:Cloud.repo
