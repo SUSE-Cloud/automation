@@ -109,7 +109,7 @@ grep -q "$net.*crowbar" /etc/hosts || echo $net.10 crowbar.$cloud.cloud.suse.de 
 rcnetwork restart
 hostname -f # make sure it is a FQDN
 ping -c 1 `hostname -f`
-zypper ar http://clouddata.cloud.suse.de/suse-11.2/install/ sle11sp2latest
+zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://download.nue.suse.com/install/SLP/SLE-11-SP2-SDK-LATEST/x86_64/DVD1/ sles
 
 if [ "x$WITHUPDATES" != "x" ] ; then
   zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1/" sp1-updates
