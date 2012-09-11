@@ -330,6 +330,11 @@ function setupadmin()
   h_create_libvirt_admin_network_config /tmp/cloud-admin.net.xml
 
   modprobe kvm-amd
+  if [ ! -e /etc/modprobe.d/80-kvm-intel.conf ] ; then
+    echo "options kvm-intel nested=1" > /etc/modprobe.d/80-kvm-intel.conf
+    rmmod kvm-intel
+  fi
+  modprobe kvm-intel
   insserv libvirtd
   rclibvirtd start
   wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
