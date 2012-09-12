@@ -173,7 +173,7 @@ function h_deploy_admin_image()
   # make a bigger partition 2
   echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/cloud/admin
   losetup -o $(expr 2056192 \* 512) /dev/loop0 /dev/cloud/admin
-  fsck -f /dev/loop0
+  fsck -y -f /dev/loop0
   resize2fs /dev/loop0
   sync
   losetup -d /dev/loop0
