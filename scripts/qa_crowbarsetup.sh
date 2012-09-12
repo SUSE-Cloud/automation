@@ -110,7 +110,7 @@ rcnetwork restart
 hostname -f # make sure it is a FQDN
 ping -c 1 `hostname -f`
 longdistance=${longdistance:-false}
-if [[ $(ping -q -c1 clouddata.cloud.suse.de|perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') > 100 ]] ; then
+if [[ $(ping -q -c1 clouddata.cloud.suse.de|perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') -gt 100 ]] ; then
   longdistance=true
 fi
 
