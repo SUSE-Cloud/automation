@@ -114,7 +114,7 @@ if [[ $(ping -q -c1 clouddata.cloud.suse.de|perl -ne 'm{min/avg/max/mdev = (\d+)
   longdistance=true
 fi
 
-zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://download.nue.suse.com/install/SLP/SLE-11-SP2-SDK-LATEST/x86_64/DVD1/ sles
+zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://download.nue.suse.com/install/SLP/SLES-11-SP2-LATEST/x86_64/DVD1/ sles
 
 if [ "x$WITHUPDATES" != "x" ] ; then
   zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1/" sp1-updates
