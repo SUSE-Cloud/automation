@@ -1,0 +1,65 @@
+#!/bin/bash -x
+# run a test within cloud.suse.de
+usage()
+{
+  echo "usage: NOVA_USERNAME=xx NOVA_API_KEY=xx $0"
+}
+
+setup()
+{
+	# setup tiny VM for jenkins
+	#zypper rr 1 # remove DVD repo
+	zypper ar http://dist.suse.de/install/SLP/SLES-11-SP2-LATEST/x86_64/DVD1/ sle11sp2latest
+	zypper ar http://dist.suse.de/install/SLP/SLE-11-SP2-SDK-LATEST/x86_64/DVD1/ sle11sp2sdklatest
+	zypper ar http://download.opensuse.org/repositories/Virtualization:/Cloud:/OpenStack:/Diablo/SLE_11_SP1/Virtualization:Cloud:OpenStack:Diablo.repo
+	zypper ar http://download.suse.de/ibs/SUSE:/SLE-11-SP1:/Update:/Manager:/1.2/standard/SUSE:SLE-11-SP1:Update:Manager:1.2.repo
+	zypper ar http://download.opensuse.org/repositories/devel:/languages:/ruby:/extensions/SLE_11_SP1/devel:languages:ruby:extensions.repo
+	zypper --gpg-auto-import-keys -n ref
+	zypper in python-novaclient rubygem-net-ssh # ignore ruby-devel requires
+	mkdir -p ~/.ssh
+	echo ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAp8fBkDaecZtoueQIRsZFNgmyMo++gY7+6YlbaJqJNS1nsredp8Rjs53pwVUa4tyewKJ+mZDDMwgbZdePn3QXbavuzdNDUhswNlEDdhrdDn44QciwBcpsf/AMtqpfdl8uGS5wl0ZfDt5m9ovYUeg49ZiIWx5qP5nmiIfgLHW4pVN673Sl9gT2wGo05x/PiU7B+M80AMunJWU1a58UmrQ1panxCjm8mMcmddd6tuTdTYEFNBSc2TIaZzZ4m7N98DYn+LtiXkov7fAO2Vnne5JKL8fpx1KGxKhLhkjTBVjrD6JVUlg2QlljxIXeV8xu+6YsSZca08jilRrxwDvRbk4oYQ== hudson@hudsoninscance >> ~/.ssh/authorized_keys
+}
+
+test "$DevelCloudHead" != "false" && export OSHEAD=1
+
+rpm -q rubygem-net-ssh >/dev/null || setup # only needed once
+
+test -z $NOVA_USERNAME && usage && exit 1
+test -z $NOVA_API_KEY && usage && exit 1
+export NOVA_URL=http://127.0.0.1:5000/v2.0/
+export NOVA_VERSION=1.1
+export NOVA_PROJECT_ID=$NOVA_USERNAME
+
+#cleanup prev
+instance=$(nova list| perl -ne 'if(/^\| (\S+) .*testvm /){print $1}')
+nova delete $instance
+nova delete testvm
+sleep 10
+
+nova boot --flavor 12 --image SP2 testvm > boot.out
+instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
+sleep 20 # time to prepare
+export ip=`nova show $instanceid|perl -ne 'm/network\s*\| (\S+)/ && print $1'`
+export password=linux
+test -n "$ip" || exit 17
+n=300 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $ip >/dev/null ; do # wait for VM to become reachable
+  n=$(expr $n - 1)
+  echo -n "."
+done
+echo "finished waiting for VM: $n counts left"
+sleep 40 # extra time for ssh to start
+#http://openqa.suse.de/sle/qatests/qa_openstack.sh
+ruby -e 'oshead=ENV["OSHEAD"]; require "rubygems";require "net/ssh"
+  Net::SSH.start(ENV["ip"], "root", :password => ENV["password"], :auth_methods => %w(password keyboard-interactive)) do |connection| 
+    connection.exec!("export OSHEAD=#{oshead}; init 3;curl http://w3.suse.de/~bwiedemann/suseqa/qa_openstack.sh|sed -e \"s/watch.*//\" -e \"s/#while/while/\"|bash -x ; echo openstack testrun ret=$?") do |channel, stream, data|
+      print data ; $stdout.flush
+      m = /openstack testrun ret=(\d+)/.match(data) and exit m[1].to_i;
+    end
+  end'
+ret=$?
+#watch "ps ax|tail -16" # use on test-VM for manual watching
+
+# cleanup of run
+#nova delete $instanceid # cleanup before next run
+
+exit $ret
