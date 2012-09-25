@@ -116,7 +116,7 @@ fi
 
 zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://download.nue.suse.com/install/SLP/SLES-11-SP2-LATEST/x86_64/DVD1/ sles
 
-if [ "x$WITHUPDATES" != "x" ] ; then
+if [ "x$WITHSLEUPDATES" != "x" ] ; then
   zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1/" sp1-updates
   zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP2/" sp2-updates
 fi
@@ -135,7 +135,7 @@ case $cloudsource in
 		CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/images/iso
 		CLOUDDISTISO="S*-CLOUD*Media1.iso"
 	;;
-	Beta*|RC*)
+	Beta*|RC*|GM*)
 
 		CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-$cloudsource/
 		CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
@@ -556,6 +556,21 @@ if [ -n "$testsetup" ] ; then
 	ret=$?
 	echo ret:$ret
 	exit $ret
+fi
+
+if [ -n "$addupdaterepo" ] ; then
+  UPR=/srv/tftpboot/repos/Cloud-PTF
+  mkdir -p $UPR
+  for repo in ${UPDATEREPOS//+/ } ; do
+    wget -r --directory-prefix $UPR --no-parent --no-clobber --accept x86_64.rpm,noarch.rpm $repo || exit 8
+  done
+  createrepo -o $UPR $UPR || exit 8
+  zypper ar $UPR cloud-ptf
+fi
+
+if [ -n "$runupdate" ] ; then
+  zypper --non-interactive ref || exit 9
+  zypper --non-interactive up || exit 9
 fi
 
 

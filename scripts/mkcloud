@@ -63,6 +63,7 @@ function show_environment()
   echo "    TESTHEAD: $TESTHEAD"
   echo "  nodenumber: $nodenumber"
   echo "        CVOL: $CVOL"
+  echo " UPDATEREPOS: $UPDATEREPOS"
   echo "-------------------------------"
 }
 
@@ -600,6 +601,20 @@ function usage()
 }
 
 
+function addupdaterepo()
+{
+  scp qa_crowbarsetup.sh root@$adminip:
+  sshrun "addupdaterepo=1 UPDATEREPOS=$UPDATEREPOS  bash -x qa_crowbarsetup.sh virtual"
+  return $?
+}
+
+function runupdate()
+{
+  scp qa_crowbarsetup.sh root@$adminip:
+  sshrun "runupdate=1 bash -x qa_crowbarsetup.sh virtual"
+  return $?
+}
+
 function sanity_checks()
 {
   if test `id -u` != 0 ; then
@@ -623,7 +638,9 @@ function sanity_checks()
   rm $PSFILE
 
   # always fetch the latest version
-  wget -O qa_crowbarsetup.sh "https://raw.github.com/SUSE/cloud/master/scripts/qa_crowbarsetup.sh?login=bmwiedemann&token=c33f525d5d7f5111f5eede6e9a07ab64"
+  if [ -z "$NOQACROWBARDOWNLOAD" ] ; then
+    wget -O qa_crowbarsetup.sh "https://raw.github.com/SUSE/cloud/master/scripts/qa_crowbarsetup.sh?login=bmwiedemann&token=c33f525d5d7f5111f5eede6e9a07ab64"
+  fi
 
   if [ ! -e qa_crowbarsetup.sh ] ; then
     echo "Error: qa_crowbarsetup.sh not found in same directory"
@@ -667,7 +684,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute help"
+allcmds="all all_noreboot instonly plain cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate help"
 wantedcmds=$@
 runcmds=''
 
@@ -691,6 +708,12 @@ for cmd in $wantedcmds ; do
         ;;
         all_noreboot)
           runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal testsetup"
+        ;;
+        all_withupdates)
+          runcmds="$runcmds cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup"
+        ;;
+        testupdate)
+          runcmds="$runcmds addupdaterepo runupdate testsetup"
         ;;
         plain)
           runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal"
