@@ -560,23 +560,26 @@ function usage()
   echo "$0 <command> [<command>,...]"
   echo
   echo "  'command' is one of:"
-  echo "   all instonly plain cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute help"
+  echo "   all instonly plain cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal addupdaterepo runupdate testsetup rebootcrowbar rebootcompute help"
   echo
   echo "   all      -> expands to: cleanup prepare setupadmin instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
   echo "   all_noreboot -> exp to: cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal testsetup"
   echo "   plain    -> expands to: cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal"
   echo "   instonly -> expands to: cleanup prepare setupadmin instcrowbar setupcompute instcompute"
   echo
-  echo "   cleanup:     kill all running VMs, zero out boot sectors of all lvm volumes"
-  echo "   prepare:     create lvm volumes, setup libvirt networks"
-  echo "   setupadmin:  create the admin node and install the cloud product"
-  echo "   instcrowbar: install crowbar and chef on the admin node"
-  echo "   setupcompute:create the compute nodes and let crowbar install them"
-  echo "   proposal:    create and apply proposals for default setup"
-  echo "   testsetup:   start a VM in the cloud"
-  echo "   rebootcrowbar: reboot the crowbar instance and wait for it being up and running"
-  echo "   rebootcompute: reboot the compute nodes and wait for them being up and running"
-  echo "   help:        this usage"
+  echo "   cleanup:       kill all running VMs, zero out boot sectors of all lvm volumes"
+  echo "   prepare:       create lvm volumes, setup libvirt networks"
+  echo "   setupadmin:    create the admin node and install the cloud product"
+  echo "   instcrowbar:   install crowbar and chef on the admin node"
+  echo "   setupcompute:  create the compute nodes and let crowbar install them"
+  echo "   proposal:      create and apply proposals for default setup"
+  echo "   testsetup:     start a VM in the cloud"
+  echo "   addupdaterepo: addupdate repos defined in UPDATEREPOS= (URLs separated by '+')"
+  echo "   runupdate:     run zypper up on the crowbar node"
+  echo "                  (compute nodes are automaticallyupdated via chef run)"
+  echo "   rebootcrowbar: reboot the crowbar instance and wait for it being up"
+  echo "   rebootcompute: reboot the compute nodes and wait for them being up"
+  echo "   help:          this usage"
   echo
   echo " Environment variables (need to be exported):"
   echo
@@ -704,13 +707,10 @@ for cmd in $wantedcmds ; do
       ok=1
       case $cmd in
         all)
-          runcmds="$runcmds cleanup prepare setupadmin instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
+          runcmds="$runcmds cleanup prepare setupadmin instcrowbar rebootcrowbar setupcompute instcompute proposal addupdaterepo runupdate testsetup rebootcompute"
         ;;
         all_noreboot)
-          runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal testsetup"
-        ;;
-        all_withupdates)
-          runcmds="$runcmds cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup"
+          runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal addupdaterepo runupdate testsetup"
         ;;
         testupdate)
           runcmds="$runcmds addupdaterepo runupdate testsetup"
