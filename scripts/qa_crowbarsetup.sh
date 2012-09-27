@@ -569,8 +569,8 @@ if [ -n "$addupdaterepo" ] ; then
 fi
 
 if [ -n "$runupdate" ] ; then
-  zypper --non-interactive ref || exit 9
-  zypper --non-interactive up || exit 9
+  wait_for 30 3 " zypper --non-interactive ref ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
+  wait_for 30 3 " zypper --non-interactive up ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
 fi
 
 
