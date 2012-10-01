@@ -190,7 +190,8 @@ sub die_on_error($$)
 
 
 sub add_changes_entry() {
-  return 0 if ($oldgitrev eq $gitrev || $oldgitrev eq '' || $gitrev eq '');
+  return 1 if $oldgitrev eq $gitrev;
+  return 0 if ($oldgitrev eq '' || $gitrev eq '');
 
   return 0 if (! -e $ENV{'HOME'}.'/.obs/tar_scm');
 
