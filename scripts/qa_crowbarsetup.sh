@@ -564,6 +564,7 @@ if [ -n "$addupdaterepo" ] ; then
   for repo in ${UPDATEREPOS//+/ } ; do
     wget -r --directory-prefix $UPR --no-parent --no-clobber --accept x86_64.rpm,noarch.rpm $repo || exit 8
   done
+  zypper -n install createrepo
   createrepo -o $UPR $UPR || exit 8
   zypper ar $UPR cloud-ptf
 fi
