@@ -591,7 +591,7 @@ if [ -n "$rebootcompute" ] ; then
   sleep 20
 
   scp $0 $novacontroller:
-  ssh $novacontroller "waitforrebootcompute=1 ./$0 $cloud"
+  ssh $novacontroller "waitforrebootcompute=1 bash -x ./$0 $cloud"
   ret=$?
   echo "ret:$ret"
   exit $ret
