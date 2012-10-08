@@ -346,7 +346,7 @@ function check_node_resolvconf()
 
 if [ -n "$waitcompute" ] ; then
   for node in $(crowbar machines list | grep ^d) ; do
-    wait_for 180 10 "sshtest $node rpm -q yast2-core 2>/dev/null 1>&2" "node $node" "check_node_resolvconf $node; exit 12"
+    wait_for 180 10 "sshtest $node rpm -q yast2-core" "node $node" "check_node_resolvconf $node; exit 12"
     echo "node $node ready"
   done
 fi
