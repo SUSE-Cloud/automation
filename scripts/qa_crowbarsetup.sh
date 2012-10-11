@@ -169,10 +169,10 @@ fi
 zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
 
 if [ $cloudsource = "Beta1" ] ; then
-  zypper --no-gpg-checks -n in crowbar # for Beta1
+  zypper --no-gpg-checks -n in -l crowbar # for Beta1
   ret=$?
 else
-  zypper --no-gpg-checks -n in -t pattern cloud_admin # for Beta2
+  zypper --no-gpg-checks -n in -l -t pattern cloud_admin # for Beta2
   ret=$?
 fi
 if [ $ret = 0 ] ; then
@@ -193,7 +193,8 @@ fi
 for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
   mkdir -p /srv/tftpboot/repos/$REPO
   cd /srv/tftpboot/repos/$REPO
-  createrepo .
+  zypper -n install createrepo
+  [ -e repodata ] || createrepo .
 done
 for REPO in SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Updates ; do
   grep -q $REPO /etc/fstab && continue
