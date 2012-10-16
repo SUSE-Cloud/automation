@@ -362,6 +362,7 @@ EOS
         iptables -t nat -I PREROUTING -p tcp --dport $(($i + $host % 10 + 1100)) -j DNAT --to-destination 192.168.124.$host:$i
     done
 done
+iptables -t nat -I PREROUTING -p tcp --dport 6080 -j DNAT --to-destination 192.168.122.2
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
 EOS
   fi
