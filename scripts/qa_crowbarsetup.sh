@@ -322,6 +322,10 @@ for m in `crowbar machines list | grep ^d` ; do
 	crowbar machines allocate "$m"
 done
 
+# check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
+curl -s --digest --user crowbar:crowbar http://localhost:3000| tee /root/crowbartest.out
+grep "Exception caught" /root/crowbartest.out && exit 27
+
 fi
 
 function sshtest()
