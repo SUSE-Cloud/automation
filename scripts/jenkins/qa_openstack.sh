@@ -22,23 +22,30 @@ fi
 mount -o remount,noatime,barrier=0 /
 
 # setup repos
+VERSION=11
+REPO=SLE_11_SP2
+if grep "VERSION = 12.2" /etc/SuSE-release ; then
+  VERSION=12.2
+  REPO=openSUSE_12.2
+fi
 hostname=dist.suse.de
 ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
-zypper ar http://dist.suse.de/ibs/Devel:/Cloud/SLE_11_SP2/Devel:Cloud.repo
+zypper ar http://dist.suse.de/ibs/Devel:/Cloud/$REPO/Devel:Cloud.repo
 if test -n "$OSHEAD" ; then
-	zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/Head/SLE_11_SP2/Devel:Cloud:Head.repo
+	zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/Head/$REPO/Devel:Cloud:Head.repo
 	# use high prio so that packages will be preferred from here over Devel:Cloud
 	zypper mr --priority 42 Devel_Cloud_Head
 fi
-#zypper ar http://dist.suse.de/ibs/SUSE:/SLE-11-SP1:/Update:/Manager:/1.2/standard/SUSE:SLE-11-SP1:Update:Manager:1.2.repo
-zypper ar http://$hostname/install/SLP/SLES-11-SP2-LATEST/$ARCH/DVD1/ SLES-11-SP2-LATEST
-#zypper ar 'http://smt.suse.de/repo/$RCE/SLES11-SP1-Updates/sle-11-x86_64/' sp1up
-#zypper ar 'http://smt.suse.de/repo/$RCE/SLES11-SP2-Updates/sle-11-x86_64/' sp2up
-zypper ar http://dist.suse.de/install/SLP/SLE-11-SP2-CLOUD-GM/x86_64/DVD1/ CloudProduct
-zypper ar http://download.nue.suse.com/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/standard/SUSE:SLE-11-SP2:Update:Products:Test.repo
-zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP1/ SP1up # for python268
-zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2/ SP2up
-zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2-CORE/ SP2core
+if [ $VERSION = 11 ] ; then
+  zypper ar http://$hostname/install/SLP/SLES-11-SP2-LATEST/$ARCH/DVD1/ SLES-11-SP2-LATEST
+  #zypper ar 'http://smt.suse.de/repo/$RCE/SLES11-SP1-Updates/sle-11-x86_64/' sp1up
+  #zypper ar 'http://smt.suse.de/repo/$RCE/SLES11-SP2-Updates/sle-11-x86_64/' sp2up
+  zypper ar http://dist.suse.de/install/SLP/SLE-11-SP2-CLOUD-GM/x86_64/DVD1/ CloudProduct
+  zypper ar http://download.nue.suse.com/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/standard/SUSE:SLE-11-SP2:Update:Products:Test.repo
+  zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP1/ SP1up # for python268
+  zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2/ SP2up
+  zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2-CORE/ SP2core
+fi
 
 #zypper ar http://$hostname/install/SLP/SLE-11-SP2-SDK-LATEST/$ARCH/DVD1/ SLE-11-SDK-SP2-LATEST # for memcached and python-m2crypto (otherwise on CloudProduct)
 zypper --gpg-auto-import-keys -n ref
@@ -101,7 +108,8 @@ if [ "$MODE" = xen ] ; then
 fi
 if [ "$MODE" != lxc ] ; then
 	#curl http://openqa.suse.de/sle/img/openSUSE_11.4_JeOS.i686-0.0.1.raw.gz | gzip -cd | glance add name="debian-5" is_public=True disk_format=ami container_format=ami
-	curl http://openqa.suse.de/sle/img/openSUSE_12.1_jeos.vmdk.gz | gzip -cd | glance add name="debian-5" is_public=True disk_format=vmdk container_format=bare
+	#curl http://openqa.suse.de/sle/img/openSUSE_12.1_jeos.vmdk.gz | gzip -cd | glance add name="debian-5" is_public=True disk_format=vmdk container_format=bare
+	glance image-create --name="debian-5" --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP2-64up.qcow2
 #	curl http://openqa.opensuse.org/openqa/img/openSUSE-12.2-Beta2.img.gz | gzip -cd | glance add name="12.2b2-mini" is_public=True disk_format=raw container_format=bare
 #	curl http://openqa.suse.de/sle/img/SP2-64-HA.img.gz | gzip -cd | glance add name="SP2-64-HA" is_public=True disk_format=raw container_format=bare
 #	curl http://openqa.suse.de/sle/img/SP2-64up.img.gz | gzip -cd | glance add name="SP2-64up" is_public=True disk_format=raw container_format=bare
