@@ -644,7 +644,7 @@ function sanity_checks()
 
   # always fetch the latest version
   if [ -z "$NOQACROWBARDOWNLOAD" ] ; then
-    wget -O qa_crowbarsetup.sh "https://raw.github.com/SUSE/cloud/master/scripts/qa_crowbarsetup.sh?login=bmwiedemann&token=c33f525d5d7f5111f5eede6e9a07ab64"
+    wget -O qa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
   fi
 
   if [ ! -e qa_crowbarsetup.sh ] ; then
