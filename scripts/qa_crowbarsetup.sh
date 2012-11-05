@@ -445,6 +445,17 @@ function manual_2device_ceph_proposal()
   crowbar ceph proposal --file=/root/cephproposal edit default
 }
 
+function custom_nova_config()
+{
+  [ -n "$libvirt_type" ] || libvirt_type='kvm';
+  crowbar nova proposal show default |
+    ruby -e "require 'rubygems';require 'json';
+      j=JSON.parse(STDIN.read);
+      j['attributes']['nova']['libvirt_type']='$libvirt_type';
+    puts JSON.pretty_generate(j)" > /root/novaproposal
+  crowbar nova proposal --file=/root/novaproposal edit default
+}
+
 function enable_ssl_for_nova_dashboard()
 {
   echo "FIXME: edit the proposal"
@@ -455,6 +466,8 @@ function custom_configuration()
   service=$1
   case $service in
     ceph) manual_2device_ceph_proposal
+    ;;
+    nova) custom_nova_config
     ;;
     nova-dashboard)
       if [[ $all_with_ssl = 1 || $novadashboard_with_ssl = 1 ]] ; then
