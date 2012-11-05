@@ -127,6 +127,10 @@ cd /srv/tftpboot/repos/Cloud/
 
 d=download.nue.suse.com
 case $cloudsource in
+	develcloud1.0)
+		CLOUDDISTPATH=/ibs/Devel:/Cloud:/1.0/images/iso
+		CLOUDDISTISO="S*-CLOUD*Media1.iso"
+	;;
 	develcloud)
 		CLOUDDISTPATH=/ibs/Devel:/Cloud/images/iso
 		CLOUDDISTISO="S*-CLOUD*Media1.iso"
