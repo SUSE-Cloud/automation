@@ -291,6 +291,15 @@ if ! (rcxinetd status && rcdhcpd status) ; then
    echo "Please fix manually."
    exit 67
 fi
+  if [ -n "$ntpserver" ] ; then
+    crowbar ntp proposal show default |
+      ruby -e "require 'rubygems';require 'json';
+	j=JSON.parse(STDIN.read);
+	j['attributes']['ntp']['external_servers']=['$ntpserver'];
+      puts JSON.pretty_generate(j)" > /root/ntpproposal
+    crowbar ntp proposal --file=/root/ntpproposal edit default
+    crowbar ntp proposal commit default
+  fi
 
 fi # -n "$installcrowbar"
 
