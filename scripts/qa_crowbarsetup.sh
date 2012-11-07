@@ -162,9 +162,21 @@ fi
 
 zypper ar /srv/tftpboot/repos/Cloud Cloud
 if [ -n "$TESTHEAD" ] ; then
-	zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud/SLE_11_SP2/Devel:Cloud.repo
-	zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Crowbar/SLE_11_SP2/Devel:Cloud:Crowbar.repo
-	zypper ar http://clouddata.cloud.suse.de/repos/Crowbar/ DCCdirect
+	case "$cloudsource" in
+	  develcloud)
+	    zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud/SLE_11_SP2/Devel:Cloud.repo
+	    zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Crowbar/SLE_11_SP2/Devel:Cloud:Crowbar.repo
+	    zypper ar http://clouddata.cloud.suse.de/repos/Crowbar/ DCCdirect
+	    ;;
+	  develcloud1.0)
+	    zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0/SLE_11_SP2/Devel:Cloud:1.0.repo
+	    zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0:/Crowbar/SLE_11_SP2/Devel:Cloud:1.0:Crowbar.repo
+	    ;;
+	  *)
+	    echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
+	    exit 26
+	    ;;
+	esac
 	zypper mr -p 70 Devel_Cloud # more important
 	zypper mr -p 60 Devel_Cloud_Crowbar # even more important
 	zypper mr -p 60 DCCdirect # as important - just use newer ver
