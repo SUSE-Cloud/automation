@@ -532,6 +532,7 @@ if [ -n "$testsetup" ] ; then
 		exit 62
 	fi
 	echo "openstack nova contoller: $novacontroller"
+	curl -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
 	ssh $novacontroller '
 		. .openrc
 		curl -s w3.suse.de/~bwiedemann/cloud/defaultsuseusers.pl | perl
