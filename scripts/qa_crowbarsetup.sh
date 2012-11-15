@@ -273,6 +273,7 @@ intercept "install-chef-suse.sh"
 
 rm -f /tmp/chef-ready
 rpm -Va crowbar\*
+export REPOS_SKIP_CHECKS="SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates"
 # run in screen to not lose session in the middle when network is reconfigured:
 screen -d -m -L /bin/bash -c 'if [ -e /tmp/install-chef-suse.sh ] ; then /tmp/install-chef-suse.sh ; else /opt/dell/bin/install-chef-suse.sh ; fi ; touch /tmp/chef-ready'
 n=300
