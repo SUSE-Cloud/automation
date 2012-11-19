@@ -30,12 +30,19 @@ if grep "VERSION = 12.2" /etc/SuSE-release ; then
 fi
 hostname=dist.suse.de
 ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
-zypper ar http://dist.suse.de/ibs/Devel:/Cloud/$REPO/Devel:Cloud.repo
-if test -n "$OSHEAD" ; then
-	zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/Head/$REPO/Devel:Cloud:Head.repo
-	# use high prio so that packages will be preferred from here over Devel:Cloud
-	zypper mr --priority 42 Devel_Cloud_Head
+if [ "$cloudsource" = develcloud1.0 ] ; then
+	zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/1.0/$REPO/Devel:Cloud:1.0.repo
+	if test -n "$OSHEAD" ; then
+		zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/1.0:/OpenStack/$REPO/ cloudhead
+	fi
+else
+	zypper ar http://dist.suse.de/ibs/Devel:/Cloud/$REPO/Devel:Cloud.repo
+	if test -n "$OSHEAD" ; then
+		zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/Head/$REPO/ cloudhead
+	fi
 fi
+# use high prio so that packages will be preferred from here over Devel:Cloud
+zypper mr --priority 42 cloudhead
 if [ $VERSION = 11 ] ; then
   zypper ar http://$hostname/install/SLP/SLES-11-SP2-LATEST/$ARCH/DVD1/ SLES-11-SP2-LATEST
   #zypper ar 'http://smt.suse.de/repo/$RCE/SLES11-SP1-Updates/sle-11-x86_64/' sp1up

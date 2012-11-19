@@ -49,9 +49,9 @@ done
 echo "finished waiting for VM: $n counts left"
 sleep 40 # extra time for ssh to start
 #http://openqa.suse.de/sle/qatests/qa_openstack.sh
-ruby -e 'oshead=ENV["OSHEAD"]; require "rubygems";require "net/ssh"
+ruby -e 'cloudsource=ENV["cloudsource"]; oshead=ENV["OSHEAD"]; require "rubygems";require "net/ssh"
   Net::SSH.start(ENV["ip"], "root", :password => ENV["password"], :auth_methods => %w(password keyboard-interactive)) do |connection| 
-    connection.exec!("export OSHEAD=#{oshead}; init 3;curl http://w3.suse.de/~bwiedemann/suseqa/qa_openstack.sh|sed -e \"s/watch.*//\" -e \"s/#while/while/\"|bash -x ; echo openstack testrun ret=$?") do |channel, stream, data|
+    connection.exec!("export cloudsource=#{cloudsource}; export OSHEAD=#{oshead}; init 3;curl https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/qa_openstack.sh|sed -e \"s/watch.*//\" -e \"s/#while/while/\"|bash -x ; echo openstack testrun ret=$?") do |channel, stream, data|
       print data ; $stdout.flush
       m = /openstack testrun ret=(\d+)/.match(data) and exit m[1].to_i;
     end
