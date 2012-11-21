@@ -345,7 +345,10 @@ done
 echo "Sleeping 50 more seconds..."
 sleep 50
 for m in `crowbar machines list | grep ^d` ; do
-	crowbar machines allocate "$m"
+	while knife node show -a state $m | grep discovered; do # workaround bnc#773041
+		crowbar machines allocate "$m"
+		sleep 10
+	done
 done
 
 # check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
