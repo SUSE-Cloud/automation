@@ -359,7 +359,7 @@ sub get_osc_package_info()
   system('osc', 'add', @tarballfiles) && die "Error: osc add failed. Please check manually.";
 
   my @revertedfiles = osc_st('R');
-  if (scalar(@revertedfiles) > 0)
+  if (scalar(@revertedfiles) == scalar(@changedfiles))
   {
     # we only have reverted files and no changes, switch back to consistent checkout
     print "-->\n";
