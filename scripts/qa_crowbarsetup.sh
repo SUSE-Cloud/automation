@@ -542,7 +542,7 @@ if [ -n "$testsetup" ] ; then
 		curl -s w3.suse.de/~bwiedemann/cloud/defaultsuseusers.pl | perl
 		nova list
 		glance image-list
-	        glance image-list|grep -q SP2-64 || glance image-create --name=SP2-64 --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP2-64up.qcow2
+	        glance image-list|grep -q SP2-64 || glance image-create --name=SP2-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP2-64up.qcow2
         nova delete testvm # cleanup earlier run # cleanup
 		nova keypair-add --pub_key /root/.ssh/id_rsa.pub testkey
 		nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
