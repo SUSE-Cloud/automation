@@ -235,7 +235,8 @@ cd /tmp
 
 netfiles="/opt/dell/barclamps/network/chef/data_bags/crowbar/bc-template-network.json /opt/dell/chef/data_bags/crowbar/bc-template-network.json"
 if [ $cloud != virtual ] ; then
-	sed -i.netbak -e "s/192.168.124/$net/g" \
+	sed -i.netbak -e 's/"conduit": "bmc",/& "router":"192.168.124.1",/' \
+              -e "s/192.168.124/$net/g" \
               -e "s/192.168.125/10.122.$net_storage/g" \
               -e "s/192.168.123/10.122.$net_fixed/g" \
               -e "s/192.168.122/10.122.$net_public/g" \
