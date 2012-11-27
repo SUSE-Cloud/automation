@@ -9,7 +9,7 @@
 #
 
 my %tutrigger = (
-  Head => [ qw(
+  "1.0:OpenStack" => [ qw(
     openstack-dashboard
     openstack-nova
     openstack-glance
@@ -45,13 +45,38 @@ my %tutrigger = (
     crowbar-barclamp-provisioner
     crowbar-barclamp-swift
     crowbar-barclamp-test
+ ) ],
+ "1.0:Crowbar" => [ qw(
+    crowbar
+    crowbar-barclamp-ceph
+    crowbar-barclamp-crowbar
+    crowbar-barclamp-database
+    crowbar-barclamp-deployer
+    crowbar-barclamp-dns
+    crowbar-barclamp-ganglia
+    crowbar-barclamp-glance
+    crowbar-barclamp-ipmi
+    crowbar-barclamp-keystone
+    crowbar-barclamp-kong
+    crowbar-barclamp-logging
+    crowbar-barclamp-nagios
+    crowbar-barclamp-network
+    crowbar-barclamp-nova
+    crowbar-barclamp-nova_dashboard
+    crowbar-barclamp-ntp
+    crowbar-barclamp-openstack
+    crowbar-barclamp-provisioner
+    crowbar-barclamp-swift
+    crowbar-barclamp-test
  ) ]
 );
 
 
 foreach my $subp (keys %tutrigger)
 {
-  open (my $FH, '>', "$subp.config.xml") or die $@;
+  my $jobname = $subp;
+  $jobname =~ s/:/-/g;
+  open (my $FH, '>', "$jobname.config.xml") or die $@;
   select $FH;
 
 print
@@ -59,7 +84,7 @@ q{<?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
   <description>This is the meta job that triggers the openstack-trackupstream job multiple times with different parameters.&lt;br /&gt;&#xd;
-&lt;b&gt;Add new packages as new triggers to THIS job (see config and scroll down).&lt;/b&gt;</description>
+&lt;b&gt;Add new packages ONLY via &lt;i&gt;openstack-trackupstream-trigger.config.xml.pl&lt;/i&gt; tool from the automation repo.&lt;/b&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
@@ -119,7 +144,7 @@ print "Please update the jenkins config by running these commands:\n";
 
 foreach my $subp (keys %tutrigger)
 {
-  my $jobname=lc($subp);
-  $jobname="openstack" if ($jobname eq 'head');
-  print '# curl -X POST --data-binary @'."$subp.config.xml http://river.suse.de/job/cloud-trackupstream-$jobname-trigger/config.xml\n";
+  my $jobname=$subp;
+  $jobname =~ s/:/-/g;
+  print '# curl -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/job/cloud-trackupstream-$jobname-trigger/config.xml\n";
 }
