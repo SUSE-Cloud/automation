@@ -66,7 +66,10 @@ foreach my $testtype (keys %{$uttrigger})
 print qq{<?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>Starts some services and triggers the cloud-$jobname</description>
+  <description>Starts some services and triggers the cloud-$jobname
+&lt;br /&gt;&#xd;
+&lt;b&gt;Changes to this job ONLY via the &lt;i&gt;openstack-unittest.config.xml.pl&lt;/i&gt; tool from the automation repo.&lt;/b&gt;
+</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
