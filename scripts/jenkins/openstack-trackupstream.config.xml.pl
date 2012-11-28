@@ -8,8 +8,11 @@
 #  curl -X POST --data-binary @config.xml  http://river.suse.de/job/openstack-trackupstream-trigger/config.xml
 #
 
+my @output_edit = ();
+my @output_create = ();
+
 my %tutrigger = (
-  "1.0:OpenStack" => [ qw(
+  "OBS/Cloud:OpenStack:Master" => [ qw(
     openstack-dashboard
     openstack-nova
     openstack-glance
@@ -23,7 +26,35 @@ my %tutrigger = (
     python-melangeclient
     python-swiftclient
   ) ],
-  Crowbar => [ qw(
+  "OBS/Cloud:OpenStack:Folsom:Staging" => [ qw(
+    openstack-dashboard
+    openstack-nova
+    openstack-glance
+    openstack-keystone
+    openstack-melange
+    openstack-quantum
+    openstack-swift
+    python-keystoneclient
+    python-novaclient
+    python-quantumclient
+    python-melangeclient
+    python-swiftclient
+  ) ],
+  "IBS/Devel:Cloud:1.0:OpenStack" => [ qw(
+    openstack-dashboard
+    openstack-nova
+    openstack-glance
+    openstack-keystone
+    openstack-melange
+    openstack-quantum
+    openstack-swift
+    python-keystoneclient
+    python-novaclient
+    python-quantumclient
+    python-melangeclient
+    python-swiftclient
+  ) ],
+  "OBS/systemsmanagement:crowbar:2.0:staging" => [ qw(
     crowbar
     crowbar-barclamp-ceph
     crowbar-barclamp-crowbar
@@ -46,7 +77,7 @@ my %tutrigger = (
     crowbar-barclamp-swift
     crowbar-barclamp-test
  ) ],
- "1.0:Crowbar" => [ qw(
+ "IBS/Devel:Cloud:1.0:Crowbar" => [ qw(
     crowbar
     crowbar-barclamp-ceph
     crowbar-barclamp-crowbar
@@ -72,10 +103,10 @@ my %tutrigger = (
 );
 
 
-foreach my $subp (keys %tutrigger)
+foreach my $project (keys %tutrigger)
 {
-  my $jobname = $subp;
-  $jobname =~ s/:/-/g;
+  my $jobname = "trackupstream-".$project;
+  $jobname =~ s/[:\/]/-/g;
   open (my $FH, '>', "$jobname.config.xml") or die $@;
   select $FH;
 
@@ -84,7 +115,7 @@ q{<?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
   <description>This is the meta job that triggers the openstack-trackupstream job multiple times with different parameters.&lt;br /&gt;&#xd;
-&lt;b&gt;Add new packages ONLY via &lt;i&gt;openstack-trackupstream-trigger.config.xml.pl&lt;/i&gt; tool from the automation repo.&lt;/b&gt;</description>
+&lt;b&gt;Changes to this job ONLY via the &lt;i&gt;openstack-trackupstream.config.xml.pl&lt;/i&gt; tool from the automation repo.&lt;/b&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
@@ -105,7 +136,7 @@ q{<?xml version='1.0' encoding='UTF-8'?>
       <configs>
 };
 
-  foreach my $pack (@{$tutrigger{$subp}})
+  foreach my $pack (@{$tutrigger{$project}})
   {
     print
 qq~
@@ -113,7 +144,7 @@ qq~
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>COMPONENT=$pack
-SUBPROJECT=$subp
+PROJECTSOURCE=$project
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
@@ -134,17 +165,19 @@ q{
 </project>
 };
 
-select STDOUT;
-close $FH;
+    select STDOUT;
+    close $FH;
+
+    push @output_edit, 'curl -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/job/cloud-$jobname-trigger/config.xml";
+    push @output_create, 'curl -H "Content-Type: text/xml" -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/createItem?name=cloud-$jobname-trigger";
 
 }
 
 print "\nConfigs created locally\n";
 print "Please update the jenkins config by running these commands:\n";
 
-foreach my $subp (keys %tutrigger)
-{
-  my $jobname=$subp;
-  $jobname =~ s/:/-/g;
-  print '# curl -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/job/cloud-trackupstream-$jobname-trigger/config.xml\n";
-}
+print "_Update_ the jobs with these commands:\n";
+print join("\n", @output_edit)."\n";
+print "----------------------\n";
+print "_Create_ the jobs with these commands:\n";
+print join("\n", @output_create)."\n";
