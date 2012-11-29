@@ -1,0 +1,39 @@
+#!/bin/bash
+
+#
+# update the automation scripts on jenkins nodes
+# it will pull the latest changes from the git repo
+# and update the symlinks in ~/bin for the wanted scripts
+#
+# it can be called from within the jenkins job itself
+#
+# Usage: update_automation [<scriptname>, ...]
+#
+# J. Daniel Schmidt <jdsn@suse.de>
+#
+
+automation_repo="git://github.com/SUSE-Cloud/automation.git"
+
+cd ~
+a_dir=${automation_repo#*git://}
+a_dir=${a_dir%.git}
+p_dir=${a_dir%/*}
+
+if [ -d $a_dir ] ; then
+  pushd $a_dir > /dev/null
+    # git checkout master
+    git pull
+  popd > /dev/null
+else
+  mkdir -p $p_dir
+  pushd $p_dir > /dev/null
+    git clone ${automation_repo}
+  popd > /dev/null
+fi
+
+for sc in $@ ; do
+  find $a_dir -type f -name "${sc}" | while read scriptname ; do
+    ln -s -f ~/${scriptname} ~/bin/$sc
+    echo "Updated link to script $sc"
+  done
+done
