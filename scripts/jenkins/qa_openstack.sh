@@ -61,10 +61,9 @@ zypper -n dup -r Devel_Cloud # upgrade python
 zypper -v --gpg-auto-import-keys -n install -t pattern cloud_controller cloud_compute
 zypper -n install openstack-quickstart python-glanceclient # was not included in meta-patterns
 ls -la /var/lib/nova
-ifconfig br0 >/dev/null && exit 121 # script does not work with pre-configured bridge (e.g. HA)
 
 # setup non-bridged network:
-cat >/etc/sysconfig/network/ifcfg-br0 <<EOF
+cat >/etc/sysconfig/network/ifcfg-brclean <<EOF
 BOOTPROTO='static'
 BRIDGE='yes'
 BRIDGE_FORWARDDELAY='0'
@@ -81,7 +80,7 @@ STARTMODE='auto'
 USERCONTROL='no'
 NAME=''
 EOF
-ifup br0
+ifup brclean
 
 if [ "$MODE" = lxc ] ; then # copied from quickstart # TODO: drop
         sed -i -e 's/\(--libvirt_type\).*/\1=lxc/' /etc/nova/nova.conf
@@ -92,6 +91,8 @@ if [ "$MODE" = lxc ] ; then # copied from quickstart # TODO: drop
 fi
 
 openstack-quickstart-demosetup
+sed -i -e s/br0/brclean/ /etc/nova/nova.conf
+echo --bridge_interface=brclean >> /etc/nova/nova.conf
 echo --vncserver_listen=0.0.0.0 >> /etc/nova/nova.conf ; /etc/init.d/openstack-nova-compute restart
 
 ps ax
