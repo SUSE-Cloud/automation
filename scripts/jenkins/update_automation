@@ -14,7 +14,9 @@
 
 automation_repo="git://github.com/SUSE-Cloud/automation.git"
 
-cd ~
+zypper in --non-interactive git-core
+
+pushd ~ > /dev/null
 a_dir=${automation_repo#*git://}
 a_dir=${a_dir%.git}
 p_dir=${a_dir%/*}
@@ -37,3 +39,5 @@ for sc in $@ $(basename $0) ; do
     echo "Updated link to script $sc"
   done
 done
+
+popd > /dev/null
