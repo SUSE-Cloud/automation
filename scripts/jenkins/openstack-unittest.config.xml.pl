@@ -39,6 +39,7 @@ TESTCMD=./run_tests.sh -N',
 SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf
 TESTCMD=./.unittests',
         'python-glanceclient'         => 'COMPONENT=python-glanceclient',
+        'python-heatclient'           => 'COMPONENT=python-heatclient',
         'python-keystoneclient'       => 'COMPONENT=python-keystoneclient',
         'python-novaclient'           => 'COMPONENT=python-novaclient',
         'python-quantumclient'        =>
