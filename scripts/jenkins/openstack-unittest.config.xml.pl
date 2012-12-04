@@ -38,7 +38,9 @@ TESTCMD=./run_tests.sh -N',
 'COMPONENT=openstack-swift
 SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf
 TESTCMD=./.unittests',
-        'python-glanceclient'         => 'COMPONENT=python-glanceclient',
+        'python-glanceclient'         =>
+'COMPONENT=python-glanceclient
+TESTCMD=tox -e py26',
         'python-heatclient'           => 'COMPONENT=python-heatclient',
         'python-keystoneclient'       => 'COMPONENT=python-keystoneclient',
         'python-novaclient'           => 'COMPONENT=python-novaclient',
