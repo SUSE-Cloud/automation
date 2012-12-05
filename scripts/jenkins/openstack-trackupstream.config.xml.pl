@@ -19,6 +19,7 @@ my %tutrigger = (
     openstack-keystone
     openstack-melange
     openstack-quantum
+    openstack-quickstart
     openstack-swift
     python-keystoneclient
     python-novaclient
@@ -33,6 +34,7 @@ my %tutrigger = (
     openstack-keystone
     openstack-melange
     openstack-quantum
+    openstack-quickstart
     openstack-swift
     python-keystoneclient
     python-novaclient
