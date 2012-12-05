@@ -40,7 +40,7 @@ SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf
 TESTCMD=./.unittests',
         'python-glanceclient'         =>
 'COMPONENT=python-glanceclient
-TESTCMD=tox -e py26',
+TESTCMD=nosetests',
         'python-heatclient'           => 'COMPONENT=python-heatclient',
         'python-keystoneclient'       => 'COMPONENT=python-keystoneclient',
         'python-novaclient'           => 'COMPONENT=python-novaclient',
