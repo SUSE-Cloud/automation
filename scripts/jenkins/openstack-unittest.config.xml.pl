@@ -17,7 +17,7 @@ TEARDOWNCMD=swift-init main stop'
     probetests => { 'openstack-swift' =>
 'COMPONENT=openstack-swift
 SETUPCMD=swift-init all start
-TESTCMD=./probetests
+TESTCMD=./.probetests
 TEARDOWNCMD=swift-init all stop'
     },
     unittest   => {
