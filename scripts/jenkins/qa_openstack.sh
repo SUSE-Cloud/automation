@@ -120,6 +120,7 @@ if [ "$MODE" = lxc ] ; then # copied from quickstart # TODO: drop
         mount -t cgroup none /cgroup
 fi
 
+sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
 openstack-quickstart-demosetup
 sed -i -e s/br0/brclean/ /etc/nova/nova.conf
 echo --bridge_interface=brclean >> /etc/nova/nova.conf
