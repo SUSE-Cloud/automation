@@ -30,17 +30,42 @@ if grep "VERSION = 12.2" /etc/SuSE-release ; then
 fi
 hostname=dist.suse.de
 ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
-if [ "$cloudsource" = develcloud1.0 ] ; then
+case "$cloudsource" in
+  develcloud1.0)
 	zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/1.0/$REPO/Devel:Cloud:1.0.repo
 	if test -n "$OSHEAD" ; then
 		zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/1.0:/OpenStack/$REPO/ cloudhead
 	fi
-else
+  ;;
+  develcloud)
 	zypper ar http://dist.suse.de/ibs/Devel:/Cloud/$REPO/Devel:Cloud.repo
 	if test -n "$OSHEAD" ; then
 		zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/Head/$REPO/ cloudhead
 	fi
-fi
+  ;;
+  openstackessex)
+	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex/$REPO/Cloud:OpenStack:Essex.repo
+	if test -n "$OSHEAD" ; then
+		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex:/Staging/$REPO/Cloud:OpenStack:Essex:Staging.repo cloudhead
+	fi
+  ;;
+  openstackfolsom)
+	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom/$REPO/Cloud:OpenStack:Folsom.repo
+	if test -n "$OSHEAD" ; then
+		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom:/Staging/$REPO/Cloud:OpenStack:Folsom:Staging.repo cloudhead
+	fi
+  ;;
+  openstackmaster)
+	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/Cloud:OpenStack:Master.repo
+	if test -n "$OSHEAD" ; then
+		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master:/Staging/$REPO/Cloud:OpenStack:Master:Staging.repo cloudhead
+	fi
+  ;;
+  *)
+	echo "unknown cloudsource"
+	exit 37
+  ;;
+esac
 # use high prio so that packages will be preferred from here over Devel:Cloud
 zypper mr --priority 42 cloudhead
 if [ $VERSION = 11 ] ; then
@@ -53,8 +78,13 @@ if [ $VERSION = 11 ] ; then
   zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2/ SP2up
   zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2-CORE/ SP2core
 fi
+if [ $VERSION = 12.2 ] ; then
+  zypper ar http://download.opensuse.org/repositories/devel:/languages:/python/$REPO/ dlp
+fi
+zypper mr --priority 200 dlp
 
 #zypper ar http://$hostname/install/SLP/SLE-11-SP2-SDK-LATEST/$ARCH/DVD1/ SLE-11-SDK-SP2-LATEST # for memcached and python-m2crypto (otherwise on CloudProduct)
+zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 zypper --gpg-auto-import-keys -n ref
 zypper -n dup -r Devel_Cloud # upgrade python
 #zypper -v --gpg-auto-import-keys -n install patterns-OpenStack-controller patterns-OpenStack-compute-node || exit 123
