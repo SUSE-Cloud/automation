@@ -2,6 +2,7 @@
 # usage:
 # curl http://openqa.suse.de/sle/qatests/qa_openstack.sh | sh -x
 # needs 2.1GB space for /var/lib/{glance,nova}
+interfaces="eth0 br0"
 export MODE=kvm
 # nested virt is awfully slow, so we do:
 MODE=lxc
@@ -120,6 +121,13 @@ if [ "$MODE" = lxc ] ; then # copied from quickstart # TODO: drop
         mount -t cgroup none /cgroup
 fi
 
+for i in $interfaces ; do
+	IP=$(ip a show dev $i|perl -ne 'm/inet ([0-9.]+)/ && print $1')
+	[ -n "$IP" ] && break
+done
+if [ -n "$IP" ] ; then
+	sed -i -e s/127.0.0.1/$IP/ /etc/openstackquickstartrc
+fi
 sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
 openstack-quickstart-demosetup
 sed -i -e s/br0/brclean/ /etc/nova/nova.conf
@@ -178,7 +186,9 @@ fi
 pstree|grep -A5 lxc
 virsh --connect lxc:/// list
 . /etc/openstackquickstartrc
-echo "iptables -t nat -I POSTROUTING -s $testnet -o eth0 -j MASQUERADE" >> /etc/init.d/boot.local
+for i in $interfaces ; do
+	echo "iptables -t nat -I POSTROUTING -s $testnet -o $i -j MASQUERADE" >> /etc/init.d/boot.local
+done
 tail -1 /etc/init.d/boot.local | sh
 vmip=`perl -e '$_=shift;s,(\d+)/\d+,($1+2),e;print' $testnet`
 ssh -o "StrictHostKeyChecking no" root@$vmip curl --silent www3.zq1.de/test.txt && test $volumeret = 0
