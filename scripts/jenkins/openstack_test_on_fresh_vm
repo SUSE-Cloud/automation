@@ -34,7 +34,7 @@ nova delete testvm
 sleep 10
 
 image=${image:-SP2-64}
-nova boot --flavor 12 --image $image testvm > boot.out
+nova boot --flavor 2 --image $image testvm > boot.out
 instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
 sleep 20 # time to prepare
 export ip=`nova show $instanceid|perl -ne 'm/network\s*\| (\S+)/ && print $1'`
