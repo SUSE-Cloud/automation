@@ -189,7 +189,7 @@ virsh --connect lxc:/// list
 for i in $interfaces ; do
 	echo "iptables -t nat -I POSTROUTING -s $testnet -o $i -j MASQUERADE" >> /etc/init.d/boot.local
 done
-tail -1 /etc/init.d/boot.local | sh
+tail -2 /etc/init.d/boot.local | sh
 vmip=`perl -e '$_=shift;s,(\d+)/\d+,($1+2),e;print' $testnet`
 ssh -o "StrictHostKeyChecking no" root@$vmip curl --silent www3.zq1.de/test.txt && test $volumeret = 0
 
