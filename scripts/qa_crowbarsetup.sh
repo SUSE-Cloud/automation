@@ -4,6 +4,7 @@ test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
 #resize2fs /dev/vda2
 
 novacontroller=
+novadashboardserver=
 export cloud=${1}
 export nodenumber=${nodenumber:-2}
 export nodes=
@@ -530,6 +531,12 @@ function get_novacontroller()
   novacontroller=`crowbar nova proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova']['elements']['nova-multi-controller']"`
 }
 
+
+function get_novadashboardserver()
+{
+  novadashboardserver=`crowbar nova_dashboard proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova_dashboard']['elements']['nova_dashboard-server']"`
+}
+
 if [ -n "$testsetup" ] ; then
     get_novacontroller
 	if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
@@ -653,6 +660,214 @@ if [ -n "$waitforrebootcompute" ] ; then
   nova list
   vmip=`nova show testvm | perl -ne 'm/ nova_fixed.network [ |]*([0-9.]+)/ && print $1'`
   wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
+fi
+
+function create_owasp_testsuite_config()
+{
+  get_novadashboardserver
+  cat > ${1:-openstack_horizon-testing.ini} << EOOWASP
+[DEFAULT]
+; OpenStack Horizon (Django) responses with 403 FORBIDDEN if the token does not match
+csrf_token_regex = name=\'csrfmiddlewaretoken\'.*value=\'([A-Za-z0-9\/=\+]*)\'
+csrf_token_name = csrfmiddlewaretoken
+csrf_uri = https://${novadashboardserver}:443/
+cookie_name = sessionid
+
+; SSL setup
+[OWASP_CM_001]
+skip = 0
+dbg = 0
+host = ${novadashboardserver}
+port = 443
+; 0=no debugging, 1=ciphers, 2=trace, 3=dump data, unfortunately just using this causes debugging regardless of the value
+ssleay_trace = 0
+; Add sleep so broken servers can keep up
+ssleay_slowly = 1
+sslscan_path = /usr/bin/sslscan
+weak_ciphers = RC2, NULL, EXP
+short_keys = 40, 56
+
+; HTTP Methods, HEAD bypass, and XST
+[OWASP_CM_008]
+skip = 0
+dbg = 0
+host = ${novadashboardserver}
+port = 443
+; this doesnt work when the UID is in a cookie
+uri_private = /nova
+
+; user enumeration
+[OWASP_AT_002]
+skip = 0
+dbg = 0
+uri_login = https://${novadashboardserver}:443/auth/login/
+uri_logout = https://${novadashboardserver}:443/auth/logout/
+login_method = POST
+logout_method = GET
+cred_valid = method=Login&username=admin&password=crowbar
+cred_invalid_pass = method=Login&username=admin&password=WRONG
+cred_invalid_user = method=Login&username=WRONG&password=WRONG
+uri_user_valid = https://${novadashboardserver}:443/doesnotwork
+uri_user_invalid = https://${novadashboardserver}:443/doesntworkeither
+
+; Logout and Browser Cache Management
+[OWASP_AT_007]
+; this testcase causes a false positive, maybe use regex to detect redirect to login page
+skip = 0
+dbg = 0
+uri_login = https://${novadashboardserver}:443/auth/login/
+uri_logout = https://${novadashboardserver}:443/auth/logout/
+uri_private = https://${novadashboardserver}:443/nova
+login_method = POST
+logout_method = GET
+cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+login_regex = An error occurred authenticating
+cookie_name = sessionid
+timeout = 600
+
+; Path Traversal
+[OWASP_AZ_001]
+skip = 0
+dbg = 0
+uri_login = https://${novadashboardserver}:443/auth/login/
+uri_logout = https://${novadashboardserver}:443/auth/logout/
+uri_file = https://${novadashboardserver}:443/auth/login?next=/FUZZ/
+login_method = POST
+logout_method = GET
+cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+
+; cookies attributes
+[OWASP_SM_002]
+skip = 0
+dbg = 0
+uri_login = https://${novadashboardserver}:443/auth/login/
+uri_logout = https://${novadashboardserver}:443/auth/logout/
+login_method = POST
+logout_method = GET
+cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+
+; Session Fixation
+[OWASP_SM_003]
+skip = 0
+dbg = 0
+uri_login = https://${novadashboardserver}:443/auth/login/
+uri_logout = https://${novadashboardserver}:443/auth/logout/
+uri_public = https://${novadashboardserver}:443/
+login_method = POST
+logout_method = GET
+;login_regex = \"Couldn\'t log you in as\"
+login_regex = An error occurred authenticating
+cred_attacker = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=Mini Me&password=minime123
+cred_victim = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+cookie_name = sessionid
+
+; Exposed Session Variables
+[OWASP_SM_004]
+skip = 0
+dbg = 0
+uri_login = https://${novadashboardserver}:443/auth/login/
+uri_logout = https://${novadashboardserver}:443/auth/logout/
+uri_public = https://${novadashboardserver}:443/
+login_method = POST
+logout_method = GET
+login_regex = An error occurred authenticating
+cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+
+; CSRF
+[OWASP_SM_005]
+; test does not work because the Customer Center has no POST action
+skip = 0
+dbg = 0
+uri_login = https://${novadashboardserver}:443/auth/login/
+uri_logout = https://${novadashboardserver}:443/auth/logout/
+uri_private = https://${novadashboardserver}:443/i18n/setlang/
+uri_private_form = "language=fr"
+login_method = POST
+logout_method = GET
+login_regex = An error occurred authenticating
+cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+
+; Reflected Cross site scripting
+[OWASP_DV_001]
+skip = 0
+dbg = 0
+uri_login = https://${novadashboardserver}:443/
+uri_logout = https://${novadashboardserver}:443/auth/logout/
+uri_page = https://${novadashboardserver}/nova/?month=FUZZ&year=FUZZ
+fuzz_file = fuzzdb-read-only/attack-payloads/xss/xss-rsnake.txt
+request_method = GET
+login_method = POST
+logout_method = GET
+cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+
+; Stored Cross site scripting
+[OWASP_DV_002]
+skip = 0
+dbg = 0
+uri_login = https://${novadashboardserver}:443/
+uri_logout = https://${novadashboardserver}:443/auth/logout/
+; page fo data input
+uri_page_fuzz = https://${novadashboardserver}/nova/?month=FUZZ&year=FUZZ
+; page that displays the malicious input
+uri_page_stored = https://${novadashboardserver}/nova/
+fuzz_file = fuzzdb-read-only/attack-payloads/xss/xss-rsnake.txt
+request_method = GET
+login_method = POST
+logout_method = GET
+cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+
+; SQL Injection
+[OWASP_DV_005]
+skip = 1 ; untested
+dbg = 1
+uri_login = https://${novadashboardserver}:443/
+uri_logout = https://${novadashboardserver}:443/auth/logout/
+uri_page = https://${novadashboardserver}:443/?email=thomas%40suse.de&password=lalalala&commit=FUZZ
+fuzz_file = fuzzdb-read-only/attack-payloads/sql-injection/detect/GenericBlind.fuzz.txt
+request_method = POST
+login_method = POST
+logout_method = GET
+cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+detect_http_code = 302
+EOOWASP
+}
+
+
+
+function securitytests()
+{
+  # download latest owasp package
+  owaspdomain=clouddata.cloud.suse.de   # works only SUSE-internally for now
+  owasppath=/tools/security-testsuite/
+  #owaspdomain=download.opensuse.org
+  #owasppath=/repositories/home:/thomasbiege/openSUSE_Factory/noarch/
+
+  owaspsource=http://$owaspdomain$owasppath
+  rm -rf owasp
+  mkdir -p owasp
+
+  zypper lr | grep -q devel_languages_perl || zypper ar http://download.opensuse.org/repositories/devel:/languages:/perl/SLE_11_SP2/devel:languages:perl.repo
+  # pulled in automatically
+  #zypper --non-interactive in perl-HTTP-Cookies perl-Config-Simple
+
+  wget -r --directory-prefix owasp -np -nc -A "owasp*.rpm","sslscan*rpm" $owaspsource
+  zypper --non-interactive in `find owasp/ -type f -name "*rpm"`
+
+  pushd /usr/share/owasp-test-suite >/dev/null
+  # create config
+  owaspconf=openstack_horizon-testing.ini
+  create_owasp_testsuite_config $owaspconf
+
+  # call tests
+  ./owasp.pl output=short $owaspconf
+  ret=$?
+  popd >/dev/null
+  exit $ret
+}
+
+if [ -n "$securitytests" ] ; then
+  # over time all steps should be transformed into functions (like in mkcloud)
+  securitytests
 fi
 
 #BMCs at 10.122.178.163-6 #node 6-9

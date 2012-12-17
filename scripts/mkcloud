@@ -556,6 +556,16 @@ function rebootcompute()
   return $?
 }
 
+
+function securitytests()
+{
+  scp qa_crowbarsetup.sh root@$adminip:
+  # install and run security test suite owasp
+  sshrun "securitytests=1 bash -x qa_crowbarsetup.sh virtual"
+  return $?
+}
+
+
 function usage()
 {
   echo "Usage:"
@@ -588,6 +598,7 @@ function usage()
   echo "                  (compute nodes are automaticallyupdated via chef run)"
   echo "   rebootcrowbar: reboot the crowbar instance and wait for it being up"
   echo "   rebootcompute: reboot the compute nodes and wait for them being up"
+  echo "   securitytests: install and run security test suite"
   echo "   help:          this usage"
   echo
   echo " Environment variables (need to be exported):"
@@ -696,7 +707,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate help"
+allcmds="all all_noreboot instonly plain cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests help"
 wantedcmds=$@
 runcmds=''
 
