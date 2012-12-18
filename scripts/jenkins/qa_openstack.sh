@@ -47,19 +47,19 @@ case "$cloudsource" in
   openstackessex)
 	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex/$REPO/Cloud:OpenStack:Essex.repo
 	if test -n "$OSHEAD" ; then
-		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex:/Staging/$REPO/Cloud:OpenStack:Essex:Staging.repo cloudhead
+		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex:/Staging/$REPO/ cloudhead
 	fi
   ;;
   openstackfolsom)
 	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom/$REPO/Cloud:OpenStack:Folsom.repo
 	if test -n "$OSHEAD" ; then
-		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom:/Staging/$REPO/Cloud:OpenStack:Folsom:Staging.repo cloudhead
+		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom:/Staging/$REPO/ cloudhead
 	fi
   ;;
   openstackmaster)
 	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/Cloud:OpenStack:Master.repo
 	if test -n "$OSHEAD" ; then
-		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master:/Staging/$REPO/Cloud:OpenStack:Master:Staging.repo cloudhead
+		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master:/Staging/$REPO/ cloudhead
 	fi
   ;;
   *)
@@ -130,6 +130,7 @@ if [ -n "$IP" ] ; then
 	sed -i -e s/127.0.0.1/$IP/ /etc/openstackquickstartrc
 fi
 sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
+unset http_proxy
 openstack-quickstart-demosetup
 sed -i -e s/br0/brclean/ /etc/nova/nova.conf
 echo --bridge_interface=brclean >> /etc/nova/nova.conf
