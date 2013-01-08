@@ -29,7 +29,7 @@ TESTCMD=./run_tests.sh -N',
         'openstack-dashboard'         => 'COMPONENT=openstack-dashboard',
         'openstack-glance'            =>
 'COMPONENT=openstack-glance
-TESTCMD=./run_tests.sh -N NO_PEP8_PLEASE',
+TESTCMD=./run_tests.sh -N glance',
         'openstack-keystone'          =>
 'COMPONENT=openstack-keystone',
         'openstack-nova'              => 'COMPONENT=openstack-nova',
