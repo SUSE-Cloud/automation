@@ -1,8 +1,11 @@
 #!/usr/bin/perl -w
 #
 # This tool creates a new Jenkins config file for the openstack-unittests trigger jobs.
+# With the first prarameter being set to "upload" all jobs will be updated/created
 #
-#
+
+my $upload = ($ARGV[0] =~ /^upload$/) ? 1:0;
+
 my $subproject="Master";
 my $obsproject="Cloud:OpenStack:$subproject";
 my $projectsource="PROJECTSOURCE=OBS/$obsproject";
@@ -126,17 +129,41 @@ print qq{<?xml version='1.0' encoding='UTF-8'?>
     select STDOUT;
     close $FH;
 
-    push @output, 'curl -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/job/cloud-$jobname-trigger/config.xml";
-    push @output_create, 'curl -H "Content-Type: text/xml" -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/createItem?name=cloud-$jobname-trigger";
+    my $updatestr = 'curl -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/job/cloud-$jobname-trigger/config.xml";
+    my $createstr = 'curl -H "Content-Type: text/xml" -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/createItem?name=cloud-$jobname-trigger";
 
+    if ($upload)
+    {
+      my $err=0;
+      print "Updating $jobname...";
+      if (! system($updatestr) == 0)
+      {
+        print "Error - trying to create job\n";
+        print "Creating $jobname...";
+        if (! system($createstr) == 0)
+        {
+          print "Error - Could not update or create job: $jobname\n";
+        }
+      } else {
+        system("rm -f $jobname.config.xml");
+      }
+      print "done\n";
+
+    } else {
+      push @output_update, $updatestr;
+      push @output_create, $createstr;
+    }
   }
 }
 
-print "\nConfigs created locally\n";
-print "Please update the jenkins config by running these commands:\n";
+if (! $upload)
+{
+  print "\nConfigs created locally\n";
+  print "Please update the jenkins config by running these commands:\n";
 
-print "_Update_ the jobs with these commands:\n";
-print join("\n", @output)."\n";
-print "----------------------\n";
-print "_Create_ the jobs with these commands:\n";
-print join("\n", @output_create)."\n";
+  print "_Update_ the jobs with these commands:\n";
+  print join("\n", @output_update)."\n";
+  print "----------------------\n";
+  print "_Create_ the jobs with these commands:\n";
+  print join("\n", @output_create)."\n";
+}
