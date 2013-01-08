@@ -372,8 +372,8 @@ sub get_osc_package_info()
     exit 0;
   }
 
-  add_changes_entry() || die "Error: Could not create a changes entry.";
-  print "--> Added a changes entry.\n";
+  #add_changes_entry() || die "Error: Could not create a changes entry.";
+  #print "--> Added a changes entry.\n";
 
   print "--> Now trying to build package.\n";
 
