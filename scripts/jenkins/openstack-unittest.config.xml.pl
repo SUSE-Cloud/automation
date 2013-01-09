@@ -28,7 +28,6 @@ TEARDOWNCMD=swift-init all stop'
 'COMPONENT=openstack-ceilometer
 TESTCMD=./run_tests.sh -N',
         'openstack-cinder'            => 'COMPONENT=openstack-cinder',
-        'openstack-cinderclient'      => 'COMPONENT=python-cinderclient',
         'openstack-dashboard'         => 'COMPONENT=openstack-dashboard',
         'openstack-glance'            =>
 'COMPONENT=openstack-glance
@@ -41,6 +40,7 @@ TESTCMD=./run_tests.sh -N glance',
 'COMPONENT=openstack-swift
 SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf
 TESTCMD=./.unittests',
+        'python-cinderclient'         => 'COMPONENT=python-cinderclient',
         'python-glanceclient'         =>
 'COMPONENT=python-glanceclient
 TESTCMD=nosetests',
