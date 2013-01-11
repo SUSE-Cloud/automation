@@ -165,7 +165,7 @@ if [ "$MODE" != lxc ] ; then
 #	curl http://clouddata.cloud.suse.de/images/SP2-64up.qcow2 | glance add name="SP2-64up" is_public=True disk_format=qcow2 container_format=bare
 #	curl http://openqa.suse.de/sle/img/SP1-32-GM.img.gz | gzip -cd | glance add name="SP2-32" is_public=True disk_format=raw container_format=bare
 else
-	 glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from http://clouddata.cloud.suse.de/images/debian.5-0.x86.qcow2
+	 glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from http://openqa.opensuse.org/openqa/img/debian.5-0.x86.qcow2
 	#curl http://clouddata.cloud.suse.de/images/euca-debian-5.0-i386.tar.gz | tar xzO euca-debian-5.0-i386/debian.5-0.x86.img | glance add name="debian-5" is_public=True disk_format=ami container_format=ami
 	#curl http://openqa.suse.de/sle/img/euca-debian-5.0-i386.tar.gz | tar xzO euca-debian-5.0-i386/debian.5-0.x86.img | glance add name="debian-5" is_public=True disk_format=ami container_format=ami
 fi
@@ -179,7 +179,7 @@ instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
 nova list
 sleep 10
 n=30 ; rm -f /tmp/du.old /tmp/du
-if [ "$NONINTERACTIVE" = "1" ] ; then
+if [ "$NONINTERACTIVE" != "0" ] ; then
 	while test $n -gt 0 && ! du -s /var/lib/nova/instances/* | diff /tmp/du.old - ; do n=$(expr $n - 1) ; du -s /var/lib/nova/instances/* > /tmp/du.old ; sleep 35 ; done # used by non-interactive jenkins test
 else
 	watch --no-title "du -s /var/lib/nova/instances/*" # will have stillimage when done
