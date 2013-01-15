@@ -6,68 +6,69 @@
 
 my $upload = ($ARGV[0] =~ /^upload$/) ? 1:0;
 
-my $subproject="Master";
-my $obsproject="Cloud:OpenStack:$subproject";
-my $projectsource="PROJECTSOURCE=OBS/$obsproject";
-
 my $uttrigger = {
-    functest   => { 'openstack-swift' =>
-'COMPONENT=openstack-swift
-SETUPCMD=swift-init main start
-TESTCMD=./.functests
-TEARDOWNCMD=swift-init main stop'
+  Master => {
+    functest   => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
+                                         "SETUPCMD=swift-init main start\n".
+                                         "TESTCMD=./.functests\n".
+                                         "TEARDOWNCMD=swift-init main stop"
     },
-    probetests => { 'openstack-swift' =>
-'COMPONENT=openstack-swift
-SETUPCMD=swift-init all start
-TESTCMD=./.probetests
-TEARDOWNCMD=swift-init all stop'
+    probetests => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
+                                         "SETUPCMD=swift-init all start\n".
+                                         "TESTCMD=./.probetests\n".
+                                         "TEARDOWNCMD=swift-init all stop"
     },
     unittest   => {
-        'openstack-ceilometer'        =>
-'COMPONENT=openstack-ceilometer
-TESTCMD=./run_tests.sh -N',
-        'openstack-cinder'            => 'COMPONENT=openstack-cinder',
-        'openstack-dashboard'         => 'COMPONENT=openstack-dashboard',
-        'openstack-glance'            =>
-'COMPONENT=openstack-glance
-TESTCMD=./run_tests.sh -N glance',
-        'openstack-keystone'          =>
-'COMPONENT=openstack-keystone',
-        'openstack-nova'              => 'COMPONENT=openstack-nova',
-        'openstack-quantum'           => 'COMPONENT=openstack-quantum',
-        'openstack-swift'             =>
-'COMPONENT=openstack-swift
-SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf
-TESTCMD=./.unittests',
-        'python-cinderclient'         => 'COMPONENT=python-cinderclient',
-        'python-glanceclient'         =>
-'COMPONENT=python-glanceclient
-TESTCMD=nosetests',
-        'python-heatclient'           => 'COMPONENT=python-heatclient',
-        'python-keystoneclient'       => 'COMPONENT=python-keystoneclient',
-        'python-novaclient'           => 'COMPONENT=python-novaclient',
-        'python-quantumclient'        =>
-'COMPONENT=python-quantumclient
-TESTCMD=nosetests',
-        'python-swiftclient'          => 'COMPONENT=python-swiftclient'
+        'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
+                                         "TESTCMD=./run_tests.sh -N",
+        'openstack-cinder'            => "COMPONENT=openstack-cinder",
+        'openstack-dashboard'         => "COMPONENT=openstack-dashboard",
+        'openstack-glance'            => "COMPONENT=openstack-glance\n".
+                                         "TESTCMD=./run_tests.sh -N glance",
+        'openstack-keystone'          => "COMPONENT=openstack-keystone",
+        'openstack-nova'              => "COMPONENT=openstack-nova",
+        'openstack-quantum'           => "COMPONENT=openstack-quantum",
+        'openstack-swift'             => "COMPONENT=openstack-swift\n".
+                                         "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
+                                         "TESTCMD=./.unittests",
+        'python-cinderclient'         => "COMPONENT=python-cinderclient",
+        'python-glanceclient'         => "COMPONENT=python-glanceclient\n".
+                                         "TESTCMD=nosetests",
+        'python-heatclient'           => "COMPONENT=python-heatclient",
+        'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
+        'python-novaclient'           => "COMPONENT=python-novaclient",
+        'python-quantumclient'        => "COMPONENT=python-quantumclient\n".
+                                         "TESTCMD=nosetests",
+        'python-swiftclient'          => "COMPONENT=python-swiftclient"
     }
+  },
+  Folsom => {}
 };
+
+# only keep the following line while the jobs are not differing
+$uttrigger->{Folsom}=$uttrigger->{Master};
+
 my @output = ();
 my @output_create = ();
 
 my $apicheckcgi= "http://clouddata.cloud.suse.de/cgi-bin/apicheck";
 my $obsapi = "api.opensuse.org";
-my $apicheck="$apicheckcgi/$obsapi/build/$obsproject/SLE_11_SP2/x86_64";
 
-foreach my $testtype (keys %{$uttrigger})
+
+foreach my $subproject (keys %{$uttrigger})
 {
-  foreach my $package (keys $uttrigger->{$testtype})
+  my $obsproject="Cloud:OpenStack:$subproject";
+  my $projectsource="PROJECTSOURCE=OBS/$obsproject";
+  my $apicheck="$apicheckcgi/$obsapi/build/$obsproject/SLE_11_SP2/x86_64";
+
+  foreach my $testtype (keys $uttrigger->{$subproject})
   {
-      my $jobname = "$testtype-$package-$subproject";
-      my $jobenv = $uttrigger->{$testtype}->{$package}."\n$projectsource";
-      open (my $FH, '>', "$jobname.config.xml") or die $@;
-      select $FH;
+    foreach my $package (keys $uttrigger->{$subproject}->{$testtype})
+    {
+        my $jobname = "$testtype-$package-$subproject";
+        my $jobenv = $uttrigger->{$subproject}->{$testtype}->{$package}."\n$projectsource";
+        open (my $FH, '>', "$jobname.config.xml") or die $@;
+        select $FH;
 
 print qq{<?xml version='1.0' encoding='UTF-8'?>
 <project>
@@ -126,35 +127,38 @@ print qq{<?xml version='1.0' encoding='UTF-8'?>
 
 };
 
-    select STDOUT;
-    close $FH;
+      select STDOUT;
+      close $FH;
 
-    my $updatestr = 'curl -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/job/cloud-$jobname-trigger/config.xml";
-    my $createstr = 'curl -H "Content-Type: text/xml" -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/createItem?name=cloud-$jobname-trigger";
+      my $updatestr = 'curl -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/job/cloud-$jobname-trigger/config.xml";
+      my $createstr = 'curl -H "Content-Type: text/xml" -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/createItem?name=cloud-$jobname-trigger";
 
-    if ($upload)
-    {
-      my $err=0;
-      print "Updating $jobname...";
-      if (! system($updatestr) == 0)
+      if ($upload)
       {
-        print "Error - trying to create job\n";
-        print "Creating $jobname...";
-        if (! system($createstr) == 0)
+        my $err=0;
+        #
+        print "Updating $jobname...";
+        if (system("$updatestr -s | grep -iq error") == 0)
         {
-          print "Error - Could not update or create job: $jobname\n";
+          print "Error on updating. Now trying to create job\n";
+          print "Creating $jobname...";
+          if (system("$createstr -s | grep -iq error") == 0)
+          {
+            print "Error - Could not update or create job: $jobname\n";
+          } else {
+            print "done\n";
+          }
+          system("rm -f $jobname.config.xml");
+        } else {
+          print "done\n";
         }
       } else {
-        system("rm -f $jobname.config.xml");
+        push @output_update, $updatestr;
+        push @output_create, $createstr;
       }
-      print "done\n";
-
-    } else {
-      push @output_update, $updatestr;
-      push @output_create, $createstr;
-    }
-  }
-}
+    } # end foreach package
+  } # end foreach testtype
+} # end foreach subproject
 
 if (! $upload)
 {
