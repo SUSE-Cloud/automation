@@ -8,6 +8,7 @@
 #  curl -X POST --data-binary @config.xml  http://river.suse.de/job/openstack-trackupstream-trigger/config.xml
 #
 
+my $upload = ($ARGV[0] =~ /^upload$/) ? 1:0;
 my @output_edit = ();
 my @output_create = ();
 
@@ -170,16 +171,39 @@ q{
     select STDOUT;
     close $FH;
 
-    push @output_edit, 'curl -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/job/cloud-$jobname-trigger/config.xml";
-    push @output_create, 'curl -H "Content-Type: text/xml" -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/createItem?name=cloud-$jobname-trigger";
-
+    my $updatestr = 'curl -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/job/cloud-$jobname-trigger/config.xml";
+    my $createstr = 'curl -H "Content-Type: text/xml" -X POST --data-binary @'."$jobname.config.xml http://river.suse.de/createItem?name=cloud-$jobname-trigger";
+    if ($upload)
+    {
+      print "Updating $jobname...";
+      if (system("$updatestr -s | grep -iq error") == 0)
+      {
+        print "Error on updating. Now trying to create job\n";
+        print "Creating $jobname...";
+        if (system("$createstr -s | grep -iq error") == 0)
+        {
+          print "Error - Could not update or create job: $jobname\n";
+        } else {
+          print "done\n";
+        }
+      } else {
+        print "done\n";
+      }
+      system("rm -f $jobname.config.xml");
+    } else {
+      push @output_edit, $updatestr;
+      push @output_create, $createstr;
+    }
 }
 
-print "\nConfigs created locally\n";
-print "Please update the jenkins config by running these commands:\n";
+if (! $upload)
+{
+  print "\nConfigs created locally\n";
+  print "Please update the jenkins config by running these commands:\n";
 
-print "_Update_ the jobs with these commands:\n";
-print join("\n", @output_edit)."\n";
-print "----------------------\n";
-print "_Create_ the jobs with these commands:\n";
-print join("\n", @output_create)."\n";
+  print "_Update_ the jobs with these commands:\n";
+  print join("\n", @output_edit)."\n";
+  print "----------------------\n";
+  print "_Create_ the jobs with these commands:\n";
+  print join("\n", @output_create)."\n";
+}

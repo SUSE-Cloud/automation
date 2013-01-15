@@ -135,8 +135,6 @@ print qq{<?xml version='1.0' encoding='UTF-8'?>
 
       if ($upload)
       {
-        my $err=0;
-        #
         print "Updating $jobname...";
         if (system("$updatestr -s | grep -iq error") == 0)
         {
@@ -148,10 +146,10 @@ print qq{<?xml version='1.0' encoding='UTF-8'?>
           } else {
             print "done\n";
           }
-          system("rm -f $jobname.config.xml");
         } else {
           print "done\n";
         }
+        system("rm -f $jobname.config.xml");
       } else {
         push @output_update, $updatestr;
         push @output_create, $createstr;
