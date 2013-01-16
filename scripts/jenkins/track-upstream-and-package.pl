@@ -316,60 +316,74 @@ sub get_osc_package_info()
   }
 
   $xmldom = servicefile_read_xml($xmlfile);
-  $gitremote = xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="url"][1]');
+  eval {
+    $gitremote = xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="url"][1]');
+  };
+  my $gittarballs;
+  if($@ =~m/Could not find an xml element with the statement/) {
+    $gittarballs=xml_get_text($xmldom, '/services/service[@name="git_tarballs"][1]/param[@name="url"][1]');
+    die $@ unless $gittarballs;
+  }
   my $revision = $ENV{GITREV} || '';
 
-  my $tarballbase = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="file"][1]');
-  my $tarballext  = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="compression"][1]');
-  my $tarball = "$tarballbase.$tarballext";
-  push @oldtarballfiles, glob($tarball);
-  $oldgitrev = find_gitrev(\@oldtarballfiles);
-  #pack_cleanup(($tarball,));
+  my $tarball;
+  if (!$gittarballs)
+  {
+    my $tarballbase = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="file"][1]');
+    my $tarballext  = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="compression"][1]');
+    $tarball = "$tarballbase.$tarballext";
+    push @oldtarballfiles, glob($tarball);
+    $oldgitrev = find_gitrev(\@oldtarballfiles);
+    #pack_cleanup(($tarball,));
 
-  @oldtarballfiles || die "Error: Could not find any current tarball. Please check the state of the osc checkout manually.";
-  system('osc', 'rm', @oldtarballfiles) && die "Error: osc rm failed. Please check manually.";
+    @oldtarballfiles || die "Error: Could not find any current tarball. Please check the state of the osc checkout manually.";
+    system('osc', 'rm', @oldtarballfiles) && die "Error: osc rm failed. Please check manually.";
 
-  #servicefile_modify($revision);
+    #servicefile_modify($revision);
+  }
 
   my $exitcode;
   # run source service
   $exitcode = pack_servicerun();
   die_on_error('service', $exitcode);
-  push @tarballfiles, glob($tarball);
-  $gitrev = find_gitrev(\@tarballfiles);
-
-  my @changedfiles = osc_st('ADM');
-  if (scalar(@changedfiles) == 0)
+  if (!$gittarballs)
   {
+    push @tarballfiles, glob($tarball);
+    $gitrev = find_gitrev(\@tarballfiles);
+
+    my @changedfiles = osc_st('ADM');
+    if (scalar(@changedfiles) == 0)
+    {
+      print "\n-->\n";
+      print "--> No changes detected. Skipping build and submit.\n";
+      # revert all deleted packages to get back to a consistent checkout
+      print "-->\n";
+      print "--> Reverting back to consistent checkout.\n";
+      system('osc', 'rm', @tarballfiles) && die "Error: Could not 'osc rm' the new broken files. Please cleanup manually.";
+      system('osc', 'revert', @oldtarballfiles) && die "Error: Could not revert the deleted packages. Please cleanup manually.";
+      print "-->\n";
+      print "--> Successfully reverted back.\n";
+      exit 0;
+    }
+
     print "\n-->\n";
-    print "--> No changes detected. Skipping build and submit.\n";
-    # revert all deleted packages to get back to a consistent checkout
-    print "-->\n";
-    print "--> Reverting back to consistent checkout.\n";
-    system('osc', 'rm', @tarballfiles) && die "Error: Could not 'osc rm' the new broken files. Please cleanup manually.";
-    system('osc', 'revert', @oldtarballfiles) && die "Error: Could not revert the deleted packages. Please cleanup manually.";
-    print "-->\n";
-    print "--> Successfully reverted back.\n";
-    exit 0;
-  }
+    print "--> Detected ".scalar(@changedfiles)." changed files.\n";
 
-  print "\n-->\n";
-  print "--> Detected ".scalar(@changedfiles)." changed files.\n";
+    system('osc', 'add', @tarballfiles) && die "Error: osc add failed. Please check manually.";
 
-  system('osc', 'add', @tarballfiles) && die "Error: osc add failed. Please check manually.";
-
-  my @revertedfiles = osc_st('R');
-  if (scalar(@revertedfiles) == scalar(@changedfiles))
-  {
-    # we only have reverted files and no changes, switch back to consistent checkout
-    print "-->\n";
-    print "--> Sorry. The new files are just the same as the old ones.\n";
-    print "--> Reverting back to consistent checkout.\n";
-    system('osc', 'rm', @tarballfiles) && die "Error: Could not 'osc rm' the new broken files. Please cleanup manually.";
-    system('osc', 'revert', @oldtarballfiles) && die "Error: Could not revert the deleted packages. Please cleanup manually.";
-    print "-->\n";
-    print "--> Successfully reverted back.\n";
-    exit 0;
+    my @revertedfiles = osc_st('R');
+    if (scalar(@revertedfiles) == scalar(@changedfiles))
+    {
+      # we only have reverted files and no changes, switch back to consistent checkout
+      print "-->\n";
+      print "--> Sorry. The new files are just the same as the old ones.\n";
+      print "--> Reverting back to consistent checkout.\n";
+      system('osc', 'rm', @tarballfiles) && die "Error: Could not 'osc rm' the new broken files. Please cleanup manually.";
+      system('osc', 'revert', @oldtarballfiles) && die "Error: Could not revert the deleted packages. Please cleanup manually.";
+      print "-->\n";
+      print "--> Successfully reverted back.\n";
+      exit 0;
+    }
   }
 
   #add_changes_entry() || die "Error: Could not create a changes entry.";
