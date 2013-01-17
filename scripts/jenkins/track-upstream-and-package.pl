@@ -351,7 +351,10 @@ sub get_osc_package_info()
   # run source service
   $exitcode = pack_servicerun();
   die_on_error('service', $exitcode);
-  if (!$gittarballs)
+  if ($gittarballs)
+  {
+    $gitrev=`perl -ne 'if(m/Version:.*\\.([0-9a-f]+)/){print \$1;exit}' *.spec`;
+  } else
   {
     push @tarballfiles, glob($tarball);
     $gitrev = find_gitrev(\@tarballfiles);
