@@ -65,10 +65,16 @@ foreach my $subproject (keys %{$uttrigger})
   {
     foreach my $package (keys $uttrigger->{$subproject}->{$testtype})
     {
-        my $jobname = "$testtype-$package-$subproject";
-        my $jobenv = $uttrigger->{$subproject}->{$testtype}->{$package}."\n$projectsource";
-        open (my $FH, '>', "$jobname.config.xml") or die $@;
-        select $FH;
+      my $jobdisabled='false';
+      if ($testtype =~ /^functest$/) # functests are disabled for now by default
+      {
+        $jobdisabled='true';
+      }
+
+      my $jobname = "$testtype-$package-$subproject";
+      my $jobenv = $uttrigger->{$subproject}->{$testtype}->{$package}."\n$projectsource";
+      open (my $FH, '>', "$jobname.config.xml") or die $@;
+      select $FH;
 
 print qq{<?xml version='1.0' encoding='UTF-8'?>
 <project>
@@ -82,7 +88,7 @@ print qq{<?xml version='1.0' encoding='UTF-8'?>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>openstack-unittest</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>false</disabled>
+  <disabled>$jobdisabled</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
