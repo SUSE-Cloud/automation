@@ -321,7 +321,12 @@ sub get_osc_package_info()
   };
   my $gittarballs;
   if($@ =~m/Could not find an xml element with the statement/) {
-    $gittarballs=xml_get_text($xmldom, '/services/service[@name="git_tarballs"][1]/param[@name="url"][1]');
+    eval {
+      $gittarballs=xml_get_text($xmldom, '/services/service[@name="git_tarballs"][1]/param[@name="url"][1]');
+    };
+    eval {
+      $gittarballs=xml_get_text($xmldom, '/services/service[@name="github_tarballs"][1]/param[@name="url"][1]');
+    };
     die $@ unless $gittarballs;
   }
   my $revision = $ENV{GITREV} || '';
