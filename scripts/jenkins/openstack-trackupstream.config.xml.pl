@@ -29,19 +29,14 @@ my %tutrigger = (
     python-swiftclient
   ) ],
   "OBS/Cloud:OpenStack:Folsom:Staging" => [ qw(
+    openstack-cinder
     openstack-dashboard
-    openstack-nova
     openstack-glance
     openstack-keystone
-    openstack-melange
+    openstack-nova
     openstack-quantum
     openstack-quickstart
     openstack-swift
-    python-keystoneclient
-    python-novaclient
-    python-quantumclient
-    python-melangeclient
-    python-swiftclient
   ) ],
   "IBS/Devel:Cloud:1.0:OpenStack" => [ qw(
     openstack-dashboard
