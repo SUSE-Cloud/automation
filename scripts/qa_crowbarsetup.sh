@@ -463,29 +463,78 @@ function manual_2device_ceph_proposal()
   crowbar ceph proposal --file=/root/cephproposal edit default
 }
 
-function custom_nova_config()
+
+# generic function to set values in proposals
+#   Note: strings have to be quoted like this: "'string'"
+#         "true" resp. "false" or "['one', 'two']" act as ruby values, not as string
+function proposal_set_value()
 {
-  [ -n "$libvirt_type" ] || libvirt_type='kvm';
-  crowbar nova proposal show default |
+  service=$1
+  proposal=$2
+  variable=$3
+  value=$4
+
+  pfile=/root/${service}.${proposal}.proposal
+
+  crowbar $service proposal show $proposal |
     ruby -e "require 'rubygems';require 'json';
-      j=JSON.parse(STDIN.read);
-      j['attributes']['nova']['libvirt_type']='$libvirt_type';
-    puts JSON.pretty_generate(j)" > /root/novaproposal
-  crowbar nova proposal --file=/root/novaproposal edit default
+             j=JSON.parse(STDIN.read);
+             j${variable}=${value};
+             puts JSON.pretty_generate(j)" > $pfile
+  crowbar $service proposal --file=$pfile edit $proposal
 }
+
+function enable_ssl_for_keystone()
+{
+  proposal_set_value keystone default "['attributes']['keystone']['api']['protocol']" "'https'"
+}
+
+function enable_ssl_for_glance()
+{
+  proposal_set_value glance default "['attributes']['glance']['api']['protocol']" "'https'"
+}
+
+function enable_ssl_for_nova()
+{
+  proposal_set_value nova default "['attributes']['nova']['api']['protocol']" "'https'"
+  proposal_set_value nova default "['attributes']['nova']['glance_ssl_no_verify']" true
+  proposal_set_value nova default "['attributes']['nova']['novnc']['ssl_enabled']" true
+}
+
 
 function enable_ssl_for_nova_dashboard()
 {
-  echo "FIXME: edit the proposal"
+  proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['use_https']" true
+  proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['use_http']" false
+  proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['ssl_no_verify']" true
+  proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['redirect_to_https']" false
 }
+
 
 function custom_configuration()
 {
   service=$1
   case $service in
+    keystone)
+      if [[ $all_with_ssl =1 || $keystone_with_ssl = 1 ]] ; then
+        enable_ssl_for_keystone
+      fi
+    ;;
+    glance)
+      if [[ $all_with_ssl =1 || $glance_with_ssl = 1 ]] ; then
+        enable_ssl_for_glance
+      fi
+    ;;
     ceph) manual_2device_ceph_proposal
     ;;
-    nova) custom_nova_config
+    nova)
+      # custom nova config of libvirt
+      [ -n "$libvirt_type" ] || libvirt_type='kvm';
+      proposal_set_value nova default "['attributes']['nova']['libvirt_type']" $libvirt_type
+
+      if [[ $all_with_ssl = 1 || $nova_with_ssl = 1 ]] ; then
+        enable_ssl_for_nova
+      fi
     ;;
     nova-dashboard)
       if [[ $all_with_ssl = 1 || $novadashboard_with_ssl = 1 ]] ; then
