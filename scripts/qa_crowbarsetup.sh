@@ -516,12 +516,12 @@ function custom_configuration()
   service=$1
   case $service in
     keystone)
-      if [[ $all_with_ssl =1 || $keystone_with_ssl = 1 ]] ; then
+      if [[ $all_with_ssl = 1 || $keystone_with_ssl = 1 ]] ; then
         enable_ssl_for_keystone
       fi
     ;;
     glance)
-      if [[ $all_with_ssl =1 || $glance_with_ssl = 1 ]] ; then
+      if [[ $all_with_ssl = 1 || $glance_with_ssl = 1 ]] ; then
         enable_ssl_for_glance
       fi
     ;;
