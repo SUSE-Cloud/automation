@@ -189,70 +189,6 @@ sub die_on_error($$)
 }
 
 
-sub add_changes_entry() {
-  return 1 if $oldgitrev eq $gitrev;
-  return 0 if ($oldgitrev eq '' || $gitrev eq '');
-
-  return 0 if (! -e $ENV{'HOME'}.'/.obs/tar_scm');
-
-  my $tar_scm_cache = '';
-  open (my $TARSCMFH, '<', $ENV{'HOME'}.'/.obs/tar_scm') or die $!;
-  while (<$TARSCMFH>)
-  {
-    if (/^\s*CACHEDIRECTORY=["'](.*)["']\s*$/)
-    {
-      $tar_scm_cache=$1;
-    }
-  }
-  close $TARSCMFH;
-
-  return 0 if ($tar_scm_cache eq '');
-
-  # yes, newline character is intended
-  my $gitremotesha = sha256_hex($gitremote.'
-');
-  my $gitdir = $tar_scm_cache.'/repo/'.$gitremotesha.'/.git';
-  my $file = basename($SDIR).'.changes';
-  my @lines;
-
-  return 0 if (! -d $gitdir);
-  return 0 if (! -e $file);
-
-  my $cmd = "git --git-dir='".$gitdir."' log --pretty=format:%s --no-merges ".$oldgitrev."..".$gitrev;
-  push @lines, `$cmd`;
-  @lines = reverse(@lines);
-  chomp(@lines);
-
-  return 0 if (scalar(@lines) == 0);
-
-  chomp(my $date = `LC_ALL=POSIX TZ=UTC date`);
-
-  open (my $FH, '>', $file.'.new') or die $!;
-  print $FH "-------------------------------------------------------------------\n";
-  print $FH $date." - jenkins\@suse.de\n";
-  print $FH "\n";
-  print $FH "- Update to latest git (".$gitrev."):\n";
-  for my $line (@lines)
-  {
-    print $FH '  + '.$line."\n";
-  }
-  print $FH "\n";
-
-  open (my $OLDFH, '<', $file) or die $!;
-  while (<$OLDFH>)
-  {
-    print $FH $_;
-  }
-
-  close $OLDFH;
-  close $FH;
-
-  rename $file.'.new', $file;
-
-  return 1;
-}
-
-
 sub find_gitrev($)
 {
   my $files = shift || die "Error: no argument passed to find_gitrev()";
@@ -393,9 +329,6 @@ sub get_osc_package_info()
       exit 0;
     }
   }
-
-  #add_changes_entry() || die "Error: Could not create a changes entry.";
-  #print "--> Added a changes entry.\n";
 
   print "--> Now trying to build package.\n";
 
