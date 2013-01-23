@@ -40,7 +40,8 @@ my $uttrigger = {
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n".
                                          "TESTCMD=nosetests",
-        'python-swiftclient'          => "COMPONENT=python-swiftclient"
+        'python-swiftclient'          => "COMPONENT=python-swiftclient\n".
+                                         "TESTCMD=nosetests",
     }
   },
   Folsom => {}
