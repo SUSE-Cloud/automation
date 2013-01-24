@@ -345,9 +345,7 @@ sub check_pip_requires_changes()
     for my $i (@tarballs)
     {
       my ($filename, $tarball) = @{$i};
-
-      extract_file_from_tarball(
-        $filename, $tarball, "tools/$requires_type");
+      extract_file_from_tarball($filename, $tarball, "tools/$requires_type");
     }
 
     my @keys = map { $_->[0] } @tarballs;
@@ -446,7 +444,7 @@ sub check_pip_requires_changes()
       print "--> Successfully reverted back.\n";
       exit 0;
     }
-  check_pip_requires_changes();
+    check_pip_requires_changes();
 
     print "\n-->\n";
     print "--> Detected ".scalar(@changedfiles)." changed files.\n";
