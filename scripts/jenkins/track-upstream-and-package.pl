@@ -399,9 +399,6 @@ sub get_osc_package_info()
 
   print "--> Now trying to build package.\n";
 
-  # normalize spec-file
-  system('for spec in *.spec ; do /work/src/bin/tools/prepare_spec $spec > $spec.new && mv $spec.new $spec ; done');
-
   # run osc build
   $OSC_BUILD_LOG="../$project.build.log.0";
   $OSC_BUILD_LOG_OLD="../$project.build.log.1";
