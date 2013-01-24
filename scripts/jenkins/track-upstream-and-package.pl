@@ -29,6 +29,7 @@
 
 
 use strict;
+use Archive::Tar;
 use Digest::SHA qw(sha256_hex);
 use File::Basename;
 use POSIX;
@@ -293,6 +294,78 @@ sub get_osc_package_info()
   return \%info;
 }
 
+sub get_tarname_from_spec
+{
+  my $spec = shift;
+  my $tarname = `grep -E Source0?: $spec|awk '{print \$2}'`;
+  return $tarname;
+}
+
+sub extract_file_from_tarball
+{
+  my($filename, $tarball, $requires) = @_;
+
+  my $tar = Archive::Tar->new($tarball, 1,
+                              {filter => qr/.*\/$requires/});
+  my ($tarfile) = $tar->list_files(['name']);
+  $tar->extract_file($tarfile, $filename);
+}
+    
+sub email_changes_diff
+{
+  my ($diff_file, $requires_type) = @_;
+
+  my $to_email = "cloud-devel\@suse.de";
+  my $from_email = "hudson\@suse.de";
+  my $reply_to = "cloud-devel\@suse.de";
+  my $obs_project = `cat .osc/_project`;
+  chomp $obs_project;
+
+  open(MAIL,
+    "|mail -s \"$requires_type have changed for package ".
+    "$obs_project/$project \" ".
+    "-r $from_email -R $reply_to -a $diff_file ".
+    "$to_email") or die "Cannot open mail: $!";
+  print MAIL "The $requires_type from the package $project ".
+    "in $obs_project have changed. Please see the attached diff.\n\n";
+  close(MAIL);
+
+  print "Sent $requires_type changes email to $to_email.\n";
+}
+
+sub check_pip_requires_changes()
+{
+  my @tarballs = (
+    ["old_requires", ".osc/" . get_tarname_from_spec(".osc/$project.spec")],
+    ["new_requires", get_tarname_from_spec("$project.spec")]
+  );
+
+  foreach my $requires_type ("pip-requires", "test-requires")
+  {
+    for my $i (@tarballs)
+    {
+      my ($filename, $tarball) = @{$i};
+
+      extract_file_from_tarball(
+        $filename, $tarball, "tools/$requires_type");
+    }
+
+    my @keys = map { $_->[0] } @tarballs;
+
+    my $diff = `diff -u @keys > ${project}.diff`;        
+    if ($?)
+    {
+      email_changes_diff("${project}.diff", $requires_type);
+    } else
+    {
+      print "There are no changes in the $requires_type.\n";
+    }
+    foreach my $file ( @keys, "$project.diff" ) {
+      unlink $file or warn "Could not delete $file: $!";
+    }
+  }
+}
+
 #### MAIN ####
 
 
@@ -373,6 +446,7 @@ sub get_osc_package_info()
       print "--> Successfully reverted back.\n";
       exit 0;
     }
+  check_pip_requires_changes();
 
     print "\n-->\n";
     print "--> Detected ".scalar(@changedfiles)." changed files.\n";
