@@ -44,11 +44,41 @@ my $uttrigger = {
                                          "TESTCMD=nosetests",
     }
   },
-  Folsom => {}
+  Folsom => {
+    functest   => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
+                                         "SETUPCMD=swift-init main start\n".
+                                         "TESTCMD=./.functests\n".
+                                         "TEARDOWNCMD=swift-init main stop"
+    },
+    probetests => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
+                                         "SETUPCMD=swift-init all start\n".
+                                         "TESTCMD=./.probetests\n".
+                                         "TEARDOWNCMD=swift-init all stop"
+    },
+    unittest   => {
+        'openstack-cinder'            => "COMPONENT=openstack-cinder",
+        'openstack-dashboard'         => "COMPONENT=openstack-dashboard",
+        'openstack-glance'            => "COMPONENT=openstack-glance\n".
+                                         "TESTCMD=./run_tests.sh -N glance",
+        'openstack-keystone'          => "COMPONENT=openstack-keystone",
+        'openstack-nova'              => "COMPONENT=openstack-nova",
+        'openstack-quantum'           => "COMPONENT=openstack-quantum",
+        'openstack-swift'             => "COMPONENT=openstack-swift\n".
+                                         "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
+                                         "TESTCMD=./.unittests",
+        'python-cinderclient'         => "COMPONENT=python-cinderclient",
+        'python-glanceclient'         => "COMPONENT=python-glanceclient\n".
+                                         "TESTCMD=nosetests",
+        'python-heatclient'           => "COMPONENT=python-heatclient",
+        'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
+        'python-novaclient'           => "COMPONENT=python-novaclient",
+        'python-quantumclient'        => "COMPONENT=python-quantumclient\n".
+                                         "TESTCMD=nosetests",
+        'python-swiftclient'          => "COMPONENT=python-swiftclient\n".
+                                         "TESTCMD=nosetests",
+    }
+  }
 };
-
-# only keep the following line while the jobs are not differing
-$uttrigger->{Folsom}=$uttrigger->{Master};
 
 my @output = ();
 my @output_create = ();
