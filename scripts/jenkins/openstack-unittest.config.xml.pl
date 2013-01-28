@@ -20,7 +20,7 @@ my $uttrigger = {
     },
     unittest   => {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
-                                         "TESTCMD=./run_tests.sh -N",
+                                         "TESTCMD=nosetests",
         'openstack-cinder'            => "COMPONENT=openstack-cinder",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
