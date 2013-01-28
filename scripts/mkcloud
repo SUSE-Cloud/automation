@@ -727,10 +727,10 @@ for cmd in $wantedcmds ; do
       ok=1
       case $cmd in
         all)
-          runcmds="$runcmds cleanup prepare setupadmin instcrowbar rebootcrowbar setupcompute instcompute proposal addupdaterepo runupdate testsetup rebootcompute"
+          runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
         ;;
         all_noreboot)
-          runcmds="$runcmds cleanup prepare setupadmin instcrowbar setupcompute instcompute proposal addupdaterepo runupdate testsetup"
+          runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate instcrowbar setupcompute instcompute proposal testsetup"
         ;;
         testupdate)
           runcmds="$runcmds addupdaterepo runupdate testsetup"
