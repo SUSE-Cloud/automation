@@ -675,8 +675,8 @@ if [ -n "$addupdaterepo" ] ; then
 fi
 
 if [ -n "$runupdate" ] ; then
-  wait_for 30 3 " zypper --non-interactive ref ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
-  wait_for 30 3 " zypper --non-interactive up ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
+  wait_for 30 3 " zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
+  wait_for 30 3 " zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
 fi
 
 
