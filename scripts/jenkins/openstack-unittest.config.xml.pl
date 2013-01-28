@@ -26,7 +26,7 @@ my $uttrigger = {
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
                                          "TESTCMD=./run_tests.sh -N glance",
         'openstack-heat'              => "COMPONENT=openstack-heat",
-        'openstack-keystone'          => "COMPONENT=openstack-keystone".
+        'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
                                          "TESTCMD=./run_tests.sh -N -P -xintegration",
         'openstack-nova'              => "COMPONENT=openstack-nova",
         'openstack-quantum'           => "COMPONENT=openstack-quantum",
