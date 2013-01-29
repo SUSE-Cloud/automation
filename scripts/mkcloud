@@ -188,7 +188,7 @@ function h_add_etchosts_entries()
 
 function prepare()
 {
-  zypper --non-interactive in --no-recommends libvirt kvm lvm2 wget bridge-utils dnsmasq netcat-openbsd ebtables
+  zypper --non-interactive in --no-recommends libvirt kvm lvm2 curl wget bridge-utils dnsmasq netcat-openbsd ebtables
 
   echo "Creating key for controlling our VMs..."
   [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
@@ -662,7 +662,9 @@ function sanity_checks()
 
   # always fetch the latest version
   if [ -z "$NOQACROWBARDOWNLOAD" ] ; then
-    wget -O qa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
+    #wget -O qa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
+    # Switch to curl as wget has an issue with github: https://github.com/netz98/n98-magerun/issues/75
+    curl -s -o qa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
   fi
 
   if [ ! -e qa_crowbarsetup.sh ] ; then
