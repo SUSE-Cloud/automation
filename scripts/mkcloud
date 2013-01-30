@@ -543,8 +543,6 @@ function rebootcrowbar()
   echo "waiting another 180 seconds for services"
   sleep 180
   sshrun "mount -a -t nfs" # FIXME workaround repos not mounted on reboot
-  echo "checking if there are machines"
-  sshrun "crowbar machines list"
   return $?
 }
 
