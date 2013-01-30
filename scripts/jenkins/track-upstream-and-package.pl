@@ -297,8 +297,48 @@ sub get_osc_package_info()
 sub get_tarname_from_spec
 {
   my $spec = shift;
-  my $tarname = `grep -E Source0?: $spec|awk '{print \$2}'`;
-  chomp($tarname);
+  my %defines;
+  my $tarname;
+
+  open (my $FH, '<', $spec) or die $!;
+  while (<$FH>)
+  {
+    chomp;
+    if (/^%define\s+(.*)\s+(.*)$/)
+    {
+      $defines{'%{'.$1.'}'} = $2;
+      $defines{'%'.$1} = $2;
+    }
+    elsif (/^Name:\s+(.*)\s*$/)
+    {
+      $defines{"%{name}"} = $1;
+      $defines{"%name"} = $1;
+    }
+    elsif (/^Version:\s+(.*)\s*$/)
+    {
+      $defines{"%{version}"} = $1;
+      $defines{"%version"} = $1;
+    }
+    elsif (/^Source0?:\s+(.*)\s*$/)
+    {
+      $tarname = $1;
+    }
+  }
+  close $FH;
+
+  # substitute all the defines
+  my $regex = join "|", map quotemeta, keys %defines;
+  my $cregex = qr/$regex/; # compile
+  my $oldtarname = '';
+  while ($oldtarname ne $tarname)
+  {
+    $oldtarname = $tarname;
+    $tarname =~ s/($cregex)/$defines{$1}/g;
+  }
+
+  # keep basename
+  $tarname =~ s/.*\///g;
+
   return $tarname;
 }
 
