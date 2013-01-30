@@ -230,7 +230,7 @@ sub add_changes_entry() {
 
   open (my $FH, '>', $file.'.new') or die $!;
   print $FH "-------------------------------------------------------------------\n";
-  print $FH $date." - jenkins\@suse.de\n";
+  print $FH $date." - cloud-devel\@suse.de\n";
   print $FH "\n";
   print $FH "- Update to latest git (".$gitrev."):\n";
   for my $line (@lines)
