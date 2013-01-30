@@ -466,8 +466,11 @@ sub check_pip_requires_changes()
     }
   }
 
-  #add_changes_entry() || die "Error: Could not create a changes entry.";
-  #print "--> Added a changes entry.\n";
+  if (!$gittarballs)
+  {
+    add_changes_entry() || die "Error: Could not create a changes entry.";
+    print "--> Added a changes entry.\n";
+  }
 
   print "--> Now trying to build package.\n";
 
