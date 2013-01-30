@@ -298,6 +298,7 @@ sub get_tarname_from_spec
 {
   my $spec = shift;
   my $tarname = `grep -E Source0?: $spec|awk '{print \$2}'`;
+  chomp($tarname);
   return $tarname;
 }
 
