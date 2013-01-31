@@ -348,8 +348,12 @@ sub extract_file_from_tarball
 
   my $tar = Archive::Tar->new($tarball, 1,
                               {filter => qr/.*\/$requires/});
+  return 0 if (! defined $tar);
+
   my ($tarfile) = $tar->list_files(['name']);
   $tar->extract_file($tarfile, $filename);
+
+  return 1;
 }
     
 sub email_changes_diff
@@ -390,6 +394,14 @@ sub check_pip_requires_changes()
     }
 
     my @keys = map { $_->[0] } @tarballs;
+    next if (! -f $keys[0] && ! -f $keys[1]);
+    # create missing files for diff to work
+    for my $key (@keys)
+    {
+      next if (-f $key);
+      open (my $FH, '>', $key) or die $!;
+      close $FH;
+    }
 
     my $diff = `diff -u @keys > ${project}.diff`;        
     if ($?)
