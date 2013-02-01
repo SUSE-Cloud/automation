@@ -113,7 +113,7 @@ function wait_for()
 
 function sshrun()
 {
-  ssh root@$adminip "export cephvolumenumber=$cephvolumenumber ; export shell=$shell ; export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; $@"
+  ssh root@$adminip "export cephvolumenumber=$cephvolumenumber ; export shell=$shell ; export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; export all_with_ssl=$all_with_ssl ; export keystone_with_ssl=$keystone_with_ssl ; export glance_with_ssl=$glance_with_ssl ; export nova_with_ssl=$nova_with_ssl ; export novadashboard_with_ssl=$novadashboard_with_ssl ; $@"
   return $?
 }
 
