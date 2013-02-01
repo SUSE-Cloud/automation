@@ -900,7 +900,7 @@ function securitytests()
   #zypper --non-interactive in perl-HTTP-Cookies perl-Config-Simple
 
   wget -r --directory-prefix owasp -np -nc -A "owasp*.rpm","sslscan*rpm" $owaspsource
-  zypper --non-interactive in `find owasp/ -type f -name "*rpm"`
+  zypper --non-interactive --gpg-auto-import-keys in `find owasp/ -type f -name "*rpm"`
 
   pushd /usr/share/owasp-test-suite >/dev/null
   # create config
