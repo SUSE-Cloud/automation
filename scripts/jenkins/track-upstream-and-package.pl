@@ -22,7 +22,7 @@
 #
 # prepare caching for disabled runs:
 #   mkdir -p ~/.obs/cache/tar_scm/{incoming,repo,repourl}
-#   echo 'CACHEDIRECTORY="$HOME/.obs/cache/tar_scm"' > ~/.obs/tar_scm
+#   echo "CACHEDIRECTORY=\"$HOME/.obs/cache/tar_scm\"" > ~/.obs/tar_scm
 #
 #
 #
