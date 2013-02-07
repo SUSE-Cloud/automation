@@ -47,14 +47,14 @@ my $uttrigger = {
   },
   Folsom => {
     functest   => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
-                                         "SETUPCMD=swift-init main start\n".
+                                         "SETUPCMD=remakerings && swift-init main start\n".
                                          "TESTCMD=./.functests\n".
                                          "TEARDOWNCMD=swift-init main stop"
     },
     probetests => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
-                                         "SETUPCMD=swift-init all start\n".
+                                         "SETUPCMD=remakerings && swift-init main start\n".
                                          "TESTCMD=./.probetests\n".
-                                         "TEARDOWNCMD=swift-init all stop"
+                                         "TEARDOWNCMD=swift-init main stop"
     },
     unittest   => {
         'openstack-cinder'            => "COMPONENT=openstack-cinder",
