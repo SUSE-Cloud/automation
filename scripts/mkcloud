@@ -66,6 +66,8 @@ function show_environment()
   echo " UPDATEREPOS: $UPDATEREPOS"
   echo " cephvolumenumber: $cephvolumenumber"
   echo "-------------------------------"
+  env | grep -i "_with_ssl"
+  echo "-------------------------------"
 }
 
 function error_exit()
