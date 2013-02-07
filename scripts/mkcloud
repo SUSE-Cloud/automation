@@ -153,7 +153,8 @@ function h_create_cloud_lvm()
   vgcreate cloud $CVOL
   vgchange -ay cloud # for later boots
 
-  lvcreate -n admin -L 15G cloud
+  adminnode_hdd_size=${adminnode_hdd_size:-15}
+  lvcreate -n admin -L ${adminnode_hdd_size}G cloud
   for i in $allnodeids ; do
     lvcreate -n node$i -L 20G cloud
   done

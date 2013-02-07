@@ -486,16 +486,19 @@ function proposal_set_value()
 
 function enable_ssl_for_keystone()
 {
+  echo "Enabling SSL for keystone"
   proposal_set_value keystone default "['attributes']['keystone']['api']['protocol']" "'https'"
 }
 
 function enable_ssl_for_glance()
 {
+  echo "Enabling SSL for glance"
   proposal_set_value glance default "['attributes']['glance']['api']['protocol']" "'https'"
 }
 
 function enable_ssl_for_nova()
 {
+  echo "Enabling SSL for nova"
   proposal_set_value nova default "['attributes']['nova']['api']['protocol']" "'https'"
   proposal_set_value nova default "['attributes']['nova']['glance_ssl_no_verify']" true
   proposal_set_value nova default "['attributes']['nova']['novnc']['ssl_enabled']" true
@@ -504,6 +507,7 @@ function enable_ssl_for_nova()
 
 function enable_ssl_for_nova_dashboard()
 {
+  echo "Enabling SSL for nova_dashboard"
   proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['use_https']" true
   proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['use_http']" false
   proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['ssl_no_verify']" true
