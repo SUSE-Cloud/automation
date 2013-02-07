@@ -192,9 +192,9 @@ sub die_on_error($$)
 
 sub add_changes_entry() {
   return 1 if $oldgitrev eq $gitrev;
-  return 0 if ($oldgitrev eq '' || $gitrev eq '');
 
-  return 0 if (! -e $ENV{'HOME'}.'/.obs/tar_scm');
+  die "gitrev or oldgitrev is not set" if ($oldgitrev eq '' || $gitrev eq '');
+  die "cannot find $ENV{'HOME'}.'/.obs/tar_scm" if (! -e $ENV{'HOME'}.'/.obs/tar_scm');
 
   my $tar_scm_cache = '';
   open (my $TARSCMFH, '<', $ENV{'HOME'}.'/.obs/tar_scm') or die $!;
@@ -207,7 +207,7 @@ sub add_changes_entry() {
   }
   close $TARSCMFH;
 
-  return 0 if ($tar_scm_cache eq '');
+  die "tar_scm_cache is empty" if ($tar_scm_cache eq '');
 
   # yes, newline character is intended
   my $gitremotesha = sha256_hex($gitremote.'
@@ -216,15 +216,15 @@ sub add_changes_entry() {
   my $file = basename($SDIR).'.changes';
   my @lines;
 
-  return 0 if (! -d $gitdir);
-  return 0 if (! -e $file);
+  die "gitdir $gitdir does not exist" if (! -d $gitdir);
+  die "file $file does not exist" if (! -e $file);
 
   my $cmd = "git --git-dir='".$gitdir."' log --pretty=format:%s --no-merges ".$oldgitrev."..".$gitrev;
   push @lines, `$cmd`;
   @lines = reverse(@lines);
   chomp(@lines);
 
-  return 0 if (scalar(@lines) == 0);
+  die "did not find any lines" if (scalar(@lines) == 0);
 
   chomp(my $date = `LC_ALL=POSIX TZ=UTC date`);
 
@@ -521,7 +521,13 @@ sub check_pip_requires_changes()
 
   if (!$gittarballs)
   {
-    add_changes_entry() || die "Error: Could not create a changes entry.";
+    eval {
+      add_changes_entry();
+    };
+    if ($@) {
+      warn $@;
+      die "Error: Could not create a changes entry.";
+    }
     print "--> Added a changes entry.\n";
   }
 
