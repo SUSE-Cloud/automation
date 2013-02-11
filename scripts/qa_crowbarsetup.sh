@@ -540,7 +540,7 @@ function custom_configuration()
         enable_ssl_for_nova
       fi
     ;;
-    nova-dashboard)
+    nova_dashboard)
       if [[ $all_with_ssl = 1 || $novadashboard_with_ssl = 1 ]] ; then
         enable_ssl_for_nova_dashboard
       fi
