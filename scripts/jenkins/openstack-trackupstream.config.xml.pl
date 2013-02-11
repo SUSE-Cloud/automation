@@ -14,18 +14,22 @@ my @output_create = ();
 
 my %tutrigger = (
   "OBS/Cloud:OpenStack:Master" => [ qw(
+    openstack-ceilometer
+    openstack-cinder
     openstack-dashboard
-    openstack-nova
     openstack-glance
+    openstack-heat
     openstack-keystone
-    openstack-melange
+    openstack-nova
     openstack-quantum
     openstack-quickstart
     openstack-swift
+    python-cinderclient
+    python-glanceclient
+    python-heatclient
     python-keystoneclient
     python-novaclient
     python-quantumclient
-    python-melangeclient
     python-swiftclient
   ) ],
   "OBS/Cloud:OpenStack:Folsom:Staging" => [ qw(
