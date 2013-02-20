@@ -269,7 +269,8 @@ sub find_gitrev($)
 
 sub osc_checkin()
 {
-  system(@OSCBASE, 'ci', '-m', 'autocheckin from jenkins, revision: '.$gitrev);
+  my $exitcode = system(@OSCBASE, 'ci', '-m', 'autocheckin from jenkins, revision: '.$gitrev);
+  return $exitcode >> 8;
 }
 
 sub get_osc_package_info()
