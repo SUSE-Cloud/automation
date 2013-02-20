@@ -31,6 +31,7 @@ my %tutrigger = (
     python-novaclient
     python-quantumclient
     python-swiftclient
+    python-oslo-config
   ) ],
   "OBS/Cloud:OpenStack:Folsom:Staging" => [ qw(
     openstack-cinder
