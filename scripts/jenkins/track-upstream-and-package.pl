@@ -540,7 +540,6 @@ sub check_pip_requires_changes()
   $exitcode = osc_build();
   die_on_error('build', $exitcode);
 
-  osc_checkin();
+  $exitcode = osc_checkin();
 
   die_on_error('checkin', $exitcode);
-
