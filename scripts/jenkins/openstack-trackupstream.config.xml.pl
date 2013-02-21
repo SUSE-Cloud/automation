@@ -118,7 +118,7 @@ q{<?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
   <description>This is the meta job that triggers the openstack-trackupstream job multiple times with different parameters.&lt;br /&gt;&#xd;
-&lt;b&gt;Changes to this job ONLY via the &lt;i&gt;openstack-trackupstream.config.xml.pl&lt;/i&gt; tool from the automation repo.&lt;/b&gt;</description>
+&lt;b&gt;Changes to this job ONLY via the &lt;i&gt;openstack-trackupstream.config.xml.pl&lt;/i&gt; tool from the https://github.com/SUSE-Cloud/automation repo.&lt;/b&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
