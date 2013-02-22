@@ -36,7 +36,8 @@ my $uttrigger = {
         'python-cinderclient'         => "COMPONENT=python-cinderclient",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n".
                                          "TESTCMD=nosetests",
-        'python-heatclient'           => "COMPONENT=python-heatclient",
+        'python-heatclient'           => "COMPONENT=python-heatclient\n".
+                                         "TESTCMD=nosetests",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n".
