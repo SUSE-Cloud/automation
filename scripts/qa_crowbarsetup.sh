@@ -173,6 +173,10 @@ if [ -n "$TESTHEAD" ] ; then
 	    zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0/SLE_11_SP2/Devel:Cloud:1.0.repo
 	    zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0:/Crowbar/SLE_11_SP2/Devel:Cloud:1.0:Crowbar.repo
 	    ;;
+	  GM)
+	    zypper ar http://you.suse.de/download/x86_64/update/SUSE-CLOUD/1.0/ cloudtup
+	    zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP1/ sp1tup
+	    zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP2/ sp2tup
 	  *)
 	    echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
 	    exit 26
