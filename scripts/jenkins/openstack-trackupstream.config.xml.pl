@@ -60,6 +60,7 @@ my %tutrigger = (
   "OBS/systemsmanagement:crowbar:2.0:staging" => [ qw(
     crowbar
     crowbar-barclamp-ceph
+    crowbar-barclamp-chef
     crowbar-barclamp-crowbar
     crowbar-barclamp-database
     crowbar-barclamp-deployer
