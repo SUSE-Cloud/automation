@@ -1,4 +1,7 @@
 #!/bin/sh
+PROJECTSOURCE=OBS/${project}
+COMPONENT=$component
+
 # needs .oscrc with user,pass,trusted_prj
 # zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools/SLE_11_SP2/openSUSE:Tools.repo
 # zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools:/Unstable/SLE_11_SP2/openSUSE:Tools:Unstable.repo
@@ -16,6 +19,9 @@ case $OBS_TYPE in
   OBS) OSCAPI="https://api.opensuse.org"
        OSC_BUILD_DIST=SLE_11_SP2
        OSC_BUILD_ARCH=x86_64
+       ;;
+  *)   echo "This jenkins instance only interacts with OBS."
+       exit 1
        ;;
 esac
 
