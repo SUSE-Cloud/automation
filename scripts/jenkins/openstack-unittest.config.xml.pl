@@ -24,7 +24,8 @@ my $uttrigger = {
                                          "TESTCMD=nosetests\n".
                                          "TEARDOWNCMD=rcmongodb stop",
         'openstack-cinder'            => "COMPONENT=openstack-cinder",
-        'openstack-dashboard'         => "COMPONENT=openstack-dashboard",
+        'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
+                                         "TESTCMD=./run_tests.sh -N",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
                                          "TESTCMD=./run_tests.sh -N glance",
         'openstack-heat'              => "COMPONENT=openstack-heat",
