@@ -11,7 +11,9 @@ my $uttrigger = {
     functest   => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
                                          "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
                                          "TESTCMD=./.functests\n".
-                                         "TEARDOWNCMD=swift-init main stop"
+                                         "TEARDOWNCMD=swift-init main stop",
+                    'openstack-heat'  => "COMPONENT=openstack-heat\n".
+                                         "TESTCMD=./run_tests.sh -P -f"
     },
     probetests => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
                                          "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
@@ -28,7 +30,8 @@ my $uttrigger = {
                                          "TESTCMD=./run_tests.sh -N",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
                                          "TESTCMD=./run_tests.sh -N glance",
-        'openstack-heat'              => "COMPONENT=openstack-heat",
+        'openstack-heat'              => "COMPONENT=openstack-heat\n".
+                                         "TESTCMD=./run_tests.sh -P -u",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
                                          "TESTCMD=./run_tests.sh -N -P -xintegration",
         'openstack-nova'              => "COMPONENT=openstack-nova",
