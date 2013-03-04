@@ -5,7 +5,7 @@
 
 
 my $uttrigger = {
-  Master => {
+  "Cloud:OpenStack:Master" => {
     functest   => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
                                          "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
                                          "TESTCMD=./.functests\n".
@@ -52,7 +52,7 @@ my $uttrigger = {
                                          "TESTCMD=nosetests",
     }
   },
-  Folsom => {
+  "Cloud:OpenStack:Folsom:Staging" => {
     functest   => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
                                          "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
                                          "TESTCMD=./.functests\n".
@@ -90,13 +90,10 @@ my $uttrigger = {
 
 
 my $distribution = shift;
+my $testtype = shift;
 my $package = shift;
 
-unless ($distribution && $package) { die "Usage: $0 <distribution> <package>"; }
-my ($dist) = $distribution =~ /^(\w+)-?.*/;
-die "Error: no or wrong value for distribution" unless $dist;
-
-my $testcmd = $uttrigger->{"\u\L$dist"}->{unittest}->{$package};
+unless ($distribution && $package && $testtype) { die "Usage: $0 <distribution> <testtype> <package>"; }
+my $testcmd = $uttrigger->{$distribution}->{$testtype}->{$package};
 die "Error: package does not exist" unless defined $testcmd;
 print $testcmd."\n";
-
