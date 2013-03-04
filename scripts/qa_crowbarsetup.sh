@@ -539,7 +539,7 @@ function custom_configuration()
     nova)
       # custom nova config of libvirt
       [ -n "$libvirt_type" ] || libvirt_type='kvm';
-      proposal_set_value nova default "['attributes']['nova']['libvirt_type']" $libvirt_type
+      proposal_set_value nova default "['attributes']['nova']['libvirt_type']" "'$libvirt_type'"
 
       if [[ $all_with_ssl = 1 || $nova_with_ssl = 1 ]] ; then
         enable_ssl_for_nova
