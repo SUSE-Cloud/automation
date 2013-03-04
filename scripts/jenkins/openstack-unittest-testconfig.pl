@@ -96,4 +96,5 @@ my $package = shift;
 unless ($distribution && $package && $testtype) { die "Usage: $0 <distribution> <testtype> <package>"; }
 my $testcmd = $uttrigger->{$distribution}->{$testtype}->{$package};
 die "Error: package does not exist" unless defined $testcmd;
+$testcmd =~ s/^(\w+)=(.*)/$1="$2"/mg;
 print $testcmd."\n";
