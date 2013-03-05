@@ -94,6 +94,9 @@ zypper -v --gpg-auto-import-keys -n install -t pattern cloud_controller cloud_co
 zypper -n install openstack-quickstart python-glanceclient # was not included in meta-patterns
 ls -la /var/lib/nova
 
+# FIXME WORKAROUND for bnc#807540
+[ -e ~/rabbitmq-init.diff ] && patch /etc/init.d/rabbitmq-server < ~/rabbitmq-init.diff
+
 # setup non-bridged network:
 cat >/etc/sysconfig/network/ifcfg-brclean <<EOF
 BOOTPROTO='static'
