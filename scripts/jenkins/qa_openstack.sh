@@ -91,7 +91,7 @@ zypper --gpg-auto-import-keys -n ref
 zypper -n dup -r Devel_Cloud # upgrade python
 #zypper -v --gpg-auto-import-keys -n install patterns-OpenStack-controller patterns-OpenStack-compute-node || exit 123
 zypper -v --gpg-auto-import-keys -n install -t pattern cloud_controller cloud_compute
-zypper -n install openstack-quickstart python-glanceclient # was not included in meta-patterns
+zypper -n install openstack-quickstart python-glanceclient patch # was not included in meta-patterns
 ls -la /var/lib/nova
 
 # FIXME WORKAROUND for bnc#807540
