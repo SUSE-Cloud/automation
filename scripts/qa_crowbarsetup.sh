@@ -47,6 +47,15 @@ case $cloud in
 	virtual)
 		net=192.168.124
 	;;
+    cumulus)
+		net=10.122.189
+		net_storage=187
+		net_public=190
+		net_fixed=188
+		vlan_storage=577
+		vlan_public=579
+		vlan_fixed=578
+    ;;
 	*)
 		echo "Unknown Cloud"
 		exit 1
@@ -235,7 +244,10 @@ if [ ! -e "/srv/tftpboot/suse-11.2/install/media.1/" ] ; then
 fi
 cd /tmp
 
-netfiles="/opt/dell/barclamps/network/chef/data_bags/crowbar/bc-template-network.json /opt/dell/chef/data_bags/crowbar/bc-template-network.json"
+netfile="/opt/dell/chef/data_bags/crowbar/bc-template-network.json"
+netfilepatch=`basename $netfile`.patch
+[ -e ~/$netfilepatch ] && patch -p1 $netfile < ~/$netfilepatch
+
 if [ $cloud != virtual ] ; then
 	sed -i.netbak -e 's/"conduit": "bmc",/& "router":"192.168.124.1",/' \
               -e "s/192.168.124/$net/g" \
@@ -245,11 +257,11 @@ if [ $cloud != virtual ] ; then
               -e "s/200/$vlan_storage/g" \
               -e "s/300/$vlan_public/g" \
               -e "s/500/$vlan_fixed/g" \
-		$netfiles
+		$netfile
 fi
 if [ $cloud = p ] ; then
 	# production cloud has a /21 network
-	perl -i.perlbak -pe 'if(m/255.255.255.0/){$n++} if($n==3){s/255.255.255.0/255.255.248.0/}' $netfiles
+	perl -i.perlbak -pe 'if(m/255.255.255.0/){$n++} if($n==3){s/255.255.255.0/255.255.248.0/}' $netfile
 fi
 
 #+bmc router
