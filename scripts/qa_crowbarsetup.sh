@@ -190,13 +190,9 @@ fi
 # --no-gpg-checks for Devel:Cloud repo
 zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
 
-if [ $cloudsource = "Beta1" ] ; then
-  zypper --no-gpg-checks -n in -l crowbar # for Beta1
-  ret=$?
-else
-  zypper --no-gpg-checks -n in -l -t pattern cloud_admin # for Beta2
-  ret=$?
-fi
+zypper --no-gpg-checks -n in -l -t pattern cloud_admin
+ret=$?
+
 if [ $ret = 0 ] ; then
   echo "The cloud admin successfully installed."
   echo ".... continuing"
@@ -564,8 +560,7 @@ function get_crowbarnodes()
 get_crowbarnodes
 if [ -n "$proposal" ] ; then
 waitnodes nodes
-for service in database postgresql keystone ceph glance nova nova_dashboard ; do
-  [[ "$service" = "postgresql" && "$cloudsource" != "Beta1" ]] && continue
+for service in database keystone ceph glance nova nova_dashboard ; do
   [[ "$service" = "ceph" && ( "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ) ]] && continue
   crowbar "$service" proposal create default
   # hook for changing proposals:
