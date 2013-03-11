@@ -48,7 +48,7 @@ my $uttrigger = {
                                          "TESTCMD=nosetests",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n".
                                          "TESTCMD=nosetests",
-        'python-oslo-config'          => "COMPONENT=python-oslo-config\n".
+        'python-oslo.config'          => "COMPONENT=python-oslo.config\n".
                                          "TESTCMD=nosetests",
     }
   },
