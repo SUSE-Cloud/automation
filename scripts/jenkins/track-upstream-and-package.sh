@@ -5,7 +5,7 @@ COMPONENT=$component
 # needs .oscrc with user,pass,trusted_prj
 # zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools/SLE_11_SP2/openSUSE:Tools.repo
 # zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools:/Unstable/SLE_11_SP2/openSUSE:Tools:Unstable.repo
-# zypper in osc obs-service-tar_scm obs-service-recompress obs-service-git_tarballs obs-service-set_version
+# zypper in osc obs-service-tar_scm obs-service-github_tarballs obs-service-recompress obs-service-git_tarballs obs-service-set_version
 [ -z "$PROJECTSOURCE" ] && ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
 
 [ -e /root/bin/update_automation ] || wget -O /root/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation && chmod a+x /root/bin/update_automation
