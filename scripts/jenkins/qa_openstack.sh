@@ -58,9 +58,7 @@ case "$cloudsource" in
   ;;
   openstackmaster)
 	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/Cloud:OpenStack:Master.repo
-	if test -n "$OSHEAD" ; then
-		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master:/Staging/$REPO/ cloudhead
-	fi
+	# no staging for master
   ;;
   *)
 	echo "unknown cloudsource"
