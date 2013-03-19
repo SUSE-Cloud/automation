@@ -1,0 +1,49 @@
+#!/usr/bin/perl -w
+#
+# Trigger jenkins jobs via http api
+#
+# 2013, J. Daniel Schmidt <jdsn@suse.de>
+
+sub usage()
+{
+  return "Usage: $0 <jobname> [<switch> [<key=value> ...] ]
+  Examples:
+    normal job:    $0 myjobname
+    parameterized: $0 myjobname -p var1=foo var2=bar var3=baz
+    matrix:        $0 myjobname -m var1=foo var2=bar var3=baz
+";
+}
+
+
+use strict;
+
+my $USER;
+my $PASSWORD;
+my $JURL="ci.opensuse.org";
+# read the api credentials from file
+eval `cat /etc/jenkinsapi.cred`;
+
+
+my $jurl="http://${USER}:${PASSWORD}\@$JURL";
+my $job=shift || die usage();
+
+my $jobtype='normal';
+if ($ARGV[0] =~ /^-p$/) {
+  $jobtype='parameter';
+  shift;
+} elsif ($ARGV[0] =~ /^-m$/) {
+  $jobtype='matrix';
+  shift;
+}
+
+my $triggerurl=$jurl."/job/".$job;
+
+if ($jobtype eq 'normal') {
+  $triggerurl .= "/build";
+} elsif ($jobtype eq 'parameter') {
+  $triggerurl .= "/buildWithParameters?".join('&', @ARGV);
+} elsif ($jobtype eq 'matrix') {
+  $triggerurl .= "/".join(',', @ARGV)."/build";
+}
+
+exec(qw(curl -X POST), $triggerurl);
