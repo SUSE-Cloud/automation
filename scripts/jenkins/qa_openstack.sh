@@ -176,6 +176,10 @@ else
 	#curl http://clouddata.cloud.suse.de/images/euca-debian-5.0-i386.tar.gz | tar xzO euca-debian-5.0-i386/debian.5-0.x86.img | glance add name="debian-5" is_public=True disk_format=ami container_format=ami
 	#curl http://openqa.suse.de/sle/img/euca-debian-5.0-i386.tar.gz | tar xzO euca-debian-5.0-i386/debian.5-0.x86.img | glance add name="debian-5" is_public=True disk_format=ami container_format=ami
 fi
+for i in $(seq 1 20) ; do # wait for image to finish uploading
+	glance image-list|grep active && break
+	sleep 5
+done
 glance image-list
 #imgid=$(glance index|grep debian-5|cut -f1 -d" ")
 imgid=debian-5
