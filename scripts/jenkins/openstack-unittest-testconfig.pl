@@ -20,8 +20,7 @@ my $uttrigger = {
     },
     unittest   => {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
-                                         "SETUPCMD=rcmongodb start\n".
-                                         "TESTCMD=nosetests\n".
+                                         "SETUPCMD=rcmongodb start\n"
                                          "TEARDOWNCMD=rcmongodb stop",
         'openstack-cinder'            => "COMPONENT=openstack-cinder",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
@@ -38,18 +37,13 @@ my $uttrigger = {
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
                                          "TESTCMD=./.unittests",
         'python-cinderclient'         => "COMPONENT=python-cinderclient",
-        'python-glanceclient'         => "COMPONENT=python-glanceclient\n".
-                                         "TESTCMD=nosetests",
-        'python-heatclient'           => "COMPONENT=python-heatclient\n".
-                                         "TESTCMD=nosetests",
+        'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
+        'python-heatclient'           => "COMPONENT=python-heatclient\n",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
         'python-novaclient'           => "COMPONENT=python-novaclient",
-        'python-quantumclient'        => "COMPONENT=python-quantumclient\n".
-                                         "TESTCMD=nosetests",
-        'python-swiftclient'          => "COMPONENT=python-swiftclient\n".
-                                         "TESTCMD=nosetests",
-        'python-oslo.config'          => "COMPONENT=python-oslo.config\n".
-                                         "TESTCMD=nosetests",
+        'python-quantumclient'        => "COMPONENT=python-quantumclient\n",
+        'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
+        'python-oslo.config'          => "COMPONENT=python-oslo.config\n",
     }
   },
   "Cloud:OpenStack:Folsom:Staging" => {
