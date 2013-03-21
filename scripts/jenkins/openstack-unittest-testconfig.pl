@@ -20,7 +20,7 @@ my $uttrigger = {
     },
     unittest   => {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
-                                         "SETUPCMD=rcmongodb start\n"
+                                         "SETUPCMD=rcmongodb start\n".
                                          "TEARDOWNCMD=rcmongodb stop",
         'openstack-cinder'            => "COMPONENT=openstack-cinder",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
