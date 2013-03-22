@@ -16,6 +16,9 @@ OSC_ARCH=x86_64
 case $distribution in
   *-SLE-11-SP2) OSC_DIST=SLE_11_SP2
              ;;
+             ###(dmueller): change to SP3 when available           
+  *-SLE-11-SP3) OSC_DIST=SLE_11_SP2
+             ;;
   *-openSUSE-12.2) OSC_DIST=openSUSE_12.2
              ;;
 esac
