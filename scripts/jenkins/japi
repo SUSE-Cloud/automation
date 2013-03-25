@@ -1,0 +1,180 @@
+#!/usr/bin/perl -w
+#
+# A tool to fetch and upload job configurations to a jenkins instance
+#
+# The aim of this tool is to fetch job configurations, edit them locally
+# (by script) and push them back to the jenkins server.
+#
+# Note: make sure to fetch the latest changes before you edit and push!
+#
+# 2013, J. Daniel Schmidt <jdsn@suse.de>
+
+use strict;
+use XML::LibXML;
+
+my $USER;
+my $PASSWORD;
+my $JURL="ci.opensuse.org";
+mkdir -p $JURL;
+# read the api credentials from file
+if ( -e "./jenkinsapi.cred" )
+{
+  eval `cat ./jenkinsapi.cred`
+} else {
+  eval `cat /etc/jenkinsapi.cred`;
+}
+my $jurlbase="http://${USER}:${PASSWORD}\@$JURL";
+my $jurl=$jurlbase."/api/xml";
+
+sub usage()
+{
+  return "Usage: $0 <command> [<parameter> ..]
+  commands:
+    fetch <jobname> : fetch job configuration of one or more jobs
+    push  <jobname> : push one or more job configurations
+    fetch-all <prefix> : fetch all jobs that match one of the <prefix>es
+    push-all  <prefix> : push all jobs that match one of the <prefix>es
+
+  The <jobname> has to be the exact job name (no directory, no trailing .xml)
+  The <prefix> will match all
+   * server side jobs starting with <prefix> (in case of fetch-all)
+   * currently fetched jobs starting with <prefix> (in case of push-all)
+
+  All jobs will be fetched to/from the directory: $JURL/
+  You can configure the jenkins url and credentials in either
+   ./jenkinsapi.cred or /etc/jenkinsapi.cred (see example).
+
+  Note!
+  Fetch before you change and upload a job.
+  Otheriwse server-side changes would be lost.
+";
+}
+
+
+sub xml_get_elements($$;$)
+{
+  my ($node, $path, $attribute) = @_;
+  die "Error: node or path undefined." unless ($node && $path);
+  my $nodeL = $node->find($path);
+  my $onenode;
+  my @results=();
+  while ($nodeL->size() > 0) {
+    $onenode = $nodeL->pop();
+    push @results, ($attribute ? $onenode->getAttribute($attribute) : $onenode->textContent());
+  }
+  return @results;
+}
+
+sub get_cloud_job_list
+{
+  my $curlcmd="curl --silent $jurl/config.xml";
+  my $jenkinscfg=`$curlcmd`;
+  my $parser=XML::LibXML->new();
+  my $xml = $parser->parse_string($jenkinscfg);
+  return xml_get_elements($xml,"/hudson/job/name");
+}
+
+sub fetch_job($)
+{
+  my $jobname=shift || die "Error: no job name specified";
+  my $fetchurl=$jurlbase."/job/$jobname/config.xml";
+  print "fetching $jobname\n";
+  system(qw(curl --silent --output), "./${JURL}/${jobname}.xml", $fetchurl);
+}
+
+sub fetch_jobs
+{
+  my @jobs=@_;
+  die "Error: no jobs specified" unless @jobs;
+  foreach my $j (@jobs) {
+    fetch_job($j);
+  }
+}
+
+sub fetchall_jobs
+{
+  my @prefixes=@_;
+  my @joblist = get_cloud_job_list();
+  my @joblist_filtered=();
+  foreach my $j (@joblist) {
+    foreach my $p (@prefixes) {
+      if ( $j =~ /^$p/i )
+      {
+        push @joblist_filtered, $j;
+      }
+    }
+  }
+  @joblist_filtered=keys %{{ map {$_ => 1} @joblist_filtered }};
+  fetch_jobs(@joblist_filtered);
+}
+
+sub has_error
+{
+  my $pipe=shift;
+  while (<$pipe>) {
+    if (/error/i) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+sub push_job($)
+{
+  my $jobname=shift || die "Error: no jobname specified";
+  my $pushurl=$jurlbase."/job/$jobname/config.xml";
+  print "processing job: $jobname:\n";
+  # update
+  open(my $pipe, "-|", qw(curl --silent -X POST --data-binary), "\@${JURL}/${jobname}.xml", $pushurl);
+  if (has_error($pipe)) {
+    print "  updating failed .. ";
+    # create
+    open(my $pipe, "-|", qw(curl --silent -X POST -H), "Content-Type: text/xml", "--data-binary", "\@${JURL}/${jobname}.xml", "${jurlbase}/createItem?name=${jobname}");
+    if ( has_error($pipe) ) {
+      print "creating failed as well .. -> ERROR!\n";
+    } else {
+      print "job successfully created\n";
+    }
+  } else {
+    print "  job successfully updated\n";
+  }
+}
+
+sub push_jobs
+{
+  my @jobs=@_;
+  die "Error: no jobs specified" unless @jobs;
+  foreach my $j (@jobs) {
+    push_job($j);
+  }
+}
+
+sub pushall_jobs
+{
+  my @prefixes=@_;
+  my @joblist=();
+  chdir $JURL;
+  foreach my $prefix (@prefixes) {
+    push @joblist, glob("${prefix}*");
+  }
+  chdir "..";
+  @joblist = map { $_ =~ s/\.xml$//; $_; } @joblist;
+  push_jobs(@joblist);
+}
+
+
+
+### MAIN ###
+
+my $cmd=shift || die usage();
+
+if ($cmd eq "fetch") {
+  fetch_jobs(@ARGV);
+} elsif ($cmd eq "fetch-all") {
+  fetchall_jobs(@ARGV);
+} elsif ($cmd eq "push") {
+  push_jobs(@ARGV);
+} elsif ($cmd eq "push-all") {
+  pushall_jobs(@ARGV);
+}
+
