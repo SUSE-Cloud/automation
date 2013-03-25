@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<matrix-project>
+  <actions/>
+  <description>vi</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>4 4 * * 6</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <axes>
+    <hudson.matrix.TextAxis>
+      <name>component</name>
+      <values>
+        <string>openstack-ceilometer</string>
+        <string>openstack-cinder</string>
+        <string>openstack-dashboard</string>
+        <string>openstack-glance</string>
+        <string>openstack-heat</string>
+        <string>openstack-keystone</string>
+        <string>openstack-nova</string>
+        <string>openstack-quantum</string>
+        <string>openstack-swift</string>
+        <string>python-cinderclient</string>
+        <string>python-glanceclient</string>
+        <string>python-heatclient</string>
+        <string>python-keystoneclient</string>
+        <string>python-novaclient</string>
+        <string>python-quantumclient</string>
+        <string>python-swiftclient</string>
+        <string>python-oslo.config</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.LabelAxis>
+      <name>distribution</name>
+      <values>
+        <string>folsom-SLE-11-SP2</string>
+        <string>folsom-openSUSE-12.2</string>
+        <string>grizzly-SLE-11-SP2</string>
+        <string>grizzly-SLE-11-SP3</string>
+        <string>grizzly-openSUSE-12.2</string>
+        <string>master-SLE-11-SP2</string>
+      </values>
+    </hudson.matrix.LabelAxis>
+  </axes>
+  <combinationFilter>! ( [&quot;folsom-SLE-11-SP2&quot;, &quot;folsom-openSUSE-12.2&quot;].contains(distribution) &amp;&amp; [&quot;openstack-ceilometer&quot;, &quot;openstack-heat&quot;, &quot;python-olso.config&quot;].contains(component) )</combinationFilter>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># zypper in osc
+# provide .oscrc
+
+
+# fetch the latest automation updates
+[ -e /root/bin/update_automation ] || wget -O /root/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x /root/bin/update_automation
+update_automation openstack-unittest-testconfig.pl
+
+# package is a reserved name in groovy (see combination filter)
+package=$component
+
+# basic configuration
+OSC_RC=&quot;$OSC_RC -A https://api.opensuse.org&quot;
+OSC_ARCH=x86_64
+
+case $distribution in
+  *-SLE-11-SP2) OSC_DIST=SLE_11_SP2
+             ;;
+            ###(dmueller): change to SP3 when available           
+  *-SLE-11-SP3) OSC_DIST=SLE_11_SP2
+             ;;
+  *-openSUSE-12.2) OSC_DIST=openSUSE_12.2
+             ;;
+esac
+
+# map label to OBS project
+case $distribution in
+  master-*)  dist=Cloud:OpenStack:Master
+          ;;
+  folsom-*)  dist=Cloud:OpenStack:Folsom:Staging
+          ;;
+  grizzly-*) dist=Cloud:OpenStack:Grizzly:Staging
+          ;;
+esac
+
+# make sure we have access to all needed packages
+cloudrepo=http://download.opensuse.org/repositories/${dist//:/:\/}/${OSC_DIST}/
+zypper ar $cloudrepo cloud || true
+zypper mr --priority 70 cloud
+if [[ $dist =~ &quot;:Staging&quot; ]] ; then
+  zypper ar ${cloudrepo/:\/Staging/} cloud-full || true
+  zypper mr --priority 70 cloud-full
+fi
+
+
+zypper rr dlp
+#zypper ar http://download.opensuse.org/repositories/devel:/languages:/python/${OSC_DIST}/ dlp || true
+#zypper mr --priority 200 dlp
+zypper --gpg-auto-import-keys ref
+
+
+# source config of the test
+eval `openstack-unittest-testconfig.pl $dist unittest $package`
+
+
+# workaround keystone timezone problem 6596 (bmwiedemann)
+export TZ=UTC
+
+################
+# run the test #
+################
+
+# default test command
+[ -z &quot;$TESTCMD&quot; ] &amp;&amp; TESTCMD=&quot;nosetests -v&quot;
+
+
+EXTRAPKGS=&quot;&quot;
+# example:
+# [ &quot;$package&quot; = &quot;openstack-nova&quot; ] &amp;&amp; EXTRAPKGS=&quot;python-xxx&quot;
+
+zypper --non-interactive in -y osc
+
+rm -rf $package
+mkdir -p $package
+cd $package
+for p in $package $EXTRAPKGS ; do
+    osc $OSC_RC getbinaries -d ./ $dist $p $OSC_DIST $OSC_ARCH
+done
+zypper --non-interactive ref
+zypper --non-interactive rm -y $package $EXTRAPKGS || true
+zypper --non-interactive in -y --force `ls *rpm`
+
+if test -d /usr/share/${package}-test/; then
+  cd /usr/share/${package}-test/
+else
+  cd /var/lib/${package}-test/
+fi
+
+test_exitcode=1
+
+echo &quot;=== Running SETUPCMD ===&quot; &gt; /dev/null
+eval &quot;$SETUPCMD&quot; 
+echo &quot;=== Running TESTCMD ===&quot; &gt; /dev/null
+$TESTCMD
+test_exitcode=$?
+
+echo &quot;=== Running TEARDOWNCMD ===&quot; &gt; /dev/null
+eval &quot;$TEARDOWNCMD&quot;
+
+exit $test_exitcode</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.3"/>
+  </buildWrappers>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>false</runSequentially>
+  </executionStrategy>
+</matrix-project>

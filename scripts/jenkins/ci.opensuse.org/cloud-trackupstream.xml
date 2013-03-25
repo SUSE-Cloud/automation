@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<matrix-project>
+  <actions/>
+  <description>update OBS packages from git or tarballs via OBS _service feature</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>14</daysToKeep>
+    <numToKeep>10</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>1 1 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <axes>
+    <hudson.matrix.TextAxis>
+      <name>project</name>
+      <values>
+        <string>Cloud:OpenStack:Folsom:Staging</string>
+        <string>Cloud:OpenStack:Grizzly:Staging</string>
+        <string>Cloud:OpenStack:Master</string>
+        <string>systemsmanagement:crowbar:2.0:staging</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.TextAxis>
+      <name>component</name>
+      <values>
+        <string>crowbar</string>
+        <string>crowbar-barclamp-ceph</string>
+        <string>crowbar-barclamp-chef</string>
+        <string>crowbar-barclamp-crowbar</string>
+        <string>crowbar-barclamp-database</string>
+        <string>crowbar-barclamp-deployer</string>
+        <string>crowbar-barclamp-dns</string>
+        <string>crowbar-barclamp-ganglia</string>
+        <string>crowbar-barclamp-glance</string>
+        <string>crowbar-barclamp-ipmi</string>
+        <string>crowbar-barclamp-keystone</string>
+        <string>crowbar-barclamp-kong</string>
+        <string>crowbar-barclamp-logging</string>
+        <string>crowbar-barclamp-nagios</string>
+        <string>crowbar-barclamp-network</string>
+        <string>crowbar-barclamp-nova</string>
+        <string>crowbar-barclamp-nova_dashboard</string>
+        <string>crowbar-barclamp-ntp</string>
+        <string>crowbar-barclamp-openstack</string>
+        <string>crowbar-barclamp-provisioner</string>
+        <string>crowbar-barclamp-swift</string>
+        <string>crowbar-barclamp-test</string>
+        <string>openstack-ceilometer</string>
+        <string>openstack-cinder</string>
+        <string>openstack-dashboard</string>
+        <string>openstack-glance</string>
+        <string>openstack-heat</string>
+        <string>openstack-keystone</string>
+        <string>openstack-melange</string>
+        <string>openstack-nova</string>
+        <string>openstack-quantum</string>
+        <string>openstack-quickstart</string>
+        <string>openstack-swift</string>
+        <string>python-cinderclient</string>
+        <string>python-glanceclient</string>
+        <string>python-heatclient</string>
+        <string>python-keystoneclient</string>
+        <string>python-melangeclient</string>
+        <string>python-novaclient</string>
+        <string>python-oslo.config</string>
+        <string>python-quantumclient</string>
+        <string>python-swiftclient</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.LabelAxis>
+      <name>label</name>
+      <values>
+        <string>cloud-trackupstream</string>
+      </values>
+    </hudson.matrix.LabelAxis>
+  </axes>
+  <combinationFilter>project != &quot;Cloud:OpenStack:Master&quot; &amp;&amp; ( project==&quot;systemsmanagement:crowbar:2.0:staging&quot; &amp;&amp; [ &quot;crowbar&quot;, &quot;crowbar-barclamp-ceph&quot;, &quot;crowbar-barclamp-chef&quot;, &quot;crowbar-barclamp-crowbar&quot;, &quot;crowbar-barclamp-database&quot;, &quot;crowbar-barclamp-deployer&quot;, &quot;crowbar-barclamp-dns&quot;, &quot;crowbar-barclamp-ganglia&quot;, &quot;crowbar-barclamp-glance&quot;, &quot;crowbar-barclamp-ipmi&quot;, &quot;crowbar-barclamp-keystone&quot;, &quot;crowbar-barclamp-kong&quot;, &quot;crowbar-barclamp-logging&quot;, &quot;crowbar-barclamp-nagios&quot;, &quot;crowbar-barclamp-network&quot;, &quot;crowbar-barclamp-nova&quot;, &quot;crowbar-barclamp-nova_dashboard&quot;, &quot;crowbar-barclamp-ntp&quot;, &quot;crowbar-barclamp-openstack&quot;, &quot;crowbar-barclamp-provisioner&quot;, &quot;crowbar-barclamp-swift&quot;, &quot;crowbar-barclamp-test&quot;,  ].contains(component) ) || ( project==&quot;Cloud:OpenStack:Folsom:Staging&quot; &amp;&amp; [ &quot;openstack-cinder&quot;, &quot;openstack-dashboard&quot;, &quot;openstack-glance&quot;, &quot;openstack-keystone&quot;, &quot;openstack-nova&quot;, &quot;openstack-quantum&quot;, &quot;openstack-quickstart&quot;, &quot;openstack-swift&quot;,  ].contains(component) ) || ( project==&quot;Cloud:OpenStack:Master&quot; &amp;&amp; [ &quot;openstack-ceilometer&quot;, &quot;openstack-cinder&quot;, &quot;openstack-dashboard&quot;, &quot;openstack-glance&quot;, &quot;openstack-heat&quot;, &quot;openstack-keystone&quot;, &quot;openstack-nova&quot;, &quot;openstack-quantum&quot;, &quot;openstack-quickstart&quot;, &quot;openstack-swift&quot;, &quot;python-cinderclient&quot;, &quot;python-glanceclient&quot;, &quot;python-heatclient&quot;, &quot;python-keystoneclient&quot;, &quot;python-novaclient&quot;, &quot;python-quantumclient&quot;, &quot;python-swiftclient&quot;, &quot;python-oslo.config&quot;,  ].contains(component) )</combinationFilter>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>PROJECTSOURCE=OBS/${project}
+COMPONENT=$component
+
+# needs .oscrc with user,pass,trusted_prj
+# zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools/SLE_11_SP2/openSUSE:Tools.repo
+# zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools:/Unstable/SLE_11_SP2/openSUSE:Tools:Unstable.repo
+# zypper in osc obs-service-tar_scm obs-service-github_tarballs obs-service-recompress obs-service-git_tarballs obs-service-set_version
+[ -z &quot;$PROJECTSOURCE&quot; ] &amp;&amp; ( echo &quot;Error: no PROJECTSOURCE defined.&quot; ; exit 1 )
+
+[ -e /root/bin/update_automation ] || wget -O /root/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x /root/bin/update_automation
+# fetch the latest automation updates
+update_automation track-upstream-and-package.pl
+
+OBS_TYPE=${PROJECTSOURCE%%/*}
+OBS_PROJECT=${PROJECTSOURCE##*/}
+
+case $OBS_TYPE in
+  OBS) OSCAPI=&quot;https://api.opensuse.org&quot;
+       OSC_BUILD_DIST=SLE_11_SP2
+       OSC_BUILD_ARCH=x86_64
+       ;;
+  *)   echo &quot;This jenkins instance only interacts with OBS.&quot;
+       exit 1
+       ;;
+esac
+
+# remove accidentally added spaces
+COMPONENT=${COMPONENT// /}
+OBS_PROJECT=${OBS_PROJECT// /}
+
+if [ -z &quot;$COMPONENT&quot; ] ; then
+  echo &quot;Error: Variable COMPONENT is unset.&quot;
+  exit 1
+fi
+
+export OSCAPI
+export OSC_BUILD_DIST
+export OSC_BUILD_ARCH
+
+export JHOME=/home/jenkins
+export OBS_CHECKOUT=$JHOME/OBS_CHECKOUT/$OBS_PROJECT
+export OSC_BUILD_ROOT=$JHOME/buildroot
+
+mkdir -p ~/.obs
+for i in incoming repo repourl
+do
+  mkdir -p $JHOME/obscache/tar_scm/$i
+done 
+echo &quot;CACHEDIRECTORY=\&quot;$JHOME/obscache/tar_scm\&quot;&quot; &gt; ~/.obs/tar_scm
+
+mkdir -p &quot;$OBS_CHECKOUT&quot;
+cd &quot;$OBS_CHECKOUT&quot;
+
+rm -rf &quot;$COMPONENT&quot;
+osc -A $OSCAPI co -c &quot;$OBS_PROJECT&quot; &quot;$COMPONENT&quot;
+
+[ -d &quot;$COMPONENT&quot; ] || ( echo &quot;Error: Component $COMPONENT does not exist (yet) or has been removed.&quot;  ; exit 1 )
+cd &quot;$COMPONENT&quot;
+
+set +e
+if [ ${OBS_PROJECT} != &quot;Cloud:OpenStack:Master&quot; ] ; then
+  # skip test in C:O:M as we do not have linked packages there
+  grep -q &quot;&lt;linkinfo&quot; .osc/_files || exit 2
+fi
+
+# call script in /root/bin
+track-upstream-and-package.pl</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>false</runSequentially>
+  </executionStrategy>
+</matrix-project>

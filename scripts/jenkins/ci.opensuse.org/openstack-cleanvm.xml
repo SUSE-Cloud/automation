@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<matrix-project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>12 12 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <axes>
+    <hudson.matrix.TextAxis>
+      <name>openstack_version</name>
+      <values>
+        <string>folsom</string>
+        <string>grizzly</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.LabelAxis>
+      <name>slave</name>
+      <values>
+        <string>cloud-ci1</string>
+      </values>
+    </hudson.matrix.LabelAxis>
+  </axes>
+  <combinationFilter>slave==&quot;openstack-cleanvm&quot;</combinationFilter>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
+# fetch the latest automation updates
+update_automation jenkins-job-trigger
+
+freshvm cleanvm
+sleep 100
+
+cloudsource=openstack$openstack_version
+oshead=1
+
+# collection of patches not applied yet (bnc#807540)
+rsync -av /home/jenkins/files2vm/* root@cleanvm:
+
+ssh root@cleanvm &quot;export cloudsource=$cloudsource; export OSHEAD=$oshead; export NONINTERACTIVE=1; init 3; curl https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/qa_openstack.sh|bash -x&quot;
+
+# mappings for submit job trigger
+OSversion=`echo $openstack_version | perl -ne &apos;print ucfirst($_)&apos;`
+case $OSversion in
+  Essex|Folsom|Grizzly)
+      project=Cloud:OpenStack:$OSversion
+      subproject=Staging
+
+      # trigger submit job
+      jenkins-job-trigger cloud-submit-project -p project=$project subproject=$subproject
+  ;;
+  Master)
+      project=Cloud:OpenStack:Master
+      subproject=-
+  ;;
+  *) echo &quot;No valid project defined.&quot;
+     exit 1
+esac</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.3"/>
+  </buildWrappers>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>false</runSequentially>
+  </executionStrategy>
+</matrix-project>
