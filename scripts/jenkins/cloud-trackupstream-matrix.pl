@@ -4,6 +4,16 @@
 # The matrix configuration is computed using the rules in the following big hash.
 #
 
+use strict;
+use XML::LibXML;
+
+# this groovy snippet is added to the combination filter
+#  it can be used to temporarily turn off builds for a part of the
+#  matrix, that are not influenced by the combination hash below
+#  eg. disble builds for C:OS:Master ->  'project != "Cloud:OpenStack:Master"'
+my $combination_filter_static='project != "Cloud:OpenStack:Master"';
+
+
 # this hash defines for which project which packages should be tracked via trackupstream
 my %tu = (
   "OBS/Cloud:OpenStack:Master" => [ qw(
@@ -100,6 +110,59 @@ my %tu = (
 );
 
 
+sub xml_replace_text($$$)
+{
+  my ($node, $path, $text) = @_;
+  die "Error: node, path or text undefined." unless ($node && $path && defined $text);
+  my $nodeL = $node->find($path);
+  my $onenode;
+  $onenode = $nodeL->pop() if $nodeL->size() > 0;
+  die "Error: Could not find an xml element with the statement $path, exiting." unless $onenode;
+  $onenode->removeChildNodes();
+  $onenode->addChild(XML::LibXML::Text->new($text));
+}
+
+sub xml_replace_elementlist($$$@)
+{
+  my ($node, $path, $element, @elmlist) = @_;
+  die "Error: node, path, element or text undefined." unless ($node && $path && $element && @elmlist);
+  my $nodeL = $node->find($path);
+  my $onenode;
+  $onenode = $nodeL->pop() if $nodeL->size() > 0;
+  die "Error: Could not find an xml element with the statement $path, exiting." unless $onenode;
+  $onenode->removeChildNodes();
+
+  foreach my $val (sort @elmlist)
+  {
+    my $newnode = XML::LibXML::Element->new($element);
+    $newnode->appendTextNode($val);
+    $onenode->addChild($newnode);
+  }
+}
+
+sub file_read_xml($)
+{
+  my $file = shift || die "Error: no input file to read the service xml data from.";
+  open (my $FH, '<', $file) or die $!;
+  binmode $FH;
+  my $parser=XML::LibXML->new();
+  my $xml = $parser->load_xml(
+    IO => $FH,
+    { no_blanks => 1 }
+  );
+  close $FH;
+  return $xml;
+}
+
+sub file_write($$)
+{
+  my ($file, $data) = @_;
+  open (my $FH, '>', $file) or die $!;
+  binmode $FH;
+  print $FH $data;
+  close $FH;
+}
+
 sub combination_filter($)
 {
   my $bs=shift || die "Error: no BS set";
@@ -119,29 +182,60 @@ sub combination_filter($)
 
     push @filter, $onerule;
   }
-  print join(" && ", @filter);
+  return join(" && ", ($combination_filter_static, @filter));
 }
 
 sub project_list($)
 {
   my $bs=shift || die "Error: no BS set";
+  my @projects=();
   foreach my $p (keys %tu)
   {
     next unless $p =~ /^$bs/;
     my $pp = $p;
     $pp =~ s#^.BS/##;
-    print $pp."\n";
+    push @projects, $pp;
   }
+  return sort keys %{{ map { $_ => 1 } @projects }};
 }
 
 sub component_list($)
 {
   my $bs=shift || die "Error: no BS set";
+  my @components=();
   foreach my $p (keys %tu)
   {
     next unless $p =~ /^$bs/;
-    print join("\n", @{$tu{$p}} );
+    push @components, @{$tu{$p}};
   }
+  return sort keys %{{ map { $_ => 1 } @components }};
+}
+
+sub adaptmatrix_jobfile($$)
+{
+  my $bs=shift || die "Error: no BS set";
+  my $tufile=shift || die "Error: no trackupstream file set";
+  die "Error: trackupstream file '$tufile' does not exist" if (! -e $tufile);
+
+  my $xmldom=file_read_xml($tufile);
+  # replace combination filter
+  xml_replace_text($xmldom, "/matrix-project[1]/combinationFilter[1]", combination_filter($bs));
+  # replace component axis
+  xml_replace_elementlist($xmldom, "/matrix-project[1]/axes[1]/*/name[.='component']/following-sibling::values[1]", "string", component_list($bs));
+  # replace project axis
+  xml_replace_elementlist($xmldom, "/matrix-project[1]/axes[1]/*/name[.='project']/following-sibling::values[1]",   "string", project_list($bs)  );
+
+  #local $XML::LibXML::skipXMLDeclaration=1;
+  file_write($tufile, $xmldom->toString(1));
+}
+
+sub clean_xml($)
+{
+  # just reformat the xml, this will make sure the LibXML output gets versioned
+  # the output of the jenkins api is a slightly different and would create useless diffs over and over
+  my $tufile=shift || die "Error: no file set to be cleaned";
+  my $xmldom=file_read_xml($tufile);
+  file_write($tufile, $xmldom->toString());
 }
 
 sub usage()
@@ -152,6 +246,9 @@ sub usage()
     filter:    creates the combination filter (as not all combinations of the matrix are allowed
     project:   creates the list of values for the Matrix Axis 'project'
     component: creates the list of values for the Matrix Axis 'component'
+    adaptmatrix <jobfile>: changes the axis values and the filter of the trackupstream job in <jobfile>
+    reformat    <jobfile>: let LibXML reformat the file (before checking it in) in order to prevent useless diffs
+                           'japi fetch(-all)' does it imlpicitly; use reformat after manual changes to the files
 ";
 }
 
@@ -161,10 +258,18 @@ my $BS=shift || die usage();
 my $cmd=shift || die usage();
 
 if ($cmd eq 'filter') {
-  combination_filter($BS);
+  print combination_filter($BS);
 } elsif ($cmd eq 'project') {
-  project_list($BS);
+  print join("\n", project_list($BS));
 } elsif ($cmd eq 'component') {
-  component_list($BS);
+  print join("\n", component_list($BS));
+} elsif ($cmd eq 'adaptmatrix') {
+  my $jobfile=shift || die usage();
+  adaptmatrix_jobfile($BS, $jobfile);
+} elsif ($cmd eq 'reformat') {
+  my $jobfile=shift || die usage();
+  clean_xml($jobfile);
+} else {
+  die usage();
 }
 
