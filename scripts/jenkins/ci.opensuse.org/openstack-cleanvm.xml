@@ -1,7 +1,7 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <matrix-project>
   <actions/>
-  <description></description>
+  <description/>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
@@ -30,7 +30,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>slave==&quot;openstack-cleanvm&quot;</combinationFilter>
+  <combinationFilter>slave=="openstack-cleanvm"</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
@@ -46,10 +46,10 @@ oshead=1
 # collection of patches not applied yet (bnc#807540)
 rsync -av /home/jenkins/files2vm/* root@cleanvm:
 
-ssh root@cleanvm &quot;export cloudsource=$cloudsource; export OSHEAD=$oshead; export NONINTERACTIVE=1; init 3; curl https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/qa_openstack.sh|bash -x&quot;
+ssh root@cleanvm "export cloudsource=$cloudsource; export OSHEAD=$oshead; export NONINTERACTIVE=1; init 3; curl https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/qa_openstack.sh|bash -x"
 
 # mappings for submit job trigger
-OSversion=`echo $openstack_version | perl -ne &apos;print ucfirst($_)&apos;`
+OSversion=`echo $openstack_version | perl -ne 'print ucfirst($_)'`
 case $OSversion in
   Essex|Folsom|Grizzly)
       project=Cloud:OpenStack:$OSversion
@@ -62,7 +62,7 @@ case $OSversion in
       project=Cloud:OpenStack:Master
       subproject=-
   ;;
-  *) echo &quot;No valid project defined.&quot;
+  *) echo "No valid project defined."
      exit 1
 esac</command>
     </hudson.tasks.Shell>

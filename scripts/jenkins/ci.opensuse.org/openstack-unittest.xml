@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <matrix-project>
   <actions/>
   <description>vi</description>
@@ -50,7 +50,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! ( [&quot;folsom-SLE-11-SP2&quot;, &quot;folsom-openSUSE-12.2&quot;].contains(distribution) &amp;&amp; [&quot;openstack-ceilometer&quot;, &quot;openstack-heat&quot;, &quot;python-olso.config&quot;].contains(component) )</combinationFilter>
+  <combinationFilter>! ( ["folsom-SLE-11-SP2", "folsom-openSUSE-12.2"].contains(distribution) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-olso.config"].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># zypper in osc
@@ -65,7 +65,7 @@ update_automation openstack-unittest-testconfig.pl
 package=$component
 
 # basic configuration
-OSC_RC=&quot;$OSC_RC -A https://api.opensuse.org&quot;
+OSC_RC="$OSC_RC -A https://api.opensuse.org"
 OSC_ARCH=x86_64
 
 case $distribution in
@@ -92,7 +92,7 @@ esac
 cloudrepo=http://download.opensuse.org/repositories/${dist//:/:\/}/${OSC_DIST}/
 zypper ar $cloudrepo cloud || true
 zypper mr --priority 70 cloud
-if [[ $dist =~ &quot;:Staging&quot; ]] ; then
+if [[ $dist =~ ":Staging" ]] ; then
   zypper ar ${cloudrepo/:\/Staging/} cloud-full || true
   zypper mr --priority 70 cloud-full
 fi
@@ -116,12 +116,12 @@ export TZ=UTC
 ################
 
 # default test command
-[ -z &quot;$TESTCMD&quot; ] &amp;&amp; TESTCMD=&quot;nosetests -v&quot;
+[ -z "$TESTCMD" ] &amp;&amp; TESTCMD="nosetests -v"
 
 
-EXTRAPKGS=&quot;&quot;
+EXTRAPKGS=""
 # example:
-# [ &quot;$package&quot; = &quot;openstack-nova&quot; ] &amp;&amp; EXTRAPKGS=&quot;python-xxx&quot;
+# [ "$package" = "openstack-nova" ] &amp;&amp; EXTRAPKGS="python-xxx"
 
 zypper --non-interactive in -y osc
 
@@ -143,14 +143,14 @@ fi
 
 test_exitcode=1
 
-echo &quot;=== Running SETUPCMD ===&quot; &gt; /dev/null
-eval &quot;$SETUPCMD&quot; 
-echo &quot;=== Running TESTCMD ===&quot; &gt; /dev/null
+echo "=== Running SETUPCMD ===" &gt; /dev/null
+eval "$SETUPCMD"
+echo "=== Running TESTCMD ===" &gt; /dev/null
 $TESTCMD
 test_exitcode=$?
 
-echo &quot;=== Running TEARDOWNCMD ===&quot; &gt; /dev/null
-eval &quot;$TEARDOWNCMD&quot;
+echo "=== Running TEARDOWNCMD ===" &gt; /dev/null
+eval "$TEARDOWNCMD"
 
 exit $test_exitcode</command>
     </hudson.tasks.Shell>

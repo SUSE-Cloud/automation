@@ -1,7 +1,7 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>This job submits packages from the &quot;staging&quot; subproject of an OBS project to the main project.&#xd;
+  <description>This job submits packages from the "staging" subproject of an OBS project to the main project.&#13;
 Only packages that built successfully are submitted.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
@@ -10,7 +10,7 @@ Only packages that built successfully are submitted.</description>
         <hudson.model.StringParameterDefinition>
           <name>project</name>
           <description>Name of the main project that should be updated with packages from its staging project.</description>
-          <defaultValue></defaultValue>
+          <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>subproject</name>
@@ -31,10 +31,10 @@ Only packages that built successfully are submitted.</description>
   <builders>
     <hudson.tasks.Shell>
       <command>case $subproject in
-  None) echo &quot;No valid &apos;subproject&apos; provided - defaults for safety reasons to &apos;None&apos;&quot;
+  None) echo "No valid 'subproject' provided - defaults for safety reasons to 'None'"
         exit 1
   ;;
-  &quot;-&quot;)  echo &quot;Subproject set to &apos;-&apos;: skip job, do not fail (eg. for Master project)&quot;
+  "-")  echo "Subproject set to '-': skip job, do not fail (eg. for Master project)"
         exit 0
   ;;
 esac
@@ -42,14 +42,14 @@ esac
 COS=$project
 COSS=$COS:$subproject
 export OBS_CHECKOUT=/home/jenkins/OBS_CHECKOUT/$COSS
-OSC=&quot;osc -A https://api.opensuse.org&quot;
-submitcmd=&quot;echo no submit for project=$project&quot;
+OSC="osc -A https://api.opensuse.org"
+submitcmd="echo no submit for project=$project"
 
 case $project in
   Cloud:OpenStack:[EFGH]*)
-    submitcmd=&quot;$OSC copypac -K -e&quot;
+    submitcmd="$OSC copypac -K -e"
   ;;
-  *) echo &quot;Please add support for the project: $project&quot;
+  *) echo "Please add support for the project: $project"
      exit 1
 esac
 
@@ -58,9 +58,9 @@ do
   cd $OBS_CHECKOUT || exit 1
   cd $COMPONENT || exit 1
 
-  grep -q &quot;&lt;linkinfo&quot; .osc/_files || exit 2
+  grep -q "&lt;linkinfo" .osc/_files || exit 2
 
-  if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp;  $OSC api /build/$COSS/SLE_11_SP2/x86_64/$COMPONENT/_status | grep -q &apos;code=&quot;succeeded&quot;&apos;
+  if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp;  $OSC api /build/$COSS/SLE_11_SP2/x86_64/$COMPONENT/_status | grep -q 'code="succeeded"'
   then
     $submitcmd $COSS $COMPONENT $COS
   fi
@@ -71,7 +71,7 @@ done</command>
   <buildWrappers>
     <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.3"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.3">
-      <template>openstack-submit: ${ENV,var=&quot;project&quot;}:${ENV,var=&quot;subproject&quot;}</template>
+      <template>openstack-submit: ${ENV,var="project"}:${ENV,var="subproject"}</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
   </buildWrappers>
 </project>
