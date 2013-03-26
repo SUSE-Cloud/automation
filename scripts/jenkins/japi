@@ -65,6 +65,39 @@ sub xml_get_elements($$;$)
   return @results;
 }
 
+sub file_read_xml($)
+{
+  my $file = shift || die "Error: no input file to read the service xml data from.";
+  open (my $FH, '<', $file) or die $!;
+  binmode $FH;
+  my $parser=XML::LibXML->new();
+  my $xml = $parser->load_xml(
+    IO => $FH,
+    { no_blanks => 1 }
+  );
+  close $FH;
+  return $xml;
+}
+
+sub file_write($$)
+{
+  my ($file, $data) = @_;
+  open (my $FH, '>', $file) or die $!;
+  binmode $FH;
+  print $FH $data;
+  close $FH;
+}
+
+sub clean_xml($)
+{
+  # just reformat the xml, this will make sure the LibXML output gets versioned
+  # the output of the jenkins api is a slightly different and would create useless diffs over and over
+  # otherwise we could not edit the xml via LibXML automatically
+  my $tufile=shift || die "Error: no file set to be cleaned";
+  my $xmldom=file_read_xml($tufile);
+  file_write($tufile, $xmldom->toString(1));
+}
+
 sub get_cloud_job_list
 {
   my $curlcmd="curl --silent $jurl/config.xml";
@@ -80,6 +113,8 @@ sub fetch_job($)
   my $fetchurl=$jurlbase."/job/$jobname/config.xml";
   print "fetching $jobname\n";
   system(qw(curl --silent --output), "./${JURL}/${jobname}.xml", $fetchurl);
+  # beautify the xml in order to have consistent LibXML output and prevent useless diffs
+  clean_xml("./${JURL}/${jobname}.xml");
 }
 
 sub fetch_jobs
