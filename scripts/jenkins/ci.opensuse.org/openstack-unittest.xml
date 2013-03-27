@@ -74,6 +74,8 @@ case $distribution in
             ###(dmueller): change to SP3 when available           
   *-SLE-11-SP3) OSC_DIST=SLE_11_SP2
              ;;
+  *-openSUSE-12.3) OSC_DIST=openSUSE_12.3
+             ;;
   *-openSUSE-12.2) OSC_DIST=openSUSE_12.2
              ;;
 esac
