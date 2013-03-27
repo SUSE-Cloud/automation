@@ -229,15 +229,6 @@ sub adaptmatrix_jobfile($$)
   file_write($tufile, $xmldom->toString(1));
 }
 
-sub clean_xml($)
-{
-  # just reformat the xml, this will make sure the LibXML output gets versioned
-  # the output of the jenkins api is a slightly different and would create useless diffs over and over
-  my $tufile=shift || die "Error: no file set to be cleaned";
-  my $xmldom=file_read_xml($tufile);
-  file_write($tufile, $xmldom->toString());
-}
-
 sub usage()
 {
   return "Usage:
@@ -247,8 +238,6 @@ sub usage()
     project:   creates the list of values for the Matrix Axis 'project'
     component: creates the list of values for the Matrix Axis 'component'
     adaptmatrix <jobfile>: changes the axis values and the filter of the trackupstream job in <jobfile>
-    reformat    <jobfile>: let LibXML reformat the file (before checking it in) in order to prevent useless diffs
-                           'japi fetch(-all)' does it imlpicitly; use reformat after manual changes to the files
 ";
 }
 
@@ -266,9 +255,6 @@ if ($cmd eq 'filter') {
 } elsif ($cmd eq 'adaptmatrix') {
   my $jobfile=shift || die usage();
   adaptmatrix_jobfile($BS, $jobfile);
-} elsif ($cmd eq 'reformat') {
-  my $jobfile=shift || die usage();
-  clean_xml($jobfile);
 } else {
   die usage();
 }

@@ -34,6 +34,7 @@ sub usage()
     push  <jobname> : push one or more job configurations
     fetch-all <prefix> : fetch all jobs that match one of the <prefix>es
     push-all  <prefix> : push all jobs that match one of the <prefix>es
+    reformat  <file>   : reformat the XML after manual changes
 
   The <jobname> has to be the exact job name (no directory, no trailing .xml)
   The <prefix> will match all
@@ -211,5 +212,10 @@ if ($cmd eq "fetch") {
   push_jobs(@ARGV);
 } elsif ($cmd eq "push-all") {
   pushall_jobs(@ARGV);
+} elsif ($cmd eq "reformat") {
+  my $jobfile=shift;
+  clean_xml($jobfile);
+} else {
+  die usage();
 }
 
