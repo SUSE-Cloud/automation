@@ -160,6 +160,8 @@ sub push_job($)
   my $jobname=shift || die "Error: no jobname specified";
   my $pushurl=$jurlbase."/job/$jobname/config.xml";
   print "processing job: $jobname:\n";
+  # make sure the output is reformatted by libXML
+  clean_xml("${JURL}/${jobname}.xml");
   # update
   open(my $pipe, "-|", qw(curl --silent -X POST --data-binary), "\@${JURL}/${jobname}.xml", $pushurl);
   if (has_error($pipe)) {
