@@ -26,11 +26,11 @@
     <hudson.matrix.LabelAxis>
       <name>slave</name>
       <values>
-        <string>cloud-ci1</string>
+        <string>cloud-cleanvm</string>
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>slave=="openstack-cleanvm"</combinationFilter>
+  <combinationFilter>slave=="cloud-cleanvm"</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
