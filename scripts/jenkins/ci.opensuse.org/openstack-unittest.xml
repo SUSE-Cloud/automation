@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <matrix-project>
   <actions/>
-  <description>vi</description>
+  <description>run unittests on different workers with different base-OS and different library versions</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
@@ -58,7 +58,8 @@
 
 
 # fetch the latest automation updates
-[ -e /root/bin/update_automation ] || wget -O /root/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x /root/bin/update_automation
+mkdir -p ~/bin
+[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
 update_automation openstack-unittest-testconfig.pl
 
 # package is a reserved name in groovy (see combination filter)

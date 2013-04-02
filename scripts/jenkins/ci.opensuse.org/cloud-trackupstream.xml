@@ -97,7 +97,8 @@ COMPONENT=$component
 # zypper in osc obs-service-tar_scm obs-service-github_tarballs obs-service-recompress obs-service-git_tarballs obs-service-set_version
 [ -z "$PROJECTSOURCE" ] &amp;&amp; ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
 
-[ -e /root/bin/update_automation ] || wget -O /root/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x /root/bin/update_automation
+mkdir -p ~/bin
+[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
 # fetch the latest automation updates
 update_automation track-upstream-and-package.pl
 
