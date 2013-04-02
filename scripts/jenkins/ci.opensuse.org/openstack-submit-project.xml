@@ -30,7 +30,12 @@ Only packages that built successfully are submitted.</description>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>case $subproject in
+      <command># DEBUG MODE with E=echo
+# NORMAL MODE with E=
+E=
+#==========================
+
+case $subproject in
   None) echo "No valid 'subproject' provided - defaults for safety reasons to 'None'"
         exit 1
   ;;
@@ -39,14 +44,29 @@ Only packages that built successfully are submitted.</description>
   ;;
 esac
 
+export BS=OBS
+export BS_CHECKOUT=/home/jenkins/${BS}_CHECKOUT/$COSS
+case $BS in
+  OBS)
+    OSC="osc -A https://api.opensuse.org"
+  ;;
+  IBS)
+    OSC="osc -A https://api.suse.de"
+  ;;
+esac
+
 COS=$project
 COSS=$COS:$subproject
-export OBS_CHECKOUT=/home/jenkins/OBS_CHECKOUT/$COSS
-OSC="osc -A https://api.opensuse.org"
 submitcmd="echo no submit for project=$project"
 
 case $project in
   Cloud:OpenStack:[EFGH]*)
+    submitcmd="$OSC copypac -K -e"
+  ;;
+  Devel:Cloud:2.0)
+    submitcmd="$OSC copypac -K -e"
+  ;;
+  isv:SUSE:Cloud:2.0)
     submitcmd="$OSC copypac -K -e"
   ;;
   *) echo "Please add support for the project: $project"
@@ -55,14 +75,14 @@ esac
 
 for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null`
 do
-  cd $OBS_CHECKOUT || exit 1
+  cd $BS_CHECKOUT || exit 1
   cd $COMPONENT || exit 1
 
   grep -q "&lt;linkinfo" .osc/_files || exit 2
 
   if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp;  $OSC api /build/$COSS/SLE_11_SP2/x86_64/$COMPONENT/_status | grep -q 'code="succeeded"'
   then
-    $submitcmd $COSS $COMPONENT $COS
+    $E $submitcmd $COSS $COMPONENT $COS
   fi
 done</command>
     </hudson.tasks.Shell>
