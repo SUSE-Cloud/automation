@@ -22,7 +22,8 @@ my $uttrigger = {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
                                          "SETUPCMD=rcmongodb start\n".
                                          "TEARDOWNCMD=rcmongodb stop",
-        'openstack-cinder'            => "COMPONENT=openstack-cinder",
+        'openstack-cinder'            => "COMPONENT=openstack-cinder" .
+                                         "TESTCMD=./run_tests.sh -N -P",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
                                          "TESTCMD=./run_tests.sh -N",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
@@ -63,7 +64,8 @@ my $uttrigger = {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
                                          "SETUPCMD=rcmongodb start\n".
                                          "TEARDOWNCMD=rcmongodb stop",
-        'openstack-cinder'            => "COMPONENT=openstack-cinder",
+        'openstack-cinder'            => "COMPONENT=openstack-cinder" .
+                                         "TESTCMD=./run_tests.sh -N -P",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
                                          "TESTCMD=./run_tests.sh -N",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
