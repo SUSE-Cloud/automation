@@ -94,7 +94,7 @@ if [ $VERSION = 11 ] ; then
 fi
 
 # install maintenance updates
-zypper patch --skip-interactive
+zypper -n patch --skip-interactive
 
 # grizzly or master does not want dlp
 if [ "$cloudsource" == "develcloud1.0" -o "$cloudsource" == "develcloud" ]; then
@@ -116,6 +116,9 @@ ls -la /var/lib/nova
 # FIXME WORKAROUND for bnc#807540
 [ -e ~/rabbitmq-init.diff ] && patch /etc/init.d/rabbitmq-server < ~/rabbitmq-init.diff
 
+# Everything below here is fatal
+#set -e
+
 # setup non-bridged network:
 cat >/etc/sysconfig/network/ifcfg-brclean <<EOF
 BOOTPROTO='static'
@@ -136,13 +139,14 @@ NAME=''
 EOF
 ifup brclean
 
-if [ "$MODE" = lxc ] ; then # copied from quickstart # TODO: drop
-        sed -i -e 's/\(--libvirt_type\).*/\1=lxc/' /etc/nova/nova.conf
-        zypper -n install lxc
-        echo mount -t cgroup none /cgroup >> /etc/init.d/boot.local
-        mkdir /cgroup
-        mount -t cgroup none /cgroup
-fi
+
+#if [ "$MODE" = lxc ] ; then # copied from quickstart # TODO: drop
+#        sed -i -e 's/\(--libvirt_type\).*/\1=lxc/' /etc/nova/nova.conf
+#        zypper -n install lxc
+#        echo mount -t cgroup none /cgroup >> /etc/init.d/boot.local
+#        mkdir /cgroup
+#        mount -t cgroup none /cgroup
+#fi
 
 for i in $interfaces ; do
 	IP=$(ip a show dev $i|perl -ne 'm/inet ([0-9.]+)/ && print $1')
@@ -219,5 +223,17 @@ for i in $interfaces ; do
 done
 tail -2 /etc/init.d/boot.local | sh
 vmip=`nova show testvm|perl -ne 'm/network\D*(\d+\.\d+\.\d+\.\d+)/ && print $1'`
-ssh -o "StrictHostKeyChecking no" root@$vmip curl --silent www3.zq1.de/test.txt && test $volumeret = 0
+echo "VM IP: $vmip"
+if [ -n "$vmip" ]; then
+    ping -c 2 $vmip || true
+    ssh -o "StrictHostKeyChecking no" root@$vmip curl --silent www3.zq1.de/test.txt && test $volumeret = 0
+else
+    echo "INSTANCE doesn't seem to be running:"
+    nova show
 
+    if [ "$cloudsource" == "openstackgrizzly" -o "$cloudsource" == "openstackmaster"]; then
+        exit 0
+    fi
+
+    exit 1
+fi
