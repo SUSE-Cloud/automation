@@ -170,9 +170,15 @@ ps ax
 nova flavor-create smaller --ephemeral 20 12 768 0 1
 #nova flavor-create smaller --ephemeral 20 12 1536 0 1 # for host
 
-# nova-volume
-nova volume-create 1 ; sleep 2
-nova volume-list
+if [ "$cloudsource" == "develcloud1.0" -o "$cloudsource" == "develcloud" ]; then
+    # nova-volume
+    nova volume-create 1 ; sleep 2
+    nova volume-list
+else
+    # cinder
+    cinder create 1 ; sleep 5
+    cinder list
+fi
 lvscan | grep .
 volumeret=$?
 
