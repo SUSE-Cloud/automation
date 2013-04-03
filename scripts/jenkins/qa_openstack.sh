@@ -83,11 +83,17 @@ if [ $VERSION = 11 ] ; then
   zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2/ SP2up
   zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2-CORE/ SP2core
 fi
-if [ $VERSION = 12.2 ] ; then
-  zypper ar http://download.opensuse.org/repositories/devel:/languages:/python/$REPO/ dlp
-  zypper ar http://download.opensuse.org/repositories/Virtualization:/openSUSE12.2/openSUSE_12.2/Virtualization:openSUSE12.2.repo # workaround https://bugzilla.novell.com/793900
+
+# grizzly or master does not want dlp
+if [ "$cloudsource" == "develcloud1.0" -o "$cloudsource" == "develcloud" ]; then
+    if [ $VERSION = 12.2 ] ; then
+        zypper ar http://download.opensuse.org/repositories/devel:/languages:/python/$REPO/ dlp
+        zypper ar http://download.opensuse.org/repositories/Virtualization:/openSUSE12.2/openSUSE_12.2/Virtualization:openSUSE12.2.repo # workaround https://bugzilla.novell.com/793900
+    fi
+    zypper mr --priority 200 dlp
+else
+    zypper rr dlp || true
 fi
-zypper mr --priority 200 dlp
 
 #zypper ar http://$hostname/install/SLP/SLE-11-SP2-SDK-LATEST/$ARCH/DVD1/ SLE-11-SDK-SP2-LATEST # for memcached and python-m2crypto (otherwise on CloudProduct)
 zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
