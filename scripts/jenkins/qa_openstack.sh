@@ -33,37 +33,37 @@ hostname=dist.suse.de
 ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
 case "$cloudsource" in
   develcloud1.0)
-	zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/1.0/$REPO/Devel:Cloud:1.0.repo
+	zypper ar -f http://dist.suse.de/ibs/Devel:/Cloud:/1.0/$REPO/Devel:Cloud:1.0.repo
 	if test -n "$OSHEAD" ; then
-		zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/1.0:/OpenStack/$REPO/ cloudhead
+		zypper ar -f http://dist.suse.de/ibs/Devel:/Cloud:/1.0:/OpenStack/$REPO/ cloudhead
 	fi
   ;;
   develcloud)
-	zypper ar http://dist.suse.de/ibs/Devel:/Cloud/$REPO/Devel:Cloud.repo
+	zypper ar -f http://dist.suse.de/ibs/Devel:/Cloud/$REPO/Devel:Cloud.repo
 	if test -n "$OSHEAD" ; then
-		zypper ar http://dist.suse.de/ibs/Devel:/Cloud:/Head/$REPO/ cloudhead
+		zypper ar -f http://dist.suse.de/ibs/Devel:/Cloud:/Head/$REPO/ cloudhead
 	fi
   ;;
   openstackessex)
-	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex/$REPO/Cloud:OpenStack:Essex.repo
+	zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex/$REPO/Cloud:OpenStack:Essex.repo
 	if test -n "$OSHEAD" ; then
-		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex:/Staging/$REPO/ cloudhead
+		zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex:/Staging/$REPO/ cloudhead
 	fi
   ;;
   openstackfolsom)
-	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom/$REPO/Cloud:OpenStack:Folsom.repo
+	zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom/$REPO/Cloud:OpenStack:Folsom.repo
 	if test -n "$OSHEAD" ; then
-		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom:/Staging/$REPO/ cloudhead
+		zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom:/Staging/$REPO/ cloudhead
 	fi
   ;;
   openstackgrizzly)
-	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly/$REPO/Cloud:OpenStack:Grizzly.repo
+	zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly/$REPO/Cloud:OpenStack:Grizzly.repo
 	if test -n "$OSHEAD" ; then
-		zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly:/Staging/$REPO/ cloudhead
+		zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly:/Staging/$REPO/ cloudhead
 	fi
   ;;
   openstackmaster)
-	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/Cloud:OpenStack:Master.repo
+	zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/Cloud:OpenStack:Master.repo
 	# no staging for master
   ;;
   *)
@@ -71,18 +71,30 @@ case "$cloudsource" in
 	exit 37
   ;;
 esac
-# use high prio so that packages will be preferred from here over Devel:Cloud
-zypper mr --priority 42 cloudhead
+
+# when using OSHEAD, dup from there
+if [ -n "$OSHEAD" ]; then
+    zypper dup --from cloudhead
+    # use high prio so that packages will be preferred from here over Devel:Cloud
+    zypper mr --priority 42 cloudhead
+fi
 if [ $VERSION = 11 ] ; then
+
+  if [ "$cloudsource" == "develcloud1.0" -o "$cloudsource" == "develcloud" ]; then
+      zypper ar http://dist.suse.de/install/SLP/SLE-11-SP2-CLOUD-GM/x86_64/DVD1/ CloudProduct
+      zypper ar http://download.nue.suse.com/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/standard/SUSE:SLE-11-SP2:Update:Products:Test.repo
+  else
+      zypper rr CloudProduct || true
+      zypper rr SUSE_SLE-11-SP2_Update_Products_Test || true
+  fi
   zypper ar http://$hostname/install/SLP/SLES-11-SP2-LATEST/$ARCH/DVD1/ SLES-11-SP2-LATEST
-  #zypper ar 'http://smt.suse.de/repo/$RCE/SLES11-SP1-Updates/sle-11-x86_64/' sp1up
-  #zypper ar 'http://smt.suse.de/repo/$RCE/SLES11-SP2-Updates/sle-11-x86_64/' sp2up
-  zypper ar http://dist.suse.de/install/SLP/SLE-11-SP2-CLOUD-GM/x86_64/DVD1/ CloudProduct
-  zypper ar http://download.nue.suse.com/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/standard/SUSE:SLE-11-SP2:Update:Products:Test.repo
   zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP1/ SP1up # for python268
   zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2/ SP2up
   zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2-CORE/ SP2core
 fi
+
+# install maintenance updates
+zypper patch --skip-interactive
 
 # grizzly or master does not want dlp
 if [ "$cloudsource" == "develcloud1.0" -o "$cloudsource" == "develcloud" ]; then
@@ -95,11 +107,8 @@ else
     zypper rr dlp || true
 fi
 
-#zypper ar http://$hostname/install/SLP/SLE-11-SP2-SDK-LATEST/$ARCH/DVD1/ SLE-11-SDK-SP2-LATEST # for memcached and python-m2crypto (otherwise on CloudProduct)
 zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 zypper --gpg-auto-import-keys -n ref
-zypper -n dup -r Devel_Cloud # upgrade python
-#zypper -v --gpg-auto-import-keys -n install patterns-OpenStack-controller patterns-OpenStack-compute-node || exit 123
 zypper -v --gpg-auto-import-keys -n install -t pattern cloud_controller cloud_compute
 zypper -n install openstack-quickstart python-glanceclient patch # was not included in meta-patterns
 ls -la /var/lib/nova
