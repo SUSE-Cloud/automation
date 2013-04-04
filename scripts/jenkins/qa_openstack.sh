@@ -233,7 +233,7 @@ if [ -n "$vmip" ]; then
     ssh -o "StrictHostKeyChecking no" root@$vmip curl --silent www3.zq1.de/test.txt && test $volumeret = 0
 else
     echo "INSTANCE doesn't seem to be running:"
-    nova show
+    nova show testvm
 
     if [ "$cloudsource" == "openstackgrizzly" -o "$cloudsource" == "openstackmaster" ]; then
         exit 0
