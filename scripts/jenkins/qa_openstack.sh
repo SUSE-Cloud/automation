@@ -235,7 +235,7 @@ else
     echo "INSTANCE doesn't seem to be running:"
     nova show
 
-    if [ "$cloudsource" == "openstackgrizzly" -o "$cloudsource" == "openstackmaster"]; then
+    if [ "$cloudsource" == "openstackgrizzly" -o "$cloudsource" == "openstackmaster" ]; then
         exit 0
     fi
 
