@@ -110,11 +110,9 @@ fi
 zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 zypper --gpg-auto-import-keys -n ref
 zypper -v --gpg-auto-import-keys -n install -t pattern cloud_controller cloud_compute
-zypper -n install openstack-quickstart python-glanceclient patch # was not included in meta-patterns
+zypper -n install openstack-quickstart python-glanceclient
+zypper -n install patch # was not included in meta-patterns
 ls -la /var/lib/nova
-
-# FIXME WORKAROUND for bnc#807540
-[ -e ~/rabbitmq-init.diff ] && patch /etc/init.d/rabbitmq-server < ~/rabbitmq-init.diff
 
 # Everything below here is fatal
 #set -e
