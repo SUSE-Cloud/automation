@@ -38,6 +38,7 @@ my $uttrigger = {
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
                                          "TESTCMD=./.unittests",
         'python-cinderclient'         => "COMPONENT=python-cinderclient",
+        'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
         'python-heatclient'           => "COMPONENT=python-heatclient\n",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
@@ -81,6 +82,7 @@ my $uttrigger = {
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
                                          "TESTCMD=./.unittests",
         'python-cinderclient'         => "COMPONENT=python-cinderclient",
+        'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
         'python-heatclient'           => "COMPONENT=python-heatclient\n",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",

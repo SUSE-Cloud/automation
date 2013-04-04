@@ -28,6 +28,28 @@ my %tu = (
     openstack-quickstart
     openstack-swift
     python-cinderclient
+    python-ceilometerclient
+    python-glanceclient
+    python-heatclient
+    python-keystoneclient
+    python-novaclient
+    python-quantumclient
+    python-swiftclient
+    python-oslo.config
+  ) ],
+  "OBS/Cloud:OpenStack:Grizzly:Staging" => [ qw(
+    openstack-ceilometer
+    openstack-cinder
+    openstack-dashboard
+    openstack-glance
+    openstack-heat
+    openstack-keystone
+    openstack-nova
+    openstack-quantum
+    openstack-quickstart
+    openstack-swift
+    python-cinderclient
+    python-ceilometerclient
     python-glanceclient
     python-heatclient
     python-keystoneclient
