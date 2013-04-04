@@ -104,7 +104,8 @@ my $uttrigger = {
     },
     unittest   => {
         'openstack-cinder'            => "COMPONENT=openstack-cinder",
-        'openstack-dashboard'         => "COMPONENT=openstack-dashboard",
+        'openstack-dashboard'         => "COMPONENT=openstack-dashboard" .
+                                         "TESTCMD=./run_tests.sh -N",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
                                          "TESTCMD=./run_tests.sh -N glance",
         'openstack-keystone'          => "COMPONENT=openstack-keystone",
