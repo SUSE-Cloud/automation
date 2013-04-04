@@ -41,16 +41,16 @@
     <hudson.matrix.LabelAxis>
       <name>distribution</name>
       <values>
-        <string>folsom-SLE-11-SP2</string>
         <string>folsom-openSUSE-12.2</string>
         <string>grizzly-SLE-11-SP2</string>
         <string>grizzly-SLE-11-SP3</string>
         <string>grizzly-openSUSE-12.2</string>
+        <string>grizzly-openSUSE-12.3</string>
         <string>master-SLE-11-SP2</string>
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! ( ["folsom-SLE-11-SP2", "folsom-openSUSE-12.2"].contains(distribution) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-olso.config"].contains(component) )</combinationFilter>
+  <combinationFilter>! ( ["folsom-openSUSE-12.2"].contains(distribution) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-olso.config"].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># zypper in osc
