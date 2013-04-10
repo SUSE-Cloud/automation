@@ -25,9 +25,9 @@ mount -o remount,noatime,barrier=0 /
 # setup repos
 VERSION=11
 REPO=SLE_11_SP2
-if grep "VERSION = 12.2" /etc/SuSE-release ; then
-  VERSION=12.2
-  REPO=openSUSE_12.2
+if grep "^VERSION = 1[2-4]\\.[0-5]" /etc/SuSE-release ; then
+  VERSION=$(awk -e '/^VERSION = 1[2-4]\./{print $3}' /etc/SuSE-release)
+  REPO=openSUSE_$VERSION
 fi
 hostname=dist.suse.de
 zypper="zypper --non-interactive"
