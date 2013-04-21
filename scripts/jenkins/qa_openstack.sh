@@ -32,40 +32,42 @@ fi
 hostname=dist.suse.de
 zypper="zypper --non-interactive"
 
+zypper rr cloudhead ||true
+
 ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
 case "$cloudsource" in
   develcloud1.0)
-	$zypper ar -f http://dist.suse.de/ibs/Devel:/Cloud:/1.0/$REPO/Devel:Cloud:1.0.repo
+	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/1.0/$REPO/Devel:Cloud:1.0.repo
 	if test -n "$OSHEAD" ; then
 		$zypper ar -f http://dist.suse.de/ibs/Devel:/Cloud:/1.0:/OpenStack/$REPO/ cloudhead
 	fi
   ;;
   develcloud)
-	$zypper ar -f http://dist.suse.de/ibs/Devel:/Cloud/$REPO/Devel:Cloud.repo
+	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud/$REPO/Devel:Cloud.repo
 	if test -n "$OSHEAD" ; then
-		$zypper ar -f http://dist.suse.de/ibs/Devel:/Cloud:/Head/$REPO/ cloudhead
+		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/Head/$REPO/ cloudhead
 	fi
   ;;
   openstackessex)
-	$zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex/$REPO/Cloud:OpenStack:Essex.repo
+	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex/$REPO/Cloud:OpenStack:Essex.repo
 	if test -n "$OSHEAD" ; then
-		$zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex:/Staging/$REPO/ cloudhead
+		$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex:/Staging/$REPO/ cloudhead
 	fi
   ;;
   openstackfolsom)
-	$zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom/$REPO/Cloud:OpenStack:Folsom.repo
+	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom/$REPO/Cloud:OpenStack:Folsom.repo
 	if test -n "$OSHEAD" ; then
 		$zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom:/Staging/$REPO/ cloudhead
 	fi
   ;;
   openstackgrizzly)
-	$zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly/$REPO/Cloud:OpenStack:Grizzly.repo
+	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly/$REPO/Cloud:OpenStack:Grizzly.repo
 	if test -n "$OSHEAD" ; then
-		$zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly:/Staging/$REPO/ cloudhead
+		$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly:/Staging/$REPO/ cloudhead
 	fi
   ;;
   openstackmaster)
-	$zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/Cloud:OpenStack:Master.repo
+	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/Cloud:OpenStack:Master.repo
 	# no staging for master
   ;;
   *)
