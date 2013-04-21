@@ -17,7 +17,7 @@
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
     <hudson.triggers.TimerTrigger>
-      <spec>1 1 * * *</spec>
+      <spec>H 1 * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
@@ -28,34 +28,11 @@
         <string>Cloud:OpenStack:Folsom:Staging</string>
         <string>Cloud:OpenStack:Grizzly:Staging</string>
         <string>Cloud:OpenStack:Master</string>
-        <string>systemsmanagement:crowbar:2.0:staging</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.TextAxis>
       <name>component</name>
       <values>
-        <string>crowbar</string>
-        <string>crowbar-barclamp-ceph</string>
-        <string>crowbar-barclamp-chef</string>
-        <string>crowbar-barclamp-crowbar</string>
-        <string>crowbar-barclamp-database</string>
-        <string>crowbar-barclamp-deployer</string>
-        <string>crowbar-barclamp-dns</string>
-        <string>crowbar-barclamp-ganglia</string>
-        <string>crowbar-barclamp-glance</string>
-        <string>crowbar-barclamp-ipmi</string>
-        <string>crowbar-barclamp-keystone</string>
-        <string>crowbar-barclamp-kong</string>
-        <string>crowbar-barclamp-logging</string>
-        <string>crowbar-barclamp-nagios</string>
-        <string>crowbar-barclamp-network</string>
-        <string>crowbar-barclamp-nova</string>
-        <string>crowbar-barclamp-nova_dashboard</string>
-        <string>crowbar-barclamp-ntp</string>
-        <string>crowbar-barclamp-openstack</string>
-        <string>crowbar-barclamp-provisioner</string>
-        <string>crowbar-barclamp-swift</string>
-        <string>crowbar-barclamp-test</string>
         <string>openstack-ceilometer</string>
         <string>openstack-cinder</string>
         <string>openstack-dashboard</string>
@@ -81,11 +58,10 @@
     <hudson.matrix.LabelAxis>
       <name>label</name>
       <values>
-        <string>cloud-trackupstream</string>
+        <string>openstack-trackupstream</string>
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>project != "Cloud:OpenStack:Master" &amp;&amp; ( project=="systemsmanagement:crowbar:2.0:staging" &amp;&amp; [ "crowbar", "crowbar-barclamp-ceph", "crowbar-barclamp-chef", "crowbar-barclamp-crowbar", "crowbar-barclamp-database", "crowbar-barclamp-deployer", "crowbar-barclamp-dns", "crowbar-barclamp-ganglia", "crowbar-barclamp-glance", "crowbar-barclamp-ipmi", "crowbar-barclamp-keystone", "crowbar-barclamp-kong", "crowbar-barclamp-logging", "crowbar-barclamp-nagios", "crowbar-barclamp-network", "crowbar-barclamp-nova", "crowbar-barclamp-nova_dashboard", "crowbar-barclamp-ntp", "crowbar-barclamp-openstack", "crowbar-barclamp-provisioner", "crowbar-barclamp-swift", "crowbar-barclamp-test",  ].contains(component) ) || ( project=="Cloud:OpenStack:Folsom:Staging" &amp;&amp; [ "openstack-cinder", "openstack-dashboard", "openstack-glance", "openstack-keystone", "openstack-nova", "openstack-quantum", "openstack-quickstart", "openstack-swift",  ].contains(component) ) || ( project=="Cloud:OpenStack:Master" &amp;&amp; [ "openstack-ceilometer", "openstack-cinder", "openstack-dashboard", "openstack-glance", "openstack-heat", "openstack-keystone", "openstack-nova", "openstack-quantum", "openstack-quickstart", "openstack-swift", "python-cinderclient", "python-glanceclient", "python-heatclient", "python-keystoneclient", "python-novaclient", "python-quantumclient", "python-swiftclient", "python-oslo.config",  ].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}
