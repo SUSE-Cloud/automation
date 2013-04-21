@@ -39,7 +39,6 @@
         <string>openstack-glance</string>
         <string>openstack-heat</string>
         <string>openstack-keystone</string>
-        <string>openstack-melange</string>
         <string>openstack-nova</string>
         <string>openstack-quantum</string>
         <string>openstack-quickstart</string>
@@ -49,7 +48,6 @@
         <string>python-glanceclient</string>
         <string>python-heatclient</string>
         <string>python-keystoneclient</string>
-        <string>python-melangeclient</string>
         <string>python-novaclient</string>
         <string>python-oslo.config</string>
         <string>python-quantumclient</string>
