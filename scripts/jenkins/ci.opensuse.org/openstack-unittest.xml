@@ -152,7 +152,9 @@ test_exitcode=1
 echo "=== Running SETUPCMD ===" &gt; /dev/null
 eval "$SETUPCMD"
 echo "=== Running TESTCMD ===" &gt; /dev/null
-$TESTCMD
+eatmydata=/usr/bin/eatmydata
+test -x $eatmydata || eatmydata=""
+perl -e "alarm 60*60 ; exec '$eatmydata $TESTCMD'"
 test_exitcode=$?
 
 echo "=== Running TEARDOWNCMD ===" &gt; /dev/null
