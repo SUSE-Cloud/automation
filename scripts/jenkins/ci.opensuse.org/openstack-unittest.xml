@@ -127,6 +127,7 @@ export TZ=UTC
 EXTRAPKGS=""
 # example:
 # [ "$package" = "openstack-nova" ] &amp;&amp; EXTRAPKGS="python-xxx"
+[ "$package" = "python-quantumclient" ] &amp;&amp; EXTRAPKGS="openstack-quantum"
 
 zypper --non-interactive in -y osc
 
