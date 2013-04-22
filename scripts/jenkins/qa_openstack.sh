@@ -15,8 +15,11 @@ ifconfig | grep inet
 
 # setup optional extra disk
 dev=/dev/vdb
+if ! test -e $dev && file -s /dev/sdb|grep -q "ext3 filesystem data" ; then
+	dev=/dev/sdb
+fi
 if test -e $dev ; then #&& file -s $dev | grep -q "/dev/vdb: data" ; then
-	mkfs.ext3 $dev
+	file -s $dev | grep -q "ext3 filesystem" || mkfs.ext3 $dev
 	mount $dev /mnt/ ; mv /var/lib/* /mnt/ ; mount --move /mnt /var/lib
 	echo $dev /var/lib ext3 noatime,barrier=0,data=writeback 2 1 >> /etc/fstab
 fi
