@@ -24,6 +24,7 @@
         <string>openstack-dashboard</string>
         <string>openstack-glance</string>
         <string>openstack-heat</string>
+        <string>openstack-heat-cfntools</string>
         <string>openstack-keystone</string>
         <string>openstack-nova</string>
         <string>openstack-quantum</string>
