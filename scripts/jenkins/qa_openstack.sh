@@ -98,7 +98,8 @@ if [ $VERSION = 11 ] ; then
 fi
 
 # install maintenance updates
-$zypper -n patch --skip-interactive
+# run twice, first installs zypper update, then the rest
+$zypper -n patch --skip-interactive || $zypper -n patch --skip-interactive
 
 # grizzly or master does not want dlp
 if [ "$cloudsource" == "develcloud1.0" -o "$cloudsource" == "develcloud" ]; then
