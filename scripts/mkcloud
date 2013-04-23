@@ -47,6 +47,8 @@ cpuflags=''
 working_dir_orig=`pwd`
 artifacts_dir=${artifacts_dir:-$working_dir_orig/.artifacts}
 start_time=`date`
+cloudbr=cloudbr1
+mnt=/tmp/cloudmnt
 
 trap 'error_exit $? "error caught by trap"' TERM
 
@@ -129,20 +131,19 @@ function cleanup()
       virsh undefine cloud-$n
   done
   virsh net-destroy cloud-admin
-  rclibvirtd stop
-  killall -9 libvirtd
-  ifdown virbr1
-  brctl delbr virbr1
-  tunctl -d virbr1-nic
-  killall dnsmasq qemu-kvm
-  iptables -F FORWARD
-  iptables -F POSTROUTING -t nat
+  ifdown $cloudbr
+  brctl delbr $cloudbr
+  tunctl -d ${cloudbr}-nic
   # zero node volumes to prevent accidental booting
   for node in $allnodeids ; do
-    dd if=/dev/zero of=/dev/cloud/node$node count=1 bs=512
+    dd if=/dev/zero of=/dev/cloud/node$node count=1 bs=8192
   done
-  umount /mnt
-  losetup -d /dev/loop0
+  umount $mnt
+  for i in /dev/loop* ; do
+    if losetup $i | grep -q cloud-admin ; then
+      losetup -d $i
+    fi
+  done
   rm -f /var/run/libvirt/qemu/cloud*.xml /var/lib/libvirt/network/cloud*.xml
   return 0
 }
@@ -177,11 +178,12 @@ function h_deploy_admin_image()
 
   # make a bigger partition 2
   echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/cloud/admin
-  losetup -o $(expr 2056192 \* 512) /dev/loop0 /dev/cloud/admin
-  fsck -y -f /dev/loop0
-  resize2fs /dev/loop0
+  loopdevice=`losetup --find`
+  losetup -o $(expr 2056192 \* 512) $loopdevice /dev/cloud/admin
+  fsck -y -f $loopdevice
+  resize2fs $loopdevice
   sync
-  losetup -d /dev/loop0
+  losetup -d $loopdevice
 }
 
 function h_add_etchosts_entries()
@@ -306,7 +308,7 @@ function h_create_libvirt_admin_network_config()
   <network>
     <name>cloud-admin</name>
     <uuid>76b08f53-4fe0-3bb6-8220-d4cfc7b23423</uuid>
-    <bridge name='virbr1' stp='off' delay='0' />
+    <bridge name='$cloudbr' stp='off' delay='0' />
     <mac address='52:54:00:AB:B1:77'/>
     <ip address='192.168.124.1' netmask='255.255.248.0'>
       <dhcp>
@@ -324,10 +326,10 @@ function setupadmin()
 {
   echo "Injecting public key into image..."
   pubkey=`cut -d" " -f2 ~/.ssh/id_dsa.pub`
-  mount -o loop,offset=$(expr 2056192 \* 512) /dev/cloud/admin /mnt
-  mkdir -p /mnt/root/.ssh
-  grep -q $pubkey /mnt/root/.ssh/authorized_keys2 2>/dev/null || cat ~/.ssh/id_dsa.pub >> /mnt/root/.ssh/authorized_keys2
-  umount /mnt
+  mount -o loop,offset=$(expr 2056192 \* 512) /dev/cloud/admin $mnt
+  mkdir -p $mnt/root/.ssh
+  grep -q $pubkey $mnt/root/.ssh/authorized_keys2 2>/dev/null || cat ~/.ssh/id_dsa.pub >> $mnt/root/.ssh/authorized_keys2
+  umount $mnt
   sync
 
   h_create_libvirt_adminnode_config /tmp/cloud-admin.xml
@@ -393,17 +395,17 @@ function mkvlan()
 {
   DEFVLAN=$1 ; shift
   IP=$1 ; shift
-  cat > /etc/sysconfig/network/ifcfg-virbr1.$DEFVLAN <<EONET
+  cat > /etc/sysconfig/network/ifcfg-$cloudbr.$DEFVLAN <<EONET
 # VLAN Interface for the xxx network
 USERCONTROL='no'
 STARTMODE='auto'
 BOOTPROTO='static'
-ETHERDEVICE='virbr1'
+ETHERDEVICE='$cloudbr'
 IPADDR='$IP/24'
 VLAN_ID=$DEFVLAN
 EONET
 
-  ifup virbr1.$DEFVLAN
+  ifup $cloudbr.$DEFVLAN
 }
 
 
