@@ -58,7 +58,7 @@
     <hudson.matrix.LabelAxis>
       <name>label</name>
       <values>
-        <string>openstack-trackupstream</string>
+        <string>cloud-trackupstream</string>
       </values>
     </hudson.matrix.LabelAxis>
   </axes>

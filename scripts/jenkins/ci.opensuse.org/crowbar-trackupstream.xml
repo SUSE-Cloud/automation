@@ -25,8 +25,8 @@
     <hudson.matrix.TextAxis>
       <name>project</name>
       <values>
+        <string>systemsmanagement:crowbar:1.5:staging</string>
         <string>systemsmanagement:crowbar:2.0:staging</string>
-        <string>none</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.TextAxis>
@@ -59,7 +59,7 @@
     <hudson.matrix.LabelAxis>
       <name>label</name>
       <values>
-        <string>openstack-trackupstream</string>
+        <string>cloud-trackupstream</string>
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
