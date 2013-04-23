@@ -17,7 +17,7 @@
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
     <hudson.triggers.TimerTrigger>
-      <spec>H 3 * * *</spec>
+      <spec>1 1 * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
@@ -26,6 +26,7 @@
       <name>project</name>
       <values>
         <string>systemsmanagement:crowbar:2.0:staging</string>
+        <string>none</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.TextAxis>
@@ -58,7 +59,7 @@
     <hudson.matrix.LabelAxis>
       <name>label</name>
       <values>
-        <string>crowbar20-trackupstream</string>
+        <string>openstack-trackupstream</string>
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
