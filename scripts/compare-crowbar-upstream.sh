@@ -23,10 +23,10 @@ get_barclamps () {
 
     # ... so hardcode the list of barclamps we care about:
     for bc in \
-        crowbar database deployer dns ganglia glance ipmi \
-        keystone kong logging mysql nagios network nova \
+        ceph cinder crowbar database deployer dns ganglia git glance \
+        ipmi keystone kong logging mysql nagios network nova \
         nova_dashboard ntp openstack postgresql provisioner \
-        swift test
+        quantum swift tempest test
     do
         echo `pwd` $bc
     done
