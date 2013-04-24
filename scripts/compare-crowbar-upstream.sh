@@ -84,7 +84,11 @@ echo -e "\e[0;1mComparing top-level crowbar repo with upstream ...\e[0m"
 compare $local $upstream ${1:-$DEFAULT_SUB_BRANCH} 'top-level crowbar repo'
 
 get_barclamps | while read toplevel name; do
+    if ! cd $toplevel/barclamps/$name; then
+        echo -e "\n\e[1;33m$name barclamp not found; skipping.\e[0m"
+        continue
+    fi
+
     echo -e "\n\e[0;1mComparing $name barclamp with upstream ...\e[0m"
-    cd $toplevel/barclamps/$name
     compare $local $upstream master "$name barclamp"
 done
