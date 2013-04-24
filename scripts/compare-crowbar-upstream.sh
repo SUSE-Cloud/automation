@@ -19,17 +19,13 @@ compare () {
 
 get_barclamps () {
     # This only works if we have the right branch checked out ...
+    (
+        cd barclamps
+        for d in *; do
+            [ -d "$d" ] && echo "$d"
+        done
+    )
     #git submodule --quiet foreach 'echo ${name#barclamps/}'
-
-    # ... so hardcode the list of barclamps we care about:
-    for bc in \
-        ceph cinder crowbar database deployer dns ganglia git glance \
-        ipmi keystone kong logging mysql nagios network nova \
-        nova_dashboard ntp openstack postgresql provisioner \
-        quantum swift tempest test
-    do
-        echo $bc
-    done
 }
 
 me=`basename $0`
