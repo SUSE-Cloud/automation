@@ -19,7 +19,7 @@ compare () {
 
 get_barclamps () {
     # This only works if we have the right branch checked out ...
-    #git submodule --quiet foreach 'echo $toplevel ${name#barclamps/}'
+    #git submodule --quiet foreach 'echo ${name#barclamps/}'
 
     # ... so hardcode the list of barclamps we care about:
     for bc in \
@@ -28,7 +28,7 @@ get_barclamps () {
         nova_dashboard ntp openstack postgresql provisioner \
         quantum swift tempest test
     do
-        echo `pwd` $bc
+        echo $bc
     done
 }
 
@@ -77,13 +77,15 @@ if ! [ -f dev ]; then
     exit 1
 fi
 
+toplevel=`pwd`
+
 local=${2:-$DEFAULT_LOCAL}
 upstream=${3:-$DEFAULT_UPSTREAM}
 
 echo -e "\e[0;1mComparing top-level crowbar repo with upstream ...\e[0m"
 compare $local $upstream ${1:-$DEFAULT_SUB_BRANCH} 'top-level crowbar repo'
 
-get_barclamps | while read toplevel name; do
+get_barclamps | while read name; do
     if ! cd $toplevel/barclamps/$name; then
         echo -e "\n\e[1;33m$name barclamp not found; skipping.\e[0m"
         continue
