@@ -72,7 +72,7 @@ if [ "$1" == '-h' ] || [ "$1" == '--help' ] || [ $# -gt 3 ]; then
 fi
 
 
-if ! [ -e extra/install-chef.sh ]; then
+if ! [ -f dev ]; then
     echo "You must run this from the top of the crowbar tree; aborting." >&2
     exit 1
 fi
