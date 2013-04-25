@@ -118,7 +118,7 @@ fi
 $zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 $zypper --gpg-auto-import-keys -n ref
 $zypper -v --gpg-auto-import-keys -n install -t pattern cloud_controller cloud_compute
-$zypper -n --force install openstack-quickstart python-glanceclient
+$zypper -n install --force openstack-quickstart python-glanceclient
 ls -la /var/lib/nova
 
 # Everything below here is fatal
