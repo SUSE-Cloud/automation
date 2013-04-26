@@ -42,7 +42,13 @@ case "$cloudsource" in
   develcloud1.0)
 	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/1.0/$REPO/Devel:Cloud:1.0.repo
 	if test -n "$OSHEAD" ; then
-		$zypper ar -f http://dist.suse.de/ibs/Devel:/Cloud:/1.0:/OpenStack/$REPO/ cloudhead
+		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/1.0:/OpenStack/$REPO/ cloudhead
+	fi
+  ;;
+  develcloud2.0)
+	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0/$REPO/Devel:Cloud:2.0.repo
+	if test -n "$OSHEAD" ; then
+		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0:/Staging/$REPO/ cloudhead
 	fi
   ;;
   develcloud)
@@ -60,7 +66,7 @@ case "$cloudsource" in
   openstackfolsom)
 	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom/$REPO/Cloud:OpenStack:Folsom.repo
 	if test -n "$OSHEAD" ; then
-		$zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom:/Staging/$REPO/ cloudhead
+		$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom:/Staging/$REPO/ cloudhead
 	fi
   ;;
   openstackgrizzly)
