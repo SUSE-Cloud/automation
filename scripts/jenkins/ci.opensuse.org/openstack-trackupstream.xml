@@ -62,6 +62,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
+  <combinationFilter>! ( ["Cloud:OpenStack:Folsom:Staging"].contains(project) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-heat-cfntools" ].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}
