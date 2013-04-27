@@ -3,18 +3,38 @@
 # Compares local branch of crowbar and barclamps repositories with upstream
 # using 'git cherry -v'.  Run with --help for help.
 
+DEFAULT_UPSTREAM=crowbar/release/pebbles/master
+DEFAULT_LOCAL=release/essex-hack-suse/master
+
 compare () {
     local="$1"
     upstream="$2"
-    subbranch="$3"
-    name="$4"
+    name="$3"
 
-    if ! git cat-file -e $upstream/$subbranch >&/dev/null; then
-        echo "$upstream/$subbranch does not exist in $name" >&2
-        return 1
-    fi
-    git cherry -v $upstream/$subbranch $local/$subbranch
+    echo -e "\e[0;1mComparing $name: $local with $upstream ...\e[0m"
+
+    for ref in "$upstream" "$local"; do
+        if ! git cat-file -e "$ref" >&/dev/null; then
+            echo -e "\e[1;35m$ref does not exist in $name\e[0m" >&2
+            return 1
+        fi
+    done
+
     #git --no-pager log --no-merges --pretty=format:%H $upstream..$local
+    git icing -v$verbosity "$upstream" "$local" | count_commits_not_upstreamed
+}
+
+count_commits_not_upstreamed () {
+    tmp=$( mktemp /tmp/compare-crowbar-upstream.XXXXXXXXX ) || exit 1
+    if [ "$verbosity" = 0 ]; then
+        cat >"$tmp"
+    else
+        tee "$tmp"
+    fi
+    escape=$'\033'
+    count=$( grep -chE "^(${escape}\[[0-9;]+m)?\+ " "$tmp" )
+    [ "$count" -gt 0 ] && printf "  %4d  %s\n" "$count" "$name" >> $counts_tmp
+    rm "$tmp"
 }
 
 get_barclamps () {
@@ -28,8 +48,6 @@ get_barclamps () {
     #git submodule --quiet foreach 'echo ${name#barclamps/}'
 }
 
-me=`basename $0`
-
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
     exit_code=1
@@ -42,8 +60,15 @@ usage () {
         echo
     fi
 
+    me=`basename $0`
+
     cat <<EOF >&2
-Usage: $me [SUB-BRANCH [LOCAL [UPSTREAM]]]
+Usage: $me [OPTIONS] [UPSTREAM [LOCAL]]
+
+Options:
+  -h, --help             Show this help and exit
+  -v [N], --verbose [N]  Set verbosity level [default without -v is 1,
+                         default with -v is 2, set to 0 for quieter output]
 
 Compares local branch of crowbar and barclamps repositories with upstream
 using 'git cherry -v'.  Commits missing from upstream are prefixed with
@@ -52,41 +77,95 @@ are prefixed with a minus (-) symbol.
 
 Must be run from the top-level crowbar repository.
 
-LOCAL is the local feature "super-branch" to compare [$DEFAULT_LOCAL]
-UPSTREAM is the upstream feature "super-branch" to compare [$DEFAULT_UPSTREAM]
-SUB-BRANCH is the sub-branch of the crowbar "super-branch" to compare [$DEFAULT_SUB_BRANCH]
+See git-icing for how to add commits to the blacklist which marks them as
+not suitable for upstreaming.
+
+UPSTREAM is the upstream branch to compare [$DEFAULT_UPSTREAM]
+LOCAL is the local branch to compare [$DEFAULT_LOCAL]
 EOF
     exit "$exit_code"
 }
 
-DEFAULT_SUB_BRANCH=openstack-os-build
-DEFAULT_LOCAL=release/essex-hack-suse
-DEFAULT_UPSTREAM=origin/release/essex-hack
+parse_opts () {
+    verbosity=1
 
-if [ "$1" == '-h' ] || [ "$1" == '--help' ] || [ $# -gt 3 ]; then
-    usage 0
-fi
+    while [ $# != 0 ]; do
+        case "$1" in
+            -h|--help)
+                usage 0
+                ;;
+            -v|--verbose)
+                verbosity=2
+                shift
+                case "$1" in
+                    [0-9])
+                        verbosity="$1"
+                        shift
+                        ;;
+                esac
+                ;;
+            -*)
+                usage "Unrecognised option: $1"
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
 
-
-if ! [ -f dev ]; then
-    echo "You must run this from the top of the crowbar tree; aborting." >&2
-    exit 1
-fi
-
-toplevel=`pwd`
-
-local=${2:-$DEFAULT_LOCAL}
-upstream=${3:-$DEFAULT_UPSTREAM}
-
-echo -e "\e[0;1mComparing top-level crowbar repo with upstream ...\e[0m"
-compare $local $upstream ${1:-$DEFAULT_SUB_BRANCH} 'top-level crowbar repo'
-
-get_barclamps | while read name; do
-    if ! cd $toplevel/barclamps/$name; then
-        echo -e "\n\e[1;33m$name barclamp not found; skipping.\e[0m"
-        continue
+    if [ $# -gt 2 ]; then
+        usage
     fi
 
-    echo -e "\n\e[0;1mComparing $name barclamp with upstream ...\e[0m"
-    compare $local $upstream master "$name barclamp"
-done
+    ARGV=( "$@" )
+}
+
+check_prereqs () {
+    if ! which git-icing >/dev/null 2>&1; then
+        cat >&2 <<EOF
+This script needs git-icing.  Please download from
+
+    https://raw.github.com/aspiers/git-config/master/bin/git-icing
+
+and save as an executable somewhere on your \$PATH.
+EOF
+        exit 1
+    fi
+}
+
+main () {
+    check_prereqs
+
+    parse_opts "$@"
+
+    if ! [ -f dev ]; then
+        echo "You must run this from the top of the crowbar tree; aborting." >&2
+        exit 1
+    fi
+
+    toplevel=`pwd`
+
+    upstream="${ARGV[0]:-$DEFAULT_UPSTREAM}"
+    local="${ARGV[1]:-$DEFAULT_LOCAL}"
+
+    counts_tmp=$( mktemp /tmp/compare-crowbar-upstream-tmp.XXXXXXXXX ) || exit 1
+
+    get_barclamps | while read name; do
+        if ! cd "$toplevel/barclamps/$name"; then
+            echo -e "\n\e[1;33m$name barclamp not found; skipping.\e[0m"
+            continue
+        fi
+
+        compare "$local" "$upstream" "$name barclamp"
+        echo
+    done
+
+    echo -e "\e[0;1mTotal patches to upstream"
+    echo -e "-------------------------\e[0m"
+    echo
+
+    sort -nr "$counts_tmp"
+    rm "$counts_tmp"
+}
+
+main "$@"
