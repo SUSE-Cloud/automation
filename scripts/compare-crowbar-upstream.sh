@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Compares local branch of crowbar and barclamps repositories with upstream
-# using 'git cherry -v'.  Run with --help for help.
+# Compares two branches of each crowbar barclamp repositories using
+# 'git icing' (a wrapper around git cherry).  Run with --help for help.
 
 DEFAULT_UPSTREAM=crowbar/release/pebbles/master
 DEFAULT_LOCAL=suse/release/essex-hack-suse/master
