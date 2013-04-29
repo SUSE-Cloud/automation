@@ -235,10 +235,6 @@ fi
 pstree|grep -A5 lxc
 virsh --connect lxc:/// list
 . /etc/openstackquickstartrc
-for i in $interfaces ; do
-	echo "iptables -t nat -I POSTROUTING -s $testnet -o $i -j MASQUERADE" >> /etc/init.d/boot.local
-done
-tail -2 /etc/init.d/boot.local | sh
 vmip=`nova show testvm|perl -ne 'm/network\D*(\d+\.\d+\.\d+\.\d+)/ && print $1'`
 echo "VM IP: $vmip"
 if [ -n "$vmip" ]; then
