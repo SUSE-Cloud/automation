@@ -4,7 +4,7 @@
 # using 'git cherry -v'.  Run with --help for help.
 
 DEFAULT_UPSTREAM=crowbar/release/pebbles/master
-DEFAULT_LOCAL=release/essex-hack-suse/master
+DEFAULT_LOCAL=suse/release/essex-hack-suse/master
 
 compare () {
     local="$1"
