@@ -97,17 +97,16 @@ set -e
 # make sure we have access to all needed packages
 cloudrepo=http://download.opensuse.org/repositories/${dist//:/:\/}/${OSC_DIST}/
 zypper ar -f $cloudrepo cloud || true
+zypper --gpg-auto-import-keys ref
 zypper -n dup --from cloud
 if [[ $dist =~ ":Staging" ]] ; then
   zypper ar -f ${cloudrepo/:\/Staging/} cloud-full || true
+  zypper --gpg-auto-import-keys ref
   zypper -n dup --from cloud-full
 fi
 
 
-zypper rr dlp
-#zypper ar http://download.opensuse.org/repositories/devel:/languages:/python/${OSC_DIST}/ dlp || true
-#zypper mr --priority 200 dlp
-zypper --gpg-auto-import-keys ref
+zypper rr dlp || true
 
 
 # source config of the test
