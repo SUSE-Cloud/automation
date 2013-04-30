@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>qa-cloudadm-tempest</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>0 1 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># name of the proposal
+# in the QA cloud the proposal was named "proposal" instead of "default"
+proposalname=proposal
+
+# Do NOT Edit This Line:
+novadashboardserver=`crowbar nova_dashboard proposal show $proposalname | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova_dashboard']['elements']['nova_dashboard-server']"`
+
+# Runner script:
+# please have the runner script do this itself: 2&gt;&amp;1 | tee /var/log/somewhere
+# jenkins will (from outside) just capture the entire output of the script and rely on its exitcode
+tempestrunner=/root/tempest/run
+
+# Do NOT Edit This Line:
+ssh root@$novadashboardserver " ret=1 ; [ -x $tempestrunner ] &amp;&amp; $tempestrunner ; ret=\$? ; exit \$ret "
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

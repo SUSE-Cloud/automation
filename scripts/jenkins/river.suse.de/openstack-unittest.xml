@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <actions/>
+  <description>Unit testing openstack packages, generic job, triggered by separate trigger-jobs</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>COMPONENT</name>
+          <description>Defines the OpenStack Component to build (parameter will be set by upstream job).</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TESTCMD</name>
+          <description>Command to run the test - if emtpy it will default  to "run_tests.sh -N -P"</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>SETUPCMD</name>
+          <description>Commands to run before tests - setup ENV, start services etc. (will be run from the /var/lib/$COMPONENT-test dir)</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TEARDOWNCMD</name>
+          <description>Commands to run after tests - unset ENV, stop services etc. (will be run from the /var/lib/$COMPONENT-test dir)</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PROJECTSOURCE</name>
+          <description>Source of the cloud, e.g. "OBS/Cloud:OpenStack" , "IBS/Devel:Cloud:1.0"</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>openstack-unittest</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>set -x
+
+# zypper in osc
+# provide .oscrc
+
+# remove accidentally added spaces
+[ -z "$PROJECTSOURCE" ] &amp;&amp; ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
+
+
+OBS_TYPE=${PROJECTSOURCE%%/*}
+OBS_PROJECT=${PROJECTSOURCE##*/}
+
+case $OBS_TYPE in
+  OBS) OSC_RC="$OSC_RC -A https://api.opensuse.org"
+       OSC_DIST=SLE_11_SP2
+       OSC_ARCH=x86_64
+       ;;
+  IBS) OSC_RC="$OSC_RC -A https://api.suse.de"
+       OSC_DIST=SLE_11_SP2
+       OSC_ARCH=x86_64
+       ;; 
+esac
+
+COMPONENT=${COMPONENT// /}
+[ -z "$COMPONENT" ] &amp;&amp; ( echo "Error: no COMPONENT defined." ; exit 1 )
+
+# by BMW: workaround keystone timezone problem 6596
+export TZ=UTC
+
+[ -z "$TESTCMD" ] &amp;&amp; TESTCMD="./run_tests.sh -N -P"
+
+EXTRAPKGS=""
+#[ "$COMPONENT" = "openstack-nova" ] &amp;&amp; EXTRAPKGS=python-xxx
+
+mkdir -p $COMPONENT
+cd $COMPONENT
+rm -f *
+for p in $COMPONENT $EXTRAPKGS ; do
+    osc $OSC_RC getbinaries -d ./ $OBS_PROJECT $p $OSC_DIST $OSC_ARCH
+done
+zypper --non-interactive ref
+zypper --non-interactive rm -y $COMPONENT $EXTRAPKGS || true
+zypper --non-interactive in -y --force `ls *rpm`
+
+# prefer /usr/share over /var/lib (deprecated)
+
+if test -d /usr/share/${COMPONENT}-test/; then
+  cd /usr/share/${COMPONENT}-test/
+else
+  cd /var/lib/${COMPONENT}-test/
+fi
+
+echo "=== Running SETUPCMD ===" &gt; /dev/null
+eval "$SETUPCMD" 
+echo "=== Running TESTCMD ===" &gt; /dev/null
+eval "$TESTCMD"
+echo "=== Running TEARDOWNCMD ===" &gt; /dev/null
+eval "$TEARDOWNCMD"
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+      <template>ut: ${ENV,var="PROJECTSOURCE"} ${ENV,var="COMPONENT"}</template>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>

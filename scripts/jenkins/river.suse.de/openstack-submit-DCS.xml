@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <actions/>
+  <description>Copy packages from Devel:Cloud:Head to Devel:Cloud</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>SUBPROJECT</name>
+          <description>Which subproject should be submitted.
+Head for Devel:Cloud:Head or Crowbar for Devel:Cloud:Crowbar</description>
+          <defaultValue>None</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>cloudsource</name>
+          <description/>
+          <defaultValue>develcloud</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>openstack-trackupstream</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># remove accidentally added spaces
+SUBPROJECT=${SUBPROJECT// /}
+
+if [ $SUBPROJECT = "None" ] ; then
+  echo "No valid SUBPROJECT provided - defaults for safety reasons to 'None'"
+  echo "Provide either of: Head|Crowbar"
+  exit 1
+fi
+
+OSC="osc -A https://api.suse.de"
+SUBPROJECT=${SUBPROJECT:-Head}
+DC=Devel:Cloud
+submitcmd="echo no submit for cloudsource=$cloudsource"
+[ "$cloudsource" = develcloud ] &amp;&amp; submitcmd="$OSC copypac -K -e"
+[ "$cloudsource" = develcloud1.0 ] &amp;&amp; DC=Devel:Cloud:1.0 &amp;&amp; submitcmd="$OSC submitreq -m 'jenkins-submit-DCS'"
+DCS=$DC:$SUBPROJECT
+export IBS_CHECKOUT=/home/jenkins/IBS_CHECKOUT/$DCS
+
+for COMPONENT in `$OSC ls $DCS 2&gt;/dev/null`
+do
+  cd $IBS_CHECKOUT
+  cd $COMPONENT || exit 1
+# disabling this for the moment, as it also skips when changes are made manually
+#  if $OSC up 2&gt;/dev/null | grep -v "^At revision" | grep -q .
+#  then
+#    echo "Warning: Changes detected in $COMPONENT. Thus skipping!"
+#    continue
+#  fi
+
+  grep -q "&lt;linkinfo" .osc/_files || exit 2
+
+  if $OSC rdiff $DC $COMPONENT $DCS | grep .  &amp;&amp;  $OSC api /build/$DCS/SLE_11_SP2/x86_64/$COMPONENT/_status | grep -q 'code="succeeded"'
+  then
+    $submitcmd $DCS $COMPONENT $DC
+  fi
+done</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer>
+      <recipients>cloud-devel@suse.de</recipients>
+      <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
+  </buildWrappers>
+</project>
