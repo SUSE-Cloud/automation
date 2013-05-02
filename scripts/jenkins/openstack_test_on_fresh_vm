@@ -28,13 +28,15 @@ test -z $OS_USERNAME && usage && exit 1
 test -z $OS_PASSWORD && usage && exit 1
 
 #cleanup prev
-instance=$(nova list| perl -ne 'if(/^\| (\S+) .*testvm /){print $1}')
-nova delete $instance
+for instance in $(nova list| perl -ne 'if(/^\| (\S+) .*testvm /){print $1}') ; do
+  nova delete $instance
+done
 nova delete testvm
 sleep 10
 
 image=${image:-SP2-64}
-nova boot --flavor 2 --image $image testvm > boot.out
+sshkey=${sshkey:-jenkins}
+nova boot --flavor 2 --image $image --key_name $sshkey testvm > boot.out
 instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
 sleep 20 # time to prepare
 export ip=`nova show $instanceid|perl -ne 'm/network\s*\| (\S+)/ && print $1'`
