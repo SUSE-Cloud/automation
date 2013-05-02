@@ -1,65 +1,68 @@
 #!/bin/bash -x
 # run a test within cloud.suse.de
-usage()
+function usage()
 {
-  echo "usage: NOVA_USERNAME=xx NOVA_API_KEY=xx $0"
+  echo "usage: export OS_USERNAME=xx ; export OS_PASSWORD=xx ; source $0 ; startvm ; runtest"
 }
 
-setup()
+function setup()
 {
+	rpm -q python-novaclient >/dev/null && return # only needed once
 	# setup tiny VM for jenkins
 	#zypper rr 1 # remove DVD repo
-	zypper ar http://dist.suse.de/install/SLP/SLES-11-SP2-LATEST/x86_64/DVD1/ sle11sp2latest
-	zypper ar http://dist.suse.de/install/SLP/SLE-11-SP2-SDK-LATEST/x86_64/DVD1/ sle11sp2sdklatest
-	zypper ar http://download.opensuse.org/repositories/Cloud:/OpenStack:/Essex/SLE_11_SP2/ COessex
-	zypper ar http://download.suse.de/ibs/SUSE:/SLE-11-SP1:/Update:/Manager:/1.2/standard/SUSE:SLE-11-SP1:Update:Manager:1.2.repo
-	zypper ar http://download.opensuse.org/repositories/devel:/languages:/ruby:/extensions/SLE_11_SP2/devel:languages:ruby:extensions.repo
+	zypper ar http://download.suse.de/install/SLP/SLES-11-SP2-LATEST/x86_64/DVD1/ sle11sp2latest
+	zypper ar http://download.suse.de/install/SLP/SLE-11-SP2-SDK-LATEST/x86_64/DVD1/ sle11sp2sdklatest
+	zypper ar http://download.suse.de/install/SLP/SLE-11-SP2-CLOUD-GM/x86_64/DVD1/ C1-GM
 	zypper --gpg-auto-import-keys -n ref
-	zypper in python-novaclient rubygem-net-ssh rubygem # ignore ruby-devel requires
+	zypper in python-novaclient
 	mkdir -p ~/.ssh
 	echo ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAp8fBkDaecZtoueQIRsZFNgmyMo++gY7+6YlbaJqJNS1nsredp8Rjs53pwVUa4tyewKJ+mZDDMwgbZdePn3QXbavuzdNDUhswNlEDdhrdDn44QciwBcpsf/AMtqpfdl8uGS5wl0ZfDt5m9ovYUeg49ZiIWx5qP5nmiIfgLHW4pVN673Sl9gT2wGo05x/PiU7B+M80AMunJWU1a58UmrQ1panxCjm8mMcmddd6tuTdTYEFNBSc2TIaZzZ4m7N98DYn+LtiXkov7fAO2Vnne5JKL8fpx1KGxKhLhkjTBVjrD6JVUlg2QlljxIXeV8xu+6YsSZca08jilRrxwDvRbk4oYQ== hudson@hudsoninscance >> ~/.ssh/authorized_keys
 }
 
-test "$DevelCloudHead" != "false" && export OSHEAD=1
 
-rpm -q rubygem-net-ssh >/dev/null || setup # only needed once
+function cleanupvm()
+{
+    #cleanup prev
+    for instance in $(nova list| perl -ne 'if(/^\| (\S+) .*testvm /){print $1}') ; do
+      nova delete $instance
+    done
+    nova delete testvm
+    sleep 10
+}
 
-test -z $OS_USERNAME && usage && exit 1
-test -z $OS_PASSWORD && usage && exit 1
 
-#cleanup prev
-for instance in $(nova list| perl -ne 'if(/^\| (\S+) .*testvm /){print $1}') ; do
-  nova delete $instance
-done
-nova delete testvm
-sleep 10
+function startvm()
+{
+    cleanupvm
+    test "$DevelCloudHead" != "false" && export OSHEAD=1
+    test -z $OS_USERNAME && usage && exit 1
+    test -z $OS_PASSWORD && usage && exit 1
 
-image=${image:-SP2-64}
-sshkey=${sshkey:-jenkins}
-nova boot --flavor 2 --image $image --key_name $sshkey testvm > boot.out
-instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
-sleep 20 # time to prepare
-export ip=`nova show $instanceid|perl -ne 'm/network\s*\| (\S+)/ && print $1'`
-export password=linux
-test -n "$ip" || exit 17
-n=300 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $ip >/dev/null ; do # wait for VM to become reachable
-  n=$(expr $n - 1)
-  echo -n "."
-done
-echo "finished waiting for VM: $n counts left"
-sleep 70 # extra time for ssh to start
-#http://openqa.suse.de/sle/qatests/qa_openstack.sh
-ruby -e 'cloudsource=ENV["cloudsource"]; oshead=ENV["OSHEAD"]; require "rubygems";require "net/ssh"
-  Net::SSH.start(ENV["ip"], "root", :password => ENV["password"], :paranoid => false, :auth_methods => %w(password keyboard-interactive)) do |connection|
-    connection.exec!("export cloudsource=#{cloudsource}; export OSHEAD=#{oshead}; export NONINTERACTIVE=1; init 3;curl https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/qa_openstack.sh|bash -x ; echo openstack testrun ret=$?") do |channel, stream, data|
-      print data ; $stdout.flush
-      m = /openstack testrun ret=(\d+)/.match(data) and exit m[1].to_i;
-    end
-  end'
-ret=$?
-#watch "ps ax|tail -16" # use on test-VM for manual watching
+    image=${image:-SP2-64}
+    sshkey=${sshkey:-jenkins}
+    nova boot --flavor 2 --image $image --key_name $sshkey testvm > boot.out
+    instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
+    sleep 20 # time to prepare
+    export ip=`nova show $instanceid|perl -ne 'm/network\s*\| (\S+)/ && print $1'`
+    test -n "$ip" || exit 17
+    n=300 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $ip >/dev/null ; do # wait for VM to become reachable
+      n=$(expr $n - 1)
+      echo -n "."
+    done
+    echo "finished waiting for VM: $n counts left"
+    sleep 70 # extra time for ssh to start
+}
 
-# cleanup of run
-#nova delete $instanceid # cleanup before next run
 
-exit $ret
+function runtest()
+{
+    test -n "$ip" || exit 18
+    ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@$ip "export cloudsource=${cloudsource}; export OSHEAD=${OSHEAD}; export NONINTERACTIVE=1; init 3; curl https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/qa_openstack.sh|bash -x"
+    exit $?
+}
+
+### MAIN
+setup
+
+# Hint:
+# watch "ps ax|tail -16" # use on test-VM for manual watching
