@@ -7,16 +7,18 @@ function usage()
 
 function setup()
 {
-	rpm -q python-novaclient >/dev/null && return # only needed once
-	# setup tiny VM for jenkins
-	#zypper rr 1 # remove DVD repo
-	zypper ar http://download.suse.de/install/SLP/SLES-11-SP2-LATEST/x86_64/DVD1/ sle11sp2latest
-	zypper ar http://download.suse.de/install/SLP/SLE-11-SP2-SDK-LATEST/x86_64/DVD1/ sle11sp2sdklatest
-	zypper ar http://download.suse.de/install/SLP/SLE-11-SP2-CLOUD-GM/x86_64/DVD1/ C1-GM
-	zypper --gpg-auto-import-keys -n ref
-	zypper in python-novaclient
-	mkdir -p ~/.ssh
-	echo ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAp8fBkDaecZtoueQIRsZFNgmyMo++gY7+6YlbaJqJNS1nsredp8Rjs53pwVUa4tyewKJ+mZDDMwgbZdePn3QXbavuzdNDUhswNlEDdhrdDn44QciwBcpsf/AMtqpfdl8uGS5wl0ZfDt5m9ovYUeg49ZiIWx5qP5nmiIfgLHW4pVN673Sl9gT2wGo05x/PiU7B+M80AMunJWU1a58UmrQ1panxCjm8mMcmddd6tuTdTYEFNBSc2TIaZzZ4m7N98DYn+LtiXkov7fAO2Vnne5JKL8fpx1KGxKhLhkjTBVjrD6JVUlg2QlljxIXeV8xu+6YsSZca08jilRrxwDvRbk4oYQ== hudson@hudsoninscance >> ~/.ssh/authorized_keys
+    if rpm -q python-novaclient >/dev/null ; then
+      return # only needed once
+    fi
+    # setup tiny VM for jenkins
+    #zypper rr 1 # remove DVD repo
+    zypper ar http://download.suse.de/install/SLP/SLES-11-SP2-LATEST/x86_64/DVD1/ sle11sp2latest
+    zypper ar http://download.suse.de/install/SLP/SLE-11-SP2-SDK-LATEST/x86_64/DVD1/ sle11sp2sdklatest
+    zypper ar http://download.suse.de/install/SLP/SLE-11-SP2-CLOUD-GM/x86_64/DVD1/ C1-GM
+    zypper --gpg-auto-import-keys -n ref
+    zypper --non-interactive in python-novaclient
+    mkdir -p ~/.ssh
+    echo ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAp8fBkDaecZtoueQIRsZFNgmyMo++gY7+6YlbaJqJNS1nsredp8Rjs53pwVUa4tyewKJ+mZDDMwgbZdePn3QXbavuzdNDUhswNlEDdhrdDn44QciwBcpsf/AMtqpfdl8uGS5wl0ZfDt5m9ovYUeg49ZiIWx5qP5nmiIfgLHW4pVN673Sl9gT2wGo05x/PiU7B+M80AMunJWU1a58UmrQ1panxCjm8mMcmddd6tuTdTYEFNBSc2TIaZzZ4m7N98DYn+LtiXkov7fAO2Vnne5JKL8fpx1KGxKhLhkjTBVjrD6JVUlg2QlljxIXeV8xu+6YsSZca08jilRrxwDvRbk4oYQ== hudson@hudsoninscance >> ~/.ssh/authorized_keys
 }
 
 
@@ -26,7 +28,7 @@ function cleanupvm()
     for instance in $(nova list| perl -ne 'if(/^\| (\S+) .*testvm /){print $1}') ; do
       nova delete $instance
     done
-    nova delete testvm
+    nova delete testvm || true
     sleep 10
 }
 
