@@ -32,7 +32,8 @@ my $uttrigger = {
                                          "TESTCMD=./run_tests.sh -u",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
                                          "TESTCMD=./run_tests.sh -N -P -xintegration",
-        'openstack-nova'              => "COMPONENT=openstack-nova",
+        'openstack-nova'              => "COMPONENT=openstack-nova\n" .
+                                         "TESTCMD=./run_tests.sh -N -P",
         'openstack-quantum'           => "COMPONENT=openstack-quantum",
         'openstack-swift'             => "COMPONENT=openstack-swift\n".
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
