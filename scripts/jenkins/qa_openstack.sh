@@ -130,6 +130,7 @@ ls -la /var/lib/nova
 # Everything below here is fatal
 #set -e
 
+if ! rpm -q openstack-quantum-server ; then
 # setup non-bridged network:
 cat >/etc/sysconfig/network/ifcfg-brclean <<EOF
 BOOTPROTO='static'
@@ -149,6 +150,7 @@ USERCONTROL='no'
 NAME=''
 EOF
 ifup brclean
+fi
 
 
 #if [ "$MODE" = lxc ] ; then # copied from quickstart # TODO: drop
