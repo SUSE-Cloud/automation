@@ -2,24 +2,181 @@
 <project>
   <actions/>
   <description>This job automatically fetches the latest code from the various Crowbar git repositories, merges them via ./dev tests into a single tree, and then commits the updated tree to https://github.com/crowbar/travis-ci-crowbar - see https://github.com/crowbar/crowbar/tree/master/travis-ci/README.md for more details.</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>100</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties/>
-  <scm class="hudson.scm.NullSCM"/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@1.3.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/crowbar.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-cinder.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-swift.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-network.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-deployer.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-quantum.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-ipmi.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-keystone.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-glance.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-nova.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/crowbar-utils.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-crowbar.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-git.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-provisioner.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-mysql.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-tempest.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-chef.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-rabbitmq.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-openstack.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-ntp.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-logging.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-dns.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-ceilometer.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-database.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name/>
+        <refspec/>
+        <url>git://github.com/crowbar/barclamp-postgresql.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>**</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <disableSubmodules>false</disableSubmodules>
+    <recursiveSubmodules>false</recursiveSubmodules>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <authorOrCommitter>false</authorOrCommitter>
+    <clean>false</clean>
+    <wipeOutWorkspace>false</wipeOutWorkspace>
+    <pruneBranches>false</pruneBranches>
+    <remotePoll>false</remotePoll>
+    <ignoreNotifyCommit>false</ignoreNotifyCommit>
+    <useShallowClone>false</useShallowClone>
+    <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
+    <gitTool>Default</gitTool>
+    <submoduleCfg class="list"/>
+    <relativeTargetDir/>
+    <reference/>
+    <excludedRegions/>
+    <excludedUsers/>
+    <gitConfigName/>
+    <gitConfigEmail/>
+    <skipTag>false</skipTag>
+    <includedRegions/>
+    <scmName/>
+  </scm>
   <assignedNode>crowbar-travis_ci</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
-    <hudson.triggers.TimerTrigger>
-      <spec>*/5 * * * *
-
-# every 3 hours during working hours
-#0 5,10,13,16,19,22 * * 1-5
-
-# once on Saturdays and Sundays
-#0 5 * * 6,7</spec>
-    </hudson.triggers.TimerTrigger>
+    <hudson.triggers.SCMTrigger>
+      <spec>H * * * *</spec>
+      <ignorePostCommitHooks>false</ignorePostCommitHooks>
+    </hudson.triggers.SCMTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
