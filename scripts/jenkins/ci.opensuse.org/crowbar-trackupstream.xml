@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <matrix-project>
   <actions/>
-  <description>update OBS packages from git or tarballs via OBS _service feature</description>
+  <description>update OBS/IBS packages from git or tarballs via OBS _service feature</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>14</daysToKeep>
     <numToKeep>10</numToKeep>
@@ -88,7 +88,11 @@ case $OBS_TYPE in
        OSC_BUILD_DIST=SLE_11_SP2
        OSC_BUILD_ARCH=x86_64
        ;;
-  *)   echo "This jenkins instance only interacts with OBS."
+  IBS) OSCAPI="https://api.suse.de"
+       OSC_BUILD_DIST=SLE_11_SP2
+       OSC_BUILD_ARCH=x86_64
+       ;;
+  *)   echo "This jenkins instance only interacts with OBS or IBS."
        exit 1
        ;;
 esac
@@ -107,18 +111,18 @@ export OSC_BUILD_DIST
 export OSC_BUILD_ARCH
 
 export JHOME=/home/jenkins
-export OBS_CHECKOUT=$JHOME/OBS_CHECKOUT/$OBS_PROJECT
+export BS_CHECKOUT=$JHOME/${OBS_TYPE}_CHECKOUT/$OBS_PROJECT
 export OSC_BUILD_ROOT=$JHOME/buildroot
 
 mkdir -p ~/.obs
 for i in incoming repo repourl
 do
   mkdir -p $JHOME/obscache/tar_scm/$i
-done 
+done
 echo "CACHEDIRECTORY=\"$JHOME/obscache/tar_scm\"" &gt; ~/.obs/tar_scm
 
-mkdir -p "$OBS_CHECKOUT"
-cd "$OBS_CHECKOUT"
+mkdir -p "$BS_CHECKOUT"
+cd "$BS_CHECKOUT"
 
 rm -rf "$COMPONENT"
 osc -A $OSCAPI co -c "$OBS_PROJECT" "$COMPONENT"
