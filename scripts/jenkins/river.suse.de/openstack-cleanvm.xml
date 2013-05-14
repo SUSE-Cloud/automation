@@ -38,7 +38,7 @@
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>slave=="openstack-cleanvm2" &amp;&amp; openstack_version=="develcloud1.0" &amp;&amp; image=="SP2-64"</combinationFilter>
+  <combinationFilter>slave=="openstack-cleanvm2" &amp;&amp; ( (openstack_version=="develcloud1.0" &amp;&amp; image=="SP2-64") || (openstack_version=="ddevelcloud2.0" &amp;&amp; image=="SP3-64") )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
@@ -51,7 +51,8 @@ else
   cloudsource=openstack$openstack_version
 fi
 
-OSHEAD=
+#DevelCloudHead=false
+#OSHEAD=
 
 set -x
 . openstack_test_on_fresh_vm
@@ -79,6 +80,7 @@ case $OSversion in
 esac
 
 # trigger submit job
+echo "triggering cloud-submit-project..."
 jenkins-job-trigger cloud-submit-project -p project=$project subproject=$subproject
 </command>
     </hudson.tasks.Shell>

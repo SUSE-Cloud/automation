@@ -7,15 +7,15 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>COMPONENT</name>
-          <description>Define the OpenStack Component to be tracked upstream.
-PLEASE only add new jobs to the job "openstack-trackupstream-trigger"</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>PROJECTSOURCE</name>
           <description>Which project contains the package to update.
 Possible values: e.g. "OBS/Cloud:OpenStack" , "IBS/Devel:Cloud:1.0"</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>COMPONENT</name>
+          <description>Define the OpenStack Component to be tracked upstream.
+PLEASE only add new jobs to the job "openstack-trackupstream-trigger"</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
