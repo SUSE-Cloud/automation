@@ -11,22 +11,33 @@ compare () {
     upstream="$2"
     name="$3"
 
-    echo -e "\e[0;1mComparing $name: $local with $upstream ...\e[0m"
+    [ "$verbosity" -gt 0 ] && echo -e "\e[0;1mComparing $name: $local with $upstream ...\e[0m"
 
     for ref in "$upstream" "$local"; do
         if ! git cat-file -e "$ref" >&/dev/null; then
-            echo -e "\e[1;35m$ref does not exist in $name\e[0m" >&2
+            [ "$verbosity" -gt 0 ] && echo -e "\e[1;35m$ref does not exist in $name\e[0m" >&2
             return 1
         fi
     done
 
     #git --no-pager log --no-merges --pretty=format:%H $upstream..$local
-    git icing -v$verbosity "$upstream" "$local" | count_commits_not_upstreamed
+    if [ "$verbosity" -gt 0 ]; then
+        icing_verbosity=$(($verbosity - 1))
+    else
+        icing_verbosity=0
+    fi
+    git icing -v$icing_verbosity "$upstream" "$local" | count_commits_not_upstreamed
+
+    if [ "$verbosity" = 0 ]; then
+        echo -n "." >&2
+    else
+        echo
+    fi
 }
 
 count_commits_not_upstreamed () {
     tmp=$( mktemp /tmp/compare-crowbar-upstream.XXXXXXXXX ) || exit 1
-    if [ "$verbosity" = 0 ]; then
+    if [ "$verbosity" -le 1 ]; then
         cat >"$tmp"
     else
         tee "$tmp"
@@ -67,8 +78,8 @@ Usage: $me [OPTIONS] [UPSTREAM [LOCAL]]
 
 Options:
   -h, --help             Show this help and exit
-  -v [N], --verbose [N]  Set verbosity level [default without -v is 1,
-                         default with -v is 2, set to 0 for quieter output]
+  -v [N], --verbose [N]  Set verbosity level [default without -v is 2,
+                         default with -v and no number N is 3]
 
 Compares local branch of crowbar and barclamps repositories with upstream
 using 'git cherry -v'.  Commits missing from upstream are prefixed with
@@ -87,7 +98,7 @@ EOF
 }
 
 parse_opts () {
-    verbosity=1
+    verbosity=2
 
     while [ $# != 0 ]; do
         case "$1" in
@@ -95,7 +106,7 @@ parse_opts () {
                 usage 0
                 ;;
             -v|--verbose)
-                verbosity=2
+                verbosity=3
                 shift
                 case "$1" in
                     [0-9])
@@ -157,8 +168,9 @@ main () {
         fi
 
         compare "$local" "$upstream" "$name barclamp"
-        echo
     done
+
+    [ "$verbosity" = 0 ] && echo >&2
 
     echo -e "\e[0;1mTotal patches to upstream"
     echo -e "-------------------------\e[0m"
