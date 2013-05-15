@@ -177,6 +177,10 @@ main () {
     echo
 
     sort -nr "$counts_tmp"
+    total=$( awk '{t+=$1} END {print t}' "$counts_tmp" )
+    echo "  ------------------------------"
+    printf "\e[0;1m  %4d  %s\n" "$total" "Total"
+
     rm "$counts_tmp"
 }
 
