@@ -45,7 +45,6 @@ case $subproject in
 esac
 
 export BS=OBS
-export BS_CHECKOUT=/home/jenkins/${BS}_CHECKOUT/$COSS
 case $BS in
   OBS)
     OSC="osc -A https://api.opensuse.org"
@@ -57,6 +56,7 @@ esac
 
 COS=$project
 COSS=$COS:$subproject
+export BS_CHECKOUT=/home/jenkins/${BS}_CHECKOUT/$COSS
 submitcmd="echo no submit for project=$project"
 OSCBUILDDIST=SLE_11_SP2
 
@@ -82,6 +82,9 @@ esac
 for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null`
 do
   cd $BS_CHECKOUT || exit 1
+  if [ ! -d $COMPONENT ]; then
+    osc co $COMPONENT || exit 1
+  fi
   cd $COMPONENT || exit 1
 
   grep -q "&lt;linkinfo" .osc/_files || exit 2
