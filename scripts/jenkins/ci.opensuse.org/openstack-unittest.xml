@@ -44,11 +44,12 @@
       <name>distribution</name>
       <values>
         <string>folsom-openSUSE-12.2</string>
-        <string>grizzly-SLE-11-SP2</string>
         <string>grizzly-SLE-11-SP3</string>
         <string>grizzly-openSUSE-12.2</string>
         <string>grizzly-openSUSE-12.3</string>
+        <string>master-openSUSE-12.3</string>
         <string>master-SLE-11-SP2</string>
+        <string>master-SLE-11-SP3</string>
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
