@@ -83,13 +83,19 @@ update_automation track-upstream-and-package.pl
 OBS_TYPE=${PROJECTSOURCE%%/*}
 OBS_PROJECT=${PROJECTSOURCE##*/}
 
+# default is SLE_11_SP2
+BUILD_DIST=SLE_11_SP2
+if [[ $project =~ "Devel:Cloud:2.0" ]] ; then
+  BUILD_DIST=SLE_11_SP3
+fi
+
 case $OBS_TYPE in
   OBS) OSCAPI="https://api.opensuse.org"
-       OSC_BUILD_DIST=SLE_11_SP2
+       OSC_BUILD_DIST=$BUILD_DIST
        OSC_BUILD_ARCH=x86_64
        ;;
   IBS) OSCAPI="https://api.suse.de"
-       OSC_BUILD_DIST=SLE_11_SP2
+       OSC_BUILD_DIST=$BUILD_DIST
        OSC_BUILD_ARCH=x86_64
        ;;
   *)   echo "This jenkins instance only interacts with OBS or IBS."
