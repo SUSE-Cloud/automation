@@ -326,6 +326,7 @@ function setupadmin()
 {
   echo "Injecting public key into image..."
   pubkey=`cut -d" " -f2 ~/.ssh/id_dsa.pub`
+  mkdir -p $mnt
   mount -o loop,offset=$(expr 2056192 \* 512) /dev/cloud/admin $mnt
   mkdir -p $mnt/root/.ssh
   grep -q $pubkey $mnt/root/.ssh/authorized_keys2 2>/dev/null || cat ~/.ssh/id_dsa.pub >> $mnt/root/.ssh/authorized_keys2
