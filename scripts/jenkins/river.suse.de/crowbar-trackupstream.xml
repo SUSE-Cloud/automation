@@ -35,6 +35,7 @@
         <string>crowbar</string>
         <string>crowbar-barclamp-ceph</string>
         <string>crowbar-barclamp-chef</string>
+        <string>crowbar-barclamp-cinder</string>
         <string>crowbar-barclamp-crowbar</string>
         <string>crowbar-barclamp-database</string>
         <string>crowbar-barclamp-deployer</string>
@@ -52,6 +53,8 @@
         <string>crowbar-barclamp-ntp</string>
         <string>crowbar-barclamp-openstack</string>
         <string>crowbar-barclamp-provisioner</string>
+        <string>crowbar-barclamp-quantum</string>
+        <string>crowbar-barclamp-rabbitmq</string>
         <string>crowbar-barclamp-swift</string>
         <string>crowbar-barclamp-test</string>
       </values>
@@ -63,7 +66,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>( project=="Devel:Cloud:2.0:Staging" &amp;&amp; [ "crowbar", "crowbar-barclamp-ceph", "crowbar-barclamp-crowbar", "crowbar-barclamp-database", "crowbar-barclamp-deployer", "crowbar-barclamp-dns", "crowbar-barclamp-ganglia", "crowbar-barclamp-glance", "crowbar-barclamp-ipmi", "crowbar-barclamp-keystone", "crowbar-barclamp-logging", "crowbar-barclamp-nagios", "crowbar-barclamp-network", "crowbar-barclamp-nova", "crowbar-barclamp-nova_dashboard", "crowbar-barclamp-ntp", "crowbar-barclamp-openstack", "crowbar-barclamp-provisioner", "crowbar-barclamp-swift", "crowbar-barclamp-test",  ].contains(component) )</combinationFilter>
+  <combinationFilter>( project=="Devel:Cloud:2.0:Staging" &amp;&amp; [ "crowbar", "crowbar-barclamp-ceph", "crowbar-barclamp-cinder", "crowbar-barclamp-crowbar", "crowbar-barclamp-database", "crowbar-barclamp-deployer", "crowbar-barclamp-dns", "crowbar-barclamp-ganglia", "crowbar-barclamp-glance", "crowbar-barclamp-ipmi", "crowbar-barclamp-keystone", "crowbar-barclamp-logging", "crowbar-barclamp-nagios", "crowbar-barclamp-network", "crowbar-barclamp-nova", "crowbar-barclamp-nova_dashboard", "crowbar-barclamp-ntp", "crowbar-barclamp-openstack", "crowbar-barclamp-provisioner", "crowbar-barclamp-quantum", "crowbar-barclamp-rabbitmq", "crowbar-barclamp-swift", "crowbar-barclamp-test",  ].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}
