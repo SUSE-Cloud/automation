@@ -43,9 +43,6 @@ sleep 100
 cloudsource=openstack$openstack_version
 oshead=1
 
-# collection of patches not applied yet (bnc#807540)
-rsync -av /home/jenkins/files2vm/* root@cleanvm:
-
 ssh root@cleanvm "export cloudsource=$cloudsource; export OSHEAD=$oshead; export NONINTERACTIVE=1; init 3; curl https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/qa_openstack.sh|bash -x"
 
 # mappings for submit job trigger
