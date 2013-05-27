@@ -34,7 +34,8 @@ my $uttrigger = {
                                          "TESTCMD=./run_tests.sh -N -P -xintegration",
         'openstack-nova'              => "COMPONENT=openstack-nova\n" .
                                          "TESTCMD=./run_tests.sh -N -P",
-        'openstack-quantum'           => "COMPONENT=openstack-quantum",
+        'openstack-quantum'           => "COMPONENT=openstack-quantum\n" .
+                                         "TESTCMD=python setup.py testr",
         'openstack-swift'             => "COMPONENT=openstack-swift\n".
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
                                          "TESTCMD=./.unittests",
@@ -78,7 +79,8 @@ my $uttrigger = {
                                          "TESTCMD=./run_tests.sh -N -P -xintegration",
         'openstack-nova'              => "COMPONENT=openstack-nova\n" .
                                          "TESTCMD=./run_tests.sh -N -P",
-        'openstack-quantum'           => "COMPONENT=openstack-quantum",
+        'openstack-quantum'           => "COMPONENT=openstack-quantum\n" .
+                                         "TESTCMD=python setup.py testr",
         'openstack-swift'             => "COMPONENT=openstack-swift\n".
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
                                          "TESTCMD=./.unittests",
