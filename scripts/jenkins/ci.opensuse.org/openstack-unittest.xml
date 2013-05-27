@@ -49,7 +49,6 @@
         <string>grizzly-openSUSE-12.3</string>
         <string>master-openSUSE-12.3</string>
         <string>master-SLE-11-SP2</string>
-        <string>master-SLE-11-SP3</string>
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
