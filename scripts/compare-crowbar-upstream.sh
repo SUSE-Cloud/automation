@@ -43,7 +43,7 @@ count_commits_not_upstreamed () {
         tee "$tmp"
     fi
     escape=$'\033'
-    count=$( grep -chE "^(${escape}\[[0-9;]+m)?\+ " "$tmp" )
+    count=$( grep -chE "^(${escape}\[[0-9;]+m)?[!\+] " "$tmp" )
     [ "$count" -gt 0 ] && printf "  %4d  %s\n" "$count" "$name" >> $counts_tmp
     rm "$tmp"
 }
