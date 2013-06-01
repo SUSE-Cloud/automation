@@ -136,7 +136,7 @@ sub osc_build()
   #my @cmd = (@OSCBASE, 'build', '--no-verify', $OSC_BUILD_DIST, $OSC_BUILD_ARCH);
   #my $exitcode = system(@cmd);
   local $| = 1;
-  my $cmd = "yes | ".join(' ',@OSCBASE)." build --no-verify $OSC_BUILD_DIST $OSC_BUILD_ARCH 2>&1 | ";
+  my $cmd = "yes | ".join(' ',@OSCBASE)." build --clean --no-verify $OSC_BUILD_DIST $OSC_BUILD_ARCH 2>&1 | ";
   open (my $FH, $cmd) or die $!;
   open (my $LOGFH, '>', $OSC_BUILD_LOG) or die $!;
   while (<$FH>)
