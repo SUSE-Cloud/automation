@@ -124,42 +124,73 @@ if [[ $(ping -q -c1 clouddata.cloud.suse.de|perl -ne 'm{min/avg/max/mdev = (\d+)
   longdistance=true
 fi
 
-zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://download.nue.suse.com/install/SLP/SLES-11-SP2-LATEST/x86_64/DVD1/ sles
-
-if [ "x$WITHSLEUPDATES" != "x" ] ; then
-  zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1/" sp1-updates
-  zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP2/" sp2-updates
-fi
-
 mkdir -p /mnt/dist /mnt/cloud
 mkdir -p /srv/tftpboot/repos/Cloud/
 cd /srv/tftpboot/repos/Cloud/
 
-d=download.nue.suse.com
+suseversion=11.2
+: ${susedownload:=download.nue.suse.com}
 case $cloudsource in
-	develcloud1.0)
-		CLOUDDISTPATH=/ibs/Devel:/Cloud:/1.0/images/iso
-		CLOUDDISTISO="S*-CLOUD*Media1.iso"
-	;;
-	develcloud)
-		CLOUDDISTPATH=/ibs/Devel:/Cloud/images/iso
-		CLOUDDISTISO="S*-CLOUD*Media1.iso"
-	;;
-	susecloud)
-		CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/images/iso
-		CLOUDDISTISO="S*-CLOUD*Media1.iso"
-	;;
-	Beta*|RC*|GM*)
-
-		CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-$cloudsource/
-		CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
-	;;
-	*)
-		echo "Error: you must set environment variable cloudsource=develcloud|susecloud|Beta1"
-		exit 76
-	;;
+    develcloud1.0)
+        CLOUDDISTPATH=/ibs/Devel:/Cloud:/1.0/images/iso
+        CLOUDDISTISO="S*-CLOUD*Media1.iso"
+    ;;
+    develcloud2.0)
+        CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0/images/iso
+        CLOUDDISTISO="S*-CLOUD*Media1.iso"
+        suseversion=11.3
+    ;;
+    develcloud)
+        echo "The cloudsource 'develcloud' is no longer supported."
+        echo "Please use 'develcloud1.0' resp. 'develcloud2.0'."
+        exit 11
+    ;;
+    susecloud|susecloud1.0)
+        CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/images/iso
+        CLOUDDISTISO="S*-CLOUD*Media1.iso"
+    ;;
+    susecloud2.0)
+        CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/GA:/Products:/Test/images/iso
+        CLOUDDISTISO="S*-CLOUD*Media1.iso"
+        suseversion=11.3
+    ;;
+    Beta*|RC*|GM*)
+        CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-$cloudsource/
+        CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
+    ;;
+    *)
+        echo "Error: you must set environment variable cloudsource=develcloud|susecloud|Beta1"
+        exit 76
+    ;;
 esac
-wget -q -r -np -nc -A "$CLOUDDISTISO" http://$d$CLOUDDISTPATH/
+
+case $suseversion in
+    11.2)
+      slesrepolist="SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Updates"
+      slesversion=11-SP2
+      slesmilestone=GM
+    ;;
+    11.3)
+      slesrepolist="SLES11-SP3-Core SLES11-SP3-Updates"
+      slesversion=11-SP3
+      # adapt this milestone until we reach GM
+      slesmilestone=RC2
+    ;;
+esac
+
+zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ sles
+
+if [ "x$WITHSLEUPDATES" != "x" ] ; then
+  if [ $suseversion = "11.2" ] ; then
+    zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1/" sp1-up
+    zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP2/" sp2-up
+  else
+    zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/$slesversion/" ${slesversion}-up
+  fi
+fi
+
+
+wget -q -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
 echo $CLOUDDISTPATH/*.iso > /etc/cloudversion
 echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
 mount -o loop,ro -t iso9660 $(ls */$CLOUDDISTPATH/*.iso|tail -1) /mnt/cloud
@@ -172,29 +203,30 @@ fi
 
 zypper ar /srv/tftpboot/repos/Cloud Cloud
 if [ -n "$TESTHEAD" ] ; then
-	case "$cloudsource" in
-	  develcloud)
-	    zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud/SLE_11_SP2/Devel:Cloud.repo
-	    zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Crowbar/SLE_11_SP2/Devel:Cloud:Crowbar.repo
-	    zypper ar http://clouddata.cloud.suse.de/repos/Crowbar/ DCCdirect
-	    ;;
-	  develcloud1.0)
-	    zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0/SLE_11_SP2/Devel:Cloud:1.0.repo
-	    zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0:/Crowbar/SLE_11_SP2/Devel:Cloud:1.0:Crowbar.repo
-	    ;;
-	  GM)
-	    zypper ar http://you.suse.de/download/x86_64/update/SUSE-CLOUD/1.0/ cloudtup
-	    zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP1/ sp1tup
-	    zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP2/ sp2tup
-	    ;;
-	  *)
-	    echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
-	    exit 26
-	    ;;
-	esac
-	zypper mr -p 70 Devel_Cloud # more important
-	zypper mr -p 60 Devel_Cloud_Crowbar # even more important
-	zypper mr -p 60 DCCdirect # as important - just use newer ver
+    case "$cloudsource" in
+        develcloud1.0)
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0/SLE_11_SP2/Devel:Cloud:1.0.repo
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0:/Crowbar/SLE_11_SP2/Devel:Cloud:1.0:Crowbar.repo
+            zypper mr -p 70 Devel_Cloud # more important
+            zypper mr -p 60 Devel_Cloud_Crowbar # even more important
+            zypper mr -p 60 DCCdirect # as important - just use newer ver
+            ;;
+        develcloud2.0)
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0:/Staging/SLE_11_SP3/Devel:Cloud:2.0:Staging.repo
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0/SLE_11_SP3/Devel:Cloud:2.0.repo
+            zypper mr -p 60 Devel_Cloud_2.0_Staging
+            zypper mr -p 70 Devel_Cloud_2.0
+            ;;
+        GM)
+            zypper ar http://you.suse.de/download/x86_64/update/SUSE-CLOUD/1.0/ cloudtup
+            zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP1/ sp1tup
+            zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP2/ sp2tup
+            ;;
+        *)
+            echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
+            exit 26
+            ;;
+    esac
 fi
 # --no-gpg-checks for Devel:Cloud repo
 zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
@@ -211,10 +243,10 @@ else
 fi
 
 
-mkdir -p /srv/tftpboot/suse-11.2/install
-if ! $longdistance && ! grep -q suse-11.2 /etc/fstab ; then
-  echo "clouddata.cloud.suse.de:/srv/nfs/suse-11.2/install /srv/tftpboot/suse-11.2/install    nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
-  mount /srv/tftpboot/suse-11.2/install
+mkdir -p /srv/tftpboot/suse-$suseversion/install
+if ! $longdistance && ! grep -q suse-$suseversion /etc/fstab ; then
+  echo "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install /srv/tftpboot/suse-$suseversion/install    nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
+  mount /srv/tftpboot/suse-$suseversion/install
 fi
 
 for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
@@ -223,7 +255,7 @@ for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
   zypper -n install createrepo
   [ -e repodata ] || createrepo .
 done
-for REPO in SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Updates ; do
+for REPO in $slesrepolist ; do
   grep -q $REPO /etc/fstab && continue
   mkdir -p /srv/tftpboot/repos/$REPO
   echo "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO  /srv/tftpboot/repos/$REPO   nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
@@ -231,14 +263,14 @@ for REPO in SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Update
 done
 
 # just as a fallback if nfs did not work
-if [ ! -e "/srv/tftpboot/suse-11.2/install/media.1/" ] ; then
-  f=SLES-11-SP2-DVD-x86_64-GM-DVD1.iso
-  p=/srv/tftpboot/suse-11.2/$f
-  wget -q -nc -O$p http://download.nue.suse.com/install/SLES-11-SP2-GM/$f
-  echo $p /srv/tftpboot/suse-11.2/install/ iso9660 loop,ro >> /etc/fstab
-  mount /srv/tftpboot/suse-11.2/install/
+if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
+  f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
+  p=/srv/tftpboot/suse-$suseversion/$f
+  wget -q -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
+  echo $p /srv/tftpboot/suse-$suseversion/install/ iso9660 loop,ro >> /etc/fstab
+  mount /srv/tftpboot/suse-$suseversion/install/
 fi
-if [ ! -e "/srv/tftpboot/suse-11.2/install/media.1/" ] ; then
+if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
 	echo "We do not have SLES install media - giving up"
 	exit 34
 fi
@@ -264,23 +296,13 @@ if [ $cloud = p ] ; then
 	perl -i.perlbak -pe 'if(m/255.255.255.0/){$n++} if($n==3){s/255.255.255.0/255.255.248.0/}' $netfile
 fi
 
-#+bmc router
-#fix autoyast xml.erb update channels
-if [ ! -d "/srv/tftpboot/repos/SLES11-SP2-Updates/repodata" ] ; then
-	sed -i.bak -e 's#<media_url>http://<%= @admin_node_ip %>:8091/repos/SLES11-SP\(.\)-Updates/</media_url>#<media_url>http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP\1/</media_url>#'\
-    -e "s/<domain>[^<]*</<domain>$cloud.cloud.suse.de</" \
-    /opt/dell/barclamps/provisioner/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
-fi
-if [ ! -d "/srv/tftpboot/repos/SLES11-SP2-Core/repodata" ] ; then
-	sed -i.bak2 -e 's#<media_url>http://<%= @admin_node_ip %>:8091/repos/SLES11-SP1-Pool/#<media_url>http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1-POOL/#' -e 's#/repos/SLES11-SP2-Core/#/suse-11.2/install/#' /opt/dell/barclamps/provisioner/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
-fi
-
 # to allow integration into external DNS:
 f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
 grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
 
 # workaround for performance bug (bnc#770083)
 sed -i -e "s#<\(partitions.*\)/>#<\1><partition><mount>swap</mount><size>auto</size></partition><partition><mount>/</mount><size>max</size><fstopt>data=writeback,barrier=0,noatime</fstopt></partition></partitions>#" /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
+# set default password to 'linux'
 sed -i -e 's/\(rootpw_hash.*\)""/\1"$2y$10$u5mQA7\/8YjHdutDPEMPtBeh\/w8Bq0wEGbxleUT4dO48dxgwyPD8D."/' /opt/dell/chef/cookbooks/provisioner/recipes/setup_base_images.rb
 
 

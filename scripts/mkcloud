@@ -172,8 +172,8 @@ function h_create_cloud_lvm()
 function h_deploy_admin_image()
 {
   pushd /tmp
-  wget -nc http://clouddata.cloud.suse.de/images/SP2-64up.qcow2
-  qemu-img convert SP2-64up.qcow2 /dev/cloud/admin
+  wget -nc http://clouddata.cloud.suse.de/images/$adminimage-64up.qcow2
+  qemu-img convert $adminimage-64up.qcow2 /dev/cloud/admin
   popd
 
   # make a bigger partition 2
@@ -329,7 +329,7 @@ function setupadmin()
   mkdir -p $mnt
   mount -o loop,offset=$(expr 2056192 \* 512) /dev/cloud/admin $mnt
   mkdir -p $mnt/root/.ssh
-  grep -q $pubkey $mnt/root/.ssh/authorized_keys2 2>/dev/null || cat ~/.ssh/id_dsa.pub >> $mnt/root/.ssh/authorized_keys2
+  grep -q $pubkey $mnt/root/.ssh/authorized_keys 2>/dev/null || cat ~/.ssh/id_dsa.pub >> $mnt/root/.ssh/authorized_keys
   umount $mnt
   sync
 
@@ -682,6 +682,15 @@ function sanity_checks()
     echo "export cloudsource=Beta?|develcloud|susecloud"
     exit 1
   fi
+
+  case $cloudsource in
+    develcloud2.0|susecloud2.0)
+      adminimage=SP3
+    ;;
+    *)
+      adminimage=SP2
+    ;;
+  esac
 
   CVOL=${CVOL:-/dev/vdb}
   if grep -q $CVOL /proc/mounts ; then
