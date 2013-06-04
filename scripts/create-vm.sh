@@ -21,7 +21,12 @@ usage () {
     me=`basename $0`
 
     cat <<EOF >&2
-Usage: $me [options] VM-NAME VM-DISK VBRIDGE [FILESYSTEM-PATH]
+Usage: $me [options] VM-NAME VM-QCOW2-DISK VBRIDGE [FILESYSTEM-PATH]
+
+If VM-QCOW2-DISK does not already exist, it will be created.
+
+FILESYSTEM-PATH should be a directory on the host which you want
+share to the guest via a 9p virtio passthrough mount.
 
 Options:
   -h, --help     Show this help and exit
@@ -34,13 +39,14 @@ parse_args () {
         usage 0
     fi
 
-    if [ $# != 3 ]; then
+    if [ $# -lt 3 ] || [ $# -gt 4 ]; then
         usage
     fi
 
     vm_name="$1"
     vm_disk="$2"
     vbridge="$3"
+    filesystem="$4"
 }
 
 main () {
@@ -59,12 +65,18 @@ main () {
         opts=(
             --import
             # virt-install doesn't support "readonly=true"
-            --filesystem /data/install,install
         )
     else
         echo "Creating $vm_disk as qcow2 image ..."
         qemu-img create -f qcow2 "$vm_disk" 4G
         opts=( --pxe )
+    fi
+
+    if [ -n "$filesystem" ]; then
+        opts=(
+            ${opts[@]}
+            --filesystem $filesystem,install
+        )
     fi
 
     # vm-install \
