@@ -152,10 +152,14 @@ common_post () {
     fi
 
     cat <<EOF
-Now run:
+Now run the following steps in the admin node.  If it is a VM, it is
+probably a good idea to snapshot[1] the VM before at least one of the
+steps, if not both.
 
   zypper -n --gpg-auto-import-keys in -l -t pattern $pattern
   screen -L /opt/dell/bin/install-chef-suse.sh
+
+[1] e.g.: virsh snapshot-create-as pebbles-sp3-admin pre-pattern-install
 EOF
 }
 
