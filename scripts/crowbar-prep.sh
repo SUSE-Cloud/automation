@@ -181,7 +181,7 @@ nfs_mount () {
 
 9p_mount () {
     mkdir -p $mountpoint_9p
-    echo "install $mountpoint_9p 9p ro,trans=virtio 0 0"
+    echo "install $mountpoint_9p 9p ro,trans=virtio,version=9p2000.L 0 0"
 }
 
 iso_mount () {
