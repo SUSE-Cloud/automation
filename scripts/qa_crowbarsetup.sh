@@ -362,7 +362,12 @@ if [ -n "$allocate" ] ; then
 
 #chef-client
 if [ $cloud != virtual ] ; then
-	for i in 3 4 5 6 ; do
+        nodelist="3 4 5 6"
+        # protect machine 3 on d2 for tomasz
+        if [ "$cloud" = "d2" ]; then
+            nodelist="4 5"
+        fi
+	for i in $nodelist ; do
 	  for pw in root crowbar ; do
 		  (ipmitool -H "$net.16$i" -U root -P $pw lan set 1 defgw ipaddr "$net.1"
 		  ipmitool -H "$net.16$i" -U root -P $pw power reset) &
