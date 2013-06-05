@@ -42,7 +42,8 @@ Profiles:
     host-nfs
         Mount from VM host ($HOST_IP) via NFS.  Use this one
         in conjunction with the sync-repos mirroring tool available
-        from the same git repository as this script.
+        from the same git repository as this script.  Export HOST_IP
+        before running if you want to change this IP.
 
         Assumes the VM host mounts the SP3 and Cloud 2.0 installation
         sources at /mnt/sles-11-sp3 and /mnt/suse-cloud-2.0
@@ -58,6 +59,9 @@ Profiles:
             isos/$CLOUD_ISO
             mirrors/SLES11-SP3-Pool/sle-11-x86_64/repodata/repomd.xml
             mirrors/SLES11-SP3-Updates/sle-11-x86_64/repodata/repomd.xml
+
+Also adds an entry to /etc/hosts for $ADMIN_IP; export a new value for
+ADMIN_IP to override this.
 
 Options:
   -h, --help     Show this help and exit
