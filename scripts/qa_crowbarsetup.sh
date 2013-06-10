@@ -190,7 +190,7 @@ if [ "x$WITHSLEUPDATES" != "x" ] ; then
 fi
 
 
-wget -q -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
+wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
 echo $CLOUDDISTPATH/*.iso > /etc/cloudversion
 echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
 mount -o loop,ro -t iso9660 $(ls */$CLOUDDISTPATH/*.iso|tail -1) /mnt/cloud
@@ -266,7 +266,7 @@ done
 if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
   f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
   p=/srv/tftpboot/suse-$suseversion/$f
-  wget -q -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
+  wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
   echo $p /srv/tftpboot/suse-$suseversion/install/ iso9660 loop,ro >> /etc/fstab
   mount /srv/tftpboot/suse-$suseversion/install/
 fi
@@ -710,7 +710,7 @@ if [ -n "$addupdaterepo" ] ; then
   UPR=/srv/tftpboot/repos/Cloud-PTF
   mkdir -p $UPR
   for repo in ${UPDATEREPOS//+/ } ; do
-    wget -r --directory-prefix $UPR --no-parent --no-clobber --accept x86_64.rpm,noarch.rpm $repo || exit 8
+    wget --progress=dot:mega -r --directory-prefix $UPR --no-parent --no-clobber --accept x86_64.rpm,noarch.rpm $repo || exit 8
   done
   zypper -n install createrepo
   createrepo -o $UPR $UPR || exit 8
@@ -942,7 +942,7 @@ function securitytests()
   # pulled in automatically
   #zypper --non-interactive in perl-HTTP-Cookies perl-Config-Simple
 
-  wget -r --directory-prefix owasp -np -nc -A "owasp*.rpm","sslscan*rpm" $owaspsource
+  wget --progress=dot:mega -r --directory-prefix owasp -np -nc -A "owasp*.rpm","sslscan*rpm" $owaspsource
   zypper --non-interactive --gpg-auto-import-keys in `find owasp/ -type f -name "*rpm"`
 
   pushd /usr/share/owasp-test-suite >/dev/null
