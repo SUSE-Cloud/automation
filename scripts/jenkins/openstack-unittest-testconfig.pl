@@ -22,7 +22,7 @@ my $uttrigger = {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
                                          "SETUPCMD=rcmongodb start\n".
                                          "TEARDOWNCMD=rcmongodb stop",
-        'openstack-cinder'            => "COMPONENT=openstack-cinder"
+        'openstack-cinder'            => "COMPONENT=openstack-cinder\n",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
                                          "TESTCMD=./run_tests.sh -N",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
@@ -39,7 +39,8 @@ my $uttrigger = {
         'python-cinderclient'         => "COMPONENT=python-cinderclient",
         'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
-        'python-heatclient'           => "COMPONENT=python-heatclient\n",
+        'python-heatclient'           => "COMPONENT=python-heatclient\n" .
+                                         "TESTCMD='python setup.py testr --slowest",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n",
@@ -81,7 +82,8 @@ my $uttrigger = {
         'python-cinderclient'         => "COMPONENT=python-cinderclient",
         'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
-        'python-heatclient'           => "COMPONENT=python-heatclient\n",
+        'python-heatclient'           => "COMPONENT=python-heatclient\n" .
+                                         "TESTCMD='python setup.py testr --slowest",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n",
@@ -118,7 +120,6 @@ my $uttrigger = {
         'python-cinderclient'         => "COMPONENT=python-cinderclient",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n".
                                          "TESTCMD=nosetests",
-        'python-heatclient'           => "COMPONENT=python-heatclient",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n".
