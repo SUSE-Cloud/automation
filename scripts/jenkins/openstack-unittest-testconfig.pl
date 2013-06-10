@@ -43,7 +43,8 @@ my $uttrigger = {
                                          "TESTCMD='python setup.py testr --slowest",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
         'python-novaclient'           => "COMPONENT=python-novaclient",
-        'python-quantumclient'        => "COMPONENT=python-quantumclient\n",
+        'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
+                                         "TESTCMD='python setup.py testr'",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
         'python-oslo.config'          => "COMPONENT=python-oslo.config\n",
     }
@@ -86,7 +87,8 @@ my $uttrigger = {
                                          "TESTCMD='python setup.py testr --slowest",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
         'python-novaclient'           => "COMPONENT=python-novaclient",
-        'python-quantumclient'        => "COMPONENT=python-quantumclient\n",
+        'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
+                                         "TESTCMD='python setup.py testr'",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
         'python-oslo.config'          => "COMPONENT=python-oslo.config\n",
     }
