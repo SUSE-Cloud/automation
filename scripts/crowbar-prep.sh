@@ -38,27 +38,35 @@ Profiles:
         Mount from {sentosa,loki}.suse.de.  This is a no-brainer
         setup which sacrifices flexibility for ease of setup.
         Probably only makes sense if you are within the .nue offices.
+        The disadvantage is that you get no choice over which
+        SUSE Cloud ISO is used - you just get whatever sentosa
+        happens to be serving.
 
     host-nfs
-        Mount from VM host ($HOST_IP) via NFS.  Use this one
-        in conjunction with the sync-repos mirroring tool available
-        from the same git repository as this script.  Export HOST_IP
-        before running if you want to change this IP.
+        Mount everything from VM host ($HOST_IP) via NFS.  Best suited
+        for remote workers and control freaks ;-P  Use this one in
+        conjunction with the sync-repos mirroring tool available from
+        the same git repository as this script.  Export HOST_IP before
+        running if you want to change this IP.
 
         Assumes the VM host mounts the SP3 and Cloud 2.0 installation
         sources at /mnt/sles-11-sp3 and /mnt/suse-cloud-2.0
         respectively, and NFS exports them both.
 
     host-9p
-        Mount from VM host as virtio passthrough filesystem.  Assumes
-        that the 9p filesystem is exported with the target named 'install',
-        and includes the following directories and files (create the .isos
-        as symlinks to the real .iso files):
+        Similar to 'host-nfs' but mounts from VM host as virtio
+        passthrough filesystem.  Assumes that the 9p filesystem is
+        exported with the target named 'install', and includes the
+        following directories and files (create the .isos as symlinks
+        to the real .iso files):
 
             isos/$SP3_ISO
             isos/$CLOUD_ISO
             mirrors/SLES11-SP3-Pool/sle-11-x86_64/repodata/repomd.xml
             mirrors/SLES11-SP3-Updates/sle-11-x86_64/repodata/repomd.xml
+
+        Surprisingly, this seems to perform a bit slower than the NFS
+        approach.
 
 Also adds an entry to /etc/hosts for $ADMIN_IP; export a new value for
 ADMIN_IP to override this.
