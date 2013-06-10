@@ -120,7 +120,7 @@ export TZ=UTC
 ################
 
 # default test command
-[ -z "$TESTCMD" ] &amp;&amp; TESTCMD="nosetests -v"
+[ -z "$TESTCMD" ] &amp;&amp; TESTCMD="./run_tests.sh -N -P"
 
 
 EXTRAPKGS=""

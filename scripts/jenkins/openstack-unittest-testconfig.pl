@@ -22,8 +22,7 @@ my $uttrigger = {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
                                          "SETUPCMD=rcmongodb start\n".
                                          "TEARDOWNCMD=rcmongodb stop",
-        'openstack-cinder'            => "COMPONENT=openstack-cinder\n" .
-                                         "TESTCMD=./run_tests.sh -N -P",
+        'openstack-cinder'            => "COMPONENT=openstack-cinder"
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
                                          "TESTCMD=./run_tests.sh -N",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
@@ -32,10 +31,8 @@ my $uttrigger = {
                                          "TESTCMD=./run_tests.sh -u",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
                                          "TESTCMD=./run_tests.sh -N -P -xintegration",
-        'openstack-nova'              => "COMPONENT=openstack-nova\n" .
-                                         "TESTCMD=./run_tests.sh -N -P",
-        'openstack-quantum'           => "COMPONENT=openstack-quantum\n" .
-                                         "TESTCMD=python setup.py testr",
+        'openstack-nova'              => "COMPONENT=openstack-nova",
+        'openstack-quantum'           => "COMPONENT=openstack-quantum",
         'openstack-swift'             => "COMPONENT=openstack-swift\n".
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
                                          "TESTCMD=./.unittests",
@@ -67,8 +64,7 @@ my $uttrigger = {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
                                          "SETUPCMD=rcmongodb start\n".
                                          "TEARDOWNCMD=rcmongodb stop",
-        'openstack-cinder'            => "COMPONENT=openstack-cinder\n" .
-                                         "TESTCMD=./run_tests.sh -N -P",
+        'openstack-cinder'            => "COMPONENT=openstack-cinder",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
                                          "TESTCMD=./run_tests.sh -N",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
@@ -77,10 +73,8 @@ my $uttrigger = {
                                          "TESTCMD=./run_tests.sh -P -u",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
                                          "TESTCMD=./run_tests.sh -N -P -xintegration",
-        'openstack-nova'              => "COMPONENT=openstack-nova\n" .
-                                         "TESTCMD=./run_tests.sh -N -P",
-        'openstack-quantum'           => "COMPONENT=openstack-quantum\n" .
-                                         "TESTCMD=python setup.py testr",
+        'openstack-nova'              => "COMPONENT=openstack-nova",
+        'openstack-quantum'           => "COMPONENT=openstack-quantum",
         'openstack-swift'             => "COMPONENT=openstack-swift\n".
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
                                          "TESTCMD=./.unittests",
