@@ -47,8 +47,8 @@
         <string>grizzly-SLE-11-SP3</string>
         <string>grizzly-openSUSE-12.2</string>
         <string>grizzly-openSUSE-12.3</string>
+        <string>master-SLE-11-SP3</string>
         <string>master-openSUSE-12.3</string>
-        <string>master-SLE-11-SP2</string>
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
@@ -72,10 +72,9 @@ OSC_RC="$OSC_RC -A https://api.opensuse.org"
 OSC_ARCH=x86_64
 
 case $distribution in
-  *-SLE-11-SP2) OSC_DIST=SLE_11_SP2
+  *-SLE-11-SP3) OSC_DIST=SLE_11_SP3
              ;;
-            ###(dmueller): change to SP3 when available           
-  *-SLE-11-SP3) OSC_DIST=SLE_11_SP2
+  *-openSUSE-13.1) OSC_DIST=openSUSE_13.1
              ;;
   *-openSUSE-12.3) OSC_DIST=openSUSE_12.3
              ;;
