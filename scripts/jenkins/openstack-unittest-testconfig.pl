@@ -48,7 +48,8 @@ my $uttrigger = {
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
                                          "TESTCMD=python setup.py testr",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
-        'python-oslo.config'          => "COMPONENT=python-oslo.config\n",
+        'python-oslo.config'          => "COMPONENT=python-oslo.config\n" .
+                                         "TESTCMD=python setup.py testr --slowest\n",
     }
   },
   "Cloud:OpenStack:Grizzly:Staging" => {
@@ -94,7 +95,8 @@ my $uttrigger = {
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
                                          "TESTCMD=python setup.py testr",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
-        'python-oslo.config'          => "COMPONENT=python-oslo.config\n",
+        'python-oslo.config'          => "COMPONENT=python-oslo.config\n" .
+                                         "TESTCMD=python setup.py testr --slowest\n",
     }
   },
  
