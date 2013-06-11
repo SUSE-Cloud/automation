@@ -267,7 +267,7 @@ function h_create_libvirt_adminnode_config()
     <on_crash>restart</on_crash>
     <devices>
       <emulator>/usr/bin/qemu-kvm</emulator>
-      <disk type='block' device='disk'>
+      <disk type='block' device='disk' cache='unsafe'>
         <driver name='qemu' type='raw'/>
         <source dev='/dev/cloud/admin'/>
         <target dev='vda' bus='virtio'/>
@@ -439,7 +439,7 @@ function h_create_libvirt_computenode_config()
   <on_crash>restart</on_crash>
   <devices>
     <emulator>/usr/bin/qemu-kvm</emulator>
-    <disk type='block' device='disk'>
+    <disk type='block' device='disk' cache='unsafe'>
       <driver name='qemu' type='raw'/>
       <source dev='/dev/cloud/node$i'/>
       <target dev='vda' bus='virtio'/>
@@ -492,7 +492,7 @@ function setupcompute()
         dev=vd$(echo $alldevices | cut -d" " -f$c)
         c=$(($c + 1))
         cephvolume="$cephvolume
-    <disk type='block' device='disk'>
+    <disk type='block' device='disk' cache='unsafe'>
       <serial>cloud-node$i-ceph$n</serial>
       <driver name='qemu' type='raw'/>
       <source dev='/dev/cloud/node$i-ceph$n'/>
