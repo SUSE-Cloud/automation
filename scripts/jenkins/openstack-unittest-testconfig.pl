@@ -89,7 +89,7 @@ my $uttrigger = {
         'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
-                                         "TESTCMD=python setup.py testr --slowest",
+                                         "TESTCMD=nosetests",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
