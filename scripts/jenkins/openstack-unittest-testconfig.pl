@@ -40,11 +40,11 @@ my $uttrigger = {
         'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
-                                         "TESTCMD='python setup.py testr --slowest",
+                                         "TESTCMD=python setup.py testr --slowest",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
-                                         "TESTCMD='python setup.py testr'",
+                                         "TESTCMD=python setup.py testr",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
         'python-oslo.config'          => "COMPONENT=python-oslo.config\n",
     }
@@ -84,11 +84,11 @@ my $uttrigger = {
         'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
-                                         "TESTCMD='python setup.py testr --slowest",
+                                         "TESTCMD=python setup.py testr --slowest",
         'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
-                                         "TESTCMD='python setup.py testr'",
+                                         "TESTCMD=python setup.py testr",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
         'python-oslo.config'          => "COMPONENT=python-oslo.config\n",
     }
