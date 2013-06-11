@@ -599,8 +599,15 @@ function get_crowbarnodes()
 get_crowbarnodes
 if [ -n "$proposal" ] ; then
 waitnodes nodes
-for service in database keystone ceph glance nova nova_dashboard ; do
-  [[ "$service" = "ceph" && ( "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ) ]] && continue
+for service in database keystone ceph glance rabbitmq cinder quantum nova nova_dashboard ; do
+  case $service in
+    ceph)
+      [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && continue
+      ;;
+    rabbitmq|cinder|quantum)
+      [[ $cloudsource =~ "cloud2.0" ]] || continue
+      ;;
+  esac
   crowbar "$service" proposal create default
   # hook for changing proposals:
   custom_configuration $service
