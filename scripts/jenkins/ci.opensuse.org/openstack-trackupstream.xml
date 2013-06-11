@@ -84,8 +84,15 @@ OBS_PROJECT=${PROJECTSOURCE##*/}
 
 case $OBS_TYPE in
   OBS) OSCAPI="https://api.opensuse.org"
-       OSC_BUILD_DIST=SLE_11_SP2
        OSC_BUILD_ARCH=x86_64
+       case $OBS_PROJECT in
+           *Folsom*)
+               OSC_BUILD_DIST=SLE_11_SP2
+               ;;
+           *)
+               OSC_BUILD_DIST=SLE_11_SP3
+               ;;
+       esac
        ;;
   *)   echo "This jenkins instance only interacts with OBS."
        exit 1
