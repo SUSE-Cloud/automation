@@ -21,12 +21,7 @@ compare () {
     done
 
     #git --no-pager log --no-merges --pretty=format:%H $upstream..$local
-    if [ "$verbosity" -gt 0 ]; then
-        icing_verbosity=$(($verbosity - 1))
-    else
-        icing_verbosity=0
-    fi
-    git icing -v$icing_verbosity "$upstream" "$local" | count_commits_not_upstreamed
+    git icing -s -v$verbosity "$upstream" "$local" | count_commits_not_upstreamed
 
     if [ "$verbosity" = 0 ]; then
         echo -n "." >&2
@@ -43,8 +38,8 @@ count_commits_not_upstreamed () {
         tee "$tmp"
     fi
     escape=$'\033'
-    count=$( grep -chE "^(${escape}\[[0-9;]+m)?[!\+] " "$tmp" )
-    [ "$count" -gt 0 ] && printf "  %4d  %s\n" "$count" "$name" >> $counts_tmp
+    count=$( sed -n '/ commits remaining:/{s///;p}' "$tmp" )
+    [ -n "$count" ] && [ "$count" -gt 0 ] && printf "  %4d  %s\n" "$count" "$name" >> $counts_tmp
     rm "$tmp"
 }
 
