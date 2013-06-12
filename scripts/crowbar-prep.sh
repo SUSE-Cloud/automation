@@ -186,6 +186,7 @@ common_post () {
     if [ -n "$pattern_already_installed" ]; then
         echo >&2 "WARNING: $pattern pattern already installed!"
         echo >&2 "You will probably need to upgrade existing packages."
+        echo >&2
     fi
 
     cat <<EOF
