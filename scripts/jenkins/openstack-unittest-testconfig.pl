@@ -21,7 +21,7 @@ my $uttrigger = {
     unittest   => {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
                                          "SETUPCMD=rcmongodb start\n".
-                                         "TESTCMD=python setup.py testr --slowest --testr-args='--concurrency=1\n" .
+                                         "TESTCMD=python setup.py testr --slowest --testr-args='--concurrency=1'\n" .
                                          "TEARDOWNCMD=rcmongodb stop",
         'openstack-cinder'            => "COMPONENT=openstack-cinder\n",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
