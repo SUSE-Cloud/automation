@@ -98,7 +98,7 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
         'python-oslo.config'          => "COMPONENT=python-oslo.config\n" .
-                                         "TESTCMD=python setup.py testr --slowest\n",
+                                         "TESTCMD=nosetests --with-doctest --exclude-dir=tests/testmods\n",
     }
   },
  
