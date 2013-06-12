@@ -8,7 +8,7 @@
 # take the nuclear detonation approach and pipe it directly to a remote
 # bash process:
 #
-#     cat crowbar-prep.sh | ssh root@$admin_node bash -s $profile
+#     cat crowbar-prep.sh | ssh root@$admin_node bash -s -- -d $profile
 
 me=`basename $0`
 [ "$me" = bash ] && me=crowbar-prep.sh
@@ -31,7 +31,7 @@ usage () {
     fi
 
     cat <<EOF >&2
-Usage: cat $me | ssh root@ADMIN-NODE bash -s [OPTIONS] PROFILE
+Usage: cat $me | ssh root@ADMIN-NODE bash -s -- [OPTIONS] PROFILE
 
 Profiles:
     nue-host-nfs
@@ -81,7 +81,9 @@ Also adds an entry to /etc/hosts for $ADMIN_IP; export a new value for
 ADMIN_IP to override this.
 
 Options:
-  -h, --help     Show this help and exit
+  -d, --devel-cloud          zypper addrepo Devel:Cloud:2.0
+  -s, --devel-cloud-staging  zypper addrepo Devel:Cloud:2.0:Staging
+  -h, --help                 Show this help and exit
 EOF
     exit "$exit_code"
 }
@@ -155,7 +157,9 @@ common_post () {
     sp3_repo=SLES-11-SP3
     updates_repo=SLES-11-SP3-Updates
 
-    for repo in $sc2_repo $sp3_repo $updates_repo; do
+    repos=( $sc2_repo $sp3_repo $updates_repo $ibs_repo )
+
+    for repo in "${repos[@]}"; do
         if zypper lr | grep -q $repo; then
             echo "WARNING: Removing pre-existing $repo repository:" >&2
             zypper rr $repo
@@ -166,6 +170,18 @@ common_post () {
     zypper ar file://$CLOUD_MOUNTPOINT   $sc2_repo
     zypper ar file://$SP3_MOUNTPOINT     $sp3_repo
     zypper ar file://$UPDATES_MOUNTPOINT $updates_repo
+
+    case "$ibs_repo" in
+        Devel_Cloud_2.0)
+            zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/2.0/SLE_11_SP3/Devel:Cloud:2.0.repo
+            ;;
+        Devel_Cloud_2.0_Staging)
+            zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/2.0:/Staging/SLE_11_SP3/Devel:Cloud:2.0:Staging.repo
+            ;;
+        *)
+            die "BUG: unrecognised \$ibs_repo value '$ibs_repo'"
+            ;;
+    esac
 
     if [ -n "$pattern_already_installed" ]; then
         echo >&2 "WARNING: $pattern pattern already installed!"
@@ -259,10 +275,46 @@ host_9p () {
     ) | append_to_fstab
 }
 
+parse_opts () {
+    ibs_repo=
+
+    while [ $# != 0 ]; do
+        case "$1" in
+            -h|--help)
+                usage 0
+                ;;
+            -d|--devel-cloud)
+                [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
+                ibs_repo=Devel_Cloud_2.0
+                shift
+                ;;
+            -s|--devel-cloud-staging)
+                [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
+                ibs_repo=Devel_Cloud_2.0_Staging
+                shift
+                ;;
+            -*)
+                usage "Unrecognised option: $1"
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+
+    if [ $# != 1 ]; then
+        usage
+    fi
+
+    profile="$1"
+}
+
 main () {
-    case "$1" in
+    parse_opts "$@"
+
+    case "$profile" in
         nue-nfs|nue-host-nfs|host-nfs|host-9p)
-            action="${1//-/_}"
+            action="${profile//-/_}"
             ;;
         *)
             usage
