@@ -33,7 +33,7 @@ my $uttrigger = {
         'openstack-heat-cfntools'     => "COMPONENT=openstack-heat-cfntools\n" .
                                          "TESTCMD=python setup.py testr --slowest",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
-                                         "TESTCMD=./run_tests.sh -N -P -xintegration",
+                                         "TESTCMD=./run_tests.sh -N -P",
         'openstack-nova'              => "COMPONENT=openstack-nova",
         'openstack-quantum'           => "COMPONENT=openstack-quantum",
         'openstack-swift'             => "COMPONENT=openstack-swift\n".
