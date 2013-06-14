@@ -15,6 +15,8 @@ me=`basename $0`
 
 : ${ADMIN_IP:=192.168.124.10}
 : ${HOST_IP:=192.168.124.1}
+HOST_MIRROR_DEFAULT=/data/install/mirrors
+: ${HOST_MIRROR:=$HOST_MIRROR_DEFAULT}
 CLOUD_ISO=SUSE-CLOUD-2-x86_64-current.iso
 SP3_ISO=SLES-11-SP3-DVD-x86_64-current.iso
 
@@ -52,15 +54,20 @@ Profiles:
         happens to be serving.
 
     host-nfs
-        Mount everything from VM host ($HOST_IP) via NFS.  Best suited
-        for remote workers and control freaks ;-P  Use this one in
-        conjunction with the sync-repos mirroring tool available from
-        the same git repository as this script.  Export HOST_IP before
-        running if you want to change this IP.
+        Mount everything from VM host ($HOST_IP) via NFS (export
+        HOST_IP before running if you want to change this IP).  Best
+        suited for remote workers and control freaks ;-P  Use this one
+        in conjunction with the sync-repos mirroring tool available
+        from:
 
-        Assumes the VM host mounts the SP3 and Cloud 2.0 installation
+          https://github.com/SUSE/cloud/blob/master/dev-setup/sync-repos
+
+        which by default mirrors to $HOST_MIRROR_DEFAULT, and this
+        profile assumes that directory will be NFS-exported to the
+        guest (export HOST_MIRROR to override this).  It also assumes
+        that the VM host mounts the SP3 and Cloud 2.0 installation
         sources at /mnt/sles-11-sp3 and /mnt/suse-cloud-2.0
-        respectively, and NFS exports them both.
+        respectively and NFS exports both to the guest.
 
     host-9p
         Similar to 'host-nfs' but mounts from VM host as virtio
@@ -269,7 +276,7 @@ host_nfs () {
         nfs_mount $HOST_IP:/mnt/sles-11-sp3    $SP3_MOUNTPOINT
         nfs_mount $HOST_IP:/mnt/suse-cloud-2.0 $CLOUD_MOUNTPOINT
 
-        mirrors=$HOST_IP:/data/install/mirrors
+        mirrors=$HOST_IP:$HOST_MIRROR
         nfs_mount $mirrors/SLES11-SP3-Pool/sle-11-x86_64    $POOL_MOUNTPOINT
         nfs_mount $mirrors/SLES11-SP3-Updates/sle-11-x86_64 $UPDATES_MOUNTPOINT
     ) | append_to_fstab
