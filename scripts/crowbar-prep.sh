@@ -38,13 +38,13 @@ Profiles:
         This profile is a hybrid of 'nue-nfs' and 'host-nfs' and is
         probably the best trade-off between convenience and
         flexibility if you are situated in the Nuremberg offices.  It
-        takes SLES repos from loki and sentosa, and the SUSE Cloud ISO
-        from the VM host ($HOST_IP) via NFS.  This allows you to
-        choose which SUSE Cloud build to develop/test against, but
-        eliminates the hassle of mirroring SLES repositories.
+        takes SLES repos from clouddata and sentosa, and the SUSE
+        Cloud ISO from the VM host ($HOST_IP) via NFS.  This allows
+        you to choose which SUSE Cloud build to develop/test against,
+        but eliminates the hassle of mirroring SLES repositories.
 
     nue-nfs
-        Mount from {sentosa,loki}.suse.de.  This is a no-brainer
+        Mount from {sentosa,clouddata}.suse.de.  This is a no-brainer
         setup which sacrifices flexibility for ease of setup.
         Probably only makes sense if you are within the .nue offices.
         The disadvantage is that you get no choice over which
@@ -232,25 +232,35 @@ bind_mount () {
     echo "$src $dst none bind,ro 0 0"
 }
 
-loki_nfs () {
-    loki=loki.suse.de:/vol/euklid/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER
-    nfs_mount $loki/11-SP3-POOL $POOL_MOUNTPOINT
-    nfs_mount $loki/11-SP3      $UPDATES_MOUNTPOINT
+# loki_nfs () {
+#     loki=loki.suse.de:/vol/euklid/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER
+#     nfs_mount $loki/11-SP3-POOL $POOL_MOUNTPOINT
+#     nfs_mount $loki/11-SP3      $UPDATES_MOUNTPOINT
+# }
+
+clouddata_sle_repos () {
+    repos=clouddata.cloud.suse.de:/srv/nfs/repos
+    nfs_mount $repos/11-SP3-POOL $POOL_MOUNTPOINT
+    nfs_mount $repos/11-SP3      $UPDATES_MOUNTPOINT
+}
+
+clouddata_sp3_repo () {
+    nfs_mount clouddata.cloud.suse.de:/srv/nfs/suse-11.3/install  $SP3_MOUNTPOINT
 }
 
 nue_host_nfs () {
     (
-        nfs_mount sentosa.suse.de:/mnt/sles-11-sp3    $SP3_MOUNTPOINT
         nfs_mount $HOST_IP:/mnt/suse-cloud-2.0        $CLOUD_MOUNTPOINT
-        loki_nfs
+        clouddata_sp3_repo
+        clouddata_sle_repos
     ) | append_to_fstab
 }
 
 nue_nfs () {
     (
-        nfs_mount sentosa.suse.de:/mnt/sles-11-sp3    $SP3_MOUNTPOINT
         nfs_mount sentosa.suse.de:/mnt/suse-cloud-2.0 $CLOUD_MOUNTPOINT
-        loki_nfs
+        clouddata_sp3_repo
+        clouddata_sle_repos
     ) | append_to_fstab
 }
 
