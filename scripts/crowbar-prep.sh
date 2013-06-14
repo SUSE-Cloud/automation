@@ -46,11 +46,11 @@ Profiles:
         the hassle of mirroring SLES repositories.
 
     nue-nfs
-        Mount from {sentosa,clouddata}.suse.de.  This is a no-brainer
+        Mount from clouddata.cloud.suse.de.  This is a no-brainer
         setup which sacrifices flexibility for ease of setup.
         Probably only makes sense if you are within the .nue offices.
         The disadvantage is that you get no choice over which
-        SUSE Cloud ISO is used - you just get whatever sentosa
+        SUSE Cloud ISO is used - you just get whatever clouddata
         happens to be serving, and it could change beneath your feet
         without warning :)
 
@@ -268,7 +268,7 @@ nue_host_nfs () {
 
 nue_nfs () {
     (
-        nfs_mount sentosa.suse.de:/mnt/suse-cloud-2.0 $CLOUD_MOUNTPOINT
+        nfs_mount clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-2.0 $CLOUD_MOUNTPOINT
         clouddata_sp3_repo
         clouddata_sle_repos
     ) | append_to_fstab
