@@ -185,6 +185,8 @@ common_post () {
         Devel_Cloud_2.0_Staging)
             zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/2.0:/Staging/SLE_11_SP3/Devel:Cloud:2.0:Staging.repo
             ;;
+        '')
+            ;;
         *)
             die "BUG: unrecognised \$ibs_repo value '$ibs_repo'"
             ;;
