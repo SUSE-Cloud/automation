@@ -40,10 +40,10 @@ Profiles:
         This profile is a hybrid of 'nue-nfs' and 'host-nfs' and is
         probably the best trade-off between convenience and
         flexibility if you are situated in the Nuremberg offices.  It
-        takes SLES repos from clouddata and sentosa, and the SUSE
-        Cloud ISO from the VM host ($HOST_IP) via NFS.  This allows
-        you to choose which SUSE Cloud build to develop/test against,
-        but eliminates the hassle of mirroring SLES repositories.
+        takes SLES repos from clouddata, and the SUSE Cloud ISO from
+        the VM host ($HOST_IP) via NFS.  This allows you to choose
+        which SUSE Cloud build to develop/test against, but eliminates
+        the hassle of mirroring SLES repositories.
 
     nue-nfs
         Mount from {sentosa,clouddata}.suse.de.  This is a no-brainer
@@ -51,7 +51,8 @@ Profiles:
         Probably only makes sense if you are within the .nue offices.
         The disadvantage is that you get no choice over which
         SUSE Cloud ISO is used - you just get whatever sentosa
-        happens to be serving.
+        happens to be serving, and it could change beneath your feet
+        without warning :)
 
     host-nfs
         Mount everything from VM host ($HOST_IP) via NFS (export
