@@ -647,6 +647,17 @@ function get_novadashboardserver()
   novadashboardserver=`crowbar nova_dashboard proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova_dashboard']['elements']['nova_dashboard-server']"`
 }
 
+
+function tempest_run()
+{
+  get_novadashboardserver
+  # scp run_tempest.sh root@${novadashboardserver}:
+  # ssh root@${novadashboardserver} "bash -x ./run_tempest.sh"
+  return $?
+}
+
+
+
 if [ -n "$testsetup" ] ; then
     get_novacontroller
 	if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
@@ -732,7 +743,8 @@ if [ -n "$testsetup" ] ; then
 	exit $ret
 fi
 
-if [ -n "$addupdaterepo" ] ; then
+function addupdaterepo()
+{
   UPR=/srv/tftpboot/repos/Cloud-PTF
   mkdir -p $UPR
   for repo in ${UPDATEREPOS//+/ } ; do
@@ -741,15 +753,16 @@ if [ -n "$addupdaterepo" ] ; then
   zypper -n install createrepo
   createrepo -o $UPR $UPR || exit 8
   zypper ar $UPR cloud-ptf
-fi
+}
 
-if [ -n "$runupdate" ] ; then
+function runupdate()
+{
   wait_for 30 3 " zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
   wait_for 30 3 " zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
-fi
+}
 
-
-if [ -n "$rebootcompute" ] ; then
+function rebootcompute()
+{
   get_novacontroller
 
   cmachines=`crowbar machines list | grep ^d`
@@ -769,16 +782,17 @@ if [ -n "$rebootcompute" ] ; then
   ret=$?
   echo "ret:$ret"
   exit $ret
-fi
+}
 
-if [ -n "$waitforrebootcompute" ] ; then
+function waitforrebootcompute()
+{
   . .openrc
   nova list
   nova reboot testvm
   nova list
   vmip=`nova show testvm | perl -ne 'm/ nova_fixed.network [ |]*([0-9.]+)/ && print $1'`
   wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
-fi
+}
 
 function create_owasp_testsuite_config()
 {
@@ -983,16 +997,13 @@ function securitytests()
   exit $ret
 }
 
-if [ -n "$securitytests" ] ; then
-  # over time all steps should be transformed into functions (like in mkcloud)
-  securitytests
-fi
 
-#BMCs at 10.122.178.163-6 #node 6-9
-#BMCs at 10.122.$net.163-4 #node 11-12
+function teardown()
+{
+  #BMCs at 10.122.178.163-6 #node 6-9
+  #BMCs at 10.122.$net.163-4 #node 11-12
 
-# undo propsal create+commit
-if [ -n "$teardown" ] ; then
+  # undo propsal create+commit
   for service in nova_dashboard nova glance ceph swift keystone database ; do
     crowbar "$service" proposal delete default
     crowbar "$service" delete default
@@ -1001,4 +1012,41 @@ if [ -n "$teardown" ] ; then
   for node in $(crowbar machines list | grep ^d) ; do
     crowbar machines delete $node
   done
+}
+
+#-------------------------------------------------------------------------------
+#--
+#-- for compatibility to legacy calling style
+#--
+#
+# in the long run all steps should be transformed into real functions, just
+# like in mkcloud; this makes it easier to read, understand and edit this file
+#
+
+if [ -n "$addupdaterepo" ] ; then
+  addupdaterepo
+fi
+
+if [ -n "$runupdate" ] ; then
+  runupdate
+fi
+
+if [ -n "$rebootcompute" ] ; then
+  rebootcompute
+fi
+
+if [ -n "$waitforrebootcompute" ] ; then
+  waitforrebootcompute
+fi
+
+if [ -n "$securitytests" ] ; then
+  securitytests
+fi
+
+if [ -n "$tempestrun" ] ; then
+  tempestrun
+fi
+
+if [ -n "$teardown" ] ; then
+  teardown
 fi
