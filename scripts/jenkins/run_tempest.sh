@@ -1,6 +1,15 @@
 #!/bin/bash
 
-# EXIT STATUS: =0 ok, >0 number of errors&failures, <0 error in this script
+# EXIT STATUS: 0: ok; 1..254: number of errors + failures; 255: error in this script
+
+function check_or_exit()
+{
+  if [ "$1" -ne 0 ] ; then
+    echo "Error detected in phase: $2"
+    exit 255
+  fi
+  return
+}
 
 function tempest()
 {
@@ -9,9 +18,7 @@ function tempest()
   zypper addrepo http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly/SLE_11_SP3/Cloud:OpenStack:Grizzly.repo
   zypper -n --gpg-auto-import-keys install python-unittest2 python-nose python-testtools python-testresources git-core
 
-  if [ "$?" -ne 0 ]; then
-    exit -1
-  fi
+  check_or_exit $? "Installation of packages"
 
   echo "Cloning the Tempest (grizzly) directory..."
   if [ -e tempest ] ; then
@@ -21,14 +28,11 @@ function tempest()
     git clone -b stable/grizzly git://github.com/openstack/tempest.git
     cd tempest
   fi
-  
+
   echo "Copying config file..."
   cp etc/tempest.conf.sample etc/tempest.conf
 
-  if [ "$?" -ne 0 ]; then
-    echo "Failed to copy tempest.conf file."
-    exit -1
-  fi
+  check_or_exit $? "Copying tempest.conf file."
 
   echo "maybe we need to modify the config file at this point..."
   patch -p0 < ~/tempest.conf.patch
@@ -54,7 +58,9 @@ function tempest()
   # PLEASE MODIFY THIS WHERE NECESSARY
   time nosetests -v tempest 2>&1 | tee $log
 
-  echo "Tempest finished! (Exit code $?)"
+  tempestcode=$?
+  #check_or_exit $tempestcode "Tempest run"
+  echo "Tempest finished! (Exit code $tempestcode)"
 
   echo "Parsing the test results..."
   tempest_result=$(grep 'FAILED (SKIP=' $log)
@@ -78,7 +84,6 @@ function tempest()
 # does mkcloud rename the dashboard node to "dashboard" ?
 
 tempest
-
+output=$?
 echo "Tempest returned $output"
-
 exit $output
