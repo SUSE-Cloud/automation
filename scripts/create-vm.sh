@@ -6,6 +6,8 @@
 # FIXME: ideally this would eventually be replaced by one or more
 # Vagrantfiles.
 
+DEFAULT_HYPERVISOR="qemu:///system"
+
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
     exit_code=1
@@ -29,15 +31,32 @@ FILESYSTEM-PATH should be a directory on the host which you want
 share to the guest via a 9p virtio passthrough mount.
 
 Options:
-  -h, --help     Show this help and exit
+  -c URI, --connect URI  Connect to hypervisor at URI [$DEFAULT_HYPERVISOR]
+  -h, --help             Show this help and exit
 EOF
     exit "$exit_code"
 }
 
 parse_args () {
-    if [ "$1" == '-h' ] || [ "$1" == '--help' ]; then
-        usage 0
-    fi
+    hypervisor="$DEFAULT_HYPERVISOR"
+
+    while [ $# != 0 ]; do
+        case "$1" in
+            -h|--help)
+                usage 0
+                ;;
+            -c|--connect)
+                hypervisor="$2"
+                shift 2
+                ;;
+            -*)
+                usage "Unrecognised option: $1"
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
 
     if [ $# -lt 3 ] || [ $# -gt 4 ]; then
         usage
@@ -90,7 +109,7 @@ main () {
     #     --keymap en-us
 
     virt-install \
-        --connect qemu:///system \
+        --connect "$hypervisor" \
         --virt-type kvm \
         --name $vm_name \
         --ram 2048 \
