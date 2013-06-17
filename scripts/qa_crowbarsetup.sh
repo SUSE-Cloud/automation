@@ -653,7 +653,13 @@ if [ -n "$testsetup" ] ; then
 		curl -s w3.suse.de/~bwiedemann/cloud/defaultsuseusers.pl | perl
 		nova list
 		glance image-list
-	        glance image-list|grep -q SP2-64 || glance image-create --name=SP2-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP2-64up.qcow2
+	        glance image-list|grep -q SP2-64 || glance image-create --name=SP2-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP2-64up.qcow2 | tee glance.out
+        # wait for image to finish uploading
+        imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
+        for n in $(seq 1 20) ; do
+          glance image-show $imageid|grep status.*active && break
+          sleep 5
+        done
         nova delete testvm # cleanup earlier run # cleanup
 		nova keypair-add --pub_key /root/.ssh/id_rsa.pub testkey
 		nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
@@ -662,7 +668,7 @@ if [ -n "$testsetup" ] ; then
 		nova boot --image SP2-64 --flavor 1 --key_name testkey testvm | tee boot.out
 		instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
 		sleep 30
-		vmip=`nova show $instanceid | perl -ne "m/ nova_fixed.network [ |]*([0-9.]+)/ && print \\$1"`
+		vmip=`nova show $instanceid | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
 		echo "VM IP address: $vmip"
         if [ -z "$vmip" ] ; then
           tail -n 90 /var/log/nova/*
