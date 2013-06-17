@@ -68,6 +68,22 @@ parse_args () {
     filesystem="$4"
 }
 
+run_virsh () {
+    virsh -c "$hypervisor" "$@"
+}
+
+valid_bridge () {
+    local vbridge="$1"
+    #/sbin/brctl show | egrep -q "^${vbridge}[[:space:]]"
+    for net in $( run_virsh net-list | awk '/active/ {print $1}' ); do
+        if run_virsh net-info "$net" | grep -qE "^Bridge:[[:space:]]+$vbridge\$"; then
+            echo "Bridge is associated with '$net' network."
+            return 0
+        fi
+    done
+    return 1
+}
+
 main () {
     # if [ `id -u` != 0 ]; then
     #     echo "Please run as root." >&2
@@ -76,7 +92,7 @@ main () {
 
     parse_args "$@"
 
-    if ! /sbin/brctl show | egrep -q "^${vbridge}[[:space:]]"; then
+    if ! valid_bridge "$vbridge"; then
         usage "$vbridge is not a valid bridge device name"
     fi
 
