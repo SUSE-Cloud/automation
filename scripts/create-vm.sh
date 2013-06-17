@@ -88,7 +88,10 @@ main () {
     else
         echo "Creating $vm_disk as qcow2 image ..."
         qemu-img create -f qcow2 "$vm_disk" 4G
-        opts=( --pxe )
+        opts=(
+            --pxe
+            --boot network,hd,menu=on
+        )
     fi
 
     if [ -n "$filesystem" ]; then
