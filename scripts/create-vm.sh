@@ -95,8 +95,7 @@ main () {
     fi
 
     if [ -n "$filesystem" ]; then
-        opts=(
-            ${opts[@]}
+        opts+=(
             --filesystem $filesystem,install
         )
     fi
@@ -114,14 +113,14 @@ main () {
     virt-install \
         --connect "$hypervisor" \
         --virt-type kvm \
-        --name $vm_name \
+        --name "$vm_name" \
         --ram 2048 \
         --vcpus 4 \
-        ${opts[@]} \
-        --disk path=$vm_disk,format=qcow2,cache=none \
+        "${opts[@]}" \
+        --disk path="$vm_disk,format=qcow2,cache=none" \
         --os-type=linux \
         --os-variant=sles11 \
-        --network bridge=$vbridge \
+        --network bridge="$vbridge" \
         --graphics vnc
 }
 
