@@ -710,12 +710,13 @@ if [ -n "$testsetup" ] ; then
 		nova volume-create 1 ; sleep 2
 		nova volume-list | grep available
 		volumecreateret=$?
-		nova volume-attach $instanceid 1 /dev/vdb
+		volumeid=`nova volume-list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
+		nova volume-attach $instanceid $volumeid /dev/vdb
 		sleep 15
 		ssh $vmip fdisk -l /dev/vdb | grep 1073741824
 		volumeattachret=$?
-		nova volume-detach $instanceid 1 ; sleep 10
-		nova volume-attach $instanceid 1 /dev/vdb ; sleep 10
+		nova volume-detach $instanceid $volumeid ; sleep 10
+		nova volume-attach $instanceid $volumeid /dev/vdb ; sleep 10
 		ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
 		test $volumecreateret = 0 -a $volumeattachret = 0
 	'
