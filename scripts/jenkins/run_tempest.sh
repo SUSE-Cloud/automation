@@ -7,7 +7,6 @@ function tempest()
   echo "Installing git-core, Python unittest2 and nose..."
   zypper addrepo http://download.opensuse.org/repositories/devel:/tools:/scm/SLE_11_SP2/devel:tools:scm.repo
   zypper addrepo http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly/SLE_11_SP3/Cloud:OpenStack:Grizzly.repo
-  #zypper addrepo http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/SLE_11_SP3/Cloud:OpenStack:Master.repo
   zypper -n --gpg-auto-import-keys install python-unittest2 python-nose python-testtools python-testresources git-core
 
   if [ "$?" -ne 0 ]; then
@@ -33,6 +32,15 @@ function tempest()
 
   echo "maybe we need to modify the config file at this point..."
   patch -p0 < ~/tempest.conf.patch
+  (. ~/.openrc
+    for i in 1 2 ; do
+      nova flavor-delete $i
+      nova flavor-create --is-public True m1.tiny$i $i 150 0 1
+    done
+  )
+  imgid=$(. ~/.openrc ; nova image-list|perl -ne 'if(m/^\| ([0-9a-f]{8}\S+) /){print $1;exit 0}')
+  sed -i -e "s/image_ref = .*/image_ref = $imgid/" etc/tempest.conf
+  sed -i -e "s/image_ref_alt = .*/image_ref_alt = $imgid/" etc/tempest.conf
   #bash -i
 
   currtime=$(date +%y%m%d_%H%M%S)
@@ -44,7 +52,7 @@ function tempest()
   echo "Running tempest (please be patient)..."
 
   # PLEASE MODIFY THIS WHERE NECESSARY
-  nosetests -v tempest &| tee $log
+  time nosetests -v tempest 2>&1 | tee $log
 
   echo "Tempest finished! (Exit code $?)"
 
