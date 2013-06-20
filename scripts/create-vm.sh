@@ -103,7 +103,7 @@ main () {
         )
     else
         echo "Creating $vm_disk as qcow2 image ..."
-        qemu-img create -f qcow2 "$vm_disk" 4G
+        qemu-img create -f qcow2 "$vm_disk" 24G
         opts=(
             --pxe
             --boot network,hd,menu=on
