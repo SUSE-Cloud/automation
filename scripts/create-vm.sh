@@ -7,6 +7,7 @@
 # Vagrantfiles.
 
 DEFAULT_HYPERVISOR="qemu:///system"
+DEFAULT_FSSIZE="24"
 
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
@@ -33,12 +34,14 @@ share to the guest via a 9p virtio passthrough mount.
 Options:
   -c URI, --connect URI  Connect to hypervisor at URI [$DEFAULT_HYPERVISOR]
   -h, --help             Show this help and exit
+  -s, --disksize XX      Size of VM-QCOW2-DISK (in GB) [$DEFAULT_FSSIZE]
 EOF
     exit "$exit_code"
 }
 
 parse_args () {
     hypervisor="$DEFAULT_HYPERVISOR"
+    vm_disk_size="${DEFAULT_FSSIZE}G"
 
     while [ $# != 0 ]; do
         case "$1" in
@@ -49,6 +52,10 @@ parse_args () {
                 hypervisor="$2"
                 shift 2
                 ;;
+	    -s|--disksize)
+		vm_disk_size="${2}G"
+		shift 2
+		;;
             -*)
                 usage "Unrecognised option: $1"
                 ;;
@@ -102,8 +109,8 @@ main () {
             # virt-install doesn't support "readonly=true"
         )
     else
-        echo "Creating $vm_disk as qcow2 image ..."
-        qemu-img create -f qcow2 "$vm_disk" 24G
+        echo "Creating $vm_disk with size $vm_disk_size as qcow2 image ..."
+        qemu-img create -f qcow2 "$vm_disk" "$vm_disk_size"
         opts=(
             --pxe
             --boot network,hd,menu=on
