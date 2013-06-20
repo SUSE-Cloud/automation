@@ -8,6 +8,7 @@
 
 DEFAULT_HYPERVISOR="qemu:///system"
 DEFAULT_FSSIZE="24"
+DEFAULT_CPUS=4
 
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
@@ -35,6 +36,7 @@ Options:
   -c URI, --connect URI  Connect to hypervisor at URI [$DEFAULT_HYPERVISOR]
   -h, --help             Show this help and exit
   -s, --disksize XX      Size of VM-QCOW2-DISK (in GB) [$DEFAULT_FSSIZE]
+  --cpus XX              Number of virtual CPUs to assign [$DEFAULT_CPUS]
 EOF
     exit "$exit_code"
 }
@@ -42,6 +44,7 @@ EOF
 parse_args () {
     hypervisor="$DEFAULT_HYPERVISOR"
     vm_disk_size="${DEFAULT_FSSIZE}G"
+    vm_cpus="$DEFAULT_CPUS"
 
     while [ $# != 0 ]; do
         case "$1" in
@@ -54,6 +57,10 @@ parse_args () {
                 ;;
 	    -s|--disksize)
 		vm_disk_size="${2}G"
+		shift 2
+		;;
+	    --cpus)
+		vm_cpus="$2"
 		shift 2
 		;;
             -*)
@@ -138,7 +145,7 @@ main () {
         --virt-type kvm \
         --name "$vm_name" \
         --ram 2048 \
-        --vcpus 4 \
+        --vcpus $vm_cpus \
         "${opts[@]}" \
         --disk path="$vm_disk,format=qcow2,cache=none" \
         --os-type=linux \
