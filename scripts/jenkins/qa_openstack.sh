@@ -46,6 +46,8 @@ case "$cloudsource" in
 	fi
   ;;
   develcloud2.0)
+	REPO=SLE_11_SP3
+	$zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-2.0/ cloud2iso
 	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0/$REPO/Devel:Cloud:2.0.repo
 	if test -n "$OSHEAD" ; then
 		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0:/Staging/$REPO/ cloudhead
@@ -123,7 +125,7 @@ fi
 
 $zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 $zypper --gpg-auto-import-keys -n ref
-$zypper -v --gpg-auto-import-keys -n install -t pattern cloud_controller cloud_compute
+$zypper -v --gpg-auto-import-keys -n install -t pattern cloud_controller cloud_compute cloud_network
 $zypper -n install --force openstack-quickstart python-glanceclient
 ls -la /var/lib/nova
 
