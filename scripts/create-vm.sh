@@ -146,6 +146,7 @@ main () {
         --name "$vm_name" \
         --ram 2048 \
         --vcpus $vm_cpus \
+        --cpu core2duo,+vmx \
         "${opts[@]}" \
         --disk path="$vm_disk,format=qcow2,cache=none" \
         --os-type=linux \
