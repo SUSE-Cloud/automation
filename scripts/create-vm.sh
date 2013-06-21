@@ -36,7 +36,7 @@ Options:
   -c URI, --connect URI  Connect to hypervisor at URI [$DEFAULT_HYPERVISOR]
   -h, --help             Show this help and exit
   -s, --disksize XX      Size of VM-QCOW2-DISK (in GB) [$DEFAULT_FSSIZE]
-  --cpus XX              Number of virtual CPUs to assign [$DEFAULT_CPUS]
+  -C, --cpus XX          Number of virtual CPUs to assign [$DEFAULT_CPUS]
 EOF
     exit "$exit_code"
 }
@@ -55,14 +55,14 @@ parse_args () {
                 hypervisor="$2"
                 shift 2
                 ;;
-	    -s|--disksize)
-		vm_disk_size="${2}G"
-		shift 2
-		;;
-	    --cpus)
-		vm_cpus="$2"
-		shift 2
-		;;
+            -s|--disksize)
+                vm_disk_size="${2}G"
+                shift 2
+                ;;
+            -C|--cpus)
+                vm_cpus="$2"
+                shift 2
+                ;;
             -*)
                 usage "Unrecognised option: $1"
                 ;;
