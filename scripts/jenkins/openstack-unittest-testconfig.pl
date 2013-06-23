@@ -42,7 +42,9 @@ my $uttrigger = {
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
                                          "TESTCMD=python setup.py testr --slowest",
-        'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
+        'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
+                                         "COMPONENT=python-keystoneclient\n" .
+                                         "TEARDOWNCMD=rcmemcached stop\n",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
                                          "TESTCMD=python setup.py testr",
@@ -90,7 +92,9 @@ my $uttrigger = {
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
                                          "TESTCMD=nosetests",
-        'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
+        'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
+                                         "COMPONENT=python-keystoneclient\n" .
+                                         "TEARDOWNCMD=rcmemcached stop\n",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
                                          "TESTCMD=python setup.py testr",
