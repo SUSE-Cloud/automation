@@ -590,6 +590,12 @@ function custom_configuration()
         enable_ssl_for_nova_dashboard
       fi
     ;;
+    quantum)
+      if [[ $networkingplugin = linuxbridge ]] ; then
+        proposal_set_value quantum default "['attributes']['quantum']['networking_plugin']" "'$networkingplugin'"
+        proposal_set_value quantum default "['attributes']['quantum']['networking_mode']" "'vlan'"
+      fi
+    ;;
     *) echo "No hooks defined for service: $service"
     ;;
   esac
