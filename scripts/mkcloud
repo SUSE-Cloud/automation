@@ -416,11 +416,13 @@ function h_create_libvirt_computenode_config()
   nodeconfigfile=$1
   nodecounter=$2
   cephvolume="$3"
+  i=$nodecounter
+  i2=$(printf %02x $i)
 
   cat > $nodeconfigfile <<EOLIBVIRT
 <domain type='kvm'>
   <name>cloud-node$i</name>
-  <uuid>169738f2-63b$i-3fef-2ee8-1fef03498574</uuid>
+  <uuid>169738f2-63$i2-3fef-2ee8-1fef03498574</uuid>
   <memory>2097152</memory>
   <currentMemory>2097152</currentMemory>
   <vcpu>$vcpus</vcpu>
@@ -448,7 +450,7 @@ function h_create_libvirt_computenode_config()
     </disk>
     $cephvolume
     <interface type='network'>
-      <mac address='52:54:0$i:77:77:7$i'/>
+      <mac address='52:54:$i2:77:77:$i2'/>
       <source network='cloud-admin'/>
       <model type='virtio'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
