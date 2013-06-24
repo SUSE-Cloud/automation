@@ -416,12 +416,11 @@ function h_create_libvirt_computenode_config()
   nodeconfigfile=$1
   nodecounter=$2
   cephvolume="$3"
-  i=$nodecounter
-  i2=$(printf %02x $i)
+  i2=$(printf %02x $nodecounter)
 
   cat > $nodeconfigfile <<EOLIBVIRT
 <domain type='kvm'>
-  <name>cloud-node$i</name>
+  <name>cloud-node$nodecounter</name>
   <uuid>169738f2-63$i2-3fef-2ee8-1fef03498574</uuid>
   <memory>2097152</memory>
   <currentMemory>2097152</currentMemory>
@@ -443,7 +442,7 @@ function h_create_libvirt_computenode_config()
     <emulator>/usr/bin/qemu-kvm</emulator>
     <disk type='block' device='disk' cache='unsafe'>
       <driver name='qemu' type='raw'/>
-      <source dev='/dev/cloud/node$i'/>
+      <source dev='/dev/cloud/node$nodecounter'/>
       <target dev='vda' bus='virtio'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
       <boot order='2'/>
