@@ -24,6 +24,7 @@
         <string>openstack-dashboard</string>
         <string>openstack-glance</string>
         <string>openstack-heat</string>
+        <string>openstack-ironic</string>
         <string>openstack-heat-cfntools</string>
         <string>openstack-keystone</string>
         <string>openstack-nova</string>
@@ -52,7 +53,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! ( ["folsom-openSUSE-12.2"].contains(distribution) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-heat-cfntools", ].contains(component) )</combinationFilter>
+  <combinationFilter>! ( ["folsom-openSUSE-12.2"].contains(distribution) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-ironic", "openstack-heat-cfntools", ].contains(component) || ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3"].contains(distribution) &amp;&amp; ["openstack-ironic",].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># zypper in osc
