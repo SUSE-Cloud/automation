@@ -652,9 +652,11 @@ function get_novadashboardserver()
 function tempest_run()
 {
   get_novadashboardserver
-  # scp run_tempest.sh root@${novadashboardserver}:
-  # ssh root@${novadashboardserver} "bash -x ./run_tempest.sh"
-  return $?
+  scp ./run_tempest.sh root@${novadashboardserver}:
+  ssh root@${novadashboardserver} 'bash -x ./run_tempest.sh'
+  ret=$?
+  echo "return code from tempest run: $ret"
+  return $ret
 }
 
 
@@ -1045,7 +1047,7 @@ if [ -n "$securitytests" ] ; then
 fi
 
 if [ -n "$tempestrun" ] ; then
-  tempestrun
+  tempest_run
 fi
 
 if [ -n "$teardown" ] ; then
