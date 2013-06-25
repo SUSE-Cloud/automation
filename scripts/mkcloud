@@ -570,6 +570,13 @@ function securitytests()
   return $?
 }
 
+function tempest()
+{
+  scp run_tempest.sh root@$adminip:
+  sshrun "tempestrun=1 bash -x qa_crowbarsetup.sh virtual"
+  return $?
+}
+
 
 function usage()
 {
@@ -671,6 +678,11 @@ function sanity_checks()
     #wget -O qa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
     # Switch to curl as wget has an issue with github: https://github.com/netz98/n98-magerun/issues/75
     curl -s -o qa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
+  fi
+
+  # fetch the latest version of tempest script
+  if [ -z "$NOTEMPESTSCRIPTDOWNLOAD" ] ; then
+    curl -s -o run_tempest.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/run_tempest.sh"
   fi
 
   if [ ! -e qa_crowbarsetup.sh ] ; then
