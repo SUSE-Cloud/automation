@@ -7,6 +7,8 @@
 # Vagrantfiles.
 
 DEFAULT_HYPERVISOR="qemu:///system"
+DEFAULT_FSSIZE="24"
+DEFAULT_CPUS=4
 
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
@@ -33,12 +35,16 @@ share to the guest via a 9p virtio passthrough mount.
 Options:
   -c URI, --connect URI  Connect to hypervisor at URI [$DEFAULT_HYPERVISOR]
   -h, --help             Show this help and exit
+  -s, --disksize XX      Size of VM-QCOW2-DISK (in GB) [$DEFAULT_FSSIZE]
+  -C, --cpus XX          Number of virtual CPUs to assign [$DEFAULT_CPUS]
 EOF
     exit "$exit_code"
 }
 
 parse_args () {
     hypervisor="$DEFAULT_HYPERVISOR"
+    vm_disk_size="${DEFAULT_FSSIZE}G"
+    vm_cpus="$DEFAULT_CPUS"
 
     while [ $# != 0 ]; do
         case "$1" in
@@ -47,6 +53,14 @@ parse_args () {
                 ;;
             -c|--connect)
                 hypervisor="$2"
+                shift 2
+                ;;
+            -s|--disksize)
+                vm_disk_size="${2}G"
+                shift 2
+                ;;
+            -C|--cpus)
+                vm_cpus="$2"
                 shift 2
                 ;;
             -*)
@@ -102,8 +116,8 @@ main () {
             # virt-install doesn't support "readonly=true"
         )
     else
-        echo "Creating $vm_disk as qcow2 image ..."
-        qemu-img create -f qcow2 "$vm_disk" 24G
+        echo "Creating $vm_disk with size $vm_disk_size as qcow2 image ..."
+        qemu-img create -f qcow2 "$vm_disk" "$vm_disk_size"
         opts=(
             --pxe
             --boot network,hd,menu=on
@@ -131,7 +145,8 @@ main () {
         --virt-type kvm \
         --name "$vm_name" \
         --ram 2048 \
-        --vcpus 4 \
+        --vcpus $vm_cpus \
+        --cpu core2duo,+vmx \
         "${opts[@]}" \
         --disk path="$vm_disk,format=qcow2,cache=none" \
         --os-type=linux \
