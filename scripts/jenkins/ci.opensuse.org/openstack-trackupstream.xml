@@ -65,7 +65,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! ( ["Cloud:OpenStack:Folsom:Staging"].contains(project) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-ironic", "python-ironicclient", "openstack-trove", "python-ironicclient", "openstack-heat-cfntools" ].contains(component) || ["Cloud:OpenStack:Grizzly:Staging"].contains(project) &amp;&amp; ["openstack-ironic", "python-ironicclient", "openstack-trove", "python-troveclient"].contains(component)) </combinationFilter>
+  <combinationFilter>! ( ["Cloud:OpenStack:Folsom:Staging"].contains(project) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-ironic", "python-ironicclient", "openstack-trove", "pythontroveclient", "openstack-heat-cfntools" ].contains(component) || ["Cloud:OpenStack:Grizzly:Staging"].contains(project) &amp;&amp; ["openstack-ironic", "python-ironicclient", "openstack-trove", "python-troveclient"].contains(component)) </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}
