@@ -38,6 +38,7 @@
         <string>python-keystoneclient</string>
         <string>python-novaclient</string>
         <string>python-quantumclient</string>
+        <string>python-troveclient</string>
         <string>python-swiftclient</string>
         <string>python-oslo.config</string>
       </values>
@@ -54,7 +55,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! ( ["folsom-openSUSE-12.2"].contains(distribution) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-ironic", "openstack-trove", "openstack-heat-cfntools", ].contains(component) || ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3"].contains(distribution) &amp;&amp; ["openstack-ironic", "openstack-trove"].contains(component) )</combinationFilter>
+  <combinationFilter>! ( ["folsom-openSUSE-12.2"].contains(distribution) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-ironic", "python-ironicclient", "openstack-trove", "python-toveclient", "openstack-heat-cfntools", ].contains(component) || ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3"].contains(distribution) &amp;&amp; ["openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient"].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># zypper in osc
