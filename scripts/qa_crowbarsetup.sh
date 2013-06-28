@@ -597,6 +597,9 @@ function custom_configuration()
         proposal_set_value quantum default "['attributes']['quantum']['networking_mode']" "'vlan'"
       fi
     ;;
+    swift)
+      [[ "$nodenumber" -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
+    ;;
     *) echo "No hooks defined for service: $service"
     ;;
   esac
@@ -608,13 +611,26 @@ function get_crowbarnodes()
   [ -x /opt/dell/bin/crowbar ] && nodes=`crowbar machines list | grep ^d`
 }
 
+
 get_crowbarnodes
+wantswift=1
+wantceph=1
+[[ $cloudsource =~ "cloud2.0" ]] && wantceph=
+[[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
+# we can not use both swift and ceph as each grabs all disks on a node
+[[ -n "$wantceph" ]] && wantswift=
+[[ "$cephvolumenumber" -lt 1 ]] && wantswift=
+
 if [ -n "$proposal" ] ; then
 waitnodes nodes
-for service in database keystone ceph glance rabbitmq cinder quantum nova nova_dashboard ; do
+
+for service in database keystone ceph glance rabbitmq cinder quantum nova nova_dashboard swift ; do
   case $service in
     ceph)
-      [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && continue
+      [[ -n "$wantceph" ]] || continue
+      ;;
+    swift)
+      [[ -n "$wantswift" ]] || continue
       ;;
     rabbitmq|cinder|quantum)
       [[ $cloudsource =~ "cloud2.0" ]] || continue
@@ -672,8 +688,13 @@ if [ -n "$testsetup" ] ; then
 	fi
 	echo "openstack nova contoller: $novacontroller"
 	curl -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
-	ssh $novacontroller '
+	ssh $novacontroller "export wantswift=$wantswift ; "'
 		. .openrc
+                if [[ -n $wantswift ]] ; then
+                    swift stat
+                    swift upload container1 .ssh/authorized_keys
+                    swift list container1 || exit 33
+                fi
 		curl -s w3.suse.de/~bwiedemann/cloud/defaultsuseusers.pl | perl
 		nova list
 		glance image-list
@@ -730,7 +751,7 @@ if [ -n "$testsetup" ] ; then
 		fi
 		set -x
 		ssh $vmip ping -c2 crowbar
-		ssh $vmip modprobe acpiphp
+		ssh $vmip modprobe acpiphp # workaround bnc#824915
 		nova volume-create 1 ; sleep 2
 		nova volume-list | grep available
 		volumecreateret=$?
