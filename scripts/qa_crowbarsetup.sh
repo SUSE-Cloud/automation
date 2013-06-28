@@ -655,6 +655,9 @@ function tempest_run()
   scp ./run_tempest.sh root@${novadashboardserver}:
   ssh root@${novadashboardserver} 'bash -x ./run_tempest.sh'
   ret=$?
+  rm -rf tempestlog
+  mkdir -p tempestlog
+  scp root@${novadashboardserver}:tempest/tempest_*.log tempestlog/
   echo "return code from tempest run: $ret"
   return $ret
 }
