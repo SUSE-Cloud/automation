@@ -191,9 +191,10 @@ fi
 
 
 wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
-echo $CLOUDDISTPATH/*.iso > /etc/cloudversion
+CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
+echo $CLOUDISO > /etc/cloudversion
 echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
-mount -o loop,ro -t iso9660 $(ls */$CLOUDDISTPATH/*.iso|tail -1) /mnt/cloud
+mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
 rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
 if [ ! -e "/srv/tftpboot/repos/Cloud/media.1" ] ; then
 	echo "We do not have cloud install media - giving up"
