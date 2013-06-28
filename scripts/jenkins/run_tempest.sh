@@ -63,14 +63,16 @@ function tempest()
   echo "Tempest finished! (Exit code $tempestcode)"
 
   echo "Parsing the test results..."
-  tempest_result=$(grep 'FAILED (SKIP=' $log)
+  tempest_result=$(tail -n50 $log | grep '^FAILED (')
   echo "Result: $tempest_result"
 
   # parse the output
-  tempest_result=$(echo $tempest_result | sed 's/FAILED (SKIP=//g' | sed 's/, errors=/ /g' | sed 's/, failures=/ /g' | sed 's/)//g')
+  tempest_result_skip=$(echo $tempest_result | grep -o "SKIP=[[:digit:]]*")
+  tempest_result_errors=$(echo $tempest_result | grep -o "errors=[[:digit:]]*")
+  tempest_result_failures=$(echo $tempest_result | grep -o "failures=[[:digit:]]*")
 
   # add the number of errors and failures together to get the total
-  total=$(echo $tempest_result | awk '{print $2 + $3}')
+  total=$(( $tempest_result_errors + $tempest_result_failures ))
 
   echo "Total number of errors: $total"
   [ $total -gt 254 ] && total=254
