@@ -53,6 +53,10 @@ my $uttrigger = {
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
                                          "TESTCMD=python setup.py testr",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
+        'python-troveclient'          => "COMPONENT=python-troveclient\n" .
+                                         "TESTCMD=python setup.py testr\n",
+        'python-openstackclient'      => "COMPONENT=python-openstackclient\n" .
+                                         "TESTCMD=python setup.py testr\n",
         'python-oslo.config'          => "COMPONENT=python-oslo.config\n" .
                                          "TESTCMD=python setup.py testr --slowest\n",
     }
