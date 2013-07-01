@@ -1031,28 +1031,35 @@ function teardown()
 
 if [ -n "$addupdaterepo" ] ; then
   addupdaterepo
+  exit $?
 fi
 
 if [ -n "$runupdate" ] ; then
   runupdate
+  exit $?
 fi
 
 if [ -n "$rebootcompute" ] ; then
   rebootcompute
+  exit $?
 fi
 
 if [ -n "$waitforrebootcompute" ] ; then
   waitforrebootcompute
+  exit $?
 fi
 
 if [ -n "$securitytests" ] ; then
   securitytests
+  exit $?
 fi
 
 if [ -n "$tempestrun" ] ; then
   tempest_run
+  exit $?
 fi
 
 if [ -n "$teardown" ] ; then
   teardown
+  exit $?
 fi
