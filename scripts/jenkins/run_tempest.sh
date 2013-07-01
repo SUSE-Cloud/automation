@@ -42,9 +42,30 @@ function tempest()
       nova flavor-create --is-public True m1.tiny$i $i 150 0 1
     done
   )
+  
+    echo "Creating a tenant named demo..."
+  keystone tenant-create --name demo
+
+  demo_tenant_id=$(keystone tenant-list | grep '^|\s[[:xdigit:]]*\s*|\s*demo\s*|\s*True\s*|\s*$' | sed 's/|\s//g' | awk '{print $1}')
+  echo "Tenant demo's id is $demo_tenant_id"
+
+  echo "Creating a user named demo that is assigned to the tenant demo..."
+  keystone user-create --name demo --tenant-id $demo_tenant_id --pass secret --enabled true
+
+  echo "Creating another tenant named alt_demo..."
+  keystone tenant-create --name alt_demo
+
+  alt_demo_tenant_id=$(keystone tenant-list | grep '^|\s[[:xdigit:]]*\s*|\s*alt_demo\s*|\s*True\s*|\s*$' | sed 's/|\s//g' | awk '{print $1}')
+  echo "Tenant alt_demo's id is $alt_demo_tenant_id"
+
+  echo "Creating a user alt_demo that is assigned to the tenant alt_demo..."
+  keystone user-create --name alt_demo --tenant-id $alt_demo_tenant_id --pass secret --enabled true
+  
   imgid=$(. ~/.openrc ; nova image-list|perl -ne 'if(m/^\| ([0-9a-f]{8}\S+) /){print $1;exit 0}')
   sed -i -e "s/image_ref = .*/image_ref = $imgid/" etc/tempest.conf
   sed -i -e "s/image_ref_alt = .*/image_ref_alt = $imgid/" etc/tempest.conf
+  sed -i -e "s/admin_password = .*/admin_password = crowbar/g" etc/tempest.conf
+  sed -i -e "s/admin_tenant_name = .*/admin_tenant_name = openstack/g" etc/tempest.conf
   #bash -i
 
   currtime=$(date +%y%m%d_%H%M%S)
