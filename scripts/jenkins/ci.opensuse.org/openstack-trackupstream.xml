@@ -53,6 +53,8 @@
         <string>python-keystoneclient</string>
         <string>python-novaclient</string>
         <string>python-oslo.config</string>
+        <string>python-oslo.messaging</string>
+        <string>python-oslo.sphinx</string>
         <string>python-openstackclient</string>
         <string>python-quantumclient</string>
         <string>python-swiftclient</string>
@@ -66,7 +68,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! ( ["Cloud:OpenStack:Folsom:Staging"].contains(project) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-ironic", "python-ironicclient", "openstack-trove", "python-troveclient", "openstack-heat-cfntools", "python-openstackclient" ].contains(component) || ["Cloud:OpenStack:Grizzly:Staging"].contains(project) &amp;&amp; ["openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "python-troveclient"].contains(component)) </combinationFilter>
+  <combinationFilter>! ( ["Cloud:OpenStack:Folsom:Staging"].contains(project) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-ironic", "python-ironicclient", "openstack-trove", "python-troveclient", "openstack-heat-cfntools", "python-openstackclient", "python-oslo.sphinx", "python-oslo.messaging"].contains(component) || ["Cloud:OpenStack:Grizzly:Staging"].contains(project) &amp;&amp; ["openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "python-troveclient", "python-oslo.sphinx", "python-oslo.messaging"].contains(component)) </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}
