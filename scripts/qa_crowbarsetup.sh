@@ -691,6 +691,7 @@ if [ -n "$testsetup" ] ; then
 	ssh $novacontroller "export wantswift=$wantswift ; "'
 		. .openrc
                 if [[ -n $wantswift ]] ; then
+                    zypper -n install python-swiftclient
                     swift stat
                     swift upload container1 .ssh/authorized_keys
                     swift list container1 || exit 33
