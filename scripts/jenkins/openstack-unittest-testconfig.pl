@@ -59,6 +59,12 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr\n",
         'python-oslo.config'          => "COMPONENT=python-oslo.config\n" .
                                          "TESTCMD=python setup.py testr --slowest\n",
+        'python-oslo.messaging'          => "COMPONENT=python-oslo.messaging\n" .
+                                         "TESTCMD=python setup.py testr --slowest\n",
+        'python-oslo.sphinx'          => "COMPONENT=python-oslo.sphinx\n" .
+                                         "TESTCMD=python setup.py testr --slowest\n",
+
+
     }
   },
   "Cloud:OpenStack:Grizzly:Staging" => {
