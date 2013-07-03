@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<matrix-project>
+  <actions/>
+  <description>Check OBS repositories for installcheck issues</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>14</daysToKeep>
+    <numToKeep>10</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>H 1 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <axes>
+    <hudson.matrix.TextAxis>
+      <name>project</name>
+      <values>
+        <string>Cloud:OpenStack:Grizzly</string>
+        <string>Cloud:OpenStack:Master</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.TextAxis>
+      <name>repository</name>
+      <values>
+        <string>SLE_11_SP3</string>
+        <string>openSUSE_12.3</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.LabelAxis>
+      <name>label</name>
+      <values>
+        <string>master-openSUSE-12.3</string>
+      </values>
+    </hudson.matrix.LabelAxis>
+  </axes>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+PROJECTSOURCE=OBS/${project}
+
+# needs .oscrc with user,pass,trusted_prj
+# zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools/SLE_11_SP2/openSUSE:Tools.repo
+# zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools:/Unstable/SLE_11_SP2/openSUSE:Tools:Unstable.repo
+# zypper in osc obs-service-tar_scm obs-service-github_tarballs obs-service-recompress obs-service-git_tarballs obs-service-set_version
+[ -z "$PROJECTSOURCE" ] &amp;&amp; ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
+
+mkdir -p ~/bin
+[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
+# fetch the latest automation updates
+update_automation track-upstream-and-package.pl
+
+OBS_TYPE=${PROJECTSOURCE%%/*}
+OBS_PROJECT=${PROJECTSOURCE##*/}
+
+case $OBS_TYPE in
+  OBS) OSCAPI="https://api.opensuse.org"
+       OSC_BUILD_ARCH=x86_64
+       case $OBS_PROJECT in
+           *Folsom*)
+               OSC_BUILD_DIST=SLE_11_SP2
+               ;;
+           *)
+               OSC_BUILD_DIST=SLE_11_SP3
+               ;;
+       esac
+       ;;
+  *)   echo "This jenkins instance only interacts with OBS."
+       exit 1
+       ;;
+esac
+
+fetch_primary_xml()
+{
+    local repo=$1
+    disturl=$2
+    local host="http://download.opensuse.org/repositories/"
+    test -n "$3" &amp;&amp; host=$3
+    mkdir -p tmp/repo
+    rm -rf tmp/repo/repomd.xml tmp/repo/primary.xml.gz
+    curl -fs $host/$repo/$disturl/repodata/repomd.xml &gt; tmp/repo/repomd.xml
+    primary=$(grep "location.*primary.xml" tmp/repo/repomd.xml | cut -d'"' -f2)
+    curl -Lfs $host/$repo/$disturl/$primary &gt; tmp/repo/primary.xml.gz
+    test -s tmp/repo/primary.xml.gz || { echo "failed to download primary.xml!"; rm -f tmp/repo/primary.xml.gz; exit 1; }
+    rm -f tmp/repo/repomd.xml
+}
+
+ARCH=x86_64
+
+slashed_project=$(echo $project | sed -e 's,:,:\/,g')
+
+fetch_primary_xml $slashed_project $repository
+installcheck $ARCH --withobsoletes --exclude "-kmp-" tmp/repo/primary.xml.gz --nocheck ~/repo/${repository}-${ARCH}.solv
+
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>false</runSequentially>
+  </executionStrategy>
+</matrix-project>
