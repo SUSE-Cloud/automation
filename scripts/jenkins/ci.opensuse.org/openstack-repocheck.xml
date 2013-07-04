@@ -33,6 +33,7 @@
       <name>repository</name>
       <values>
         <string>SLE_11_SP3</string>
+        <string>openSUSE_12.2</string>
         <string>openSUSE_12.3</string>
       </values>
     </hudson.matrix.TextAxis>
