@@ -30,6 +30,7 @@
         <string>openstack-keystone</string>
         <string>openstack-nova</string>
         <string>openstack-quantum</string>
+        <string>openstack-neutron</string>
         <string>openstack-swift</string>
         <string>python-cinderclient</string>
         <string>python-ceilometerclient</string>
@@ -38,6 +39,7 @@
         <string>python-keystoneclient</string>
         <string>python-novaclient</string>
         <string>python-quantumclient</string>
+        <string>python-neutronclient</string>
         <string>python-troveclient</string>
         <string>python-openstackclient</string>
         <string>python-swiftclient</string>
@@ -58,7 +60,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! ( ["folsom-openSUSE-12.2"].contains(distribution) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-ironic", "python-ironicclient", "openstack-trove", "python-troveclient", "openstack-heat-cfntools", "python-openstackclient"].contains(component) || ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3", "python-oslo.sphinx", "python-oslo.messaging"].contains(distribution) &amp;&amp; ["openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-oslo.sphinx", "python-oslo.messaging"].contains(component) )</combinationFilter>
+  <combinationFilter>! ( ["folsom-openSUSE-12.2"].contains(distribution) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-ironic", "python-ironicclient", "openstack-trove", "python-troveclient", "openstack-heat-cfntools", "python-openstackclient", "python-neutronclient", "openstack-neutron", "python-oslo.sphinx", "python-oslo.messaging"].contains(component) || ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3", "python-oslo.sphinx", "python-oslo.messaging"].contains(distribution) &amp;&amp; ["openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron"].contains(component) || ["master-SLE-11-SP3", "master-openSUSE-12.3"].contains(distribution) &amp;&amp; ["openstack-quantum", "python-quantumclient"].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># zypper in osc

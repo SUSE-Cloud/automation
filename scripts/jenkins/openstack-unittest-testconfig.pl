@@ -38,6 +38,7 @@ my $uttrigger = {
                                          "TESTCMD=./run_tests.sh -N -P",
         'openstack-nova'              => "COMPONENT=openstack-nova",
         'openstack-quantum'           => "COMPONENT=openstack-quantum",
+        'openstack-neutron'           => "COMPONENT=openstack-neutron",
         'openstack-swift'             => "COMPONENT=openstack-swift\n".
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
                                          "TESTCMD=./.unittests",
@@ -50,7 +51,7 @@ my $uttrigger = {
                                          "COMPONENT=python-keystoneclient\n" .
                                          "TEARDOWNCMD=rcmemcached stop\n",
         'python-novaclient'           => "COMPONENT=python-novaclient",
-        'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
+        'python-neutronclient'        => "COMPONENT=python-neutronclient\n" .
                                          "TESTCMD=python setup.py testr",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
         'python-troveclient'          => "COMPONENT=python-troveclient\n" .
