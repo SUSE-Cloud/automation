@@ -60,12 +60,19 @@ function tempest()
 
   echo "Creating a user alt_demo that is assigned to the tenant alt_demo..."
   keystone user-create --name alt_demo --tenant-id $alt_demo_tenant_id --pass secret --enabled true
+  
+  echo "Setting the correct database URI in the tempest.conf file..."
+  DB_URI=$(grep -i 'sql_connection=' /etc/nova/nova.conf | sed 's/sql_connection=//g')
+  PREDECESSOR=$(grep -i 'db_uri =' ~/tempest/etc/tempest.conf)
+  sed -i "s|$PREDECESSOR|db_uri = $DB_URI|g" etc/tempest.conf
+
 
   imgid=$(. ~/.openrc ; nova image-list|perl -ne 'if(m/^\| ([0-9a-f]{8}\S+) /){print $1;exit 0}')
   sed -i -e "s/image_ref = .*/image_ref = $imgid/" etc/tempest.conf
   sed -i -e "s/image_ref_alt = .*/image_ref_alt = $imgid/" etc/tempest.conf
   sed -i -e "s/admin_password = .*/admin_password = crowbar/g" etc/tempest.conf
   sed -i -e "s/admin_tenant_name = .*/admin_tenant_name = openstack/g" etc/tempest.conf
+  sed -i -e "s/quantum_available = .*/quantum_available = true/g" etc/tempest.conf
   #bash -i
 
   currtime=$(date +%y%m%d_%H%M%S)
