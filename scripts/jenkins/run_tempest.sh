@@ -33,11 +33,12 @@ function tempest()
   cp etc/tempest.conf.sample etc/tempest.conf
 
   check_or_exit $? "Copying tempest.conf file."
+  
+  . ~/.openrc
 
   echo "maybe we need to modify the config file at this point..."
   patch -p0 < ~/tempest.conf.patch
-  (. ~/.openrc
-    for i in 1 2 ; do
+  ( for i in 1 2 ; do
       nova flavor-delete $i
       nova flavor-create --is-public True m1.tiny$i $i 150 0 1
     done
@@ -66,10 +67,29 @@ function tempest()
   PREDECESSOR=$(grep -i 'db_uri =' ~/tempest/etc/tempest.conf)
   sed -i "s|$PREDECESSOR|db_uri = $DB_URI|g" etc/tempest.conf
 
+  echo "Checking for the test images..."
+  IMG1=$(glance image-list | grep 'jeos-64' | awk '{print $2}')
+  IMG2=$(glance image-list | grep 'SP2-64' | awk '{print $2}')
 
-  imgid=$(. ~/.openrc ; nova image-list|perl -ne 'if(m/^\| ([0-9a-f]{8}\S+) /){print $1;exit 0}')
-  sed -i -e "s/image_ref = .*/image_ref = $imgid/" etc/tempest.conf
-  sed -i -e "s/image_ref_alt = .*/image_ref_alt = $imgid/" etc/tempest.conf
+  if [ "$IMG1" = "" ]; then
+    echo "Retrieving a JEOS-64 image (QCOW2 image for KVM)..."
+    glance image-create --name=jeos-64 --is-public=True --container-format=bare --disk-format=qcow2 --copy-from http://clouddata.cloud.suse.de/images/jeos-64.qcow2
+    IMG1=$(glance image-list | grep 'jeos-64' | awk '{print $2}')
+  else
+    echo "JEOS_64 image already in place."
+  fi
+
+  if [ "$IMG2" = "" ]; then
+    echo "Retrieving SLES_SP2_x86_64 image (QCOW2 image for KVM)..."
+    glance image-create --name=SP2-64 --is-public=True --container-format=bare --disk-format=qcow2 --copy-from http://clouddata.cloud.suse.de/images/SP2-64up.qcow2
+    IMG2=$(glance image-list | grep 'SP2-64' | awk '{print $2}')
+  else
+    echo "SLES_SP2_x86_64 image already in place."
+  fi
+
+  # some inline substitution inside tempest.conf
+  sed -i -e "s/image_ref = .*/image_ref = $IMG1/" etc/tempest.conf
+  sed -i -e "s/image_ref_alt = .*/image_ref_alt = $IMG2/" etc/tempest.conf
   sed -i -e "s/admin_password = .*/admin_password = crowbar/g" etc/tempest.conf
   sed -i -e "s/admin_tenant_name = .*/admin_tenant_name = openstack/g" etc/tempest.conf
   sed -i -e "s/quantum_available = .*/quantum_available = true/g" etc/tempest.conf
@@ -82,6 +102,7 @@ function tempest()
   echo "Saving all log information to $log"
 
   echo "Running tempest (please be patient)..."
+  echo "(This would normally take about 2 hrs 20 mins)"
 
   # PLEASE MODIFY THIS WHERE NECESSARY
   time nosetests -v tempest 2>&1 | tee $log
