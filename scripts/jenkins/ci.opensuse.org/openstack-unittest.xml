@@ -2,6 +2,12 @@
 <matrix-project>
   <actions/>
   <description>run unittests on different workers with different base-OS and different library versions</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>7</daysToKeep>
+    <numToKeep>14</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
@@ -45,7 +51,6 @@
         <string>python-swiftclient</string>
         <string>python-oslo.config</string>
         <string>python-oslo.messaging</string>
-        <string>python-oslo.sphinx</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
@@ -60,7 +65,13 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! ( ["folsom-openSUSE-12.2"].contains(distribution) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-ironic", "python-ironicclient", "openstack-trove", "python-troveclient", "openstack-heat-cfntools", "python-openstackclient", "python-neutronclient", "openstack-neutron", "python-oslo.sphinx", "python-oslo.messaging"].contains(component) || ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3", "python-oslo.sphinx", "python-oslo.messaging"].contains(distribution) &amp;&amp; ["openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron"].contains(component) || ["master-SLE-11-SP3", "master-openSUSE-12.3"].contains(distribution) &amp;&amp; ["openstack-quantum", "python-quantumclient"].contains(component) )</combinationFilter>
+  <combinationFilter>! (
+      ["folsom-openSUSE-12.2"].contains(distribution)
+          &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-heat-cfntools"].contains(component)
+      || ["folsom-openSUSE-12.2", "grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3"].contains(distribution)
+         &amp;&amp; ["openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-oslo.messaging", "python-neutronclient", "openstack-neutron"].contains(component)
+      || ["master-SLE-11-SP3", "master-openSUSE-12.3"].contains(distribution)
+         &amp;&amp; ["openstack-quantum", "python-quantumclient"].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># zypper in osc
@@ -172,7 +183,7 @@ exit $test_exitcode</command>
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.3"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.4"/>
   </buildWrappers>
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
     <runSequentially>false</runSequentially>

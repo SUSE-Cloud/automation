@@ -70,7 +70,13 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! ( ["Cloud:OpenStack:Folsom:Staging"].contains(project) &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-ironic", "python-ironicclient", "openstack-trove", "python-troveclient", "openstack-heat-cfntools", "python-openstackclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron"].contains(component) || ["Cloud:OpenStack:Grizzly:Staging"].contains(project) &amp;&amp; ["openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "python-troveclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron"].contains(component) ||  ["Cloud:OpenStack:Master"].contains(project) &amp;&amp;  ["openstack-quantum", "python-quantumclient"].contains(component)  ) </combinationFilter>
+  <combinationFilter>! (
+      ["Cloud:OpenStack:Folsom:Staging"].contains(project)
+          &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-heat-cfntools"].contains(component)
+      || ["Cloud:OpenStack:Folsom:Staging", "Cloud:OpenStack:Grizzly:Staging"].contains(project)
+          &amp;&amp; ["openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "python-troveclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron"].contains(component)
+      ||  ["Cloud:OpenStack:Master"].contains(project)
+          &amp;&amp;  ["openstack-quantum", "python-quantumclient"].contains(component)  ) </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}
@@ -128,7 +134,7 @@ mkdir -p ~/.obs
 for i in incoming repo repourl
 do
   mkdir -p $JHOME/obscache/tar_scm/$i
-done 
+done
 echo "CACHEDIRECTORY=\"$JHOME/obscache/tar_scm\"" &gt; ~/.obs/tar_scm
 
 mkdir -p "$OBS_CHECKOUT"
