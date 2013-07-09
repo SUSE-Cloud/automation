@@ -563,7 +563,8 @@ function enable_ssl_for_nova_dashboard()
 function custom_configuration()
 {
   service=$1
-  EDITOR='sed -i -e "s/debug\": false/debug\": true/"' crowbar $service proposal edit default
+  crowbaredit="crowbar $service proposal edit default"
+  EDITOR='sed -i -e "s/debug\": false/debug\": true/"' $crowbaredit
   case $service in
     keystone)
       if [[ $all_with_ssl = 1 || $keystone_with_ssl = 1 ]] ; then
@@ -581,6 +582,7 @@ function custom_configuration()
       # custom nova config of libvirt
       [ -n "$libvirt_type" ] || libvirt_type='kvm';
       proposal_set_value nova default "['attributes']['nova']['libvirt_type']" "'$libvirt_type'"
+      EDITOR="sed -i -e 's/nova-multi-compute-$libvirt_type/nova-multi-compute-xxx/g; s/nova-multi-compute-qemu/nova-multi-compute-$libvirt_type/g; s/nova-multi-compute-xxx/nova-multi-compute-qemu/g'" $crowbaredit
 
       if [[ $all_with_ssl = 1 || $nova_with_ssl = 1 ]] ; then
         enable_ssl_for_nova
