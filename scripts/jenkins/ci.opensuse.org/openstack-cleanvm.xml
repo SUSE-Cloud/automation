@@ -21,6 +21,7 @@
       <values>
         <string>folsom</string>
         <string>grizzly</string>
+        <string>master</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
