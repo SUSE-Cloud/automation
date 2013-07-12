@@ -94,6 +94,26 @@ function tempest()
   sed -i -e "s/admin_tenant_name = .*/admin_tenant_name = openstack/g" etc/tempest.conf
   sed -i -e "s/quantum_available = .*/quantum_available = true/g" etc/tempest.conf
   #bash -i
+  
+  echo "Querying for the public_network_id..."
+  public_network_id=$(quantum net-list | grep 'floating' | awk '{print $2}')
+
+  if [ "$public_network_id" != "" ] ; then
+    echo "Configuring the public_network_id with $public_network_id ..."
+    sed -i -e "s/public_network_id = .*/public_network_id = $public_network_id/g" etc/tempest.conf
+  else
+    echo "Unable to access the public_network_id."
+  fi
+
+  echo "Querying for the public_router_id..."
+  public_router_id=$(quantum router-list | grep "$public_network_id" | awk '{print $2}')
+
+  if [ "$public_router_id" != "" ] ; then
+    echo "Configuring the public_router_id with $public_router_id ..."
+    sed -i -e "s/public_router_id = .*/public_router_id = $public_router_id/g" etc/tempest.conf
+  else
+    echo "Unable to access the public_router_id."
+  fi
 
   currtime=$(date +%y%m%d_%H%M%S)
   echo "Test execution @ $currtime."
