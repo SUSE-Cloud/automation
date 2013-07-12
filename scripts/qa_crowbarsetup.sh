@@ -373,7 +373,7 @@ if [ $cloud != virtual ] ; then
             nodelist="4 5"
         fi
 	for i in $nodelist ; do
-	  for pw in root crowbar ; do
+	  for pw in root crowbar 'cr0wBar!' ; do
 		  (ipmitool -H "$net.16$i" -U root -P $pw lan set 1 defgw ipaddr "$net.1"
 		  ipmitool -H "$net.16$i" -U root -P $pw power reset) &
 	  done
