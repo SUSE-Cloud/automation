@@ -333,7 +333,7 @@ rpm -Va crowbar\*
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
 sleep 20
-if ! curl -s http://localhost:3000 > /dev/null || ! curl -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
+if ! curl -m 9 -s http://localhost:3000 > /dev/null || ! curl -m 9 -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
 	tail -n 90 /tmp/screenlog.0
 	echo "crowbar self-test failed"
 	exit 84
@@ -399,7 +399,7 @@ for m in `crowbar machines list | grep ^d` ; do
 done
 
 # check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
-curl -s --digest --user crowbar:crowbar http://localhost:3000| tee /root/crowbartest.out
+curl -m 9 -s --digest --user crowbar:crowbar http://localhost:3000| tee /root/crowbartest.out
 grep "Exception caught" /root/crowbartest.out && exit 27
 
 fi
@@ -689,7 +689,7 @@ if [ -n "$testsetup" ] ; then
 		exit 62
 	fi
 	echo "openstack nova contoller: $novacontroller"
-	curl -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
+	curl -m 9 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
 	ssh $novacontroller "export wantswift=$wantswift ; "'
 		. .openrc
                 if [[ -n $wantswift ]] ; then
