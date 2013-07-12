@@ -134,9 +134,9 @@ $zypper -n install --force openstack-quickstart python-glanceclient
 ls -la /var/lib/nova
 
 # Everything below here is fatal
-#set -e
+set -e
 
-if ! rpm -q openstack-quantum-server ; then
+if ! rpm -q openstack-neutron-server && ! rpm -q openstack-quantum-server; then
 # setup non-bridged network:
 cat >/etc/sysconfig/network/ifcfg-brclean <<EOF
 BOOTPROTO='static'
@@ -252,10 +252,6 @@ if [ -n "$vmip" ]; then
 else
     echo "INSTANCE doesn't seem to be running:"
     nova show testvm
-
-    if [ "$cloudsource" == "openstackgrizzly" -o "$cloudsource" == "openstackmaster" ]; then
-        exit 0
-    fi
 
     exit 1
 fi
