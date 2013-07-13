@@ -35,7 +35,7 @@ fi
 hostname=dist.suse.de
 zypper="zypper --non-interactive"
 
-zypper rr cloudhead ||true
+zypper rr cloudhead || :
 
 ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
 case "$cloudsource" in
@@ -66,9 +66,9 @@ case "$cloudsource" in
 	fi
   ;;
   openstackfolsom)
-	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom/$REPO/Cloud:OpenStack:Folsom.repo
+	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom/$REPO/Cloud:OpenStack:Folsom.repo ||:
 	if test -n "$OSHEAD" ; then
-		$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom:/Staging/$REPO/ cloudhead
+		$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Folsom:/Staging/$REPO/ cloudhead || :
 	fi
   ;;
   openstackgrizzly)
@@ -78,7 +78,7 @@ case "$cloudsource" in
 	fi
   ;;
   openstackmaster)
-	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/Cloud:OpenStack:Master.repo
+	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/Cloud:OpenStack:Master.repo || :
 	# no staging for master
   ;;
   *)
@@ -127,11 +127,9 @@ fi
 
 $zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 $zypper --gpg-auto-import-keys -n ref
-for pattern in cloud_controller cloud_compute cloud_network ; do
-    $zypper -v --gpg-auto-import-keys -n install -t pattern $pattern
-done
-$zypper -n install --force openstack-quickstart python-glanceclient
-ls -la /var/lib/nova
+
+$zypper -n install -t pattern cloud_controller cloud_compute cloud_network
+$zypper -n install --force openstack-quickstart
 
 # Everything below here is fatal
 set -e
@@ -158,15 +156,6 @@ EOF
 ifup brclean
 fi
 
-
-#if [ "$MODE" = lxc ] ; then # copied from quickstart # TODO: drop
-#        sed -i -e 's/\(--libvirt_type\).*/\1=lxc/' /etc/nova/nova.conf
-#        zypper -n install lxc
-#        echo mount -t cgroup none /cgroup >> /etc/init.d/boot.local
-#        mkdir /cgroup
-#        mount -t cgroup none /cgroup
-#fi
-
 for i in $interfaces ; do
 	IP=$(ip a show dev $i|perl -ne 'm/inet ([0-9.]+)/ && print $1')
 	[ -n "$IP" ] && break
@@ -186,6 +175,7 @@ ps ax
 # enable forwarding
 ( cd /proc/sys/net/ipv4/conf/all/ ; echo 1 > forwarding ; echo 1 > proxy_arp )
 
+nova flavor-delete smaller || :
 nova flavor-create smaller --ephemeral 20 12 768 0 1
 #nova flavor-create smaller --ephemeral 20 12 1536 0 1 # for host
 
@@ -193,10 +183,12 @@ if [ "$cloudsource" == "develcloud1.0" -o "$cloudsource" == "develcloud" ]; then
     # nova-volume
     nova volume-create 1 ; sleep 2
     nova volume-list
+    NOVA_FLAVOR="12"
 else
     # cinder
     cinder create 1 ; sleep 5
     cinder list
+    NOVA_FLAVOR="m1.tiny"
 fi
 lvscan | grep .
 volumeret=$?
@@ -230,7 +222,16 @@ glance image-list
 imgid=debian-5
 mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
-nova boot --flavor 12 --image $imgid --key_name testkey testvm | tee boot.out
+
+# run devstack exercises if they exist
+if [ -x /usr/lib/devstack/exercise.sh ]; then
+    export DEFAULT_IMAGE_NAME=$imgid
+    # todo: fix the scripts to set the default admin pw to secrete
+    export ADMIN_PASSWORD=openstack
+    /usr/lib/devstack/exercise.sh
+fi
+
+nova boot --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm | tee boot.out
 instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
 nova list
 sleep 10
