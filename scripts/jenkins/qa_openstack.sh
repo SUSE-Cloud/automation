@@ -228,7 +228,7 @@ if [ -x /usr/lib/devstack/exercise.sh ]; then
     export DEFAULT_IMAGE_NAME=$imgid
     # todo: fix the scripts to set the default admin pw to secrete
     export ADMIN_PASSWORD=openstack
-    /usr/lib/devstack/exercise.sh
+    /usr/lib/devstack/exercise.sh || true
 fi
 
 nova boot --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm | tee boot.out
