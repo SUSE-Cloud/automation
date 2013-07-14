@@ -224,7 +224,7 @@ mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
 # run devstack exercises if they exist
-if [ -x /usr/lib/devstack/exercise.sh ]; then
+if [ false -a -x /usr/lib/devstack/exercise.sh ]; then
     export DEFAULT_IMAGE_NAME=$imgid
     # todo: fix the scripts to set the default admin pw to secrete
     export ADMIN_PASSWORD=openstack
