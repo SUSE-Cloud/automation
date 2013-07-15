@@ -128,7 +128,16 @@ fi
 $zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 $zypper --gpg-auto-import-keys -n ref
 
-$zypper -n install -t pattern cloud_controller cloud_compute cloud_network
+case "$cloudsource" in
+  develcloud1*)
+        cn=""
+  ;;
+  *)
+        cn="cloud_network"
+  ;;
+esac
+
+$zypper -n install -t pattern cloud_controller cloud_compute $cn
 $zypper -n install --force openstack-quickstart
 
 # Everything below here is fatal
@@ -224,7 +233,7 @@ mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
 # run devstack exercises if they exist
-if [ false -a -x /usr/lib/devstack/exercise.sh ]; then
+if false && [ -x /usr/lib/devstack/exercise.sh ]; then
     export DEFAULT_IMAGE_NAME=$imgid
     # todo: fix the scripts to set the default admin pw to secrete
     export ADMIN_PASSWORD=openstack
