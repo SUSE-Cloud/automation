@@ -154,16 +154,20 @@ function h_create_cloud_lvm()
   vgcreate cloud $CVOL
   vgchange -ay cloud # for later boots
 
+  # hdd size defaults (unless defined otherwise)
   adminnode_hdd_size=${adminnode_hdd_size:-15}
+  computenode_hdd_size=${computenode_hdd_size:-20}
+  cephvolume_hdd_size=${cephvolume_hdd_size:-5}
+
   lvcreate -n admin -L ${adminnode_hdd_size}G cloud
   for i in $allnodeids ; do
-    lvcreate -n node$i -L 20G cloud
+    lvcreate -n node$i -L ${computenode_hdd_size}G cloud
   done
 
   if [ $cephvolumenumber -gt 0 ] ; then
     for i in $allnodeids ; do
       for n in $(echo `seq 1 $cephvolumenumber`) ; do
-        lvcreate -n node$i-ceph$n -L 5G cloud
+        lvcreate -n node$i-ceph$n -L ${cephvolume_hdd_size}G cloud
       done
     done
   fi
