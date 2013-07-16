@@ -676,6 +676,7 @@ function tempest_run()
   rm -rf tempestlog
   mkdir -p tempestlog
   scp root@${novadashboardserver}:tempest/tempest_*.log tempestlog/
+  scp root@${novadashboardserver}:tempest/etc/tempest.conf tempestlog/
   echo "return code from tempest run: $ret"
   return $ret
 }

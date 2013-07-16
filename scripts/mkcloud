@@ -582,7 +582,7 @@ function tempest()
   sshrun "tempestrun=1 bash -x qa_crowbarsetup.sh virtual"
   ret=$?
   mkdir -p .artifacts
-  scp root@$adminip:tempestlog/tempest_*.log .artifacts/
+  scp root@$adminip:tempestlog/* .artifacts/
   return $ret
 }
 
