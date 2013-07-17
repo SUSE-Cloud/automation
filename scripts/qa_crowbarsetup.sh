@@ -8,6 +8,7 @@ novadashboardserver=
 export cloud=${1}
 export nodenumber=${nodenumber:-2}
 export nodes=
+export debug=${debug:-0}
 
 if [ -z $cloud ] ; then
   echo "Error: Parameter missing that defines the cloud name"
@@ -564,7 +565,9 @@ function custom_configuration()
 {
   service=$1
   crowbaredit="crowbar $service proposal edit default"
-  EDITOR='sed -i -e "s/debug\": false/debug\": true/"' $crowbaredit
+  if [[ $debug = 1 ]] ; then
+    EDITOR='sed -i -e "s/debug\": false/debug\": true/"' $crowbaredit
+  fi
   case $service in
     keystone)
       if [[ $all_with_ssl = 1 || $keystone_with_ssl = 1 ]] ; then

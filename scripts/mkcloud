@@ -49,6 +49,7 @@ artifacts_dir=${artifacts_dir:-$working_dir_orig/.artifacts}
 start_time=`date`
 cloudbr=cloudbr1
 mnt=/tmp/cloudmnt
+debug=${debug:-0}
 
 trap 'error_exit $? "error caught by trap"' TERM
 
@@ -117,7 +118,7 @@ function wait_for()
 
 function sshrun()
 {
-  ssh root@$adminip "export cephvolumenumber=$cephvolumenumber ; export shell=$shell ; export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; export all_with_ssl=$all_with_ssl ; export keystone_with_ssl=$keystone_with_ssl ; export glance_with_ssl=$glance_with_ssl ; export nova_with_ssl=$nova_with_ssl ; export novadashboard_with_ssl=$novadashboard_with_ssl ; export networkingplugin=$networkingplugin ; $@"
+  ssh root@$adminip "export cephvolumenumber=$cephvolumenumber ; export shell=$shell ; export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; export all_with_ssl=$all_with_ssl ; export keystone_with_ssl=$keystone_with_ssl ; export glance_with_ssl=$glance_with_ssl ; export nova_with_ssl=$nova_with_ssl ; export novadashboard_with_ssl=$novadashboard_with_ssl ; export networkingplugin=$networkingplugin ; export debug=$debug ; $@"
   return $?
 }
 
