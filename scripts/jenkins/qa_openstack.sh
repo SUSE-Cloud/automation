@@ -251,8 +251,8 @@ else
 	watch --no-title "du -s /var/lib/nova/instances/*" # will have stillimage when done
 fi
 #nova volume-attach $instanceid 1 /dev/vdb # only for qemu/kvm
-pstree|grep -A5 lxc
-virsh --connect lxc:/// list
+pstree|grep -A5 lxc || :
+virsh --connect lxc:/// list || :
 . /etc/openstackquickstartrc
 vmip=`nova show testvm|perl -ne 'm/network\D*(\d+\.\d+\.\d+\.\d+)/ && print $1'`
 echo "VM IP: $vmip"
