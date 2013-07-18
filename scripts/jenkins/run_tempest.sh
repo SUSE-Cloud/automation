@@ -125,7 +125,7 @@ function tempest()
   echo "(This would normally take about 2 hrs 20 mins)"
 
   # PLEASE MODIFY THIS WHERE NECESSARY
-  time nosetests -v tempest 2>&1 | tee $log
+  time nosetests -v -x -s tempest 2>&1 | tee $log
 
   tempestcode=$?
   #check_or_exit $tempestcode "Tempest run"
