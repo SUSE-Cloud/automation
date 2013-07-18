@@ -670,16 +670,29 @@ function get_novadashboardserver()
 }
 
 
-function tempest_run()
+function tempest_configure()
 {
-  get_novadashboardserver
-  scp ./run_tempest.sh root@${novadashboardserver}:
-  ssh root@${novadashboardserver} 'bash -x ./run_tempest.sh'
-  ret=$?
   rm -rf tempestlog
   mkdir -p tempestlog
-  scp root@${novadashboardserver}:tempest/tempest_*.log tempestlog/
+  get_novadashboardserver
+  scp ./run_tempest.sh root@${novadashboardserver}:
+  ssh root@${novadashboardserver} 'bash -x ./run_tempest.sh configure'
+  ret=$?
   scp root@${novadashboardserver}:tempest/etc/tempest.conf tempestlog/
+  echo "return code from tempest configuration: $ret"
+  return $ret
+}
+
+
+function tempest_run()
+{
+  mkdir -p tempestlog
+  get_novadashboardserver
+  scp ./run_tempest.sh root@${novadashboardserver}:
+  ssh root@${novadashboardserver} 'bash -x ./run_tempest.sh run'
+  ret=$?
+  scp root@${novadashboardserver}:tempest/tempest_*.log tempestlog/
+  scp root@${novadashboardserver}:tempest/etc/tempest.conf tempestlog/tempest.conf_after
   echo "return code from tempest run: $ret"
   return $ret
 }
@@ -1079,6 +1092,11 @@ fi
 
 if [ -n "$securitytests" ] ; then
   securitytests
+  exit $?
+fi
+
+if [ -n "$tempestconfigure" ] ; then
+  tempest_configure
   exit $?
 fi
 

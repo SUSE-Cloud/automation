@@ -579,10 +579,14 @@ function securitytests()
 
 function tempest()
 {
+  mkdir -p .artifacts
   scp run_tempest.sh qa_crowbarsetup.sh root@$adminip:
+  sshrun "tempestconfigure=1 bash -x qa_crowbarsetup.sh virtual"
+  echo "Tempest configuration returned with exit code: $?"
+  echo "Now archiving artifact files from configuration step"
+  scp root@$adminip:tempestlog/* .artifacts/
   sshrun "tempestrun=1 bash -x qa_crowbarsetup.sh virtual"
   ret=$?
-  mkdir -p .artifacts
   scp root@$adminip:tempestlog/* .artifacts/
   return $ret
 }

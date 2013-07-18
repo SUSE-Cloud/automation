@@ -11,7 +11,8 @@ function check_or_exit()
   return
 }
 
-function tempest()
+# TODO - make sure configuration function is idempotent
+function configure_tempest()
 {
   echo "Installing git-core, Python unittest2 and nose..."
   zypper addrepo http://download.opensuse.org/repositories/devel:/tools:/scm/SLE_11_SP2/devel:tools:scm.repo
@@ -31,9 +32,8 @@ function tempest()
 
   echo "Copying config file..."
   cp etc/tempest.conf.sample etc/tempest.conf
-
   check_or_exit $? "Copying tempest.conf file."
-  
+
   . ~/.openrc
 
   echo "maybe we need to modify the config file at this point..."
@@ -61,7 +61,7 @@ function tempest()
 
   echo "Creating a user alt_demo that is assigned to the tenant alt_demo..."
   keystone user-create --name alt_demo --tenant-id $alt_demo_tenant_id --pass secret --enabled true
-  
+
   echo "Setting the correct database URI in the tempest.conf file..."
   DB_URI=$(grep -i 'sql_connection=' /etc/nova/nova.conf | sed 's/sql_connection=//g')
   PREDECESSOR=$(grep -i 'db_uri =' ~/tempest/etc/tempest.conf)
@@ -93,8 +93,7 @@ function tempest()
   sed -i -e "s/admin_password = .*/admin_password = crowbar/g" etc/tempest.conf
   sed -i -e "s/admin_tenant_name = .*/admin_tenant_name = openstack/g" etc/tempest.conf
   sed -i -e "s/quantum_available = .*/quantum_available = true/g" etc/tempest.conf
-  #bash -i
-  
+
   echo "Querying for the public_network_id..."
   public_network_id=$(quantum net-list | grep 'floating' | awk '{print $2}')
 
@@ -115,6 +114,24 @@ function tempest()
     echo "Unable to access the public_router_id."
   fi
 
+  echo "Querying for EC2 credentials..."
+  ec2_credentials=$( keystone ec2-credentials-list | grep admin | sed -e "s/ //g" | cut -d"|" -f 3,4 )
+  ec2_user=$(echo $ec2_credentials | cut -d"|" -f 1)
+  ec2_pass=$(echo $ec2_credentials | cut -d"|" -f 2)
+  if [ ! -z $ec2_user  && ! -z $ec2_pass ] ; then
+    echo "Found EC2 credentials, now writing them to the config."
+    sed -i -e "s/aws_access = .*/aws_access = $ec2_user/g" etc/tempest.conf
+    sed -i -e "s/aws_secret = .*/aws_secret = $ec2_pass/g" etc/tempest.conf
+  else
+    echo "Error: No EC2 credentials could be found."
+    echo "Tests relying on these credentials will fail."
+  fi
+}
+
+
+function run_tempest()
+{
+  . ~/.openrc
   currtime=$(date +%y%m%d_%H%M%S)
   echo "Test execution @ $currtime."
 
@@ -149,12 +166,35 @@ function tempest()
   return $total
 }
 
+function cleanup_tempest()
+{
+  # TODO - implement this funtion idempotent
+  echo "This function needs to be implemented"
+  return 1
+}
 
 #---------------------- START THE SCRIPT HERE !!!--------------------------
 
-# does mkcloud rename the dashboard node to "dashboard" ?
+ret=1
+case $1 in
+  configure)
+    configure_tempest
+    ret=$?
+  ;;
+  cleanup)
+    cleanup_tempest
+    ret=$?
+  ;;
+  run)
+    run_tempest
+    ret=$?
+  ;;
+  *)
+    echo "Function unknown: $1"
+    echo "Usage: $0 <configure|run|cleanup>"
+    exit 1
+  ;;
+esac
 
-tempest
-output=$?
-echo "Tempest returned $output"
-exit $output
+echo "Tempest return code of step '$1' is '$ret'"
+exit $ret
