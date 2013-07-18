@@ -197,7 +197,7 @@ else
     # cinder
     cinder create 1 ; sleep 5
     cinder list
-    NOVA_FLAVOR="m1.tiny"
+    NOVA_FLAVOR="12"
 fi
 lvscan | grep .
 volumeret=$?
