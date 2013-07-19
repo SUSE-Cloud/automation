@@ -168,9 +168,73 @@ function run_tempest()
 
 function cleanup_tempest()
 {
-  # TODO - implement this funtion idempotent
-  echo "This function needs to be implemented"
-  return 1
+  echo "Terminating all instances..."
+  instances=$(nova list --all-tenants | grep '^|\s[[:xdigit:]].*$' | awk '{print $2}')
+  
+  if [ "$instances" != "" ] ; then
+    for inst in $instances; do
+      echo "Deleting instance $inst ..."
+      nova delete $inst
+    done
+  else
+    echo "No running instances found."
+  fi
+  
+  # TODO: delete all snapshots here...
+  
+  # TODO: delete all volumes here...
+  
+  echo "Deleting the user \"demo\" ..."
+  keystone user-delete $(keystone user-list | grep '^.*|\s*demo\s*|.*$' | awk '{print $2}')
+
+  echo "Deleting the user \"alt_demo\" ..."
+  keystone user-delete $(keystone user-list | grep '^.*|\s*alt_demo\s*|.*$' | awk '{print $2}')
+
+  echo "Deleting all remaining Tempest users..."
+  users=$(keystone user-list | grep '^.*|\s*Servers[A-Za-z0-9]*-user\s*.*$' | awk '{print $2}')
+
+  if [ "$users" != "" ] ; then
+    for usr in $users; do
+      echo "Deleting user $usr ..."
+      keystone user-delete $usr
+    done
+  else
+    echo "No remaining users to delete."
+  fi
+
+  echo "Deleting the tenant \"demo\" ..."
+  keystone tenant-delete $(keystone tenant-list | grep '^.*|\s*demo\s*|.*$' | awk '{print $2}')
+
+  echo "Deleting the tenant \"alt_demo\" ..."
+  keystone tenant-delete $(keystone tenant-list | grep '^.*|\s*alt_demo\s*|.*$' | awk '{print $2}')
+
+  echo "Deleting all remaining Tempest tenants..."
+  tenants=$(keystone tenant-list | grep '^.*\sServers[A-Za-z0-9]*-tenant\s*.*$' | awk '{print $2}')
+  
+  if [ "$tenants" != "" ] ; then
+    for tnt in $tenants; do
+      echo "Deleting tenant $tnt ..."
+      keystone tenant-delete $tnt
+    done
+  else
+    echo "No remaining tenants to delete."
+  fi
+  
+  echo "Deleting all Nova images..."
+  images=$(nova image-list | grep '^|\s[[:xdigit:]]*-[[:xdigit:]]*-[[:xdigit:]]*-[[:xdigit:]]*-[[:xdigit:]]*\s|.*$' | awk '{print $2}')
+
+  if [ "$images" != "" ] ; then
+    for img in $images; do
+      echo "Deleting image $img ..."
+      nova image-delete $img
+    done
+  else
+    echo "No images to delete."
+  fi
+
+  echo "Done."
+  
+  return 0
 }
 
 #---------------------- START THE SCRIPT HERE !!!--------------------------
