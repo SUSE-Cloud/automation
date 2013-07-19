@@ -120,8 +120,8 @@ function configure_tempest()
   ec2_pass=$(echo $ec2_credentials | cut -d"|" -f 2)
   if [ ! -z $ec2_user  && ! -z $ec2_pass ] ; then
     echo "Found EC2 credentials, now writing them to the config."
-    sed -i -e "s/aws_access = .*/aws_access = $ec2_user/g" etc/tempest.conf
-    sed -i -e "s/aws_secret = .*/aws_secret = $ec2_pass/g" etc/tempest.conf
+    sed -i -e "s/aws_access =.*/aws_access = $ec2_user/g" etc/tempest.conf
+    sed -i -e "s/aws_secret =.*/aws_secret = $ec2_pass/g" etc/tempest.conf
   else
     echo "Error: No EC2 credentials could be found."
     echo "Tests relying on these credentials will fail."
