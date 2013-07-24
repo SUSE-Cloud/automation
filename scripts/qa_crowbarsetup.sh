@@ -722,7 +722,7 @@ if [ -n "$testsetup" ] ; then
 	        glance image-list|grep -q SP2-64 || glance image-create --name=SP2-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP2-64up.qcow2 | tee glance.out
         # wait for image to finish uploading
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
-        for n in $(seq 1 20) ; do
+        for n in $(seq 1 200) ; do
           glance image-show $imageid|grep status.*active && break
           sleep 5
         done
