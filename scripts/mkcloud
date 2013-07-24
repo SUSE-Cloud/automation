@@ -79,7 +79,8 @@ function error_exit()
 	message=$2
 	ssh root@crowbar '
 	  for node in $(crowbar machines list | grep ^d) ; do
-	    ssh $node supportconfig | wc
+	    # exclude /proc, bnc#829927    
+	    ssh $node supportconfig -x PROC | wc
 	    scp $node:/var/log/\*tbz /var/log/
 	  done
 	  supportconfig | wc
