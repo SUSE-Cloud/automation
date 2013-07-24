@@ -707,7 +707,7 @@ if [ -n "$testsetup" ] ; then
 	fi
 	echo "openstack nova contoller: $novacontroller"
 	curl -m 9 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
-	ssh $novacontroller "export wantswift=$wantswift ; "'
+	ssh $novacontroller "export wantswift=$wantswift ; "'set -x
 		. .openrc
                 if [[ -n $wantswift ]] ; then
                     zypper -n install python-swiftclient
@@ -747,7 +747,9 @@ if [ -n "$testsetup" ] ; then
 		n=1000 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $vmip >/dev/null ; do
 		  n=$(expr $n - 1)
 		  echo -n .
+		  set +x
 		done
+		set -x
 		if [ $n = 0 ] ; then
 			echo testvm boot or net failed
 			exit 94
@@ -757,7 +759,9 @@ if [ -n "$testsetup" ] ; then
           sleep 1
           n=$(($n - 1))
           echo -n "."
+	  set +x
         done
+	set -x
         if [ $n = 0 ] ; then
           echo "VM not accessible in reasonable time, exiting."
           exit 96
