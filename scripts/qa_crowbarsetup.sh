@@ -155,8 +155,12 @@ case $cloudsource in
         CLOUDDISTISO="S*-CLOUD*Media1.iso"
         suseversion=11.3
     ;;
-    Beta*|RC*|GM*)
+    GM)
         CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-$cloudsource/
+        CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
+    ;;
+    Beta*|RC*)
+        CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-$cloudsource/
         CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
     ;;
     *)
@@ -710,6 +714,7 @@ if [ -n "$testsetup" ] ; then
 	curl -m 9 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
 	ssh $novacontroller "export wantswift=$wantswift ; "'set -x
 		. .openrc
+		export LC_ALL=C
                 if [[ -n $wantswift ]] ; then
                     zypper -n install python-swiftclient
                     swift stat
@@ -775,7 +780,6 @@ if [ -n "$testsetup" ] ; then
 			exit 95
 		fi
 		set -x
-		ssh $vmip ping -c2 crowbar
 		ssh $vmip modprobe acpiphp # workaround bnc#824915
 		nova volume-create 1 ; sleep 2
 		nova volume-list | grep available
