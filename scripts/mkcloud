@@ -328,6 +328,14 @@ EOLIBVIRTNET
 }
 
 
+# workaround for the VM being almost hung at boot: press a key in the serial console
+function poke_vm()
+{
+  type -p expect >/dev/null || return
+  # sleeps: wait for vm to initialize, boot timeout, don't quit too fast
+  expect -c "sleep 1; spawn virsh console $1; sleep 5; send .; sleep 1"
+}
+
 function setupadmin()
 {
   echo "Injecting public key into image..."
@@ -361,6 +369,7 @@ function setupadmin()
     exit 76
   fi
 
+  poke_vm cloud-admin
   wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
 
   if ! grep -q "iptables -t nat -F PREROUTING" /etc/init.d/boot.local; then
@@ -554,6 +563,7 @@ function rebootcrowbar()
   #  and test if everything is up and running afterwards
   sshrun "reboot"
   wait_for 500 3 "! nc -z $adminip 22" 'crowbar to go down'
+  poke_vm cloud-admin
   wait_for 500 3   "nc -z $adminip 22" 'crowbar to be back online'
   echo "waiting another 180 seconds for services"
   sleep 180
