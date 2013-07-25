@@ -155,8 +155,12 @@ case $cloudsource in
         CLOUDDISTISO="S*-CLOUD*Media1.iso"
         suseversion=11.3
     ;;
-    Beta*|RC*|GM*)
+    GM)
         CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-$cloudsource/
+        CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
+    ;;
+    Beta*|RC*|GMC*)
+        CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-$cloudsource/
         CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
     ;;
     *)
