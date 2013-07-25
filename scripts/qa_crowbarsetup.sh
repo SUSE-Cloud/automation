@@ -300,6 +300,7 @@ if [ $cloud = p ] ; then
 	# production cloud has a /21 network
 	perl -i.perlbak -pe 'if(m/255.255.255.0/){$n++} if($n==3){s/255.255.255.0/255.255.248.0/}' $netfile
 fi
+cp -a $netfile /etc/crowbar/network.json # new place since 2013-07-18
 
 # to allow integration into external DNS:
 f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
