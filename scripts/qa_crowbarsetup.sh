@@ -779,7 +779,6 @@ if [ -n "$testsetup" ] ; then
 			exit 95
 		fi
 		set -x
-		ssh $vmip ping -c2 crowbar
 		ssh $vmip modprobe acpiphp # workaround bnc#824915
 		nova volume-create 1 ; sleep 2
 		nova volume-list | grep available
