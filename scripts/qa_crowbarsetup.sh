@@ -848,7 +848,7 @@ function waitforrebootcompute()
   nova list
   nova reboot testvm
   nova list
-  vmip=`nova show testvm | perl -ne 'm/ nova_fixed.network [ |]*([0-9.]+)/ && print $1'`
+  vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*([0-9.]+)/ && print $1'`
   wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
 }
 
