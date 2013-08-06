@@ -25,7 +25,7 @@ my $uttrigger = {
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
                                          "TESTCMD=./run_tests.sh -N",
         'openstack-designate'         => "COMPONENT=openstack-designate\n".
-                                         "TESTCMD=python setup.py testr --slowest --testr-args=\"--concurrency=1\"\n",
+                                         "TESTCMD=nosetests -v",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
                                          "TESTCMD=./run_tests.sh -N glance",
         'openstack-heat'              => "COMPONENT=openstack-heat\n".
