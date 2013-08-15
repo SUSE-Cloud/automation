@@ -137,6 +137,9 @@ case "$cloudsource" in
   ;;
 esac
 
+# deinstall some leftover crap from the cleanvm
+$zypper -n rm --force 'python-cheetah < 2.4'
+# start with patterns
 $zypper -n install -t pattern cloud_controller cloud_compute $cn
 $zypper -n install --force openstack-quickstart
 
