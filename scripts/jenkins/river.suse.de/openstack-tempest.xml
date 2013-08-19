@@ -1,81 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description/>
+  <description>The new job to run tempest</description>
   <keepDependencies>false</keepDependencies>
-  <properties>
-    <hudson.model.ParametersDefinitionProperty>
-      <parameterDefinitions>
-        <hudson.model.ChoiceParameterDefinition>
-          <name>COMPONENT</name>
-          <description/>
-          <choices class="java.util.Arrays$ArrayList">
-            <a class="string-array">
-              <string>ALL</string>
-              <string>nova</string>
-              <string>swift</string>
-              <string>glance</string>
-              <string>auth</string>
-            </a>
-          </choices>
-        </hudson.model.ChoiceParameterDefinition>
-      </parameterDefinitions>
-    </hudson.model.ParametersDefinitionProperty>
-  </properties>
+  <properties/>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>openstack-unittest</assignedNode>
+  <assignedNode>openstack-tempest</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector">
-    <org.jenkinsci.plugins.urltrigger.URLTrigger>
-      <spec>*/10 * * * * </spec>
-      <entries>
-        <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-          <url>http://zast.suse.de/cgi-bin/apicheck/published/Devel:Cloud/SLE_11_SP2/x86_64/</url>
-          <proxyActivated>false</proxyActivated>
-          <checkStatus>false</checkStatus>
-          <statusCode>200</statusCode>
-          <checkLastModificationDate>false</checkLastModificationDate>
-          <inspectingContent>true</inspectingContent>
-          <contentTypes>
-            <org.jenkinsci.plugins.urltrigger.content.SimpleContentType/>
-          </contentTypes>
-        </org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-      </entries>
-      <labelRestriction>false</labelRestriction>
-    </org.jenkinsci.plugins.urltrigger.URLTrigger>
-  </triggers>
+  <triggers class="vector"/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># update all openstack packges
-zypper ref
-zypper --non-interactive --no-cd up --repo Devel_Cloud
-#zypper  --non-interactive up</command>
-    </hudson.tasks.Shell>
-    <hudson.tasks.Shell>
-      <command># run tempest tests
-if [ "x$COMPONENT" = "xALL" ]
-then
-  OPENSTACK_COMP=
-else
-  OPENSTACK_COMP="--$COMPONENT"
-fi
+      <command>## mandatory: fetch from automation repo
+mkdir -p ~/bin
+[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
+update_automation mkcloud
 
-zypper in -y openstack-quickstart
-zypper in -y openstack-tempest
 
-. /etc/openstackquickstartrc
-openstack-tempest-demosetup
+## artifacts
+export artifacts_dir=$WORKSPACE/.artifacts
+rm -rf $artifacts_dir
+mkdir -p $artifacts_dir
+touch $artifacts_dir/.ignore
 
-trap "cd ~ &amp;&amp; openstack-tempest-cleanup" EXIT
-cd /opt/tempest &amp;&amp; nosetests -v tempest
+
+## mkcloud configuration
+#export TESTHEAD=1
+#export cloudsource=develcloud2.0
+export cloudsource=susecloud2.0
+export nodenumber=2
+export adminnode_hdd_size=25
+export computenode_hdd_size=25
+export debug=0
+
+export CVOL=/dev/loop4
+losetup $CVOL || losetup $CVOL /data/cloud/cloudlvm
+
+
+## mkcloud steps for tempest
+MKCLOUDTARGET=plain
+perl -e "alarm 300*60 ; exec 'bash -x mkcloud $(echo -n $MKCLOUDTARGET) tempest' "
 </command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>.artifacts/**</artifacts>
+      <latestOnly>false</latestOnly>
+    </hudson.tasks.ArtifactArchiver>
+  </publishers>
   <buildWrappers>
     <hudson.plugins.timestamper.TimestamperBuildWrapper/>
   </buildWrappers>

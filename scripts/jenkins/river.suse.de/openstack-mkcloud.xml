@@ -37,20 +37,24 @@
 minimum 2=controller+compute</description>
           <defaultValue>2</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>networkingplugin</name>
+          <description>quantum networking plugin: openvswitch|linuxbridge</description>
+          <defaultValue>openvswitch</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>openstack-mkcloud</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
     <hudson.triggers.TimerTrigger>
-      <spec>28 0 * * *
-
-15 */4 * * *</spec>
+      <spec>#28 0 * * *
+#15 */4 * * *</spec>
     </hudson.triggers.TimerTrigger>
     <org.jenkinsci.plugins.urltrigger.URLTrigger>
       <spec>*/5 * * * *</spec>

@@ -2,6 +2,12 @@
 <project>
   <actions/>
   <description>Checks if all dependencies of Cloud media are satisfied.</description>
+  <logRotator>
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>10</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
@@ -86,6 +92,12 @@ rm -f scripts/release-mgmt/*Media1.iso
 make -C scripts/release-mgmt/ mediacheck</command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.tasks.Mailer>
+      <recipients>cloud-devel@suse.de</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
   <buildWrappers/>
 </project>
