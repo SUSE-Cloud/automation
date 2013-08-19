@@ -33,9 +33,10 @@
       <name>component</name>
       <values>
         <string>crowbar</string>
+        <string>crowbar-barclamp-ceilometer</string>
         <string>crowbar-barclamp-ceph</string>
-        <string>crowbar-barclamp-chef</string>
         <string>crowbar-barclamp-cinder</string>
+        <string>crowbar-barclamp-cisco-ucs</string>
         <string>crowbar-barclamp-crowbar</string>
         <string>crowbar-barclamp-database</string>
         <string>crowbar-barclamp-deployer</string>
@@ -44,10 +45,10 @@
         <string>crowbar-barclamp-glance</string>
         <string>crowbar-barclamp-ipmi</string>
         <string>crowbar-barclamp-keystone</string>
-        <string>crowbar-barclamp-kong</string>
         <string>crowbar-barclamp-logging</string>
         <string>crowbar-barclamp-nagios</string>
         <string>crowbar-barclamp-network</string>
+        <string>crowbar-barclamp-nfs_client</string>
         <string>crowbar-barclamp-nova</string>
         <string>crowbar-barclamp-nova_dashboard</string>
         <string>crowbar-barclamp-ntp</string>
@@ -55,9 +56,9 @@
         <string>crowbar-barclamp-provisioner</string>
         <string>crowbar-barclamp-quantum</string>
         <string>crowbar-barclamp-rabbitmq</string>
+        <string>crowbar-barclamp-suse-manager-client</string>
         <string>crowbar-barclamp-swift</string>
-        <string>crowbar-barclamp-test</string>
-        <string>crowbar-barclamp-ucs</string>
+        <string>crowbar-barclamp-updater</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
