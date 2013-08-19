@@ -1,4 +1,4 @@
 $USER="username";
 $PASSWORD="tokenstring";
 # http:// is prefixed by the script
-$JURL="ci.opensuse.org"
+$JURL="ci.opensuse.org";
