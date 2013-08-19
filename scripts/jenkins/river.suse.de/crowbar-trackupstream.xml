@@ -57,6 +57,7 @@
         <string>crowbar-barclamp-rabbitmq</string>
         <string>crowbar-barclamp-swift</string>
         <string>crowbar-barclamp-test</string>
+        <string>crowbar-barclamp-ucs</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
