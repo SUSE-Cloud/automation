@@ -473,7 +473,7 @@ function waitnodes()
       while test $n -gt 0 && ! test "x$proposalstatus" = "xsuccess" ; do
         proposalstatus=`crowbar $proposal proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
         if test "x$proposalstatus" = "xfailed" ; then
-          tail -n 90 /opt/dell/crowbar_framework/log/d*.log
+          tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
           echo "Error: proposal $proposal failed. Exiting."
           exit 40
         fi
@@ -656,7 +656,7 @@ for service in database keystone ceph glance rabbitmq cinder quantum nova nova_d
   ret=$?
   echo "exitcode: $ret"
   if [ $ret != 0 ] ; then
-    tail -n 90 /opt/dell/crowbar_framework/log/d*.log
+    tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
     echo "Error: commiting the crowbar proposal for '$service' failed ($ret)."
     exit 73
   fi

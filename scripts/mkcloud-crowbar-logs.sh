@@ -12,7 +12,7 @@ for i in `crowbar machines list`; do echo $i; mkdir -p $i/keystone; scp root@$i:
 
 for i in `crowbar machines list`; do echo $i; knife node show -l $i > $i.node; done
 
-cp -av /opt/dell/crowbar_framework/log/ .
+cp -av /opt/dell/crowbar_framework/log/ /var/log/crowbar/chef-client .
 cd ..
 
 tar cvjf mkcloud-crowbar-logs-$tstamp.tar.bz2 mkcloud-crowbar-logs-$tstamp/
