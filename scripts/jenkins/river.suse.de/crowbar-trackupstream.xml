@@ -43,7 +43,7 @@
         <string>crowbar-barclamp-dns</string>
         <string>crowbar-barclamp-ganglia</string>
         <string>crowbar-barclamp-glance</string>
-        <string>crowbar-barclamp-hyperv-compute</string>
+        <string>crowbar-barclamp-hyperv</string>
         <string>crowbar-barclamp-ipmi</string>
         <string>crowbar-barclamp-keystone</string>
         <string>crowbar-barclamp-logging</string>
@@ -69,7 +69,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>( project=="Devel:Cloud:2.0:Staging" &amp;&amp; [ "crowbar", "crowbar-barclamp-ceph", "crowbar-barclamp-cinder", "crowbar-barclamp-crowbar", "crowbar-barclamp-database", "crowbar-barclamp-deployer", "crowbar-barclamp-dns", "crowbar-barclamp-ganglia", "crowbar-barclamp-glance", "crowbar-barclamp-ipmi", "crowbar-barclamp-keystone", "crowbar-barclamp-logging", "crowbar-barclamp-nagios", "crowbar-barclamp-network", "crowbar-barclamp-nova", "crowbar-barclamp-nova_dashboard", "crowbar-barclamp-ntp", "crowbar-barclamp-openstack", "crowbar-barclamp-provisioner", "crowbar-barclamp-quantum", "crowbar-barclamp-rabbitmq", "crowbar-barclamp-swift", "crowbar-barclamp-test",  ].contains(component) )</combinationFilter>
+  <combinationFilter>( project=="Devel:Cloud:2.0:Staging" )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}
