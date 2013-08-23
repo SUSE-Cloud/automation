@@ -62,6 +62,7 @@ case $cloud in
 		exit 1
 	;;
 esac
+vlan_sdn=${vlan_sdn:-$vlan_storage}
 
 function intercept()
 {
@@ -298,6 +299,7 @@ if [ $cloud != virtual ] ; then
               -e "s/200/$vlan_storage/g" \
               -e "s/300/$vlan_public/g" \
               -e "s/500/$vlan_fixed/g" \
+              -e "s/700/$vlan_sdn/g" \
 		$netfile
 fi
 if [ $cloud = p ] ; then
