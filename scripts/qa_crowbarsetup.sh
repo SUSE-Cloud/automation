@@ -179,8 +179,7 @@ case $suseversion in
     11.3)
       slesrepolist="SLES11-SP3-Pool SLES11-SP3-Updates"
       slesversion=11-SP3
-      # adapt this milestone until we reach GM
-      slesmilestone=RC2
+      slesmilestone=GM
     ;;
 esac
 
