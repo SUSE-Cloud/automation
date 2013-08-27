@@ -452,7 +452,7 @@ function waitnodes()
         machinestatus=''
         while test $n -gt 0 && ! test "x$machinestatus" = "xready" ; do
           machinestatus=`crowbar machines show $i | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['state']"`
-          if test "x$machinestatus" = "xfailed" ; then
+          if test "x$machinestatus" = "xfailed" -o "x$machinestatus" = "xnil" ; then
             echo "Error: machine status is failed. Exiting"
             exit 39
           fi
