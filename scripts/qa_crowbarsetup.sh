@@ -195,7 +195,7 @@ if [ "x$WITHSLEUPDATES" != "x" ] ; then
 fi
 
 
-zypper -n install rsync
+zypper -n install rsync netcat
 wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
 CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
 echo $CLOUDISO > /etc/cloudversion
