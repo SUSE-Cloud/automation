@@ -182,14 +182,16 @@ function h_deploy_admin_image()
   qemu-img convert -p $adminimage-64up.qcow2 /dev/cloud/admin
   popd
 
-  # make a bigger partition 2
-  echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/cloud/admin
-  loopdevice=`losetup --find`
-  losetup -o $(expr 2056192 \* 512) $loopdevice /dev/cloud/admin
-  fsck -y -f $loopdevice
-  resize2fs $loopdevice
-  sync
-  losetup -d $loopdevice
+  if fdisk -l /dev/cloud/admin | grep -q 2056192 ; then
+    # make a bigger partition 2
+    echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/cloud/admin
+    loopdevice=`losetup --find`
+    losetup -o $(expr 2056192 \* 512) $loopdevice /dev/cloud/admin
+    fsck -y -f $loopdevice
+    resize2fs $loopdevice
+    sync
+    losetup -d $loopdevice
+  fi
 }
 
 function h_add_etchosts_entries()
