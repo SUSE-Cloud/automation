@@ -218,6 +218,16 @@ EOSSH
   h_add_etchosts_entries
 }
 
+function ssh_password()
+{
+  SSH_ASKPASS=/root/echolinux
+  cat > $SSH_ASKPASS <<EOSSHASK
+#!/bin/sh
+echo linux
+EOSSHASK
+  chmod +x $SSH_ASKPASS
+  DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh -oNumberOfPasswordPrompts=1 "$@"
+}
 
 function h_cpuflags_settings()
 { # used for admin and compute nodes
@@ -387,6 +397,7 @@ EOS
 
   echo "waiting some more for sshd+named to start"
   sleep 25
+  ssh_password $adminip "mkdir ~/.ssh ; grep -q $pubkey ~/.ssh/authorized_keys 2>/dev/null || echo ssh-dss $pubkey injected-key-from-host >> ~/.ssh/authorized_keys"
   echo "you can now proceed with installing crowbar"
 }
 
