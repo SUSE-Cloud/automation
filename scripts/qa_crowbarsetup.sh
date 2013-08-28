@@ -162,7 +162,8 @@ case $cloudsource in
     ;;
     Beta*|RC*|GMC*)
         CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-$cloudsource/
-        CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
+        CLOUDDISTISO="S*-CLOUD*Media1.iso"
+        suseversion=11.3
     ;;
     *)
         echo "Error: you must set environment variable cloudsource=develcloud|susecloud|Beta1"
@@ -627,7 +628,7 @@ function get_crowbarnodes()
 get_crowbarnodes
 wantswift=1
 wantceph=1
-[[ $cloudsource =~ "cloud2.0" ]] && wantceph=
+[[ $cloudsource =~ "cloud2.0"|Beta|RC|GMC ]] && wantceph=
 [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
 # we can not use both swift and ceph as each grabs all disks on a node
 [[ -n "$wantceph" ]] && wantswift=
@@ -645,7 +646,7 @@ for service in database keystone ceph glance rabbitmq cinder quantum nova nova_d
       [[ -n "$wantswift" ]] || continue
       ;;
     rabbitmq|cinder|quantum)
-      [[ $cloudsource =~ "cloud2.0" ]] || continue
+      [[ $cloudsource =~ "cloud2.0"|Beta|RC|GMC ]] || continue
       ;;
   esac
   crowbar "$service" proposal create default
@@ -848,7 +849,7 @@ function waitforrebootcompute()
   nova list
   nova reboot testvm
   nova list
-  vmip=`nova show testvm | perl -ne 'm/ nova_fixed.network [ |]*([0-9.]+)/ && print $1'`
+  vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*([0-9.]+)/ && print $1'`
   wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
 }
 

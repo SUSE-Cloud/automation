@@ -727,7 +727,7 @@ function sanity_checks()
   fi
 
   case $cloudsource in
-    develcloud2.0|susecloud2.0)
+    develcloud2.0|susecloud2.0|Beta*|RC*|GMC*)
       adminimage=SP3
     ;;
     *)
