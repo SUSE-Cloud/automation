@@ -43,6 +43,7 @@
         <string>crowbar-barclamp-dns</string>
         <string>crowbar-barclamp-ganglia</string>
         <string>crowbar-barclamp-glance</string>
+        <string>crowbar-barclamp-heat</string>
         <string>crowbar-barclamp-hyperv</string>
         <string>crowbar-barclamp-ipmi</string>
         <string>crowbar-barclamp-keystone</string>
