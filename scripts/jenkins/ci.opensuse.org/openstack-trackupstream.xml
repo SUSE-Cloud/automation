@@ -36,6 +36,7 @@
         <string>openstack-ceilometer</string>
         <string>openstack-cinder</string>
         <string>openstack-dashboard</string>
+        <string>openstack-designate</string>
         <string>openstack-glance</string>
         <string>openstack-heat</string>
         <string>openstack-heat-cfntools</string>
@@ -50,6 +51,7 @@
         <string>openstack-tempest</string>
         <string>python-ceilometerclient</string>
         <string>python-cinderclient</string>
+        <string>python-designateclient</string>
         <string>python-glanceclient</string>
         <string>python-heatclient</string>
         <string>python-keystoneclient</string>
@@ -75,7 +77,7 @@
       ["Cloud:OpenStack:Folsom:Staging"].contains(project)
           &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-heat-cfntools"].contains(component)
       || ["Cloud:OpenStack:Folsom:Staging", "Cloud:OpenStack:Grizzly:Staging"].contains(project)
-          &amp;&amp; ["openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "python-troveclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron", "openstack-tempest"].contains(component)
+          &amp;&amp; ["openstack-designate", "python-designateclient", "openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "python-troveclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron", "openstack-tempest"].contains(component)
       ||  ["Cloud:OpenStack:Master"].contains(project)
           &amp;&amp;  ["openstack-quantum", "python-quantumclient"].contains(component)  ) </combinationFilter>
   <builders>
