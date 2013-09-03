@@ -86,13 +86,14 @@ export CVOL=/dev/loop4
 losetup /dev/loop4 || losetup /dev/loop4 /abuild/cloud
 #export nodenumber=4
 # disable ceph, now that it has been validated, to speed up cloud runs.
-export cephvolumenumber=2
+export cephvolumenumber=2 # for ceph&amp;swift
+export debug=1
 
 
 if [ ! -z "$UPDATEREPOS" ] ; then
   # testing update only makes sense with GM and without TESTHEAD
-  unset TESTHEAD
-  export cloudsource=GM
+#  unset TESTHEAD
+#  export cloudsource=GM
   export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
 fi
 
