@@ -139,6 +139,7 @@ case $cloudsource in
     ;;
     develcloud2.0)
         CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0/images/iso
+        [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0:/Staging/images/iso
         CLOUDDISTISO="S*-CLOUD*Media1.iso"
         suseversion=11.3
     ;;
