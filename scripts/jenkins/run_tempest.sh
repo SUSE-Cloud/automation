@@ -141,8 +141,9 @@ function run_tempest()
   echo "Running tempest (please be patient)..."
   echo "(This would normally take about 2 hrs 20 mins)"
 
-  # PLEASE MODIFY THIS WHERE NECESSARY
-  time nosetests -v -x -s tempest 2>&1 | tee $log
+  # adapt parameters by exporting them before calling the script
+  : ${nosetestparameters:=-v -s}
+  time nosetests ${nosetestparameters} tempest 2>&1 | tee $log
 
   tempestcode=$?
   #check_or_exit $tempestcode "Tempest run"

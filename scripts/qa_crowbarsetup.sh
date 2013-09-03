@@ -685,7 +685,7 @@ function tempest_configure()
   mkdir -p tempestlog
   get_novadashboardserver
   scp ./run_tempest.sh root@${novadashboardserver}:
-  ssh root@${novadashboardserver} 'bash -x ./run_tempest.sh configure'
+  ssh root@${novadashboardserver} 'export nosetestparameters=${nosetestparameters} ; bash -x ./run_tempest.sh configure'
   ret=$?
   scp root@${novadashboardserver}:tempest/etc/tempest.conf tempestlog/
   echo "return code from tempest configuration: $ret"
@@ -698,7 +698,7 @@ function tempest_run()
   mkdir -p tempestlog
   get_novadashboardserver
   scp ./run_tempest.sh root@${novadashboardserver}:
-  ssh root@${novadashboardserver} 'bash -x ./run_tempest.sh run'
+  ssh root@${novadashboardserver} 'export nosetestparameters=${nosetestparameters} ; bash -x ./run_tempest.sh run'
   ret=$?
   scp root@${novadashboardserver}:tempest/tempest_*.log tempestlog/
   scp root@${novadashboardserver}:tempest/etc/tempest.conf tempestlog/tempest.conf_after
