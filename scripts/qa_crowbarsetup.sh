@@ -638,7 +638,7 @@ wantceph=1
 if [ -n "$proposal" ] ; then
 waitnodes nodes
 
-for service in database keystone ceph glance rabbitmq cinder quantum nova nova_dashboard swift ; do
+for service in database keystone ceph glance rabbitmq cinder quantum nova nova_dashboard swift ceilometer heat ; do
   case $service in
     ceph)
       [[ -n "$wantceph" ]] || continue
@@ -646,7 +646,7 @@ for service in database keystone ceph glance rabbitmq cinder quantum nova nova_d
     swift)
       [[ -n "$wantswift" ]] || continue
       ;;
-    rabbitmq|cinder|quantum)
+    rabbitmq|cinder|quantum|ceilometer|heat)
       [[ $cloudsource =~ "cloud2.0"|Beta|RC|GMC ]] || continue
       ;;
   esac
