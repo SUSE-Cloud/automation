@@ -453,7 +453,7 @@ sub check_pip_requires_changes()
       $custom_service=xml_get_text($xmldom, '/services/service[@name="github_tarballs"][1]/param[@name="url"][1]');
     };
     eval {
-      $custom_service=xml_get_text($xmldom, '/services/service[@name="python_sdist"][1]/param[@name="url"][1]');
+      $custom_service=xml_get_text($xmldom, '/services/service[@name="python_sdist"][1]/param[@name="basename"][1]');
     };
     die $@ unless $custom_service;
   }
