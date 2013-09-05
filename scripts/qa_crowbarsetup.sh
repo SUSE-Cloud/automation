@@ -574,7 +574,7 @@ function custom_configuration()
 {
   service=$1
   crowbaredit="crowbar $service proposal edit default"
-  if [[ $debug = 1 ]] ; then
+  if [[ $debug = 1 && $service != swift ]] ; then
     EDITOR='sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/"' $crowbaredit
   fi
   case $service in
