@@ -444,20 +444,23 @@ sub check_pip_requires_changes()
   eval {
     $gitremote = xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="url"][1]');
   };
-  my $gittarballs;
+  my $custom_service;
   if($@ =~m/Could not find an xml element with the statement/) {
     eval {
-      $gittarballs=xml_get_text($xmldom, '/services/service[@name="git_tarballs"][1]/param[@name="url"][1]');
+      $custom_service=xml_get_text($xmldom, '/services/service[@name="git_tarballs"][1]/param[@name="url"][1]');
     };
     eval {
-      $gittarballs=xml_get_text($xmldom, '/services/service[@name="github_tarballs"][1]/param[@name="url"][1]');
+      $custom_service=xml_get_text($xmldom, '/services/service[@name="github_tarballs"][1]/param[@name="url"][1]');
     };
-    die $@ unless $gittarballs;
+    eval {
+      $custom_service=xml_get_text($xmldom, '/services/service[@name="python_sdist"][1]/param[@name="url"][1]');
+    };
+    die $@ unless $custom_service;
   }
   my $revision = $ENV{GITREV} || '';
 
   my $tarball;
-  if (!$gittarballs)
+  if (!$custom_service)
   {
     my $tarballbase = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="file"][1]');
     my $tarballext  = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="compression"][1]');
@@ -476,7 +479,7 @@ sub check_pip_requires_changes()
   # run source service
   $exitcode = pack_servicerun();
   die_on_error('service', $exitcode);
-  if ($gittarballs)
+  if ($custom_service)
   {
     $gitrev=`perl -ne 'if(m/Version:.*\\.([0-9a-f]+)/){print \$1;exit}' *.spec`;
   } else
@@ -520,7 +523,7 @@ sub check_pip_requires_changes()
     }
   }
 
-  if (!$gittarballs)
+  if (!$custom_service)
   {
     eval {
       add_changes_entry();
