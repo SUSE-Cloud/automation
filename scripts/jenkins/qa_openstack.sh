@@ -30,6 +30,9 @@ VERSION=11
 REPO=SLE_11_SP2
 if grep "^VERSION = 1[2-4]\\.[0-5]" /etc/SuSE-release ; then
   VERSION=$(awk -e '/^VERSION = 1[2-4]\./{print $3}' /etc/SuSE-release)
+  if [ "$VERSION" == "13.1" ]; then
+    VERSION="Factory"
+  fi
   REPO=openSUSE_$VERSION
 fi
 hostname=dist.suse.de
@@ -139,12 +142,13 @@ esac
 
 # deinstall some leftover crap from the cleanvm
 $zypper -n rm --force 'python-cheetah < 2.4'
-# start with patterns
-$zypper -n install -t pattern cloud_controller cloud_compute $cn
-$zypper -n install --force openstack-quickstart
 
 # Everything below here is fatal
 set -e
+
+# start with patterns
+$zypper -n install -t pattern cloud_controller cloud_compute $cn
+$zypper -n install --force openstack-quickstart
 
 if ! rpm -q openstack-neutron-server && ! rpm -q openstack-quantum-server; then
 # setup non-bridged network:
