@@ -135,9 +135,11 @@ $zypper --gpg-auto-import-keys -n ref
 case "$cloudsource" in
   develcloud1*|openstackessex)
         cn=""
+        tempest=""
   ;;
   *)
         cn="cloud_network"
+        tempest="openstack-tempest"
   ;;
 esac
 
@@ -149,7 +151,7 @@ set -e
 
 # start with patterns
 $zypper -n install -t pattern cloud_controller cloud_compute $cn
-$zypper -n install --force openstack-quickstart
+$zypper -n install --force openstack-quickstart $tempest
 
 if ! rpm -q openstack-neutron-server && ! rpm -q openstack-quantum-server; then
 # setup non-bridged network:
@@ -180,6 +182,7 @@ done
 if [ -n "$IP" ] ; then
 	sed -i -e s/127.0.0.1/$IP/ /etc/openstackquickstartrc
 fi
+sed -i -e "s/with_tempest=no/with_tempest=yes/" /etc/openstackquickstartrc
 sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
 unset http_proxy
 openstack-quickstart-demosetup
@@ -240,12 +243,9 @@ imgid=debian-5
 mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
-# run devstack exercises if they exist
-if false && [ -x /usr/lib/devstack/exercise.sh ]; then
-    export DEFAULT_IMAGE_NAME=$imgid
-    # todo: fix the scripts to set the default admin pw to secrete
-    export ADMIN_PASSWORD=openstack
-    /usr/lib/devstack/exercise.sh || true
+# run tempest
+if true && [ -e /etc/tempest/tempest.conf ]; then
+    tempest -s -v
 fi
 
 nova boot --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm | tee boot.out
