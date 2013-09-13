@@ -735,6 +735,11 @@ if [ -n "$testsetup" ] ; then
           glance image-show $imageid|grep status.*active && break
           sleep 5
         done
+        # wait for nova-manage to be successful
+        for n in $(seq 1 200 ); do
+            test "$(nova-manage service list  | fgrep -cv ':-)')" -lt 2 && break
+            sleep 1
+        done
         nova delete testvm # cleanup earlier run # cleanup
 		nova keypair-add --pub_key /root/.ssh/id_rsa.pub testkey
 		nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
