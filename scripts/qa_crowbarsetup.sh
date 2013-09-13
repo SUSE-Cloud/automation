@@ -736,8 +736,8 @@ if [ -n "$testsetup" ] ; then
           sleep 5
         done
         # wait for nova-manage to be successful
-        for n in $(seq 1 200 ); do
-            test "$(nova-manage service list  | fgrep -cv ':-)')" -lt 2 && break
+        for n in $(seq 1 200) ;  do
+            test "$(nova-manage service list  | fgrep -cv \"\:\-\)\")" -lt 2 && break
             sleep 1
         done
         nova delete testvm # cleanup earlier run # cleanup
