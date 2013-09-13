@@ -81,8 +81,9 @@ case "$cloudsource" in
 	fi
   ;;
   openstackmaster)
-	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/Cloud:OpenStack:Master.repo || :
+	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/ cloud || :
 	# no staging for master
+        $zypper mr --priority 22 cloud
   ;;
   *)
 	echo "unknown cloudsource"
