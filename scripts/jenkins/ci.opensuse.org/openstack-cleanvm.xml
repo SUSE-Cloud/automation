@@ -11,11 +11,19 @@
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
     <hudson.triggers.TimerTrigger>
-      <spec>12 12 * * *</spec>
+      <spec>H 12 * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <axes>
+    <hudson.matrix.TextAxis>
+      <name>image</name>
+      <values>
+        <string>openSUSE-12.2-64-minimal</string>
+        <string>openSUSE-13.1-64-minimal</string>
+        <string>SLE_11_SP3-64-minimal</string>
+      </values>
+    </hudson.matrix.TextAxis>
     <hudson.matrix.TextAxis>
       <name>openstack_version</name>
       <values>
@@ -31,7 +39,12 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>slave=="cloud-cleanvm"</combinationFilter>
+  <combinationFilter>slave=="cloud-cleanvm"  &amp;&amp; (
+      ( openstack_version=="master"  &amp;&amp; image=="openSUSE-13.1-64-minimal" ) ||
+      ( openstack_version=="grizzly" &amp;&amp; image=="openSUSE-12.2-64-minimal" ) ||
+      ( openstack_version=="folsom"  &amp;&amp; image=="openSUSE-12.2-64-minimal" )
+    )
+  </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
@@ -67,9 +80,9 @@ esac</command>
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.3"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.4"/>
   </buildWrappers>
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
-    <runSequentially>false</runSequentially>
+    <runSequentially>true</runSequentially>
   </executionStrategy>
 </matrix-project>
