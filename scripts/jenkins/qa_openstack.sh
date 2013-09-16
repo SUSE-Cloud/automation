@@ -238,8 +238,7 @@ for i in $(seq 1 20) ; do # wait for image to finish uploading
 	sleep 5
 done
 glance image-list
-#imgid=$(glance index|grep debian-5|cut -f1 -d" ")
-imgid=debian-5
+imgid=$(glance image-list|grep debian-5|cut -f2 -d" ")
 mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
