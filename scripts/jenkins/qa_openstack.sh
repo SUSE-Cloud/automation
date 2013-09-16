@@ -245,6 +245,9 @@ mkdir -p ~/.ssh
 
 # run tempest
 if true && [ -e /etc/tempest/tempest.conf ]; then
+    openstack-config --set /etc/tempest/tempest.conf compute image_ref $imgid
+    openstack-config --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
+
     tempest -s -v
 fi
 
