@@ -114,7 +114,7 @@ if [ $VERSION = 11 ] ; then
   fi
 
   if [ "$REPO" = SLE_11_SP3 ] ; then
-    $zypper ar http://smt-internal.opensuse.org/repo/$RCE/SLES11-SP3-Pool/sle-11-x86_64/ SP3Pool
+    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SLES11-SP3-Pool/sle-11-x86_64/' SP3Pool
   fi
 
 fi
