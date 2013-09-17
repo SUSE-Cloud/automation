@@ -27,7 +27,7 @@ mount -o remount,noatime,barrier=0 /
 
 # setup repos
 VERSION=11
-REPO=SLE_11_SP2
+REPO=SLE_11_SP3
 if grep "^VERSION = 1[2-4]\\.[0-5]" /etc/SuSE-release ; then
   VERSION=$(awk -e '/^VERSION = 1[2-4]\./{print $3}' /etc/SuSE-release)
   if [ "$VERSION" == "13.1" ]; then
