@@ -112,6 +112,11 @@ if [ $VERSION = 11 ] ; then
     $zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2/ SP2up
     $zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2-CORE/ SP2core
   fi
+
+  if [ "$REPO" = SLE_11_SP3 ] ; then
+    $zypper ar http://smt-internal.opensuse.org/repo/$RCE/SLES11-SP3-Pool/sle-11-x86_64/ SP3Pool
+  fi
+
 fi
 
 # install maintenance updates
