@@ -44,6 +44,7 @@
         <string>python-designateclient</string>
         <string>python-glanceclient</string>
         <string>python-heatclient</string>
+        <string>python-ironicclient</string>
         <string>python-keystoneclient</string>
         <string>python-novaclient</string>
         <string>python-quantumclient</string>
@@ -71,7 +72,7 @@
       ["folsom-openSUSE-12.2"].contains(distribution)
           &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-heat-cfntools"].contains(component)
       || ["folsom-openSUSE-12.2", "grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3"].contains(distribution)
-         &amp;&amp; ["openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-oslo.messaging", "python-neutronclient", "openstack-neutron"].contains(component)
+         &amp;&amp; ["openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-designateclient", "python-oslo.messaging", "python-neutronclient", "openstack-neutron"].contains(component)
       || ["master-SLE-11-SP3", "master-openSUSE-12.3"].contains(distribution)
          &amp;&amp; ["openstack-quantum", "python-quantumclient"].contains(component) )</combinationFilter>
   <builders>
