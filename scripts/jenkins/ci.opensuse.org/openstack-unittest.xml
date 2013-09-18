@@ -172,7 +172,7 @@ eval "$SETUPCMD"
 echo "=== Running TESTCMD ===" &gt; /dev/null
 eatmydata=/usr/bin/eatmydata
 test -x $eatmydata || eatmydata=""
-perl -e "alarm 60*60 ; exec '$eatmydata $TESTCMD'"
+perl -e "alarm 300*60 ; exec '$eatmydata $TESTCMD'"
 test_exitcode=$?
 
 echo "=== Running TEARDOWNCMD ===" &gt; /dev/null
