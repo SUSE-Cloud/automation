@@ -144,7 +144,7 @@ case "$cloudsource" in
   ;;
   *)
         cn="cloud_network"
-        tempest="openstack-tempest"
+        tempest="openstack-tempest-test"
   ;;
 esac
 
@@ -215,7 +215,7 @@ else
     cinder list
     NOVA_FLAVOR="12"
 fi
-lvscan | grep .
+test "$(lvs | wc -l)" -gt 1
 volumeret=$?
 
 if [ "$MODE" = xen ] ; then
@@ -252,7 +252,7 @@ if true && [ -e /etc/tempest/tempest.conf ]; then
     openstack-config --set /etc/tempest/tempest.conf compute image_ref $imgid
     openstack-config --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
 
-    tempest -s -v
+    /var/lib/openstack-tempest-test/run_tests.sh  -N -s
 fi
 
 nova boot --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm | tee boot.out
