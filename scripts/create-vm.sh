@@ -83,7 +83,7 @@ parse_args () {
 }
 
 run_virsh () {
-    virsh -c "$hypervisor" "$@"
+    LANG=C virsh -c "$hypervisor" "$@"
 }
 
 valid_bridge () {
