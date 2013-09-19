@@ -77,9 +77,9 @@
   </axes>
   <combinationFilter>! (
       ["Cloud:OpenStack:Folsom:Staging"].contains(project)
-          &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-heat-cfntools"].contains(component)
+          &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-heat-cfntools", "openstack-tempest"].contains(component)
       || ["Cloud:OpenStack:Folsom:Staging", "Cloud:OpenStack:Grizzly:Staging"].contains(project)
-          &amp;&amp; ["openstack-designate", "python-designateclient", "openstack-marconi", "python-marconiclient", "openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "python-troveclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron", "openstack-tempest"].contains(component)
+          &amp;&amp; ["openstack-designate", "python-designateclient", "openstack-marconi", "python-marconiclient", "openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "python-troveclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron"].contains(component)
       ||  ["Cloud:OpenStack:Master"].contains(project)
           &amp;&amp;  ["openstack-quantum", "python-quantumclient"].contains(component)  ) </combinationFilter>
   <builders>
