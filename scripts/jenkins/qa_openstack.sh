@@ -158,6 +158,8 @@ set -e
 $zypper -n install -t pattern cloud_controller cloud_compute $cn
 $zypper -n install --force openstack-quickstart $tempest
 
+# test -e /tmp/openstack-quickstart-demosetup && mv /tmp/openstack-quickstart-demosetup /usr/sbin/openstack-quickstart-demosetup
+
 if ! rpm -q openstack-neutron-server && ! rpm -q openstack-quantum-server; then
 # setup non-bridged network:
 cat >/etc/sysconfig/network/ifcfg-brclean <<EOF
@@ -188,6 +190,7 @@ if [ -n "$IP" ] ; then
 	sed -i -e s/127.0.0.1/$IP/ /etc/openstackquickstartrc
 fi
 sed -i -e "s/with_tempest=no/with_tempest=yes/" /etc/openstackquickstartrc
+sed -i -e "s/with_horizon=yes/with_horizon=no/" /etc/openstackquickstartrc
 sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
 unset http_proxy
 openstack-quickstart-demosetup
@@ -247,14 +250,6 @@ imgid=$(glance image-list|grep debian-5|cut -f2 -d" ")
 mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
-# run tempest
-if true && [ -e /etc/tempest/tempest.conf ]; then
-    openstack-config --set /etc/tempest/tempest.conf compute image_ref $imgid
-    openstack-config --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
-
-    /var/lib/openstack-tempest-test/run_tests.sh  -N -s
-fi
-
 nova boot --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm | tee boot.out
 instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
 nova list
@@ -273,10 +268,19 @@ vmip=`nova show testvm|perl -ne 'm/network\D*(\d+\.\d+\.\d+\.\d+)/ && print $1'`
 echo "VM IP: $vmip"
 if [ -n "$vmip" ]; then
     ping -c 2 $vmip || true
-    ssh -o "StrictHostKeyChecking no" root@$vmip curl --silent www3.zq1.de/test.txt && test $volumeret = 0
+    ssh -o "StrictHostKeyChecking no" root@$vmip curl --silent www3.zq1.de/test.txt && test $volumeret = 0 || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
     nova show testvm
 
     exit 1
+fi
+nova delete testvm || :
+
+# run tempest
+if true && [ -e /etc/tempest/tempest.conf ]; then
+    openstack-config --set /etc/tempest/tempest.conf compute image_ref $imgid
+    openstack-config --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
+
+    /var/lib/openstack-tempest-test/run_tests.sh  -N -s || :
 fi
