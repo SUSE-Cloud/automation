@@ -52,6 +52,8 @@ my $uttrigger = {
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
                                          "TESTCMD=python setup.py testr --slowest",
+        'python-ironicclient'         => "COMPONENT=python-ironicclient\n" .
+                                         "TESTCMD=python setup.py testr --slowest",
         'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
                                          "COMPONENT=python-keystoneclient\n" .
                                          "TEARDOWNCMD=rcmemcached stop\n",
@@ -69,8 +71,6 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr --slowest\n",
         'python-oslo.sphinx'          => "COMPONENT=python-oslo.sphinx\n" .
                                          "TESTCMD=python setup.py testr --slowest\n",
-
-
     }
   },
   "Cloud:OpenStack:Grizzly:Staging" => {
