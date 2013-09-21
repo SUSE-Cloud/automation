@@ -218,8 +218,7 @@ else
     cinder list
     NOVA_FLAVOR="12"
 fi
-test "$(lvs | wc -l)" -gt 1
-volumeret=$?
+test "$(lvs | wc -l)" -gt 1 || exit 1
 
 if [ "$MODE" = xen ] ; then
 	glance image-create --is-public=True --disk-format=qcow2 --container-format=bare --name jeos-64-pv --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
@@ -268,7 +267,7 @@ vmip=`nova show testvm|perl -ne 'm/network\D*(\d+\.\d+\.\d+\.\d+)/ && print $1'`
 echo "VM IP: $vmip"
 if [ -n "$vmip" ]; then
     ping -c 2 $vmip || true
-    ssh -o "StrictHostKeyChecking no" root@$vmip curl --silent www3.zq1.de/test.txt && test $volumeret = 0 || exit 3
+    ssh -o "StrictHostKeyChecking no" root@$vmip curl --silent www3.zq1.de/test.txt || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
     nova show testvm
