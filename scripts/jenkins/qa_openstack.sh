@@ -43,13 +43,13 @@ zypper rr cloudhead || :
 ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
 case "$cloudsource" in
   develcloud1.0)
+	REPO=SLE_11_SP2
 	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/1.0/$REPO/Devel:Cloud:1.0.repo
 	if test -n "$OSHEAD" ; then
 		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/1.0:/OpenStack/$REPO/ cloudhead
 	fi
   ;;
   develcloud2.0)
-	REPO=SLE_11_SP3
 	$zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-2.0/ cloud2iso
 	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0/$REPO/Devel:Cloud:2.0.repo
 	if test -n "$OSHEAD" ; then
