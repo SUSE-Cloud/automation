@@ -138,7 +138,7 @@ $zypper rr Virtualization_Cloud # repo was dropped but is still in some images f
 $zypper --gpg-auto-import-keys -n ref
 
 case "$cloudsource" in
-  develcloud1*|openstackessex|openstackfolsom)
+  develcloud1*|develcloud2.0|openstackessex|openstackfolsom)
         cn=""
         tempest=""
   ;;
