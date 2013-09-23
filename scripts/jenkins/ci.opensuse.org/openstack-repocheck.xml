@@ -36,6 +36,7 @@
         <string>SLE_11_SP3</string>
         <string>openSUSE_12.2</string>
         <string>openSUSE_12.3</string>
+        <string>openSUSE_13.1</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
