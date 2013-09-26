@@ -29,7 +29,7 @@ my $uttrigger = {
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
                                          "TESTCMD=./run_tests.sh -N glance",
         'openstack-heat'              => "COMPONENT=openstack-heat\n".
-                                         "TESTCMD=./run_tests.sh -u",
+                                         "TESTCMD=python setup.py testr --slowest",
         'openstack-ironic'            => "COMPONENT=openstack-ironic\n" .
                                          "TESTCMD=python setup.py testr\n",
         'openstack-trove'             => "COMPONENT=openstack-trove\n" .
@@ -49,7 +49,8 @@ my $uttrigger = {
 
         'python-designateclient'      => "COMPONENT=python-designateclient\n" .
                                          "TESTCMD=python setup.py testr --slowest",
-        'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
+        'python-glanceclient'         => "COMPONENT=python-glanceclient\n" .
+                                         "TESTCMD=python setup.py testr",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
                                          "TESTCMD=python setup.py testr --slowest",
         'python-ironicclient'         => "COMPONENT=python-ironicclient\n" .
@@ -123,7 +124,7 @@ my $uttrigger = {
                                          "TESTCMD=nosetests --with-doctest --exclude-dir=tests/testmods\n",
     }
   },
- 
+
   "Cloud:OpenStack:Folsom:Staging" => {
     functest   => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
                                          "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
