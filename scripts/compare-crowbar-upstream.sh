@@ -3,25 +3,25 @@
 # Compares two branches of each crowbar barclamp repositories using
 # 'git icing' (a wrapper around git cherry).  Run with --help for help.
 
-DEFAULT_UPSTREAM=crowbar/release/pebbles/master
-DEFAULT_LOCAL=suse/release/essex-hack-suse/master
+DEFAULT_TARGET=suse/release/pebbles/suse-cloud-2.0
+DEFAULT_SOURCE=crowbar/release/pebbles/master
 
 compare () {
-    local="$1"
-    upstream="$2"
+    source="$1"
+    target="$2"
     name="$3"
 
-    [ "$verbosity" -gt 0 ] && echo -e "\e[0;1mComparing $name: $local with $upstream ...\e[0m"
+    [ "$verbosity" -gt 0 ] && echo -e "\e[0;1mComparing $name: $source with $target ...\e[0m"
 
-    for ref in "$upstream" "$local"; do
+    for ref in "$target" "$source"; do
         if ! git cat-file -e "$ref" >&/dev/null; then
             [ "$verbosity" -gt 0 ] && echo -e "\e[1;35m$ref does not exist in $name\e[0m" >&2
             return 1
         fi
     done
 
-    #git --no-pager log --no-merges --pretty=format:%H $upstream..$local
-    git icing -s -v$verbosity "$upstream" "$local" | count_commits_not_upstreamed
+    #git --no-pager log --no-merges --pretty=format:%H $target..$source
+    git icing -s -v$verbosity "$target" "$source" | count_commits_not_upstreamed
 
     if [ "$verbosity" = 0 ]; then
         echo -n "." >&2
@@ -69,16 +69,16 @@ usage () {
     me=`basename $0`
 
     cat <<EOF >&2
-Usage: $me [OPTIONS] [UPSTREAM [LOCAL]]
+Usage: $me [OPTIONS] [TARGET [SOURCE]]
 
 Options:
   -h, --help             Show this help and exit
   -v [N], --verbose [N]  Set verbosity level [default without -v is 2,
                          default with -v and no number N is 3]
 
-Compares local branch of crowbar and barclamps repositories with upstream
-using 'git cherry -v'.  Commits missing from upstream are prefixed with
-a plus (+) symbol, and commits with an equivalent change already upstream
+Compares a source branch of crowbar and barclamps repositories with a target
+using 'git cherry -v'.  Commits missing from the target are prefixed with
+a plus (+) symbol, and commits with an equivalent change already in the target
 are prefixed with a minus (-) symbol.
 
 Must be run from the top-level crowbar repository.
@@ -86,8 +86,8 @@ Must be run from the top-level crowbar repository.
 See git-icing for how to add commits to the blacklist which marks them as
 not suitable for upstreaming.
 
-UPSTREAM is the upstream branch to compare [$DEFAULT_UPSTREAM]
-LOCAL is the local branch to compare [$DEFAULT_LOCAL]
+TARGET is the target branch to compare [$DEFAULT_TARGET]
+SOURCE is the source branch to compare [$DEFAULT_SOURCE]
 EOF
     exit "$exit_code"
 }
@@ -151,8 +151,8 @@ main () {
 
     toplevel=`pwd`
 
-    upstream="${ARGV[0]:-$DEFAULT_UPSTREAM}"
-    local="${ARGV[1]:-$DEFAULT_LOCAL}"
+    target="${ARGV[0]:-$DEFAULT_TARGET}"
+    source="${ARGV[1]:-$DEFAULT_SOURCE}"
 
     counts_tmp=$( mktemp /tmp/compare-crowbar-upstream-tmp.XXXXXXXXX ) || exit 1
 
@@ -162,7 +162,7 @@ main () {
             continue
         fi
 
-        compare "$local" "$upstream" "$name barclamp"
+        compare "$source" "$target" "$name barclamp"
     done
 
     [ "$verbosity" = 0 ] && echo >&2
