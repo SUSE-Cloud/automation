@@ -61,7 +61,8 @@ my $uttrigger = {
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-neutronclient'        => "COMPONENT=python-neutronclient\n" .
                                          "TESTCMD=python setup.py testr",
-        'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
+        'python-swiftclient'          => "COMPONENT=python-swiftclient\n" .
+                                         "TESTCMD=python setup.py testr",
         'python-troveclient'          => "COMPONENT=python-troveclient\n" .
                                          "TESTCMD=python setup.py testr\n",
         'python-openstackclient'      => "COMPONENT=python-openstackclient\n" .
