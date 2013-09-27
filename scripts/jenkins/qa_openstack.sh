@@ -20,7 +20,7 @@ if ! test -e $dev && file -s /dev/sdb|grep -q "ext3 filesystem data" ; then
 fi
 if test -e $dev ; then #&& file -s $dev | grep -q "/dev/vdb: data" ; then
     file -s $dev | grep -q "ext3 filesystem" || mkfs.ext3 $dev
-    mount --make-private $dev /mnt/
+    mount $dev /mnt/
     cp -a /var/lib/* /mnt/
     mount --make-private /
     mount --move /mnt /var/lib
