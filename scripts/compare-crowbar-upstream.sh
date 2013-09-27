@@ -3,8 +3,8 @@
 # Compares two branches of each crowbar barclamp repositories using
 # 'git icing' (a wrapper around git cherry).  Run with --help for help.
 
-DEFAULT_TARGET=crowbar/release/pebbles/master
-DEFAULT_SOURCE=suse/release/essex-hack-suse/master
+DEFAULT_TARGET=suse/release/pebbles/suse-cloud-2.0
+DEFAULT_SOURCE=crowbar/release/pebbles/master
 
 compare () {
     source="$1"
