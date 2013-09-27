@@ -34,6 +34,8 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr\n",
         'openstack-trove'             => "COMPONENT=openstack-trove\n" .
                                          "TESTCMD=python setup.py testr\n",
+        'openstack-tuskar'            => "COMPONENT=openstack-tuskar\n" .
+                                         "TESTCMD=python setup.py testr",
         'openstack-heat-cfntools'     => "COMPONENT=openstack-heat-cfntools\n" .
                                          "TESTCMD=python setup.py testr --slowest",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
