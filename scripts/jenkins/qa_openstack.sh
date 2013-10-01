@@ -163,6 +163,9 @@ $zypper -n install --force openstack-quickstart $tempest
 
 # test -e /tmp/openstack-quickstart-demosetup && mv /tmp/openstack-quickstart-demosetup /usr/sbin/openstack-quickstart-demosetup
 
+crudini=$(type -p crudini)
+test -z "$crudini" && crudini="openstack-config"
+
 if ! rpm -q openstack-neutron-server && ! rpm -q openstack-quantum-server; then
 # setup non-bridged network:
 cat >/etc/sysconfig/network/ifcfg-brclean <<EOF
@@ -281,8 +284,10 @@ nova delete testvm || :
 
 # run tempest
 if true && [ -e /etc/tempest/tempest.conf ]; then
-    openstack-config --set /etc/tempest/tempest.conf compute image_ref $imgid
-    openstack-config --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
+    $crudini --set /etc/tempest/tempest.conf compute image_ref $imgid
+    $crudini --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
 
-    /var/lib/openstack-tempest-test/run_tests.sh  -N -s || :
+    pushd /var/lib/openstack-tempest-test/
+        ./run_tests.sh  -N -s || :
+    popd
 fi
