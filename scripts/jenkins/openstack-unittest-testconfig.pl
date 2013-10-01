@@ -73,6 +73,8 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr --slowest\n",
         'python-oslo.messaging'          => "COMPONENT=python-oslo.messaging\n" .
                                          "TESTCMD=python setup.py testr --slowest\n",
+        'python-oslo.version'         => "COMPONENT=python-oslo.version\n" .
+                                         "TESTCMD=python setup.py testr --slowest\n",
         'python-oslo.sphinx'          => "COMPONENT=python-oslo.sphinx\n" .
                                          "TESTCMD=python setup.py testr --slowest\n",
     }
