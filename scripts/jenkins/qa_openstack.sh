@@ -163,8 +163,8 @@ $zypper -n install --force openstack-quickstart $tempest
 
 # test -e /tmp/openstack-quickstart-demosetup && mv /tmp/openstack-quickstart-demosetup /usr/sbin/openstack-quickstart-demosetup
 
-crudini=$(type -p crudini)
-test -z "$crudini" && crudini="openstack-config"
+crudini=crudini
+test -z "$(type -p crudini 2>/dev/null)" && crudini="openstack-config"
 
 if ! rpm -q openstack-neutron-server && ! rpm -q openstack-quantum-server; then
 # setup non-bridged network:
