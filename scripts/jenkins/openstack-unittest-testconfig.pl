@@ -67,6 +67,8 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr",
         'python-troveclient'          => "COMPONENT=python-troveclient\n" .
                                          "TESTCMD=python setup.py testr\n",
+        'python-tuskarclient'         => "COMPONENT=python-tuskarclient\n" .
+                                         "TESTCMD=python setup.py testr",
         'python-openstackclient'      => "COMPONENT=python-openstackclient\n" .
                                          "TESTCMD=python setup.py testr\n",
         'python-oslo.config'          => "COMPONENT=python-oslo.config\n" .
