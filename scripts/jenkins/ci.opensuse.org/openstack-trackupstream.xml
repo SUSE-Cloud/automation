@@ -66,6 +66,7 @@
         <string>python-quantumclient</string>
         <string>python-neutronclient</string>
         <string>python-swiftclient</string>
+        <string>python-tuskarclient</string>
         <string>python-troveclient</string>
       </values>
     </hudson.matrix.TextAxis>
