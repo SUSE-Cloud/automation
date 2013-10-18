@@ -42,6 +42,7 @@
         <string>openstack-swift</string>
         <string>python-cinderclient</string>
         <string>python-ceilometerclient</string>
+        <string>python-django_openstack_auth</string>
         <string>python-designateclient</string>
         <string>python-glanceclient</string>
         <string>python-heatclient</string>
@@ -78,7 +79,7 @@
       || ["folsom-openSUSE-12.2", "grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3"].contains(distribution)
          &amp;&amp; ["openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "python-neutronclient", "openstack-neutron", "openstack-tuskar", "python-tuskarclient"].contains(component)
       || ["master-SLE-11-SP3", "master-openSUSE-12.3", "master-openSUSE-13.1"].contains(distribution)
-         &amp;&amp; ["openstack-quantum", "python-quantumclient"].contains(component) )</combinationFilter>
+      &amp;&amp; ["openstack-quantum", "python-quantumclient", "python-django_openstack_auth"].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># zypper in osc
