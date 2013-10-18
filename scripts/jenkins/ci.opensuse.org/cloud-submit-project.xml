@@ -68,8 +68,12 @@ case $project in
     submitcmd="$OSC copypac -K -e"
     OSCBUILDDIST=SLE_11_SP3
   ;;
-  Cloud:OpenStack:[EFGH]*)
+  Cloud:OpenStack:[EF]*)
     submitcmd="$OSC copypac -K -e"
+  ;;
+  Cloud:OpenStack:[GH]*)
+    submitcmd="$OSC copypac -K -e"
+    OSCBUILDDIST=SLE_11_SP3
   ;;
   isv:SUSE:Cloud:2.0)
     submitcmd="$OSC copypac -K -e"
