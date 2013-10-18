@@ -49,7 +49,7 @@ our @OSCBASE=('osc');
 push @OSCBASE, "-c", $OSCRC  if $OSCRC;
 push @OSCBASE, "-A", $OSCAPI if $OSCAPI;
 our $OSC_BUILD_ARCH = $ENV{OSC_BUILD_ARCH} || '';
-our $OSC_BUILD_DIST = $ENV{OSC_BUILD_DIST} || 'SLE_11_SP2';
+our $OSC_BUILD_DIST = $ENV{OSC_BUILD_DIST} || 'SLE_11_SP3';
 our $OSC_BUILD_LOG;
 our $OSC_BUILD_LOG_OLD;
 our @tarballfiles;
@@ -356,7 +356,7 @@ sub extract_file_from_tarball
   my $tarfile = $list[0];
   return $tar->extract_file($tarfile, $filename);
 }
-    
+
 sub email_changes_diff
 {
   my ($diff_file, $requires_type) = @_;
@@ -404,7 +404,7 @@ sub check_pip_requires_changes()
       close $FH;
     }
 
-    my $diff = `diff -u @keys > ${project}.diff`;        
+    my $diff = `diff -u @keys > ${project}.diff`;
     if ($?)
     {
       email_changes_diff("${project}.diff", $requires_type);
