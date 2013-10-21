@@ -79,7 +79,7 @@
       ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3"].contains(distribution)
          &amp;&amp; ["openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "python-neutronclient", "openstack-neutron", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth"].contains(component)
       || ["havana-SLE-11-SP3", "havana-openSUSE-12.3", "havana-openSUSE-13.1"].contains(distribution)
-         &amp;&amp; ["openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth"].contains(component)
+         &amp;&amp; ["openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth", "openstack-quantum", "python-quantumclient"].contains(component)
       || ["master-SLE-11-SP3", "master-openSUSE-12.3", "master-openSUSE-13.1"].contains(distribution)
       &amp;&amp; ["openstack-quantum", "python-quantumclient"].contains(component) )</combinationFilter>
   <builders>
