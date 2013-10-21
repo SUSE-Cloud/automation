@@ -46,7 +46,6 @@
     <hudson.matrix.TextAxis>
       <name>openstack_version</name>
       <values>
-        <string>folsom</string>
         <string>grizzly</string>
         <string>havana</string>
         <string>master</string>
@@ -62,8 +61,7 @@
   <combinationFilter>slave=="cloud-cleanvm"  &amp;&amp; (
       ( openstack_version=="master"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||
       ( openstack_version=="havana"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||
-      ( openstack_version=="grizzly" &amp;&amp; (image=="openSUSE-12.2-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||
-      ( openstack_version=="folsom"  &amp;&amp; image=="openSUSE-12.2-64-minimal" )
+      ( openstack_version=="grizzly" &amp;&amp; (image=="openSUSE-12.2-64-minimal" || image=="SLE_11_SP3-64-minimal"))
     )
   </combinationFilter>
   <builders>
@@ -84,7 +82,7 @@ ssh root@cleanvm "export cloudsource=$cloudsource; export OSHEAD=$oshead; export
 # mappings for submit job trigger
 OSversion=`echo $openstack_version | perl -ne 'print ucfirst($_)'`
 case $OSversion in
-  Essex|Folsom|Grizzly|Havana)
+  Grizzly|Havana)
       project=Cloud:OpenStack:$OSversion
       subproject=Staging
 

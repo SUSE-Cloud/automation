@@ -25,7 +25,6 @@
     <hudson.matrix.TextAxis>
       <name>project</name>
       <values>
-        <string>Cloud:OpenStack:Folsom</string>
         <string>Cloud:OpenStack:Grizzly</string>
         <string>Cloud:OpenStack:Havana</string>
         <string>Cloud:OpenStack:Master</string>
@@ -47,8 +46,8 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>!( ["Cloud:OpenStack:Folsom"].contains(project) &amp;&amp; ["openSUSE_13.1", "SLE_11_SP3"].contains(repository) ) &amp;&amp;
-      !( ["Cloud:OpenStack:Folsom", "Cloud:OpenStack:Grizzly"].contains(project) &amp;&amp; ["openSUSE_13.1"].contains(repository)) &amp;&amp;
+  <combinationFilter>
+      !( ["Cloud:OpenStack:Grizzly"].contains(project) &amp;&amp; ["openSUSE_13.1"].contains(repository)) &amp;&amp;
       !( ["Cloud:OpenStack:Havana"].contains(project)  &amp;&amp; ["openSUSE_12.2"].contains(repository))
   </combinationFilter>
   <builders>
@@ -73,9 +72,6 @@ case $OBS_TYPE in
   OBS) OSCAPI="https://api.opensuse.org"
        OSC_BUILD_ARCH=x86_64
        case $OBS_PROJECT in
-           *Folsom*)
-               OSC_BUILD_DIST=SLE_11_SP2
-               ;;
            *)
                OSC_BUILD_DIST=SLE_11_SP3
                ;;

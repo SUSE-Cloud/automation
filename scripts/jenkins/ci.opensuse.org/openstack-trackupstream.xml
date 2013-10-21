@@ -25,7 +25,6 @@
     <hudson.matrix.TextAxis>
       <name>project</name>
       <values>
-        <string>Cloud:OpenStack:Folsom:Staging</string>
         <string>Cloud:OpenStack:Grizzly:Staging</string>
         <string>Cloud:OpenStack:Havana:Staging</string>
         <string>Cloud:OpenStack:Master</string>
@@ -79,9 +78,7 @@
     </hudson.matrix.LabelAxis>
   </axes>
   <combinationFilter>! (
-      ["Cloud:OpenStack:Folsom:Staging"].contains(project)
-          &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-heat-cfntools", "openstack-tempest"].contains(component)
-      || ["Cloud:OpenStack:Folsom:Staging", "Cloud:OpenStack:Grizzly:Staging"].contains(project)
+      ["Cloud:OpenStack:Grizzly:Staging"].contains(project)
           &amp;&amp; ["openstack-designate", "python-designateclient", "openstack-marconi", "python-marconiclient", "openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "python-troveclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron", "python-oslo.version"].contains(component)
       ||  ["Cloud:OpenStack:Havana:Staging"].contains(project)
           &amp;&amp;  ["openstack-designate", "openstack-trove", "openstack-ironic", "openstack-marconi", "openstack-tuskar", "python-tuskarclient", "python-designateclient", "python-troveclient", "python-ironicclient", "python-marconiclient", "python-oslo.version", "python-oslo.sphinx", "python-oslo.messaging", "python-oslo.config"].contains(component)
@@ -110,9 +107,6 @@ case $OBS_TYPE in
   OBS) OSCAPI="https://api.opensuse.org"
        OSC_BUILD_ARCH=x86_64
        case $OBS_PROJECT in
-           *Folsom*)
-               OSC_BUILD_DIST=SLE_11_SP2
-               ;;
            *)
                OSC_BUILD_DIST=SLE_11_SP3
                ;;

@@ -131,43 +131,6 @@ my $uttrigger = {
                                          "TESTCMD=nosetests --with-doctest --exclude-dir=tests/testmods\n",
     }
   },
-
-  "Cloud:OpenStack:Folsom:Staging" => {
-    functest   => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
-                                         "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
-                                         "TESTCMD=./.functests\n".
-                                         "TEARDOWNCMD=swift-init main stop"
-    },
-    probetests => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
-                                         "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
-                                         "TESTCMD=./.probetests\n".
-                                         "TEARDOWNCMD=swift-init main stop"
-    },
-    unittest   => {
-        'openstack-cinder'            => "COMPONENT=openstack-cinder\n" .
-                                         "TESTCMD=./run_tests.sh -N -P",
-        'openstack-dashboard'         => "COMPONENT=openstack-dashboard" .
-                                         "TESTCMD=./run_tests.sh -N",
-        'openstack-glance'            => "COMPONENT=openstack-glance\n".
-                                         "TESTCMD=./run_tests.sh -N glance",
-        'openstack-keystone'          => "COMPONENT=openstack-keystone",
-        'openstack-nova'              => "COMPONENT=openstack-nova" .
-                                         "TESTCMD=./run_tests.sh -N -P",
-        'openstack-quantum'           => "COMPONENT=openstack-quantum",
-        'openstack-swift'             => "COMPONENT=openstack-swift\n".
-                                         "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
-                                         "TESTCMD=./.unittests",
-        'python-cinderclient'         => "COMPONENT=python-cinderclient",
-        'python-glanceclient'         => "COMPONENT=python-glanceclient\n".
-                                         "TESTCMD=nosetests",
-        'python-keystoneclient'       => "COMPONENT=python-keystoneclient",
-        'python-novaclient'           => "COMPONENT=python-novaclient",
-        'python-quantumclient'        => "COMPONENT=python-quantumclient\n".
-                                         "TESTCMD=nosetests",
-        'python-swiftclient'          => "COMPONENT=python-swiftclient\n".
-                                         "TESTCMD=nosetests",
-    }
-  }
 };
 
 
