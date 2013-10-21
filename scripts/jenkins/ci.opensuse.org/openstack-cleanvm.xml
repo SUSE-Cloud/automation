@@ -39,7 +39,6 @@
       <name>image</name>
       <values>
         <string>SLE_11_SP3-64-minimal</string>
-        <string>openSUSE-12.2-64-minimal</string>
         <string>openSUSE-13.1-64-minimal</string>
       </values>
     </hudson.matrix.TextAxis>
@@ -61,7 +60,7 @@
   <combinationFilter>slave=="cloud-cleanvm"  &amp;&amp; (
       ( openstack_version=="master"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||
       ( openstack_version=="havana"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||
-      ( openstack_version=="grizzly" &amp;&amp; (image=="openSUSE-12.2-64-minimal" || image=="SLE_11_SP3-64-minimal"))
+      ( openstack_version=="grizzly" &amp;&amp; (image=="SLE_11_SP3-64-minimal"))
     )
   </combinationFilter>
   <builders>
