@@ -191,6 +191,13 @@ EOF
 ifup brclean
 fi
 
+if [ "$(uname -r  | cut -d. -f2)" -ge 10 ]; then
+    echo "APPLYING HORRIBLE HACK PLEASE REMOVE"
+    # needs to be ported from Nova Network
+    # workaround broken debian-5 image, see https://bugzilla.redhat.com/show_bug.cgi?id=910619
+    iptables -t mangle -A POSTROUTING -p udp --dport bootpc -j CHECKSUM  --checksum-fill
+fi
+
 for i in $interfaces ; do
 	IP=$(ip a show dev $i|perl -ne 'm/inet ([0-9.]+)/ && print $1')
 	[ -n "$IP" ] && break
