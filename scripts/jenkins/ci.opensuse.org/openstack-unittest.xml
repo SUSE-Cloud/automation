@@ -63,7 +63,6 @@
     <hudson.matrix.LabelAxis>
       <name>distribution</name>
       <values>
-        <string>folsom-openSUSE-12.2</string>
         <string>grizzly-SLE-11-SP3</string>
         <string>grizzly-openSUSE-12.2</string>
         <string>grizzly-openSUSE-12.3</string>
@@ -74,9 +73,7 @@
     </hudson.matrix.LabelAxis>
   </axes>
   <combinationFilter>! (
-      ["folsom-openSUSE-12.2"].contains(distribution)
-          &amp;&amp; ["openstack-ceilometer", "openstack-heat", "python-oslo.config", "python-ceilometerclient", "openstack-heat-cfntools"].contains(component)
-      || ["folsom-openSUSE-12.2", "grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3"].contains(distribution)
+      ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.2", "grizzly-openSUSE-12.3"].contains(distribution)
          &amp;&amp; ["openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "python-neutronclient", "openstack-neutron", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth"].contains(component)
       || ["master-SLE-11-SP3", "master-openSUSE-12.3", "master-openSUSE-13.1"].contains(distribution)
       &amp;&amp; ["openstack-quantum", "python-quantumclient"].contains(component) )</combinationFilter>
@@ -112,8 +109,6 @@ esac
 # map label to OBS project
 case $distribution in
   master-*)  dist=Cloud:OpenStack:Master
-          ;;
-  folsom-*)  dist=Cloud:OpenStack:Folsom:Staging
           ;;
   grizzly-*) dist=Cloud:OpenStack:Grizzly:Staging
           ;;

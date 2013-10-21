@@ -58,16 +58,6 @@ my %tu = (
     python-swiftclient
     python-oslo.config
   ) ],
-  "OBS/Cloud:OpenStack:Folsom:Staging" => [ qw(
-    openstack-cinder
-    openstack-dashboard
-    openstack-glance
-    openstack-keystone
-    openstack-nova
-    openstack-quantum
-    openstack-quickstart
-    openstack-swift
-  ) ],
   "IBS/Devel:Cloud:1.0:OpenStack" => [ qw(
     openstack-dashboard
     openstack-nova
