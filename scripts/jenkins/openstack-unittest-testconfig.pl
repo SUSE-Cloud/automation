@@ -131,6 +131,62 @@ my $uttrigger = {
                                          "TESTCMD=nosetests --with-doctest --exclude-dir=tests/testmods\n",
     }
   },
+  "Cloud:OpenStack:Havana:Staging" => {
+    functest   => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
+                                         "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
+                                         "TESTCMD=./.functests\n".
+                                         "TEARDOWNCMD=swift-init main stop",
+                    'openstack-heat'  => "COMPONENT=openstack-heat\n".
+                                         "TESTCMD=./run_tests.sh -P -f"
+    },
+    probetests => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
+                                         "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
+                                         "TESTCMD=./.probetests\n".
+                                         "TEARDOWNCMD=swift-init main stop"
+    },
+    unittest   => {
+        'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
+                                         "TESTCMD=python setup.py testr --slowest --testr-args=\"--concurrency=1\"\n",
+        'openstack-cinder'            => "COMPONENT=openstack-cinder\n",
+        'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
+                                         "TESTCMD=./run_tests.sh -N",
+        'openstack-glance'            => "COMPONENT=openstack-glance\n".
+                                         "TESTCMD=./run_tests.sh -N glance",
+        'openstack-heat'              => "COMPONENT=openstack-heat\n".
+                                         "TESTCMD=python setup.py testr --slowest",
+        'openstack-heat-cfntools'     => "COMPONENT=openstack-heat-cfntools\n" .
+                                         "TESTCMD=python setup.py testr --slowest",
+        'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
+                                         "TESTCMD=nosetests",
+        'openstack-nova'              => "COMPONENT=openstack-nova",
+        'openstack-quantum'           => "COMPONENT=openstack-quantum",
+        'openstack-neutron'           => "COMPONENT=openstack-neutron",
+        'openstack-swift'             => "COMPONENT=openstack-swift\n".
+                                         "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
+                                         "TESTCMD=./.unittests",
+        'python-cinderclient'         => "COMPONENT=python-cinderclient",
+        'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
+
+        'python-glanceclient'         => "COMPONENT=python-glanceclient\n" .
+                                         "TESTCMD=python setup.py testr",
+        'python-heatclient'           => "COMPONENT=python-heatclient\n" .
+                                         "TESTCMD=python setup.py testr --slowest",
+        'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
+                                         "COMPONENT=python-keystoneclient\n" .
+                                         "TEARDOWNCMD=rcmemcached stop\n",
+        'python-novaclient'           => "COMPONENT=python-novaclient",
+        'python-neutronclient'        => "COMPONENT=python-neutronclient\n" .
+                                         "TESTCMD=python setup.py testr",
+        'python-swiftclient'          => "COMPONENT=python-swiftclient\n" .
+                                         "TESTCMD=python setup.py testr",
+        'python-openstackclient'      => "COMPONENT=python-openstackclient\n" .
+                                         "TESTCMD=python setup.py testr\n",
+        'python-oslo.config'          => "COMPONENT=python-oslo.config\n" .
+                                         "TESTCMD=python setup.py testr --slowest\n",
+        'python-oslo.sphinx'          => "COMPONENT=python-oslo.sphinx\n" .
+                                         "TESTCMD=python setup.py testr --slowest\n",
+    }
+  },
 };
 
 
