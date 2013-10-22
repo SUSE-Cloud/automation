@@ -23,13 +23,6 @@
   <concurrentBuild>false</concurrentBuild>
   <axes>
     <hudson.matrix.TextAxis>
-      <name>project</name>
-      <values>
-        <string>Devel:Cloud:2.0:Staging</string>
-        <string>Devel:Cloud:dummy</string>
-      </values>
-    </hudson.matrix.TextAxis>
-    <hudson.matrix.TextAxis>
       <name>component</name>
       <values>
         <string>crowbar</string>
@@ -69,8 +62,15 @@
         <string>openstack-trackupstream</string>
       </values>
     </hudson.matrix.LabelAxis>
+    <hudson.matrix.TextAxis>
+      <name>project</name>
+      <values>
+        <string>Devel:Cloud:2.0:Staging</string>
+        <string>Devel:Cloud:2.5:Staging</string>
+      </values>
+    </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>( project=="Devel:Cloud:2.0:Staging" )</combinationFilter>
+  <combinationFilter></combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}
@@ -90,11 +90,8 @@ update_automation track-upstream-and-package.pl
 OBS_TYPE=${PROJECTSOURCE%%/*}
 OBS_PROJECT=${PROJECTSOURCE##*/}
 
-# default is SLE_11_SP2
-BUILD_DIST=SLE_11_SP2
-if [[ $project =~ "Devel:Cloud:2.0" ]] ; then
-  BUILD_DIST=SLE_11_SP3
-fi
+# default is SLE_11_SP3
+BUILD_DIST=SLE_11_SP3
 
 case $OBS_TYPE in
   OBS) OSCAPI="https://api.opensuse.org"
