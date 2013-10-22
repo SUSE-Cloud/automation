@@ -56,6 +56,13 @@ case "$cloudsource" in
 		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0:/Staging/$REPO/ cloudhead
 	fi
   ;;
+  develcloud2.5)
+	$zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-2.5/ cloud2iso
+	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.5/$REPO/Devel:Cloud:2.5.repo
+	if test -n "$OSHEAD" ; then
+		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.5:/Staging/$REPO/ cloudhead
+	fi
+  ;;
   develcloud)
 	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud/$REPO/Devel:Cloud.repo
 	if test -n "$OSHEAD" ; then
@@ -144,7 +151,7 @@ $zypper rr Virtualization_Cloud # repo was dropped but is still in some images f
 $zypper --gpg-auto-import-keys -n ref
 
 case "$cloudsource" in
-  develcloud1*|develcloud2.0|openstackessex|openstackfolsom)
+  develcloud1*|develcloud2.0|develcloud2.5|openstackessex|openstackfolsom)
         cn=""
         tempest=""
   ;;

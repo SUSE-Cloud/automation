@@ -143,6 +143,12 @@ case $cloudsource in
         CLOUDDISTISO="S*-CLOUD*Media1.iso"
         suseversion=11.3
     ;;
+    develcloud2.5)
+        CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.5/images/iso
+        [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.5:/Staging/images/iso
+        CLOUDDISTISO="S*-CLOUD*Media1.iso"
+        suseversion=11.3
+    ;;
     develcloud)
         echo "The cloudsource 'develcloud' is no longer supported."
         echo "Please use 'develcloud1.0' resp. 'develcloud2.0'."
@@ -223,6 +229,12 @@ if [ -n "$TESTHEAD" ] ; then
         develcloud2.0)
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0:/Staging/SLE_11_SP3/Devel:Cloud:2.0:Staging.repo
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0/SLE_11_SP3/Devel:Cloud:2.0.repo
+            zypper mr -p 60 Devel_Cloud_2.0_Staging
+            zypper mr -p 70 Devel_Cloud_2.0
+            ;;
+        develcloud2.5)
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.5:/Staging/SLE_11_SP3/Devel:Cloud:2.5:Staging.repo
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.5/SLE_11_SP3/Devel:Cloud:2.5.repo
             zypper mr -p 60 Devel_Cloud_2.0_Staging
             zypper mr -p 70 Devel_Cloud_2.0
             ;;
