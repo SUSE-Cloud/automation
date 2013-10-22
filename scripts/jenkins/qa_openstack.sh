@@ -198,13 +198,6 @@ EOF
 ifup brclean
 fi
 
-if [ "$(uname -r  | cut -d. -f2)" -ge 10 ]; then
-    echo "APPLYING HORRIBLE HACK PLEASE REMOVE"
-    # needs to be ported from Nova Network
-    # workaround broken debian-5 image, see https://bugzilla.redhat.com/show_bug.cgi?id=910619
-    iptables -t mangle -A POSTROUTING -p udp --dport bootpc -j CHECKSUM  --checksum-fill
-fi
-
 for i in $interfaces ; do
 	IP=$(ip a show dev $i|perl -ne 'm/inet ([0-9.]+)/ && print $1')
 	[ -n "$IP" ] && break
@@ -217,6 +210,14 @@ sed -i -e "s/with_horizon=yes/with_horizon=no/" /etc/openstackquickstartrc
 sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
 unset http_proxy
 openstack-quickstart-demosetup
+
+if [ "$(uname -r  | cut -d. -f2)" -ge 10 ]; then
+    echo "APPLYING HORRIBLE HACK PLEASE REMOVE"
+    # needs to be ported from Nova Network
+    # workaround broken debian-5 image, see https://bugzilla.redhat.com/show_bug.cgi?id=910619
+    iptables -t mangle -A POSTROUTING -p udp --dport bootpc -j CHECKSUM  --checksum-fill
+fi
+
 sed -i -e s/br0/brclean/ /etc/nova/nova.conf
 echo --bridge_interface=brclean >> /etc/nova/nova.conf
 echo --vncserver_listen=0.0.0.0 >> /etc/nova/nova.conf ; /etc/init.d/openstack-nova-compute restart
