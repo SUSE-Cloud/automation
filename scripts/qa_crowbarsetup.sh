@@ -235,8 +235,8 @@ if [ -n "$TESTHEAD" ] ; then
         develcloud2.5)
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.5:/Staging/SLE_11_SP3/Devel:Cloud:2.5:Staging.repo
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.5/SLE_11_SP3/Devel:Cloud:2.5.repo
-            zypper mr -p 60 Devel_Cloud_2.0_Staging
-            zypper mr -p 70 Devel_Cloud_2.0
+            zypper mr -p 60 Devel_Cloud_2.5_Staging
+            zypper mr -p 70 Devel_Cloud_2.5
             ;;
         GM)
             zypper ar http://you.suse.de/download/x86_64/update/SUSE-CLOUD/1.0/ cloudtup
@@ -659,7 +659,7 @@ for service in database keystone ceph glance rabbitmq cinder quantum nova nova_d
       [[ -n "$wantswift" ]] || continue
       ;;
     rabbitmq|cinder|quantum|ceilometer|heat)
-      [[ $cloudsource =~ "cloud2.0"|Beta|RC|GMC ]] || continue
+      [[ $cloudsource =~ "cloud2.5"|"cloud2.0"|Beta|RC|GMC ]] || continue
       ;;
   esac
   crowbar "$service" proposal create default
