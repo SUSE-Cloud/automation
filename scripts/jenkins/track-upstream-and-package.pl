@@ -177,10 +177,6 @@ sub die_on_error($$)
 
     if ($mode eq 'build')
     {
-      # switch back to a consistent IBS checkout
-      system('osc', 'rm', '--force', @tarballfiles) && die "Error: Could not 'osc rm' the broken files. Please check manually.";
-      system('osc', 'revert', @oldtarballfiles) && die "Error: Could not 'osc revert' the latest changes. Please check manually.";
-
       #TODO fetch the last lines of the log
       print "\nTODO: display the last lines of the build log here\n\n";
     }
