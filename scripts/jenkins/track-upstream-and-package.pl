@@ -412,7 +412,7 @@ sub check_pip_requires_changes()
 #### MAIN ####
 
   # make sure the caching directories are setup
-  unless ( -e '~/.obs/tar_scm')
+  unless ( -e "$ENV{HOME}/.obs/tar_scm")
   {
     system("mkdir -p $ENV{HOME}/.obs/cache/tar_scm/{incoming,repo,repourl}");
     system(qq(echo 'CACHEDIRECTORY="$ENV{HOME}/.obs/cache/tar_scm"' > ~/.obs/tar_scm));
