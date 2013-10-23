@@ -20,11 +20,6 @@
 # cd $IBS_CHECKOUT; osc co Devel:Cloud:Head
 # cd $choose_one_package; osc build (and select to trust the required repos)
 #
-# prepare caching for disabled runs:
-#   mkdir -p ~/.obs/cache/tar_scm/{incoming,repo,repourl}
-#   echo "CACHEDIRECTORY=\"$HOME/.obs/cache/tar_scm\"" > ~/.obs/tar_scm
-#
-#
 #
 
 
@@ -190,7 +185,7 @@ sub add_changes_entry() {
   return 1 if $oldgitrev eq $gitrev;
 
   die "gitrev or oldgitrev is not set" if ($oldgitrev eq '' || $gitrev eq '');
-  die "cannot find $ENV{'HOME'}.'/.obs/tar_scm" if (! -e $ENV{'HOME'}.'/.obs/tar_scm');
+  die "cannot find $ENV{'HOME'}/.obs/tar_scm" if (! -e $ENV{'HOME'}.'/.obs/tar_scm');
 
   my $tar_scm_cache = '';
   open (my $TARSCMFH, '<', $ENV{'HOME'}.'/.obs/tar_scm') or die $!;
@@ -416,6 +411,12 @@ sub check_pip_requires_changes()
 
 #### MAIN ####
 
+  # make sure the caching directories are setup
+  unless ( -e '~/.obs/tar_scm')
+  {
+    system("mkdir -p $ENV{HOME}/.obs/cache/tar_scm/{incoming,repo,repourl}");
+    system(qq(echo 'CACHEDIRECTORY="$ENV{HOME}/.obs/cache/tar_scm"' > ~/.obs/tar_scm));
+  }
 
   die "Error: can not find .osc project in this directory: " unless ( -d '.osc');
   $project = `osc info | grep "Package name" | sed -e "s/.*: //"`;
