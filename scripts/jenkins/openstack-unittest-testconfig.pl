@@ -40,6 +40,8 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr --slowest",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
                                          "TESTCMD=python setup.py testr",
+        'openstack-marconi'           => "COMPONENT=openstack-marconi\n" .
+                                         "TESTCMD=nosetests -v",
         'openstack-nova'              => "COMPONENT=openstack-nova",
         'openstack-quantum'           => "COMPONENT=openstack-quantum",
         'openstack-neutron'           => "COMPONENT=openstack-neutron",
@@ -60,6 +62,8 @@ my $uttrigger = {
         'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
                                          "COMPONENT=python-keystoneclient\n" .
                                          "TEARDOWNCMD=rcmemcached stop\n",
+        'python-marconiclient'        => "COMPONENT=python-marconiclient\n" .
+                                         "TESTCMD=nosetests -v",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-neutronclient'        => "COMPONENT=python-neutronclient\n" .
                                          "TESTCMD=python setup.py testr",
