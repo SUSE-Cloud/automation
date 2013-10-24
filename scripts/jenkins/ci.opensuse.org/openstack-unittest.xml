@@ -30,34 +30,36 @@
         <string>openstack-dashboard</string>
         <string>openstack-designate</string>
         <string>openstack-glance</string>
+        <string>openstack-heat-cfntools</string>
         <string>openstack-heat</string>
         <string>openstack-ironic</string>
-        <string>openstack-tuskar</string>
-        <string>openstack-trove</string>
-        <string>openstack-heat-cfntools</string>
         <string>openstack-keystone</string>
+        <string>openstack-marconi</string>
+        <string>openstack-neutron</string>
         <string>openstack-nova</string>
         <string>openstack-quantum</string>
-        <string>openstack-neutron</string>
         <string>openstack-swift</string>
-        <string>python-cinderclient</string>
+        <string>openstack-trove</string>
+        <string>openstack-tuskar</string>
         <string>python-ceilometerclient</string>
-        <string>python-django_openstack_auth</string>
+        <string>python-cinderclient</string>
         <string>python-designateclient</string>
+        <string>python-django_openstack_auth</string>
         <string>python-glanceclient</string>
         <string>python-heatclient</string>
         <string>python-ironicclient</string>
         <string>python-keystoneclient</string>
-        <string>python-novaclient</string>
-        <string>python-quantumclient</string>
+        <string>python-marconiclient</string>
         <string>python-neutronclient</string>
-        <string>python-troveclient</string>
-        <string>python-tuskarclient</string>
+        <string>python-novaclient</string>
         <string>python-openstackclient</string>
-        <string>python-swiftclient</string>
         <string>python-oslo.config</string>
         <string>python-oslo.messaging</string>
         <string>python-oslo.version</string>
+        <string>python-quantumclient</string>
+        <string>python-swiftclient</string>
+        <string>python-troveclient</string>
+        <string>python-tuskarclient</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
@@ -76,9 +78,9 @@
   </axes>
   <combinationFilter>! (
       ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.3"].contains(distribution)
-         &amp;&amp; ["openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "python-neutronclient", "openstack-neutron", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth"].contains(component)
+         &amp;&amp; ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "python-neutronclient", "openstack-neutron", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth", "python-marconiclient"].contains(component)
       || ["havana-SLE-11-SP3", "havana-openSUSE-12.3", "havana-openSUSE-13.1"].contains(distribution)
-         &amp;&amp; ["openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth", "openstack-quantum", "python-quantumclient"].contains(component)
+         &amp;&amp; ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth", "openstack-quantum", "python-quantumclient"].contains(component)
       || ["master-SLE-11-SP3", "master-openSUSE-12.3", "master-openSUSE-13.1"].contains(distribution)
       &amp;&amp; ["openstack-quantum", "python-quantumclient"].contains(component) )</combinationFilter>
   <builders>
