@@ -3,8 +3,8 @@
   <actions/>
   <description>update OBS/IBS packages from git or tarballs via OBS _service feature</description>
   <logRotator>
-    <daysToKeep>14</daysToKeep>
-    <numToKeep>10</numToKeep>
+    <daysToKeep>30</daysToKeep>
+    <numToKeep>30</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
@@ -49,7 +49,7 @@
         <string>crowbar-barclamp-ntp</string>
         <string>crowbar-barclamp-openstack</string>
         <string>crowbar-barclamp-provisioner</string>
-        <string>crowbar-barclamp-quantum</string>
+        <string>crowbar-barclamp-neutron</string>
         <string>crowbar-barclamp-rabbitmq</string>
         <string>crowbar-barclamp-suse-manager-client</string>
         <string>crowbar-barclamp-swift</string>
@@ -70,7 +70,6 @@
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter></combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}
