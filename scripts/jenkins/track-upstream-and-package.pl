@@ -428,13 +428,9 @@ sub check_pip_requires_changes()
   # check for conflict
   if (osc_st('C'))
   {
-    # rebranch
-    my $info = get_osc_package_info();
-    system(@OSCBASE, 'branch', '--force', $info->{_link_project}, $info->{package}, $info->{project});
-    sleep 60;
-    chdir("..");
-    system("rm -rf $info->{package} ; osc co $info->{package}");
-    chdir($info->{package});
+    # we used to rebranch here, but then we loose either of the changes (change in Staging or in Stable branch)
+    # we rather error out here and want somebody to look at it
+    die "Error: Detected a conflict. Both packages in Staging and Stable branch have changed. Please fix the conflict manually.";
   }
 
   $xmldom = servicefile_read_xml($xmlfile);
