@@ -3,9 +3,10 @@
   <actions/>
   <description>This job submits packages from the "staging" subproject of an [IO]BS project to the main project.&#13;
 Only packages that built successfully are submitted.&#13;
-&#13;
-USE THIS JOB FOR CLOUD 2.0 RELATED PROJECTS&#13;
-The old job "openstack-submit-DCS" is used for Cloud 1.0 only!!</description>
+&lt;br /&gt;&lt;br /&gt;&#13;
+&lt;b&gt;THIS is for Cloud 2.0 and up &lt;/b&gt;&lt;br /&gt;&#13;
+&lt;i&gt;use openstack-submit-DCS for 1.0&lt;/i&gt;&#13;
+</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
@@ -35,7 +36,7 @@ The old job "openstack-submit-DCS" is used for Cloud 1.0 only!!</description>
     <hudson.tasks.Shell>
       <command># DEBUG MODE with E=echo
 # NORMAL MODE with E=
-E=
+E=echo
 #==========================
 
 case $subproject in
@@ -48,7 +49,6 @@ case $subproject in
 esac
 
 export BS=IBS
-export BS_CHECKOUT=/home/jenkins/${BS}_CHECKOUT/$COSS
 case $BS in
   OBS)
     OSC="osc -A https://api.opensuse.org"
@@ -58,19 +58,35 @@ case $BS in
   ;;
 esac
 
+
 COS=$project
 COSS=$COS:$subproject
+export BS_CHECKOUT=/home/jenkins/${BS}_CHECKOUT/$COSS
 submitcmd="echo no submit for project=$project"
+OSCBUILDDIST=SLE_11_SP2
 
 case $project in
-  Cloud:OpenStack:[EFGH]*)
+  ### backward compatibility for Cloud 1.0
+  #Devel:Cloud:1.0)
+  #  submitcmd="$OSC submitreq -m 'jenkins-submit-project'"
+  #  OSCBUILDDIST=SLE_11_SP2
+  #;;
+  ###
+  Cloud:OpenStack:[EF]*)
     submitcmd="$OSC copypac -K -e"
+    OSCBUILDDIST=SLE_11_SP2
   ;;
-  Devel:Cloud:2.0)
+  Cloud:OpenStack:[GH]*)
     submitcmd="$OSC copypac -K -e"
+    OSCBUILDDIST=SLE_11_SP3
   ;;
-  isv:SUSE:Cloud:2.0)
+  Devel:Cloud:2.[05])
     submitcmd="$OSC copypac -K -e"
+    OSCBUILDDIST=SLE_11_SP3
+  ;;
+  isv:SUSE:Cloud:2.[05]|isv:SUSE:Cloud:3.0)
+    submitcmd="$OSC copypac -K -e"
+    OSCBUILDDIST=SLE_11_SP3
   ;;
   *) echo "Please add support for the project: $project"
      exit 1
@@ -83,7 +99,7 @@ do
 
   grep -q "&lt;linkinfo" .osc/_files || exit 2
 
-  if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp;  $OSC api /build/$COSS/SLE_11_SP2/x86_64/$COMPONENT/_status | grep -q 'code="succeeded"'
+  if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp;  $OSC api /build/$COSS/$OSCBUILDDIST/x86_64/$COMPONENT/_status | grep -q 'code="succeeded"'
   then
     $E $submitcmd $COSS $COMPONENT $COS
   fi

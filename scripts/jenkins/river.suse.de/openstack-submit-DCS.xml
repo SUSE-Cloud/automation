@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>Copy packages from Devel:Cloud:Head to Devel:Cloud</description>
+  <description>Copy packages from Devel:Cloud:Head to Devel:Cloud&lt;br /&gt;&#13;
+&lt;br/&gt;&#13;
+&lt;b&gt;ONLY FOR SUSE Cloud 1.0&lt;/b&gt;&lt;br/&gt;&#13;
+&lt;i&gt;use openstack-submit-project for 2.0 and up&lt;/i&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
@@ -42,7 +45,7 @@ fi
 OSC="osc -A https://api.suse.de"
 SUBPROJECT=${SUBPROJECT:-Head}
 DC=Devel:Cloud
-submitcmd="echo no submit for cloudsource=$cloudsource"
+submitcmd="echo This job is for CLOUD 1.0 ONLY. But you tried to run it with: cloudsource=$cloudsource"
 [ "$cloudsource" = develcloud ] &amp;&amp; submitcmd="$OSC copypac -K -e"
 [ "$cloudsource" = develcloud1.0 ] &amp;&amp; DC=Devel:Cloud:1.0 &amp;&amp; submitcmd="$OSC submitreq -m 'jenkins-submit-DCS'"
 DCS=$DC:$SUBPROJECT

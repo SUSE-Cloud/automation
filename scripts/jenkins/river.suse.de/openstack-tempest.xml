@@ -10,7 +10,11 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector"/>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>1 21 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
@@ -29,12 +33,15 @@ touch $artifacts_dir/.ignore
 
 ## mkcloud configuration
 #export TESTHEAD=1
-#export cloudsource=develcloud2.0
-export cloudsource=susecloud2.0
+export cloudsource=develcloud2.0
+#export cloudsource=susecloud2.0
+
 export nodenumber=2
 export adminnode_hdd_size=25
 export computenode_hdd_size=25
 export debug=0
+
+export cephvolumenumber=2 # for ceph&amp;swift
 
 export CVOL=/dev/loop4
 losetup $CVOL || losetup $CVOL /data/cloud/cloudlvm
@@ -42,7 +49,7 @@ losetup $CVOL || losetup $CVOL /data/cloud/cloudlvm
 
 ## mkcloud steps for tempest
 MKCLOUDTARGET=plain
-perl -e "alarm 300*60 ; exec 'bash -x mkcloud $(echo -n $MKCLOUDTARGET) tempest' "
+perl -e "alarm 900*60 ; exec 'bash -x mkcloud $(echo -n $MKCLOUDTARGET) tempest' "
 </command>
     </hudson.tasks.Shell>
   </builders>

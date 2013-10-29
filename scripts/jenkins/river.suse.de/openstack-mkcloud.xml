@@ -48,7 +48,7 @@ minimum 2=controller+compute</description>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>openstack-mkcloud</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
@@ -87,7 +87,7 @@ losetup /dev/loop4 || losetup /dev/loop4 /abuild/cloud
 #export nodenumber=4
 # disable ceph, now that it has been validated, to speed up cloud runs.
 export cephvolumenumber=2 # for ceph&amp;swift
-export debug=1
+export debug=0
 
 
 if [ ! -z "$UPDATEREPOS" ] ; then
@@ -139,5 +139,8 @@ cloudsource=$cloudsource</properties>
   </publishers>
   <buildWrappers>
     <hudson.plugins.timestamper.TimestamperBuildWrapper/>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"}</template>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
   </buildWrappers>
 </project>

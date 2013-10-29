@@ -24,7 +24,7 @@
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
           <description/>
-          <defaultValue>develcloud1.0</defaultValue>
+          <defaultValue>develcloud2.0</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
@@ -73,7 +73,7 @@ sleep 100 # time for the admin VM to boot
 # rest of code runs on admin node:
 ssh root@$admin "export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL; export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ; export cloudsource=$cloudsource ; export libvirt_type=$libvirt_type ; "'
   curl -s "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh" &gt; qa_crowbarsetup.sh
-  export nodenumber=4
+  export nodenumber=3
   [ $WITHREBOOT == "true" ] &amp;&amp; export rebootcompute=1 &amp;&amp; export waitforrebootcompute=1
   [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export addupdaterepo=1 &amp;&amp; export runupdate=1
   installcrowbar=1 allocate=1 waitcompute=1 proposal=1 testsetup=1 perl -e "alarm 90*60 ; exec q{bash -x qa_crowbarsetup.sh d1}"

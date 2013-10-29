@@ -33,7 +33,7 @@
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>openstack-cleanvm</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
@@ -65,7 +65,7 @@ update_automation openstack_test_on_fresh_vm
 
 set -x
 . openstack_test_on_fresh_vm
-startvm
+sshkey=jenkins startvm
 runtest</command>
     </hudson.tasks.Shell>
   </builders>

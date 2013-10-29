@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <matrix-project>
   <actions/>
-  <description/>
+  <description>please look at ci.opensuse.org instead...&#13;
+</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
@@ -29,7 +30,6 @@
       <values>
         <string>develcloud1.0</string>
         <string>develcloud2.0</string>
-        <string>develcloud2.5</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
@@ -39,12 +39,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>
-    slave=="openstack-cleanvm2" &amp;&amp; 
-     ( (openstack_version=="develcloud1.0" &amp;&amp; image=="SP2-64")
-    || (openstack_version=="develcloud2.0" &amp;&amp; image=="SP3-64")
-    || (openstack_version=="develcloud2.5" &amp;&amp; image=="SP3-64"))
-  </combinationFilter>
+  <combinationFilter>slave=="openstack-cleanvm2" &amp;&amp; ( (openstack_version=="develcloud1.0" &amp;&amp; image=="SP2-64") || (openstack_version=="develcloud2.0" &amp;&amp; image=="SP3-64") )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
@@ -73,10 +68,6 @@ runtest
 # mappings for submit job trigger
 OSversion=`echo $openstack_version | perl -ne 'print ucfirst($_)'`
 case $OSversion in
-  develcloud2.5)
-      project=Devel:Cloud:2.5
-      subproject=Staging
-  ;;
   develcloud2.0)
       project=Devel:Cloud:2.0
       subproject=Staging
