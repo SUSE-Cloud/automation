@@ -84,7 +84,7 @@ my $uttrigger = {
         'python-oslo.sphinx'          => "COMPONENT=python-oslo.sphinx\n" .
                                          "TESTCMD=python setup.py testr --slowest\n",
         'python-django_openstack_auth' => "COMPONENT=python-django_openstack_auth\n" .
-                                         "TESTCMD=python setup.py openstack_auth/tests/run_tests.py\n",
+                                         "TESTCMD=python openstack_auth/tests/run_tests.py\n",
     }
   },
   "Cloud:OpenStack:Grizzly:Staging" => {
