@@ -21,6 +21,11 @@ Only packages that built successfully are submitted.&#13;
           <description>Name of the subproject that acts as staging project.</description>
           <defaultValue>None</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>packagefilter</name>
+          <description>space separated strings to filter the packages by their names (from the beginning)</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -36,7 +41,7 @@ Only packages that built successfully are submitted.&#13;
     <hudson.tasks.Shell>
       <command># DEBUG MODE with E=echo
 # NORMAL MODE with E=
-E=echo
+E=
 #==========================
 
 case $subproject in
@@ -92,8 +97,8 @@ case $project in
      exit 1
 esac
 
-for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null`
-do
+
+for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null | grep -E "^(${packagefilter// /|})"` ; do
   cd $BS_CHECKOUT || exit 1
   cd $COMPONENT || exit 1
 

@@ -51,29 +51,7 @@ minimum 2=controller+compute</description>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector">
-    <hudson.triggers.TimerTrigger>
-      <spec>#28 0 * * *
-#15 */4 * * *</spec>
-    </hudson.triggers.TimerTrigger>
-    <org.jenkinsci.plugins.urltrigger.URLTrigger>
-      <spec>*/5 * * * *</spec>
-      <entries>
-        <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-          <url>http://clouddata.cloud.suse.de/cgi-bin/apicheck/api.suse.de/published/Devel:Cloud:1.0:Crowbar/SLE_11_SP2/noarch/</url>
-          <proxyActivated>false</proxyActivated>
-          <checkStatus>false</checkStatus>
-          <statusCode>200</statusCode>
-          <checkLastModificationDate>false</checkLastModificationDate>
-          <inspectingContent>true</inspectingContent>
-          <contentTypes>
-            <org.jenkinsci.plugins.urltrigger.content.SimpleContentType/>
-          </contentTypes>
-        </org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-      </entries>
-      <labelRestriction>false</labelRestriction>
-    </org.jenkinsci.plugins.urltrigger.URLTrigger>
-  </triggers>
+  <triggers class="vector"/>
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
@@ -108,7 +86,20 @@ MKCLOUDTARGET=all_noreboot
 [ $WITHREBOOT == "true" ] &amp;&amp; MKCLOUDTARGET=all
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
 
-perl -e "alarm 90*60 ; exec 'bash -x ./mkcloud $(echo -n $MKCLOUDTARGET) ' "</command>
+perl -e "alarm 90*60 ; exec 'bash -x ./mkcloud $(echo -n $MKCLOUDTARGET) ' "
+
+case $cloudsource in
+  develcloud2.0)
+    project=Devel:Cloud:2.0
+    subproject=Staging
+    packagefilter="crowbar"
+  ;;
+  develcloud2.5)
+    project=Devel:Cloud:2.5
+    subproject=Staging
+    packagefilter="crowbar"
+  ;;
+esac</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -126,11 +117,12 @@ perl -e "alarm 90*60 ; exec 'bash -x ./mkcloud $(echo -n $MKCLOUDTARGET) ' "</co
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>SUBPROJECT=Crowbar
-cloudsource=$cloudsource</properties>
+              <properties>project="$project"
+subproject="$subproject"
+packagefilter="$packagefilter"</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>openstack-submit-DCS</projects>
+          <projects>openstack-submit-project</projects>
           <condition>SUCCESS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
