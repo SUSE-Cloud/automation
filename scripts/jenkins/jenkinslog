@@ -7,6 +7,11 @@ require 'open-uri'
 require 'fileutils'
 require 'time'
 
+@project = ARGV[0] || nil
+@action = ARGV[1] || 'list'
+@number = ARGV[2].to_i || nil
+@numberup = ARGV[3].to_i || 0
+
 #LOG
 #http://river.suse.de/job/openstack-mkcloud/255/consoleText
 
@@ -19,13 +24,6 @@ require 'time'
 #log = Logger.new(STDOUT)
 #log.level = Logger::INFO
 #log.error "Usage: #{$0} <project> <action> [<number>]" and exit(1) if ARGV.size < 1 || ARGV.size > 4
-
-project = ARGV[0]
-action = ARGV[1] || 'list'
-number = ARGV[2].to_i || nil
-numberup = ARGV[3].to_i || 0
-
-action = 'help' if ARGV.size < 1 || ARGV.size > 4
 
 class JenkinsProject
   attr_reader :name, :base_url
@@ -108,21 +106,25 @@ class JenkinsProject
 
 end
 
-ci_host = ENV['CIHOST']
-ci_host = 'http://river.suse.de' if ci_host.nil? or ci_host.empty?
+@ci_host = ENV['CIHOST']
+@ci_host = 'http://river.suse.de' if @ci_host.nil? or @ci_host.empty?
+@p = nil
 
-p = JenkinsProject.new(project, ci_host)
+def create_project
+  @p = JenkinsProject.new(@project, @ci_host)
+end
 
 # action: list, show ID, get [ID]
-case action
+create_project if %w(list get show).include? @action
+case @action
   when 'list'
-    number = 10 if number == nil || number == 0
-    p.list_builds number
+    @number = 10 if @number == nil || @number == 0
+    @p.list_builds @number
   when 'get'
-    p.get_build_log(number, numberup)
+    @p.get_build_log(@number, @numberup)
   when 'show'
-    p.show_build_log number
-  when 'help'
+    @p.show_build_log @number
+  else 'help'
     puts "Usage: #{$0} <project> <action> [<number> <uppernum>]"
     puts
     puts '  project:  a jenkins project name'
@@ -138,8 +140,6 @@ case action
     puts "  #{$0} show 256     : show build log of build 256"
     puts "  #{$0} get 240 256  : download build logs of builds 240 through 256"
     puts "                       creates files in the current directory"
-  else
-    puts "Error: The action #{action} is not implemented."
     exit 1
 end
 
