@@ -42,7 +42,10 @@ class JenkinsProject
     @jdetail = Nokogiri::XML(open(jdetail_url))
     #puts @jdetail.inspect
     @jdetail.xpath("/*/build").each do |b|
-      @detail[b.xpath('//build/number').first.content.to_i] = { :url => b.xpath('//build/url').first.content } unless b.nil?
+      next if b.nil?
+      num = b.search('number').first.content.to_i
+      url = b.search('url').first.content
+      @detail[num] = { :url => url }
     end
   end
 
