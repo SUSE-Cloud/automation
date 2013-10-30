@@ -617,6 +617,12 @@ function custom_configuration()
         enable_ssl_for_nova_dashboard
       fi
     ;;
+    neutron)
+      if [[ $networkingplugin = linuxbridge ]] ; then
+        proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'$networkingplugin'"
+        proposal_set_value neutron default "['attributes']['neutron']['networking_mode']" "'vlan'"
+      fi
+    ;;
     quantum)
       if [[ $networkingplugin = linuxbridge ]] ; then
         proposal_set_value quantum default "['attributes']['quantum']['networking_plugin']" "'$networkingplugin'"
@@ -646,11 +652,13 @@ wantceph=1
 # we can not use both swift and ceph as each grabs all disks on a node
 [[ -n "$wantceph" ]] && wantswift=
 [[ "$cephvolumenumber" -lt 1 ]] && wantswift=
+crowbar_networking=neutron
+[[ $cloudsource =~ "cloud2.0" ]] && crowbar_networking=quantum
 
 if [ -n "$proposal" ] ; then
 waitnodes nodes
 
-for service in database keystone ceph glance rabbitmq cinder quantum nova nova_dashboard swift ceilometer heat ; do
+for service in database keystone ceph glance rabbitmq cinder $crowbar_networking nova nova_dashboard swift ceilometer heat ; do
   case $service in
     ceph)
       [[ -n "$wantceph" ]] || continue
@@ -658,7 +666,7 @@ for service in database keystone ceph glance rabbitmq cinder quantum nova nova_d
     swift)
       [[ -n "$wantswift" ]] || continue
       ;;
-    rabbitmq|cinder|quantum|ceilometer|heat)
+    rabbitmq|cinder|quantum|neutron|ceilometer|heat)
       [[ $cloudsource =~ "cloud2.5"|"cloud2.0"|Beta|RC|GMC ]] || continue
       ;;
   esac
