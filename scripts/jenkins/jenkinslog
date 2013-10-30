@@ -30,7 +30,7 @@ action = 'help' if ARGV.size < 1 || ARGV.size > 4
 class JenkinsProject
   attr_reader :name, :base_url
 
-  def initialize(name, url='http://river.suse.de')
+  def initialize(name, url)
     @name = name
     @base_url = url
     @detail=Hash.new
@@ -41,9 +41,9 @@ class JenkinsProject
     jdetail_url = @base_url+"/job/#{@name}/api/xml"
     @jdetail = Nokogiri::XML(open(jdetail_url))
     #puts @jdetail.inspect
-    @jdetail.xpath("/freeStyleProject/build").each{ |b|
-      @detail[b.xpath('number').first.content.to_i] = { :url => b.xpath('url').first.content } }
-    #puts @bdetail.inspect
+    @jdetail.xpath("/*/build").each do |b|
+      @detail[b.xpath('//build/number').first.content.to_i] = { :url => b.xpath('//build/url').first.content } unless b.nil?
+    end
   end
 
   def list_builds(count=10)
@@ -64,7 +64,7 @@ class JenkinsProject
     bdetail_url = @base_url+"/job/#{@name}/#{id}/api/xml"
     begin
       xml = open(bdetail_url)
-      bdetail = Nokogiri::XML(xml).xpath("/freeStyleBuild")
+      bdetail = Nokogiri::XML(xml).xpath("/*")
       ret[:building] = (bdetail.xpath('building').first.content || '' ) == 'true' ? 1:0,
       ret[:duration] = (bdetail.xpath('duration').first.content || 0).to_i ,
       ret[:timestamp] = Time.at(bdetail.xpath('timestamp').first.content.to_i || 0).utc,
@@ -105,7 +105,10 @@ class JenkinsProject
 
 end
 
-p = JenkinsProject.new(project)
+ci_host = ENV['CIHOST']
+ci_host = 'http://river.suse.de' if ci_host.nil? or ci_host.empty?
+
+p = JenkinsProject.new(project, ci_host)
 
 # action: list, show ID, get [ID]
 case action
