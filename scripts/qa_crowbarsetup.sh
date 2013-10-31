@@ -270,12 +270,17 @@ if ! $longdistance && ! grep -q suse-$suseversion /etc/fstab ; then
   mount /srv/tftpboot/suse-$suseversion/install
 fi
 
-for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
-  mkdir -p /srv/tftpboot/repos/$REPO
-  cd /srv/tftpboot/repos/$REPO
-  zypper -n install createrepo
-  [ -e repodata ] || createrepo .
-done
+case $cloudsource in
+    develcloud1.0|susecloud1.0)
+    for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
+        mkdir -p /srv/tftpboot/repos/$REPO
+        cd /srv/tftpboot/repos/$REPO
+        zypper -n install createrepo
+        [ -e repodata ] || createrepo .
+    done
+    ;;
+esac
+
 for REPO in $slesrepolist ; do
   grep -q $REPO /etc/fstab && continue
   mkdir -p /srv/tftpboot/repos/$REPO
