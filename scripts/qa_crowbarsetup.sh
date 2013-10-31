@@ -740,7 +740,7 @@ if [ -n "$testsetup" ] ; then
 		exit 62
 	fi
 	echo "openstack nova contoller: $novacontroller"
-	curl -m 9 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
+	curl -m 20 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
 	ssh $novacontroller "export wantswift=$wantswift ; "'set -x
 		. .openrc
 		export LC_ALL=C
