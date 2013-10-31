@@ -49,6 +49,7 @@
         <string>crowbar-barclamp-ntp</string>
         <string>crowbar-barclamp-openstack</string>
         <string>crowbar-barclamp-provisioner</string>
+        <string>crowbar-barclamp-quantum</string>
         <string>crowbar-barclamp-neutron</string>
         <string>crowbar-barclamp-rabbitmq</string>
         <string>crowbar-barclamp-suse-manager-client</string>
@@ -70,6 +71,11 @@
       </values>
     </hudson.matrix.TextAxis>
   </axes>
+  <combinationFilter>! (
+      ["Devel:Cloud:2.0:Staging"].contains(project)
+          &amp;&amp;  ["crowbar-barclamp-neutron"].contains(component)
+      ||  ["Devel:Cloud:2.5:Staging"].contains(project)
+          &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)  ) </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}
