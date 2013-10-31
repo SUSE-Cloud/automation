@@ -37,7 +37,6 @@
         <string>openstack-marconi</string>
         <string>openstack-neutron</string>
         <string>openstack-nova</string>
-        <string>openstack-quantum</string>
         <string>openstack-swift</string>
         <string>openstack-trove</string>
         <string>openstack-tuskar</string>
@@ -56,7 +55,6 @@
         <string>python-oslo.config</string>
         <string>python-oslo.messaging</string>
         <string>python-oslo.version</string>
-        <string>python-quantumclient</string>
         <string>python-swiftclient</string>
         <string>python-troveclient</string>
         <string>python-tuskarclient</string>
@@ -80,9 +78,9 @@
       ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.3"].contains(distribution)
          &amp;&amp; ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "python-neutronclient", "openstack-neutron", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth", "python-marconiclient"].contains(component)
       || ["havana-SLE-11-SP3", "havana-openSUSE-12.3", "havana-openSUSE-13.1"].contains(distribution)
-         &amp;&amp; ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth", "openstack-quantum", "python-quantumclient"].contains(component)
-      || ["master-SLE-11-SP3", "master-openSUSE-12.3", "master-openSUSE-13.1"].contains(distribution)
-      &amp;&amp; ["openstack-quantum", "python-quantumclient"].contains(component) )</combinationFilter>
+         &amp;&amp; ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-designateclient", "python-oslo.messaging", "python-oslo.version", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth"].contains(component)
+      || ["master-openSUSE-12.3", "master-openSUSE-13.1"].contains(distribution)
+      &amp;&amp; ["openstack-neutron", "python-neutronclient"].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># zypper in osc
