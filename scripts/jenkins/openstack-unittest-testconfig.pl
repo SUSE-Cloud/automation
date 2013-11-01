@@ -23,7 +23,7 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr --slowest --testr-args=\"--concurrency=1\"\n",
         'openstack-cinder'            => "COMPONENT=openstack-cinder\n",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
-                                         "TESTCMD=./run_tests.sh -N",
+                                         "TESTCMD=./run_tests.sh -N -P",
         'openstack-designate'         => "COMPONENT=openstack-designate\n".
                                          "TESTCMD=nosetests -v",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
@@ -155,7 +155,7 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr --slowest --testr-args=\"--concurrency=1\"\n",
         'openstack-cinder'            => "COMPONENT=openstack-cinder\n",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
-                                         "TESTCMD=./run_tests.sh -N",
+                                         "TESTCMD=./run_tests.sh -N -P",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
                                          "TESTCMD=./run_tests.sh -N glance",
         'openstack-heat'              => "COMPONENT=openstack-heat\n".
