@@ -765,12 +765,14 @@ if [ -n "$testsetup" ] ; then
             test "$(nova-manage service list  | fgrep -cv -- \:\-\))" -lt 2 && break
             sleep 1
         done
+        nova flavor-delete m1.smaller || :
+        nova flavor-create m1.smaller 11 512 10 1
         nova delete testvm # cleanup earlier run # cleanup
 		nova keypair-add --pub_key /root/.ssh/id_rsa.pub testkey
 		nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
 		nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
 		nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
-		nova boot --image SP2-64 --flavor 1 --key_name testkey testvm | tee boot.out
+		nova boot --image SP2-64 --flavor m1.smaller --key_name testkey testvm | tee boot.out
 		instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
 		sleep 30
 		vmip=`nova show $instanceid | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
