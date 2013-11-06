@@ -22,6 +22,16 @@
           <description/>
           <defaultValue>0</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>OBS_PROJECT</name>
+          <description>Name of the OBS project, whose 'images' repository is checked for ISOs.</description>
+          <defaultValue>Devel:Cloud:2.0</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>OBS_TYPE</name>
+          <description>Name of the Open Build Service instance hosting the repository.</description>
+          <defaultValue>IBS</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -61,35 +71,16 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector">
-    <hudson.triggers.SCMTrigger>
-      <spec>*/5 * * * *</spec>
-    </hudson.triggers.SCMTrigger>
-    <org.jenkinsci.plugins.urltrigger.URLTrigger>
-      <spec>*/5 * * * *</spec>
-      <entries>
-        <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-          <url>http://download.suse.de/ibs/Devel:/Cloud:/2.0/images/iso/</url>
-          <proxyActivated>false</proxyActivated>
-          <checkStatus>false</checkStatus>
-          <statusCode>200</statusCode>
-          <checkLastModificationDate>true</checkLastModificationDate>
-          <inspectingContent>true</inspectingContent>
-          <contentTypes>
-            <org.jenkinsci.plugins.urltrigger.content.SimpleContentType/>
-          </contentTypes>
-        </org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-      </entries>
-      <labelRestriction>false</labelRestriction>
-    </org.jenkinsci.plugins.urltrigger.URLTrigger>
-  </triggers>
+  <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># cleanup isos from old builds
+      <command>
+# Cleanup isos from old builds
 rm -f scripts/release-mgmt/*Media1.iso
 
-make -C scripts/release-mgmt/ mediacheck</command>
+OBS_TYPE=$OBS_TYPE OBS_PROJECT=$OBS_PROJECT make -C scripts/release-mgmt/ mediacheck
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -99,5 +90,10 @@ make -C scripts/release-mgmt/ mediacheck</command>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
   </publishers>
-  <buildWrappers/>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+      <template>openstack-mediacheck: ${ENV,var="OBS_PROJECT"}</template>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
 </project>
