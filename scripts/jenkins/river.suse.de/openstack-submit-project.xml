@@ -85,7 +85,7 @@ case $project in
     submitcmd="$OSC copypac -K -e"
     OSCBUILDDIST=SLE_11_SP3
   ;;
-  Devel:Cloud:2.[05])
+  Devel:Cloud:2.[05]|Devel:Cloud:3)
     submitcmd="$OSC copypac -K -e"
     OSCBUILDDIST=SLE_11_SP3
   ;;

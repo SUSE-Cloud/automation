@@ -94,8 +94,8 @@ case $cloudsource in
     subproject=Staging
     packagefilter="crowbar"
   ;;
-  develcloud2.5)
-    project=Devel:Cloud:2.5
+  develcloud3)
+    project=Devel:Cloud:3
     subproject=Staging
     packagefilter="crowbar"
   ;;

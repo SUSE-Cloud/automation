@@ -20,7 +20,7 @@
       <spec>*/5 * * * *</spec>
       <entries>
         <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-          <url>http://download.suse.de/ibs/Devel:/Cloud:/2.5/images/iso/</url>
+          <url>http://download.suse.de/ibs/Devel:/Cloud:/3/images/iso/</url>
           <proxyActivated>false</proxyActivated>
           <checkStatus>false</checkStatus>
           <statusCode>200</statusCode>
@@ -42,7 +42,7 @@
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>OBS_PROJECT=Devel:Cloud:2.5
+              <properties>OBS_PROJECT=Devel:Cloud:3
 
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>

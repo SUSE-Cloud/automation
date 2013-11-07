@@ -22,7 +22,7 @@
 #       defines the source for the installation of the cloud product
 #       develcloud    : product from IBS Devel:Cloud:1.0
 #       develcloud2.0 : product from IBS Devel:Cloud:2.0
-#       develcloud2.5 : product from IBS Devel:Cloud:2.5
+#       develcloud3   : product from IBS Devel:Cloud:3
 #       susecloud     : product from IBS SUSE:SLE....
 #       Beta?         : uses official Beta? ISO image (? is a number)
 #
@@ -650,7 +650,7 @@ function usage()
   echo " Mandatory"
   echo "   CVOL=/dev/vdx (default /dev/vdb)"
   echo "       :  LVM will be created on this device (at least 80GB)"
-  echo "   cloudsource=develcloud | develcloud2.0 | develcloud2.5 | susecloud | Beta?  (default '')"
+  echo "   cloudsource=develcloud | develcloud2.0 | develcloud3 | susecloud | Beta?  (default '')"
   echo "       : defines the installation source"
   echo
   echo " Optional"
@@ -724,12 +724,12 @@ function sanity_checks()
 
   if [ -z "$cloudsource" ] ; then
     echo "Please set the env variable:"
-    echo "export cloudsource=Beta?|develcloud|develcloud2.0|develcloud2.5|susecloud"
+    echo "export cloudsource=Beta?|develcloud|develcloud2.0|develcloud3|susecloud"
     exit 1
   fi
 
   case $cloudsource in
-    develcloud2.0|develcloud2.5|susecloud2.0|Beta*|RC*|GMC*)
+    develcloud2.0|develcloud3|susecloud2.0|Beta*|RC*|GMC*)
       adminimage=SP3
     ;;
     *)

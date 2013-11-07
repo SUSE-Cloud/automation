@@ -67,14 +67,14 @@
       <name>project</name>
       <values>
         <string>Devel:Cloud:2.0:Staging</string>
-        <string>Devel:Cloud:2.5:Staging</string>
+        <string>Devel:Cloud:3:Staging</string>
       </values>
     </hudson.matrix.TextAxis>
   </axes>
   <combinationFilter>! (
       ["Devel:Cloud:2.0:Staging"].contains(project)
           &amp;&amp;  ["crowbar-barclamp-neutron"].contains(component)
-      ||  ["Devel:Cloud:2.5:Staging"].contains(project)
+      ||  ["Devel:Cloud:3:Staging"].contains(project)
           &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)  ) </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
