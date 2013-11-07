@@ -80,13 +80,17 @@ rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 cd /root
-wget -O mkcloud "https://raw.github.com/SUSE-Cloud/automation/master/scripts/mkcloud"
-chmod a+x mkcloud
+
+[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
+# fetch the latest automation updates
+update_automation mkcloud jenkins-job-trigger
+
 MKCLOUDTARGET=all_noreboot
 [ $WITHREBOOT == "true" ] &amp;&amp; MKCLOUDTARGET=all
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
 
-perl -e "alarm 90*60 ; exec 'bash -x ./mkcloud $(echo -n $MKCLOUDTARGET) ' "
+perl -e "alarm 90*60 ; exec 'bash -x mkcloud $(echo -n $MKCLOUDTARGET) ' "
+
 
 case $cloudsource in
   develcloud2.0)
@@ -99,7 +103,11 @@ case $cloudsource in
     subproject=Staging
     packagefilter="crowbar"
   ;;
-esac</command>
+esac
+
+
+jenkins-job-trigger openstack-submit-project -p project="${project}" subproject="${subproject}" packagefilter="${packagefilter}"
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -112,22 +120,6 @@ esac</command>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger>
-      <configs>
-        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
-          <configs>
-            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>project="$project"
-subproject="$subproject"
-packagefilter="$packagefilter"</properties>
-            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-          </configs>
-          <projects>openstack-submit-project</projects>
-          <condition>SUCCESS</condition>
-          <triggerWithNoParameters>false</triggerWithNoParameters>
-        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
-      </configs>
-    </hudson.plugins.parameterizedtrigger.BuildTrigger>
   </publishers>
   <buildWrappers>
     <hudson.plugins.timestamper.TimestamperBuildWrapper/>
