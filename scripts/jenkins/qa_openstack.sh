@@ -57,7 +57,7 @@ case "$cloudsource" in
 	fi
   ;;
   develcloud3)
-	$zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3/ cloud2iso
+	$zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3/ cloud3iso
 	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3/$REPO/Devel:Cloud:3.repo
 	if test -n "$OSHEAD" ; then
 		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
