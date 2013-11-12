@@ -654,13 +654,15 @@ function get_crowbarnodes()
 get_crowbarnodes
 wantswift=1
 wantceph=1
-[[ $cloudsource =~ "cloud2.0"|Beta|RC|GMC|GM2.0 ]] && wantceph=
+cloud2='cloud2.0|Beta|RC|GMC|GM2.0'
+cloud3='cloud3'
+[[ $cloudsource =~ $cloud2 ]] && wantceph=
 [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
 # we can not use both swift and ceph as each grabs all disks on a node
 [[ -n "$wantceph" ]] && wantswift=
 [[ "$cephvolumenumber" -lt 1 ]] && wantswift=
 crowbar_networking=neutron
-[[ $cloudsource =~ "cloud2.0" ]] && crowbar_networking=quantum
+[[ $cloudsource =~ $cloud2 ]] && crowbar_networking=quantum
 
 if [ -n "$proposal" ] ; then
 waitnodes nodes
@@ -674,7 +676,7 @@ for service in database keystone ceph glance rabbitmq cinder $crowbar_networking
       [[ -n "$wantswift" ]] || continue
       ;;
     rabbitmq|cinder|quantum|neutron|ceilometer|heat)
-      [[ $cloudsource =~ "cloud3"|"cloud2.0"|Beta|RC|GMC|GM2.0 ]] || continue
+      [[ $cloudsource =~ $cloud3|$cloud2 ]] || continue
       ;;
   esac
   crowbar "$service" proposal create default
