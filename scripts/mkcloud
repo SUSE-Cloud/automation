@@ -121,7 +121,7 @@ function wait_for()
 
 function sshrun()
 {
-  ssh root@$adminip "export cephvolumenumber=$cephvolumenumber ; export shell=$shell ; export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; export all_with_ssl=$all_with_ssl ; export keystone_with_ssl=$keystone_with_ssl ; export glance_with_ssl=$glance_with_ssl ; export nova_with_ssl=$nova_with_ssl ; export novadashboard_with_ssl=$novadashboard_with_ssl ; export networkingplugin=$networkingplugin ; export debug=$debug ; export nosetestparameters=${nosetestparameters} ; $@"
+  ssh root@$adminip "export cephvolumenumber=$cephvolumenumber ; export shell=$shell ; export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; export libvirt_type=$libvirt_type ; export all_with_ssl=$all_with_ssl ; export keystone_with_ssl=$keystone_with_ssl ; export glance_with_ssl=$glance_with_ssl ; export nova_with_ssl=$nova_with_ssl ; export novadashboard_with_ssl=$novadashboard_with_ssl ; export networkingplugin=$networkingplugin ; export debug=$debug ; export nosetestparameters=${nosetestparameters} ; $@"
   return $?
 }
 
@@ -439,6 +439,8 @@ function h_create_libvirt_computenode_config()
   nodecounter=$2
   cephvolume="$3"
   i2=$(printf %02x $nodecounter)
+  nicmodel=virtio
+  [ "$libvirt_type" = "xen" ] && nicmodel=e1000
 
   cat > $nodeconfigfile <<EOLIBVIRT
 <domain type='kvm'>
@@ -466,14 +468,13 @@ function h_create_libvirt_computenode_config()
       <driver name='qemu' type='raw' cache='unsafe'/>
       <source dev='/dev/cloud/node$nodecounter'/>
       <target dev='vda' bus='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
       <boot order='2'/>
     </disk>
     $cephvolume
     <interface type='network'>
       <mac address='52:54:$i2:77:77:$i2'/>
       <source network='cloud-admin'/>
-      <model type='virtio'/>
+      <model type='$nicmodel'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
       <boot order='1'/>
     </interface>
@@ -489,13 +490,13 @@ function h_create_libvirt_computenode_config()
       <model type='cirrus' vram='9216' heads='1'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
     </video>
-    <memballoon model='virtio'>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
-    </memballoon>
   </devices>
 </domain>
 EOLIBVIRT
 
+  if [ "$libvirt_type" = "xen" ] ; then
+    sed -i -e "s/<target dev='vd\([^']*\)' bus='virtio'/<target dev='sd\1' bus='ide'/" $nodeconfigfile
+  fi
 }
 
 
