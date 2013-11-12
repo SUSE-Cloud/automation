@@ -163,12 +163,14 @@ case $cloudsource in
         CLOUDDISTISO="S*-CLOUD*Media1.iso"
         suseversion=11.3
     ;;
-    GM)
-        CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-$cloudsource/
-        CLOUDDISTISO="S*-CLOUD*$cloudsource-DVD1.iso"
+    GM|GM1.0)
+        CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-GM/
+        CLOUDDISTISO="S*-CLOUD*GM-DVD1.iso"
     ;;
-    Beta*|RC*|GMC*)
-        CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-$cloudsource/
+    Beta*|RC*|GMC*|GM2.0)
+        cs=$cloudsource
+        [ $cs = GM2.0 ] && cs=GM
+        CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-$cs/
         CLOUDDISTISO="S*-CLOUD*1.iso"
         suseversion=11.3
     ;;
@@ -238,7 +240,7 @@ if [ -n "$TESTHEAD" ] ; then
             zypper mr -p 60 Devel_Cloud_3_Staging
             zypper mr -p 70 Devel_Cloud_3
             ;;
-        GM)
+        GM|GM1.0)
             zypper ar http://you.suse.de/download/x86_64/update/SUSE-CLOUD/1.0/ cloudtup
             zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP1/ sp1tup
             zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP2/ sp2tup
@@ -271,7 +273,7 @@ if ! $longdistance && ! grep -q suse-$suseversion /etc/fstab ; then
 fi
 
 case $cloudsource in
-    develcloud1.0|susecloud1.0)
+    develcloud1.0|susecloud1.0|GM|GM1.0)
     for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
         mkdir -p /srv/tftpboot/repos/$REPO
         cd /srv/tftpboot/repos/$REPO
@@ -652,7 +654,7 @@ function get_crowbarnodes()
 get_crowbarnodes
 wantswift=1
 wantceph=1
-[[ $cloudsource =~ "cloud2.0"|Beta|RC|GMC ]] && wantceph=
+[[ $cloudsource =~ "cloud2.0"|Beta|RC|GMC|GM2.0 ]] && wantceph=
 [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
 # we can not use both swift and ceph as each grabs all disks on a node
 [[ -n "$wantceph" ]] && wantswift=
@@ -672,7 +674,7 @@ for service in database keystone ceph glance rabbitmq cinder $crowbar_networking
       [[ -n "$wantswift" ]] || continue
       ;;
     rabbitmq|cinder|quantum|neutron|ceilometer|heat)
-      [[ $cloudsource =~ "cloud3"|"cloud2.0"|Beta|RC|GMC ]] || continue
+      [[ $cloudsource =~ "cloud3"|"cloud2.0"|Beta|RC|GMC|GM2.0 ]] || continue
       ;;
   esac
   crowbar "$service" proposal create default
