@@ -248,6 +248,7 @@ function h_cpuflags_settings()
       <feature policy='require' name='3dnowprefetch'/>
       <feature policy='require' name='cmp_legacy'/>
       <feature policy='require' name='monitor'/>
+      <feature policy='disable' name='xsave'/>
     </cpu>"
   grep -q "flags.* npt" /proc/cpuinfo || cpuflags=""
 
