@@ -83,7 +83,7 @@
   </axes>
   <combinationFilter>! (
       ["Cloud:OpenStack:Grizzly:Staging"].contains(project)
-          &amp;&amp; ["openstack-designate", "python-designateclient", "openstack-marconi", "python-marconiclient", "openstack-heat-templates", "openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "openstack-tuskar", "python-troveclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron", "python-oslo.version", "python-tuskarclient"].contains(component)
+          &amp;&amp; ["openstack-designate", "python-designateclient", "openstack-marconi", "python-marconiclient", "openstack-heat-templates", "openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "openstack-tuskar", "python-troveclient", "python-oslo.sphinx", "python-oslo.messaging", "python-neutronclient", "openstack-neutron", "python-oslo.version", "python-tuskarclient", "openstack-utils"].contains(component)
       ||  ["Cloud:OpenStack:Havana:Staging"].contains(project)
           &amp;&amp;  ["openstack-designate", "openstack-trove", "openstack-ironic", "openstack-marconi", "openstack-tuskar", "python-tuskarclient", "python-designateclient", "python-troveclient", "python-ironicclient", "python-marconiclient", "python-oslo.version", "python-oslo.messaging"].contains(component)
       ||  ["Cloud:OpenStack:Havana:Staging", "Cloud:OpenStack:Master"].contains(project)
