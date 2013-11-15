@@ -127,7 +127,7 @@ my $uttrigger = {
                                          "TESTCMD=nosetests",
         'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
                                          "COMPONENT=python-keystoneclient\n" .
-                                         "TESTCMD=nosetests".
+                                         "TESTCMD=nosetests\n".
                                          "TEARDOWNCMD=rcmemcached stop\n",
         'python-novaclient'           => "COMPONENT=python-novaclient".
                                          "TESTCMD=python setup.py testr",
