@@ -121,15 +121,20 @@ my $uttrigger = {
         'openstack-swift'             => "COMPONENT=openstack-swift\n".
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
                                          "TESTCMD=./.unittests",
-        'python-cinderclient'         => "COMPONENT=python-cinderclient",
-        'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
-        'python-glanceclient'         => "COMPONENT=python-glanceclient\n",
+        'python-cinderclient'         => "COMPONENT=python-cinderclient".
+                                         "TESTCMD=python setup.py testr",
+        'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient".
+                                         "TESTCMD=nosetests",
+        'python-glanceclient'         => "COMPONENT=python-glanceclient\n".
+                                         "TESTCMD=python setup.py testr",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
                                          "TESTCMD=nosetests",
         'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
                                          "COMPONENT=python-keystoneclient\n" .
+                                         "TESTCMD=nosetests".
                                          "TEARDOWNCMD=rcmemcached stop\n",
-        'python-novaclient'           => "COMPONENT=python-novaclient",
+        'python-novaclient'           => "COMPONENT=python-novaclient".
+                                         "TESTCMD=python setup.py testr",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
                                          "TESTCMD=python setup.py testr",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n".
