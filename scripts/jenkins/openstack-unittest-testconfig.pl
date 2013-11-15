@@ -75,13 +75,9 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr",
         'python-openstackclient'      => "COMPONENT=python-openstackclient\n" .
                                          "TESTCMD=python setup.py testr\n",
-        'python-oslo.config'          => "COMPONENT=python-oslo.config\n" .
-                                         "TESTCMD=python setup.py testr --slowest\n",
         'python-oslo.messaging'          => "COMPONENT=python-oslo.messaging\n" .
                                          "TESTCMD=python setup.py testr --slowest\n",
         'python-oslo.version'         => "COMPONENT=python-oslo.version\n" .
-                                         "TESTCMD=python setup.py testr --slowest\n",
-        'python-oslo.sphinx'          => "COMPONENT=python-oslo.sphinx\n" .
                                          "TESTCMD=python setup.py testr --slowest\n",
         'python-django_openstack_auth' => "COMPONENT=python-django_openstack_auth\n" .
                                          "TESTCMD=python openstack_auth/tests/run_tests.py\n",
@@ -139,8 +135,6 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n".
                                          "TESTCMD=python setup.py testr",
-        'python-oslo.config'          => "COMPONENT=python-oslo.config\n" .
-                                         "TESTCMD=nosetests --with-doctest --exclude-dir=tests/testmods\n",
     }
   },
   "Cloud:OpenStack:Havana:Staging" => {
@@ -193,10 +187,6 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr",
         'python-openstackclient'      => "COMPONENT=python-openstackclient\n" .
                                          "TESTCMD=python setup.py testr\n",
-        'python-oslo.config'          => "COMPONENT=python-oslo.config\n" .
-                                         "TESTCMD=python setup.py testr --slowest\n",
-        'python-oslo.sphinx'          => "COMPONENT=python-oslo.sphinx\n" .
-                                         "TESTCMD=python setup.py testr --slowest\n",
     }
   },
 };
