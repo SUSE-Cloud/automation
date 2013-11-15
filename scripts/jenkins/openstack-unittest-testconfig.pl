@@ -132,7 +132,7 @@ my $uttrigger = {
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
                                          "TESTCMD=python setup.py testr",
-        'python-swiftclient'          => "COMPONENT=python-swiftclient\n",
+        'python-swiftclient'          => "COMPONENT=python-swiftclient\n".
                                          "TESTCMD=python setup.py testr",
         'python-oslo.config'          => "COMPONENT=python-oslo.config\n" .
                                          "TESTCMD=nosetests --with-doctest --exclude-dir=tests/testmods\n",
