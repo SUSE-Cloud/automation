@@ -210,12 +210,15 @@ sub add_changes_entry() {
   die "gitdir $gitdir does not exist" if (! -d $gitdir);
   die "file $file does not exist" if (! -e $file);
 
-  my $cmd = "git --git-dir='".$gitdir."' log --pretty=format:%s --no-merges ".$oldgitrev."..".$gitrev;
+  my $cmd = "git --git-dir='".$gitdir."' log --pretty=format:%s --no-merges ".$oldgitrev."...".$gitrev;
   push @lines, `$cmd`;
   @lines = reverse(@lines);
   chomp(@lines);
 
-  die "did not find any lines" if (scalar(@lines) == 0);
+  if (scalar(@lines) == 0) {
+    warn "WARNING: did not find any log messages\n";
+    push @lines, "-- no messages found --";
+  }
 
   chomp(my $date = `LC_ALL=POSIX TZ=UTC date`);
 
