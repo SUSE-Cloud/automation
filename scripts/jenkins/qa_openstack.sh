@@ -155,6 +155,11 @@ case "$cloudsource" in
         cn=""
         tempest=""
   ;;
+  develcloud2.0|develcloud3)
+        cn="cloud_network"
+        tempest=""
+  ;;
+
   *)
         cn="cloud_network"
         tempest="openstack-tempest-test"
