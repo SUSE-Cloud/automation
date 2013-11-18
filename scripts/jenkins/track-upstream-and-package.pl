@@ -15,7 +15,7 @@
 #   zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools:/Unstable/SLE_11_SP2/ openSUSE_Tools_Unstable
 #   zypper ar http://download.opensuse.org/repositories/devel:/tools:/scm/SLE_11_SP1/ devel_tools_scm
 #   zypper in osc=VERSION_from_openSUSE_Tools_Unstable
-#   zypper in build obs-service-tar_scm obs-service-source_validator obs-service-set_version obs-service-recompress obs-service-verify_file obs-service-format_spec_file
+#   zypper in build obs-service-tar_scm obs-service-source_validator obs-service-set_version obs-service-recompress obs-service-verify_file obs-service-format_spec_file obs-service-refresh_patches
 #
 # cd $IBS_CHECKOUT; osc co Devel:Cloud:Head
 # cd $choose_one_package; osc build (and select to trust the required repos)
