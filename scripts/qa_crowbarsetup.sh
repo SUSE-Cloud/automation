@@ -241,9 +241,15 @@ if [ -n "$TESTHEAD" ] ; then
             zypper mr -p 70 Devel_Cloud_3
             ;;
         GM|GM1.0)
+            mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-1.0-Updates-test /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates
             zypper ar http://you.suse.de/download/x86_64/update/SUSE-CLOUD/1.0/ cloudtup
             zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP1/ sp1tup
             zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP2/ sp2tup
+            ;;
+        GM2.0)
+            mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-2.0-Updates-test /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates
+            zypper ar /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates cloudtup
+            zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP3/ sp3tup
             ;;
         *)
             echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
@@ -274,10 +280,10 @@ fi
 
 case $cloudsource in
     develcloud1.0|susecloud1.0|GM|GM1.0)
+    zypper -n install createrepo
     for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
         mkdir -p /srv/tftpboot/repos/$REPO
         cd /srv/tftpboot/repos/$REPO
-        zypper -n install createrepo
         [ -e repodata ] || createrepo .
     done
     ;;
