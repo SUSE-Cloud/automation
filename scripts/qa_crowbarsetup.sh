@@ -184,11 +184,13 @@ case $suseversion in
     11.2)
       slesrepolist="SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Updates"
       slesversion=11-SP2
+      slesdist=SLE_11_SP2
       slesmilestone=GM
     ;;
     11.3)
       slesrepolist="SLES11-SP3-Pool SLES11-SP3-Updates"
       slesversion=11-SP3
+      slesdist=SLE_11_SP3
       slesmilestone=GM
     ;;
 esac
@@ -222,21 +224,21 @@ zypper ar /srv/tftpboot/repos/Cloud Cloud
 if [ -n "$TESTHEAD" ] ; then
     case "$cloudsource" in
         develcloud1.0)
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0/SLE_11_SP2/Devel:Cloud:1.0.repo
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0:/Crowbar/SLE_11_SP2/Devel:Cloud:1.0:Crowbar.repo
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0/$slesdist/Devel:Cloud:1.0.repo
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0:/Crowbar/$slesdist/Devel:Cloud:1.0:Crowbar.repo
             zypper mr -p 70 Devel_Cloud # more important
             zypper mr -p 60 Devel_Cloud_Crowbar # even more important
             zypper mr -p 60 DCCdirect # as important - just use newer ver
             ;;
         develcloud2.0)
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0:/Staging/SLE_11_SP3/Devel:Cloud:2.0:Staging.repo
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0/SLE_11_SP3/Devel:Cloud:2.0.repo
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0:/Staging/$slesdist/Devel:Cloud:2.0:Staging.repo
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0/$slesdist/Devel:Cloud:2.0.repo
             zypper mr -p 60 Devel_Cloud_2.0_Staging
             zypper mr -p 70 Devel_Cloud_2.0
             ;;
         develcloud3)
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3:/Staging/SLE_11_SP3/Devel:Cloud:3:Staging.repo
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3/SLE_11_SP3/Devel:Cloud:3.repo
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3:/Staging/$slesdist/Devel:Cloud:3:Staging.repo
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3/$slesdist/Devel:Cloud:3.repo
             zypper mr -p 60 Devel_Cloud_3_Staging
             zypper mr -p 70 Devel_Cloud_3
             ;;
@@ -1080,7 +1082,7 @@ function securitytests()
   rm -rf owasp
   mkdir -p owasp
 
-  zypper lr | grep -q devel_languages_perl || zypper ar http://download.opensuse.org/repositories/devel:/languages:/perl/SLE_11_SP2/devel:languages:perl.repo
+  zypper lr | grep -q devel_languages_perl || zypper ar http://download.opensuse.org/repositories/devel:/languages:/perl/$slesdist/devel:languages:perl.repo
   # pulled in automatically
   #zypper --non-interactive in perl-HTTP-Cookies perl-Config-Simple
 
