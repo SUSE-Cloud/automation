@@ -17,30 +17,32 @@ if [ -z $cloud ] ; then
   exit 101
 fi
 
+# common cloud network prefix within SUSE Nuremberg:
+netp=10.122
 case $cloud in
 	d1)
-		net=10.122.178
-		net_storage=179
-		net_public=177
-		net_fixed=176
+		net=$netp.178
+		net_storage=$netp.179
+		net_public=$netp.177
+		net_fixed=$netp.176
 		vlan_storage=568
 		vlan_public=567
 		vlan_fixed=566
 	;;
 	d2)
-		net=10.122.186
-		net_storage=187
-		net_public=185
-		net_fixed=184
+		net=$netp.186
+		net_storage=$netp.187
+		net_public=$netp.185
+		net_fixed=$netp.184
 		vlan_storage=581
 		vlan_public=580
 		vlan_fixed=569
 	;;
 	p)
-		net=10.122.169
-		net_storage=170
-		net_public=168
-		net_fixed=160
+		net=$netp.169
+		net_storage=$netp.170
+		net_public=$netp.168
+		net_fixed=$netp.160
 		vlan_storage=565
 		vlan_public=564
 		vlan_fixed=563
@@ -48,11 +50,11 @@ case $cloud in
 	virtual)
 		net=192.168.124
 	;;
-    cumulus)
-		net=10.122.189
-		net_storage=187
-		net_public=190
-		net_fixed=188
+	cumulus)
+		net=$netp.189
+		net_storage=$netp.187
+		net_public=$netp.190
+		net_fixed=$netp.188
 		vlan_storage=577
 		vlan_public=579
 		vlan_fixed=578
@@ -322,9 +324,9 @@ sed -i.netbak1 -e 's/192\.168\.126/192.168.122/g' $netfile
 if [ $cloud != virtual ] ; then
 	sed -i.netbak -e 's/"conduit": "bmc",/& "router":"192.168.124.1",/' \
               -e "s/192.168.124/$net/g" \
-              -e "s/192.168.125/10.122.$net_storage/g" \
-              -e "s/192.168.123/10.122.$net_fixed/g" \
-              -e "s/192.168.122/10.122.$net_public/g" \
+              -e "s/192.168.125/$net_storage/g" \
+              -e "s/192.168.123/$net_fixed/g" \
+              -e "s/192.168.122/$net_public/g" \
               -e "s/200/$vlan_storage/g" \
               -e "s/300/$vlan_public/g" \
               -e "s/500/$vlan_fixed/g" \
