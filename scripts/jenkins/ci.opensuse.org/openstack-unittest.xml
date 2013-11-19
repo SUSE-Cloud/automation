@@ -43,7 +43,6 @@
         <string>python-ceilometerclient</string>
         <string>python-cinderclient</string>
         <string>python-designateclient</string>
-        <string>python-django_openstack_auth</string>
         <string>python-glanceclient</string>
         <string>python-heatclient</string>
         <string>python-ironicclient</string>
@@ -73,9 +72,9 @@
   </axes>
   <combinationFilter>! (
       ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.3"].contains(distribution)
-         &amp;&amp; ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-designateclient", "python-neutronclient", "openstack-neutron", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth", "python-marconiclient"].contains(component)
+         &amp;&amp; ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-designateclient", "python-neutronclient", "openstack-neutron", "openstack-tuskar", "python-tuskarclient", "python-marconiclient"].contains(component)
       || ["havana-SLE-11-SP3", "havana-openSUSE-12.3", "havana-openSUSE-13.1"].contains(distribution)
-         &amp;&amp; ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-designateclient", "openstack-tuskar", "python-tuskarclient", "python-django_openstack_auth"].contains(component)
+         &amp;&amp; ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-designateclient", "openstack-tuskar", "python-tuskarclient"].contains(component)
       || ["master-openSUSE-12.3", "master-openSUSE-13.1"].contains(distribution)
       &amp;&amp; ["openstack-neutron", "python-neutronclient"].contains(component) )</combinationFilter>
   <builders>
