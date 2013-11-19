@@ -24,7 +24,6 @@
 
 
 use strict;
-use Archive::Tar;
 use Digest::SHA qw(sha256_hex);
 use File::Basename;
 use POSIX;
@@ -341,14 +340,8 @@ sub extract_file_from_tarball
 {
   my($filename, $tarball, $requires) = @_;
 
-  my $tar = Archive::Tar->new($tarball, 1, {});
-  return 0 if (! defined $tar);
-
-  # filter ourselves because Archive::Tar version 1.38 in SLE-11-SP2 does not support filtering
-  my @list=grep(/\/$requires/, $tar->list_files(['name']));
-  return 0 if @list != 1;
-  my $tarfile = $list[0];
-  return $tar->extract_file($tarfile, $filename);
+  `tar --extract --to-stdout --file $tarball $requires > $filename`;
+  return $?==0;
 }
 
 sub email_changes_diff
