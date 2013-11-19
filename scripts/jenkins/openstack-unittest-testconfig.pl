@@ -36,8 +36,6 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr\n",
         'openstack-tuskar'            => "COMPONENT=openstack-tuskar\n" .
                                          "TESTCMD=python setup.py testr",
-        'openstack-heat-cfntools'     => "COMPONENT=openstack-heat-cfntools\n" .
-                                         "TESTCMD=python setup.py testr --slowest",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
                                          "TESTCMD=python setup.py testr",
         'openstack-marconi'           => "COMPONENT=openstack-marconi\n" .
@@ -106,8 +104,6 @@ my $uttrigger = {
                                          "TESTCMD=./run_tests.sh -N glance",
         'openstack-heat'              => "COMPONENT=openstack-heat\n".
                                          "TESTCMD=./run_tests.sh -P -u",
-        'openstack-heat-cfntools'     => "COMPONENT=openstack-heat-cfntools\n" .
-                                         "TESTCMD=python setup.py testr --slowest",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
                                          "TESTCMD=./run_tests.sh -N -P -xintegration",
         'openstack-nova'              => "COMPONENT=openstack-nova",
@@ -157,8 +153,6 @@ my $uttrigger = {
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
                                          "TESTCMD=./run_tests.sh -N glance",
         'openstack-heat'              => "COMPONENT=openstack-heat\n".
-                                         "TESTCMD=python setup.py testr --slowest",
-        'openstack-heat-cfntools'     => "COMPONENT=openstack-heat-cfntools\n" .
                                          "TESTCMD=python setup.py testr --slowest",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
                                          "TESTCMD=nosetests",
