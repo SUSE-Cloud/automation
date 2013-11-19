@@ -119,12 +119,14 @@ set -e
 # make sure we have access to all needed packages
 cloudrepo=http://download.opensuse.org/repositories/${dist//:/:\/}/${OSC_DIST}/
 zypper ar -f $cloudrepo cloud || true
+zypper mr -p 98 cloud || true
 zypper --gpg-auto-import-keys ref
-zypper -n dup --from cloud
+zypper -n dup
 if [[ $dist =~ ":Staging" ]] ; then
   zypper ar -f ${cloudrepo/:\/Staging/} cloud-full || true
+  zypper mr -p 97 cloud-full || true
   zypper --gpg-auto-import-keys ref
-  zypper -n dup --from cloud-full
+  zypper -n dup
 fi
 
 
