@@ -44,7 +44,7 @@ EOF
 parse_args () {
     hypervisor="$DEFAULT_HYPERVISOR"
     vm_disk_size="${DEFAULT_FSSIZE}G"
-    vm_cpus="$DEFAULT_CPUS"
+    vm_vcpus="$DEFAULT_CPUS"
 
     while [ $# != 0 ]; do
         case "$1" in
@@ -60,7 +60,7 @@ parse_args () {
                 shift 2
                 ;;
             -C|--cpus)
-                vm_cpus="$2"
+                vm_vcpus="$2"
                 shift 2
                 ;;
             -*)
@@ -140,13 +140,27 @@ main () {
     #     --nic bridge=$vbridge,model=virtio \
     #     --keymap en-us
 
+    vm_cpu=""
+    for plat in amd intel ; do
+        if grep -i $plat /proc/cpuinfo ; then
+            if [ `id -u` == 0 ] ; then
+                echo "Running as root, invoking modprobe kvm_$plat."
+                modprobe kvm_$plat
+            fi
+            if grep -q kvm_$plat /proc/modules && egrep -q "[Y1]" /sys/module/kvm_$plat/parameters/nested ; then
+                echo "Host CPU ($plat) supports nested virtualization and kvm_$plat module is loaded with nested=1, adding --cpu host"
+                vm_cpu="--cpu host"
+            fi
+        fi
+    done
+
     virt-install \
         --connect "$hypervisor" \
         --virt-type kvm \
         --name "$vm_name" \
         --ram 2048 \
-        --vcpus $vm_cpus \
-        --cpu core2duo,+vmx \
+        --vcpus $vm_vcpus \
+        $vm_cpu \
         "${opts[@]}" \
         --disk path="$vm_disk,format=qcow2,cache=none" \
         --os-type=linux \
