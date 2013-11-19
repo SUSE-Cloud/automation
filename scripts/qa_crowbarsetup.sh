@@ -38,6 +38,15 @@ case $cloud in
 		vlan_public=580
 		vlan_fixed=569
 	;;
+	p2)
+		net=$netp.171
+		net_storage=$netp.172
+		net_public=$netp.164
+		net_fixed=44.0.0
+		vlan_storage=563
+		vlan_public=564
+		vlan_fixed=565
+	;;
 	p)
 		net=$netp.169
 		net_storage=$netp.170
@@ -333,9 +342,19 @@ if [ $cloud != virtual ] ; then
               -e "s/700/$vlan_sdn/g" \
 		$netfile
 fi
-if [ $cloud = p ] ; then
-	# production cloud has a /21 network
-	perl -i.perlbak -pe 'if(m/255.255.255.0/){$n++} if($n==3){s/255.255.255.0/255.255.248.0/}' $netfile
+if [[ $cloud = p || $cloud = p2 ]] ; then
+	# production cloud has a /22 network
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.252.0 $netfile
+fi
+if [[ $cloud = p2 ]] ; then
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.252.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.0.3.254 $netfile
+        # floating net is the 2nd half of public net:
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.254.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v 10.122.166.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.start -v 10.122.166.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v 10.122.167.191 $netfile
+        # todo? broadcast
 fi
 cp -a $netfile /etc/crowbar/network.json # new place since 2013-07-18
 
