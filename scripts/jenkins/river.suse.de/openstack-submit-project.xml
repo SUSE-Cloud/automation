@@ -85,7 +85,11 @@ case $project in
     submitcmd="$OSC copypac -K -e"
     OSCBUILDDIST=SLE_11_SP3
   ;;
-  Devel:Cloud:2.[05]|Devel:Cloud:3)
+  Devel:Cloud:2.0)
+    submitcmd="$OSC submitreq -m 'jenkins-submit-project'"
+    OSCBUILDDIST=SLE_11_SP3
+  ;;
+  Devel:Cloud:3)
     submitcmd="$OSC copypac -K -e"
     OSCBUILDDIST=SLE_11_SP3
   ;;
@@ -98,7 +102,7 @@ case $project in
 esac
 
 
-for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null | grep -E "^(${packagefilter// /|})"` ; do
+for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null | grep -E "^(${packagefilter// /|})" | grep -v "^_product."` ; do
   cd $BS_CHECKOUT || exit 1
   cd $COMPONENT || exit 1
 

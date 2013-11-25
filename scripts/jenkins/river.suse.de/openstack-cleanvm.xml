@@ -7,7 +7,7 @@
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector">
@@ -20,7 +20,6 @@
     <hudson.matrix.TextAxis>
       <name>image</name>
       <values>
-        <!--<string>openSUSE-12.2-64-minimal</string>-->
         <string>SP2-64</string>
         <string>SP3-64</string>
       </values>
