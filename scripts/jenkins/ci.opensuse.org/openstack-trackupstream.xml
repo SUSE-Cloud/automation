@@ -58,6 +58,7 @@
         <string>python-designateclient</string>
         <string>python-glanceclient</string>
         <string>python-heatclient</string>
+        <string>python-ironicclient</string>
         <string>python-keystoneclient</string>
         <string>python-marconiclient</string>
         <string>python-novaclient</string>
