@@ -110,7 +110,9 @@ for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null | grep -E "^(${packagefilter// /|
 
   if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp;  $OSC api /build/$COSS/$OSCBUILDDIST/x86_64/$COMPONENT/_status | grep -E 'code="succeeded"|package="_product"'
   then
-    $E $submitcmd $COSS $COMPONENT $COS
+    # NOTE(saschpe): the "|| :" is a work-around for an osc bug (should be fixed, but Adrian needs to release a new osc)
+    # No need to put this in git.
+    $E $submitcmd $COSS $COMPONENT $COS || :
   fi
 done</command>
     </hudson.tasks.Shell>
