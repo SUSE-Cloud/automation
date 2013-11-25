@@ -40,7 +40,13 @@
 # vcpus          (default 1)
 #                sets the number of CPU cores assigned to each node (admin and compute)
 
-adminip=192.168.124.10
+virtualcloud=${virtualcloud:-virtual}
+forwardmode=${forwardmode:-nat}
+net_fixed=${net_fixed:-192.168.123}
+net_public=${net_public:-192.168.122}
+net_admin=${net_admin:-192.168.124}
+adminip=$net_admin.10
+admingw=$net_admin.1
 nodenumber=${nodenumber:-2}
 cephvolumenumber=${cephvolumenumber:-0}
 allnodeids=`seq 1 $nodenumber`
@@ -198,7 +204,7 @@ function h_deploy_admin_image()
 
 function h_add_etchosts_entries()
 {
-  grep -q crowbar /etc/hosts || echo "$adminip crowbar.virtual.cloud.suse.de crowbar" >> /etc/hosts
+  grep -q crowbar /etc/hosts || echo "$adminip crowbar.$virtualcloud.cloud.suse.de crowbar" >> /etc/hosts
 }
 
 function prepare()
@@ -330,12 +336,12 @@ function h_create_libvirt_admin_network_config()
     <uuid>76b08f53-4fe0-3bb6-8220-d4cfc7b23423</uuid>
     <bridge name='$cloudbr' stp='off' delay='0' />
     <mac address='52:54:00:AB:B1:77'/>
-    <ip address='192.168.124.1' netmask='255.255.248.0'>
+    <ip address='$admingw' netmask='255.255.255.0'>
       <dhcp>
         <host mac="52:54:00:77:77:70" name="crowbar.example.com" ip="$adminip"/>
       </dhcp>
     </ip>
-    <forward mode='nat'>
+    <forward mode='$forwardmode'>
     </forward>
   </network>
 EOLIBVIRTNET
@@ -386,10 +392,10 @@ for i in 22 80 443 3000 4000 4040 ; do
     for host in 10 $nodehostips ; do
 EOS
       cat >> /etc/init.d/boot.local <<'EOS'
-        iptables -t nat -I PREROUTING -p tcp --dport $(($i + $host % 10 + 1100)) -j DNAT --to-destination 192.168.124.$host:$i
+        iptables -t nat -I PREROUTING -p tcp --dport $(($i + $host % 10 + 1100)) -j DNAT --to-destination $net_admin.$host:$i
     done
 done
-iptables -t nat -I PREROUTING -p tcp --dport 6080 -j DNAT --to-destination 192.168.122.2
+iptables -t nat -I PREROUTING -p tcp --dport 6080 -j DNAT --to-destination $net_public.2
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
 EOS
   fi
@@ -407,10 +413,11 @@ function instcrowbar()
 {
   echo "connecting to crowbar admin server at $adminip"
   # qa_crowbarsetup uses static network which needs static resolv.conf
-  grep '^nameserver\s*[0-9]*\.' /etc/resolv.conf | sshrun dd of=/etc/resolv.conf
+  # so we use the host's dnsmasq which libvirt sets up
+  echo "nameserver $admingw" | sshrun dd of=/etc/resolv.conf
   scp -p install-chef-suse.sh root@$adminip:/tmp/
   scp qa_crowbarsetup.sh root@$adminip:
-  sshrun "echo `hostname` > cloud ; installcrowbar=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "echo `hostname` > cloud ; installcrowbar=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
 
@@ -504,9 +511,9 @@ EOLIBVIRT
 function setupcompute()
 {
   # public = 300
-  mkvlan 300 192.168.122.1
+  mkvlan 300 $net_public.1
   # nova-fixed = 500
-  mkvlan 500 192.168.123.254
+  mkvlan 500 $net_fixed.254
 
   alldevices=$(echo {b..z} {a..z}{a..z})
   for i in $allnodeids ; do
@@ -541,12 +548,12 @@ function setupcompute()
 function instcompute()
 {
   scp qa_crowbarsetup.sh root@$adminip:
-  sshrun "allocate=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "allocate=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   ret=$?
   [ $ret != 0 ] && return $ret
 
   echo "Waiting for the installation of the nodes ..."
-  sshrun 'waitcompute=1 bash -x qa_crowbarsetup.sh virtual'
+  sshrun "waitcompute=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
 
@@ -554,14 +561,14 @@ function instcompute()
 function proposal()
 {
   scp qa_crowbarsetup.sh root@$adminip:
-  sshrun "proposal=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "proposal=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
 
 function testsetup()
 {
   scp qa_crowbarsetup.sh root@$adminip:
-  sshrun "testsetup=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "testsetup=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
 
@@ -582,7 +589,7 @@ function rebootcompute()
 {
   # reboot compute nodes
   #  and test if everthing is up and running afterwards
-  sshrun "rebootcompute=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "rebootcompute=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
 
@@ -591,7 +598,7 @@ function securitytests()
 {
   scp qa_crowbarsetup.sh root@$adminip:
   # install and run security test suite owasp
-  sshrun "securitytests=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "securitytests=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
 
@@ -599,11 +606,11 @@ function tempest()
 {
   mkdir -p .artifacts
   scp run_tempest.sh qa_crowbarsetup.sh root@$adminip:
-  sshrun "tempestconfigure=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "tempestconfigure=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   echo "Tempest configuration returned with exit code: $?"
   echo "Now archiving artifact files from configuration step"
   scp root@$adminip:tempestlog/* .artifacts/
-  sshrun "tempestrun=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "tempestrun=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   ret=$?
   scp root@$adminip:tempestlog/* .artifacts/
   return $ret
@@ -673,14 +680,14 @@ function usage()
 function addupdaterepo()
 {
   scp qa_crowbarsetup.sh root@$adminip:
-  sshrun "addupdaterepo=1 UPDATEREPOS=$UPDATEREPOS  bash -x qa_crowbarsetup.sh virtual"
+  sshrun "addupdaterepo=1 UPDATEREPOS=$UPDATEREPOS  bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
 
 function runupdate()
 {
   scp qa_crowbarsetup.sh root@$adminip:
-  sshrun "runupdate=1 bash -x qa_crowbarsetup.sh virtual"
+  sshrun "runupdate=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
 

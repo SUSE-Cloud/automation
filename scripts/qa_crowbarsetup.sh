@@ -56,6 +56,14 @@ case $cloud in
 		vlan_public=564
 		vlan_fixed=563
 	;;
+        v1)
+                net=$netp.180
+                net_public=$netp.181
+        ;;
+        v2)
+                net=$netp.182
+                net_public=$netp.183
+        ;;
 	virtual)
 		net=192.168.124
 	;;
@@ -73,7 +81,14 @@ case $cloud in
 		exit 1
 	;;
 esac
+# default networks in crowbar:
+vlan_storage=${vlan_storage:-200}
+vlan_public=${vlan_public:-300}
+vlan_fixed=${vlan_fixed:-500}
 vlan_sdn=${vlan_sdn:-$vlan_storage}
+net_fixed=${net_fixed:-192.168.123}
+net_public=${net_public:-192.168.122}
+net_storage=${net_storage:-192.168.125}
 
 function intercept()
 {
