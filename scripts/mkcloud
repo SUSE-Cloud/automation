@@ -45,6 +45,7 @@ forwardmode=${forwardmode:-nat}
 net_fixed=${net_fixed:-192.168.123}
 net_public=${net_public:-192.168.122}
 net_admin=${net_admin:-192.168.124}
+adminnetmask=${adminnetmask:-255.255.248.0}
 adminip=$net_admin.10
 admingw=$net_admin.1
 nodenumber=${nodenumber:-2}
@@ -336,7 +337,7 @@ function h_create_libvirt_admin_network_config()
     <uuid>76b08f53-4fe0-3bb6-8220-d4cfc7b23423</uuid>
     <bridge name='$cloudbr' stp='off' delay='0' />
     <mac address='52:54:00:AB:B1:77'/>
-    <ip address='$admingw' netmask='255.255.255.0'>
+    <ip address='$admingw' netmask='$adminnetmask'>
       <dhcp>
         <host mac="52:54:00:77:77:70" name="crowbar.example.com" ip="$adminip"/>
       </dhcp>
@@ -514,7 +515,6 @@ function setupcompute()
   mkvlan 300 $net_public.1
   # nova-fixed = 500
   mkvlan 500 $net_fixed.254
-  iptables -t nat -I POSTROUTING -s 192.168.122.0/24 ! -d 192.168.122.0/24 -j MASQUERADE
 
   alldevices=$(echo {b..z} {a..z}{a..z})
   for i in $allnodeids ; do
