@@ -802,6 +802,7 @@ if [ -n "$testsetup" ] ; then
 		nova list
 		glance image-list
 	        glance image-list|grep -q SP2-64 || glance image-create --name=SP2-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP2-64up.qcow2 | tee glance.out
+                # glance image-create --name=jeos-12.1-pv --is-public=True --property vm_mode=xen --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
         # wait for image to finish uploading
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
         for n in $(seq 1 200) ; do

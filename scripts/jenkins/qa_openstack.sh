@@ -255,7 +255,7 @@ if [ "$MODE" = xen ] ; then
 	glance image-create --is-public=True --disk-format=qcow2 --container-format=bare --name jeos-64-pv --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
 	glance image-create --is-public=True --disk-format=aki --container-format=aki --name=debian-kernel < xen-kernel/vmlinuz-2.6.24-19-xen
 	glance image-create --is-public=True --disk-format=ari --container-format=ari --name=debian-initrd < xen-kernel/initrd.img-2.6.24-19-xen
-	glance image-create --is-public=True --disk-format=ami --container-format=ami --name=debian-5 --property vm_mode=pv ramdisk_id=f663eb9a-986b-466f-bd3e-f0aa2c847eef kernel_id=d654691a-0135-4f6d-9a60-536cf534b284 < debian.5-0.x86.img
+	glance image-create --is-public=True --disk-format=ami --container-format=ami --name=debian-5 --property vm_mode=xen ramdisk_id=f663eb9a-986b-466f-bd3e-f0aa2c847eef kernel_id=d654691a-0135-4f6d-9a60-536cf534b284 < debian.5-0.x86.img
 fi
 if [ "$MODE" != lxc ] ; then
 	#curl http://openqa.suse.de/openqa/img/openSUSE_11.4_JeOS.i686-0.0.1.raw.gz | gzip -cd | glance add name="debian-5" is_public=True disk_format=ami container_format=ami
