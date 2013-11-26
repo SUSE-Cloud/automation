@@ -15,7 +15,7 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector">
+  <triggers>
     <hudson.triggers.TimerTrigger>
       <spec>H */8 * * *</spec>
     </hudson.triggers.TimerTrigger>
@@ -61,10 +61,10 @@
         <string>grizzly-SLE-11-SP3</string>
         <string>grizzly-openSUSE-12.3</string>
         <string>havana-SLE-11-SP3</string>
-        <string>havana-openSUSE-12.3</string>
+        <!--<string>havana-openSUSE-12.3</string>-->
         <string>havana-openSUSE-13.1</string>
         <string>master-SLE-11-SP3</string>
-        <string>master-openSUSE-12.3</string>
+        <!--<string>master-openSUSE-12.3</string>-->
         <string>master-openSUSE-13.1</string>
       </values>
     </hudson.matrix.LabelAxis>
@@ -187,7 +187,7 @@ exit $test_exitcode</command>
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.4"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.7"/>
   </buildWrappers>
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
     <runSequentially>false</runSequentially>
