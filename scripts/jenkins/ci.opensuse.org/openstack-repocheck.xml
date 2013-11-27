@@ -46,7 +46,11 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>      !( ["Cloud:OpenStack:Grizzly"].contains(project) &amp;&amp; ["openSUSE_13.1"].contains(repository)) &amp;&amp;      !( ["Cloud:OpenStack:Havana"].contains(project)  &amp;&amp; ["openSUSE_12.2"].contains(repository))  </combinationFilter>
+  <combinationFilter>
+    !( ["Cloud:OpenStack:Grizzly"].contains(project) &amp;&amp; ["openSUSE_13.1"].contains(repository)) &amp;&amp;
+    !( ["Cloud:OpenStack:Havana"].contains(project)  &amp;&amp; ["openSUSE_12.2"].contains(repository)) &amp;&amp;
+    !( ["Cloud:OpenStack:Master"].contains(project)  &amp;&amp; ["openSUSE_12.2"].contains(repository))
+  </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}
