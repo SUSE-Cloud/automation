@@ -412,8 +412,9 @@ function instcrowbar()
 {
   echo "connecting to crowbar admin server at $adminip"
   # qa_crowbarsetup uses static network which needs static resolv.conf
-  # so we use the host's dnsmasq which libvirt sets up
-  echo "nameserver $admingw" | sshrun dd of=/etc/resolv.conf
+  # so we use the host's external IPv4 resolvers,
+  # which must allow queries from routed IPs
+  grep '^nameserver\s*[0-9]*\.' /etc/resolv.conf | sshrun dd of=/etc/resolv.conf
   scp -p install-chef-suse.sh root@$adminip:/tmp/
   scp qa_crowbarsetup.sh root@$adminip:
   sshrun "echo `hostname` > cloud ; installcrowbar=1 bash -x qa_crowbarsetup.sh $virtualcloud"
