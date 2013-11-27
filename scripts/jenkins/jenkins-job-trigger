@@ -46,5 +46,7 @@ if ($jobtype eq 'normal') {
   $triggerurl .= "/".join(',', @ARGV)."/build";
 }
 
+$triggerurl =~ s/ /+/g;
+
 my $ret=system(qw(curl -X POST), $triggerurl);
 exit $ret >> 8;
