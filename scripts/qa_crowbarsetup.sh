@@ -189,6 +189,11 @@ case $cloudsource in
         CLOUDDISTISO="S*-CLOUD*Media1.iso"
         suseversion=11.3
     ;;
+    susecloud3)
+        CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Products:/Test/images/iso
+        CLOUDDISTISO="S*-CLOUD*Media1.iso"
+        suseversion=11.3
+    ;;
     GM|GM1.0)
         CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-GM/
         CLOUDDISTISO="S*-CLOUD*GM-DVD1.iso"
@@ -265,6 +270,7 @@ if [ -n "$TESTHEAD" ] ; then
         develcloud3)
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3:/Staging/$slesdist/Devel:Cloud:3:Staging.repo
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3/$slesdist/Devel:Cloud:3.repo
+            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/ cloud-shared-11sp3
             zypper mr -p 60 Devel_Cloud_3_Staging
             zypper mr -p 70 Devel_Cloud_3
             ;;
