@@ -250,11 +250,27 @@ if [ ! -e "/srv/tftpboot/repos/Cloud/media.1" ] ; then
 	exit 35
 fi
 
+function addsp2testupdates()
+{
+    mkdir -p /srv/tftpboot/repos/SLES11-SP{1,2}-Updates
+    mount -r you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP1/ /srv/tftpboot/repos/SLES11-SP1-Updates
+    mount -r you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP2/ /srv/tftpboot/repos/SLES11-SP2-Updates
+    zypper ar /srv/tftpboot/repos/SLES11-SP1-Updates sp1tup
+    zypper ar /srv/tftpboot/repos/SLES11-SP2-Updates sp2tup
+}
+
+function addsp3testupdates()
+{
+    mkdir -p /srv/tftpboot/repos/SLES11-SP3-Updates
+    mount -r you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/ /srv/tftpboot/repos/SLES11-SP3-Updates
+    zypper ar /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
+}
 
 zypper ar /srv/tftpboot/repos/Cloud Cloud
 if [ -n "$TESTHEAD" ] ; then
     case "$cloudsource" in
         develcloud1.0)
+            addsp2testupdates
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0/$slesdist/Devel:Cloud:1.0.repo
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0:/Crowbar/$slesdist/Devel:Cloud:1.0:Crowbar.repo
             zypper mr -p 70 Devel_Cloud # more important
@@ -262,12 +278,14 @@ if [ -n "$TESTHEAD" ] ; then
             zypper mr -p 60 DCCdirect # as important - just use newer ver
             ;;
         develcloud2.0)
+            addsp3testupdates
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0:/Staging/$slesdist/Devel:Cloud:2.0:Staging.repo
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0/$slesdist/Devel:Cloud:2.0.repo
             zypper mr -p 60 Devel_Cloud_2.0_Staging
             zypper mr -p 70 Devel_Cloud_2.0
             ;;
         develcloud3)
+            addsp3testupdates
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3:/Staging/$slesdist/Devel:Cloud:3:Staging.repo
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3/$slesdist/Devel:Cloud:3.repo
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/ cloud-shared-11sp3
@@ -275,15 +293,16 @@ if [ -n "$TESTHEAD" ] ; then
             zypper mr -p 70 Devel_Cloud_3
             ;;
         GM|GM1.0)
+            addsp2testupdates
+            mkdir -p /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates
             mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-1.0-Updates-test /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates
-            zypper ar http://you.suse.de/download/x86_64/update/SUSE-CLOUD/1.0/ cloudtup
-            zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP1/ sp1tup
-            zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP2/ sp2tup
+            zypper ar /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates cloudtup
             ;;
         GM2.0)
+            addsp3testupdates
+            mkdir -p /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates
             mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-2.0-Updates-test /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates
             zypper ar /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates cloudtup
-            zypper ar http://you.suse.de/download/x86_64/update/SLE-SERVER/11-SP3/ sp3tup
             ;;
         *)
             echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
@@ -325,9 +344,11 @@ esac
 
 for REPO in $slesrepolist ; do
   grep -q $REPO /etc/fstab && continue
-  mkdir -p /srv/tftpboot/repos/$REPO
-  echo "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO  /srv/tftpboot/repos/$REPO   nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
-  mount /srv/tftpboot/repos/$REPO
+  r=/srv/tftpboot/repos/$REPO
+  test -d $r/rpm && continue
+  mkdir -p $r
+  echo "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO  $r   nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
+  mount $r
 done
 
 # just as a fallback if nfs did not work
