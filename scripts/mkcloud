@@ -738,11 +738,11 @@ function sanity_checks()
   fi
 
   case $cloudsource in
-    develcloud2.0|develcloud3|susecloud2.0|Beta*|RC*|GMC*|GM2.0)
-      adminimage=SP3
+    develcloud1.0|GM|GM1.0)
+      adminimage=SP2
     ;;
     *)
-      adminimage=SP2
+      adminimage=SP3
     ;;
   esac
 
