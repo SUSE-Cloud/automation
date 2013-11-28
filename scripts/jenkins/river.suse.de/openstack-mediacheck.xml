@@ -116,9 +116,12 @@ rm -f scripts/release-mgmt/*Media1.iso
 OBS_TYPE=$OBS_TYPE OBS_PROJECT=$OBS_PROJECT make -C cloud/scripts/release-mgmt/ mediacheck
 RETVAL=$?
 
-if [[ "$OBS_PROJECT" == *Staging ]] ; then
-  [ $RETVAL -eq 0 ] &amp;&amp; automation/scripts/jenkins/jenkins-job-trigger openstack-submit-project -p project="${OBS_PROJECT%:Staging}" subproject="Staging" packagefilter="_product"
-fi</command>
+# Cleanup
+rm -r cloud/scripts/release-mgmt/*.iso
+#if [[ "$OBS_PROJECT" == *Staging ]] ; then
+#  [ $RETVAL -eq 0 ] &amp;&amp; automation/scripts/jenkins/jenkins-job-trigger openstack-submit-project -p project="${OBS_PROJECT%:Staging}" subproject="Staging" packagefilter="_product"
+#fi
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
