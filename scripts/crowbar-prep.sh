@@ -215,6 +215,10 @@ common_post () {
         echo >&2
     fi
 
+    if [ -n "$set_sledgehammer_passwd" ]; then
+        sledgehammer_passwd_hook
+    fi
+
     cat <<EOF
 Now run the following steps in the admin node.  If it is a VM, it is
 probably a good idea to snapshot[1] the VM before at least one of the
@@ -314,8 +318,24 @@ host_9p () {
     ) | append_to_fstab
 }
 
+sledgehammer_passwd_hook () {
+    mkdir -p /updates/discovering-pre
+    hook=/updates/discovering-pre/setpw.hook
+    cat >$hook <<EOF
+#!/bin/sh
+echo "linux" | passwd --stdin root
+EOF
+    chmod +x $hook
+    cat <<EOF
+
+Sledgehammer root password will be set to "linux" to
+aid debugging.
+EOF
+}
+
 parse_opts () {
     ibs_repo=
+    set_sledgehammer_passwd=
 
     while [ $# != 0 ]; do
         case "$1" in
@@ -330,6 +350,10 @@ parse_opts () {
             -s|--devel-cloud-staging)
                 [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
                 ibs_repo=Devel_Cloud_${CLOUD_VERSION}_Staging
+                shift
+                ;;
+            -r|--sledgehammer-root-pw)
+                set_sledgehammer_passwd=y
                 shift
                 ;;
             -*)
