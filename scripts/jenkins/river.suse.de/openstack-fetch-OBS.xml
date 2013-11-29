@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>confirm</name>
+          <description>In order to run this job you need to set this to "YES". Just a small protection to not run it accidentally.</description>
+          <defaultValue>BUG: copies -doc subpackages. needs fixing first before running (dmueller)!</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>targetproject</name>
+          <description>Select the target project (the one in IBS).
+The job will figure out from where and what packages to fetch.</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>Devel:Cloud:3:Staging</string>
+              <string>Devel:Cloud:2.0:Staging</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>openstack-trackupstream</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+# DEBUG MODE with E=echo
+# NORMAL MODE with E=
+E=echo
+#==========================
+
+if ! [ "YES" == "$confirm" ] ; then
+  echo "Error: This job run was not confirmed - maybe accidentally, thus aborting"
+  exit 1
+fi
+
+
+case $targetproject in
+  Devel:Cloud:2.0:Staging)
+    source="openSUSE.org:Cloud:OpenStack:Grizzly"
+  ;;
+  Devel:Cloud:3:Staging)
+    source="openSUSE.org:Cloud:OpenStack:Havana"
+  ;;
+esac
+
+IBSAPI="https://api.suse.de"
+
+# lists
+tlist=IBS_${targetproject//:/_}.ls
+slist=OBS_${source//:/_}.ls
+
+#filter out _* and *-doc packages
+osc -A $IBSAPI ls $targetproject | grep -v "_.*" | grep -v "\-doc$" &gt; $tlist
+osc -A $IBSAPI ls $source        | grep -v "_.*" &gt; $slist
+
+t=$(mktemp)
+
+while read pack ; do
+  echo -n "== $pack: "
+  if grep -qx "$pack" $slist ; then
+    rm -f $t
+    osc -A $IBSAPI rdiff -u "$targetproject" "$pack" "$source" &gt; $t
+    if fgrep -q ".changes" $t ; then
+      echo "copying"
+      cat $t
+      $E osc -A $IBSAPI copypac -K "$source" "$pack" "$targetproject" -m "auto-copypac by jenkins job openstack-fetch-OBS"
+    else
+      echo "No .changes entry"
+    fi
+  else
+    echo "skipping"
+  fi
+done &lt; $tlist
+
+rm -f $t</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+      <template>#${BUILD_NUMBER}: ${ENV,var="targetproject"}</template>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>
