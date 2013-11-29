@@ -113,7 +113,10 @@ setup_etc_hosts () {
         die "Failed to determine hostname"
     fi
     short_hostname="${long_hostname%%.*}"
-    
+    if [ "$short_hostname" = "$long_hostname" ]; then
+        die "Failed to determine FQDN for hostname ($short_hostname)"
+    fi
+
     if grep -q "^$ADMIN_IP " /etc/hosts; then
         echo "WARNING: Removing $ADMIN_IP entry already in /etc/hosts:" >&2
         grep "^$ADMIN_IP " /etc/hosts >&2 | sed 's/^/  /'
