@@ -26,6 +26,17 @@ CLOUD_ISO=SUSE-CLOUD-2-x86_64-current.iso
 
 SP3_ISO=SLES-11-SP3-DVD-x86_64-current.iso
 
+fatal () {
+    echo "$*" >&2
+    exit 1
+}
+
+safe_run () {
+    if ! "$@"; then
+        fatal "$* failed! Aborting." >&2
+    fi
+}
+
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
     exit_code=1
@@ -120,7 +131,7 @@ setup_etc_hosts () {
     if grep -q "^$ADMIN_IP " /etc/hosts; then
         echo "WARNING: Removing $ADMIN_IP entry already in /etc/hosts:" >&2
         grep "^$ADMIN_IP " /etc/hosts >&2 | sed 's/^/  /'
-        sed -i -e "/^$ADMIN_IP /d" /etc/hosts
+        safe_run sed -i -e "/^$ADMIN_IP /d" /etc/hosts
     fi
 
     echo "$ADMIN_IP   $long_hostname $short_hostname" >> /etc/hosts
@@ -134,11 +145,11 @@ common_pre () {
     CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
     POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
     UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
-    mkdir -p $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
+    safe_run mkdir -p $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
 }
 
 is_mounted () {
-    mount | grep -q " on $1 "
+    safe_run mount | grep -q " on $1 "
 }
 
 ensure_mount () {
@@ -151,8 +162,8 @@ ensure_mount () {
 }
 
 ibs_devel_cloud_shared_sp3_repo () {
-    zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/Devel:Cloud:Shared:11-SP3.repo
-    zypper mr -p 90 Devel_Cloud_Shared_11-SP3
+    safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/Devel:Cloud:Shared:11-SP3.repo
+    safe_run zypper mr -p 90 Devel_Cloud_Shared_11-SP3
 }
 
 common_post () {
@@ -185,25 +196,25 @@ common_post () {
     for repo in "${repos[@]}"; do
         if zypper lr | grep -q $repo; then
             echo "WARNING: Removing pre-existing $repo repository:" >&2
-            zypper rr $repo
+            safe_run zypper rr $repo
             echo
         fi
     done
 
-    zypper ar file://$CLOUD_MOUNTPOINT   $sc2_repo
-    zypper ar file://$SP3_MOUNTPOINT     $sp3_repo
-    zypper ar file://$UPDATES_MOUNTPOINT $updates_repo
+    safe_run zypper ar file://$CLOUD_MOUNTPOINT   $sc2_repo
+    safe_run zypper ar file://$SP3_MOUNTPOINT     $sp3_repo
+    safe_run zypper ar file://$UPDATES_MOUNTPOINT $updates_repo
 
     case "$ibs_repo" in
         Devel_Cloud_${CLOUD_VERSION})
             ibs_devel_cloud_shared_sp3_repo
-            zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}.repo
-            zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}
+            safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}.repo
+            safe_run zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}
             ;;
         Devel_Cloud_${CLOUD_VERSION}_Staging)
             ibs_devel_cloud_shared_sp3_repo
-            zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}:/Staging/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}:Staging.repo
-            zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}_Staging
+            safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}:/Staging/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}:Staging.repo
+            safe_run zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}_Staging
             ;;
         '')
             ;;
