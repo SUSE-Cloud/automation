@@ -48,7 +48,7 @@ minimum 2=controller+compute</description>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>openstack-mkcloud</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector"/>
@@ -89,19 +89,19 @@ MKCLOUDTARGET=all_noreboot
 [ $WITHREBOOT == "true" ] &amp;&amp; MKCLOUDTARGET=all
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
 
-perl -e "alarm 90*60 ; exec 'bash -x mkcloud $(echo -n $MKCLOUDTARGET) ' "
+perl -e "alarm 90*60 ; exec 'bash -x /root/bin/mkcloud $(echo -n $MKCLOUDTARGET) ' "
 
 
 case $cloudsource in
   develcloud2.0)
     project=Devel:Cloud:2.0
     subproject=Staging
-    packagefilter="crowbar"
+    packagefilter="crowbar python openstack"
   ;;
   develcloud3)
     project=Devel:Cloud:3
     subproject=Staging
-    packagefilter="crowbar"
+    packagefilter="crowbar python openstack"
   ;;
 esac
 

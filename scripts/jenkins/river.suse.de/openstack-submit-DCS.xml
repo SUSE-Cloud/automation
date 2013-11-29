@@ -4,7 +4,8 @@
   <description>Copy packages from Devel:Cloud:Head to Devel:Cloud&lt;br /&gt;&#13;
 &lt;br/&gt;&#13;
 &lt;b&gt;ONLY FOR SUSE Cloud 1.0&lt;/b&gt;&lt;br/&gt;&#13;
-&lt;i&gt;use openstack-submit-project for 2.0 and up&lt;/i&gt;</description>
+&lt;i&gt;use openstack-submit-project for 2.0 and up&lt;/i&gt;&lt;br/&gt;&lt;br/&gt;&#13;
+&lt;b&gt;This job will be kept until Cloud 1.0 is officially EOL'ed.&lt;/b&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>

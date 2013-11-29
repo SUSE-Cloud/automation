@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description/>
+  <description>&lt;b&gt;ONLY FOR SUSE Cloud 1.0&lt;/b&gt;&lt;br/&gt;&#13;
+&lt;b&gt;This job will be kept until Cloud 1.0 is officially EOL'ed.&lt;/b&gt;</description>
   <logRotator>
     <daysToKeep>14</daysToKeep>
     <numToKeep>15</numToKeep>

@@ -72,11 +72,11 @@ OSCBUILDDIST=SLE_11_SP2
 
 case $project in
   ### backward compatibility for Cloud 1.0
-  #Devel:Cloud:1.0)
-  #  submitcmd="$OSC submitreq -m 'jenkins-submit-project'"
-  #  OSCBUILDDIST=SLE_11_SP2
-  #;;
-  ###
+  Devel:Cloud:1.0)
+    submitcmd="$OSC submitreq -m 'jenkins-submit-project'"
+    OSCBUILDDIST=SLE_11_SP2
+  ;;
+  ### end for Cloud 1.0
   Cloud:OpenStack:[EF]*)
     submitcmd="$OSC copypac -K -e"
     OSCBUILDDIST=SLE_11_SP2
@@ -104,6 +104,9 @@ esac
 
 for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null | grep -E "^(${packagefilter// /|})" | grep -v "^_product."` ; do
   cd $BS_CHECKOUT || exit 1
+  if [ ! -d $COMPONENT ] ; then
+    $OSC co -o $COMPONENT $COSS $COMPONENT
+  fi
   cd $COMPONENT || exit 1
 
   grep -q "&lt;linkinfo" .osc/_files || exit 2
