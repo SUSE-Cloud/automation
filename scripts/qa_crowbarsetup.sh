@@ -284,6 +284,9 @@ if [ -n "$TESTHEAD" ] ; then
             zypper mr -p 60 Devel_Cloud_2.0_Staging
             zypper mr -p 70 Devel_Cloud_2.0
             ;;
+        susecloud3)
+            addsp3testupdates
+            ;;
         develcloud3)
             addsp3testupdates
             zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3:/Staging/$slesdist/Devel:Cloud:3:Staging.repo
