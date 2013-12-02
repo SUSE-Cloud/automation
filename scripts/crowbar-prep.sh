@@ -15,11 +15,16 @@ me=`basename $0`
 
 : ${ADMIN_IP:=192.168.124.10}
 : ${HOST_IP:=192.168.124.1}
+
 HOST_MIRROR_DEFAULT=/data/install/mirrors
 : ${HOST_MIRROR:=$HOST_MIRROR_DEFAULT}
+HOST_MEDIA_MIRROR_DEAULT=/srv/nfs/media
+: ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEAULT}
+
 CLOUD_ISO=SUSE-CLOUD-2-x86_64-current.iso
-SP3_ISO=SLES-11-SP3-DVD-x86_64-current.iso
 : ${CLOUD_VERSION:=2.0}
+
+SP3_ISO=SLES-11-SP3-DVD-x86_64-current.iso
 
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
@@ -68,8 +73,9 @@ Profiles:
         profile assumes that directory will be NFS-exported to the
         guest (export HOST_MIRROR to override this).  It also assumes
         that the VM host mounts the SP3 and Cloud installation
-        sources at /mnt/sles-11-sp3 and /mnt/suse-cloud-$CLOUD_VERSION
-        respectively and NFS exports both to the guest.
+        sources at $HOST_MEDIA_MIRROR/sles-11-sp3 and
+        $HOST_MEDIA_MIRROR/suse-cloud-$CLOUD_VERSION respectively and NFS
+        exports both to the guest.
 
     host-9p
         Similar to 'host-nfs' but mounts from VM host as virtio
@@ -270,7 +276,8 @@ clouddata_sp3_repo () {
 
 nue_host_nfs () {
     (
-        nfs_mount $HOST_IP:/mnt/suse-cloud-$CLOUD_VERSION   $CLOUD_MOUNTPOINT
+        media_mirrors=$HOST_IP:$HOST_MEDIA_MIRROR
+        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION   $CLOUD_MOUNTPOINT
         clouddata_sp3_repo
         clouddata_sle_repos
     ) | append_to_fstab
@@ -286,12 +293,13 @@ nue_nfs () {
 
 host_nfs () {
     (
-        nfs_mount $HOST_IP:/mnt/sles-11-sp3                 $SP3_MOUNTPOINT
-        nfs_mount $HOST_IP:/mnt/suse-cloud-$CLOUD_VERSION   $CLOUD_MOUNTPOINT
+        media_mirrors=$HOST_IP:$HOST_MEDIA_MIRROR
+        nfs_mount $media_mirrors/sles-11-sp3                 $SP3_MOUNTPOINT
+        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION   $CLOUD_MOUNTPOINT
 
-        mirrors=$HOST_IP:$HOST_MIRROR
-        nfs_mount $mirrors/SLES11-SP3-Pool/sle-11-x86_64    $POOL_MOUNTPOINT
-        nfs_mount $mirrors/SLES11-SP3-Updates/sle-11-x86_64 $UPDATES_MOUNTPOINT
+        repo_mirrors=$HOST_IP:$HOST_MIRROR
+        nfs_mount $repo_mirrors/SLES11-SP3-Pool/sle-11-x86_64    $POOL_MOUNTPOINT
+        nfs_mount $repo_mirrors/SLES11-SP3-Updates/sle-11-x86_64 $UPDATES_MOUNTPOINT
     ) | append_to_fstab
 }
 
