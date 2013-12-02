@@ -276,7 +276,7 @@ append_to_fstab () {
 
 nfs_mount () {
     src="$1" dst="$2"
-    echo "$src $dst nfs ro,nolock 0 0"
+    echo "$src $dst nfs ro,intr,nolock 0 0"
 }
 
 9p_mount () {
