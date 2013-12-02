@@ -19,6 +19,7 @@ HOST_MIRROR_DEFAULT=/data/install/mirrors
 : ${HOST_MIRROR:=$HOST_MIRROR_DEFAULT}
 CLOUD_ISO=SUSE-CLOUD-2-x86_64-current.iso
 SP3_ISO=SLES-11-SP3-DVD-x86_64-current.iso
+: ${CLOUD_VERSION:=2.0}
 
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
@@ -66,8 +67,8 @@ Profiles:
         which by default mirrors to $HOST_MIRROR_DEFAULT, and this
         profile assumes that directory will be NFS-exported to the
         guest (export HOST_MIRROR to override this).  It also assumes
-        that the VM host mounts the SP3 and Cloud 2.0 installation
-        sources at /mnt/sles-11-sp3 and /mnt/suse-cloud-2.0
+        that the VM host mounts the SP3 and Cloud installation
+        sources at /mnt/sles-11-sp3 and /mnt/suse-cloud-$CLOUD_VERSION
         respectively and NFS exports both to the guest.
 
     host-9p
@@ -89,8 +90,8 @@ Also adds an entry to /etc/hosts for $ADMIN_IP; export a new value for
 ADMIN_IP to override this.
 
 Options:
-  -d, --devel-cloud          zypper addrepo Devel:Cloud:2.0
-  -s, --devel-cloud-staging  zypper addrepo Devel:Cloud:2.0:Staging
+  -d, --devel-cloud          zypper addrepo Devel:Cloud:$CLOUD_VERSION
+  -s, --devel-cloud-staging  zypper addrepo Devel:Cloud:$CLOUD_VERSION:Staging
   -h, --help                 Show this help and exit
 EOF
     exit "$exit_code"
@@ -161,7 +162,7 @@ common_post () {
         pattern_already_installed=yes
     fi
 
-    sc2_repo=SUSE-Cloud-2.0
+    sc2_repo=SUSE-Cloud-$CLOUD_VERSION
     sp3_repo=SLES-11-SP3
     updates_repo=SLES-11-SP3-Updates
 
@@ -180,11 +181,11 @@ common_post () {
     zypper ar file://$UPDATES_MOUNTPOINT $updates_repo
 
     case "$ibs_repo" in
-        Devel_Cloud_2.0)
-            zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/2.0/SLE_11_SP3/Devel:Cloud:2.0.repo
+        Devel_Cloud_${CLOUD_VERSION})
+            zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}.repo
             ;;
-        Devel_Cloud_2.0_Staging)
-            zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/2.0:/Staging/SLE_11_SP3/Devel:Cloud:2.0:Staging.repo
+        Devel_Cloud_${CLOUD_VERSION}_Staging)
+            zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}:/Staging/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}:Staging.repo
             ;;
         '')
             ;;
@@ -260,7 +261,7 @@ clouddata_sp3_repo () {
 
 nue_host_nfs () {
     (
-        nfs_mount $HOST_IP:/mnt/suse-cloud-2.0        $CLOUD_MOUNTPOINT
+        nfs_mount $HOST_IP:/mnt/suse-cloud-$CLOUD_VERSION   $CLOUD_MOUNTPOINT
         clouddata_sp3_repo
         clouddata_sle_repos
     ) | append_to_fstab
@@ -268,7 +269,7 @@ nue_host_nfs () {
 
 nue_nfs () {
     (
-        nfs_mount clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-2.0 $CLOUD_MOUNTPOINT
+        nfs_mount clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-$CLOUD_VERSION $CLOUD_MOUNTPOINT
         clouddata_sp3_repo
         clouddata_sle_repos
     ) | append_to_fstab
@@ -276,8 +277,8 @@ nue_nfs () {
 
 host_nfs () {
     (
-        nfs_mount $HOST_IP:/mnt/sles-11-sp3    $SP3_MOUNTPOINT
-        nfs_mount $HOST_IP:/mnt/suse-cloud-2.0 $CLOUD_MOUNTPOINT
+        nfs_mount $HOST_IP:/mnt/sles-11-sp3                 $SP3_MOUNTPOINT
+        nfs_mount $HOST_IP:/mnt/suse-cloud-$CLOUD_VERSION   $CLOUD_MOUNTPOINT
 
         mirrors=$HOST_IP:$HOST_MIRROR
         nfs_mount $mirrors/SLES11-SP3-Pool/sle-11-x86_64    $POOL_MOUNTPOINT
@@ -306,12 +307,12 @@ parse_opts () {
                 ;;
             -d|--devel-cloud)
                 [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
-                ibs_repo=Devel_Cloud_2.0
+                ibs_repo=Devel_Cloud_$CLOUD_VERSION
                 shift
                 ;;
             -s|--devel-cloud-staging)
                 [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
-                ibs_repo=Devel_Cloud_2.0_Staging
+                ibs_repo=Devel_Cloud_${CLOUD_VERSION}_Staging
                 shift
                 ;;
             -*)
