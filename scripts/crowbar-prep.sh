@@ -21,8 +21,17 @@ HOST_MIRROR_DEFAULT=/data/install/mirrors
 HOST_MEDIA_MIRROR_DEAULT=/srv/nfs/media
 : ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEAULT}
 
-CLOUD_ISO=SUSE-CLOUD-2-x86_64-current.iso
-: ${CLOUD_VERSION:=2.0}
+CLOUD_VERSION_DEFAULT=3
+: ${CLOUD_VERSION:=$CLOUD_VERSION_DEFAULT}
+case $CLOUD_VERSION in
+    2.0)
+        CLOUD_ISO_VERSION=2
+        ;;
+    *)
+        CLOUD_ISO_VERSION=$CLOUD_VERSION
+        ;;
+esac
+CLOUD_ISO=SUSE-CLOUD-${CLOUD_ISO_VERSION}-x86_64-current.iso
 
 SP3_ISO=SLES-11-SP3-DVD-x86_64-current.iso
 
@@ -83,7 +92,7 @@ Profiles:
         which by default mirrors to $HOST_MIRROR_DEFAULT, and this
         profile assumes that directory will be NFS-exported to the
         guest (export HOST_MIRROR to override this).  It also assumes
-        that the VM host mounts the SP3 and Cloud installation
+        that the VM host mounts the SP3 and SUSE Cloud installation
         sources at $HOST_MEDIA_MIRROR/sles-11-sp3 and
         $HOST_MEDIA_MIRROR/suse-cloud-$CLOUD_VERSION respectively and NFS
         exports both to the guest.
@@ -107,8 +116,9 @@ Also adds an entry to /etc/hosts for $ADMIN_IP; export a new value for
 ADMIN_IP to override this.
 
 Options:
-  -d, --devel-cloud          zypper addrepo Devel:Cloud:$CLOUD_VERSION
-  -s, --devel-cloud-staging  zypper addrepo Devel:Cloud:$CLOUD_VERSION:Staging
+  -p, --product-version      Set SUSE Cloud product version [$CLOUD_VERSION_DEFAULT]
+  -d, --devel-cloud          zypper addrepo Devel:Cloud:\$version
+  -s, --devel-cloud-staging  zypper addrepo Devel:Cloud:\$version:Staging
   -h, --help                 Show this help and exit
 EOF
     exit "$exit_code"
@@ -295,7 +305,7 @@ clouddata_sp3_repo () {
 nue_host_nfs () {
     (
         media_mirrors=$HOST_IP:$HOST_MEDIA_MIRROR
-        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION   $CLOUD_MOUNTPOINT
+        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION $CLOUD_MOUNTPOINT
         clouddata_sp3_repo
         clouddata_sle_repos
     ) | append_to_fstab
@@ -312,8 +322,8 @@ nue_nfs () {
 host_nfs () {
     (
         media_mirrors=$HOST_IP:$HOST_MEDIA_MIRROR
-        nfs_mount $media_mirrors/sles-11-sp3                 $SP3_MOUNTPOINT
-        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION   $CLOUD_MOUNTPOINT
+        nfs_mount $media_mirrors/sles-11-sp3               $SP3_MOUNTPOINT
+        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION $CLOUD_MOUNTPOINT
 
         repo_mirrors=$HOST_IP:$HOST_MIRROR
         nfs_mount $repo_mirrors/SLES11-SP3-Pool/sle-11-x86_64    $POOL_MOUNTPOINT
@@ -356,9 +366,13 @@ parse_opts () {
             -h|--help)
                 usage 0
                 ;;
+            -p|--product-version)
+                CLOUD_VERSION="$2"
+                shift 2
+                ;;
             -d|--devel-cloud)
                 [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
-                ibs_repo=Devel_Cloud_$CLOUD_VERSION
+                ibs_repo=Devel_Cloud_${CLOUD_VERSION}
                 shift
                 ;;
             -s|--devel-cloud-staging)
