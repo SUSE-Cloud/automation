@@ -275,8 +275,8 @@ append_to_fstab () {
 }
 
 nfs_mount () {
-    src="$1" dst="$2"
-    echo "$src $dst nfs ro,rsize=8192,wsize=8192,intr,nolock 0 0"
+    src="$1" dst="$2" read_mode="${3:-ro}"
+    echo "$src $dst nfs ${read_mode},rsize=8192,wsize=8192,intr,nolock 0 0"
 }
 
 9p_mount () {
