@@ -187,11 +187,11 @@ common_post () {
         pattern_already_installed=yes
     fi
 
-    sc2_repo=SUSE-Cloud-$CLOUD_VERSION
+    cloud_repo=SUSE-Cloud-$CLOUD_VERSION
     sp3_repo=SLES-11-SP3
     updates_repo=SLES-11-SP3-Updates
 
-    repos=( $sc2_repo $sp3_repo $updates_repo $ibs_repo )
+    repos=( $cloud_repo $sp3_repo $updates_repo $ibs_repo )
 
     for repo in "${repos[@]}"; do
         if zypper lr | grep -q $repo; then
@@ -201,7 +201,7 @@ common_post () {
         fi
     done
 
-    safe_run zypper ar file://$CLOUD_MOUNTPOINT   $sc2_repo
+    safe_run zypper ar file://$CLOUD_MOUNTPOINT   $cloud_repo
     safe_run zypper ar file://$SP3_MOUNTPOINT     $sp3_repo
     safe_run zypper ar file://$UPDATES_MOUNTPOINT $updates_repo
 
