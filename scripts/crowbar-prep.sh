@@ -141,6 +141,11 @@ ensure_mount () {
     fi
 }
 
+ibs_devel_cloud_shared_sp3_repo () {
+    zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/Devel:Cloud:Shared:11-SP3.repo
+    zypper mr -p 90 Devel_Cloud_Shared_11-SP3
+}
+
 common_post () {
     if [ -n "$mountpoint_9p" ]; then
         is_mounted $mountpoint_9p || ensure_mount $mountpoint_9p
@@ -182,10 +187,14 @@ common_post () {
 
     case "$ibs_repo" in
         Devel_Cloud_${CLOUD_VERSION})
+            ibs_devel_cloud_shared_sp3_repo
             zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}.repo
+            zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}
             ;;
         Devel_Cloud_${CLOUD_VERSION}_Staging)
+            ibs_devel_cloud_shared_sp3_repo
             zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}:/Staging/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}:Staging.repo
+            zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}_Staging
             ;;
         '')
             ;;
