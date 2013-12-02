@@ -145,6 +145,14 @@ setup_etc_hosts () {
     fi
 
     echo "$ADMIN_IP   $long_hostname $short_hostname" >> /etc/hosts
+
+    # Four additional nodes should be enough for everyone:
+    for i in {1..4}; do
+        node_ip="${ADMIN_IP%.*}.8$i"
+        if ! grep -q "^$node_ip " /etc/hosts; then
+            echo "$node_ip   node$i" >> /etc/hosts
+        fi
+    done
 }
 
 common_pre () {
