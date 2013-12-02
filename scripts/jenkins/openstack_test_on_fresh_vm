@@ -25,10 +25,10 @@ function setup()
 function cleanupvm()
 {
     #cleanup prev
-    for instance in $(nova list| perl -ne 'if(/^\| (\S+) .*testvm /){print $1}') ; do
+    for instance in $(nova list| perl -ne 'if(/^\| (\S+) .*jenkins-testvm /){print $1}') ; do
       nova delete $instance
     done
-    nova delete testvm || true
+    nova delete jenkins-testvm || true
     sleep 10
 }
 
@@ -42,10 +42,11 @@ function startvm()
 
     image=${image:-SP2-64}
     sshkey=${sshkey:-jenkins}
-    nova boot --flavor 2 --image $image --key_name $sshkey testvm > boot.out
+    nova boot --flavor d2.small --image $image --key_name $sshkey jenkins-testvm > boot.out
     instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
     sleep 20 # time to prepare
-    export ip=`nova show $instanceid|perl -ne 'm/network\s*\| (\S+)/ && print $1'`
+    export ip=$(nova floating-ip-list| perl -ne 'm/^\|\s*(\d+\.\d+\.\d+\.\d+)\s*\|\s*None/ && print($1) && exit 0')
+    nova add-floating-ip $instanceid $ip
     test -n "$ip" || exit 17
     n=300 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $ip >/dev/null ; do # wait for VM to become reachable
       n=$(expr $n - 1)
