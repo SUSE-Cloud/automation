@@ -41,18 +41,12 @@
         <string>openstack-tuskar</string>
         <string>python-ceilometerclient</string>
         <string>python-cinderclient</string>
-        <string>python-designateclient</string>
         <string>python-glanceclient</string>
         <string>python-heatclient</string>
-        <string>python-ironicclient</string>
         <string>python-keystoneclient</string>
-        <string>python-marconiclient</string>
         <string>python-neutronclient</string>
         <string>python-novaclient</string>
-        <string>python-openstackclient</string>
         <string>python-swiftclient</string>
-        <string>python-troveclient</string>
-        <string>python-tuskarclient</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
@@ -67,13 +61,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! (
-      ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.3"].contains(distribution)
-         &amp;&amp; ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-openstackclient", "python-designateclient", "python-neutronclient", "openstack-neutron", "openstack-tuskar", "python-tuskarclient", "python-marconiclient"].contains(component)
-      || ["havana-SLE-11-SP3", "havana-openSUSE-12.3", "havana-openSUSE-13.1"].contains(distribution)
-         &amp;&amp; ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "python-troveclient", "python-designateclient", "openstack-tuskar", "python-tuskarclient"].contains(component)
-      || ["master-SLE-11-SP3", "havana-SLE-11-SP3" ].contains(distribution)
-      &amp;&amp; ["openstack-neutron"].contains(component) )</combinationFilter>
+  <combinationFilter>! ( ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.3"].contains(distribution) &amp;&amp; ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove", "python-neutronclient", "openstack-neutron", "openstack-tuskar"].contains(component)      || ["havana-SLE-11-SP3", "havana-openSUSE-12.3", "havana-openSUSE-13.1"].contains(distribution) &amp;&amp; ["openstack-marconi", "openstack-designate", "openstack-ironic", "openstack-trove", "openstack-tuskar"].contains(component)      || ["master-SLE-11-SP3", "havana-SLE-11-SP3" ].contains(distribution) &amp;&amp; ["openstack-neutron"].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># zypper in osc
