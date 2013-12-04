@@ -171,6 +171,9 @@ fi
 
 test_exitcode=1
 
+echo "=== Cleaning up stale files from previous runs ===" &gt; /dev/null
+rm -rf .testrepository subunit.log
+
 echo "=== Running SETUPCMD ===" &gt; /dev/null
 eval "$SETUPCMD"
 echo "=== Running TESTCMD ===" &gt; /dev/null
