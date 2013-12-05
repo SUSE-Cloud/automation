@@ -21,10 +21,30 @@ HOST_MIRROR_DEFAULT=/data/install/mirrors
 HOST_MEDIA_MIRROR_DEAULT=/srv/nfs/media
 : ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEAULT}
 
-CLOUD_ISO=SUSE-CLOUD-2-x86_64-current.iso
-: ${CLOUD_VERSION:=2.0}
+CLOUD_VERSION_DEFAULT=3
+: ${CLOUD_VERSION:=$CLOUD_VERSION_DEFAULT}
+case $CLOUD_VERSION in
+    2.0)
+        CLOUD_ISO_VERSION=2
+        ;;
+    *)
+        CLOUD_ISO_VERSION=$CLOUD_VERSION
+        ;;
+esac
+CLOUD_ISO=SUSE-CLOUD-${CLOUD_ISO_VERSION}-x86_64-current.iso
 
 SP3_ISO=SLES-11-SP3-DVD-x86_64-current.iso
+
+fatal () {
+    echo "$*" >&2
+    exit 1
+}
+
+safe_run () {
+    if ! "$@"; then
+        fatal "$* failed! Aborting." >&2
+    fi
+}
 
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
@@ -72,7 +92,7 @@ Profiles:
         which by default mirrors to $HOST_MIRROR_DEFAULT, and this
         profile assumes that directory will be NFS-exported to the
         guest (export HOST_MIRROR to override this).  It also assumes
-        that the VM host mounts the SP3 and Cloud installation
+        that the VM host mounts the SP3 and SUSE Cloud installation
         sources at $HOST_MEDIA_MIRROR/sles-11-sp3 and
         $HOST_MEDIA_MIRROR/suse-cloud-$CLOUD_VERSION respectively and NFS
         exports both to the guest.
@@ -96,8 +116,9 @@ Also adds an entry to /etc/hosts for $ADMIN_IP; export a new value for
 ADMIN_IP to override this.
 
 Options:
-  -d, --devel-cloud          zypper addrepo Devel:Cloud:$CLOUD_VERSION
-  -s, --devel-cloud-staging  zypper addrepo Devel:Cloud:$CLOUD_VERSION:Staging
+  -p, --product-version      Set SUSE Cloud product version [$CLOUD_VERSION_DEFAULT]
+  -d, --devel-cloud          zypper addrepo Devel:Cloud:\$version
+  -s, --devel-cloud-staging  zypper addrepo Devel:Cloud:\$version:Staging
   -h, --help                 Show this help and exit
 EOF
     exit "$exit_code"
@@ -113,11 +134,14 @@ setup_etc_hosts () {
         die "Failed to determine hostname"
     fi
     short_hostname="${long_hostname%%.*}"
-    
+    if [ "$short_hostname" = "$long_hostname" ]; then
+        die "Failed to determine FQDN for hostname ($short_hostname)"
+    fi
+
     if grep -q "^$ADMIN_IP " /etc/hosts; then
         echo "WARNING: Removing $ADMIN_IP entry already in /etc/hosts:" >&2
         grep "^$ADMIN_IP " /etc/hosts >&2 | sed 's/^/  /'
-        sed -i -e "/^$ADMIN_IP /d" /etc/hosts
+        safe_run sed -i -e "/^$ADMIN_IP /d" /etc/hosts
     fi
 
     echo "$ADMIN_IP   $long_hostname $short_hostname" >> /etc/hosts
@@ -131,11 +155,11 @@ common_pre () {
     CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
     POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
     UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
-    mkdir -p $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
+    safe_run mkdir -p $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
 }
 
 is_mounted () {
-    mount | grep -q " on $1 "
+    safe_run mount | grep -q " on $1 "
 }
 
 ensure_mount () {
@@ -148,8 +172,8 @@ ensure_mount () {
 }
 
 ibs_devel_cloud_shared_sp3_repo () {
-    zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/Devel:Cloud:Shared:11-SP3.repo
-    zypper mr -p 90 Devel_Cloud_Shared_11-SP3
+    safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/Devel:Cloud:Shared:11-SP3.repo
+    safe_run zypper mr -p 90 Devel_Cloud_Shared_11-SP3
 }
 
 common_post () {
@@ -173,34 +197,34 @@ common_post () {
         pattern_already_installed=yes
     fi
 
-    sc2_repo=SUSE-Cloud-$CLOUD_VERSION
+    cloud_repo=SUSE-Cloud-$CLOUD_VERSION
     sp3_repo=SLES-11-SP3
     updates_repo=SLES-11-SP3-Updates
 
-    repos=( $sc2_repo $sp3_repo $updates_repo $ibs_repo )
+    repos=( $cloud_repo $sp3_repo $updates_repo $ibs_repo )
 
     for repo in "${repos[@]}"; do
         if zypper lr | grep -q $repo; then
             echo "WARNING: Removing pre-existing $repo repository:" >&2
-            zypper rr $repo
+            safe_run zypper rr $repo
             echo
         fi
     done
 
-    zypper ar file://$CLOUD_MOUNTPOINT   $sc2_repo
-    zypper ar file://$SP3_MOUNTPOINT     $sp3_repo
-    zypper ar file://$UPDATES_MOUNTPOINT $updates_repo
+    safe_run zypper ar file://$CLOUD_MOUNTPOINT   $cloud_repo
+    safe_run zypper ar file://$SP3_MOUNTPOINT     $sp3_repo
+    safe_run zypper ar file://$UPDATES_MOUNTPOINT $updates_repo
 
     case "$ibs_repo" in
         Devel_Cloud_${CLOUD_VERSION})
             ibs_devel_cloud_shared_sp3_repo
-            zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}.repo
-            zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}
+            safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}.repo
+            safe_run zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}
             ;;
         Devel_Cloud_${CLOUD_VERSION}_Staging)
             ibs_devel_cloud_shared_sp3_repo
-            zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}:/Staging/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}:Staging.repo
-            zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}_Staging
+            safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}:/Staging/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}:Staging.repo
+            safe_run zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}_Staging
             ;;
         '')
             ;;
@@ -213,6 +237,10 @@ common_post () {
         echo >&2 "WARNING: $pattern pattern already installed!"
         echo >&2 "You will probably need to upgrade existing packages."
         echo >&2
+    fi
+
+    if [ -n "$set_sledgehammer_passwd" ]; then
+        sledgehammer_passwd_hook
     fi
 
     cat <<EOF
@@ -277,7 +305,7 @@ clouddata_sp3_repo () {
 nue_host_nfs () {
     (
         media_mirrors=$HOST_IP:$HOST_MEDIA_MIRROR
-        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION   $CLOUD_MOUNTPOINT
+        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION $CLOUD_MOUNTPOINT
         clouddata_sp3_repo
         clouddata_sle_repos
     ) | append_to_fstab
@@ -294,8 +322,8 @@ nue_nfs () {
 host_nfs () {
     (
         media_mirrors=$HOST_IP:$HOST_MEDIA_MIRROR
-        nfs_mount $media_mirrors/sles-11-sp3                 $SP3_MOUNTPOINT
-        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION   $CLOUD_MOUNTPOINT
+        nfs_mount $media_mirrors/sles-11-sp3               $SP3_MOUNTPOINT
+        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION $CLOUD_MOUNTPOINT
 
         repo_mirrors=$HOST_IP:$HOST_MIRROR
         nfs_mount $repo_mirrors/SLES11-SP3-Pool/sle-11-x86_64    $POOL_MOUNTPOINT
@@ -314,22 +342,46 @@ host_9p () {
     ) | append_to_fstab
 }
 
+sledgehammer_passwd_hook () {
+    mkdir -p /updates/discovering-pre
+    hook=/updates/discovering-pre/setpw.hook
+    cat >$hook <<EOF
+#!/bin/sh
+echo "linux" | passwd --stdin root
+EOF
+    chmod +x $hook
+    cat <<EOF
+
+Sledgehammer root password will be set to "linux" to
+aid debugging.
+EOF
+}
+
 parse_opts () {
     ibs_repo=
+    set_sledgehammer_passwd=
 
     while [ $# != 0 ]; do
         case "$1" in
             -h|--help)
                 usage 0
                 ;;
+            -p|--product-version)
+                CLOUD_VERSION="$2"
+                shift 2
+                ;;
             -d|--devel-cloud)
                 [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
-                ibs_repo=Devel_Cloud_$CLOUD_VERSION
+                ibs_repo=Devel_Cloud_${CLOUD_VERSION}
                 shift
                 ;;
             -s|--devel-cloud-staging)
                 [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
                 ibs_repo=Devel_Cloud_${CLOUD_VERSION}_Staging
+                shift
+                ;;
+            -r|--sledgehammer-root-pw)
+                set_sledgehammer_passwd=y
                 shift
                 ;;
             -*)
