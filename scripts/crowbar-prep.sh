@@ -41,6 +41,10 @@ CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
 POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
 UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
 
+# Subdirectory under $HOST_MEDIA_MIRROR on the VM host which is
+# an NFS export containing the mounted SP3 media.
+: ${SP3_MEDIA_EXPORT_SUBDIR:=sles-11-sp3}
+
 fatal () {
     echo "$*" >&2
     exit 1
@@ -99,7 +103,7 @@ Profiles:
         profile assumes that directory will be NFS-exported to the
         guest (export HOST_MIRROR to override this).  It also assumes
         that the VM host mounts the SP3 and SUSE Cloud installation
-        sources at $HOST_MEDIA_MIRROR/sles-11-sp3 and
+        sources at $HOST_MEDIA_MIRROR/$SP3_MEDIA_EXPORT_SUBDIR and
         $HOST_MEDIA_MIRROR/suse-cloud-$CLOUD_VERSION respectively and NFS
         exports both to the guest.
 
@@ -325,7 +329,7 @@ nue_nfs () {
 host_nfs () {
     (
         media_mirrors=$HOST_IP:$HOST_MEDIA_MIRROR
-        nfs_mount $media_mirrors/sles-11-sp3               $SP3_MOUNTPOINT
+        nfs_mount $media_mirrors/$SP3_MEDIA_EXPORT_SUBDIR  $SP3_MOUNTPOINT
         nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION $CLOUD_MOUNTPOINT
 
         repo_mirrors=$HOST_IP:$HOST_MIRROR
