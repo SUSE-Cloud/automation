@@ -35,6 +35,12 @@ CLOUD_ISO=SUSE-CLOUD-${CLOUD_ISO_VERSION}-x86_64-current.iso
 
 SP3_ISO=SLES-11-SP3-DVD-x86_64-current.iso
 
+SP3_MOUNTPOINT=/srv/tftpboot/suse-11.3/install
+REPOS_DIR=/srv/tftpboot/repos
+CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
+POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
+UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
+
 fatal () {
     echo "$*" >&2
     exit 1
@@ -152,11 +158,6 @@ setup_etc_hosts () {
 common_pre () {
     setup_etc_hosts
 
-    SP3_MOUNTPOINT=/srv/tftpboot/suse-11.3/install
-    REPOS_DIR=/srv/tftpboot/repos
-    CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
-    POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
-    UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
     safe_run mkdir -p $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
 }
 
