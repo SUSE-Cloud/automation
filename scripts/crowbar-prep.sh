@@ -18,8 +18,8 @@ me=`basename $0`
 
 HOST_MIRROR_DEFAULT=/data/install/mirrors
 : ${HOST_MIRROR:=$HOST_MIRROR_DEFAULT}
-HOST_MEDIA_MIRROR_DEAULT=/srv/nfs/media
-: ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEAULT}
+HOST_MEDIA_MIRROR_DEFAULT=/srv/nfs/media
+: ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEFAULT}
 
 CLOUD_VERSION_DEFAULT=3
 : ${CLOUD_VERSION:=$CLOUD_VERSION_DEFAULT}
@@ -119,6 +119,8 @@ Options:
   -p, --product-version      Set SUSE Cloud product version [$CLOUD_VERSION_DEFAULT]
   -d, --devel-cloud          zypper addrepo Devel:Cloud:\$version
   -s, --devel-cloud-staging  zypper addrepo Devel:Cloud:\$version:Staging
+  -m, --media-mirror PATH    Set path on host under which the SP3 and Cloud media
+                             are mounted and NFS exported [$HOST_MEDIA_MIRROR_DEFAULT]
   -h, --help                 Show this help and exit
 EOF
     exit "$exit_code"
@@ -383,6 +385,11 @@ parse_opts () {
             -r|--sledgehammer-root-pw)
                 set_sledgehammer_passwd=y
                 shift
+                ;;
+            -m|--media-mirror)
+                [ -n "$2" ] || die "--media-mirror requires an argument"
+                HOST_MEDIA_MIRROR="$2"
+                shift 2
                 ;;
             -*)
                 usage "Unrecognised option: $1"
