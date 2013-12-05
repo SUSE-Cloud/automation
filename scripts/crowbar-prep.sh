@@ -33,7 +33,7 @@ case $CLOUD_VERSION in
 esac
 CLOUD_ISO=SUSE-CLOUD-${CLOUD_ISO_VERSION}-x86_64-current.iso
 
-SP3_ISO=SLES-11-SP3-DVD-x86_64-current.iso
+: ${SP3_ISO:=SLES-11-SP3-DVD-x86_64-current.iso}
 
 SP3_MOUNTPOINT=/srv/tftpboot/suse-11.3/install
 REPOS_DIR=/srv/tftpboot/repos
