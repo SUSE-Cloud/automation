@@ -208,8 +208,12 @@ ensure_mount () {
 }
 
 ibs_devel_cloud_shared_sp3_repo () {
-    safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/Devel:Cloud:Shared:11-SP3.repo $shared_repo
-    safe_run zypper mr -p 90 $shared_repo
+    case $CLOUD_VERSION in
+        3)
+            safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/Devel:Cloud:Shared:11-SP3.repo $shared_repo
+            safe_run zypper mr -p 90 $shared_repo
+            ;;
+    esac
 }
 
 use_hae () {
