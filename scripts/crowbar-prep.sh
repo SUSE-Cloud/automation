@@ -450,12 +450,12 @@ parse_opts () {
                 ;;
             -d|--devel-cloud)
                 [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
-                ibs_repo=Devel_Cloud_${CLOUD_VERSION}
+                ibs_repo=Devel_Cloud_@@CLOUD_VERSION@@
                 shift
                 ;;
             -s|--devel-cloud-staging)
                 [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
-                ibs_repo=Devel_Cloud_${CLOUD_VERSION}_Staging
+                ibs_repo=Devel_Cloud_@@CLOUD_VERSION@@_Staging
                 shift
                 ;;
             -r|--sledgehammer-root-pw)
@@ -475,6 +475,8 @@ parse_opts () {
                 ;;
         esac
     done
+
+    ibs_repo="${ibs_repo/@@CLOUD_VERSION@@/$CLOUD_VERSION}"
 
     if [ $# != 1 ]; then
         usage
