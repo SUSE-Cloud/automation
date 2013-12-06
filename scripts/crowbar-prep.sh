@@ -13,43 +13,56 @@
 me=`basename $0`
 [ "$me" = bash ] && me=crowbar-prep.sh
 
-: ${ADMIN_IP:=192.168.124.10}
-: ${HOST_IP:=192.168.124.1}
+# This is run prior to parsing options.
+init_variables () {
+    CLOUD_VERSION_DEFAULT=3
+    : ${CLOUD_VERSION:=$CLOUD_VERSION_DEFAULT}
 
-HOST_MIRROR_DEFAULT=/data/install/mirrors
-: ${HOST_MIRROR:=$HOST_MIRROR_DEFAULT}
-HOST_MEDIA_MIRROR_DEFAULT=/srv/nfs/media
-: ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEFAULT}
+    : ${ADMIN_IP:=192.168.124.10}
+    : ${HOST_IP:=192.168.124.1}
 
-CLOUD_VERSION_DEFAULT=3
-: ${CLOUD_VERSION:=$CLOUD_VERSION_DEFAULT}
-case $CLOUD_VERSION in
-    2.0)
-        CLOUD_ISO_VERSION=2
-        ;;
-    *)
-        CLOUD_ISO_VERSION=$CLOUD_VERSION
-        ;;
-esac
-CLOUD_ISO=SUSE-CLOUD-${CLOUD_ISO_VERSION}-x86_64-current.iso
+    HOST_MIRROR_DEFAULT=/data/install/mirrors
+    : ${HOST_MIRROR:=$HOST_MIRROR_DEFAULT}
+    HOST_MEDIA_MIRROR_DEFAULT=/srv/nfs/media
+    : ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEFAULT}
 
-: ${SP3_ISO:=SLES-11-SP3-DVD-x86_64-current.iso}
-: ${HAE_ISO:=SLE-HA-11-SP3-DVD-x86_64-current.iso}
+    # Subdirectory under $HOST_MEDIA_MIRROR on the VM host which is
+    # an NFS export containing the mounted SP3 media.
+    : ${SP3_MEDIA_EXPORT_SUBDIR:=sles-11-sp3}
 
-SP3_MOUNTPOINT=/srv/tftpboot/suse-11.3/install
-REPOS_DIR=/srv/tftpboot/repos
-HAE_MOUNTPOINT=$REPOS_DIR/SLE-HAE-11-SP3
-CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
-POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
-UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
+    # Subdirectory under $HOST_MEDIA_MIRROR on the VM host which is
+    # an NFS export containing the mounted HAE media.
+    : ${HAE_MEDIA_EXPORT_SUBDIR:=sle-ha-11-sp3}
 
-# Subdirectory under $HOST_MEDIA_MIRROR on the VM host which is
-# an NFS export containing the mounted SP3 media.
-: ${SP3_MEDIA_EXPORT_SUBDIR:=sles-11-sp3}
+    : ${SP3_ISO:=SLES-11-SP3-DVD-x86_64-current.iso}
+    : ${HAE_ISO:=SLE-HA-11-SP3-DVD-x86_64-current.iso}
 
-# Subdirectory under $HOST_MEDIA_MIRROR on the VM host which is
-# an NFS export containing the mounted HAE media.
-: ${HAE_MEDIA_EXPORT_SUBDIR:=sle-ha-11-sp3}
+    # Mountpoints within the Crowbar admin node
+    SP3_MOUNTPOINT=/srv/tftpboot/suse-11.3/install
+    REPOS_DIR=/srv/tftpboot/repos
+    HAE_MOUNTPOINT=$REPOS_DIR/SLE-HAE-11-SP3
+    CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
+    POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
+    UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
+
+    set_cloud_iso
+}
+
+# This needs to be run both prior to parsing options (so that the
+# usage text can refer to the ISO filename), and after (so that
+# --product-version affects it correctly).
+set_cloud_iso () {
+    case $CLOUD_VERSION in
+        2.0)
+            CLOUD_ISO_VERSION=2
+            ;;
+        *)
+            CLOUD_ISO_VERSION=$CLOUD_VERSION
+            ;;
+    esac
+
+    CLOUD_ISO=SUSE-CLOUD-${CLOUD_ISO_VERSION}-x86_64-current.iso
+}
 
 fatal () {
     echo "$*" >&2
@@ -426,6 +439,7 @@ parse_opts () {
                 ;;
             -p|--product-version)
                 CLOUD_VERSION="$2"
+                set_cloud_iso
                 shift 2
                 ;;
             -d|--devel-cloud)
@@ -464,6 +478,7 @@ parse_opts () {
 }
 
 main () {
+    init_variables
     parse_opts "$@"
 
     case "$profile" in
