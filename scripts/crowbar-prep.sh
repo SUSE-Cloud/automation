@@ -50,6 +50,8 @@ init_variables () {
     sp3_repo=SLES-11-SP3
     updates_repo=SLES-11-SP3-Updates
     hae_repo=SLE-11-SP3-HAE
+    shared_repo=Devel_Cloud_Shared_11-SP3
+
     set_cloud_iso
 }
 
@@ -206,8 +208,8 @@ ensure_mount () {
 }
 
 ibs_devel_cloud_shared_sp3_repo () {
-    safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/Devel:Cloud:Shared:11-SP3.repo
-    safe_run zypper mr -p 90 Devel_Cloud_Shared_11-SP3
+    safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/Devel:Cloud:Shared:11-SP3.repo $shared_repo
+    safe_run zypper mr -p 90 $shared_repo
 }
 
 use_hae () {
