@@ -34,9 +34,11 @@ esac
 CLOUD_ISO=SUSE-CLOUD-${CLOUD_ISO_VERSION}-x86_64-current.iso
 
 : ${SP3_ISO:=SLES-11-SP3-DVD-x86_64-current.iso}
+: ${HAE_ISO:=SLE-HA-11-SP3-DVD-x86_64-current.iso}
 
 SP3_MOUNTPOINT=/srv/tftpboot/suse-11.3/install
 REPOS_DIR=/srv/tftpboot/repos
+HAE_MOUNTPOINT=$REPOS_DIR/SLE-HAE-11-SP3
 CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
 POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
 UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
@@ -44,6 +46,10 @@ UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
 # Subdirectory under $HOST_MEDIA_MIRROR on the VM host which is
 # an NFS export containing the mounted SP3 media.
 : ${SP3_MEDIA_EXPORT_SUBDIR:=sles-11-sp3}
+
+# Subdirectory under $HOST_MEDIA_MIRROR on the VM host which is
+# an NFS export containing the mounted HAE media.
+: ${HAE_MEDIA_EXPORT_SUBDIR:=sle-ha-11-sp3}
 
 fatal () {
     echo "$*" >&2
@@ -115,6 +121,7 @@ Profiles:
         to the real .iso files):
 
             isos/$SP3_ISO
+            isos/$HAE_ISO
             isos/$CLOUD_ISO
             mirrors/SLES11-SP3-Pool/sle-11-x86_64/repodata/repomd.xml
             mirrors/SLES11-SP3-Updates/sle-11-x86_64/repodata/repomd.xml
@@ -162,7 +169,9 @@ setup_etc_hosts () {
 common_pre () {
     setup_etc_hosts
 
-    safe_run mkdir -p $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
+    safe_run mkdir -p \
+        $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $HAE_MOUNTPOINT \
+        $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
 }
 
 is_mounted () {
@@ -183,6 +192,17 @@ ibs_devel_cloud_shared_sp3_repo () {
     safe_run zypper mr -p 90 Devel_Cloud_Shared_11-SP3
 }
 
+use_hae () {
+    case $CLOUD_VERSION in
+        3)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
 common_post () {
     if [ -n "$mountpoint_9p" ]; then
         is_mounted $mountpoint_9p || ensure_mount $mountpoint_9p
@@ -190,13 +210,25 @@ common_post () {
         echo "Not using 9p"
     fi
 
-    for mountpoint in $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT; do
+    for mountpoint in \
+        $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $HAE_MOUNTPOINT \
+        $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
+    do
         echo
         if is_mounted $mountpoint; then
             echo "$mountpoint already mounted; umounting ..."
             umount $mountpoint || die "Couldn't umount $mountpoint"
         fi
-        ensure_mount $mountpoint
+        case $mountpoint in
+            $HAE_MOUNTPOINT)
+                if use_hae && ! mount $mountpoint; then
+                    echo -e "WARNING: Couldn't mount $mountpoint; you will have to mount manually if you want cluster support.\n" >&2
+                fi
+                ;;
+            *)
+                ensure_mount $mountpoint
+                ;;
+        esac
     done
 
     pattern=cloud_admin
@@ -207,8 +239,9 @@ common_post () {
     cloud_repo=SUSE-Cloud-$CLOUD_VERSION
     sp3_repo=SLES-11-SP3
     updates_repo=SLES-11-SP3-Updates
+    hae_repo=SLE-11-SP3-HAE
 
-    repos=( $cloud_repo $sp3_repo $updates_repo $ibs_repo )
+    repos=( $cloud_repo $sp3_repo $hae_repo $updates_repo $ibs_repo )
 
     for repo in "${repos[@]}"; do
         if zypper lr | grep -q $repo; then
@@ -221,6 +254,13 @@ common_post () {
     safe_run zypper ar file://$CLOUD_MOUNTPOINT   $cloud_repo
     safe_run zypper ar file://$SP3_MOUNTPOINT     $sp3_repo
     safe_run zypper ar file://$UPDATES_MOUNTPOINT $updates_repo
+
+    if use_hae && [ -e $HAE_MOUNTPOINT/directory.yast ]; then
+        safe_run zypper ar file://$HAE_MOUNTPOINT $hae_repo
+        got_hae=yep
+    else
+        got_hae=
+    fi
 
     case "$ibs_repo" in
         Devel_Cloud_${CLOUD_VERSION})
@@ -260,6 +300,12 @@ steps, if not both.
 
 [1] e.g.: virsh snapshot-create-as pebbles-sp3-admin pre-pattern-install
 EOF
+    if use_hae && [ -z "$got_hae" ]; then
+        cat <<'EOF'
+
+WARNING: HAE repo is not set up!  See above for what went wrong.
+EOF
+    fi
 }
 
 append_to_fstab () {
@@ -303,6 +349,9 @@ clouddata_sle_repos () {
     repos=clouddata.cloud.suse.de:/srv/nfs/repos
     nfs_mount $repos/11-SP3-POOL $POOL_MOUNTPOINT
     nfs_mount $repos/11-SP3      $UPDATES_MOUNTPOINT
+
+    echo -e "WARNING: HAE not available from clouddata yet.\n"
+    #nfs_mount $repos/HA-11-SP3   $HAE_MOUNTPOINT
 }
 
 clouddata_sp3_repo () {
@@ -330,6 +379,7 @@ host_nfs () {
     (
         media_mirrors=$HOST_IP:$HOST_MEDIA_MIRROR
         nfs_mount $media_mirrors/$SP3_MEDIA_EXPORT_SUBDIR  $SP3_MOUNTPOINT
+        nfs_mount $media_mirrors/$HAE_MEDIA_EXPORT_SUBDIR  $HAE_MOUNTPOINT
         nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION $CLOUD_MOUNTPOINT
 
         repo_mirrors=$HOST_IP:$HOST_MIRROR
@@ -343,6 +393,7 @@ host_9p () {
     (
         9p_mount
         iso_mount  $mountpoint_9p/isos/$SP3_ISO   $SP3_MOUNTPOINT
+        iso_mount  $mountpoint_9p/isos/$HAE_ISO   $HAE_MOUNTPOINT
         iso_mount  $mountpoint_9p/isos/$CLOUD_ISO $CLOUD_MOUNTPOINT
         bind_mount $mountpoint_9p/mirrors/SLES11-SP3-Pool/sle-11-x86_64    $POOL_MOUNTPOINT
         bind_mount $mountpoint_9p/mirrors/SLES11-SP3-Updates/sle-11-x86_64 $UPDATES_MOUNTPOINT
