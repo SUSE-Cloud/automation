@@ -256,7 +256,7 @@ common_post () {
         pattern_already_installed=yes
     fi
 
-    repos=( $cloud_repo $sp3_repo $hae_repo $updates_repo $ibs_repo )
+    repos=( $cloud_repo $sp3_repo $hae_repo $updates_repo $shared_repo $ibs_repo )
 
     for repo in "${repos[@]}"; do
         if zypper lr | grep -q $repo; then
