@@ -45,6 +45,11 @@ init_variables () {
     POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
     UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
 
+    # Names of zypper repos within the Crowbar admin node.
+    cloud_repo=SUSE-Cloud-$CLOUD_VERSION
+    sp3_repo=SLES-11-SP3
+    updates_repo=SLES-11-SP3-Updates
+    hae_repo=SLE-11-SP3-HAE
     set_cloud_iso
 }
 
@@ -248,11 +253,6 @@ common_post () {
     if zypper -n patterns | grep -q $pattern; then
         pattern_already_installed=yes
     fi
-
-    cloud_repo=SUSE-Cloud-$CLOUD_VERSION
-    sp3_repo=SLES-11-SP3
-    updates_repo=SLES-11-SP3-Updates
-    hae_repo=SLE-11-SP3-HAE
 
     repos=( $cloud_repo $sp3_repo $hae_repo $updates_repo $ibs_repo )
 
