@@ -57,6 +57,7 @@ working_dir_orig=`pwd`
 artifacts_dir=${artifacts_dir:-$working_dir_orig/.artifacts}
 start_time=`date`
 cloudbr=cloudbr1
+cloudvg=${cloudvg:-cloud}
 mnt=/tmp/cloudmnt
 debug=${debug:-0}
 
@@ -147,7 +148,7 @@ function cleanup()
   tunctl -d ${cloudbr}-nic
   # zero node volumes to prevent accidental booting
   for node in $allnodeids ; do
-    dd if=/dev/zero of=/dev/cloud/node$node count=1 bs=8192
+    dd if=/dev/zero of=/dev/$cloudvg/node$node count=1 bs=8192
   done
   umount $mnt
   for i in /dev/loop* ; do
@@ -162,23 +163,23 @@ function cleanup()
 function h_create_cloud_lvm()
 {
   pvcreate $CVOL
-  vgcreate cloud $CVOL
-  vgchange -ay cloud # for later boots
+  vgcreate $cloudvg $CVOL
+  vgchange -ay $cloudvg # for later boots
 
   # hdd size defaults (unless defined otherwise)
   adminnode_hdd_size=${adminnode_hdd_size:-15}
   computenode_hdd_size=${computenode_hdd_size:-20}
   cephvolume_hdd_size=${cephvolume_hdd_size:-5}
 
-  lvcreate -n admin -L ${adminnode_hdd_size}G cloud
+  lvcreate -n admin -L ${adminnode_hdd_size}G $cloudvg
   for i in $allnodeids ; do
-    lvcreate -n node$i -L ${computenode_hdd_size}G cloud
+    lvcreate -n node$i -L ${computenode_hdd_size}G $cloudvg
   done
 
   if [ $cephvolumenumber -gt 0 ] ; then
     for i in $allnodeids ; do
       for n in $(echo `seq 1 $cephvolumenumber`) ; do
-        lvcreate -n node$i-ceph$n -L ${cephvolume_hdd_size}G cloud
+        lvcreate -n node$i-ceph$n -L ${cephvolume_hdd_size}G $cloudvg
       done
     done
   fi
@@ -188,14 +189,14 @@ function h_deploy_admin_image()
 {
   pushd /tmp
   wget --progress=dot:mega -nc http://clouddata.cloud.suse.de/images/$adminimage-64up.qcow2
-  qemu-img convert -p $adminimage-64up.qcow2 /dev/cloud/admin
+  qemu-img convert -p $adminimage-64up.qcow2 /dev/$cloudvg/admin
   popd
 
-  if fdisk -l /dev/cloud/admin | grep -q 2056192 ; then
+  if fdisk -l /dev/$cloudvg/admin | grep -q 2056192 ; then
     # make a bigger partition 2
-    echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/cloud/admin
+    echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/$cloudvg/admin
     loopdevice=`losetup --find`
-    losetup -o $(expr 2056192 \* 512) $loopdevice /dev/cloud/admin
+    losetup -o $(expr 2056192 \* 512) $loopdevice /dev/$cloudvg/admin
     fsck -y -f $loopdevice
     resize2fs $loopdevice
     sync
@@ -296,7 +297,7 @@ function h_create_libvirt_adminnode_config()
       <emulator>/usr/bin/qemu-kvm</emulator>
       <disk type='block' device='disk'>
         <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='/dev/cloud/admin'/>
+        <source dev='/dev/$cloudvg/admin'/>
         <target dev='vda' bus='virtio'/>
         <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
       </disk>
@@ -354,7 +355,7 @@ function setupadmin()
   echo "Injecting public key into image..."
   pubkey=`cut -d" " -f2 ~/.ssh/id_dsa.pub`
   mkdir -p $mnt
-  mount -o loop,offset=$(expr 2056192 \* 512) /dev/cloud/admin $mnt
+  mount -o loop,offset=$(expr 2056192 \* 512) /dev/$cloudvg/admin $mnt
   mkdir -p $mnt/root/.ssh
   grep -q $pubkey $mnt/root/.ssh/authorized_keys 2>/dev/null || cat ~/.ssh/id_dsa.pub >> $mnt/root/.ssh/authorized_keys
   umount $mnt
@@ -473,7 +474,7 @@ function h_create_libvirt_computenode_config()
     <emulator>/usr/bin/qemu-kvm</emulator>
     <disk type='block' device='disk'>
       <driver name='qemu' type='raw' cache='unsafe'/>
-      <source dev='/dev/cloud/node$nodecounter'/>
+      <source dev='/dev/$cloudvg/node$nodecounter'/>
       <target dev='vda' bus='virtio'/>
       <boot order='2'/>
     </disk>
@@ -527,7 +528,7 @@ function setupcompute()
     <disk type='block' device='disk'>
       <serial>cloud-node$i-ceph$n</serial>
       <driver name='qemu' type='raw' cache='unsafe'/>
-      <source dev='/dev/cloud/node$i-ceph$n'/>
+      <source dev='/dev/$cloudvg/node$i-ceph$n'/>
       <target dev='$dev' bus='virtio'/>
     </disk>"
       done
