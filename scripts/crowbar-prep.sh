@@ -145,6 +145,14 @@ setup_etc_hosts () {
     fi
 
     echo "$ADMIN_IP   $long_hostname $short_hostname" >> /etc/hosts
+
+    # Four additional nodes should be enough for everyone:
+    for i in {1..4}; do
+        node_ip="${ADMIN_IP%.*}.8$i"
+        if ! grep -q "^$node_ip " /etc/hosts; then
+            echo "$node_ip   node$i" >> /etc/hosts
+        fi
+    done
 }
 
 common_pre () {
@@ -267,8 +275,8 @@ append_to_fstab () {
 }
 
 nfs_mount () {
-    src="$1" dst="$2"
-    echo "$src $dst nfs ro,nolock 0 0"
+    src="$1" dst="$2" read_mode="${3:-ro}"
+    echo "$src $dst nfs ${read_mode},rsize=8192,wsize=8192,intr,nolock 0 0"
 }
 
 9p_mount () {
