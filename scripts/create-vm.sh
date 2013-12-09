@@ -145,6 +145,12 @@ main () {
         if grep -i $plat /proc/cpuinfo ; then
             if [ `id -u` == 0 ] ; then
                 echo "Running as root, invoking modprobe kvm_$plat."
+                if [ $plat = "intel" ] ; then
+                    if ! grep -q nested /etc/modprobe.d/99-local.conf ; then
+                        echo “options kvm_intel nested=1″ | sudo tee /etc/modprobe.d/99-local.conf
+                        modprobe -r kvm_intel
+                    fi
+                fi
                 modprobe kvm_$plat
             fi
             if grep -q kvm_$plat /proc/modules && egrep -q "[Y1]" /sys/module/kvm_$plat/parameters/nested ; then
