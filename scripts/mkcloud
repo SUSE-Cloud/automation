@@ -56,8 +56,9 @@ cpuflags=''
 working_dir_orig=`pwd`
 artifacts_dir=${artifacts_dir:-$working_dir_orig/.artifacts}
 start_time=`date`
-cloudbr=cloudbr1
-cloudvg=${cloudvg:-cloud}
+cloud=${cloud:-cloud}
+cloudvg=${cloudvg:-$cloud}
+cloudbr=${cloudbr:-${cloud}br}
 mnt=/tmp/cloudmnt
 debug=${debug:-0}
 
@@ -139,10 +140,10 @@ function cleanup()
   # cleanup leftover from last run
   allnodenames=`for i in $allnodeids ; do echo -n "node\$i " ; done`
   for n in admin $allnodenames ; do
-      virsh destroy cloud-$n
-      virsh undefine cloud-$n
+      virsh destroy $cloud-$n
+      virsh undefine $cloud-$n
   done
-  virsh net-destroy cloud-admin
+  virsh net-destroy $cloud-admin
   ifdown $cloudbr
   brctl delbr $cloudbr
   tunctl -d ${cloudbr}-nic
@@ -152,11 +153,11 @@ function cleanup()
   done
   umount $mnt
   for i in /dev/loop* ; do
-    if losetup $i | grep -q cloud-admin ; then
+    if losetup $i | grep -q $cloud-admin ; then
       losetup -d $i
     fi
   done
-  rm -f /var/run/libvirt/qemu/cloud*.xml /var/lib/libvirt/network/cloud*.xml
+  rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml
   return 0
 }
 
@@ -274,7 +275,7 @@ function h_create_libvirt_adminnode_config()
 
   cat > $1 <<EOLIBVIRT
   <domain type='kvm'>
-    <name>cloud-admin</name>
+    <name>$cloud-admin</name>
     <uuid>169738f2-63a1-3fef-2ee8-1fef03498574</uuid>
     <memory>2097152</memory>
     <currentMemory>2097152</currentMemory>
@@ -303,7 +304,7 @@ function h_create_libvirt_adminnode_config()
       </disk>
       <interface type='network'>
         <mac address='52:54:00:77:77:70'/>
-        <source network='cloud-admin'/>
+        <source network='$cloud-admin'/>
         <model type='virtio'/>
         <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
       </interface>
@@ -334,7 +335,7 @@ function h_create_libvirt_admin_network_config()
   # doc: http://libvirt.org/formatnetwork.html
   cat > $1 <<EOLIBVIRTNET
   <network>
-    <name>cloud-admin</name>
+    <name>$cloud-admin</name>
     <uuid>76b08f53-4fe0-3bb6-8220-d4cfc7b23423</uuid>
     <bridge name='$cloudbr' stp='off' delay='0' />
     <mac address='52:54:00:AB:B1:77'/>
@@ -361,9 +362,9 @@ function setupadmin()
   umount $mnt
   sync
 
-  h_create_libvirt_adminnode_config /tmp/cloud-admin.xml
+  h_create_libvirt_adminnode_config /tmp/$cloud-admin.xml
 
-  h_create_libvirt_admin_network_config /tmp/cloud-admin.net.xml
+  h_create_libvirt_admin_network_config /tmp/$cloud-admin.net.xml
 
   modprobe kvm-amd
   if [ ! -e /etc/modprobe.d/80-kvm-intel.conf ] ; then
@@ -375,11 +376,11 @@ function setupadmin()
   rclibvirtd start
   wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 
-  [ -e /etc/libvirt/qemu/networks/cloud-admin.xml ] || virsh net-create /tmp/cloud-admin.net.xml
-  virsh net-start cloud-admin
-  if ! virsh create /tmp/cloud-admin.xml ; then
+  [ -e /etc/libvirt/qemu/networks/$cloud-admin.xml ] || virsh net-create /tmp/$cloud-admin.net.xml
+  virsh net-start $cloud-admin
+  if ! virsh create /tmp/$cloud-admin.xml ; then
     echo "=====================================================>>"
-    echo "Error: Could not create VM for: cloud-admin"
+    echo "Error: Could not create VM for: $cloud-admin"
     exit 76
   fi
 
@@ -452,7 +453,7 @@ function h_create_libvirt_computenode_config()
 
   cat > $nodeconfigfile <<EOLIBVIRT
 <domain type='kvm'>
-  <name>cloud-node$nodecounter</name>
+  <name>$cloud-node$nodecounter</name>
   <uuid>169738f2-63$i2-3fef-2ee8-1fef03498574</uuid>
   <memory>2097152</memory>
   <currentMemory>2097152</currentMemory>
@@ -481,7 +482,7 @@ function h_create_libvirt_computenode_config()
     $cephvolume
     <interface type='network'>
       <mac address='52:54:$i2:77:77:$i2'/>
-      <source network='cloud-admin'/>
+      <source network='$cloud-admin'/>
       <model type='$nicmodel'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
       <boot order='1'/>
@@ -526,7 +527,7 @@ function setupcompute()
         c=$(($c + 1))
         cephvolume="$cephvolume
     <disk type='block' device='disk'>
-      <serial>cloud-node$i-ceph$n</serial>
+      <serial>$cloud-node$i-ceph$n</serial>
       <driver name='qemu' type='raw' cache='unsafe'/>
       <source dev='/dev/$cloudvg/node$i-ceph$n'/>
       <target dev='$dev' bus='virtio'/>
@@ -534,10 +535,10 @@ function setupcompute()
       done
     fi
 
-    h_create_libvirt_computenode_config /tmp/cloud-node$i.xml $i "$cephvolume"
+    h_create_libvirt_computenode_config /tmp/$cloud-node$i.xml $i "$cephvolume"
 
-    virsh destroy cloud-node$i 2>/dev/null
-    if ! virsh create /tmp/cloud-node$i.xml ; then
+    virsh destroy $cloud-node$i 2>/dev/null
+    if ! virsh create /tmp/$cloud-node$i.xml ; then
       echo "====>>"
       echo "Error: Could not create VM for: node$i"
       exit 74
