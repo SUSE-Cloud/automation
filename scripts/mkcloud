@@ -211,6 +211,13 @@ function h_add_etchosts_entries()
   grep -q crowbar /etc/hosts || echo "$adminip crowbar.$virtualcloud.cloud.suse.de crowbar" >> /etc/hosts
 }
 
+function h_enable_ksm
+{
+  # enable kernel-samepage-merging to save RAM
+  echo 1 > /sys/kernel/mm/ksm/run
+  echo 1000 > /sys/kernel/mm/ksm/pages_to_scan
+}
+
 function prepare()
 {
   zypper --non-interactive in --no-recommends libvirt kvm lvm2 curl wget bridge-utils dnsmasq netcat-openbsd ebtables
@@ -225,6 +232,7 @@ UserKnownHostsFile /dev/null
 StrictHostKeyChecking no
 EOSSH
 
+  h_enable_ksm
   h_create_cloud_lvm
   h_deploy_admin_image
   h_add_etchosts_entries
