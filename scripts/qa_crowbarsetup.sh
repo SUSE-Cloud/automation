@@ -19,6 +19,7 @@ fi
 
 # common cloud network prefix within SUSE Nuremberg:
 netp=10.122
+net=${net_admin:-192.168.124}
 case $cloud in
 	d1)
 		net=$netp.178
@@ -65,7 +66,7 @@ case $cloud in
                 net_public=$netp.183
         ;;
 	virtual)
-		net=192.168.124
+                true # defaults are fine (and overridable)
 	;;
 	cumulus)
 		net=$netp.189
@@ -375,8 +376,7 @@ netfilepatch=`basename $netfile`.patch
 # to revert https://github.com/crowbar/barclamp-network/commit/a85bb03d7196468c333a58708b42d106d77eaead
 sed -i.netbak1 -e 's/192\.168\.126/192.168.122/g' $netfile
 
-if [ $cloud != virtual ] ; then
-	sed -i.netbak -e 's/"conduit": "bmc",/& "router":"192.168.124.1",/' \
+sed -i.netbak -e 's/"conduit": "bmc",/& "router":"192.168.124.1",/' \
               -e "s/192.168.124/$net/g" \
               -e "s/192.168.125/$net_storage/g" \
               -e "s/192.168.123/$net_fixed/g" \
@@ -386,7 +386,7 @@ if [ $cloud != virtual ] ; then
               -e "s/500/$vlan_fixed/g" \
               -e "s/700/$vlan_sdn/g" \
 		$netfile
-fi
+
 if [[ $cloud = p || $cloud = p2 ]] ; then
 	# production cloud has a /22 network
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.252.0 $netfile
