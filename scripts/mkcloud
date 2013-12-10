@@ -144,6 +144,7 @@ function cleanup()
       virsh undefine $cloud-$n
   done
   virsh net-destroy $cloud-admin
+  ifdown $cloudbr.300
   ifdown $cloudbr
   brctl delbr $cloudbr
   tunctl -d ${cloudbr}-nic
@@ -157,7 +158,8 @@ function cleanup()
       losetup -d $i
     fi
   done
-  rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml
+  rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml \
+    /etc/sysconfig/network/ifcfg-$cloudbr.300
   return 0
 }
 
