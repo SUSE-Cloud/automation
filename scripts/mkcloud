@@ -514,8 +514,6 @@ function setupcompute()
 {
   # public = 300
   mkvlan 300 $net_public.1
-  # nova-fixed = 500
-  mkvlan 500 $net_fixed.254
 
   alldevices=$(echo {b..z} {a..z}{a..z})
   for i in $allnodeids ; do
