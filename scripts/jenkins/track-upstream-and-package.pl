@@ -446,6 +446,9 @@ sub check_pip_requires_changes()
   eval {
     $custom_service=xml_get_text($xmldom, '/services/service[@name="python_sdist"][1]/param[@name="basename"][1]');
   };
+  eval {
+    $custom_service=xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="changesgenerate"][1]');
+  };
   my $revision = $ENV{GITREV} || '';
 
   my $tarball;
