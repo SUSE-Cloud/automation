@@ -276,7 +276,6 @@ function h_create_libvirt_adminnode_config()
   cat > $1 <<EOLIBVIRT
   <domain type='kvm'>
     <name>$cloud-admin</name>
-    <uuid>169738f2-63a1-3fef-2ee8-1fef03498574</uuid>
     <memory>2097152</memory>
     <currentMemory>2097152</currentMemory>
     <vcpu>$vcpus</vcpu>
@@ -336,7 +335,6 @@ function h_create_libvirt_admin_network_config()
   cat > $1 <<EOLIBVIRTNET
   <network>
     <name>$cloud-admin</name>
-    <uuid>76b08f53-4fe0-3bb6-8220-d4cfc7b23423</uuid>
     <bridge name='$cloudbr' stp='off' delay='0' />
     <mac address='52:54:00:AB:B1:77'/>
     <ip address='$admingw' netmask='$adminnetmask'>
@@ -454,7 +452,6 @@ function h_create_libvirt_computenode_config()
   cat > $nodeconfigfile <<EOLIBVIRT
 <domain type='kvm'>
   <name>$cloud-node$nodecounter</name>
-  <uuid>169738f2-63$i2-3fef-2ee8-1fef03498574</uuid>
   <memory>2097152</memory>
   <currentMemory>2097152</currentMemory>
   <vcpu>$vcpus</vcpu>
