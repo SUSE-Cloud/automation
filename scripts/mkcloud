@@ -59,7 +59,7 @@ start_time=`date`
 cloud=${cloud:-cloud}
 cloudvg=${cloudvg:-$cloud}
 cloudbr=${cloudbr:-${cloud}br}
-mnt=/tmp/cloudmnt
+mnt=/tmp/cloudmnt/$$
 debug=${debug:-0}
 
 trap 'error_exit $? "error caught by trap"' TERM
@@ -152,7 +152,6 @@ function cleanup()
   for node in $allnodeids ; do
     dd if=/dev/zero of=/dev/$cloudvg/node$node count=1 bs=8192
   done
-  umount $mnt
   for i in /dev/loop* ; do
     if losetup $i | grep -q $cloud-admin ; then
       losetup -d $i
