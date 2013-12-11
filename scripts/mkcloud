@@ -159,6 +159,10 @@ function cleanup()
   done
   rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml \
     /etc/sysconfig/network/ifcfg-$cloudbr.300
+  if [ -n "$wipe" ] ; then
+    vgchange -an $cloudvg
+    dd if=/dev/zero of=$CVOL count=1000
+  fi
   return 0
 }
 
