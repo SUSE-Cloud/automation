@@ -10,6 +10,8 @@ export nodenumber=${nodenumber:-2}
 export nodes=
 export debug=${debug:-0}
 
+[ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
+
 if [ -z $cloud ] ; then
   echo "Error: Parameter missing that defines the cloud name"
   echo "Possible values: [d1, d2, p, virtual]"
@@ -469,47 +471,45 @@ function installcrowbar()
 
 }
 
-[ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
-if [ -n "$allocate" ] ; then
+function allocate()
+{
+  #chef-client
+  if [ $cloud != virtual ] ; then
+          nodelist="3 4 5 6"
+          # protect machine 3 on d2 for tomasz
+          if [ "$cloud" = "d2" ]; then
+              nodelist="4 5"
+          fi
+    for i in $nodelist ; do
+      for pw in root crowbar 'cr0wBar!' ; do
+        (ipmitool -H "$net.16$i" -U root -P $pw lan set 1 defgw ipaddr "$net.1"
+        ipmitool -H "$net.16$i" -U root -P $pw power reset) &
+      done
+    done
+    wait
+  fi
 
-#chef-client
-if [ $cloud != virtual ] ; then
-        nodelist="3 4 5 6"
-        # protect machine 3 on d2 for tomasz
-        if [ "$cloud" = "d2" ]; then
-            nodelist="4 5"
-        fi
-	for i in $nodelist ; do
-	  for pw in root crowbar 'cr0wBar!' ; do
-		  (ipmitool -H "$net.16$i" -U root -P $pw lan set 1 defgw ipaddr "$net.1"
-		  ipmitool -H "$net.16$i" -U root -P $pw power reset) &
-	  done
-	done
-	wait
-fi
+  echo "Waiting for nodes to come up..."
+  while ! crowbar machines list | grep ^d ; do sleep 10 ; done
+  echo "Found one node"
+  while test $(crowbar machines list | grep ^d|wc -l) -lt $nodenumber ; do sleep 10 ; done
+  nodes=$(crowbar machines list | grep ^d)
+  for n in $nodes ; do
+          wait_for 100 2 "knife node show -a state $n | grep discovered" "node to enter discovered state"
+  done
+  echo "Sleeping 50 more seconds..."
+  sleep 50
+  for m in `crowbar machines list | grep ^d` ; do
+    while knife node show -a state $m | grep discovered; do # workaround bnc#773041
+      crowbar machines allocate "$m"
+      sleep 10
+    done
+  done
 
-echo "Waiting for nodes to come up..."
-while ! crowbar machines list | grep ^d ; do sleep 10 ; done
-echo "Found one node"
-while test $(crowbar machines list | grep ^d|wc -l) -lt $nodenumber ; do sleep 10 ; done
-nodes=$(crowbar machines list | grep ^d)
-for n in $nodes ; do
-        wait_for 100 2 "knife node show -a state $n | grep discovered" "node to enter discovered state"
-done
-echo "Sleeping 50 more seconds..."
-sleep 50
-for m in `crowbar machines list | grep ^d` ; do
-	while knife node show -a state $m | grep discovered; do # workaround bnc#773041
-		crowbar machines allocate "$m"
-		sleep 10
-	done
-done
-
-# check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
-curl -m 9 -s --digest --user crowbar:crowbar http://localhost:3000| tee /root/crowbartest.out
-grep "Exception caught" /root/crowbartest.out && exit 27
-
-fi
+  # check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
+  curl -m 9 -s --digest --user crowbar:crowbar http://localhost:3000| tee /root/crowbartest.out
+  grep "Exception caught" /root/crowbartest.out && exit 27
+}
 
 function sshtest()
 {
@@ -1198,6 +1198,10 @@ function teardown()
 # like in mkcloud; this makes it easier to read, understand and edit this file
 #
 
+if [ -n "$allocate" ] ; then
+  allocate
+  exit $?
+fi
 
 if [ -n "$prepareinstallcrowbar" ] ; then
   prepareinstallcrowbar
