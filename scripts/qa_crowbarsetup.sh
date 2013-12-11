@@ -125,132 +125,6 @@ function wait_for()
   fi
 }
 
-function installcrowbar()
-{
-echo configure static IP and absolute + resolvable hostname crowbar.$cloud.cloud.suse.de gw:$net.1
-cat > /etc/sysconfig/network/ifcfg-eth0 <<EOF
-NAME='eth0'
-STARTMODE='auto'
-BOOTPROTO='static'
-IPADDR='$net.10'
-NETMASK='255.255.255.0'
-BROADCAST='$net.255'
-EOF
-ifdown br0
-rm -f /etc/sysconfig/network/ifcfg-br0
-grep -q "^default" /etc/sysconfig/network/routes || echo "default $net.1 - -" > /etc/sysconfig/network/routes
-echo "crowbar.$cloud.cloud.suse.de" > /etc/HOSTNAME
-hostname `cat /etc/HOSTNAME`
-# these vars are used by rabbitmq
-export HOSTNAME=`cat /etc/HOSTNAME`
-export HOST=$HOSTNAME
-grep -q "$net.*crowbar" /etc/hosts || echo $net.10 crowbar.$cloud.cloud.suse.de crowbar >> /etc/hosts
-rcnetwork restart
-hostname -f # make sure it is a FQDN
-ping -c 1 `hostname -f`
-longdistance=${longdistance:-false}
-if [[ $(ping -q -c1 clouddata.cloud.suse.de|perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') -gt 100 ]] ; then
-  longdistance=true
-fi
-
-mkdir -p /mnt/dist /mnt/cloud
-mkdir -p /srv/tftpboot/repos/Cloud/
-cd /srv/tftpboot/repos/Cloud/
-
-suseversion=11.2
-: ${susedownload:=download.nue.suse.com}
-case $cloudsource in
-    develcloud1.0)
-        CLOUDDISTPATH=/ibs/Devel:/Cloud:/1.0/images/iso
-        CLOUDDISTISO="S*-CLOUD*Media1.iso"
-    ;;
-    develcloud2.0)
-        CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0/images/iso
-        [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0:/Staging/images/iso
-        CLOUDDISTISO="S*-CLOUD*Media1.iso"
-        suseversion=11.3
-    ;;
-    develcloud3)
-        CLOUDDISTPATH=/ibs/Devel:/Cloud:/3/images/iso
-        [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/3:/Staging/images/iso
-        CLOUDDISTISO="S*-CLOUD*Media1.iso"
-        suseversion=11.3
-    ;;
-    develcloud)
-        echo "The cloudsource 'develcloud' is no longer supported."
-        echo "Please use 'develcloud1.0' resp. 'develcloud2.0'."
-        exit 11
-    ;;
-    susecloud|susecloud1.0)
-        CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/images/iso
-        CLOUDDISTISO="S*-CLOUD*Media1.iso"
-    ;;
-    susecloud2.0)
-        CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/GA:/Products:/Test/images/iso
-        CLOUDDISTISO="S*-CLOUD*Media1.iso"
-        suseversion=11.3
-    ;;
-    susecloud3)
-        CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Products:/Test/images/iso
-        CLOUDDISTISO="S*-CLOUD*Media1.iso"
-        suseversion=11.3
-    ;;
-    GM|GM1.0)
-        CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-GM/
-        CLOUDDISTISO="S*-CLOUD*GM-DVD1.iso"
-    ;;
-    Beta*|RC*|GMC*|GM2.0)
-        cs=$cloudsource
-        [ $cs = GM2.0 ] && cs=GM
-        CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-$cs/
-        CLOUDDISTISO="S*-CLOUD*1.iso"
-        suseversion=11.3
-    ;;
-    *)
-        echo "Error: you must set environment variable cloudsource=develcloud|susecloud|Beta1"
-        exit 76
-    ;;
-esac
-
-case $suseversion in
-    11.2)
-      slesrepolist="SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Updates"
-      slesversion=11-SP2
-      slesdist=SLE_11_SP2
-      slesmilestone=GM
-    ;;
-    11.3)
-      slesrepolist="SLES11-SP3-Pool SLES11-SP3-Updates"
-      slesversion=11-SP3
-      slesdist=SLE_11_SP3
-      slesmilestone=GM
-    ;;
-esac
-
-zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ sles
-
-if [ "x$WITHSLEUPDATES" != "x" ] ; then
-  if [ $suseversion = "11.2" ] ; then
-    zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1/" sp1-up
-    zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP2/" sp2-up
-  else
-    zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/$slesversion/" ${slesversion}-up
-  fi
-fi
-
-
-zypper -n install rsync netcat
-wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
-CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
-echo $CLOUDISO > /etc/cloudversion
-echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
-mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
-rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
-if [ ! -e "/srv/tftpboot/repos/Cloud/media.1" ] ; then
-	echo "We do not have cloud install media - giving up"
-	exit 35
-fi
-
 function addsp2testupdates()
 {
     mkdir -p /srv/tftpboot/repos/SLES11-SP{1,2}-Updates
@@ -267,201 +141,331 @@ function addsp3testupdates()
     zypper ar /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
 }
 
-zypper ar /srv/tftpboot/repos/Cloud Cloud
-if [ -n "$TESTHEAD" ] ; then
-    case "$cloudsource" in
-        develcloud1.0)
-            addsp2testupdates
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0/$slesdist/Devel:Cloud:1.0.repo
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0:/Crowbar/$slesdist/Devel:Cloud:1.0:Crowbar.repo
-            zypper mr -p 70 Devel_Cloud # more important
-            zypper mr -p 60 Devel_Cloud_Crowbar # even more important
-            zypper mr -p 60 DCCdirect # as important - just use newer ver
-            ;;
-        develcloud2.0)
-            addsp3testupdates
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0:/Staging/$slesdist/Devel:Cloud:2.0:Staging.repo
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0/$slesdist/Devel:Cloud:2.0.repo
-            zypper mr -p 60 Devel_Cloud_2.0_Staging
-            zypper mr -p 70 Devel_Cloud_2.0
-            ;;
-        susecloud3)
-            addsp3testupdates
-            ;;
-        develcloud3)
-            addsp3testupdates
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3:/Staging/$slesdist/Devel:Cloud:3:Staging.repo
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3/$slesdist/Devel:Cloud:3.repo
-            zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/ cloud-shared-11sp3
-            zypper mr -p 60 Devel_Cloud_3_Staging
-            zypper mr -p 70 Devel_Cloud_3
-            ;;
-        GM|GM1.0)
-            addsp2testupdates
-            mkdir -p /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates
-            mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-1.0-Updates-test /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates
-            zypper ar /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates cloudtup
-            ;;
-        GM2.0)
-            addsp3testupdates
-            mkdir -p /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates
-            mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-2.0-Updates-test /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates
-            zypper ar /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates cloudtup
-            ;;
-        *)
-            echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
-            exit 26
-            ;;
-    esac
-fi
-# --no-gpg-checks for Devel:Cloud repo
-zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
-
-zypper --no-gpg-checks -n in -l -t pattern cloud_admin
-ret=$?
-
-if [ $ret = 0 ] ; then
-  echo "The cloud admin successfully installed."
-  echo ".... continuing"
-else
-  echo "Error: zypper returned with exit code $? when installing cloud admin"
-  exit 86
-fi
-
-
-mkdir -p /srv/tftpboot/suse-$suseversion/install
-if ! $longdistance && ! grep -q suse-$suseversion /etc/fstab ; then
-  echo "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install /srv/tftpboot/suse-$suseversion/install    nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
-  mount /srv/tftpboot/suse-$suseversion/install
-fi
-
-case $cloudsource in
-    develcloud1.0|susecloud1.0|GM|GM1.0)
-    zypper -n install createrepo
-    for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
-        mkdir -p /srv/tftpboot/repos/$REPO
-        cd /srv/tftpboot/repos/$REPO
-        [ -e repodata ] || createrepo .
-    done
-    ;;
-esac
-
-for REPO in $slesrepolist ; do
-  grep -q $REPO /etc/fstab && continue
-  r=/srv/tftpboot/repos/$REPO
-  test -d $r/rpm && continue
-  mkdir -p $r
-  echo "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO  $r   nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
-  mount $r
-done
-
-# just as a fallback if nfs did not work
-if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
-  f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
-  p=/srv/tftpboot/suse-$suseversion/$f
-  wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
-  echo $p /srv/tftpboot/suse-$suseversion/install/ iso9660 loop,ro >> /etc/fstab
-  mount /srv/tftpboot/suse-$suseversion/install/
-fi
-if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
-	echo "We do not have SLES install media - giving up"
-	exit 34
-fi
-cd /tmp
-
-netfile="/opt/dell/chef/data_bags/crowbar/bc-template-network.json"
-netfilepatch=`basename $netfile`.patch
-[ -e ~/$netfilepatch ] && patch -p1 $netfile < ~/$netfilepatch
-
-# to revert https://github.com/crowbar/barclamp-network/commit/a85bb03d7196468c333a58708b42d106d77eaead
-sed -i.netbak1 -e 's/192\.168\.126/192.168.122/g' $netfile
-
-sed -i.netbak -e 's/"conduit": "bmc",/& "router":"192.168.124.1",/' \
-              -e "s/192.168.124/$net/g" \
-              -e "s/192.168.125/$net_storage/g" \
-              -e "s/192.168.123/$net_fixed/g" \
-              -e "s/192.168.122/$net_public/g" \
-              -e "s/200/$vlan_storage/g" \
-              -e "s/300/$vlan_public/g" \
-              -e "s/500/$vlan_fixed/g" \
-              -e "s/700/$vlan_sdn/g" \
-		$netfile
-
-if [[ $cloud = p || $cloud = p2 ]] ; then
-	# production cloud has a /22 network
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.252.0 $netfile
-fi
-if [[ $cloud = p2 ]] ; then
-        /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.252.0 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.0.3.254 $netfile
-        # floating net is the 2nd half of public net:
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.254.0 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v 10.122.166.0 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.start -v 10.122.166.1 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v 10.122.167.191 $netfile
-        # todo? broadcast
-fi
-cp -a $netfile /etc/crowbar/network.json # new place since 2013-07-18
-
-# to allow integration into external DNS:
-f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
-grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
-
-# workaround for performance bug (bnc#770083)
-sed -i -e "s#<\(partitions.*\)/>#<\1><partition><mount>swap</mount><size>auto</size></partition><partition><mount>/</mount><size>max</size><fstopt>data=writeback,barrier=0,noatime</fstopt></partition></partitions>#" /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
-# set default password to 'linux'
-# setup_base_images.rb is for SUSE Cloud 1.0 and update_nodes.rb is for 2.0
-sed -i -e 's/\(rootpw_hash.*\)""/\1"$2y$10$u5mQA7\/8YjHdutDPEMPtBeh\/w8Bq0wEGbxleUT4dO48dxgwyPD8D."/' /opt/dell/chef/cookbooks/provisioner/recipes/setup_base_images.rb /opt/dell/chef/cookbooks/provisioner/recipes/update_nodes.rb
-
-
-intercept "install-chef-suse.sh"
-
-rm -f /tmp/chef-ready
-rpm -Va crowbar\*
-export REPOS_SKIP_CHECKS="Cloud SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates"
-# run in screen to not lose session in the middle when network is reconfigured:
-screen -d -m -L /bin/bash -c 'if [ -e /tmp/install-chef-suse.sh --verbose ] ; then /tmp/install-chef-suse.sh ; else /opt/dell/bin/install-chef-suse.sh --verbose ; fi ; touch /tmp/chef-ready'
-n=300
-while [ $n -gt 0 ] && [ ! -e /tmp/chef-ready ] ; do
-	n=$(expr $n - 1)
-	sleep 5;
-	echo -n .
-done
-if [ $n = 0 ] ; then
-	echo "timed out waiting for chef-ready"
-	exit 83
-fi
-rpm -Va crowbar\*
-
-[ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
-
-sleep 20
-if ! curl -m 29 -s http://localhost:3000 > /dev/null || ! curl -m 29 -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
-	tail -n 90 /tmp/screenlog.0
-	echo "crowbar self-test failed"
-	exit 84
-fi
-
-if ! crowbar machines list | grep -q crowbar.$cloud ; then
-	tail -n 90 /tmp/screenlog.0
-	echo "crowbar 2nd self-test failed"
-	exit 85
-fi
-
-if ! (rcxinetd status && rcdhcpd status) ; then
-   echo "Error: provisioner failed to configure all needed services!"
-   echo "Please fix manually."
-   exit 67
-fi
-  if [ -n "$ntpserver" ] ; then
-    crowbar ntp proposal show default |
-      ruby -e "require 'rubygems';require 'json';
-	j=JSON.parse(STDIN.read);
-	j['attributes']['ntp']['external_servers']=['$ntpserver'];
-      puts JSON.pretty_generate(j)" > /root/ntpproposal
-    crowbar ntp proposal --file=/root/ntpproposal edit default
-    crowbar ntp proposal commit default
+function prepareinstallcrowbar()
+{
+  echo configure static IP and absolute + resolvable hostname crowbar.$cloud.cloud.suse.de gw:$net.1
+  cat > /etc/sysconfig/network/ifcfg-eth0 <<EOF
+NAME='eth0'
+STARTMODE='auto'
+BOOTPROTO='static'
+IPADDR='$net.10'
+NETMASK='255.255.255.0'
+BROADCAST='$net.255'
+EOF
+  ifdown br0
+  rm -f /etc/sysconfig/network/ifcfg-br0
+  grep -q "^default" /etc/sysconfig/network/routes || echo "default $net.1 - -" > /etc/sysconfig/network/routes
+  echo "crowbar.$cloud.cloud.suse.de" > /etc/HOSTNAME
+  hostname `cat /etc/HOSTNAME`
+  # these vars are used by rabbitmq
+  export HOSTNAME=`cat /etc/HOSTNAME`
+  export HOST=$HOSTNAME
+  grep -q "$net.*crowbar" /etc/hosts || echo $net.10 crowbar.$cloud.cloud.suse.de crowbar >> /etc/hosts
+  rcnetwork restart
+  hostname -f # make sure it is a FQDN
+  ping -c 1 `hostname -f`
+  longdistance=${longdistance:-false}
+  if [[ $(ping -q -c1 clouddata.cloud.suse.de|perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') -gt 100 ]] ; then
+    longdistance=true
   fi
+
+  mkdir -p /mnt/dist /mnt/cloud
+  mkdir -p /srv/tftpboot/repos/Cloud/
+  cd /srv/tftpboot/repos/Cloud/
+
+  suseversion=11.2
+  : ${susedownload:=download.nue.suse.com}
+  case $cloudsource in
+      develcloud1.0)
+          CLOUDDISTPATH=/ibs/Devel:/Cloud:/1.0/images/iso
+          CLOUDDISTISO="S*-CLOUD*Media1.iso"
+      ;;
+      develcloud2.0)
+          CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0/images/iso
+          [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0:/Staging/images/iso
+          CLOUDDISTISO="S*-CLOUD*Media1.iso"
+          suseversion=11.3
+      ;;
+      develcloud3)
+          CLOUDDISTPATH=/ibs/Devel:/Cloud:/3/images/iso
+          [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/3:/Staging/images/iso
+          CLOUDDISTISO="S*-CLOUD*Media1.iso"
+          suseversion=11.3
+      ;;
+      develcloud)
+          echo "The cloudsource 'develcloud' is no longer supported."
+          echo "Please use 'develcloud1.0' resp. 'develcloud2.0'."
+          exit 11
+      ;;
+      susecloud|susecloud1.0)
+          CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/images/iso
+          CLOUDDISTISO="S*-CLOUD*Media1.iso"
+      ;;
+      susecloud2.0)
+          CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/GA:/Products:/Test/images/iso
+          CLOUDDISTISO="S*-CLOUD*Media1.iso"
+          suseversion=11.3
+      ;;
+      susecloud3)
+          CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Products:/Test/images/iso
+          CLOUDDISTISO="S*-CLOUD*Media1.iso"
+          suseversion=11.3
+      ;;
+      GM|GM1.0)
+          CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-GM/
+          CLOUDDISTISO="S*-CLOUD*GM-DVD1.iso"
+      ;;
+      Beta*|RC*|GMC*|GM2.0)
+          cs=$cloudsource
+          [ $cs = GM2.0 ] && cs=GM
+          CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-$cs/
+          CLOUDDISTISO="S*-CLOUD*1.iso"
+          suseversion=11.3
+      ;;
+      *)
+          echo "Error: you must set environment variable cloudsource=develcloud|susecloud|Beta1"
+          exit 76
+      ;;
+  esac
+
+  case $suseversion in
+      11.2)
+        slesrepolist="SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Updates"
+        slesversion=11-SP2
+        slesdist=SLE_11_SP2
+        slesmilestone=GM
+      ;;
+      11.3)
+        slesrepolist="SLES11-SP3-Pool SLES11-SP3-Updates"
+        slesversion=11-SP3
+        slesdist=SLE_11_SP3
+        slesmilestone=GM
+      ;;
+  esac
+
+  zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ sles
+
+  if [ "x$WITHSLEUPDATES" != "x" ] ; then
+    if [ $suseversion = "11.2" ] ; then
+      zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1/" sp1-up
+      zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP2/" sp2-up
+    else
+      zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/$slesversion/" ${slesversion}-up
+    fi
+  fi
+
+
+  zypper -n install rsync netcat
+  wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
+  CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
+  echo $CLOUDISO > /etc/cloudversion
+  echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
+  mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
+  rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
+  if [ ! -e "/srv/tftpboot/repos/Cloud/media.1" ] ; then
+    echo "We do not have cloud install media - giving up"
+    exit 35
+  fi
+
+
+  zypper ar /srv/tftpboot/repos/Cloud Cloud
+  if [ -n "$TESTHEAD" ] ; then
+      case "$cloudsource" in
+          develcloud1.0)
+              addsp2testupdates
+              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0/$slesdist/Devel:Cloud:1.0.repo
+              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0:/Crowbar/$slesdist/Devel:Cloud:1.0:Crowbar.repo
+              zypper mr -p 70 Devel_Cloud # more important
+              zypper mr -p 60 Devel_Cloud_Crowbar # even more important
+              zypper mr -p 60 DCCdirect # as important - just use newer ver
+              ;;
+          develcloud2.0)
+              addsp3testupdates
+              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0:/Staging/$slesdist/Devel:Cloud:2.0:Staging.repo
+              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0/$slesdist/Devel:Cloud:2.0.repo
+              zypper mr -p 60 Devel_Cloud_2.0_Staging
+              zypper mr -p 70 Devel_Cloud_2.0
+              ;;
+          susecloud3)
+              addsp3testupdates
+              ;;
+          develcloud3)
+              addsp3testupdates
+              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3:/Staging/$slesdist/Devel:Cloud:3:Staging.repo
+              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3/$slesdist/Devel:Cloud:3.repo
+              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/ cloud-shared-11sp3
+              zypper mr -p 60 Devel_Cloud_3_Staging
+              zypper mr -p 70 Devel_Cloud_3
+              ;;
+          GM|GM1.0)
+              addsp2testupdates
+              mkdir -p /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates
+              mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-1.0-Updates-test /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates
+              zypper ar /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates cloudtup
+              ;;
+          GM2.0)
+              addsp3testupdates
+              mkdir -p /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates
+              mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-2.0-Updates-test /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates
+              zypper ar /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates cloudtup
+              ;;
+          *)
+              echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
+              exit 26
+              ;;
+      esac
+  fi
+  # --no-gpg-checks for Devel:Cloud repo
+  zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
+
+  zypper --no-gpg-checks -n in -l -t pattern cloud_admin
+  ret=$?
+
+  if [ $ret = 0 ] ; then
+    echo "The cloud admin successfully installed."
+    echo ".... continuing"
+  else
+    echo "Error: zypper returned with exit code $? when installing cloud admin"
+    exit 86
+  fi
+
+
+  mkdir -p /srv/tftpboot/suse-$suseversion/install
+  if ! $longdistance && ! grep -q suse-$suseversion /etc/fstab ; then
+    echo "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install /srv/tftpboot/suse-$suseversion/install    nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
+    mount /srv/tftpboot/suse-$suseversion/install
+  fi
+
+  case $cloudsource in
+      develcloud1.0|susecloud1.0|GM|GM1.0)
+      zypper -n install createrepo
+      for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
+          mkdir -p /srv/tftpboot/repos/$REPO
+          cd /srv/tftpboot/repos/$REPO
+          [ -e repodata ] || createrepo .
+      done
+      ;;
+  esac
+
+  for REPO in $slesrepolist ; do
+    grep -q $REPO /etc/fstab && continue
+    r=/srv/tftpboot/repos/$REPO
+    test -d $r/rpm && continue
+    mkdir -p $r
+    echo "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO  $r   nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
+    mount $r
+  done
+
+  # just as a fallback if nfs did not work
+  if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
+    f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
+    p=/srv/tftpboot/suse-$suseversion/$f
+    wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
+    echo $p /srv/tftpboot/suse-$suseversion/install/ iso9660 loop,ro >> /etc/fstab
+    mount /srv/tftpboot/suse-$suseversion/install/
+  fi
+  if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
+    echo "We do not have SLES install media - giving up"
+    exit 34
+  fi
+  cd /tmp
+
+  netfile="/opt/dell/chef/data_bags/crowbar/bc-template-network.json"
+  netfilepatch=`basename $netfile`.patch
+  [ -e ~/$netfilepatch ] && patch -p1 $netfile < ~/$netfilepatch
+
+  # to revert https://github.com/crowbar/barclamp-network/commit/a85bb03d7196468c333a58708b42d106d77eaead
+  sed -i.netbak1 -e 's/192\.168\.126/192.168.122/g' $netfile
+
+  sed -i.netbak -e 's/"conduit": "bmc",/& "router":"192.168.124.1",/' \
+                -e "s/192.168.124/$net/g" \
+                -e "s/192.168.125/$net_storage/g" \
+                -e "s/192.168.123/$net_fixed/g" \
+                -e "s/192.168.122/$net_public/g" \
+                -e "s/200/$vlan_storage/g" \
+                -e "s/300/$vlan_public/g" \
+                -e "s/500/$vlan_fixed/g" \
+                -e "s/700/$vlan_sdn/g" \
+      $netfile
+
+  if [[ $cloud = p || $cloud = p2 ]] ; then
+    # production cloud has a /22 network
+          /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.252.0 $netfile
+  fi
+  if [[ $cloud = p2 ]] ; then
+          /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.252.0 $netfile
+          /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.0.3.254 $netfile
+          # floating net is the 2nd half of public net:
+          /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.254.0 $netfile
+          /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v 10.122.166.0 $netfile
+          /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.start -v 10.122.166.1 $netfile
+          /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v 10.122.167.191 $netfile
+          # todo? broadcast
+  fi
+  cp -a $netfile /etc/crowbar/network.json # new place since 2013-07-18
+
+  # to allow integration into external DNS:
+  f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
+  grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
+
+  # workaround for performance bug (bnc#770083)
+  sed -i -e "s#<\(partitions.*\)/>#<\1><partition><mount>swap</mount><size>auto</size></partition><partition><mount>/</mount><size>max</size><fstopt>data=writeback,barrier=0,noatime</fstopt></partition></partitions>#" /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
+  # set default password to 'linux'
+  # setup_base_images.rb is for SUSE Cloud 1.0 and update_nodes.rb is for 2.0
+  sed -i -e 's/\(rootpw_hash.*\)""/\1"$2y$10$u5mQA7\/8YjHdutDPEMPtBeh\/w8Bq0wEGbxleUT4dO48dxgwyPD8D."/' /opt/dell/chef/cookbooks/provisioner/recipes/setup_base_images.rb /opt/dell/chef/cookbooks/provisioner/recipes/update_nodes.rb
+
+}
+
+function installcrowbar()
+{
+  intercept "install-chef-suse.sh"
+
+  rm -f /tmp/chef-ready
+  rpm -Va crowbar\*
+  export REPOS_SKIP_CHECKS="Cloud SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates"
+  # run in screen to not lose session in the middle when network is reconfigured:
+  screen -d -m -L /bin/bash -c 'if [ -e /tmp/install-chef-suse.sh --verbose ] ; then /tmp/install-chef-suse.sh ; else /opt/dell/bin/install-chef-suse.sh --verbose ; fi ; touch /tmp/chef-ready'
+  n=300
+  while [ $n -gt 0 ] && [ ! -e /tmp/chef-ready ] ; do
+    n=$(expr $n - 1)
+    sleep 5;
+    echo -n .
+  done
+  if [ $n = 0 ] ; then
+    echo "timed out waiting for chef-ready"
+    exit 83
+  fi
+  rpm -Va crowbar\*
+
+  [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
+
+  sleep 20
+  if ! curl -m 29 -s http://localhost:3000 > /dev/null || ! curl -m 29 -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
+    tail -n 90 /tmp/screenlog.0
+    echo "crowbar self-test failed"
+    exit 84
+  fi
+
+  if ! crowbar machines list | grep -q crowbar.$cloud ; then
+    tail -n 90 /tmp/screenlog.0
+    echo "crowbar 2nd self-test failed"
+    exit 85
+  fi
+
+  if ! (rcxinetd status && rcdhcpd status) ; then
+     echo "Error: provisioner failed to configure all needed services!"
+     echo "Please fix manually."
+     exit 67
+  fi
+    if [ -n "$ntpserver" ] ; then
+      crowbar ntp proposal show default |
+        ruby -e "require 'rubygems';require 'json';
+    j=JSON.parse(STDIN.read);
+    j['attributes']['ntp']['external_servers']=['$ntpserver'];
+        puts JSON.pretty_generate(j)" > /root/ntpproposal
+      crowbar ntp proposal --file=/root/ntpproposal edit default
+      crowbar ntp proposal commit default
+    fi
 
 }
 
@@ -1194,6 +1198,11 @@ function teardown()
 # like in mkcloud; this makes it easier to read, understand and edit this file
 #
 
+
+if [ -n "$prepareinstallcrowbar" ] ; then
+  prepareinstallcrowbar
+  exit $?
+fi
 
 if [ -n "$installcrowbar" ] ; then
   installcrowbar
