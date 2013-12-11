@@ -125,8 +125,8 @@ function wait_for()
   fi
 }
 
-if [ -n "$installcrowbar" ] ; then
-
+function installcrowbar()
+{
 echo configure static IP and absolute + resolvable hostname crowbar.$cloud.cloud.suse.de gw:$net.1
 cat > /etc/sysconfig/network/ifcfg-eth0 <<EOF
 NAME='eth0'
@@ -463,7 +463,7 @@ fi
     crowbar ntp proposal commit default
   fi
 
-fi # -n "$installcrowbar"
+}
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 if [ -n "$allocate" ] ; then
@@ -1193,6 +1193,12 @@ function teardown()
 # in the long run all steps should be transformed into real functions, just
 # like in mkcloud; this makes it easier to read, understand and edit this file
 #
+
+
+if [ -n "$installcrowbar" ] ; then
+  installcrowbar
+  exit $?
+fi
 
 if [ -n "$addupdaterepo" ] ; then
   addupdaterepo
