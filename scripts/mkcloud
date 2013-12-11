@@ -715,11 +715,10 @@ function sanity_checks()
   ps ax > $PSFILE
   if [ `grep -v -e grep -e SCREEN $PSFILE | grep $SCRIPT | wc -l` -gt 1 ]  ; then
     echo "Error: mkcloud was started twice."
-    echo "This is not supported ... exiting."
+    echo "if you are sure, that they do not conflict, export PARALLEL=yes"
     echo
-    echo 'Maybe you just have a "$EDITOR mkcloud" process running. Please close it.'
     rm $PSFILE
-    exit 33
+    [ "$PARALLEL" = "yes" ] || exit 33
   fi
   rm $PSFILE
 
