@@ -522,6 +522,8 @@ EOLIBVIRT
 
 function setupcompute()
 {
+  # workaround https://bugzilla.novell.com/show_bug.cgi?id=845496
+  echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
   # public = 300
   mkvlan 300 $net_public.1
 
