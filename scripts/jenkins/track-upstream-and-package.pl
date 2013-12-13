@@ -434,6 +434,7 @@ sub check_pip_requires_changes()
     $gitremote = xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="url"][1]');
   };
   my $custom_service;
+  my $changesgenerate;
   if($@ =~m/Could not find an xml element with the statement/) {
     eval {
       $custom_service=xml_get_text($xmldom, '/services/service[@name="git_tarballs"][1]/param[@name="url"][1]');
@@ -447,7 +448,7 @@ sub check_pip_requires_changes()
     $custom_service=xml_get_text($xmldom, '/services/service[@name="python_sdist"][1]/param[@name="basename"][1]');
   };
   eval {
-    $custom_service=xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="changesgenerate"][1]');
+    $changesgenerate=xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="changesgenerate"][1]');
   };
   my $revision = $ENV{GITREV} || '';
 
@@ -515,7 +516,7 @@ sub check_pip_requires_changes()
     }
   }
 
-  if (!$custom_service)
+  if (!$custom_service && !$changesgenerate)
   {
     eval {
       add_changes_entry();
