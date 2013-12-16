@@ -508,7 +508,9 @@ function allocate()
 
   # check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
   curl -m 9 -s --digest --user crowbar:crowbar http://localhost:3000| tee /root/crowbartest.out
-  grep "Exception caught" /root/crowbartest.out && exit 27
+  if grep -q "Exception caught" /root/crowbartest.out; then
+    exit 27
+  fi
 }
 
 function sshtest()
