@@ -436,7 +436,7 @@ rpm -Va crowbar\*
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
 sleep 20
-if ! curl -m 9 -s http://localhost:3000 > /dev/null || ! curl -m 9 -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
+if ! curl -m 19 -s http://localhost:3000 > /dev/null || ! curl -m 19 -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
 	tail -n 90 /tmp/screenlog.0
 	echo "crowbar self-test failed"
 	exit 84
