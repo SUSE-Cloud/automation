@@ -88,7 +88,7 @@ function error_exit()
 {
 	exitcode=$1
 	message=$2
-	ssh root@crowbar '
+	ssh root@$adminip '
 	  for node in $(crowbar machines list | grep ^d) ; do
 	    # exclude /proc, bnc#829927    
 	    ssh $node supportconfig -x PROC | wc
@@ -97,7 +97,7 @@ function error_exit()
 	  supportconfig | wc
 	'
     mkdir -p $artifacts_dir
-	scp root@crowbar:/var/log/*tbz $artifacts_dir/
+	scp root@$adminip:/var/log/*tbz $artifacts_dir/
 	echo $message
 	show_environment
 	exit $exitcode
