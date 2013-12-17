@@ -418,15 +418,17 @@ EOF
 
 }
 
-function installcrowbar()
+function do_installcrowbar()
 {
+  instcmd=$1
+  echo "Command to install chef: $instcmd"
   intercept "install-chef-suse.sh"
 
   rm -f /tmp/chef-ready
   rpm -Va crowbar\*
   export REPOS_SKIP_CHECKS="Cloud SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates"
   # run in screen to not lose session in the middle when network is reconfigured:
-  screen -d -m -L /bin/bash -c 'if [ -e /tmp/install-chef-suse.sh ] ; then /tmp/install-chef-suse.sh --verbose ; else /opt/dell/bin/install-chef-suse.sh --verbose ; fi ; touch /tmp/chef-ready'
+  screen -d -m -L /bin/bash -c "$instcmd ; touch /tmp/chef-ready"
   n=300
   while [ $n -gt 0 ] && [ ! -e /tmp/chef-ready ] ; do
     n=$(expr $n - 1)
@@ -468,7 +470,17 @@ function installcrowbar()
     crowbar ntp proposal --file=/root/ntpproposal edit default
     crowbar ntp proposal commit default
   fi
+}
 
+
+function installcrowbarfromgit()
+{
+  do_installcrowbar "/opt/dell/bin/install-chef-suse.sh --from-git --verbose"
+}
+
+function installcrowbar()
+{
+  do_installcrowbar "if [ -e /tmp/install-chef-suse.sh ] ; then /tmp/install-chef-suse.sh --verbose ; else /opt/dell/bin/install-chef-suse.sh --verbose ; fi"
 }
 
 function allocate()
@@ -1212,6 +1224,11 @@ fi
 
 if [ -n "$installcrowbar" ] ; then
   installcrowbar
+  exit $?
+fi
+
+if [ -n "$installcrowbarfromgit" ] ; then
+  installcrowbarfromgit
   exit $?
 fi
 
