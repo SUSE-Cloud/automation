@@ -426,7 +426,7 @@ function installcrowbar()
   rpm -Va crowbar\*
   export REPOS_SKIP_CHECKS="Cloud SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates"
   # run in screen to not lose session in the middle when network is reconfigured:
-  screen -d -m -L /bin/bash -c 'if [ -e /tmp/install-chef-suse.sh --verbose ] ; then /tmp/install-chef-suse.sh ; else /opt/dell/bin/install-chef-suse.sh --verbose ; fi ; touch /tmp/chef-ready'
+  screen -d -m -L /bin/bash -c 'if [ -e /tmp/install-chef-suse.sh ] ; then /tmp/install-chef-suse.sh --verbose ; else /opt/dell/bin/install-chef-suse.sh --verbose ; fi ; touch /tmp/chef-ready'
   n=300
   while [ $n -gt 0 ] && [ ! -e /tmp/chef-ready ] ; do
     n=$(expr $n - 1)
@@ -459,15 +459,15 @@ function installcrowbar()
      echo "Please fix manually."
      exit 67
   fi
-    if [ -n "$ntpserver" ] ; then
-      crowbar ntp proposal show default |
-        ruby -e "require 'rubygems';require 'json';
-    j=JSON.parse(STDIN.read);
-    j['attributes']['ntp']['external_servers']=['$ntpserver'];
-        puts JSON.pretty_generate(j)" > /root/ntpproposal
-      crowbar ntp proposal --file=/root/ntpproposal edit default
-      crowbar ntp proposal commit default
-    fi
+  if [ -n "$ntpserver" ] ; then
+    crowbar ntp proposal show default |
+      ruby -e "require 'rubygems';require 'json';
+  j=JSON.parse(STDIN.read);
+  j['attributes']['ntp']['external_servers']=['$ntpserver'];
+      puts JSON.pretty_generate(j)" > /root/ntpproposal
+    crowbar ntp proposal --file=/root/ntpproposal edit default
+    crowbar ntp proposal commit default
+  fi
 
 }
 
