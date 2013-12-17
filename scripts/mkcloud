@@ -442,6 +442,15 @@ function instcrowbar()
   return $?
 }
 
+function instcrowbarfromgit()
+{
+  # copy local install-chef-suse.sh, if it exist it will override the original one:
+  scp -p install-chef-suse.sh root@$adminip:/tmp/
+  scp qa_crowbarsetup.sh root@$adminip:
+  sshrun "echo `hostname` > cloud ; installcrowbarfromgit=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+  return $?
+}
+
 function mkvlan()
 {
   DEFVLAN=$1 ; shift
@@ -795,7 +804,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests tempest help"
+allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests tempest help"
 wantedcmds=$@
 runcmds=''
 
