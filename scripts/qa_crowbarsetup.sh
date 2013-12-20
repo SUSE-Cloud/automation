@@ -441,6 +441,7 @@ function do_installcrowbar()
   fi
   rpm -Va crowbar\*
 
+  rccrowbar status || rccrowbar start
   [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
   sleep 20
