@@ -441,6 +441,12 @@ function do_installcrowbar()
   fi
   rpm -Va crowbar\*
 
+  # Make sure install finished correctly
+  if ! [ -e /opt/dell/crowbar_framework/.crowbar-installed-ok ]; then
+    echo "Crowbar ".crowbar-install-ok" marker missing"
+    exit 89
+  fi
+
   rccrowbar status || rccrowbar start
   [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
