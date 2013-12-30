@@ -879,6 +879,7 @@ if [ -n "$testsetup" ] ; then
 		nova boot --image SP2-64 --flavor m1.smaller --key_name testkey testvm | tee boot.out
 		instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
 		sleep 30
+                nova show $instanceid
 		vmip=`nova show $instanceid | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
 		echo "VM IP address: $vmip"
         if [ -z "$vmip" ] ; then
