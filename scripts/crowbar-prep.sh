@@ -232,6 +232,11 @@ ibs_devel_cloud_repo () {
     safe_run zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}
 }
 
+ibs_devel_cloud_repo () {
+    safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}.repo
+    safe_run zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}
+}
+
 common_post () {
     if [ -n "$mountpoint_9p" ]; then
         is_mounted $mountpoint_9p || ensure_mount $mountpoint_9p
