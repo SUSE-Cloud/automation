@@ -13,27 +13,63 @@
 me=`basename $0`
 [ "$me" = bash ] && me=crowbar-prep.sh
 
-: ${ADMIN_IP:=192.168.124.10}
-: ${HOST_IP:=192.168.124.1}
+# This is run prior to parsing options.
+init_variables () {
+    CLOUD_VERSION_DEFAULT=3
+    : ${CLOUD_VERSION:=$CLOUD_VERSION_DEFAULT}
 
-HOST_MIRROR_DEFAULT=/data/install/mirrors
-: ${HOST_MIRROR:=$HOST_MIRROR_DEFAULT}
-HOST_MEDIA_MIRROR_DEAULT=/srv/nfs/media
-: ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEAULT}
+    : ${ADMIN_IP:=192.168.124.10}
+    : ${HOST_IP:=192.168.124.1}
 
-CLOUD_VERSION_DEFAULT=3
-: ${CLOUD_VERSION:=$CLOUD_VERSION_DEFAULT}
-case $CLOUD_VERSION in
-    2.0)
-        CLOUD_ISO_VERSION=2
-        ;;
-    *)
-        CLOUD_ISO_VERSION=$CLOUD_VERSION
-        ;;
-esac
-CLOUD_ISO=SUSE-CLOUD-${CLOUD_ISO_VERSION}-x86_64-current.iso
+    HOST_MIRROR_DEFAULT=/data/install/mirrors
+    : ${HOST_MIRROR:=$HOST_MIRROR_DEFAULT}
+    HOST_MEDIA_MIRROR_DEFAULT=/srv/nfs/media
+    : ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEFAULT}
 
-SP3_ISO=SLES-11-SP3-DVD-x86_64-current.iso
+    # Subdirectory under $HOST_MEDIA_MIRROR on the VM host which is
+    # an NFS export containing the mounted SP3 media.
+    : ${SP3_MEDIA_EXPORT_SUBDIR:=sles-11-sp3}
+
+    # Subdirectory under $HOST_MEDIA_MIRROR on the VM host which is
+    # an NFS export containing the mounted HAE media.
+    : ${HAE_MEDIA_EXPORT_SUBDIR:=sle-ha-11-sp3}
+
+    : ${SP3_ISO:=SLES-11-SP3-DVD-x86_64-current.iso}
+    : ${HAE_ISO:=SLE-HA-11-SP3-DVD-x86_64-current.iso}
+
+    # Mountpoints within the Crowbar admin node
+    SP3_MOUNTPOINT=/srv/tftpboot/suse-11.3/install
+    REPOS_DIR=/srv/tftpboot/repos
+    HAE_MOUNTPOINT=$REPOS_DIR/SLE-HAE-11-SP3
+    CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
+    POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
+    UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
+
+    # Names of zypper repos within the Crowbar admin node.
+    cloud_repo=SUSE-Cloud-$CLOUD_VERSION
+    sp3_repo=SLES-11-SP3
+    updates_repo=SLES-11-SP3-Updates
+    hae_repo=SLE-11-SP3-HAE
+    shared_repo=Devel_Cloud_Shared_11-SP3
+
+    set_cloud_iso
+}
+
+# This needs to be run both prior to parsing options (so that the
+# usage text can refer to the ISO filename), and after (so that
+# --product-version affects it correctly).
+set_cloud_iso () {
+    case $CLOUD_VERSION in
+        2.0)
+            CLOUD_ISO_VERSION=2
+            ;;
+        *)
+            CLOUD_ISO_VERSION=$CLOUD_VERSION
+            ;;
+    esac
+
+    CLOUD_ISO=SUSE-CLOUD-${CLOUD_ISO_VERSION}-x86_64-current.iso
+}
 
 fatal () {
     echo "$*" >&2
@@ -93,7 +129,7 @@ Profiles:
         profile assumes that directory will be NFS-exported to the
         guest (export HOST_MIRROR to override this).  It also assumes
         that the VM host mounts the SP3 and SUSE Cloud installation
-        sources at $HOST_MEDIA_MIRROR/sles-11-sp3 and
+        sources at $HOST_MEDIA_MIRROR/$SP3_MEDIA_EXPORT_SUBDIR and
         $HOST_MEDIA_MIRROR/suse-cloud-$CLOUD_VERSION respectively and NFS
         exports both to the guest.
 
@@ -105,6 +141,7 @@ Profiles:
         to the real .iso files):
 
             isos/$SP3_ISO
+            isos/$HAE_ISO
             isos/$CLOUD_ISO
             mirrors/SLES11-SP3-Pool/sle-11-x86_64/repodata/repomd.xml
             mirrors/SLES11-SP3-Updates/sle-11-x86_64/repodata/repomd.xml
@@ -119,6 +156,8 @@ Options:
   -p, --product-version      Set SUSE Cloud product version [$CLOUD_VERSION_DEFAULT]
   -d, --devel-cloud          zypper addrepo Devel:Cloud:\$version
   -s, --devel-cloud-staging  zypper addrepo Devel:Cloud:\$version:Staging
+  -m, --media-mirror PATH    Set path on host under which the SP3 and Cloud media
+                             are mounted and NFS exported [$HOST_MEDIA_MIRROR_DEFAULT]
   -h, --help                 Show this help and exit
 EOF
     exit "$exit_code"
@@ -150,12 +189,9 @@ setup_etc_hosts () {
 common_pre () {
     setup_etc_hosts
 
-    SP3_MOUNTPOINT=/srv/tftpboot/suse-11.3/install
-    REPOS_DIR=/srv/tftpboot/repos
-    CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
-    POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
-    UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
-    safe_run mkdir -p $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
+    safe_run mkdir -p \
+        $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $HAE_MOUNTPOINT \
+        $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
 }
 
 is_mounted () {
@@ -172,8 +208,28 @@ ensure_mount () {
 }
 
 ibs_devel_cloud_shared_sp3_repo () {
-    safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/Devel:Cloud:Shared:11-SP3.repo
-    safe_run zypper mr -p 90 Devel_Cloud_Shared_11-SP3
+    case $CLOUD_VERSION in
+        3)
+            safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/Devel:Cloud:Shared:11-SP3.repo $shared_repo
+            safe_run zypper mr -p 90 $shared_repo
+            ;;
+    esac
+}
+
+use_hae () {
+    case $CLOUD_VERSION in
+        3)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+ibs_devel_cloud_repo () {
+    safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}.repo
+    safe_run zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}
 }
 
 common_post () {
@@ -183,13 +239,25 @@ common_post () {
         echo "Not using 9p"
     fi
 
-    for mountpoint in $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT; do
+    for mountpoint in \
+        $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT $HAE_MOUNTPOINT \
+        $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
+    do
         echo
         if is_mounted $mountpoint; then
             echo "$mountpoint already mounted; umounting ..."
             umount $mountpoint || die "Couldn't umount $mountpoint"
         fi
-        ensure_mount $mountpoint
+        case $mountpoint in
+            $HAE_MOUNTPOINT)
+                if use_hae && ! mount $mountpoint; then
+                    echo -e "WARNING: Couldn't mount $mountpoint; you will have to mount manually if you want cluster support.\n" >&2
+                fi
+                ;;
+            *)
+                ensure_mount $mountpoint
+                ;;
+        esac
     done
 
     pattern=cloud_admin
@@ -197,11 +265,7 @@ common_post () {
         pattern_already_installed=yes
     fi
 
-    cloud_repo=SUSE-Cloud-$CLOUD_VERSION
-    sp3_repo=SLES-11-SP3
-    updates_repo=SLES-11-SP3-Updates
-
-    repos=( $cloud_repo $sp3_repo $updates_repo $ibs_repo )
+    repos=( $cloud_repo $sp3_repo $hae_repo $updates_repo $shared_repo $ibs_repo )
 
     for repo in "${repos[@]}"; do
         if zypper lr | grep -q $repo; then
@@ -215,16 +279,23 @@ common_post () {
     safe_run zypper ar file://$SP3_MOUNTPOINT     $sp3_repo
     safe_run zypper ar file://$UPDATES_MOUNTPOINT $updates_repo
 
+    if use_hae && [ -e $HAE_MOUNTPOINT/directory.yast ]; then
+        safe_run zypper ar file://$HAE_MOUNTPOINT $hae_repo
+        got_hae=yep
+    else
+        got_hae=
+    fi
+
     case "$ibs_repo" in
         Devel_Cloud_${CLOUD_VERSION})
             ibs_devel_cloud_shared_sp3_repo
-            safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}.repo
-            safe_run zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}
+            ibs_devel_cloud_repo
             ;;
         Devel_Cloud_${CLOUD_VERSION}_Staging)
             ibs_devel_cloud_shared_sp3_repo
+            ibs_devel_cloud_repo
             safe_run zypper ar -r http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}:/Staging/SLE_11_SP3/Devel:Cloud:${CLOUD_VERSION}:Staging.repo
-            safe_run zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}_Staging
+            safe_run zypper mr -p 70 Devel_Cloud_${CLOUD_VERSION}_Staging
             ;;
         '')
             ;;
@@ -253,10 +324,19 @@ steps, if not both.
 
 [1] e.g.: virsh snapshot-create-as pebbles-sp3-admin pre-pattern-install
 EOF
+    if use_hae && [ -z "$got_hae" ]; then
+        cat <<'EOF'
+
+WARNING: HAE repo is not set up!  See above for what went wrong.
+EOF
+    fi
 }
 
 append_to_fstab () {
-    sed -i -e "/^# Auto-generated by $me/,/^End auto-generated section from $me\$/d" /etc/fstab
+    perl -0777pi -e \
+        "s/\n+# Auto-generated by $me.*\n(.*\n)*^# End auto-generated section from $me//m" \
+        /etc/fstab
+
     (
         echo
         echo "# Auto-generated by $me at `date`"
@@ -296,6 +376,9 @@ clouddata_sle_repos () {
     repos=clouddata.cloud.suse.de:/srv/nfs/repos
     nfs_mount $repos/11-SP3-POOL $POOL_MOUNTPOINT
     nfs_mount $repos/11-SP3      $UPDATES_MOUNTPOINT
+
+    echo -e "WARNING: HAE not available from clouddata yet.\n"
+    #nfs_mount $repos/HA-11-SP3   $HAE_MOUNTPOINT
 }
 
 clouddata_sp3_repo () {
@@ -322,7 +405,8 @@ nue_nfs () {
 host_nfs () {
     (
         media_mirrors=$HOST_IP:$HOST_MEDIA_MIRROR
-        nfs_mount $media_mirrors/sles-11-sp3               $SP3_MOUNTPOINT
+        nfs_mount $media_mirrors/$SP3_MEDIA_EXPORT_SUBDIR  $SP3_MOUNTPOINT
+        nfs_mount $media_mirrors/$HAE_MEDIA_EXPORT_SUBDIR  $HAE_MOUNTPOINT
         nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION $CLOUD_MOUNTPOINT
 
         repo_mirrors=$HOST_IP:$HOST_MIRROR
@@ -336,6 +420,7 @@ host_9p () {
     (
         9p_mount
         iso_mount  $mountpoint_9p/isos/$SP3_ISO   $SP3_MOUNTPOINT
+        iso_mount  $mountpoint_9p/isos/$HAE_ISO   $HAE_MOUNTPOINT
         iso_mount  $mountpoint_9p/isos/$CLOUD_ISO $CLOUD_MOUNTPOINT
         bind_mount $mountpoint_9p/mirrors/SLES11-SP3-Pool/sle-11-x86_64    $POOL_MOUNTPOINT
         bind_mount $mountpoint_9p/mirrors/SLES11-SP3-Updates/sle-11-x86_64 $UPDATES_MOUNTPOINT
@@ -368,21 +453,27 @@ parse_opts () {
                 ;;
             -p|--product-version)
                 CLOUD_VERSION="$2"
+                set_cloud_iso
                 shift 2
                 ;;
             -d|--devel-cloud)
                 [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
-                ibs_repo=Devel_Cloud_${CLOUD_VERSION}
+                ibs_repo=Devel_Cloud_@@CLOUD_VERSION@@
                 shift
                 ;;
             -s|--devel-cloud-staging)
                 [ -n "$ibs_repo" ] && die "Cannot add multiple IBS repos"
-                ibs_repo=Devel_Cloud_${CLOUD_VERSION}_Staging
+                ibs_repo=Devel_Cloud_@@CLOUD_VERSION@@_Staging
                 shift
                 ;;
             -r|--sledgehammer-root-pw)
                 set_sledgehammer_passwd=y
                 shift
+                ;;
+            -m|--media-mirror)
+                [ -n "$2" ] || die "--media-mirror requires an argument"
+                HOST_MEDIA_MIRROR="$2"
+                shift 2
                 ;;
             -*)
                 usage "Unrecognised option: $1"
@@ -393,6 +484,8 @@ parse_opts () {
         esac
     done
 
+    ibs_repo="${ibs_repo/@@CLOUD_VERSION@@/$CLOUD_VERSION}"
+
     if [ $# != 1 ]; then
         usage
     fi
@@ -401,6 +494,7 @@ parse_opts () {
 }
 
 main () {
+    init_variables
     parse_opts "$@"
 
     case "$profile" in
