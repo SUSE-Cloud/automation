@@ -87,11 +87,9 @@
   </axes>
   <combinationFilter>! (
       ["Cloud:OpenStack:Grizzly:Staging"].contains(project)
-      &amp;&amp; ["openstack-designate", "python-designateclient", "openstack-marconi", "python-marconiclient", "openstack-heat-templates", "openstack-ironic", "python-ironicclient", "python-openstackclient", "openstack-trove", "openstack-tuskar", "python-troveclient", "python-oslo.sphinx", "python-neutronclient", "openstack-neutron", "python-tuskarclient", "openstack-utils"].contains(component)
+      &amp;&amp; ["openstack-heat-templates", "python-openstackclient", "python-oslo.sphinx", "python-neutronclient", "openstack-neutron", "openstack-utils"].contains(component)
       ||  ["Cloud:OpenStack:Grizzly:Staging", "Cloud:OpenStack:Havana:Staging"].contains(project)
-          &amp;&amp;  ["python-oslo.messaging", "python-oslo.version", "python-oslo.rootwrap", "python-oslo.version" ].contains(component)
-      ||  ["Cloud:OpenStack:Havana:Staging"].contains(project)
-          &amp;&amp;  ["python-savannaclient", "openstack-savanna", "openstack-designate", "openstack-trove", "openstack-ironic", "openstack-marconi", "openstack-tuskar", "python-tuskarclient", "python-designateclient", "python-troveclient", "python-ironicclient", "python-marconiclient", ].contains(component)
+          &amp;&amp;  ["openstack-tuskar", "openstack-ironic", "openstack-trove", "openstack-designate", "openstack-savanna", "python-savannaclient", "python-oslo.messaging", "python-oslo.version", "python-oslo.rootwrap", "python-oslo.version", "openstack-marconi", "python-tuskarclient", "python-designateclient", "python-troveclient", "python-ironicclient", "python-marconiclient" ].contains(component)
       ||  ["Cloud:OpenStack:Havana:Staging", "Cloud:OpenStack:Master"].contains(project)
           &amp;&amp;  ["openstack-quantum", "python-quantumclient"].contains(component)  ) </combinationFilter>
   <builders>
