@@ -283,7 +283,7 @@ mkdir -p ~/.ssh
 nova boot --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm | tee boot.out
 instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
 nova list
-sleep 10
+sleep 30
 n=30 ; rm -f /tmp/du.old /tmp/du
 if [ "$NONINTERACTIVE" != "0" ] ; then
 	while test $n -gt 0 && ! du -s /var/lib/nova/instances/* | diff /tmp/du.old - ; do n=$(expr $n - 1) ; du -s /var/lib/nova/instances/* > /tmp/du.old ; sleep 35 ; done # used by non-interactive jenkins test
