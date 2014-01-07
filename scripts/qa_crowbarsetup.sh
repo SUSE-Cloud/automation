@@ -444,6 +444,7 @@ function do_installcrowbar()
   # Make sure install finished correctly
   if ! [ -e /opt/dell/crowbar_framework/.crowbar-installed-ok ]; then
     echo "Crowbar ".crowbar-install-ok" marker missing"
+    tail -n 90 /root/screenlog.0
     exit 89
   fi
 
@@ -452,13 +453,13 @@ function do_installcrowbar()
 
   sleep 20
   if ! curl -m 29 -s http://localhost:3000 > /dev/null || ! curl -m 29 -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
-    tail -n 90 /tmp/screenlog.0
+    tail -n 90 /root/screenlog.0
     echo "crowbar self-test failed"
     exit 84
   fi
 
   if ! crowbar machines list | grep -q crowbar.$cloud ; then
-    tail -n 90 /tmp/screenlog.0
+    tail -n 90 /root/screenlog.0
     echo "crowbar 2nd self-test failed"
     exit 85
   fi
