@@ -487,7 +487,7 @@ function do_installcrowbar()
 
 function installcrowbarfromgit()
 {
-  do_installcrowbar "/opt/dell/bin/install-chef-suse.sh --from-git --verbose"
+  do_installcrowbar "CROWBAR_FROM_GIT=1 /opt/dell/bin/install-chef-suse.sh --from-git --verbose"
 }
 
 function installcrowbar()
