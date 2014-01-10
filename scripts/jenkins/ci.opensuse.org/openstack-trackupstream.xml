@@ -49,6 +49,7 @@
         <string>openstack-quantum</string>
         <string>openstack-neutron</string>
         <string>openstack-quickstart</string>
+        <string>openstack-resource-agents</string>
         <string>openstack-savanna</string>
         <string>openstack-swift</string>
         <string>openstack-tempest</string>
@@ -87,7 +88,7 @@
   </axes>
   <combinationFilter>! (
       ["Cloud:OpenStack:Grizzly:Staging"].contains(project)
-      &amp;&amp; ["openstack-heat-templates", "python-openstackclient", "python-oslo.sphinx", "python-neutronclient", "openstack-neutron", "openstack-utils"].contains(component)
+      &amp;&amp; ["openstack-heat-templates", "python-openstackclient", "python-oslo.sphinx", "python-neutronclient", "openstack-neutron", "openstack-utils", "openstack-resource-agents" ].contains(component)
       ||  ["Cloud:OpenStack:Grizzly:Staging", "Cloud:OpenStack:Havana:Staging"].contains(project)
           &amp;&amp;  ["openstack-tuskar", "openstack-ironic", "openstack-trove", "openstack-designate", "openstack-savanna", "python-savannaclient", "python-oslo.messaging", "python-oslo.version", "python-oslo.rootwrap", "python-oslo.version", "openstack-marconi", "python-tuskarclient", "python-designateclient", "python-troveclient", "python-ironicclient", "python-marconiclient" ].contains(component)
       ||  ["Cloud:OpenStack:Havana:Staging", "Cloud:OpenStack:Master"].contains(project)
