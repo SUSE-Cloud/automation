@@ -321,7 +321,7 @@ EOF
   zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
 
   if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
-    echo zypper --no-gpg-checks -n in -l -t pattern cloud_admin
+    zypper --no-gpg-checks -n in -l -t pattern cloud_admin
     ret=$?
 
     if [ $ret = 0 ] ; then
