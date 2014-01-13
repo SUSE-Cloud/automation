@@ -251,6 +251,12 @@ else
 fi
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
+# make sure glance is working
+for i in $(seq 1 5); do
+  glance image-list
+  sleep 1
+done
+
 if [ "$MODE" = xen ] ; then
 	glance image-create --is-public=True --disk-format=qcow2 --container-format=bare --name jeos-64-pv --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
 	glance image-create --is-public=True --disk-format=aki --container-format=aki --name=debian-kernel < xen-kernel/vmlinuz-2.6.24-19-xen
@@ -313,6 +319,6 @@ if true && [ -e /etc/tempest/tempest.conf ]; then
     $crudini --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
 
     pushd /var/lib/openstack-tempest-test/
-        ./run_tests.sh  -N -s || :
+        ./run_tempest.sh  -N -s || :
     popd
 fi
