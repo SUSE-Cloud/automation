@@ -255,7 +255,7 @@ test "$(lvs | wc -l)" -gt 1 || exit 1
 
 # make sure glance is working
 for i in $(seq 1 5); do
-  glance image-list
+  glance image-list || true
   sleep 1
 done
 
@@ -279,7 +279,7 @@ else
 	#curl http://clouddata.cloud.suse.de/images/euca-debian-5.0-i386.tar.gz | tar xzO euca-debian-5.0-i386/debian.5-0.x86.img | glance add name="debian-5" is_public=True disk_format=ami container_format=ami
 	#curl http://openqa.suse.de/openqa/img/euca-debian-5.0-i386.tar.gz | tar xzO euca-debian-5.0-i386/debian.5-0.x86.img | glance add name="debian-5" is_public=True disk_format=ami container_format=ami
 fi
-for i in $(seq 1 20) ; do # wait for image to finish uploading
+for i in $(seq 1 60) ; do # wait for image to finish uploading
 	glance image-list|grep active && break
 	sleep 5
 done
