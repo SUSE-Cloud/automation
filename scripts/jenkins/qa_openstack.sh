@@ -24,7 +24,9 @@ if test -e $dev ; then #&& file -s $dev | grep -q "/dev/vdb: data" ; then
     cp -a /var/lib/* /mnt/
     mount --make-private /
     mount --move /mnt /var/lib
-    echo $dev /var/lib ext3 noatime,barrier=0,data=writeback 2 1 >> /etc/fstab
+    if ! grep -qw /var/lib /etc/fstab; then
+        echo $dev /var/lib ext3 noatime,barrier=0,data=writeback 2 1 >> /etc/fstab
+    fi
 fi
 mount -o remount,noatime,barrier=0 /
 
