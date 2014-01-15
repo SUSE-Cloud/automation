@@ -58,7 +58,7 @@ my $uttrigger = {
                                          "TESTCMD=python setup.py testr",
         'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
                                          "COMPONENT=python-keystoneclient\n" .
-                                         "TEARDOWNCMD=rcmemcached stop\n",
+                                         "TEARDOWNCMD=rcmemcached stop",
         'python-marconiclient'        => "COMPONENT=python-marconiclient\n" .
                                          "TESTCMD=nosetests -v",
         'python-novaclient'           => "COMPONENT=python-novaclient",
@@ -67,15 +67,15 @@ my $uttrigger = {
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n" .
                                          "TESTCMD=python setup.py testr",
         'python-troveclient'          => "COMPONENT=python-troveclient\n" .
-                                         "TESTCMD=python setup.py testr\n",
+                                         "TESTCMD=python setup.py testr",
         'python-tuskarclient'         => "COMPONENT=python-tuskarclient\n" .
                                          "TESTCMD=python setup.py testr",
         'python-openstackclient'      => "COMPONENT=python-openstackclient\n" .
-                                         "TESTCMD=python setup.py testr\n",
-        'python-oslo.messaging'          => "COMPONENT=python-oslo.messaging\n" .
-                                         "TESTCMD=python setup.py testr\n",
+                                         "TESTCMD=python setup.py testr",
+        'python-oslo.messaging'       => "COMPONENT=python-oslo.messaging\n" .
+                                         "TESTCMD=python setup.py testr",
         'python-oslo.version'         => "COMPONENT=python-oslo.version\n" .
-                                         "TESTCMD=python setup.py testr\n",
+                                         "TESTCMD=python setup.py testr",
     }
   },
   "Cloud:OpenStack:Grizzly:Staging" => {
@@ -110,9 +110,9 @@ my $uttrigger = {
         'openstack-swift'             => "COMPONENT=openstack-swift\n".
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
                                          "TESTCMD=./.unittests",
-        'python-cinderclient'         => "COMPONENT=python-cinderclient".
+        'python-cinderclient'         => "COMPONENT=python-cinderclient\n".
                                          "TESTCMD=python setup.py testr",
-        'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient".
+        'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient\n".
                                          "TESTCMD=nosetests",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n".
                                          "TESTCMD=python setup.py testr",
@@ -121,8 +121,8 @@ my $uttrigger = {
         'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
                                          "COMPONENT=python-keystoneclient\n" .
                                          "TESTCMD=nosetests\n".
-                                         "TEARDOWNCMD=rcmemcached stop\n",
-        'python-novaclient'           => "COMPONENT=python-novaclient".
+                                         "TEARDOWNCMD=rcmemcached stop",
+        'python-novaclient'           => "COMPONENT=python-novaclient\n".
                                          "TESTCMD=python setup.py testr",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
                                          "TESTCMD=python setup.py testr",
@@ -145,8 +145,8 @@ my $uttrigger = {
     },
     unittest   => {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
-                                         "TESTCMD=python setup.py testr --testr-args=\"--concurrency=1\"\n",
-        'openstack-cinder'            => "COMPONENT=openstack-cinder\n",
+                                         "TESTCMD=python setup.py testr --testr-args=\"--concurrency=1\"",
+        'openstack-cinder'            => "COMPONENT=openstack-cinder",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
                                          "TESTCMD=./run_tests.sh -N -P",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
@@ -163,7 +163,6 @@ my $uttrigger = {
                                          "TESTCMD=./.unittests",
         'python-cinderclient'         => "COMPONENT=python-cinderclient",
         'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
-
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n" .
                                          "TESTCMD=python setup.py testr",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
@@ -177,7 +176,7 @@ my $uttrigger = {
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n" .
                                          "TESTCMD=python setup.py testr",
         'python-openstackclient'      => "COMPONENT=python-openstackclient\n" .
-                                         "TESTCMD=python setup.py testr\n",
+                                         "TESTCMD=python setup.py testr",
     }
   },
 };
