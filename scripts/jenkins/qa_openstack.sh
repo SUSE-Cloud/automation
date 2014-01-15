@@ -236,21 +236,21 @@ ps ax
 # enable forwarding
 ( cd /proc/sys/net/ipv4/conf/all/ ; echo 1 > forwarding ; echo 1 > proxy_arp )
 
-nova flavor-delete smaller || :
-nova flavor-create smaller --ephemeral 20 12 768 0 1
-#nova flavor-create smaller --ephemeral 20 12 1536 0 1 # for host
+nova flavor-delete m1.micro || :
+nova flavor-create m1.micro --ephemeral 20 12 128 0 1
 
 if [ "$cloudsource" == "develcloud1.0" -o "$cloudsource" == "develcloud" -o "$cloudsource" == "openstackessex" ]; then
     # nova-volume
     nova volume-create 1 ; sleep 2
     nova volume-list
-    NOVA_FLAVOR="12"
 else
     # cinder
     cinder create 1 ; sleep 5
+    vol_id=$(cinder list | grep available | cut -d' ' -f2)
     cinder list
-    NOVA_FLAVOR="12"
+    cinder delete $vol_id
 fi
+NOVA_FLAVOR="12"
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
 # make sure glance is working
