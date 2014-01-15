@@ -266,18 +266,9 @@ if [ "$MODE" = xen ] ; then
 	glance image-create --is-public=True --disk-format=ami --container-format=ami --name=debian-5 --property vm_mode=xen ramdisk_id=f663eb9a-986b-466f-bd3e-f0aa2c847eef kernel_id=d654691a-0135-4f6d-9a60-536cf534b284 < debian.5-0.x86.img
 fi
 if [ "$MODE" != lxc ] ; then
-	#curl http://openqa.suse.de/openqa/img/openSUSE_11.4_JeOS.i686-0.0.1.raw.gz | gzip -cd | glance add name="debian-5" is_public=True disk_format=ami container_format=ami
-	#curl http://openqa.suse.de/openqa/img/openSUSE_12.1_jeos.vmdk.gz | gzip -cd | glance add name="debian-5" is_public=True disk_format=vmdk container_format=bare
 	glance image-create --name="debian-5" --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP2-64up.qcow2
-#	curl http://openqa.opensuse.org/openqa/img/openSUSE-12.2-Beta2.img.gz | gzip -cd | glance add name="12.2b2-mini" is_public=True disk_format=raw container_format=bare
-#	curl http://openqa.suse.de/openqa/img/SP2-64-HA.img.gz | gzip -cd | glance add name="SP2-64-HA" is_public=True disk_format=raw container_format=bare
-#	curl http://openqa.suse.de/openqa/img/SP2-64up.img.gz | gzip -cd | glance add name="SP2-64up" is_public=True disk_format=raw container_format=bare
-#	curl http://clouddata.cloud.suse.de/images/SP2-64up.qcow2 | glance add name="SP2-64up" is_public=True disk_format=qcow2 container_format=bare
-#	curl http://openqa.suse.de/openqa/img/SP1-32-GM.img.gz | gzip -cd | glance add name="SP2-32" is_public=True disk_format=raw container_format=bare
 else
 	 glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from http://openqa.opensuse.org/openqa/img/debian.5-0.x86.qcow2
-	#curl http://clouddata.cloud.suse.de/images/euca-debian-5.0-i386.tar.gz | tar xzO euca-debian-5.0-i386/debian.5-0.x86.img | glance add name="debian-5" is_public=True disk_format=ami container_format=ami
-	#curl http://openqa.suse.de/openqa/img/euca-debian-5.0-i386.tar.gz | tar xzO euca-debian-5.0-i386/debian.5-0.x86.img | glance add name="debian-5" is_public=True disk_format=ami container_format=ami
 fi
 for i in $(seq 1 60) ; do # wait for image to finish uploading
 	glance image-list|grep active && break
@@ -298,7 +289,6 @@ if [ "$NONINTERACTIVE" != "0" ] ; then
 else
 	watch --no-title "du -s /var/lib/nova/instances/*" # will have stillimage when done
 fi
-#nova volume-attach $instanceid 1 /dev/vdb # only for qemu/kvm
 pstree|grep -A5 lxc || :
 virsh --connect lxc:/// list || :
 . /etc/openstackquickstartrc
