@@ -250,7 +250,7 @@ function ssh_password()
 echo linux
 EOSSHASK
   chmod +x $SSH_ASKPASS
-  DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh -oNumberOfPasswordPrompts=1 "$@"
+  DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh -oNumberOfPasswordPrompts=1 "$@" </dev/null
 }
 
 function h_cpuflags_settings()
@@ -369,7 +369,7 @@ function setupadmin()
   mkdir -p $mnt
   mount -o loop,offset=$(expr 2056192 \* 512) /dev/$cloudvg/admin $mnt
   mkdir -p $mnt/root/.ssh
-  grep -q $pubkey $mnt/root/.ssh/authorized_keys 2>/dev/null || cat ~/.ssh/id_dsa.pub >> $mnt/root/.ssh/authorized_keys
+  grep -q "$pubkey" $mnt/root/.ssh/authorized_keys 2>/dev/null || cat ~/.ssh/id_dsa.pub >> $mnt/root/.ssh/authorized_keys
   umount $mnt
   sync
 
