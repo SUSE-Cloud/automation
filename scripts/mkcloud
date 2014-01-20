@@ -63,6 +63,7 @@ mnt=/tmp/cloudmnt/$$
 debug=${debug:-0}
 
 trap 'error_exit $? "error caught by trap"' TERM
+exec </dev/null
 
 function show_environment()
 {
@@ -250,7 +251,7 @@ function ssh_password()
 echo linux
 EOSSHASK
   chmod +x $SSH_ASKPASS
-  DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh -oNumberOfPasswordPrompts=1 "$@" </dev/null
+  DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh -oNumberOfPasswordPrompts=1 "$@"
 }
 
 function h_cpuflags_settings()
