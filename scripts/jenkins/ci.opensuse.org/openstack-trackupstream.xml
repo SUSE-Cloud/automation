@@ -77,6 +77,9 @@
         <string>python-swiftclient</string>
         <string>python-tuskarclient</string>
         <string>python-troveclient</string>
+        <string>tripleo-image-elements</string>
+        <string>tripleo-heat-templates</string>
+        <string>diskimage-builder</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
@@ -90,7 +93,7 @@
       ["Cloud:OpenStack:Grizzly:Staging"].contains(project)
       &amp;&amp; ["openstack-heat-templates", "python-openstackclient", "python-oslo.sphinx", "python-neutronclient", "openstack-neutron", "openstack-utils", "openstack-resource-agents" ].contains(component)
       ||  ["Cloud:OpenStack:Grizzly:Staging", "Cloud:OpenStack:Havana:Staging"].contains(project)
-          &amp;&amp;  ["openstack-tuskar", "openstack-ironic", "openstack-trove", "openstack-designate", "openstack-savanna", "python-savannaclient", "python-oslo.messaging", "python-oslo.version", "python-oslo.rootwrap", "python-oslo.version", "openstack-marconi", "python-tuskarclient", "python-designateclient", "python-troveclient", "python-ironicclient", "python-marconiclient" ].contains(component)
+          &amp;&amp;  ["openstack-tuskar", "openstack-ironic", "openstack-trove", "openstack-designate", "openstack-savanna", "python-savannaclient", "python-oslo.messaging", "python-oslo.version", "python-oslo.rootwrap", "python-oslo.version", "openstack-marconi", "python-tuskarclient", "python-designateclient", "python-troveclient", "python-ironicclient", "python-marconiclient", "tripleo-image-elements", "tripleo-heat-templates", "diskimage-builder" ].contains(component)
       ||  ["Cloud:OpenStack:Havana:Staging", "Cloud:OpenStack:Master"].contains(project)
           &amp;&amp;  ["openstack-quantum", "python-quantumclient"].contains(component)  ) </combinationFilter>
   <builders>
