@@ -39,6 +39,7 @@
         <string>openstack-swift</string>
         <string>openstack-trove</string>
         <string>openstack-tuskar</string>
+        <string>openstack-tuskar_ui</string>
         <string>python-ceilometerclient</string>
         <string>python-cinderclient</string>
         <string>python-glanceclient</string>
@@ -63,9 +64,9 @@
   </axes>
   <combinationFilter>! (
       ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.3"].contains(distribution)
-         &amp;&amp; ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove", "python-neutronclient", "openstack-neutron", "openstack-tuskar"].contains(component)
+         &amp;&amp; ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove", "python-neutronclient", "openstack-neutron", "openstack-tuskar", "openstack-tuskar_ui"].contains(component)
       || ["havana-SLE-11-SP3", "havana-openSUSE-12.3", "havana-openSUSE-13.1"].contains(distribution)
-         &amp;&amp; ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "openstack-tuskar"].contains(component)
+         &amp;&amp; ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "openstack-tuskar", "openstack-tuskar_ui" ].contains(component)
       || ["master-SLE-11-SP3", "havana-SLE-11-SP3" ].contains(distribution)
       &amp;&amp; ["openstack-neutron"].contains(component) )</combinationFilter>
   <builders>
