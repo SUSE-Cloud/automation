@@ -127,6 +127,62 @@ function wait_for()
   fi
 }
 
+function iscloudver()
+{
+        local v=$1
+        local bplus=""
+        if [[ $v =~ plus ]] ; then
+          v=${v%%plus}
+          bplus=$(($v+1))plus
+        fi
+        case $v in
+          1)
+            [[ $cloudsource =~ 1.0 ]]
+            ;;
+          2)
+            [[ $cloudsource =~ 2.0 ]]
+            ;;
+          3)
+            [[ $cloudsource =~ 3 ]]
+            ;;
+          *)
+            return 1
+            ;;
+        esac
+        [ $? = 0 ] && return 0
+        if [ -n "$bplus" ] ; then
+          iscloudver $bplus
+          return $?
+        fi
+        return 1
+}
+
+# inner part of our test of iscloudver function
+function iscloudvertest()
+{
+        iscloudver 1
+        echo v1=$?
+        iscloudver 1plus
+        echo v1plus=$?
+        iscloudver 2
+        echo v2=$?
+        iscloudver 2plus
+        echo v2plus=$?
+        iscloudver 3
+        echo v3=$?
+        iscloudver 3plus
+        echo v3plus=$?
+}
+# outer part of our test of iscloudver function
+function iscloudvertest2()
+{
+        for cloudsource in GM1.0 susecloud2.0 develcloud3 ; do
+          echo "cloudsource=$cloudsource"
+          iscloudvertest
+        done
+        exit 0
+}
+
 function addsp2testupdates()
 {
     mkdir -p /srv/tftpboot/repos/SLES11-SP{1,2}-Updates
