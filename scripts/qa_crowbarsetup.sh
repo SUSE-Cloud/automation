@@ -798,12 +798,10 @@ function custom_configuration()
     ;;
     swift)
       [[ "$nodenumber" -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
-      case $cloudsource in
-        develcloud3|susecloud3)
+      if iscloudver 3plus ; then
           proposal_set_value swift default "['attributes']['swift']['ssl']['generate_certs']" "true"
           proposal_set_value swift default "['attributes']['swift']['ssl']['insecure']" "true"
-        ;;
-      esac
+      fi
     ;;
     *) echo "No hooks defined for service: $service"
     ;;
@@ -820,15 +818,13 @@ function get_crowbarnodes()
 get_crowbarnodes
 wantswift=1
 wantceph=1
-cloud2='cloud2.0|Beta|RC|GMC|GM2.0'
-cloud3='cloud3'
-[[ $cloudsource =~ $cloud2 ]] && wantceph=
+iscloudver 2 && wantceph=
 [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
 # we can not use both swift and ceph as each grabs all disks on a node
 [[ -n "$wantceph" ]] && wantswift=
 [[ "$cephvolumenumber" -lt 1 ]] && wantswift=
 crowbar_networking=neutron
-[[ $cloudsource =~ $cloud2 ]] && crowbar_networking=quantum
+iscloudver 2 && crowbar_networking=quantum
 
 if [ -n "$proposal" ] ; then
 waitnodes nodes
@@ -842,7 +838,7 @@ for service in database keystone ceph glance rabbitmq cinder $crowbar_networking
       [[ -n "$wantswift" ]] || continue
       ;;
     rabbitmq|cinder|quantum|neutron|ceilometer|heat)
-      [[ $cloudsource =~ $cloud3|$cloud2 ]] || continue
+      iscloudver 1 && continue
       ;;
   esac
   crowbar "$service" proposal create default
