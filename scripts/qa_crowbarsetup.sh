@@ -742,6 +742,12 @@ function custom_configuration()
     ;;
     swift)
       [[ "$nodenumber" -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
+      case $cloudsource in
+        develcloud3|susecloud3)
+          proposal_set_value swift default "['attributes']['swift']['ssl']['generate_certs']" "true"
+          proposal_set_value swift default "['attributes']['swift']['ssl']['insecure']" "true"
+        ;;
+      esac
     ;;
     *) echo "No hooks defined for service: $service"
     ;;
