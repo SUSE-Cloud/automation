@@ -299,18 +299,10 @@ imgid=$(glance image-list|grep debian-5|cut -f2 -d" ")
 mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
-nova boot --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm | tee boot.out
+nova boot --poll --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm | tee boot.out
 instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
 nova list
 sleep 30
-n=30 ; rm -f /tmp/du.old /tmp/du
-if [ "$NONINTERACTIVE" != "0" ] ; then
-	while test $n -gt 0 && ! du -s /var/lib/nova/instances/* | diff /tmp/du.old - ; do n=$(expr $n - 1) ; du -s /var/lib/nova/instances/* > /tmp/du.old ; sleep 35 ; done # used by non-interactive jenkins test
-else
-	watch --no-title "du -s /var/lib/nova/instances/*" # will have stillimage when done
-fi
-pstree|grep -A5 lxc || :
-virsh --connect lxc:/// list || :
 . /etc/openstackquickstartrc
 vmip=`nova show testvm|perl -ne 'm/network\D*(\d+\.\d+\.\d+\.\d+)/ && print $1'`
 echo "VM IP: $vmip"
