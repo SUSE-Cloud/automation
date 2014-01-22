@@ -259,7 +259,7 @@ for i in $(seq 1 5); do
   sleep 1
 done
 
-case "MODE" in
+case "$MODE" in
     xen)
         glance image-create --is-public=True --disk-format=qcow2 --container-format=bare --name jeos-64-pv --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
         glance image-create --is-public=True --disk-format=aki --container-format=aki --name=debian-kernel < xen-kernel/vmlinuz-2.6.24-19-xen
