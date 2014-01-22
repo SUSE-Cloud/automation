@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<matrix-project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H 4 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.35">
+      <spec>H/20 * * * *</spec>
+      <entries>
+        <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
+          <url>http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/</url>
+          <proxyActivated>false</proxyActivated>
+          <checkStatus>false</checkStatus>
+          <statusCode>200</statusCode>
+          <timeout>300</timeout>
+          <checkETag>false</checkETag>
+          <checkLastModificationDate>false</checkLastModificationDate>
+          <inspectingContent>true</inspectingContent>
+          <contentTypes>
+            <org.jenkinsci.plugins.urltrigger.content.SimpleContentType/>
+          </contentTypes>
+        </org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
+      </entries>
+      <labelRestriction>false</labelRestriction>
+    </org.jenkinsci.plugins.urltrigger.URLTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <axes>
+    <hudson.matrix.TextAxis>
+      <name>image</name>
+      <values>
+        <string>openSUSE-13.1-64-minimal</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.TextAxis>
+      <name>openstack_version</name>
+      <values>
+        <string>master</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.LabelAxis>
+      <name>slave</name>
+      <values>
+        <string>cloud-cleanvm</string>
+      </values>
+    </hudson.matrix.LabelAxis>
+  </axes>
+  <combinationFilter>slave=="cloud-cleanvm"  &amp;&amp; (
+      ( openstack_version=="master"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||
+      ( openstack_version=="havana"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||
+      ( openstack_version=="grizzly" &amp;&amp; (image=="SLE_11_SP3-64-minimal"))
+    )
+  </combinationFilter>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
+# fetch the latest automation updates
+update_automation jenkins-job-trigger
+
+freshvm cleanvm $image
+sleep 100
+
+cloudsource=openstack$openstack_version
+oshead=1
+
+scp ~/github.com/SUSE-Cloud/automation/scripts/jenkins/qa_tripleo.sh root@cleanvm:
+ssh root@cleanvm "export cloudsource=$cloudsource; export OSHEAD=$oshead; export NONINTERACTIVE=1; bash -x ~/qa_tripleo.sh"
+
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.7"/>
+  </buildWrappers>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>true</runSequentially>
+  </executionStrategy>
+</matrix-project>
