@@ -259,17 +259,37 @@ for i in $(seq 1 5); do
   sleep 1
 done
 
-if [ "$MODE" = xen ] ; then
-	glance image-create --is-public=True --disk-format=qcow2 --container-format=bare --name jeos-64-pv --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
-	glance image-create --is-public=True --disk-format=aki --container-format=aki --name=debian-kernel < xen-kernel/vmlinuz-2.6.24-19-xen
-	glance image-create --is-public=True --disk-format=ari --container-format=ari --name=debian-initrd < xen-kernel/initrd.img-2.6.24-19-xen
-	glance image-create --is-public=True --disk-format=ami --container-format=ami --name=debian-5 --property vm_mode=xen ramdisk_id=f663eb9a-986b-466f-bd3e-f0aa2c847eef kernel_id=d654691a-0135-4f6d-9a60-536cf534b284 < debian.5-0.x86.img
-fi
-if [ "$MODE" != lxc ] ; then
-	glance image-create --name="debian-5" --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP2-64up.qcow2
-else
-	 glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from http://openqa.opensuse.org/openqa/img/debian.5-0.x86.qcow2
-fi
+case "MODE" in
+    xen)
+        glance image-create --is-public=True --disk-format=qcow2 --container-format=bare --name jeos-64-pv --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
+        glance image-create --is-public=True --disk-format=aki --container-format=aki --name=debian-kernel < xen-kernel/vmlinuz-2.6.24-19-xen
+        glance image-create --is-public=True --disk-format=ari --container-format=ari --name=debian-initrd < xen-kernel/initrd.img-2.6.24-19-xen
+        glance image-create --is-public=True --disk-format=ami --container-format=ami --name=debian-5 --property vm_mode=xen ramdisk_id=f663eb9a-986b-466f-bd3e-f0aa2c847eef kernel_id=d654691a-0135-4f6d-9a60-536cf534b284 < debian.5-0.x86.img
+    ;;
+    lxc)
+        glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from http://openqa.opensuse.org/openqa/img/debian.5-0.x86.qcow2
+    ;;
+    *)
+        wget http://clouddata.cloud.suse.de/images/cirros-0.3.1-x86_64-uec.tar.gz
+        tar xf cirros-0.3.1-x86_64-uec.tar.gz
+        RAMDISK_ID=$(glance image-create --name="cirros-0.3.1-x86_64-uec-initrd" --is-public=True \
+            --disk-format=ari --container-format=ari < cirros-0.3.1-x86_64-initrd | grep ' id ' | awk '{print $4}')
+        KERNEL_ID=$(glance image-create --name="cirros-0.3.1-x86_64-vmlinuz" --is-public=True \
+            --disk-format=aki --container-format=aki < cirros-0.3.1-x86_64-vmlinuz | grep ' id ' | awk '{print $4}')
+        glance image-create --name="cirros-0.3.1-x86_64-uec" --is-public=True \
+            --container-format ami --disk-format ami \
+            --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < cirros-0.3.1-x86_64-blank.img
+
+        glance image-create --name="debian-5" --is-public=True \
+            --container-format ami --disk-format ami \
+            --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < cirros-0.3.1-x86_64-blank.img
+
+
+        #glance image-create --name="debian-5" --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/cirros-0.3.1-x86_64-disk.img
+    ;;
+
+esac
+
 for i in $(seq 1 60) ; do # wait for image to finish uploading
 	glance image-list|grep active && break
 	sleep 5
