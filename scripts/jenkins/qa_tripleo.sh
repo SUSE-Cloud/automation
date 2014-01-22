@@ -83,7 +83,7 @@ fi
 
 cd tripleo-ci
 
-export TOCI_GIT_CHECKOUT=1
+export http_proxy=http://proxy.suse.de:3128/
 
 # Apply seed-stack-config.json
 sed -i -e "s,\"i386\",\"$ARCH\"," /opt/toci/tripleo-image-elements/elements/seed-stack-config/config.json
