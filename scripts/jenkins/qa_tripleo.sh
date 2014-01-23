@@ -35,13 +35,11 @@ esac
 
 $zypper -n --gpg-auto-import-keys ref
 $zypper in python-keystoneclient make patch python-PyYAML git-core busybox libvirt-client
-$zypper in libvirt-daemon-driver-network python-os-apply-config diskimage-builder
+$zypper in libvirt-daemon-driver-network python-os-apply-config
+$zypper in diskimage-builder tripleo-image-elements
 
-# Setup default.xml.. somehow we need this
+# Workaround https://bugzilla.novell.com/show_bug.cgi?id=859980
 virsh net-define /usr/share/libvirt/networks/default.xml || :
-
-# Clean up from previous run
-rm -rf /tmp/toci*
 
 ## setup some useful defaults
 export NODE_ARCH=amd64
@@ -49,7 +47,7 @@ export TE_DATAFILE=~/tripleo/testenv.json
 
 # temporary, delete me
 export NODE_DIST="opensuse"
-
+export DIB_COMMON_ELEMENTS=${DIB_COMMON_ELEMENTS:-"stackuser"}
 export http_proxy=http://proxy.suse.de:3128/
 
 mkdir -p ~/tripleo/
@@ -84,10 +82,17 @@ if [ ! -d ~/tripleo/diskimage-builder ]; then
     ln -s /usr/share/diskimage-builder/lib ~/tripleo/diskimage-builder/lib
 fi
 
+# Use tripleo-image-elements from packages
+
+if [ ! -d ~/tripleo/tripleo-image-elements ]; then
+    mkdir -p ~/tripleo/tripleo-image-elements
+    ln -s /usr/bin ~/tripleo/tripleo-image-elements/bin
+    ln -s /usr/share/tripleo-image-elements ~/tripleo/tripleo-image-elements/elements
+fi
+
 cd tripleo-ci
 
 export USE_CACHE=1
-export DIB_COMMON_ELEMENTS=${DIB_COMMON_ELEMENTS:-"stackuser"}
 export LIBVIRT_NIC_DRIVER=virtio
 
 exec ./toci_devtest.sh
