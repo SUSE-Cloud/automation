@@ -35,7 +35,7 @@ esac
 
 $zypper -n --gpg-auto-import-keys ref
 $zypper in python-keystoneclient make patch python-PyYAML git-core busybox libvirt-client
-$zypper in libvirt-daemon-driver-network python-os-apply-config
+$zypper in libvirt-daemon-driver-network python-os-apply-config diskimage-builder
 
 # Setup default.xml.. somehow we need this
 virsh net-define /usr/share/libvirt/networks/default.xml || :
@@ -46,6 +46,9 @@ rm -rf /tmp/toci*
 ## setup some useful defaults
 export NODE_ARCH=amd64
 export TE_DATAFILE=~/tripleo/testenv.json
+
+# temporary, delete me
+export NODE_DIST="opensuse"
 
 export http_proxy=http://proxy.suse.de:3128/
 
@@ -72,7 +75,20 @@ if [ ! -d tripleo-ci ]; then
     git clone git://git.openstack.org/openstack-infra/tripleo-ci
 fi
 
+# Use diskimage-builder from packages
+
+if [ ! -d ~/tripleo/diskimage-builder ]; then
+    mkdir -p ~/tripleo/diskimage-builder
+    ln -s /usr/bin ~/tripleo/diskimage-builder/bin
+    ln -s /usr/share/diskimage-builder/elements ~/tripleo/diskimage-builder/elements
+    ln -s /usr/share/diskimage-builder/lib ~/tripleo/diskimage-builder/lib
+fi
+
 cd tripleo-ci
+
+export USE_CACHE=1
+export DIB_COMMON_ELEMENTS=${DIB_COMMON_ELEMENTS:-"stackuser"}
+export LIBVIRT_NIC_DRIVER=virtio
 
 exec ./toci_devtest.sh
 
