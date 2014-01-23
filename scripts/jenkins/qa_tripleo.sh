@@ -48,7 +48,6 @@ export TE_DATAFILE=~/tripleo/testenv.json
 # temporary, delete me
 export NODE_DIST="opensuse"
 export DIB_COMMON_ELEMENTS=${DIB_COMMON_ELEMENTS:-"stackuser"}
-export http_proxy=http://proxy.suse.de:3128/
 
 mkdir -p ~/tripleo/
 
