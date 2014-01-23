@@ -33,21 +33,19 @@ case "$cloudsource" in
   ;;
 esac
 
-$zypper -n --gpg-auto-import-keys ref
-$zypper in python-keystoneclient make patch python-PyYAML git-core busybox libvirt-client
-$zypper in libvirt-daemon-driver-network python-os-apply-config
+$zypper in make patch python-PyYAML git-core busybox
+$zypper in python-os-apply-config
 $zypper in diskimage-builder tripleo-image-elements
-
-# Workaround https://bugzilla.novell.com/show_bug.cgi?id=859980
-virsh net-define /usr/share/libvirt/networks/default.xml || :
 
 ## setup some useful defaults
 export NODE_ARCH=amd64
 export TE_DATAFILE=~/tripleo/testenv.json
 
-# temporary, delete me
+# temporary hacks delete me
+$zypper -n --gpg-auto-import-keys ref
 export NODE_DIST="opensuse"
 export DIB_COMMON_ELEMENTS=${DIB_COMMON_ELEMENTS:-"stackuser"}
+export LIBVIRT_NIC_DRIVER=virtio
 
 mkdir -p ~/tripleo/
 
@@ -67,6 +65,21 @@ if [ ! -d ~/tripleo/tripleo-incubator ]; then
         git clone git://git.openstack.org/openstack/tripleo-incubator
     )
 fi
+
+(
+  export PATH=$PATH:~/tripleo/tripleo-incubator/scripts/
+
+  install-dependencies
+
+  cleanup-env
+
+  setup-network
+  # workaround libvirt bug...
+  virsh net-define /usr/share/libvirt/networks/default.xml || :
+
+  setup-seed-vm -a $NODE_ARCH
+)
+
 
 if [ ! -d tripleo-ci ]; then
     git clone git://git.openstack.org/openstack-infra/tripleo-ci
@@ -92,7 +105,7 @@ fi
 cd tripleo-ci
 
 export USE_CACHE=1
-export LIBVIRT_NIC_DRIVER=virtio
+export TRIPLEO_CLEANUP=0
 
 exec ./toci_devtest.sh
 
