@@ -43,6 +43,7 @@ export TE_DATAFILE=~/tripleo/testenv.json
 
 # temporary hacks delete me
 $zypper -n --gpg-auto-import-keys ref
+$zypper in libxslt-devel
 export NODE_DIST="opensuse"
 export DIB_COMMON_ELEMENTS=${DIB_COMMON_ELEMENTS:-"stackuser"}
 export LIBVIRT_NIC_DRIVER=virtio
