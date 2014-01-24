@@ -941,8 +941,8 @@ if [ -n "$testsetup" ] ; then
 		nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
 		nova boot --poll --image SP2-64 --flavor m1.smaller --key_name testkey testvm | tee boot.out
 		instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
-                nova show $instanceid
-		vmip=`nova show $instanceid | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
+                nova show "$instanceid"
+		vmip=`nova show "$instanceid" | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
 		echo "VM IP address: $vmip"
         if [ -z "$vmip" ] ; then
           tail -n 90 /var/log/nova/*
@@ -951,7 +951,7 @@ if [ -n "$testsetup" ] ; then
         fi
 		nova floating-ip-create | tee floating-ip-create.out
 		floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
-		nova add-floating-ip $instanceid $floatingip # insufficient permissions
+		nova add-floating-ip "$instanceid" "$floatingip" # insufficient permissions
 		vmip=$floatingip
 		n=1000 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $vmip >/dev/null ; do
 		  n=$(expr $n - 1)
@@ -984,16 +984,16 @@ if [ -n "$testsetup" ] ; then
 		fi
 		set -x
 		ssh $vmip modprobe acpiphp # workaround bnc#824915
-		nova volume-create 1 ; sleep 2
+		nova volume-list | grep -q available || nova volume-create 1 ; sleep 2
 		nova volume-list | grep available
 		volumecreateret=$?
 		volumeid=`nova volume-list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
-		nova volume-attach $instanceid $volumeid /dev/vdb
+		nova volume-attach "$instanceid" "$volumeid" /dev/vdb
 		sleep 15
 		ssh $vmip fdisk -l /dev/vdb | grep 1073741824
 		volumeattachret=$?
-		nova volume-detach $instanceid $volumeid ; sleep 10
-		nova volume-attach $instanceid $volumeid /dev/vdb ; sleep 10
+		nova volume-detach "$instanceid" "$volumeid" ; sleep 10
+		nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
 		ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
 		test $volumecreateret = 0 -a $volumeattachret = 0
 	'
