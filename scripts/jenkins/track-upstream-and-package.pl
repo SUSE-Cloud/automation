@@ -366,45 +366,6 @@ sub email_changes_diff
   print "Sent $requires_type changes email to $to_email.\n";
 }
 
-sub check_pip_requires_changes()
-{
-  my @tarballs = (
-    ["old_requires", ".osc/" . get_tarname_from_spec(".osc/$project.spec")],
-    ["new_requires", get_tarname_from_spec("$project.spec")]
-  );
-
-  foreach my $requires_type ("pip-requires", "test-requires")
-  {
-    for my $i (@tarballs)
-    {
-      my ($filename, $tarball) = @{$i};
-      extract_file_from_tarball($filename, $tarball, "tools/$requires_type");
-    }
-
-    my @keys = map { $_->[0] } @tarballs;
-    next if (! -f $keys[0] && ! -f $keys[1]);
-    # create missing files for diff to work
-    for my $key (@keys)
-    {
-      next if (-f $key);
-      open (my $FH, '>', $key) or die $!;
-      close $FH;
-    }
-
-    my $diff = `diff -u @keys > ${project}.diff`;
-    if ($?)
-    {
-      email_changes_diff("${project}.diff", $requires_type);
-    } else
-    {
-      print "There are no changes in the $requires_type.\n";
-    }
-    foreach my $file ( @keys, "$project.diff" ) {
-      unlink $file or warn "Could not delete $file: $!";
-    }
-  }
-}
-
 #### MAIN ####
 
   # make sure the caching directories are setup
@@ -494,7 +455,6 @@ sub check_pip_requires_changes()
       print "--> Successfully reverted back.\n";
       exit 0;
     }
-    check_pip_requires_changes();
 
     print "\n-->\n";
     print "--> Detected ".scalar(@changedfiles)." changed files.\n";
