@@ -193,7 +193,7 @@ BRIDGE_PORTS=''
 BRIDGE_STP='off'
 BROADCAST=''
 ETHTOOL_OPTIONS=''
-IPADDR='10.10.134.17/29'
+IPADDR='10.10.134.1/24'
 MTU=''
 NETMASK=''
 NETWORK=''
@@ -323,6 +323,6 @@ if true && [ -e /etc/tempest/tempest.conf ]; then
     $crudini --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
 
     pushd /var/lib/openstack-tempest-test/
-        ./run_tempest.sh  -N -s || :
+        ./run_tempest.sh  -N -s -- -v 2>&1 | tee console.log || :
     popd
 fi
