@@ -353,7 +353,7 @@ function h_create_libvirt_admin_network_config()
     <mac address='52:54:00:AB:B1:77'/>
     <ip address='$admingw' netmask='$adminnetmask'>
       <dhcp>
-        <host mac="52:54:00:77:77:70" name="crowbar.example.com" ip="$adminip"/>
+        <host mac="52:54:00:77:77:70" name="crowbar.$virtualcloud.cloud.suse.de" ip="$adminip"/>
       </dhcp>
     </ip>
     <forward mode='$forwardmode'>
