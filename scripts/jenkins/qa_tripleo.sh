@@ -53,18 +53,18 @@ $zypper in kvm
 sudo /sbin/udevadm control --reload-rules  || :
 sudo /sbin/udevadm trigger || :
 
-
 mkdir -p ~/tripleo/
 
 if [ ! -f ~/tripleo/testenv.json ]; then
-    ssh-keygen -f "private" -P ''
+    if [ ! -f ~/.ssh/id_rsa ]; then
+        ssh-keygen -f "~/.ssh/id_rsa" -P ''
+    fi
     cat - > ~/tripleo/testenv.json <<EOF
     {
-        "node-macs": "52:54:00:O7:00:01 52:54:00:O7:00:02 52:54:00:O7:00:03",
-        "ssh-key": "$(base64 -w 0 < private)"
+        "node-macs": "52:54:00:07:00:01 52:54:00:07:00:02 52:54:00:07:00:03",
+        "ssh-key": "$(base64 -w 0 < ~/.ssh/id_rsa)"
     }
 EOF
-    rm -f private*
 fi
 
 if [ ! -d ~/tripleo/tripleo-incubator ]; then
@@ -74,12 +74,14 @@ if [ ! -d ~/tripleo/tripleo-incubator ]; then
     )
 fi
 
+# This should be part of the devtest scripts imho, but
+# currently isn't.
 (
   export PATH=$PATH:~/tripleo/tripleo-incubator/scripts/
 
   install-dependencies
 
-  # workaround libvirt bug...
+  # workaround yet another libvirt packaging bug...
   virsh net-define /usr/share/libvirt/networks/default.xml || :
 
   cleanup-env
@@ -88,9 +90,13 @@ fi
   setup-seed-vm -a $NODE_ARCH
 )
 
+# When launched interactively, break on error
+
 if [ -t 0 ]; then
     export break=after-error
 fi
+
+# Use tripleo-ci from git
 
 if [ ! -d tripleo-ci ]; then
     git clone git://git.openstack.org/openstack-infra/tripleo-ci
