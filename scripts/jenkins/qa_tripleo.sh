@@ -48,12 +48,19 @@ export NODE_DIST="opensuse"
 export DIB_COMMON_ELEMENTS=${DIB_COMMON_ELEMENTS:-"stackuser"}
 export LIBVIRT_NIC_DRIVER=virtio
 
+# workaround kvm bug
+$zypper in kvm
+sudo /sbin/udevadm control --reload-rules  || :
+sudo /sbin/udevadm trigger || :
+
+
 mkdir -p ~/tripleo/
 
 if [ ! -f ~/tripleo/testenv.json ]; then
     ssh-keygen -f "private" -P ''
     cat - > ~/tripleo/testenv.json <<EOF
     {
+        "node-macs": "52:54:00:O7:00:01 52:54:00:O7:00:02 52:54:00:O7:00:03",
         "ssh-key": "$(base64 -w 0 < private)"
     }
 EOF
@@ -72,15 +79,18 @@ fi
 
   install-dependencies
 
-  cleanup-env
-
-  setup-network
   # workaround libvirt bug...
   virsh net-define /usr/share/libvirt/networks/default.xml || :
 
+  cleanup-env
+
+  setup-network
   setup-seed-vm -a $NODE_ARCH
 )
 
+if [ -t 0 ]; then
+    export break=after-error
+fi
 
 if [ ! -d tripleo-ci ]; then
     git clone git://git.openstack.org/openstack-infra/tripleo-ci
