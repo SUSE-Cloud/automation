@@ -538,6 +538,11 @@ function do_installcrowbar()
     crowbar ntp proposal --file=/root/ntpproposal edit default
     crowbar ntp proposal commit default
   fi
+
+  if ! validate_data_bags; then
+      echo "Validation error in default data bags. Aborting."
+      exit 68
+  fi
 }
 
 
