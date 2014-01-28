@@ -48,10 +48,14 @@ export NODE_DIST="opensuse"
 export DIB_COMMON_ELEMENTS=${DIB_COMMON_ELEMENTS:-"stackuser"}
 export LIBVIRT_NIC_DRIVER=virtio
 
-# workaround kvm bug
+# workaround kvm packaging bug
 $zypper in kvm
 sudo /sbin/udevadm control --reload-rules  || :
 sudo /sbin/udevadm trigger || :
+
+# worarkound libvirt packaging bug
+$zypper in  libvirt-daemon-driver-network
+virsh net-define /usr/share/libvirt/networks/default.xml || :
 
 mkdir -p ~/tripleo/
 
@@ -80,9 +84,6 @@ fi
   export PATH=$PATH:~/tripleo/tripleo-incubator/scripts/
 
   install-dependencies
-
-  # workaround yet another libvirt packaging bug...
-  virsh net-define /usr/share/libvirt/networks/default.xml || :
 
   cleanup-env
 
