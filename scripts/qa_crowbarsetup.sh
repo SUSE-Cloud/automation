@@ -437,7 +437,7 @@ EOF
   # to revert https://github.com/crowbar/barclamp-network/commit/a85bb03d7196468c333a58708b42d106d77eaead
   sed -i.netbak1 -e 's/192\.168\.126/192.168.122/g' $netfile
 
-  sed -i.netbak -e 's/"conduit": "bmc",/& "router":"192.168.124.1",/' \
+  sed -i.netbak -e 's/"conduit": "bmc",/& "router": "192.168.124.1",/' \
                 -e "s/192.168.124/$net/g" \
                 -e "s/192.168.125/$net_storage/g" \
                 -e "s/192.168.123/$net_fixed/g" \
