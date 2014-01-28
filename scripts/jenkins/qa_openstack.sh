@@ -322,7 +322,12 @@ if true && [ -e /etc/tempest/tempest.conf ]; then
     $crudini --set /etc/tempest/tempest.conf compute image_ref $imgid
     $crudini --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
 
+    verbose="-- -v"
+    if $(type -p testr); then
+        verbose=""
+    fi
+
     pushd /var/lib/openstack-tempest-test/
-        ./run_tempest.sh  -N -s -- -v 2>&1 | tee console.log || :
+        ./run_tempest.sh  -N -s $verbose 2>&1 | tee console.log || :
     popd
 fi
