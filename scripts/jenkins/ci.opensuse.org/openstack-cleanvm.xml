@@ -2,6 +2,12 @@
 <matrix-project>
   <actions/>
   <description/>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>30</daysToKeep>
+    <numToKeep>30</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
@@ -13,7 +19,7 @@
     <hudson.triggers.TimerTrigger>
       <spec>H 4 * * *</spec>
     </hudson.triggers.TimerTrigger>
-    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.35">
+    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.37">
       <spec>H/20 * * * *</spec>
       <entries>
         <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
@@ -57,12 +63,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>slave=="cloud-cleanvm"  &amp;&amp; (
-      ( openstack_version=="master"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||
-      ( openstack_version=="havana"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||
-      ( openstack_version=="grizzly" &amp;&amp; (image=="SLE_11_SP3-64-minimal"))
-    )
-  </combinationFilter>
+  <combinationFilter>slave=="cloud-cleanvm"  &amp;&amp; (      ( openstack_version=="master"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||      ( openstack_version=="havana"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||      ( openstack_version=="grizzly" &amp;&amp; (image=="SLE_11_SP3-64-minimal"))    )  </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
@@ -99,7 +100,7 @@ esac</command>
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.7"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.8"/>
   </buildWrappers>
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
     <runSequentially>true</runSequentially>
