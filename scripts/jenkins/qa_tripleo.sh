@@ -54,7 +54,9 @@ sudo /sbin/udevadm control --reload-rules  || :
 sudo /sbin/udevadm trigger || :
 
 # worarkound libvirt packaging bug
-$zypper in  libvirt-daemon-driver-network
+$zypper in libvirt-daemon-driver-network
+$zypper in libvirt
+systemctl start libvirtd
 virsh net-define /usr/share/libvirt/networks/default.xml || :
 
 mkdir -p /opt/stack/new/
