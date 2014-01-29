@@ -39,7 +39,7 @@ $zypper in diskimage-builder tripleo-image-elements
 
 ## setup some useful defaults
 export NODE_ARCH=amd64
-export TE_DATAFILE=~/tripleo/testenv.json
+export TE_DATAFILE=/opt/stack/new/testenv.json
 
 # temporary hacks delete me
 $zypper -n --gpg-auto-import-keys ref
@@ -57,13 +57,13 @@ sudo /sbin/udevadm trigger || :
 $zypper in  libvirt-daemon-driver-network
 virsh net-define /usr/share/libvirt/networks/default.xml || :
 
-mkdir -p ~/tripleo/
+mkdir -p /opt/stack/new/
 
-if [ ! -f ~/tripleo/testenv.json ]; then
+if [ ! -f /opt/stack/new/testenv.json ]; then
     if [ ! -f ~/.ssh/id_rsa ]; then
-        ssh-keygen -f "~/.ssh/id_rsa" -P ''
+        ssh-keygen -f ~/.ssh/id_rsa -P ''
     fi
-    cat - > ~/tripleo/testenv.json <<EOF
+    cat - > /opt/stack/new/testenv.json <<EOF
     {
         "node-macs": "52:54:00:07:00:01 52:54:00:07:00:02 52:54:00:07:00:03",
         "ssh-key": "$(base64 -w 0 < ~/.ssh/id_rsa)"
@@ -71,9 +71,9 @@ if [ ! -f ~/tripleo/testenv.json ]; then
 EOF
 fi
 
-if [ ! -d ~/tripleo/tripleo-incubator ]; then
+if [ ! -d /opt/stack/new/tripleo-incubator ]; then
     (
-        cd ~/tripleo/
+        cd /opt/stack/new/
         git clone git://git.openstack.org/openstack/tripleo-incubator
     )
 fi
@@ -81,7 +81,7 @@ fi
 # This should be part of the devtest scripts imho, but
 # currently isn't.
 (
-  export PATH=$PATH:~/tripleo/tripleo-incubator/scripts/
+  export PATH=$PATH:/opt/stack/new/tripleo-incubator/scripts/
 
   install-dependencies
 
@@ -105,19 +105,19 @@ fi
 
 # Use diskimage-builder from packages
 
-if [ ! -d ~/tripleo/diskimage-builder ]; then
-    mkdir -p ~/tripleo/diskimage-builder
-    ln -s /usr/bin ~/tripleo/diskimage-builder/bin
-    ln -s /usr/share/diskimage-builder/elements ~/tripleo/diskimage-builder/elements
-    ln -s /usr/share/diskimage-builder/lib ~/tripleo/diskimage-builder/lib
+if [ ! -d /opt/stack/new/diskimage-builder ]; then
+    mkdir -p /opt/stack/new/diskimage-builder
+    ln -s /usr/bin /opt/stack/new/diskimage-builder/bin
+    ln -s /usr/share/diskimage-builder/elements /opt/stack/new/diskimage-builder/elements
+    ln -s /usr/share/diskimage-builder/lib /opt/stack/new/diskimage-builder/lib
 fi
 
 # Use tripleo-image-elements from packages
 
-if [ ! -d ~/tripleo/tripleo-image-elements ]; then
-    mkdir -p ~/tripleo/tripleo-image-elements
-    ln -s /usr/bin ~/tripleo/tripleo-image-elements/bin
-    ln -s /usr/share/tripleo-image-elements ~/tripleo/tripleo-image-elements/elements
+if [ ! -d /opt/stack/new/tripleo-image-elements ]; then
+    mkdir -p /opt/stack/new/tripleo-image-elements
+    ln -s /usr/bin /opt/stack/new/tripleo-image-elements/bin
+    ln -s /usr/share/tripleo-image-elements /opt/stack/new/tripleo-image-elements/elements
 fi
 
 cd tripleo-ci
