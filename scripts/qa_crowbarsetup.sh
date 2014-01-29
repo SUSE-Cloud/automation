@@ -808,6 +808,11 @@ function custom_configuration()
           proposal_set_value swift default "['attributes']['swift']['ssl']['insecure']" "true"
       fi
     ;;
+    cinder)
+      if [[ "$cephvolumenumber" -lt 1 ]] ; then
+          proposal_set_value cinder default "['attributes']['cinder']['volume']['volume_type']" "'local'"
+      fi
+    ;;
     *) echo "No hooks defined for service: $service"
     ;;
   esac
