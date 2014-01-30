@@ -57,6 +57,7 @@ sudo /sbin/udevadm trigger || :
 $zypper in libvirt-daemon-driver-network
 $zypper in libvirt
 systemctl start libvirtd
+sleep 2
 virsh net-define /usr/share/libvirt/networks/default.xml || :
 
 mkdir -p /opt/stack/new/
@@ -128,5 +129,3 @@ export USE_CACHE=1
 export TRIPLEO_CLEANUP=0
 
 exec ./toci_devtest.sh
-
-
