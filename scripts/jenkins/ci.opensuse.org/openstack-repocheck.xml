@@ -34,7 +34,6 @@
       <name>repository</name>
       <values>
         <string>SLE_11_SP3</string>
-        <string>openSUSE_12.2</string>
         <string>openSUSE_12.3</string>
         <string>openSUSE_13.1</string>
       </values>
@@ -47,9 +46,7 @@
     </hudson.matrix.LabelAxis>
   </axes>
   <combinationFilter>
-    !( ["Cloud:OpenStack:Grizzly"].contains(project) &amp;&amp; ["openSUSE_13.1"].contains(repository)) &amp;&amp;
-    !( ["Cloud:OpenStack:Havana"].contains(project)  &amp;&amp; ["openSUSE_12.2"].contains(repository)) &amp;&amp;
-    !( ["Cloud:OpenStack:Master"].contains(project)  &amp;&amp; ["openSUSE_12.2"].contains(repository))
+    !( ["Cloud:OpenStack:Grizzly"].contains(project) &amp;&amp; ["openSUSE_13.1"].contains(repository))
   </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
