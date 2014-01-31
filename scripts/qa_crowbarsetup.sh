@@ -944,7 +944,7 @@ if [ -n "$testsetup" ] ; then
 		curl -s w3.suse.de/~bwiedemann/cloud/defaultsuseusers.pl | perl
 		nova list
 		glance image-list
-	        glance image-list|grep -q SP2-64 || glance image-create --name=SP2-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP2-64up.qcow2 | tee glance.out
+	        glance image-list|grep -q SP3-64 || glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
                 # glance image-create --name=jeos-12.1-pv --is-public=True --property vm_mode=xen --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
         # wait for image to finish uploading
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
@@ -964,7 +964,7 @@ if [ -n "$testsetup" ] ; then
 		nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
 		nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
 		nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
-		nova boot --poll --image SP2-64 --flavor m1.smaller --key_name testkey testvm | tee boot.out
+		nova boot --poll --image SP3-64 --flavor m1.smaller --key_name testkey testvm | tee boot.out
 		instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
                 nova show "$instanceid"
 		vmip=`nova show "$instanceid" | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
