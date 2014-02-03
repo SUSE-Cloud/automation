@@ -376,9 +376,7 @@ clouddata_sle_repos () {
     repos=clouddata.cloud.suse.de:/srv/nfs/repos
     nfs_mount $repos/11-SP3-POOL $POOL_MOUNTPOINT
     nfs_mount $repos/11-SP3      $UPDATES_MOUNTPOINT
-
-    echo -e "WARNING: HAE not available from clouddata yet.\n"
-    #nfs_mount $repos/HA-11-SP3   $HAE_MOUNTPOINT
+    nfs_mount $repos/SLE-11-SP3-HA-GM   $HAE_MOUNTPOINT
 }
 
 clouddata_sp3_repo () {
