@@ -259,6 +259,7 @@ for i in $(seq 1 5); do
   sleep 1
 done
 
+ssh_user="root"
 case "$MODE" in
     xen)
         glance image-create --is-public=True --disk-format=qcow2 --container-format=bare --name jeos-64-pv --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
@@ -284,6 +285,7 @@ case "$MODE" in
             --container-format ami --disk-format ami \
             --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < cirros-0.3.1-x86_64-blank.img
 
+        ssh_user="cirros"
 
         #glance image-create --name="debian-5" --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/cirros-0.3.1-x86_64-disk.img
     ;;
@@ -308,7 +310,7 @@ vmip=`nova show testvm|perl -ne 'm/network\D*(\d+\.\d+\.\d+\.\d+)/ && print $1'`
 echo "VM IP: $vmip"
 if [ -n "$vmip" ]; then
     ping -c 2 $vmip || true
-    ssh -o "StrictHostKeyChecking no" root@$vmip curl --silent www3.zq1.de/test.txt || exit 3
+    ssh -o "StrictHostKeyChecking no" $ssh_user@$vmip curl --silent www3.zq1.de/test.txt || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
     nova show testvm
