@@ -75,7 +75,7 @@
   <combinationFilter>! (
       ["Devel:Cloud:2.0:Staging"].contains(project)
           &amp;&amp;  ["crowbar-barclamp-neutron"].contains(component)
-      ||  ["Devel:Cloud:3:Staging"].contains(project)
+      ||  ["Devel:Cloud:3:Staging", "Devel:Cloud:4:Staging"].contains(project)
           &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)  ) </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
