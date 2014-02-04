@@ -68,6 +68,7 @@
       <values>
         <string>Devel:Cloud:2.0:Staging</string>
         <string>Devel:Cloud:3:Staging</string>
+        <string>Devel:Cloud:4:Staging</string>
       </values>
     </hudson.matrix.TextAxis>
   </axes>
