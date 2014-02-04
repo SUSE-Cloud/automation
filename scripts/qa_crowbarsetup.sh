@@ -176,7 +176,7 @@ function iscloudvertest()
 # outer part of our test of iscloudver function
 function iscloudvertest2()
 {
-        for cloudsource in GM1.0 susecloud2.0 develcloud3 ; do
+        for cloudsource in GM1.0 susecloud2.0 develcloud3 develcloud4 ; do
           echo "cloudsource=$cloudsource"
           iscloudvertest
         done
@@ -247,6 +247,12 @@ EOF
       develcloud3)
           CLOUDDISTPATH=/ibs/Devel:/Cloud:/3/images/iso
           [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/3:/Staging/images/iso
+          CLOUDDISTISO="S*-CLOUD*Media1.iso"
+          suseversion=11.3
+      ;;
+      develcloud4)
+          CLOUDDISTPATH=/ibs/Devel:/Cloud:/4/images/iso
+          [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/4:/Staging/images/iso
           CLOUDDISTISO="S*-CLOUD*Media1.iso"
           suseversion=11.3
       ;;
@@ -354,6 +360,14 @@ EOF
               zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/ cloud-shared-11sp3
               zypper mr -p 60 Devel_Cloud_3_Staging
               zypper mr -p 70 Devel_Cloud_3
+              ;;
+          develcloud4)
+              addsp3testupdates
+              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/4:/Staging/$slesdist/Devel:Cloud:4:Staging.repo
+              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/4/$slesdist/Devel:Cloud:4.repo
+              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/ cloud-shared-11sp3
+              zypper mr -p 60 Devel_Cloud_4_Staging
+              zypper mr -p 70 Devel_Cloud_4
               ;;
           GM|GM1.0)
               addsp2testupdates
