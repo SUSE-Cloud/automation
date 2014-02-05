@@ -20,7 +20,7 @@
       <spec>*/5 * * * *</spec>
       <entries>
         <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-          <url>http://download.suse.de/ibs/SUSE:/SLE-11-SP3:/Update:/Products:/Test/images/iso/</url>
+          <url>http://download.suse.de/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud4:/Test/images/iso/</url>
           <proxyActivated>false</proxyActivated>
           <checkStatus>false</checkStatus>
           <statusCode>200</statusCode>
@@ -42,7 +42,7 @@
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>OBS_PROJECT=SUSE:SLE-11-SP3:Update:Products:Test
+              <properties>OBS_PROJECT=SUSE:SLE-11-SP3:Update:Cloud4:Test
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
