@@ -43,8 +43,31 @@ export TE_DATAFILE=/opt/stack/new/testenv.json
 
 # temporary hacks delete me
 $zypper -n --gpg-auto-import-keys ref
-$zypper in libxslt-devel
 export NODE_DIST="opensuse"
+
+use_package=1
+
+if [ "$use_package" = "1" ]; then
+    export DIB_REPOTYPE_python_ceilometerclient=package
+    export DIB_REPOTYPE_python_cinderclient=package
+    export DIB_REPOTYPE_python_glanceclient=package
+    export DIB_REPOTYPE_python_heatclient=package
+    #export DIB_REPOTYPE_python_ironicclient=package
+    export DIB_REPOTYPE_python_keystoneclient=package
+    export DIB_REPOTYPE_python_neutronclient=package
+    export DIB_REPOTYPE_python_novaclient=package
+    export DIB_REPOTYPE_python_swiftclient=package
+
+    export DIB_REPOTYPE_ceilometer=package
+    export DIB_REPOTYPE_glance=package
+    export DIB_REPOTYPE_heat=package
+    export DIB_REPOTYPE_keystone=package
+    export DIB_REPOTYPE_neutron=package
+    export DIB_REPOTYPE_nova=package
+    export DIB_REPOTYPE_nova_baremetal=package
+    export DIB_REPOTYPE_swift=package
+fi
+
 export DIB_COMMON_ELEMENTS=${DIB_COMMON_ELEMENTS:-"stackuser"}
 export LIBVIRT_NIC_DRIVER=virtio
 
@@ -77,7 +100,11 @@ fi
 if [ ! -d /opt/stack/new/tripleo-incubator ]; then
     (
         cd /opt/stack/new/
-        git clone git://git.openstack.org/openstack/tripleo-incubator
+        # ideally this one would be cloned, but it is broken atm:
+        # git clone git://git.openstack.org/openstack/tripleo-incubator
+        # needed for https://review.openstack.org/#/c/71265/
+
+        git clone https://github.com/dirkmueller/tripleo-incubator.git
     )
 fi
 
