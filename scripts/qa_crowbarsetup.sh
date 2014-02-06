@@ -366,6 +366,7 @@ EOF
               zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/4:/Staging/$slesdist/Devel:Cloud:4:Staging.repo
               zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/4/$slesdist/Devel:Cloud:4.repo
               zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/ cloud-shared-11sp3
+              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3\:/Update/standard/ cloud-shared-11sp3-update
               zypper mr -p 60 Devel_Cloud_4_Staging
               zypper mr -p 70 Devel_Cloud_4
               ;;
