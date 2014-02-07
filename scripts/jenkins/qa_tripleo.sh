@@ -35,7 +35,7 @@ esac
 
 $zypper in make patch python-PyYAML git-core busybox
 $zypper in python-os-apply-config
-$zypper in diskimage-builder tripleo-image-elements
+$zypper in diskimage-builder tripleo-image-elements tripleo-heat-templates
 
 ## setup some useful defaults
 export NODE_ARCH=amd64
@@ -148,6 +148,13 @@ if [ ! -d /opt/stack/new/tripleo-image-elements ]; then
     mkdir -p /opt/stack/new/tripleo-image-elements
     ln -s /usr/bin /opt/stack/new/tripleo-image-elements/bin
     ln -s /usr/share/tripleo-image-elements /opt/stack/new/tripleo-image-elements/elements
+fi
+
+# Use tripleo-heat-templates from packages
+
+if [ ! -d /opt/stack/new/tripleo-heat-templates ]; then
+    cd /opt/stack/new
+    git clone git://git.openstack.org/openstack/tripleo-heat-templates
 fi
 
 cd tripleo-ci
