@@ -103,6 +103,11 @@ case $cloudsource in
     subproject=Staging
     packagefilter="crowbar python openstack"
   ;;
+  develcloud4)
+    project=Devel:Cloud:4
+    subproject=Staging
+    packagefilter="crowbar python openstack"
+  ;;
 esac
 
 
