@@ -52,7 +52,7 @@ if [ "$use_package" = "1" ]; then
     export DIB_REPOTYPE_python_cinderclient=package
     export DIB_REPOTYPE_python_glanceclient=package
     export DIB_REPOTYPE_python_heatclient=package
-    #export DIB_REPOTYPE_python_ironicclient=package
+    export DIB_REPOTYPE_python_ironicclient=package
     export DIB_REPOTYPE_python_keystoneclient=package
     export DIB_REPOTYPE_python_neutronclient=package
     export DIB_REPOTYPE_python_novaclient=package
@@ -153,8 +153,7 @@ fi
 # Use tripleo-heat-templates from packages
 
 if [ ! -d /opt/stack/new/tripleo-heat-templates ]; then
-    cd /opt/stack/new
-    git clone git://git.openstack.org/openstack/tripleo-heat-templates
+    git clone git://git.openstack.org/openstack/tripleo-heat-templates /opt/stack/new/tripleo-heat-templates
 fi
 
 cd tripleo-ci
