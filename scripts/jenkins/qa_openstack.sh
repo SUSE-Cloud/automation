@@ -306,11 +306,13 @@ instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
 nova list
 sleep 30
 . /etc/openstackquickstartrc
-vmip=`nova show testvm|perl -ne 'm/network\D*(\d+\.\d+\.\d+\.\d+)/ && print $1'`
-echo "VM IP: $vmip"
-if [ -n "$vmip" ]; then
-    ping -c 2 $vmip || true
-    ssh -o "StrictHostKeyChecking no" $ssh_user@$vmip curl --silent www3.zq1.de/test.txt || exit 3
+FLOATING_IP=$(nova floating-ip-list |grep 172.31 | head -n 1 |awk '{print $2}')
+nova add-floating-ip testvm $FLOATING_IP
+sleep 5
+echo "FLOATING IP: $FLOATING_IP"
+if [ -n "$FLOATING_IP" ]; then
+    ping -c 2 $FLOATING_IP || true
+    ssh -o "StrictHostKeyChecking no" $ssh_user@$FLOATING_IP curl --silent www3.zq1.de/test || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
     nova show testvm
