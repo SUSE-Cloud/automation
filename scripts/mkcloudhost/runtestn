@@ -1,0 +1,35 @@
+#!/bin/sh
+n=$1
+shift
+[ -z "$n" ] && echo usage: "$0 NUM" && exit 55
+# 1 and 20 are reserved for v1 and v2.cloud.suse.de
+# which shall reside on different HDDs
+if [ $n -lt 2 -o $n -gt 19 ] ; then
+  echo "$n out of range"
+  exit 56
+fi
+
+# workaround libvirtd disappearance:
+pidof libvirtd || /usr/local/sbin/fixlibvirt
+
+
+export CVOL=/dev/sdb$n
+[ $n -gt 4 ] && CVOL=/dev/sdc$((n-4))
+[ $n -gt 8 ] && CVOL=/dev/sdd$((n-8))
+[ $n -gt 12 ] && CVOL=/dev/sde$((n-12))
+[ $n -gt 16 ] && CVOL=/dev/sdf$((n-16))
+#export cloudsource=GM2.0
+#export TESTHEAD=1
+#export cephvolumenumber=1
+#export libvirt_type=xen
+#export networkingplugin=linuxbridge
+#export forwardmode="route"
+#export NOQACROWBARDOWNLOAD=1
+export PARALLEL=yes
+export net_admin=192.168.$((200+$n*2))
+export net_public=192.168.$((201+$n*2))
+export adminnetmask=255.255.254.0
+export cloud=cloud$n
+export PARALLEL=yes
+#exec bash -x ./mkcloud "$@"
+

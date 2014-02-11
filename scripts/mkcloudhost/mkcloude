@@ -1,0 +1,6 @@
+#!/bin/sh -x
+n=$(basename $testdir)
+. /root/runtestn $n
+echo env=$testdir n=$n admin=$net_admin disk=$CVOL params="$@"
+echo access from outside via http://crowbarc$n.cloud.suse.de:3000/ and http://dashboardc$n.cloud.suse.de/
+exec "$@"

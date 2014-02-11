@@ -24,7 +24,7 @@
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
           <description/>
-          <defaultValue>develcloud1.0</defaultValue>
+          <defaultValue>develcloud3</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
@@ -89,7 +89,7 @@ MKCLOUDTARGET=all_noreboot
 [ $WITHREBOOT == "true" ] &amp;&amp; MKCLOUDTARGET=all
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
 
-perl -e "alarm 90*60 ; exec 'bash -x /root/bin/mkcloud $(echo -n $MKCLOUDTARGET) ' "
+perl -e "alarm 90*60 ; exec '/root/pool/allocpool bash -x /root/bin/mkcloud $(echo -n $MKCLOUDTARGET) ' "
 
 
 case $cloudsource in

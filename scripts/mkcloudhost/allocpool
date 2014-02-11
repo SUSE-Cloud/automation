@@ -1,0 +1,47 @@
+#!/usr/bin/perl -w
+# allocate one test dir from a pool and run mkcloud
+use strict;
+use Time::HiRes qw(sleep);
+use List::Util "shuffle";
+use Fcntl qw(:DEFAULT :flock);
+
+my @dirs=(</root/pool/?>,</root/pool/??>);
+my $lockname="mkcloud.lock";
+my $allocname="queuesched.pid";
+@dirs=shuffle @dirs; # random order to have different running clouds
+#print "@dirs\n";
+
+sleep(rand(1)); # reduce chance of collisions with make -j
+
+# lock+select testdir
+my $found=0;
+foreach my $d (@dirs) {
+	my $l="$d/$lockname";
+	#next if -e $l; # occopied for sure
+
+	# likely free, use own allocation lock protocol
+	# FIXME check: tmp will be autocleaned, so we can just exec
+	my $a="$d/tmp$allocname";
+	sysopen my $fh, $a, O_RDWR|O_CREAT or die "cant create $a";
+	flock $fh, LOCK_EX or next;
+	my $num = <$fh>;
+	if($num && $num=~m/^\d{1,5}$/) {
+		my $signalled=kill(0, $num);
+		if($signalled) {
+			print "someone else owns $a and is alive\n";
+			next;
+		}
+	}
+	# process is dead => cleanup
+	seek $fh, 0, 0 or die "can't rewind numfile: $!";
+	truncate $fh, 0 or die "can't truncate numfile: $!";
+	print $fh "$$\n";
+	close($fh);
+	$ENV{testdir}=$d;
+	$found=1;
+	last;
+}
+if(!$found) {die "all dirs (@dirs) are currently in use"}
+print "using testdir=$ENV{testdir}\n";
+exec("withlock", "$ENV{testdir}/$lockname", "/root/mkcloude", @ARGV);
+die "exec failed: $!";
