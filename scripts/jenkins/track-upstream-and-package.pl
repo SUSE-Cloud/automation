@@ -403,6 +403,9 @@ sub email_changes_diff
     eval {
       $custom_service=xml_get_text($xmldom, '/services/service[@name="github_tarballs"][1]/param[@name="url"][1]');
     };
+    eval {
+      $custom_service=xml_get_text($xmldom, '/services/service[@name="download_files"][1]/param[@name="changesgenerate"][1]');
+    };
     die $@ unless $custom_service;
   }
   eval {
