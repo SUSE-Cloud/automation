@@ -527,7 +527,7 @@ function do_installcrowbar()
   [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
   sleep 20
-  if ! curl -m 29 -s http://localhost:3000 > /dev/null || ! curl -m 29 -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
+  if ! curl -m 59 -s http://localhost:3000 > /dev/null || ! curl -m 59 -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
     tail -n 90 /root/screenlog.0
     echo "crowbar self-test failed"
     exit 84
