@@ -43,7 +43,7 @@ my %tu = (
     python-swift3
     python-oslo.config
     python-oslo.messaging
-    python-oslo.sphinx
+    python-oslosphinx
     python-oslo.version
   ) ],
   "OBS/Cloud:OpenStack:Grizzly:Staging" => [ qw(

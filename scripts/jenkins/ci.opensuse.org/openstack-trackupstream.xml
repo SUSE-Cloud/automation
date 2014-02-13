@@ -11,11 +11,12 @@
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
-  <canRoam>true</canRoam>
+  <assignedNode>cloud-trackupstream</assignedNode>
+  <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector">
+  <triggers>
     <hudson.triggers.TimerTrigger>
       <spec>H 1 * * *</spec>
     </hudson.triggers.TimerTrigger>
@@ -67,7 +68,7 @@
         <string>python-novaclient</string>
         <string>python-oslo.config</string>
         <string>python-oslo.messaging</string>
-        <string>python-oslo.sphinx</string>
+        <string>python-oslosphinx</string>
         <string>python-oslo.version</string>
         <string>python-oslo.rootwrap</string>
         <string>python-openstackclient</string>
@@ -90,13 +91,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! (
-      ["Cloud:OpenStack:Grizzly:Staging"].contains(project)
-      &amp;&amp; ["openstack-heat-templates", "python-openstackclient", "python-oslo.sphinx", "python-neutronclient", "openstack-neutron", "openstack-utils", "openstack-resource-agents" ].contains(component)
-      ||  ["Cloud:OpenStack:Grizzly:Staging", "Cloud:OpenStack:Havana:Staging"].contains(project)
-          &amp;&amp;  ["openstack-tuskar", "openstack-tuskar_ui", "openstack-ironic", "openstack-trove", "openstack-designate", "openstack-savanna", "python-savannaclient", "python-oslo.messaging", "python-oslo.version", "python-oslo.rootwrap", "python-oslo.version", "openstack-marconi", "python-tuskarclient", "python-designateclient", "python-troveclient", "python-ironicclient", "python-marconiclient", "tripleo-image-elements", "tripleo-heat-templates", "diskimage-builder" ].contains(component)
-      ||  ["Cloud:OpenStack:Havana:Staging", "Cloud:OpenStack:Master"].contains(project)
-          &amp;&amp;  ["openstack-quantum", "python-quantumclient"].contains(component)  ) </combinationFilter>
+  <combinationFilter>! (      ["Cloud:OpenStack:Grizzly:Staging"].contains(project)      &amp;&amp; ["openstack-heat-templates", "python-openstackclient", "python-oslosphinx", "python-neutronclient", "openstack-neutron", "openstack-utils", "openstack-resource-agents" ].contains(component)      ||  ["Cloud:OpenStack:Grizzly:Staging", "Cloud:OpenStack:Havana:Staging"].contains(project)          &amp;&amp;  ["openstack-tuskar", "openstack-tuskar_ui", "openstack-ironic", "openstack-trove", "openstack-designate", "openstack-savanna", "python-savannaclient", "python-oslo.messaging", "python-oslo.version", "python-oslo.rootwrap", "python-oslo.version", "openstack-marconi", "python-tuskarclient", "python-designateclient", "python-troveclient", "python-ironicclient", "python-marconiclient", "tripleo-image-elements", "tripleo-heat-templates", "diskimage-builder" ].contains(component)      ||  ["Cloud:OpenStack:Havana:Staging", "Cloud:OpenStack:Master"].contains(project)          &amp;&amp;  ["openstack-quantum", "python-quantumclient"].contains(component)  ) </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}
