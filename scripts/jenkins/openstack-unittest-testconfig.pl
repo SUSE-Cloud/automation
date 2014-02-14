@@ -20,7 +20,7 @@ my $uttrigger = {
     },
     unittest   => {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
-                                         "TESTCMD=python setup.py testr --testr-args=\"--concurrency=1\"\n",
+                                         "TESTCMD=testr init && testr run --parallel --testr-args=\"--concurrency=1\"\n",
         'openstack-cinder'            => "COMPONENT=openstack-cinder\n",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
                                          "TESTCMD=./run_tests.sh -N -P",
@@ -29,15 +29,15 @@ my $uttrigger = {
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
                                          "TESTCMD=./run_tests.sh -N glance",
         'openstack-heat'              => "COMPONENT=openstack-heat\n".
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'openstack-ironic'            => "COMPONENT=openstack-ironic\n" .
-                                         "TESTCMD=python setup.py testr\n",
+                                         "TESTCMD=testr init && testr run --parallel\n",
         'openstack-trove'             => "COMPONENT=openstack-trove\n" .
-                                         "TESTCMD=python setup.py testr\n",
+                                         "TESTCMD=testr init && testr run --parallel\n",
         'openstack-tuskar'            => "COMPONENT=openstack-tuskar\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'openstack-marconi'           => "COMPONENT=openstack-marconi\n" .
                                          "TESTCMD=nosetests -v",
         'openstack-nova'              => "COMPONENT=openstack-nova",
@@ -49,13 +49,13 @@ my $uttrigger = {
         'python-cinderclient'         => "COMPONENT=python-cinderclient",
         'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
         'python-designateclient'      => "COMPONENT=python-designateclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-ironicclient'         => "COMPONENT=python-ironicclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
                                          "COMPONENT=python-keystoneclient\n" .
                                          "TEARDOWNCMD=rcmemcached stop",
@@ -63,19 +63,19 @@ my $uttrigger = {
                                          "TESTCMD=nosetests -v",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-neutronclient'        => "COMPONENT=python-neutronclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-troveclient'          => "COMPONENT=python-troveclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-tuskarclient'         => "COMPONENT=python-tuskarclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-openstackclient'      => "COMPONENT=python-openstackclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-oslo.messaging'       => "COMPONENT=python-oslo.messaging\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-oslo.version'         => "COMPONENT=python-oslo.version\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
     }
   },
   "Cloud:OpenStack:Grizzly:Staging" => {
@@ -111,11 +111,11 @@ my $uttrigger = {
                                          "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
                                          "TESTCMD=./.unittests",
         'python-cinderclient'         => "COMPONENT=python-cinderclient\n".
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient\n".
                                          "TESTCMD=nosetests",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n".
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
                                          "TESTCMD=nosetests",
         'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
@@ -123,11 +123,11 @@ my $uttrigger = {
                                          "TESTCMD=nosetests\n".
                                          "TEARDOWNCMD=rcmemcached stop",
         'python-novaclient'           => "COMPONENT=python-novaclient\n".
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-quantumclient'        => "COMPONENT=python-quantumclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n".
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
     }
   },
   "Cloud:OpenStack:Havana:Staging" => {
@@ -145,14 +145,14 @@ my $uttrigger = {
     },
     unittest   => {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
-                                         "TESTCMD=python setup.py testr --testr-args=\"--concurrency=1\"",
+                                         "TESTCMD=testr init && testr run --parallel --testr-args=\"--concurrency=1\"",
         'openstack-cinder'            => "COMPONENT=openstack-cinder",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
                                          "TESTCMD=./run_tests.sh -N -P",
         'openstack-glance'            => "COMPONENT=openstack-glance\n".
                                          "TESTCMD=./run_tests.sh -N glance",
         'openstack-heat'              => "COMPONENT=openstack-heat\n".
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
                                          "TESTCMD=nosetests",
         'openstack-nova'              => "COMPONENT=openstack-nova",
@@ -164,19 +164,19 @@ my $uttrigger = {
         'python-cinderclient'         => "COMPONENT=python-cinderclient",
         'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
                                          "COMPONENT=python-keystoneclient\n" .
                                          "TEARDOWNCMD=rcmemcached stop\n",
         'python-novaclient'           => "COMPONENT=python-novaclient",
         'python-neutronclient'        => "COMPONENT=python-neutronclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-swiftclient'          => "COMPONENT=python-swiftclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-openstackclient'      => "COMPONENT=python-openstackclient\n" .
-                                         "TESTCMD=python setup.py testr",
+                                         "TESTCMD=testr init && testr run --parallel",
     }
   },
 };
