@@ -4,8 +4,11 @@
 # needs 2.1GB space for /var/lib/{glance,nova}
 interfaces="eth0 br0"
 export MODE=kvm
-# nested virt is awfully slow, so we do:
-MODE=lxc
+# Avoid nested virtualisation by setting the line below
+# Note that as of today (2014-02-14) OpenStack Nova has known
+# bugs. Since upstream tests with kvm, it doesn't really
+# make sense to test anything else.
+# MODE=lxc
 if ! grep -q -e vmx -e svm /proc/cpuinfo ; then
 	MODE=lxc
 fi
