@@ -91,8 +91,15 @@ if [ ! -f /opt/stack/new/testenv.json ]; then
     fi
     cat - > /opt/stack/new/testenv.json <<EOF
     {
+        "remote-operations": "1",
         "node-macs": "52:54:00:07:00:01 52:54:00:07:00:02 52:54:00:07:00:03",
-        "ssh-key": "$(base64 -w 0 < ~/.ssh/id_rsa)"
+        "ssh-user": "root",
+        "env-num": "2",
+        "arch": "amd64",
+        "node-cpu": "1",
+        "node-mem": "2048",
+        "node-disk": "20",
+        "ssh-key": "$(python -c 'print open("/root/.ssh/id_rsa").read().replace("\n", "\\n")')"
     }
 EOF
 fi
@@ -101,10 +108,7 @@ if [ ! -d /opt/stack/new/tripleo-incubator ]; then
     (
         cd /opt/stack/new/
         # ideally this one would be cloned, but it is broken atm:
-        # git clone git://git.openstack.org/openstack/tripleo-incubator
-        # needed for https://review.openstack.org/#/c/71265/
-
-        git clone https://github.com/dirkmueller/tripleo-incubator.git
+        git clone git://git.openstack.org/openstack/tripleo-incubator
     )
 fi
 
