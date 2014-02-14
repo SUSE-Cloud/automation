@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# Check_MK local checks for jenkins.
+# See http://mathias-kettner.de/checkmk_localchecks.html
+#
+# Sascha Peilicke <speilicke@suse.com>
+#
+
+
+STATUS_OK=0
+STATUS_WARNING=1
+STATUS_CRITICAL=2
+STATUS_UNKNOWN=3
+declare -a STATUS_TEXT=(OK WARNING CRITICAL UNKNOWN)
+
+
+function output () {
+  performance_data=${1:--}
+  check_output=${2:-}
+  status_text="${STATUS_TEXT[$status]}"
+  [ -z "$check_output" ] || status_text="$status_text - $check_output" 
+  echo "$status ${FUNCNAME[1]} $performance_data $status_text"
+}
+
+
+JENKINS_PORT=$(grep JENKINS_PORT /etc/sysconfig/jenkins  | cut -d"\"" -f2)
+JENKINS_HOST=localhost
+
+function jenkins_server_online () {
+  status=$STATUS_OK
+  if ! curl -s --head $JENKINS_HOST:$JENKINS_PORT > /dev/null ; then
+    status=$STATUS_CRITICAL
+  fi
+  output
+}
+
+function jenkins_slave_online ()
+{
+  status=$STATUS_OK
+  nodename=$1
+  if ! curl -s --head $JENKINS_HOST:$JENKINS_PORT/computer/$nodename/ | grep -q "200 OK" ; then
+    status=$STATUS_CRITICAL
+  fi
+  output "-" "$nodename"
+}
+
+case $HOST in
+  ci-opensuse)
+    jenkins_server_online
+    jenkins_slave_online ci1-opensuse
+    jenkins_slave_online master
+    jenkins_slave_online obs_25_deps_chroot
+    jenkins_slave_online obs_master_deps_chroot
+    jenkins_slave_online openstack-test-grizzly-openSUSE-12.3
+    jenkins_slave_online openstack-test-grizzly-SLE-11-SP3
+    jenkins_slave_online openstack-test-havana-openSUSE-13.1
+    jenkins_slave_online openstack-test-havana-SLE-11-SP3
+    jenkins_slave_online openstack-test-master-openSUSE-13.1
+    jenkins_slave_online openstack-test-master-SLE-11-SP3
+    jenkins_slave_online openstack-trackupstream
+    jenkins_slave_online yast-jenkins
+    jenkins_slave_online yast-yui
+    ;;
+  ci1-opensuse)
+    ;;
+esac
