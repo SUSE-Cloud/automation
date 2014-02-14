@@ -327,7 +327,7 @@ if true && [ -e /etc/tempest/tempest.conf ]; then
     $crudini --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
 
     verbose="-- -v"
-    if $(type -p testr); then
+    if [ -x "$(type -p testr)" ]; then
         verbose=""
     fi
 
