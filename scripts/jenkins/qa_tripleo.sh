@@ -91,7 +91,10 @@ if [ ! -f /opt/stack/new/testenv.json ]; then
     fi
     cat - > /opt/stack/new/testenv.json <<EOF
     {
-        "remote-operations": "1",
+        "host-ip": "172.22.222.1",
+        "seed-ip": "192.0.2.1",
+        "seed-route-dev": "eth0",
+        "power_manager": "nova.virt.baremetal.virtual_power_driver.VirtualPowerManager",
         "node-macs": "52:54:00:07:00:01 52:54:00:07:00:02 52:54:00:07:00:03",
         "ssh-user": "root",
         "env-num": "2",
