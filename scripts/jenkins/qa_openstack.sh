@@ -304,8 +304,16 @@ imgid=$(glance image-list|grep debian-5|cut -f2 -d" ")
 mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
-nova boot --poll --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm | tee boot.out
-instanceid=`perl -ne 'm/ id [ |]*([0-9a-f-]+)/ && print $1' boot.out`
+case "$cloudsource" in
+  openstackgrizzly)
+    KEYNAME_OPTION="--key-name"
+    ;;
+  *)
+    KEYNAME_OPTION="--key_name"
+    ;;
+esac
+
+nova boot --poll --flavor $NOVA_FLAVOR --image $imgid $KEYNAME_OPTION testkey testvm
 nova list
 sleep 30
 . /etc/openstackquickstartrc
