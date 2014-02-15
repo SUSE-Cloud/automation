@@ -326,6 +326,6 @@ if true && [ -e /etc/tempest/tempest.conf ]; then
     fi
 
     pushd /var/lib/openstack-tempest-test/
-        ./run_tempest.sh  -N -s $verbose 2>&1 | tee console.log || :
+        ./run_tempest.sh  -N -s $verbose 2>&1 | tee console.log || exit 4
     popd
 fi
