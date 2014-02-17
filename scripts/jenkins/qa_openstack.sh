@@ -257,7 +257,7 @@ case "$MODE" in
         glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from http://openqa.opensuse.org/openqa/img/debian.5-0.x86.qcow2
     ;;
     *)
-        wget http://clouddata.cloud.suse.de/images/cirros-0.3.1-x86_64-uec.tar.gz
+        wget http://openqa.opensuse.org/openqa/images/cirros-0.3.1-x86_64-uec.tar.gz
         tar xf cirros-0.3.1-x86_64-uec.tar.gz
         RAMDISK_ID=$(glance image-create --name="cirros-0.3.1-x86_64-uec-initrd" --is-public=True \
             --disk-format=ari --container-format=ari < cirros-0.3.1-x86_64-initrd | grep ' id ' | awk '{print $4}')
