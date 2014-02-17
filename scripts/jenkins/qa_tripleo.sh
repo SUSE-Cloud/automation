@@ -85,17 +85,47 @@ virsh net-define /usr/share/libvirt/networks/default.xml || :
 
 mkdir -p /opt/stack/new/
 
+if [ ! -d /opt/stack/new/tripleo-incubator ]; then
+    (
+        cd /opt/stack/new/
+        git clone git://git.openstack.org/openstack/tripleo-incubator
+    )
+fi
+
+
 if [ ! -f /opt/stack/new/testenv.json ]; then
+
+    # This should be part of the devtest scripts imho, but
+    # currently isn't.
+    (
+        export PATH=$PATH:/opt/stack/new/tripleo-incubator/scripts/
+
+        install-dependencies
+
+        cleanup-env
+
+        setup-network
+
+        setup-seed-vm -a $NODE_ARCH
+
+        create-nodes 1 2048 20 amd64 4 brbm
+    )
+
+    NODEMACS=
+    for node in $(virsh list --all --name | grep brbm); do
+        NODEMACS="$(virsh dumpxml $node | grep 'mac address' | awk -F \' 'NR==1,/mac address/ {print $2}')${NODEMACS:+ }$NODEMACS"
+    done
+
     if [ ! -f ~/.ssh/id_rsa ]; then
         ssh-keygen -f ~/.ssh/id_rsa -P ''
     fi
     cat - > /opt/stack/new/testenv.json <<EOF
     {
-        "host-ip": "172.22.222.1",
+        "host-ip": "192.168.122.1",
         "seed-ip": "192.0.2.1",
         "seed-route-dev": "virbr0",
         "power_manager": "nova.virt.baremetal.virtual_power_driver.VirtualPowerManager",
-        "node-macs": "52:54:00:07:00:01 52:54:00:07:00:02 52:54:00:07:00:03",
+        "node-macs": "$NODEMACS",
         "ssh-user": "root",
         "env-num": "2",
         "arch": "amd64",
@@ -106,27 +136,6 @@ if [ ! -f /opt/stack/new/testenv.json ]; then
     }
 EOF
 fi
-
-if [ ! -d /opt/stack/new/tripleo-incubator ]; then
-    (
-        cd /opt/stack/new/
-        # ideally this one would be cloned, but it is broken atm:
-        git clone git://git.openstack.org/openstack/tripleo-incubator
-    )
-fi
-
-# This should be part of the devtest scripts imho, but
-# currently isn't.
-(
-  export PATH=$PATH:/opt/stack/new/tripleo-incubator/scripts/
-
-  install-dependencies
-
-  cleanup-env
-
-  setup-network
-  setup-seed-vm -a $NODE_ARCH
-)
 
 # When launched interactively, break on error
 
