@@ -26,6 +26,7 @@ if [[ $dist =~ ":Staging" ]] ; then
 fi
 
 zypper rr dlp || true
+zypper -n rm libudev-mini1 || true
 
 # source config of the test
 eval `openstack-unittest-testconfig.pl $dist unittest $package`
