@@ -2,7 +2,6 @@
 # usage:
 # curl http://openqa.suse.de/sle/qatests/qa_openstack.sh | sh -x
 # needs 2.1GB space for /var/lib/{glance,nova}
-interfaces="eth0 br0"
 export MODE=kvm
 # Avoid nested virtualisation by setting the line below
 # Note that as of today (2014-02-14) OpenStack Nova has known
@@ -68,7 +67,6 @@ case "$cloudsource" in
 		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
 	fi
   ;;
-
   openstackgrizzly)
 	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly/$REPO/Cloud:OpenStack:Grizzly.repo
 	if test -n "$OSHEAD" ; then
@@ -99,22 +97,9 @@ if [ -n "$OSHEAD" ]; then
     $zypper mr --priority 42 cloudhead
 fi
 if [ $VERSION = 11 ] ; then
-
-  if [ "$cloudsource" == "develcloud1.0" -o "$cloudsource" == "develcloud" ]; then
-      $zypper ar http://dist.suse.de/install/SLP/SLE-11-SP2-CLOUD-GM/x86_64/DVD1/ CloudProduct
-      $zypper ar http://download.nue.suse.com/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/standard/SUSE:SLE-11-SP2:Update:Products:Test.repo
-  else
-      $zypper rr CloudProduct || true
-      $zypper rr SUSE_SLE-11-SP2_Update_Products_Test || true
-  fi
-  if [ "$REPO" = SLE_11_SP2 ] ; then
-    $zypper ar http://$hostname/install/SLP/SLES-11-SP2-LATEST/$ARCH/DVD1/ SLES-11-SP2-LATEST
-    $zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP1/ SP1up # for python268
-    $zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2/ SP2up
-    $zypper ar http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/$ARCH/update/SLE-SERVER/11-SP2-CORE/ SP2core
-  fi
-
-  if [ "$REPO" = SLE_11_SP3 ] ; then
+    $zypper rr CloudProduct || true
+    $zypper rr SUSE_SLE-11-SP2_Update_Products_Test || true
+if [ "$REPO" = SLE_11_SP3 ] ; then
     $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SLES11-SP3-Pool/sle-11-x86_64/' SP3Pool
   fi
 
@@ -169,29 +154,7 @@ $zypper -n install --force openstack-quickstart $tempest
 crudini=crudini
 test -z "$(type -p crudini 2>/dev/null)" && crudini="openstack-config"
 
-if ! rpm -q openstack-neutron-server && ! rpm -q openstack-quantum-server; then
-# setup non-bridged network:
-cat >/etc/sysconfig/network/ifcfg-brclean <<EOF
-BOOTPROTO='static'
-BRIDGE='yes'
-BRIDGE_FORWARDDELAY='0'
-BRIDGE_PORTS=''
-BRIDGE_STP='off'
-BROADCAST=''
-ETHTOOL_OPTIONS=''
-IPADDR='10.10.134.1/24'
-MTU=''
-NETMASK=''
-NETWORK=''
-REMOTE_IPADDR=''
-STARTMODE='auto'
-USERCONTROL='no'
-NAME=''
-EOF
-ifup brclean
-fi
-
-for i in $interfaces ; do
+for i in eth0 br0 ; do
 	IP=$(ip a show dev $i|perl -ne 'm/inet ([0-9.]+)/ && print $1')
 	[ -n "$IP" ] && break
 done
@@ -213,14 +176,7 @@ if [ "$(uname -r  | cut -d. -f2)" -ge 10 ]; then
     iptables -t mangle -A POSTROUTING -p udp --dport bootpc -j CHECKSUM  --checksum-fill
 fi
 
-sed -i -e s/br0/brclean/ /etc/nova/nova.conf
-echo --bridge_interface=brclean >> /etc/nova/nova.conf
-echo --vncserver_listen=0.0.0.0 >> /etc/nova/nova.conf ; /etc/init.d/openstack-nova-compute restart
-
-ps ax
 . /etc/bash.bashrc.local
-# enable forwarding
-( cd /proc/sys/net/ipv4/conf/all/ ; echo 1 > forwarding ; echo 1 > proxy_arp )
 
 nova flavor-delete m1.micro || :
 nova flavor-create m1.micro --ephemeral 20 12 128 0 1
@@ -275,7 +231,6 @@ case "$MODE" in
 
         #glance image-create --name="debian-5" --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/cirros-0.3.1-x86_64-disk.img
     ;;
-
 esac
 
 for i in $(seq 1 60) ; do # wait for image to finish uploading
