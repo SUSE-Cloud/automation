@@ -1,0 +1,86 @@
+#!/bin/bash -x
+
+if [ -z "$package" -o -z "$distribution" -o -z "$openstackrelease" -o -z "$OSC_DIST" -o -z "$dist" ] ; then
+  echo "Usage: Please export and set these variables: package distribution openstackrelease OSC_DIST dist"
+  exit 1
+else
+  echo "Running unittest for: $package"
+fi
+
+# basic configuration
+OSC_RC="$OSC_RC -A https://api.opensuse.org"
+OSC_ARCH=x86_64
+
+set -e
+# make sure we have access to all needed packages
+cloudrepo=http://download.opensuse.org/repositories/${dist//:/:\/}/${OSC_DIST}/
+zypper ar -f $cloudrepo cloud || true
+zypper mr -p 96 cloud || true
+zypper --gpg-auto-import-keys ref
+zypper -n dup
+if [[ $dist =~ ":Staging" ]] ; then
+  zypper ar -f ${cloudrepo/:\/Staging/} cloud-full || true
+  zypper mr -p 97 cloud-full || true
+  zypper --gpg-auto-import-keys ref
+  zypper -n dup
+fi
+
+zypper rr dlp || true
+
+# source config of the test
+eval `openstack-unittest-testconfig.pl $dist unittest $package`
+
+# workaround keystone timezone problem 6596 (bmwiedemann)
+export TZ=UTC
+
+################
+# run the test #
+################
+
+# default test command
+[ -z "$TESTCMD" ] && TESTCMD="./run_tests.sh -N -P"
+
+EXTRAPKGS=""
+# example:
+# [ "$package" = "openstack-nova" ] && EXTRAPKGS="python-xxx"
+[ "$package" = "python-quantumclient" ] && EXTRAPKGS="openstack-quantum"
+
+zypper --non-interactive in -y osc
+
+###
+
+pre=/unittest
+rm -rf $pre/$package
+mkdir -p $pre/$package
+cd $pre/$package
+
+for p in $package $EXTRAPKGS ; do
+    osc $OSC_RC getbinaries -d ./ $dist $p $OSC_DIST $OSC_ARCH
+done
+zypper --non-interactive ref
+zypper --non-interactive rm -y $package $EXTRAPKGS || true
+zypper --non-interactive in -y --force `ls *rpm`
+
+if test -d /usr/share/${package}-test/; then
+  cd /usr/share/${package}-test/
+else
+  cd /var/lib/${package}-test/
+fi
+
+test_exitcode=1
+
+echo "=== Cleaning up stale files from previous runs ==="
+rm -rf .testrepository subunit.log
+
+echo "=== Running SETUPCMD ==="
+eval "$SETUPCMD"
+echo "=== Running TESTCMD ==="
+eatmydata=/usr/bin/eatmydata
+test -x $eatmydata || eatmydata=""
+perl -e "alarm 300*60 ; exec '$eatmydata $TESTCMD'"
+test_exitcode=$?
+
+echo "=== Running TEARDOWNCMD ==="
+eval "$TEARDOWNCMD" || true
+
+exit $test_exitcode
