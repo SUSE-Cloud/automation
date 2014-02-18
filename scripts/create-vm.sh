@@ -9,6 +9,7 @@
 DEFAULT_HYPERVISOR="qemu:///system"
 DEFAULT_FSSIZE="24"
 DEFAULT_CPUS=4
+DAFAULT_USE_CPU_HOST=true
 
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
@@ -37,6 +38,7 @@ Options:
   -h, --help             Show this help and exit
   -s, --disksize XX      Size of VM-QCOW2-DISK (in GB) [$DEFAULT_FSSIZE]
   -C, --cpus XX          Number of virtual CPUs to assign [$DEFAULT_CPUS]
+  -n, --no-cpu-host      Don´t use the option --cpu host for virt-install [$DEFAULT_USE_CPU_HOST]
 EOF
     exit "$exit_code"
 }
@@ -45,6 +47,7 @@ parse_args () {
     hypervisor="$DEFAULT_HYPERVISOR"
     vm_disk_size="${DEFAULT_FSSIZE}G"
     vm_vcpus="$DEFAULT_CPUS"
+    use_cpu_host=$DEFAULT_USE_CPU_HOST
 
     while [ $# != 0 ]; do
         case "$1" in
@@ -62,6 +65,10 @@ parse_args () {
             -C|--cpus)
                 vm_vcpus="$2"
                 shift 2
+                ;;
+            -n|--no-cpu-host)
+                use_cpu_host=false
+                shift 1
                 ;;
             -*)
                 usage "Unrecognised option: $1"
@@ -153,7 +160,7 @@ main () {
                 fi
                 modprobe kvm_$plat
             fi
-            if grep -q kvm_$plat /proc/modules && egrep -q "[Y1]" /sys/module/kvm_$plat/parameters/nested ; then
+            if grep -q kvm_$plat /proc/modules && egrep -q "[Y1]" /sys/module/kvm_$plat/parameters/nested && $use_cpu_host; then
                 echo "Host CPU ($plat) supports nested virtualization and kvm_$plat module is loaded with nested=1, adding --cpu host"
                 vm_cpu="--cpu host"
             fi
