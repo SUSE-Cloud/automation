@@ -14,7 +14,7 @@
 
 automation_repo="git://github.com/SUSE-Cloud/automation.git"
 
-zypper --non-interactive in git-core
+rpm -q git-core || zypper --non-interactive in git-core
 
 pushd ~ > /dev/null
 a_dir=${automation_repo#*git://}
