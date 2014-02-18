@@ -12,27 +12,6 @@ fi
 hostname=dist.suse.de
 zypper="zypper --non-interactive"
 
-zypper rr cloudhead || :
-
-ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
-case "$cloudsource" in
-  openstackhavana)
-	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana/$REPO/Cloud:OpenStack:Havana.repo
-	if test -n "$OSHEAD" ; then
-		$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana:/Staging/$REPO/ cloudhead
-	fi
-  ;;
-  openstackmaster)
-	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/ cloud || :
-	# no staging for master
-        $zypper mr --priority 22 cloud
-  ;;
-  *)
-	echo "unknown cloudsource"
-	exit 37
-  ;;
-esac
-
 $zypper in make patch python-PyYAML git-core busybox
 $zypper in python-os-apply-config
 $zypper in diskimage-builder tripleo-image-elements tripleo-heat-templates
