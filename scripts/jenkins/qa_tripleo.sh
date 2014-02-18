@@ -12,6 +12,12 @@ fi
 hostname=dist.suse.de
 zypper="zypper --non-interactive"
 
+zypper rr cloudhead || :
+
+$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/ cloud || :
+# no staging for master
+$zypper mr --priority 22 cloud
+
 $zypper in make patch python-PyYAML git-core busybox
 $zypper in python-os-apply-config
 $zypper in diskimage-builder tripleo-image-elements tripleo-heat-templates
