@@ -5,6 +5,9 @@
 Only packages that built successfully are submitted.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <permission>hudson.model.Item.Read:anonymous</permission>
+    </hudson.security.AuthorizationMatrixProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -26,7 +29,7 @@ Only packages that built successfully are submitted.</description>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector"/>
+  <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
@@ -64,7 +67,7 @@ case $project in
   Devel:Cloud:1.0)
     submitcmd="$OSC submitrequest"
   ;;
-  Devel:Cloud:2.0)
+  Devel:Cloud:2.[05])
     submitcmd="$OSC copypac -K -e"
     OSCBUILDDIST=SLE_11_SP3
   ;;
@@ -75,7 +78,7 @@ case $project in
     submitcmd="$OSC copypac -K -e"
     OSCBUILDDIST=SLE_11_SP3
   ;;
-  isv:SUSE:Cloud:2.0)
+  isv:SUSE:Cloud:2.[05])
     submitcmd="$OSC copypac -K -e"
   ;;
   *) echo "Please add support for the project: $project"
@@ -102,7 +105,7 @@ done</command>
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.3"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.8"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.3">
       <template>submit-project: ${ENV,var="project"}:${ENV,var="subproject"}</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
