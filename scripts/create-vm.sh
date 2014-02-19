@@ -9,7 +9,7 @@
 DEFAULT_HYPERVISOR="qemu:///system"
 DEFAULT_FSSIZE="24"
 DEFAULT_CPUS=4
-DAFAULT_USE_CPU_HOST=true
+DEFAULT_USE_CPU_HOST=true
 
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
