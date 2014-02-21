@@ -15,6 +15,7 @@ use XML::LibXML;
 my $USER;
 my $PASSWORD;
 my $JURL="ci.opensuse.org";
+my $scheme='https';
 mkdir -p $JURL;
 # read the api credentials from file
 if ( -e "./jenkinsapi.cred" )
@@ -23,7 +24,8 @@ if ( -e "./jenkinsapi.cred" )
 } else {
   eval `cat /etc/jenkinsapi.cred`;
 }
-my $jurlbase="http://${USER}:${PASSWORD}\@$JURL";
+$scheme='http' if $JURL =~ /(ci|river)\.suse\.de/;
+my $jurlbase="${scheme}://${USER}:${PASSWORD}\@$JURL";
 my $jurl=$jurlbase."/api/xml";
 
 sub usage()
