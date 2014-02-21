@@ -145,6 +145,9 @@ function iscloudver()
           3)
             [[ $cloudsource =~ 3 ]]
             ;;
+          4)
+            [[ $cloudsource =~ 4 ]]
+            ;;
           *)
             return 1
             ;;
@@ -787,7 +790,10 @@ function custom_configuration()
         enable_ssl_for_glance
       fi
     ;;
-    ceph) manual_2device_ceph_proposal
+    ceph)
+      if iscloudver 2; then
+        manual_2device_ceph_proposal
+      fi
     ;;
     nova)
       # custom nova config of libvirt
