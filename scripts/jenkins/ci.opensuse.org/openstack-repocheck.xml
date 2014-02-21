@@ -72,6 +72,12 @@
       <permission>hudson.model.Item.Discover:bmwiedemann</permission>
       <permission>hudson.model.Item.Discover:saschpe</permission>
     </hudson.security.AuthorizationMatrixProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.1">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
+      <throttleEnabled>false</throttleEnabled>
+      <throttleOption>project</throttleOption>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-trackupstream</assignedNode>
