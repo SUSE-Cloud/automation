@@ -48,6 +48,7 @@
         <string>crowbar-barclamp-nova_dashboard</string>
         <string>crowbar-barclamp-ntp</string>
         <string>crowbar-barclamp-openstack</string>
+        <string>crowbar-barclamp-pacemaker</string>
         <string>crowbar-barclamp-provisioner</string>
         <string>crowbar-barclamp-quantum</string>
         <string>crowbar-barclamp-neutron</string>
@@ -74,7 +75,7 @@
   </axes>
   <combinationFilter>! (
       ["Devel:Cloud:2.0:Staging"].contains(project)
-          &amp;&amp;  ["crowbar-barclamp-neutron"].contains(component)
+          &amp;&amp;  ["crowbar-barclamp-neutron", "crowbar-barclamp-pacemaker"].contains(component)
       ||  ["Devel:Cloud:3:Staging", "Devel:Cloud:4:Staging"].contains(project)
           &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)  ) </combinationFilter>
   <builders>
