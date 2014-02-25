@@ -1284,7 +1284,7 @@ function securitytests()
   ./owasp.pl output=short $owaspconf
   ret=$?
   popd >/dev/null
-  exit $ret
+  return $ret
 }
 
 
