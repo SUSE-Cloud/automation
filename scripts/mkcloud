@@ -651,6 +651,25 @@ function tempest()
   return $ret
 }
 
+function qa_test()
+{
+  mkdir -p ~/github/SUSE-Cloud/
+  pushd ~/github/SUSE-Cloud/
+  if [ -e "qa-openstack-cli" ] ; then
+    cd qa-openstack-cli/
+    git pull
+  else
+    git clone https://github.com/SUSE-Cloud/qa-openstack-cli.git
+  fi
+  popd
+  rsync -av ~/github/SUSE-Cloud/qa-openstack-cli root@$adminip:
+  scp qa_crowbarsetup.sh root@$adminip:
+  sshrun "qa_test=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+
+  mkdir -p .artifacts
+  scp -r root@$adminip:qa_test.logs/ .artifacts/
+}
+
 
 function usage()
 {
@@ -687,6 +706,7 @@ function usage()
   echo "   rebootcompute: reboot the compute nodes and wait for them being up"
   echo "   securitytests: install and run security test suite"
   echo "   tempest:       setup and run tempest test suite"
+  echo "   qa_test:       run the qa test suite"
   echo "   help:          this usage"
   echo
   echo " Environment variables (need to be exported):"
@@ -805,7 +825,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests tempest help"
+allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests tempest qa_test help"
 wantedcmds=$@
 runcmds=''
 

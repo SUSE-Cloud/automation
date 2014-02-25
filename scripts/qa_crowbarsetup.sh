@@ -1288,6 +1288,27 @@ function securitytests()
 }
 
 
+function qa_test()
+{
+  zypper -n in -y python-{keystone,nova,glance}client
+
+  get_novacontroller
+  scp $novacontroller:.openrc ~/
+
+  if [ ! -d "qa-openstack-cli" ] ; then
+    echo "Error: please provide a checkout of the qa-openstack-cli repo on the crowbar node."
+    exit 1
+  fi
+
+  pushd qa-openstack-cli
+  mkdir -p ~/qa_test.logs
+  ./run.sh | tee ~/qa_test.logs/run.sh.log
+  ret=${PIPESTATUS[0]}
+  popd
+  return $ret
+}
+
+
 function teardown()
 {
   #BMCs at 10.122.178.163-6 #node 6-9
@@ -1365,6 +1386,11 @@ fi
 
 if [ -n "$tempestrun" ] ; then
   tempest_run
+  exit $?
+fi
+
+if [ -n "$qa_test" ] ; then
+  qa_test
   exit $?
 fi
 
