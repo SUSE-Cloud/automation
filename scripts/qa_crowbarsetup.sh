@@ -1290,7 +1290,7 @@ function securitytests()
 
 function qa_test()
 {
-  zypper -n in -y python-{keystone,nova,glance}client
+  zypper -n in -y python-{keystone,nova,glance,heat}client
 
   get_novacontroller
   scp $novacontroller:.openrc ~/
@@ -1302,7 +1302,7 @@ function qa_test()
 
   pushd qa-openstack-cli
   mkdir -p ~/qa_test.logs
-  ./run.sh | tee ~/qa_test.logs/run.sh.log
+  ./run.sh | perl -pe '$|=1;s/\e\[?.*?[\@-~]//g' | tee ~/qa_test.logs/run.sh.log
   ret=${PIPESTATUS[0]}
   popd
   return $ret

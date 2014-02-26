@@ -653,16 +653,17 @@ function tempest()
 
 function qa_test()
 {
-  mkdir -p ~/github/SUSE-Cloud/
-  pushd ~/github/SUSE-Cloud/
+  ghsc=github.com/SUSE-Cloud
+  mkdir -p ~/$ghsc/
+  pushd ~/$ghsc/
   if [ -e "qa-openstack-cli" ] ; then
     cd qa-openstack-cli/
     git pull
   else
-    git clone https://github.com/SUSE-Cloud/qa-openstack-cli.git
+    git clone https://$ghsc/qa-openstack-cli.git
   fi
   popd
-  rsync -av ~/github/SUSE-Cloud/qa-openstack-cli root@$adminip:
+  rsync -av ~/$ghsc/qa-openstack-cli root@$adminip:
   scp qa_crowbarsetup.sh root@$adminip:
   sshrun "qa_test=1 bash -x qa_crowbarsetup.sh $virtualcloud"
 
