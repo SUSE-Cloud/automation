@@ -666,9 +666,11 @@ function qa_test()
   rsync -av ~/$ghsc/qa-openstack-cli root@$adminip:
   scp qa_crowbarsetup.sh root@$adminip:
   sshrun "qa_test=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+  ret=$?
 
   mkdir -p .artifacts
   scp -r root@$adminip:qa_test.logs/ .artifacts/
+  return $ret
 }
 
 
