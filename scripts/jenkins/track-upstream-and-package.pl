@@ -120,7 +120,12 @@ sub pack_cleanup(@)
 sub pack_servicerun()
 {
   my @cmd = (@OSCBASE, qw(service disabledrun));
-  my $exitcode = system(@cmd);
+  my $output = readpipe(join " ", @cmd);
+  my $exitcode = $?;
+  print $output;
+  if((($exitcode>>8) == 0) && $output eq "There are no new changes.\n") {
+    exit 0
+  }
   return $exitcode >> 8;
 }
 
