@@ -1290,7 +1290,7 @@ function securitytests()
 
 function qa_test()
 {
-  zypper -n in -y python-{keystone,nova,glance,heat}client
+  zypper -n in -y python-{keystone,nova,glance,heat,ceilometer}client
 
   get_novacontroller
   scp $novacontroller:.openrc ~/
