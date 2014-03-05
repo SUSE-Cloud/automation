@@ -91,7 +91,7 @@ usage () {
     fi
     if [ -n "$1" ]; then
         echo >&2 "$*"
-        echo
+        echo >&2
     fi
 
     cat <<EOF >&2
