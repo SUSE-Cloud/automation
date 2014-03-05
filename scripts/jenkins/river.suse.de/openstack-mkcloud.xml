@@ -2,6 +2,12 @@
 <project>
   <actions/>
   <description/>
+  <logRotator>
+    <daysToKeep>20</daysToKeep>
+    <numToKeep>50</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
@@ -19,6 +25,11 @@
         <hudson.model.BooleanParameterDefinition>
           <name>UPDATEBEFOREINSTALL</name>
           <description>add update repos before crowbar install</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>WITHTEMPEST</name>
+          <description>Runs the tempest testsuite after successfully setting up a cloud</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -88,6 +99,7 @@ update_automation mkcloud jenkins-job-trigger
 MKCLOUDTARGET=all_noreboot
 [ $WITHREBOOT == "true" ] &amp;&amp; MKCLOUDTARGET=all
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
+[ $WITHTEMPEST == "true" ] &amp;&amp; MKCLOUDTARGET="$MKCLOUDTARGET tempest" 
 
 perl -e "alarm 90*60 ; exec '/root/pool/allocpool bash -x /root/bin/mkcloud $(echo -n $MKCLOUDTARGET) ' "
 
