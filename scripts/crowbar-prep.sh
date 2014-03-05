@@ -21,9 +21,9 @@ init_variables () {
     : ${ADMIN_IP:=192.168.124.10}
     : ${HOST_IP:=192.168.124.1}
 
-    HOST_MIRROR_DEFAULT=/data/install/mirrors
+    : ${HOST_MIRROR_DEFAULT=/data/install/mirrors}
     : ${HOST_MIRROR:=$HOST_MIRROR_DEFAULT}
-    HOST_MEDIA_MIRROR_DEFAULT=/srv/nfs/media
+    : ${HOST_MEDIA_MIRROR_DEFAULT=/srv/nfs/media}
     : ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEFAULT}
 
     # Subdirectory under $HOST_MEDIA_MIRROR on the VM host which is
