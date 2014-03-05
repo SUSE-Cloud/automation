@@ -26,7 +26,7 @@ if [[ $dist =~ ":Staging" ]] ; then
 fi
 
 zypper rr dlp || true
-zypper -n rm libudev-mini1 || true
+zypper -n rm libudev-mini1 kmod-compat || true
 
 # source config of the test
 eval `openstack-unittest-testconfig.pl $dist unittest $package`
@@ -46,7 +46,7 @@ EXTRAPKGS=""
 # [ "$package" = "openstack-nova" ] && EXTRAPKGS="python-xxx"
 [ "$package" = "python-quantumclient" ] && EXTRAPKGS="openstack-quantum"
 
-zypper --non-interactive in -y osc
+zypper --non-interactive in -y osc aaa_base
 
 ###
 
