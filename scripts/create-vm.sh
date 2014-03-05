@@ -10,6 +10,7 @@ DEFAULT_HYPERVISOR="qemu:///system"
 DEFAULT_FSSIZE="24"
 DEFAULT_CPUS=4
 DEFAULT_USE_CPU_HOST=true
+DEFAULT_CACHE_MODE=none
 
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
@@ -39,6 +40,7 @@ Options:
   -s, --disksize XX      Size of VM-QCOW2-DISK (in GB) [$DEFAULT_FSSIZE]
   -C, --cpus XX          Number of virtual CPUs to assign [$DEFAULT_CPUS]
   -n, --no-cpu-host      Don´t use the option --cpu host for virt-install [$DEFAULT_USE_CPU_HOST]
+  -d, --cache-mode MODE  Cache mode for disk
 EOF
     exit "$exit_code"
 }
@@ -48,6 +50,7 @@ parse_args () {
     vm_disk_size="${DEFAULT_FSSIZE}G"
     vm_vcpus="$DEFAULT_CPUS"
     use_cpu_host=$DEFAULT_USE_CPU_HOST
+    cache_mode="$DEFAULT_CACHE_MODE"
 
     while [ $# != 0 ]; do
         case "$1" in
@@ -69,6 +72,10 @@ parse_args () {
             -n|--no-cpu-host)
                 use_cpu_host=false
                 shift 1
+                ;;
+            -d|--cache-mode)
+                cache_mode="$2"
+                shift 2
                 ;;
             -*)
                 usage "Unrecognised option: $1"
@@ -142,7 +149,7 @@ main () {
     #     -o sles11 \
     #     -c4 \
     #     -m2048 -M2048 \
-    #     -d qcow2:$vm_disk,xvda,disk,w,0,cachemode=none \
+    #     -d qcow2:$vm_disk,xvda,disk,w,0,cachemode=$cache_mode \
     #     -e \
     #     --nic bridge=$vbridge,model=virtio \
     #     --keymap en-us
@@ -175,7 +182,7 @@ main () {
         --vcpus $vm_vcpus \
         $vm_cpu \
         "${opts[@]}" \
-        --disk path="$vm_disk,format=qcow2,cache=none" \
+        --disk path="$vm_disk,format=qcow2,cache=$cache_mode" \
         --os-type=linux \
         --os-variant=sles11 \
         --network bridge="$vbridge" \
