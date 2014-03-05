@@ -127,11 +127,12 @@ Profiles:
 
         which by default mirrors to $HOST_MIRROR_DEFAULT, and this
         profile assumes that directory will be NFS-exported to the
-        guest (export HOST_MIRROR to override this).  It also assumes
-        that the VM host mounts the SP3 and SUSE Cloud installation
-        sources at $HOST_MEDIA_MIRROR/$SP3_MEDIA_EXPORT_SUBDIR and
-        $HOST_MEDIA_MIRROR/suse-cloud-$CLOUD_VERSION respectively and NFS
-        exports both to the guest.
+        guest (use --nfs-mirror or export HOST_MIRROR to override
+        this).  It also assumes that the VM host mounts the SP3 and
+        SUSE Cloud installation sources at
+        $HOST_MEDIA_MIRROR/$SP3_MEDIA_EXPORT_SUBDIR and
+        $HOST_MEDIA_MIRROR/suse-cloud-$CLOUD_VERSION respectively and
+        NFS exports both to the guest.
 
     host-9p
         Similar to 'host-nfs' but mounts from VM host as virtio
@@ -156,6 +157,8 @@ Options:
   -p, --product-version      Set SUSE Cloud product version [$CLOUD_VERSION_DEFAULT]
   -d, --devel-cloud          zypper addrepo Devel:Cloud:\$version
   -s, --devel-cloud-staging  zypper addrepo Devel:Cloud:\$version:Staging
+  -n, --nfs-mirror PATH      Set path on host under which repos are NFS-exported
+                             [$HOST_MIRROR_DEFAULT]
   -m, --media-mirror PATH    Set path on host under which the SP3 and Cloud media
                              are mounted and NFS exported [$HOST_MEDIA_MIRROR_DEFAULT]
   -h, --help                 Show this help and exit
@@ -467,6 +470,11 @@ parse_opts () {
             -r|--sledgehammer-root-pw)
                 set_sledgehammer_passwd=y
                 shift
+                ;;
+            -n|--nfs-mirror)
+                [ -n "$2" ] || die "--nfs-mirror requires an argument"
+                HOST_MIRROR="$2"
+                shift 2
                 ;;
             -m|--media-mirror)
                 [ -n "$2" ] || die "--media-mirror requires an argument"
