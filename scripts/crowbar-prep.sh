@@ -235,7 +235,7 @@ ibs_devel_cloud_repo () {
     safe_run zypper mr -p 80 Devel_Cloud_${CLOUD_VERSION}
 }
 
-common_post () {
+mount_all_mounts () {
     if [ -n "$mountpoint_9p" ]; then
         is_mounted $mountpoint_9p || ensure_mount $mountpoint_9p
     else
@@ -262,12 +262,9 @@ common_post () {
                 ;;
         esac
     done
+}
 
-    pattern=cloud_admin
-    if zypper -n patterns | grep -q $pattern; then
-        pattern_already_installed=yes
-    fi
-
+setup_zypper_repos () {
     repos=( $cloud_repo $sp3_repo $hae_repo $updates_repo $shared_repo $ibs_repo )
 
     for repo in "${repos[@]}"; do
@@ -306,7 +303,20 @@ common_post () {
             die "BUG: unrecognised \$ibs_repo value '$ibs_repo'"
             ;;
     esac
+}
 
+common_post () {
+    mount_all_mounts
+
+    pattern=cloud_admin
+    if zypper -n patterns | grep -q $pattern; then
+        pattern_already_installed=yes
+    fi
+
+    setup_zypper_repos
+
+    # Display this warning after the zypper stuff to make it easier to
+    # spot in the terminal output.
     if [ -n "$pattern_already_installed" ]; then
         echo >&2 "WARNING: $pattern pattern already installed!"
         echo >&2 "You will probably need to upgrade existing packages."
