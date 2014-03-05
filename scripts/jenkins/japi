@@ -48,7 +48,9 @@ sub usage()
    ./jenkinsapi.cred or /etc/jenkinsapi.cred (see example).
 
   Note!
-  Fetch before you change and upload a job.
+  Archiving is the primary purpose of japi. Anyhow you can
+  make changes locally and push them to the server.
+  Please fetch and reformat a job before you change and push it.
   Otheriwse server-side changes would be lost.
 ";
 }
