@@ -15,8 +15,8 @@ use XML::LibXML;
 my $USER;
 my $PASSWORD;
 my $JURL="ci.opensuse.org";
-my $scheme='https';
 mkdir -p $JURL;
+
 # read the api credentials from file
 if ( -e "./jenkinsapi.cred" )
 {
@@ -24,8 +24,20 @@ if ( -e "./jenkinsapi.cred" )
 } else {
   eval `cat /etc/jenkinsapi.cred`;
 }
-$scheme='http' if $JURL =~ /(ci|river)\.suse\.de/;
-my $jurlbase="${scheme}://${USER}:${PASSWORD}\@$JURL";
+
+my $scheme='https';
+my $method='PUT';
+if ($JURL =~ /(ci|river)\.suse\.de/)
+{
+  $scheme='http';
+  $method='POST';
+}
+$scheme=$ENV{jenkinsscheme} if defined $ENV{jenkinsscheme};
+$method=$ENV{jenkinsmethod} if defined $ENV{jenkinsmethod};
+
+my $UP='';
+$UP="${USER}:${PASSWORD}\@" if (defined ${USER} && defined ${PASSWORD} && ${USER} ne '' && ${PASSWORD} ne '');
+my $jurlbase="${scheme}://${UP}${JURL}";
 my $jurl=$jurlbase."/api/xml";
 
 sub usage()
@@ -167,11 +179,11 @@ sub push_job($)
   # make sure the output is reformatted by libXML
   clean_xml("${JURL}/${jobname}.xml");
   # update
-  open(my $pipe, "-|", qw(curl --silent -X POST --data-binary), "\@${JURL}/${jobname}.xml", $pushurl);
+  open(my $pipe, "-|", qq(curl --silent -X $method --data-binary), "\@${JURL}/${jobname}.xml", $pushurl);
   if (has_error($pipe)) {
     print "  updating failed .. ";
     # create
-    open(my $pipe, "-|", qw(curl --silent -X POST -H), "Content-Type: text/xml", "--data-binary", "\@${JURL}/${jobname}.xml", "${jurlbase}/createItem?name=${jobname}");
+    open(my $pipe, "-|", qq(curl --silent -X $method -H), "Content-Type: text/xml", "--data-binary", "\@${JURL}/${jobname}.xml", "${jurlbase}/createItem?name=${jobname}");
     if ( has_error($pipe) ) {
       print "creating failed as well .. -> ERROR!\n";
     } else {

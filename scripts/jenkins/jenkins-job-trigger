@@ -25,8 +25,14 @@ eval `cat /etc/jenkinsapi.cred`;
 
 
 my $scheme="https";
-$scheme='http' if $JURL =~ /(ci|river)\.suse\.de/;
+my $method='PUT';
+if ($JURL =~ /(ci|river)\.suse\.de/)
+{
+  $scheme='http';
+  $method='POST';
+}
 $scheme=$ENV{jenkinsscheme} if defined $ENV{jenkinsscheme};
+$method=$ENV{jenkinsmethod} if defined $ENV{jenkinsmethod};
 my $jurl="$scheme://${USER}:${PASSWORD}\@$JURL";
 my $job=shift || die usage();
 
@@ -51,5 +57,5 @@ if ($jobtype eq 'normal') {
 
 $triggerurl =~ s/ /+/g;
 
-my $ret=system(qw(curl -X PUT), $triggerurl);
+my $ret=system(qw(curl -X), $method, $triggerurl);
 exit $ret >> 8;
