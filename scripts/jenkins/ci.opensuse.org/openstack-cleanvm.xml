@@ -126,6 +126,7 @@
       <values>
         <string>grizzly</string>
         <string>havana</string>
+        <string>icehouse</string>
         <string>master</string>
       </values>
     </hudson.matrix.TextAxis>
@@ -136,7 +137,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>slave=="cloud-cleanvm"  &amp;&amp; (      ( openstack_version=="master"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||      ( openstack_version=="havana"  &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) ||      ( openstack_version=="grizzly" &amp;&amp; (image=="SLE_11_SP3-64-minimal"))    )  </combinationFilter>
+  <combinationFilter>slave=="cloud-cleanvm"  &amp;&amp; ( ( openstack_version=="master"   &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) || ( openstack_version=="icehouse" &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) || ( openstack_version=="havana"   &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) || ( openstack_version=="grizzly"  &amp;&amp; (image=="SLE_11_SP3-64-minimal")) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
