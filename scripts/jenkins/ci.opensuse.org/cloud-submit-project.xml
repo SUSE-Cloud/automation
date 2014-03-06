@@ -6,7 +6,11 @@ Only packages that built successfully are submitted.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
+      <permission>hudson.model.Item.Discover:jdsnapi</permission>
+      <permission>hudson.model.Item.Read:jdsnapi</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Item.Workspace:jdsnapi</permission>
+      <permission>hudson.model.Item.Build:jdsnapi</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
