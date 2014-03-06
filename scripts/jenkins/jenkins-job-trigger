@@ -24,7 +24,9 @@ my $JURL="ci.opensuse.org";
 eval `cat /etc/jenkinsapi.cred`;
 
 
-my $jurl="http://${USER}:${PASSWORD}\@$JURL";
+my $scheme="https";
+$scheme='http' if $JURL =~ /(ci|river)\.suse\.de/;
+my $jurl="$scheme://${USER}:${PASSWORD}\@$JURL";
 my $job=shift || die usage();
 
 my $jobtype='normal';
