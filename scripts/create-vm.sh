@@ -154,7 +154,7 @@ main () {
                 echo "Running as root, invoking modprobe kvm_$plat."
                 if [ $plat = "intel" ] ; then
                     if ! grep -q nested /etc/modprobe.d/99-local.conf ; then
-                        echo “options kvm_intel nested=1″ | sudo tee /etc/modprobe.d/99-local.conf
+                        echo "options kvm_intel nested=1" | sudo tee /etc/modprobe.d/99-local.conf
                         modprobe -r kvm_intel
                     fi
                 fi
