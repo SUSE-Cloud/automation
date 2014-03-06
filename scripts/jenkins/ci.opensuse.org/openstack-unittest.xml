@@ -10,81 +10,18 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Read:iartarisi</permission>
-      <permission>hudson.model.Item.Read:vuntz</permission>
-      <permission>hudson.model.Item.Read:jdsn</permission>
-      <permission>hudson.model.Item.Read:mjura</permission>
-      <permission>hudson.model.Item.Read:aspiers</permission>
-      <permission>hudson.model.Item.Read:dirkmueller</permission>
-      <permission>hudson.model.Item.Read:anonymous</permission>
-      <permission>hudson.model.Item.Read:bmwiedemann</permission>
-      <permission>hudson.model.Item.Read:saschpe</permission>
-      <permission>hudson.model.Item.Delete:jdsn</permission>
-      <permission>hudson.model.Item.Delete:bmwiedemann</permission>
-      <permission>hudson.model.Item.Delete:saschpe</permission>
-      <permission>hudson.model.Run.Update:iartarisi</permission>
-      <permission>hudson.model.Run.Update:vuntz</permission>
-      <permission>hudson.model.Run.Update:jdsn</permission>
-      <permission>hudson.model.Run.Update:mjura</permission>
-      <permission>hudson.model.Run.Update:aspiers</permission>
-      <permission>hudson.model.Run.Update:dirkmueller</permission>
-      <permission>hudson.model.Run.Update:bmwiedemann</permission>
-      <permission>hudson.model.Run.Update:saschpe</permission>
-      <permission>hudson.model.Run.Delete:jdsn</permission>
-      <permission>hudson.model.Run.Delete:bmwiedemann</permission>
-      <permission>hudson.model.Run.Delete:saschpe</permission>
-      <permission>hudson.model.Item.Workspace:jdsn</permission>
-      <permission>hudson.model.Item.Workspace:dirkmueller</permission>
-      <permission>hudson.model.Item.Workspace:bmwiedemann</permission>
-      <permission>hudson.model.Item.Workspace:saschpe</permission>
-      <permission>hudson.model.Item.Build:iartarisi</permission>
-      <permission>hudson.model.Item.Build:vuntz</permission>
-      <permission>hudson.model.Item.Build:jdsn</permission>
-      <permission>hudson.model.Item.Build:mjura</permission>
-      <permission>hudson.model.Item.Build:aspiers</permission>
-      <permission>hudson.model.Item.Build:dirkmueller</permission>
-      <permission>hudson.model.Item.Build:bmwiedemann</permission>
-      <permission>hudson.model.Item.Build:saschpe</permission>
-      <permission>hudson.scm.SCM.Tag:iartarisi</permission>
-      <permission>hudson.scm.SCM.Tag:vuntz</permission>
-      <permission>hudson.scm.SCM.Tag:jdsn</permission>
-      <permission>hudson.scm.SCM.Tag:mjura</permission>
-      <permission>hudson.scm.SCM.Tag:aspiers</permission>
-      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
-      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
-      <permission>hudson.scm.SCM.Tag:saschpe</permission>
-      <permission>hudson.model.Item.Configure:jdsn</permission>
-      <permission>hudson.model.Item.Configure:dirkmueller</permission>
-      <permission>hudson.model.Item.Configure:bmwiedemann</permission>
-      <permission>hudson.model.Item.Configure:saschpe</permission>
-      <permission>hudson.model.Item.Cancel:iartarisi</permission>
-      <permission>hudson.model.Item.Cancel:vuntz</permission>
-      <permission>hudson.model.Item.Cancel:jdsn</permission>
-      <permission>hudson.model.Item.Cancel:mjura</permission>
-      <permission>hudson.model.Item.Cancel:aspiers</permission>
-      <permission>hudson.model.Item.Cancel:dirkmueller</permission>
-      <permission>hudson.model.Item.Cancel:bmwiedemann</permission>
-      <permission>hudson.model.Item.Cancel:saschpe</permission>
-      <permission>hudson.model.Item.Discover:iartarisi</permission>
-      <permission>hudson.model.Item.Discover:vuntz</permission>
-      <permission>hudson.model.Item.Discover:jdsn</permission>
-      <permission>hudson.model.Item.Discover:mjura</permission>
-      <permission>hudson.model.Item.Discover:aspiers</permission>
-      <permission>hudson.model.Item.Discover:dirkmueller</permission>
-      <permission>hudson.model.Item.Discover:bmwiedemann</permission>
-      <permission>hudson.model.Item.Discover:saschpe</permission>
-    </hudson.security.AuthorizationMatrixProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.1">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
       <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories/>
       <throttleEnabled>false</throttleEnabled>
       <throttleOption>project</throttleOption>
+      <configVersion>1</configVersion>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
@@ -94,7 +31,7 @@
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <axes>
-    <hudson.matrix.TextAxis>
+    <hudson.matrix.LabelAxis>
       <name>component</name>
       <values>
         <string>openstack-ceilometer</string>
@@ -121,129 +58,78 @@
         <string>python-novaclient</string>
         <string>python-swiftclient</string>
       </values>
+    </hudson.matrix.LabelAxis>
+    <hudson.matrix.TextAxis>
+      <name>openstackrelease</name>
+      <values>
+        <string>master</string>
+        <string>icehouse</string>
+        <string>havana</string>
+        <string>grizzly</string>
+      </values>
     </hudson.matrix.TextAxis>
-    <hudson.matrix.LabelAxis>
+    <hudson.matrix.TextAxis>
       <name>distribution</name>
       <values>
-        <string>grizzly-SLE-11-SP3</string>
-        <string>havana-SLE-11-SP3</string>
-        <string>havana-openSUSE-13.1</string>
-        <string>master-SLE-11-SP3</string>
-        <string>master-openSUSE-13.1</string>
+        <string>SLE-12</string>
+        <string>SLE-11-SP3</string>
+        <string>openSUSE-13.1</string>
+        <string>openSUSE-12.3</string>
       </values>
-    </hudson.matrix.LabelAxis>
+    </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>! (      ["grizzly-SLE-11-SP3", "grizzly-openSUSE-12.3"].contains(distribution)         &amp;&amp; ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove", "python-neutronclient", "openstack-neutron", "openstack-tuskar", "openstack-tuskar_ui"].contains(component)      || ["havana-SLE-11-SP3", "havana-openSUSE-12.3", "havana-openSUSE-13.1"].contains(distribution)         &amp;&amp; ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove", "python-ironicclient", "openstack-tuskar", "openstack-tuskar_ui" ].contains(component)      || ["master-SLE-11-SP3", "havana-SLE-11-SP3" ].contains(distribution)      &amp;&amp; ["openstack-neutron"].contains(component) )</combinationFilter>
+  <combinationFilter>["grizzly", "havana"].contains(openstackrelease) &amp;&amp;   (    ( openstackrelease=="grizzly" &amp;&amp;  ["openSUSE-12.3", "SLE-11-SP3"].contains(distribution) &amp;&amp;     ! ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove",        "python-neutronclient", "openstack-neutron", "openstack-tuskar", "openstack-tuskar_ui"].contains(component) )  ||    ( openstackrelease=="havana"   &amp;&amp;  ["openSUSE-13.1", "SLE-11-SP3"].contains(distribution) &amp;&amp;     ! ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove",        "python-ironicclient", "openstack-tuskar", "openstack-tuskar_ui" ].contains(component)                      )  ||    ( openstackrelease=="icehouse" &amp;&amp;  ["openSUSE-13.1", "SLE-11-SP3"].contains(distribution) )  ||   ( openstackrelease=="master"   &amp;&amp;  ["openSUSE-13.1", "SLE-11-SP3"].contains(distribution) )  )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
-      <command># zypper in osc
-# provide .oscrc
-
-
-# fetch the latest automation updates
+      <command># fetch the latest automation updates
 mkdir -p ~/bin
 [ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
-update_automation openstack-unittest-testconfig.pl
+withlock --verbose -w 30 /root/update_automation.lock update_automation openstack-unittest-testconfig.pl chroot-unittest
 
 # package is a reserved name in groovy (see combination filter)
 package=$component
 
-# basic configuration
-OSC_RC="$OSC_RC -A https://api.opensuse.org"
-OSC_ARCH=x86_64
-
 case $distribution in
-  *-SLE-11-SP3) OSC_DIST=SLE_11_SP3
-             ;;
-  *-openSUSE-13.1) OSC_DIST=openSUSE_13.1
-             ;;
-  *-openSUSE-12.3) OSC_DIST=openSUSE_12.3
-             ;;
+  SLE-11-SP3) OSC_DIST=SLE_11_SP3
+   ;;
+  openSUSE-13.1) OSC_DIST=openSUSE_13.1
+   ;;
+  openSUSE-12.3) OSC_DIST=openSUSE_12.3
+   ;;
 esac
 
 # map label to OBS project
-case $distribution in
-  master-*)  dist=Cloud:OpenStack:Master
+case $openstackrelease in
+  master)  dist=Cloud:OpenStack:Master
           ;;
-  grizzly-*) dist=Cloud:OpenStack:Grizzly:Staging
+  grizzly) dist=Cloud:OpenStack:Grizzly:Staging
           ;;
-  havana-*) dist=Cloud:OpenStack:Havana:Staging
+  havana) dist=Cloud:OpenStack:Havana:Staging
+          ;;
+  icehouse) dist=Cloud:OpenStack:Icehouse:Staging
+          ;;
+  *) echo "Unsupported OpenStack release. Add it to the job config."
+          exit 1
           ;;
 esac
 
-set -e
-# make sure we have access to all needed packages
-cloudrepo=http://download.opensuse.org/repositories/${dist//:/:\/}/${OSC_DIST}/
-zypper ar -f $cloudrepo cloud || true
-zypper mr -p 98 cloud || true
-zypper --gpg-auto-import-keys ref
-zypper -n dup
-if [[ $dist =~ ":Staging" ]] ; then
-  zypper ar -f ${cloudrepo/:\/Staging/} cloud-full || true
-  zypper mr -p 97 cloud-full || true
-  zypper --gpg-auto-import-keys ref
-  zypper -n dup
-fi
+
+ch=/chroot/$openstackrelease-$distribution
+# TODO: create chroot if needed
+rsync -LvrptgoD /root/bin/openstack-unittest-testconfig.pl /root/bin/chroot-unittest $ch/root/bin/
+rsync -LvrptgoD /root/.oscrc $ch/root/
+
+##
+export package
+export distribution
+export openstackrelease
+export OSC_DIST
+export dist
+##
 
 
-zypper rr dlp || true
-
-
-# source config of the test
-eval `openstack-unittest-testconfig.pl $dist unittest $package`
-
-
-# workaround keystone timezone problem 6596 (bmwiedemann)
-export TZ=UTC
-
-################
-# run the test #
-################
-
-# default test command
-[ -z "$TESTCMD" ] &amp;&amp; TESTCMD="./run_tests.sh -N -P"
-
-
-EXTRAPKGS=""
-# example:
-# [ "$package" = "openstack-nova" ] &amp;&amp; EXTRAPKGS="python-xxx"
-[ "$package" = "python-quantumclient" ] &amp;&amp; EXTRAPKGS="openstack-quantum"
-
-zypper --non-interactive in -y osc
-
-rm -rf $package
-mkdir -p $package
-cd $package
-for p in $package $EXTRAPKGS ; do
-    osc $OSC_RC getbinaries -d ./ $dist $p $OSC_DIST $OSC_ARCH
-done
-zypper --non-interactive ref
-zypper --non-interactive rm -y $package $EXTRAPKGS || true
-zypper --non-interactive in -y --force `ls *rpm`
-
-if test -d /usr/share/${package}-test/; then
-  cd /usr/share/${package}-test/
-else
-  cd /var/lib/${package}-test/
-fi
-
-test_exitcode=1
-
-echo "=== Cleaning up stale files from previous runs ===" &gt; /dev/null
-rm -rf .testrepository subunit.log
-
-echo "=== Running SETUPCMD ===" &gt; /dev/null
-eval "$SETUPCMD"
-echo "=== Running TESTCMD ===" &gt; /dev/null
-eatmydata=/usr/bin/eatmydata
-test -x $eatmydata || eatmydata=""
-perl -e "alarm 300*60 ; exec '$eatmydata $TESTCMD'"
-test_exitcode=$?
-
-echo "=== Running TEARDOWNCMD ===" &gt; /dev/null
-eval "$TEARDOWNCMD" || true
-
-exit $test_exitcode</command>
+withlock --verbose -w 2000 $ch.lock chroot $ch "/bin/bash -x /root/bin/chroot-unittest"
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>

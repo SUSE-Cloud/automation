@@ -96,7 +96,10 @@ case $project in
   ;;
 esac
 
-for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null`
+# first ls, then loop in order to catch failing 'osc ls' calls
+components=`$OSC ls $COSS 2&gt;/dev/null`
+
+for COMPONENT in $components
 do
   cd $BS_CHECKOUT || exit 1
   if [ ! -d $COMPONENT ]; then
@@ -110,7 +113,8 @@ do
   then
     $E $submitcmd $COSS $COMPONENT $COS
   fi
-done</command>
+done
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
