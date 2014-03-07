@@ -31,8 +31,9 @@ function disable_chroot()
   ch="${ch%/}"
   [ -e "$ch/etc/resolv.conf" ] && echo -n > "$ch/etc/resolv.conf"
   for bm in proc sys dev ; do
-    while mount | grep -q "$ch/$bm" ; do
-      umount --force "$ch/$bm"
+    chl=`readlink -f $ch`
+    while mount | grep -q "$chl/$bm" ; do
+      umount --force "$chl/$bm"
     done
   done
 }
@@ -52,6 +53,7 @@ function create_chroot()
   rm -rf "$ch"
   enable_chroot "$dist"
 
+  declare -a repos="$@"
   while [ -n "$1" -a -n "$2" ] ; do
     zypper -R "$ch" ar "$2" "$1"
     shift
@@ -61,6 +63,25 @@ function create_chroot()
   zypper --non-interactive  --gpg-auto-import-keys -R "$ch" install --auto-agree-with-licenses zypper
   ret=$?
 
+  # checking if zypper/rpm versions match
+  # if not, we need to build an inner chroot
+  # to be able to use zypper/rpm in the chroot
+  zinner=`chroot $ch zypper --version`
+  rinner=`chroot $ch rpm --version`
+  zouter=`zypper --version`
+  router=`rpm --version`
+  if [ "$zinner" != "$zouter" -o "$rinner" != "$router" ] ; then
+    echo "The zypper or rpm versions differ. Now creating an inner chroot."
+    sleep 2
+    mkdir -p "$ch/chroot/$dist" "$ch/root/bin"
+    cp `which mkchroot` "$ch/root/bin"
+    chroot "$ch" /root/bin/mkchroot create $repos
+    disable_chroot "$dist"
+    mv "$ch" "${ch}_temp"
+    mv "${ch}_temp/chroot/$dist" "$ch"
+  fi
+
+  disable_chroot "$dist"
   rm "$pre/$dist.rebuild_in_progress"
   return $ret
 }
