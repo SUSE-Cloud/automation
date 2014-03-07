@@ -213,6 +213,8 @@ my $uttrigger = {
                                          "TESTCMD=testr init && testr run --parallel\n",
         'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
         'python-cinderclient'         => "COMPONENT=python-cinderclient",
+        'python-designateclient'      => "COMPONENT=python-designateclient\n" .
+                                         "TESTCMD=testr init && testr run --parallel",
         'python-glanceclient'         => "COMPONENT=python-glanceclient\n" .
                                          "TESTCMD=testr init && testr run --parallel",
         'python-heatclient'           => "COMPONENT=python-heatclient\n" .
