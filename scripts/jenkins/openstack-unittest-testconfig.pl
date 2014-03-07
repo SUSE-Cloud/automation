@@ -20,7 +20,7 @@ my $uttrigger = {
     },
     unittest   => {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
-                                         "TESTCMD=testr init && testr run --parallel --testr-args=\"--concurrency=1\"\n",
+                                         "TESTCMD=testr init && testr run",
         'openstack-cinder'            => "COMPONENT=openstack-cinder\n",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
                                          "TESTCMD=./run_tests.sh -N -P",
@@ -145,7 +145,7 @@ my $uttrigger = {
     },
     unittest   => {
         'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
-                                         "TESTCMD=testr init && testr run --parallel --testr-args=\"--concurrency=1\"",
+                                         "TESTCMD=testr init && testr run",
         'openstack-cinder'            => "COMPONENT=openstack-cinder",
         'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
                                          "TESTCMD=./run_tests.sh -N -P",
