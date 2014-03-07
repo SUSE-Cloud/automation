@@ -54,6 +54,9 @@ case $targetproject in
   Devel:Cloud:3:Staging)
     source="openSUSE.org:Cloud:OpenStack:Havana"
   ;;
+  Devel:Cloud:4:Staging)
+    source="openSUSE.org:Cloud:OpenStack:Icehouse"
+  ;;
 esac
 
 IBSAPI="https://api.suse.de"
