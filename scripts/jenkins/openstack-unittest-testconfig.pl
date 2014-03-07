@@ -179,6 +179,58 @@ my $uttrigger = {
                                          "TESTCMD=testr init && testr run --parallel",
     }
   },
+  "Cloud:OpenStack:Icehouse" => {
+    functest   => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
+                                         "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
+                                         "TESTCMD=./.functests\n".
+                                         "TEARDOWNCMD=swift-init main stop",
+                    'openstack-heat'  => "COMPONENT=openstack-heat\n".
+                                         "TESTCMD=./run_tests.sh -P -f"
+    },
+    probetests => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
+                                         "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
+                                         "TESTCMD=./.probetests\n".
+                                         "TEARDOWNCMD=swift-init main stop"
+    },
+    unittest   => {
+        'openstack-ceilometer'        => "COMPONENT=openstack-ceilometer\n".
+                                         "TESTCMD=testr init && testr run",
+        'openstack-cinder'            => "COMPONENT=openstack-cinder",
+        'openstack-dashboard'         => "COMPONENT=openstack-dashboard\n".
+                                         "TESTCMD=./run_tests.sh -N -P",
+        'openstack-glance'            => "COMPONENT=openstack-glance\n".
+                                         "TESTCMD=./run_tests.sh -N glance",
+        'openstack-heat'              => "COMPONENT=openstack-heat\n".
+                                         "TESTCMD=testr init && testr run --parallel",
+        'openstack-keystone'          => "COMPONENT=openstack-keystone\n".
+                                         "TESTCMD=nosetests",
+        'openstack-nova'              => "COMPONENT=openstack-nova",
+        'openstack-neutron'           => "COMPONENT=openstack-neutron",
+        'openstack-swift'             => "COMPONENT=openstack-swift\n".
+                                         "SWIFT_TEST_CONFIG_FILE=/etc/swift/func_test.conf\n".
+                                         "TESTCMD=./.unittests",
+        'openstack-trove'             => "COMPONENT=openstack-trove\n" .
+                                         "TESTCMD=testr init && testr run --parallel\n",
+        'python-ceilometerclient'     => "COMPONENT=python-ceilometerclient",
+        'python-cinderclient'         => "COMPONENT=python-cinderclient",
+        'python-glanceclient'         => "COMPONENT=python-glanceclient\n" .
+                                         "TESTCMD=testr init && testr run --parallel",
+        'python-heatclient'           => "COMPONENT=python-heatclient\n" .
+                                         "TESTCMD=testr init && testr run --parallel",
+        'python-keystoneclient'       => "SETUPCMD=rcmemcached start\n" .
+                                         "COMPONENT=python-keystoneclient\n" .
+                                         "TEARDOWNCMD=rcmemcached stop\n",
+        'python-neutronclient'        => "COMPONENT=python-neutronclient\n" .
+                                         "TESTCMD=testr init && testr run --parallel",
+        'python-novaclient'           => "COMPONENT=python-novaclient",
+        'python-openstackclient'      => "COMPONENT=python-openstackclient\n" .
+                                         "TESTCMD=testr init && testr run --parallel",
+        'python-swiftclient'          => "COMPONENT=python-swiftclient\n" .
+                                         "TESTCMD=testr init && testr run --parallel",
+        'python-troveclient'          => "COMPONENT=python-troveclient\n" .
+                                         "TESTCMD=testr init && testr run --parallel",
+    }
+  },
 };
 
 
