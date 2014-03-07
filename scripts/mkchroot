@@ -1,0 +1,88 @@
+#!/bin/bash -x
+
+pre=/chroot
+
+function usage()
+{
+  echo "Error: Usage: $0 create|enable|disable
+               $0 create <dist-name> <dist-url> [<repo2-name> <repo2-url>]..."
+  echo "       Example: $0 openSUSE-13.1 http://download.opensuse.org/distribution/13.1/repo/oss/ 131up http://download.opensuse.org/update/13.1/"
+  exit 1
+}
+
+
+function enable_chroot()
+{
+  ch="$pre/$1"
+  ch="${ch%/}"
+  mkdir -p "$ch"/{dev,tmp,proc,sys}
+
+  for bm in proc sys dev ; do
+    mount | grep -q "$ch/$bm" || mount --bind "/$bm" "$ch/$bm"
+  done
+  mkdir -p "$ch/etc"
+  cp -a /etc/resolv.conf "$ch/etc/resolv.conf"
+}
+
+
+function disable_chroot()
+{
+  ch=$pre/$1
+  ch="${ch%/}"
+  [ -e "$ch/etc/resolv.conf" ] && echo -n > "$ch/etc/resolv.conf"
+  for bm in proc sys dev ; do
+    while mount | grep -q "$ch/$bm" ; do
+      umount --force "$ch/$bm"
+    done
+  done
+}
+
+
+function create_chroot()
+{
+  dist=$1
+  dist=${dist// /_}
+  disturl=$2
+  [ -z "$dist" -o -z "$disturl" ] && usage
+
+  ch="$pre/$dist"
+  touch "$ch.rebuild_in_progress"
+
+  disable_chroot "$dist"
+  rm -rf "$ch"
+  enable_chroot "$dist"
+
+  while [ -n "$1" -a -n "$2" ] ; do
+    zypper -R "$ch" ar "$2" "$1"
+    shift
+    shift
+  done
+
+  zypper --non-interactive  --gpg-auto-import-keys -R "$ch" install --auto-agree-with-licenses zypper
+  ret=$?
+
+  rm "$pre/$dist.rebuild_in_progress"
+  return $ret
+}
+
+
+action=$1
+shift
+chname=$1
+[ -z "$chname" ] && usage
+
+case $action in
+  create)
+    disable_chroot "$chname"
+    create_chroot $@
+  ;;
+  enable)
+    enable_chroot "$chname"
+  ;;
+  disable)
+    disable_chroot "$chname"
+  ;;
+  *)
+    usage
+  ;;
+esac
