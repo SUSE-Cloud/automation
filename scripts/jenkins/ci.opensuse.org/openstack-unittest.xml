@@ -10,13 +10,11 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.1">
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.2">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
       <maxConcurrentTotal>0</maxConcurrentTotal>
-      <categories/>
       <throttleEnabled>false</throttleEnabled>
       <throttleOption>project</throttleOption>
-      <configVersion>1</configVersion>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
@@ -113,9 +111,10 @@ case $openstackrelease in
           ;;
 esac
 
-
-ch=/chroot/$openstackrelease-$distribution
+chname="$openstackrelease-$distribution"
+ch="/chroot/$chname"
 # TODO: create chroot if needed
+mkchroot enable "$chname"
 rsync -LvrptgoD /root/bin/openstack-unittest-testconfig.pl /root/bin/chroot-unittest $ch/root/bin/
 rsync -LvrptgoD /root/.oscrc $ch/root/
 
@@ -134,7 +133,7 @@ withlock --verbose -w 2000 $ch.lock chroot $ch "/bin/bash -x /root/bin/chroot-un
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.8"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.9"/>
   </buildWrappers>
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
     <runSequentially>false</runSequentially>
