@@ -257,7 +257,7 @@ use_hae () {
 
 devel_cloud_shared_sp3_repo () {
     case $CLOUD_VERSION in
-        3|4)
+        2|3|4)
             if [ -z "$local_devel_cloud_repos" ]; then
                 url=http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/
             else
