@@ -57,6 +57,7 @@ init_variables () {
     : ${DC_MOUNTPOINT:=$REPOS_DIR/Devel:Cloud:$CLOUD_VERSION}
     : ${DC_STAGING_MOUNTPOINT:=${DC_MOUNTPOINT}:Staging}
     : ${DC_SHARED_MOUNTPOINT:=$REPOS_DIR/Devel:Cloud:Shared:11-SP3}
+    : ${DC_SHARED_UPDATE_MOUNTPOINT:=$REPOS_DIR/Devel:Cloud:Shared:11-SP3:Update}
 
     # Names of zypper repos within the Crowbar admin node.
     cloud_repo=SUSE-Cloud-$CLOUD_VERSION
@@ -67,6 +68,7 @@ init_variables () {
     dc_repo=Devel_Cloud_$CLOUD_VERSION
     dc_staging_repo=${dc_repo}_Staging
     dc_shared_repo=Devel_Cloud_Shared_11-SP3
+    dc_shared_update_repo=Devel_Cloud_Shared_11-SP3_Update
 
     set_cloud_iso
 }
@@ -267,6 +269,20 @@ devel_cloud_shared_sp3_repo () {
     esac
 }
 
+devel_cloud_shared_sp3_update_repo () {
+    case $CLOUD_VERSION in
+        3|4)
+            if [ -z "$local_devel_cloud_repos" ]; then
+                url=http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/
+            else
+                url=file://$DC_SHARED_UPDATE_MOUNTPOINT
+            fi
+            safe_run zypper ar $url $dc_shared_update_repo
+            safe_run zypper mr -p 90 $dc_shared_update_repo
+            ;;
+    esac
+}
+
 devel_cloud_repo () {
     if [ -z "$local_devel_cloud_repos" ]; then
         url=http://download.suse.de/ibs/Devel:/Cloud:/${CLOUD_VERSION}/SLE_11_SP3/
@@ -337,10 +353,12 @@ setup_zypper_repos () {
     case "$ibs_repo" in
         yes)
             devel_cloud_shared_sp3_repo
+            devel_cloud_shared_sp3_update_repo
             devel_cloud_repo
             ;;
         staging)
             devel_cloud_shared_sp3_repo
+            devel_cloud_shared_sp3_update_repo
             devel_cloud_repo
             devel_cloud_staging_repo
             ;;
