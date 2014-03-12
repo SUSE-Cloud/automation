@@ -179,7 +179,7 @@ my $uttrigger = {
                                          "TESTCMD=testr init && testr run --parallel",
     }
   },
-  "Cloud:OpenStack:Icehouse" => {
+  "Cloud:OpenStack:Icehouse:Staging" => {
     functest   => { 'openstack-swift' => "COMPONENT=openstack-swift\n".
                                          "SETUPCMD=remakerings &amp;&amp; swift-init main start\n".
                                          "TESTCMD=./.functests\n".
