@@ -11,10 +11,53 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
+      <permission>hudson.model.Item.Read:iartarisi</permission>
+      <permission>hudson.model.Item.Read:vuntz</permission>
+      <permission>hudson.model.Item.Read:jdsn</permission>
+      <permission>hudson.model.Item.Read:mjura</permission>
+      <permission>hudson.model.Item.Read:aspiers</permission>
+      <permission>hudson.model.Item.Read:dirkmueller</permission>
+      <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Item.Read:bmwiedemann</permission>
+      <permission>hudson.model.Item.Read:saschpe</permission>
+      <permission>hudson.model.Item.Delete:jdsn</permission>
+      <permission>hudson.model.Item.Delete:bmwiedemann</permission>
+      <permission>hudson.model.Item.Delete:saschpe</permission>
+      <permission>hudson.model.Item.Workspace:jdsn</permission>
+      <permission>hudson.model.Item.Workspace:dirkmueller</permission>
+      <permission>hudson.model.Item.Workspace:bmwiedemann</permission>
+      <permission>hudson.model.Item.Workspace:saschpe</permission>
+      <permission>hudson.model.Item.Build:iartarisi</permission>
+      <permission>hudson.model.Item.Build:vuntz</permission>
+      <permission>hudson.model.Item.Build:jdsn</permission>
+      <permission>hudson.model.Item.Build:mjura</permission>
+      <permission>hudson.model.Item.Build:aspiers</permission>
+      <permission>hudson.model.Item.Build:dirkmueller</permission>
+      <permission>hudson.model.Item.Build:bmwiedemann</permission>
+      <permission>hudson.model.Item.Build:saschpe</permission>
+      <permission>hudson.model.Run.Update:iartarisi</permission>
+      <permission>hudson.model.Run.Update:vuntz</permission>
+      <permission>hudson.model.Run.Update:jdsn</permission>
+      <permission>hudson.model.Run.Update:mjura</permission>
+      <permission>hudson.model.Run.Update:aspiers</permission>
+      <permission>hudson.model.Run.Update:dirkmueller</permission>
+      <permission>hudson.model.Run.Update:bmwiedemann</permission>
+      <permission>hudson.model.Run.Update:saschpe</permission>
+      <permission>hudson.model.Run.Delete:jdsn</permission>
+      <permission>hudson.model.Run.Delete:bmwiedemann</permission>
+      <permission>hudson.model.Run.Delete:saschpe</permission>
       <permission>hudson.model.Item.Configure:jdsn</permission>
       <permission>hudson.model.Item.Configure:dirkmueller</permission>
       <permission>hudson.model.Item.Configure:bmwiedemann</permission>
       <permission>hudson.model.Item.Configure:saschpe</permission>
+      <permission>hudson.scm.SCM.Tag:iartarisi</permission>
+      <permission>hudson.scm.SCM.Tag:vuntz</permission>
+      <permission>hudson.scm.SCM.Tag:jdsn</permission>
+      <permission>hudson.scm.SCM.Tag:mjura</permission>
+      <permission>hudson.scm.SCM.Tag:aspiers</permission>
+      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
+      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
+      <permission>hudson.scm.SCM.Tag:saschpe</permission>
       <permission>hudson.model.Item.Cancel:iartarisi</permission>
       <permission>hudson.model.Item.Cancel:vuntz</permission>
       <permission>hudson.model.Item.Cancel:jdsn</permission>
@@ -31,51 +74,8 @@
       <permission>hudson.model.Item.Discover:dirkmueller</permission>
       <permission>hudson.model.Item.Discover:bmwiedemann</permission>
       <permission>hudson.model.Item.Discover:saschpe</permission>
-      <permission>hudson.model.Item.Read:iartarisi</permission>
-      <permission>hudson.model.Item.Read:vuntz</permission>
-      <permission>hudson.model.Item.Read:jdsn</permission>
-      <permission>hudson.model.Item.Read:mjura</permission>
-      <permission>hudson.model.Item.Read:aspiers</permission>
-      <permission>hudson.model.Item.Read:dirkmueller</permission>
-      <permission>hudson.model.Item.Read:anonymous</permission>
-      <permission>hudson.model.Item.Read:bmwiedemann</permission>
-      <permission>hudson.model.Item.Read:saschpe</permission>
-      <permission>hudson.model.Item.Delete:jdsn</permission>
-      <permission>hudson.model.Item.Delete:bmwiedemann</permission>
-      <permission>hudson.model.Item.Delete:saschpe</permission>
-      <permission>hudson.scm.SCM.Tag:iartarisi</permission>
-      <permission>hudson.scm.SCM.Tag:vuntz</permission>
-      <permission>hudson.scm.SCM.Tag:jdsn</permission>
-      <permission>hudson.scm.SCM.Tag:mjura</permission>
-      <permission>hudson.scm.SCM.Tag:aspiers</permission>
-      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
-      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
-      <permission>hudson.scm.SCM.Tag:saschpe</permission>
-      <permission>hudson.model.Run.Update:iartarisi</permission>
-      <permission>hudson.model.Run.Update:vuntz</permission>
-      <permission>hudson.model.Run.Update:jdsn</permission>
-      <permission>hudson.model.Run.Update:mjura</permission>
-      <permission>hudson.model.Run.Update:aspiers</permission>
-      <permission>hudson.model.Run.Update:dirkmueller</permission>
-      <permission>hudson.model.Run.Update:bmwiedemann</permission>
-      <permission>hudson.model.Run.Update:saschpe</permission>
-      <permission>hudson.model.Run.Delete:jdsn</permission>
-      <permission>hudson.model.Run.Delete:bmwiedemann</permission>
-      <permission>hudson.model.Run.Delete:saschpe</permission>
-      <permission>hudson.model.Item.Workspace:jdsn</permission>
-      <permission>hudson.model.Item.Workspace:dirkmueller</permission>
-      <permission>hudson.model.Item.Workspace:bmwiedemann</permission>
-      <permission>hudson.model.Item.Workspace:saschpe</permission>
-      <permission>hudson.model.Item.Build:iartarisi</permission>
-      <permission>hudson.model.Item.Build:vuntz</permission>
-      <permission>hudson.model.Item.Build:jdsn</permission>
-      <permission>hudson.model.Item.Build:mjura</permission>
-      <permission>hudson.model.Item.Build:aspiers</permission>
-      <permission>hudson.model.Item.Build:dirkmueller</permission>
-      <permission>hudson.model.Item.Build:bmwiedemann</permission>
-      <permission>hudson.model.Item.Build:saschpe</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.1">
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.2">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
       <maxConcurrentTotal>0</maxConcurrentTotal>
       <throttleEnabled>false</throttleEnabled>
@@ -172,14 +172,14 @@ esac
 
 # trigger submit job
 if [ "$subproject" != "-" ] ; then
-  export jenkinsscheme=http
+  export jenkinsscheme=https
   jenkins-job-trigger cloud-submit-project -p project=$project subproject=$subproject
 fi</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.8"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.9"/>
   </buildWrappers>
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
     <runSequentially>true</runSequentially>
