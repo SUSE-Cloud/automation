@@ -23,6 +23,17 @@
       <permission>hudson.model.Item.Delete:jdsn</permission>
       <permission>hudson.model.Item.Delete:bmwiedemann</permission>
       <permission>hudson.model.Item.Delete:saschpe</permission>
+      <permission>hudson.model.Run.Update:iartarisi</permission>
+      <permission>hudson.model.Run.Update:vuntz</permission>
+      <permission>hudson.model.Run.Update:jdsn</permission>
+      <permission>hudson.model.Run.Update:mjura</permission>
+      <permission>hudson.model.Run.Update:aspiers</permission>
+      <permission>hudson.model.Run.Update:dirkmueller</permission>
+      <permission>hudson.model.Run.Update:bmwiedemann</permission>
+      <permission>hudson.model.Run.Update:saschpe</permission>
+      <permission>hudson.model.Run.Delete:jdsn</permission>
+      <permission>hudson.model.Run.Delete:bmwiedemann</permission>
+      <permission>hudson.model.Run.Delete:saschpe</permission>
       <permission>hudson.model.Item.Workspace:jdsn</permission>
       <permission>hudson.model.Item.Workspace:dirkmueller</permission>
       <permission>hudson.model.Item.Workspace:bmwiedemann</permission>
@@ -35,29 +46,10 @@
       <permission>hudson.model.Item.Build:dirkmueller</permission>
       <permission>hudson.model.Item.Build:bmwiedemann</permission>
       <permission>hudson.model.Item.Build:saschpe</permission>
-      <permission>hudson.model.Run.Update:iartarisi</permission>
-      <permission>hudson.model.Run.Update:vuntz</permission>
-      <permission>hudson.model.Run.Update:jdsn</permission>
-      <permission>hudson.model.Run.Update:mjura</permission>
-      <permission>hudson.model.Run.Update:aspiers</permission>
-      <permission>hudson.model.Run.Update:dirkmueller</permission>
-      <permission>hudson.model.Run.Update:bmwiedemann</permission>
-      <permission>hudson.model.Run.Update:saschpe</permission>
-      <permission>hudson.model.Run.Delete:jdsn</permission>
-      <permission>hudson.model.Run.Delete:bmwiedemann</permission>
-      <permission>hudson.model.Run.Delete:saschpe</permission>
       <permission>hudson.model.Item.Configure:jdsn</permission>
       <permission>hudson.model.Item.Configure:dirkmueller</permission>
       <permission>hudson.model.Item.Configure:bmwiedemann</permission>
       <permission>hudson.model.Item.Configure:saschpe</permission>
-      <permission>hudson.scm.SCM.Tag:iartarisi</permission>
-      <permission>hudson.scm.SCM.Tag:vuntz</permission>
-      <permission>hudson.scm.SCM.Tag:jdsn</permission>
-      <permission>hudson.scm.SCM.Tag:mjura</permission>
-      <permission>hudson.scm.SCM.Tag:aspiers</permission>
-      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
-      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
-      <permission>hudson.scm.SCM.Tag:saschpe</permission>
       <permission>hudson.model.Item.Cancel:iartarisi</permission>
       <permission>hudson.model.Item.Cancel:vuntz</permission>
       <permission>hudson.model.Item.Cancel:jdsn</permission>
@@ -74,6 +66,14 @@
       <permission>hudson.model.Item.Discover:dirkmueller</permission>
       <permission>hudson.model.Item.Discover:bmwiedemann</permission>
       <permission>hudson.model.Item.Discover:saschpe</permission>
+      <permission>hudson.scm.SCM.Tag:iartarisi</permission>
+      <permission>hudson.scm.SCM.Tag:vuntz</permission>
+      <permission>hudson.scm.SCM.Tag:jdsn</permission>
+      <permission>hudson.scm.SCM.Tag:mjura</permission>
+      <permission>hudson.scm.SCM.Tag:aspiers</permission>
+      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
+      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
+      <permission>hudson.scm.SCM.Tag:saschpe</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.2">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
@@ -150,10 +150,25 @@ sleep 100
 cloudsource=openstack$openstack_version
 oshead=1
 
-set -eu
+set -u
+set +e
 
 scp ~/github.com/SUSE-Cloud/automation/scripts/jenkins/qa_openstack.sh root@cleanvm:
 ssh root@cleanvm "export cloudsource=$cloudsource; export OSHEAD=$oshead; export NONINTERACTIVE=1; bash -x ~/qa_openstack.sh"
+ret=$?
+if [ "$ret" != 0 ] ; then
+  virsh shutdown cleanvm
+  # wait for clean shutdown
+  n=20 ; while [[ $n &gt; 0 ]] &amp;&amp; virsh list |grep cleanvm.*running ; do sleep 2 ; n=$(($n-1)) ; done
+  virsh destroy cleanvm
+  # cleanup old images
+  find /mnt/cleanvmbackup -mtime +10 -type f | xargs --no-run-if-empty rm
+  # backup /dev/vg0/cleanvm disk image
+  time gzip -c1 /dev/vg0/cleanvm &gt; /mnt/cleanvmbackup/`date +%s`-$openstack_version-$image
+  exit 1
+fi
+
+set -eu
 
 # mappings for submit job trigger
 OSversion=`echo $openstack_version | perl -ne 'print ucfirst($_)'`
@@ -172,7 +187,7 @@ esac
 
 # trigger submit job
 if [ "$subproject" != "-" ] ; then
-  export jenkinsscheme=https
+  export jenkinsscheme=http
   jenkins-job-trigger cloud-submit-project -p project=$project subproject=$subproject
 fi</command>
     </hudson.tasks.Shell>
