@@ -26,6 +26,7 @@
       <name>component</name>
       <values>
         <string>crowbar</string>
+        <string>crowbar-barclamp-bios</string>
         <string>crowbar-barclamp-ceilometer</string>
         <string>crowbar-barclamp-ceph</string>
         <string>crowbar-barclamp-cinder</string>
@@ -53,6 +54,7 @@
         <string>crowbar-barclamp-quantum</string>
         <string>crowbar-barclamp-neutron</string>
         <string>crowbar-barclamp-rabbitmq</string>
+        <string>crowbar-barclamp-raid</string>
         <string>crowbar-barclamp-suse-manager-client</string>
         <string>crowbar-barclamp-swift</string>
         <string>crowbar-barclamp-updater</string>
@@ -75,7 +77,7 @@
   </axes>
   <combinationFilter>! (
       ["Devel:Cloud:2.0:Staging"].contains(project)
-          &amp;&amp;  ["crowbar-barclamp-neutron", "crowbar-barclamp-pacemaker"].contains(component)
+          &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-neutron", "crowbar-barclamp-pacemaker", "crowbar-barclamp-raid"].contains(component)
       ||  ["Devel:Cloud:3:Staging", "Devel:Cloud:4:Staging"].contains(project)
           &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)  ) </combinationFilter>
   <builders>
