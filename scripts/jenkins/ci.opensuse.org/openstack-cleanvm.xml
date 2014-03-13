@@ -164,7 +164,7 @@ if [ "$ret" != 0 ] ; then
   # cleanup old images
   find /mnt/cleanvmbackup -mtime +10 -type f | xargs --no-run-if-empty rm
   # backup /dev/vg0/cleanvm disk image
-  time gzip -c1 /dev/vg0/cleanvm &gt; /mnt/cleanvmbackup/`date +%s`-$openstack_version-$image
+  time gzip -c1 /dev/vg0/cleanvm &gt; /mnt/cleanvmbackup/$BUILD_NUMBER-$openstack_version-$image
   exit 1
 fi
 
