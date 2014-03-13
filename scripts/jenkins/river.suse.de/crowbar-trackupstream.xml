@@ -78,10 +78,10 @@
   <combinationFilter>! (
       ["Devel:Cloud:2.0:Staging"].contains(project)
           &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-neutron", "crowbar-barclamp-pacemaker", "crowbar-barclamp-raid"].contains(component)
-      ||  ["Devel:Cloud:3:Staging", "Devel:Cloud:4:Staging"].contains(project)
-          &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)  )
+      ||  ["Devel:Cloud:3:Staging"].contains(project)
+          &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)
       ||  ["Devel:Cloud:4:Staging", "Devel:Cloud:4:Staging"].contains(project)
-          &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-raid"].contains(component)  )
+          &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-raid", "crowbar-barclamp-quantum"].contains(component)  )
     </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
