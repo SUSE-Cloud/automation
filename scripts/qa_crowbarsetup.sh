@@ -282,10 +282,17 @@ EOF
           CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-GM/
           CLOUDDISTISO="S*-CLOUD*GM-DVD1.iso"
       ;;
-      Beta*|RC*|GMC*|GM2.0)
+      GM2.0)
           cs=$cloudsource
           [ $cs = GM2.0 ] && cs=GM
           CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-$cs/
+          CLOUDDISTISO="S*-CLOUD*1.iso"
+          suseversion=11.3
+      ;;
+      Beta*|RC*|GMC*|GM3)
+          cs=$cloudsource
+          [ $cs = GM3 ] && cs=GM
+          CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-3-$cs/
           CLOUDDISTISO="S*-CLOUD*1.iso"
           suseversion=11.3
       ;;
@@ -384,6 +391,12 @@ EOF
               mkdir -p /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates
               mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-2.0-Updates-test /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates
               zypper ar /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates cloudtup
+              ;;
+          GM3)
+              addsp3testupdates
+              mkdir -p /srv/tftpboot/repos/SUSE-Cloud-3-Updates
+              mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-3-Updates-test /srv/tftpboot/repos/SUSE-Cloud-3-Updates
+              zypper ar /srv/tftpboot/repos/SUSE-Cloud-3-Updates cloudtup
               ;;
           *)
               echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
