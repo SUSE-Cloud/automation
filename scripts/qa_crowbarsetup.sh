@@ -406,6 +406,7 @@ EOF
   fi
   # --no-gpg-checks for Devel:Cloud repo
   zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
+  zypper -n dup -r cloudtup # to upgrade pre-installed packages
 
   if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
     zypper --no-gpg-checks -n in -l -t pattern cloud_admin
