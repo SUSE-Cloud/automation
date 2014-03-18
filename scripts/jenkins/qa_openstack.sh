@@ -80,7 +80,7 @@ case "$cloudsource" in
 	fi
   ;;
   openstackicehouse)
-	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse/$REPO/Cloud:OpenStack:Havana.repo
+	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse/$REPO/Cloud:OpenStack:Icehouse.repo
 	if test -n "$OSHEAD" ; then
 		$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse:/Staging/$REPO/ cloudhead
 	fi
