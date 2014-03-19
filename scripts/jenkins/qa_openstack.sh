@@ -187,17 +187,11 @@ fi
 nova flavor-delete m1.micro || :
 nova flavor-create m1.micro --ephemeral 20 12 128 0 1
 
-if [ "$cloudsource" == "develcloud1.0" -o "$cloudsource" == "develcloud" -o "$cloudsource" == "openstackessex" ]; then
-    # nova-volume
-    nova volume-create 1 ; sleep 2
-    nova volume-list
-else
-    # cinder
-    cinder create 1 ; sleep 5
-    vol_id=$(cinder list | grep available | cut -d' ' -f2)
-    cinder list
-    cinder delete $vol_id
-fi
+# cinder
+cinder create 1 ; sleep 10
+vol_id=$(cinder list | grep available | cut -d' ' -f2)
+cinder list
+cinder delete $vol_id
 NOVA_FLAVOR="12"
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
