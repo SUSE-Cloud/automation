@@ -273,6 +273,9 @@ nova delete testvm || :
 # run tempest
 # skip on Grizzly, since it is just too broken
 if [ "$cloudsource" != "openstackgrizzly" ] && [ -e /etc/tempest/tempest.conf ]; then
+    $crudini --set /etc/tempest/tempest.conf compute image_ssh_user cirros
+    $crudini --set /etc/tempest/tempest.conf compute image_alt_ssh_user cirros
+    $crudini --set /etc/tempest/tempest.conf compute ssh_user cirros
     $crudini --set /etc/tempest/tempest.conf compute image_ref $imgid
     $crudini --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
 
