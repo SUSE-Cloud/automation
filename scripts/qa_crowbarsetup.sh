@@ -864,6 +864,11 @@ get_crowbarnodes
 wantswift=1
 wantceph=1
 iscloudver 2 && wantceph=
+# FIXME: Ceph is currently broken
+iscloudver 4 && {
+    echo "WARNING: ceph currently disabled as it is broken"
+    wantceph=
+}
 [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
 # we can not use both swift and ceph as each grabs all disks on a node
 [[ -n "$wantceph" ]] && wantswift=
