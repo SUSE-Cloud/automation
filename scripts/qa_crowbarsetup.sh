@@ -863,54 +863,54 @@ function get_crowbarnodes()
 
 function set_proposalvars()
 {
-get_crowbarnodes
-wantswift=1
-wantceph=1
-iscloudver 2 && wantceph=
-# FIXME: Ceph is currently broken
-iscloudver 4 && {
-    echo "WARNING: ceph currently disabled as it is broken"
-    wantceph=
-}
-[[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
-# we can not use both swift and ceph as each grabs all disks on a node
-[[ -n "$wantceph" ]] && wantswift=
-[[ "$cephvolumenumber" -lt 1 ]] && wantswift=
-crowbar_networking=neutron
-iscloudver 2 && crowbar_networking=quantum
+  get_crowbarnodes
+  wantswift=1
+  wantceph=1
+  iscloudver 2 && wantceph=
+  # FIXME: Ceph is currently broken
+  iscloudver 4 && {
+      echo "WARNING: ceph currently disabled as it is broken"
+      wantceph=
+  }
+  [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
+  # we can not use both swift and ceph as each grabs all disks on a node
+  [[ -n "$wantceph" ]] && wantswift=
+  [[ "$cephvolumenumber" -lt 1 ]] && wantswift=
+  crowbar_networking=neutron
+  iscloudver 2 && crowbar_networking=quantum
 }
 
 function do_proposal()
 {
-waitnodes nodes
+  waitnodes nodes
 
-for service in database keystone ceph glance rabbitmq cinder $crowbar_networking nova nova_dashboard swift ceilometer heat ; do
-  case $service in
-    ceph)
-      [[ -n "$wantceph" ]] || continue
-      ;;
-    swift)
-      [[ -n "$wantswift" ]] || continue
-      ;;
-    rabbitmq|cinder|quantum|neutron|ceilometer|heat)
-      iscloudver 1 && continue
-      ;;
-  esac
-  crowbar "$service" proposal create default
-  # hook for changing proposals:
-  custom_configuration $service
-  crowbar "$service" proposal commit default
-  echo $?
-  waitnodes proposal $service
-  sleep 10
-  ret=$?
-  echo "exitcode: $ret"
-  if [ $ret != 0 ] ; then
-    tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
-    echo "Error: commiting the crowbar proposal for '$service' failed ($ret)."
-    exit 73
-  fi
-done
+  for service in database keystone ceph glance rabbitmq cinder $crowbar_networking nova nova_dashboard swift ceilometer heat ; do
+    case $service in
+      ceph)
+        [[ -n "$wantceph" ]] || continue
+        ;;
+      swift)
+        [[ -n "$wantswift" ]] || continue
+        ;;
+      rabbitmq|cinder|quantum|neutron|ceilometer|heat)
+        iscloudver 1 && continue
+        ;;
+    esac
+    crowbar "$service" proposal create default
+    # hook for changing proposals:
+    custom_configuration $service
+    crowbar "$service" proposal commit default
+    echo $?
+    waitnodes proposal $service
+    sleep 10
+    ret=$?
+    echo "exitcode: $ret"
+    if [ $ret != 0 ] ; then
+      tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
+      echo "Error: commiting the crowbar proposal for '$service' failed ($ret)."
+      exit 73
+    fi
+  done
 }
 
 function get_novacontroller()
