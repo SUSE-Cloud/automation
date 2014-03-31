@@ -651,12 +651,13 @@ function check_node_resolvconf()
   ssh_password $1 'grep "^nameserver" /etc/resolv.conf || echo fail'
 }
 
-if [ -n "$waitcompute" ] ; then
+function do_waitcompute()
+{
   for node in $(crowbar machines list | grep ^d) ; do
     wait_for 180 10 "sshtest $node rpm -q yast2-core" "node $node" "check_node_resolvconf $node; exit 12"
     echo "node $node ready"
   done
-fi
+}
 
 
 function waitnodes()
@@ -860,6 +861,8 @@ function get_crowbarnodes()
 }
 
 
+function set_proposalvars()
+{
 get_crowbarnodes
 wantswift=1
 wantceph=1
@@ -875,8 +878,10 @@ iscloudver 4 && {
 [[ "$cephvolumenumber" -lt 1 ]] && wantswift=
 crowbar_networking=neutron
 iscloudver 2 && crowbar_networking=quantum
+}
 
-if [ -n "$proposal" ] ; then
+function do_proposal()
+{
 waitnodes nodes
 
 for service in database keystone ceph glance rabbitmq cinder $crowbar_networking nova nova_dashboard swift ceilometer heat ; do
@@ -906,7 +911,7 @@ for service in database keystone ceph glance rabbitmq cinder $crowbar_networking
     exit 73
   fi
 done
-fi
+}
 
 function get_novacontroller()
 {
@@ -949,7 +954,8 @@ function tempest_run()
 
 
 
-if [ -n "$testsetup" ] ; then
+function do_testsetup()
+{
     get_novacontroller
 	if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
 		echo "no nova contoller - something went wrong"
@@ -1050,7 +1056,7 @@ if [ -n "$testsetup" ] ; then
 	ret=$?
 	echo ret:$ret
 	exit $ret
-fi
+}
 
 function addupdaterepo()
 {
@@ -1353,11 +1359,6 @@ function teardown()
 # like in mkcloud; this makes it easier to read, understand and edit this file
 #
 
-if [ -n "$allocate" ] ; then
-  allocate
-  exit $?
-fi
-
 if [ -n "$prepareinstallcrowbar" ] ; then
   prepareinstallcrowbar
   exit $?
@@ -1381,6 +1382,24 @@ fi
 if [ -n "$runupdate" ] ; then
   runupdate
   exit $?
+fi
+
+if [ -n "$allocate" ] ; then
+  allocate
+  exit $?
+fi
+
+if [ -n "$waitcompute" ] ; then
+  do_waitcompute
+fi
+
+set_proposalvars
+if [ -n "$proposal" ] ; then
+  do_proposal
+fi
+
+if [ -n "$testsetup" ] ; then
+  do_testsetup
 fi
 
 if [ -n "$rebootcompute" ] ; then
