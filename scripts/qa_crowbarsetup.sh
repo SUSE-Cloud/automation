@@ -1361,32 +1361,26 @@ function teardown()
 
 if [ -n "$prepareinstallcrowbar" ] ; then
   prepareinstallcrowbar
-  exit $?
 fi
 
 if [ -n "$installcrowbar" ] ; then
   installcrowbar
-  exit $?
 fi
 
 if [ -n "$installcrowbarfromgit" ] ; then
   installcrowbarfromgit
-  exit $?
 fi
 
 if [ -n "$addupdaterepo" ] ; then
   addupdaterepo
-  exit $?
 fi
 
 if [ -n "$runupdate" ] ; then
   runupdate
-  exit $?
 fi
 
 if [ -n "$allocate" ] ; then
   allocate
-  exit $?
 fi
 
 if [ -n "$waitcompute" ] ; then
@@ -1404,35 +1398,28 @@ fi
 
 if [ -n "$rebootcompute" ] ; then
   rebootcompute
-  exit $?
 fi
 
 if [ -n "$waitforrebootcompute" ] ; then
   waitforrebootcompute
-  exit $?
 fi
 
 if [ -n "$securitytests" ] ; then
   securitytests
-  exit $?
 fi
 
 if [ -n "$tempestconfigure" ] ; then
   tempest_configure
-  exit $?
 fi
 
 if [ -n "$tempestrun" ] ; then
   tempest_run
-  exit $?
 fi
 
 if [ -n "$qa_test" ] ; then
   qa_test
-  exit $?
 fi
 
 if [ -n "$teardown" ] ; then
   teardown
-  exit $?
 fi
