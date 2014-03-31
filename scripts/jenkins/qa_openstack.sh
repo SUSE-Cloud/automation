@@ -202,6 +202,8 @@ for i in $(seq 1 5); do
 done
 
 ssh_user="root"
+openqa=http://manyboxes.opensuse.org/openqa
+#openqa=http://www.zq1.de/openqa
 case "$MODE" in
     xen)
         glance image-create --is-public=True --disk-format=qcow2 --container-format=bare --name jeos-64-pv --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
@@ -210,10 +212,10 @@ case "$MODE" in
         glance image-create --is-public=True --disk-format=ami --container-format=ami --name=debian-5 --property vm_mode=xen ramdisk_id=f663eb9a-986b-466f-bd3e-f0aa2c847eef kernel_id=d654691a-0135-4f6d-9a60-536cf534b284 < debian.5-0.x86.img
     ;;
     lxc)
-        glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from http://openqa.opensuse.org/openqa/img/debian.5-0.x86.qcow2
+        glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from $openqa/img/debian.5-0.x86.qcow2
     ;;
     *)
-        wget http://openqa.opensuse.org/openqa/images/cirros-0.3.1-x86_64-uec.tar.gz
+        wget $openqa/images/cirros-0.3.1-x86_64-uec.tar.gz
         tar xf cirros-0.3.1-x86_64-uec.tar.gz
         RAMDISK_ID=$(glance image-create --name="cirros-0.3.1-x86_64-uec-initrd" --is-public=True \
             --disk-format=ari --container-format=ari < cirros-0.3.1-x86_64-initrd | grep ' id ' | awk '{print $4}')
