@@ -57,6 +57,7 @@
         <string>crowbar-barclamp-raid</string>
         <string>crowbar-barclamp-suse-manager-client</string>
         <string>crowbar-barclamp-swift</string>
+        <string>crowbar-barclamp-tempest</string>
         <string>crowbar-barclamp-trove</string>
         <string>crowbar-barclamp-updater</string>
       </values>
@@ -78,11 +79,11 @@
   </axes>
   <combinationFilter>! (
       ["Devel:Cloud:2.0:Staging"].contains(project)
-          &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-neutron", "crowbar-barclamp-pacemaker", "crowbar-barclamp-raid", "crowbar-barclamp-trove"].contains(component)
-      ||  ["Devel:Cloud:3:Staging", "crowbar-barclamp-trove"].contains(project)
+          &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-neutron", "crowbar-barclamp-pacemaker", "crowbar-barclamp-raid", "crowbar-barclamp-tempest", "crowbar-barclamp-trove"].contains(component)
+      ||  ["Devel:Cloud:3:Staging", "crowbar-barclamp-tempest", "crowbar-barclamp-trove"].contains(project)
           &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)
       ||  ["Devel:Cloud:4:Staging"].contains(project)
-          &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-raid", "crowbar-barclamp-trove", "crowbar-barclamp-quantum"].contains(component)  )
+          &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-raid", "crowbar-barclamp-trove", "crowbar-barclamp-tempest", "crowbar-barclamp-quantum"].contains(component)  )
     </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
