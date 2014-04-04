@@ -120,7 +120,6 @@
         <string>openstack-keystone</string>
         <string>openstack-marconi</string>
         <string>openstack-nova</string>
-        <string>openstack-quantum</string>
         <string>openstack-neutron</string>
         <string>openstack-quickstart</string>
         <string>openstack-resource-agents</string>
@@ -145,7 +144,6 @@
         <string>python-oslo.version</string>
         <string>python-oslo.rootwrap</string>
         <string>python-openstackclient</string>
-        <string>python-quantumclient</string>
         <string>python-neutronclient</string>
         <string>python-saharaclient</string>
         <string>python-swift3</string>
@@ -165,8 +163,8 @@
     </hudson.matrix.LabelAxis>
   </axes>
   <combinationFilter>! ( ["Cloud:OpenStack:Havana:Staging"].contains(project) &amp;&amp;  ["openstack-tuskar", "openstack-tuskar_ui", "openstack-ironic", "python-oslosphinx", "openstack-trove", "openstack-designate", "openstack-sahara", "python-saharaclient", "python-oslo.messaging", "python-oslo.rootwrap", "python-oslo.version", "openstack-marconi", "python-tuskarclient", "python-designateclient", "python-troveclient", "python-ironicclient", "python-marconiclient", "tripleo-image-elements", "tripleo-heat-templates", "diskimage-builder" ].contains(component)
-      ||  ["Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp;  ["openstack-tuskar", "openstack-tuskar_ui", "openstack-ironic", "openstack-designate", "openstack-sahara", "python-oslo.version", "openstack-marconi", "python-tuskarclient", "python-troveclient", "python-ironicclient", "python-marconiclient", "tripleo-image-elements", "tripleo-heat-templates", "diskimage-builder" ].contains(component)
-      ||  ["Cloud:OpenStack:Havana:Staging", "Cloud:OpenStack:Icehouse:Staging", "Cloud:OpenStack:Master"].contains(project) &amp;&amp; ["openstack-quantum", "python-quantumclient"].contains(component) ) </combinationFilter>
+      ||  ["Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp;  ["openstack-tuskar", "openstack-tuskar_ui", "openstack-ironic", "openstack-designate", "openstack-sahara", "python-oslo.version", "openstack-marconi", "python-tuskarclient", "python-troveclient", "python-ironicclient", "python-marconiclient", "tripleo-image-elements", "tripleo-heat-templates", "diskimage-builder", "python-oslosphinx", "python-oslo.rootwrap", "python-oslo.messaging", "python-oslo.config" ].contains(component) )
+  </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}
