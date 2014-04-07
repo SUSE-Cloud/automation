@@ -198,7 +198,8 @@ function addsp2testupdates()
 function addsp3testupdates()
 {
     mkdir -p /srv/tftpboot/repos/SLES11-SP3-Updates
-    mount -r you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/ /srv/tftpboot/repos/SLES11-SP3-Updates
+    echo 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/ /srv/tftpboot/repos/SLES11-SP3-Updates nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0' >> /etc/fstab
+    mount -a
     zypper ar /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
 }
 
