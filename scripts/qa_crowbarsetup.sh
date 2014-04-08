@@ -127,6 +127,23 @@ function wait_for()
   fi
 }
 
+function add_nfs_mount()
+{
+  nfs="$1"
+  dir="$2"
+
+  # skip if dir has content
+  test -d "$dir"/rpm && return
+
+  mkdir -p "$dir"
+  if grep -q "$nfs\s\+$dir" /etc/fstab ; then
+    return
+  fi
+
+  echo "$nfs $dir nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
+  mount "$dir"
+}
+
 function iscloudver()
 {
         local v=$1
@@ -197,9 +214,7 @@ function addsp2testupdates()
 
 function addsp3testupdates()
 {
-    mkdir -p /srv/tftpboot/repos/SLES11-SP3-Updates
-    echo 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/ /srv/tftpboot/repos/SLES11-SP3-Updates nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0' >> /etc/fstab
-    mount -a
+    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' '/srv/tftpboot/repos/SLES11-SP3-Updates'
     zypper ar /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
 }
 
@@ -422,11 +437,8 @@ EOF
     fi
   fi
 
-
-  mkdir -p /srv/tftpboot/suse-$suseversion/install
-  if ! $longdistance && ! grep -q suse-$suseversion /etc/fstab ; then
-    echo "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install /srv/tftpboot/suse-$suseversion/install    nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
-    mount /srv/tftpboot/suse-$suseversion/install
+  if ! $longdistance ; then
+    add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" "/srv/tftpboot/suse-$suseversion/install"
   fi
 
   case $cloudsource in
@@ -441,12 +453,8 @@ EOF
   esac
 
   for REPO in $slesrepolist ; do
-    grep -q $REPO /etc/fstab && continue
-    r=/srv/tftpboot/repos/$REPO
-    test -d $r/rpm && continue
-    mkdir -p $r
-    echo "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO  $r   nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
-    mount $r
+    r="/srv/tftpboot/repos/$REPO"
+    add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "$r"
   done
 
   # just as a fallback if nfs did not work
