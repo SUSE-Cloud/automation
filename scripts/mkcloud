@@ -132,7 +132,7 @@ function wait_for()
 
 function sshrun()
 {
-  ssh root@$adminip "export cephvolumenumber=$cephvolumenumber ; export shell=$shell ; export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ; export libvirt_type=$libvirt_type ; export all_with_ssl=$all_with_ssl ; export keystone_with_ssl=$keystone_with_ssl ; export glance_with_ssl=$glance_with_ssl ; export nova_with_ssl=$nova_with_ssl ; export novadashboard_with_ssl=$novadashboard_with_ssl ; export net_admin=$net_admin ; export net_public=$net_public ; export networkingplugin=$networkingplugin ; export debug=$debug ; export nosetestparameters=${nosetestparameters} ; $@"
+  ssh root@$adminip "export cephvolumenumber=$cephvolumenumber ; export shell=$shell ; export nodenumber=$nodenumber ; export cloudsource=$cloudsource ; export TESTHEAD=$TESTHEAD ; export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ; export libvirt_type=$libvirt_type ; export all_with_ssl=$all_with_ssl ; export keystone_with_ssl=$keystone_with_ssl ; export glance_with_ssl=$glance_with_ssl ; export nova_with_ssl=$nova_with_ssl ; export novadashboard_with_ssl=$novadashboard_with_ssl ; export net_admin=$net_admin ; export net_public=$net_public ; export networkingplugin=$networkingplugin ; export debug=$debug ; export hacloud=$hacloud ; export nosetestparameters=${nosetestparameters} ; $@"
   return $?
 }
 
@@ -724,6 +724,8 @@ function usage()
   echo "       : defines the installation source"
   echo
   echo " Optional"
+  echo "   hacloud='' | 1  (default='')"
+  echo "       : setup a high availability cloud, requires at least 6 nodes"
   echo "   TESTHEAD='' | 1  (default='')"
   echo "       : use latest published packages from Devel:Cloud"
   echo "   cephvolumenumber  (default=0)"
@@ -790,6 +792,14 @@ function sanity_checks()
     echo "Please set the env variable:"
     echo "export cloudsource=Beta?|develcloud|develcloud2.0|develcloud3|develcloud4|susecloud"
     exit 1
+  fi
+
+  if [ -n "$hacloud" ] ; then
+    if (( $nodenumber < 6 )) ; then
+      echo "Error: A HA cloud setup requires at least 6 nodes, you configured only: $nodenumber"
+      echo "Please raise the number of nodes via e.g. export nodenumber=6"
+      exit 1
+    fi
   fi
 
   case $cloudsource in
