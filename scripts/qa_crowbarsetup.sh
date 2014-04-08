@@ -218,6 +218,28 @@ function addsp3testupdates()
     zypper ar /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
 }
 
+
+function add_ha_repo()
+{
+  slesdist="$1"
+  didha=
+  case "$cloudsource" in
+    develcloud3|susecloud3)
+      if [ "$slesdist" = "SLE_11_SP3" ] ; then
+        for repo  in "SLE11-HAE-SP3-Pool" "SLE11-HAE-SP3-Updates" "SLE11-HAE-SP3-Updates-test" ; do
+          add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
+        done
+        didha=1
+      fi
+    ;;
+  esac
+
+  if [ -z "$didha" ] ; then
+    echo "Error: You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
+    exit 1
+  fi
+}
+
 function prepareinstallcrowbar()
 {
   echo configure static IP and absolute + resolvable hostname crowbar.$cloud.cloud.suse.de gw:$net.1
@@ -344,6 +366,7 @@ EOF
     fi
   fi
 
+  [ -n "$hacloud" ] && add_ha_repo "$slesdist"
 
   zypper -n install rsync netcat
   wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
