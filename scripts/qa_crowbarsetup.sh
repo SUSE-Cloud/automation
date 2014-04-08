@@ -1073,8 +1073,8 @@ function addupdaterepo()
 
 function runupdate()
 {
-  wait_for 30 3 " zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
-  wait_for 30 3 " zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
+  wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
+  wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
 }
 
 function rebootcompute()
