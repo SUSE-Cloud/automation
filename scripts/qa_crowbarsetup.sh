@@ -899,11 +899,14 @@ function set_proposalvars()
   wantswift=1
   wantceph=1
   iscloudver 2 && wantceph=
+
   # FIXME: Ceph is currently broken
-  iscloudver 4 && {
-      echo "WARNING: ceph currently disabled as it is broken"
-      wantceph=
-  }
+  #iscloudver 4 && {
+  #    echo "WARNING: ceph currently disabled as it is broken"
+  #    echo "https://bugzilla.novell.com/show_bug.cgi?id=872326"
+  #    wantceph=
+  #}
+
   [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
   # we can not use both swift and ceph as each grabs all disks on a node
   [[ -n "$wantceph" ]] && wantswift=
