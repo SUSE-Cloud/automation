@@ -266,6 +266,8 @@ else
 fi
 nova delete testvm || :
 
+for i in $(nova floating-ip-list  |awk '{print $2}' |grep 172); do nova floating-ip-delete $i; done
+
 # run tempest
 # skip on Grizzly, since it is just too broken
 if [ "$cloudsource" != "openstackgrizzly" ] && [ -e /etc/tempest/tempest.conf ]; then
