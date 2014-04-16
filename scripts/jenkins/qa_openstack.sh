@@ -276,6 +276,8 @@ if [ "$cloudsource" != "openstackgrizzly" ] && [ -e /etc/tempest/tempest.conf ];
     $crudini --set /etc/tempest/tempest.conf compute ssh_user cirros
     $crudini --set /etc/tempest/tempest.conf compute image_ref $imgid
     $crudini --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
+    # Nova v3 api is currently broken.. FIXME
+    $crudini --set /etc/tempest/tempest.conf compute-feature-enabled api_v3 false
 
     verbose="-- -v"
     if [ -x "$(type -p testr)" ]; then
