@@ -196,7 +196,7 @@ for i in $(seq 1 5); do
 done
 
 ssh_user="root"
-openqa=http://manyboxes.opensuse.org/openqa
+openqa=http://195.135.221.151/openqa
 #openqa=http://www.zq1.de/openqa
 case "$MODE" in
     xen)
