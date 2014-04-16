@@ -283,7 +283,7 @@ if [ "$cloudsource" != "openstackgrizzly" ] && [ -e /etc/tempest/tempest.conf ];
     fi
 
     pushd /var/lib/openstack-tempest-test/
-        ./run_tempest.sh -N -s $verbose 2>&1 | tee console.log
+        ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
         [ ${PIPESTATUS[0]} == 0 ] || exit 4
     popd
 fi
