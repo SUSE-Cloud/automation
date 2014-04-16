@@ -609,8 +609,8 @@ parse_opts () {
 }
 
 main () {
-    init_variables
     parse_opts "$@"
+    init_variables
 
     case "$profile" in
         nue-nfs|nue-host-nfs|host-nfs|host-9p)
