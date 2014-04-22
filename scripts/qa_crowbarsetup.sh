@@ -218,6 +218,11 @@ function addsp3testupdates()
     zypper ar /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
 }
 
+function addcloud3testupdates()
+{
+    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' '/srv/tftpboot/repos/SUSE-Cloud-3-Updates/'
+    zypper ar /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
+}
 
 function add_ha_repo()
 {
@@ -401,6 +406,7 @@ EOF
               ;;
           susecloud3)
               addsp3testupdates
+              addcloud3testupdates
               ;;
           develcloud3)
               addsp3testupdates
