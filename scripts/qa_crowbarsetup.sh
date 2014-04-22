@@ -223,7 +223,7 @@ function addcloud3testupdates()
 {
     add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' '/srv/tftpboot/repos/SUSE-Cloud-3-Updates/'
     zypper rr cloud3tup
-    zypper ar -f /srv/tftpboot/repos/SLES11-SP3-Updates cloud3tup
+    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-3-Updates cloud3tup
 }
 
 function add_ha_repo()
