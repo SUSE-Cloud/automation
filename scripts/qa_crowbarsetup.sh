@@ -215,13 +215,15 @@ function addsp2testupdates()
 function addsp3testupdates()
 {
     add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' '/srv/tftpboot/repos/SLES11-SP3-Updates'
-    zypper ar /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
+    zypper rr sp3tup
+    zypper ar -f /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
 }
 
 function addcloud3testupdates()
 {
     add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' '/srv/tftpboot/repos/SUSE-Cloud-3-Updates/'
-    zypper ar /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
+    zypper rr cloud3tup
+    zypper ar -f /srv/tftpboot/repos/SLES11-SP3-Updates cloud3tup
 }
 
 function add_ha_repo()
