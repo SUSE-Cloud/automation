@@ -609,6 +609,9 @@ parse_opts () {
 }
 
 main () {
+    # Have to invoke parse_opts before init_variables so that
+    # $CLOUD_VERSION is correctly propagated when it's specified
+    # on the command line (otherwise it's always '3').
     parse_opts "$@"
     init_variables
 
