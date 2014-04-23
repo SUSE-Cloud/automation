@@ -682,6 +682,35 @@ function qa_test()
   return $ret
 }
 
+function prepare_crowbar_backup_restore()
+{
+  wget -O crowbar-backup https://raw.github.com/SUSE-Cloud/cloud-tools/master/backup/crowbar-backup
+  scp crowbar-backup root@$adminip:
+}
+
+function crowbarbackup()
+{
+  prepare_crowbar_backup_restore
+  sshrun "crowbar-backup backup /tmp/backup-crowbar.tar.gz"
+  ret=$?
+  scp root@$adminip:/tmp/backup-crowbar.tar.gz .
+  return $ret
+}
+
+function crowbarrestore()
+{
+  prepare_crowbar_backup_restore
+  if [ ! -e backup-crowbar.tar.gz ] ; then
+    echo "Error: no backup tarball found in working directory."
+    return 1
+  fi
+  scp backup-crowbar.tar.gz root@$adminip:/tmp/
+  sshrun "crowbar-backup purge"
+  sshrun "crowbar-backup restore /tmp/backup-crowbar.tar.gz"
+  ret=$?
+  return $ret
+}
+
 
 function usage()
 {
@@ -843,7 +872,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests tempest qa_test help"
+allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore tempest qa_test help"
 wantedcmds=$@
 runcmds=''
 
