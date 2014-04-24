@@ -105,10 +105,16 @@ valid_bridge () {
     #/sbin/brctl show | egrep -q "^${vbridge}[[:space:]]"
     for net in $( run_virsh net-list | awk '/active/ {print $1}' ); do
         if run_virsh net-info "$net" | grep -qE "^Bridge:[[:space:]]+$vbridge\$"; then
-            echo "Bridge is associated with '$net' network."
+            echo "$vbridge bridge is associated with '$net' network."
             return 0
         fi
     done
+    if ovs-vsctl --columns=name --bare list bridge |
+        grep -q "^$vbridge\$"; then
+        echo "$vbridge is an OpenvSwitch bridge."
+        return 0
+    fi
+
     return 1
 }
 
