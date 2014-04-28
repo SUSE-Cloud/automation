@@ -647,7 +647,7 @@ function tempest()
   mkdir -p .artifacts
   # fetch the latest version of tempest script
   if [ -z "$NOTEMPESTSCRIPTDOWNLOAD" ] ; then
-    curl -s -o run_tempest.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/run_tempest.sh"
+    curl -s -o run_tempest.sh "https://raw.githubuserconent.com/SUSE-Cloud/automation/master/scripts/jenkins/run_tempest.sh"
   fi
   scp run_tempest.sh qa_crowbarsetup.sh root@$adminip:
   sshrun "tempestconfigure=1 bash -x qa_crowbarsetup.sh $virtualcloud"
@@ -684,7 +684,7 @@ function qa_test()
 
 function prepare_crowbar_backup_restore()
 {
-  wget -O crowbar-backup https://raw.github.com/SUSE-Cloud/cloud-tools/master/backup/crowbar-backup
+  wget -O crowbar-backup https://raw.githubusercontent.com/SUSE-Cloud/cloud-tools/master/backup/crowbar-backup
   scp crowbar-backup root@$adminip:
 }
 
@@ -808,9 +808,9 @@ function sanity_checks()
 
   # always fetch the latest version
   if [ -z "$NOQACROWBARDOWNLOAD" ] ; then
-    #wget -O qa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
+    #wget -O qa_crowbarsetup.sh "https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
     # Switch to curl as wget has an issue with github: https://github.com/netz98/n98-magerun/issues/75
-    curl -s -o qa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
+    curl -s -o qa_crowbarsetup.sh "https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
   fi
 
   if [ ! -e qa_crowbarsetup.sh ] ; then
