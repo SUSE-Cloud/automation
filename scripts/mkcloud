@@ -713,7 +713,7 @@ function prepare_crowbar_backup_restore()
 function crowbarbackup()
 {
   prepare_crowbar_backup_restore
-  sshrun "crowbar-backup backup /tmp/backup-crowbar.tar.gz"
+  sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup backup /tmp/backup-crowbar.tar.gz"
   ret=$?
   scp root@$adminip:/tmp/backup-crowbar.tar.gz .
   return $ret
@@ -727,8 +727,8 @@ function crowbarrestore()
     return 1
   fi
   scp backup-crowbar.tar.gz root@$adminip:/tmp/
-  sshrun "crowbar-backup purge"
-  sshrun "crowbar-backup restore /tmp/backup-crowbar.tar.gz"
+  sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup purge"
+  sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup restore /tmp/backup-crowbar.tar.gz"
   ret=$?
   return $ret
 }
