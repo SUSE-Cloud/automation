@@ -706,7 +706,7 @@ function qa_test()
 
 function prepare_crowbar_backup_restore()
 {
-  wget -O crowbar-backup https://raw.githubusercontent.com/SUSE-Cloud/cloud-tools/master/backup/crowbar-backup
+  curl -o crowbar-backup https://raw.githubusercontent.com/SUSE-Cloud/cloud-tools/master/backup/crowbar-backup
   scp crowbar-backup root@$adminip:
 }
 
