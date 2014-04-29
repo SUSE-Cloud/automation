@@ -7,6 +7,11 @@ else
   echo "Running unittest for: $package"
 fi
 
+#cleanup logs
+pushd /var/log && \
+rm -rf {apache2,ceilometer,cinder,couchdb,designate,glance,heat,ironic,keystone,marconi,mongodb,nova,rabbitmq}/* updateTestcase zypper.log && \
+popd
+
 # basic configuration
 OSC_RC="$OSC_RC -A https://api.opensuse.org"
 OSC_ARCH=x86_64
