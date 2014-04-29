@@ -65,7 +65,10 @@ sudo /sbin/udevadm trigger || :
 $zypper in libvirt-daemon-driver-network
 $zypper in libvirt
 systemctl start libvirtd
+usermod -a -G libvirt root
+
 sleep 2
+
 virsh net-define /usr/share/libvirt/networks/default.xml || :
 
 mkdir -p /opt/stack/new/
