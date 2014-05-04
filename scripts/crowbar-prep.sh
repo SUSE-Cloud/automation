@@ -46,7 +46,7 @@ init_variables () {
     REPOS_DIR=/srv/tftpboot/repos
     CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
     POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
-    UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
+    SP3_UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
     HAE_POOL_MOUNTPOINT=$REPOS_DIR/SLE11-HAE-SP3-Pool
     HAE_UPDATES_MOUNTPOINT=$REPOS_DIR/SLE11-HAE-SP3-Updates
 
@@ -62,7 +62,7 @@ init_variables () {
     # Names of zypper repos within the Crowbar admin node.
     cloud_repo=SUSE-Cloud-$CLOUD_VERSION
     sp3_repo=SLES-11-SP3
-    updates_repo=SLES-11-SP3-Updates
+    sp3_updates_repo=SLES-11-SP3-Updates
     hae_repo=SLE11-HAE-SP3-Pool
     hae_updates_repo=SLE11-HAE-SP3-Updates
     dc_repo=Devel_Cloud_$CLOUD_VERSION
@@ -218,7 +218,7 @@ common_pre () {
 prep_mountpoints () {
     mountpoints=(
         $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT
-        $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
+        $POOL_MOUNTPOINT $SP3_UPDATES_MOUNTPOINT
         $HAE_POOL_MOUNTPOINT $HAE_UPDATES_MOUNTPOINT
     )
     if [ -n "$ibs_mirror" ]; then
@@ -333,7 +333,7 @@ mount_all_mounts () {
 
 setup_zypper_repos () {
     repos=(
-        $cloud_repo $sp3_repo $updates_repo
+        $cloud_repo $sp3_repo $sp3_updates_repo
         $hae_repo $hae_updates_repo
         $dc_repo $dc_staging_repo $dc_shared_repo
     )
@@ -346,9 +346,9 @@ setup_zypper_repos () {
         fi
     done
 
-    safe_run zypper ar file://$CLOUD_MOUNTPOINT   $cloud_repo
-    safe_run zypper ar file://$SP3_MOUNTPOINT     $sp3_repo
-    safe_run zypper ar file://$UPDATES_MOUNTPOINT $updates_repo
+    safe_run zypper ar file://$CLOUD_MOUNTPOINT       $cloud_repo
+    safe_run zypper ar file://$SP3_MOUNTPOINT         $sp3_repo
+    safe_run zypper ar file://$SP3_UPDATES_MOUNTPOINT $sp3_updates_repo
 
     case "$ibs_repo" in
         yes)
@@ -447,13 +447,13 @@ bind_mount () {
 # loki_nfs () {
 #     loki=loki.suse.de:/vol/euklid/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER
 #     nfs_mount $loki/11-SP3-POOL $POOL_MOUNTPOINT
-#     nfs_mount $loki/11-SP3      $UPDATES_MOUNTPOINT
+#     nfs_mount $loki/11-SP3      $SP3_UPDATES_MOUNTPOINT
 # }
 
 clouddata_sle_repos () {
     repos=clouddata.cloud.suse.de:/srv/nfs/repos
     nfs_mount $repos/SLES11-SP3-Pool       $POOL_MOUNTPOINT
-    nfs_mount $repos/SLES11-SP3-Updates    $UPDATES_MOUNTPOINT
+    nfs_mount $repos/SLES11-SP3-Updates    $SP3_UPDATES_MOUNTPOINT
     nfs_mount $repos/SLE11-HAE-SP3-Pool    $HAE_POOL_MOUNTPOINT
     nfs_mount $repos/SLE11-HAE-SP3-Updates $HAE_UPDATES_MOUNTPOINT
 }
@@ -487,7 +487,7 @@ host_nfs () {
 
         repo_mirrors=$HOST_IP:$HOST_MIRROR
         nfs_mount $repo_mirrors/SLES11-SP3-Pool/sle-11-x86_64       $POOL_MOUNTPOINT
-        nfs_mount $repo_mirrors/SLES11-SP3-Updates/sle-11-x86_64    $UPDATES_MOUNTPOINT
+        nfs_mount $repo_mirrors/SLES11-SP3-Updates/sle-11-x86_64    $SP3_UPDATES_MOUNTPOINT
         nfs_mount $repo_mirrors/SLE11-HAE-SP3-Pool/sle-11-x86_64    $HAE_POOL_MOUNTPOINT
         nfs_mount $repo_mirrors/SLE11-HAE-SP3-Updates/sle-11-x86_64 $HAE_UPDATES_MOUNTPOINT
         if [ -n "$ibs_mirror" ]; then
@@ -507,7 +507,7 @@ host_9p () {
 
         repo_mirrors=$mountpoint_9p/mirrors
         bind_mount $repo_mirrors/SLES11-SP3-Pool/sle-11-x86_64       $POOL_MOUNTPOINT
-        bind_mount $repo_mirrors/SLES11-SP3-Updates/sle-11-x86_64    $UPDATES_MOUNTPOINT
+        bind_mount $repo_mirrors/SLES11-SP3-Updates/sle-11-x86_64    $SP3_UPDATES_MOUNTPOINT
         bind_mount $repo_mirrors/SLE11-HAE-SP3-Pool/sle-11-x86_64    $HAE_POOL_MOUNTPOINT
         bind_mount $repo_mirrors/SLE11-HAE-SP3-Updates/sle-11-x86_64 $HAE_UPDATES_MOUNTPOINT
         if [ -n "$ibs_mirror" ]; then
