@@ -62,14 +62,14 @@ init_variables () {
 
     # Names of zypper repos within the Crowbar admin node.
     sp3_repo=SLES-11-SP3
-    sp3_updates_repo=SLES-11-SP3-Updates
+    sp3_updates_repo=${sp3_repo}-Updates
     hae_repo=SLE11-HAE-SP3-Pool
     hae_updates_repo=SLE11-HAE-SP3-Updates
     cloud_repo=SUSE-Cloud-$CLOUD_VERSION
     dc_repo=Devel_Cloud_$CLOUD_VERSION
     dc_staging_repo=${dc_repo}_Staging
     dc_shared_repo=Devel_Cloud_Shared_11-SP3
-    dc_shared_update_repo=Devel_Cloud_Shared_11-SP3_Update
+    dc_shared_update_repo=${dc_shared_repo}_Update
 
     set_cloud_iso
 }
