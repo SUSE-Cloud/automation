@@ -723,15 +723,11 @@ function crowbarbackup()
 function crowbarrestore()
 {
   prepare_crowbar_backup_restore
-  if [ ! -e backup-crowbar.tar.gz ] ; then
-    echo "Error: no backup tarball found in working directory."
-    return 1
-  fi
   btarball=backup-crowbar.tar.gz
   [ -e "$artifacts_dir/$btarball" ] && btarball="$artifacts_dir/$btarball"
   if [ ! -e "$btarball" ] ; then
     echo "No crowbar backup tarball found."
-    exit 56
+    return 56
   fi
   scp "$btarball" root@$adminip:/tmp/
   sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup purge"
