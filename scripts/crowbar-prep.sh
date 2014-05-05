@@ -39,6 +39,7 @@ init_variables () {
     : ${DC_EXPORT_SUBDIR:=Devel:Cloud:$CLOUD_VERSION}
     : ${DC_STAGING_EXPORT_SUBDIR:=${DC_EXPORT_SUBDIR}:Staging}
     : ${DC_SHARED_EXPORT_SUBDIR:=Devel:Cloud:Shared:11-SP3}
+    : ${DC_SHARED_UPDATE_EXPORT_SUBDIR:=Devel:Cloud:Shared:11-SP3:Update}
 
     # Mountpoints within the Crowbar admin node which are required
     # when configuring / running the product (for serving repos via
@@ -57,8 +58,8 @@ init_variables () {
     # installed on the admin node.
     : ${DC_MOUNTPOINT:=$REPOS_DIR/Devel:Cloud:$CLOUD_VERSION}
     : ${DC_STAGING_MOUNTPOINT:=${DC_MOUNTPOINT}:Staging}
-    : ${DC_SHARED_MOUNTPOINT:=$REPOS_DIR/Devel:Cloud:Shared:11-SP3}
-    : ${DC_SHARED_UPDATE_MOUNTPOINT:=$REPOS_DIR/Devel:Cloud:Shared:11-SP3:Update}
+    : ${DC_SHARED_MOUNTPOINT:=$REPOS_DIR/$DC_SHARED_EXPORT_SUBDIR}
+    : ${DC_SHARED_UPDATE_MOUNTPOINT:=$REPOS_DIR/$DC_SHARED_UPDATE_EXPORT_SUBDIR}
 
     # Names of zypper repos within the Crowbar admin node.
     sp3_repo=SLES-11-SP3
@@ -223,7 +224,7 @@ prep_mountpoints () {
         $CLOUD_MOUNTPOINT
     )
     if [ -n "$ibs_mirror" ]; then
-        mountpoints+=($DC_MOUNTPOINT $DC_SHARED_MOUNTPOINT)
+        mountpoints+=($DC_MOUNTPOINT $DC_SHARED_MOUNTPOINT $DC_SHARED_UPDATE_MOUNTPOINT)
         if [ "$ibs_repo" = staging ]; then
             mountpoints+=($DC_STAGING_MOUNTPOINT)
         fi
@@ -498,6 +499,8 @@ host_nfs () {
         if [ -n "$ibs_mirror" ]; then
             nfs_mount $repo_mirrors/$DC_EXPORT_SUBDIR/sle-11-x86_64         $DC_MOUNTPOINT
             nfs_mount $repo_mirrors/$DC_SHARED_EXPORT_SUBDIR/sle-11-x86_64  $DC_SHARED_MOUNTPOINT
+            nfs_mount $repo_mirrors/$DC_SHARED_UPDATE_EXPORT_SUBDIR/sle-11-x86_64 \
+                                                                            $DC_SHARED_UPDATE_MOUNTPOINT
             nfs_mount $repo_mirrors/$DC_STAGING_EXPORT_SUBDIR/sle-11-x86_64 $DC_STAGING_MOUNTPOINT
         fi
     ) | append_to_fstab
@@ -521,6 +524,8 @@ host_9p () {
         if [ -n "$ibs_mirror" ]; then
             bind_mount $repo_mirrors/$DC_EXPORT_SUBDIR/sle-11-x86_64         $DC_MOUNTPOINT
             bind_mount $repo_mirrors/$DC_SHARED_EXPORT_SUBDIR/sle-11-x86_64  $DC_SHARED_MOUNTPOINT
+            bind_mount $repo_mirrors/$DC_SHARED_UPDATE_EXPORT_SUBDIR/sle-11-x86_64 \
+                                                                             $DC_SHARED_UPDATE_MOUNTPOINT
             bind_mount $repo_mirrors/$DC_STAGING_EXPORT_SUBDIR/sle-11-x86_64 $DC_STAGING_MOUNTPOINT
         fi
     ) | append_to_fstab
