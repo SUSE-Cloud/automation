@@ -716,6 +716,7 @@ function crowbarbackup()
   sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup backup /tmp/backup-crowbar.tar.gz"
   ret=$?
   scp root@$adminip:/tmp/backup-crowbar.tar.gz .
+  [ -d "$artifacts_dir" ] && mv backup-crowbar.tar.gz "$artifacts_dir/"
   return $ret
 }
 
@@ -726,7 +727,13 @@ function crowbarrestore()
     echo "Error: no backup tarball found in working directory."
     return 1
   fi
-  scp backup-crowbar.tar.gz root@$adminip:/tmp/
+  btarball=backup-crowbar.tar.gz
+  [ -e "$artifacts_dir/$btarball" ] && btarball="$artifacts_dir/$btarball"
+  if [ ! -e "$btarball" ] ; then
+    echo "No crowbar backup tarball found."
+    exit 56
+  fi
+  scp "$btarball" root@$adminip:/tmp/
   sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup purge"
   sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup restore /tmp/backup-crowbar.tar.gz"
   ret=$?
