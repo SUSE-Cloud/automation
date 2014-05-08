@@ -323,6 +323,11 @@ EOF
           CLOUDDISTISO="S*-CLOUD*Media1.iso"
           suseversion=11.3
       ;;
+      susecloud4)
+          CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud4:/Test/images/iso
+          CLOUDDISTISO="S*-CLOUD*Media1.iso"
+          suseversion=11.3
+      ;;
       GM|GM1.0)
           CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-GM/
           CLOUDDISTISO="S*-CLOUD*GM-DVD1.iso"

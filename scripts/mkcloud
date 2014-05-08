@@ -18,13 +18,13 @@
 #       should be at least 80 GB
 #       the volume group will be called "cloud"
 #
-# cloudsource=develcloud|susecloud|Beta?   (required, no default)
+# cloudsource=develcloud|susecloud4|Beta?   (required, no default)
 #       defines the source for the installation of the cloud product
 #       develcloud    : product from IBS Devel:Cloud:1.0
 #       develcloud2.0 : product from IBS Devel:Cloud:2.0
 #       develcloud3   : product from IBS Devel:Cloud:3
 #       develcloud4   : product from IBS Devel:Cloud:4
-#       susecloud     : product from IBS SUSE:SLE....
+#       susecloud4     : product from IBS SUSE:SLE....
 #       Beta?         : uses official Beta? ISO image (? is a number)
 #
 # TESTHEAD=''|1   (default='')
@@ -776,7 +776,7 @@ function usage()
   echo " Mandatory"
   echo "   CVOL=/dev/vdx (default /dev/vdb)"
   echo "       :  LVM will be created on this device (at least 80GB)"
-  echo "   cloudsource=develcloud | develcloud2.0 | develcloud3 | develcloud4 | susecloud | Beta?  (default '')"
+  echo "   cloudsource=develcloud | develcloud2.0 | develcloud3 | develcloud4 | susecloud4 | Beta?  (default '')"
   echo "       : defines the installation source"
   echo
   echo " Optional"
@@ -846,7 +846,7 @@ function sanity_checks()
 
   if [ -z "$cloudsource" ] ; then
     echo "Please set the env variable:"
-    echo "export cloudsource=Beta?|develcloud|develcloud2.0|develcloud3|develcloud4|susecloud"
+    echo "export cloudsource=Beta?|develcloud|develcloud2.0|develcloud3|develcloud4|susecloud4"
     exit 1
   fi
 
