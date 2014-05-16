@@ -609,8 +609,11 @@ parse_opts () {
 }
 
 main () {
-    init_variables
+    # Have to invoke parse_opts before init_variables so that
+    # $CLOUD_VERSION is correctly propagated when it's specified
+    # on the command line (otherwise it's always '3').
     parse_opts "$@"
+    init_variables
 
     case "$profile" in
         nue-nfs|nue-host-nfs|host-nfs|host-9p)
