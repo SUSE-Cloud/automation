@@ -230,16 +230,14 @@ function add_ha_repo()
 {
   slesdist="$1"
   didha=
-  case "$cloudsource" in
-    develcloud3|susecloud3)
+  if iscloudver 3plus ; then
       if [ "$slesdist" = "SLE_11_SP3" ] ; then
         for repo  in "SLE11-HAE-SP3-Pool" "SLE11-HAE-SP3-Updates" "SLE11-HAE-SP3-Updates-test" ; do
           add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
         done
         didha=1
       fi
-    ;;
-  esac
+  fi
 
   if [ -z "$didha" ] ; then
     echo "Error: You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
