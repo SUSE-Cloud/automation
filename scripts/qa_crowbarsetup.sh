@@ -708,6 +708,7 @@ function waitnodes()
   n=800
   mode=$1
   proposal=$2
+  proposaltype=${3:-default}
   case $mode in
     nodes)
       echo -n "Waiting for nodes to get ready: "
@@ -732,10 +733,10 @@ function waitnodes()
       done
       ;;
     proposal)
-      echo -n "Waiting for proposal $proposal to get successful: "
+      echo -n "Waiting for proposal $proposal($proposaltype) to get successful: "
       proposalstatus=''
       while test $n -gt 0 && ! test "x$proposalstatus" = "xsuccess" ; do
-        proposalstatus=`crowbar $proposal proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
+        proposalstatus=`crowbar $proposal proposal show $proposaltype | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
         if test "x$proposalstatus" = "xfailed" ; then
           tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
           echo "Error: proposal $proposal failed. Exiting."
@@ -779,24 +780,37 @@ function manual_2device_ceph_proposal()
 }
 
 
-# generic function to set values in proposals
+# generic function to modify values in proposals
 #   Note: strings have to be quoted like this: "'string'"
 #         "true" resp. "false" or "['one', 'two']" act as ruby values, not as string
-function proposal_set_value()
+function proposal_modify_value()
 {
-  local service="$1"
-  local proposal="$2"
+  local proposal="$1"
+  local proposaltype="$2"
   local variable="$3"
   local value="$4"
+  local operator="${5:-=}"
 
-  pfile=/root/${service}.${proposal}.proposal
+  pfile=/root/${proposal}.${proposaltype}.proposal
 
-  crowbar $service proposal show $proposal |
+  crowbar $proposal proposal show $proposaltype |
     ruby -e "require 'rubygems';require 'json';
              j=JSON.parse(STDIN.read);
-             j${variable}=${value};
+             j${variable}${operator}${value};
              puts JSON.pretty_generate(j)" > $pfile
-  crowbar $service proposal --file=$pfile edit $proposal
+  crowbar $proposal proposal --file=$pfile edit $proposaltype
+}
+
+# wrapper for proposal_modify_value
+function proposal_set_value()
+{
+  proposal_modify_value "$1" "$2" "$3" "$4" "="
+}
+
+# wrapper for proposal_modify_value
+function proposal_increment_int()
+{
+  proposal_modify_value "$1" "$2" "$3" "$4" "+="
 }
 
 function enable_ssl_for_keystone()
@@ -832,12 +846,14 @@ function enable_ssl_for_nova_dashboard()
 
 function custom_configuration()
 {
-  service=$1
-  crowbaredit="crowbar $service proposal edit default"
-  if [[ $debug = 1 && $service != swift ]] ; then
+  proposal=$1
+  proposaltype=${2:-default}
+
+  crowbaredit="crowbar $proposal proposal edit $proposaltype"
+  if [[ $debug = 1 && $proposal != swift ]] ; then
     EDITOR='sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/"' $crowbaredit
   fi
-  case $service in
+  case $proposal in
     keystone)
       if [[ $all_with_ssl = 1 || $keystone_with_ssl = 1 ]] ; then
         enable_ssl_for_keystone
@@ -892,7 +908,7 @@ function custom_configuration()
           proposal_set_value cinder default "['attributes']['cinder']['volume']['volume_type']" "'local'"
       fi
     ;;
-    *) echo "No hooks defined for service: $service"
+    *) echo "No hooks defined for service: $proposal"
     ;;
   esac
 }
@@ -926,12 +942,36 @@ function set_proposalvars()
   iscloudver 2 && crowbar_networking=quantum
 }
 
+function do_one_proposal()
+{
+  proposal=$1
+  proposaltype=${2:-default}
+
+  crowbar "$proposal" proposal create $proposaltype
+  # hook for changing proposals:
+  custom_configuration $proposal $proposaltype
+  crowbar "$proposal" proposal commit $proposaltype
+  cret=$?
+  echo "Commit exit code: $cret"
+  waitnodes proposal $proposal $proposaltype
+  ret=$?
+  echo "Proposal exit code: $ret"
+  sleep 10
+  if [ $ret != 0 ] ; then
+    tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
+    echo "Error: commiting the crowbar '$proposaltype' proposal for '$proposal' failed ($ret)."
+    exit 73
+  fi
+}
+
 function do_proposal()
 {
   waitnodes nodes
+  proposals="database keystone rabbitmq ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat"
 
-  for service in database keystone ceph glance rabbitmq cinder $crowbar_networking nova nova_dashboard swift ceilometer heat ; do
-    case $service in
+  for proposal in $proposals ; do
+    # proposal filter
+    case $proposal in
       ceph)
         [[ -n "$wantceph" ]] || continue
         ;;
@@ -942,20 +982,13 @@ function do_proposal()
         iscloudver 1 && continue
         ;;
     esac
-    crowbar "$service" proposal create default
-    # hook for changing proposals:
-    custom_configuration $service
-    crowbar "$service" proposal commit default
-    echo $?
-    waitnodes proposal $service
-    sleep 10
-    ret=$?
-    echo "exitcode: $ret"
-    if [ $ret != 0 ] ; then
-      tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
-      echo "Error: commiting the crowbar proposal for '$service' failed ($ret)."
-      exit 73
-    fi
+
+    # create proposal
+    case $proposal in
+      *)
+        do_one_proposal "$proposal" "default"
+      ;;
+    esac
   done
 }
 
