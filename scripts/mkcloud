@@ -507,8 +507,8 @@ function h_create_libvirt_computenode_config()
   h_cpuflags_settings
   nodeconfigfile=$1
   nodecounter=$2
-  cephvolume="$3"
-  i2=$(printf %02x $nodecounter)
+  macaddress=$3
+  cephvolume="$4"
   nicmodel=virtio
   [ "$libvirt_type" = "xen" ] && nicmodel=e1000
 
@@ -541,7 +541,7 @@ function h_create_libvirt_computenode_config()
     </disk>
     $cephvolume
     <interface type='network'>
-      <mac address='52:54:$i2:77:77:$i2'/>
+      <mac address='$macaddress'/>
       <source network='$cloud-admin'/>
       <model type='$nicmodel'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
@@ -580,6 +580,9 @@ function setupcompute()
   alldevices=$(echo {b..z} {a..z}{a..z})
   for i in $allnodeids ; do
     c=1
+    i2=$( printf %02x $i )
+    macaddress="52:54:$i2:77:77:$i2"
+
     cephvolume=""
     if [ $cephvolumenumber -gt 0 ] ; then
       for n in $(echo `seq 1 $cephvolumenumber`) ; do
@@ -595,7 +598,7 @@ function setupcompute()
       done
     fi
 
-    h_create_libvirt_computenode_config /tmp/$cloud-node$i.xml $i "$cephvolume"
+    h_create_libvirt_computenode_config /tmp/$cloud-node$i.xml $i $macaddress "$cephvolume"
 
     virsh destroy $cloud-node$i 2>/dev/null
     if ! virsh create /tmp/$cloud-node$i.xml ; then
