@@ -104,14 +104,14 @@ function intercept()
 
 function wait_for()
 {
-  timecount=${1:-300}
-  timesleep=${2:-1}
-  condition=${3:-'/bin/true'}
-  waitfor=${4:-'unknown process'}
-  error_cmd=${5:-'exit 11'}
+  local timecount=${1:-300}
+  local timesleep=${2:-1}
+  local condition=${3:-'/bin/true'}
+  local waitfor=${4:-'unknown process'}
+  local error_cmd=${5:-'exit 11'}
 
   echo "Waiting for: $waitfor"
-  n=$timecount
+  local n=$timecount
   while test $n -gt 0 && ! eval $condition
   do
     echo -n .
@@ -129,8 +129,8 @@ function wait_for()
 
 function add_nfs_mount()
 {
-  nfs="$1"
-  dir="$2"
+  local nfs="$1"
+  local dir="$2"
 
   # skip if dir has content
   test -d "$dir"/rpm && return
@@ -380,7 +380,7 @@ EOF
 
   zypper -n install rsync netcat
   wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
-  CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
+  local CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
   echo $CLOUDISO > /etc/cloudversion
   echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
   mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
@@ -460,7 +460,7 @@ EOF
 
   if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
     zypper --no-gpg-checks -n in -l -t pattern cloud_admin
-    ret=$?
+    local ret=$?
 
     if [ $ret = 0 ] ; then
       echo "The cloud admin successfully installed."
@@ -487,14 +487,14 @@ EOF
   esac
 
   for REPO in $slesrepolist ; do
-    r="/srv/tftpboot/repos/$REPO"
+    local r="/srv/tftpboot/repos/$REPO"
     add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "$r"
   done
 
   # just as a fallback if nfs did not work
   if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
-    f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
-    p=/srv/tftpboot/suse-$suseversion/$f
+    local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
+    local p=/srv/tftpboot/suse-$suseversion/$f
     wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
     echo $p /srv/tftpboot/suse-$suseversion/install/ iso9660 loop,ro >> /etc/fstab
     mount /srv/tftpboot/suse-$suseversion/install/
@@ -505,8 +505,8 @@ EOF
   fi
   cd /tmp
 
-  netfile="/opt/dell/chef/data_bags/crowbar/bc-template-network.json"
-  netfilepatch=`basename $netfile`.patch
+  local netfile="/opt/dell/chef/data_bags/crowbar/bc-template-network.json"
+  local netfilepatch=`basename $netfile`.patch
   [ -e ~/$netfilepatch ] && patch -p1 $netfile < ~/$netfilepatch
 
   # to revert https://github.com/crowbar/barclamp-network/commit/a85bb03d7196468c333a58708b42d106d77eaead
@@ -540,7 +540,7 @@ EOF
   cp -a $netfile /etc/crowbar/network.json # new place since 2013-07-18
 
   # to allow integration into external DNS:
-  f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
+  local f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
   grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
 
   # workaround for performance bug (bnc#770083)
@@ -555,7 +555,7 @@ EOF
 
 function do_installcrowbar()
 {
-  instcmd=$1
+  local instcmd=$1
   echo "Command to install chef: $instcmd"
   intercept "install-chef-suse.sh"
 
@@ -564,7 +564,7 @@ function do_installcrowbar()
   export REPOS_SKIP_CHECKS="Cloud SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates"
   # run in screen to not lose session in the middle when network is reconfigured:
   screen -d -m -L /bin/bash -c "$instcmd ; touch /tmp/chef-ready"
-  n=300
+  local n=300
   while [ $n -gt 0 ] && [ ! -e /tmp/chef-ready ] ; do
     n=$(expr $n - 1)
     sleep 5;
@@ -635,11 +635,11 @@ function allocate()
 {
   #chef-client
   if [ $cloud != virtual ] ; then
-          nodelist="3 4 5 6"
-          # protect machine 3 on d2 for tomasz
-          if [ "$cloud" = "d2" ]; then
-              nodelist="4 5"
-          fi
+    local nodelist="3 4 5 6"
+    # protect machine 3 on d2 for tomasz
+    if [ "$cloud" = "d2" ]; then
+      nodelist="4 5"
+    fi
     for i in $nodelist ; do
       for pw in root crowbar 'cr0wBar!' ; do
         (ipmitool -H "$net.16$i" -U root -P $pw lan set 1 defgw ipaddr "$net.1"
@@ -653,7 +653,7 @@ function allocate()
   while ! crowbar machines list | grep ^d ; do sleep 10 ; done
   echo "Found one node"
   while test $(crowbar machines list | grep ^d|wc -l) -lt $nodenumber ; do sleep 10 ; done
-  nodes=$(crowbar machines list | grep ^d)
+  local nodes=$(crowbar machines list | grep ^d)
   for n in $nodes ; do
           wait_for 100 2 "knife node show -a state $n | grep discovered" "node to enter discovered state"
   done
@@ -705,15 +705,15 @@ function do_waitcompute()
 
 function waitnodes()
 {
-  n=800
-  mode=$1
-  proposal=$2
-  proposaltype=${3:-default}
+  local n=800
+  local mode=$1
+  local proposal=$2
+  local proposaltype=${3:-default}
   case $mode in
     nodes)
       echo -n "Waiting for nodes to get ready: "
       for i in `crowbar machines list | grep ^d` ; do
-        machinestatus=''
+        local machinestatus=''
         while test $n -gt 0 && ! test "x$machinestatus" = "xready" ; do
           machinestatus=`crowbar machines show $i | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['state']"`
           if test "x$machinestatus" = "xfailed" -o "x$machinestatus" = "xnil" ; then
@@ -734,7 +734,7 @@ function waitnodes()
       ;;
     proposal)
       echo -n "Waiting for proposal $proposal($proposaltype) to get successful: "
-      proposalstatus=''
+      local proposalstatus=''
       while test $n -gt 0 && ! test "x$proposalstatus" = "xsuccess" ; do
         proposalstatus=`crowbar $proposal proposal show $proposaltype | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
         if test "x$proposalstatus" = "xfailed" ; then
@@ -791,7 +791,7 @@ function proposal_modify_value()
   local value="$4"
   local operator="${5:-=}"
 
-  pfile=/root/${proposal}.${proposaltype}.proposal
+  local pfile=/root/${proposal}.${proposaltype}.proposal
 
   crowbar $proposal proposal show $proposaltype |
     ruby -e "require 'rubygems';require 'json';
@@ -846,10 +846,10 @@ function enable_ssl_for_nova_dashboard()
 
 function custom_configuration()
 {
-  proposal=$1
-  proposaltype=${2:-default}
+  local proposal=$1
+  local proposaltype=${2:-default}
 
-  crowbaredit="crowbar $proposal proposal edit $proposaltype"
+  local crowbaredit="crowbar $proposal proposal edit $proposaltype"
   if [[ $debug = 1 && $proposal != swift ]] ; then
     EDITOR='sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/"' $crowbaredit
   fi
@@ -944,17 +944,17 @@ function set_proposalvars()
 
 function do_one_proposal()
 {
-  proposal=$1
-  proposaltype=${2:-default}
+  local proposal=$1
+  local proposaltype=${2:-default}
 
   crowbar "$proposal" proposal create $proposaltype
   # hook for changing proposals:
   custom_configuration $proposal $proposaltype
   crowbar "$proposal" proposal commit $proposaltype
-  cret=$?
+  local cret=$?
   echo "Commit exit code: $cret"
   waitnodes proposal $proposal $proposaltype
-  ret=$?
+  local ret=$?
   echo "Proposal exit code: $ret"
   sleep 10
   if [ $ret != 0 ] ; then
@@ -967,7 +967,7 @@ function do_one_proposal()
 function do_proposal()
 {
   waitnodes nodes
-  proposals="database keystone rabbitmq ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat"
+  local proposals="database keystone rabbitmq ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat"
 
   for proposal in $proposals ; do
     # proposal filter
@@ -1011,7 +1011,7 @@ function tempest_configure()
   get_novadashboardserver
   scp ./run_tempest.sh root@${novadashboardserver}:
   ssh root@${novadashboardserver} 'export nosetestparameters=${nosetestparameters} ; bash -x ./run_tempest.sh configure'
-  ret=$?
+  local ret=$?
   scp root@${novadashboardserver}:tempest/etc/tempest.conf tempestlog/
   echo "return code from tempest configuration: $ret"
   return $ret
@@ -1024,7 +1024,7 @@ function tempest_run()
   get_novadashboardserver
   scp ./run_tempest.sh root@${novadashboardserver}:
   ssh root@${novadashboardserver} 'export nosetestparameters=${nosetestparameters} ; bash -x ./run_tempest.sh run'
-  ret=$?
+  local ret=$?
   scp root@${novadashboardserver}:tempest/tempest_*.log tempestlog/
   scp root@${novadashboardserver}:tempest/etc/tempest.conf tempestlog/tempest.conf_after
   echo "return code from tempest run: $ret"
@@ -1139,7 +1139,7 @@ function do_testsetup()
 
 function addupdaterepo()
 {
-  UPR=/srv/tftpboot/repos/Cloud-PTF
+  local UPR=/srv/tftpboot/repos/Cloud-PTF
   mkdir -p $UPR
   for repo in ${UPDATEREPOS//+/ } ; do
     wget --progress=dot:mega -r --directory-prefix $UPR --no-parent --no-clobber --accept x86_64.rpm,noarch.rpm $repo || exit 8
@@ -1159,7 +1159,7 @@ function rebootcompute()
 {
   get_novacontroller
 
-  cmachines=`crowbar machines list | grep ^d`
+  local cmachines=`crowbar machines list | grep ^d`
   for m in $cmachines ; do
     ssh $m "reboot"
     wait_for 100 1 " ! netcat -z $m 22 >/dev/null" "node $m to go down"
@@ -1173,7 +1173,7 @@ function rebootcompute()
 
   scp $0 $novacontroller:
   ssh $novacontroller "waitforrebootcompute=1 bash -x ./$0 $cloud"
-  ret=$?
+  local ret=$?
   echo "ret:$ret"
   exit $ret
 }
@@ -1184,7 +1184,7 @@ function waitforrebootcompute()
   nova list
   nova reboot testvm
   nova list
-  vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
+  local vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
   wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
 }
 
@@ -1363,12 +1363,12 @@ EOOWASP
 function securitytests()
 {
   # download latest owasp package
-  owaspdomain=clouddata.cloud.suse.de   # works only SUSE-internally for now
-  owasppath=/tools/security-testsuite/
+  local owaspdomain=clouddata.cloud.suse.de   # works only SUSE-internally for now
+  local owasppath=/tools/security-testsuite/
   #owaspdomain=download.opensuse.org
   #owasppath=/repositories/home:/thomasbiege/openSUSE_Factory/noarch/
 
-  owaspsource=http://$owaspdomain$owasppath
+  local owaspsource=http://$owaspdomain$owasppath
   rm -rf owasp
   mkdir -p owasp
 
@@ -1381,12 +1381,12 @@ function securitytests()
 
   pushd /usr/share/owasp-test-suite >/dev/null
   # create config
-  owaspconf=openstack_horizon-testing.ini
+  local owaspconf=openstack_horizon-testing.ini
   create_owasp_testsuite_config $owaspconf
 
   # call tests
   ./owasp.pl output=short $owaspconf
-  ret=$?
+  local ret=$?
   popd >/dev/null
   return $ret
 }
@@ -1407,7 +1407,7 @@ function qa_test()
   pushd qa-openstack-cli
   mkdir -p ~/qa_test.logs
   ./run.sh | perl -pe '$|=1;s/\e\[?.*?[\@-~]//g' | tee ~/qa_test.logs/run.sh.log
-  ret=${PIPESTATUS[0]}
+  local ret=${PIPESTATUS[0]}
   popd
   return $ret
 }
