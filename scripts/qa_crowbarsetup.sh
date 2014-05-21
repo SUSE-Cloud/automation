@@ -196,6 +196,7 @@ function iscloudvertest()
 # outer part of our test of iscloudver function
 function iscloudvertest2()
 {
+        local cloudsource
         for cloudsource in GM1.0 susecloud2.0 develcloud3 develcloud4 ; do
           echo "cloudsource=$cloudsource"
           iscloudvertest
@@ -232,6 +233,7 @@ function add_ha_repo()
   didha=
   if iscloudver 3plus ; then
       if [ "$slesdist" = "SLE_11_SP3" ] ; then
+        local repo
         for repo  in "SLE11-HAE-SP3-Pool" "SLE11-HAE-SP3-Updates" "SLE11-HAE-SP3-Updates-test" ; do
           add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
         done
@@ -475,6 +477,7 @@ EOF
     add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" "/srv/tftpboot/suse-$suseversion/install"
   fi
 
+  local REPO
   case $cloudsource in
       develcloud1.0|susecloud1.0|GM|GM1.0)
       zypper -n install createrepo
@@ -640,7 +643,9 @@ function allocate()
     if [ "$cloud" = "d2" ]; then
       nodelist="4 5"
     fi
+    local i
     for i in $nodelist ; do
+      local pw
       for pw in root crowbar 'cr0wBar!' ; do
         (ipmitool -H "$net.16$i" -U root -P $pw lan set 1 defgw ipaddr "$net.1"
         ipmitool -H "$net.16$i" -U root -P $pw power reset) &
@@ -654,11 +659,13 @@ function allocate()
   echo "Found one node"
   while test $(crowbar machines list | grep ^d|wc -l) -lt $nodenumber ; do sleep 10 ; done
   local nodes=$(crowbar machines list | grep ^d)
+  local n
   for n in $nodes ; do
           wait_for 100 2 "knife node show -a state $n | grep discovered" "node to enter discovered state"
   done
   echo "Sleeping 50 more seconds..."
   sleep 50
+  local m
   for m in `crowbar machines list | grep ^d` ; do
     while knife node show -a state $m | grep discovered; do # workaround bnc#773041
       crowbar machines allocate "$m"
@@ -696,6 +703,7 @@ function check_node_resolvconf()
 
 function do_waitcompute()
 {
+  local node
   for node in $(crowbar machines list | grep ^d) ; do
     wait_for 180 10 "sshtest $node rpm -q yast2-core" "node $node" "check_node_resolvconf $node; exit 12"
     echo "node $node ready"
@@ -712,6 +720,7 @@ function waitnodes()
   case $mode in
     nodes)
       echo -n "Waiting for nodes to get ready: "
+      local i
       for i in `crowbar machines list | grep ^d` ; do
         local machinestatus=''
         while test $n -gt 0 && ! test "x$machinestatus" = "xready" ; do
@@ -969,6 +978,7 @@ function do_proposal()
   waitnodes nodes
   local proposals="database keystone rabbitmq ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat"
 
+  local proposal
   for proposal in $proposals ; do
     # proposal filter
     case $proposal in
@@ -1141,6 +1151,7 @@ function addupdaterepo()
 {
   local UPR=/srv/tftpboot/repos/Cloud-PTF
   mkdir -p $UPR
+  local repo
   for repo in ${UPDATEREPOS//+/ } ; do
     wget --progress=dot:mega -r --directory-prefix $UPR --no-parent --no-clobber --accept x86_64.rpm,noarch.rpm $repo || exit 8
   done
@@ -1160,6 +1171,7 @@ function rebootcompute()
   get_novacontroller
 
   local cmachines=`crowbar machines list | grep ^d`
+  local m
   for m in $cmachines ; do
     ssh $m "reboot"
     wait_for 100 1 " ! netcat -z $m 22 >/dev/null" "node $m to go down"
@@ -1419,11 +1431,13 @@ function teardown()
   #BMCs at 10.122.$net.163-4 #node 11-12
 
   # undo propsal create+commit
+  local service
   for service in nova_dashboard nova glance ceph swift keystone database ; do
     crowbar "$service" proposal delete default
     crowbar "$service" delete default
   done
 
+  local node
   for node in $(crowbar machines list | grep ^d) ; do
     crowbar machines delete $node
   done
