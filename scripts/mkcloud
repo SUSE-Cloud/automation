@@ -42,6 +42,7 @@
 #                sets the number of CPU cores assigned to each node (admin and compute)
 
 virtualcloud=${virtualcloud:-virtual}
+cloudfqdn=${cloudfqdn:-$virtualcloud.cloud.suse.de}
 forwardmode=${forwardmode:-nat}
 net_fixed=${net_fixed:-192.168.123}
 net_public=${net_public:-192.168.122}
@@ -134,6 +135,7 @@ function sshrun()
 {
   ssh root@$adminip "
     export debug=$debug ;
+    export cloudfqdn=$cloudfqdn ;
     export cloudsource=$cloudsource ;
     export hacloud=$hacloud ;
     export libvirt_type=$libvirt_type ;
@@ -236,7 +238,7 @@ function h_deploy_admin_image()
 
 function h_add_etchosts_entries()
 {
-  grep -q crowbar /etc/hosts || echo "$adminip crowbar.$virtualcloud.cloud.suse.de crowbar" >> /etc/hosts
+  grep -q crowbar /etc/hosts || echo "$adminip crowbar.$cloudfqdn crowbar" >> /etc/hosts
 }
 
 function h_enable_ksm
@@ -376,7 +378,7 @@ function h_create_libvirt_admin_network_config()
     <mac address='52:54:00:AB:B1:77'/>
     <ip address='$admingw' netmask='$adminnetmask'>
       <dhcp>
-        <host mac="52:54:00:77:77:70" name="crowbar.$virtualcloud.cloud.suse.de" ip="$adminip"/>
+        <host mac="52:54:00:77:77:70" name="crowbar.$cloudfqdn" ip="$adminip"/>
       </dhcp>
     </ip>
     <forward mode='$forwardmode'>
