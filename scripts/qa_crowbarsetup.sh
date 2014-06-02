@@ -22,7 +22,7 @@ fi
 # common cloud network prefix within SUSE Nuremberg:
 netp=10.122
 net=${net_admin:-192.168.124}
-case $cloud in
+case "$cloud" in
 	d1)
 		net=$netp.178
 		net_storage=$netp.179
@@ -152,7 +152,7 @@ function iscloudver()
           v=${v%%plus}
           bplus=$(($v+1))plus
         fi
-        case $v in
+        case "$v" in
           1)
             [[ $cloudsource =~ 1.0 ]]
             ;;
@@ -281,7 +281,7 @@ EOF
 
   suseversion=11.2
   : ${susedownload:=download.nue.suse.com}
-  case $cloudsource in
+  case "$cloudsource" in
       develcloud1.0)
           CLOUDDISTPATH=/ibs/Devel:/Cloud:/1.0/images/iso
           CLOUDDISTISO="S*-CLOUD*Media1.iso"
@@ -352,7 +352,7 @@ EOF
       ;;
   esac
 
-  case $suseversion in
+  case "$suseversion" in
       11.2)
         slesrepolist="SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Updates"
         slesversion=11-SP2
@@ -478,7 +478,7 @@ EOF
   fi
 
   local REPO
-  case $cloudsource in
+  case "$cloudsource" in
       develcloud1.0|susecloud1.0|GM|GM1.0)
       zypper -n install createrepo
       for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
@@ -717,7 +717,7 @@ function waitnodes()
   local mode=$1
   local proposal=$2
   local proposaltype=${3:-default}
-  case $mode in
+  case "$mode" in
     nodes)
       echo -n "Waiting for nodes to get ready: "
       local i
@@ -862,7 +862,7 @@ function custom_configuration()
   if [[ $debug = 1 && $proposal != swift ]] ; then
     EDITOR='sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/"' $crowbaredit
   fi
-  case $proposal in
+  case "$proposal" in
     keystone)
       if [[ $all_with_ssl = 1 || $keystone_with_ssl = 1 ]] ; then
         enable_ssl_for_keystone
@@ -981,7 +981,7 @@ function do_proposal()
   local proposal
   for proposal in $proposals ; do
     # proposal filter
-    case $proposal in
+    case "$proposal" in
       ceph)
         [[ -n "$wantceph" ]] || continue
         ;;
@@ -994,7 +994,7 @@ function do_proposal()
     esac
 
     # create proposal
-    case $proposal in
+    case "$proposal" in
       *)
         do_one_proposal "$proposal" "default"
       ;;

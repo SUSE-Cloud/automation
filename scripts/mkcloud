@@ -861,7 +861,7 @@ function sanity_checks()
     fi
   fi
 
-  case $cloudsource in
+  case "$cloudsource" in
     develcloud1.0|GM|GM1.0)
       adminimage=SP2
     ;;
@@ -918,7 +918,7 @@ for cmd in $wantedcmds ; do
   for onecmd in $allcmds ; do
     if [ $onecmd = $cmd ] ; then
       ok=1
-      case $cmd in
+      case "$cmd" in
         all)
           runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
         ;;
