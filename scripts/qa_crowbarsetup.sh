@@ -784,10 +784,10 @@ function manual_2device_ceph_proposal()
 #         "true" resp. "false" or "['one', 'two']" act as ruby values, not as string
 function proposal_set_value()
 {
-  service=$1
-  proposal=$2
-  variable=$3
-  value=$4
+  local service="$1"
+  local proposal="$2"
+  local variable="$3"
+  local value="$4"
 
   pfile=/root/${service}.${proposal}.proposal
 
