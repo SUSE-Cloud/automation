@@ -6,6 +6,7 @@ test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
 novacontroller=
 novadashboardserver=
 export cloud=${1}
+export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
 export nodenumber=${nodenumber:-2}
 export nodes=
 export debug=${debug:-0}
@@ -249,7 +250,7 @@ function add_ha_repo()
 
 function prepareinstallcrowbar()
 {
-  echo configure static IP and absolute + resolvable hostname crowbar.$cloud.cloud.suse.de gw:$net.1
+  echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
   cat > /etc/sysconfig/network/ifcfg-eth0 <<EOF
 NAME='eth0'
 STARTMODE='auto'
@@ -261,12 +262,12 @@ EOF
   ifdown br0
   rm -f /etc/sysconfig/network/ifcfg-br0
   grep -q "^default" /etc/sysconfig/network/routes || echo "default $net.1 - -" > /etc/sysconfig/network/routes
-  echo "crowbar.$cloud.cloud.suse.de" > /etc/HOSTNAME
+  echo "crowbar.$cloudfqdn" > /etc/HOSTNAME
   hostname `cat /etc/HOSTNAME`
   # these vars are used by rabbitmq
   export HOSTNAME=`cat /etc/HOSTNAME`
   export HOST=$HOSTNAME
-  grep -q "$net.*crowbar" /etc/hosts || echo $net.10 crowbar.$cloud.cloud.suse.de crowbar >> /etc/hosts
+  grep -q "$net.*crowbar" /etc/hosts || echo $net.10 crowbar.$cloudfqdn crowbar >> /etc/hosts
   rcnetwork restart
   hostname -f # make sure it is a FQDN
   ping -c 1 `hostname -f`
@@ -596,7 +597,7 @@ function do_installcrowbar()
     exit 84
   fi
 
-  if ! crowbar machines list | grep -q crowbar.$cloud ; then
+  if ! crowbar machines list | grep -q crowbar.$cloudfqdn ; then
     tail -n 90 /root/screenlog.0
     echo "crowbar 2nd self-test failed"
     exit 85
