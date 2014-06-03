@@ -17,6 +17,7 @@ me=`basename $0`
 init_variables () {
     CLOUD_VERSION_DEFAULT=3
     : ${CLOUD_VERSION:=$CLOUD_VERSION_DEFAULT}
+    set_cloud_version_variables
 
     : ${ADMIN_IP:=192.168.124.10}
     : ${HOST_IP:=192.168.124.1}
@@ -26,29 +27,33 @@ init_variables () {
     : ${HOST_MEDIA_MIRROR_DEFAULT=/srv/nfs/media}
     : ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEFAULT}
 
+    # Product ISO filenames
+    : ${SP3_ISO:=SLES-11-SP3-DVD-x86_64-current.iso}
+    : ${HAE_ISO:=SLE-HA-11-SP3-DVD-x86_64-current.iso}
+
     # Subdirectory under $HOST_MEDIA_MIRROR on the VM host which is
     # an NFS export containing the mounted SP3 media.
     : ${SP3_MEDIA_EXPORT_SUBDIR:=sles-11-sp3}
 
     # Subdirectories under $HOST_MIRROR on the VM host which are
-    # NFS exports containing the Devel:Cloud:* repos
+    # NFS exports containing repos
+    : ${CLOUD_UPDATES_EXPORT_SUBDIR:=SUSE-Cloud-${CLOUD_CHANNEL_VERSION}-Updates}
     : ${DC_EXPORT_SUBDIR:=Devel:Cloud:$CLOUD_VERSION}
     : ${DC_STAGING_EXPORT_SUBDIR:=${DC_EXPORT_SUBDIR}:Staging}
     : ${DC_SHARED_EXPORT_SUBDIR:=Devel:Cloud:Shared:11-SP3}
-
-    : ${SP3_ISO:=SLES-11-SP3-DVD-x86_64-current.iso}
-    : ${HAE_ISO:=SLE-HA-11-SP3-DVD-x86_64-current.iso}
+    : ${DC_SHARED_UPDATE_EXPORT_SUBDIR:=Devel:Cloud:Shared:11-SP3:Update}
 
     # Mountpoints within the Crowbar admin node which are required
     # when configuring / running the product (for serving repos via
     # HTTP for autoyast)
     SP3_MOUNTPOINT=/srv/tftpboot/suse-11.3/install
     REPOS_DIR=/srv/tftpboot/repos
-    CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
     POOL_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Pool
-    UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
+    SP3_UPDATES_MOUNTPOINT=$REPOS_DIR/SLES11-SP3-Updates
     HAE_POOL_MOUNTPOINT=$REPOS_DIR/SLE11-HAE-SP3-Pool
     HAE_UPDATES_MOUNTPOINT=$REPOS_DIR/SLE11-HAE-SP3-Updates
+    CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
+    CLOUD_UPDATES_MOUNTPOINT=$REPOS_DIR/SUSE-Cloud-${CLOUD_VERSION}-Updates
 
     # Mountpoints within the Crowbar admin node which are not required
     # by the product, but which are used for accessing local mirrors
@@ -56,33 +61,41 @@ init_variables () {
     # installed on the admin node.
     : ${DC_MOUNTPOINT:=$REPOS_DIR/Devel:Cloud:$CLOUD_VERSION}
     : ${DC_STAGING_MOUNTPOINT:=${DC_MOUNTPOINT}:Staging}
-    : ${DC_SHARED_MOUNTPOINT:=$REPOS_DIR/Devel:Cloud:Shared:11-SP3}
-    : ${DC_SHARED_UPDATE_MOUNTPOINT:=$REPOS_DIR/Devel:Cloud:Shared:11-SP3:Update}
+    : ${DC_SHARED_MOUNTPOINT:=$REPOS_DIR/$DC_SHARED_EXPORT_SUBDIR}
+    : ${DC_SHARED_UPDATE_MOUNTPOINT:=$REPOS_DIR/$DC_SHARED_UPDATE_EXPORT_SUBDIR}
 
     # Names of zypper repos within the Crowbar admin node.
-    cloud_repo=SUSE-Cloud-$CLOUD_VERSION
     sp3_repo=SLES-11-SP3
-    updates_repo=SLES-11-SP3-Updates
+    sp3_updates_repo=${sp3_repo}-Updates
     hae_repo=SLE11-HAE-SP3-Pool
     hae_updates_repo=SLE11-HAE-SP3-Updates
+    cloud_repo=SUSE-Cloud-$CLOUD_VERSION
+    cloud_updates_repo=${cloud_repo}-Updates
     dc_repo=Devel_Cloud_$CLOUD_VERSION
     dc_staging_repo=${dc_repo}_Staging
     dc_shared_repo=Devel_Cloud_Shared_11-SP3
-    dc_shared_update_repo=Devel_Cloud_Shared_11-SP3_Update
-
-    set_cloud_iso
+    dc_shared_update_repo=${dc_shared_repo}_Update
 }
 
 # This needs to be run both prior to parsing options (so that the
 # usage text can refer to the ISO filename), and after (so that
 # --product-version affects it correctly).
-set_cloud_iso () {
+set_cloud_version_variables () {
     case $CLOUD_VERSION in
-        2.0)
-            CLOUD_ISO_VERSION=2
+        1.0|2.0)
+            CLOUD_ISO_VERSION=${CLOUD_ISO_VERSION%.0}
             ;;
         *)
             CLOUD_ISO_VERSION=$CLOUD_VERSION
+            ;;
+    esac
+
+    case $CLOUD_VERSION in
+        3)
+            CLOUD_CHANNEL_VERSION=3.0
+            ;;
+        *)
+            CLOUD_CHANNEL_VERSION=$CLOUD_VERSION
             ;;
     esac
 
@@ -217,12 +230,12 @@ common_pre () {
 
 prep_mountpoints () {
     mountpoints=(
-        $CLOUD_MOUNTPOINT $SP3_MOUNTPOINT
-        $POOL_MOUNTPOINT $UPDATES_MOUNTPOINT
+        $SP3_MOUNTPOINT $POOL_MOUNTPOINT $SP3_UPDATES_MOUNTPOINT
         $HAE_POOL_MOUNTPOINT $HAE_UPDATES_MOUNTPOINT
+        $CLOUD_MOUNTPOINT $CLOUD_UPDATES_MOUNTPOINT
     )
     if [ -n "$ibs_mirror" ]; then
-        mountpoints+=($DC_MOUNTPOINT $DC_SHARED_MOUNTPOINT)
+        mountpoints+=($DC_MOUNTPOINT $DC_SHARED_MOUNTPOINT $DC_SHARED_UPDATE_MOUNTPOINT)
         if [ "$ibs_repo" = staging ]; then
             mountpoints+=($DC_STAGING_MOUNTPOINT)
         fi
@@ -333,8 +346,9 @@ mount_all_mounts () {
 
 setup_zypper_repos () {
     repos=(
-        $cloud_repo $sp3_repo $updates_repo
+        $sp3_repo $sp3_updates_repo
         $hae_repo $hae_updates_repo
+        $cloud_repo $cloud_updates_repo
         $dc_repo $dc_staging_repo $dc_shared_repo
     )
 
@@ -346,9 +360,10 @@ setup_zypper_repos () {
         fi
     done
 
-    safe_run zypper ar file://$CLOUD_MOUNTPOINT   $cloud_repo
-    safe_run zypper ar file://$SP3_MOUNTPOINT     $sp3_repo
-    safe_run zypper ar file://$UPDATES_MOUNTPOINT $updates_repo
+    safe_run zypper ar file://$SP3_MOUNTPOINT           $sp3_repo
+    safe_run zypper ar file://$SP3_UPDATES_MOUNTPOINT   $sp3_updates_repo
+    safe_run zypper ar file://$CLOUD_MOUNTPOINT         $cloud_repo
+    safe_run zypper ar file://$CLOUD_UPDATES_MOUNTPOINT $cloud_updates_repo
 
     case "$ibs_repo" in
         yes)
@@ -447,13 +462,13 @@ bind_mount () {
 # loki_nfs () {
 #     loki=loki.suse.de:/vol/euklid/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER
 #     nfs_mount $loki/11-SP3-POOL $POOL_MOUNTPOINT
-#     nfs_mount $loki/11-SP3      $UPDATES_MOUNTPOINT
+#     nfs_mount $loki/11-SP3      $SP3_UPDATES_MOUNTPOINT
 # }
 
 clouddata_sle_repos () {
     repos=clouddata.cloud.suse.de:/srv/nfs/repos
     nfs_mount $repos/SLES11-SP3-Pool       $POOL_MOUNTPOINT
-    nfs_mount $repos/SLES11-SP3-Updates    $UPDATES_MOUNTPOINT
+    nfs_mount $repos/SLES11-SP3-Updates    $SP3_UPDATES_MOUNTPOINT
     nfs_mount $repos/SLE11-HAE-SP3-Pool    $HAE_POOL_MOUNTPOINT
     nfs_mount $repos/SLE11-HAE-SP3-Updates $HAE_UPDATES_MOUNTPOINT
 }
@@ -482,17 +497,24 @@ nue_nfs () {
 host_nfs () {
     (
         media_mirrors=$HOST_IP:$HOST_MEDIA_MIRROR
-        nfs_mount $media_mirrors/$SP3_MEDIA_EXPORT_SUBDIR  $SP3_MOUNTPOINT
-        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION $CLOUD_MOUNTPOINT
-
         repo_mirrors=$HOST_IP:$HOST_MIRROR
+
+        nfs_mount $media_mirrors/$SP3_MEDIA_EXPORT_SUBDIR  $SP3_MOUNTPOINT
         nfs_mount $repo_mirrors/SLES11-SP3-Pool/sle-11-x86_64       $POOL_MOUNTPOINT
-        nfs_mount $repo_mirrors/SLES11-SP3-Updates/sle-11-x86_64    $UPDATES_MOUNTPOINT
+        nfs_mount $repo_mirrors/SLES11-SP3-Updates/sle-11-x86_64    $SP3_UPDATES_MOUNTPOINT
+
         nfs_mount $repo_mirrors/SLE11-HAE-SP3-Pool/sle-11-x86_64    $HAE_POOL_MOUNTPOINT
         nfs_mount $repo_mirrors/SLE11-HAE-SP3-Updates/sle-11-x86_64 $HAE_UPDATES_MOUNTPOINT
+
+        nfs_mount $media_mirrors/suse-cloud-$CLOUD_VERSION          $CLOUD_MOUNTPOINT
+        nfs_mount $repo_mirrors/$CLOUD_UPDATES_EXPORT_SUBDIR/sle-11-x86_64 \
+                                                                    $CLOUD_UPDATES_MOUNTPOINT
+
         if [ -n "$ibs_mirror" ]; then
             nfs_mount $repo_mirrors/$DC_EXPORT_SUBDIR/sle-11-x86_64         $DC_MOUNTPOINT
             nfs_mount $repo_mirrors/$DC_SHARED_EXPORT_SUBDIR/sle-11-x86_64  $DC_SHARED_MOUNTPOINT
+            nfs_mount $repo_mirrors/$DC_SHARED_UPDATE_EXPORT_SUBDIR/sle-11-x86_64 \
+                                                                            $DC_SHARED_UPDATE_MOUNTPOINT
             nfs_mount $repo_mirrors/$DC_STAGING_EXPORT_SUBDIR/sle-11-x86_64 $DC_STAGING_MOUNTPOINT
         fi
     ) | append_to_fstab
@@ -502,17 +524,24 @@ host_9p () {
     mountpoint_9p=/mnt/9p
     (
         9p_mount
-        iso_mount  $mountpoint_9p/isos/$SP3_ISO   $SP3_MOUNTPOINT
-        iso_mount  $mountpoint_9p/isos/$CLOUD_ISO $CLOUD_MOUNTPOINT
-
         repo_mirrors=$mountpoint_9p/mirrors
+
+        iso_mount  $mountpoint_9p/isos/$SP3_ISO   $SP3_MOUNTPOINT
         bind_mount $repo_mirrors/SLES11-SP3-Pool/sle-11-x86_64       $POOL_MOUNTPOINT
-        bind_mount $repo_mirrors/SLES11-SP3-Updates/sle-11-x86_64    $UPDATES_MOUNTPOINT
+        bind_mount $repo_mirrors/SLES11-SP3-Updates/sle-11-x86_64    $SP3_UPDATES_MOUNTPOINT
+
         bind_mount $repo_mirrors/SLE11-HAE-SP3-Pool/sle-11-x86_64    $HAE_POOL_MOUNTPOINT
         bind_mount $repo_mirrors/SLE11-HAE-SP3-Updates/sle-11-x86_64 $HAE_UPDATES_MOUNTPOINT
+
+        iso_mount  $mountpoint_9p/isos/$CLOUD_ISO                    $CLOUD_MOUNTPOINT
+        bind_mount $repo_mirrors/$CLOUD_UPDATES_EXPORT_SUBDIR/sle-11-x86_64 \
+                                                                     $CLOUD_UPDATES_MOUNTPOINT
+
         if [ -n "$ibs_mirror" ]; then
             bind_mount $repo_mirrors/$DC_EXPORT_SUBDIR/sle-11-x86_64         $DC_MOUNTPOINT
             bind_mount $repo_mirrors/$DC_SHARED_EXPORT_SUBDIR/sle-11-x86_64  $DC_SHARED_MOUNTPOINT
+            bind_mount $repo_mirrors/$DC_SHARED_UPDATE_EXPORT_SUBDIR/sle-11-x86_64 \
+                                                                             $DC_SHARED_UPDATE_MOUNTPOINT
             bind_mount $repo_mirrors/$DC_STAGING_EXPORT_SUBDIR/sle-11-x86_64 $DC_STAGING_MOUNTPOINT
         fi
     ) | append_to_fstab
@@ -545,7 +574,7 @@ parse_opts () {
                 ;;
             -p|--product-version)
                 CLOUD_VERSION="$2"
-                set_cloud_iso
+                set_cloud_version_variables
                 shift 2
                 ;;
             -d|--devel-cloud)
