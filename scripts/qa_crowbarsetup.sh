@@ -228,6 +228,13 @@ function addcloud3testupdates()
     zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-3-Updates cloud3tup
 }
 
+function addcloud4testupdates()
+{
+    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' '/srv/tftpboot/repos/SUSE-Cloud-4-Updates/'
+    zypper rr cloud4tup
+    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-4-Updates cloud4tup
+}
+
 function add_ha_repo()
 {
   slesdist="$1"
@@ -423,6 +430,10 @@ EOF
               zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/ cloud-shared-11sp3
               zypper mr -p 60 Devel_Cloud_3_Staging
               zypper mr -p 70 Devel_Cloud_3
+              ;;
+          susecloud4|GM4)
+              addsp3testupdates
+              addcloud4testupdates
               ;;
           develcloud4)
               addsp3testupdates
