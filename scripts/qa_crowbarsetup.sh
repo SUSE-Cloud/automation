@@ -629,9 +629,13 @@ function do_installcrowbar()
     crowbar ntp proposal commit default
   fi
 
+  if iscloudver 4plus; then
+    zypper install crowbar-barclamp-tempest
+  fi
+
   if ! validate_data_bags; then
-      echo "Validation error in default data bags. Aborting."
-      exit 68
+    echo "Validation error in default data bags. Aborting."
+    exit 68
   fi
 }
 
