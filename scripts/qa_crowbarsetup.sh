@@ -910,6 +910,9 @@ function custom_configuration()
         proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'$networkingplugin'"
         proposal_set_value neutron default "['attributes']['neutron']['networking_mode']" "'vlan'"
       fi
+      if iscloudver 4plus; then
+        proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
+      fi
     ;;
     quantum)
       if [[ $networkingplugin = linuxbridge ]] ; then
