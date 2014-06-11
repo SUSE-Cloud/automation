@@ -178,15 +178,17 @@ fi
 
 . /etc/bash.bashrc.local
 
+nova flavor-delete m1.nano || :
+nova flavor-create m1.nano --ephemeral 20 42 128 0 1
 nova flavor-delete m1.micro || :
-nova flavor-create m1.micro --ephemeral 20 12 128 0 1
+nova flavor-create m1.micro --ephemeral 20 84 256 0 1
 
 # cinder
 cinder create 1 ; sleep 10
 vol_id=$(cinder list | grep available | cut -d' ' -f2)
 cinder list
 cinder delete $vol_id
-NOVA_FLAVOR="12"
+NOVA_FLAVOR="42"
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
 # make sure glance is working
@@ -276,6 +278,8 @@ if [ "$cloudsource" != "openstackgrizzly" ] && [ -e /etc/tempest/tempest.conf ];
     $crudini --set /etc/tempest/tempest.conf compute ssh_user cirros
     $crudini --set /etc/tempest/tempest.conf compute image_ref $imgid
     $crudini --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
+    $crudini --set /etc/tempest/tempest.conf compute flavor_ref 42
+    $crudini --set /etc/tempest/tempest.conf compute flavor_ref_alt 84
 
     verbose="-- -v"
     if [ -x "$(type -p testr)" ]; then
