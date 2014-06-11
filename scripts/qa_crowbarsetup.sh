@@ -947,6 +947,8 @@ function set_proposalvars()
   wantswift=1
   wantceph=1
   iscloudver 2 && wantceph=
+  wanttempest=
+  iscloudver 4plus && wanttempest=1
 
   # FIXME: Ceph is currently broken
   #iscloudver 4 && {
@@ -988,7 +990,7 @@ function do_one_proposal()
 function do_proposal()
 {
   waitnodes nodes
-  local proposals="database keystone rabbitmq ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat"
+  local proposals="database keystone rabbitmq ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat tempest"
 
   local proposal
   for proposal in $proposals ; do
@@ -999,6 +1001,9 @@ function do_proposal()
         ;;
       swift)
         [[ -n "$wantswift" ]] || continue
+        ;;
+      tempest)
+        [[ -n "$wanttempest" ]] || continue
         ;;
       rabbitmq|cinder|quantum|neutron|ceilometer|heat)
         iscloudver 1 && continue
