@@ -630,7 +630,7 @@ function do_installcrowbar()
   fi
 
   if iscloudver 4plus; then
-    zypper install crowbar-barclamp-tempest
+    zypper -n install crowbar-barclamp-tempest
   fi
 
   if ! validate_data_bags; then
