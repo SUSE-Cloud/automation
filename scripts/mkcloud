@@ -176,7 +176,7 @@ function cleanup()
   tunctl -d ${cloudbr}-nic
   # zero node volumes to prevent accidental booting
   for node in $allnodeids ; do
-    dd if=/dev/zero of=/dev/$cloudvg/node$node count=1 bs=8192
+    dd if=/dev/zero of=/dev/$cloudvg/$cloud.node$node count=1 bs=8192
   done
   for i in /dev/loop* ; do
     if losetup $i | grep -q $cloud-admin ; then
@@ -203,15 +203,18 @@ function h_create_cloud_lvm()
   computenode_hdd_size=${computenode_hdd_size:-20}
   cephvolume_hdd_size=${cephvolume_hdd_size:-5}
 
-  lvcreate -n admin -L ${adminnode_hdd_size}G $cloudvg
+  lvrename /dev/$cloudvg/admin /dev/$cloudvg/$cloud.admin # transition until 2015
+  lvcreate -n $cloud.admin -L ${adminnode_hdd_size}G $cloudvg
   for i in $allnodeids ; do
-    lvcreate -n node$i -L ${computenode_hdd_size}G $cloudvg
+    lvrename /dev/$cloudvg/node$i /dev/$cloudvg/$cloud.node$i # transition until 2015
+    lvcreate -n $cloud.node$i -L ${computenode_hdd_size}G $cloudvg
   done
 
   if [ $cephvolumenumber -gt 0 ] ; then
     for i in $allnodeids ; do
       for n in $(echo `seq 1 $cephvolumenumber`) ; do
-        lvcreate -n node$i-ceph$n -L ${cephvolume_hdd_size}G $cloudvg
+        lvrename /dev/$cloudvg/node$i-ceph$n /dev/$cloudvg/$cloud.node$i-ceph$n # transition until 2015
+        lvcreate -n $cloud.node$i-ceph$n -L ${cephvolume_hdd_size}G $cloudvg
       done
     done
   fi
@@ -541,7 +544,7 @@ function h_create_libvirt_computenode_config()
     <emulator>/usr/bin/qemu-kvm</emulator>
     <disk type='block' device='disk'>
       <driver name='qemu' type='raw' cache='unsafe'/>
-      <source dev='/dev/$cloudvg/node$nodecounter'/>
+      <source dev='/dev/$cloudvg/$cloud.node$nodecounter'/>
       <target dev='vda' bus='virtio'/>
       <boot order='2'/>
     </disk>
@@ -598,7 +601,7 @@ function setupcompute()
     <disk type='block' device='disk'>
       <serial>$cloud-node$i-ceph$n</serial>
       <driver name='qemu' type='raw' cache='unsafe'/>
-      <source dev='/dev/$cloudvg/node$i-ceph$n'/>
+      <source dev='/dev/$cloudvg/$cloud.node$i-ceph$n'/>
       <target dev='$dev' bus='virtio'/>
     </disk>"
       done
