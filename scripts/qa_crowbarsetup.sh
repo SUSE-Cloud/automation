@@ -1033,8 +1033,9 @@ function set_node_alias()
 {
   local node_name=$1
   local node_alias=$2
-  curl -m 59 -s --digest --user crowbar:crowbar "http://localhost:3000/nodes/${node_name}/update" \
-    -d "alias=${node_alias}&description=&group=sw--1%3A-1&license_key=&public_name=&submit=Save&target_platform=suse-11.3" > /dev/null
+  if [[ "${node_name}" != "${node_alias}" ]]; then
+    crowbar machines rename ${node_name} ${node_alias}
+  fi
 }
 
 function get_novacontroller()
