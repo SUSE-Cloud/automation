@@ -60,6 +60,10 @@ artifacts_dir=${artifacts_dir:-$working_dir_orig/.artifacts}
 start_time=`date`
 cloud=${cloud:-cloud}
 cloudvg=${cloudvg:-$cloud}
+# pvlist is filled below
+pvlist=
+next_pv_device=
+pv_cur_device_no=0
 cloudbr=${cloudbr:-${cloud}br}
 mnt=/tmp/cloudmnt/$$
 debug=${debug:-0}
@@ -192,6 +196,16 @@ function cleanup()
   return 0
 }
 
+function h_get_next_pv_device()
+{
+  if [ -z "$pvlist" ] ; then
+    pvlist=`pvs --sort -Free | grep "$cloudvg" | awk '{print $1}'`
+    pv_cur_device_no=0
+  fi
+  next_pv_device=`perl -e '$i=shift; $i=$i % @ARGV;  print $ARGV[$i]' $pv_cur_device_no $pvlist`
+  pv_cur_device_no=$(( $pv_cur_device_no + 1 ))
+}
+
 function h_create_cloud_lvm()
 {
   pvcreate $CVOL
@@ -204,17 +218,20 @@ function h_create_cloud_lvm()
   cephvolume_hdd_size=${cephvolume_hdd_size:-5}
 
   lvrename /dev/$cloudvg/admin /dev/$cloudvg/$cloud.admin # transition until 2015
-  lvcreate -n $cloud.admin -L ${adminnode_hdd_size}G $cloudvg
+  h_get_next_pv_device
+  lvcreate -n $cloud.admin -L ${adminnode_hdd_size}G $cloudvg $next_pv_device
   for i in $allnodeids ; do
     lvrename /dev/$cloudvg/node$i /dev/$cloudvg/$cloud.node$i # transition until 2015
-    lvcreate -n $cloud.node$i -L ${computenode_hdd_size}G $cloudvg
+    h_get_next_pv_device
+    lvcreate -n $cloud.node$i -L ${computenode_hdd_size}G $cloudvg $next_pv_device
   done
 
   if [ $cephvolumenumber -gt 0 ] ; then
     for i in $allnodeids ; do
       for n in $(echo `seq 1 $cephvolumenumber`) ; do
         lvrename /dev/$cloudvg/node$i-ceph$n /dev/$cloudvg/$cloud.node$i-ceph$n # transition until 2015
-        lvcreate -n $cloud.node$i-ceph$n -L ${cephvolume_hdd_size}G $cloudvg
+        h_get_next_pv_device
+        lvcreate -n $cloud.node$i-ceph$n -L ${cephvolume_hdd_size}G $cloudvg $next_pv_device
       done
     done
   fi
