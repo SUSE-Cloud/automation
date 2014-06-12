@@ -928,6 +928,8 @@ function custom_configuration()
       if iscloudver 3plus ; then
           proposal_set_value swift default "['attributes']['swift']['ssl']['generate_certs']" "true"
           proposal_set_value swift default "['attributes']['swift']['ssl']['insecure']" "true"
+          proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
+          proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
       fi
     ;;
     cinder)
