@@ -81,8 +81,7 @@ case "$cloud" in
 		vlan_fixed=578
     ;;
 	*)
-		echo "Unknown Cloud"
-		exit 1
+                true # defaults are fine (and overridable)
 	;;
 esac
 # default networks in crowbar:
