@@ -60,6 +60,7 @@ artifacts_dir=${artifacts_dir:-$working_dir_orig/.artifacts}
 start_time=`date`
 cloud=${cloud:-cloud}
 cloudvg=${cloudvg:-$cloud}
+needcvol=1
 # pvlist is filled below
 pvlist=
 next_pv_device=
@@ -208,8 +209,10 @@ function h_get_next_pv_device()
 
 function h_create_cloud_lvm()
 {
-  pvcreate $CVOL
-  vgcreate $cloudvg $CVOL
+  if [ -n "$needcvol" ] ; then
+    pvcreate "$CVOL"
+    vgcreate "$cloudvg" "$CVOL"
+  fi
   vgchange -ay $cloudvg # for later boots
 
   # hdd size defaults (unless defined otherwise)
@@ -896,16 +899,19 @@ function sanity_checks()
     ;;
   esac
 
-  CVOL=${CVOL:-/dev/vdb}
-  if grep -q $CVOL /proc/mounts ; then
-    echo "The device $CVOL seems to be used. Exiting."
-    exit 92
-  fi
-  if [ ! -e $CVOL ] ; then
-    echo "Error: $CVOL does not exist."
-    echo "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx"
-    echo "Running 'partprobe' may help to let the device appear."
-    exit 93
+  vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
+  if [ -n "$needcvol" ] ; then
+    CVOL=${CVOL:-/dev/vdb}
+    if grep -q $CVOL /proc/mounts ; then
+      echo "The device $CVOL seems to be used. Exiting."
+      exit 92
+    fi
+    if [ ! -e $CVOL ] ; then
+      echo "Error: $CVOL does not exist."
+      echo "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx"
+      echo "Running 'partprobe' may help to let the device appear."
+      exit 93
+    fi
   fi
 
   if [ -e /etc/init.d/SuSEfirewall2_init ] && rcSuSEfirewall2 status ; then
