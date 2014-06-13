@@ -241,14 +241,14 @@ function h_deploy_admin_image()
 {
   pushd /tmp
   wget --progress=dot:mega -nc http://clouddata.cloud.suse.de/images/$adminimage-64up.qcow2
-  qemu-img convert -p $adminimage-64up.qcow2 /dev/$cloudvg/admin
+  qemu-img convert -p $adminimage-64up.qcow2 /dev/$cloudvg/$cloud.admin
   popd
 
   if fdisk -l /dev/$cloudvg/admin | grep -q 2056192 ; then
     # make a bigger partition 2
-    echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/$cloudvg/admin
+    echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/$cloudvg/$cloud.admin
     loopdevice=`losetup --find`
-    losetup -o $(expr 2056192 \* 512) $loopdevice /dev/$cloudvg/admin
+    losetup -o $(expr 2056192 \* 512) $loopdevice /dev/$cloudvg/$cloud.admin
     fsck -y -f $loopdevice
     resize2fs $loopdevice
     sync
@@ -356,7 +356,7 @@ function h_create_libvirt_adminnode_config()
       <emulator>/usr/bin/qemu-kvm</emulator>
       <disk type='block' device='disk'>
         <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='/dev/$cloudvg/admin'/>
+        <source dev='/dev/$cloudvg/$cloud.admin'/>
         <target dev='vda' bus='virtio'/>
         <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
       </disk>
@@ -413,7 +413,7 @@ function setupadmin()
   echo "Injecting public key into image..."
   pubkey=`cut -d" " -f2 ~/.ssh/id_dsa.pub`
   mkdir -p $mnt
-  mount -o loop,offset=$(expr 2056192 \* 512) /dev/$cloudvg/admin $mnt
+  mount -o loop,offset=$(expr 2056192 \* 512) /dev/$cloudvg/$cloud.admin $mnt
   mkdir -p $mnt/root/.ssh
   grep -q "$pubkey" $mnt/root/.ssh/authorized_keys 2>/dev/null || cat ~/.ssh/id_dsa.pub >> $mnt/root/.ssh/authorized_keys
   umount $mnt
