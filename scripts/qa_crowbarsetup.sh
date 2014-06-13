@@ -1090,7 +1090,7 @@ function do_testsetup()
 	fi
 	echo "openstack nova contoller: $novacontroller"
 	curl -m 40 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
-	ssh $novacontroller "export wantswift=$wantswift ; "'set -x
+	ssh $novacontroller "export wantswift=$wantswift ; export wanttempest=$wanttempest "'set -x
 		. .openrc
 		export LC_ALL=C
                 if [[ -n $wantswift ]] ; then
@@ -1100,6 +1100,15 @@ function do_testsetup()
                     swift list container1 || exit 33
                 fi
 		curl -s w3.suse.de/~bwiedemann/cloud/defaultsuseusers.pl | perl
+
+                # Run Tempest Smoketests if configured to do so
+                if [ "$wanttempest" = "1" ]; then
+                    (
+                        cd /var/lib/openstack-tempest-test
+                        ./run_tempest.sh -N -s || :
+                    )
+                    /opt/tempest/bin/tempest_cleanup.sh || :
+                fi
 		nova list
 		glance image-list
 	        glance image-list|grep -q SP3-64 || glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
