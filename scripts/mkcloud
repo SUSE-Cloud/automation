@@ -168,7 +168,7 @@ function sshrun()
 function cleanup()
 {
   # cleanup leftover from last run
-  allnodenames=`for i in $allnodeids ; do echo -n "node\$i " ; done`
+  allnodenames=`for i in $(seq 1 $(($nodenumber + 20))) ; do echo -n "node\$i " ; done`
   for n in admin $allnodenames ; do
       virsh destroy $cloud-$n
       virsh undefine $cloud-$n
