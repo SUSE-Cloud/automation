@@ -35,7 +35,7 @@
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
           <description/>
-          <defaultValue>develcloud3</defaultValue>
+          <defaultValue>develcloud4</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
@@ -90,9 +90,8 @@ export artifacts_dir=$WORKSPACE/.artifacts
 rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
-cd /root
 
-[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
+[ -e ~/bin/update_automation ] || curl -o ~/bin/update_automation https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
 # fetch the latest automation updates
 update_automation mkcloud jenkins-job-trigger
 
@@ -101,10 +100,19 @@ MKCLOUDTARGET=all_noreboot
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
 [ $WITHTEMPEST == "true" ] &amp;&amp; MKCLOUDTARGET="$MKCLOUDTARGET tempest" 
 
+# also run crowbarbackup and crowbarrestore
+case $cloudsource in
+  develcloud[34]|susecloud[34])
+    MKCLOUDTARGET="$MKCLOUDTARGET crowbarbackup crowbarrestore"
+  ;;
+esac
+
+starttime=`date +%s`
 perl -e "alarm 90*60 ; exec '/root/pool/allocpool bash -x /root/bin/mkcloud $(echo -n $MKCLOUDTARGET) ' "
 
+[ -z "$TESTHEAD" ] &amp;&amp; exit 0
 
-case $cloudsource in
+case "$cloudsource" in
   develcloud2.0)
     project=Devel:Cloud:2.0
     subproject=Staging
@@ -120,11 +128,13 @@ case $cloudsource in
     subproject=Staging
     packagefilter="crowbar python openstack"
   ;;
+  *)
+    echo "nothing to submit"
+    exit 0
+  ;;
 esac
 
-
-jenkins-job-trigger openstack-submit-project -p project="${project}" subproject="${subproject}" packagefilter="${packagefilter}"
-</command>
+jenkins-job-trigger openstack-submit-project -p project="${project}" subproject="${subproject}" packagefilter="${packagefilter}" starttime="${starttime}"</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

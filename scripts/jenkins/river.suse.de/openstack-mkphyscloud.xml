@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>This job will redeploy the d2 cloud - it will wipe all d2 machines.</description>
+  <description>This job will redeploy the d1.cloud - it will wipe all d1 machines.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
@@ -24,7 +24,7 @@
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
           <description/>
-          <defaultValue>develcloud2.0</defaultValue>
+          <defaultValue>develcloud3</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
@@ -72,7 +72,7 @@ ssh root@$admin "export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$U
   export nodenumber=3
   [ $WITHREBOOT == "true" ] &amp;&amp; export rebootcompute=1 &amp;&amp; export waitforrebootcompute=1
   [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export addupdaterepo=1 &amp;&amp; export runupdate=1
-  installcrowbar=1 allocate=1 waitcompute=1 proposal=1 testsetup=1 perl -e "alarm 90*60 ; exec q{bash -x qa_crowbarsetup.sh d1}"
+  prepareinstallcrowbar=1 installcrowbar=1 allocate=1 waitcompute=1 proposal=1 testsetup=1 perl -e "alarm 90*60 ; exec q{bash -x qa_crowbarsetup.sh d1}"
 '</command>
     </hudson.tasks.Shell>
   </builders>

@@ -45,7 +45,7 @@ iso_build=`ssh $sshopts -T crowbar "cat /etc/motd" | grep ISO | awk '{print $3}'
 [ -n "$iso_build" ]  &amp;&amp; mv "$WORKSPACE/.artifacts/"{.ignore,$iso_build}
 
 echo "~~~~~"
-cmd="wget -q -O /tmp/jenkins.sh https://raw.github.com/SUSE-Cloud/qa-openstack-cli/master/jenkins.sh ; chmod +x /tmp/jenkins.sh ; UPDATE_TESTSUITE=$UPDATE_TESTSUITE /tmp/jenkins.sh"
+cmd="wget --no-check-certificate -q -O /tmp/jenkins.sh https://raw.github.com/SUSE-Cloud/qa-openstack-cli/master/jenkins.sh ; chmod +x /tmp/jenkins.sh ; UPDATE_TESTSUITE=$UPDATE_TESTSUITE /tmp/jenkins.sh"
 ssh $sshopts -T crowbar "ssh $sshopts -T dashboard '$cmd'"</command>
     </hudson.tasks.Shell>
   </builders>

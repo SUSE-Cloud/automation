@@ -26,6 +26,11 @@ Only packages that built successfully are submitted.&#13;
           <description>space separated strings to filter the packages by their names (from the beginning)</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>starttime</name>
+          <description>UNIX timestamp of when succeeding test was started to avoid copying broken versions</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -43,6 +48,11 @@ Only packages that built successfully are submitted.&#13;
 # NORMAL MODE with E=
 E=
 #==========================
+
+if [ -z "$starttime" ] ; then
+  echo "FATAL: calling script needs to specify starttime"
+  exit 1
+fi
 
 case $subproject in
   None) echo "No valid 'subproject' provided - defaults for safety reasons to 'None'"
@@ -114,6 +124,13 @@ for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null | grep -E "^(${packagefilter// /|
   cd $COMPONENT || exit 1
 
   grep -q "&lt;linkinfo" .osc/_files || exit 2
+
+  # avoid copying untested versions
+  lastchange=$($OSC api "source/$COSS/$COMPONENT/_history" | perl -ne 'if(m/&lt;time&gt;(\d+)&lt;/) {print $1; exit 0}')
+  if [[ $lastchange &gt; $starttime ]] ; then
+    echo "skipping $COMPONENT because of a change after test started"
+    continue
+  fi
 
   if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp;  $OSC api /build/$COSS/$OSCBUILDDIST/x86_64/$COMPONENT/_status | grep -E 'code="succeeded"|package="_product"'
   then
