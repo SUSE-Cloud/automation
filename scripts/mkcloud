@@ -200,7 +200,7 @@ function cleanup()
 function h_get_next_pv_device()
 {
   if [ -z "$pvlist" ] ; then
-    pvlist=`pvs --sort -Free | grep "$cloudvg" | awk '{print $1}'`
+    pvlist=`pvs --sort -Free | grep "$cloudvg" | grep -v "cinder-volumes" | awk '{print $1}'`
     pv_cur_device_no=0
   fi
   next_pv_device=`perl -e '$i=shift; $i=$i % @ARGV;  print $ARGV[$i]' $pv_cur_device_no $pvlist`
