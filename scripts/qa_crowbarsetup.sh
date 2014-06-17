@@ -897,6 +897,7 @@ function custom_configuration()
       # custom nova config of libvirt
       [ -n "$libvirt_type" ] || libvirt_type='kvm';
       proposal_set_value nova default "['attributes']['nova']['libvirt_type']" "'$libvirt_type'"
+      proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
 #      EDITOR="sed -i -e 's/nova-multi-compute-$libvirt_type/nova-multi-compute-xxx/g; s/nova-multi-compute-qemu/nova-multi-compute-$libvirt_type/g; s/nova-multi-compute-xxx/nova-multi-compute-qemu/g'" $crowbaredit
 
       if [[ $all_with_ssl = 1 || $nova_with_ssl = 1 ]] ; then
