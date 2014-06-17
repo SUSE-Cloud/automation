@@ -1103,11 +1103,12 @@ function do_testsetup()
 		curl -s w3.suse.de/~bwiedemann/cloud/defaultsuseusers.pl | perl
 
                 # Run Tempest Smoketests if configured to do so
+                tempestret=0
                 if [ "$wanttempest" = "1" ]; then
-                    (
-                        cd /var/lib/openstack-tempest-test
-                        ./run_tempest.sh -N -s || :
-                    )
+                    pushd /var/lib/openstack-tempest-test
+                    ./run_tempest.sh -N -s
+                    popd
+                    tempestret=$?
                     /opt/tempest/bin/tempest_cleanup.sh || :
                 fi
 		nova list
@@ -1189,7 +1190,7 @@ function do_testsetup()
 		nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
 		ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
 		nova delete testvm
-		test $volumecreateret = 0 -a $volumeattachret = 0
+		test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0
 	'
 	ret=$?
 	echo ret:$ret
