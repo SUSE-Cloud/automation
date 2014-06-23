@@ -247,7 +247,7 @@ function h_deploy_admin_image()
   qemu-img convert -p $adminimage-64up.qcow2 /dev/$cloudvg/$cloud.admin
   popd
 
-  if fdisk -l /dev/$cloudvg/admin | grep -q 2056192 ; then
+  if fdisk -l /dev/$cloudvg/$cloud.admin | grep -q 2056192 ; then
     # make a bigger partition 2
     echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/$cloudvg/$cloud.admin
     loopdevice=`losetup --find`
