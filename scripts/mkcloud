@@ -443,7 +443,9 @@ listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
   rclibvirtd start
   wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 
-  [ -e /etc/libvirt/qemu/networks/$cloud-admin.xml ] || virsh net-create /tmp/$cloud-admin.net.xml
+  if ! virsh net-dumpxml $cloud-admin > /dev/null 2>&1; then
+    virsh net-create /tmp/$cloud-admin.net.xml
+  fi
   virsh net-start $cloud-admin
   if ! virsh create /tmp/$cloud-admin.xml ; then
     echo "=====================================================>>"
