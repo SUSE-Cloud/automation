@@ -930,6 +930,10 @@ function custom_configuration()
           proposal_set_value swift default "['attributes']['swift']['ssl']['generate_certs']" "true"
           proposal_set_value swift default "['attributes']['swift']['ssl']['insecure']" "true"
           proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
+          proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
+          proposal_set_value swift default "['attributes']['swift']['middlewares']['formpost']['enabled']" "true"
+          proposal_set_value swift default "['attributes']['swift']['middlewares']['staticweb']['enabled']" "true"
+          proposal_set_value swift default "['attributes']['swift']['middlewares']['tempurl']['enabled']" "true"
           proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
       fi
     ;;
