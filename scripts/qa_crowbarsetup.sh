@@ -8,6 +8,7 @@ novadashboardserver=
 export cloud=${1}
 export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
 export nodenumber=${nodenumber:-2}
+export tempestoptions=${tempestoptions:--t -s}
 export nodes=
 export debug=${debug:-0}
 
@@ -1105,7 +1106,8 @@ function do_testsetup()
 	fi
 	echo "openstack nova contoller: $novacontroller"
 	curl -m 40 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
-	ssh $novacontroller "export wantswift=$wantswift ; export wanttempest=$wanttempest "'set -x
+	ssh $novacontroller "export wantswift=$wantswift ; export wanttempest=$wanttempest ;
+                             export tempestoptions=\"$tempestoptions\" ; "'set -x
 		. .openrc
 		export LC_ALL=C
                 if [[ -n $wantswift ]] ; then
@@ -1120,7 +1122,7 @@ function do_testsetup()
                 tempestret=0
                 if [ "$wanttempest" = "1" ]; then
                     pushd /var/lib/openstack-tempest-test
-                    ./run_tempest.sh -N -s
+                    ./run_tempest.sh -N $tempestoptions
                     popd
                     tempestret=$?
                     /opt/tempest/bin/tempest_cleanup.sh || :
