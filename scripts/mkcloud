@@ -217,8 +217,11 @@ function h_create_cloud_lvm()
 
   # hdd size defaults (unless defined otherwise)
   adminnode_hdd_size=${adminnode_hdd_size:-15}
-  computenode_hdd_size=${computenode_hdd_size:-20}
+  controller_hdd_size=${controller_hdd_size:-20}
+  computenode_hdd_size=${computenode_hdd_size:-15}
   cephvolume_hdd_size=${cephvolume_hdd_size:-5}
+  controller_ceph_hdd_size=${controller_ceph_hdd_size:-25}
+  local hdd_size
 
   lvrename /dev/$cloudvg/admin /dev/$cloudvg/$cloud.admin # transition until 2015
   h_get_next_pv_device
@@ -226,7 +229,9 @@ function h_create_cloud_lvm()
   for i in $allnodeids ; do
     lvrename /dev/$cloudvg/node$i /dev/$cloudvg/$cloud.node$i # transition until 2015
     h_get_next_pv_device
-    lvcreate -n $cloud.node$i -L ${computenode_hdd_size}G $cloudvg $next_pv_device
+    hdd_size=${computenode_hdd_size}
+    test "$i" = "1" && hdd_size=${controller_hdd_size}
+    lvcreate -n $cloud.node$i -L ${hdd_size}G $cloudvg $next_pv_device
   done
 
   if [ $cephvolumenumber -gt 0 ] ; then
@@ -234,7 +239,9 @@ function h_create_cloud_lvm()
       for n in $(echo `seq 1 $cephvolumenumber`) ; do
         lvrename /dev/$cloudvg/node$i-ceph$n /dev/$cloudvg/$cloud.node$i-ceph$n # transition until 2015
         h_get_next_pv_device
-        lvcreate -n $cloud.node$i-ceph$n -L ${cephvolume_hdd_size}G $cloudvg $next_pv_device
+        hdd_size=${cephvolume_hdd_size}
+        test "$i" = "1" -a "$n" = "1" && hdd_size=${controller_ceph_hdd_size}
+        lvcreate -n $cloud.node$i-ceph$n -L ${hdd_size}G $cloudvg $next_pv_device
       done
     done
   fi
