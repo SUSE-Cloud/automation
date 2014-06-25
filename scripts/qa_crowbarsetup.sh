@@ -1055,14 +1055,26 @@ function do_testsetup()
                 fi
 		nova list
 		glance image-list
-	        glance image-list|grep -q SP3-64 || glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
+	        glance image-list|grep -q SP3-64
+                if [ "x$?" != "x0" ]; then
+                    # SP3-64 image not found, so uploading it
+                    glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
+                else
+                    glance image-show SP3-64 | tee glance.out
+                fi
                 # glance image-create --name=jeos-12.1-pv --is-public=True --property vm_mode=xen --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
         # wait for image to finish uploading
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
+        if [ "x$imageid" == "x" ]; then
+            echo "Error: Image ID for SP3-64 not found"
+            exit 37
+        fi
+
         for n in $(seq 1 200) ; do
           glance image-show $imageid|grep status.*active && break
           sleep 5
         done
+
         # wait for nova-manage to be successful
         for n in $(seq 1 200) ;  do
             test "$(nova-manage service list  | fgrep -cv -- \:\-\))" -lt 2 && break
