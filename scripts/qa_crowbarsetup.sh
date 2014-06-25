@@ -680,6 +680,16 @@ function allocate()
   done
   echo "Sleeping 50 more seconds..."
   sleep 50
+  echo "Setting first node to controller..."
+  local controllernode=$(crowbar machines list | sort | grep ^d | head -n 1)
+  local t=$(mktemp).json
+
+  knife node show -F json $controllernode > $t
+  json-edit $t -a normal.crowbar_wall.intended_role -v "controller"
+  knife node from file $t
+  rm -f $t
+
+  echo "Allocating nodes..."
   local m
   for m in `crowbar machines list | grep ^d` ; do
     while knife node show -a state $m | grep discovered; do # workaround bnc#773041
