@@ -40,6 +40,11 @@
 #
 # vcpus          (default 1)
 #                sets the number of CPU cores assigned to each node (admin and compute)
+#
+# vlan_manual_setup (default '')
+#                if set to something different from '' the vlan used for the public 
+#                networkis configured manually.
+#
 
 virtualcloud=${virtualcloud:-virtual}
 cloudfqdn=${cloudfqdn:-$virtualcloud.cloud.suse.de}
@@ -68,6 +73,7 @@ pv_cur_device_no=0
 cloudbr=${cloudbr:-${cloud}br}
 mnt=/tmp/cloudmnt/$$
 debug=${debug:-0}
+VLAN_MANUAL_SETUP=${vlan_manual_setup:-""}
 
 trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
@@ -175,7 +181,7 @@ function cleanup()
       virsh undefine $cloud-$n
   done
   virsh net-destroy $cloud-admin
-  ifdown $cloudbr.300
+  rmvlan 300  # TODO: move vlan id (300) to a parameter
   ifdown $cloudbr
   brctl delbr $cloudbr
   tunctl -d ${cloudbr}-nic
@@ -188,8 +194,7 @@ function cleanup()
       losetup -d $i
     fi
   done
-  rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml \
-    /etc/sysconfig/network/ifcfg-$cloudbr.300
+  rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml
   if [ -n "$wipe" ] ; then
     vgchange -an $cloudvg
     dd if=/dev/zero of=$CVOL count=1000
@@ -515,11 +520,28 @@ function instcrowbarfromgit()
   return $ret
 }
 
+function rmvlan()
+{
+  VLANID=$1
+  
+  if [ -f /etc/sysconfig/network/ifcfg-$cloudbr.$VLANID ]; then
+    # the VLAN was configured via sysconfig/network
+    ifdown $cloudbr.$VLANID
+    rm -f /etc/sysconfig/network/ifcfg-$cloudbr.$VLANID
+  else
+    # the VLAN was configured manually, useful for openSUSE 13.1
+    ifconfig $cloudbr.$VLANID
+    vconfig rem $cloudbr.$VLANID
+  fi
+}
+
 function mkvlan()
 {
   DEFVLAN=$1 ; shift
   IP=$1 ; shift
-  cat > /etc/sysconfig/network/ifcfg-$cloudbr.$DEFVLAN <<EONET
+
+  if [ "x$VLAN_MANUAL_SETUP" == "x" ]; then
+    cat > /etc/sysconfig/network/ifcfg-$cloudbr.$DEFVLAN <<EONET
 # VLAN Interface for the xxx network
 USERCONTROL='no'
 STARTMODE='auto'
@@ -529,7 +551,11 @@ IPADDR='$IP/24'
 VLAN_ID=$DEFVLAN
 EONET
 
-  ifup $cloudbr.$DEFVLAN
+    ifup $cloudbr.$DEFVLAN
+  else
+    vconfig add $cloudbr $DEFVLAN
+    ifconfig $cloudbr.$DEFVLAN $IP/24 up
+  fi
 }
 
 
@@ -825,6 +851,9 @@ function usage()
   echo "       : set the number of nodes to be created (excl. admin node)"
   echo "   vcpus=1         (default 1)"
   echo "       : set the number of CPU cores per node (admin and compute)"
+  echo "   vlan_manual_setup (default '')"
+  echo "       : if set to something different from '' the vlan used for the public"
+  echo "         network is configured manually using vconfig+ifconfig."
   echo
   exit 1
 }
