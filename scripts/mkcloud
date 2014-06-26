@@ -525,19 +525,10 @@ function instcrowbarfromgit()
 
 function mkvlan()
 {
-  DEFVLAN=$1 ; shift
-  IP=$1 ; shift
-  cat > /etc/sysconfig/network/ifcfg-$cloudbr.$DEFVLAN <<EONET
-# VLAN Interface for the xxx network
-USERCONTROL='no'
-STARTMODE='auto'
-BOOTPROTO='static'
-ETHERDEVICE='$cloudbr'
-IPADDR='$IP/24'
-VLAN_ID=$DEFVLAN
-EONET
-
-  ifup $cloudbr.$DEFVLAN
+  local DEFVLAN=$1 ; shift
+  local IP=$1 ; shift
+  vconfig add $cloudbr $DEFVLAN
+  ifconfig $cloudbr.$DEFVLAN $IP/24
 }
 
 
