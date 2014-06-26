@@ -149,7 +149,7 @@ function sshrun()
     export networkingplugin=$networkingplugin ;
     export nodenumber=$nodenumber ;
     export nosetestparameters=${nosetestparameters} ;
-    export tempestoptions="${tempestoptions}" ;
+    export tempestoptions='${tempestoptions}' ;
     export cephvolumenumber=$cephvolumenumber ;
     export shell=$shell ;
 
