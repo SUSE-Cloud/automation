@@ -948,7 +948,7 @@ function custom_configuration()
       fi
     ;;
     cinder)
-      if [[ "$cephvolumenumber" -lt 1 ]] ; then
+      if [[ "$cephvolumenumber" -lt 2 ]] ; then
           proposal_set_value cinder default "['attributes']['cinder']['volume']['volume_type']" "'local'"
       fi
     ;;
