@@ -530,6 +530,7 @@ function mkvlan()
   local IP=$1 ; shift
   vconfig add $cloudbr $DEFVLAN
   ifconfig $cloudbr.$DEFVLAN $IP/24
+  ethtool -K $cloudbr tx off
 }
 
 
