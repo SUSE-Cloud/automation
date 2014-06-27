@@ -176,10 +176,11 @@ function cleanup()
       virsh undefine $cloud-$n
   done
   virsh net-destroy $cloud-admin
-  ifdown $cloudbr.300
-  ifdown $cloudbr
-  brctl delbr $cloudbr
-  tunctl -d ${cloudbr}-nic
+  ip link set ${cloudbr}.300 down
+  ip link set ${cloudbr} down
+  ip link delete ${cloudbr} type bridge
+  ip link delete ${cloudbr}-nic
+
   # zero node volumes to prevent accidental booting
   for node in $allnodeids ; do
     dd if=/dev/zero of=/dev/$cloudvg/$cloud.node$node count=1 bs=8192
