@@ -20,7 +20,6 @@
 #
 # cloudsource=develcloud|susecloud4|Beta?   (required, no default)
 #       defines the source for the installation of the cloud product
-#       develcloud    : product from IBS Devel:Cloud:1.0
 #       develcloud2.0 : product from IBS Devel:Cloud:2.0
 #       develcloud3   : product from IBS Devel:Cloud:3
 #       develcloud4   : product from IBS Devel:Cloud:4
@@ -252,8 +251,8 @@ function h_create_cloud_lvm()
 function h_deploy_admin_image()
 {
   pushd /tmp
-  wget --progress=dot:mega -nc http://clouddata.cloud.suse.de/images/$adminimage-64up.qcow2
-  qemu-img convert -p $adminimage-64up.qcow2 /dev/$cloudvg/$cloud.admin
+  wget --progress=dot:mega -nc http://clouddata.cloud.suse.de/images/SP3-64up.qcow2
+  qemu-img convert -p SP3-64up.qcow2 /dev/$cloudvg/$cloud.admin
   popd
 
   if fdisk -l /dev/$cloudvg/$cloud.admin | grep -q 2056192 ; then
@@ -811,7 +810,7 @@ function usage()
   echo " Mandatory"
   echo "   CVOL=/dev/vdx (default /dev/vdb)"
   echo "       :  LVM will be created on this device (at least 80GB)"
-  echo "   cloudsource=develcloud | develcloud2.0 | develcloud3 | develcloud4 | susecloud4 | Beta?  (default '')"
+  echo "   cloudsource=develcloud2.0 | develcloud3 | develcloud4 | susecloud4 | Beta?  (default '')"
   echo "       : defines the installation source"
   echo
   echo " Optional"
@@ -881,7 +880,7 @@ function sanity_checks()
 
   if [ -z "$cloudsource" ] ; then
     echo "Please set the env variable:"
-    echo "export cloudsource=Beta?|develcloud|develcloud2.0|develcloud3|develcloud4|susecloud4"
+    echo "export cloudsource=Beta?|develcloud2.0|develcloud3|develcloud4|susecloud4"
     exit 1
   fi
 
@@ -892,15 +891,6 @@ function sanity_checks()
       exit 1
     fi
   fi
-
-  case "$cloudsource" in
-    develcloud1.0|GM|GM1.0)
-      adminimage=SP2
-    ;;
-    *)
-      adminimage=SP3
-    ;;
-  esac
 
   vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
   if [ -n "$needcvol" ] ; then

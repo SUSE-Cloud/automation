@@ -154,9 +154,6 @@ function iscloudver()
           bplus=$(($v+1))plus
         fi
         case "$v" in
-          1)
-            [[ $cloudsource =~ 1.0 ]]
-            ;;
           2)
             [[ $cloudsource =~ 2.0 ]]
             ;;
@@ -181,10 +178,6 @@ function iscloudver()
 # inner part of our test of iscloudver function
 function iscloudvertest()
 {
-        iscloudver 1
-        echo v1=$?
-        iscloudver 1plus
-        echo v1plus=$?
         iscloudver 2
         echo v2=$?
         iscloudver 2plus
@@ -198,20 +191,11 @@ function iscloudvertest()
 function iscloudvertest2()
 {
         local cloudsource
-        for cloudsource in GM1.0 susecloud2.0 develcloud3 develcloud4 ; do
+        for cloudsource in susecloud2.0 develcloud3 develcloud4 ; do
           echo "cloudsource=$cloudsource"
           iscloudvertest
         done
         exit 0
-}
-
-function addsp2testupdates()
-{
-    mkdir -p /srv/tftpboot/repos/SLES11-SP{1,2}-Updates
-    mount -r you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP1/ /srv/tftpboot/repos/SLES11-SP1-Updates
-    mount -r you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP2/ /srv/tftpboot/repos/SLES11-SP2-Updates
-    zypper ar /srv/tftpboot/repos/SLES11-SP1-Updates sp1tup
-    zypper ar /srv/tftpboot/repos/SLES11-SP2-Updates sp2tup
 }
 
 function addsp3testupdates()
@@ -287,72 +271,47 @@ EOF
   mkdir -p /srv/tftpboot/repos/Cloud/
   cd /srv/tftpboot/repos/Cloud/
 
-  suseversion=11.2
+  suseversion=11.3
   : ${susedownload:=download.nue.suse.com}
   case "$cloudsource" in
-      develcloud1.0)
-          CLOUDDISTPATH=/ibs/Devel:/Cloud:/1.0/images/iso
-          CLOUDDISTISO="S*-CLOUD*Media1.iso"
-      ;;
       develcloud2.0)
           CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0/images/iso
           [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0:/Staging/images/iso
           CLOUDDISTISO="S*-CLOUD*Media1.iso"
-          suseversion=11.3
       ;;
       develcloud3)
           CLOUDDISTPATH=/ibs/Devel:/Cloud:/3/images/iso
           [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/3:/Staging/images/iso
           CLOUDDISTISO="S*-CLOUD*Media1.iso"
-          suseversion=11.3
       ;;
       develcloud4)
           CLOUDDISTPATH=/ibs/Devel:/Cloud:/4/images/iso
           [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/4:/Staging/images/iso
           CLOUDDISTISO="S*-CLOUD*Media1.iso"
-          suseversion=11.3
-      ;;
-      develcloud)
-          echo "The cloudsource 'develcloud' is no longer supported."
-          echo "Please use 'develcloud1.0' resp. 'develcloud2.0'."
-          exit 11
-      ;;
-      susecloud|susecloud1.0)
-          CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP2:/Update:/Products:/Test/images/iso
-          CLOUDDISTISO="S*-CLOUD*Media1.iso"
       ;;
       susecloud2.0)
           CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/GA:/Products:/Test/images/iso
           CLOUDDISTISO="S*-CLOUD*Media1.iso"
-          suseversion=11.3
       ;;
       susecloud3)
           CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Products:/Test/images/iso
           CLOUDDISTISO="S*-CLOUD*Media1.iso"
-          suseversion=11.3
       ;;
       susecloud4)
           CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud4:/Test/images/iso
           CLOUDDISTISO="S*-CLOUD*Media1.iso"
-          suseversion=11.3
-      ;;
-      GM|GM1.0)
-          CLOUDDISTPATH=/install/SLE-11-SP2-CLOUD-GM/
-          CLOUDDISTISO="S*-CLOUD*GM-DVD1.iso"
       ;;
       GM2.0)
           cs=$cloudsource
           [ $cs = GM2.0 ] && cs=GM
           CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-$cs/
           CLOUDDISTISO="S*-CLOUD*1.iso"
-          suseversion=11.3
       ;;
       Beta*|RC*|GMC*|GM3)
           cs=$cloudsource
           [ $cs = GM3 ] && cs=GM
           CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-3-$cs/
           CLOUDDISTISO="S*-CLOUD*1.iso"
-          suseversion=11.3
       ;;
       *)
           echo "Error: you must set environment variable cloudsource=develcloud|susecloud|Beta1"
@@ -361,12 +320,6 @@ EOF
   esac
 
   case "$suseversion" in
-      11.2)
-        slesrepolist="SLES11-SP1-Pool SLES11-SP1-Updates SLES11-SP2-Core SLES11-SP2-Updates"
-        slesversion=11-SP2
-        slesdist=SLE_11_SP2
-        slesmilestone=GM
-      ;;
       11.3)
         slesrepolist="SLES11-SP3-Pool SLES11-SP3-Updates"
         slesversion=11-SP3
@@ -378,10 +331,7 @@ EOF
   zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ sles
 
   if [ "x$WITHSLEUPDATES" != "x" ] ; then
-    if [ $suseversion = "11.2" ] ; then
-      zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP1/" sp1-up
-      zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP2/" sp2-up
-    else
+    if [ $suseversion = "11.3" ] ; then
       zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/$slesversion/" ${slesversion}-up
     fi
   fi
@@ -404,14 +354,6 @@ EOF
   zypper ar /srv/tftpboot/repos/Cloud Cloud
   if [ -n "$TESTHEAD" ] ; then
       case "$cloudsource" in
-          develcloud1.0)
-              addsp2testupdates
-              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0/$slesdist/Devel:Cloud:1.0.repo
-              zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/1.0:/Crowbar/$slesdist/Devel:Cloud:1.0:Crowbar.repo
-              zypper mr -p 70 Devel_Cloud # more important
-              zypper mr -p 60 Devel_Cloud_Crowbar # even more important
-              zypper mr -p 60 DCCdirect # as important - just use newer ver
-              ;;
           develcloud2.0)
               addsp3testupdates
               zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0:/Staging/$slesdist/Devel:Cloud:2.0:Staging.repo
@@ -443,12 +385,6 @@ EOF
               zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3\:/Update/standard/ cloud-shared-11sp3-update
               zypper mr -p 60 Devel_Cloud_4_Staging
               zypper mr -p 70 Devel_Cloud_4
-              ;;
-          GM|GM1.0)
-              addsp2testupdates
-              mkdir -p /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates
-              mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-1.0-Updates-test /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates
-              zypper ar /srv/tftpboot/repos/SUSE-Cloud-1.0-Updates cloudtup
               ;;
           GM2.0)
               addsp3testupdates
@@ -490,16 +426,6 @@ EOF
   fi
 
   local REPO
-  case "$cloudsource" in
-      develcloud1.0|susecloud1.0|GM|GM1.0)
-      zypper -n install createrepo
-      for REPO in SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates ; do
-          mkdir -p /srv/tftpboot/repos/$REPO
-          cd /srv/tftpboot/repos/$REPO
-          [ -e repodata ] || createrepo .
-      done
-      ;;
-  esac
 
   for REPO in $slesrepolist ; do
     local r="/srv/tftpboot/repos/$REPO"
