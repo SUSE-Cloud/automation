@@ -18,6 +18,7 @@ else
 fi
 export cinder_conf_volume_type=${cinder_conf_volume_type:-$cinder_conf_volume_type_default}
 export cinder_conf_volume_params=${cinder_conf_volume_params:-""}
+export localreposdir_target=${localreposdir_target:-""}
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
@@ -133,6 +134,18 @@ function wait_for()
     echo "This check was used: $condition"
     eval "$error_cmd"
   fi
+}
+
+function mount_localreposdir_target()
+{
+    if [ -z "$localreposdir_target" ]; then
+        return
+    fi
+    mkdir -p $localreposdir_target
+    if ! grep -q "$localreposdir_target\s\+$localreposdir_target" /etc/fstab ; then
+        echo "$localreposdir_target $localreposdir_target 9p    ro,trans=virtio,version=9p2000.L,msize=262144  0 0" >> /etc/fstab
+    fi
+    mount "$localreposdir_target"
 }
 
 function add_nfs_mount()
@@ -1502,6 +1515,8 @@ function teardown()
 # in the long run all steps should be transformed into real functions, just
 # like in mkcloud; this makes it easier to read, understand and edit this file
 #
+
+mount_localreposdir_target
 
 if [ -n "$prepareinstallcrowbar" ] ; then
   prepareinstallcrowbar
