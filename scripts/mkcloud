@@ -148,6 +148,7 @@ function sshrun()
     export net_admin=$net_admin ;
     export net_public=$net_public ;
     export networkingplugin=$networkingplugin ;
+    export networkingmode=$networkingmode ;
     export nodenumber=$nodenumber ;
     export nosetestparameters=${nosetestparameters} ;
     export tempestoptions='${tempestoptions}' ;
@@ -847,6 +848,12 @@ function usage()
   echo "       : Set the memory in KB assigned to admin node"
   echo "   COMPUTE_NODE_MEMORY (default 2097152)"
   echo "       : Set the memory in KB assigned to compute nodes"
+  echo "   networkingplugin"
+  echo "       : Set the networking plugin to be used by neutron (e.g. openvswitch),"
+  echo "         if it isn't defined the barclamp-neutron's default is used."
+  echo "   networkingmode"
+  echo "       : Set the networking mode to be used by neutron (e.g. gre)"
+  echo "         if it isn't defined the barclamp-neutron's default is used."
   echo
   exit 1
 }

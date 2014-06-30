@@ -847,12 +847,15 @@ function custom_configuration()
       fi
     ;;
     neutron)
-      if [[ $networkingplugin = linuxbridge ]] ; then
-        proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'$networkingplugin'"
-        proposal_set_value neutron default "['attributes']['neutron']['networking_mode']" "'vlan'"
-      fi
+      [[ "$networkingplugin" = linuxbridge ]] && networkingmode=vlan
       if iscloudver 4plus; then
         proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
+      fi
+      if [ -n "$networkingplugin" ] ; then
+        proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'$networkingplugin'"
+      fi
+      if [ -n "$networkingmode" ] ; then
+        proposal_set_value neutron default "['attributes']['neutron']['networking_mode']" "'$networkingmode'"
       fi
     ;;
     quantum)
