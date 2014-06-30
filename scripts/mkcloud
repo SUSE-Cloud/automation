@@ -69,6 +69,11 @@ pv_cur_device_no=0
 cloudbr=${cloudbr:-${cloud}br}
 mnt=/tmp/cloudmnt/$$
 debug=${debug:-0}
+#if localreposdir_src string is available, the local repositories are used for setup
+localreposdir_src=${localreposdir_src:-""}
+#localreposdir_target is the 9p target dir and also the mount target dir in the VM
+localreposdir_target=${localreposdir_target:-"/repositories"}
+[ -z "$localreposdir_src" ] && localreposdir_target=""
 
 trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
@@ -160,6 +165,8 @@ function sshrun()
     export keystone_with_ssl=$keystone_with_ssl ;
     export nova_with_ssl=$nova_with_ssl ;
     export novadashboard_with_ssl=$novadashboard_with_ssl ;
+
+    export localreposdir_target=$localreposdir_target ;
 
     export TESTHEAD=$TESTHEAD ;
     export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
@@ -313,6 +320,21 @@ EOSSHASK
   DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh -oNumberOfPasswordPrompts=1 "$@"
 }
 
+function h_local_repository_mount()
+{
+    #add xml snippet to be able to mount a local dir via 9p in a VM
+    if [ -n "${localreposdir_src}" ]; then
+        local_repository_mount="<filesystem type='mount' accessmode='squash'>
+          <source dir='$localreposdir_src'/>
+          <target dir='$localreposdir_target'/>
+          <readonly/>
+          <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
+        </filesystem>"
+    else
+        local_repository_mount=""
+    fi
+}
+
 function h_cpuflags_settings()
 { # used for admin and compute nodes
   cpuflags="<cpu match='minimum'>
@@ -345,6 +367,7 @@ function h_cpuflags_settings()
 function h_create_libvirt_adminnode_config()
 {
   h_cpuflags_settings
+  h_local_repository_mount
 
   cat > $1 <<EOLIBVIRT
   <domain type='kvm'>
@@ -395,6 +418,7 @@ function h_create_libvirt_adminnode_config()
       <memballoon model='virtio'>
         <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
       </memballoon>
+      $local_repository_mount
     </devices>
   </domain>
 EOLIBVIRT
