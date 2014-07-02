@@ -314,7 +314,7 @@ EOF
           CLOUDDISTISO="S*-CLOUD*1.iso"
       ;;
       *)
-          echo "Error: you must set environment variable cloudsource=develcloud|susecloud|Beta1"
+          echo "Error: you must set environment variable cloudsource=develcloud4|susecloud4|GM3"
           exit 76
       ;;
   esac
@@ -954,9 +954,6 @@ function do_proposal()
         ;;
       tempest)
         [[ -n "$wanttempest" ]] || continue
-        ;;
-      rabbitmq|cinder|quantum|neutron|ceilometer|heat)
-        iscloudver 1 && continue
         ;;
     esac
 

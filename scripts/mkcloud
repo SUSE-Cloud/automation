@@ -18,7 +18,7 @@
 #       should be at least 80 GB
 #       the volume group will be called "cloud"
 #
-# cloudsource=develcloud|susecloud4|Beta?   (required, no default)
+# cloudsource=develcloud4|susecloud4|Beta?   (required, no default)
 #       defines the source for the installation of the cloud product
 #       develcloud2.0 : product from IBS Devel:Cloud:2.0
 #       develcloud3   : product from IBS Devel:Cloud:3
