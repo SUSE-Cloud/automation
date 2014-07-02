@@ -713,7 +713,7 @@ function tempest()
   mkdir -p .artifacts
   # fetch the latest version of tempest script
   if [ -z "$NOTEMPESTSCRIPTDOWNLOAD" ] ; then
-    curl -s -o run_tempest.sh "https://raw.githubuserconent.com/SUSE-Cloud/automation/master/scripts/jenkins/run_tempest.sh"
+    curl -s -o run_tempest.sh "https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/run_tempest.sh"
   fi
   scp run_tempest.sh qa_crowbarsetup.sh root@$adminip:
   sshrun "tempestconfigure=1 bash -x qa_crowbarsetup.sh $virtualcloud"
