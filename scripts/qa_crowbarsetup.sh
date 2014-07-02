@@ -1044,6 +1044,10 @@ function do_testsetup()
                 # Run Tempest Smoketests if configured to do so
                 tempestret=0
                 if [ "$wanttempest" = "1" ]; then
+                    # Upload a Heat-enabled image
+                    glance image-list|grep -q SLE11SP3-x86_64-cfntools || glance image-create --name=SLE11SP3-x86_64-cfntools --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SLES11-SP3-x86_64-cfntools.qcow2 | tee glance.out
+                    imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
+                    crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
                     pushd /var/lib/openstack-tempest-test
                     ./run_tempest.sh -N $tempestoptions
                     popd
@@ -1059,7 +1063,6 @@ function do_testsetup()
                 else
                     glance image-show SP3-64 | tee glance.out
                 fi
-                # glance image-create --name=jeos-12.1-pv --is-public=True --property vm_mode=xen --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
         # wait for image to finish uploading
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
         if [ "x$imageid" == "x" ]; then
