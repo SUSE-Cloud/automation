@@ -455,9 +455,14 @@ listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
     virsh net-create /tmp/$cloud-admin.net.xml
   fi
   virsh net-start $cloud-admin
-  if ! virsh create /tmp/$cloud-admin.xml ; then
+  if ! virsh define /tmp/$cloud-admin.xml ; then
     echo "=====================================================>>"
-    echo "Error: Could not create VM for: $cloud-admin"
+    echo "Error: Could not define VM for: $cloud-admin"
+    exit 76
+  fi
+  if ! virsh start $cloud-admin ; then
+    echo "=====================================================>>"
+    echo "Error: Could not start VM for: $cloud-admin"
     exit 76
   fi
 
@@ -632,9 +637,14 @@ function setupcompute()
     h_create_libvirt_computenode_config /tmp/$cloud-node$i.xml $i $macaddress "$cephvolume"
 
     virsh destroy $cloud-node$i 2>/dev/null
-    if ! virsh create /tmp/$cloud-node$i.xml ; then
+    if ! virsh define /tmp/$cloud-node$i.xml ; then
       echo "====>>"
-      echo "Error: Could not create VM for: node$i"
+      echo "Error: Could not define VM for: node$i"
+      exit 74
+    fi
+    if ! virsh start $cloud-node$i ; then
+      echo "====>>"
+      echo "Error: Could not start VM for: node$i"
       exit 74
     fi
   done
