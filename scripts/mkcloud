@@ -452,7 +452,7 @@ listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
   wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 
   if ! virsh net-dumpxml $cloud-admin > /dev/null 2>&1; then
-    virsh net-create /tmp/$cloud-admin.net.xml
+    virsh net-define /tmp/$cloud-admin.net.xml
   fi
   virsh net-start $cloud-admin
   if ! virsh define /tmp/$cloud-admin.xml ; then
