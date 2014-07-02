@@ -1050,8 +1050,8 @@ function do_testsetup()
                     crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
                     pushd /var/lib/openstack-tempest-test
                     ./run_tempest.sh -N $tempestoptions
-                    popd
                     tempestret=$?
+                    popd
                     /opt/tempest/bin/tempest_cleanup.sh || :
                 fi
 		nova list
