@@ -19,6 +19,7 @@ fi
 export cinder_conf_volume_type=${cinder_conf_volume_type:-$cinder_conf_volume_type_default}
 export cinder_conf_volume_params=${cinder_conf_volume_params:-""}
 export localreposdir_target=${localreposdir_target:-""}
+export want_ipmi=${want_ipmi:-false}
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
@@ -41,6 +42,7 @@ case "$cloud" in
 		vlan_storage=568
 		vlan_public=567
 		vlan_fixed=566
+		want_ipmi=true
 	;;
 	d2)
 		net=$netp.186
@@ -50,6 +52,7 @@ case "$cloud" in
 		vlan_storage=581
 		vlan_public=580
 		vlan_fixed=569
+		want_ipmi=true
 	;;
 	d3)
 		net=$netp.189
@@ -57,6 +60,7 @@ case "$cloud" in
 		vlan_storage=586
 		vlan_public=588
 		vlan_fixed=589
+		want_ipmi=true
 	;;
 	p2)
 		net=$netp.171
@@ -66,6 +70,7 @@ case "$cloud" in
 		vlan_storage=563
 		vlan_public=564
 		vlan_fixed=565
+		want_ipmi=true
 	;;
 	p)
 		net=$netp.169
@@ -75,6 +80,7 @@ case "$cloud" in
 		vlan_storage=565
 		vlan_public=564
 		vlan_fixed=563
+		want_ipmi=true
 	;;
         v1)
                 net=$netp.180
@@ -606,8 +612,8 @@ function installcrowbar()
 function allocate()
 {
   #chef-client
-  if [ $cloud != virtual ] ; then
-    local nodelist="3 4 5 6"
+  if $want_ipmi ; then
+    local nodelist="3 4 5 6 7 8"
     # protect machine 3 on d2 for tomasz
     if [ "$cloud" = "d2" ]; then
       nodelist="4 5"
