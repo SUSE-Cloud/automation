@@ -11,6 +11,13 @@ export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
 export nodes=
 export debug=${debug:-0}
+if [[ "$cephvolumenumber" -lt 2 ]]; then
+    cinder_conf_volume_type_default="local"
+else
+    cinder_conf_volume_type_default="raw"
+fi
+export cinder_conf_volume_type=${cinder_conf_volume_type:-$cinder_conf_volume_type_default}
+export cinder_conf_volume_params=${cinder_conf_volume_params:-""}
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
@@ -875,8 +882,18 @@ function custom_configuration()
       fi
     ;;
     cinder)
-      if [[ "$cephvolumenumber" -lt 2 ]] ; then
-          proposal_set_value cinder default "['attributes']['cinder']['volume']['volume_type']" "'local'"
+      proposal_set_value cinder default "['attributes']['cinder']['volume']['volume_type']" "'${cinder_conf_volume_type}'"
+      if [ -n "$cinder_conf_volume_params" ]; then
+        echo "${cinder_conf_volume_params}" | while read -a l; do
+          case "$cinder_conf_volume_type" in
+            netapp)
+              proposal_set_value cinder default "['attributes']['cinder']['volume']['netapp']['${l[0]}']" "${l[1]}"
+              ;;
+            *)
+              echo "Warning: selected cinder volume type $cinder_conf_volume_type is currently not supported"
+              ;;
+         esac
+       done
       fi
     ;;
     *) echo "No hooks defined for service: $proposal"
