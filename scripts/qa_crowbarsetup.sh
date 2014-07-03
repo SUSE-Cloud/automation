@@ -1144,14 +1144,29 @@ function do_testsetup()
             echo "VM not accessible in reasonable time, exiting."
             exit 96
         fi
-        WAITSSH=200
-        echo "Waiting $WAITSSH seconds for the SSH keys to be copied over"
-        sleep $WAITSSH
+
+        set +x
+        echo "Waiting for the SSH keys to be copied over"
+        i=0
+        MAX_RETRIES=40
+        ssh-keygen -R $vmip 2> /dev/null
+        while timeout -k 20 10 ssh $vmip "echo cloud" 2> /dev/null; [ $? != 0 ]
+        do
+            ssh-keygen -R $vmip 2> /dev/null
+            sleep 5  # wait before retry
+            if [ $i -gt $MAX_RETRIES ] ; then
+                echo "VM not accessible via SSH, something could be wrong with SSH keys"
+                exit 97
+            fi
+            i=$((i+1))
+            echo -n "."
+        done
+        ssh-keygen -R $vmip 2> /dev/null
+        set -x
         if ! ssh $vmip curl www3.zq1.de/test ; then
             echo could not reach internet
             exit 95
         fi
-        set -x
         ssh $vmip modprobe acpiphp # workaround bnc#824915
         nova volume-list | grep -q available || nova volume-create 1 ; sleep 2
         nova volume-list | grep available
