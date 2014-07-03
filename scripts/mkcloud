@@ -60,6 +60,8 @@ start_time=`date`
 cloud=${cloud:-cloud}
 cloudvg=${cloudvg:-$cloud}
 needcvol=1
+ADMIN_NODE_MEMORY=${ADMIN_NODE_MEMORY:-2097152}
+COMPUTE_NODE_MEMORY=${COMPUTE_NODE_MEMORY:-2097152}
 # pvlist is filled below
 pvlist=
 next_pv_device=
@@ -346,8 +348,8 @@ function h_create_libvirt_adminnode_config()
   cat > $1 <<EOLIBVIRT
   <domain type='kvm'>
     <name>$cloud-admin</name>
-    <memory>2097152</memory>
-    <currentMemory>2097152</currentMemory>
+    <memory>$ADMIN_NODE_MEMORY</memory>
+    <currentMemory>$ADMIN_NODE_MEMORY</currentMemory>
     <vcpu>$vcpus</vcpu>
     <os>
       <type arch='x86_64' machine='pc-0.14'>hvm</type>
@@ -551,8 +553,8 @@ function h_create_libvirt_computenode_config()
   cat > $nodeconfigfile <<EOLIBVIRT
 <domain type='kvm'>
   <name>$cloud-node$nodecounter</name>
-  <memory>2097152</memory>
-  <currentMemory>2097152</currentMemory>
+  <memory>$COMPUTE_NODE_MEMORY</memory>
+  <currentMemory>$COMPUTE_NODE_MEMORY</currentMemory>
   <vcpu>$vcpus</vcpu>
   <os>
     <type arch='x86_64' machine='pc-0.14'>hvm</type>
@@ -835,6 +837,10 @@ function usage()
   echo "       : set the number of nodes to be created (excl. admin node)"
   echo "   vcpus=1         (default 1)"
   echo "       : set the number of CPU cores per node (admin and compute)"
+  echo "   ADMIN_NODE_MEMORY (default 2097152)"
+  echo "       : Set the memory in KB assigned to admin node"
+  echo "   COMPUTE_NODE_MEMORY (default 2097152)"
+  echo "       : Set the memory in KB assigned to compute nodes"
   echo
   exit 1
 }
