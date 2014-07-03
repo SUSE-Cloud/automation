@@ -1204,6 +1204,33 @@ function waitforrebootcompute()
   wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
 }
 
+function get_neutron_server_node()
+{
+  NEUTRON_SERVER=$(crowbar neutron proposal show default|ruby -e "require 'rubygems';require 'json';
+  j=JSON.parse(STDIN.read);
+  puts j['deployment']['neutron']['elements']['neutron-server'][0];")
+}
+
+function rebootneutron()
+{
+  get_neutron_server_node
+  echo "Rebooting neutron server: $NEUTRON_SERVER ..."
+
+  ssh $NEUTRON_SERVER "reboot"
+  wait_for 100 1 " ! netcat -z $NEUTRON_SERVER 22 >/dev/null" "node $NEUTRON_SERVER to go down"
+  wait_for 200 3 "netcat -z $NEUTRON_SERVER 22 >/dev/null" "node $NEUTRON_SERVER to be back online"
+
+  wait_for 300 3 "ssh $NEUTRON_SERVER 'rcopenstack-neutron status' |grep -q running" "neutron-server service running state"
+  wait_for 200 3 " ! ssh $NEUTRON_SERVER '. .openrc && neutron agent-list -f csv --quote none'|tail -n+2 | grep -q -v ':-)'" "neutron agents up"
+
+  ssh $NEUTRON_SERVER '. .openrc && neutron agent-list'
+  ssh $NEUTRON_SERVER 'ping -c1 -w1 8.8.8.8' > /dev/null
+  if [ "x$?" != "x0" ]; then
+      echo "Error: ping to 8.8.8.8 from $NEUTRON_SERVER failed."
+      exit 1
+  fi
+}
+
 function create_owasp_testsuite_config()
 {
   get_novadashboardserver
@@ -1499,6 +1526,10 @@ fi
 
 if [ -n "$waitforrebootcompute" ] ; then
   waitforrebootcompute
+fi
+
+if [ -n "$rebootneutron" ] ; then
+    rebootneutron
 fi
 
 if [ -n "$securitytests" ] ; then
