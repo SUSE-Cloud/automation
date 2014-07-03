@@ -701,6 +701,12 @@ function rebootcompute()
   return $?
 }
 
+function rebootneutron()
+{
+    scp -q qa_crowbarsetup.sh root@$adminip:
+    sshrun "rebootneutron=1 bash qa_crowbarsetup.sh $virtualcloud"
+    return $?
+}
 
 function securitytests()
 {
@@ -941,7 +947,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore tempest qa_test help"
+allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore tempest qa_test help rebootneutron"
 wantedcmds=$@
 runcmds=''
 
