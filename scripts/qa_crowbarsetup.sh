@@ -613,6 +613,7 @@ function allocate()
 {
   #chef-client
   if $want_ipmi ; then
+    do_one_proposal ipmi default
     local nodelist="3 4 5 6 7 8"
     # protect machine 3 on d2 for tomasz
     if [ "$cloud" = "d2" ]; then
@@ -848,6 +849,9 @@ function custom_configuration()
     EDITOR='sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/"' $crowbaredit
   fi
   case "$proposal" in
+    ipmi)
+      proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
+    ;;
     keystone)
       if [[ $all_with_ssl = 1 || $keystone_with_ssl = 1 ]] ; then
         enable_ssl_for_keystone
