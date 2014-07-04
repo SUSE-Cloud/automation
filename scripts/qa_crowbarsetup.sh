@@ -1011,35 +1011,6 @@ function get_novadashboardserver()
 }
 
 
-function tempest_configure()
-{
-  rm -rf tempestlog
-  mkdir -p tempestlog
-  get_novadashboardserver
-  scp ./run_tempest.sh root@${novadashboardserver}:
-  ssh root@${novadashboardserver} 'export nosetestparameters=${nosetestparameters} ; bash -x ./run_tempest.sh configure'
-  local ret=$?
-  scp root@${novadashboardserver}:tempest/etc/tempest.conf tempestlog/
-  echo "return code from tempest configuration: $ret"
-  return $ret
-}
-
-
-function tempest_run()
-{
-  mkdir -p tempestlog
-  get_novadashboardserver
-  scp ./run_tempest.sh root@${novadashboardserver}:
-  ssh root@${novadashboardserver} 'export nosetestparameters=${nosetestparameters} ; bash -x ./run_tempest.sh run'
-  local ret=$?
-  scp root@${novadashboardserver}:tempest/tempest_*.log tempestlog/
-  scp root@${novadashboardserver}:tempest/etc/tempest.conf tempestlog/tempest.conf_after
-  echo "return code from tempest run: $ret"
-  return $ret
-}
-
-
-
 function do_testsetup()
 {
     get_novacontroller
@@ -1554,14 +1525,6 @@ fi
 
 if [ -n "$securitytests" ] ; then
   securitytests
-fi
-
-if [ -n "$tempestconfigure" ] ; then
-  tempest_configure
-fi
-
-if [ -n "$tempestrun" ] ; then
-  tempest_run
 fi
 
 if [ -n "$qa_test" ] ; then

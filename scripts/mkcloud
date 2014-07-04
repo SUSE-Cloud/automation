@@ -743,24 +743,6 @@ function securitytests()
   return $?
 }
 
-function tempest()
-{
-  mkdir -p .artifacts
-  # fetch the latest version of tempest script
-  if [ -z "$NOTEMPESTSCRIPTDOWNLOAD" ] ; then
-    curl -s -o run_tempest.sh "https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/run_tempest.sh"
-  fi
-  scp run_tempest.sh qa_crowbarsetup.sh root@$adminip:
-  sshrun "tempestconfigure=1 bash -x qa_crowbarsetup.sh $virtualcloud"
-  echo "Tempest configuration returned with exit code: $?"
-  echo "Now archiving artifact files from configuration step"
-  scp root@$adminip:tempestlog/* .artifacts/
-  sshrun "tempestrun=1 bash -x qa_crowbarsetup.sh $virtualcloud"
-  ret=$?
-  scp root@$adminip:tempestlog/* .artifacts/
-  return $ret
-}
-
 function qa_test()
 {
   ghsc=github.com/SUSE-Cloud
@@ -846,7 +828,6 @@ function usage()
   echo "   rebootcrowbar: reboot the crowbar instance and wait for it being up"
   echo "   rebootcompute: reboot the compute nodes and wait for them being up"
   echo "   securitytests: install and run security test suite"
-  echo "   tempest:       setup and run tempest test suite"
   echo "   qa_test:       run the qa test suite"
   echo "   help:          this usage"
   echo
@@ -980,7 +961,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore tempest qa_test help rebootneutron"
+allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore qa_test help rebootneutron"
 wantedcmds=$@
 runcmds=''
 
