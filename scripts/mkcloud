@@ -185,6 +185,7 @@ function cleanup()
       virsh undefine $cloud-$n
   done
   virsh net-destroy $cloud-admin
+  virsh net-undefine $cloud-admin
   ip link set ${cloudbr}.300 down
   ip link set ${cloudbr} down
   ip link delete ${cloudbr} type bridge
@@ -664,6 +665,7 @@ function setupcompute()
     h_create_libvirt_computenode_config /tmp/$cloud-node$i.xml $i $macaddress "$cephvolume"
 
     virsh destroy $cloud-node$i 2>/dev/null
+    virsh undefine $cloud-node$i 2>/dev/null
     if ! virsh define /tmp/$cloud-node$i.xml ; then
       echo "====>>"
       echo "Error: Could not define VM for: node$i"
