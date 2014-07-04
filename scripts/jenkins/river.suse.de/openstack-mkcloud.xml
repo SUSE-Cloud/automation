@@ -27,11 +27,6 @@
           <description>add update repos before crowbar install</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>WITHTEMPEST</name>
-          <description>Runs the tempest testsuite after successfully setting up a cloud</description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
           <description/>
@@ -52,6 +47,18 @@ minimum 2=controller+compute</description>
           <name>networkingplugin</name>
           <description>quantum networking plugin: openvswitch|linuxbridge</description>
           <defaultValue>openvswitch</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tempestoptions</name>
+          <description>Additional options to pass to the "run_tempest.sh -N " step. 
+
+</description>
+          <defaultValue>-t -s</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>networkingmode</name>
+          <description>Set the networking mode to be used by neutron</description>
+          <defaultValue/>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -74,8 +81,7 @@ minimum 2=controller+compute</description>
 export CVOL=/dev/loop4
 losetup /dev/loop4 || losetup /dev/loop4 /abuild/cloud
 #export nodenumber=4
-# disable ceph, now that it has been validated, to speed up cloud runs.
-export cephvolumenumber=2 # for ceph&amp;swift
+export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
 export debug=0
 
 
@@ -98,7 +104,6 @@ update_automation mkcloud jenkins-job-trigger
 MKCLOUDTARGET=all_noreboot
 [ $WITHREBOOT == "true" ] &amp;&amp; MKCLOUDTARGET=all
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
-[ $WITHTEMPEST == "true" ] &amp;&amp; MKCLOUDTARGET="$MKCLOUDTARGET tempest" 
 
 # also run crowbarbackup and crowbarrestore
 case $cloudsource in
@@ -108,7 +113,7 @@ case $cloudsource in
 esac
 
 starttime=`date +%s`
-perl -e "alarm 90*60 ; exec '/root/pool/allocpool bash -x /root/bin/mkcloud $(echo -n $MKCLOUDTARGET) ' "
+perl -e "alarm 4*60*60 ; exec '/root/pool/allocpool bash -x /root/bin/mkcloud $(echo -n $MKCLOUDTARGET) ' "
 
 [ -z "$TESTHEAD" ] &amp;&amp; exit 0
 
@@ -151,7 +156,7 @@ jenkins-job-trigger openstack-submit-project -p project="${project}" subproject=
   <buildWrappers>
     <hudson.plugins.timestamper.TimestamperBuildWrapper/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"}</template>
+      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"})</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
   </buildWrappers>
 </project>
