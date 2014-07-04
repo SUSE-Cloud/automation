@@ -51,6 +51,13 @@ case "$cloud" in
 		vlan_public=580
 		vlan_fixed=569
 	;;
+	d3)
+		net=$netp.189
+		net_public=$netp.188
+		vlan_storage=586
+		vlan_public=588
+		vlan_fixed=589
+	;;
 	p2)
 		net=$netp.171
 		net_storage=$netp.172
