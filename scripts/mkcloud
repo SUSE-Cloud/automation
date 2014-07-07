@@ -318,7 +318,7 @@ function ssh_password()
 echo linux
 EOSSHASK
   chmod +x $SSH_ASKPASS
-  DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh -oNumberOfPasswordPrompts=1 "$@"
+  DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh -oNumberOfPasswordPrompts=1 -oStrictHostKeyChecking=no "$@"
 }
 
 function h_local_repository_mount()
