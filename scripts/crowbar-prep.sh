@@ -489,6 +489,7 @@ nue_host_nfs () {
 nue_nfs () {
     (
         nfs_mount clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-$CLOUD_VERSION-devel $CLOUD_MOUNTPOINT
+        nfs_mount clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-$CLOUD_VERSION-Updates $CLOUD_UPDATES_MOUNTPOINT
         clouddata_sp3_repo
         clouddata_sle_repos
     ) | append_to_fstab
