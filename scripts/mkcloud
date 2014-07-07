@@ -168,6 +168,9 @@ function sshrun()
 
     export localreposdir_target=$localreposdir_target ;
 
+    export cinder_conf_volume_type=$cinder_conf_volume_type;
+    export cinder_conf_volume_params=$cinder_conf_volume_params;
+
     export TESTHEAD=$TESTHEAD ;
     export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
     $@
