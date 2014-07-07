@@ -60,6 +60,29 @@ minimum 2=controller+compute</description>
           <description>Set the networking mode to be used by neutron</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>cinder_conf_volume_type</name>
+          <description>Set the cinder volume backend type. Possible choices are e.g. "local", "raw", "netapp". Some parameters need extra configuration values which can be set with $cinder_conf_volume_params</description>
+          <defaultValue>local</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>cinder_conf_volume_params</name>
+          <description>Set extra parameters for the selected cinder_conf_volume_type . For netapp, the parameters could be:
+
+storage_family 'ontap_7mode'
+storage_protocol 'iscsi'
+nfs_shares ''
+vserver ''
+netapp_server_hostname '192.168.124.11'
+netapp_server_port 443
+netapp_login 'admin'
+netapp_password ''
+netapp_vfiler ''
+netapp_transport_type 'https'
+netapp_volume_list ''
+</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
