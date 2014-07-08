@@ -68,6 +68,8 @@ next_pv_device=
 pv_cur_device_no=0
 cloudbr=${cloudbr:-${cloud}br}
 mnt=/tmp/cloudmnt/$$
+sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
+scp="scp $sshopts"
 debug=${debug:-0}
 #if localreposdir_src string is available, the local repositories are used for setup
 localreposdir_src=${localreposdir_src:-""}
@@ -102,7 +104,7 @@ function error_exit()
 {
 	exitcode=$1
 	message=$2
-	ssh root@$adminip '
+	ssh $sshopts root@$adminip '
 	  for node in $(crowbar machines list | grep ^d) ; do
 	    # exclude /proc, bnc#829927    
 	    ssh $node supportconfig -x PROC | wc
@@ -111,7 +113,7 @@ function error_exit()
 	  supportconfig | wc
 	'
     mkdir -p $artifacts_dir
-	scp root@$adminip:/var/log/*tbz $artifacts_dir/
+	$scp root@$adminip:/var/log/*tbz $artifacts_dir/
 	echo $message
 	show_environment
 	exit $exitcode
@@ -144,7 +146,8 @@ function wait_for()
 
 function sshrun()
 {
-  ssh root@$adminip "
+  $scp qa_crowbarsetup.sh root@$adminip:
+  ssh $sshopts root@$adminip "
     export debug=$debug ;
     export cloudfqdn=$cloudfqdn ;
     export cloudsource=$cloudsource ;
@@ -318,7 +321,7 @@ function ssh_password()
 echo linux
 EOSSHASK
   chmod +x $SSH_ASKPASS
-  DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh -oNumberOfPasswordPrompts=1 -oStrictHostKeyChecking=no "$@"
+  DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh $sshopts -oNumberOfPasswordPrompts=1 "$@"
 }
 
 function h_local_repository_mount()
@@ -529,7 +532,6 @@ function prepareinstcrowbar()
   # so we use the host's external IPv4 resolvers,
   # which must allow queries from routed IPs
   grep '^nameserver\s*[0-9]*\.' /etc/resolv.conf | sshrun dd of=/etc/resolv.conf
-  scp qa_crowbarsetup.sh root@$adminip:
   sshrun "echo `hostname` > cloud ; prepareinstallcrowbar=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
@@ -537,22 +539,20 @@ function prepareinstcrowbar()
 function instcrowbar()
 {
   # copy local install-chef-suse.sh, if it exist it will override the original one:
-  scp -p install-chef-suse.sh root@$adminip:/tmp/
-  scp qa_crowbarsetup.sh root@$adminip:
+  $scp -p install-chef-suse.sh root@$adminip:/tmp/
   sshrun "echo `hostname` > cloud ; installcrowbar=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   local ret=$?
-  scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
+  $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
   return $ret
 }
 
 function instcrowbarfromgit()
 {
   # copy local install-chef-suse.sh, if it exist it will override the original one:
-  scp -p install-chef-suse.sh root@$adminip:/tmp/
-  scp qa_crowbarsetup.sh root@$adminip:
+  $scp -p install-chef-suse.sh root@$adminip:/tmp/
   sshrun "echo `hostname` > cloud ; installcrowbarfromgit=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   local ret=$?
-  scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
+  $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
   return $ret
 }
 
@@ -682,7 +682,6 @@ function setupcompute()
 
 function instcompute()
 {
-  scp qa_crowbarsetup.sh root@$adminip:
   sshrun "allocate=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   ret=$?
   [ $ret != 0 ] && return $ret
@@ -695,14 +694,12 @@ function instcompute()
 
 function proposal()
 {
-  scp qa_crowbarsetup.sh root@$adminip:
   sshrun "proposal=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
 
 function testsetup()
 {
-  scp qa_crowbarsetup.sh root@$adminip:
   sshrun "testsetup=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
@@ -730,14 +727,12 @@ function rebootcompute()
 
 function rebootneutron()
 {
-    scp -q qa_crowbarsetup.sh root@$adminip:
     sshrun "rebootneutron=1 bash qa_crowbarsetup.sh $virtualcloud"
     return $?
 }
 
 function securitytests()
 {
-  scp qa_crowbarsetup.sh root@$adminip:
   # install and run security test suite owasp
   sshrun "securitytests=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
@@ -756,19 +751,18 @@ function qa_test()
   fi
   popd
   rsync -av ~/$ghsc/qa-openstack-cli root@$adminip:
-  scp qa_crowbarsetup.sh root@$adminip:
   sshrun "qa_test=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   ret=$?
 
   mkdir -p .artifacts
-  scp -r root@$adminip:qa_test.logs/ .artifacts/
+  $scp -r root@$adminip:qa_test.logs/ .artifacts/
   return $ret
 }
 
 function prepare_crowbar_backup_restore()
 {
   curl -o crowbar-backup https://raw.githubusercontent.com/SUSE-Cloud/cloud-tools/master/backup/crowbar-backup
-  scp crowbar-backup root@$adminip:
+  $scp crowbar-backup root@$adminip:
 }
 
 function crowbarbackup()
@@ -776,7 +770,7 @@ function crowbarbackup()
   prepare_crowbar_backup_restore
   sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup backup /tmp/backup-crowbar.tar.gz"
   ret=$?
-  scp root@$adminip:/tmp/backup-crowbar.tar.gz .
+  $scp root@$adminip:/tmp/backup-crowbar.tar.gz .
   [ -d "$artifacts_dir" ] && mv backup-crowbar.tar.gz "$artifacts_dir/"
   return $ret
 }
@@ -790,7 +784,7 @@ function crowbarrestore()
     echo "No crowbar backup tarball found."
     return 56
   fi
-  scp "$btarball" root@$adminip:/tmp/
+  $scp "$btarball" root@$adminip:/tmp/
   sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup purge"
   sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup restore /tmp/backup-crowbar.tar.gz"
   ret=$?
@@ -868,14 +862,12 @@ function usage()
 
 function addupdaterepo()
 {
-  scp qa_crowbarsetup.sh root@$adminip:
   sshrun "addupdaterepo=1 UPDATEREPOS=$UPDATEREPOS  bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
 
 function runupdate()
 {
-  scp qa_crowbarsetup.sh root@$adminip:
   sshrun "runupdate=1 bash -x qa_crowbarsetup.sh $virtualcloud"
   return $?
 }
