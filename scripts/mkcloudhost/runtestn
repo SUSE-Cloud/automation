@@ -13,11 +13,7 @@ fi
 pidof libvirtd || /usr/local/sbin/fixlibvirt
 
 
-export CVOL=/dev/sdb$n
-[ $n -gt 4 ] && CVOL=/dev/sdc$((n-4))
-[ $n -gt 8 ] && CVOL=/dev/sdd$((n-8))
-[ $n -gt 12 ] && CVOL=/dev/sde$((n-12))
-[ $n -gt 16 ] && CVOL=/dev/sdf$((n-16))
+export cloudvg=mkcvg0
 #export cloudsource=GM2.0
 #export TESTHEAD=1
 #export cephvolumenumber=1
@@ -26,10 +22,11 @@ export CVOL=/dev/sdb$n
 #export forwardmode="route"
 #export NOQACROWBARDOWNLOAD=1
 export PARALLEL=yes
-export net_admin=192.168.$((200+$n*2))
-export net_public=192.168.$((201+$n*2))
+export net_admin=192.168.$((100+$n*2))
+export net_public=192.168.$((101+$n*2))
 export adminnetmask=255.255.254.0
-export cloud=cloud$n
+export virtualcloud=c$n
+export cloud=$virtualcloud
 export PARALLEL=yes
 #exec bash -x ./mkcloud "$@"
 
