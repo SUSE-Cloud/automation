@@ -482,6 +482,7 @@ listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
   if ! virsh net-dumpxml $cloud-admin > /dev/null 2>&1; then
     virsh net-define /tmp/$cloud-admin.net.xml
   fi
+  virsh net-autostart $cloud-admin
   virsh net-start $cloud-admin
   if ! virsh define /tmp/$cloud-admin.xml ; then
     echo "=====================================================>>"
