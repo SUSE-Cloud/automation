@@ -300,13 +300,6 @@ function prepare()
   echo "Creating key for controlling our VMs..."
   [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
 
-  grep -q NumberOfPasswordPrompts ~/.ssh/config 2>/dev/null || cat > ~/.ssh/config <<EOSSH
-Host crowbar $adminip
-NumberOfPasswordPrompts 0
-UserKnownHostsFile /dev/null
-StrictHostKeyChecking no
-EOSSH
-
   h_enable_ksm
   h_create_cloud_lvm
   h_deploy_admin_image
