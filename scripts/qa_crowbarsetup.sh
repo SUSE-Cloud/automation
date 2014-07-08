@@ -1060,7 +1060,6 @@ function do_testsetup()
                     swift upload container1 .ssh/authorized_keys
                     swift list container1 || exit 33
                 fi
-		curl -s w3.suse.de/~bwiedemann/cloud/defaultsuseusers.pl | perl
 
                 # Run Tempest Smoketests if configured to do so
                 tempestret=0
