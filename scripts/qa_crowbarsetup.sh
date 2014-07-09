@@ -983,12 +983,14 @@ function do_one_proposal()
   # hook for changing proposals:
   custom_configuration $proposal $proposaltype
   crowbar "$proposal" proposal commit $proposaltype
-  local cret=$?
-  echo "Commit exit code: $cret"
-  waitnodes proposal $proposal $proposaltype
   local ret=$?
-  echo "Proposal exit code: $ret"
-  sleep 10
+  echo "Commit exit code: $ret"
+  if [ "$ret" = "0" ]; then
+      waitnodes proposal $proposal $proposaltype
+      ret=$?
+      echo "Proposal exit code: $ret"
+      sleep 10
+  fi
   if [ $ret != 0 ] ; then
     tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
     echo "Error: commiting the crowbar '$proposaltype' proposal for '$proposal' failed ($ret)."
