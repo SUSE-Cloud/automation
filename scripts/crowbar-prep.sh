@@ -536,13 +536,13 @@ host_9p () {
 
         iso_mount  $mountpoint_9p/isos/$CLOUD_ISO                    $CLOUD_MOUNTPOINT
         bind_mount $repo_mirrors/$CLOUD_UPDATES_EXPORT_SUBDIR/sle-11-x86_64 \
-                                                                     $CLOUD_UPDATES_MOUNTPOINT
+                $CLOUD_UPDATES_MOUNTPOINT
 
         if [ -n "$ibs_mirror" ]; then
             bind_mount $repo_mirrors/$DC_EXPORT_SUBDIR/sle-11-x86_64         $DC_MOUNTPOINT
             bind_mount $repo_mirrors/$DC_SHARED_EXPORT_SUBDIR/sle-11-x86_64  $DC_SHARED_MOUNTPOINT
             bind_mount $repo_mirrors/$DC_SHARED_UPDATE_EXPORT_SUBDIR/sle-11-x86_64 \
-                                                                             $DC_SHARED_UPDATE_MOUNTPOINT
+                    $DC_SHARED_UPDATE_MOUNTPOINT
             bind_mount $repo_mirrors/$DC_STAGING_EXPORT_SUBDIR/sle-11-x86_64 $DC_STAGING_MOUNTPOINT
         fi
     ) | append_to_fstab

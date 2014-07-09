@@ -4,86 +4,86 @@ pre=/chroot
 
 function usage()
 {
-  echo "Error: Usage: $0 create|enable|disable
-               $0 create <dist-name> <dist-url> [<repo2-name> <repo2-url>]..."
-  echo "       Example: $0 openSUSE-13.1 http://download.opensuse.org/distribution/13.1/repo/oss/ 131up http://download.opensuse.org/update/13.1/"
-  exit 1
+    echo "Error: Usage: $0 create|enable|disable
+            $0 create <dist-name> <dist-url> [<repo2-name> <repo2-url>]..."
+    echo "       Example: $0 openSUSE-13.1 http://download.opensuse.org/distribution/13.1/repo/oss/ 131up http://download.opensuse.org/update/13.1/"
+    exit 1
 }
 
 
 function enable_chroot()
 {
-  ch="$pre/$1"
-  ch="${ch%/}"
-  mkdir -p "$ch"/{dev,tmp,proc,sys}
+    ch="$pre/$1"
+    ch="${ch%/}"
+    mkdir -p "$ch"/{dev,tmp,proc,sys}
 
-  for bm in proc sys dev ; do
-    mount | grep -q "$ch/$bm" || mount --bind "/$bm" "$ch/$bm"
-  done
-  mkdir -p "$ch/etc"
-  cp -a /etc/resolv.conf "$ch/etc/resolv.conf"
+    for bm in proc sys dev ; do
+        mount | grep -q "$ch/$bm" || mount --bind "/$bm" "$ch/$bm"
+    done
+    mkdir -p "$ch/etc"
+    cp -a /etc/resolv.conf "$ch/etc/resolv.conf"
 }
 
 
 function disable_chroot()
 {
-  ch=$pre/$1
-  ch="${ch%/}"
-  [ -e "$ch/etc/resolv.conf" ] && echo -n > "$ch/etc/resolv.conf"
-  for bm in proc sys dev ; do
-    chl=`readlink -f $ch`
-    while mount | grep -q "$chl/$bm" ; do
-      umount --force "$chl/$bm"
+    ch=$pre/$1
+    ch="${ch%/}"
+    [ -e "$ch/etc/resolv.conf" ] && echo -n > "$ch/etc/resolv.conf"
+    for bm in proc sys dev ; do
+        chl=`readlink -f $ch`
+        while mount | grep -q "$chl/$bm" ; do
+            umount --force "$chl/$bm"
+        done
     done
-  done
 }
 
 
 function create_chroot()
 {
-  dist=$1
-  dist=${dist// /_}
-  disturl=$2
-  [ -z "$dist" -o -z "$disturl" ] && usage
+    dist=$1
+    dist=${dist// /_}
+    disturl=$2
+    [ -z "$dist" -o -z "$disturl" ] && usage
 
-  ch="$pre/$dist"
-  touch "$ch.rebuild_in_progress"
+    ch="$pre/$dist"
+    touch "$ch.rebuild_in_progress"
 
-  disable_chroot "$dist"
-  rm -rf "$ch"
-  enable_chroot "$dist"
-
-  declare -a repos="$@"
-  while [ -n "$1" -a -n "$2" ] ; do
-    zypper -R "$ch" ar "$2" "$1"
-    shift
-    shift
-  done
-
-  zypper --non-interactive  --gpg-auto-import-keys -R "$ch" install --auto-agree-with-licenses zypper
-  ret=$?
-
-  # checking if zypper/rpm versions match
-  # if not, we need to build an inner chroot
-  # to be able to use zypper/rpm in the chroot
-  zinner=`chroot $ch zypper --version`
-  rinner=`chroot $ch rpm --version`
-  zouter=`zypper --version`
-  router=`rpm --version`
-  if [ "$zinner" != "$zouter" -o "$rinner" != "$router" ] ; then
-    echo "The zypper or rpm versions differ. Now creating an inner chroot."
-    sleep 2
-    mkdir -p "$ch/chroot/$dist" "$ch/root/bin"
-    cp `which mkchroot` "$ch/root/bin"
-    chroot "$ch" /root/bin/mkchroot create $repos
     disable_chroot "$dist"
-    mv "$ch" "${ch}_temp"
-    mv "${ch}_temp/chroot/$dist" "$ch"
-  fi
+    rm -rf "$ch"
+    enable_chroot "$dist"
 
-  disable_chroot "$dist"
-  rm "$pre/$dist.rebuild_in_progress"
-  return $ret
+    declare -a repos="$@"
+    while [ -n "$1" -a -n "$2" ] ; do
+        zypper -R "$ch" ar "$2" "$1"
+        shift
+        shift
+    done
+
+    zypper --non-interactive  --gpg-auto-import-keys -R "$ch" install --auto-agree-with-licenses zypper
+    ret=$?
+
+    # checking if zypper/rpm versions match
+    # if not, we need to build an inner chroot
+    # to be able to use zypper/rpm in the chroot
+    zinner=`chroot $ch zypper --version`
+    rinner=`chroot $ch rpm --version`
+    zouter=`zypper --version`
+    router=`rpm --version`
+    if [ "$zinner" != "$zouter" -o "$rinner" != "$router" ] ; then
+        echo "The zypper or rpm versions differ. Now creating an inner chroot."
+        sleep 2
+        mkdir -p "$ch/chroot/$dist" "$ch/root/bin"
+        cp `which mkchroot` "$ch/root/bin"
+        chroot "$ch" /root/bin/mkchroot create $repos
+        disable_chroot "$dist"
+        mv "$ch" "${ch}_temp"
+        mv "${ch}_temp/chroot/$dist" "$ch"
+    fi
+
+    disable_chroot "$dist"
+    rm "$pre/$dist.rebuild_in_progress"
+    return $ret
 }
 
 
@@ -93,17 +93,17 @@ chname=$1
 [ -z "$chname" ] && usage
 
 case $action in
-  create)
-    disable_chroot "$chname"
-    create_chroot $@
-  ;;
-  enable)
-    enable_chroot "$chname"
-  ;;
-  disable)
-    disable_chroot "$chname"
-  ;;
-  *)
-    usage
-  ;;
+    create)
+        disable_chroot "$chname"
+        create_chroot $@
+    ;;
+    enable)
+        enable_chroot "$chname"
+    ;;
+    disable)
+        disable_chroot "$chname"
+    ;;
+    *)
+        usage
+    ;;
 esac

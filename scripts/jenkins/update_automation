@@ -22,22 +22,22 @@ a_dir=${a_dir%.git}
 p_dir=${a_dir%/*}
 
 if [ -d $a_dir ] ; then
-  pushd $a_dir > /dev/null
-    # git checkout master
-    git pull
-  popd > /dev/null
+    pushd $a_dir > /dev/null
+        # git checkout master
+        git pull
+    popd > /dev/null
 else
-  mkdir -p $p_dir
-  pushd $p_dir > /dev/null
-    git clone ${automation_repo}
-  popd > /dev/null
+    mkdir -p $p_dir
+    pushd $p_dir > /dev/null
+        git clone ${automation_repo}
+    popd > /dev/null
 fi
 
 for sc in $@ $(basename $0) ; do
-  find $a_dir -type f -name "${sc}" | while read scriptname ; do
-    ln -s -f ~/${scriptname} ~/bin/$sc
-    echo "Updated link to script $sc"
-  done
+    find $a_dir -type f -name "${sc}" | while read scriptname ; do
+        ln -s -f ~/${scriptname} ~/bin/$sc
+        echo "Updated link to script $sc"
+    done
 done
 
 popd > /dev/null

@@ -2,37 +2,37 @@
 
 prepare_file()
 {
-  suse_label='# SUSE Cloud 2.0 modifications (below)'
-  grep -i "^$suse_label$" $1
+    suse_label='# SUSE Cloud 2.0 modifications (below)'
+    grep -i "^$suse_label$" $1
 
-  if [ $? -ne 0 ]; then
-    # the file requires backing up
-    sed -i.bk "/#    under the License./a"$'\\\n'"$suse_label"$'\n' $1
-
-    if [ $? -eq 0 ]; then
-      echo "Successfully backed up $1"
-    else
-      echo "ERROR: the backup of $1 failed."
-      exit 1
-    fi
-
-    # does the file require an import ?
-    grep -i '^import testtools$' $1
-
-    # if the import couldn't be found...
     if [ $? -ne 0 ]; then
-      sed -i "/$suse_label/a"$'\\\n'"import testtools"$'\n' $1
+        # the file requires backing up
+        sed -i.bk "/#    under the License./a"$'\\\n'"$suse_label"$'\n' $1
 
-      if [ $? -eq 0 ]; then
-        echo "Added import testtools to $1"
-      else
-        echo "ERROR: failed to add import testtools to $1"
-        exit 1
-      fi
+        if [ $? -eq 0 ]; then
+            echo "Successfully backed up $1"
+        else
+            echo "ERROR: the backup of $1 failed."
+            exit 1
+        fi
+
+        # does the file require an import ?
+        grep -i '^import testtools$' $1
+
+        # if the import couldn't be found...
+        if [ $? -ne 0 ]; then
+            sed -i "/$suse_label/a"$'\\\n'"import testtools"$'\n' $1
+
+            if [ $? -eq 0 ]; then
+                echo "Added import testtools to $1"
+            else
+                echo "ERROR: failed to add import testtools to $1"
+                exit 1
+            fi
+        fi
+    else
+        echo "No need to backup $1, since it has already been backed up."
     fi
-  else
-    echo "No need to backup $1, since it has already been backed up."
-  fi
 }
 
 echo "------------------------------------------------------------------------"

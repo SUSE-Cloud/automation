@@ -16,13 +16,13 @@ OBS_TYPE=${PROJECTSOURCE%%/*}
 OBS_PROJECT=${PROJECTSOURCE##*/}
 
 case $OBS_TYPE in
-  OBS) OSCAPI="https://api.opensuse.org"
-       OSC_BUILD_DIST=SLE_11_SP2
-       OSC_BUILD_ARCH=x86_64
-       ;;
-  *)   echo "This jenkins instance only interacts with OBS."
-       exit 1
-       ;;
+    OBS) OSCAPI="https://api.opensuse.org"
+        OSC_BUILD_DIST=SLE_11_SP2
+        OSC_BUILD_ARCH=x86_64
+        ;;
+    *)  echo "This jenkins instance only interacts with OBS."
+        exit 1
+        ;;
 esac
 
 # remove accidentally added spaces
@@ -30,8 +30,8 @@ COMPONENT=${COMPONENT// /}
 OBS_PROJECT=${OBS_PROJECT// /}
 
 if [ -z "$COMPONENT" ] ; then
-  echo "Error: Variable COMPONENT is unset."
-  exit 1
+    echo "Error: Variable COMPONENT is unset."
+    exit 1
 fi
 
 export OSCAPI
@@ -45,8 +45,8 @@ export OSC_BUILD_ROOT=$JHOME/buildroot
 mkdir -p ~/.obs
 for i in incoming repo repourl
 do
-  mkdir -p $JHOME/obscache/tar_scm/$i
-done 
+    mkdir -p $JHOME/obscache/tar_scm/$i
+done
 echo "CACHEDIRECTORY=\"$JHOME/obscache/tar_scm\"" > ~/.obs/tar_scm
 
 mkdir -p "$OBS_CHECKOUT"
@@ -60,8 +60,8 @@ cd "$COMPONENT"
 
 set +e
 if [ ${OBS_PROJECT} != "Cloud:OpenStack:Master" ] ; then
-  # skip test in C:O:M as we do not have linked packages there
-  grep -q "<linkinfo" .osc/_files || exit 2
+    # skip test in C:O:M as we do not have linked packages there
+    grep -q "<linkinfo" .osc/_files || exit 2
 fi
 
 # call script in /root/bin

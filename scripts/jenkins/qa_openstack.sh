@@ -9,7 +9,7 @@ export MODE=kvm
 # make sense to test anything else.
 # MODE=lxc
 if ! grep -q -e vmx -e svm /proc/cpuinfo ; then
-	MODE=lxc
+    MODE=lxc
 fi
 ARCH=$(uname -i)
 
@@ -30,8 +30,8 @@ mount -o remount,noatime,barrier=0 /
 VERSION=11
 REPO=SLE_11_SP3
 if grep "^VERSION = 1[2-4]\\.[0-5]" /etc/SuSE-release ; then
-  VERSION=$(awk -e '/^VERSION = 1[2-4]\./{print $3}' /etc/SuSE-release)
-  REPO=openSUSE_$VERSION
+    VERSION=$(awk -e '/^VERSION = 1[2-4]\./{print $3}' /etc/SuSE-release)
+    REPO=openSUSE_$VERSION
 fi
 hostname=dist.suse.de
 zypper="zypper --non-interactive"
@@ -40,54 +40,54 @@ zypper rr cloudhead || :
 
 ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
 case "$cloudsource" in
-  develcloud2.0)
-	$zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-2.0/ cloud2iso
-	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0/$REPO/Devel:Cloud:2.0.repo
-	if test -n "$OSHEAD" ; then
-		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0:/Staging/$REPO/ cloudhead
-	fi
-  ;;
-  develcloud3)
-	$zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3/ cloud3iso
-	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3/$REPO/Devel:Cloud:3.repo
-	if test -n "$OSHEAD" ; then
-		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
-	fi
-  ;;
-  develcloud4)
-	$zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-4/ cloud4iso
-	$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/4/$REPO/Devel:Cloud:4.repo
-	if test -n "$OSHEAD" ; then
-		$zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
-	fi
-  ;;
-  openstackgrizzly)
-	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly/$REPO/Cloud:OpenStack:Grizzly.repo
-	if test -n "$OSHEAD" ; then
-		$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly:/Staging/$REPO/ cloudhead
-	fi
-  ;;
-  openstackhavana)
-	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana/$REPO/Cloud:OpenStack:Havana.repo
-	if test -n "$OSHEAD" ; then
-		$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana:/Staging/$REPO/ cloudhead
-	fi
-  ;;
-  openstackicehouse)
-	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse/$REPO/Cloud:OpenStack:Icehouse.repo
-	if test -n "$OSHEAD" ; then
-		$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse:/Staging/$REPO/ cloudhead
-	fi
-  ;;
-  openstackmaster)
-	$zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/ cloud || :
-	# no staging for master
+    develcloud2.0)
+        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-2.0/ cloud2iso
+        $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0/$REPO/Devel:Cloud:2.0.repo
+        if test -n "$OSHEAD" ; then
+            $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0:/Staging/$REPO/ cloudhead
+        fi
+    ;;
+    develcloud3)
+        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3/ cloud3iso
+        $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3/$REPO/Devel:Cloud:3.repo
+        if test -n "$OSHEAD" ; then
+            $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
+        fi
+    ;;
+    develcloud4)
+        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-4/ cloud4iso
+        $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/4/$REPO/Devel:Cloud:4.repo
+        if test -n "$OSHEAD" ; then
+            $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
+        fi
+    ;;
+    openstackgrizzly)
+        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly/$REPO/Cloud:OpenStack:Grizzly.repo
+        if test -n "$OSHEAD" ; then
+            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly:/Staging/$REPO/ cloudhead
+        fi
+    ;;
+    openstackhavana)
+        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana/$REPO/Cloud:OpenStack:Havana.repo
+        if test -n "$OSHEAD" ; then
+            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana:/Staging/$REPO/ cloudhead
+        fi
+    ;;
+    openstackicehouse)
+        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse/$REPO/Cloud:OpenStack:Icehouse.repo
+        if test -n "$OSHEAD" ; then
+            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse:/Staging/$REPO/ cloudhead
+        fi
+    ;;
+    openstackmaster)
+        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/ cloud || :
+        # no staging for master
         $zypper mr --priority 22 cloud
-  ;;
-  *)
-	echo "unknown cloudsource"
-	exit 37
-  ;;
+    ;;
+    *)
+        echo "unknown cloudsource"
+        exit 37
+    ;;
 esac
 
 # when using OSHEAD, dup from there
@@ -99,9 +99,9 @@ fi
 if [ $VERSION = 11 ] ; then
     $zypper rr CloudProduct || true
     $zypper rr SUSE_SLE-11-SP2_Update_Products_Test || true
-if [ "$REPO" = SLE_11_SP3 ] ; then
-    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SLES11-SP3-Pool/sle-11-x86_64/' SP3Pool
-  fi
+    if [ "$REPO" = SLE_11_SP3 ] ; then
+        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SLES11-SP3-Pool/sle-11-x86_64/' SP3Pool
+    fi
 
 fi
 
@@ -124,19 +124,19 @@ $zypper rr Virtualization_Cloud # repo was dropped but is still in some images f
 $zypper --gpg-auto-import-keys -n ref
 
 case "$cloudsource" in
-  develcloud1*|openstackessex|openstackfolsom)
+    develcloud1*|openstackessex|openstackfolsom)
         cn=""
         tempest=""
-  ;;
-  develcloud2.0|develcloud3)
+    ;;
+    develcloud2.0|develcloud3)
         cn="cloud_network"
         tempest=""
-  ;;
+    ;;
 
-  *)
+    *)
         cn="cloud_network"
         tempest="openstack-tempest-test"
-  ;;
+    ;;
 esac
 
 # deinstall some leftover crap from the cleanvm
@@ -155,11 +155,11 @@ crudini=crudini
 test -z "$(type -p crudini 2>/dev/null)" && crudini="openstack-config"
 
 for i in eth0 br0 ; do
-	IP=$(ip a show dev $i|perl -ne 'm/inet ([0-9.]+)/ && print $1')
-	[ -n "$IP" ] && break
+    IP=$(ip a show dev $i|perl -ne 'm/inet ([0-9.]+)/ && print $1')
+    [ -n "$IP" ] && break
 done
 if [ -n "$IP" ] ; then
-	sed -i -e s/127.0.0.1/$IP/ /etc/openstackquickstartrc
+    sed -i -e s/127.0.0.1/$IP/ /etc/openstackquickstartrc
 fi
 if [ -n "$tempest" ]; then
     sed -i -e "s/with_tempest=no/with_tempest=yes/" /etc/openstackquickstartrc
@@ -193,8 +193,8 @@ test "$(lvs | wc -l)" -gt 1 || exit 1
 
 # make sure glance is working
 for i in $(seq 1 5); do
-  glance image-list || true
-  sleep 1
+    glance image-list || true
+    sleep 1
 done
 
 ssh_user="root"
@@ -232,8 +232,8 @@ case "$MODE" in
 esac
 
 for i in $(seq 1 60) ; do # wait for image to finish uploading
-	glance image-list|grep active && break
-	sleep 5
+    glance image-list|grep active && break
+    sleep 5
 done
 glance image-list
 imgid=$(glance image-list|grep debian-5|cut -f2 -d" ")
@@ -241,12 +241,12 @@ mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
 case "$cloudsource" in
-  openstackgrizzly)
-    KEYNAME_OPTION="--key-name"
-    ;;
-  *)
-    KEYNAME_OPTION="--key_name"
-    ;;
+    openstackgrizzly)
+        KEYNAME_OPTION="--key-name"
+        ;;
+    *)
+        KEYNAME_OPTION="--key_name"
+        ;;
 esac
 
 nova boot --poll --flavor $NOVA_FLAVOR --image $imgid $KEYNAME_OPTION testkey testvm
