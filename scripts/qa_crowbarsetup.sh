@@ -233,18 +233,25 @@ function addsp3testupdates()
     zypper ar -f /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
 }
 
+function addcloud2testupdates()
+{
+    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/2.0/' '/srv/tftpboot/repos/SUSE-Cloud-2-Updates/'
+    zypper rr cloudtup
+    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-2-Updates cloudtup
+}
+
 function addcloud3testupdates()
 {
     add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' '/srv/tftpboot/repos/SUSE-Cloud-3-Updates/'
-    zypper rr cloud3tup
-    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-3-Updates cloud3tup
+    zypper rr cloudtup
+    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-3-Updates cloudtup
 }
 
 function addcloud4testupdates()
 {
     add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' '/srv/tftpboot/repos/SUSE-Cloud-4-Updates/'
-    zypper rr cloud4tup
-    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-4-Updates cloud4tup
+    zypper rr cloudtup
+    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-4-Updates cloudtup
 }
 
 function add_ha_repo()
@@ -384,10 +391,6 @@ EOF
         case "$cloudsource" in
             develcloud2.0)
                 addsp3testupdates
-                zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0:/Staging/$slesdist/Devel:Cloud:2.0:Staging.repo
-                zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/2.0/$slesdist/Devel:Cloud:2.0.repo
-                zypper mr -p 60 Devel_Cloud_2.0_Staging
-                zypper mr -p 70 Devel_Cloud_2.0
                 ;;
             susecloud3)
                 addsp3testupdates
@@ -395,11 +398,6 @@ EOF
                 ;;
             develcloud3)
                 addsp3testupdates
-                zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3:/Staging/$slesdist/Devel:Cloud:3:Staging.repo
-                zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/3/$slesdist/Devel:Cloud:3.repo
-                zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/ cloud-shared-11sp3
-                zypper mr -p 60 Devel_Cloud_3_Staging
-                zypper mr -p 70 Devel_Cloud_3
                 ;;
             susecloud4|GM4)
                 addsp3testupdates
@@ -407,24 +405,14 @@ EOF
                 ;;
             develcloud4)
                 addsp3testupdates
-                zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/4:/Staging/$slesdist/Devel:Cloud:4:Staging.repo
-                zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/4/$slesdist/Devel:Cloud:4.repo
-                zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3/standard/ cloud-shared-11sp3
-                zypper ar http://download.nue.suse.com/ibs/Devel:/Cloud:/Shared:/11-SP3\:/Update/standard/ cloud-shared-11sp3-update
-                zypper mr -p 60 Devel_Cloud_4_Staging
-                zypper mr -p 70 Devel_Cloud_4
                 ;;
             GM2.0)
                 addsp3testupdates
-                mkdir -p /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates
-                mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-2.0-Updates-test /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates
-                zypper ar /srv/tftpboot/repos/SUSE-Cloud-2.0-Updates cloudtup
+                addcloud2testupdates
                 ;;
             GM3)
                 addsp3testupdates
-                mkdir -p /srv/tftpboot/repos/SUSE-Cloud-3-Updates
-                mount -r clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-3-Updates-test /srv/tftpboot/repos/SUSE-Cloud-3-Updates
-                zypper ar /srv/tftpboot/repos/SUSE-Cloud-3-Updates cloudtup
+                addcloud3testupdates
                 ;;
             *)
                 echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
@@ -434,7 +422,9 @@ EOF
     fi
     # --no-gpg-checks for Devel:Cloud repo
     zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
-    zypper -n dup -r cloudtup # to upgrade pre-installed packages
+    zypper -n dup -r Cloud -r cloudtup # to upgrade pre-installed packages
+    # disable extra repos
+    zypper mr -d sp3sdk
 
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
         zypper --no-gpg-checks -n in -l -t pattern cloud_admin
