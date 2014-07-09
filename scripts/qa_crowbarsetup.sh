@@ -11,12 +11,7 @@ export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
 export nodes=
 export debug=${debug:-0}
-if [[ "$cephvolumenumber" -lt 2 ]]; then
-    cinder_conf_volume_type_default="local"
-else
-    cinder_conf_volume_type_default="raw"
-fi
-export cinder_conf_volume_type=${cinder_conf_volume_type:-$cinder_conf_volume_type_default}
+export cinder_conf_volume_type=${cinder_conf_volume_type:-""}
 export cinder_conf_volume_params=${cinder_conf_volume_params:-""}
 export localreposdir_target=${localreposdir_target:-""}
 export want_ipmi=${want_ipmi:-false}
@@ -861,6 +856,9 @@ function custom_configuration()
       if [[ $all_with_ssl = 1 || $glance_with_ssl = 1 ]] ; then
         enable_ssl_for_glance
       fi
+      if [[ -n "$wantceph" ]]; then
+          proposal_set_value glance default "['attributes']['glance']['default_store']" "'rbd'"
+      fi
     ;;
     ceph)
       if iscloudver 2; then
@@ -916,6 +914,7 @@ function custom_configuration()
     ;;
     cinder)
       proposal_set_value cinder default "['attributes']['cinder']['volume']['volume_type']" "'${cinder_conf_volume_type}'"
+
       if [ -n "$cinder_conf_volume_params" ]; then
         echo "${cinder_conf_volume_params}" | while read -a l; do
           case "$cinder_conf_volume_type" in
@@ -943,26 +942,36 @@ function get_crowbarnodes()
 
 function set_proposalvars()
 {
-  get_crowbarnodes
-  wantswift=1
-  wantceph=1
-  iscloudver 2 && wantceph=
-  wanttempest=
-  iscloudver 4plus && wanttempest=1
+    get_crowbarnodes
+    wantswift=1
+    wantceph=1
+    iscloudver 2 && wantceph=
+    wanttempest=
+    iscloudver 4plus && wanttempest=1
 
-  # FIXME: Ceph is currently broken
-  #iscloudver 4 && {
-  #    echo "WARNING: ceph currently disabled as it is broken"
-  #    echo "https://bugzilla.novell.com/show_bug.cgi?id=872326"
-  #    wantceph=
-  #}
+    # FIXME: Ceph is currently broken
+    #iscloudver 4 && {
+    #    echo "WARNING: ceph currently disabled as it is broken"
+    #    echo "https://bugzilla.novell.com/show_bug.cgi?id=872326"
+    #    wantceph=
+    #}
 
-  [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
-  # we can not use both swift and ceph as each grabs all disks on a node
-  [[ -n "$wantceph" ]] && wantswift=
-  [[ "$cephvolumenumber" -lt 1 ]] && wantswift=
-  crowbar_networking=neutron
-  iscloudver 2 && crowbar_networking=quantum
+    [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
+    # we can not use both swift and ceph as each grabs all disks on a node
+    [[ -n "$wantceph" ]] && wantswift=
+    [[ "$cephvolumenumber" -lt 1 ]] && wantswift=
+    crowbar_networking=neutron
+    iscloudver 2 && crowbar_networking=quantum
+
+    if [[ -z "$cinder_conf_volume_type" ]]; then
+        if [[ -n "$wantceph" ]]; then
+            cinder_conf_volume_type="rbd"
+        elif [[ "$cephvolumenumber" -lt 2 ]]; then
+            cinder_conf_volume_type="local"
+        else
+            cinder_conf_volume_type="raw"
+        fi
+    fi
 }
 
 function do_one_proposal()
