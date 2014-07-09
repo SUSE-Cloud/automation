@@ -991,7 +991,7 @@ function do_one_proposal()
 function do_proposal()
 {
     waitnodes nodes
-    local proposals="database keystone rabbitmq ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat tempest"
+    local proposals="database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat tempest"
 
     local proposal
     for proposal in $proposals ; do
