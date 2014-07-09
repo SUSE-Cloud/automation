@@ -833,7 +833,7 @@ function usage()
     echo "   hacloud='' | 1  (default='')"
     echo "       : setup a high availability cloud, requires at least 6 nodes"
     echo "   TESTHEAD='' | 1  (default='')"
-    echo "       : use Media from Devel:Cloud:Staging and add test update repositories"
+    echo "       : use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)"
     echo "   cephvolumenumber  (default=0)"
     echo "       : the number of 5GB ceph volumes that will be created per node"
     echo "         note: proposal step does NOT contain a ceph proposal, do it manually"
