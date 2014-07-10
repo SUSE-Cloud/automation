@@ -1167,7 +1167,6 @@ function do_testsetup()
             echo could not reach internet
             exit 95
         fi
-        ssh $vmip modprobe acpiphp # workaround bnc#824915
         nova volume-list | grep -q available || nova volume-create 1 ; sleep 2
         nova volume-list | grep available
         volumecreateret=$?
