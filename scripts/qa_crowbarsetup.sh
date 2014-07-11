@@ -853,6 +853,8 @@ function custom_configuration()
         ceph)
             if iscloudver 2; then
                 manual_2device_ceph_proposal
+            else
+                proposal_set_value ceph default "['attributes']['ceph']['disk_mode']" "'all'"
             fi
         ;;
         nova)
