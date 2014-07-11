@@ -1175,7 +1175,7 @@ function do_testsetup()
         nova volume-detach "$instanceid" "$volumeid" ; sleep 10
         nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
         ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
-        nova delete testvm
+        nova stop testvm
         test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0
     '
     ret=$?
@@ -1229,8 +1229,9 @@ function rebootcompute()
 function waitforrebootcompute()
 {
     . .openrc
-    nova list
-    nova reboot testvm
+    wait_for 40 10 "nova list" "nova to become available"
+    sleep 30
+    nova start testvm || exit 28
     nova list
     local vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
     wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
