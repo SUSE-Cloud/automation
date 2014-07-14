@@ -357,6 +357,12 @@ EOF
         longdistance=true
     fi
 
+    if [ -n "${localreposdir_target}" ]; then
+        for x in `seq 1 10` ; do
+            zypper rr 1
+        done
+    fi
+
     suseversion=11.3
     : ${susedownload:=download.nue.suse.com}
     case "$cloudsource" in
