@@ -156,6 +156,24 @@ function mount_localreposdir_target()
     mount "$localreposdir_target"
 }
 
+function add_bind_mount()
+{
+    local src="$1"
+    local dst="$2"
+    mkdir -p "${dst}"
+
+    if ! [ -d "${src}" ] ; then
+        echo "source ${src} for bind-mount does not exist"
+        exit 1
+    fi
+
+    umount "${dst}"
+    if ! grep -q "$src\s\+$dst" /etc/fstab ; then
+        echo "$src $dst bind defaults,bind  0 0" >> /etc/fstab
+    fi
+    mount "$dst"
+}
+
 function add_nfs_mount()
 {
     local nfs="$1"
