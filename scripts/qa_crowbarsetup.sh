@@ -191,6 +191,23 @@ function add_nfs_mount()
     mount "$dir"
 }
 
+function add_mount()
+{
+    local bindsrc="$1"
+    local nfssrc="$2"
+    local targetdir="$3"
+    local zypper_alias="$4"
+    if [ -n "${localreposdir_target}" ]; then
+        add_bind_mount "${localreposdir_target}/${bindsrc}" "${targetdir}"
+    else
+        add_nfs_mount "${nfssrc}" "${targetdir}"
+    fi
+    if [ -n "${zypper_alias}" ]; then
+        zypper rr "${zypper_alias}"
+        zypper ar -f "${targetdir}" "${zypper_alias}"
+    fi
+}
+
 function iscloudver()
 {
     local v=$1
@@ -246,30 +263,22 @@ function iscloudvertest2()
 
 function addsp3testupdates()
 {
-    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' '/srv/tftpboot/repos/SLES11-SP3-Updates'
-    zypper rr sp3tup
-    zypper ar -f /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
+    add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "/srv/tftpboot/repos/SLES11-SP3-Updates/" "sp3tup"
 }
 
 function addcloud2testupdates()
 {
-    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/2.0/' '/srv/tftpboot/repos/SUSE-Cloud-2-Updates/'
-    zypper rr cloudtup
-    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-2-Updates cloudtup
+    add_mount "SUSE-Cloud-2-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/2.0/' "/srv/tftpboot/repos/SUSE-Cloud-2-Updates/" "cloudtup"
 }
 
 function addcloud3testupdates()
 {
-    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' '/srv/tftpboot/repos/SUSE-Cloud-3-Updates/'
-    zypper rr cloudtup
-    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-3-Updates cloudtup
+    add_mount "SUSE-Cloud-3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' "/srv/tftpboot/repos/SUSE-Cloud-3-Updates/" cloudtup
 }
 
 function addcloud4testupdates()
 {
-    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' '/srv/tftpboot/repos/SUSE-Cloud-4-Updates/'
-    zypper rr cloudtup
-    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-4-Updates cloudtup
+    add_mount "SUSE-Cloud-4-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' "/srv/tftpboot/repos/SUSE-Cloud-4-Updates/" "cloudtup"
 }
 
 function add_ha_repo()
@@ -280,7 +289,7 @@ function add_ha_repo()
         if [ "$slesdist" = "SLE_11_SP3" ] ; then
             local repo
             for repo  in "SLE11-HAE-SP3-Pool" "SLE11-HAE-SP3-Updates" "SLE11-HAE-SP3-Updates-test" ; do
-                add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
+                add_mount "${repo}" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
             done
             didha=1
         fi
@@ -469,14 +478,14 @@ EOF
     fi
 
     if ! $longdistance ; then
-        add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" "/srv/tftpboot/suse-$suseversion/install"
+        #FIXME (toabctl): path should use $suseversion and not hardcoded 11.3
+        add_mount "${localreposdir_target}/SLES11-SP3-GM/sle-11-x86_64/" "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" "/srv/tftpboot/suse-$suseversion/install/"
     fi
 
     local REPO
 
     for REPO in $slesrepolist ; do
-        local r="/srv/tftpboot/repos/$REPO"
-        add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "$r"
+        add_mount "${localreposdir_target}/${REPO}/sle-11-x86_64/" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
     done
 
     # just as a fallback if nfs did not work
