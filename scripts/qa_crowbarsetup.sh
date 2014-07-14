@@ -331,40 +331,48 @@ EOF
             CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0/images/iso
             [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0:/Staging/images/iso
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-2-devel"
         ;;
         develcloud3)
             CLOUDDISTPATH=/ibs/Devel:/Cloud:/3/images/iso
             [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/3:/Staging/images/iso
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-3-devel"
         ;;
         develcloud4)
             CLOUDDISTPATH=/ibs/Devel:/Cloud:/4/images/iso
             [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/4:/Staging/images/iso
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-4-devel"
         ;;
         susecloud2.0)
             CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/GA:/Products:/Test/images/iso
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-2-official"
         ;;
         susecloud3)
             CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Products:/Test/images/iso
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-3-official"
         ;;
         susecloud4)
             CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud4:/Test/images/iso
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-4-official"
         ;;
         GM2.0)
             cs=$cloudsource
             [ $cs = GM2.0 ] && cs=GM
             CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-$cs/
             CLOUDDISTISO="S*-CLOUD*1.iso"
+            # FIXME (toabctl): Add CLOUDLOCALREPOS
         ;;
         Beta*|RC*|GMC*|GM3)
             cs=$cloudsource
             [ $cs = GM3 ] && cs=GM
             CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-3-$cs/
             CLOUDDISTISO="S*-CLOUD*1.iso"
+            # FIXME (toabctl): Add CLOUDLOCALREPOS
         ;;
         *)
             echo "Error: you must set environment variable cloudsource=develcloud4|susecloud4|GM3"
