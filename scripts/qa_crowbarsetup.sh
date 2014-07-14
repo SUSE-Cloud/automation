@@ -301,6 +301,34 @@ function add_ha_repo()
     fi
 }
 
+function h_prepare_cloud_repos()
+{
+    local targetdir="/srv/tftpboot/repos/Cloud/"
+    mkdir -p ${targetdir}
+
+    if [ -n "${localreposdir_target}" ]; then
+        add_bind_mount "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" "${targetdir}"
+        echo $CLOUDLOCALREPOS > /etc/cloudversion
+    else
+        cd ${targetdir}
+        mkdir -p /mnt/cloud
+        wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
+        local CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
+        echo $CLOUDISO > /etc/cloudversion
+        mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
+        rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
+    fi
+    echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
+
+    if [ ! -e "${targetdir}/media.1" ] ; then
+        echo "We do not have cloud install media in ${targetdir} - giving up"
+        exit 35
+    fi
+
+    zypper rr Cloud
+    zypper ar -f ${targetdir} Cloud
+}
+
 function prepareinstallcrowbar()
 {
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
@@ -328,10 +356,6 @@ EOF
     if [[ $(ping -q -c1 clouddata.cloud.suse.de|perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') -gt 100 ]] ; then
         longdistance=true
     fi
-
-    mkdir -p /mnt/dist /mnt/cloud
-    mkdir -p /srv/tftpboot/repos/Cloud/
-    cd /srv/tftpboot/repos/Cloud/
 
     suseversion=11.3
     : ${susedownload:=download.nue.suse.com}
@@ -412,19 +436,10 @@ EOF
     [ -n "$hacloud" ] && add_ha_repo "$slesdist"
 
     zypper -n install rsync netcat
-    wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
-    local CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
-    echo $CLOUDISO > /etc/cloudversion
-    echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
-    mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
-    rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
-    if [ ! -e "/srv/tftpboot/repos/Cloud/media.1" ] ; then
-        echo "We do not have cloud install media - giving up"
-        exit 35
-    fi
 
+    # setup cloud repos for tftpboot and zypper
+    h_prepare_cloud_repos
 
-    zypper ar /srv/tftpboot/repos/Cloud Cloud
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
             develcloud2.0)
