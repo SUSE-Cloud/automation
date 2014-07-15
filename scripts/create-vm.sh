@@ -11,6 +11,8 @@ DEFAULT_FSSIZE="24"
 DEFAULT_CPUS=4
 DEFAULT_USE_CPU_HOST=true
 DEFAULT_CACHE_MODE=none
+DEFAULT_DISK_OPTIONS=""
+DEFAULT_NIC_OPTIONS=""
 
 usage () {
     # Call as: usage [EXITCODE] [USAGE MESSAGE]
@@ -41,6 +43,8 @@ Options:
   -C, --cpus XX          Number of virtual CPUs to assign [$DEFAULT_CPUS]
   -n, --no-cpu-host      Don´t use the option --cpu host for virt-install [$DEFAULT_USE_CPU_HOST]
   -d, --cache-mode MODE  Cache mode for disk
+  --disk-opts OPTS       Comma separated list of extra disk options. E.g. 'bus=sata' [$DEFAULT_DISK_OPTIONS]
+  --nic-opts OPTS        Comma separated list of extra network interface options. E.g. 'model=e1000' [$DEFAULT_NIC_OPTIONS]
 EOF
     exit "$exit_code"
 }
@@ -51,6 +55,8 @@ parse_args () {
     vm_vcpus="$DEFAULT_CPUS"
     use_cpu_host=$DEFAULT_USE_CPU_HOST
     cache_mode="$DEFAULT_CACHE_MODE"
+    disk_opts="$DEFAULT_DISK_OPTIONS"
+    nic_opts="$DEFAULT_NIC_OPTIONS"
 
     while [ $# != 0 ]; do
         case "$1" in
@@ -75,6 +81,14 @@ parse_args () {
                 ;;
             -d|--cache-mode)
                 cache_mode="$2"
+                shift 2
+                ;;
+            --disk-opts)
+                disk_opts=",$2"
+                shift 2
+                ;;
+            --nic-opts)
+                nic_opts=",$2"
                 shift 2
                 ;;
             -*)
@@ -182,10 +196,10 @@ main () {
         --vcpus $vm_vcpus \
         $vm_cpu \
         "${opts[@]}" \
-        --disk path="$vm_disk,format=qcow2,cache=$cache_mode" \
+        --disk path="$vm_disk,format=qcow2,cache=$cache_mode$disk_opts" \
         --os-type=linux \
         --os-variant=sles11 \
-        --network bridge="$vbridge" \
+        --network bridge="$vbridge$nic_opts" \
         --graphics vnc
 }
 
