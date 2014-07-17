@@ -1215,11 +1215,12 @@ function rebootcompute()
         wait_for 100 1 " ! netcat -z $m 22 >/dev/null" "node $m to go down"
     done
 
-    for m in $cmachines ; do
-        wait_for 200 3 "netcat -z $m 22 >/dev/null" "node $m to be back online"
-    done
-    echo "Waiting another 20 seconds"
-    sleep 20
+    wait_for 400 5 "! crowbar node_state status | grep ^d | grep -vqiE \"ready$|problem$\"" "nodes are back online"
+
+    if crowbar node_state status | grep ^d | grep -i "problem$"; then
+        echo "Error: some nodes rebooted with state Problem."
+        exit 1
+    fi
 
     scp $0 $novacontroller:
     ssh $novacontroller "waitforrebootcompute=1 bash -x ./$0 $cloud"
