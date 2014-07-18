@@ -237,7 +237,7 @@ function h_create_cloud_lvm()
     adminnode_hdd_size=${adminnode_hdd_size:-15}
     controller_hdd_size=${controller_hdd_size:-20}
     computenode_hdd_size=${computenode_hdd_size:-15}
-    cephvolume_hdd_size=${cephvolume_hdd_size:-5}
+    cephvolume_hdd_size=${cephvolume_hdd_size:-11}
     controller_ceph_hdd_size=${controller_ceph_hdd_size:-25}
     local hdd_size
 
