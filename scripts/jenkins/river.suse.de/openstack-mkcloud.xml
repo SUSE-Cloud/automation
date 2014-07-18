@@ -29,7 +29,7 @@
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
-          <description/>
+          <description>Can be something like "develcloud3" (uses Devel:Cloud:*, see TESTHEAD parameter for Staging), "susecloud3" (uses SUSE:*), "GM3" (uses the GM ISO)</description>
           <defaultValue>develcloud4</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -45,25 +45,28 @@ minimum 2=controller+compute</description>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>networkingplugin</name>
-          <description>quantum networking plugin: openvswitch|linuxbridge</description>
+          <description>neutron networking plugin: openvswitch|linuxbridge
+Default: openvswitch</description>
           <defaultValue>openvswitch</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>tempestoptions</name>
-          <description>Additional options to pass to the "run_tempest.sh -N " step. 
-
-</description>
+          <description>Additional options to pass to the "run_tempest.sh -N " step.
+Use just "-t" for a full tempest run.
+Default: -t -s.</description>
           <defaultValue>-t -s</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>networkingmode</name>
-          <description>Set the networking mode to be used by neutron</description>
+          <description>Set the networking mode to be used by neutron: vlan|gre.
+Default: vlan for linuxbridge, gre for openvswitch.</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cinder_conf_volume_type</name>
-          <description>Set the cinder volume backend type. Possible choices are e.g. "local", "raw", "netapp". Some parameters need extra configuration values which can be set with $cinder_conf_volume_params</description>
-          <defaultValue>local</defaultValue>
+          <description>Set the cinder volume backend type. Possible choices are e.g. "local", "raw", "netapp". Some parameters need extra configuration values which can be set with $cinder_conf_volume_params
+Default: rbd if ceph is deployed, or raw if there's a disk, local otherwise.</description>
+          <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cinder_conf_volume_params</name>
@@ -102,7 +105,7 @@ netapp_volume_list ''
 # use latest packages from IBS://Devel:Cloud on top
 #export TESTHEAD=1
 export CVOL=/dev/loop4
-losetup /dev/loop4 || losetup /dev/loop4 /abuild/cloud
+losetup /dev/loop4 || losetup /dev/loop4 /abuild/cloud || true
 #export nodenumber=4
 export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
 export debug=0
@@ -123,6 +126,10 @@ touch $artifacts_dir/.ignore
 [ -e ~/bin/update_automation ] || curl -o ~/bin/update_automation https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
 # fetch the latest automation updates
 update_automation mkcloud jenkins-job-trigger
+
+echo "########################################################################"
+env
+echo "########################################################################"
 
 MKCLOUDTARGET=all_noreboot
 [ $WITHREBOOT == "true" ] &amp;&amp; MKCLOUDTARGET=all
