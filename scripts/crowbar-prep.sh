@@ -85,6 +85,15 @@ init_variables () {
 # --product-version affects it correctly).
 set_cloud_version_variables () {
     case $CLOUD_VERSION in
+        1.0|2.0|3|4)
+            # valid
+            ;;
+        *)
+            die "Unsupported Cloud version $CLOUD_VERSION!"
+            ;;
+    esac
+
+    case $CLOUD_VERSION in
         1.0|2.0)
             CLOUD_ISO_VERSION=${CLOUD_ISO_VERSION%.0}
             ;;
