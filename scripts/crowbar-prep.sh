@@ -272,7 +272,7 @@ use_hae () {
 }
 
 zypper_addrepo () {
-    safe_run zypper ar "$@"
+    safe_run zypper --gpg-auto-import-keys ar "$@"
 }
 
 zypper_set_priority () {
