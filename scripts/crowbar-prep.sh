@@ -271,11 +271,11 @@ ensure_mount () {
 
 use_hae () {
     case $CLOUD_VERSION in
-        3)
-            return 0
+        1.0|2.0)
+            return 1
             ;;
         *)
-            return 1
+            return 0
             ;;
     esac
 }
