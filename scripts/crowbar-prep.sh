@@ -13,18 +13,21 @@
 me=`basename $0`
 [ "$me" = bash ] && me=crowbar-prep.sh
 
-# This is run prior to parsing options.
+# These have to be set prior to parse_opts() since usage()
+# depends on them being set.
+: ${CLOUD_VERSION_DEFAULT:=4}
+: ${HOST_MIRROR_DEFAULT:=/data/install/mirrors}
+: ${HOST_MEDIA_MIRROR_DEFAULT=/srv/nfs/media}
+
+# This is run after parse_opts(); see main() for details.
 init_variables () {
-    CLOUD_VERSION_DEFAULT=4
     : ${CLOUD_VERSION:=$CLOUD_VERSION_DEFAULT}
     set_cloud_version_variables
 
     : ${ADMIN_IP:=192.168.124.10}
     : ${HOST_IP:=192.168.124.1}
 
-    : ${HOST_MIRROR_DEFAULT=/data/install/mirrors}
     : ${HOST_MIRROR:=$HOST_MIRROR_DEFAULT}
-    : ${HOST_MEDIA_MIRROR_DEFAULT=/srv/nfs/media}
     : ${HOST_MEDIA_MIRROR:=$HOST_MEDIA_MIRROR_DEFAULT}
 
     # Product ISO filenames
