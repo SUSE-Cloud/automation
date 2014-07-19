@@ -402,7 +402,7 @@ common_post () {
     mount_all_mounts
 
     pattern=cloud_admin
-    if zypper -n patterns | grep -q $pattern; then
+    if zypper -n patterns -i | grep -q $pattern; then
         pattern_already_installed=yes
     fi
 
