@@ -361,7 +361,8 @@ setup_zypper_repos () {
         $sp3_repo $sp3_updates_repo
         $hae_repo $hae_updates_repo
         $cloud_repo $cloud_updates_repo
-        $dc_repo $dc_staging_repo $dc_shared_repo
+        $dc_repo $dc_staging_repo
+        $dc_shared_repo $dc_shared_update_repo
     )
 
     for repo in "${repos[@]}"; do
