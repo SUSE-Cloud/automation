@@ -271,6 +271,15 @@ use_hae () {
     esac
 }
 
+zypper_addrepo () {
+    safe_run zypper ar "$@"
+}
+
+zypper_set_priority () {
+    prio="$1" repo="$2"
+    safe_run zypper mr -p "$prio" "$repo"
+}
+
 devel_cloud_shared_sp3_repo () {
     case $CLOUD_VERSION in
         2|3|4)
@@ -279,8 +288,8 @@ devel_cloud_shared_sp3_repo () {
             else
                 url=file://$DC_SHARED_MOUNTPOINT
             fi
-            safe_run zypper ar $url $dc_shared_repo
-            safe_run zypper mr -p 90 $dc_shared_repo
+            zypper_addrepo $url $dc_shared_repo
+            zypper_set_priority 90 $dc_shared_repo
             ;;
     esac
 }
@@ -293,8 +302,8 @@ devel_cloud_shared_sp3_update_repo () {
             else
                 url=file://$DC_SHARED_UPDATE_MOUNTPOINT
             fi
-            safe_run zypper ar $url $dc_shared_update_repo
-            safe_run zypper mr -p 90 $dc_shared_update_repo
+            zypper_addrepo $url $dc_shared_update_repo
+            zypper_set_priority 90 $dc_shared_update_repo
             ;;
     esac
 }
@@ -305,8 +314,8 @@ devel_cloud_repo () {
     else
         url=file://$DC_MOUNTPOINT
     fi
-    safe_run zypper ar $url $dc_repo
-    safe_run zypper mr -p 80 $dc_repo
+    zypper_addrepo $url $dc_repo
+    zypper_set_priority 80 $dc_repo
 }
 
 devel_cloud_staging_repo () {
@@ -315,8 +324,8 @@ devel_cloud_staging_repo () {
     else
         url=file://$DC_STAGING_MOUNTPOINT
     fi
-    safe_run zypper ar $url $dc_staging_repo
-    safe_run zypper mr -p 70 $dc_staging_repo
+    zypper_addrepo $url $dc_staging_repo
+    zypper_set_priority 70 $dc_staging_repo
 }
 
 mount_all_mounts () {
@@ -363,10 +372,10 @@ setup_zypper_repos () {
         fi
     done
 
-    safe_run zypper ar file://$SP3_MOUNTPOINT           $sp3_repo
-    safe_run zypper ar file://$SP3_UPDATES_MOUNTPOINT   $sp3_updates_repo
-    safe_run zypper ar file://$CLOUD_MOUNTPOINT         $cloud_repo
-    safe_run zypper ar file://$CLOUD_UPDATES_MOUNTPOINT $cloud_updates_repo
+    zypper_addrepo file://$SP3_MOUNTPOINT           $sp3_repo
+    zypper_addrepo file://$SP3_UPDATES_MOUNTPOINT   $sp3_updates_repo
+    zypper_addrepo file://$CLOUD_MOUNTPOINT         $cloud_repo
+    zypper_addrepo file://$CLOUD_UPDATES_MOUNTPOINT $cloud_updates_repo
 
     case "$ibs_repo" in
         yes)
