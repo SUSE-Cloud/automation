@@ -15,7 +15,7 @@ me=`basename $0`
 
 # This is run prior to parsing options.
 init_variables () {
-    CLOUD_VERSION_DEFAULT=3
+    CLOUD_VERSION_DEFAULT=4
     : ${CLOUD_VERSION:=$CLOUD_VERSION_DEFAULT}
     set_cloud_version_variables
 
