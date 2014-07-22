@@ -361,18 +361,21 @@ EOF
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
         ;;
         GM2.0)
-            cs=$cloudsource
-            [ $cs = GM2.0 ] && cs=GM
-            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-$cs/
+            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-GM/
             CLOUDDISTISO="S*-CLOUD*1.iso"
-            # FIXME (toabctl): Add CLOUDLOCALREPOS
+            CLOUDLOCALREPOS="SUSE-Cloud-2-official"
         ;;
-        Beta*|RC*|GMC*|GM3)
-            cs=$cloudsource
-            [ $cs = GM3 ] && cs=GM
-            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-3-$cs/
+        GM3)
+            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-3-GM/
             CLOUDDISTISO="S*-CLOUD*1.iso"
-            # FIXME (toabctl): Add CLOUDLOCALREPOS
+            CLOUDLOCALREPOS="SUSE-Cloud-3-official"
+        ;;
+        Beta*|RC*|GMC*|GM4)
+            cs=$cloudsource
+            [ $cs = GM4 ] && cs=GM
+            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-4-$cs/
+            CLOUDDISTISO="S*-CLOUD*1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-4-official"
         ;;
         *)
             echo "Error: you must set environment variable cloudsource=develcloud4|susecloud4|GM3"
