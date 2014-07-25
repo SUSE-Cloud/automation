@@ -629,8 +629,7 @@ function h_create_libvirt_computenode_config()
 EOLIBVIRT
 
     if [ "$libvirt_type" = "xen" ] ; then
-        sed -i -e "s/<target dev='vd\([^']*\)' bus='virtio'/<target dev='sd\1' bus='ide'/" \
-            -e "s|<feature policy='require' name='monitor'/>|&<feature policy='disable' name='xsave'/>|" $nodeconfigfile
+        sed -i -e "s/<target dev='vd\([^']*\)' bus='virtio'/<target dev='sd\1' bus='ide'/" $nodeconfigfile
     fi
 }
 
