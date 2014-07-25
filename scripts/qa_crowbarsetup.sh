@@ -934,19 +934,38 @@ function custom_configuration()
             fi
         ;;
         cinder)
-            proposal_set_value cinder default "['attributes']['cinder']['volume']['volume_type']" "'${cinder_conf_volume_type}'"
+            if iscloudver 4plus ; then
+                volumes="['attributes']['cinder']['volumes']"
+                proposal_set_value cinder default "${volumes}[0]['${cinder_conf_volume_type}']" "j['attributes']['cinder']['volume_defaults']['${cinder_conf_volume_type}']"
+                proposal_set_value cinder default "${volumes}[0]['backend_driver']" "'${cinder_conf_volume_type}'"
 
-            if [ -n "$cinder_conf_volume_params" ]; then
-                echo "${cinder_conf_volume_params}" | while read -a l; do
-                    case "$cinder_conf_volume_type" in
-                        netapp)
-                            proposal_set_value cinder default "['attributes']['cinder']['volume']['netapp']['${l[0]}']" "${l[1]}"
-                            ;;
-                        *)
-                            echo "Warning: selected cinder volume type $cinder_conf_volume_type is currently not supported"
-                            ;;
-                    esac
-                done
+                if [ -n "$cinder_conf_volume_params" ]; then
+                    echo "${cinder_conf_volume_params}" | while read -a l; do
+                        case "$cinder_conf_volume_type" in
+                            netapp)
+                                proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['netapp']['${l[0]}']" "${l[1]}"
+                                ;;
+                            *)
+                                echo "Warning: selected cinder volume type $cinder_conf_volume_type is currently not supported"
+                                ;;
+                        esac
+                    done
+                fi
+            else
+                proposal_set_value cinder default "['attributes']['cinder']['volume']['volume_type']" "'${cinder_conf_volume_type}'"
+
+                if [ -n "$cinder_conf_volume_params" ]; then
+                    echo "${cinder_conf_volume_params}" | while read -a l; do
+                        case "$cinder_conf_volume_type" in
+                            netapp)
+                                proposal_set_value cinder default "['attributes']['cinder']['volume']['netapp']['${l[0]}']" "${l[1]}"
+                                ;;
+                            *)
+                                echo "Warning: selected cinder volume type $cinder_conf_volume_type is currently not supported"
+                                ;;
+                        esac
+                    done
+                fi
             fi
         ;;
         *) echo "No hooks defined for service: $proposal"
