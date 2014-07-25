@@ -1121,6 +1121,17 @@ function get_novadashboardserver()
     novadashboardserver=`crowbar nova_dashboard proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova_dashboard']['elements']['nova_dashboard-server']"`
 }
 
+function get_ceph_nodes()
+{
+    if [[ -n "$wantceph" ]]; then
+        cephmons=`crowbar ceph proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-mon']"`
+        cephosds=`crowbar ceph proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-osd']"`
+    else
+        cephmons=
+        cephosds=
+    fi
+}
+
 
 function do_testsetup()
 {
@@ -1131,8 +1142,18 @@ function do_testsetup()
     fi
     echo "openstack nova contoller: $novacontroller"
     curl -m 40 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
-    ssh $novacontroller "export wantswift=$wantswift ; export wanttempest=$wanttempest ;
-        export tempestoptions=\"$tempestoptions\" ; "'set -x
+
+    wantcephtestsuite=0
+    if [[ -n "$wantceph" ]]; then
+        get_ceph_nodes
+        echo "ceph mons:" $cephmons
+        echo "ceph osds:" $cephosds
+        iscloudver 4plus && wantcephtestsuite=1
+    fi
+
+    ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
+        export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
+        export wantcephtestsuite=\"$wantcephtestsuite\" ; "'set -x
         . .openrc
         export LC_ALL=C
                 if [[ -n $wantswift ]] ; then
@@ -1140,6 +1161,57 @@ function do_testsetup()
                     swift stat
                     swift upload container1 .ssh/authorized_keys
                     swift list container1 || exit 33
+                fi
+
+                cephret=0
+                if [ -n "$wantceph" -a "$wantcephtestsuite" == 1 ] ; then
+                    rpm -q git-core &> /dev/null || zypper -n install git-core
+
+                    if test -d qa-automation; then
+                        pushd qa-automation
+                        git reset --hard
+                        git pull
+                    else
+                        git clone git://git.suse.de/ceph/qa-automation.git
+                        pushd qa-automation
+                    fi
+
+                    # write configuration files that we need
+                    cat > setup.cfg <<EOH
+[env]
+loglevel = debug
+EOH
+
+                    # test suite will expect node names without domain, and in the right
+                    # order; since we will write them in reverse order, use a sort -r here
+                    yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+                    yaml_mons=`echo $cephmons | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+                    yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+
+                    sed -i "/teuthida-4/d" yamldata/testcloud_sanity.yaml
+                    for node in $yaml_allnodes; do
+                        sed -i "/^allnodes:$/a - $node" yamldata/testcloud_sanity.yaml
+                    done
+                    for node in $yaml_mons; do
+                        sed -i "/^initmons:$/a - $node" yamldata/testcloud_sanity.yaml
+                    done
+                    for node in $yaml_osds; do
+                        sed -i "/^osds:$/a - $node:vdb2" yamldata/testcloud_sanity.yaml
+                    done
+
+                    # dependency for the test suite
+                    rpm -q python-PyYAML &> /dev/null || zypper -n install python-PyYAML
+
+                    if ! rpm -q python-nose &> /dev/null; then
+                        zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
+                        zypper -n install python-nose
+                        zypper rr Devel_Cloud_Shared_11-SP3_Update
+                    fi
+
+                    nosetests testsuites/testcloud_sanity.py
+                    cephret=$?
+
+                    popd
                 fi
 
                 # Run Tempest Smoketests if configured to do so
@@ -1256,7 +1328,7 @@ function do_testsetup()
         nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
         ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
         nova stop testvm
-        test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0
+        test $cephret = 0 -a $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0
     '
     ret=$?
     echo ret:$ret
