@@ -197,10 +197,10 @@ function cleanup()
     ip link delete ${cloudbr} type bridge
     ip link delete ${cloudbr}-nic
 
-    # zero node volumes to prevent accidental booting
-    for node in $allnodeids ; do
-        dd if=/dev/zero of=/dev/$cloudvg/$cloud.node$node count=1 bs=8192
-    done
+    # remove all previous volumes for that cloud; this helps preventing
+    # accidental booting and freeing space
+    find -L /dev/$cloudvg/$cloud.* -type b | xargs lvremove --force
+
     for i in /dev/loop* ; do
         if losetup $i | grep -q $cloud-admin ; then
             losetup -d $i
