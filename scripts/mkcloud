@@ -198,8 +198,12 @@ function cleanup()
     ip link delete ${cloudbr}-nic
 
     # zero node volumes to prevent accidental booting
+    # also remove old ceph/cinder/etc. volumes to save space
     for node in $allnodeids ; do
         dd if=/dev/zero of=/dev/$cloudvg/$cloud.node$node count=1 bs=8192
+        for n in $(seq 1 $(($cephvolumenumber + 20))) ; do
+            test -e /dev/$cloudvg/$cloud.node$node-ceph$n && lvremove --force /dev/$cloudvg/$cloud.node$node-ceph$n
+        done
     done
     for i in /dev/loop* ; do
         if losetup $i | grep -q $cloud-admin ; then
