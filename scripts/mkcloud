@@ -258,7 +258,7 @@ function h_create_cloud_lvm()
 
     if [ $cephvolumenumber -gt 0 ] ; then
         for i in $allnodeids ; do
-            for n in $(echo `seq 1 $cephvolumenumber`) ; do
+            for n in $(seq 1 $cephvolumenumber) ; do
                 lvrename /dev/$cloudvg/node$i-ceph$n /dev/$cloudvg/$cloud.node$i-ceph$n # transition until 2015
                 h_get_next_pv_device
                 hdd_size=${cephvolume_hdd_size}
@@ -500,7 +500,7 @@ listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
     wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
 
     if ! grep -q "iptables -t nat -F PREROUTING" /etc/init.d/boot.local; then
-        nodehostips=$(echo `seq 81 $((80 + $nodenumber))`)
+        nodehostips=$(seq 81 $((80 + $nodenumber)))
         cat >> /etc/init.d/boot.local <<EOS
 iptables -t nat -F PREROUTING
 for i in 22 80 443 3000 4000 4040 ; do
@@ -649,7 +649,7 @@ function setupcompute()
 
         cephvolume=""
         if [ $cephvolumenumber -gt 0 ] ; then
-            for n in $(echo `seq 1 $cephvolumenumber`) ; do
+            for n in $(seq 1 $cephvolumenumber) ; do
                 dev=vd$(echo $alldevices | cut -d" " -f$c)
                 c=$(($c + 1))
                 cephvolume="$cephvolume
