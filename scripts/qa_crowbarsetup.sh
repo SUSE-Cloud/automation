@@ -191,6 +191,23 @@ function add_nfs_mount()
     mount "$dir"
 }
 
+function add_mount()
+{
+    local bindsrc="$1"
+    local nfssrc="$2"
+    local targetdir="$3"
+    local zypper_alias="$4"
+    if [ -n "${localreposdir_target}" ]; then
+        add_bind_mount "${localreposdir_target}/${bindsrc}" "${targetdir}"
+    else
+        add_nfs_mount "${nfssrc}" "${targetdir}"
+    fi
+    if [ -n "${zypper_alias}" ]; then
+        zypper rr "${zypper_alias}"
+        zypper ar -f "${targetdir}" "${zypper_alias}"
+    fi
+}
+
 function iscloudver()
 {
     local v=$1
@@ -246,30 +263,22 @@ function iscloudvertest2()
 
 function addsp3testupdates()
 {
-    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' '/srv/tftpboot/repos/SLES11-SP3-Updates'
-    zypper rr sp3tup
-    zypper ar -f /srv/tftpboot/repos/SLES11-SP3-Updates sp3tup
+    add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "/srv/tftpboot/repos/SLES11-SP3-Updates/" "sp3tup"
 }
 
 function addcloud2testupdates()
 {
-    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/2.0/' '/srv/tftpboot/repos/SUSE-Cloud-2-Updates/'
-    zypper rr cloudtup
-    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-2-Updates cloudtup
+    add_mount "SUSE-Cloud-2-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/2.0/' "/srv/tftpboot/repos/SUSE-Cloud-2-Updates/" "cloudtup"
 }
 
 function addcloud3testupdates()
 {
-    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' '/srv/tftpboot/repos/SUSE-Cloud-3-Updates/'
-    zypper rr cloudtup
-    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-3-Updates cloudtup
+    add_mount "SUSE-Cloud-3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' "/srv/tftpboot/repos/SUSE-Cloud-3-Updates/" cloudtup
 }
 
 function addcloud4testupdates()
 {
-    add_nfs_mount 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' '/srv/tftpboot/repos/SUSE-Cloud-4-Updates/'
-    zypper rr cloudtup
-    zypper ar -f /srv/tftpboot/repos/SUSE-Cloud-4-Updates cloudtup
+    add_mount "SUSE-Cloud-4-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' "/srv/tftpboot/repos/SUSE-Cloud-4-Updates/" "cloudtup"
 }
 
 function add_ha_repo()
@@ -280,7 +289,7 @@ function add_ha_repo()
         if [ "$slesdist" = "SLE_11_SP3" ] ; then
             local repo
             for repo  in "SLE11-HAE-SP3-Pool" "SLE11-HAE-SP3-Updates" "SLE11-HAE-SP3-Updates-test" ; do
-                add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
+                add_mount "${repo}" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
             done
             didha=1
         fi
@@ -290,6 +299,34 @@ function add_ha_repo()
         echo "Error: You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
         exit 1
     fi
+}
+
+function h_prepare_cloud_repos()
+{
+    local targetdir="/srv/tftpboot/repos/Cloud/"
+    mkdir -p ${targetdir}
+
+    if [ -n "${localreposdir_target}" ]; then
+        add_bind_mount "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" "${targetdir}"
+        echo $CLOUDLOCALREPOS > /etc/cloudversion
+    else
+        cd ${targetdir}
+        mkdir -p /mnt/cloud
+        wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
+        local CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
+        echo $CLOUDISO > /etc/cloudversion
+        mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
+        rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
+    fi
+    echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
+
+    if [ ! -e "${targetdir}/media.1" ] ; then
+        echo "We do not have cloud install media in ${targetdir} - giving up"
+        exit 35
+    fi
+
+    zypper rr Cloud
+    zypper ar -f ${targetdir} Cloud
 }
 
 function prepareinstallcrowbar()
@@ -320,9 +357,11 @@ EOF
         longdistance=true
     fi
 
-    mkdir -p /mnt/dist /mnt/cloud
-    mkdir -p /srv/tftpboot/repos/Cloud/
-    cd /srv/tftpboot/repos/Cloud/
+    if [ -n "${localreposdir_target}" ]; then
+        for x in `seq 1 10` ; do
+            zypper rr 1
+        done
+    fi
 
     suseversion=11.3
     : ${susedownload:=download.nue.suse.com}
@@ -403,19 +442,10 @@ EOF
     [ -n "$hacloud" ] && add_ha_repo "$slesdist"
 
     zypper -n install rsync netcat
-    wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
-    local CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
-    echo $CLOUDISO > /etc/cloudversion
-    echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
-    mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
-    rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
-    if [ ! -e "/srv/tftpboot/repos/Cloud/media.1" ] ; then
-        echo "We do not have cloud install media - giving up"
-        exit 35
-    fi
 
+    # setup cloud repos for tftpboot and zypper
+    h_prepare_cloud_repos
 
-    zypper ar /srv/tftpboot/repos/Cloud Cloud
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
             develcloud2.0)
@@ -469,14 +499,14 @@ EOF
     fi
 
     if ! $longdistance ; then
-        add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" "/srv/tftpboot/suse-$suseversion/install"
+        #FIXME (toabctl): path should use $suseversion and not hardcoded 11.3
+        add_mount "${localreposdir_target}/SLES11-SP3-GM/sle-11-x86_64/" "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" "/srv/tftpboot/suse-$suseversion/install/"
     fi
 
     local REPO
 
     for REPO in $slesrepolist ; do
-        local r="/srv/tftpboot/repos/$REPO"
-        add_nfs_mount "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "$r"
+        add_mount "${localreposdir_target}/${REPO}/sle-11-x86_64/" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
     done
 
     # just as a fallback if nfs did not work
@@ -1206,7 +1236,7 @@ function do_testsetup()
         nova volume-detach "$instanceid" "$volumeid" ; sleep 10
         nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
         ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
-        nova delete testvm
+        nova stop testvm
         test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0
     '
     ret=$?
@@ -1261,8 +1291,7 @@ function rebootcompute()
 function waitforrebootcompute()
 {
     . .openrc
-    nova list
-    nova reboot testvm
+    nova start testvm || exit 28
     nova list
     local vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
     wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
