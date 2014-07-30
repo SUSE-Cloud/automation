@@ -38,7 +38,10 @@
 #                sets the number of nodes to be created
 #
 # vcpus          (default 1)
-#                sets the number of CPU cores assigned to each node (admin and compute)
+#                sets the number of CPU cores assigned to each compute node
+# adminvcpus     (default $vcpus)
+#                sets the number of CPU cores assigned to admin node
+
 
 virtualcloud=${virtualcloud:-virtual}
 cloudfqdn=${cloudfqdn:-$virtualcloud.cloud.suse.de}
@@ -53,6 +56,7 @@ nodenumber=${nodenumber:-2}
 cephvolumenumber=${cephvolumenumber:-0}
 allnodeids=`seq 1 $nodenumber`
 vcpus=${vcpus:-1}
+adminvcpus=${adminvcpus:-$vcpus}
 cpuflags=''
 working_dir_orig=`pwd`
 artifacts_dir=${artifacts_dir:-$working_dir_orig/.artifacts}
@@ -374,7 +378,7 @@ function h_create_libvirt_adminnode_config()
     <name>$cloud-admin</name>
     <memory>$ADMIN_NODE_MEMORY</memory>
     <currentMemory>$ADMIN_NODE_MEMORY</currentMemory>
-    <vcpu>$vcpus</vcpu>
+    <vcpu>$adminvcpus</vcpu>
     <os>
       <type arch='x86_64' machine='pc-0.14'>hvm</type>
       <boot dev='hd'/>
@@ -840,7 +844,9 @@ function usage()
     echo "   nodenumber=2    (default 2)"
     echo "       : set the number of nodes to be created (excl. admin node)"
     echo "   vcpus=1         (default 1)"
-    echo "       : set the number of CPU cores per node (admin and compute)"
+    echo "       : set the number of CPU cores per compute node"
+    echo "   adminvcpus=1    (default $vcpus)"
+    echo "       : set the number of CPU cores for admin node"
     echo "   ADMIN_NODE_MEMORY (default 2097152)"
     echo "       : Set the memory in KB assigned to admin node"
     echo "   COMPUTE_NODE_MEMORY (default 2097152)"
