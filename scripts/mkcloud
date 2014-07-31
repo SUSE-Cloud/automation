@@ -1,44 +1,93 @@
 #!/bin/bash
-#
+# vim: sw=2 sts=2 ts=8 et fdm=marker cms=\ #\ %s
+# (C) 2014, SUSE LINUX Products GmbH
+
+declare -r SELF="$0"
+
+### help # {{{
 # mkcloud - Setup a virtual cloud on one system (physical or even virtual)
 #
-# Authors: J. Daniel Schmidt <jdsn@suse.de>
-#          Bernhard M. Wiedemann <bwiedemann@suse.de>
+# Usage:
+# $0 <command> [<command>,...]
 #
-# 2012, SUSE LINUX Products GmbH
+#   'command' is one of:
+#    all instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute
+#    instcompute proposal addupdaterepo runupdate testsetup rebootcrowbar
+#    rebootcompute help
 #
+#    all      -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute
+#    all_noreboot -> exp to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup
+#    plain    -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal
+#    instonly -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute
+#
+#    cleanup:       kill all running VMs, zero out boot sectors of all LVM volumes
+#    prepare:       create LVM volumes, setup libvirt networks
+#    setupadmin:    create the admin node and install the cloud product
+#    prepareinstcrowbar: add repos and install crowbar packages
+#    instcrowbar:   install crowbar and chef on the admin node
+#    setupcompute:  create the compute nodes and let crowbar discover them
+#    instcompute:   allocate and install compute nodes
+#    proposal:      create and apply proposals for default setup
+#    testsetup:     start a VM in the cloud
+#    addupdaterepo: addupdate repos defined in UPDATEREPOS= (URLs separated by '+')
+#    runupdate:     run zypper up on the crowbar node
+#                   (compute nodes are automaticallyupdated via chef run)
+#    rebootcrowbar: reboot the crowbar instance and wait for it being up
+#    rebootcompute: reboot the compute nodes and wait for them being up
+#    securitytests: install and run security test suite
+#    qa_test:       run the qa test suite
+#    help:          this usage
+#
+#  Environment variables (need to be exported):
+#
+#  Mandatory
+#    CVOL=/dev/vdx (default /dev/vdb)
+#        : device where a LVM physical volume can be created
+#        : should be at least 80 GB
+#        : the volume group will be called "cloud"
+#    cloudsource=develcloud2.0 | develcloud3 | develcloud4 | susecloud4 | Beta?  (no default)
+#        : defines the installation source
+#        : develcloud2.0 : product from IBS Devel:Cloud:2.0
+#        : develcloud3   : product from IBS Devel:Cloud:3
+#        : develcloud4   : product from IBS Devel:Cloud:4
+#        : susecloud4    : product from IBS SUSE:SLE....
+#        : Beta?         : uses official Beta? ISO image (? is a number)
+#
+#  Optional
+#    hacloud='' | 1  (default='')
+#        : setup a high availability cloud, requires at least 6 nodes
+#    TESTHEAD='' | 1  (default='')
+#        : use media from Devel:Cloud:Staging even if there is no new ISO created yet
+#          and add test update repositories (except for GM* targets)
+#    cephvolumenumber  (default=0)
+#        : the number of 5GB ceph volumes that will be created per node
+#          note: proposal step does NOT contain a ceph proposal, do it manually
+#    nodenumber=2    (default 2)
+#        : set the number of nodes to be created (excl. admin node)
+#    vcpus=1         (default 1)
+#        : set the number of CPU cores per node (admin and compute)
+#    ADMIN_NODE_MEMORY (default 2097152)
+#        : Set the memory in KB assigned to admin node
+#    COMPUTE_NODE_MEMORY (default 2097152)
+#        : Set the memory in KB assigned to compute nodes
+#    networkingplugin
+#        : Set the networking plugin to be used by neutron (e.g. openvswitch),
+#          if it isn't defined the barclamp-neutron's default is used.
+#    networkingmode
+#        : Set the networking mode to be used by neutron (e.g. gre)
+#          if it isn't defined the barclamp-neutron's default is used.
+### help # }}}
 
-# Quick introduction:
-#
-# This tool relies on the script qa_crowbarsetup.sh (in the same directory)
-# Please 'export' environment variables according to your needs:
-#
-# CVOL=/dev/vdx  (default=/dev/vdb)
-#       device where a LVM physical volume can be created
-#       should be at least 80 GB
-#       the volume group will be called "cloud"
-#
-# cloudsource=develcloud4|susecloud4|Beta?   (required, no default)
-#       defines the source for the installation of the cloud product
-#       develcloud2.0 : product from IBS Devel:Cloud:2.0
-#       develcloud3   : product from IBS Devel:Cloud:3
-#       develcloud4   : product from IBS Devel:Cloud:4
-#       susecloud4     : product from IBS SUSE:SLE....
-#       Beta?         : uses official Beta? ISO image (? is a number)
-#
-# TESTHEAD=''|1   (default='')
-#                will use latest published packages from Devel:Cloud
-#                even if there is no new ISO created yet
-#
-# cephvolumenumber (default 0)
-#                sets the number of 5GB ceph volumes that will be created per node
-#                for ceph testing
-#
-# nodenumber     (default 2)
-#                sets the number of nodes to be created
-#
-# vcpus          (default 1)
-#                sets the number of CPU cores assigned to each node (admin and compute)
+function display-section() # {{{
+{
+    local -r s="${1?}" self=${SELF##*/}
+    sed -rnf - ${SELF} <<EOSED
+        /^### $s # \{{3}/,/^### $s # \}{3}/ {
+            s:\\\$0:$self:
+            s:^#( |$)::p
+        }
+EOSED
+} # }}}
 
 virtualcloud=${virtualcloud:-virtual}
 cloudfqdn=${cloudfqdn:-$virtualcloud.cloud.suse.de}
@@ -790,68 +839,7 @@ function crowbarrestore()
 
 function usage()
 {
-    echo "Usage:"
-    echo "$0 <command> [<command>,...]"
-    echo
-    echo "  'command' is one of:"
-    echo "   all instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute"
-    echo "   instcompute proposal addupdaterepo runupdate testsetup rebootcrowbar "
-    echo "   rebootcompute help"
-    echo
-    echo "   all      -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
-    echo "   all_noreboot -> exp to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
-    echo "   plain    -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal"
-    echo "   instonly -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
-    echo
-    echo "   cleanup:       kill all running VMs, zero out boot sectors of all LVM volumes"
-    echo "   prepare:       create LVM volumes, setup libvirt networks"
-    echo "   setupadmin:    create the admin node and install the cloud product"
-    echo "   prepareinstcrowbar: add repos and install crowbar packages"
-    echo "   instcrowbar:   install crowbar and chef on the admin node"
-    echo "   setupcompute:  create the compute nodes and let crowbar discover them"
-    echo "   instcompute:   allocate and install compute nodes"
-    echo "   proposal:      create and apply proposals for default setup"
-    echo "   testsetup:     start a VM in the cloud"
-    echo "   addupdaterepo: addupdate repos defined in UPDATEREPOS= (URLs separated by '+')"
-    echo "   runupdate:     run zypper up on the crowbar node"
-    echo "                  (compute nodes are automaticallyupdated via chef run)"
-    echo "   rebootcrowbar: reboot the crowbar instance and wait for it being up"
-    echo "   rebootcompute: reboot the compute nodes and wait for them being up"
-    echo "   securitytests: install and run security test suite"
-    echo "   qa_test:       run the qa test suite"
-    echo "   help:          this usage"
-    echo
-    echo " Environment variables (need to be exported):"
-    echo
-    echo " Mandatory"
-    echo "   CVOL=/dev/vdx (default /dev/vdb)"
-    echo "       :  LVM will be created on this device (at least 80GB)"
-    echo "   cloudsource=develcloud2.0 | develcloud3 | develcloud4 | susecloud4 | Beta?  (default '')"
-    echo "       : defines the installation source"
-    echo
-    echo " Optional"
-    echo "   hacloud='' | 1  (default='')"
-    echo "       : setup a high availability cloud, requires at least 6 nodes"
-    echo "   TESTHEAD='' | 1  (default='')"
-    echo "       : use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)"
-    echo "   cephvolumenumber  (default=0)"
-    echo "       : the number of 5GB ceph volumes that will be created per node"
-    echo "         note: proposal step does NOT contain a ceph proposal, do it manually"
-    echo "   nodenumber=2    (default 2)"
-    echo "       : set the number of nodes to be created (excl. admin node)"
-    echo "   vcpus=1         (default 1)"
-    echo "       : set the number of CPU cores per node (admin and compute)"
-    echo "   ADMIN_NODE_MEMORY (default 2097152)"
-    echo "       : Set the memory in KB assigned to admin node"
-    echo "   COMPUTE_NODE_MEMORY (default 2097152)"
-    echo "       : Set the memory in KB assigned to compute nodes"
-    echo "   networkingplugin"
-    echo "       : Set the networking plugin to be used by neutron (e.g. openvswitch),"
-    echo "         if it isn't defined the barclamp-neutron's default is used."
-    echo "   networkingmode"
-    echo "       : Set the networking mode to be used by neutron (e.g. gre)"
-    echo "         if it isn't defined the barclamp-neutron's default is used."
-    echo
+    display-section help
     exit 1
 }
 
@@ -945,7 +933,6 @@ function sanity_checks()
         exit 13
     fi
 }
-
 
 ## MAIN ##
 
