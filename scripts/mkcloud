@@ -41,10 +41,17 @@ declare -r SELF="$0"
 #
 #   Aggregate commands:
 #
-#    all      -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute
-#    all_noreboot -> exp to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup
-#    plain    -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal
-#    instonly -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute
+#    all:           cleanup..instcrowbar rebootcrowbar setupcompute..testsetup rebootcompute
+#    all_noreboot:  cleanup..instcrowbar               setupcompute..testsetup
+#    plain:         cleanup..instcrowbar               setupcompute instcompute proposal
+#    instonly:      cleanup..instcrowbar               setupcompute instcompute
+#
+#   where
+#
+#    cleanup..instcrowbar:
+#       cleanup prepare setupadmin prepareinstcrowbar instcrowbar
+#    setupcompute..testsetup:
+#       setupcompute instcompute proposal testsetup
 #
 ### cmds # }}}
 
