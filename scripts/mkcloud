@@ -891,6 +891,18 @@ function runupdate()
 
 function sanity_checks()
 {
+    if [ -z "$cloudsource" ] ; then
+        echo "Error: cloudsource is empty, run $SELF help-vars."
+        exit 1
+    fi
+
+    if [ -n "$hacloud" ] ; then
+        if (( $nodenumber < 6 )) ; then
+            echo "Error: nodenumber is too low, run $SELF help-vars."
+            exit 1
+        fi
+    fi
+
     if test `id -u` != 0 ; then
         echo "Error: This script needs to be run as root"
         echo "  Please be aware that this script will create a LVM"
@@ -921,20 +933,6 @@ function sanity_checks()
         echo "Error: qa_crowbarsetup.sh not found in same directory"
         echo "Please put the latest version of this script in the same directory."
         exit 87
-    fi
-
-    if [ -z "$cloudsource" ] ; then
-        echo "Please set the env variable:"
-        echo "export cloudsource=Beta?|develcloud2.0|develcloud3|develcloud4|susecloud4"
-        exit 1
-    fi
-
-    if [ -n "$hacloud" ] ; then
-        if (( $nodenumber < 6 )) ; then
-            echo "Error: A HA cloud setup requires at least 6 nodes, you configured only: $nodenumber"
-            echo "Please raise the number of nodes via e.g. export nodenumber=6"
-            exit 1
-        fi
     fi
 
     vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
