@@ -4,11 +4,20 @@
 
 declare -r SELF="$0"
 
-### help # {{{
-# mkcloud - Setup a virtual cloud on one system (physical or even virtual)
+### usage # {{{
+# $0 - Setup a virtual cloud on one system (physical or even virtual)
 #
 # Usage:
-# $0 <command> [<command>,...]
+#
+#   $0 -h             this banner
+#   $0 help-vars      configuration variables
+#   $0 help-commands  actions to be performed
+#   $0 help           complete help
+#   $0 <command>...
+### usage # }}}
+
+### cmds # {{{
+#  Commands:
 #
 #   'command' is one of:
 #    all instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute
@@ -36,8 +45,10 @@ declare -r SELF="$0"
 #    rebootcompute: reboot the compute nodes and wait for them being up
 #    securitytests: install and run security test suite
 #    qa_test:       run the qa test suite
-#    help:          this usage
-#
+#    help:          display builtin help
+### cmds # }}}
+
+### vars # {{{
 #  Environment variables (need to be exported):
 #
 #  Mandatory
@@ -76,7 +87,7 @@ declare -r SELF="$0"
 #    networkingmode
 #        : Set the networking mode to be used by neutron (e.g. gre)
 #          if it isn't defined the barclamp-neutron's default is used.
-### help # }}}
+### vars # }}}
 
 function display-section() # {{{
 {
@@ -87,6 +98,29 @@ function display-section() # {{{
             s:^#( |$)::p
         }
 EOSED
+} # }}}
+
+function display-usage() # {{{
+{
+    local fd=1 ex=${1:?}
+    (( ex )) && fd=2
+    display-section usage >&$fd
+    exit $ex
+} # }}}
+
+function display-help() # {{{
+{
+    local pg=cat ex=$1; shift
+    if (( 0 == $# )); then
+        set usage cmds vars
+        pg=${PAGER:-less}
+    fi
+    while (( $# )); do
+        display-section $1
+        shift
+        (( $# )) && echo
+    done | $pg
+    exit $ex
 } # }}}
 
 virtualcloud=${virtualcloud:-virtual}
@@ -836,14 +870,6 @@ function crowbarrestore()
     return $ret
 }
 
-
-function usage()
-{
-    display-section help
-    exit 1
-}
-
-
 function addupdaterepo()
 {
     sshrun "addupdaterepo=1 UPDATEREPOS=$UPDATEREPOS  bash -x qa_crowbarsetup.sh $virtualcloud"
@@ -941,14 +967,22 @@ wantedcmds=$@
 runcmds=''
 
 if [ -z "$wantedcmds" ] ; then
-    usage
+    display-usage 1
 fi
 
 # parse the commands and expand the aliases
 for cmd in $wantedcmds ; do
-    if [ "$cmd" = "help" -o "$cmd" = "--help" -o "$cmd" = "usage" ] ; then
-        usage
-    fi
+    case "$cmd" in
+    (-h | --help | usage)
+        display-usage 0
+    ;;
+    (help)
+        display-help 0
+    ;;
+    (help-cmds | help-vars)
+        display-help 0 ${cmd#help-}
+    ;;
+    esac
 
     ok=0
     for onecmd in $allcmds ; do
@@ -979,7 +1013,7 @@ for cmd in $wantedcmds ; do
 
     if [ $ok = 0 ] ; then
         echo "Error: Command $cmd unknown."
-        usage
+        display-usage 1
     fi
 done
 
