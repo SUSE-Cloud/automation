@@ -1038,7 +1038,6 @@ for cmd in `echo $runcmds` ; do
     ret=$?
     if [ $ret != 0 ] ; then
         echo
-        echo '$h1!!'
         echo "Error detected. Stopping mkcloud."
         echo "The step '$cmd' returned with exit code $ret"
         echo "Please refer to the $cmd function in this script when debugging the issue."
