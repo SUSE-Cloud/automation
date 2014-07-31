@@ -86,6 +86,13 @@ localreposdir_target=${localreposdir_target:-"/repositories"}
 trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
 
+function complain() # {{{
+{
+    local ex=$1; shift
+    printf "Error: %s\n" "$@" >&2
+    [[ $ex != - ]] && exit $ex
+} # }}}
+
 function show_environment()
 {
     end_time=`date`
@@ -143,12 +150,10 @@ function wait_for()
     echo
 
     if [ $n = 0 ] ; then
-        echo "Error: Waiting for '$waitfor' timed out."
-        echo "This check was used: $condition"
-        exit 11
+        complain 11 "Waiting for '$waitfor' timed out." \
+            "This check was used: $condition"
     fi
 }
-
 
 function sshrun()
 {
@@ -491,13 +496,11 @@ listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
     virsh net-start $cloud-admin
     if ! virsh define /tmp/$cloud-admin.xml ; then
         echo "=====================================================>>"
-        echo "Error: Could not define VM for: $cloud-admin"
-        exit 76
+        complain 76 "Could not define VM for: $cloud-admin"
     fi
     if ! virsh start $cloud-admin ; then
         echo "=====================================================>>"
-        echo "Error: Could not start VM for: $cloud-admin"
-        exit 76
+        complain 76 "Could not start VM for: $cloud-admin"
     fi
 
     wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
@@ -693,13 +696,11 @@ function setupcompute()
         virsh undefine $cloud-node$i 2>/dev/null
         if ! virsh define /tmp/$cloud-node$i.xml ; then
             echo "====>>"
-            echo "Error: Could not define VM for: node$i"
-            exit 74
+            complain 74 "Could not define VM for: node$i"
         fi
         if ! virsh start $cloud-node$i ; then
             echo "====>>"
-            echo "Error: Could not start VM for: node$i"
-            exit 74
+            complain 74 "Could not start VM for: node$i"
         fi
     done
     return 0
@@ -955,8 +956,8 @@ function check-no-concurrency() # {{{
         (( 0 == ${#cmdline} )) && continue
         if [[ "${cmdline[0]}" == "$SHELL" ]]; then
             if [[ "${cmdline[1]##*/}" == "${SELF##*/}" ]]; then
-                echo >&2 "possibly concurrent use.  Allegedly infringing process:"
-                echo >&2 "pid=$pid cmdline=${cmdline[*]}"
+                complain - "possibly concurrent use.  Allegedly infringing process:" \
+                    "pid=$pid cmdline=${cmdline[*]}"
                 return 1
             fi
         fi
@@ -967,16 +968,14 @@ function check-no-concurrency() # {{{
 function sanity_checks()
 {
     if test `id -u` != 0 ; then
-        echo "Error: This script needs to be run as root"
-        echo "  Please be aware that this script will create a LVM"
-        echo "  and kill all current VMs on this host."
-        exit 1
+        complain 1 "This script needs to be run as root" \
+            "Please be aware that this script will create a LVM" \
+            "and kill all current VMs on this host."
     fi
 
     if [[ "$PARALLEL" != "yes" ]] && ! check-no-concurrency; then
-        echo >&2 "Error: mkcloud was started twice."
-        echo >&2 "export PARALLEL=yes if you are sure this is not a conflict."
-        exit 33
+        complain 33 "mkcloud was started twice." \
+            "export PARALLEL=yes if you are sure this is not a conflict."
     fi
 
     # always fetch the latest version
@@ -987,9 +986,8 @@ function sanity_checks()
     fi
 
     if [ ! -e qa_crowbarsetup.sh ] ; then
-        echo "Error: qa_crowbarsetup.sh not found in same directory"
-        echo "Please put the latest version of this script in the same directory."
-        exit 87
+        complain 87 "qa_crowbarsetup.sh not found in same directory" \
+            "Please put the latest version of this script in the same directory."
     fi
 
     if [ -z "$cloudsource" ] ; then
@@ -1000,9 +998,8 @@ function sanity_checks()
 
     if [ -n "$hacloud" ] ; then
         if (( $nodenumber < 6 )) ; then
-            echo "Error: A HA cloud setup requires at least 6 nodes, you configured only: $nodenumber"
-            echo "Please raise the number of nodes via e.g. export nodenumber=6"
-            exit 1
+            complain 1 "A HA cloud setup requires at least 6 nodes, you configured only: $nodenumber" \
+                "Please raise the number of nodes via e.g. export nodenumber=6"
         fi
     fi
 
@@ -1010,29 +1007,25 @@ function sanity_checks()
     if [ -n "$needcvol" ] ; then
         CVOL=${CVOL:-/dev/vdb}
         if grep -q $CVOL /proc/mounts ; then
-            echo "The device $CVOL seems to be used. Exiting."
-            exit 92
+            complain 92 "The device $CVOL seems to be used. Exiting."
         fi
         if [ ! -e $CVOL ] ; then
-            echo "Error: $CVOL does not exist."
-            echo "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx"
-            echo "Running 'partprobe' may help to let the device appear."
-            exit 93
+            complain 93 "$CVOL does not exist." \
+                "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx" \
+                "Running 'partprobe' may help to let the device appear."
         fi
     fi
 
     if [ -e /etc/init.d/SuSEfirewall2_init ] && rcSuSEfirewall2 status ; then
-        echo "Error: SuSEfirewall is running - it will interfere with the iptables rules done by libvirt"
-        echo "Please stop the SuSEfirewall completely and run mkcloud again"
-        echo "Run:  rcSuSEfirewall2 stop && insserv -r SuSEfirewall2_setup && insserv -r SuSEfirewall2_init"
-        exit 91
+        complain 91 "SuSEfirewall is running - it will interfere with the iptables rules done by libvirt" \
+            "Please stop the SuSEfirewall completely and run mkcloud again" \
+            "Run:  rcSuSEfirewall2 stop && insserv -r SuSEfirewall2_setup && insserv -r SuSEfirewall2_init"
     fi
 
     if grep "devpts.*[^x]mode=.00" /proc/mounts ; then
-        echo "Error: /dev/pts is not accessible for libvirt, maybe you use autobuild on your system."
-        echo "Please remount it using the following command:"
-        echo " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
-        exit 13
+        complain 13 "/dev/pts is not accessible for libvirt, maybe you use autobuild on your system." \
+            "Please remount it using the following command:" \
+            " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
     fi
 }
 
@@ -1084,7 +1077,7 @@ for cmd in $wantedcmds ; do
     done
 
     if [ $ok = 0 ] ; then
-        echo "Error: Command $cmd unknown."
+        complain - "Command $cmd unknown."
         usage
     fi
 done
