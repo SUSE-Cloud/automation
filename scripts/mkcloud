@@ -170,6 +170,13 @@ localreposdir_target=${localreposdir_target:-"/repositories"}
 trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
 
+function complain() # {{{
+{
+    local ex=$1; shift
+    printf "Error: %s\n" "$@" >&2
+    [[ $ex != - ]] && exit $ex
+} # }}}
+
 function show_environment()
 {
     end_time=`date`
@@ -227,12 +234,10 @@ function wait_for()
     echo
 
     if [ $n = 0 ] ; then
-        echo "Error: Waiting for '$waitfor' timed out."
-        echo "This check was used: $condition"
-        exit 11
+        complain 11 "Waiting for '$waitfor' timed out." \
+            "This check was used: $condition"
     fi
 }
-
 
 function sshrun()
 {
@@ -574,13 +579,11 @@ listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
     virsh net-start $cloud-admin
     if ! virsh define /tmp/$cloud-admin.xml ; then
         echo "=====================================================>>"
-        echo "Error: Could not define VM for: $cloud-admin"
-        exit 76
+        complain 76 "Could not define VM for: $cloud-admin"
     fi
     if ! virsh start $cloud-admin ; then
         echo "=====================================================>>"
-        echo "Error: Could not start VM for: $cloud-admin"
-        exit 76
+        complain 76 "Could not start VM for: $cloud-admin"
     fi
 
     wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
@@ -754,13 +757,11 @@ function setupcompute()
         virsh undefine $cloud-node$i 2>/dev/null
         if ! virsh define /tmp/$cloud-node$i.xml ; then
             echo "====>>"
-            echo "Error: Could not define VM for: node$i"
-            exit 74
+            complain 74 "Could not define VM for: node$i"
         fi
         if ! virsh start $cloud-node$i ; then
             echo "====>>"
-            echo "Error: Could not start VM for: node$i"
-            exit 74
+            complain 74 "Could not start VM for: node$i"
         fi
     done
     return 0
@@ -892,31 +893,28 @@ function runupdate()
 function sanity_checks()
 {
     if [ -z "$cloudsource" ] ; then
-        echo "Error: cloudsource is empty, run $SELF help-vars."
-        exit 1
+        complain 1 "cloudsource is empty, run $SELF help-vars."
     fi
 
     if [ -n "$hacloud" ] ; then
         if (( $nodenumber < 6 )) ; then
-            echo "Error: nodenumber is too low, run $SELF help-vars."
-            exit 1
+            complain 1 "nodenumber is too low, run $SELF help-vars."
         fi
     fi
 
     if test `id -u` != 0 ; then
-        echo "Error: This script needs to be run as root"
-        echo "  Please be aware that this script will create a LVM"
-        echo "  and kill all current VMs on this host."
-        exit 1
+        complain 1 "This script needs to be run as root" \
+            "Please be aware that this script will create a LVM" \
+            "and kill all current VMs on this host."
     fi
 
     SCRIPT=$(basename $0)
     PSFILE=`mktemp /tmp/mkcloud.XXXXXX`
     ps ax > $PSFILE
     if [ `grep -v -e grep -e SCREEN $PSFILE | grep $SCRIPT | wc -l` -gt 1 ]  ; then
-        echo "Error: mkcloud was started twice."
-        echo "if you are sure, that they do not conflict, export PARALLEL=yes"
-        echo
+        complain - "mkcloud was started twice." \
+            "if you are sure, that they do not conflict, export PARALLEL=yes" \
+            ""
         rm $PSFILE
         [ "$PARALLEL" = "yes" ] || exit 33
     fi
@@ -930,9 +928,8 @@ function sanity_checks()
     fi
 
     if [ ! -e qa_crowbarsetup.sh ] ; then
-        echo "Error: qa_crowbarsetup.sh not found in same directory"
-        echo "Please put the latest version of this script in the same directory."
-        exit 87
+        complain 87 "qa_crowbarsetup.sh not found in same directory" \
+            "Please put the latest version of this script in the same directory."
     fi
 
     vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
@@ -943,25 +940,22 @@ function sanity_checks()
             exit 92
         fi
         if [ ! -e $CVOL ] ; then
-            echo "Error: $CVOL does not exist."
-            echo "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx"
-            echo "Running 'partprobe' may help to let the device appear."
-            exit 93
+            complain 93 "$CVOL does not exist." \
+                "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx" \
+                "Running 'partprobe' may help to let the device appear."
         fi
     fi
 
     if [ -e /etc/init.d/SuSEfirewall2_init ] && rcSuSEfirewall2 status ; then
-        echo "Error: SuSEfirewall is running - it will interfere with the iptables rules done by libvirt"
-        echo "Please stop the SuSEfirewall completely and run mkcloud again"
-        echo "Run:  rcSuSEfirewall2 stop && insserv -r SuSEfirewall2_setup && insserv -r SuSEfirewall2_init"
-        exit 91
+        complain 91 "SuSEfirewall is running - it will interfere with the iptables rules done by libvirt" \
+            "Please stop the SuSEfirewall completely and run mkcloud again" \
+            "Run:  rcSuSEfirewall2 stop && insserv -r SuSEfirewall2_setup && insserv -r SuSEfirewall2_init"
     fi
 
     if grep "devpts.*[^x]mode=.00" /proc/mounts ; then
-        echo "Error: /dev/pts is not accessible for libvirt, maybe you use autobuild on your system."
-        echo "Please remount it using the following command:"
-        echo " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
-        exit 13
+        complain 13 "Error: /dev/pts is not accessible for libvirt, maybe you use autobuild on your system." \
+            "Please remount it using the following command:" \
+            " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
     fi
 }
 
@@ -1017,7 +1011,7 @@ for cmd in $wantedcmds ; do
     done
 
     if [ $ok = 0 ] ; then
-        echo "Error: Command $cmd unknown."
+        complain - "Command $cmd unknown."
         display-usage 1
     fi
 done
