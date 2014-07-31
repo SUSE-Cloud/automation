@@ -46,7 +46,6 @@
 virtualcloud=${virtualcloud:-virtual}
 cloudfqdn=${cloudfqdn:-$virtualcloud.cloud.suse.de}
 forwardmode=${forwardmode:-nat}
-net_fixed=${net_fixed:-192.168.123}
 net_public=${net_public:-192.168.122}
 net_admin=${net_admin:-192.168.124}
 adminnetmask=${adminnetmask:-255.255.248.0}
