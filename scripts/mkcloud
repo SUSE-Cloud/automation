@@ -130,7 +130,7 @@ function error_exit()
     echo $message
     show_environment
     exit $exitcode
-}
+} >&2
 
 function wait_for()
 {
@@ -1103,7 +1103,7 @@ for cmd in `echo $runcmds` ; do
         echo "The step '$cmd' returned with exit code $ret"
         echo "Please refer to the $cmd function in this script when debugging the issue."
         error_exit $ret ""
-    fi
+    fi >&2
     echo
     echo "^^^^^^^^^^^^= MKCLOUD STEP DONE: $cmd =^^^^^^^^^^^^"
     echo
