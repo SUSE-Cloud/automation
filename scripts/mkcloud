@@ -787,6 +787,46 @@ function crowbarrestore()
     return $ret
 }
 
+function prepare_cloud4upgrade()
+{
+    ghsc=github.com/SUSE-Cloud
+    mkdir -p ~/$ghsc/
+    pushd ~/$ghsc/
+    if [ -e "suse-cloud-upgrade" ] ; then
+        cd suse-cloud-upgrade/
+        git pull
+    else
+        git clone https://$ghsc/suse-cloud-upgrade.git
+    fi
+    popd
+    rsync -av ~/$ghsc/suse-cloud-upgrade root@$adminip:
+    sshrun "prepare_cloud4upgrade=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    return $?
+}
+
+function cloud4upgrade_1st()
+{
+    sshrun "cloud4upgrade_1st=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    return $?
+}
+
+function cloud4upgrade_2nd()
+{
+    sshrun "cloud4upgrade_2nd=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    return $?
+}
+
+function cloud4upgrade_clients()
+{
+    sshrun "cloud4upgrade_clients=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    return $?
+}
+
+function cloud4upgrade_reboot_and_redeploy_clients()
+{
+    sshrun "cloud4upgrade_reboot_and_redeploy_clients=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    return $?
+}
 
 function usage()
 {
@@ -949,7 +989,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore qa_test help rebootneutron"
+allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore qa_test help rebootneutron prepare_cloud4upgrade cloud4upgrade_1st cloud4upgrade_2nd cloud4upgrade_clients cloud4upgrade_reboot_and_redeploy_clients"
 wantedcmds=$@
 runcmds=''
 
