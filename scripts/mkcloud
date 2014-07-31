@@ -961,9 +961,47 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore qa_test help rebootneutron"
+allcmds=(
+    addupdaterepo all all_noreboot
+    cleanup crowbarbackup crowbarrestore
+    help
+    instcompute instcrowbar instcrowbarfromgit instonly
+    plain prepare prepareinstcrowbar proposal
+    qa_test
+    rebootcompute rebootcrowbar rebootneutron runupdate
+    securitytests setupadmin setupcompute
+    testsetup testupdate
+)
+
 wantedcmds=$@
-runcmds=''
+runcmds=()
+subcommands_all=(
+    cleanup
+    prepare setupadmin
+    addupdaterepo runupdate
+    prepareinstcrowbar instcrowbar
+    rebootcrowbar
+    setupcompute instcompute
+    proposal
+    testsetup
+    rebootcompute
+)
+subcommands_noreboot=(
+    ${subcommands_all[*]/#reboot*}
+)
+subcommands_plain=(
+    cleanup
+    prepare setupadmin
+    prepareinstcrowbar instcrowbar
+    setupcompute instcompute
+    proposal
+)
+subcommands_instonly=(
+    ${subcommands_plain[*]/#proposal%}
+)
+subcommands_testupdate=(
+    addupdaterepo runupdate testsetup
+)
 
 if [ -z "$wantedcmds" ] ; then
     display-usage 1
@@ -984,27 +1022,27 @@ for cmd in $wantedcmds ; do
     esac
 
     ok=0
-    for onecmd in $allcmds ; do
+    for onecmd in ${allcmds[*]}; do
         if [ $onecmd = $cmd ] ; then
             ok=1
             case "$cmd" in
                 all)
-                    runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
+                    runcmds+=(${subcommands_all[*]})
                 ;;
                 all_noreboot)
-                    runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
+                    runcmds+=(${subcommands_noreboot[*]})
                 ;;
                 testupdate)
-                    runcmds="$runcmds addupdaterepo runupdate testsetup"
+                    runcmds+=(${subcommands_testupdate[*]})
                 ;;
                 plain)
-                    runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal"
+                    runcmds+=(${subcommands_plain[*]})
                 ;;
                 instonly)
-                    runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
+                    runcmds+=(${subcommands_instonly[*]})
                 ;;
                 *)
-                    runcmds="$runcmds $cmd"
+                    runcmds+=($cmd)
                 ;;
             esac
         fi
@@ -1019,11 +1057,11 @@ done
 sanity_checks
 
 echo "You choose to run these mkcloud steps:"
-echo "  $runcmds"
+echo "  ${runcmds[*]}"
 echo
 sleep 2
 
-for cmd in `echo $runcmds` ; do
+for cmd in ${runcmds[*]} ; do
     echo
     echo "============> MKCLOUD STEP START: $cmd <============"
     echo
