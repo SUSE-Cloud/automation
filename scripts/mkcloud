@@ -20,14 +20,6 @@ declare -r SELF="$0"
 #  Commands:
 #
 #   'command' is one of:
-#    all instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute
-#    instcompute proposal addupdaterepo runupdate testsetup rebootcrowbar
-#    rebootcompute help
-#
-#    all      -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute
-#    all_noreboot -> exp to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup
-#    plain    -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal
-#    instonly -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute
 #
 #    cleanup:       kill all running VMs, zero out boot sectors of all LVM volumes
 #    prepare:       create LVM volumes, setup libvirt networks
@@ -46,6 +38,14 @@ declare -r SELF="$0"
 #    securitytests: install and run security test suite
 #    qa_test:       run the qa test suite
 #    help:          display builtin help
+#
+#   Aggregate commands:
+#
+#    all      -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute
+#    all_noreboot -> exp to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup
+#    plain    -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal
+#    instonly -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute
+#
 ### cmds # }}}
 
 ### vars # {{{
