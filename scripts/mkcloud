@@ -787,7 +787,7 @@ function crowbarrestore()
     return $ret
 }
 
-function prepare_cloud4upgrade()
+function prepare_cloudupgrade()
 {
     ghsc=github.com/SUSE-Cloud
     mkdir -p ~/$ghsc/
@@ -800,31 +800,31 @@ function prepare_cloud4upgrade()
     fi
     popd
     rsync -av ~/$ghsc/suse-cloud-upgrade root@$adminip:
-    sshrun "prepare_cloud4upgrade=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    sshrun "prepare_cloudupgrade=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     return $?
 }
 
-function cloud4upgrade_1st()
+function cloudupgrade_1st()
 {
-    sshrun "cloud4upgrade_1st=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    sshrun "cloudupgrade_1st=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     return $?
 }
 
-function cloud4upgrade_2nd()
+function cloudupgrade_2nd()
 {
-    sshrun "cloud4upgrade_2nd=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    sshrun "cloudupgrade_2nd=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     return $?
 }
 
-function cloud4upgrade_clients()
+function cloudupgrade_clients()
 {
-    sshrun "cloud4upgrade_clients=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    sshrun "cloudupgrade_clients=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     return $?
 }
 
-function cloud4upgrade_reboot_and_redeploy_clients()
+function cloudupgrade_reboot_and_redeploy_clients()
 {
-    sshrun "cloud4upgrade_reboot_and_redeploy_clients=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    sshrun "cloudupgrade_reboot_and_redeploy_clients=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     return $?
 }
 
@@ -841,6 +841,7 @@ function usage()
     echo "   all      -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
     echo "   all_noreboot -> exp to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
     echo "   plain    -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal"
+    echo "   upgrade    -> expands to: plain and upgrade functions"
     echo "   instonly -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
     echo
     echo "   cleanup:       kill all running VMs, zero out boot sectors of all LVM volumes"
@@ -989,7 +990,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore qa_test help rebootneutron prepare_cloud4upgrade cloud4upgrade_1st cloud4upgrade_2nd cloud4upgrade_clients cloud4upgrade_reboot_and_redeploy_clients"
+allcmds="all all_noreboot instonly plain upgrade cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
 wantedcmds=$@
 runcmds=''
 
@@ -1023,6 +1024,9 @@ for cmd in $wantedcmds ; do
                 instonly)
                     runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
                 ;;
+		upgrade)
+                    runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal addupdaterepo runupdate prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
+		;;
                 *)
                     runcmds="$runcmds $cmd"
                 ;;

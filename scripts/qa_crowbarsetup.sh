@@ -1619,47 +1619,84 @@ function securitytests()
     return $ret
 }
 
-function prepare_cloud4upgrade()
+function prepare_cloudupgrade()
 {
     # TODO: All running cloud instances should be suspended here
 
+    ### Chef-client could lockj zypper and break upgrade
+    # zypper locks do still happen
+    # TODO: do we need to stop the client on the nodes too?
+    rcchef-client stop
+    killall chef-client
+
+    # Detect cloudversion
+    if iscloudver 3; then
+      update_version=4
+      touch ~/update-to-4
+    fi
+    if iscloudver 4; then
+      update_version=5
+      touch ~/update-to-5
+    fi
+
+    # TODO: Break if updateversion does not exist
+    # TODO: Make this better:
+    if [[ $update_version = 5  ]]; then
+      echo "Update target does not yet exist"
+      exit 1
+    fi
+
+    # Client nodes need to be up to date
+    cloudupgrade_clients
+
     : ${susedownload:=download.nue.suse.com}
-    CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud4:/Test/images/iso
+    CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud$update_version:/Test/images/iso
     CLOUDDISTISO="S*-CLOUD*Media1.iso"
-    CLOUDLOCALREPOS="SUSE-Cloud-4-official"
+    CLOUDLOCALREPOS="SUSE-Cloud-$update_version-official"
 
     # recreate the SUSE-Cloud Repo with the latest Cloud 4 iso
     h_prepare_cloud_repos
 
-    # add new Cloud 4 Update and Pool Channels
-    add_mount "SUSE-Cloud-4-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' "/srv/tftpboot/repos/SUSE-Cloud-4-Updates/" "cloud4up"
-    add_mount "SUSE-Cloud-4-Pool" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4-POOL/' "/srv/tftpboot/repos/SUSE-Cloud-4-Pool/" "cloud4pool"
+    # add new Cloud Update and Pool Channels
+    add_mount "SUSE-Cloud-$update_version-Updates" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Updates/" "cloud$update_version-up"
+    add_mount "SUSE-Cloud-$update_version-Pool" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version-POOL/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Pool/" "cloud$update_version-pool"
 
     zypper --non-interactive refresh
     zypper --non-interactive install suse-cloud-upgrade
 
-    # Upgrade suse-cloud-upgrad the latest git code (checked out and copied into
+    # Upgrade suse-cloud-upgrade the latest git code (checked out and copied into
     # admin node by mkcloud)
     cp ~/suse-cloud-upgrade/suse-cloud-upgrade /usr/sbin/
     cp ~/suse-cloud-upgrade/lib/* /usr/lib/suse-cloud-upgrade/
 }
 
-function cloud4upgrade_1st()
+function cloudupgrade_1st()
 {
     # Disable all openstack proposals stop service on the client
     echo 'y' | suse-cloud-upgrade upgrade
+    if [[ $? != 0 ]]; then
+      echo "Upgrade failed with $?"
+      exit $?
+    fi
 }
 
-function cloud4upgrade_2nd()
+function cloudupgrade_2nd()
 {
     # Upgrade Admin node
     zypper --non-interactive up -l
+    echo -n "This cloud was upgraded from : " | cat - /etc/cloudversion >> /etc/motd
+
     echo 'y' | suse-cloud-upgrade upgrade
+    if [[ $? != 0 ]]; then
+      echo "Upgrade failed with $?"
+      exit $?
+    fi
     crowbar provisioner proposal commit default
 }
 
-function cloud4upgrade_clients()
+function cloudupgrade_clients()
 {
+
     # Upgrade Packages on the client nodes
     crowbar updater proposal create default
     crowbar updater proposal show default > updater.json
@@ -1670,7 +1707,7 @@ function cloud4upgrade_clients()
     crowbar updater proposal commit default
 }
 
-function cloud4upgrade_reboot_and_redeploy_clients()
+function cloudupgrade_reboot_and_redeploy_clients()
 {
     local barclamp=""
     local proposal=""
@@ -1692,8 +1729,14 @@ function cloud4upgrade_reboot_and_redeploy_clients()
         for proposal in $applied_proposals; do
             echo "Commiting proposal $proposal of barclamp ${barclamp}..."
             crowbar "$barclamp" proposal commit "$proposal"
+	    if [[ $? != 0 ]]; then
+	      exit 30
+	    fi
         done
     done
+
+    # We can now safely restart chef-client
+    rcchef-client start
 
     # TODO: restart any suspended instance?
 }
@@ -1776,24 +1819,24 @@ if [ -n "$waitcompute" ] ; then
     do_waitcompute
 fi
 
-if [ -n "$prepare_cloud4upgrade" ] ; then
-    prepare_cloud4upgrade
+if [ -n "$prepare_cloudupgrade" ] ; then
+    prepare_cloudupgrade
 fi
 
-if [ -n "$cloud4upgrade_1st" ] ; then
-    cloud4upgrade_1st
+if [ -n "$cloudupgrade_1st" ] ; then
+    cloudupgrade_1st
 fi
 
-if [ -n "$cloud4upgrade_2nd" ] ; then
-    cloud4upgrade_2nd
+if [ -n "$cloudupgrade_2nd" ] ; then
+    cloudupgrade_2nd
 fi
 
-if [ -n "$cloud4upgrade_clients" ] ; then
-    cloud4upgrade_clients
+if [ -n "$cloudupgrade_clients" ] ; then
+    cloudupgrade_clients
 fi
 
-if [ -n "$cloud4upgrade_reboot_and_redeploy_clients" ] ; then
-    cloud4upgrade_reboot_and_redeploy_clients
+if [ -n "$cloudupgrade_reboot_and_redeploy_clients" ] ; then
+    cloudupgrade_reboot_and_redeploy_clients
 fi
 
 set_proposalvars
