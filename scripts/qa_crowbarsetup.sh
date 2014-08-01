@@ -1187,7 +1187,9 @@ EOH
                     yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
                     yaml_mons=`echo $cephmons | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
                     yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+		    ceph_version=`rpm -q --qf %{version} ceph`
 
+		    sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
                     sed -i "/teuthida-4/d" yamldata/testcloud_sanity.yaml
                     for node in $yaml_allnodes; do
                         sed -i "/^allnodes:$/a - $node" yamldata/testcloud_sanity.yaml
