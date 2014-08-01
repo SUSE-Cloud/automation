@@ -144,6 +144,23 @@ function wait_for()
     fi
 }
 
+function wait_if_running()
+{
+    local procname=${1}
+    local timecount=${2:-300}
+
+    wait_for $timecount 5 "! pidof ${procname}" "process '${procname} didn't terminate on time"
+}
+
+function die()
+{
+    local exit_code=$1
+    shift
+    echo >&2
+    echo -e "$@" >&2;
+    exit $exit_code
+}
+
 function mount_localreposdir_target()
 {
     if [ -z "$localreposdir_target" ]; then
@@ -1629,6 +1646,9 @@ function prepare_cloudupgrade()
     rcchef-client stop
     killall chef-client
 
+    wait_if_running chef-client
+    wait_if_running zypper
+
     # Detect cloudversion
     if iscloudver 3; then
       update_version=4
@@ -1647,6 +1667,7 @@ function prepare_cloudupgrade()
     fi
 
     # Client nodes need to be up to date
+    wait_if_running zypper
     cloudupgrade_clients
 
     : ${susedownload:=download.nue.suse.com}
@@ -1661,13 +1682,19 @@ function prepare_cloudupgrade()
     add_mount "SUSE-Cloud-$update_version-Updates" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Updates/" "cloud$update_version-up"
     add_mount "SUSE-Cloud-$update_version-Pool" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version-POOL/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Pool/" "cloud$update_version-pool"
 
-    zypper --non-interactive refresh
-    zypper --non-interactive install suse-cloud-upgrade
+    zypper --non-interactive refresh || die 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
+    zypper --non-interactive install suse-cloud-upgrade || die 3 "Couldn't install suse-cloud-upgrade"
 
     # Upgrade suse-cloud-upgrade the latest git code (checked out and copied into
     # admin node by mkcloud)
-    cp ~/suse-cloud-upgrade/suse-cloud-upgrade /usr/sbin/
-    cp ~/suse-cloud-upgrade/lib/* /usr/lib/suse-cloud-upgrade/
+    # TODO: change to the packaged version
+    if [ -d ~/suse-cloud-upgrade ]; then
+      cp ~/suse-cloud-upgrade/suse-cloud-upgrade /usr/sbin/
+      cp ~/suse-cloud-upgrade/lib/* /usr/lib/suse-cloud-upgrade/
+    else
+      echo "We couldn't find a copy of suse-cloud-upgrade at ~/suse-cloud-upgrade" >&2
+      exit 5
+    fi
 }
 
 function cloudupgrade_1st()
