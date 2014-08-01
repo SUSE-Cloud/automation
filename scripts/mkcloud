@@ -63,13 +63,16 @@ declare -r SELF="$0"
 #        : device where a LVM physical volume can be created
 #        : should be at least 80 GB
 #        : the volume group will be called "cloud"
-#    cloudsource=develcloud2.0 | develcloud3 | develcloud4 | susecloud4 | Beta?  (no default)
+#    cloudsource=...  (no default)
 #        : defines the installation source
-#        : develcloud2.0 : product from IBS Devel:Cloud:2.0
-#        : develcloud3   : product from IBS Devel:Cloud:3
-#        : develcloud4   : product from IBS Devel:Cloud:4
-#        : susecloud4    : product from IBS SUSE:SLE....
-#        : Beta?         : uses official Beta? ISO image (? is a number)
+#        : develcloud4   : product from IBS Devel:Cloud:4:Staging
+#        : develcloud3   : product from IBS Devel:Cloud:3:Staging
+#        : develcloud2.0 : product from IBS Devel:Cloud:2.0:Staging
+#        : susecloud4    : product from IBS SUSE:SLE-11-SP3:Update:Cloud4:Test
+#        : susecloud3    : product from IBS SUSE:SLE-11-SP3:Update:Products:Test
+#        : susecloud2.0  : product from IBS SUSE:SLE-11-SP3:GA:Products:Test
+#        : Beta*|RC*|GMC*|GM4
+#                        : uses official Beta, RC, GMC or GM ISO image (* is a number)
 #
 #  Optional
 #    hacloud='' | 1  (default='')
