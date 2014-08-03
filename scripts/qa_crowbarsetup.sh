@@ -926,6 +926,10 @@ function custom_configuration()
             if [[ $all_with_ssl = 1 || $nova_with_ssl = 1 ]] ; then
                 enable_ssl_for_nova
             fi
+
+            if iscloudver 4plus ; then
+                proposal_set_value nova default "['attributes']['nova']['enable_v3_api']" "true"
+            fi
         ;;
         nova_dashboard)
             if [[ $all_with_ssl = 1 || $novadashboard_with_ssl = 1 ]] ; then
