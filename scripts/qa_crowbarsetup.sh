@@ -1126,9 +1126,11 @@ function get_ceph_nodes()
     if [[ -n "$wantceph" ]]; then
         cephmons=`crowbar ceph proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-mon']"`
         cephosds=`crowbar ceph proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-osd']"`
+        cephradosgws=`crowbar ceph proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-radosgw']"`
     else
         cephmons=
         cephosds=
+        cephradosgws=
     fi
 }
 
@@ -1148,12 +1150,13 @@ function do_testsetup()
         get_ceph_nodes
         echo "ceph mons:" $cephmons
         echo "ceph osds:" $cephosds
+        echo "ceph radosgw:" $cephradosgws
         iscloudver 4plus && wantcephtestsuite=1
     fi
 
     ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
         export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
-        export wantcephtestsuite=\"$wantcephtestsuite\" ; "'set -x
+        export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ; "'set -x
         . .openrc
         export LC_ALL=C
                 if [[ -n $wantswift ]] ; then
@@ -1187,6 +1190,12 @@ EOH
                     yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
                     yaml_mons=`echo $cephmons | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
                     yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+                    # for radosgw, we only want one node, so enforce that
+                    yaml_radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
+                    ceph_version=`rpm -q --qf %{version} ceph`
+
+                    sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
+                    sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
 
                     sed -i "/teuthida-4/d" yamldata/testcloud_sanity.yaml
                     for node in $yaml_allnodes; do
