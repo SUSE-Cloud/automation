@@ -1,49 +1,141 @@
 #!/bin/bash
-#
-# mkcloud - Setup a virtual cloud on one system (physical or even virtual)
-#
-# Authors: J. Daniel Schmidt <jdsn@suse.de>
-#          Bernhard M. Wiedemann <bwiedemann@suse.de>
-#
-# 2012, SUSE LINUX Products GmbH
-#
+# vim: sw=2 sts=2 ts=8 et fdm=marker cms=\ #\ %s
+# (C) 2014, SUSE LINUX Products GmbH
 
-# Quick introduction:
+declare -r SELF="$0"
+
+### usage # {{{
+# $0 - Setup a virtual cloud on one system (physical or even virtual)
 #
-# This tool relies on the script qa_crowbarsetup.sh (in the same directory)
-# Please 'export' environment variables according to your needs:
+# Usage:
 #
-# CVOL=/dev/vdx  (default=/dev/vdb)
-#       device where a LVM physical volume can be created
-#       should be at least 80 GB
-#       the volume group will be called "cloud"
+#   $0 -h             this banner
+#   $0 help-vars      configuration variables
+#   $0 help-commands  actions to be performed
+#   $0 help           complete help
+#   $0 <command>...
+### usage # }}}
+
+### cmds # {{{
+#  Commands:
 #
-# cloudsource=develcloud4|susecloud4|Beta?   (required, no default)
-#       defines the source for the installation of the cloud product
-#       develcloud2.0 : product from IBS Devel:Cloud:2.0
-#       develcloud3   : product from IBS Devel:Cloud:3
-#       develcloud4   : product from IBS Devel:Cloud:4
-#       susecloud4     : product from IBS SUSE:SLE....
-#       Beta?         : uses official Beta? ISO image (? is a number)
+#   'command' is one of:
 #
-# TESTHEAD=''|1   (default='')
-#                will use latest published packages from Devel:Cloud
-#                even if there is no new ISO created yet
+#    cleanup:       kill all running VMs, zero out boot sectors of all LVM volumes
+#    prepare:       create LVM volumes, setup libvirt networks
+#    setupadmin:    create the admin node and install the cloud product
+#    prepareinstcrowbar: add repos and install crowbar packages
+#    instcrowbar:   install crowbar and chef on the admin node
+#    setupcompute:  create the compute nodes and let crowbar discover them
+#    instcompute:   allocate and install compute nodes
+#    proposal:      create and apply proposals for default setup
+#    testsetup:     start a VM in the cloud
+#    addupdaterepo: addupdate repos defined in UPDATEREPOS= (URLs separated by '+')
+#    runupdate:     run zypper up on the crowbar node
+#                   (compute nodes are automaticallyupdated via chef run)
+#    rebootcrowbar: reboot the crowbar instance and wait for it being up
+#    rebootcompute: reboot the compute nodes and wait for them being up
+#    securitytests: install and run security test suite
+#    qa_test:       run the qa test suite
+#    help:          display builtin help
 #
-# cephvolumenumber (default 0)
-#                sets the number of 5GB ceph volumes that will be created per node
-#                for ceph testing
+#   Aggregate commands:
 #
-# nodenumber     (default 2)
-#                sets the number of nodes to be created
+#    all:           cleanup..instcrowbar rebootcrowbar setupcompute..testsetup rebootcompute
+#    all_noreboot:  cleanup..instcrowbar               setupcompute..testsetup
+#    plain:         cleanup..instcrowbar               setupcompute instcompute proposal
+#    instonly:      cleanup..instcrowbar               setupcompute instcompute
 #
-# vcpus          (default 1)
-#                sets the number of CPU cores assigned to each node (admin and compute)
+#   where
+#
+#    cleanup..instcrowbar:
+#       cleanup prepare setupadmin prepareinstcrowbar instcrowbar
+#    setupcompute..testsetup:
+#       setupcompute instcompute proposal testsetup
+#
+### cmds # }}}
+
+### vars # {{{
+#  Environment variables (need to be exported):
+#
+#  Mandatory
+#    CVOL=/dev/vdx (default /dev/vdb)
+#        : device where a LVM physical volume can be created
+#        : should be at least 80 GB
+#        : the volume group will be called "cloud"
+#    cloudsource=...  (no default)
+#        : defines the installation source
+#        : develcloud4   : product from IBS Devel:Cloud:4:Staging
+#        : develcloud3   : product from IBS Devel:Cloud:3:Staging
+#        : develcloud2.0 : product from IBS Devel:Cloud:2.0:Staging
+#        : susecloud4    : product from IBS SUSE:SLE-11-SP3:Update:Cloud4:Test
+#        : susecloud3    : product from IBS SUSE:SLE-11-SP3:Update:Products:Test
+#        : susecloud2.0  : product from IBS SUSE:SLE-11-SP3:GA:Products:Test
+#        : Beta*|RC*|GMC*|GM4
+#                        : uses official Beta, RC, GMC or GM ISO image (* is a number)
+#
+#  Optional
+#    hacloud='' | 1  (default='')
+#        : setup a high availability cloud, requires at least 6 nodes
+#    TESTHEAD='' | 1  (default='')
+#        : use media from Devel:Cloud:Staging even if there is no new ISO created yet
+#          and add test update repositories (except for GM* targets)
+#    cephvolumenumber  (default=0)
+#        : the number of 5GB ceph volumes that will be created per node
+#          note: proposal step does NOT contain a ceph proposal, do it manually
+#    nodenumber=2    (default 2)
+#        : set the number of nodes to be created (excl. admin node)
+#    vcpus=1         (default 1)
+#        : set the number of CPU cores per node (admin and compute)
+#    ADMIN_NODE_MEMORY (default 2097152)
+#        : Set the memory in KB assigned to admin node
+#    COMPUTE_NODE_MEMORY (default 2097152)
+#        : Set the memory in KB assigned to compute nodes
+#    networkingplugin
+#        : Set the networking plugin to be used by neutron (e.g. openvswitch),
+#          if it isn't defined the barclamp-neutron's default is used.
+#    networkingmode
+#        : Set the networking mode to be used by neutron (e.g. gre)
+#          if it isn't defined the barclamp-neutron's default is used.
+### vars # }}}
+
+function display-section() # {{{
+{
+    local -r s="${1?}" self=${SELF##*/}
+    sed -rnf - ${SELF} <<EOSED
+        /^### $s # \{{3}/,/^### $s # \}{3}/ {
+            s:\\\$0:$self:
+            s:^#( |$)::p
+        }
+EOSED
+} # }}}
+
+function display-usage() # {{{
+{
+    local fd=1 ex=${1:?}
+    (( ex )) && fd=2
+    display-section usage >&$fd
+    exit $ex
+} # }}}
+
+function display-help() # {{{
+{
+    local pg=cat ex=$1; shift
+    if (( 0 == $# )); then
+        set usage cmds vars
+        pg=${PAGER:-less}
+    fi
+    while (( $# )); do
+        display-section $1
+        shift
+        (( $# )) && echo
+    done | $pg
+    exit $ex
+} # }}}
 
 virtualcloud=${virtualcloud:-virtual}
 cloudfqdn=${cloudfqdn:-$virtualcloud.cloud.suse.de}
 forwardmode=${forwardmode:-nat}
-net_fixed=${net_fixed:-192.168.123}
 net_public=${net_public:-192.168.122}
 net_admin=${net_admin:-192.168.124}
 adminnetmask=${adminnetmask:-255.255.248.0}
@@ -62,8 +154,6 @@ cloudvg=${cloudvg:-$cloud}
 needcvol=1
 ADMIN_NODE_MEMORY=${ADMIN_NODE_MEMORY:-2097152}
 COMPUTE_NODE_MEMORY=${COMPUTE_NODE_MEMORY:-2097152}
-# pvlist is filled below
-pvlist=
 next_pv_device=
 pv_cur_device_no=0
 cloudbr=${cloudbr:-${cloud}br}
@@ -79,6 +169,13 @@ localreposdir_target=${localreposdir_target:-"/repositories"}
 
 trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
+
+function complain() # {{{
+{
+    local ex=$1; shift
+    printf "Error: %s\n" "$@" >&2
+    [[ $ex != - ]] && exit $ex
+} # }}}
 
 function show_environment()
 {
@@ -117,7 +214,7 @@ function error_exit()
     echo $message
     show_environment
     exit $exitcode
-}
+} >&2
 
 function wait_for()
 {
@@ -137,12 +234,10 @@ function wait_for()
     echo
 
     if [ $n = 0 ] ; then
-        echo "Error: Waiting for '$waitfor' timed out."
-        echo "This check was used: $condition"
-        exit 11
+        complain 11 "Waiting for '$waitfor' timed out." \
+            "This check was used: $condition"
     fi
 }
-
 
 function sshrun()
 {
@@ -217,6 +312,7 @@ function cleanup()
 
 function h_get_next_pv_device()
 {
+    local pvlist
     if [ -z "$pvlist" ] ; then
         pvlist=`pvs --sort -Free | awk '$2~/'$cloudvg'/{print $1}'`
         pv_cur_device_no=0
@@ -484,13 +580,11 @@ listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
     virsh net-start $cloud-admin
     if ! virsh define /tmp/$cloud-admin.xml ; then
         echo "=====================================================>>"
-        echo "Error: Could not define VM for: $cloud-admin"
-        exit 76
+        complain 76 "Could not define VM for: $cloud-admin"
     fi
     if ! virsh start $cloud-admin ; then
         echo "=====================================================>>"
-        echo "Error: Could not start VM for: $cloud-admin"
-        exit 76
+        complain 76 "Could not start VM for: $cloud-admin"
     fi
 
     wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
@@ -664,13 +758,11 @@ function setupcompute()
         virsh undefine $cloud-node$i 2>/dev/null
         if ! virsh define /tmp/$cloud-node$i.xml ; then
             echo "====>>"
-            echo "Error: Could not define VM for: node$i"
-            exit 74
+            complain 74 "Could not define VM for: node$i"
         fi
         if ! virsh start $cloud-node$i ; then
             echo "====>>"
-            echo "Error: Could not start VM for: node$i"
-            exit 74
+            complain 74 "Could not start VM for: node$i"
         fi
     done
     return 0
@@ -787,75 +879,6 @@ function crowbarrestore()
     return $ret
 }
 
-
-function usage()
-{
-    echo "Usage:"
-    echo "$0 <command> [<command>,...]"
-    echo
-    echo "  'command' is one of:"
-    echo "   all instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute"
-    echo "   instcompute proposal addupdaterepo runupdate testsetup rebootcrowbar "
-    echo "   rebootcompute help"
-    echo
-    echo "   all      -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
-    echo "   all_noreboot -> exp to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
-    echo "   plain    -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal"
-    echo "   instonly -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
-    echo
-    echo "   cleanup:       kill all running VMs, zero out boot sectors of all LVM volumes"
-    echo "   prepare:       create LVM volumes, setup libvirt networks"
-    echo "   setupadmin:    create the admin node and install the cloud product"
-    echo "   prepareinstcrowbar: add repos and install crowbar packages"
-    echo "   instcrowbar:   install crowbar and chef on the admin node"
-    echo "   setupcompute:  create the compute nodes and let crowbar discover them"
-    echo "   instcompute:   allocate and install compute nodes"
-    echo "   proposal:      create and apply proposals for default setup"
-    echo "   testsetup:     start a VM in the cloud"
-    echo "   addupdaterepo: addupdate repos defined in UPDATEREPOS= (URLs separated by '+')"
-    echo "   runupdate:     run zypper up on the crowbar node"
-    echo "                  (compute nodes are automaticallyupdated via chef run)"
-    echo "   rebootcrowbar: reboot the crowbar instance and wait for it being up"
-    echo "   rebootcompute: reboot the compute nodes and wait for them being up"
-    echo "   securitytests: install and run security test suite"
-    echo "   qa_test:       run the qa test suite"
-    echo "   help:          this usage"
-    echo
-    echo " Environment variables (need to be exported):"
-    echo
-    echo " Mandatory"
-    echo "   CVOL=/dev/vdx (default /dev/vdb)"
-    echo "       :  LVM will be created on this device (at least 80GB)"
-    echo "   cloudsource=develcloud2.0 | develcloud3 | develcloud4 | susecloud4 | Beta?  (default '')"
-    echo "       : defines the installation source"
-    echo
-    echo " Optional"
-    echo "   hacloud='' | 1  (default='')"
-    echo "       : setup a high availability cloud, requires at least 6 nodes"
-    echo "   TESTHEAD='' | 1  (default='')"
-    echo "       : use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)"
-    echo "   cephvolumenumber  (default=0)"
-    echo "       : the number of 5GB ceph volumes that will be created per node"
-    echo "         note: proposal step does NOT contain a ceph proposal, do it manually"
-    echo "   nodenumber=2    (default 2)"
-    echo "       : set the number of nodes to be created (excl. admin node)"
-    echo "   vcpus=1         (default 1)"
-    echo "       : set the number of CPU cores per node (admin and compute)"
-    echo "   ADMIN_NODE_MEMORY (default 2097152)"
-    echo "       : Set the memory in KB assigned to admin node"
-    echo "   COMPUTE_NODE_MEMORY (default 2097152)"
-    echo "       : Set the memory in KB assigned to compute nodes"
-    echo "   networkingplugin"
-    echo "       : Set the networking plugin to be used by neutron (e.g. openvswitch),"
-    echo "         if it isn't defined the barclamp-neutron's default is used."
-    echo "   networkingmode"
-    echo "       : Set the networking mode to be used by neutron (e.g. gre)"
-    echo "         if it isn't defined the barclamp-neutron's default is used."
-    echo
-    exit 1
-}
-
-
 function addupdaterepo()
 {
     sshrun "addupdaterepo=1 UPDATEREPOS=$UPDATEREPOS  bash -x qa_crowbarsetup.sh $virtualcloud"
@@ -868,26 +891,47 @@ function runupdate()
     return $?
 }
 
+function check-no-concurrency() # {{{
+{
+    while read ppid pid; do
+        (( $$ != $ppid )) || continue
+        (( $$ != $pid )) || continue
+        [[ -e /proc/$pid ]] || continue
+        declare -a cmdline=($(cat /proc/$pid/cmdline | tr '\0' '\n'))
+        (( 0 == ${#cmdline} )) && continue
+        if [[ "${cmdline[0]}" == "$SHELL" ]]; then
+            if [[ "${cmdline[1]##*/}" == "${SELF##*/}" ]]; then
+                complain - \
+                    "possibly concurrent use.  Allegedly infringing process:" \
+                    "pid=$pid cmdline=${cmdline[*]}"
+                return 1
+            fi
+        fi
+    done < <(ps -eo ppid= -o pid=)
+    return 0
+} # }}}
+
 function sanity_checks()
 {
-    if test `id -u` != 0 ; then
-        echo "Error: This script needs to be run as root"
-        echo "  Please be aware that this script will create a LVM"
-        echo "  and kill all current VMs on this host."
-        exit 1
+    if [ -z "$cloudsource" ] ; then
+        complain 1 "cloudsource is empty, run $SELF help-vars."
     fi
 
-    SCRIPT=$(basename $0)
-    PSFILE=`mktemp /tmp/mkcloud.XXXXXX`
-    ps ax > $PSFILE
-    if [ `grep -v -e grep -e SCREEN $PSFILE | grep $SCRIPT | wc -l` -gt 1 ]  ; then
-        echo "Error: mkcloud was started twice."
-        echo "if you are sure, that they do not conflict, export PARALLEL=yes"
-        echo
-        rm $PSFILE
-        [ "$PARALLEL" = "yes" ] || exit 33
+    if [ -n "$hacloud" ] ; then
+        if (( $nodenumber < 6 )) ; then
+            complain 1 "nodenumber is too low, run $SELF help-vars."
+        fi
     fi
-    rm $PSFILE
+
+    if test `id -u` != 0 ; then
+        complain 1 "This script needs to be run as root" \
+            "Please be aware that this script will create a LVM" \
+            "and kill all current VMs on this host."
+    fi
+
+    if [[ "$PARALLEL" != "yes" ]] && ! check-no-concurrency; then
+        complain 33 "export PARALLEL=yes if you are sure this is not a conflict."
+    fi
 
     # always fetch the latest version
     if [ -z "$NOQACROWBARDOWNLOAD" ] ; then
@@ -897,23 +941,8 @@ function sanity_checks()
     fi
 
     if [ ! -e qa_crowbarsetup.sh ] ; then
-        echo "Error: qa_crowbarsetup.sh not found in same directory"
-        echo "Please put the latest version of this script in the same directory."
-        exit 87
-    fi
-
-    if [ -z "$cloudsource" ] ; then
-        echo "Please set the env variable:"
-        echo "export cloudsource=Beta?|develcloud2.0|develcloud3|develcloud4|susecloud4"
-        exit 1
-    fi
-
-    if [ -n "$hacloud" ] ; then
-        if (( $nodenumber < 6 )) ; then
-            echo "Error: A HA cloud setup requires at least 6 nodes, you configured only: $nodenumber"
-            echo "Please raise the number of nodes via e.g. export nodenumber=6"
-            exit 1
-        fi
+        complain 87 "qa_crowbarsetup.sh not found in same directory" \
+            "Please put the latest version of this script in the same directory."
     fi
 
     vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
@@ -924,86 +953,128 @@ function sanity_checks()
             exit 92
         fi
         if [ ! -e $CVOL ] ; then
-            echo "Error: $CVOL does not exist."
-            echo "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx"
-            echo "Running 'partprobe' may help to let the device appear."
-            exit 93
+            complain 93 "$CVOL does not exist." \
+                "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx" \
+                "Running 'partprobe' may help to let the device appear."
         fi
     fi
 
     if [ -e /etc/init.d/SuSEfirewall2_init ] && rcSuSEfirewall2 status ; then
-        echo "Error: SuSEfirewall is running - it will interfere with the iptables rules done by libvirt"
-        echo "Please stop the SuSEfirewall completely and run mkcloud again"
-        echo "Run:  rcSuSEfirewall2 stop && insserv -r SuSEfirewall2_setup && insserv -r SuSEfirewall2_init"
-        exit 91
+        complain 91 "SuSEfirewall is running - it will interfere with the iptables rules done by libvirt" \
+            "Please stop the SuSEfirewall completely and run mkcloud again" \
+            "Run:  rcSuSEfirewall2 stop && insserv -r SuSEfirewall2_setup && insserv -r SuSEfirewall2_init"
     fi
 
     if grep "devpts.*[^x]mode=.00" /proc/mounts ; then
-        echo "Error: /dev/pts is not accessible for libvirt, maybe you use autobuild on your system."
-        echo "Please remount it using the following command:"
-        echo " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
-        exit 13
+        complain 13 "Error: /dev/pts is not accessible for libvirt, maybe you use autobuild on your system." \
+            "Please remount it using the following command:" \
+            " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
     fi
 }
 
-
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore qa_test help rebootneutron"
+allcmds=(
+    addupdaterepo all all_noreboot
+    cleanup crowbarbackup crowbarrestore
+    help
+    instcompute instcrowbar instcrowbarfromgit instonly
+    plain prepare prepareinstcrowbar proposal
+    qa_test
+    rebootcompute rebootcrowbar rebootneutron runupdate
+    securitytests setupadmin setupcompute
+    testsetup testupdate
+)
+
 wantedcmds=$@
-runcmds=''
+runcmds=()
+subcommands_all=(
+    cleanup
+    prepare setupadmin
+    addupdaterepo runupdate
+    prepareinstcrowbar instcrowbar
+    rebootcrowbar
+    setupcompute instcompute
+    proposal
+    testsetup
+    rebootcompute
+)
+subcommands_noreboot=(
+    ${subcommands_all[*]/#reboot*}
+)
+subcommands_plain=(
+    cleanup
+    prepare setupadmin
+    prepareinstcrowbar instcrowbar
+    setupcompute instcompute
+    proposal
+)
+subcommands_instonly=(
+    ${subcommands_plain[*]/#proposal%}
+)
+subcommands_testupdate=(
+    addupdaterepo runupdate testsetup
+)
 
 if [ -z "$wantedcmds" ] ; then
-    usage
+    display-usage 1
 fi
 
 # parse the commands and expand the aliases
 for cmd in $wantedcmds ; do
-    if [ "$cmd" = "help" -o "$cmd" = "--help" -o "$cmd" = "usage" ] ; then
-        usage
-    fi
+    case "$cmd" in
+    (-h | --help | usage)
+        display-usage 0
+    ;;
+    (help)
+        display-help 0
+    ;;
+    (help-cmds | help-vars)
+        display-help 0 ${cmd#help-}
+    ;;
+    esac
 
     ok=0
-    for onecmd in $allcmds ; do
+    for onecmd in ${allcmds[*]}; do
         if [ $onecmd = $cmd ] ; then
             ok=1
             case "$cmd" in
                 all)
-                    runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
+                    runcmds+=(${subcommands_all[*]})
                 ;;
                 all_noreboot)
-                    runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
+                    runcmds+=(${subcommands_noreboot[*]})
                 ;;
                 testupdate)
-                    runcmds="$runcmds addupdaterepo runupdate testsetup"
+                    runcmds+=(${subcommands_testupdate[*]})
                 ;;
                 plain)
-                    runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal"
+                    runcmds+=(${subcommands_plain[*]})
                 ;;
                 instonly)
-                    runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
+                    runcmds+=(${subcommands_instonly[*]})
                 ;;
                 *)
-                    runcmds="$runcmds $cmd"
+                    runcmds+=($cmd)
                 ;;
             esac
         fi
     done
 
     if [ $ok = 0 ] ; then
-        echo "Error: Command $cmd unknown."
-        usage
+        complain - "Command $cmd unknown."
+        display-usage 1
     fi
 done
 
 sanity_checks
 
 echo "You choose to run these mkcloud steps:"
-echo "  $runcmds"
+echo "  ${runcmds[*]}"
 echo
 sleep 2
 
-for cmd in `echo $runcmds` ; do
+for cmd in ${runcmds[*]} ; do
     echo
     echo "============> MKCLOUD STEP START: $cmd <============"
     echo
@@ -1012,12 +1083,11 @@ for cmd in `echo $runcmds` ; do
     ret=$?
     if [ $ret != 0 ] ; then
         echo
-        echo '$h1!!'
         echo "Error detected. Stopping mkcloud."
         echo "The step '$cmd' returned with exit code $ret"
         echo "Please refer to the $cmd function in this script when debugging the issue."
         error_exit $ret ""
-    fi
+    fi >&2
     echo
     echo "^^^^^^^^^^^^= MKCLOUD STEP DONE: $cmd =^^^^^^^^^^^^"
     echo
