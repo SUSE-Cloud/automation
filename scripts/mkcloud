@@ -891,6 +891,26 @@ function runupdate()
     return $?
 }
 
+function check-no-concurrency() # {{{
+{
+    while read ppid pid; do
+        (( $$ != $ppid )) || continue
+        (( $$ != $pid )) || continue
+        [[ -e /proc/$pid ]] || continue
+        declare -a cmdline=($(cat /proc/$pid/cmdline | tr '\0' '\n'))
+        (( 0 == ${#cmdline} )) && continue
+        if [[ "${cmdline[0]}" == "$SHELL" ]]; then
+            if [[ "${cmdline[1]##*/}" == "${SELF##*/}" ]]; then
+                complain - \
+                    "possibly concurrent use.  Allegedly infringing process:" \
+                    "pid=$pid cmdline=${cmdline[*]}"
+                return 1
+            fi
+        fi
+    done < <(ps -eo ppid= -o pid=)
+    return 0
+} # }}}
+
 function sanity_checks()
 {
     if [ -z "$cloudsource" ] ; then
@@ -909,17 +929,9 @@ function sanity_checks()
             "and kill all current VMs on this host."
     fi
 
-    SCRIPT=$(basename $0)
-    PSFILE=`mktemp /tmp/mkcloud.XXXXXX`
-    ps ax > $PSFILE
-    if [ `grep -v -e grep -e SCREEN $PSFILE | grep $SCRIPT | wc -l` -gt 1 ]  ; then
-        complain - "mkcloud was started twice." \
-            "if you are sure, that they do not conflict, export PARALLEL=yes" \
-            ""
-        rm $PSFILE
-        [ "$PARALLEL" = "yes" ] || exit 33
+    if [[ "$PARALLEL" != "yes" ]] && ! check-no-concurrency; then
+        complain 33 "export PARALLEL=yes if you are sure this is not a conflict."
     fi
-    rm $PSFILE
 
     # always fetch the latest version
     if [ -z "$NOQACROWBARDOWNLOAD" ] ; then
