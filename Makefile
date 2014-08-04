@@ -5,5 +5,6 @@ test:
 
 # for travis-CI:
 install:
+	sudo apt-get update -qq
 	sudo apt-get -y install libxml-libxml-perl libjson-xs-perl
 	sudo pip install bash8
