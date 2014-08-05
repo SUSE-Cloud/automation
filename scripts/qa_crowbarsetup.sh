@@ -1218,7 +1218,7 @@ EOH
 
                     if ! rpm -q python-nose &> /dev/null; then
                         zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
-                        zypper -n install python-nose
+                        zypper -n --gpg-auto-import-keys --no-gpg-checks install python-nose
                         zypper rr Devel_Cloud_Shared_11-SP3_Update
                     fi
 
