@@ -1338,9 +1338,12 @@ EOH
         sleep 15
         ssh $vmip fdisk -l /dev/vdb | grep 1073741824
         volumeattachret=$?
+        rand=$RANDOM
+        ssh $vmip "mkfs.ext3 /dev/vdb && mount /dev/vdb /mnt && echo $rand > /mnt/test.txt && umount /mnt"
         nova volume-detach "$instanceid" "$volumeid" ; sleep 10
         nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
         ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
+        ssh $vmip "mount /dev/vdb /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
         nova stop testvm
         test $cephret = 0 -a $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0
     '
