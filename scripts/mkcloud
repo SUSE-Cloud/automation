@@ -802,8 +802,8 @@ function usage()
     echo "   instcompute proposal addupdaterepo runupdate testsetup rebootcrowbar "
     echo "   rebootcompute help"
     echo
-    echo "   all      -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
-    echo "   all_noreboot -> exp to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
+    echo "   all      -> expands to: cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
+    echo "   all_noreboot -> exp to: cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
     echo "   plain    -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal"
     echo "   instonly -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
     echo
