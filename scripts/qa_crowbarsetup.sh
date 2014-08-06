@@ -1157,11 +1157,15 @@ function do_testsetup()
         echo "ceph osds:" $cephosds
         echo "ceph radosgw:" $cephradosgws
         iscloudver 4plus && wantcephtestsuite=1
+        if [ -n "$cephradosgws" ] ; then
+            wantradosgwtest=1
+        fi
     fi
 
     ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
         export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
-        export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ; "'set -x
+        export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
+        export wantradosgwtest=\"$wantradosgwtest\" ; "'set -x
         . .openrc
         export LC_ALL=C
                 if [[ -n $wantswift ]] ; then
@@ -1169,6 +1173,71 @@ function do_testsetup()
                     swift stat
                     swift upload container1 .ssh/authorized_keys
                     swift list container1 || exit 33
+                fi
+
+                radosgwret=0
+                if [ "$wantradosgwtest" == 1 ] ; then
+
+                    zypper -n install python-swiftclient
+
+                    if ! swift post swift-test; then
+                        echo "creating swift container failed"
+                        radosgwret=1
+                    fi
+
+                    if [ "$radosgwret" == 0 ] ; then
+                        if ! swift list|grep -q swift-test; then
+                            echo "swift-test container not found"
+                            radosgwret=2
+                        fi
+                    fi
+
+                    if [ "$radosgwret" == 0 ] ; then
+                        if ! swift delete swift-test; then
+                            echo "deleting swift-test container failed"
+                            radosgwret=3
+                        fi
+                    fi
+
+                    if [ "$radosgwret" == 0 ] ; then
+                        # verify file content after uploading & downloading
+                        swift upload swift-test .ssh/authorized_keys
+                        swift download --output .ssh/authorized_keys-downloaded swift-test .ssh/authorized_keys
+                        old_sum=`sha1sum .ssh/authorized_keys| cut -f 1 -d " "`
+                        new_sum=`sha1sum .ssh/authorized_keys-downloaded| cut -f 1 -d " "`
+                        if [ "$old_sum" != "$new_sum" ]; then
+                            echo "file is different content after download"
+                            radosgwret=4
+                        fi
+                    fi
+
+                    if [ "$radosgwret" == 0 ] ; then
+                        radosgw-admin user create --uid=rados --display-name=RadosGW --secret="secret" --access-key="access"
+
+                        # test S3 access using python API
+                        # using curl directly is complicated, see http://ceph.com/docs/master/radosgw/s3/authentication/
+                        zypper -n install python-boto
+                        python << EOF
+import boto
+import boto.s3.connection
+
+conn = boto.connect_s3(
+    aws_access_key_id = "access",
+    aws_secret_access_key = "secret",
+    host = "localhost",
+    port = 8080,
+    is_secure=False,
+    calling_format = boto.s3.connection.OrdinaryCallingFormat()
+)
+bucket = conn.create_bucket("test-s3-bucket")
+EOF
+
+                        # check if test bucket exists using radosgw-admin API
+                        if ! radosgw-admin bucket list|grep -q test-s3-bucket ; then
+                            echo "test-s3-bucket not found"
+                            radosgwret=5
+                        fi
+                    fi
                 fi
 
                 cephret=0
@@ -1345,7 +1414,7 @@ EOH
         ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
         ssh $vmip "mount /dev/vdb /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
         nova stop testvm
-        test $cephret = 0 -a $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0
+        test $cephret = 0 -a $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0
     '
     ret=$?
     echo ret:$ret
