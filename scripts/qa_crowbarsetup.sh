@@ -1203,9 +1203,7 @@ function do_testsetup()
                         # verify file content after uploading & downloading
                         swift upload swift-test .ssh/authorized_keys
                         swift download --output .ssh/authorized_keys-downloaded swift-test .ssh/authorized_keys
-                        old_sum=`sha1sum .ssh/authorized_keys| cut -f 1 -d " "`
-                        new_sum=`sha1sum .ssh/authorized_keys-downloaded| cut -f 1 -d " "`
-                        if [ "$old_sum" != "$new_sum" ]; then
+                        if ! cmp .ssh/authorized_keys .ssh/authorized_keys-downloaded; then
                             echo "file is different content after download"
                             radosgwret=4
                         fi
