@@ -144,7 +144,7 @@ function wait_for()
     fi
 }
 
-function wait_if_running()
+function wait_for_if_running()
 {
     local procname=${1}
     local timecount=${2:-300}
@@ -346,40 +346,9 @@ function h_prepare_cloud_repos()
     zypper ar -f ${targetdir} Cloud
 }
 
-function prepareinstallcrowbar()
+
+function h_set_source_variables()
 {
-    echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
-    cat > /etc/sysconfig/network/ifcfg-eth0 <<EOF
-NAME='eth0'
-STARTMODE='auto'
-BOOTPROTO='static'
-IPADDR='$net.10'
-NETMASK='255.255.255.0'
-BROADCAST='$net.255'
-EOF
-    ifdown br0
-    rm -f /etc/sysconfig/network/ifcfg-br0
-    grep -q "^default" /etc/sysconfig/network/routes || echo "default $net.1 - -" > /etc/sysconfig/network/routes
-    echo "crowbar.$cloudfqdn" > /etc/HOSTNAME
-    hostname `cat /etc/HOSTNAME`
-    # these vars are used by rabbitmq
-    export HOSTNAME=`cat /etc/HOSTNAME`
-    export HOST=$HOSTNAME
-    grep -q "$net.*crowbar" /etc/hosts || echo $net.10 crowbar.$cloudfqdn crowbar >> /etc/hosts
-    rcnetwork restart
-    hostname -f # make sure it is a FQDN
-    ping -c 1 `hostname -f`
-    longdistance=${longdistance:-false}
-    if [[ $(ping -q -c1 clouddata.cloud.suse.de|perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') -gt 100 ]] ; then
-        longdistance=true
-    fi
-
-    if [ -n "${localreposdir_target}" ]; then
-        for x in `seq 1 10` ; do
-            zypper rr 1
-        done
-    fi
-
     suseversion=11.3
     : ${susedownload:=download.nue.suse.com}
     case "$cloudsource" in
@@ -447,6 +416,46 @@ EOF
             slesmilestone=GM
         ;;
     esac
+
+
+}
+
+
+function prepareinstallcrowbar()
+{
+    echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
+    cat > /etc/sysconfig/network/ifcfg-eth0 <<EOF
+NAME='eth0'
+STARTMODE='auto'
+BOOTPROTO='static'
+IPADDR='$net.10'
+NETMASK='255.255.255.0'
+BROADCAST='$net.255'
+EOF
+    ifdown br0
+    rm -f /etc/sysconfig/network/ifcfg-br0
+    grep -q "^default" /etc/sysconfig/network/routes || echo "default $net.1 - -" > /etc/sysconfig/network/routes
+    echo "crowbar.$cloudfqdn" > /etc/HOSTNAME
+    hostname `cat /etc/HOSTNAME`
+    # these vars are used by rabbitmq
+    export HOSTNAME=`cat /etc/HOSTNAME`
+    export HOST=$HOSTNAME
+    grep -q "$net.*crowbar" /etc/hosts || echo $net.10 crowbar.$cloudfqdn crowbar >> /etc/hosts
+    rcnetwork restart
+    hostname -f # make sure it is a FQDN
+    ping -c 1 `hostname -f`
+    longdistance=${longdistance:-false}
+    if [[ $(ping -q -c1 clouddata.cloud.suse.de|perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') -gt 100 ]] ; then
+        longdistance=true
+    fi
+
+    if [ -n "${localreposdir_target}" ]; then
+        for x in `seq 1 10` ; do
+            zypper rr 1
+        done
+    fi
+
+    h_set_source_variables
 
     zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ sles
 
@@ -1646,31 +1655,26 @@ function prepare_cloudupgrade()
     rcchef-client stop
     killall chef-client
 
-    wait_if_running chef-client
-    wait_if_running zypper
+    wait_for_if_running chef-client
+    wait_for_if_running zypper
 
-    # Detect cloudversion
+    # Detect upgrade target
     if iscloudver 3; then
-      update_version=4
-      touch ~/update-to-4
-    fi
-    if iscloudver 4; then
-      update_version=5
-      touch ~/update-to-5
-    fi
-
-    # TODO: Break if updateversion does not exist
-    # TODO: Make this better:
-    if [[ $update_version = 5  ]]; then
-      echo "Update target does not yet exist"
-      exit 1
+        update_version=4
+	export cloudsource=${cloudsource/3/4}
+    else
+        echo "Update target does not exist"
+        exit 1
     fi
 
     # Client nodes need to be up to date
-    wait_if_running zypper
+    wait_for_if_running zypper
     cloudupgrade_clients
 
-    : ${susedownload:=download.nue.suse.com}
+    h_set_source_variables
+
+
+  : ${susedownload:=download.nue.suse.com}
     CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud$update_version:/Test/images/iso
     CLOUDDISTISO="S*-CLOUD*Media1.iso"
     CLOUDLOCALREPOS="SUSE-Cloud-$update_version-official"
@@ -1682,6 +1686,8 @@ function prepare_cloudupgrade()
     add_mount "SUSE-Cloud-$update_version-Updates" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Updates/" "cloud$update_version-up"
     add_mount "SUSE-Cloud-$update_version-Pool" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version-POOL/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Pool/" "cloud$update_version-pool"
 
+    sleep 20
+
     zypper --non-interactive refresh || die 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
     zypper --non-interactive install suse-cloud-upgrade || die 3 "Couldn't install suse-cloud-upgrade"
 
@@ -1689,11 +1695,11 @@ function prepare_cloudupgrade()
     # admin node by mkcloud)
     # TODO: change to the packaged version
     if [ -d ~/suse-cloud-upgrade ]; then
-      cp ~/suse-cloud-upgrade/suse-cloud-upgrade /usr/sbin/
-      cp ~/suse-cloud-upgrade/lib/* /usr/lib/suse-cloud-upgrade/
+        cp ~/suse-cloud-upgrade/suse-cloud-upgrade /usr/sbin/
+        cp ~/suse-cloud-upgrade/lib/* /usr/lib/suse-cloud-upgrade/
     else
-      echo "We couldn't find a copy of suse-cloud-upgrade at ~/suse-cloud-upgrade" >&2
-      exit 5
+        echo "We couldn't find a copy of suse-cloud-upgrade at ~/suse-cloud-upgrade" >&2
+        exit 5
     fi
 }
 
@@ -1702,8 +1708,8 @@ function cloudupgrade_1st()
     # Disable all openstack proposals stop service on the client
     echo 'y' | suse-cloud-upgrade upgrade
     if [[ $? != 0 ]]; then
-      echo "Upgrade failed with $?"
-      exit $?
+        echo "Upgrade failed with $?"
+        exit $?
     fi
 }
 
@@ -1713,10 +1719,17 @@ function cloudupgrade_2nd()
     zypper --non-interactive up -l
     echo -n "This cloud was upgraded from : " | cat - /etc/cloudversion >> /etc/motd
 
+    # Install new barclamps
+    if iscloudver 3; then
+        for i in crowbar-barclamp-trove crowbar-barclamp-tempest; do
+            zypper --non-interactive install $i
+        done
+    fi
+
     echo 'y' | suse-cloud-upgrade upgrade
     if [[ $? != 0 ]]; then
-      echo "Upgrade failed with $?"
-      exit $?
+        echo "Upgrade failed with $?"
+        exit $?
     fi
     crowbar provisioner proposal commit default
 }
@@ -1756,14 +1769,12 @@ function cloudupgrade_reboot_and_redeploy_clients()
         for proposal in $applied_proposals; do
             echo "Commiting proposal $proposal of barclamp ${barclamp}..."
             crowbar "$barclamp" proposal commit "$proposal"
-	    if [[ $? != 0 ]]; then
-	      exit 30
-	    fi
+            if [[ $? != 0 ]]; then
+                exit 30
+            fi
         done
     done
 
-    # We can now safely restart chef-client
-    rcchef-client start
 
     # TODO: restart any suspended instance?
 }
