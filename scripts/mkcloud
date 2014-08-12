@@ -159,6 +159,7 @@ function sshrun()
         export libvirt_type=$libvirt_type ;
         export net_admin=$net_admin ;
         export net_public=$net_public ;
+        export net_fixed=$net_fixed ;
         export networkingplugin=$networkingplugin ;
         export networkingmode=$networkingmode ;
         export nodenumber=$nodenumber ;
