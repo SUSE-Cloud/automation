@@ -574,6 +574,7 @@ EOF
 function do_installcrowbar()
 {
     local instcmd=$1
+    cd /root # we expect the screenlog.0 file here
     echo "Command to install chef: $instcmd"
     intercept "install-chef-suse.sh"
 
