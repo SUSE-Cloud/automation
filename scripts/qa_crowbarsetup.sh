@@ -1706,6 +1706,81 @@ function securitytests()
     return $ret
 }
 
+function prepare_cloud4upgrade()
+{
+    # TODO: All running cloud instances should be suspended here
+
+    : ${susedownload:=download.nue.suse.com}
+    CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud4:/Test/images/iso
+    CLOUDDISTISO="S*-CLOUD*Media1.iso"
+    CLOUDLOCALREPOS="SUSE-Cloud-4-official"
+
+    # recreate the SUSE-Cloud Repo with the latest Cloud 4 iso
+    h_prepare_cloud_repos
+
+    # add new Cloud 4 Update and Pool Channels
+    add_mount "SUSE-Cloud-4-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' "/srv/tftpboot/repos/SUSE-Cloud-4-Updates/" "cloud4up"
+    add_mount "SUSE-Cloud-4-Pool" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4-POOL/' "/srv/tftpboot/repos/SUSE-Cloud-4-Pool/" "cloud4pool"
+
+    zypper --non-interactive refresh
+    zypper --non-interactive install suse-cloud-upgrade
+
+    # Upgrade suse-cloud-upgrade to the latest git code (checked out and
+    # copied into admin node by mkcloud)
+    cp ~/suse-cloud-upgrade/suse-cloud-upgrade /usr/sbin/
+    cp ~/suse-cloud-upgrade/lib/* /usr/lib/suse-cloud-upgrade/
+}
+
+function cloud4upgrade_1st()
+{
+    # Disable all openstack proposals stop service on the client
+    echo 'y' | suse-cloud-upgrade upgrade
+}
+
+function cloud4upgrade_2nd()
+{
+    # Upgrade Admin node
+    zypper --non-interactive up -l
+    echo 'y' | suse-cloud-upgrade upgrade
+    crowbar provisioner proposal commit default
+}
+
+function cloud4upgrade_clients()
+{
+    # Upgrade Packages on the client nodes
+    crowbar updater proposal create default
+    proposal_set_value updater default "['attributes']['updater']['zypper']['method']" "'update'"
+    proposal_set_value updater default "['attributes']['updater']['zypper']['licenses_agree']" "true"
+    crowbar updater proposal commit default
+}
+
+function cloud4upgrade_reboot_and_redeploy_clients()
+{
+    local barclamp=""
+    local proposal=""
+    local applied_proposals=""
+    # reboot client nodes
+    echo 'y' | suse-cloud-upgrade reboot-nodes
+
+    # Give it some time and wait for the nodes to be back
+    sleep 60
+    waitnodes nodes
+
+    # reenable and apply the openstack propsals
+    for barclamp in pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat trove tempest; do
+        applied_proposals=$(crowbar "$barclamp" proposal list )
+        if test "$applied_proposals" == "No current proposals"; then
+            continue
+        fi
+
+        for proposal in $applied_proposals; do
+            echo "Commiting proposal $proposal of barclamp ${barclamp}..."
+            crowbar "$barclamp" proposal commit "$proposal"
+        done
+    done
+
+    # TODO: restart any suspended instance?
+}
 
 function qa_test()
 {
@@ -1783,6 +1858,26 @@ fi
 
 if [ -n "$waitcompute" ] ; then
     do_waitcompute
+fi
+
+if [ -n "$prepare_cloud4upgrade" ] ; then
+    prepare_cloud4upgrade
+fi
+
+if [ -n "$cloud4upgrade_1st" ] ; then
+    cloud4upgrade_1st
+fi
+
+if [ -n "$cloud4upgrade_2nd" ] ; then
+    cloud4upgrade_2nd
+fi
+
+if [ -n "$cloud4upgrade_clients" ] ; then
+    cloud4upgrade_clients
+fi
+
+if [ -n "$cloud4upgrade_reboot_and_redeploy_clients" ] ; then
+    cloud4upgrade_reboot_and_redeploy_clients
 fi
 
 set_proposalvars
