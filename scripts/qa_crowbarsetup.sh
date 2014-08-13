@@ -1191,18 +1191,14 @@ function do_testsetup()
                         radosgwret=1
                     fi
 
-                    if [ "$radosgwret" == 0 ] ; then
-                        if ! swift list|grep -q swift-test; then
-                            echo "swift-test container not found"
-                            radosgwret=2
-                        fi
+                    if [ "$radosgwret" == 0 ] && ! swift list|grep -q swift-test; then
+                        echo "swift-test container not found"
+                        radosgwret=2
                     fi
 
-                    if [ "$radosgwret" == 0 ] ; then
-                        if ! swift delete swift-test; then
-                            echo "deleting swift-test container failed"
-                            radosgwret=3
-                        fi
+                    if [ "$radosgwret" == 0 ] && ! swift delete swift-test; then
+                        echo "deleting swift-test container failed"
+                        radosgwret=3
                     fi
 
                     if [ "$radosgwret" == 0 ] ; then
