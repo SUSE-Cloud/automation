@@ -1160,6 +1160,7 @@ function do_testsetup()
     wantcephtestsuite=0
     if [[ -n "$wantceph" ]]; then
         get_ceph_nodes
+        [ "$cephradosgws" = nil ] && cephradosgws=""
         echo "ceph mons:" $cephmons
         echo "ceph osds:" $cephosds
         echo "ceph radosgw:" $cephradosgws
