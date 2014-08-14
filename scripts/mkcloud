@@ -633,14 +633,27 @@ EOLIBVIRT
     fi
 }
 
-
-function setupcompute()
+function setuppublicnet()
 {
     # workaround https://bugzilla.novell.com/show_bug.cgi?id=845496
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
     # public = 300
     mkvlan 300 $net_public.1
+}
 
+function restartcloud()
+{
+    virsh net-start $cloud-admin
+    virsh start $cloud-admin
+    setuppublicnet
+    for i in $allnodeids ; do
+        virsh start $cloud-node$i
+    done
+}
+
+function setupcompute()
+{
+    setuppublicnet
     alldevices=$(echo {b..z} {a..z}{a..z})
     for i in $allnodeids ; do
         c=1
@@ -821,6 +834,7 @@ function usage()
     echo "                  (compute nodes are automaticallyupdated via chef run)"
     echo "   rebootcrowbar: reboot the crowbar instance and wait for it being up"
     echo "   rebootcompute: reboot the compute nodes and wait for them being up"
+    echo "   restartcloud:  start a pre-existing cloud again after host reboot"
     echo "   securitytests: install and run security test suite"
     echo "   qa_test:       run the qa test suite"
     echo "   help:          this usage"
@@ -955,7 +969,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore qa_test help rebootneutron"
+allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore restartcloud qa_test help rebootneutron"
 wantedcmds=$@
 runcmds=''
 
