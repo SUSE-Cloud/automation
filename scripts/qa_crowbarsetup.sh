@@ -1308,8 +1308,8 @@ EOH
                     pushd /var/lib/openstack-tempest-test
                     ./run_tempest.sh -N $tempestoptions
                     tempestret=$?
+                    ./bin/tempest_cleanup.sh || :
                     popd
-                    /opt/tempest/bin/tempest_cleanup.sh || :
                 fi
         nova list
         glance image-list
