@@ -713,7 +713,7 @@ function allocate()
 
 function sshtest()
 {
-    perl -e "alarm 10 ; exec qw{ssh -o NumberOfPasswordPrompts=0 -o StrictHostKeyChecking=no}, @ARGV" "$@"
+    timeout 10 ssh -o NumberOfPasswordPrompts=0 -o StrictHostKeyChecking=no "$@"
 }
 
 function ssh_password()
