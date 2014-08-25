@@ -1309,6 +1309,7 @@ EOH
                     imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
                     crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
                     pushd /var/lib/openstack-tempest-test
+                    echo 1 > /proc/sys/kernel/sysrq
                     ./run_tempest.sh -N $tempestoptions
                     tempestret=$?
                     ./bin/tempest_cleanup.sh || :
