@@ -1272,6 +1272,8 @@ EOH
 
                     sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
                     sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
+                    # client node is the same as the rados gw node, to make our life easier
+                    sed -i "s/^clientnode:.*/clientnode: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
 
                     sed -i "/teuthida-4/d" yamldata/testcloud_sanity.yaml
                     for node in $yaml_allnodes; do
