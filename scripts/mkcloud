@@ -475,13 +475,13 @@ function setupadmin()
     modprobe kvm-intel
     # needed for HA/STONITH via libvirtd:
     if ! grep -q ^listen_tcp /etc/libvirt/libvirtd.conf ; then
+        service libvirtd stop
         echo 'auth_tcp = "none"
 listen_tcp = 1
 listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
-        rclibvirtd restart
     fi
-    insserv libvirtd
-    rclibvirtd start
+    chkconfig --add libvirtd
+    service libvirtd start
     wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 
     if ! virsh net-dumpxml $cloud-admin > /dev/null 2>&1; then
