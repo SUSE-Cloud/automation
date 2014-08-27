@@ -66,6 +66,7 @@ cloud=${cloud:-cloud}
 cloudvg=${cloudvg:-$cloud}
 needcvol=1
 ADMIN_NODE_MEMORY=${ADMIN_NODE_MEMORY:-2097152}
+CONTROLLER_NODE_MEMORY=${COMPUTE_NODE_MEMORY:-4194304}
 COMPUTE_NODE_MEMORY=${COMPUTE_NODE_MEMORY:-2097152}
 # pvlist is filled below
 pvlist=
@@ -577,12 +578,14 @@ function h_create_libvirt_computenode_config()
     cephvolume="$4"
     nicmodel=virtio
     [ "$libvirt_type" = "xen" ] && nicmodel=e1000
+    nodememory=$COMPUTE_NODE_MEMORY
+    [ "$nodecounter" = "1" ] && nodememory=$CONTROLLER_NODE_MEMORY
 
     cat > $nodeconfigfile <<EOLIBVIRT
 <domain type='kvm'>
   <name>$cloud-node$nodecounter</name>
-  <memory>$COMPUTE_NODE_MEMORY</memory>
-  <currentMemory>$COMPUTE_NODE_MEMORY</currentMemory>
+  <memory>$nodememory</memory>
+  <currentMemory>$nodememory</currentMemory>
   <vcpu>$vcpus</vcpu>
   <os>
     <type arch='x86_64' machine='pc-0.14'>hvm</type>
@@ -862,7 +865,7 @@ function usage()
     echo "   TESTHEAD='' | 1  (default='')"
     echo "       : use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)"
     echo "   cephvolumenumber  (default=0)"
-    echo "       : the number of 5GB ceph volumes that will be created per node"
+    echo "       : the number of 11GB ceph volumes that will be created per node"
     echo "         note: proposal step does NOT contain a ceph proposal, do it manually"
     echo "   nodenumber=2    (default 2)"
     echo "       : set the number of nodes to be created (excl. admin node)"
@@ -872,6 +875,8 @@ function usage()
     echo "       : set the number of CPU cores for admin node"
     echo "   ADMIN_NODE_MEMORY (default 2097152)"
     echo "       : Set the memory in KB assigned to admin node"
+    echo "   CONTROLLER_NODE_MEMORY (default 4194304)"
+    echo "       : Set the memory in KB assigned to compute nodes"
     echo "   COMPUTE_NODE_MEMORY (default 2097152)"
     echo "       : Set the memory in KB assigned to compute nodes"
     echo "   networkingplugin"
