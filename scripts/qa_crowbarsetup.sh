@@ -254,7 +254,7 @@ function iscloudvertest()
 function iscloudvertest2()
 {
     local cloudsource
-    for cloudsource in susecloud2.0 develcloud3 develcloud4 ; do
+    for cloudsource in susecloud2.0 develcloud3 develcloud4 develcloud5; do
         echo "cloudsource=$cloudsource"
         iscloudvertest
     done
@@ -279,6 +279,11 @@ function addcloud3testupdates()
 function addcloud4testupdates()
 {
     add_mount "SUSE-Cloud-4-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' "/srv/tftpboot/repos/SUSE-Cloud-4-Updates/" "cloudtup"
+}
+
+function addcloud5testupdates()
+{
+    add_mount "SUSE-Cloud-5-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/5/' "/srv/tftpboot/repos/SUSE-Cloud-5-Updates/" "cloudtup"
 }
 
 function add_ha_repo()
@@ -384,6 +389,12 @@ EOF
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-devel"
         ;;
+        develcloud5)
+            CLOUDDISTPATH=/ibs/Devel:/Cloud:/5/images/iso
+            [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/5:/Staging/images/iso
+            CLOUDDISTISO="S*-CLOUD*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-5-devel"
+        ;;
         susecloud2.0)
             CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/GA:/Products:/Test/images/iso
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
@@ -417,7 +428,7 @@ EOF
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
         ;;
         *)
-            echo "Error: you must set environment variable cloudsource=develcloud4|susecloud4|GM3"
+            echo "Error: you must set environment variable cloudsource=develcloud4|develcloud5|susecloud4|GM3"
             exit 76
         ;;
     esac
@@ -463,6 +474,9 @@ EOF
                 addcloud4testupdates
                 ;;
             develcloud4)
+                addsp3testupdates
+                ;;
+            develcloud5)
                 addsp3testupdates
                 ;;
             GM2.0)
