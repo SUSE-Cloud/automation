@@ -642,6 +642,14 @@ function setuppublicnet()
     mkvlan 300 $net_public.1
 }
 
+function shutdowncloud()
+{
+    virsh shutdown $cloud-admin
+    for i in $allnodeids ; do
+        virsh shutdown $cloud-node$i
+    done
+}
+
 function restartcloud()
 {
     virsh net-start $cloud-admin
@@ -983,7 +991,7 @@ function sanity_checks()
 
 ## MAIN ##
 
-allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore restartcloud qa_test help rebootneutron"
+allcmds="all all_noreboot instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron"
 wantedcmds=$@
 runcmds=''
 
