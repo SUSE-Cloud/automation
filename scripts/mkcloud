@@ -726,7 +726,9 @@ function proposal()
 function testsetup()
 {
     sshrun "testsetup=1 bash -x qa_crowbarsetup.sh $virtualcloud"
-    return $?
+    local ret=$?
+    $scp root@$adminip:tempest.log "$artifacts_dir/tempest.log"
+    return $ret
 }
 
 function rebootcrowbar()

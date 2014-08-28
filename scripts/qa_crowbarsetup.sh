@@ -1324,8 +1324,8 @@ EOH
                     crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
                     pushd /var/lib/openstack-tempest-test
                     echo 1 > /proc/sys/kernel/sysrq
-                    ./run_tempest.sh -N $tempestoptions
-                    tempestret=$?
+                    ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
+                    tempestret=${PIPESTATUS[0]}
                     ./bin/tempest_cleanup.sh || :
                     popd
                 fi
@@ -1437,6 +1437,9 @@ EOH
     '
     ret=$?
     echo ret:$ret
+    if [ "$wanttempest" = "1" ]; then
+        scp $novacontroller:"/var/lib/openstack-tempest-test/tempest.log" .
+    fi
     exit $ret
 }
 
