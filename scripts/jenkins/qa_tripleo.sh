@@ -24,6 +24,7 @@ $zypper in diskimage-builder tripleo-image-elements tripleo-heat-templates
 
 ## setup some useful defaults
 export NODE_ARCH=amd64
+export TRIPLEO_TEST=undercloud
 export TE_DATAFILE=/opt/stack/new/testenv.json
 
 # temporary hacks delete me
@@ -81,7 +82,7 @@ if [ ! -d /opt/stack/new/tripleo-incubator ]; then
 fi
 
 
-if [ ! -f /opt/stack/new/testenv.json ]; then
+if [ ! -f $TE_DATAFILE ]; then
 
     # This should be part of the devtest scripts imho, but
     # currently isn't.
@@ -98,7 +99,7 @@ if [ ! -f /opt/stack/new/testenv.json ]; then
 
         setup-seed-vm -a $NODE_ARCH
 
-        create-nodes 1 2048 20 amd64 4 brbm
+        create-nodes 1 2048 20 amd64 4 brbm 192.168.122.1 $TE_DATAFILE
     )
 
     NODEMACS=
