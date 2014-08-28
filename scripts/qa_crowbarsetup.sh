@@ -1433,6 +1433,12 @@ EOH
         ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
         ssh $vmip "mount /dev/vdb /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
         nova stop testvm
+
+        echo "Ceph Tests: $cephret"
+        echo "RadosGW Tests: $radosgwret"
+        echo "Tempest: $tempestret"
+        echo "Volume in VM: $volumecreateret & $volumeattachret"
+
         test $cephret = 0 -a $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0
     '
     ret=$?
