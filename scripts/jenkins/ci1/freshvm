@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# Note: very specific to ci1-opensuse.suse.de
+
+n=$1
+if [ -z "$n" ] ; then
+        echo "usage: $0 <vmname> [ flavor ]"
+        exit 1
+fi
+
+if [[ "$n" != cleanvm ]] ; then
+        echo "bad VM name"
+        exit 2
+fi
+
+if [ -n "$2" -a -f /mnt/ssd/images/$2.img ]; then
+  flavor=$2
+else
+  flavor="cleanvm"
+fi
+
+virsh destroy $n
+if [ "$n" = "cleanvm" ] ; then
+  dd if=/dev/zero of=/dev/vg0/$n-data count=16
+  dd if=/mnt/ssd/images/$flavor.img of=/dev/vg0/$n bs=64k
+else
+  gzip -cd /mnt/ssd/images/$n.img.gz > /dev/vg0/$n
+fi
+setfacl -m jenkins:r "/dev/vg0/$n"
+virsh start "$n"
+
