@@ -88,6 +88,8 @@ if [ ! -f /opt/stack/new/testenv.json ]; then
     (
         export PATH=$PATH:/opt/stack/new/tripleo-incubator/scripts/
 
+        .  /opt/stack/new/tripleo-incubator/scripts/set-os-type
+
         install-dependencies
 
         cleanup-env
