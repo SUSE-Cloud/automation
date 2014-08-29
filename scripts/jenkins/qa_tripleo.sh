@@ -19,7 +19,7 @@ $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Mas
 $zypper mr --priority 22 cloud
 
 $zypper in make patch python-PyYAML git-core busybox
-$zypper in python-os-apply-config
+$zypper in python-os-apply-config python-os-cloud-config
 $zypper in diskimage-builder tripleo-image-elements tripleo-heat-templates
 
 ## setup some useful defaults
@@ -30,6 +30,7 @@ export TE_DATAFILE=/opt/stack/new/testenv.json
 # temporary hacks delete me
 $zypper -n --gpg-auto-import-keys ref
 export NODE_DIST="opensuse"
+export ZUUL_PROJECT=tripleo-incubator
 
 use_package=1
 
@@ -68,16 +69,41 @@ $zypper in libvirt
 systemctl start libvirtd
 usermod -a -G libvirt root
 
-sleep 2
-
+# workaround another packaging bug
 virsh net-define /usr/share/libvirt/networks/default.xml || :
 
 mkdir -p /opt/stack/new/
+
+# ARGGGGH HATE!!! We use packages!
+pushd /opt/stack/new
+[ -d heat ] || git clone git://git.openstack.org/openstack/heat
+popd
 
 if [ ! -d /opt/stack/new/tripleo-incubator ]; then
     (
         cd /opt/stack/new/
         git clone git://git.openstack.org/openstack/tripleo-incubator
+
+        # TEMP DELETE me (https://review.openstack.org/#/c/117554/)
+        pushd tripleo-incubator
+        # base64 encoded to avoid stupid Bash8 failures
+        base64 -d > diff << EOF
+Y29tbWl0IDQzMDJkMzljNmExNzcwMWJjOGRjYjA4MDIxMjE4YWNkMzI4ZWZkYjkKQXV0aG9yOiBE
+aXJrIE11ZWxsZXIgPGRpcmtAZG1sbHIuZGU+CkRhdGU6ICAgVGh1IEF1ZyAyOCAxODoxNDoxNSAy
+MDE0ICswMjAwCgogICAgRml4IExJQlZJUlREX0dST1VQIGZvciBvcGVuc3VzZQogICAgCiAgICBv
+cGVuc3VzZSBpcyBzaW1pbGFyIHRvIHN1c2UgYW5kIGFsc28gaGFzIGxpYnZpcnQgYXMgZ3JvdXAK
+ICAgIG5hbWUuIEFkanVzdCBjYXNlLgogICAgCiAgICBDaGFuZ2UtSWQ6IEljYzUxYjJmMjZkNDRm
+YmQ2YzAwODMxODkwOTNhNjViNjIxNzc3MzM5CgpkaWZmIC0tZ2l0IGEvc2NyaXB0cy9zZXQtdXNl
+cmdyb3VwLW1lbWJlcnNoaXAgYi9zY3JpcHRzL3NldC11c2VyZ3JvdXAtbWVtYmVyc2hpcAppbmRl
+eCA3NWM1ZWNiLi41ZGVhOTVkIDEwMDc1NQotLS0gYS9zY3JpcHRzL3NldC11c2VyZ3JvdXAtbWVt
+YmVyc2hpcAorKysgYi9zY3JpcHRzL3NldC11c2VyZ3JvdXAtbWVtYmVyc2hpcApAQCAtMyw3ICsz
+LDcgQEAgc2V0IC1ldQogCiAjIGxpYnZpcnRkIGdyb3VwCiBjYXNlICIkVFJJUExFT19PU19ESVNU
+Uk8iIGluCi0gICAgJ2RlYmlhbicgfCAnc3VzZScpCisgICAgJ2RlYmlhbicgfCAnb3BlbnN1c2Un
+IHwgJ3N1c2UnKQogICAgICAgICBMSUJWSVJURF9HUk9VUD0nbGlidmlydCcKICAgICAgICAgOzsK
+ICAgICAqKQo=
+EOF
+        patch -p1 < diff
+        rm -f diff
     )
 fi
 
@@ -168,4 +194,6 @@ cd tripleo-ci
 export USE_CACHE=1
 export TRIPLEO_CLEANUP=0
 
-exec ./toci_devtest.sh
+usermod -a -G libvirt root
+
+exec su -c "./toci_devtest.sh"

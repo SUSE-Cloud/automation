@@ -1,10 +1,10 @@
 #!/bin/bash -x
 
 if [ -z "$package" -o -z "$distribution" -o -z "$openstackrelease" -o -z "$OSC_DIST" -o -z "$dist" ] ; then
-  echo "Usage: Please export and set these variables: package distribution openstackrelease OSC_DIST dist"
-  exit 1
+    echo "Usage: Please export and set these variables: package distribution openstackrelease OSC_DIST dist"
+    exit 1
 else
-  echo "Running unittest for: $package"
+    echo "Running unittest for: $package"
 fi
 
 #cleanup logs
@@ -24,10 +24,10 @@ zypper mr -p 96 cloud || true
 zypper --gpg-auto-import-keys ref
 zypper -n dup
 if [[ $dist =~ ":Staging" ]] ; then
-  zypper ar -f ${cloudrepo/:\/Staging/} cloud-full || true
-  zypper mr -p 97 cloud-full || true
-  zypper --gpg-auto-import-keys ref
-  zypper -n dup
+    zypper ar -f ${cloudrepo/:\/Staging/} cloud-full || true
+    zypper mr -p 97 cloud-full || true
+    zypper --gpg-auto-import-keys ref
+    zypper -n dup
 fi
 
 zypper rr dlp || true
@@ -68,9 +68,9 @@ zypper --non-interactive rm -y $package $EXTRAPKGS || true
 zypper --non-interactive in -y --force `ls *rpm`
 
 if test -d /usr/share/${package}-test/; then
-  cd /usr/share/${package}-test/
+    cd /usr/share/${package}-test/
 else
-  cd /var/lib/${package}-test/
+    cd /var/lib/${package}-test/
 fi
 
 test_exitcode=1
