@@ -62,7 +62,7 @@ $zypper in kvm sudo
 sudo /sbin/udevadm control --reload-rules  || :
 sudo /sbin/udevadm trigger || :
 
-# worarkound libvirt packaging bug
+# workaround libvirt packaging bug
 $zypper in libvirt-daemon-driver-network
 $zypper in libvirt
 systemctl start libvirtd
