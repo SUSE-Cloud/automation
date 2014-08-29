@@ -131,8 +131,8 @@ fi
 
 # Use tripleo-ci from git
 
-if [ ! -d tripleo-ci ]; then
-    git clone git://git.openstack.org/openstack-infra/tripleo-ci
+if [ ! -d /opt/stack/new/tripleo-ci ]; then
+    git clone git://git.openstack.org/openstack-infra/tripleo-ci /opt/stack/new/tripleo-ci
 fi
 
 # Use diskimage-builder from packages
@@ -158,7 +158,7 @@ if [ ! -d /opt/stack/new/tripleo-heat-templates ]; then
     git clone git://git.openstack.org/openstack/tripleo-heat-templates /opt/stack/new/tripleo-heat-templates
 fi
 
-cd tripleo-ci
+cd /opt/stack/new/tripleo-ci
 
 export USE_CACHE=1
 export TRIPLEO_CLEANUP=0
