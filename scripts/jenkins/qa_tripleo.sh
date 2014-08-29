@@ -59,11 +59,11 @@ export DIB_COMMON_ELEMENTS=${DIB_COMMON_ELEMENTS:-"stackuser"}
 export LIBVIRT_NIC_DRIVER=virtio
 
 # workaround kvm packaging bug
-$zypper in kvm
+$zypper in kvm sudo
 sudo /sbin/udevadm control --reload-rules  || :
 sudo /sbin/udevadm trigger || :
 
-# worarkound libvirt packaging bug
+# workaround libvirt packaging bug
 $zypper in libvirt-daemon-driver-network
 $zypper in libvirt
 systemctl start libvirtd
