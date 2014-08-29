@@ -109,6 +109,25 @@ fi
 
 
 if [ ! -f $TE_DATAFILE ]; then
+    if [ ! -f ~/.ssh/id_rsa ]; then
+        ssh-keygen -f ~/.ssh/id_rsa -P ''
+    fi
+    # create intial datafile
+    cat - > /opt/stack/new/testenv.json <<EOF
+    {
+        "host-ip": "192.168.122.1",
+        "seed-ip": "192.0.2.1",
+        "seed-route-dev": "virbr0",
+        "power_manager": "nova.virt.baremetal.virtual_power_driver.VirtualPowerManager",
+        "ssh-user": "root",
+        "env-num": "2",
+        "arch": "amd64",
+        "node-cpu": "1",
+        "node-mem": "2048",
+        "node-disk": "20",
+        "ssh-key": "$(python -c 'print open("/root/.ssh/id_rsa").read().replace("\n", "\\n")')"
+    }
+EOF
 
     # This should be part of the devtest scripts imho, but
     # currently isn't.
@@ -125,33 +144,9 @@ if [ ! -f $TE_DATAFILE ]; then
 
         setup-seed-vm -a $NODE_ARCH
 
+        # create-nodes changes the datafile and add a "nodes" list
         create-nodes 1 2048 20 amd64 4 brbm 192.168.122.1 $TE_DATAFILE
     )
-
-    NODEMACS=
-    for node in $(virsh list --all --name | grep brbm); do
-        NODEMACS="$(virsh dumpxml $node | grep 'mac address' | awk -F \' 'NR==1,/mac address/ {print $2}')${NODEMACS:+ }$NODEMACS"
-    done
-
-    if [ ! -f ~/.ssh/id_rsa ]; then
-        ssh-keygen -f ~/.ssh/id_rsa -P ''
-    fi
-    cat - > /opt/stack/new/testenv.json <<EOF
-    {
-        "host-ip": "192.168.122.1",
-        "seed-ip": "192.0.2.1",
-        "seed-route-dev": "virbr0",
-        "power_manager": "nova.virt.baremetal.virtual_power_driver.VirtualPowerManager",
-        "node-macs": "$NODEMACS",
-        "ssh-user": "root",
-        "env-num": "2",
-        "arch": "amd64",
-        "node-cpu": "1",
-        "node-mem": "2048",
-        "node-disk": "20",
-        "ssh-key": "$(python -c 'print open("/root/.ssh/id_rsa").read().replace("\n", "\\n")')"
-    }
-EOF
 fi
 
 # When launched interactively, break on error
@@ -162,8 +157,8 @@ fi
 
 # Use tripleo-ci from git
 
-if [ ! -d tripleo-ci ]; then
-    git clone git://git.openstack.org/openstack-infra/tripleo-ci
+if [ ! -d /opt/stack/new/tripleo-ci ]; then
+    git clone git://git.openstack.org/openstack-infra/tripleo-ci /opt/stack/new/tripleo-ci
 fi
 
 # Use diskimage-builder from packages
@@ -189,7 +184,7 @@ if [ ! -d /opt/stack/new/tripleo-heat-templates ]; then
     git clone git://git.openstack.org/openstack/tripleo-heat-templates /opt/stack/new/tripleo-heat-templates
 fi
 
-cd tripleo-ci
+cd /opt/stack/new/tripleo-ci
 
 export USE_CACHE=1
 export TRIPLEO_CLEANUP=0
