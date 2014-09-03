@@ -24,7 +24,9 @@ $zypper in diskimage-builder tripleo-image-elements tripleo-heat-templates
 
 ## setup some useful defaults
 export NODE_ARCH=amd64
-export TRIPLEO_TEST=undercloud
+export TRIPLEO_TEST=seed
+export WORKSPACE=/opt/stack/workspace
+mkdir -p $WORKSPACE/logs
 export TE_DATAFILE=/opt/stack/new/testenv.json
 
 # temporary hacks delete me
