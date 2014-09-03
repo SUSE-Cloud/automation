@@ -215,9 +215,9 @@ function add_mount()
     local targetdir="$3"
     local zypper_alias="$4"
     if [ -n "${localreposdir_target}" ]; then
-        add_bind_mount "${localreposdir_target}/${bindsrc}" "${targetdir}"
+        [ -n "${bindsrc}" ] && add_bind_mount "${localreposdir_target}/${bindsrc}" "${targetdir}"
     else
-        add_nfs_mount "${nfssrc}" "${targetdir}"
+        [ -n "${nfssrc}" ] && add_nfs_mount "${nfssrc}" "${targetdir}"
     fi
     if [ -n "${zypper_alias}" ]; then
         zypper rr "${zypper_alias}"
