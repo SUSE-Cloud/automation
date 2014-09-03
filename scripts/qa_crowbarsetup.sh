@@ -323,6 +323,41 @@ function add_ha_repo()
     fi
 }
 
+function h_prepare_sles_repos()
+{
+    zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ sles
+
+    if [ "x$WITHSLEUPDATES" != "x" ] ; then
+        if [ $suseversion = "11.3" ] ; then
+            zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/$slesversion/" ${slesversion}-up
+        fi
+    fi
+
+    if ! $longdistance ; then
+        #FIXME (toabctl): path should use $suseversion and not hardcoded 11.3
+        add_mount "${localreposdir_target}/SLES11-SP3-GM/sle-11-x86_64/" "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" "/srv/tftpboot/suse-$suseversion/install/"
+    fi
+
+    local REPO
+    for REPO in $slesrepolist ; do
+        add_mount "${localreposdir_target}/${REPO}/sle-11-x86_64/" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
+    done
+
+    # just as a fallback if nfs did not work
+    if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
+        local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
+        local p=/srv/tftpboot/suse-$suseversion/$f
+        wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
+        echo $p /srv/tftpboot/suse-$suseversion/install/ iso9660 loop,ro >> /etc/fstab
+        mount /srv/tftpboot/suse-$suseversion/install/
+    fi
+    if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
+        echo "We do not have SLES install media - giving up"
+        exit 34
+    fi
+
+}
+
 function h_prepare_cloud_repos()
 {
     local targetdir="/srv/tftpboot/repos/Cloud/"
@@ -468,13 +503,7 @@ EOF
 
     h_set_source_variables
 
-    zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ sles
-
-    if [ "x$WITHSLEUPDATES" != "x" ] ; then
-        if [ $suseversion = "11.3" ] ; then
-            zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/$slesversion/" ${slesversion}-up
-        fi
-    fi
+    h_prepare_sles_repos
 
     [ -n "$hacloud" ] && add_ha_repo "$slesdist"
 
@@ -538,29 +567,6 @@ EOF
         fi
     fi
 
-    if ! $longdistance ; then
-        #FIXME (toabctl): path should use $suseversion and not hardcoded 11.3
-        add_mount "${localreposdir_target}/SLES11-SP3-GM/sle-11-x86_64/" "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" "/srv/tftpboot/suse-$suseversion/install/"
-    fi
-
-    local REPO
-
-    for REPO in $slesrepolist ; do
-        add_mount "${localreposdir_target}/${REPO}/sle-11-x86_64/" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
-    done
-
-    # just as a fallback if nfs did not work
-    if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
-        local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
-        local p=/srv/tftpboot/suse-$suseversion/$f
-        wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
-        echo $p /srv/tftpboot/suse-$suseversion/install/ iso9660 loop,ro >> /etc/fstab
-        mount /srv/tftpboot/suse-$suseversion/install/
-    fi
-    if [ ! -e "/srv/tftpboot/suse-$suseversion/install/media.1/" ] ; then
-        echo "We do not have SLES install media - giving up"
-        exit 34
-    fi
     cd /tmp
 
     local netfile="/opt/dell/chef/data_bags/crowbar/bc-template-network.json"
