@@ -1775,7 +1775,7 @@ function prepare_cloudupgrade()
     # Detect upgrade target
     if iscloudver 3; then
         update_version=4
-	export cloudsource=${cloudsource/3/4}
+        export cloudsource=${cloudsource/3/4}
     else
         echo "Update target does not exist"
         exit 1
@@ -1788,7 +1788,7 @@ function prepare_cloudupgrade()
     h_set_source_variables
 
 
-  : ${susedownload:=download.nue.suse.com}
+    : ${susedownload:=download.nue.suse.com}
     CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud$update_version:/Test/images/iso
     CLOUDDISTISO="S*-CLOUD*Media1.iso"
     CLOUDLOCALREPOS="SUSE-Cloud-$update_version-official"
