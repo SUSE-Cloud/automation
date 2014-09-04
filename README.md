@@ -22,7 +22,7 @@ It's recommended to read
 and [Forking Projects](https://guides.github.com/activities/forking) if you
 want to get a better understanding of how GitHub pull requests work.
 
-## Testing you changes
+## Testing your changes
 
 The syntax of the shell scripts is checked using
 [bash8](https://pypi.python.org/pypi/bash8), you can install it running.
