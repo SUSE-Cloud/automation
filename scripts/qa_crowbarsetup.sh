@@ -335,7 +335,7 @@ function h_prepare_cloud_repos()
         cd ${targetdir}
         mkdir -p /mnt/cloud
         wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
-        local CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
+        local CLOUDISO=$(ls */$CLOUDDISTPATH/SUSE-CLOUD-*.iso|tail -1)
         echo $CLOUDISO > /etc/cloudversion
         mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
         rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
