@@ -243,6 +243,9 @@ function iscloudver()
         4)
             [[ $cloudsource =~ 4 ]]
             ;;
+        5)
+            [[ $cloudsource =~ 5 ]]
+            ;;
         *)
             return 1
             ;;
