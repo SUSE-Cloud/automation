@@ -363,6 +363,44 @@ function h_prepare_sles_repos()
     fi
 }
 
+function h_prepare_sles12_repos()
+{
+    suse12version=12.0
+    local targetdir_install="/srv/tftpboot/suse-$suse12version/install/"
+
+        if ! $longdistance ; then
+            add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" "${targetdir_install}"
+        fi
+
+        for REPO in $sles12repolist ; do
+            add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
+        done
+
+        # create empty repository when there is none yet
+        sles12optionalrepolist="SLE12-Cloud-5-Compute-Pool SLE12-Cloud-5-Compute-Updates SLE12-Cloud-Compute-PTF SLES12-Pool"
+        for REPO in $sles12optionalrepolist ; do
+            if [ ! -e "/srv/tftpboot/repos/$REPO/repodata/" ] ; then
+                mkdir "/srv/tftpboot/repos/$REPO"
+                createrepo "/srv/tftpboot/repos/$REPO"
+            fi
+        done
+
+        # just as a fallback if nfs did not work
+        # FIXME final SLES media not available yet
+        if [ ! -e "${targetdir_install}/media.1/" ] ; then
+            local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
+            local p=/srv/tftpboot/suse-$suse12version/$f
+            wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
+            echo $p ${targetdir_install} iso9660 loop,ro >> /etc/fstab
+            mount ${targetdir_install}
+        fi
+
+    if [ ! -e "${targetdir_install}/media.1/" ] ; then
+        echo "We do not have SLES12 install media - giving up"
+        exit 34
+    fi
+}
+
 function h_prepare_cloud_repos()
 {
     local targetdir="/srv/tftpboot/repos/Cloud/"
@@ -468,7 +506,8 @@ function h_set_source_variables()
         ;;
     esac
 
-
+    # FIXME SLES12-Pool should be here, but it seems to be broken now
+    sles12repolist="SLES12-Updates SLE12-Cloud-Compute"
 }
 
 
@@ -509,6 +548,10 @@ EOF
     h_set_source_variables
 
     h_prepare_sles_repos
+
+    if iscloudver 5plus ; then
+        h_prepare_sles12_repos
+    fi
 
     [ -n "$hacloud" ] && add_ha_repo "$slesdist"
 
@@ -612,8 +655,6 @@ EOF
     local f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
     grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
 
-    # workaround for performance bug (bnc#770083)
-    sed -i -e "s#<\(partitions.*\)/>#<\1><partition><mount>swap</mount><size>auto</size></partition><partition><mount>/</mount><size>max</size><fstopt>data=writeback,barrier=0,noatime</fstopt></partition></partitions>#" /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
     # set default password to 'linux'
     # setup_base_images.rb is for SUSE Cloud 1.0 and update_nodes.rb is for 2.0
     sed -i -e 's/\(rootpw_hash.*\)""/\1"$2y$10$u5mQA7\/8YjHdutDPEMPtBeh\/w8Bq0wEGbxleUT4dO48dxgwyPD8D."/' /opt/dell/chef/cookbooks/provisioner/recipes/setup_base_images.rb /opt/dell/chef/cookbooks/provisioner/recipes/update_nodes.rb
@@ -745,6 +786,18 @@ function allocate()
     json-edit $t -a normal.crowbar_wall.intended_role -v "controller"
     knife node from file $t
     rm -f $t
+
+    if iscloudver 5plus ; then
+        echo "Setting last node to SLE12 compute..."
+        local computenode=$(crowbar machines list | sort | grep ^d | tail -n 1)
+        local t=$(mktemp).json
+
+        knife node show -F json $computenode > $t
+        json-edit $t -a normal.crowbar_wall.intended_role -v "compute"
+        json-edit $t -a normal.target_platform -v "suse-12.0"
+        knife node from file $t
+        rm -f $t
+    fi
 
     echo "Allocating nodes..."
     local m
