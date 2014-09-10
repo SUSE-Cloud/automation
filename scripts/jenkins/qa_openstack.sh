@@ -40,13 +40,6 @@ zypper rr cloudhead || :
 
 ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
 case "$cloudsource" in
-    develcloud2.0)
-        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-2.0/ cloud2iso
-        $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0/$REPO/Devel:Cloud:2.0.repo
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/2.0:/Staging/$REPO/ cloudhead
-        fi
-    ;;
     develcloud3)
         $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3/ cloud3iso
         $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3/$REPO/Devel:Cloud:3.repo
@@ -61,12 +54,6 @@ case "$cloudsource" in
             $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
         fi
     ;;
-    openstackgrizzly)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly/$REPO/Cloud:OpenStack:Grizzly.repo
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Grizzly:/Staging/$REPO/ cloudhead
-        fi
-    ;;
     openstackhavana)
         $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana/$REPO/Cloud:OpenStack:Havana.repo
         if test -n "$OSHEAD" ; then
@@ -77,6 +64,12 @@ case "$cloudsource" in
         $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse/$REPO/Cloud:OpenStack:Icehouse.repo
         if test -n "$OSHEAD" ; then
             $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse:/Staging/$REPO/ cloudhead
+        fi
+    ;;
+    openstackjuno)
+        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Juno/$REPO/Cloud:OpenStack:Juno.repo
+        if test -n "$OSHEAD" ; then
+            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Juno:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstackmaster)
