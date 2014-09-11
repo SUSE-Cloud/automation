@@ -9,6 +9,7 @@ export cloud=${1}
 export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
+export want_sles12=${want_sles12:-""}
 export nodes=
 export debug=${debug:-0}
 export cinder_conf_volume_type=${cinder_conf_volume_type:-""}
@@ -552,7 +553,7 @@ EOF
 
     h_prepare_sles_repos
 
-    if iscloudver 5plus ; then
+    if [ -n "$want_sles12" ] && iscloudver 5plus ; then
         h_prepare_sles12_repos
     fi
 
@@ -790,7 +791,7 @@ function allocate()
     knife node from file $t
     rm -f $t
 
-    if iscloudver 5plus ; then
+    if [ -n "$want_sles12" ] && iscloudver 5plus ; then
         echo "Setting last node to SLE12 compute..."
         local computenode=$(crowbar machines list | sort | grep ^d | tail -n 1)
         local t=$(mktemp).json
