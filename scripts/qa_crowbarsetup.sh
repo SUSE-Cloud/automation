@@ -1467,7 +1467,7 @@ EOH
         fi
         nova floating-ip-create | tee floating-ip-create.out
         floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
-        nova add-floating-ip "$instanceid" "$floatingip" # insufficient permissions
+        nova add-floating-ip "$instanceid" "$floatingip"
         vmip=$floatingip
         n=1000 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $vmip >/dev/null ; do
             n=$(expr $n - 1)
@@ -1525,7 +1525,10 @@ EOH
         nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
         ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
         ssh $vmip "mount /dev/vdb /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
-        nova stop testvm
+        # cleanup so that we can run testvm without leaking volumes, IPs etc
+        nova remove-floating-ip "$instanceid" "$floatingip"
+        nova floating-ip-delete "$floatingip"
+        nova stop "$instanceid"
 
         echo "Ceph Tests: $cephret"
         echo "RadosGW Tests: $radosgwret"
