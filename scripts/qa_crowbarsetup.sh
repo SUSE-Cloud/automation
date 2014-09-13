@@ -1050,11 +1050,11 @@ function custom_configuration()
             if iscloudver 4plus; then
                 proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
             fi
-            if [ -n "$networkingplugin" ] ; then
-                proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'$networkingplugin'"
-            fi
             if [ -n "$networkingmode" ] ; then
                 proposal_set_value neutron default "['attributes']['neutron']['networking_mode']" "'$networkingmode'"
+            fi
+            if [ -n "$networkingplugin" ] ; then
+                proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'$networkingplugin'"
             fi
         ;;
         quantum)
