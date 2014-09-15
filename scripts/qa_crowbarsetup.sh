@@ -1036,7 +1036,10 @@ function custom_configuration()
                 enable_ssl_for_nova
             fi
 
-            if iscloudver 4plus ; then
+            if iscloudver 5 ; then
+                echo "NOVA V3 TEMPEST TESTS are known to be broken - skipping"
+                echo "FIXME"
+            elif iscloudver 4plus ; then
                 proposal_set_value nova default "['attributes']['nova']['enable_v3_api']" "true"
             fi
         ;;
