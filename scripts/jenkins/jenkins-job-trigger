@@ -11,6 +11,18 @@ sub usage()
     normal job:    $0 myjobname
     parameterized: $0 myjobname -p var1=foo var2=bar var3=baz
     matrix:        $0 myjobname -m var1=foo var2=bar var3=baz
+
+  Example config file:
+cat > jenkinsapi.cred <<EOCONF
+\$USER='myusername';
+\$APIKEY='987zyx654wvu''
+\$SCHEME='https';
+\$JURL='ci.opensuse.org';
+\$CRUMB='.crumb:123abc456def';
+EOCONF
+
+Create the Crumb string:
+ curl --user <myusername>:<mypassword> 'https://ci.opensuse.org/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)'
 ";
 }
 
@@ -18,29 +30,47 @@ sub usage()
 use strict;
 
 my $USER;
-my $PASSWORD;
+my $PASSWORD; # obsolete but we keep the variable
+my $APIKEY;
+my $SCHEME="https";
 my $JURL="ci.opensuse.org";
-# read the api credentials from file
-eval `cat /etc/jenkinsapi.cred`;
+my $CRUMB;
+my $METHOD='POST';
 
+# read the api credentials from files
+eval `cat /etc/jenkinsapi.cred ./jenkinsapi.cred 2>/dev/null`;
 
-my $scheme="https";
-my $method='PUT';
+if ( -z $APIKEY ) {
+  print STDERR "You have not defined your APIKEY variable in the config.\n";
+  print STDERR "Login in jenkins and find your api key.";
+  print STDERR "Please add this api key to your jenkinsapi.cred file:\n";
+  print STDERR ' $APIKEY="987zyx654wvu"';
+}
+
+if ( -z $CRUMB ) {
+  print STDERR "You have not defined your CRUMB variable in the config.\n";
+  print STDERR "Please create your own crumb:\n";
+  print STDERR " curl --user <myusername>:<mypassword> 'https://ci.opensuse.org/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)'";
+  print STDERR "And then add it to your jenkinsapi.cred file:\n";
+  print STDERR ' $CRUMB=".crumb:123abc456def"';
+}
+
+$METHOD |= 'POST';
+$SCHEME |= 'https';
 if ($JURL =~ /(ci|river)\.suse\.de/)
 {
-  $scheme='http';
-  $method='POST';
+  $SCHEME='http';
 }
-$scheme=$ENV{jenkinsscheme} if defined $ENV{jenkinsscheme};
-$method=$ENV{jenkinsmethod} if defined $ENV{jenkinsmethod};
-my $jurl="$scheme://${USER}:${PASSWORD}\@$JURL";
+
+my $jurl="$SCHEME://${USER}:${APIKEY}\@$JURL";
 my $job=shift || die usage();
 
 my $jobtype='normal';
-if ($ARGV[0] =~ /^-p$/) {
+my $jtype=shift || '';
+if ($jtype =~ /^-p$/) {
   $jobtype='parameter';
   shift;
-} elsif ($ARGV[0] =~ /^-m$/) {
+} elsif ($jtype =~ /^-m$/) {
   $jobtype='matrix';
   shift;
 }
@@ -57,5 +87,7 @@ if ($jobtype eq 'normal') {
 
 $triggerurl =~ s/ /+/g;
 
-my $ret=system(qw(curl -X), $method, $triggerurl);
+my @cmd=("curl", "-H", $CRUMB, "-X", $METHOD, $triggerurl);
+print join(' ', @cmd) if ( $ENV{debug} );
+my $ret=system(@cmd);
 exit $ret >> 8;
