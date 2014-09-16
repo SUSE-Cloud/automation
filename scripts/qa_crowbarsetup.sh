@@ -501,6 +501,8 @@ function h_set_source_variables()
         ;;
     esac
 
+    [ -n "$TESTHEAD" ] && CLOUDLOCALREPOS="$CLOUDLOCALREPOS-staging"
+
     case "$suseversion" in
         11.3)
             slesrepolist="SLES11-SP3-Pool SLES11-SP3-Updates"
