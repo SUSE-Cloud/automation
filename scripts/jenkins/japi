@@ -13,31 +13,43 @@ use strict;
 use XML::LibXML;
 
 my $USER;
-my $PASSWORD;
+my $PASSWORD; # obsolete but we keep the variable
+my $APIKEY;
+my $SCHEME="https";
 my $JURL="ci.opensuse.org";
-mkdir -p $JURL;
+my $CRUMB;
+my $METHOD='POST';
 
-# read the api credentials from file
-if ( -e "./jenkinsapi.cred" )
-{
-  eval `cat ./jenkinsapi.cred`
-} else {
-  eval `cat /etc/jenkinsapi.cred`;
+# read the api credentials from files
+eval `cat /etc/jenkinsapi.cred ./jenkinsapi.cred 2>/dev/null`;
+
+if ( -z $APIKEY ) {
+  print STDERR "You have not defined your APIKEY variable in the config.\n";
+  print STDERR "Login in jenkins and find your api key.";
+  print STDERR "Please add this api key to your jenkinsapi.cred file:\n";
+  print STDERR ' $APIKEY="987zyx654wvu"';
 }
 
-my $scheme='https';
-my $method='PUT';
+if ( -z $CRUMB ) {
+  print STDERR "You have not defined your CRUMB variable in the config.\n";
+  print STDERR "Please create your own crumb:\n";
+  print STDERR " curl --user <myusername>:<mypassword> 'https://ci.opensuse.org/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)'";
+  print STDERR "And then add it to your jenkinsapi.cred file:\n";
+  print STDERR ' $CRUMB=".crumb:123abc456def"';
+}
+
+$METHOD |= 'POST';
+$SCHEME |= 'https';
 if ($JURL =~ /(ci|river)\.suse\.de/)
 {
-  $scheme='http';
-  $method='POST';
+  $SCHEME='http';
 }
-$scheme=$ENV{jenkinsscheme} if defined $ENV{jenkinsscheme};
-$method=$ENV{jenkinsmethod} if defined $ENV{jenkinsmethod};
+
+mkdir -p $JURL;
 
 my $UP='';
-$UP="${USER}:${PASSWORD}\@" if (defined ${USER} && defined ${PASSWORD} && ${USER} ne '' && ${PASSWORD} ne '');
-my $jurlbase="${scheme}://${UP}${JURL}";
+$UP="${USER}:${APIKEY}\@" if (defined ${USER} && defined ${APIKEY} && ${USER} ne '' && ${APIKEY} ne '');
+my $jurlbase="${SCHEME}://${UP}${JURL}";
 my $jurl=$jurlbase."/api/xml";
 
 sub usage()
@@ -64,6 +76,18 @@ sub usage()
   make changes locally and push them to the server.
   Please fetch and reformat a job before you change and push it.
   Otheriwse server-side changes would be lost.
+
+  Example config file:
+cat > jenkinsapi.cred <<EOCONF
+\$USER='myusername';
+\$APIKEY='987zyx654wvu''
+\$SCHEME='https';
+\$JURL='ci.opensuse.org';
+\$CRUMB='.crumb:123abc456def';
+EOCONF
+
+Create the Crumb string:
+ curl --user <myusername>:<mypassword> 'https://ci.opensuse.org/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)'
 ";
 }
 
@@ -117,7 +141,7 @@ sub clean_xml($)
 
 sub get_cloud_job_list
 {
-  my $curlcmd="curl --silent $jurl/config.xml";
+  my $curlcmd="curl -H '$CRUMB' --silent $jurl/config.xml";
   my $jenkinscfg=`$curlcmd`;
   my $parser=XML::LibXML->new();
   my $xml = $parser->parse_string($jenkinscfg);
@@ -129,7 +153,9 @@ sub fetch_job($)
   my $jobname=shift || die "Error: no job name specified";
   my $fetchurl=$jurlbase."/job/$jobname/config.xml";
   print "fetching $jobname\n";
-  system(qw(curl --silent --output), "./${JURL}/${jobname}.xml", $fetchurl);
+  my @cmd=("curl", "-H", "$CRUMB", "--silent", "--output", "./${JURL}/${jobname}.xml", "$fetchurl");
+  print join(" ", @cmd)."\n" if ( $ENV{debug});
+  system(@cmd);
   # beautify the xml in order to have consistent LibXML output and prevent useless diffs
   clean_xml("./${JURL}/${jobname}.xml");
 }
@@ -179,11 +205,11 @@ sub push_job($)
   # make sure the output is reformatted by libXML
   clean_xml("${JURL}/${jobname}.xml");
   # update
-  open(my $pipe, "-|", "curl", "--silent", "-X", "$method", "--data-binary", "\@${JURL}/${jobname}.xml", $pushurl);
+  open(my $pipe, "-|", "curl", "--silent", "-H", $CRUMB, "-X", "$METHOD", "--data-binary", "\@${JURL}/${jobname}.xml", $pushurl);
   if (has_error($pipe)) {
     print "  updating failed .. ";
     # create
-    open(my $pipe, "-|", "curl", "--silent", "-X", "$method", "-H", "Content-Type: text/xml", "--data-binary", "\@${JURL}/${jobname}.xml", "${jurlbase}/createItem?name=${jobname}");
+    open(my $pipe, "-|", "curl", "--silent", "-H", $CRUMB, "-X", "$METHOD", "-H", "Content-Type: text/xml", "--data-binary", "\@${JURL}/${jobname}.xml", "${jurlbase}/createItem?name=${jobname}");
     if ( has_error($pipe) ) {
       print "creating failed as well .. -> ERROR!\n";
     } else {
