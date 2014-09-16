@@ -1,4 +1,6 @@
-$USER="username";
-$PASSWORD="tokenstring";
-# http:// is prefixed by the script
+$USER="mylogin";
+$APIKEY="987zyx654wvu";
+$PASSWORD="mypassword";
+$SCHEME="https";
 $JURL="ci.opensuse.org";
+$CRUMB=".crumb:123abc456def";
