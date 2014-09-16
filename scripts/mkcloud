@@ -821,17 +821,6 @@ function crowbarrestore()
 
 function prepare_cloudupgrade()
 {
-    ghsc=github.com/SUSE-Cloud
-    mkdir -p ~/$ghsc/
-    pushd ~/$ghsc/
-    if [ -e "suse-cloud-upgrade" ] ; then
-        cd suse-cloud-upgrade/
-        git pull
-    else
-        git clone https://$ghsc/suse-cloud-upgrade.git
-    fi
-    popd
-    rsync -av ~/$ghsc/suse-cloud-upgrade root@$adminip:
     sshrun "prepare_cloudupgrade=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     return $?
 }
