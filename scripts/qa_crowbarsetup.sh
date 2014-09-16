@@ -1895,9 +1895,10 @@ function cloudupgrade_1st()
 {
     # Disable all openstack proposals stop service on the client
     echo 'y' | suse-cloud-upgrade upgrade
-    if [[ $? != 0 ]]; then
-        echo "Upgrade failed with $?"
-        exit $?
+    local ret=$?
+    if [[ $ret != 0 ]]; then
+        echo "Upgrade failed with $ret"
+        exit $ret
     fi
 }
 
@@ -1915,9 +1916,10 @@ function cloudupgrade_2nd()
     fi
 
     echo 'y' | suse-cloud-upgrade upgrade
-    if [[ $? != 0 ]]; then
-        echo "Upgrade failed with $?"
-        exit $?
+    local ret=$?
+    if [[ $ret != 0 ]]; then
+        echo "Upgrade failed with $ret"
+        exit $ret
     fi
     crowbar provisioner proposal commit default
 }
