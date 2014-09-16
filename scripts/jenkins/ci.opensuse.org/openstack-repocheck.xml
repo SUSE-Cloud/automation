@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project>
+<matrix-project plugin="matrix-project@1.3">
   <actions/>
   <description>Check OBS repositories for installcheck issues</description>
   <logRotator class="hudson.tasks.LogRotator">
@@ -11,38 +11,6 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Cancel:vuntz</permission>
-      <permission>hudson.model.Item.Cancel:jdsn</permission>
-      <permission>hudson.model.Item.Cancel:dirkmueller</permission>
-      <permission>hudson.model.Item.Cancel:bmwiedemann</permission>
-      <permission>hudson.model.Item.Cancel:saschpe</permission>
-      <permission>hudson.scm.SCM.Tag:iartarisi</permission>
-      <permission>hudson.scm.SCM.Tag:vuntz</permission>
-      <permission>hudson.scm.SCM.Tag:jdsn</permission>
-      <permission>hudson.scm.SCM.Tag:mjura</permission>
-      <permission>hudson.scm.SCM.Tag:aspiers</permission>
-      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
-      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
-      <permission>hudson.scm.SCM.Tag:saschpe</permission>
-      <permission>hudson.model.Item.Discover:iartarisi</permission>
-      <permission>hudson.model.Item.Discover:vuntz</permission>
-      <permission>hudson.model.Item.Discover:jdsn</permission>
-      <permission>hudson.model.Item.Discover:mjura</permission>
-      <permission>hudson.model.Item.Discover:aspiers</permission>
-      <permission>hudson.model.Item.Discover:dirkmueller</permission>
-      <permission>hudson.model.Item.Discover:bmwiedemann</permission>
-      <permission>hudson.model.Item.Discover:saschpe</permission>
-      <permission>hudson.model.Run.Update:iartarisi</permission>
-      <permission>hudson.model.Run.Update:vuntz</permission>
-      <permission>hudson.model.Run.Update:jdsn</permission>
-      <permission>hudson.model.Run.Update:mjura</permission>
-      <permission>hudson.model.Run.Update:aspiers</permission>
-      <permission>hudson.model.Run.Update:dirkmueller</permission>
-      <permission>hudson.model.Run.Update:bmwiedemann</permission>
-      <permission>hudson.model.Run.Update:saschpe</permission>
-      <permission>hudson.model.Run.Delete:jdsn</permission>
-      <permission>hudson.model.Run.Delete:bmwiedemann</permission>
-      <permission>hudson.model.Run.Delete:saschpe</permission>
       <permission>hudson.model.Item.Read:iartarisi</permission>
       <permission>hudson.model.Item.Read:vuntz</permission>
       <permission>hudson.model.Item.Read:jdsn</permission>
@@ -51,15 +19,20 @@
       <permission>hudson.model.Item.Read:dirkmueller</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
       <permission>hudson.model.Item.Read:bmwiedemann</permission>
-      <permission>hudson.model.Item.Read:saschpe</permission>
       <permission>hudson.model.Item.Delete:jdsn</permission>
+      <permission>hudson.model.Item.Delete:dirkmueller</permission>
       <permission>hudson.model.Item.Delete:bmwiedemann</permission>
-      <permission>hudson.model.Item.Delete:saschpe</permission>
+      <permission>hudson.scm.SCM.Tag:iartarisi</permission>
+      <permission>hudson.scm.SCM.Tag:vuntz</permission>
+      <permission>hudson.scm.SCM.Tag:jdsn</permission>
+      <permission>hudson.scm.SCM.Tag:mjura</permission>
+      <permission>hudson.scm.SCM.Tag:aspiers</permission>
+      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
+      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
       <permission>hudson.model.Item.Workspace:vuntz</permission>
       <permission>hudson.model.Item.Workspace:jdsn</permission>
       <permission>hudson.model.Item.Workspace:dirkmueller</permission>
       <permission>hudson.model.Item.Workspace:bmwiedemann</permission>
-      <permission>hudson.model.Item.Workspace:saschpe</permission>
       <permission>hudson.model.Item.Build:iartarisi</permission>
       <permission>hudson.model.Item.Build:vuntz</permission>
       <permission>hudson.model.Item.Build:jdsn</permission>
@@ -67,12 +40,32 @@
       <permission>hudson.model.Item.Build:aspiers</permission>
       <permission>hudson.model.Item.Build:dirkmueller</permission>
       <permission>hudson.model.Item.Build:bmwiedemann</permission>
-      <permission>hudson.model.Item.Build:saschpe</permission>
       <permission>hudson.model.Item.Configure:jdsn</permission>
+      <permission>hudson.model.Item.Configure:dirkmueller</permission>
       <permission>hudson.model.Item.Configure:bmwiedemann</permission>
-      <permission>hudson.model.Item.Configure:saschpe</permission>
+      <permission>hudson.model.Run.Update:iartarisi</permission>
+      <permission>hudson.model.Run.Update:vuntz</permission>
+      <permission>hudson.model.Run.Update:jdsn</permission>
+      <permission>hudson.model.Run.Update:mjura</permission>
+      <permission>hudson.model.Run.Update:aspiers</permission>
+      <permission>hudson.model.Run.Update:dirkmueller</permission>
+      <permission>hudson.model.Run.Update:bmwiedemann</permission>
+      <permission>hudson.model.Item.Cancel:vuntz</permission>
+      <permission>hudson.model.Item.Cancel:jdsn</permission>
+      <permission>hudson.model.Item.Cancel:dirkmueller</permission>
+      <permission>hudson.model.Item.Cancel:bmwiedemann</permission>
+      <permission>hudson.model.Item.Discover:iartarisi</permission>
+      <permission>hudson.model.Item.Discover:vuntz</permission>
+      <permission>hudson.model.Item.Discover:jdsn</permission>
+      <permission>hudson.model.Item.Discover:mjura</permission>
+      <permission>hudson.model.Item.Discover:aspiers</permission>
+      <permission>hudson.model.Item.Discover:dirkmueller</permission>
+      <permission>hudson.model.Item.Discover:bmwiedemann</permission>
+      <permission>hudson.model.Run.Delete:jdsn</permission>
+      <permission>hudson.model.Run.Delete:dirkmueller</permission>
+      <permission>hudson.model.Run.Delete:bmwiedemann</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.1">
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.2">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
       <maxConcurrentTotal>0</maxConcurrentTotal>
       <throttleEnabled>false</throttleEnabled>
@@ -95,9 +88,13 @@
     <hudson.matrix.TextAxis>
       <name>project</name>
       <values>
-        <string>Cloud:OpenStack:Grizzly</string>
         <string>Cloud:OpenStack:Havana</string>
+        <string>Cloud:OpenStack:Havana:Staging</string>
         <string>Cloud:OpenStack:Icehouse</string>
+        <string>Cloud:OpenStack:Icehouse:Staging</string>
+        <string>Cloud:OpenStack:Juno</string>
+        <string>Cloud:OpenStack:Juno:Staging</string>
+        <string>Cloud:OpenStack:Factory</string>
         <string>Cloud:OpenStack:Master</string>
       </values>
     </hudson.matrix.TextAxis>
@@ -107,6 +104,7 @@
         <string>SLE_11_SP3</string>
         <string>openSUSE_12.3</string>
         <string>openSUSE_13.1</string>
+        <string>openSUSE_13.2</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
@@ -116,7 +114,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>!( ["Cloud:OpenStack:Grizzly"].contains(project) &amp;&amp; ["openSUSE_13.1", "openSUSE_Factory"].contains(repository) ||  ["Cloud:OpenStack:Havana"].contains(project) &amp;&amp; ["openSUSE_Factory"].contains(repository) ||  ["Cloud:OpenStack:Icehouse"].contains(project) &amp;&amp; ["openSUSE_12.3", "openSUSE_Factory"].contains(repository) )</combinationFilter>
+  <combinationFilter>!( ["Cloud:OpenStack:Master"].contains(project) &amp;&amp; ["openSUSE_12.3"].contains(repository) ||  ["Cloud:OpenStack:Factory"].contains(project) &amp;&amp; ["SLE_11_SP3", "openSUSE_12.3", "openSUSE_13.1"].contains(repository) || ["Cloud:OpenStack:Havana", "Cloud:OpenStack:Havana:Staging"].contains(project) &amp;&amp; ["openSUSE_13.2", "openSUSE_Factory"].contains(repository) ||  ["Cloud:OpenStack:Icehouse", "Cloud:OpenStack:Icehouse:Staging","Cloud:OpenStack:Juno", "Cloud:OpenStack:Juno:Staging"].contains(project) &amp;&amp; ["openSUSE_12.3", "openSUSE_13.2", "openSUSE_Factory"].contains(repository) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}
@@ -167,9 +165,19 @@ fetch_primary_xml()
 ARCH=x86_64
 
 slashed_project=$(echo $project | sed -e 's,:,:\/,g')
+non_staging_project=${slashed_project%%:/Staging}
+
+EXTRA_NOCHECK=""
+
+if [ "$slashed_project" != "$non_staging_project" ]; then
+  EXTRA_NOCHECK="tmp/repo/nonstaging_primary.xml.gz"
+  fetch_primary_xml $non_staging_project $repository
+  mv tmp/repo/primary.xml.gz $EXTRA_NOCHECK
+fi
 
 fetch_primary_xml $slashed_project $repository
-installcheck $ARCH --withobsoletes --exclude "-kmp-" tmp/repo/primary.xml.gz --nocheck ~/repo/${repository}-${ARCH}.solv
+
+installcheck $ARCH --withobsoletes --exclude "-kmp-" tmp/repo/primary.xml.gz  --nocheck $EXTRA_NOCHECK ~/repo/${repository}-${ARCH}.solv
 
 </command>
     </hudson.tasks.Shell>
