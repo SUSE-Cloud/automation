@@ -102,3 +102,46 @@ following command:
 ```
 $ sudo ./mkcloud testsetup
 ```
+
+## Using with local repositories
+
+To be able to deploy a complete Cloud with `mkcloud` and without network access,
+you need a couple of repositories locally synced.
+The repositories are `SUSE-Cloud-SLE-11-SP3-deps` and `SUSE-Cloud-5-devel`. Depending on your
+env variables, other repositories maybe needed.
+The repositories can be synced with a tool called `sync-repos` (which is a SUSE internal tool).
+
+Here's an example script you can source to create a full cloud:
+
+```
+# path to the locally available repositories
+export localreposdir_src=/home/tom/devel/repositories/
+
+# setup/create lvm disk
+cloud_lvm_disk=/home/tom/devel/libvirt-images/develcloud5-lvm.raw
+if ! [ -f $cloud_lvm_disk ] ; then
+    qemu-img create -f raw $cloud_lvm_disk 100G
+fi
+
+if ! losetup -l|grep $cloud_lvm_disk; then
+    export loused=`losetup -f`
+    losetup $loused $cloud_lvm_disk
+else
+    loused=`losetup |grep -v "NAME"|grep $cloud_lvm_disk|awk '{print $1}'`
+fi
+
+export CVOL=${loused}
+export cloudsource=develcloud5
+export cloud=$cloudsource
+export net_fixed=192.168.150
+export net_public=192.168.151
+export net_admin=192.168.152
+export vcpus=2
+export NOQACROWBARDOWNLOAD=yes
+```
+
+Now source the file and create your cloud with:
+
+```
+mkcloud plain
+```
