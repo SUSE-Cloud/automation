@@ -80,7 +80,7 @@ sub usage()
   Example config file:
 cat > jenkinsapi.cred <<EOCONF
 \$USER='myusername';
-\$APIKEY='987zyx654wvu''
+\$APIKEY='987zyx654wvu';
 \$SCHEME='https';
 \$JURL='ci.opensuse.org';
 \$CRUMB='.crumb:123abc456def';
