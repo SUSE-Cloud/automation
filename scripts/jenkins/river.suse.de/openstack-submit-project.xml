@@ -132,7 +132,8 @@ for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null | grep -E "^(${packagefilter// /|
     continue
   fi
 
-  if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp;  $OSC api /build/$COSS/$OSCBUILDDIST/x86_64/$COMPONENT/_status | grep -E 'code="succeeded"|package="_product"'
+#  if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp;  $OSC api /build/$COSS/$OSCBUILDDIST/x86_64/$COMPONENT/_status | grep -E 'code="succeeded"|package="_product"'
+  if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp; ( [ "$COMPONENT" = "_product" ] || $OSC r $COSS $COMPONENT -r $OSCBUILDDIST -a x86_64 | grep 'succeeded' )
   then
     # NOTE(saschpe): the "|| :" is a work-around for an osc bug (should be fixed, but Adrian needs to release a new osc)
     # No need to put this in git.

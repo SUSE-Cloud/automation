@@ -71,20 +71,13 @@
     <hudson.matrix.TextAxis>
       <name>project</name>
       <values>
-        <string>Devel:Cloud:2.0:Staging</string>
         <string>Devel:Cloud:3:Staging</string>
         <string>Devel:Cloud:4:Staging</string>
+        <string>Devel:Cloud:5:Staging</string>
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>! (
-      ["Devel:Cloud:2.0:Staging"].contains(project)
-          &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-neutron", "crowbar-barclamp-pacemaker", "crowbar-barclamp-raid", "crowbar-barclamp-tempest", "crowbar-barclamp-trove"].contains(component)
-      ||  ["Devel:Cloud:3:Staging"].contains(project)
-      &amp;&amp;  ["crowbar-barclamp-quantum", "crowbar-barclamp-tempest", "crowbar-barclamp-trove"].contains(component)
-      ||  ["Devel:Cloud:4:Staging"].contains(project)
-          &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)  )
-    </combinationFilter>
+  <combinationFilter>! (      ["Devel:Cloud:2.0:Staging"].contains(project)          &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-neutron", "crowbar-barclamp-pacemaker", "crowbar-barclamp-raid", "crowbar-barclamp-tempest", "crowbar-barclamp-trove"].contains(component)      ||  ["Devel:Cloud:3:Staging"].contains(project)      &amp;&amp;  ["crowbar-barclamp-quantum", "crowbar-barclamp-tempest", "crowbar-barclamp-trove"].contains(component)      ||  ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project)          &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)  )     </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}

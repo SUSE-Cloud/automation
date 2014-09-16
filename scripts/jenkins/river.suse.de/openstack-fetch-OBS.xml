@@ -28,7 +28,7 @@ The job will figure out from where and what packages to fetch.</description>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>openstack-trackupstream</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector"/>

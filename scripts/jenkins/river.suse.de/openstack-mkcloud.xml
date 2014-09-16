@@ -12,11 +12,6 @@
   <properties>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
-        <hudson.model.BooleanParameterDefinition>
-          <name>WITHREBOOT</name>
-          <description>Enable reboots during the mkcloud run (incl. crowbar and compute node).</description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
           <description>Update repositories (one URL per line)</description>
@@ -86,6 +81,11 @@ netapp_volume_list ''
 </description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>mkcloudtarget</name>
+          <description>Set mkcloudtarget to define the mkcloud command line parameters.</description>
+          <defaultValue>all_noreboot</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -131,8 +131,8 @@ echo "########################################################################"
 env
 echo "########################################################################"
 
-MKCLOUDTARGET=all_noreboot
-[ $WITHREBOOT == "true" ] &amp;&amp; MKCLOUDTARGET=all
+MKCLOUDTARGET=$mkcloudtarget
+#[ $WITHREBOOT == "true" ] &amp;&amp; MKCLOUDTARGET=all
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
 
 # also run crowbarbackup and crowbarrestore
@@ -143,7 +143,8 @@ case $cloudsource in
 esac
 
 starttime=`date +%s`
-perl -e "alarm 4*60*60 ; exec '/root/pool/allocpool bash -x /root/bin/mkcloud $(echo -n $MKCLOUDTARGET) ' "
+perl -e "alarm 4*60*60 ; exec '/root/pool/allocpool bash -x /root/bin/mkcloud $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
+[ ${PIPESTATUS[0]} = 0 ] || exit 1 # check return code before tee
 
 [ -z "$TESTHEAD" ] &amp;&amp; exit 0
 
@@ -160,6 +161,11 @@ case "$cloudsource" in
   ;;
   develcloud4)
     project=Devel:Cloud:4
+    subproject=Staging
+    packagefilter="crowbar python openstack"
+  ;;
+  develcloud5)
+    project=Devel:Cloud:5
     subproject=Staging
     packagefilter="crowbar python openstack"
   ;;

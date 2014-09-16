@@ -23,7 +23,7 @@ Only packages that built successfully are submitted.</description>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-trackupstream</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector"/>

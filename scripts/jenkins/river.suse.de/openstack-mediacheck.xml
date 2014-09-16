@@ -32,6 +32,11 @@
           <description>Name of the Open Build Service instance hosting the repository.</description>
           <defaultValue>IBS</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DEPCHECK_NEEDS_MEDIADEPS</name>
+          <description>Include mediadeps for depcheck if set. This should be checked for Addon products.</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -112,6 +117,11 @@
     <hudson.tasks.Shell>
       <command># Cleanup isos from old builds
 rm -f scripts/release-mgmt/*Media1.iso
+
+if ! [[ $DEPCHECK_NEEDS_MEDIADEPS == "true" ]]; then
+    export RPM_DEPCHECK_MEDIADEPS=" "
+    export SRCRPM_DEPCHECK_MEDIADEPS=" "
+fi
 
 OBS_TYPE=$OBS_TYPE OBS_PROJECT=$OBS_PROJECT make -C cloud/scripts/release-mgmt/ mediacheck
 RETVAL=$?

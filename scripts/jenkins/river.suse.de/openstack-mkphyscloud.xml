@@ -24,17 +24,17 @@
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
           <description/>
-          <defaultValue>develcloud3</defaultValue>
+          <defaultValue>develcloud4</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
-          <description>if non-empty, test latest version from Devel:Cloud (:1.0)</description>
+          <description>if non-empty, test latest version from Devel:Cloud Staging</description>
           <defaultValue>1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>libvirt_type</name>
           <description>possible values: kvm, xen, lxc, qemu</description>
-          <defaultValue>xen</defaultValue>
+          <defaultValue>kvm</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -45,14 +45,20 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector"/>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>30 1 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>if [ ! -z "$UPDATEREPOS" ] ; then
-  # testing update only makes sense with GM and without TESTHEAD
+      <command>admin=admin4
+cloud=d3
+nodenumber=2
+if [ ! -z "$UPDATEREPOS" ] ; then
+  # testing update only makes sense with GMx and without TESTHEAD
   unset TESTHEAD
-  export cloudsource=GM
   export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
 fi
 
@@ -61,18 +67,17 @@ rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 cd /home/jenkins
-admin=admin2
 freshadminvm $admin
 sleep 100 # time for the admin VM to boot
 
 
 # rest of code runs on admin node:
-ssh root@$admin "export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL; export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ; export cloudsource=$cloudsource ; export libvirt_type=$libvirt_type ; "'
-  curl -s "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh" &gt; qa_crowbarsetup.sh
-  export nodenumber=3
+ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL; export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ; export cloudsource=$cloudsource ; export libvirt_type=$libvirt_type ; export nodenumber=$nodenumber ; "'
+  wget -Oqa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh" &gt; qa_crowbarsetup.sh
+  
   [ $WITHREBOOT == "true" ] &amp;&amp; export rebootcompute=1 &amp;&amp; export waitforrebootcompute=1
   [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export addupdaterepo=1 &amp;&amp; export runupdate=1
-  prepareinstallcrowbar=1 installcrowbar=1 allocate=1 waitcompute=1 proposal=1 testsetup=1 perl -e "alarm 90*60 ; exec q{bash -x qa_crowbarsetup.sh d1}"
+  prepareinstallcrowbar=1 installcrowbar=1 allocate=1 waitcompute=1 proposal=1 testsetup=1 perl -e "alarm 90*60 ; exec q{bash -x qa_crowbarsetup.sh $cloud}"
 '</command>
     </hudson.tasks.Shell>
   </builders>
@@ -82,7 +87,7 @@ ssh root@$admin "export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$U
       <latestOnly>false</latestOnly>
     </hudson.tasks.ArtifactArchiver>
     <hudson.tasks.Mailer>
-      <recipients>cloud-devel@suse.de</recipients>
+      <recipients>bwiedemann@suse.de</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
