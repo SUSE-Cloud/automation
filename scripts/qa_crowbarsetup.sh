@@ -1878,17 +1878,6 @@ function prepare_cloudupgrade()
 
     zypper --non-interactive refresh || die 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
     zypper --non-interactive install suse-cloud-upgrade || die 3 "Couldn't install suse-cloud-upgrade"
-
-    # Upgrade suse-cloud-upgrade the latest git code (checked out and copied into
-    # admin node by mkcloud)
-    # TODO: change to the packaged version
-    if [ -d ~/suse-cloud-upgrade ]; then
-        cp ~/suse-cloud-upgrade/suse-cloud-upgrade /usr/sbin/
-        cp ~/suse-cloud-upgrade/lib/* /usr/lib/suse-cloud-upgrade/
-    else
-        echo "We couldn't find a copy of suse-cloud-upgrade at ~/suse-cloud-upgrade" >&2
-        exit 5
-    fi
 }
 
 function cloudupgrade_1st()
