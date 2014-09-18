@@ -55,8 +55,8 @@ if ( -z $CRUMB ) {
   print STDERR ' $CRUMB=".crumb:123abc456def"';
 }
 
-$METHOD |= 'POST';
-$SCHEME |= 'https';
+$METHOD ||= 'POST';
+$SCHEME ||= 'https';
 if ($JURL =~ /(ci|river)\.suse\.de/)
 {
   $SCHEME='http';
