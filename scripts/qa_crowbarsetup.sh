@@ -1267,33 +1267,8 @@ function get_ceph_nodes()
 }
 
 
-function do_testsetup()
+function oncontroller_testsetup()
 {
-    get_novacontroller
-    if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
-        echo "no nova contoller - something went wrong"
-        exit 62
-    fi
-    echo "openstack nova contoller: $novacontroller"
-    curl -m 40 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
-
-    wantcephtestsuite=0
-    if [[ -n "$wantceph" ]]; then
-        get_ceph_nodes
-        [ "$cephradosgws" = nil ] && cephradosgws=""
-        echo "ceph mons:" $cephmons
-        echo "ceph osds:" $cephosds
-        echo "ceph radosgw:" $cephradosgws
-        iscloudver 4plus && wantcephtestsuite=1
-        if [ -n "$cephradosgws" ] ; then
-            wantradosgwtest=1
-        fi
-    fi
-
-    ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
-        export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
-        export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
-        export wantradosgwtest=\"$wantradosgwtest\" ; "'set -x
         . .openrc
         export LC_ALL=C
                 if [[ -n $wantswift ]] ; then
@@ -1549,7 +1524,37 @@ EOH
         echo "Volume in VM: $volumecreateret & $volumeattachret"
 
         test $cephret = 0 -a $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0
-    '
+}
+
+function do_testsetup()
+{
+    get_novacontroller
+    if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
+        echo "no nova contoller - something went wrong"
+        exit 62
+    fi
+    echo "openstack nova contoller: $novacontroller"
+    curl -m 40 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
+
+    wantcephtestsuite=0
+    if [[ -n "$wantceph" ]]; then
+        get_ceph_nodes
+        [ "$cephradosgws" = nil ] && cephradosgws=""
+        echo "ceph mons:" $cephmons
+        echo "ceph osds:" $cephosds
+        echo "ceph radosgw:" $cephradosgws
+        iscloudver 4plus && wantcephtestsuite=1
+        if [ -n "$cephradosgws" ] ; then
+            wantradosgwtest=1
+        fi
+    fi
+
+    scp $0 $novacontroller:
+    ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
+        export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
+        export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
+        export wantradosgwtest=\"$wantradosgwtest\" ;
+        oncontroller_testsetup=1 bash -x ./$0 $cloud"
     ret=$?
     echo ret:$ret
     if [ "$wanttempest" = "1" ]; then
@@ -1596,13 +1601,13 @@ function rebootcompute()
     fi
 
     scp $0 $novacontroller:
-    ssh $novacontroller "waitforrebootcompute=1 bash -x ./$0 $cloud"
+    ssh $novacontroller "oncontroller_waitforinstance=1 bash -x ./$0 $cloud"
     local ret=$?
     echo "ret:$ret"
     exit $ret
 }
 
-function waitforrebootcompute()
+function oncontroller_waitforinstance()
 {
     . .openrc
     nova list
@@ -2074,13 +2079,16 @@ fi
 if [ -n "$testsetup" ] ; then
     do_testsetup
 fi
+if [ -n "$oncontroller_testsetup" ] ; then
+    oncontroller_testsetup
+fi
 
 if [ -n "$rebootcompute" ] ; then
     rebootcompute
 fi
 
-if [ -n "$waitforrebootcompute" ] ; then
-    waitforrebootcompute
+if [ -n "$oncontroller_waitforinstance" ] ; then
+    oncontroller_waitforinstance
 fi
 
 if [ -n "$rebootneutron" ] ; then
