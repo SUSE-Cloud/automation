@@ -532,7 +532,7 @@ function h_set_source_variables()
 }
 
 
-function prepareinstallcrowbar()
+function onadmin_prepareinstallcrowbar()
 {
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
     cat > /etc/sysconfig/network/ifcfg-eth0 <<EOF
@@ -757,17 +757,17 @@ function do_installcrowbar()
 }
 
 
-function installcrowbarfromgit()
+function onadmin_installcrowbarfromgit()
 {
     do_installcrowbar "CROWBAR_FROM_GIT=1 /opt/dell/bin/install-chef-suse.sh --from-git --verbose"
 }
 
-function installcrowbar()
+function onadmin_installcrowbar()
 {
     do_installcrowbar "if [ -e /tmp/install-chef-suse.sh ] ; then /tmp/install-chef-suse.sh --verbose ; else /opt/dell/bin/install-chef-suse.sh --verbose ; fi"
 }
 
-function allocate()
+function onadmin_allocate()
 {
     #chef-client
     if $want_ipmi ; then
@@ -857,7 +857,7 @@ function check_node_resolvconf()
     ssh_password $1 'grep "^nameserver" /etc/resolv.conf || echo fail'
 }
 
-function do_waitcompute()
+function onadmin_waitcompute()
 {
     local node
     for node in $(crowbar machines list | grep ^d) ; do
@@ -1208,7 +1208,7 @@ function do_one_proposal()
     fi
 }
 
-function do_proposal()
+function onadmin_proposal()
 {
     waitnodes nodes
     local proposals="database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat tempest"
@@ -1539,7 +1539,7 @@ EOH
         test $cephret = 0 -a $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0
 }
 
-function do_testsetup()
+function onadmin_testsetup()
 {
     get_novacontroller
     if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
@@ -1576,7 +1576,7 @@ function do_testsetup()
     exit $ret
 }
 
-function addupdaterepo()
+function onadmin_addupdaterepo()
 {
     local UPR=/srv/tftpboot/repos/Cloud-PTF
     mkdir -p $UPR
@@ -1589,13 +1589,13 @@ function addupdaterepo()
     zypper ar $UPR cloud-ptf
 }
 
-function runupdate()
+function onadmin_runupdate()
 {
     wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
     wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
 }
 
-function rebootcompute()
+function onadmin_rebootcompute()
 {
     get_novacontroller
 
@@ -1639,7 +1639,7 @@ function get_neutron_server_node()
     puts j['deployment']['neutron']['elements']['neutron-server'][0];")
 }
 
-function rebootneutron()
+function onadmin_rebootneutron()
 {
     get_neutron_server_node
     echo "Rebooting neutron server: $NEUTRON_SERVER ..."
@@ -1831,7 +1831,7 @@ EOOWASP
 
 
 
-function securitytests()
+function onadmin_securitytests()
 {
     # download latest owasp package
     local owaspdomain=clouddata.cloud.suse.de   # works only SUSE-internally for now
@@ -1909,7 +1909,7 @@ function prepare_cloudupgrade()
     zypper --non-interactive install suse-cloud-upgrade || die 3 "Couldn't install suse-cloud-upgrade"
 }
 
-function cloudupgrade_1st()
+function onadmin_cloudupgrade_1st()
 {
     # Disable all openstack proposals stop service on the client
     echo 'y' | suse-cloud-upgrade upgrade
@@ -1920,7 +1920,7 @@ function cloudupgrade_1st()
     fi
 }
 
-function cloudupgrade_2nd()
+function onadmin_cloudupgrade_2nd()
 {
     # Upgrade Admin node
     zypper --non-interactive up -l
@@ -1942,7 +1942,7 @@ function cloudupgrade_2nd()
     crowbar provisioner proposal commit default
 }
 
-function cloudupgrade_clients()
+function onadmin_cloudupgrade_clients()
 {
 
     # Upgrade Packages on the client nodes
@@ -1955,7 +1955,7 @@ function cloudupgrade_clients()
     crowbar updater proposal commit default
 }
 
-function cloudupgrade_reboot_and_redeploy_clients()
+function onadmin_cloudupgrade_reboot_and_redeploy_clients()
 {
     local barclamp=""
     local proposal=""
@@ -1987,7 +1987,7 @@ function cloudupgrade_reboot_and_redeploy_clients()
     # TODO: restart any suspended instance?
 }
 
-function qa_test()
+function onadmin_qa_test()
 {
     zypper -n in -y python-{keystone,nova,glance,heat,ceilometer}client
 
@@ -2008,7 +2008,7 @@ function qa_test()
 }
 
 
-function teardown()
+function onadmin_teardown()
 {
     #BMCs at 10.122.178.163-6 #node 6-9
     #BMCs at 10.122.$net.163-4 #node 11-12
@@ -2038,31 +2038,31 @@ function teardown()
 mount_localreposdir_target
 
 if [ -n "$prepareinstallcrowbar" ] ; then
-    prepareinstallcrowbar
+    onadmin_prepareinstallcrowbar
 fi
 
 if [ -n "$installcrowbar" ] ; then
-    installcrowbar
+    onadmin_installcrowbar
 fi
 
 if [ -n "$installcrowbarfromgit" ] ; then
-    installcrowbarfromgit
+    onadmin_installcrowbarfromgit
 fi
 
 if [ -n "$addupdaterepo" ] ; then
-    addupdaterepo
+    onadmin_addupdaterepo
 fi
 
 if [ -n "$runupdate" ] ; then
-    runupdate
+    onadmin_runupdate
 fi
 
 if [ -n "$allocate" ] ; then
-    allocate
+    onadmin_allocate
 fi
 
 if [ -n "$waitcompute" ] ; then
-    do_waitcompute
+    onadmin_waitcompute
 fi
 
 if [ -n "$prepare_cloudupgrade" ] ; then
@@ -2070,35 +2070,35 @@ if [ -n "$prepare_cloudupgrade" ] ; then
 fi
 
 if [ -n "$cloudupgrade_1st" ] ; then
-    cloudupgrade_1st
+    onadmin_cloudupgrade_1st
 fi
 
 if [ -n "$cloudupgrade_2nd" ] ; then
-    cloudupgrade_2nd
+    onadmin_cloudupgrade_2nd
 fi
 
 if [ -n "$cloudupgrade_clients" ] ; then
-    cloudupgrade_clients
+    onadmin_cloudupgrade_clients
 fi
 
 if [ -n "$cloudupgrade_reboot_and_redeploy_clients" ] ; then
-    cloudupgrade_reboot_and_redeploy_clients
+    onadmin_cloudupgrade_reboot_and_redeploy_clients
 fi
 
 set_proposalvars
 if [ -n "$proposal" ] ; then
-    do_proposal
+    onadmin_proposal
 fi
 
 if [ -n "$testsetup" ] ; then
-    do_testsetup
+    onadmin_testsetup
 fi
 if [ -n "$oncontroller_testsetup" ] ; then
     oncontroller_testsetup
 fi
 
 if [ -n "$rebootcompute" ] ; then
-    rebootcompute
+    onadmin_rebootcompute
 fi
 
 if [ -n "$oncontroller_waitforinstance" ] ; then
@@ -2106,17 +2106,17 @@ if [ -n "$oncontroller_waitforinstance" ] ; then
 fi
 
 if [ -n "$rebootneutron" ] ; then
-    rebootneutron
+    onadmin_rebootneutron
 fi
 
 if [ -n "$securitytests" ] ; then
-    securitytests
+    onadmin_securitytests
 fi
 
 if [ -n "$qa_test" ] ; then
-    qa_test
+    onadmin_qa_test
 fi
 
 if [ -n "$teardown" ] ; then
-    teardown
+    onadmin_teardown
 fi
