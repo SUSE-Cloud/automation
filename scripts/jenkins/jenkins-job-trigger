@@ -69,10 +69,8 @@ my $jobtype='normal';
 my $jtype=shift || '';
 if ($jtype =~ /^-p$/) {
   $jobtype='parameter';
-  shift;
 } elsif ($jtype =~ /^-m$/) {
   $jobtype='matrix';
-  shift;
 }
 
 my $triggerurl=$jurl."/job/".$job;
