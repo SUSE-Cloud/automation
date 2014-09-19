@@ -19,6 +19,13 @@ export want_ipmi=${want_ipmi:-false}
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
+function complain() # {{{
+{
+    local ex=$1; shift
+    printf "Error: %s\n" "$@" >&2
+    [[ $ex != - ]] && exit $ex
+} # }}}
+
 if [ -z $cloud ] ; then
     echo "Error: Parameter missing that defines the cloud name"
     echo "Possible values: [d1, d2, p, virtual]"
@@ -1602,6 +1609,7 @@ function waitforrebootcompute()
     nova start testvm || exit 28
     nova list
     local vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
+    [[ -z "$vmip" ]] && complain 12 "no IP found for instance"
     wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
 }
 
