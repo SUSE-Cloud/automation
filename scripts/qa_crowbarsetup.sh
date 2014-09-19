@@ -1266,6 +1266,13 @@ function get_ceph_nodes()
     fi
 }
 
+function addfloatingip()
+{
+    local instanceid=$1
+    nova floating-ip-create | tee floating-ip-create.out
+    floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
+    nova add-floating-ip "$instanceid" "$floatingip"
+}
 
 function oncontroller_testsetup()
 {
@@ -1453,9 +1460,7 @@ EOH
             echo "Error: VM IP is empty. Exiting"
             exit 38
         fi
-        nova floating-ip-create | tee floating-ip-create.out
-        floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
-        nova add-floating-ip "$instanceid" "$floatingip"
+        addfloatingip "$instanceid"
         vmip=$floatingip
         n=1000 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $vmip >/dev/null ; do
             n=$(expr $n - 1)
@@ -1613,6 +1618,7 @@ function oncontroller_waitforinstance()
     nova list
     nova start testvm || exit 28
     nova list
+    addfloatingip testvm
     local vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
     [[ -z "$vmip" ]] && complain 12 "no IP found for instance"
     wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
