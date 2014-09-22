@@ -498,12 +498,17 @@ function h_set_source_variables()
             CLOUDDISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-3-official"
         ;;
-        Beta*|RC*|GMC*|GM4)
-            cs=$cloudsource
-            [ $cs = GM4 ] && cs=GM
-            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-4-$cs/
+        GM4)
+            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-4-GM/
             CLOUDDISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
+        ;;
+        Beta*|RC*|GMC*|GM5)
+            cs=$cloudsource
+            [ $cs = GM5 ] && cs=GM
+            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-5-$cs/
+            CLOUDDISTISO="S*-CLOUD*1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
         *)
             echo "Error: you must set environment variable cloudsource=develcloud4|develcloud5|susecloud4|GM3"
@@ -1561,7 +1566,7 @@ function do_testsetup()
     ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
         export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
-        export wantradosgwtest=\"$wantradosgwtest\" ;
+        export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
         oncontroller_testsetup=1 bash -x ./$0 $cloud"
     ret=$?
     echo ret:$ret
