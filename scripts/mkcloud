@@ -1022,7 +1022,6 @@ function sanity_checks()
 
 allcmds="all all_noreboot instonly plain plain_with_upgrade cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
 wantedcmds=$@
-runcmds=''
 
 if [ -z "$wantedcmds" ] ; then
     usage
@@ -1031,18 +1030,16 @@ fi
 function expand_steps()
 {
     # parse the commands and expand the aliases
-    runcmds=''
+    local runcmds=''
+    local localwantedcmds=$@
     local cmd
-    for cmd in $wantedcmds ; do
-        if [ "$cmd" = "help" -o "$cmd" = "--help" -o "$cmd" = "usage" ] ; then
-            usage
-        fi
+    for cmd in $localwantedcmds ; do
 
-        local ok=0
+        local found=0
         local onecmd
         for onecmd in $allcmds ; do
             if [ $onecmd = $cmd ] ; then
-                ok=1
+                found=1
                 case "$cmd" in
                     all)
                         runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
@@ -1068,24 +1065,23 @@ function expand_steps()
                 esac
             fi
         done
+        [ $found == 0 ] && complain - "Step $cmd not found." && return
 
-        if [ $ok = 0 ] ; then
-            complain - "Command $cmd unknown."
-            usage
-        fi
     done
+    echo "$runcmds"
 }
 
-expand_steps
+steplist=`expand_steps $wantedcmds`
+[ -z "$steplist" ] && usage
 
 sanity_checks
 
 echo "You choose to run these mkcloud steps:"
-echo "  $runcmds"
+echo "  $steplist"
 echo
 sleep 2
 
-for cmd in `echo $runcmds` ; do
+for cmd in `echo $steplist` ; do
     echo
     echo "============> MKCLOUD STEP START: $cmd <============"
     echo
