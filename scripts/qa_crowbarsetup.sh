@@ -3,6 +3,9 @@
 test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
 #resize2fs /dev/vda2
 
+mkcconf=mkcloud.config
+[ -e $mkcconf ] && source $mkcconf
+
 novacontroller=
 novadashboardserver=
 export cloud=${1}

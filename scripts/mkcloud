@@ -165,8 +165,8 @@ function wait_for()
 
 function sshrun()
 {
-    $scp qa_crowbarsetup.sh root@$adminip:
-    ssh $sshopts root@$adminip "
+    mkcconf=mkcloud.config
+    cat > $mkcconf <<EOF
         export debug=$debug ;
         export cloudfqdn=$cloudfqdn ;
         export cloudsource=$cloudsource ;
@@ -196,8 +196,10 @@ function sshrun()
 
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
-        $@
-        "
+EOF
+
+    $scp qa_crowbarsetup.sh $mkcconf root@$adminip:
+    ssh $sshopts root@$adminip "$@"
     return $?
 }
 
