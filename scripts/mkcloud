@@ -1019,8 +1019,9 @@ function sanity_checks()
 
 
 ## MAIN ##
+step_aliases="alias_new_admin alias_compute alias_upgrade alias_testupdate"
 
-allcmds="all all_noreboot instonly plain plain_with_upgrade cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
+allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
 wantedcmds=$@
 
 if [ -z "$wantedcmds" ] ; then
@@ -1041,23 +1042,32 @@ function expand_steps()
             if [ $onecmd = $cmd ] ; then
                 found=1
                 case "$cmd" in
+                    alias_new_admin)
+                        runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar"
+                    ;;
+                    alias_compute)
+                        runcmds="$runcmds setupcompute instcompute proposal"
+                    ;;
                     all)
-                        runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
+                        runcmds="$runcmds `expand_steps alias_new_admin` rebootcrowbar `expand_steps alias_compute` testsetup rebootcompute"
                     ;;
                     all_noreboot)
-                        runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
+                        runcmds="$runcmds`expand_steps alias_new_admin` `expand_steps alias_compute` testsetup"
                     ;;
-                    testupdate)
+                    alias_testupdate|testupdate)
                         runcmds="$runcmds addupdaterepo runupdate testsetup"
                     ;;
                     plain)
-                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal"
+                        runcmds="$runcmds `expand_steps instonly` proposal"
                     ;;
                     instonly)
                         runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
                     ;;
+                    alias_upgrade)
+                        runcmds="$runcmds prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
+                    ;;
                     plain_with_upgrade)
-                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal addupdaterepo runupdate prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
+                        runcmds="$runcmds `expand_steps plain` addupdaterepo runupdate `expand_steps alias_upgrade`"
                     ;;
                     *)
                         runcmds="$runcmds $cmd"
