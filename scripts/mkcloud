@@ -83,6 +83,8 @@ localreposdir_src=${localreposdir_src:-""}
 localreposdir_target=${localreposdir_target:-"/repositories"}
 [ -z "$localreposdir_src" ] && localreposdir_target=""
 
+pidfile=mkcloud.pid
+
 trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
 
@@ -113,6 +115,11 @@ function show_environment()
     echo "-------------------------------"
 }
 
+function pre_exit_cleanup()
+{
+    rm $pidfile
+}
+
 function error_exit()
 {
     exitcode=$1
@@ -127,6 +134,7 @@ function error_exit()
     '
     mkdir -p $artifacts_dir
     $scp root@$adminip:/var/log/*tbz $artifacts_dir/
+    pre_exit_cleanup
     echo $message
     show_environment
     exit $exitcode
@@ -935,24 +943,12 @@ function runupdate()
     return $?
 }
 
-function check-no-concurrency() # {{{
+function is_concurrent_run()
 {
-    while read ppid pid; do
-        (( $$ == $ppid )) && continue
-        (( $$ == $pid )) && continue
-        [[ -e /proc/$pid ]] || continue
-        declare -a cmdline=($(cat /proc/$pid/cmdline | tr '\0' '\n'))
-        (( 0 == ${#cmdline} )) && continue
-        if [[ "${cmdline[0]}" == "$SHELL" ]]; then
-            if [[ "${cmdline[1]##*/}" == "${SELF##*/}" ]]; then
-                complain - "possibly concurrent use.  Allegedly infringing process:" \
-                    "pid=$pid cmdline=${cmdline[*]}"
-                return 1
-            fi
-        fi
-    done < <(ps -eo ppid= -o pid=)
-    return 0
-} # }}}
+    [ -e $pidfile ] && kill -0 `cat $pidfile` 2>/dev/null && return 0
+    echo $$ > $pidfile
+    return 1
+}
 
 function sanity_checks()
 {
@@ -962,9 +958,9 @@ function sanity_checks()
             "and kill all current VMs on this host."
     fi
 
-    if [[ "$PARALLEL" != "yes" ]] && ! check-no-concurrency; then
-        complain 33 "mkcloud was started twice." \
-            "export PARALLEL=yes if you are sure this is not a conflict."
+    if is_concurrent_run; then
+        complain 33 "mkcloud was started twice from same working directory: `pwd`" \
+            "Please always use a separate working directory for each (parallel) mkcloud run."
     fi
 
     # always fetch the latest version
@@ -1098,4 +1094,5 @@ for cmd in `echo $runcmds` ; do
     echo
 done
 
+pre_exit_cleanup
 show_environment

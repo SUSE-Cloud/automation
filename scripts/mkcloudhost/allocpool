@@ -42,6 +42,7 @@ foreach my $d (@dirs) {
 	last;
 }
 if(!$found) {die "all dirs (@dirs) are currently in use"}
+chdir($ENV{testdir});
 print "using testdir=$ENV{testdir}\n";
 exec("withlock", "$ENV{testdir}/$lockname", "/root/mkcloude", @ARGV);
 die "exec failed: $!";
