@@ -1561,7 +1561,7 @@ function do_testsetup()
     ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
         export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
-        export wantradosgwtest=\"$wantradosgwtest\" ;
+        export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
         oncontroller_testsetup=1 bash -x ./$0 $cloud"
     ret=$?
     echo ret:$ret
