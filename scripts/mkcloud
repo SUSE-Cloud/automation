@@ -1028,47 +1028,55 @@ if [ -z "$wantedcmds" ] ; then
     usage
 fi
 
-# parse the commands and expand the aliases
-for cmd in $wantedcmds ; do
-    if [ "$cmd" = "help" -o "$cmd" = "--help" -o "$cmd" = "usage" ] ; then
-        usage
-    fi
+function expand_steps()
+{
+    # parse the commands and expand the aliases
+    runcmds=''
+    local cmd
+    for cmd in $wantedcmds ; do
+        if [ "$cmd" = "help" -o "$cmd" = "--help" -o "$cmd" = "usage" ] ; then
+            usage
+        fi
 
-    ok=0
-    for onecmd in $allcmds ; do
-        if [ $onecmd = $cmd ] ; then
-            ok=1
-            case "$cmd" in
-                all)
-                    runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
-                ;;
-                all_noreboot)
-                    runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
-                ;;
-                testupdate)
-                    runcmds="$runcmds addupdaterepo runupdate testsetup"
-                ;;
-                plain)
-                    runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal"
-                ;;
-                instonly)
-                    runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
-                ;;
-                plain_with_upgrade)
-                    runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal addupdaterepo runupdate prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
-                ;;
-                *)
-                    runcmds="$runcmds $cmd"
-                ;;
-            esac
+        local ok=0
+        local onecmd
+        for onecmd in $allcmds ; do
+            if [ $onecmd = $cmd ] ; then
+                ok=1
+                case "$cmd" in
+                    all)
+                        runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
+                    ;;
+                    all_noreboot)
+                        runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
+                    ;;
+                    testupdate)
+                        runcmds="$runcmds addupdaterepo runupdate testsetup"
+                    ;;
+                    plain)
+                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal"
+                    ;;
+                    instonly)
+                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
+                    ;;
+                    plain_with_upgrade)
+                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal addupdaterepo runupdate prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
+                    ;;
+                    *)
+                        runcmds="$runcmds $cmd"
+                    ;;
+                esac
+            fi
+        done
+
+        if [ $ok = 0 ] ; then
+            complain - "Command $cmd unknown."
+            usage
         fi
     done
+}
 
-    if [ $ok = 0 ] ; then
-        complain - "Command $cmd unknown."
-        usage
-    fi
-done
+expand_steps
 
 sanity_checks
 
