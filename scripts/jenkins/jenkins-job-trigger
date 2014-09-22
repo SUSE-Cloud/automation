@@ -62,7 +62,9 @@ if ($JURL =~ /(ci|river)\.suse\.de/)
   $SCHEME='http';
 }
 
-my $jurl="$SCHEME://${USER}:${APIKEY}\@$JURL";
+my $up='';
+$up="${USER}:${APIKEY}\@" if (defined $USER && $USER ne '' && defined $APIKEY && $APIKEY ne '');
+my $jurl="$SCHEME://${up}${JURL}";
 my $job=shift || die usage();
 
 my $jobtype='normal';
