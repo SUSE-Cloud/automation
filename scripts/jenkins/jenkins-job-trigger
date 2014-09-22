@@ -84,8 +84,11 @@ if ($jobtype eq 'normal') {
 }
 
 $triggerurl =~ s/ /+/g;
+my @curlargs=();
+push @curlargs, ("-X", $METHOD);
+push @curlargs, ("-H", $CRUMB) if ($CRUMB);
+my @cmd=("curl", @curlargs, $triggerurl);
 
-my @cmd=("curl", "-H", $CRUMB, "-X", $METHOD, $triggerurl);
 print join(' ', @cmd) if ( $ENV{debug} );
 my $ret=system(@cmd);
 exit $ret >> 8;
