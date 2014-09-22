@@ -47,7 +47,6 @@
 virtualcloud=${virtualcloud:-virtual}
 cloudfqdn=${cloudfqdn:-$virtualcloud.cloud.suse.de}
 forwardmode=${forwardmode:-nat}
-net_fixed=${net_fixed:-192.168.123}
 net_public=${net_public:-192.168.122}
 net_admin=${net_admin:-192.168.124}
 adminnetmask=${adminnetmask:-255.255.248.0}
@@ -68,8 +67,6 @@ needcvol=1
 ADMIN_NODE_MEMORY=${ADMIN_NODE_MEMORY:-2097152}
 CONTROLLER_NODE_MEMORY=${COMPUTE_NODE_MEMORY:-4194304}
 COMPUTE_NODE_MEMORY=${COMPUTE_NODE_MEMORY:-2097152}
-# pvlist is filled below
-pvlist=
 next_pv_device=
 pv_cur_device_no=0
 cloudbr=${cloudbr:-${cloud}br}
@@ -229,6 +226,7 @@ function cleanup()
 
 function h_get_next_pv_device()
 {
+    local pvlist
     if [ -z "$pvlist" ] ; then
         pvlist=`pvs --sort -Free | awk '$2~/'$cloudvg'/{print $1}'`
         pv_cur_device_no=0
@@ -1087,7 +1085,6 @@ for cmd in `echo $runcmds` ; do
     ret=$?
     if [ $ret != 0 ] ; then
         echo
-        echo '$h1!!'
         echo "Error detected. Stopping mkcloud."
         echo "The step '$cmd' returned with exit code $ret"
         echo "Please refer to the $cmd function in this script when debugging the issue."
