@@ -1876,7 +1876,10 @@ function prepare_cloudupgrade()
     wait_for_if_running zypper
 
     # Detect upgrade target
-    if iscloudver 3; then
+    if iscloudver 4; then
+        update_version=5
+        export cloudsource=${cloudsource/4/5}
+    elif iscloudver 3; then
         update_version=4
         export cloudsource=${cloudsource/3/4}
     else
