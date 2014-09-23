@@ -1536,7 +1536,7 @@ EOH
         echo "Tempest: $tempestret"
         echo "Volume in VM: $volumecreateret & $volumeattachret"
 
-        test $cephret = 0 -a $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0
+        test $cephret = 0 -a $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0 || exit 102
 }
 
 function onadmin_testsetup()
