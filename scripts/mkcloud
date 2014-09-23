@@ -13,7 +13,14 @@
 # This tool relies on the script qa_crowbarsetup.sh (in the same directory)
 # Please 'export' environment variables according to your needs:
 #
-# CVOL=/dev/vdx  (default=/dev/vdb)
+# Either 'cloudvg' or 'cloudpv' must be set.
+# Another required parameter is 'cloudsource'.
+# All other parameters have defaults unless defined otherwise.
+#
+# cloudvg=vg0
+#       volume group name to use to create lvm volumes
+#
+# cloudpv=/dev/vdx  (default=/dev/vdb)
 #       device where a LVM physical volume can be created
 #       should be at least 80 GB
 #       the volume group will be called "cloud"
@@ -44,6 +51,21 @@
 #                sets the number of CPU cores assigned to admin node
 
 
+if [ -n $CVOL ] ; then
+    cloudpv=$CVOL
+    unset CVOL
+    echo "------------------------------------------------------------------------"
+    echo "The CVOL variable is deprecated."
+    echo "Please either set 'cloudvg' or 'cloudpv'"
+    echo " cloudvg will use an existing lvm and not destroy other volumes"
+    echo " cloudpv will use an lvm pv device exclusively and destroy all volues"
+    echo
+    echo "Continuing in 20 seconds with fallback (cloudpv=\$CVOL):"
+    echo " cloudpv=$CVOL"
+    echo "Otherwise press Ctrl-C now!"
+    echo "------------------------------------------------------------------------"
+    sleep 20
+fi
 virtualcloud=${virtualcloud:-virtual}
 cloudfqdn=${cloudfqdn:-$virtualcloud.cloud.suse.de}
 forwardmode=${forwardmode:-nat}
@@ -65,9 +87,9 @@ start_time=`date`
 cloud=${cloud:-cloud}
 cloudvg=${cloudvg:-$cloud}
 needcvol=1
-ADMIN_NODE_MEMORY=${ADMIN_NODE_MEMORY:-2097152}
-CONTROLLER_NODE_MEMORY=${COMPUTE_NODE_MEMORY:-4194304}
-COMPUTE_NODE_MEMORY=${COMPUTE_NODE_MEMORY:-2097152}
+admin_node_memory=${admin_node_memory:-2097152}
+controller_node_memory=${compute_node_memory:-4194304}
+compute_node_memory=${compute_node_memory:-2097152}
 # pvlist is filled below
 pvlist=
 next_pv_device=
@@ -107,7 +129,7 @@ function show_environment()
     echo " cloudsource: $cloudsource"
     echo "    TESTHEAD: $TESTHEAD"
     echo "  nodenumber: $nodenumber"
-    echo "        CVOL: $CVOL"
+    echo "     cloudpv: $cloudpv"
     echo " UPDATEREPOS: $UPDATEREPOS"
     echo " cephvolumenumber: $cephvolumenumber"
     echo "-------------------------------"
@@ -233,7 +255,7 @@ function cleanup()
         /etc/sysconfig/network/ifcfg-$cloudbr.300
     if [ -n "$wipe" ] ; then
         vgchange -an $cloudvg
-        dd if=/dev/zero of=$CVOL count=1000
+        dd if=/dev/zero of=$cloudpv count=1000
     fi
     return 0
 }
@@ -251,8 +273,8 @@ function h_get_next_pv_device()
 function h_create_cloud_lvm()
 {
     if [ -n "$needcvol" ] ; then
-        pvcreate "$CVOL"
-        vgcreate "$cloudvg" "$CVOL"
+        pvcreate "$cloudpv"
+        vgcreate "$cloudvg" "$cloudpv"
     fi
     vgchange -ay $cloudvg # for later boots
 
@@ -395,8 +417,8 @@ function h_create_libvirt_adminnode_config()
     cat > $1 <<EOLIBVIRT
   <domain type='kvm'>
     <name>$cloud-admin</name>
-    <memory>$ADMIN_NODE_MEMORY</memory>
-    <currentMemory>$ADMIN_NODE_MEMORY</currentMemory>
+    <memory>$admin_node_memory</memory>
+    <currentMemory>$admin_node_memory</currentMemory>
     <vcpu>$adminvcpus</vcpu>
     <os>
       <type arch='x86_64' machine='pc-0.14'>hvm</type>
@@ -592,8 +614,8 @@ function h_create_libvirt_computenode_config()
     cephvolume="$4"
     nicmodel=virtio
     [ "$libvirt_type" = "xen" ] && nicmodel=e1000
-    nodememory=$COMPUTE_NODE_MEMORY
-    [ "$nodecounter" = "1" ] && nodememory=$CONTROLLER_NODE_MEMORY
+    nodememory=$compute_node_memory
+    [ "$nodecounter" = "1" ] && nodememory=$controller_node_memory
 
     cat > $nodeconfigfile <<EOLIBVIRT
 <domain type='kvm'>
@@ -898,7 +920,7 @@ function usage()
     echo " Environment variables (need to be exported):"
     echo
     echo " Mandatory"
-    echo "   CVOL=/dev/vdx (default /dev/vdb)"
+    echo "   cloudpv=/dev/vdx (default /dev/vdb)"
     echo "       :  LVM will be created on this device (at least 80GB)"
     echo "   cloudsource=develcloud2.0 | develcloud3 | develcloud4 | develcloud5 | susecloud4 | Beta?  (default '')"
     echo "       : defines the installation source"
@@ -917,11 +939,11 @@ function usage()
     echo "       : set the number of CPU cores per compute node"
     echo "   adminvcpus=1    (default $vcpus)"
     echo "       : set the number of CPU cores for admin node"
-    echo "   ADMIN_NODE_MEMORY (default 2097152)"
+    echo "   admin_node_memory (default 2097152)"
     echo "       : Set the memory in KB assigned to admin node"
-    echo "   CONTROLLER_NODE_MEMORY (default 4194304)"
+    echo "   controller_node_memory (default 4194304)"
     echo "       : Set the memory in KB assigned to compute nodes"
-    echo "   COMPUTE_NODE_MEMORY (default 2097152)"
+    echo "   compute_node_memory (default 2097152)"
     echo "       : Set the memory in KB assigned to compute nodes"
     echo "   networkingplugin"
     echo "       : Set the networking plugin to be used by neutron (e.g. openvswitch),"
@@ -993,13 +1015,13 @@ function sanity_checks()
 
     vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
     if [ -n "$needcvol" ] ; then
-        CVOL=${CVOL:-/dev/vdb}
-        if grep -q $CVOL /proc/mounts ; then
-            complain 92 "The device $CVOL seems to be used. Exiting."
+        cloudpv=${cloudpv:-/dev/vdb}
+        if grep -q $cloudpv /proc/mounts ; then
+            complain 92 "The device $cloudpv seems to be used. Exiting."
         fi
-        if [ ! -e $CVOL ] ; then
-            complain 93 "$CVOL does not exist." \
-                "Please set the cloud volume group to an existing device: export CVOL=/dev/sdx" \
+        if [ ! -e $cloudpv ] ; then
+            complain 93 "$cloudpv does not exist." \
+                "Please set the cloud volume group to an existing device: export cloudpv=/dev/sdx" \
                 "Running 'partprobe' may help to let the device appear."
         fi
     fi
