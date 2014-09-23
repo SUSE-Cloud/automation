@@ -27,6 +27,7 @@ EOF
 
 function h_setup_devstack()
 {
+    zypper --non-interactive in git
     # FIXME(toabctl): Use upstream devstack when needed patches are merged!
     git clone -b devstack-opensuse131 https://github.com/toabctl/devstack.git
     # configure devstack
