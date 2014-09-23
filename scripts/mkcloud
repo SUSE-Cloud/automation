@@ -182,6 +182,7 @@ function sshrun()
         export tempestoptions='${tempestoptions}' ;
         export cephvolumenumber=$cephvolumenumber ;
         export shell=$shell ;
+        export want_sles12=$want_sles12 ;
 
         export all_with_ssl=$all_with_ssl ;
         export glance_with_ssl=$glance_with_ssl ;
