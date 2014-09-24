@@ -16,6 +16,17 @@ function h_echo_header()
     echo "################################################"
 }
 
+function h_setup_extra_repos()
+{
+    #FIXME(toabctl): Also /etc/os-release is not available for SLES11, right!?
+    local version=`grep -e "^VERSION_ID=" /etc/os-release | tr -d "\"" | cut -d "=" -f2`
+    local name=`grep -e "^NAME=" /etc/os-release | cut -d "=" -f2`
+    # NOTE(toabctl): This is currently needed for i.e. haproxy package.
+    # This package is not available in openSUSE 13.1 but needs to be installed for lbaas tempest tests.
+    zypper --non-interactive ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${name}_${version}/Cloud:OpenStack:Master.repo
+    zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
+}
+
 function h_setup_screen()
 {
     cat > ~/.screenrc <<EOF
@@ -83,6 +94,7 @@ EOF
 
 ###################### Start running code #########################
 h_echo_header "Setup"
+h_setup_extra_repos
 h_setup_screen
 h_setup_devstack
 h_echo_header "Run devstack"
