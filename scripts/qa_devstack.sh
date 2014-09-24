@@ -29,7 +29,7 @@ EOF
 
 function h_setup_devstack()
 {
-    zypper -n in git-core
+    zypper -n in git-core crudini
 
     # FIXME(toabctl): Use upstream devstack when needed patches are merged!
     git clone -b devstack-opensuse131 https://github.com/toabctl/devstack.git $DEVSTACK_DIR
