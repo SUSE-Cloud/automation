@@ -4,6 +4,8 @@
 # Setup devstack and run Tempest
 ##########################################################################
 
+DEVSTACK_DIR="/tmp/devstack"
+
 set -ex
 
 function h_echo_header()
@@ -30,9 +32,11 @@ function h_setup_devstack()
     zypper -n in git-core
 
     # FIXME(toabctl): Use upstream devstack when needed patches are merged!
-    git clone -b devstack-opensuse131 https://github.com/toabctl/devstack.git
+    git clone -b devstack-opensuse131 https://github.com/toabctl/devstack.git $DEVSTACK_DIR
+    # setup non-root user (username is "stack")
+    (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)
     # configure devstack
-    cat > devstack/local.conf <<EOF
+    cat > $DEVSTACK_DIR/local.conf <<EOF
 [[local|localrc]]
 SERVICE_TOKEN=testtoken
 DATABASE_PASSWORD=test
@@ -68,6 +72,8 @@ enable_service q-metering
 # for testing
 enable_service tempest
 EOF
+
+    chown stack:stack -R $DEVSTACK_DIR
 }
 
 
@@ -76,8 +82,14 @@ h_echo_header "Setup"
 h_setup_screen
 h_setup_devstack
 h_echo_header "Run devstack"
-(cd devstack && FORCE=yes ./stack.sh)
+sudo -u stack -i <<EOF
+cd $DEVSTACK_DIR
+FORCE=yes ./stack.sh
+EOF
 h_echo_header "Run tempest"
-(cd /opt/stack/tempest && ./run_tempest.sh -s -N -C etc/tempest.conf)
+sudo -u stack -i <<EOF
+cd /opt/stack/tempest
+./run_tempest.sh -s -N -C etc/tempest.conf
+EOF
 
 exit 0
