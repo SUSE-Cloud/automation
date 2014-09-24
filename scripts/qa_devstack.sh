@@ -68,6 +68,9 @@ enable_service q-dhcp
 enable_service q-l3
 enable_service q-meta
 enable_service q-metering
+enable_service q-vpn
+enable_service q-fwaas
+enable_service q-lbaas
 
 # for testing
 enable_service tempest
