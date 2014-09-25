@@ -1,7 +1,7 @@
 #!/bin/sh
 # based on https://github.com/SUSE/cloud/wiki/SUSE-Cloud-Installation-Manual
+
 test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
-#resize2fs /dev/vda2
 
 mkcconf=mkcloud.config
 [ -e $mkcconf ] && source $mkcconf
@@ -1286,50 +1286,50 @@ function oncontroller_testsetup()
 {
         . .openrc
         export LC_ALL=C
-                if [[ -n $wantswift ]] ; then
-                    zypper -n install python-swiftclient
-                    swift stat
-                    swift upload container1 .ssh/authorized_keys
-                    swift list container1 || exit 33
+        if [[ -n $wantswift ]] ; then
+            zypper -n install python-swiftclient
+            swift stat
+            swift upload container1 .ssh/authorized_keys
+            swift list container1 || exit 33
+        fi
+
+        radosgwret=0
+        if [ "$wantradosgwtest" == 1 ] ; then
+
+            zypper -n install python-swiftclient
+
+            if ! swift post swift-test; then
+                echo "creating swift container failed"
+                radosgwret=1
+            fi
+
+            if [ "$radosgwret" == 0 ] && ! swift list|grep -q swift-test; then
+                echo "swift-test container not found"
+                radosgwret=2
+            fi
+
+            if [ "$radosgwret" == 0 ] && ! swift delete swift-test; then
+                echo "deleting swift-test container failed"
+                radosgwret=3
+            fi
+
+            if [ "$radosgwret" == 0 ] ; then
+                # verify file content after uploading & downloading
+                swift upload swift-test .ssh/authorized_keys
+                swift download --output .ssh/authorized_keys-downloaded swift-test .ssh/authorized_keys
+                if ! cmp .ssh/authorized_keys .ssh/authorized_keys-downloaded; then
+                    echo "file is different content after download"
+                    radosgwret=4
                 fi
+            fi
 
-                radosgwret=0
-                if [ "$wantradosgwtest" == 1 ] ; then
+            if [ "$radosgwret" == 0 ] ; then
+                radosgw-admin user create --uid=rados --display-name=RadosGW --secret="secret" --access-key="access"
 
-                    zypper -n install python-swiftclient
-
-                    if ! swift post swift-test; then
-                        echo "creating swift container failed"
-                        radosgwret=1
-                    fi
-
-                    if [ "$radosgwret" == 0 ] && ! swift list|grep -q swift-test; then
-                        echo "swift-test container not found"
-                        radosgwret=2
-                    fi
-
-                    if [ "$radosgwret" == 0 ] && ! swift delete swift-test; then
-                        echo "deleting swift-test container failed"
-                        radosgwret=3
-                    fi
-
-                    if [ "$radosgwret" == 0 ] ; then
-                        # verify file content after uploading & downloading
-                        swift upload swift-test .ssh/authorized_keys
-                        swift download --output .ssh/authorized_keys-downloaded swift-test .ssh/authorized_keys
-                        if ! cmp .ssh/authorized_keys .ssh/authorized_keys-downloaded; then
-                            echo "file is different content after download"
-                            radosgwret=4
-                        fi
-                    fi
-
-                    if [ "$radosgwret" == 0 ] ; then
-                        radosgw-admin user create --uid=rados --display-name=RadosGW --secret="secret" --access-key="access"
-
-                        # test S3 access using python API
-                        # using curl directly is complicated, see http://ceph.com/docs/master/radosgw/s3/authentication/
-                        zypper -n install python-boto
-                        python << EOF
+                # test S3 access using python API
+                # using curl directly is complicated, see http://ceph.com/docs/master/radosgw/s3/authentication/
+                zypper -n install python-boto
+                python << EOF
 import boto
 import boto.s3.connection
 
@@ -1344,96 +1344,97 @@ conn = boto.connect_s3(
 bucket = conn.create_bucket("test-s3-bucket")
 EOF
 
-                        # check if test bucket exists using radosgw-admin API
-                        if ! radosgw-admin bucket list|grep -q test-s3-bucket ; then
-                            echo "test-s3-bucket not found"
-                            radosgwret=5
-                        fi
-                    fi
+                # check if test bucket exists using radosgw-admin API
+                if ! radosgw-admin bucket list|grep -q test-s3-bucket ; then
+                    echo "test-s3-bucket not found"
+                    radosgwret=5
                 fi
+            fi
+        fi
 
-                cephret=0
-                if [ -n "$wantceph" -a "$wantcephtestsuite" == 1 ] ; then
-                    rpm -q git-core &> /dev/null || zypper -n install git-core
+        cephret=0
+        if [ -n "$wantceph" -a "$wantcephtestsuite" == 1 ] ; then
+            rpm -q git-core &> /dev/null || zypper -n install git-core
 
-                    if test -d qa-automation; then
-                        pushd qa-automation
-                        git reset --hard
-                        git pull
-                    else
-                        git clone git://git.suse.de/ceph/qa-automation.git
-                        pushd qa-automation
-                    fi
+            if test -d qa-automation; then
+                pushd qa-automation
+                git reset --hard
+                git pull
+            else
+                git clone git://git.suse.de/ceph/qa-automation.git
+                pushd qa-automation
+            fi
 
-                    # write configuration files that we need
-                    cat > setup.cfg <<EOH
+            # write configuration files that we need
+            cat > setup.cfg <<EOH
 [env]
 loglevel = debug
 EOH
 
-                    # test suite will expect node names without domain, and in the right
-                    # order; since we will write them in reverse order, use a sort -r here
-                    yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-                    yaml_mons=`echo $cephmons | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-                    yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-                    # for radosgw, we only want one node, so enforce that
-                    yaml_radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
-                    ceph_version=`rpm -q --qf %{version} ceph`
+            # test suite will expect node names without domain, and in the right
+            # order; since we will write them in reverse order, use a sort -r here
+            yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+            yaml_mons=`echo $cephmons | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+            yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+            # for radosgw, we only want one node, so enforce that
+            yaml_radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
+            ceph_version=`rpm -q --qf %{version} ceph`
 
-                    sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
-                    sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
-                    # client node is the same as the rados gw node, to make our life easier
-                    sed -i "s/^clientnode:.*/clientnode: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
+            sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
+            sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
+            # client node is the same as the rados gw node, to make our life easier
+            sed -i "s/^clientnode:.*/clientnode: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
 
-                    sed -i "/teuthida-4/d" yamldata/testcloud_sanity.yaml
-                    for node in $yaml_allnodes; do
-                        sed -i "/^allnodes:$/a - $node" yamldata/testcloud_sanity.yaml
-                    done
-                    for node in $yaml_mons; do
-                        sed -i "/^initmons:$/a - $node" yamldata/testcloud_sanity.yaml
-                    done
-                    for node in $yaml_osds; do
-                        sed -i "/^osds:$/a - $node:vdb2" yamldata/testcloud_sanity.yaml
-                    done
+            sed -i "/teuthida-4/d" yamldata/testcloud_sanity.yaml
+            for node in $yaml_allnodes; do
+                sed -i "/^allnodes:$/a - $node" yamldata/testcloud_sanity.yaml
+            done
+            for node in $yaml_mons; do
+                sed -i "/^initmons:$/a - $node" yamldata/testcloud_sanity.yaml
+            done
+            for node in $yaml_osds; do
+                sed -i "/^osds:$/a - $node:vdb2" yamldata/testcloud_sanity.yaml
+            done
 
-                    # dependency for the test suite
-                    rpm -q python-PyYAML &> /dev/null || zypper -n install python-PyYAML
+            # dependency for the test suite
+            rpm -q python-PyYAML &> /dev/null || zypper -n install python-PyYAML
 
-                    if ! rpm -q python-nose &> /dev/null; then
-                        zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
-                        zypper -n --gpg-auto-import-keys --no-gpg-checks install python-nose
-                        zypper rr Devel_Cloud_Shared_11-SP3_Update
-                    fi
+            if ! rpm -q python-nose &> /dev/null; then
+                zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
+                zypper -n --gpg-auto-import-keys --no-gpg-checks install python-nose
+                zypper rr Devel_Cloud_Shared_11-SP3_Update
+            fi
 
-                    nosetests testsuites/testcloud_sanity.py
-                    cephret=$?
+            nosetests testsuites/testcloud_sanity.py
+            cephret=$?
 
-                    popd
-                fi
+            popd
+        fi
 
-                # Run Tempest Smoketests if configured to do so
-                tempestret=0
-                if [ "$wanttempest" = "1" ]; then
-                    # Upload a Heat-enabled image
-                    glance image-list|grep -q SLE11SP3-x86_64-cfntools || glance image-create --name=SLE11SP3-x86_64-cfntools --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SLES11-SP3-x86_64-cfntools.qcow2 | tee glance.out
-                    imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
-                    crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
-                    pushd /var/lib/openstack-tempest-test
-                    echo 1 > /proc/sys/kernel/sysrq
-                    ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
-                    tempestret=${PIPESTATUS[0]}
-                    ./bin/tempest_cleanup.sh || :
-                    popd
-                fi
+        # Run Tempest Smoketests if configured to do so
+        tempestret=0
+        if [ "$wanttempest" = "1" ]; then
+            # Upload a Heat-enabled image
+            glance image-list|grep -q SLE11SP3-x86_64-cfntools || glance image-create --name=SLE11SP3-x86_64-cfntools --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SLES11-SP3-x86_64-cfntools.qcow2 | tee glance.out
+            imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
+            crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
+            pushd /var/lib/openstack-tempest-test
+            echo 1 > /proc/sys/kernel/sysrq
+            ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
+            tempestret=${PIPESTATUS[0]}
+            /opt/tempest/bin/tempest_cleanup.sh || :
+            popd
+        fi
         nova list
         glance image-list
-            glance image-list|grep -q SP3-64
-                if [ "x$?" != "x0" ]; then
-                    # SP3-64 image not found, so uploading it
-                    glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
-                else
-                    glance image-show SP3-64 | tee glance.out
-                fi
+
+        if glance image-list | grep -q SP3-64 ; then
+            glance image-show SP3-64 | tee glance.out
+        else
+            # SP3-64 image not found, so uploading it
+            glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
+        fi
+
         # wait for image to finish uploading
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
         if [ "x$imageid" == "x" ]; then
@@ -1451,9 +1452,10 @@ EOH
             test "$(nova-manage service list  | fgrep -cv -- \:\-\))" -lt 2 && break
             sleep 1
         done
+
         nova flavor-delete m1.smaller || :
         nova flavor-create m1.smaller 11 512 10 1
-        nova delete testvm # cleanup earlier run # cleanup
+        nova delete testvm  || :
         nova keypair-add --pub_key /root/.ssh/id_rsa.pub testkey
         nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
         nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
