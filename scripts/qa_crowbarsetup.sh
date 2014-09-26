@@ -1877,12 +1877,17 @@ function prepare_cloudupgrade()
     wait_for_if_running chef-client
     wait_for_if_running zypper
 
+    local current_version
+    local update_version
+
     # Detect upgrade target
     if iscloudver 4; then
+        current_version=4
         update_version=5
         export cloudsource=${cloudsource/4/5}
     elif iscloudver 3; then
         update_version=4
+        current_version=3
         export cloudsource=${cloudsource/3/4}
     else
         echo "Update target does not exist"
@@ -1891,26 +1896,25 @@ function prepare_cloudupgrade()
 
     # Client nodes need to be up to date
     wait_for_if_running zypper
-    cloudupgrade_clients
+    onadmin_cloudupgrade_clients
 
     h_set_source_variables
 
 
     : ${susedownload:=download.nue.suse.com}
-    CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud$update_version:/Test/images/iso
-    CLOUDDISTISO="S*-CLOUD*Media1.iso"
-    CLOUDLOCALREPOS="SUSE-Cloud-$update_version-official"
+    # Switch to the newer media
+    export CLOUDDISTPATH=${CLOUDDISTPATH/$current_version/$update_version}
+    export CLOUDDISTISO=${CLOUDDISTISO/$current_version/$update_version}
+    export CLOUDLOCALREPOS=${CLOUDLOCALREPOS/$current_version/$update_version}
 
-    # recreate the SUSE-Cloud Repo with the latest Cloud 4 iso
+    # recreate the SUSE-Cloud Repo with the latest iso
     h_prepare_cloud_repos
 
     # add new Cloud Update and Pool Channels
     add_mount "SUSE-Cloud-$update_version-Updates" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Updates/" "cloud$update_version-up"
     add_mount "SUSE-Cloud-$update_version-Pool" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version-POOL/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Pool/" "cloud$update_version-pool"
 
-    sleep 20
-
-    zypper --non-interactive refresh || die 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
+    zypper --non-interactive refresh -f || die 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
     zypper --non-interactive install suse-cloud-upgrade || die 3 "Couldn't install suse-cloud-upgrade"
 }
 
