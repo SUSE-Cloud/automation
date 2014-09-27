@@ -1,7 +1,4 @@
 #!/bin/sh
-
-# Note: very specific to ci1-opensuse.suse.de
-
 n=$1
 if [ -z "$n" ] ; then
     echo "usage: $0 <vmname> [ flavor ]"
@@ -13,18 +10,26 @@ if [[ "$n" != cleanvm ]] ; then
     exit 2
 fi
 
-if [ -n "$2" -a -f /mnt/ssd/images/$2.img ]; then
-    flavor=$2
-else
-    flavor="cleanvm"
+flavor=$2
+
+p=/mnt/ssd/images/
+
+if ! [ -f $p/$flavor.img -o -f $p/$flavor.qcow2 ]; then
+    echo "Bad Flavor name: \"$flavor\""
+    exit 2
 fi
 
 virsh destroy $n
 if [ "$n" = "cleanvm" ] ; then
     dd if=/dev/zero of=/dev/vg0/$n-data count=16
-    dd if=/mnt/ssd/images/$flavor.img of=/dev/vg0/$n bs=64k
+    if [ -e $p/$flavor.qcow2 ] ; then
+        time qemu-img convert $p/$flavor.qcow2 /dev/vg0/$n
+    else
+        time dd if=$p/$flavor.img of=/dev/vg0/$n bs=64k
+    fi
 else
-    gzip -cd /mnt/ssd/images/$n.img.gz > /dev/vg0/$n
+    gzip -cd $p/$n.img.gz > /dev/vg0/$n
 fi
 setfacl -m jenkins:r "/dev/vg0/$n"
 virsh start "$n"
+
