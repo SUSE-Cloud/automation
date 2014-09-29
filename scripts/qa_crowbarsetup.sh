@@ -1887,11 +1887,11 @@ function prepare_cloudupgrade()
     if iscloudver 4; then
         current_version=4
         update_version=5
-        export cloudsource=${cloudsource/4/5}
+        export cloudsource=${cloudsource/Cloud\-$current_version/Cloud\-$update_version}
     elif iscloudver 3; then
         update_version=4
         current_version=3
-        export cloudsource=${cloudsource/3/4}
+        export cloudsource=${cloudsource/Cloud\-$current_version/Cloud\-$update_version}
     else
         echo "Update target does not exist"
         exit 1
@@ -1906,9 +1906,9 @@ function prepare_cloudupgrade()
 
     : ${susedownload:=download.nue.suse.com}
     # Switch to the newer media
-    export CLOUDDISTPATH=${CLOUDDISTPATH/$current_version/$update_version}
-    export CLOUDDISTISO=${CLOUDDISTISO/$current_version/$update_version}
-    export CLOUDLOCALREPOS=${CLOUDLOCALREPOS/$current_version/$update_version}
+    export CLOUDDISTPATH=${CLOUDDISTPATH/Cloud\-$current_version/Cloud\-$update_version}
+    export CLOUDDISTISO=${CLOUDDISTISO/Cloud\-$current_version/Cloud\-$update_version}
+    export CLOUDLOCALREPOS=${CLOUDLOCALREPOS/Cloud\-$current_version/Cloud\-$update_version}
 
     # recreate the SUSE-Cloud Repo with the latest iso
     h_prepare_cloud_repos
