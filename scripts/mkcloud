@@ -51,7 +51,7 @@
 #                sets the number of CPU cores assigned to admin node
 
 
-if [ -n $CVOL ] ; then
+if [ -n "$CVOL" ] ; then
     cloudpv=$CVOL
     unset CVOL
     echo "------------------------------------------------------------------------"
