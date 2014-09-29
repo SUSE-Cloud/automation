@@ -41,9 +41,7 @@ EOF
 function h_setup_devstack()
 {
     zypper -n in git-core crudini
-
-    # FIXME(toabctl): Use upstream devstack when needed patches are merged!
-    git clone -b devstack-opensuse131 https://github.com/toabctl/devstack.git $DEVSTACK_DIR
+    git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
     # setup non-root user (username is "stack")
     (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)
     # configure devstack
