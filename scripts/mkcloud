@@ -147,12 +147,13 @@ function error_exit()
     exitcode=$1
     message=$2
     ssh $sshopts root@$adminip '
+        set -x
         for node in $(crowbar machines list | grep ^d) ; do
-            # exclude /proc, bnc#829927
-            ssh $node supportconfig -x PROC | wc
-            scp $node:/var/log/\*tbz /var/log/
+            echo "Collecting supportconfig from $node"
+            timeout 300 ssh $node supportconfig -x PROC | wc
+            timeout 300 scp $node:/var/log/\*tbz /var/log/
         done
-        supportconfig | wc
+        timeout 300 supportconfig | wc
     '
     mkdir -p $artifacts_dir
     $scp root@$adminip:/var/log/*tbz $artifacts_dir/

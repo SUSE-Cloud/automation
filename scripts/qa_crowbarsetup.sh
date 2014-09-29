@@ -297,14 +297,9 @@ function addsp3testupdates()
     add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "/srv/tftpboot/repos/SLES11-SP3-Updates/" "sp3tup"
 }
 
-function addcloud2testupdates()
-{
-    add_mount "SUSE-Cloud-2-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/2.0/' "/srv/tftpboot/repos/SUSE-Cloud-2-Updates/" "cloudtup"
-}
-
 function addcloud3testupdates()
 {
-    add_mount "SUSE-Cloud-3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' "/srv/tftpboot/repos/SUSE-Cloud-3-Updates/" cloudtup
+    add_mount "SUSE-Cloud-3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' "/srv/tftpboot/repos/SUSE-Cloud-3-Updates/" "cloudtup"
 }
 
 function addcloud4testupdates()
@@ -449,12 +444,6 @@ function h_set_source_variables()
     suseversion=11.3
     : ${susedownload:=download.nue.suse.com}
     case "$cloudsource" in
-        develcloud2.0)
-            CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0:/Staging/images/iso
-            CLOUDDISTISO="S*-CLOUD*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-2-devel"
-        ;;
         develcloud3)
             CLOUDDISTPATH=/ibs/Devel:/Cloud:/3/images/iso
             [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/3:/Staging/images/iso
@@ -473,11 +462,6 @@ function h_set_source_variables()
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-devel"
         ;;
-        susecloud2.0)
-            CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/GA:/Products:/Test/images/iso
-            CLOUDDISTISO="S*-CLOUD*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-2-official"
-        ;;
         susecloud3)
             CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Products:/Test/images/iso
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
@@ -488,10 +472,10 @@ function h_set_source_variables()
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
         ;;
-        GM2.0)
-            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-GM/
-            CLOUDDISTISO="S*-CLOUD*1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-2-official"
+        susecloud5)
+            CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud5:/Test/images/iso
+            CLOUDDISTISO="S*-CLOUD*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
         GM3)
             CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-3-GM/
@@ -583,15 +567,13 @@ EOF
 
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
-            develcloud2.0)
-                addsp3testupdates
-                ;;
             susecloud3)
                 addsp3testupdates
                 addcloud3testupdates
                 ;;
-            develcloud3)
+            develcloud3|GM3)
                 addsp3testupdates
+                addcloud3testupdates
                 ;;
             susecloud4|GM4)
                 addsp3testupdates
@@ -603,13 +585,9 @@ EOF
             develcloud5)
                 addsp3testupdates
                 ;;
-            GM2.0)
+            susecloud5)
                 addsp3testupdates
-                addcloud2testupdates
-                ;;
-            GM3)
-                addsp3testupdates
-                addcloud3testupdates
+                addcloud5testupdates
                 ;;
             *)
                 echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
@@ -619,7 +597,7 @@ EOF
     fi
     # --no-gpg-checks for Devel:Cloud repo
     zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
-    zypper -n dup -r Cloud -r cloudtup # to upgrade pre-installed packages
+    zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
     # disable extra repos
     zypper mr -d sp3sdk
 
@@ -794,7 +772,7 @@ function onadmin_allocate()
     while test $(crowbar machines list | grep ^d|wc -l) -lt $nodenumber ; do sleep 10 ; done
     local nodes=$(crowbar machines list | grep ^d)
     local n
-    for n in $nodes ; do
+    for n in `crowbar machines list | grep ^d` ; do
         wait_for 100 2 "knife node show -a state $n | grep discovered" "node to enter discovered state"
     done
     echo "Sleeping 50 more seconds..."
@@ -1143,16 +1121,8 @@ function custom_configuration()
     esac
 }
 
-function get_crowbarnodes()
-{
-    #FIXME this is ugly
-    [ -x /opt/dell/bin/crowbar ] && nodes=`crowbar machines list | grep ^d`
-}
-
-
 function set_proposalvars()
 {
-    get_crowbarnodes
     wantswift=1
     wantceph=1
     iscloudver 2 && wantceph=
@@ -1211,7 +1181,7 @@ function do_one_proposal()
 function onadmin_proposal()
 {
     waitnodes nodes
-    local proposals="database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat tempest"
+    local proposals="database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat trove tempest"
 
     local proposal
     for proposal in $proposals ; do
@@ -1222,6 +1192,9 @@ function onadmin_proposal()
                 ;;
             swift)
                 [[ -n "$wantswift" ]] || continue
+                ;;
+            trove)
+                iscloudver 4plus || continue
                 ;;
             tempest)
                 [[ -n "$wanttempest" ]] || continue
