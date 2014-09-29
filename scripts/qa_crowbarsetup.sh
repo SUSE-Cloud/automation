@@ -597,7 +597,7 @@ EOF
     fi
     # --no-gpg-checks for Devel:Cloud repo
     zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
-    zypper -n dup -r Cloud -r cloudtup # to upgrade pre-installed packages
+    zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
     # disable extra repos
     zypper mr -d sp3sdk
 
@@ -772,7 +772,7 @@ function onadmin_allocate()
     while test $(crowbar machines list | grep ^d|wc -l) -lt $nodenumber ; do sleep 10 ; done
     local nodes=$(crowbar machines list | grep ^d)
     local n
-    for n in $nodes ; do
+    for n in `crowbar machines list | grep ^d` ; do
         wait_for 100 2 "knife node show -a state $n | grep discovered" "node to enter discovered state"
     done
     echo "Sleeping 50 more seconds..."
@@ -1121,16 +1121,8 @@ function custom_configuration()
     esac
 }
 
-function get_crowbarnodes()
-{
-    #FIXME this is ugly
-    [ -x /opt/dell/bin/crowbar ] && nodes=`crowbar machines list | grep ^d`
-}
-
-
 function set_proposalvars()
 {
-    get_crowbarnodes
     wantswift=1
     wantceph=1
     iscloudver 2 && wantceph=
