@@ -1940,7 +1940,7 @@ function onadmin_cloudupgrade_2nd()
 
     # Install new barclamps
     if iscloudver 3; then
-        for i in crowbar-barclamp-trove crowbar-barclamp-tempest; do
+        for i in crowbar-barclamp-tempest; do
             zypper --non-interactive install $i
         done
     fi
