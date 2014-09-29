@@ -494,11 +494,12 @@ EOLIBVIRTNET
 function setupadmin()
 {
     echo "Injecting public key into image..."
-    pubkey=`cut -d" " -f2 ~/.ssh/id_dsa.pub`
+    keyfile=~/.ssh/id_dsa.pub
+    pubkey=`cut -d" " -f2 $keyfile`
     mkdir -p $mnt
     mount -o loop,offset=$(expr 2056192 \* 512) /dev/$cloudvg/$cloud.admin $mnt
     mkdir -p $mnt/root/.ssh
-    grep -q "$pubkey" $mnt/root/.ssh/authorized_keys 2>/dev/null || cat ~/.ssh/id_dsa.pub >> $mnt/root/.ssh/authorized_keys
+    grep -q "$pubkey" $mnt/root/.ssh/authorized_keys 2>/dev/null || cat $keyfile >> $mnt/root/.ssh/authorized_keys
     umount $mnt
     sync
 
