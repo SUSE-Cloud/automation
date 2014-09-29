@@ -1211,7 +1211,7 @@ function do_one_proposal()
 function onadmin_proposal()
 {
     waitnodes nodes
-    local proposals="database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat tempest"
+    local proposals="database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat trove tempest"
 
     local proposal
     for proposal in $proposals ; do
@@ -1222,6 +1222,9 @@ function onadmin_proposal()
                 ;;
             swift)
                 [[ -n "$wantswift" ]] || continue
+                ;;
+            trove)
+                iscloudver 4plus || continue
                 ;;
             tempest)
                 [[ -n "$wanttempest" ]] || continue
