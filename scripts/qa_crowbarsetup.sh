@@ -297,14 +297,9 @@ function addsp3testupdates()
     add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "/srv/tftpboot/repos/SLES11-SP3-Updates/" "sp3tup"
 }
 
-function addcloud2testupdates()
-{
-    add_mount "SUSE-Cloud-2-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/2.0/' "/srv/tftpboot/repos/SUSE-Cloud-2-Updates/" "cloudtup"
-}
-
 function addcloud3testupdates()
 {
-    add_mount "SUSE-Cloud-3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' "/srv/tftpboot/repos/SUSE-Cloud-3-Updates/" cloudtup
+    add_mount "SUSE-Cloud-3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' "/srv/tftpboot/repos/SUSE-Cloud-3-Updates/" "cloudtup"
 }
 
 function addcloud4testupdates()
@@ -449,12 +444,6 @@ function h_set_source_variables()
     suseversion=11.3
     : ${susedownload:=download.nue.suse.com}
     case "$cloudsource" in
-        develcloud2.0)
-            CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/2.0:/Staging/images/iso
-            CLOUDDISTISO="S*-CLOUD*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-2-devel"
-        ;;
         develcloud3)
             CLOUDDISTPATH=/ibs/Devel:/Cloud:/3/images/iso
             [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/3:/Staging/images/iso
@@ -473,11 +462,6 @@ function h_set_source_variables()
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-devel"
         ;;
-        susecloud2.0)
-            CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/GA:/Products:/Test/images/iso
-            CLOUDDISTISO="S*-CLOUD*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-2-official"
-        ;;
         susecloud3)
             CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Products:/Test/images/iso
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
@@ -488,10 +472,10 @@ function h_set_source_variables()
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
         ;;
-        GM2.0)
-            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-GM/
-            CLOUDDISTISO="S*-CLOUD*1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-2-official"
+        susecloud5)
+            CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud5:/Test/images/iso
+            CLOUDDISTISO="S*-CLOUD*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
         GM3)
             CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-3-GM/
@@ -583,15 +567,13 @@ EOF
 
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
-            develcloud2.0)
-                addsp3testupdates
-                ;;
             susecloud3)
                 addsp3testupdates
                 addcloud3testupdates
                 ;;
-            develcloud3)
+            develcloud3|GM3)
                 addsp3testupdates
+                addcloud3testupdates
                 ;;
             susecloud4|GM4)
                 addsp3testupdates
@@ -603,13 +585,9 @@ EOF
             develcloud5)
                 addsp3testupdates
                 ;;
-            GM2.0)
+            susecloud5)
                 addsp3testupdates
-                addcloud2testupdates
-                ;;
-            GM3)
-                addsp3testupdates
-                addcloud3testupdates
+                addcloud5testupdates
                 ;;
             *)
                 echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
