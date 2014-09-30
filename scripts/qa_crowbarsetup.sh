@@ -296,6 +296,10 @@ function addsp3testupdates()
 {
     add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "/srv/tftpboot/repos/SLES11-SP3-Updates/" "sp3tup"
 }
+function add_sles12ga_testupdates()
+{
+    echo "TODO: add SLES-12-GA Updates-test repo"
+}
 
 function addcloud3testupdates()
 {
@@ -567,11 +571,7 @@ EOF
 
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
-            susecloud3)
-                addsp3testupdates
-                addcloud3testupdates
-                ;;
-            develcloud3|GM3)
+            susecloud3|GM3)
                 addsp3testupdates
                 addcloud3testupdates
                 ;;
@@ -579,15 +579,17 @@ EOF
                 addsp3testupdates
                 addcloud4testupdates
                 ;;
-            develcloud4)
+            susecloud5|GM5)
+                addsp3testupdates
+                add_sles12ga_testupdates
+                addcloud5testupdates
+                ;;
+            develcloud3|develcloud4)
                 addsp3testupdates
                 ;;
             develcloud5)
                 addsp3testupdates
-                ;;
-            susecloud5)
-                addsp3testupdates
-                addcloud5testupdates
+                add_sles12ga_testupdates
                 ;;
             *)
                 echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
