@@ -1887,11 +1887,11 @@ function prepare_cloudupgrade()
     if iscloudver 4; then
         current_version=4
         update_version=5
-        export cloudsource=${cloudsource/4/5}
+        export cloudsource=${cloudsource/Cloud\-$current_version/Cloud\-$update_version}
     elif iscloudver 3; then
         update_version=4
         current_version=3
-        export cloudsource=${cloudsource/3/4}
+        export cloudsource=${cloudsource/Cloud\-$current_version/Cloud\-$update_version}
     else
         echo "Update target does not exist"
         exit 1
@@ -1906,9 +1906,9 @@ function prepare_cloudupgrade()
 
     : ${susedownload:=download.nue.suse.com}
     # Switch to the newer media
-    export CLOUDDISTPATH=${CLOUDDISTPATH/$current_version/$update_version}
-    export CLOUDDISTISO=${CLOUDDISTISO/$current_version/$update_version}
-    export CLOUDLOCALREPOS=${CLOUDLOCALREPOS/$current_version/$update_version}
+    export CLOUDDISTPATH=${CLOUDDISTPATH/Cloud\-$current_version/Cloud\-$update_version}
+    export CLOUDDISTISO=${CLOUDDISTISO/Cloud\-$current_version/Cloud\-$update_version}
+    export CLOUDLOCALREPOS=${CLOUDLOCALREPOS/Cloud\-$current_version/Cloud\-$update_version}
 
     # recreate the SUSE-Cloud Repo with the latest iso
     h_prepare_cloud_repos
@@ -1917,7 +1917,7 @@ function prepare_cloudupgrade()
     add_mount "SUSE-Cloud-$update_version-Updates" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Updates/" "cloud$update_version-up"
     add_mount "SUSE-Cloud-$update_version-Pool" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version-POOL/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Pool/" "cloud$update_version-pool"
 
-    zypper --non-interactive refresh -f || die 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
+    zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks refresh -f || die 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
     zypper --non-interactive install suse-cloud-upgrade || die 3 "Couldn't install suse-cloud-upgrade"
 }
 
@@ -1940,7 +1940,7 @@ function onadmin_cloudupgrade_2nd()
 
     # Install new barclamps
     if iscloudver 3; then
-        for i in crowbar-barclamp-trove crowbar-barclamp-tempest; do
+        for i in crowbar-barclamp-tempest; do
             zypper --non-interactive install $i
         done
     fi
