@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <actions/>
+  <description>This job submits packages from the "staging" subproject of an [IO]BS project to the main project.&#13;
+Only packages that built successfully are submitted.&#13;
+&lt;br /&gt;&lt;br /&gt;&#13;
+&#13;
+</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <permission>hudson.model.Item.Build:cloud</permission>
+      <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Run.Update:cloud</permission>
+      <permission>hudson.scm.SCM.Tag:cloud</permission>
+      <permission>hudson.model.Run.Delete:cloud</permission>
+      <permission>hudson.model.Item.Cancel:cloud</permission>
+      <permission>hudson.model.Item.Delete:cloud</permission>
+      <permission>hudson.model.Item.Configure:cloud</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>hudson.model.Item.Read:cloud</permission>
+      <permission>hudson.model.Item.Read:anonymous</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>project</name>
+          <description>Name of the main project that should be updated with packages from its staging project.</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>subproject</name>
+          <description>Name of the subproject that acts as staging project.</description>
+          <defaultValue>None</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>packagefilter</name>
+          <description>space separated strings to filter the packages by their names (from the beginning)</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>starttime</name>
+          <description>UNIX timestamp of when succeeding test was started to avoid copying broken versions</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
+      <autoRebuild>false</autoRebuild>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>openstack-trackupstream</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># DEBUG MODE with E=echo
+# NORMAL MODE with E=
+E=
+#==========================
+
+if [ -z "$starttime" ] ; then
+  echo "FATAL: calling script needs to specify starttime"
+  exit 1
+fi
+
+case $subproject in
+  None) echo "No valid 'subproject' provided - defaults for safety reasons to 'None'"
+        exit 1
+  ;;
+  "-")  echo "Subproject set to '-': skip job, do not fail (eg. for Master project)"
+        exit 0
+  ;;
+esac
+
+export BS=IBS
+case $BS in
+  OBS)
+    OSC="osc -A https://api.opensuse.org"
+  ;;
+  IBS)
+    OSC="osc -A https://api.suse.de"
+  ;;
+esac
+
+
+COS=$project
+COSS=$COS:$subproject
+export BS_CHECKOUT=/home/jenkins/${BS}_CHECKOUT/$COSS
+submitcmd="echo no submit for project=$project"
+OSCBUILDDIST=SLE_11_SP2
+
+case $project in
+  ### backward compatibility for Cloud 1.0
+  Devel:Cloud:1.0)
+    submitcmd="$OSC submitreq -m 'jenkins-submit-project'"
+    OSCBUILDDIST=SLE_11_SP2
+  ;;
+  ### end for Cloud 1.0
+  Cloud:OpenStack:[EF]*)
+    submitcmd="$OSC copypac -K -e"
+    OSCBUILDDIST=SLE_11_SP2
+  ;;
+  Cloud:OpenStack:[GH]*)
+    submitcmd="$OSC copypac -K -e"
+    OSCBUILDDIST=SLE_11_SP3
+  ;;
+  Devel:Cloud:2.0)
+    submitcmd="$OSC submitreq -m 'jenkins-submit-project'"
+    OSCBUILDDIST=SLE_11_SP3
+  ;;
+  Devel:Cloud:3)
+    submitcmd="$OSC copypac -K -e"
+    OSCBUILDDIST=SLE_11_SP3
+  ;;
+  Devel:Cloud:4)
+    submitcmd="$OSC copypac -K -e"
+    OSCBUILDDIST=SLE_11_SP3
+  ;;
+  Devel:Cloud:5)
+    submitcmd="$OSC copypac -K -e"
+    OSCBUILDDIST=SLE_11_SP3
+  ;;
+  isv:SUSE:Cloud:2.[05]|isv:SUSE:Cloud:3.0)
+    submitcmd="$OSC copypac -K -e"
+    OSCBUILDDIST=SLE_11_SP3
+  ;;
+  *) echo "Please add support for the project: $project"
+     exit 1
+esac
+
+
+for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null | grep -E "^(${packagefilter// /|})" | grep -v "^_product."` ; do
+  cd $BS_CHECKOUT || exit 1
+  if [ ! -d $COMPONENT ] ; then
+    $OSC co -o $COMPONENT $COSS $COMPONENT
+  fi
+  cd $COMPONENT || exit 1
+
+  grep -q "&lt;linkinfo" .osc/_files || exit 2
+
+  # avoid copying untested versions
+  lastchange=$($OSC api "source/$COSS/$COMPONENT/_history" | perl -ne 'if(m/&lt;time&gt;(\d+)&lt;/) {print $1; exit 0}')
+  if [[ $lastchange &gt; $starttime ]] ; then
+    echo "skipping $COMPONENT because of a change after test started"
+    continue
+  fi
+
+#  if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp;  $OSC api /build/$COSS/$OSCBUILDDIST/x86_64/$COMPONENT/_status | grep -E 'code="succeeded"|package="_product"'
+  if $OSC rdiff $COS $COMPONENT $COSS | grep .  &amp;&amp; ( [ "$COMPONENT" = "_product" ] || $OSC r $COSS $COMPONENT -r $OSCBUILDDIST -a x86_64 | grep 'succeeded' )
+  then
+    # NOTE(saschpe): the "|| :" is a work-around for an osc bug (should be fixed, but Adrian needs to release a new osc)
+    # No need to put this in git.
+    $E $submitcmd $COSS $COMPONENT $COS || :
+  fi
+done</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.14"/>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.3">
+      <template>openstack-submit: ${ENV,var="project"}:${ENV,var="subproject"}</template>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>
