@@ -160,7 +160,7 @@ function wait_for_if_running()
     local procname=${1}
     local timecount=${2:-300}
 
-    wait_for $timecount 5 "! pidof ${procname}" "process '${procname} didn't terminate on time"
+    wait_for $timecount 5 "! pidofproc ${procname}" "process '${procname}' to terminate"
 }
 
 function die()
@@ -1864,10 +1864,8 @@ function prepare_cloudupgrade()
     # zypper locks do still happen
     # TODO: do we need to stop the client on the nodes too?
     rcchef-client stop
-    killall chef-client
 
     wait_for_if_running chef-client
-    wait_for_if_running zypper
 
     local current_version
     local update_version
@@ -1887,7 +1885,6 @@ function prepare_cloudupgrade()
     fi
 
     # Client nodes need to be up to date
-    wait_for_if_running zypper
     onadmin_cloudupgrade_clients
 
     h_set_source_variables
