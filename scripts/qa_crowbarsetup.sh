@@ -676,6 +676,23 @@ function do_installcrowbar()
     export REPOS_SKIP_CHECKS="Cloud SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates"
     # run in screen to not lose session in the middle when network is reconfigured:
     screen -d -m -L /bin/bash -c "$instcmd ; touch /tmp/chef-ready"
+    if [ "$libvirt_type" = hyperv ] ; then
+        # prepare Hyper-V 2012 R2 PXE-boot env and export it via Samba:
+        zypper -n in samba
+        rsync -a clouddata.cloud.suse.de::cloud/hyperv-6.3 /srv/tftpboot/
+        chkconfig -a smb
+        chkconfig -a nmb
+        cat >> /etc/samba/smb.conf <<EOF
+[reminst]
+        comment = MS Windows remote install
+        guest ok = Yes
+        inherit acls = Yes
+        path = /srv/tftpboot
+        read only = Yes
+        force user = root
+EOF
+        service smb restart
+    fi
     local n=300
     while [ $n -gt 0 ] && [ ! -e /tmp/chef-ready ] ; do
         n=$(expr $n - 1)
