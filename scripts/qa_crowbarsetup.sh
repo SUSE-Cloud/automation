@@ -1276,16 +1276,18 @@ function onadmin_proposal()
 
     # Set dashboard node alias
     get_novadashboardserver
-    set_node_alias `echo "$novadashboardserver" | cut -d . -f 1` dashboard
+    set_node_alias `echo "$novadashboardserver" | cut -d . -f 1` dashboard controller
 }
 
 function set_node_alias()
 {
     local node_name=$1
     local node_alias=$2
+    local intended_role=$3
     if [[ "${node_name}" != "${node_alias}" ]]; then
         crowbar machines rename ${node_name} ${node_alias}
     fi
+    iscloudver 5plus && crowbar machines role $node_name $intended_role || :
 }
 
 function get_novacontroller()
