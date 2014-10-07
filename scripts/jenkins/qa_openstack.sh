@@ -15,11 +15,6 @@ ARCH=$(uname -i)
 
 ifconfig | grep inet
 
-# workaround broken DNS server
-if host download.opensuse.org | grep -q 192.168. ; then
-    echo "nameserver 8.8.8.8" > /etc/resolv.conf
-fi
-
 # setup optional extra disk
 dev=/dev/vdb
 if ! test -e $dev && file -s /dev/sdb|grep -q "ext3 filesystem data" ; then
