@@ -38,6 +38,13 @@ hardstatus string '%H (%S%?;%u%?) %-Lw%{= BW}%50>%n%f* %t%{-}%+Lw%<'
 EOF
 }
 
+function h_setup_extra_disk()
+{
+    mkfs.ext3 /dev/vdb
+    mkdir -p /opt/stack
+    mount /dev/vdb /opt/stack
+}
+
 function h_setup_devstack()
 {
     zypper -n in git-core crudini
@@ -94,6 +101,10 @@ EOF
 h_echo_header "Setup"
 h_setup_extra_repos
 h_setup_screen
+# setup extra disk if parameters given
+if [ -e "/dev/vdb" ]; then
+    h_setup_extra_disk
+fi
 h_setup_devstack
 h_echo_header "Run devstack"
 sudo -u stack -i <<EOF
