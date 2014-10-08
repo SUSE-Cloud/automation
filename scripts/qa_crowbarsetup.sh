@@ -390,6 +390,7 @@ function h_prepare_sles12_repos()
         done
 
         # create empty repository when there is none yet
+        zypper -n install createrepo
         sles12optionalrepolist="SLE12-Cloud-5-Compute-Pool SLE12-Cloud-5-Compute-Updates SLE12-Cloud-Compute-PTF SLES12-Pool"
         for REPO in $sles12optionalrepolist ; do
             if [ ! -e "/srv/tftpboot/repos/$REPO/repodata/" ] ; then
