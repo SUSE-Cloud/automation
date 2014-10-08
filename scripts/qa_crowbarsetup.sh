@@ -1407,7 +1407,7 @@ EOH
             echo 1 > /proc/sys/kernel/sysrq
             ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
             tempestret=${PIPESTATUS[0]}
-            /opt/tempest/bin/tempest_cleanup.sh || :
+            /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
             popd
         fi
         nova list
