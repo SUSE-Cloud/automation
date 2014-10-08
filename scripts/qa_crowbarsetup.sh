@@ -381,33 +381,33 @@ function h_prepare_sles12_repos()
     suse12version=12.0
     local targetdir_install="/srv/tftpboot/suse-$suse12version/install/"
 
-        if ! $longdistance ; then
-            add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" "${targetdir_install}"
+    if ! $longdistance ; then
+        add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" "${targetdir_install}"
+    fi
+
+    for REPO in $sles12repolist ; do
+        add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
+    done
+
+    # create empty repository when there is none yet
+    zypper -n install createrepo
+    sles12optionalrepolist="SLE12-Cloud-5-Compute-Pool SLE12-Cloud-5-Compute-Updates SLE12-Cloud-Compute-PTF SLES12-Pool"
+    for REPO in $sles12optionalrepolist ; do
+        if [ ! -e "/srv/tftpboot/repos/$REPO/repodata/" ] ; then
+            mkdir "/srv/tftpboot/repos/$REPO"
+            createrepo "/srv/tftpboot/repos/$REPO"
         fi
+    done
 
-        for REPO in $sles12repolist ; do
-            add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
-        done
-
-        # create empty repository when there is none yet
-        zypper -n install createrepo
-        sles12optionalrepolist="SLE12-Cloud-5-Compute-Pool SLE12-Cloud-5-Compute-Updates SLE12-Cloud-Compute-PTF SLES12-Pool"
-        for REPO in $sles12optionalrepolist ; do
-            if [ ! -e "/srv/tftpboot/repos/$REPO/repodata/" ] ; then
-                mkdir "/srv/tftpboot/repos/$REPO"
-                createrepo "/srv/tftpboot/repos/$REPO"
-            fi
-        done
-
-        # just as a fallback if nfs did not work
-        # FIXME final SLES media not available yet
-        if [ ! -e "${targetdir_install}/media.1/" ] ; then
-            local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
-            local p=/srv/tftpboot/suse-$suse12version/$f
-            wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
-            echo $p ${targetdir_install} iso9660 loop,ro >> /etc/fstab
-            mount ${targetdir_install}
-        fi
+    # just as a fallback if nfs did not work
+    # FIXME final SLES media not available yet
+    if [ ! -e "${targetdir_install}/media.1/" ] ; then
+        local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
+        local p=/srv/tftpboot/suse-$suse12version/$f
+        wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
+        echo $p ${targetdir_install} iso9660 loop,ro >> /etc/fstab
+        mount ${targetdir_install}
+    fi
 
     if [ ! -e "${targetdir_install}/media.1/" ] ; then
         echo "We do not have SLES12 install media - giving up"
