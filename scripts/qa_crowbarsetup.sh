@@ -1023,6 +1023,10 @@ function custom_configuration()
             if [[ $all_with_ssl = 1 || $keystone_with_ssl = 1 ]] ; then
                 enable_ssl_for_keystone
             fi
+            # set a custom region name
+            if iscloudver 4plus ; then
+                proposal_set_value keystone default "['attributes']['keystone']['api']['region']" "'CustomRegion'"
+            fi
         ;;
         glance)
             if [[ $all_with_ssl = 1 || $glance_with_ssl = 1 ]] ; then
