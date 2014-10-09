@@ -131,7 +131,8 @@ function show_environment()
     echo "  nodenumber: $nodenumber"
     echo "     cloudpv: $cloudpv"
     echo " UPDATEREPOS: $UPDATEREPOS"
-    echo " cephvolumenumber: $cephvolumenumber"
+    echo "    cephvolumenumber: $cephvolumenumber"
+    echo " upgrade_cloudsource: $upgrade_cloudsource"
     echo "-------------------------------"
     env | grep -i "_with_ssl"
     echo "-------------------------------"
@@ -193,6 +194,7 @@ function sshrun()
         export debug=$debug ;
         export cloudfqdn=$cloudfqdn ;
         export cloudsource=$cloudsource ;
+        export upgrade_cloudsource=$upgrade_cloudsource ;
         export hacloud=$hacloud ;
         export libvirt_type=$libvirt_type ;
         export net_admin=$net_admin ;
@@ -930,6 +932,8 @@ function usage()
     echo " Optional"
     echo "   hacloud='' | 1  (default='')"
     echo "       : setup a high availability cloud, requires at least 6 nodes"
+    echo "   upgrade_cloudsource='' (default='')"
+    echo "       : set new cloudsource for upgrade process"
     echo "   TESTHEAD='' | 1  (default='')"
     echo "       : use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)"
     echo "   cephvolumenumber  (default=0)"
