@@ -1864,44 +1864,24 @@ function prepare_cloudupgrade()
 
     wait_for_if_running chef-client
 
-    local current_version
-    local update_version
-
-    # Detect upgrade target
-    if iscloudver 4; then
-        current_version=4
-        update_version=5
-        export cloudsource=${cloudsource/Cloud\-$current_version/Cloud\-$update_version}
-    elif iscloudver 3; then
-        update_version=4
-        current_version=3
-        export cloudsource=${cloudsource/Cloud\-$current_version/Cloud\-$update_version}
-    else
-        echo "Update target does not exist"
+    test -z "$upgrade_cloudsource" && {
+        echo "upgrade_cloudsource is not set"
         exit 1
-    fi
+    }
+
+    export cloudsource=$upgrade_cloudsource
 
     # Client nodes need to be up to date
     onadmin_cloudupgrade_clients
 
+    # change CLOUDDISTISO/CLOUDDISTPATH according to the new cloudsource
     h_set_source_variables
-
-
-    : ${susedownload:=download.nue.suse.com}
-    # Switch to the newer media
-    export CLOUDDISTPATH=${CLOUDDISTPATH/Cloud\-$current_version/Cloud\-$update_version}
-    export CLOUDDISTISO=${CLOUDDISTISO/Cloud\-$current_version/Cloud\-$update_version}
-    export CLOUDLOCALREPOS=${CLOUDLOCALREPOS/Cloud\-$current_version/Cloud\-$update_version}
 
     # recreate the SUSE-Cloud Repo with the latest iso
     h_prepare_cloud_repos
 
-    # add new Cloud Update and Pool Channels
-    add_mount "SUSE-Cloud-$update_version-Updates" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Updates/" "cloud$update_version-up"
-    add_mount "SUSE-Cloud-$update_version-Pool" "you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/$update_version-POOL/" "/srv/tftpboot/repos/SUSE-Cloud-$update_version-Pool/" "cloud$update_version-pool"
-
     zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks refresh -f || die 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
-    zypper --non-interactive install suse-cloud-upgrade || die 3 "Couldn't install suse-cloud-upgrade"
+    zypper --non-interactive install --force suse-cloud-upgrade || die 3 "Couldn't install suse-cloud-upgrade"
 }
 
 function onadmin_cloudupgrade_1st()
