@@ -40,14 +40,14 @@ my $METHOD='POST';
 # read the api credentials from files
 eval `cat /etc/jenkinsapi.cred ./jenkinsapi.cred 2>/dev/null`;
 
-if ( -z $APIKEY ) {
+if ( ! $APIKEY ) {
   print STDERR "You have not defined your APIKEY variable in the config.\n";
   print STDERR "Login in jenkins and find your api key.";
   print STDERR "Please add this api key to your jenkinsapi.cred file:\n";
   print STDERR ' $APIKEY="987zyx654wvu"';
 }
 
-if ( -z $CRUMB ) {
+if ( ! $CRUMB ) {
   print STDERR "You have not defined your CRUMB variable in the config.\n";
   print STDERR "Please create your own crumb:\n";
   print STDERR " curl --user <myusername>:<mypassword> 'https://ci.opensuse.org/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)'";
