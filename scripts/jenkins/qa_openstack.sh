@@ -176,6 +176,18 @@ nova flavor-create m1.nano --ephemeral 20 42 128 0 1
 nova flavor-delete m1.micro || :
 nova flavor-create m1.micro --ephemeral 20 84 256 0 1
 
+# make sure glance is working
+for i in $(seq 1 5); do
+    glance image-list || true
+    sleep 1
+done
+
+# make sure cinder is working
+for i in $(seq 1 60); do
+    cinder-manage service list | grep volume | fgrep -q ':-)' && break
+    sleep 1
+done
+
 # cinder
 cinder create 1 ; sleep 10
 vol_id=$(cinder list | grep available | cut -d' ' -f2)
@@ -183,12 +195,6 @@ cinder list
 cinder delete $vol_id
 NOVA_FLAVOR="42"
 test "$(lvs | wc -l)" -gt 1 || exit 1
-
-# make sure glance is working
-for i in $(seq 1 5); do
-    glance image-list || true
-    sleep 1
-done
 
 ssh_user="root"
 openqa=http://195.135.221.151/openqa
