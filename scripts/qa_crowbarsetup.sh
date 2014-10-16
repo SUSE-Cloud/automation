@@ -1886,6 +1886,11 @@ function prepare_cloudupgrade()
     # recreate the SUSE-Cloud Repo with the latest iso
     h_prepare_cloud_repos
 
+    # Applying the updater barclamp (in onadmin_cloudupgrade_clients) triggers
+    # a chef-client run on the admin node (even it the barclamp is not applied
+    # on the admin node, this is NOT a bug). Let's wait for that to finish
+    # before trying to install anything.
+    wait_for_if_running chef-client
     zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks refresh -f || die 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
     zypper --non-interactive install --force suse-cloud-upgrade || die 3 "Couldn't install suse-cloud-upgrade"
 }
