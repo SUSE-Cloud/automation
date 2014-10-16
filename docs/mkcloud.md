@@ -103,6 +103,10 @@ following command:
 $ sudo ./mkcloud testsetup
 ```
 
+Usually it is useful to have a runtest.foo bash script to setup the environment similar to scripts/mkcloudhost/runtestn or the one further down in this document.
+It is best to have an exec mkcloud in the last line.
+Using this exec instead of sourcing the environment has the big advantage that you can never forget to unset variables that will then unexpectedly influence later runs.
+
 ## Using with local repositories
 
 To be able to deploy a complete Cloud with `mkcloud` and without network access,
