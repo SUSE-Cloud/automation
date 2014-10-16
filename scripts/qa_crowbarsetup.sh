@@ -1903,6 +1903,13 @@ function onadmin_cloudupgrade_1st()
 
 function onadmin_cloudupgrade_2nd()
 {
+    # Allow vender changes for packages as we might be updating an official
+    # Cloud release to something form the Devel:Cloud projects. Note: For the
+    # client nodes this is needs to happen after the updated provisioner
+    # proposal is applied (see below).
+    zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install crudini
+    crudini --set /etc/zypp/zypp.conf main solver.allowVendorChange true
+
     # Upgrade Admin node
     zypper --non-interactive up -l
     echo -n "This cloud was upgraded from : " | cat - /etc/cloudversion >> /etc/motd
@@ -1921,6 +1928,14 @@ function onadmin_cloudupgrade_2nd()
         exit $ret
     fi
     crowbar provisioner proposal commit default
+
+    # Allow vendor changes for packages as we might be updating an official
+    # Cloud release to something form the Devel:Cloud projects. Note: On the
+    # client nodes this needs to happen after the updated provisioner
+    # proposal is applied since crudini is not part of older Cloud releases.
+    for node in $(crowbar machines list | grep ^d) ; do
+        ssh $node "zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install crudini; crudini --set /etc/zypp/zypp.conf main solver.allowVendorChange true"
+    done
 }
 
 function onadmin_cloudupgrade_clients()
