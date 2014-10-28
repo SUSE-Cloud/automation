@@ -57,6 +57,11 @@ init_variables () {
     HAE_UPDATES_MOUNTPOINT=$REPOS_DIR/SLE11-HAE-SP3-Updates
     CLOUD_MOUNTPOINT=$REPOS_DIR/Cloud
     CLOUD_UPDATES_MOUNTPOINT=$REPOS_DIR/SUSE-Cloud-${CLOUD_VERSION}-Updates
+    # Added for SUSE Cloud 5 SLE12
+    SLES12_MOUNTPOINT=/srv/tftpboot/suse-12.0/install
+    SLES12_POOL=$REPOS_DIR/SLES12-Pool
+    SLES12_UPDATES=$REPOS_DIR/SLES12-Updates
+    SLE12_SC5_COMPUTE=$REPOS_DIR/SLE12-Cloud-Compute
 
     # Mountpoints within the Crowbar admin node which are not required
     # by the product, but which are used for accessing local mirrors
@@ -85,7 +90,7 @@ init_variables () {
 # --product-version affects it correctly).
 set_cloud_version_variables () {
     case $CLOUD_VERSION in
-        1.0|2.0|3|4)
+        1.0|2.0|3|4|5)
             # valid
             ;;
         *)
@@ -244,8 +249,17 @@ prep_mountpoints () {
     mountpoints=(
         $SP3_MOUNTPOINT $POOL_MOUNTPOINT $SP3_UPDATES_MOUNTPOINT
         $HAE_POOL_MOUNTPOINT $HAE_UPDATES_MOUNTPOINT
-        $CLOUD_MOUNTPOINT $CLOUD_UPDATES_MOUNTPOINT
+        $CLOUD_MOUNTPOINT
     )
+
+    if [ "$CLOUD_VERSION" == "5" ]; then
+        mountpoints+=(
+            $SLES12_MOUNTPOINT $SLES12_POOL $SLES12_UPDATES
+            $SLE12_SC5_COMPUTE $SLE12_SC5_COMPUTE
+        )
+    else
+        mountpoints+=($CLOUD_UPDATES_MOUNTPOINT)
+    fi
     if [ -n "$ibs_mirror" ]; then
         mountpoints+=($DC_MOUNTPOINT $DC_SHARED_MOUNTPOINT $DC_SHARED_UPDATE_MOUNTPOINT)
         if [ "$ibs_repo" = staging ]; then
@@ -385,7 +399,9 @@ setup_zypper_repos () {
     zypper_addrepo file://$SP3_MOUNTPOINT           $sp3_repo
     zypper_addrepo file://$SP3_UPDATES_MOUNTPOINT   $sp3_updates_repo
     zypper_addrepo file://$CLOUD_MOUNTPOINT         $cloud_repo
-    zypper_addrepo file://$CLOUD_UPDATES_MOUNTPOINT $cloud_updates_repo
+    if ! [ "$CLOUD_VERSION" == "5" ]; then
+        zypper_addrepo file://$CLOUD_UPDATES_MOUNTPOINT $cloud_updates_repo
+    fi
 
     case "$ibs_repo" in
         yes)
@@ -493,10 +509,16 @@ clouddata_sle_repos () {
     nfs_mount $repos/SLES11-SP3-Updates    $SP3_UPDATES_MOUNTPOINT
     nfs_mount $repos/SLE11-HAE-SP3-Pool    $HAE_POOL_MOUNTPOINT
     nfs_mount $repos/SLE11-HAE-SP3-Updates $HAE_UPDATES_MOUNTPOINT
+    nfs_mount $repos/SLES12-Pool           $SLES12_POOL
+    nfs_mount $repos/SLES12-Updates        $SLES12_UPDATES
+    nfs_mount $repos/SLE12-Cloud-Compute   $SLE12_SC5_COMPUTE
 }
 
 clouddata_sp3_repo () {
     nfs_mount clouddata.cloud.suse.de:/srv/nfs/suse-11.3/install  $SP3_MOUNTPOINT
+    if [ "$CLOUD_VERSION" == "5" ]; then
+        nfs_mount clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install  $SLES12_MOUNTPOINT
+    fi
 }
 
 nue_host_nfs () {
@@ -511,7 +533,9 @@ nue_host_nfs () {
 nue_nfs () {
     (
         nfs_mount clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-$CLOUD_VERSION-devel $CLOUD_MOUNTPOINT
-        nfs_mount clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-$CLOUD_VERSION-Updates $CLOUD_UPDATES_MOUNTPOINT
+        if ! [ "$CLOUD_VERSION" == "5" ]; then
+            nfs_mount clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-$CLOUD_VERSION-Updates $CLOUD_UPDATES_MOUNTPOINT
+        fi
         clouddata_sp3_repo
         clouddata_sle_repos
     ) | append_to_fstab
