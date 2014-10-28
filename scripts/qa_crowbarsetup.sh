@@ -347,7 +347,7 @@ function h_prepare_sles_repos()
 
         if [ "x$WITHSLEUPDATES" != "x" ] ; then
             if [ $suseversion = "11.3" ] ; then
-                zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/$slesversion/" ${slesversion}-up
+                zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/$slesversion/" ${slesversion}up
             fi
         fi
 
@@ -467,30 +467,22 @@ function h_set_source_variables()
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-devel"
         ;;
-        susecloud3)
-            CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Products:/Test/images/iso
-            CLOUDDISTISO="S*-CLOUD*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-3-official"
-        ;;
-        susecloud4)
-            CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud4:/Test/images/iso
-            CLOUDDISTISO="S*-CLOUD*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-4-official"
-        ;;
         susecloud5)
             CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud5:/Test/images/iso
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
-        GM3)
+        susecloud3|GM3)
             CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-3-GM/
             CLOUDDISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-3-official"
+            [ "$cloudsource" = "susecloud3" ] && WITHSLEUPDATES=1
         ;;
-        GM4)
+        susecloud4|GM4)
             CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-4-GM/
             CLOUDDISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
+            [ "$cloudsource" = "susecloud4" ] && WITHSLEUPDATES=1
         ;;
         Beta*|RC*|GMC*|GM5)
             cs=$cloudsource
