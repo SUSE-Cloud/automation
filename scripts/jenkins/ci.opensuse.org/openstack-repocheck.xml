@@ -11,45 +11,9 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Read:iartarisi</permission>
-      <permission>hudson.model.Item.Read:vuntz</permission>
-      <permission>hudson.model.Item.Read:jdsn</permission>
-      <permission>hudson.model.Item.Read:mjura</permission>
-      <permission>hudson.model.Item.Read:aspiers</permission>
-      <permission>hudson.model.Item.Read:dirkmueller</permission>
-      <permission>hudson.model.Item.Read:anonymous</permission>
-      <permission>hudson.model.Item.Read:bmwiedemann</permission>
-      <permission>hudson.model.Item.Delete:jdsn</permission>
-      <permission>hudson.model.Item.Delete:dirkmueller</permission>
-      <permission>hudson.model.Item.Delete:bmwiedemann</permission>
-      <permission>hudson.scm.SCM.Tag:iartarisi</permission>
-      <permission>hudson.scm.SCM.Tag:vuntz</permission>
-      <permission>hudson.scm.SCM.Tag:jdsn</permission>
-      <permission>hudson.scm.SCM.Tag:mjura</permission>
-      <permission>hudson.scm.SCM.Tag:aspiers</permission>
-      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
-      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
-      <permission>hudson.model.Item.Workspace:vuntz</permission>
-      <permission>hudson.model.Item.Workspace:jdsn</permission>
-      <permission>hudson.model.Item.Workspace:dirkmueller</permission>
-      <permission>hudson.model.Item.Workspace:bmwiedemann</permission>
-      <permission>hudson.model.Item.Build:iartarisi</permission>
-      <permission>hudson.model.Item.Build:vuntz</permission>
-      <permission>hudson.model.Item.Build:jdsn</permission>
-      <permission>hudson.model.Item.Build:mjura</permission>
-      <permission>hudson.model.Item.Build:aspiers</permission>
-      <permission>hudson.model.Item.Build:dirkmueller</permission>
-      <permission>hudson.model.Item.Build:bmwiedemann</permission>
       <permission>hudson.model.Item.Configure:jdsn</permission>
       <permission>hudson.model.Item.Configure:dirkmueller</permission>
       <permission>hudson.model.Item.Configure:bmwiedemann</permission>
-      <permission>hudson.model.Run.Update:iartarisi</permission>
-      <permission>hudson.model.Run.Update:vuntz</permission>
-      <permission>hudson.model.Run.Update:jdsn</permission>
-      <permission>hudson.model.Run.Update:mjura</permission>
-      <permission>hudson.model.Run.Update:aspiers</permission>
-      <permission>hudson.model.Run.Update:dirkmueller</permission>
-      <permission>hudson.model.Run.Update:bmwiedemann</permission>
       <permission>hudson.model.Item.Cancel:vuntz</permission>
       <permission>hudson.model.Item.Cancel:jdsn</permission>
       <permission>hudson.model.Item.Cancel:dirkmueller</permission>
@@ -61,9 +25,45 @@
       <permission>hudson.model.Item.Discover:aspiers</permission>
       <permission>hudson.model.Item.Discover:dirkmueller</permission>
       <permission>hudson.model.Item.Discover:bmwiedemann</permission>
+      <permission>hudson.scm.SCM.Tag:iartarisi</permission>
+      <permission>hudson.scm.SCM.Tag:vuntz</permission>
+      <permission>hudson.scm.SCM.Tag:jdsn</permission>
+      <permission>hudson.scm.SCM.Tag:mjura</permission>
+      <permission>hudson.scm.SCM.Tag:aspiers</permission>
+      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
+      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
+      <permission>hudson.model.Run.Update:iartarisi</permission>
+      <permission>hudson.model.Run.Update:vuntz</permission>
+      <permission>hudson.model.Run.Update:jdsn</permission>
+      <permission>hudson.model.Run.Update:mjura</permission>
+      <permission>hudson.model.Run.Update:aspiers</permission>
+      <permission>hudson.model.Run.Update:dirkmueller</permission>
+      <permission>hudson.model.Run.Update:bmwiedemann</permission>
       <permission>hudson.model.Run.Delete:jdsn</permission>
       <permission>hudson.model.Run.Delete:dirkmueller</permission>
       <permission>hudson.model.Run.Delete:bmwiedemann</permission>
+      <permission>hudson.model.Item.Read:iartarisi</permission>
+      <permission>hudson.model.Item.Read:vuntz</permission>
+      <permission>hudson.model.Item.Read:jdsn</permission>
+      <permission>hudson.model.Item.Read:mjura</permission>
+      <permission>hudson.model.Item.Read:aspiers</permission>
+      <permission>hudson.model.Item.Read:dirkmueller</permission>
+      <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Item.Read:bmwiedemann</permission>
+      <permission>hudson.model.Item.Delete:jdsn</permission>
+      <permission>hudson.model.Item.Delete:dirkmueller</permission>
+      <permission>hudson.model.Item.Delete:bmwiedemann</permission>
+      <permission>hudson.model.Item.Workspace:vuntz</permission>
+      <permission>hudson.model.Item.Workspace:jdsn</permission>
+      <permission>hudson.model.Item.Workspace:dirkmueller</permission>
+      <permission>hudson.model.Item.Workspace:bmwiedemann</permission>
+      <permission>hudson.model.Item.Build:iartarisi</permission>
+      <permission>hudson.model.Item.Build:vuntz</permission>
+      <permission>hudson.model.Item.Build:jdsn</permission>
+      <permission>hudson.model.Item.Build:mjura</permission>
+      <permission>hudson.model.Item.Build:aspiers</permission>
+      <permission>hudson.model.Item.Build:dirkmueller</permission>
+      <permission>hudson.model.Item.Build:bmwiedemann</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.2">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
@@ -96,13 +96,14 @@
         <string>Cloud:OpenStack:Juno:Staging</string>
         <string>Cloud:OpenStack:Factory</string>
         <string>Cloud:OpenStack:Master</string>
+        <string>Cloud:Tools</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.TextAxis>
       <name>repository</name>
       <values>
         <string>SLE_11_SP3</string>
-        <string>openSUSE_12.3</string>
+        <string>SLE_12</string>
         <string>openSUSE_13.1</string>
         <string>openSUSE_13.2</string>
       </values>
@@ -114,7 +115,12 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>!( ["Cloud:OpenStack:Master"].contains(project) &amp;&amp; ["openSUSE_12.3"].contains(repository) ||  ["Cloud:OpenStack:Factory"].contains(project) &amp;&amp; ["SLE_11_SP3", "openSUSE_12.3", "openSUSE_13.1"].contains(repository) || ["Cloud:OpenStack:Havana", "Cloud:OpenStack:Havana:Staging"].contains(project) &amp;&amp; ["openSUSE_13.2", "openSUSE_Factory"].contains(repository) ||  ["Cloud:OpenStack:Icehouse", "Cloud:OpenStack:Icehouse:Staging","Cloud:OpenStack:Juno", "Cloud:OpenStack:Juno:Staging"].contains(project) &amp;&amp; ["openSUSE_12.3", "openSUSE_13.2", "openSUSE_Factory"].contains(repository) )</combinationFilter>
+  <combinationFilter>!(
+      ["Cloud:OpenStack:Master"].contains(project) &amp;&amp; ["openSUSE_12.3"].contains(repository) ||
+      ["Cloud:OpenStack:Factory"].contains(project) &amp;&amp; ["SLE_11_SP3", "SLE_12", "openSUSE_13.1"].contains(repository) ||
+      ["Cloud:OpenStack:Havana", "Cloud:OpenStack:Havana:Staging"].contains(project) &amp;&amp; ["SLE_12", "openSUSE_13.2", "openSUSE_Factory"].contains(repository) ||
+      ["Cloud:OpenStack:Icehouse", "Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp; ["SLE_12", "openSUSE_13.2", "openSUSE_Factory"].contains(repository) ||
+      ["Cloud:OpenStack:Juno", "Cloud:OpenStack:Juno:Staging"].contains(project) &amp;&amp; ["openSUSE_Factory"].contains(repository) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}

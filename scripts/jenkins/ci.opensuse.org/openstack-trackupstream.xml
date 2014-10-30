@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project>
+<matrix-project plugin="matrix-project@1.3">
   <actions/>
   <description>update OBS packages from git or tarballs via OBS _service feature</description>
   <logRotator class="hudson.tasks.LogRotator">
@@ -33,8 +33,8 @@
     <hudson.matrix.TextAxis>
       <name>project</name>
       <values>
-        <string>Cloud:OpenStack:Havana:Staging</string>
         <string>Cloud:OpenStack:Icehouse:Staging</string>
+        <string>Cloud:OpenStack:Juno:Staging</string>
         <string>Cloud:OpenStack:Master</string>
       </values>
     </hudson.matrix.TextAxis>
@@ -47,7 +47,6 @@
         <string>openstack-designate</string>
         <string>openstack-glance</string>
         <string>openstack-heat</string>
-        <string>openstack-heat-cfntools</string>
         <string>openstack-heat-templates</string>
         <string>openstack-ironic</string>
         <string>openstack-trove</string>
@@ -69,6 +68,7 @@
         <string>python-designateclient</string>
         <string>python-glanceclient</string>
         <string>python-heatclient</string>
+        <string>python-heat-cfntools</string>
         <string>python-ironicclient</string>
         <string>python-keystoneclient</string>
         <string>python-novaclient</string>
@@ -100,7 +100,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! ( ["Cloud:OpenStack:Havana:Staging"].contains(project)           &amp;&amp;  ["openstack-trove", "python-designateclient", "openstack-utils"].contains(component)       || ["Cloud:OpenStack:Havana:Staging", "Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp; [ "openstack-ironic", "openstack-tuskar", "openstack-tuskar_ui", "python-oslo.messaging", "python-oslosphinx", "python-oslo.rootwrap", "openstack-manila", "python-manilaclient", "python-openstackclient", "python-tuskarclient", "python-troveclient", "tripleo-image-elements", "tripleo-heat-templates", "diskimage-builder", "openstack-designate", "openstack-zaqar", "python-ironicclient", "python-zaqarclient", "openstack-sahara", "python-saharaclient", "python-os-apply-config", "python-os-cloud-config", "python-os-collect-config"].contains(component)       || ["Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp;  ["python-tuskarclient", "python-troveclient", "python-ironicclient", "python-oslo.config" ].contains(component) )</combinationFilter>
+  <combinationFilter>! ( ["Cloud:OpenStack:Juno:Staging", "Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp; [ "openstack-ironic", "openstack-tuskar", "openstack-tuskar_ui", "python-oslo.messaging", "python-oslosphinx", "python-oslo.rootwrap", "openstack-manila", "python-manilaclient", "python-openstackclient", "python-tuskarclient", "python-troveclient", "tripleo-image-elements", "tripleo-heat-templates", "diskimage-builder", "openstack-designate", "openstack-zaqar", "python-ironicclient", "python-zaqarclient", "python-os-apply-config", "python-os-cloud-config", "python-os-collect-config"].contains(component)       || ["Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp;  ["python-tuskarclient", "python-troveclient", "python-ironicclient", "python-saharaclient", "python-oslo.config", "openstack-sahara" ].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}

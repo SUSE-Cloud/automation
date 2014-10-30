@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project>
+<matrix-project plugin="matrix-project@1.3">
   <actions/>
   <description/>
   <logRotator class="hudson.tasks.LogRotator">
@@ -11,24 +11,6 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Workspace:jdsn</permission>
-      <permission>hudson.model.Item.Workspace:aspiers</permission>
-      <permission>hudson.model.Item.Workspace:dirkmueller</permission>
-      <permission>hudson.model.Item.Workspace:bmwiedemann</permission>
-      <permission>hudson.model.Item.Build:iartarisi</permission>
-      <permission>hudson.model.Item.Build:vuntz</permission>
-      <permission>hudson.model.Item.Build:jdsn</permission>
-      <permission>hudson.model.Item.Build:mjura</permission>
-      <permission>hudson.model.Item.Build:aspiers</permission>
-      <permission>hudson.model.Item.Build:dirkmueller</permission>
-      <permission>hudson.model.Item.Build:bmwiedemann</permission>
-      <permission>hudson.scm.SCM.Tag:iartarisi</permission>
-      <permission>hudson.scm.SCM.Tag:vuntz</permission>
-      <permission>hudson.scm.SCM.Tag:jdsn</permission>
-      <permission>hudson.scm.SCM.Tag:mjura</permission>
-      <permission>hudson.scm.SCM.Tag:aspiers</permission>
-      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
-      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
       <permission>hudson.model.Item.Configure:vuntz</permission>
       <permission>hudson.model.Item.Configure:jdsn</permission>
       <permission>hudson.model.Item.Configure:aspiers</permission>
@@ -48,6 +30,13 @@
       <permission>hudson.model.Item.Discover:aspiers</permission>
       <permission>hudson.model.Item.Discover:dirkmueller</permission>
       <permission>hudson.model.Item.Discover:bmwiedemann</permission>
+      <permission>hudson.scm.SCM.Tag:iartarisi</permission>
+      <permission>hudson.scm.SCM.Tag:vuntz</permission>
+      <permission>hudson.scm.SCM.Tag:jdsn</permission>
+      <permission>hudson.scm.SCM.Tag:mjura</permission>
+      <permission>hudson.scm.SCM.Tag:aspiers</permission>
+      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
+      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
       <permission>hudson.model.Run.Update:iartarisi</permission>
       <permission>hudson.model.Run.Update:vuntz</permission>
       <permission>hudson.model.Run.Update:jdsn</permission>
@@ -55,6 +44,9 @@
       <permission>hudson.model.Run.Update:aspiers</permission>
       <permission>hudson.model.Run.Update:dirkmueller</permission>
       <permission>hudson.model.Run.Update:bmwiedemann</permission>
+      <permission>hudson.model.Run.Delete:jdsn</permission>
+      <permission>hudson.model.Run.Delete:aspiers</permission>
+      <permission>hudson.model.Run.Delete:bmwiedemann</permission>
       <permission>hudson.model.Item.Read:iartarisi</permission>
       <permission>hudson.model.Item.Read:vuntz</permission>
       <permission>hudson.model.Item.Read:jdsn</permission>
@@ -63,12 +55,20 @@
       <permission>hudson.model.Item.Read:dirkmueller</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
       <permission>hudson.model.Item.Read:bmwiedemann</permission>
-      <permission>hudson.model.Run.Delete:jdsn</permission>
-      <permission>hudson.model.Run.Delete:aspiers</permission>
-      <permission>hudson.model.Run.Delete:bmwiedemann</permission>
       <permission>hudson.model.Item.Delete:jdsn</permission>
       <permission>hudson.model.Item.Delete:aspiers</permission>
       <permission>hudson.model.Item.Delete:bmwiedemann</permission>
+      <permission>hudson.model.Item.Workspace:jdsn</permission>
+      <permission>hudson.model.Item.Workspace:aspiers</permission>
+      <permission>hudson.model.Item.Workspace:dirkmueller</permission>
+      <permission>hudson.model.Item.Workspace:bmwiedemann</permission>
+      <permission>hudson.model.Item.Build:iartarisi</permission>
+      <permission>hudson.model.Item.Build:vuntz</permission>
+      <permission>hudson.model.Item.Build:jdsn</permission>
+      <permission>hudson.model.Item.Build:mjura</permission>
+      <permission>hudson.model.Item.Build:aspiers</permission>
+      <permission>hudson.model.Item.Build:dirkmueller</permission>
+      <permission>hudson.model.Item.Build:bmwiedemann</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.2">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
@@ -113,6 +113,7 @@
       <name>image</name>
       <values>
         <string>SLE_11_SP3-64-minimal</string>
+        <string>SLE_12-64-minimal</string>
         <string>openSUSE-13.1-64-minimal</string>
         <string>openSUSE-13.2-64-minimal</string>
       </values>
@@ -140,7 +141,7 @@
 # fetch the latest automation updates
 update_automation jenkins-job-trigger
 
-freshvm cleanvm $image
+sudo /usr/local/sbin/freshvm cleanvm $image
 sleep 100
 
 cloudsource=openstack$openstack_version
