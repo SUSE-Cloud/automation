@@ -5,20 +5,6 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Configure:mmeister</permission>
-      <permission>hudson.model.Item.Configure:vuntz</permission>
-      <permission>hudson.model.Item.Configure:jdsn</permission>
-      <permission>hudson.model.Item.Configure:aspiers</permission>
-      <permission>hudson.model.Item.Configure:dirkmueller</permission>
-      <permission>hudson.model.Item.Configure:bmwiedemann</permission>
-      <permission>hudson.model.Item.Configure:toabctl</permission>
-      <permission>hudson.scm.SCM.Tag:mmeister</permission>
-      <permission>hudson.scm.SCM.Tag:vuntz</permission>
-      <permission>hudson.scm.SCM.Tag:jdsn</permission>
-      <permission>hudson.scm.SCM.Tag:aspiers</permission>
-      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
-      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
-      <permission>hudson.scm.SCM.Tag:toabctl</permission>
       <permission>hudson.model.Item.Cancel:mmeister</permission>
       <permission>hudson.model.Item.Cancel:vuntz</permission>
       <permission>hudson.model.Item.Cancel:jdsn</permission>
@@ -60,6 +46,13 @@
       <permission>hudson.model.Item.Workspace:dirkmueller</permission>
       <permission>hudson.model.Item.Workspace:bmwiedemann</permission>
       <permission>hudson.model.Item.Workspace:toabctl</permission>
+      <permission>hudson.scm.SCM.Tag:mmeister</permission>
+      <permission>hudson.scm.SCM.Tag:vuntz</permission>
+      <permission>hudson.scm.SCM.Tag:jdsn</permission>
+      <permission>hudson.scm.SCM.Tag:aspiers</permission>
+      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
+      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
+      <permission>hudson.scm.SCM.Tag:toabctl</permission>
       <permission>hudson.model.Run.Update:mmeister</permission>
       <permission>hudson.model.Run.Update:vuntz</permission>
       <permission>hudson.model.Run.Update:jdsn</permission>
@@ -74,6 +67,13 @@
       <permission>hudson.model.Run.Delete:dirkmueller</permission>
       <permission>hudson.model.Run.Delete:bmwiedemann</permission>
       <permission>hudson.model.Run.Delete:toabctl</permission>
+      <permission>hudson.model.Item.Configure:mmeister</permission>
+      <permission>hudson.model.Item.Configure:vuntz</permission>
+      <permission>hudson.model.Item.Configure:jdsn</permission>
+      <permission>hudson.model.Item.Configure:aspiers</permission>
+      <permission>hudson.model.Item.Configure:dirkmueller</permission>
+      <permission>hudson.model.Item.Configure:bmwiedemann</permission>
+      <permission>hudson.model.Item.Configure:toabctl</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.2">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
@@ -83,8 +83,7 @@
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>cloud-cleanvm</assignedNode>
-  <canRoam>false</canRoam>
+  <canRoam>true</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
