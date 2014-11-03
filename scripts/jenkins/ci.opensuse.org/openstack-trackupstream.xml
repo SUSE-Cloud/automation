@@ -100,7 +100,9 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>! ( ["Cloud:OpenStack:Juno:Staging", "Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp; [ "openstack-ironic", "openstack-tuskar", "openstack-tuskar_ui", "python-oslo.messaging", "python-oslosphinx", "python-oslo.rootwrap", "openstack-manila", "python-manilaclient", "python-openstackclient", "python-tuskarclient", "python-troveclient", "tripleo-image-elements", "tripleo-heat-templates", "diskimage-builder", "openstack-designate", "openstack-zaqar", "python-ironicclient", "python-zaqarclient", "python-os-apply-config", "python-os-cloud-config", "python-os-collect-config"].contains(component)       || ["Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp;  ["python-tuskarclient", "python-troveclient", "python-ironicclient", "python-saharaclient", "python-oslo.config", "openstack-sahara" ].contains(component) )</combinationFilter>
+  <combinationFilter>! ( [
+      "Cloud:OpenStack:Juno:Staging", "Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp; [ "openstack-ironic", "openstack-tuskar", "openstack-tuskar_ui", "python-oslo.messaging", "python-oslosphinx", "python-oslo.rootwrap", "openstack-manila", "python-manilaclient", "python-openstackclient", "python-tuskarclient", "python-troveclient", "tripleo-image-elements", "tripleo-heat-templates", "diskimage-builder", "openstack-zaqar", "python-ironicclient", "python-zaqarclient", "python-os-apply-config", "python-os-cloud-config", "python-os-collect-config"].contains(component)       ||
+      ["Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp;  ["python-tuskarclient", "python-troveclient", "python-ironicclient", "python-saharaclient", "python-oslo.config", "openstack-sahara", "openstack-designate" ].contains(component) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}
