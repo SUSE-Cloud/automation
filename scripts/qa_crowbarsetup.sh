@@ -643,7 +643,7 @@ EOF
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v 10.122.167.191 $netfile
         # todo? broadcast
     fi
-    if [[ $cloud = virtual && -n $want_sles12 ]] ; then
+    if [[ -n "$want_sles12" ]] ; then
         # To avoid problems with: https://bugzilla.suse.com/show_bug.cgi?id=900112 ("wicked" issue)
         /opt/dell/bin/json-edit -a attributes.network.enable_tx_offloading --raw -v "true" $netfile
     fi
