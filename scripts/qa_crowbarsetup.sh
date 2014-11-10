@@ -487,17 +487,15 @@ function h_set_source_variables()
             CLOUDDISTISO="S*-CLOUD*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
-        susecloud3|GM3)
+        GM3|GM3+up)
             CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-3-GM/
             CLOUDDISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-3-official"
-            [ "$cloudsource" = "susecloud3" ] && WITHSLEUPDATES=1
         ;;
-        susecloud4|GM4)
+        GM4|GM4+up)
             CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-4-GM/
             CLOUDDISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
-            [ "$cloudsource" = "susecloud4" ] && WITHSLEUPDATES=1
         ;;
         Beta*|RC*|GMC*|GM5)
             cs=$cloudsource
@@ -579,15 +577,15 @@ EOF
 
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
-            susecloud3|GM3)
+            GM3|GM3+up)
                 addsp3testupdates
                 addcloud3testupdates
                 ;;
-            susecloud4|GM4)
+            GM4|GM4+up)
                 addsp3testupdates
                 addcloud4testupdates
                 ;;
-            susecloud5|GM5)
+            susecloud5|GM5|GM5+up)
                 addsp3testupdates
                 add_sles12ga_testupdates
                 addcloud5testupdates
@@ -602,6 +600,15 @@ EOF
             *)
                 echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
                 exit 26
+                ;;
+        esac
+    else
+        case "$cloudsource" in
+            GM3+up)
+                addcloud3maintupdates
+                ;;
+            GM4+up)
+                addcloud4maintupdates
                 ;;
         esac
     fi
@@ -1595,6 +1602,7 @@ function onadmin_addupdaterepo()
 function onadmin_runupdate()
 {
     wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
+    wait_for 30 3 ' zypper --non-interactive patch ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
     wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
 }
 
