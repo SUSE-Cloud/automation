@@ -1159,11 +1159,10 @@ function set_proposalvars()
     iscloudver 4plus && wanttempest=1
 
     # FIXME: Ceph is currently broken
-    #iscloudver 4 && {
-    #    echo "WARNING: ceph currently disabled as it is broken"
-    #    echo "https://bugzilla.novell.com/show_bug.cgi?id=872326"
-    #    wantceph=
-    #}
+    iscloudver 5 && {
+        echo "WARNING: ceph currently disabled as support for SUSE Storage 1.0 is currently missing"
+        wantceph=
+    }
 
     [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
     # we can not use both swift and ceph as each grabs all disks on a node
