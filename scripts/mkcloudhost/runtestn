@@ -2,9 +2,7 @@
 n=$1
 shift
 [ -z "$n" ] && echo usage: "$0 NUM" && exit 55
-# 1 and 20 are reserved for v1 and v2.cloud.suse.de
-# which shall reside on different HDDs
-if [ $n -lt 2 -o $n -gt 19 ] ; then
+if [ $n -lt 1 -o $n -gt 39 ] ; then
   echo "$n out of range"
   exit 56
 fi
