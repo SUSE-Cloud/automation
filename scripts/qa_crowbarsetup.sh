@@ -301,14 +301,29 @@ function add_sles12ga_testupdates()
     echo "TODO: add SLES-12-GA Updates-test repo"
 }
 
+function addcloud3maintupdates()
+{
+    add_mount "SUSE-Cloud-3-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-3-Updates/' "/srv/tftpboot/repos/SUSE-Cloud-3-Updates/" "cloudmaintup"
+}
+
 function addcloud3testupdates()
 {
     add_mount "SUSE-Cloud-3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' "/srv/tftpboot/repos/SUSE-Cloud-3-Updates/" "cloudtup"
 }
 
+function addcloud4maintupdates()
+{
+    add_mount "SUSE-Cloud-4-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-4-Updates/' "/srv/tftpboot/repos/SUSE-Cloud-4-Updates/" "cloudmaintup"
+}
+
 function addcloud4testupdates()
 {
     add_mount "SUSE-Cloud-4-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' "/srv/tftpboot/repos/SUSE-Cloud-4-Updates/" "cloudtup"
+}
+
+function addcloud5maintupdates()
+{
+    add_mount "SUSE-Cloud-5-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-Updates/' "/srv/tftpboot/repos/SUSE-Cloud-5-Updates/" "cloudmaintup"
 }
 
 function addcloud5testupdates()
