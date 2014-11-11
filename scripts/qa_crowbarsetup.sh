@@ -37,7 +37,7 @@ if [ -z $cloud ] ; then
 fi
 
 # common cloud network prefix within SUSE Nuremberg:
-netp=10.122
+netp=10.162
 net=${net_admin:-192.168.124}
 case "$cloud" in
     d1)
@@ -660,9 +660,9 @@ EOF
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.0.3.254 $netfile
         # floating net is the 2nd half of public net:
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.254.0 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v 10.122.166.0 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.start -v 10.122.166.1 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v 10.122.167.191 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v $netp.166.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.start -v $netp.166.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v $netp.167.191 $netfile
         # todo? broadcast
     fi
     if [[ -n "$want_sles12" ]] ; then
@@ -1728,7 +1728,7 @@ uri_logout = https://${novadashboardserver}:443/auth/logout/
 uri_private = https://${novadashboardserver}:443/nova
 login_method = POST
 logout_method = GET
-cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+cred = method=Login&region=http%3A%2F%2F10.162.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
 login_regex = An error occurred authenticating
 cookie_name = sessionid
 timeout = 600
@@ -1742,7 +1742,7 @@ uri_logout = https://${novadashboardserver}:443/auth/logout/
 uri_file = https://${novadashboardserver}:443/auth/login?next=/FUZZ/
 login_method = POST
 logout_method = GET
-cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+cred = method=Login&region=http%3A%2F%2F10.162.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
 
 ; cookies attributes
 [OWASP_SM_002]
@@ -1752,7 +1752,7 @@ uri_login = https://${novadashboardserver}:443/auth/login/
 uri_logout = https://${novadashboardserver}:443/auth/logout/
 login_method = POST
 logout_method = GET
-cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+cred = method=Login&region=http%3A%2F%2F10.162.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
 
 ; Session Fixation
 [OWASP_SM_003]
@@ -1765,8 +1765,8 @@ login_method = POST
 logout_method = GET
 ;login_regex = \"Couldn\'t log you in as\"
 login_regex = An error occurred authenticating
-cred_attacker = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=Mini Me&password=minime123
-cred_victim = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+cred_attacker = method=Login&region=http%3A%2F%2F10.162.186.83%3A5000%2Fv2.0&username=Mini Me&password=minime123
+cred_victim = method=Login&region=http%3A%2F%2F10.162.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
 cookie_name = sessionid
 
 ; Exposed Session Variables
@@ -1779,7 +1779,7 @@ uri_public = https://${novadashboardserver}:443/
 login_method = POST
 logout_method = GET
 login_regex = An error occurred authenticating
-cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+cred = method=Login&region=http%3A%2F%2F10.162.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
 
 ; CSRF
 [OWASP_SM_005]
@@ -1793,7 +1793,7 @@ uri_private_form = "language=fr"
 login_method = POST
 logout_method = GET
 login_regex = An error occurred authenticating
-cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+cred = method=Login&region=http%3A%2F%2F10.162.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
 
 ; Reflected Cross site scripting
 [OWASP_DV_001]
@@ -1806,7 +1806,7 @@ fuzz_file = fuzzdb-read-only/attack-payloads/xss/xss-rsnake.txt
 request_method = GET
 login_method = POST
 logout_method = GET
-cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+cred = method=Login&region=http%3A%2F%2F10.162.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
 
 ; Stored Cross site scripting
 [OWASP_DV_002]
@@ -1822,7 +1822,7 @@ fuzz_file = fuzzdb-read-only/attack-payloads/xss/xss-rsnake.txt
 request_method = GET
 login_method = POST
 logout_method = GET
-cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+cred = method=Login&region=http%3A%2F%2F10.162.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
 
 ; SQL Injection
 [OWASP_DV_005]
@@ -1835,7 +1835,7 @@ fuzz_file = fuzzdb-read-only/attack-payloads/sql-injection/detect/GenericBlind.f
 request_method = POST
 login_method = POST
 logout_method = GET
-cred = method=Login&region=http%3A%2F%2F10.122.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
+cred = method=Login&region=http%3A%2F%2F10.162.186.83%3A5000%2Fv2.0&username=admin&password=crowbar
 detect_http_code = 302
 EOOWASP
 }
@@ -2025,8 +2025,8 @@ function onadmin_qa_test()
 
 function onadmin_teardown()
 {
-    #BMCs at 10.122.178.163-6 #node 6-9
-    #BMCs at 10.122.$net.163-4 #node 11-12
+    #BMCs at 10.162.178.163-6 #node 6-9
+    #BMCs at 10.162.$net.163-4 #node 11-12
 
     # undo propsal create+commit
     local service
