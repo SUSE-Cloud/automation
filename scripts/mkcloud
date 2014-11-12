@@ -417,6 +417,13 @@ function h_create_libvirt_adminnode_config()
     h_cpuflags_settings
     h_local_repository_mount
 
+    emulator=/usr/bin/qemu-system-$(uname -m)
+    if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
+        # on SLE11, qemu-kvm is preferred, since qemu-system-x86_64 is
+        # some rotten old stuff without KVM support
+        emulator=/usr/bin/qemu-kvm
+    fi
+
     cat > $1 <<EOLIBVIRT
   <domain type='kvm'>
     <name>$cloud-admin</name>
@@ -438,7 +445,7 @@ function h_create_libvirt_adminnode_config()
     <on_reboot>restart</on_reboot>
     <on_crash>restart</on_crash>
     <devices>
-      <emulator>/usr/bin/qemu-kvm</emulator>
+      <emulator>$emulator</emulator>
       <disk type='block' device='disk'>
         <driver name='qemu' type='raw' cache='unsafe'/>
         <source dev='/dev/$cloudvg/$cloud.admin'/>
