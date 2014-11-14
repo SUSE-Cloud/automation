@@ -1169,6 +1169,8 @@ function set_proposalvars()
     iscloudver 5 && {
         echo "WARNING: ceph currently disabled as support for SUSE Storage 1.0 is currently missing"
         wantceph=
+        echo "WARNING: swift currently disabled, becaus openstack-swift packages for SLES12 are missing"
+        wantswift=
     }
 
     [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
