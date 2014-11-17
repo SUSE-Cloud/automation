@@ -360,19 +360,15 @@ function h_prepare_sles_repos()
     else
         zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ sles
 
-        if [ "x$WITHSLEUPDATES" != "x" ] ; then
-            if [ $suseversion = "11.3" ] ; then
-                zypper ar "http://euklid.nue.suse.com/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/$slesversion/" ${slesversion}up
-            fi
-        fi
-
         if ! $longdistance ; then
             add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" "${targetdir_install}"
         fi
 
         local REPO
         for REPO in $slesrepolist ; do
-            add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
+            local zypprepo=""
+            [ "$WITHSLEUPDATES" != "" ] && zypprepo="$REPO"
+            add_mount "$zypprepo" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
         done
 
         # just as a fallback if nfs did not work
