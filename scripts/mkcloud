@@ -543,7 +543,7 @@ listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
     wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
 
     if ( ! grep -q "iptables -t nat -F PREROUTING" /etc/init.d/boot.local ) && [ -z "$NOSETUPPORTFORWARDING" ] ; then
-        nodehostips=$(echo `seq 81 $((80 + $nodenumber))`)
+        nodehostips=$(seq 81 -s ' ' $((80 + $nodenumber)))
         cat >> /etc/init.d/boot.local <<EOS
 iptables -t nat -F PREROUTING
 for i in 22 80 443 3000 4000 4040 ; do
