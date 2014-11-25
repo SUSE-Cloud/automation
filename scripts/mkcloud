@@ -223,6 +223,7 @@ function sshrun()
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
 EOF
+    env|grep ^pre_ >> $mkcconf
 
     $scp qa_crowbarsetup.sh $mkcconf root@$adminip:
     ssh $sshopts root@$adminip "$@"

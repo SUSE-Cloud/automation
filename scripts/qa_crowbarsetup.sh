@@ -139,6 +139,14 @@ net_fixed=${net_fixed:-192.168.123}
 net_public=${net_public:-192.168.122}
 net_storage=${net_storage:-192.168.125}
 
+# run hook code before the actual script does its function
+function pre_hook()
+{
+    func=$1
+    pre=$(eval echo \$pre_$func | base64 -d)
+    test -n "$pre" && eval "$pre"
+}
+
 function intercept()
 {
     if [ -n "$shell" ] ; then
@@ -542,6 +550,7 @@ function h_set_source_variables()
 
 function onadmin_prepareinstallcrowbar()
 {
+    pre_hook $FUNCNAME
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
     cat > /etc/sysconfig/network/ifcfg-eth0 <<EOF
 NAME='eth0'
@@ -802,11 +811,13 @@ function onadmin_installcrowbarfromgit()
 
 function onadmin_installcrowbar()
 {
+    pre_hook $FUNCNAME
     do_installcrowbar "if [ -e /tmp/install-chef-suse.sh ] ; then /tmp/install-chef-suse.sh --verbose ; else /opt/dell/bin/install-chef-suse.sh --verbose ; fi"
 }
 
 function onadmin_allocate()
 {
+    pre_hook $FUNCNAME
     #chef-client
     if $want_ipmi ; then
         do_one_proposal ipmi default
@@ -897,6 +908,7 @@ function check_node_resolvconf()
 
 function onadmin_waitcompute()
 {
+    pre_hook $FUNCNAME
     local node
     for node in $(crowbar machines list | grep ^d) ; do
         wait_for 180 10 "sshtest $node rpm -q yast2-core" "node $node" "check_node_resolvconf $node; exit 12"
@@ -1251,6 +1263,7 @@ function do_one_proposal()
 
 function onadmin_proposal()
 {
+    pre_hook $FUNCNAME
     waitnodes nodes
     local proposals="database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat trove tempest"
 
@@ -1587,6 +1600,7 @@ EOH
 
 function onadmin_testsetup()
 {
+    pre_hook $FUNCNAME
     get_novacontroller
     if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
         echo "no nova contoller - something went wrong"
@@ -1624,6 +1638,7 @@ function onadmin_testsetup()
 
 function onadmin_addupdaterepo()
 {
+    pre_hook $FUNCNAME
     local UPR=/srv/tftpboot/repos/Cloud-PTF
     mkdir -p $UPR
     local repo
@@ -1637,6 +1652,7 @@ function onadmin_addupdaterepo()
 
 function onadmin_runupdate()
 {
+    pre_hook $FUNCNAME
     wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
     wait_for 30 3 ' zypper --non-interactive patch ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
     wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
@@ -1644,6 +1660,7 @@ function onadmin_runupdate()
 
 function onadmin_rebootcompute()
 {
+    pre_hook $FUNCNAME
     get_novacontroller
 
     local cmachines=`crowbar machines list | grep ^d`
