@@ -519,7 +519,7 @@ function h_set_source_variables()
             CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
         *)
-            echo "Error: you must set environment variable cloudsource=develcloud4|develcloud5|susecloud4|GM3"
+            echo "Error: you must set environment variable cloudsource=develcloud3|develcloud4|develcloud5|susecloud5|GM3|GM4"
             exit 76
         ;;
     esac
