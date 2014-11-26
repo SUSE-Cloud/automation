@@ -74,23 +74,25 @@ To use mkcloud the following additional steps are needed:
 `mkcloud` can be configured using different environment variables, some of
 them are listed below, to get a complete list run `./mkcloud -h`
 
-* `CVOL`, block device used by mkcloud to put LVM partitions, these partitions
+* `cloudpv`, block device used by mkcloud to put LVM partitions, these partitions
   are used to host the virtual machines. In development environments this is
   usually a loop device (e.g. `/dev/loop0`)
 * `cloudsource`, defines what version of SUSE Cloud will be deployed (e.g. `susecloud4`)
 * `TESTHEAD`, if this variable is set mkcloud will use `Devel:Cloud:Staging`
   repository to install and then update the system using the SUSE Cloud
   repositories (if they are available).
-* `ADMIN_NODE_MEMORY` and `COMPUTE_NODE_MEMORY` define the amount of memory in
+* `admin_node_memory` and `compute_node_memory` define the amount of memory in
   KB assigned to the admin node and the compute nodes respectively, by default
   both variables are set to 2 GB.
+* `controller_node_memory` define the amount of memory in KB assignet to the controller
+  node, by default are set to 4 GB.
 
 # Usage
 
 Example usage
 
 ```
-$ sudo env CVOL=/dev/loop0 cloudsource=susecloud4 ./mkcloud plain
+$ sudo env cloudpv=/dev/loop0 cloudsource=susecloud4 ./mkcloud plain
 ```
 
 This will create a cloud with an admin node (crowbar) and 2 nodes (1 for
@@ -134,7 +136,7 @@ else
     loused=`losetup |grep -v "NAME"|grep $cloud_lvm_disk|awk '{print $1}'`
 fi
 
-export CVOL=${loused}
+export cloudpv=${loused}
 export cloudsource=develcloud5
 export cloud=$cloudsource
 export net_fixed=192.168.150
