@@ -832,16 +832,9 @@ function qa_test()
     return $ret
 }
 
-function prepare_crowbar_backup_restore()
-{
-    curl -o crowbar-backup https://raw.githubusercontent.com/SUSE-Cloud/cloud-tools/master/backup/crowbar-backup
-    $scp crowbar-backup root@$adminip:
-}
-
 function crowbarbackup()
 {
-    prepare_crowbar_backup_restore
-    sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup backup /tmp/backup-crowbar.tar.gz"
+    sshrun "AGREEUNSUPPORTED=1 bash -x /usr/sbin/crowbar-backup backup /tmp/backup-crowbar.tar.gz"
     ret=$?
     $scp root@$adminip:/tmp/backup-crowbar.tar.gz .
     [ -d "$artifacts_dir" ] && mv backup-crowbar.tar.gz "$artifacts_dir/"
@@ -850,7 +843,6 @@ function crowbarbackup()
 
 function crowbarrestore()
 {
-    prepare_crowbar_backup_restore
     btarball=backup-crowbar.tar.gz
     [ -e "$artifacts_dir/$btarball" ] && btarball="$artifacts_dir/$btarball"
     if [ ! -e "$btarball" ] ; then
@@ -858,8 +850,8 @@ function crowbarrestore()
         return 56
     fi
     $scp "$btarball" root@$adminip:/tmp/
-    sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup purge"
-    sshrun "AGREEUNSUPPORTED=1 bash -x crowbar-backup restore /tmp/backup-crowbar.tar.gz"
+    sshrun "AGREEUNSUPPORTED=1 bash -x /usr/sbin/crowbar-backup purge"
+    sshrun "AGREEUNSUPPORTED=1 bash -x /usr/sbin/crowbar-backup restore /tmp/backup-crowbar.tar.gz"
     ret=$?
     return $ret
 }
