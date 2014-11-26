@@ -832,6 +832,10 @@ function onadmin_allocate()
         done
         wait
     fi
+    if [[ -n "$want_multidns" ]]; then
+        do_one_proposal dns default
+        wait
+    fi
 
     echo "Waiting for nodes to come up..."
     while ! crowbar machines list | grep ^d ; do sleep 10 ; done
@@ -1065,6 +1069,22 @@ function custom_configuration()
         EDITOR='sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/"' $crowbaredit
     fi
     case "$proposal" in
+        dns)
+            local cnumber=`crowbar machines list | wc -l`
+            local cnumber=`expr $cnumber - 1`
+            [[ $cnumber -gt 3 ]] && local local cnumber=3
+            local cmachines=`crowbar machines list | sort | head -n ${cnumber}`
+            local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
+            crowbar dns proposal show default |
+                ruby -e "require 'rubygems';require 'json';
+                    j=JSON.parse(STDIN.read);
+                    j['attributes']['dns']['records']={};
+                    j['attributes']['dns']['records']['multi-dns']={};
+                    j['attributes']['dns']['records']['multi-dns']['ips']=['10.11.12.13'];
+                    j['deployment']['dns']['elements']['dns-server']=[$dnsnodes];
+                    puts JSON.pretty_generate(j)" > /root/dns.default.proposal
+            crowbar dns proposal --file=/root/dns.default.proposal edit default
+        ;;
         ipmi)
             proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
         ;;
@@ -1205,6 +1225,7 @@ function set_proposalvars()
     wantceph=1
     iscloudver 2 && wantceph=
     wanttempest=
+    want_multidns=true
     iscloudver 4plus && wanttempest=1
 
     # FIXME: Ceph is currently broken
@@ -1262,6 +1283,9 @@ function onadmin_proposal()
     pre_hook $FUNCNAME
     waitnodes nodes
     local proposals="database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat trove tempest"
+    if [[ -n "$want_multidns" ]]; then
+        local proposals="dns $proposals"
+    fi
 
     local proposal
     for proposal in $proposals ; do
@@ -1597,6 +1621,19 @@ EOH
 function onadmin_testsetup()
 {
     pre_hook $FUNCNAME
+
+    if [[ -n "$want_multidns" ]]; then
+
+        cmachines=`crowbar machines list`
+        for machine in $cmachines; do
+            ssh $machine 'dig @127.0.0.1 multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13'
+            if [ $? != 0 ]; then
+                echo "Multi DNS server test failed!"
+                exit 13
+            fi
+        done
+    fi
+
     get_novacontroller
     if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
         echo "no nova contoller - something went wrong"
