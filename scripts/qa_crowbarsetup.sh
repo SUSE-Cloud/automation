@@ -1183,7 +1183,7 @@ function custom_configuration()
 function set_proposalvars()
 {
     wantswift=1
-    wantceph=1
+    [ -z "$want_swift" ] && wantceph=1
     wanttempest=
     iscloudver 4plus && wanttempest=1
 
