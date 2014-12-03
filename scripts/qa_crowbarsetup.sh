@@ -654,6 +654,15 @@ EOF
         fi
     fi
 
+    #
+    # TODO: I think we want to replace that in the future with proper API calls. Currently
+    # we need this to get all the ruby -e calls running as they are calling the old ruby
+    # version that does not install rubygems and rubygem-json generally
+    #
+    if iscloudver 5plus; then
+        zypper -n install rubygems ruby1.8-rubygem-json-1_7 || true
+    fi
+
     cd /tmp
 
     local netfile="/opt/dell/chef/data_bags/crowbar/bc-template-network.json"
@@ -926,7 +935,7 @@ function waitnodes()
             for i in `crowbar machines list | grep ^d` ; do
                 local machinestatus=''
                 while test $n -gt 0 && ! test "x$machinestatus" = "xready" ; do
-                    machinestatus=`crowbar machines show $i | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['state']"`
+                    machinestatus=`crowbar machines show $i state`
                     if test "x$machinestatus" = "xfailed" -o "x$machinestatus" = "xnil" ; then
                         echo "Error: machine status is failed. Exiting"
                         exit 39
