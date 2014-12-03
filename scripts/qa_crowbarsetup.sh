@@ -982,24 +982,6 @@ function waitnodes()
 }
 
 
-function manual_2device_ceph_proposal()
-{
-    # configure nodes and devices for ceph
-    crowbar ceph proposal show default |
-        ruby -e "require 'rubygems';require 'json';
-            nodes=ENV['nodes'].split(\"\n\");
-            controller=nodes.shift;
-            j=JSON.parse(STDIN.read);
-            e=j['deployment']['ceph']['elements'];
-            e['ceph-mon-master']=[controller];
-            e['ceph-mon']=nodes[0..1];
-            e['ceph-store']=nodes;
-            j['attributes']['ceph']['devices'] = ENV['cloud']=='virtual'?['/dev/vdb','/dev/vdc']:['/dev/sdb'];
-            puts JSON.pretty_generate(j)" > /root/cephproposal
-    crowbar ceph proposal --file=/root/cephproposal edit default
-}
-
-
 # generic function to modify values in proposals
 #   Note: strings have to be quoted like this: "'string'"
 #         "true" resp. "false" or "['one', 'two']" act as ruby values, not as string
@@ -1095,11 +1077,7 @@ function custom_configuration()
             fi
         ;;
         ceph)
-            if iscloudver 2; then
-                manual_2device_ceph_proposal
-            else
-                proposal_set_value ceph default "['attributes']['ceph']['disk_mode']" "'all'"
-            fi
+            proposal_set_value ceph default "['attributes']['ceph']['disk_mode']" "'all'"
         ;;
         nova)
             # custom nova config of libvirt
@@ -1127,12 +1105,6 @@ function custom_configuration()
             fi
             if [ -n "$networkingplugin" ] ; then
                 proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'$networkingplugin'"
-            fi
-        ;;
-        quantum)
-            if [[ $networkingplugin = linuxbridge ]] ; then
-                proposal_set_value quantum default "['attributes']['quantum']['networking_plugin']" "'$networkingplugin'"
-                proposal_set_value quantum default "['attributes']['quantum']['networking_mode']" "'vlan'"
             fi
         ;;
         swift)
@@ -1212,7 +1184,6 @@ function set_proposalvars()
 {
     wantswift=1
     wantceph=1
-    iscloudver 2 && wantceph=
     wanttempest=
     iscloudver 4plus && wanttempest=1
 
@@ -1229,7 +1200,6 @@ function set_proposalvars()
     [[ -n "$wantceph" ]] && wantswift=
     [[ "$cephvolumenumber" -lt 1 ]] && wantswift=
     crowbar_networking=neutron
-    iscloudver 2 && crowbar_networking=quantum
 
     if [[ -z "$cinder_conf_volume_type" ]]; then
         if [[ -n "$wantceph" ]]; then
