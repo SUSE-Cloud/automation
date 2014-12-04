@@ -1253,7 +1253,7 @@ function onadmin_proposal()
                 [[ -n "$wantswift" ]] || continue
                 ;;
             trove)
-                iscloudver 4plus || continue
+                iscloudver 5plus || continue
                 ;;
             tempest)
                 [[ -n "$wanttempest" ]] || continue
