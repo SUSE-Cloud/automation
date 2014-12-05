@@ -320,6 +320,11 @@ function iscloudvertest2()
 
 function addsp3testupdates()
 {
+    if [ $(date +%s) -lt 1418216333 ]; then
+        echo "SP3 Test updates is fucked, ignoring"
+        return
+    fi
+
     add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "/srv/tftpboot/repos/SLES11-SP3-Updates/" "sp3tup"
 }
 function add_sles12ga_testupdates()
