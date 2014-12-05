@@ -322,6 +322,7 @@ function addsp3testupdates()
 {
     if [ $(date +%s) -lt 1418216333 ]; then
         echo "SP3 Test updates is fucked, ignoring"
+        zypper mr -d sp3tup
         return
     fi
 
