@@ -1634,6 +1634,13 @@ function onadmin_addupdaterepo()
 function onadmin_runupdate()
 {
     pre_hook $FUNCNAME
+
+    if [ $(date +%s) -lt 1418216333 ]; then
+        echo "SP3 Test updates is fucked, ignoring"
+        zypper mr -d sp3tup
+        return
+    fi
+
     wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
     wait_for 30 3 ' zypper --non-interactive patch ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
     wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
