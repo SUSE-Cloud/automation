@@ -525,7 +525,7 @@ function h_set_source_variables()
             CLOUDDISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
         ;;
-        M?|Beta*|RC*|GMC*|GM5)
+        M?|RC*|GMC*|GM5)
             cs=$cloudsource
             [ $cs = GM5 ] && cs=GM
             CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-5-$cs/
