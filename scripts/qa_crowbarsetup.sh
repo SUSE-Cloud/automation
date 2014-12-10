@@ -843,7 +843,7 @@ function onadmin_allocate()
         local bmc_net="$ip1.$ip2.$ip3"
         for i in $nodelist ; do
             local pw
-            for pw in root crowbar 'cr0wBar!' ; do
+            for pw in 'cr0wBar!' $extraipmipw ; do
                 local ip=$bmc_net.$(($ip4 + $i))
                 (ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "$bmc_net.1"
                 ipmitool -H $ip -U root -P $pw power reset) &
