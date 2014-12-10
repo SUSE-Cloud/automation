@@ -41,6 +41,7 @@ netp=10.162
 net=${net_admin:-192.168.124}
 case "$cloud" in
     d1)
+        nodenumber=5
         net=$netp.178
         net_storage=$netp.179
         net_public=$netp.177
@@ -61,6 +62,7 @@ case "$cloud" in
         want_ipmi=true
     ;;
     d3)
+        nodenumber=2
         net=$netp.189
         net_public=$netp.188
         vlan_storage=586
@@ -69,6 +71,7 @@ case "$cloud" in
         want_ipmi=true
     ;;
     qa2)
+        nodenumber=7
         net=10.162.24
         net_public=$net
         vlan_public=12
@@ -78,6 +81,7 @@ case "$cloud" in
         want_ipmi=true
     ;;
     qa3)
+        nodenumber=8
         net=10.162.25
         net_public=$net
         vlan_public=12
@@ -832,24 +836,17 @@ function onadmin_allocate()
     #chef-client
     if $want_ipmi ; then
         do_one_proposal ipmi default
-        local nodelist="3 4 5 6 7 8"
-        # protect machine 3 on d2 for tomasz
-        if [ "$cloud" = "d2" ]; then
-            nodelist="4 5"
-        fi
-        if [ "$cloud" = "qa2" ]; then
-            nodelist="1 2 3 4 5 6 7"
-        fi
-        if [ "$cloud" = "qa3" ]; then
-            nodelist="1 2 3 4 5 6 7 8"
-        fi
+        local nodelist=$(seq 1 $nodenumber)
         local i
         local bmc_start=$(crowbar network proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['attributes']['network']['networks']['bmc']['ranges']['host']['start']")
+        IFS=. read ip1 ip2 ip3 ip4 <<< "$bmc_start"
+        local bmc_net="$ip1.$ip2.$ip3"
         for i in $nodelist ; do
             local pw
             for pw in root crowbar 'cr0wBar!' ; do
-                (ipmitool -H "${bmc_start%?}$i" -U root -P $pw lan set 1 defgw ipaddr "$net.1"
-                ipmitool -H "${bmc_start%?}$i" -U root -P $pw power reset) &
+                local ip=$bmc_net.$(($ip4 + $i))
+                (ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "$bmc_net.1"
+                ipmitool -H $ip -U root -P $pw power reset) &
             done
         done
         wait
