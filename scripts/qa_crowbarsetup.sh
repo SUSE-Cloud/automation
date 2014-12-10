@@ -1211,7 +1211,7 @@ function set_proposalvars()
     wantswift=1
     [ -z "$want_swift" ] && wantceph=1
     wanttempest=
-    want_multidns=true
+    iscloudver 5plus && want_multidns=1
     iscloudver 4plus && wanttempest=1
 
     # FIXME: Ceph is currently broken
