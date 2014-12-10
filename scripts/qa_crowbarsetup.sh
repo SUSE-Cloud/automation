@@ -837,12 +837,19 @@ function onadmin_allocate()
         if [ "$cloud" = "d2" ]; then
             nodelist="4 5"
         fi
+        if [ "$cloud" = "qa2" ]; then
+            nodelist="1 2 3 4 5 6 7"
+        fi
+        if [ "$cloud" = "qa3" ]; then
+            nodelist="1 2 3 4 5 6 7 8"
+        fi
         local i
+        local bmc_start=$(crowbar network proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['attributes']['network']['networks']['bmc']['ranges']['host']['start']")
         for i in $nodelist ; do
             local pw
             for pw in root crowbar 'cr0wBar!' ; do
-                (ipmitool -H "$net.16$i" -U root -P $pw lan set 1 defgw ipaddr "$net.1"
-                ipmitool -H "$net.16$i" -U root -P $pw power reset) &
+                (ipmitool -H "${bmc_start%?}$i" -U root -P $pw lan set 1 defgw ipaddr "$net.1"
+                ipmitool -H "${bmc_start%?}$i" -U root -P $pw power reset) &
             done
         done
         wait
