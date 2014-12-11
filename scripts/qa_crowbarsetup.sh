@@ -1617,7 +1617,7 @@ function onadmin_testsetup()
 
         cmachines=`crowbar machines list`
         for machine in $cmachines; do
-            ssh $machine 'dig @127.0.0.1 multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13'
+            ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13'
             if [ $? != 0 ]; then
                 echo "Multi DNS server test failed!"
                 exit 13
