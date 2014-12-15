@@ -366,6 +366,19 @@ function add_ha_repo()
     done
 }
 
+function add_suse_storage_repo()
+{
+    if [ -n "$want_sles12" ] && iscloudver 5plus ; then
+        local repo
+        for repo  in "SUSE-Storage-1.0-Pool" "SUSE-Storage-1.0-Updates"; do
+            add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
+        done
+    else
+        echo "Error: You need SLE12 and SUSE-Cloud5 to setup SUSE Cloud Storage."
+    fi
+}
+
+
 function h_prepare_sles_repos()
 {
     local targetdir_install="/srv/tftpboot/suse-$suseversion/install/"
@@ -610,6 +623,10 @@ EOF
             echo "Error: You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
             exit 1
         fi
+    fi
+
+    if [ -n "$wantceph"] && [ -n "$want_sles12" ] && iscloudver 5plus; then
+        add_suse_storage_repo
     fi
 
     zypper -n install rsync netcat
@@ -1212,6 +1229,7 @@ function set_proposalvars()
 
     # FIXME: Ceph is currently broken
     iscloudver 5 && {
+        # TODO (psalunke): Update the ceph lines when done with the ceph card.
         echo "WARNING: ceph currently disabled as support for SUSE Storage 1.0 is currently missing"
         wantceph=
         echo "WARNING: swift currently disabled, becaus openstack-swift packages for SLES12 are missing"
