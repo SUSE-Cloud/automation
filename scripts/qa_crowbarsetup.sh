@@ -375,7 +375,7 @@ function add_ha_repo()
         if [ "$slesdist" = "SLE_11_SP3" ] ; then
             local repo
             for repo  in "SLE11-HAE-SP3-Pool" "SLE11-HAE-SP3-Updates" "SLE11-HAE-SP3-Updates-test" ; do
-                add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
+                add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
             done
             didha=1
         fi
