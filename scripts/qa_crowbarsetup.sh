@@ -324,12 +324,6 @@ function iscloudvertest2()
 
 function addsp3testupdates()
 {
-    if [ $(date +%s) -lt 1418216333 ]; then
-        echo "SP3 Test updates is fucked, ignoring"
-        zypper mr -d sp3tup
-        return
-    fi
-
     add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "/srv/tftpboot/repos/SLES11-SP3-Updates/" "sp3tup"
 }
 function add_sles12ga_testupdates()
@@ -1192,19 +1186,6 @@ function custom_configuration()
                 fi
             fi
         ;;
-        ceilometer)
-            # Disable ceilometer tests for SLES12 compute nodes
-            if [ -n "$want_sles12" ] && iscloudver 5plus ; then
-                echo "Remove SLES12 node from ceilometer-agent role..."
-                local sles12node=`crowbar machines list | sort | grep ^d | tail -n 1`
-                local ceilometeragents=`crowbar ceilometer proposal show default |
-                    ruby -e "require 'rubygems';require 'json';
-                        puts JSON.parse(STDIN.read)['deployment']['ceilometer']['elements']['ceilometer-agent']" |
-                    sed '/'"${sles12node}"'/d'`
-                json-edit ceilometer.json -a deployment.ceilometer.elements.ceilometer-agent --raw -v "[ ${ceilometeragents} ]"
-                crowbar ceilometer proposal --file ceilometer.json edit default
-            fi
-        ;;
         *) echo "No hooks defined for service: $proposal"
         ;;
     esac
@@ -1676,13 +1657,10 @@ function onadmin_addupdaterepo()
 
 function onadmin_runupdate()
 {
-    pre_hook $FUNCNAME
+    # Workaround broken admin image that has SP3 Test update channel enabled
+    zypper mr -d sp3tup
 
-    if [ $(date +%s) -lt 1418216333 ]; then
-        echo "SP3 Test updates is fucked, ignoring"
-        zypper mr -d sp3tup
-        return
-    fi
+    pre_hook $FUNCNAME
 
     wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
     wait_for 30 3 ' zypper --non-interactive patch ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
