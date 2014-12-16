@@ -1186,19 +1186,6 @@ function custom_configuration()
                 fi
             fi
         ;;
-        ceilometer)
-            # Disable ceilometer tests for SLES12 compute nodes
-            if [ -n "$want_sles12" ] && iscloudver 5plus ; then
-                echo "Remove SLES12 node from ceilometer-agent role..."
-                local sles12node=`crowbar machines list | sort | grep ^d | tail -n 1`
-                local ceilometeragents=`crowbar ceilometer proposal show default |
-                    ruby -e "require 'rubygems';require 'json';
-                        puts JSON.parse(STDIN.read)['deployment']['ceilometer']['elements']['ceilometer-agent']" |
-                    sed '/'"${sles12node}"'/d'`
-                json-edit ceilometer.json -a deployment.ceilometer.elements.ceilometer-agent --raw -v "[ ${ceilometeragents} ]"
-                crowbar ceilometer proposal --file ceilometer.json edit default
-            fi
-        ;;
         *) echo "No hooks defined for service: $proposal"
         ;;
     esac
