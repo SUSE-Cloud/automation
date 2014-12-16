@@ -324,12 +324,6 @@ function iscloudvertest2()
 
 function addsp3testupdates()
 {
-    if [ $(date +%s) -lt 1418216333 ]; then
-        echo "SP3 Test updates is fucked, ignoring"
-        zypper mr -d sp3tup
-        return
-    fi
-
     add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "/srv/tftpboot/repos/SLES11-SP3-Updates/" "sp3tup"
 }
 function add_sles12ga_testupdates()
@@ -1676,13 +1670,10 @@ function onadmin_addupdaterepo()
 
 function onadmin_runupdate()
 {
-    pre_hook $FUNCNAME
+    # Workaround broken admin image that has SP3 Test update channel enabled
+    zypper mr -d sp3tup
 
-    if [ $(date +%s) -lt 1418216333 ]; then
-        echo "SP3 Test updates is fucked, ignoring"
-        zypper mr -d sp3tup
-        return
-    fi
+    pre_hook $FUNCNAME
 
     wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
     wait_for 30 3 ' zypper --non-interactive patch ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
