@@ -1593,6 +1593,7 @@ EOH
         nova remove-floating-ip "$instanceid" "$floatingip"
         nova floating-ip-delete "$floatingip"
         nova stop "$instanceid"
+        wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
         echo "Ceph Tests: $cephret"
         echo "RadosGW Tests: $radosgwret"
