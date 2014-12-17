@@ -425,6 +425,7 @@ function h_prepare_sles12_repos()
 {
     suse12version=12.0
     local targetdir_install="/srv/tftpboot/suse-$suse12version/install/"
+    local targetdir="/srv/tftpboot/repos/SLE12-Cloud-Compute"
 
     if ! $longdistance ; then
         add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" "${targetdir_install}"
@@ -433,6 +434,12 @@ function h_prepare_sles12_repos()
     for REPO in $sles12repolist ; do
         add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
     done
+
+    if [ -n "${localreposdir_target}" ]; then
+        echo FIXME add_bind_mount "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" "$targetdir"
+    else
+        rsync_iso "$CLOUDDISTPATH" "SUSE-SLE12-CLOUD-5-COMPUTE-x86_64-Build*-Media1.iso" "$targetdir"
+    fi
 
     # create empty repository when there is none yet
     zypper -n install createrepo
@@ -445,7 +452,6 @@ function h_prepare_sles12_repos()
     done
 
     # just as a fallback if nfs did not work
-    # FIXME final SLES media not available yet
     if [ ! -e "${targetdir_install}/media.1/" ] ; then
         local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
         local p=/srv/tftpboot/suse-$suse12version/$f
@@ -547,7 +553,7 @@ function h_set_source_variables()
     esac
 
     # FIXME SLES12-Pool should be here, but it seems to be broken now
-    sles12repolist="SLES12-Updates SLE12-Cloud-Compute"
+    sles12repolist="SLES12-Updates"
 }
 
 
