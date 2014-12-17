@@ -8,6 +8,10 @@ mkcconf=mkcloud.config
 
 novacontroller=
 novadashboardserver=
+clusternodesdata=
+clusternodesnetwork=
+clusternodesservices=
+
 export cloud=${1}
 export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
 export nodenumber=${nodenumber:-2}
@@ -367,6 +371,64 @@ function add_suse_storage_repo()
     fi
 }
 
+function cluster_node_assignment()
+{
+    local L
+    L=`crowbar machines list | grep -v crowbar`
+
+    # the nodes that contain drbd volumes are defined via drbdnode_mac_vol
+    for dmachine in ${drbdnode_mac_vol//+/ } ; do
+        local mac
+        local serial
+        mac=${dmachine%#*}
+        serial=${dmachine#*#}
+
+        # find and remove drbd nodes from L
+        for node in $L ; do
+            if crowbar machines show "$node" | grep "\"macaddress\"" | grep -qi $mac ; then
+                clusternodesdata="$clusternodesdata $node"
+
+                # assign drbd volume via knife
+                local nfile
+                nfile=knife.node.${node}.json
+                knife node show ${node} -F json > $nfile
+                $ruby -e "require 'rubygems';require 'json';
+                            j=JSON.parse(STDIN.read);
+                            j['normal']['crowbar_wall']['claimed_disks'].each do |k,v|
+                                next if v.is_a? Hash and v['owner'] !~ /LVM_DRBD/;
+                                j['normal']['crowbar_wall']['claimed_disks'].delete(k);
+                            end ;
+                            j['normal']['crowbar_wall']['claimed_disks']['/dev/disk/by-id/$serial']={'owner' => 'LVM_DRBD'};
+                            puts JSON.pretty_generate(j)" < $nfile > ${nfile}.tmp
+                mv ${nfile}.tmp ${nfile}
+                knife node from file ${nfile}
+            fi
+        done
+        for dnode in $clusternodesdata ; do
+            L=`printf "%s\n" $L | grep -iv $dnode`
+        done
+    done
+
+    # assign nodes to clusters
+    clusternodesnetwork=`printf  "%s\n" $L | head -n$nodenumbernetworkcluster`
+    clusternodesservices=`printf "%s\n" $L | tail -n$nodenumberservicescluster`
+
+    for n in $clusternodesnetwork $clusternodesservices ; do
+        L=`printf "%s\n" $L | grep -iv $n`
+    done
+    nodescompute=$L
+    echo "............................................................"
+    echo "The cluster node assignment (for your information):"
+    echo "data cluster:"
+    printf "   %s\n" $clusternodesdata
+    echo "network cluster:"
+    printf "   %s\n" $clusternodesnetwork
+    echo "services cluster:"
+    printf "   %s\n" $clusternodesservices
+    echo "compute nodes (no cluster):"
+    printf "   %s\n" $L
+    echo "............................................................"
+}
 
 function onadmin_prepare_sles_repos()
 {
@@ -1098,6 +1160,38 @@ function enable_ssl_for_nova_dashboard()
     proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['ssl_no_verify']" true
 }
 
+function hacloud_configure_cluster_defaults()
+{
+    clustertype=$1
+    shift
+
+    nodes=`printf "\"%s\"," $@`
+    nodes="[ ${nodes%,} ]"
+    proposal_set_value pacemaker "$clustertype" "['deployment']['pacemaker']['elements']['pacemaker-cluster-member']" "$nodes"
+
+    for node in $@; do
+      proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']" "{}"
+      proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']['params']" "''"
+    done
+
+    proposal_set_value pacemaker "$clustertype" "['description']" "'Pacemaker $clustertype cluster'"
+}
+
+function hacloud_configure_data_cluster()
+{
+    proposal_set_value pacemaker data "['attributes']['pacemaker']['drbd']['enabled']" true
+    hacloud_configure_cluster_defaults "data" $clusternodesdata
+}
+
+function hacloud_configure_network_cluster()
+{
+    hacloud_configure_cluster_defaults "network" $clusternodesnetwork
+}
+
+function hacloud_configure_services_cluster()
+{
+    hacloud_configure_cluster_defaults "services" $clusternodesservices
+}
 
 function dns_proposal_configuration()
 {
@@ -1136,6 +1230,19 @@ function custom_configuration()
     ###       So, only edit the proposal file, and NOT the proposal itself
 
     case "$proposal" in
+        pacemaker)
+            case $proposaltype in
+                data)
+                    hacloud_configure_data_cluster
+                ;;
+                network)
+                    hacloud_configure_network_cluster
+                ;;
+                services)
+                    hacloud_configure_services_cluster
+                ;;
+            esac
+        ;;
         dns)
             dns_proposal_configuration
         ;;
@@ -1333,12 +1440,16 @@ function onadmin_proposal()
         update_one_proposal dns default
     fi
 
-    local proposals="database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat trove tempest"
+    local proposals="pacemaker database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat trove tempest"
 
     local proposal
     for proposal in $proposals ; do
         # proposal filter
         case "$proposal" in
+            pacemaker)
+                [ -n "$hacloud" ] || continue
+                cluster_node_assignment
+                ;;
             ceph)
                 [[ -n "$wantceph" ]] || continue
                 ;;
@@ -1355,6 +1466,11 @@ function onadmin_proposal()
 
         # create proposal
         case "$proposal" in
+            pacemaker)
+                for cluster in data services network ; do
+                    do_one_proposal "$proposal" "$cluster"
+                done
+                ;;
             *)
                 do_one_proposal "$proposal" "default"
                 ;;

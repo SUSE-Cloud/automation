@@ -46,7 +46,11 @@
 #                for ceph testing
 #
 # nodenumber     (default 2)
-#                sets the number of nodes to be created
+#                sets the overall number of nodes to be created
+#
+# nodenumbercompute (default $nodenumber resp. 1 in case of hacloud=1)
+#                set the number of compute nodes in a HA setup, the remaining nodes
+#                of $nodenumber - $nodenumercompute is used as HA cluster nodes
 #
 # vcpus          (default 1)
 #                sets the number of CPU cores assigned to each compute node
@@ -78,7 +82,16 @@ net_admin=${net_admin:-192.168.124}
 adminnetmask=${adminnetmask:-255.255.248.0}
 adminip=$net_admin.10
 admingw=$net_admin.1
-nodenumber=${nodenumber:-2}
+nodenumbercomputedefault=2
+[ -n "$hacloud" ] && nodenumbercomputedefault=1
+nodenumber=${nodenumber:-$nodenumbercomputedefault}
+nodenumbercompute=${nodenumbercompute:-$nodenumbercomputedefault}
+[ -n "$hacloud" ] && nodenumberdataclusterdefault=2 # currently only drbd supported with 2 nodes
+nodenumberdatacluster=${nodenumberdatacluster:-$nodenumberdataclusterdefault}
+nodenumbernetworkcluster=${nodenumbernetworkcluster:-''}
+nodenumberservicescluster=${nodenumberservicescluster:-''}
+# '+'-separated list of MAC#serial_of_drbd_volume of the drbd cluster nodes
+drbdnode_mac_vol=${drbdnode_mac_vol:-''}
 cephvolumenumber=${cephvolumenumber:-0}
 allnodeids=`seq 1 $nodenumber`
 vcpus=${vcpus:-1}
@@ -197,6 +210,7 @@ function sshrun()
     mkcconf=mkcloud.config
     cat > $mkcconf <<EOF
         export debug=$debug ;
+        export drbdnode_mac_vol=$drbdnode_mac_vol ;
         export cloudfqdn=$cloudfqdn ;
         export cloudsource=$cloudsource ;
         export upgrade_cloudsource=$upgrade_cloudsource ;
@@ -208,6 +222,10 @@ function sshrun()
         export networkingplugin=$networkingplugin ;
         export networkingmode=$networkingmode ;
         export nodenumber=$nodenumber ;
+        export nodenumbercompute=$nodenumbercompute ;
+        export nodenumbernetworkcluster=$nodenumbernetworkcluster ;
+        export nodenumberservicescluster=$nodenumberservicescluster ;
+        export nodenumberdatacluster=$nodenumberdatacluster ;
         export nosetestparameters=${nosetestparameters} ;
         export tempestoptions='${tempestoptions}' ;
         export cephvolumenumber=$cephvolumenumber ;
@@ -294,6 +312,7 @@ function onhost_create_cloud_lvm()
     computenode_hdd_size=${computenode_hdd_size:-15}
     cephvolume_hdd_size=${cephvolume_hdd_size:-11}
     controller_ceph_hdd_size=${controller_ceph_hdd_size:-25}
+    drbd_hdd_size=${drbd_hdd_size:-50}
     local hdd_size
 
     lvrename /dev/$cloudvg/admin /dev/$cloudvg/$cloud.admin # transition until 2015
@@ -316,6 +335,14 @@ function onhost_create_cloud_lvm()
                 test "$i" = "1" -a "$n" = "1" && hdd_size=${controller_ceph_hdd_size}
                 lvcreate -n $cloud.node$i-ceph$n -L ${hdd_size}G $cloudvg $next_pv_device
             done
+        done
+    fi
+
+    # create volumes for drbd
+    if [ -n "$hacloud" ] ; then
+        for i in `seq 1 $nodenumberdatacluster`; do
+            onhost_get_next_pv_device
+            lvcreate -n $cloud.node$i-drbd -L ${drbd_hdd_size=}G $cloudvg $next_pv_device
         done
     fi
 }
@@ -636,6 +663,7 @@ function onhost_create_libvirt_computenode_config()
     nodecounter=$2
     macaddress=$3
     cephvolume="$4"
+    drbdvolume="$5"
     nicmodel=virtio
     hypervisor_has_virtio || nicmodel=e1000
     nodememory=$compute_node_memory
@@ -669,6 +697,7 @@ function onhost_create_libvirt_computenode_config()
       <boot order='2'/>
     </disk>
     $cephvolume
+    $drbdvolume
     <interface type='network'>
       <mac address='$macaddress'/>
       <source network='$cloud-admin'/>
@@ -748,7 +777,26 @@ function setupcompute()
             done
         fi
 
-        onhost_create_libvirt_computenode_config /tmp/$cloud-node$i.xml $i $macaddress "$cephvolume"
+        drbdvolume=""
+        if [ -n "$hacloud" ] ; then
+            if [ $i -le $nodenumberdatacluster ] ; then
+                drbddev=vd$(echo $alldevices | cut -d" " -f$c)
+                c=$(($c + 1))
+                local drbd_serial
+                drbd_serial="$cloud-node$i-drbd"
+                drbdvolume="
+    <disk type='block' device='disk'>
+        <serial>$drbd_serial</serial>
+        <driver name='qemu' type='raw' cache='unsafe'/>
+        <source dev='/dev/$cloudvg/$cloud.node$i-drbd'/>
+        <target dev='$drbddev' bus='virtio'/>
+    </disk>"
+                drbdnode_mac_vol="${drbdnode_mac_vol}+${macaddress}#${drbd_serial}"
+                drbdnode_mac_vol="${drbdnode_mac_vol#+}"
+            fi
+        fi
+
+        onhost_create_libvirt_computenode_config /tmp/$cloud-node$i.xml $i $macaddress "$cephvolume" "$drbdvolume"
 
         virsh destroy $cloud-node$i 2>/dev/null
         virsh undefine $cloud-node$i 2>/dev/null
@@ -761,6 +809,14 @@ function setupcompute()
             complain 74 "Could not start VM for: node$i"
         fi
     done
+    echo "========================================================"
+    echo " Note: If you interrupt mkcloud now and want to proceed"
+    echo "       later, make sure to run the following command:"
+    echo
+    echo " export drbdnode_mac_vol=\"${drbdnode_mac_vol}\""
+    echo
+    echo "========================================================"
+    sleep 10
     return 0
 }
 
@@ -948,7 +1004,7 @@ function usage()
     echo
     echo " Optional"
     echo "   hacloud='' | 1  (default='')"
-    echo "       : setup a high availability cloud, requires at least 6 nodes"
+    echo "       : setup a high availability cloud, requires at least 7 (better 9) nodes"
     echo "   upgrade_cloudsource='' (default='')"
     echo "       : set new cloudsource for upgrade process"
     echo "   TESTHEAD='' | 1  (default='')"
@@ -958,6 +1014,9 @@ function usage()
     echo "         note: proposal step does NOT contain a ceph proposal, do it manually"
     echo "   nodenumber=2    (default 2)"
     echo "       : set the number of nodes to be created (excl. admin node)"
+    echo '   nodenumbercompute=1  (default $nodenumber resp. 1 in case of hacloud=1)'
+    echo "       :  set the number of compute nodes in a HA setup, the remaining nodes"
+    echo '          of $nodenumber - $nodenumercompute are used as HA cluster nodes'
     echo "   vcpus=1         (default 1)"
     echo "       : set the number of CPU cores per compute node"
     echo "   adminvcpus=1    (default $vcpus)"
@@ -1030,10 +1089,51 @@ function sanity_checks()
     fi
 
     if [ -n "$hacloud" ] ; then
-        if (( $nodenumber < 6 )) ; then
-            complain 1 "A HA cloud setup requires at least 6 nodes, you configured only: $nodenumber" \
-                "Please raise the number of nodes via e.g. export nodenumber=6"
+        local nodenumbercomputeoffset=0
+        if [ -z "$nodenumbernetworkcluster" ] || [ -z "$nodenumberservicescluster" ] || [ -z "$nodenumberdatacluster" ] ; then
+            # currently only drbd with 2 nodes supported
+            nodenumberdatacluster=2
+            local maxnodes=$(( nodenumber - nodenumbercompute - nodenumberdatacluster ))
+            nodenumbercomputeoffset=$(( maxnodes % 6 ))
+            local mn=$(( maxnodes - nodenumbercomputeoffset ))
+            nodenumbernetworkcluster=$(( mn / 2 ))
+            nodenumberservicescluster=$(( mn / 2 ))
         fi
+
+        I="    "
+        echo "== HA node number overview =="
+        echo  "configured nodes (min. nodes) : use case"
+        echo                "$I$nodenumber (9) : nodenumber"
+        echo         "$I$nodenumbercompute (1) : nodenumber compute"
+        echo   "$I$nodenumbercomputeoffset (0) : unused nodes added as compute nodes"
+        echo "Resulting HA node numbers:"
+        echo     "$I$nodenumberdatacluster (2) : nodenumber data cluster"
+        echo  "$I$nodenumbernetworkcluster (3) : nodenumber network cluster"
+        echo "$I$nodenumberservicescluster (3) : nodenumber services cluster"
+
+        # sanity check
+        if  [[ $(( $nodenumbercompute + $nodenumbercomputeoffset )) < 1  ]] || \
+            [[ $(( $nodenumberservicescluster )) < 3 ]] || \
+            [[ $(( $nodenumbernetworkcluster  )) < 3 ]] || \
+            [[ $nodenumberdatacluster < $nodenumberdataclusterdefault ]] ; then
+            echo
+            echo "Error: too few nodes for a HA cloud setup"
+            echo "Please redefine the number of nodes:"
+            echo " export nodenumber=<x>         and/or"
+            echo " export nodenumbercompute=<y>"
+            echo
+            echo "Note:"
+            echo " For a quorum a cluster needs to have an odd number of nodes, at least 3."
+            echo " For drbd cluster only 2 nodes are supported currently."
+            echo " So your nodenumber shoud be:"
+            echo "     compute_node_number + 2 (drbd cluster) + 2 * odd_number (cluster)"
+            complain 88 "Please raise the number of nodes via e.g. export nodenumber=10"
+        fi
+
+        nodenumbercompute=$(( $nodenumbercompute + $nodenumbercomputeoffset ))
+        echo
+        echo "Waiting 20 seconds review time. Press Ctrl-C to cancel this run."
+        sleep 20
     fi
 
     vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
