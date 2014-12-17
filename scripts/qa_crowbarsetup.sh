@@ -1402,6 +1402,8 @@ function update_one_proposal()
     local proposal=$1
     local proposaltype=${2:-default}
 
+    echo -n "Starting proposal $proposal($proposaltype) at: "
+    date
     # hook for changing proposals:
     custom_configuration $proposal $proposaltype
     crowbar "$proposal" proposal commit $proposaltype
@@ -1411,6 +1413,8 @@ function update_one_proposal()
         waitnodes proposal $proposal $proposaltype
         ret=$?
         echo "Proposal exit code: $ret"
+        echo -n "Finished proposal $proposal($proposaltype) at: "
+        date
         sleep 10
     fi
     if [ $ret != 0 ] ; then
