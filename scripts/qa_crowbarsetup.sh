@@ -414,7 +414,7 @@ function rsync_iso()
     (
         cd "$targetdir"
         wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
-        local CLOUDISO=$(ls */$CLOUDDISTPATH/SUSE-*.iso|tail -1)
+        local CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
         mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
         rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
         echo $CLOUDISO > isoversion
@@ -510,7 +510,7 @@ function h_set_source_variables()
         develcloud5)
             CLOUDDISTPATH=/ibs/Devel:/Cloud:/5/images/iso
             [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/5:/Staging/images/iso
-            CLOUDDISTISO="S*-CLOUD*Media1.iso"
+            CLOUDDISTISO="SUSE-CLOUD*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-devel"
         ;;
         susecloud5)
@@ -532,7 +532,7 @@ function h_set_source_variables()
             cs=$cloudsource
             [ $cs = GM5 ] && cs=GM
             CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-5-$cs/
-            CLOUDDISTISO="S*-CLOUD*1.iso"
+            CLOUDDISTISO="SUSE-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
         *)
