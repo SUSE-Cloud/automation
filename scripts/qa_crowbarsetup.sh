@@ -1691,8 +1691,11 @@ function onadmin_rebootcompute()
 function oncontroller_waitforinstance()
 {
     . .openrc
-    nova list
-    nova start testvm || exit 28
+
+    if ! iscloudver 5plus; then
+        nova list
+        nova start testvm || exit 28
+    fi
     nova list
     addfloatingip testvm
     local vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
