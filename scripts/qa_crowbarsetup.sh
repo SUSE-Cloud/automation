@@ -583,11 +583,13 @@ EOF
         h_prepare_sles12_repos
     fi
 
-    if [ "$slesdist" = "SLE_11_SP3" ] && [ -n "$hacloud" ] && iscloudver 5plus ; then
-        add_ha_repo
-    else
-        echo "Error: You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
-        exit 1
+    if [ -n "$hacloud" ]; then
+        if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 5plus ; then
+            add_ha_repo
+        else
+            echo "Error: You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
+            exit 1
+        fi
     fi
 
     zypper -n install rsync netcat
