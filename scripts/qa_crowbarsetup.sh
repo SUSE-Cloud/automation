@@ -1593,6 +1593,7 @@ EOH
         nova remove-floating-ip "$instanceid" "$floatingip"
         nova floating-ip-delete "$floatingip"
         nova stop "$instanceid"
+        wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
         echo "Ceph Tests: $cephret"
         echo "RadosGW Tests: $radosgwret"
@@ -1708,11 +1709,8 @@ function onadmin_rebootcompute()
 function oncontroller_waitforinstance()
 {
     . .openrc
-
-    if ! iscloudver 5plus; then
-        nova list
-        nova start testvm || exit 28
-    fi
+    nova list
+    nova start testvm || exit 28
     nova list
     addfloatingip testvm
     local vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
