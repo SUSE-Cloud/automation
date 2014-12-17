@@ -405,6 +405,22 @@ function h_prepare_sles_repos()
     fi
 }
 
+function rsync_iso()
+{
+    local CLOUDDISTPATH="$1"
+    local CLOUDDISTISO="$2"
+    local targetdir="$3"
+    mkdir -p /mnt/cloud "$targetdir"
+    (
+        cd "$targetdir"
+        wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
+        local CLOUDISO=$(ls */$CLOUDDISTPATH/SUSE-*.iso|tail -1)
+        mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
+        rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
+        echo $CLOUDISO > isoversion
+    )
+}
+
 function h_prepare_sles12_repos()
 {
     suse12version=12.0
@@ -453,13 +469,8 @@ function h_prepare_cloud_repos()
         add_bind_mount "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" "${targetdir}"
         echo $CLOUDLOCALREPOS > /etc/cloudversion
     else
-        cd ${targetdir}
-        mkdir -p /mnt/cloud
-        wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
-        local CLOUDISO=$(ls */$CLOUDDISTPATH/SUSE-CLOUD-*.iso|tail -1)
-        echo $CLOUDISO > /etc/cloudversion
-        mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
-        rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
+        rsync_iso "$CLOUDDISTPATH" "$CLOUDDISTISO" "$targetdir"
+        cat "$targetdir/isoversion" > /etc/cloudversion
     fi
     echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
 
