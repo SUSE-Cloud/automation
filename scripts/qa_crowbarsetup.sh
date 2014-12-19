@@ -285,7 +285,7 @@ function iscloudver()
             [[ $cloudsource =~ 4 ]]
             ;;
         5)
-            [[ $cloudsource =~ 5 ]]
+            [[ $cloudsource =~ 5|M*|Beta*|GM* ]]
             ;;
         *)
             return 1
