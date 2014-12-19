@@ -863,10 +863,6 @@ function onadmin_allocate()
         done
         wait
     fi
-    if [[ -n "$want_multidns" ]]; then
-        do_one_proposal dns default
-        wait
-    fi
 
     echo "Waiting for nodes to come up..."
     while ! crowbar machines list | grep ^d ; do sleep 10 ; done
