@@ -863,10 +863,6 @@ function onadmin_allocate()
         done
         wait
     fi
-    if [[ -n "$want_multidns" ]]; then
-        do_one_proposal dns default
-        wait
-    fi
 
     echo "Waiting for nodes to come up..."
     while ! crowbar machines list | grep ^d ; do sleep 10 ; done
@@ -1214,7 +1210,7 @@ function set_proposalvars()
     wantswift=1
     [ -z "$want_swift" ] && wantceph=1
     wanttempest=
-    iscloudver 5plus && want_multidns=1
+    iscloudver 5plus && wantmultidns=1
     iscloudver 4plus && wanttempest=1
 
     # FIXME: Ceph is currently broken
@@ -1242,12 +1238,11 @@ function set_proposalvars()
     fi
 }
 
-function do_one_proposal()
+function update_one_proposal()
 {
     local proposal=$1
     local proposaltype=${2:-default}
 
-    crowbar "$proposal" proposal create $proposaltype
     # hook for changing proposals:
     custom_configuration $proposal $proposaltype
     crowbar "$proposal" proposal commit $proposaltype
@@ -1266,14 +1261,25 @@ function do_one_proposal()
     fi
 }
 
+function do_one_proposal()
+{
+    local proposal=$1
+    local proposaltype=${2:-default}
+
+    crowbar "$proposal" proposal create $proposaltype
+    update_one_proposal "$proposal" "$proposaltype"
+}
+
 function onadmin_proposal()
 {
     pre_hook $FUNCNAME
     waitnodes nodes
-    local proposals="database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat trove tempest"
-    if [[ -n "$want_multidns" ]]; then
-        local proposals="dns $proposals"
+
+    if [[ -n "$wantmultidns" ]]; then
+        update_one_proposal dns default
     fi
+
+    local proposals="database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat trove tempest"
 
     local proposal
     for proposal in $proposals ; do
@@ -1613,7 +1619,7 @@ function onadmin_testsetup()
 {
     pre_hook $FUNCNAME
 
-    if [[ -n "$want_multidns" ]]; then
+    if [[ -n "$wantmultidns" ]]; then
 
         cmachines=`crowbar machines list`
         for machine in $cmachines; do
