@@ -602,7 +602,7 @@ EOF
 
     h_prepare_sles_repos
 
-    if [ -n "$want_sles12" ] && iscloudver 5plus ; then
+    if iscloudver 5plus ; then
         h_prepare_sles12_repos
     fi
 
