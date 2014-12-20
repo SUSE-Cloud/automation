@@ -275,17 +275,14 @@ function iscloudver()
         bplus=$(($v+1))plus
     fi
     case "$v" in
-        2)
-            [[ $cloudsource =~ 2.0 ]]
-            ;;
         3)
-            [[ $cloudsource =~ 3 ]]
+            [[ $cloudsource =~ ^.+3$ ]]
             ;;
         4)
-            [[ $cloudsource =~ 4 ]]
+            [[ $cloudsource =~ ^.+4$ ]]
             ;;
         5)
-            [[ $cloudsource =~ 5|M*|Beta*|GM* ]]
+            [[ $cloudsource =~ ^(.+5|M[[:digit:]]+|Beta[[:digit:]]+|GM.*)$ ]]
             ;;
         *)
             return 1
