@@ -282,7 +282,7 @@ function iscloudver()
             [[ $cloudsource =~ ^.+4$ ]]
             ;;
         5)
-            [[ $cloudsource =~ ^(.+5|M[[:digit:]]+|Beta[[:digit:]]+|GM.*)$ ]]
+            [[ $cloudsource =~ ^(.+5|M[[:digit:]]+|Beta[[:digit:]]+|GM5?)$ ]]
             ;;
         *)
             return 1
