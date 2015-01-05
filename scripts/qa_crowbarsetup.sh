@@ -798,7 +798,7 @@ EOF
 
     # Make sure install finished correctly
     if ! [ -e /opt/dell/crowbar_framework/.crowbar-installed-ok ]; then
-        echo "Crowbar ".crowbar-install-ok" marker missing"
+        echo "Crowbar \".crowbar-installed-ok\" marker missing"
         tail -n 90 /root/screenlog.0
         exit 89
     fi
