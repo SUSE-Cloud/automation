@@ -802,6 +802,9 @@ EOF
         tail -n 90 /root/screenlog.0
         exit 89
     fi
+    if iscloudver 4plus; then
+        zypper -n install crowbar-barclamp-tempest
+    fi
 
     rccrowbar status || rccrowbar start
     [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
@@ -832,10 +835,6 @@ EOF
         puts JSON.pretty_generate(j)" > /root/ntpproposal
         crowbar ntp proposal --file=/root/ntpproposal edit default
         crowbar ntp proposal commit default
-    fi
-
-    if iscloudver 4plus; then
-        zypper -n install crowbar-barclamp-tempest
     fi
 
     if ! validate_data_bags; then
