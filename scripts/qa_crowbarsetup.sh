@@ -690,15 +690,6 @@ EOF
         fi
     fi
 
-    #
-    # TODO: I think we want to replace that in the future with proper API calls. Currently
-    # we need this to get all the ruby -e calls running as they are calling the old ruby
-    # version that does not install rubygems and rubygem-json generally
-    #
-    if iscloudver 5plus; then
-        zypper -n install rubygems ruby1.8-rubygem-json-1_7 || true
-    fi
-
     cd /tmp
 
     local netfile="/opt/dell/chef/data_bags/crowbar/bc-template-network.json"
@@ -829,7 +820,7 @@ EOF
     fi
     if [ -n "$ntpserver" ] ; then
         crowbar ntp proposal show default |
-            ruby -e "require 'rubygems';require 'json';
+            $ruby -e "require 'rubygems';require 'json';
     j=JSON.parse(STDIN.read);
     j['attributes']['ntp']['external_servers']=['$ntpserver'];
         puts JSON.pretty_generate(j)" > /root/ntpproposal
@@ -863,7 +854,7 @@ function onadmin_allocate()
         do_one_proposal ipmi default
         local nodelist=$(seq 1 $nodenumber)
         local i
-        local bmc_start=$(crowbar network proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['attributes']['network']['networks']['bmc']['ranges']['host']['start']")
+        local bmc_start=$(crowbar network proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['attributes']['network']['networks']['bmc']['ranges']['host']['start']")
         IFS=. read ip1 ip2 ip3 ip4 <<< "$bmc_start"
         local bmc_net="$ip1.$ip2.$ip3"
         for i in $nodelist ; do
@@ -991,7 +982,7 @@ function waitnodes()
             echo -n "Waiting for proposal $proposal($proposaltype) to get successful: "
             local proposalstatus=''
             while test $n -gt 0 && ! test "x$proposalstatus" = "xsuccess" ; do
-                proposalstatus=`crowbar $proposal proposal show $proposaltype | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
+                proposalstatus=`crowbar $proposal proposal show $proposaltype | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
                 if test "x$proposalstatus" = "xfailed" ; then
                     tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
                     echo "Error: proposal $proposal failed. Exiting."
@@ -1031,7 +1022,7 @@ function proposal_modify_value()
     local pfile=/root/${proposal}.${proposaltype}.proposal
 
     crowbar $proposal proposal show $proposaltype |
-        ruby -e "require 'rubygems';require 'json';
+        $ruby -e "require 'rubygems';require 'json';
                 j=JSON.parse(STDIN.read);
                 j${variable}${operator}${value};
                 puts JSON.pretty_generate(j)" > $pfile
@@ -1098,7 +1089,7 @@ function custom_configuration()
             local cmachines=`crowbar machines list | sort | head -n ${cnumber}`
             local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
             crowbar dns proposal show default |
-                ruby -e "require 'rubygems';require 'json';
+                $ruby -e "require 'rubygems';require 'json';
                     j=JSON.parse(STDIN.read);
                     j['attributes']['dns']['records']={};
                     j['attributes']['dns']['records']['multi-dns']={};
@@ -1226,6 +1217,9 @@ function set_proposalvars()
     iscloudver 5plus && wantmultidns=1
     iscloudver 4plus && wanttempest=1
 
+    ruby=/usr/bin/ruby
+    iscloudver 5plus && ruby=/usr/bin/ruby.ruby2.1
+
     # FIXME: Ceph is currently broken
     iscloudver 5 && {
         # TODO (psalunke): Update the ceph lines when done with the ceph card.
@@ -1339,21 +1333,21 @@ function set_node_alias()
 
 function get_novacontroller()
 {
-    novacontroller=`crowbar nova proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova']['elements']['nova-multi-controller']"`
+    novacontroller=`crowbar nova proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova']['elements']['nova-multi-controller']"`
 }
 
 
 function get_novadashboardserver()
 {
-    novadashboardserver=`crowbar nova_dashboard proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova_dashboard']['elements']['nova_dashboard-server']"`
+    novadashboardserver=`crowbar nova_dashboard proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova_dashboard']['elements']['nova_dashboard-server']"`
 }
 
 function get_ceph_nodes()
 {
     if [[ -n "$wantceph" ]]; then
-        cephmons=`crowbar ceph proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-mon']"`
-        cephosds=`crowbar ceph proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-osd']"`
-        cephradosgws=`crowbar ceph proposal show default | ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-radosgw']"`
+        cephmons=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-mon']"`
+        cephosds=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-osd']"`
+        cephradosgws=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-radosgw']"`
     else
         cephmons=
         cephosds=
@@ -1746,7 +1740,7 @@ function oncontroller_waitforinstance()
 
 function get_neutron_server_node()
 {
-    NEUTRON_SERVER=$(crowbar neutron proposal show default|ruby -e "require 'rubygems';require 'json';
+    NEUTRON_SERVER=$(crowbar neutron proposal show default| $ruby -e "require 'rubygems';require 'json';
     j=JSON.parse(STDIN.read);
     puts j['deployment']['neutron']['elements']['neutron-server'][0];")
 }
