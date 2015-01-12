@@ -736,6 +736,7 @@ function do_installcrowbar()
     export REPOS_SKIP_CHECKS="Cloud SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates"
     # run in screen to not lose session in the middle when network is reconfigured:
     screen -d -m -L /bin/bash -c "$instcmd ; touch /tmp/chef-ready"
+
     if [ "$libvirt_type" = hyperv ] ; then
         # prepare Hyper-V 2012 R2 PXE-boot env and export it via Samba:
         zypper -n in samba
@@ -771,7 +772,9 @@ EOF
         tail -n 90 /root/screenlog.0
         exit 89
     fi
+
     if iscloudver 4plus; then
+        wait_for_if_running zypper
         zypper -n install crowbar-barclamp-tempest
     fi
 
