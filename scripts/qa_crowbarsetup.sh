@@ -787,6 +787,8 @@ EOF
     if iscloudver 4plus; then
         wait_for_if_running zypper
         zypper -n install crowbar-barclamp-tempest
+        # Force restart of crowbar
+        rccrowbar stop
     fi
 
     rccrowbar status || rccrowbar start
@@ -1630,7 +1632,6 @@ function onadmin_testsetup()
     pre_hook $FUNCNAME
 
     if [[ -n "$wantmultidns" ]]; then
-
         cmachines=`crowbar machines list`
         for machine in $cmachines; do
             ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13'
