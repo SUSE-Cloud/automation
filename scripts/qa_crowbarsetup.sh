@@ -1655,14 +1655,18 @@ function onadmin_testsetup()
 function onadmin_addupdaterepo()
 {
     pre_hook $FUNCNAME
+
     local UPR=/srv/tftpboot/repos/Cloud-PTF
     mkdir -p $UPR
-    local repo
-    for repo in ${UPDATEREPOS//+/ } ; do
-        wget --progress=dot:mega -r --directory-prefix $UPR --no-parent --no-clobber --accept x86_64.rpm,noarch.rpm $repo || exit 8
-    done
-    zypper -n install createrepo
-    createrepo -o $UPR $UPR || exit 8
+
+    if [[ -n "$UPDATEREPOS" ]]; then
+        local repo
+        for repo in ${UPDATEREPOS//+/ } ; do
+            wget --progress=dot:mega -r --directory-prefix $UPR --no-parent --no-clobber --accept x86_64.rpm,noarch.rpm $repo || exit 8
+        done
+        zypper -n install createrepo
+        createrepo -o $UPR $UPR || exit 8
+    fi
     zypper ar $UPR cloud-ptf
 }
 
