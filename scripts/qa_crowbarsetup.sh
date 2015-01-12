@@ -466,6 +466,7 @@ function h_prepare_cloud_repos()
         cat "$targetdir/isoversion" > /etc/cloudversion
     fi
     echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
+    echo $cloudsource > /etc/cloudsource
 
     if [ ! -e "${targetdir}/media.1" ] ; then
         echo "We do not have cloud install media in ${targetdir} - giving up"
@@ -1188,6 +1189,9 @@ function custom_configuration()
 
 function set_proposalvars()
 {
+    # Determine if we went through an upgrade
+    [ -f /etc/cloudsource ] && export cloudsource=$(</etc/cloudsource)
+
     wantswift=1
     [ -z "$want_swift" ] && wantceph=1
     wanttempest=
