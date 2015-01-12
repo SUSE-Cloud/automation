@@ -91,7 +91,7 @@ cloud=${cloud:-cloud}
 cloudvg=${cloudvg:-$cloud}
 needcvol=1
 admin_node_memory=${admin_node_memory:-2097152}
-controller_node_memory=${compute_node_memory:-4194304}
+controller_node_memory=${controller_node_memory:-4194304}
 compute_node_memory=${compute_node_memory:-2097152}
 # pvlist is filled below
 pvlist=
