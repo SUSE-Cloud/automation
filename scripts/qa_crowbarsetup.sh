@@ -296,29 +296,6 @@ function iscloudver()
     return 1
 }
 
-# inner part of our test of iscloudver function
-function iscloudvertest()
-{
-    iscloudver 2
-    echo v2=$?
-    iscloudver 2plus
-    echo v2plus=$?
-    iscloudver 3
-    echo v3=$?
-    iscloudver 3plus
-    echo v3plus=$?
-}
-# outer part of our test of iscloudver function
-function iscloudvertest2()
-{
-    local cloudsource
-    for cloudsource in susecloud2.0 develcloud3 develcloud4 develcloud5; do
-        echo "cloudsource=$cloudsource"
-        iscloudvertest
-    done
-    exit 0
-}
-
 function addsp3testupdates()
 {
     add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "/srv/tftpboot/repos/SLES11-SP3-Updates/" "sp3tup"
