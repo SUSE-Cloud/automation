@@ -1217,9 +1217,6 @@ function set_proposalvars()
     iscloudver 5plus && wantmultidns=1
     iscloudver 4plus && wanttempest=1
 
-    ruby=/usr/bin/ruby
-    iscloudver 5plus && ruby=/usr/bin/ruby.ruby2.1
-
     # FIXME: Ceph is currently broken
     iscloudver 5 && {
         # TODO (psalunke): Update the ceph lines when done with the ceph card.
@@ -2144,6 +2141,8 @@ function onadmin_teardown()
 # in the long run all steps should be transformed into real functions, just
 # like in mkcloud; this makes it easier to read, understand and edit this file
 #
+ruby=/usr/bin/ruby
+iscloudver 5plus && ruby=/usr/bin/ruby.ruby2.1
 
 mount_localreposdir_target
 
