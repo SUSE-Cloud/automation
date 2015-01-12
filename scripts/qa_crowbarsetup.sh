@@ -1222,11 +1222,7 @@ function set_proposalvars()
     iscloudver 5plus && wantmultidns=1
     iscloudver 4plus && wanttempest=1
 
-    # FIXME: Ceph is currently broken
     iscloudver 5 && {
-        # TODO (psalunke): Update the ceph lines when done with the ceph card.
-        echo "WARNING: ceph currently disabled as support for SUSE Storage 1.0 is currently missing"
-        wantceph=
         echo "WARNING: swift currently disabled, because openstack-swift packages for SLES12 are missing"
         wantswift=
     }
