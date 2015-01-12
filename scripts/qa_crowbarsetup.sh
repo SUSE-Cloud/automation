@@ -886,11 +886,23 @@ function onadmin_allocate()
     rm -f $t
 
     if [ -n "$want_sles12" ] && iscloudver 5plus ; then
+
+        local nodes=( $(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 2) )
+        if [ -n "$wantceph" ] ; then
+            echo "Setting second last node to SLE12 Storage..."
+
+            local t=$(mktemp).json
+            knife node show -F json $nodes[1] > $t
+            json-edit $t -a normal.crowbar_wall.intended_role -v "storage"
+            json-edit $t -a normal.target_platform -v "suse-12.0"
+            knife node from file $t
+            rm -f $t
+        fi
+
         echo "Setting last node to SLE12 compute..."
-        local computenode=$(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 1)
         local t=$(mktemp).json
 
-        knife node show -F json $computenode > $t
+        knife node show -F json $nodes[2] > $t
         json-edit $t -a normal.crowbar_wall.intended_role -v "compute"
         json-edit $t -a normal.target_platform -v "suse-12.0"
         knife node from file $t
@@ -2183,6 +2195,7 @@ if [ -n "$runupdate" ] ; then
     onadmin_runupdate
 fi
 
+set_proposalvars
 if [ -n "$allocate" ] ; then
     onadmin_allocate
 fi
