@@ -2040,13 +2040,6 @@ function onadmin_cloudupgrade_2nd()
     zypper --non-interactive up -l
     echo -n "This cloud was upgraded from : " | cat - /etc/cloudversion >> /etc/motd
 
-    # Install new barclamps
-    if iscloudver 3; then
-        for i in crowbar-barclamp-tempest; do
-            zypper --non-interactive install $i
-        done
-    fi
-
     echo 'y' | suse-cloud-upgrade upgrade
     local ret=$?
     if [[ $ret != 0 ]]; then
@@ -2054,6 +2047,15 @@ function onadmin_cloudupgrade_2nd()
         exit $ret
     fi
     crowbar provisioner proposal commit default
+
+    # Install new features
+    if iscloudver 4; then
+        zypper --non-interactive install crowbar-barclamp-trove
+        do_one_proposal trove default
+    elif iscloudver 3; then
+        zypper --non-interactive install crowbar-barclamp-tempest
+        do_one_proposal tempest default
+    fi
 
     # Allow vendor changes for packages as we might be updating an official
     # Cloud release to something form the Devel:Cloud projects. Note: On the
