@@ -861,7 +861,7 @@ function onadmin_allocate()
     echo "Sleeping 50 more seconds..."
     sleep 50
     echo "Setting first node to controller..."
-    local controllernode=$(crowbar machines list | sort | grep ^d | head -n 1)
+    local controllernode=$(crowbar machines list | LC_ALL=C sort | grep ^d | head -n 1)
     local t=$(mktemp).json
 
     knife node show -F json $controllernode > $t
@@ -871,7 +871,7 @@ function onadmin_allocate()
 
     if [ -n "$want_sles12" ] && iscloudver 5plus ; then
         echo "Setting last node to SLE12 compute..."
-        local computenode=$(crowbar machines list | sort | grep ^d | tail -n 1)
+        local computenode=$(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 1)
         local t=$(mktemp).json
 
         knife node show -F json $computenode > $t
@@ -1067,7 +1067,7 @@ function custom_configuration()
             local cnumber=`crowbar machines list | wc -l`
             local cnumber=`expr $cnumber - 1`
             [[ $cnumber -gt 3 ]] && local local cnumber=3
-            local cmachines=`crowbar machines list | sort | head -n ${cnumber}`
+            local cmachines=`crowbar machines list | LC_ALL=C sort | head -n ${cnumber}`
             local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
             crowbar dns proposal show default |
                 $ruby -e "require 'rubygems';require 'json';
