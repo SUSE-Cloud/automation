@@ -286,7 +286,14 @@ if [ "$cloudsource" != "openstackgrizzly" ] && [ -e /etc/tempest/tempest.conf ];
     fi
 
     pushd /var/lib/openstack-tempest-test/
-        ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
-        [ ${PIPESTATUS[0]} == 0 ] || exit 4
+    # check that test listing works - otherwise we run 0 tests and everything seems to be fine
+    # because run_tempest.sh doesn't catch the error
+    if ! [ -d ".testrepository" ]; then
+        testr init
+    fi
+    testr list-tests
+
+    ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
+    [ ${PIPESTATUS[0]} == 0 ] || exit 4
     popd
 fi
