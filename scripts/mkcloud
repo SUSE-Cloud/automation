@@ -268,7 +268,7 @@ function cleanup()
     return 0
 }
 
-function h_get_next_pv_device()
+function onhost_get_next_pv_device()
 {
     if [ -z "$pvlist" ] ; then
         pvlist=`pvs --sort -Free | awk '$2~/'$cloudvg'/{print $1}'`
@@ -280,7 +280,7 @@ function h_get_next_pv_device()
 
 # spread block devices over a LVM's PVs so that different VMs
 # are likely to use different PVs to optimize concurrent IO throughput
-function h_create_cloud_lvm()
+function onhost_create_cloud_lvm()
 {
     if [ -n "$needcvol" ] ; then
         pvcreate "$cloudpv"
@@ -297,11 +297,11 @@ function h_create_cloud_lvm()
     local hdd_size
 
     lvrename /dev/$cloudvg/admin /dev/$cloudvg/$cloud.admin # transition until 2015
-    h_get_next_pv_device
+    onhost_get_next_pv_device
     lvcreate -n $cloud.admin -L ${adminnode_hdd_size}G $cloudvg $next_pv_device
     for i in $allnodeids ; do
         lvrename /dev/$cloudvg/node$i /dev/$cloudvg/$cloud.node$i # transition until 2015
-        h_get_next_pv_device
+        onhost_get_next_pv_device
         hdd_size=${computenode_hdd_size}
         test "$i" = "1" && hdd_size=${controller_hdd_size}
         lvcreate -n $cloud.node$i -L ${hdd_size}G $cloudvg $next_pv_device
@@ -311,7 +311,7 @@ function h_create_cloud_lvm()
         for i in $allnodeids ; do
             for n in $(seq 1 $cephvolumenumber) ; do
                 lvrename /dev/$cloudvg/node$i-ceph$n /dev/$cloudvg/$cloud.node$i-ceph$n # transition until 2015
-                h_get_next_pv_device
+                onhost_get_next_pv_device
                 hdd_size=${cephvolume_hdd_size}
                 test "$i" = "1" -a "$n" = "1" && hdd_size=${controller_ceph_hdd_size}
                 lvcreate -n $cloud.node$i-ceph$n -L ${hdd_size}G $cloudvg $next_pv_device
@@ -320,7 +320,7 @@ function h_create_cloud_lvm()
     fi
 }
 
-function h_deploy_admin_image()
+function onhost_deploy_admin_image()
 {
     pushd /tmp
     wget --progress=dot:mega -nc http://clouddata.cloud.suse.de/images/SP3-64up.qcow2
@@ -339,12 +339,12 @@ function h_deploy_admin_image()
     fi
 }
 
-function h_add_etchosts_entries()
+function onhost_add_etchosts_entries()
 {
     grep -q crowbar /etc/hosts || echo "$adminip crowbar.$cloudfqdn crowbar" >> /etc/hosts
 }
 
-function h_enable_ksm
+function onhost_enable_ksm
 {
     # enable kernel-samepage-merging to save RAM
     echo 1 > /sys/kernel/mm/ksm/run
@@ -358,10 +358,10 @@ function prepare()
     echo "Creating key for controlling our VMs..."
     [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
 
-    h_enable_ksm
-    h_create_cloud_lvm
-    h_deploy_admin_image
-    h_add_etchosts_entries
+    onhost_enable_ksm
+    onhost_create_cloud_lvm
+    onhost_deploy_admin_image
+    onhost_add_etchosts_entries
 }
 
 function ssh_password()
@@ -375,7 +375,7 @@ EOSSHASK
     DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh $sshopts -oNumberOfPasswordPrompts=1 "$@"
 }
 
-function h_local_repository_mount()
+function onhost_local_repository_mount()
 {
     #add xml snippet to be able to mount a local dir via 9p in a VM
     if [ -n "${localreposdir_src}" ]; then
@@ -390,7 +390,7 @@ function h_local_repository_mount()
     fi
 }
 
-function h_cpuflags_settings()
+function onhost_cpuflags_settings()
 { # used for admin and compute nodes
     cpuflags="<cpu match='minimum'>
             <model>qemu64</model>
@@ -419,10 +419,10 @@ function h_cpuflags_settings()
 }
 
 
-function h_create_libvirt_adminnode_config()
+function onhost_create_libvirt_adminnode_config()
 {
-    h_cpuflags_settings
-    h_local_repository_mount
+    onhost_cpuflags_settings
+    onhost_local_repository_mount
 
     emulator=/usr/bin/qemu-system-$(uname -m)
     if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
@@ -486,7 +486,7 @@ function h_create_libvirt_adminnode_config()
 EOLIBVIRT
 }
 
-function h_create_libvirt_admin_network_config()
+function onhost_create_libvirt_admin_network_config()
 {
     # dont specify range
     # this allows to use the same network for cloud-nodes that get DHCP from crowbar
@@ -521,9 +521,9 @@ function setupadmin()
     umount $mnt
     sync
 
-    h_create_libvirt_adminnode_config /tmp/$cloud-admin.xml
+    onhost_create_libvirt_adminnode_config /tmp/$cloud-admin.xml
 
-    h_create_libvirt_admin_network_config /tmp/$cloud-admin.net.xml
+    onhost_create_libvirt_admin_network_config /tmp/$cloud-admin.net.xml
 
     modprobe kvm-amd
     if [ ! -e /etc/modprobe.d/80-kvm-intel.conf ] ; then
@@ -624,9 +624,9 @@ function mkvlan()
 }
 
 
-function h_create_libvirt_computenode_config()
+function onhost_create_libvirt_computenode_config()
 {
-    h_cpuflags_settings
+    onhost_cpuflags_settings
     nodeconfigfile=$1
     nodecounter=$2
     macaddress=$3
@@ -743,7 +743,7 @@ function setupcompute()
             done
         fi
 
-        h_create_libvirt_computenode_config /tmp/$cloud-node$i.xml $i $macaddress "$cephvolume"
+        onhost_create_libvirt_computenode_config /tmp/$cloud-node$i.xml $i $macaddress "$cephvolume"
 
         virsh destroy $cloud-node$i 2>/dev/null
         virsh undefine $cloud-node$i 2>/dev/null
