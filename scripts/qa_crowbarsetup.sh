@@ -249,6 +249,12 @@ function add_nfs_mount()
     mount "$dir"
 }
 
+# mount a zypper repo either from NFS or from the host (if localreposdir_target is set)
+#   also adds an entry to /etc/fstab so that mounts can be restored after a reboot
+# input1: bindsrc - dir used for mounts from the host
+# input2: nfssrc  - remote NFS dir to mount
+# input3: targetdir - where to mount (usually in /srv/tftpboot/repos/DIR )
+# input4(optional): zypper_alias - if set, this dir is added as a local repo for zypper
 function add_mount()
 {
     local bindsrc="$1"
@@ -266,6 +272,8 @@ function add_mount()
     fi
 }
 
+# return if cloudsource is referring a certain SUSE Cloud version
+# input1: version - 4plus refers to version 4 or later ; only a number refers to one exact version
 function iscloudver()
 {
     local v=$1
@@ -551,6 +559,7 @@ function h_set_source_variables()
 }
 
 
+# setup network/DNS, add repos and install crowbar packages
 function onadmin_prepareinstallcrowbar()
 {
     pre_hook $FUNCNAME
@@ -724,6 +733,8 @@ EOF
     return 0
 }
 
+# run the crowbar install script
+# and do some sanity checks on the result
 function do_installcrowbar()
 {
     local instcmd=$1
@@ -1053,6 +1064,10 @@ function enable_ssl_for_nova_dashboard()
 }
 
 
+# configure one crowbar barclamp proposal using global vars as source
+#   does not include proposal create or commit
+# input1: name of the barclamp to change
+# input2(optional): type/name of the proposal - if not given, "default" is used
 function custom_configuration()
 {
     local proposal=$1
@@ -1190,6 +1205,7 @@ function custom_configuration()
     esac
 }
 
+# set global variables to be used in and after proposal phase
 function set_proposalvars()
 {
     # Determine if we went through an upgrade
@@ -1206,7 +1222,7 @@ function set_proposalvars()
         # TODO (psalunke): Update the ceph lines when done with the ceph card.
         echo "WARNING: ceph currently disabled as support for SUSE Storage 1.0 is currently missing"
         wantceph=
-        echo "WARNING: swift currently disabled, becaus openstack-swift packages for SLES12 are missing"
+        echo "WARNING: swift currently disabled, because openstack-swift packages for SLES12 are missing"
         wantswift=
     }
 
@@ -1227,6 +1243,7 @@ function set_proposalvars()
     fi
 }
 
+# configure and commit one proposal
 function update_one_proposal()
 {
     local proposal=$1
@@ -1250,6 +1267,7 @@ function update_one_proposal()
     fi
 }
 
+# create, configure and commit one proposal
 function do_one_proposal()
 {
     local proposal=$1
@@ -1259,6 +1277,7 @@ function do_one_proposal()
     update_one_proposal "$proposal" "$proposaltype"
 }
 
+# apply all wanted proposals on crowbar admin node
 function onadmin_proposal()
 {
     pre_hook $FUNCNAME
@@ -1344,6 +1363,8 @@ function addfloatingip()
     nova add-floating-ip "$instanceid" "$floatingip"
 }
 
+# code run on controller/dashboard node to do basic tests of deployed cloud
+# uploads an image, create flavor, boots a VM, assigns a floating IP, ssh to VM, attach/detach volume
 function oncontroller_testsetup()
 {
         . .openrc
@@ -1685,6 +1706,8 @@ function onadmin_runupdate()
     wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
 }
 
+# reboot all cloud nodes (controller+compute+storage)
+# wait for nodes to go down and come up again
 function onadmin_rebootcompute()
 {
     pre_hook $FUNCNAME
@@ -1711,6 +1734,9 @@ function onadmin_rebootcompute()
     exit $ret
 }
 
+# make sure that testvm is up and reachable
+# if VM was shutdown, VM is started
+# adds a floating IP to VM
 function oncontroller_waitforinstance()
 {
     . .openrc
@@ -2102,7 +2128,8 @@ function onadmin_qa_test()
     return $ret
 }
 
-
+# deactivate proposals and forget cloud nodes
+# can be useful for faster testing cycles
 function onadmin_teardown()
 {
     #BMCs at ${netp}.178.163-6 #node 6-9

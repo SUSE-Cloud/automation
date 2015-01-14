@@ -278,6 +278,8 @@ function h_get_next_pv_device()
     pv_cur_device_no=$(( $pv_cur_device_no + 1 ))
 }
 
+# spread block devices over a LVM's PVs so that different VMs
+# are likely to use different PVs to optimize concurrent IO throughput
 function h_create_cloud_lvm()
 {
     if [ -n "$needcvol" ] ; then
@@ -506,6 +508,7 @@ EOLIBVIRTNET
 }
 
 
+# bring up the VM for crowbar
 function setupadmin()
 {
     echo "Injecting public key into image..."
@@ -715,6 +718,7 @@ function restartcloud()
     done
 }
 
+# bring up VMs that will take cloud controller/compute/storage roles
 function setupcompute()
 {
     setuppublicnet
@@ -755,6 +759,8 @@ function setupcompute()
     return 0
 }
 
+# allocate cloud nodes with an operating system
+# and wait for nodes to reach the ready state
 function instcompute()
 {
     sshrun "allocate=1 bash -x qa_crowbarsetup.sh $virtualcloud"
