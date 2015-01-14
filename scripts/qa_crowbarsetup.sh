@@ -364,7 +364,7 @@ function add_suse_storage_repo()
 }
 
 
-function h_prepare_sles_repos()
+function onadmin_prepare_sles_repos()
 {
     local targetdir_install="/srv/tftpboot/suse-$suseversion/install/"
 
@@ -416,7 +416,7 @@ function rsync_iso()
     )
 }
 
-function h_prepare_sles12_repos()
+function onadmin_prepare_sles12_repos()
 {
     suse12version=12.0
     local targetdir_install="/srv/tftpboot/suse-$suse12version/install/"
@@ -461,7 +461,7 @@ function h_prepare_sles12_repos()
     fi
 }
 
-function h_prepare_cloud_repos()
+function onadmin_prepare_cloud_repos()
 {
     local targetdir="/srv/tftpboot/repos/Cloud/"
     mkdir -p ${targetdir}
@@ -486,7 +486,7 @@ function h_prepare_cloud_repos()
 }
 
 
-function h_set_source_variables()
+function onadmin_set_source_variables()
 {
     suseversion=11.3
     : ${susedownload:=download.nue.suse.com}
@@ -595,12 +595,12 @@ EOF
         done
     fi
 
-    h_set_source_variables
+    onadmin_set_source_variables
 
-    h_prepare_sles_repos
+    onadmin_prepare_sles_repos
 
     if iscloudver 5plus ; then
-        h_prepare_sles12_repos
+        onadmin_prepare_sles12_repos
     fi
 
     if [ -n "$hacloud" ]; then
@@ -619,7 +619,7 @@ EOF
     zypper -n install rsync netcat
 
     # setup cloud repos for tftpboot and zypper
-    h_prepare_cloud_repos
+    onadmin_prepare_cloud_repos
 
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
@@ -2001,10 +2001,10 @@ function prepare_cloudupgrade()
     onadmin_cloudupgrade_clients
 
     # change CLOUDDISTISO/CLOUDDISTPATH according to the new cloudsource
-    h_set_source_variables
+    onadmin_set_source_variables
 
     # recreate the SUSE-Cloud Repo with the latest iso
-    h_prepare_cloud_repos
+    onadmin_prepare_cloud_repos
 
     # Applying the updater barclamp (in onadmin_cloudupgrade_clients) triggers
     # a chef-client run on the admin node (even it the barclamp is not applied
