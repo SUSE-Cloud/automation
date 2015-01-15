@@ -843,6 +843,21 @@ function onadmin_installcrowbar()
     do_installcrowbar "if [ -e /tmp/install-chef-suse.sh ] ; then /tmp/install-chef-suse.sh --verbose ; else /opt/dell/bin/install-chef-suse.sh --verbose ; fi"
 }
 
+# set a node's role and platform
+# must be run after discovery and before allocation
+function set_node_role_and_platform()
+{
+    node="$1"
+    role="$2"
+    platform="$3"
+    local t=$(mktemp).json
+    knife node show -F json "$node" > $t
+    json-edit $t -a normal.crowbar_wall.intended_role -v "$role"
+    json-edit $t -a normal.target_platform -v "$platform"
+    knife node from file $t
+    rm -f $t
+}
+
 function onadmin_allocate()
 {
     pre_hook $FUNCNAME
@@ -890,23 +905,11 @@ function onadmin_allocate()
         local nodes=( $(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 2) )
         if [ -n "$wantceph" ] ; then
             echo "Setting second last node to SLE12 Storage..."
-
-            local t=$(mktemp).json
-            knife node show -F json $nodes[1] > $t
-            json-edit $t -a normal.crowbar_wall.intended_role -v "storage"
-            json-edit $t -a normal.target_platform -v "suse-12.0"
-            knife node from file $t
-            rm -f $t
+            set_node_role_and_platform $nodes[1] "storage" "suse-12.0"
         fi
 
         echo "Setting last node to SLE12 compute..."
-        local t=$(mktemp).json
-
-        knife node show -F json $nodes[2] > $t
-        json-edit $t -a normal.crowbar_wall.intended_role -v "compute"
-        json-edit $t -a normal.target_platform -v "suse-12.0"
-        knife node from file $t
-        rm -f $t
+        set_node_role_and_platform $nodes[2] "compute" "suse-12.0"
     fi
 
     echo "Allocating nodes..."
