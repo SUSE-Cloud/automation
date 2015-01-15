@@ -93,6 +93,8 @@ needcvol=1
 admin_node_memory=${admin_node_memory:-2097152}
 controller_node_memory=${controller_node_memory:-4194304}
 compute_node_memory=${compute_node_memory:-2097152}
+hyperv_node_memory=3000000
+[[ "$libvirt_type" = "hyperv" && $compute_node_memory < $hyperv_node_memory ]] && compute_node_memory=$hyperv_node_memory
 # pvlist is filled below
 pvlist=
 next_pv_device=

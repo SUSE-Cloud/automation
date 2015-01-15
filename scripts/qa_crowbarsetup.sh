@@ -19,6 +19,7 @@ export cinder_conf_volume_type=${cinder_conf_volume_type:-""}
 export cinder_conf_volume_params=${cinder_conf_volume_params:-""}
 export localreposdir_target=${localreposdir_target:-""}
 export want_ipmi=${want_ipmi:-false}
+[ "$libvirt_type" = hyperv ] && export wanthyperv=1
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
@@ -751,7 +752,7 @@ function do_installcrowbar()
     # run in screen to not lose session in the middle when network is reconfigured:
     screen -d -m -L /bin/bash -c "$instcmd ; touch /tmp/chef-ready"
 
-    if [ "$libvirt_type" = hyperv ] ; then
+    if [ -n "$wanthyperv" ] ; then
         # prepare Hyper-V 2012 R2 PXE-boot env and export it via Samba:
         zypper -n in samba
         rsync -a clouddata.cloud.suse.de::cloud/hyperv-6.3 /srv/tftpboot/
@@ -910,6 +911,11 @@ function onadmin_allocate()
 
         echo "Setting last node to SLE12 compute..."
         set_node_role_and_platform $nodes[2] "compute" "suse-12.0"
+    fi
+    if [ -n "$wanthyperv" ] ; then
+        echo "Setting last node to Hyper-V compute..."
+        local computenode=$(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 1)
+        set_node_role_and_platform $computenode "compute" "hyperv-6.3"
     fi
 
     echo "Allocating nodes..."
