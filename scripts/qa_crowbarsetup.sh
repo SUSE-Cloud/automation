@@ -875,6 +875,7 @@ function onadmin_allocate()
             for pw in 'cr0wBar!' $extraipmipw ; do
                 local ip=$bmc_net.$(($ip4 + $i))
                 (ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "$bmc_net.1"
+                 ipmitool -H $ip -U root -P $pw power on
                 ipmitool -H $ip -U root -P $pw power reset) &
             done
         done
