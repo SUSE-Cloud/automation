@@ -26,13 +26,45 @@ if [ -e $dev ]; then
 fi
 mount -o remount,noatime,barrier=0 /
 
+
+function get_dist_name() {
+    . /etc/os-release
+    echo $NAME
+}
+
+function get_dist_version() {
+    . /etc/os-release
+    echo $VERSION_ID
+}
+
 # setup repos
 VERSION=11
 REPO=SLE_11_SP3
-if grep "^VERSION = 1[2-4]\\.[0-5]" /etc/SuSE-release ; then
-    VERSION=$(awk -e '/^VERSION = 1[2-4]\./{print $3}' /etc/SuSE-release)
-    REPO=openSUSE_$VERSION
+
+if [ -f "/etc/os-release" ]; then
+    VERSION=$(get_dist_version)
+    DIST_NAME=$(get_dist_name)
+
+    case "$DIST_NAME" in
+        "SLES")
+            REPO="SLE_12"
+        ;;
+        "openSUSE")
+            REPO="openSUSE_${VERSION}"
+        ;;
+        *)
+            echo "Switch to a useful distribution!"
+            exit 1
+            ;;
+    esac
+else
+    # old style for SLES11
+    if grep "^VERSION = 1[2-4]\\.[0-5]" /etc/SuSE-release ; then
+        VERSION=$(awk -e '/^VERSION = 1[2-4]\./{print $3}' /etc/SuSE-release)
+        REPO=openSUSE_$VERSION
+    fi
 fi
+
 hostname=dist.suse.de
 zypper="zypper --non-interactive"
 
