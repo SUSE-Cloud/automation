@@ -625,6 +625,11 @@ function mkvlan()
     ethtool -K $cloudbr tx off
 }
 
+function hypervisor_has_virtio()
+{
+    [[ "$libvirt_type" = "xen" || "$libvirt_type" = "hyperv" ]] && return 1
+    return 0
+}
 
 function onhost_create_libvirt_computenode_config()
 {
@@ -634,7 +639,7 @@ function onhost_create_libvirt_computenode_config()
     macaddress=$3
     cephvolume="$4"
     nicmodel=virtio
-    [ "$libvirt_type" = "xen" ] && nicmodel=e1000
+    hypervisor_has_virtio || nicmodel=e1000
     nodememory=$compute_node_memory
     [ "$nodecounter" = "1" ] && nodememory=$controller_node_memory
 
@@ -689,7 +694,7 @@ function onhost_create_libvirt_computenode_config()
 </domain>
 EOLIBVIRT
 
-    if [ "$libvirt_type" = "xen" ] ; then
+    if ! hypervisor_has_virtio ; then
         sed -i -e "s/<target dev='vd\([^']*\)' bus='virtio'/<target dev='sd\1' bus='ide'/" $nodeconfigfile
     fi
 }
