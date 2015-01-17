@@ -363,7 +363,7 @@ function add_suse_storage_repo()
             add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
         done
     else
-        echo "Error: You need SLE12 and SUSE-Cloud5 to setup SUSE Cloud Storage."
+        echo "Error: You need SLE12 and SUSE Cloud >= 5 to setup storage repos."
     fi
 }
 
