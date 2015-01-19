@@ -1240,6 +1240,7 @@ function set_proposalvars()
 
     wantswift=1
     [ -z "$want_swift" ] && wantceph=1
+    [[ -n "$wanthyperv" ]] && wantswift= && wantceph=
     wanttempest=
     iscloudver 5plus && wantmultidns=1
     iscloudver 4plus && wanttempest=1
