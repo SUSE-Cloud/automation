@@ -359,8 +359,8 @@ function add_suse_storage_repo()
 {
     if [ -n "$want_sles12" ] && iscloudver 5plus ; then
         local repo
-        for repo  in "SUSE-Storage-1.0-Pool" "SUSE-Storage-1.0-Updates"; do
-            add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
+        for repo  in "SUSE-Enterprise-Storage-1.0-Pool" "SUSE-Enterprise-Storage-1.0-Updates"; do
+            add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Storage-1.0-devel" "/srv/tftpboot/repos/$repo"
         done
     else
         echo "Error: You need SLE12 and SUSE Cloud >= 5 to setup storage repos."
