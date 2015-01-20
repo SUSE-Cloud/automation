@@ -907,12 +907,13 @@ function onadmin_allocate()
         local nodes=( $(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 2) )
         if [ -n "$wantceph" ] ; then
             echo "Setting second last node to SLE12 Storage..."
-            set_node_role_and_platform $nodes[1] "storage" "suse-12.0"
+            set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
         fi
 
         echo "Setting last node to SLE12 compute..."
-        set_node_role_and_platform $nodes[2] "compute" "suse-12.0"
+        set_node_role_and_platform ${nodes[1]} "compute" "suse-12.0"
     fi
+
     if [ -n "$wanthyperv" ] ; then
         echo "Setting last node to Hyper-V compute..."
         local computenode=$(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 1)
