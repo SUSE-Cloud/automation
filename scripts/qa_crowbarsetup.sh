@@ -1540,7 +1540,15 @@ EOH
             glance image-show SP3-64 | tee glance.out
         else
             # SP3-64 image not found, so uploading it
-            glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
+            if [[ -n "$wanthyperv" ]] ; then
+                mount clouddata.cloud.suse.de:/srv/nfs/ /mnt/
+                zypper -n in virt-utils
+                qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
+                glance --insecure image-create --name=SP3-64 --is-public=True --disk-format=vhd --container-format=bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd | tee glance.out
+                rm /tmp/SP3.vhd ; umount /mnt
+            else
+                glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
+            fi
         fi
 
         # wait for image to finish uploading
@@ -1686,7 +1694,7 @@ function onadmin_testsetup()
         fi
     fi
 
-    scp $0 $novacontroller:
+    scp $0 $mkcconf $novacontroller:
     ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
         export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
