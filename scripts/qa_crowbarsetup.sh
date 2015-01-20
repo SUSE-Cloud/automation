@@ -819,10 +819,11 @@ EOF
     if [ -n "$ntpserver" ] ; then
         crowbar ntp proposal show default |
             $ruby -e "require 'rubygems';require 'json';
-    j=JSON.parse(STDIN.read);
-    j['attributes']['ntp']['external_servers']=['$ntpserver'];
-        puts JSON.pretty_generate(j)" > /root/ntpproposal
+            j=JSON.parse(STDIN.read);
+            j['attributes']['ntp']['external_servers']=['$ntpserver'];
+            puts JSON.pretty_generate(j)" > /root/ntpproposal
         crowbar ntp proposal --file=/root/ntpproposal edit default
+        rm -f /root/ntpproposal
         crowbar ntp proposal commit default
     fi
 
@@ -934,6 +935,8 @@ function onadmin_allocate()
     if grep -q "Exception caught" /root/crowbartest.out; then
         exit 27
     fi
+
+    rm -f /root/crowbartest.out
 }
 
 function sshtest()
@@ -1047,6 +1050,7 @@ function proposal_modify_value()
                 j${variable}${operator}${value};
                 puts JSON.pretty_generate(j)" > $pfile
     crowbar $proposal proposal --file=$pfile edit $proposaltype
+    rm -f $pfile
 }
 
 # wrapper for proposal_modify_value
@@ -1121,6 +1125,7 @@ function custom_configuration()
                     j['deployment']['dns']['elements']['dns-server']=[$dnsnodes];
                     puts JSON.pretty_generate(j)" > /root/dns.default.proposal
             crowbar dns proposal --file=/root/dns.default.proposal edit default
+            rm -f /root/dns.default.proposal
         ;;
         ipmi)
             proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
