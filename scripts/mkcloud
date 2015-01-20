@@ -212,8 +212,6 @@ function sshrun()
         export tempestoptions='${tempestoptions}' ;
         export cephvolumenumber=$cephvolumenumber ;
         export shell=$shell ;
-        export want_swift=$want_swift ;
-        export want_sles12=$want_sles12 ;
 
         export all_with_ssl=$all_with_ssl ;
         export glance_with_ssl=$glance_with_ssl ;
@@ -229,7 +227,7 @@ function sshrun()
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
 EOF
-    env|grep ^pre_ >> $mkcconf
+    env|grep -e ^pre_ -e ^want_ >> $mkcconf
 
     $scp qa_crowbarsetup.sh $mkcconf root@$adminip:
     ssh $sshopts root@$adminip "$@"
