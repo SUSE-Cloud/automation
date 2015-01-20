@@ -1248,7 +1248,6 @@ function set_proposalvars()
     [ -z "$want_swift" ] && wantceph=1
     [[ -n "$wanthyperv" ]] && wantswift= && wantceph=
     wanttempest=
-    iscloudver 5plus && wantmultidns=1
     iscloudver 4plus && wanttempest=1
     [[ "$want_tempest" = 0 ]] && wanttempest=
 
@@ -1314,7 +1313,7 @@ function onadmin_proposal()
     pre_hook $FUNCNAME
     waitnodes nodes
 
-    if [[ -n "$wantmultidns" ]]; then
+    if iscloudver 5plus; then
         update_one_proposal dns default
     fi
 
@@ -1668,7 +1667,7 @@ function onadmin_testsetup()
 {
     pre_hook $FUNCNAME
 
-    if [ -n "$wantmultidns" ] && [ -f /root/dns.default.proposal ] && iscloudver 5plus; then
+    if iscloudver 5plus; then
         cmachines=`crowbar machines list`
         for machine in $cmachines; do
             ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13'
@@ -2086,7 +2085,9 @@ function onadmin_cloudupgrade_2nd()
     crowbar provisioner proposal commit default
 
     # Install new features
-    if iscloudver 4; then
+    if iscloudver 5; then
+        update_one_proposal dns default
+    elif iscloudver 4; then
         zypper --non-interactive install crowbar-barclamp-trove
         do_one_proposal trove default
     elif iscloudver 3; then
