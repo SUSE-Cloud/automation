@@ -1662,7 +1662,7 @@ function onadmin_testsetup()
 {
     pre_hook $FUNCNAME
 
-    if [ -n "$wantmultidns" ] && iscloudver 5plus; then
+    if [ -n "$wantmultidns" ] && [ -f /root/dns.default.proposal ] && iscloudver 5plus; then
         cmachines=`crowbar machines list`
         for machine in $cmachines; do
             ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13'
