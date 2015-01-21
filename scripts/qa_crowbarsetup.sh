@@ -1670,6 +1670,7 @@ function onadmin_testsetup()
     if iscloudver 5plus; then
         cmachines=`crowbar machines list`
         for machine in $cmachines; do
+            knife node show $machine -a node.target_platform | grep -q suse- || continue
             ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13'
             if [ $? != 0 ]; then
                 echo "Multi DNS server test failed!"
