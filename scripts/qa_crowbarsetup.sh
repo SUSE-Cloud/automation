@@ -1099,6 +1099,20 @@ function enable_ssl_for_nova_dashboard()
 }
 
 
+function dns_proposal_configuration()
+{
+    local cnumber=`crowbar machines list | wc -l`
+    local cnumber=`expr $cnumber - 1`
+    [[ $cnumber -gt 3 ]] && local local cnumber=3
+    local cmachines=`crowbar machines list | sort | head -n ${cnumber}`
+    local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
+    proposal_set_value dns default "['attributes']['dns']['records']" "{}"
+    proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
+    proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']['ips']" "['10.11.12.13']"
+    proposal_set_value dns default "['deployment']['dns']['elements']['dns-server']" "[$dnsnodes]"
+}
+
+
 # configure one crowbar barclamp proposal using global vars as source
 #   does not include proposal create or commit
 # input1: name of the barclamp to change
@@ -1123,21 +1137,7 @@ function custom_configuration()
 
     case "$proposal" in
         dns)
-            local cnumber=`crowbar machines list | wc -l`
-            local cnumber=`expr $cnumber - 1`
-            [[ $cnumber -gt 3 ]] && local local cnumber=3
-            local cmachines=`crowbar machines list | LC_ALL=C sort | head -n ${cnumber}`
-            local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
-            crowbar dns proposal show default |
-                $ruby -e "require 'rubygems';require 'json';
-                    j=JSON.parse(STDIN.read);
-                    j['attributes']['dns']['records']={};
-                    j['attributes']['dns']['records']['multi-dns']={};
-                    j['attributes']['dns']['records']['multi-dns']['ips']=['10.11.12.13'];
-                    j['deployment']['dns']['elements']['dns-server']=[$dnsnodes];
-                    puts JSON.pretty_generate(j)" > /root/dns.default.proposal
-            crowbar dns proposal --file=/root/dns.default.proposal edit default
-            rm -f /root/dns.default.proposal
+            dns_proposal_configuration
         ;;
         ipmi)
             proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
