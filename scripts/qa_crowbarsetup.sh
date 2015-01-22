@@ -1049,13 +1049,11 @@ function proposal_modify_value()
 
     local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
 
-    crowbar $proposal proposal show $proposaltype |
-        $ruby -e "require 'rubygems';require 'json';
+    $ruby -e   "require 'rubygems';require 'json';
                 j=JSON.parse(STDIN.read);
                 j${variable}${operator}${value};
-                puts JSON.pretty_generate(j)" > $pfile
-    crowbar $proposal proposal --file=$pfile edit $proposaltype
-    rm -f $pfile
+                puts JSON.pretty_generate(j)" < $pfile > ${pfile}.tmp
+    mv ${pfile}.tmp ${pfile}
 }
 
 # wrapper for proposal_modify_value
@@ -1110,10 +1108,19 @@ function custom_configuration()
     local proposal=$1
     local proposaltype=${2:-default}
 
-    local crowbaredit="crowbar $proposal proposal edit $proposaltype"
+    # prepare the proposal file to be edited, it will be read once at the end
+    # So, ONLY edit the $pfile  -  DO NOT call "crowbar $x proposal .*" command
+    local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
+    crowbar $proposal proposal show $proposaltype > $pfile
+
     if [[ $debug = 1 && $proposal != swift ]] ; then
-        EDITOR='sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/"' $crowbaredit
+        sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/" $pfile
     fi
+
+    ### NOTE: ONLY USE proposal_{set,modify}_value functions below this line
+    ###       The edited proposal will be read and imported at the end
+    ###       So, only edit the proposal file, and NOT the proposal itself
+
     case "$proposal" in
         dns)
             local cnumber=`crowbar machines list | wc -l`
@@ -1160,7 +1167,7 @@ function custom_configuration()
             [ -n "$libvirt_type" ] || libvirt_type='kvm';
             proposal_set_value nova default "['attributes']['nova']['libvirt_type']" "'$libvirt_type'"
             proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
-            [[ "$libvirt_type" = xen ]] && EDITOR="sed -i -e 's/nova-multi-compute-$libvirt_type/nova-multi-compute-xxx/g; s/nova-multi-compute-kvm/nova-multi-compute-$libvirt_type/g; s/nova-multi-compute-xxx/nova-multi-compute-kvm/g'" $crowbaredit # FIXME replace with ruby json to be idempotent
+            [[ "$libvirt_type" = xen ]] && sed -i -e "s/nova-multi-compute-$libvirt_type/nova-multi-compute-xxx/g; s/nova-multi-compute-kvm/nova-multi-compute-$libvirt_type/g; s/nova-multi-compute-xxx/nova-multi-compute-kvm/g" $pfile
 
             if [[ $all_with_ssl = 1 || $nova_with_ssl = 1 ]] ; then
                 enable_ssl_for_nova
@@ -1243,6 +1250,8 @@ function custom_configuration()
         *) echo "No hooks defined for service: $proposal"
         ;;
     esac
+
+    crowbar $proposal proposal --file=$pfile edit $proposaltype
 }
 
 # set global variables to be used in and after proposal phase
