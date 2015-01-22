@@ -1198,7 +1198,9 @@ function custom_configuration()
         ;;
         cinder)
             if iscloudver 4plus ; then
-                proposal_set_value cinder default "['attributes']['cinder']['enable_v2_api']" "true"
+                if iscloudver 4 ; then
+                    proposal_set_value cinder default "['attributes']['cinder']['enable_v2_api']" "true"
+                fi
 
                 volumes="['attributes']['cinder']['volumes']"
                 proposal_set_value cinder default "${volumes}[0]['${cinder_conf_volume_type}']" "j['attributes']['cinder']['volume_defaults']['${cinder_conf_volume_type}']"
