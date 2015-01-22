@@ -1246,7 +1246,7 @@ function set_proposalvars()
 
     wantswift=1
     [ -z "$want_swift" ] && wantceph=1
-    [[ -n "$wanthyperv" ]] && wantswift= && wantceph=
+    [[ -n "$wanthyperv" ]] && wantswift= && wantceph= && networkingmode=vlan
     wanttempest=
     iscloudver 4plus && wanttempest=1
     [[ "$want_tempest" = 0 ]] && wanttempest=
