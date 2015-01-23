@@ -147,6 +147,7 @@ vlan_sdn=${vlan_sdn:-$vlan_storage}
 net_fixed=${net_fixed:-192.168.123}
 net_public=${net_public:-192.168.122}
 net_storage=${net_storage:-192.168.125}
+mkcloudhostip=${net}.1
 
 # run hook code before the actual script does its function
 function pre_hook()
@@ -1169,11 +1170,15 @@ function hacloud_configure_cluster_defaults()
     nodes="[ ${nodes%,} ]"
     proposal_set_value pacemaker "$clustertype" "['deployment']['pacemaker']['elements']['pacemaker-cluster-member']" "$nodes"
 
-    for node in $@; do
-      proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']" "{}"
-      proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']['params']" "''"
-    done
+    if [[ "configuration" = "with per_node" ]] ; then
+        for node in $@; do
+            proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']" "{}"
+            proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']['params']" "''"
+        done
+    fi
 
+    proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
+    proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$mkcloudhostip'"
     proposal_set_value pacemaker "$clustertype" "['description']" "'Pacemaker $clustertype cluster'"
 }
 
@@ -1243,6 +1248,20 @@ function custom_configuration()
                 ;;
             esac
         ;;
+        database)
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
+                proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "20"
+                proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:data']"
+            fi
+        ;;
+        rabbitmq)
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
+                proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "20"
+                proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:data']"
+            fi
+        ;;
         dns)
             dns_proposal_configuration
         ;;
@@ -1257,6 +1276,9 @@ function custom_configuration()
             if iscloudver 4plus ; then
                 proposal_set_value keystone default "['attributes']['keystone']['api']['region']" "'CustomRegion'"
             fi
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value keystone default "['deployment']['keystone']['elements']['keystone-server']" "['cluster:services']"
+            fi
         ;;
         glance)
             if [[ $all_with_ssl = 1 || $glance_with_ssl = 1 ]] ; then
@@ -1264,6 +1286,9 @@ function custom_configuration()
             fi
             if [[ -n "$wantceph" ]]; then
                 proposal_set_value glance default "['attributes']['glance']['default_store']" "'rbd'"
+            fi
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value glance default "['deployment']['glance']['elements']['glance-server']" "['cluster:services']"
             fi
         ;;
         ceph)
@@ -1279,10 +1304,37 @@ function custom_configuration()
             if [[ $all_with_ssl = 1 || $nova_with_ssl = 1 ]] ; then
                 enable_ssl_for_nova
             fi
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-controller']" "['cluster:services']"
+
+                # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
+                local novanodes
+                novanodes=`printf "\"%s\"," $nodescompute`
+                novanodes="[ ${novanodes%,} ]"
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "$novanodes"
+            fi
         ;;
         nova_dashboard)
             if [[ $all_with_ssl = 1 || $novadashboard_with_ssl = 1 ]] ; then
                 enable_ssl_for_nova_dashboard
+            fi
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value nova_dashboard default "['deployment']['nova_dashboard']['elements']['nova_dashboard-server']" "['cluster:services']"
+            fi
+        ;;
+        heat)
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value heat default "['deployment']['heat']['elements']['heat-server']" "['cluster:services']"
+            fi
+        ;;
+        ceilometer)
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-server']" "['cluster:services']"
+                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['cluster:services']"
+                local ceilometernodes
+                ceilometernodes=`printf "\"%s\"," $nodescompute`
+                ceilometernodes="[ ${ceilometernodes%,} ]"
+                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-agent']" "$ceilometernodes"
             fi
         ;;
         neutron)
@@ -1295,6 +1347,10 @@ function custom_configuration()
             fi
             if [ -n "$networkingplugin" ] ; then
                 proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'$networkingplugin'"
+            fi
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['cluster:network']"
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['cluster:network']"
             fi
         ;;
         swift)
@@ -1352,6 +1408,21 @@ function custom_configuration()
                         esac
                     done
                 fi
+            fi
+            if [[ $hacloud = 1 ]] ; then
+                local cinder_volume
+                # fetch one of the compute nodes as cinder_volume
+                cinder_volume=`printf "%s\n" $nodescompute | tail -n 1`
+                proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['cluster:services']"
+                proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-volume']" "['$cinder_volume']"
+            fi
+        ;;
+        tempest)
+            if [[ $hacloud = 1 ]] ; then
+                local tempestnodes
+                tempestnodes=`printf "\"%s\"," $nodescompute`
+                tempestnodes="[ ${tempestnodes%,} ]"
+                proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "$tempestnodes"
             fi
         ;;
         *) echo "No hooks defined for service: $proposal"
