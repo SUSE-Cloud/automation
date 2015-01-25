@@ -13,6 +13,7 @@ clusternodesnetwork=
 clusternodesservices=
 
 export cloud=${1}
+shift
 export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
@@ -2407,6 +2408,11 @@ function onadmin_teardown()
 #
 ruby=/usr/bin/ruby
 iscloudver 5plus && ruby=/usr/bin/ruby.ruby2.1
+
+if [[ -n "$testfunc" ]] ; then
+    $testfunc "$@"
+    exit $?
+fi
 
 mount_localreposdir_target
 
