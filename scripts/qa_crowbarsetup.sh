@@ -291,13 +291,13 @@ function iscloudver()
     fi
     case "$v" in
         3)
-            [[ $cloudsource =~ ^.+3(\+up)?$ ]]
+            [[ $cloudsource =~ ^.*(cloud|GM)3(\+up)?$ ]]
             ;;
         4)
-            [[ $cloudsource =~ ^.+4(\+up)?$ ]]
+            [[ $cloudsource =~ ^.*(cloud|GM)4(\+up)?$ ]]
             ;;
         5)
-            [[ $cloudsource =~ ^(.+5|M[[:digit:]]+|Beta[[:digit:]]+|GM5?)$ ]]
+            [[ $cloudsource =~ ^(.+5|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM5?)$ ]]
             ;;
         *)
             return 1
