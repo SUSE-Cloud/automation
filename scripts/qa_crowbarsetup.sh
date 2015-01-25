@@ -290,7 +290,7 @@ function iscloudver()
     fi
     case "$v" in
         3)
-            [[ $cloudsource =~ ^.+3(\+up)$ ]]
+            [[ $cloudsource =~ ^.+3(\+up)?$ ]]
             ;;
         4)
             [[ $cloudsource =~ ^.+4(\+up)?$ ]]
