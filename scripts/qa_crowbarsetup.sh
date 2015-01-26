@@ -1839,16 +1839,17 @@ function oncontroller_testsetup()
     nova volume-list | grep available
     volumecreateret=$?
     volumeid=`nova volume-list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
-    nova volume-attach "$instanceid" "$volumeid" /dev/vdb
+    nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
+    device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
     sleep 15
-    ssh $vmip fdisk -l /dev/vdb | grep 1073741824
+    ssh $vmip fdisk -l $device | grep 1073741824
     volumeattachret=$?
     rand=$RANDOM
-    ssh $vmip "mkfs.ext3 /dev/vdb && mount /dev/vdb /mnt && echo $rand > /mnt/test.txt && umount /mnt"
+    ssh $vmip "mkfs.ext3 $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
     nova volume-detach "$instanceid" "$volumeid" ; sleep 10
     nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
-    ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
-    ssh $vmip "mount /dev/vdb /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
+    ssh $vmip fdisk -l $device | grep 1073741824 || volumeattachret=57
+    ssh $vmip "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
     # cleanup so that we can run testvm without leaking volumes, IPs etc
     nova remove-floating-ip "$instanceid" "$floatingip"
     nova floating-ip-delete "$floatingip"
