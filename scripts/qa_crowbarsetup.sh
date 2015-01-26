@@ -392,6 +392,18 @@ function add_suse_storage_repo()
     fi
 }
 
+function get_disk_id_by_serial_and_libvirt_type()
+{
+    local libvirt="$1"
+    local serial="$2"
+    diskid="unknown"
+    case "$libvirt" in
+        xen) diskid="scsi-SATA_QEMU_HARDDISK_$serial" ;;
+        kvm) diskid="virtio-$serial" ;;
+    esac
+    echo -n "$diskid"
+}
+
 function cluster_node_assignment()
 {
     local L
@@ -419,7 +431,7 @@ function cluster_node_assignment()
                                 next if v.is_a? Hash and v['owner'] !~ /LVM_DRBD/;
                                 j['normal']['crowbar_wall']['claimed_disks'].delete(k);
                             end ;
-                            j['normal']['crowbar_wall']['claimed_disks']['/dev/disk/by-id/$serial']={'owner' => 'LVM_DRBD'};
+                            j['normal']['crowbar_wall']['claimed_disks']['/dev/disk/by-id/$(get_disk_id_by_serial_and_libvirt_type "$libvirt_type" "$serial")']={'owner' => 'LVM_DRBD'};
                             puts JSON.pretty_generate(j)" < $nfile > ${nfile}.tmp
                 mv ${nfile}.tmp ${nfile}
                 knife node from file ${nfile}
