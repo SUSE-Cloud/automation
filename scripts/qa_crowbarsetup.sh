@@ -456,7 +456,7 @@ function onadmin_prepare_sles_repos()
         if [ ! -e "${targetdir_install}/media.1/" ] ; then
             local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
             local p=/srv/tftpboot/suse-$suseversion/$f
-            wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
+            wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f || complain 70 "iso not found"
             echo $p ${targetdir_install} iso9660 loop,ro >> /etc/fstab
             mount ${targetdir_install}
         fi
@@ -476,7 +476,7 @@ function rsync_iso()
     mkdir -p /mnt/cloud "$targetdir"
     (
         cd "$targetdir"
-        wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/
+        wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/ || complain 71 "iso not found"
         local CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
         mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
         rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
@@ -518,7 +518,7 @@ function onadmin_prepare_sles12_repos()
     if [ ! -e "${targetdir_install}/media.1/" ] ; then
         local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
         local p=/srv/tftpboot/suse-$suse12version/$f
-        wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f
+        wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f || complain 72 "iso not found"
         echo $p ${targetdir_install} iso9660 loop,ro >> /etc/fstab
         mount ${targetdir_install}
     fi
@@ -1913,6 +1913,7 @@ function onadmin_testsetup()
         export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
+        libvirt_type=\"$libvirt_type\" ;
         oncontroller_testsetup=1 bash -x ./$0 $cloud"
     ret=$?
     echo ret:$ret
