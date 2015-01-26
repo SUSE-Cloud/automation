@@ -9,4 +9,4 @@ install:
 	sudo apt-get update -qq
 	sudo apt-get -y install libxml-libxml-perl libjson-xs-perl
 	sudo pip install bashate
-	git clone https://github.com/bmizerany/roundup && cd roundup && ./configure && make && sed -i -e "s/bin\/sh/bin\/bash/" roundup && sudo make install
+	git clone https://github.com/SUSE-Cloud/roundup && cd roundup && ./configure && make && sudo make install
