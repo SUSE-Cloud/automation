@@ -1913,6 +1913,7 @@ function onadmin_testsetup()
         export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
+        export libvirt_type=\"$libvirt_type\" ;
         oncontroller_testsetup=1 bash -x ./$0 $cloud"
     ret=$?
     echo ret:$ret
