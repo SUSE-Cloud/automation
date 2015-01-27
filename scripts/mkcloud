@@ -123,6 +123,13 @@ localreposdir_src=${localreposdir_src:-""}
 localreposdir_target=${localreposdir_target:-"/repositories"}
 [ -z "$localreposdir_src" ] && localreposdir_target=""
 
+emulator=/usr/bin/qemu-system-$(uname -m)
+if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
+    # on SLE11, qemu-kvm is preferred, since qemu-system-x86_64 is
+    # some rotten old stuff without KVM support
+    emulator=/usr/bin/qemu-kvm
+fi
+
 pidfile=mkcloud.pid
 
 trap 'error_exit $? "error caught by trap"' TERM
@@ -451,13 +458,6 @@ function onhost_create_libvirt_adminnode_config()
     onhost_cpuflags_settings
     onhost_local_repository_mount
 
-    emulator=/usr/bin/qemu-system-$(uname -m)
-    if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
-        # on SLE11, qemu-kvm is preferred, since qemu-system-x86_64 is
-        # some rotten old stuff without KVM support
-        emulator=/usr/bin/qemu-kvm
-    fi
-
     cat > $1 <<EOLIBVIRT
   <domain type='kvm'>
     <name>$cloud-admin</name>
@@ -689,7 +689,7 @@ function onhost_create_libvirt_computenode_config()
   <on_reboot>restart</on_reboot>
   <on_crash>restart</on_crash>
   <devices>
-    <emulator>/usr/bin/qemu-kvm</emulator>
+    <emulator>$emulator</emulator>
     <disk type='block' device='disk'>
       <driver name='qemu' type='raw' cache='unsafe'/>
       <source dev='/dev/$cloudvg/$cloud.node$nodecounter'/>
