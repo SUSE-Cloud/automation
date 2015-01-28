@@ -332,7 +332,10 @@ function cleanup()
 
     # remove all previous volumes for that cloud; this helps preventing
     # accidental booting and freeing space
-    find -L /dev/$cloudvg/$cloud.* -type b | xargs lvremove --force
+    if [ -d /dev/$cloudvg ]; then
+        find -L /dev/$cloudvg -name "$cloud.*" -type b | \
+            xargs -r lvremove --force
+    fi
 
     for i in /dev/loop* ; do
         if losetup $i | grep -q $cloud-admin ; then
