@@ -444,8 +444,10 @@ function prepare()
 {
     zypper --non-interactive in --no-recommends libvirt kvm lvm2 curl wget bridge-utils dnsmasq netcat-openbsd ebtables
 
-    echo "Creating key for controlling our VMs..."
-    [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
+    if ! [ -e ~/.ssh/id_dsa ]; then
+        echo "Creating key for controlling our VMs..."
+        ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
+    fi
 
     onhost_enable_ksm
     onhost_create_cloud_lvm
