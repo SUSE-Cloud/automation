@@ -25,6 +25,7 @@ export cinder_conf_volume_params=${cinder_conf_volume_params:-""}
 export localreposdir_target=${localreposdir_target:-""}
 export want_ipmi=${want_ipmi:-false}
 [ "$libvirt_type" = hyperv ] && export wanthyperv=1
+[ "$libvirt_type" = xen ] && export wantxenpv=1 # xenhvm is broken anyway
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
@@ -1759,6 +1760,8 @@ EOH
                 qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
                 glance --insecure image-create --name=SP3-64 --is-public=True --disk-format=vhd --container-format=bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd | tee glance.out
                 rm /tmp/SP3.vhd ; umount /mnt
+            elif [[ -n "$wantxenpv" ]] ; then
+                glance --insecure image-create --name=SP3-64 --is-public=True --disk-format=qcow2 --container-format=bare --property hypervisor_type=xen --property vm_mode=xen --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2 | tee glance.out
             else
                 glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
             fi
