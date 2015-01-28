@@ -191,6 +191,12 @@ function complain() # {{{
     [[ $ex != - ]] && exit $ex
 } # }}}
 
+safely () {
+    if ! "$@"; then
+        complain 30 "$* failed! Aborting."
+    fi
+}
+
 function show_environment()
 {
     end_time=`date`
@@ -316,21 +322,21 @@ function cleanup()
     for name in admin $allnodenames ; do
         local vm=$cloud-$name
         if virsh domstate $vm 2>/dev/null | grep -q running ; then
-            virsh destroy $vm
+            safely virsh destroy $vm
         fi
         if virsh domid $vm >/dev/null 2>&1; then
-            virsh undefine $vm
+            safely virsh undefine $vm
         fi
         local machine=qemu-$vm
         if test -x /usr/bin/machinectl && machinectl status $machine 2>/dev/null ; then
-            machinectl terminate $machine # workaround bnc#916518
+            safely machinectl terminate $machine # workaround bnc#916518
         fi
     done
 
     local net=$cloud-admin
     if virsh net-uuid $net >/dev/null 2>&1; then
         virsh net-destroy $net
-        virsh net-undefine $net
+        safely virsh net-undefine $net
     fi
 
     if ip link show ${cloudbr}.$public_vlan >/dev/null 2>&1; then
@@ -376,22 +382,22 @@ function onhost_get_next_pv_device()
 function onhost_create_cloud_lvm()
 {
     if [ -n "$needcvol" ] ; then
-        pvcreate "$cloudpv"
-        vgcreate "$cloudvg" "$cloudpv"
+        safely pvcreate "$cloudpv"
+        safely vgcreate "$cloudvg" "$cloudpv"
     fi
-    vgchange -ay $cloudvg # for later boots
+    safely vgchange -ay $cloudvg # for later boots
 
     local hdd_size
 
     lvrename $vdisk_dir/admin $admin_node_disk # transition until 2015
     onhost_get_next_pv_device
-    lvcreate -n $cloud.admin -L ${adminnode_hdd_size}G $cloudvg $next_pv_device
+    safely lvcreate -n $cloud.admin -L ${adminnode_hdd_size}G $cloudvg $next_pv_device
     for i in $allnodeids ; do
         lvrename $vdisk_dir/node$i $vdisk_dir/$cloud.node$i # transition until 2015
         onhost_get_next_pv_device
         hdd_size=${computenode_hdd_size}
         test "$i" = "1" && hdd_size=${controller_hdd_size}
-        lvcreate -n $cloud.node$i -L ${hdd_size}G $cloudvg $next_pv_device
+        safely lvcreate -n $cloud.node$i -L ${hdd_size}G $cloudvg $next_pv_device
     done
 
     if [ $cephvolumenumber -gt 0 ] ; then
@@ -401,7 +407,7 @@ function onhost_create_cloud_lvm()
                 onhost_get_next_pv_device
                 hdd_size=${cephvolume_hdd_size}
                 test "$i" = "1" -a "$n" = "1" && hdd_size=${controller_ceph_hdd_size}
-                lvcreate -n $cloud.node$i-ceph$n -L ${hdd_size}G $cloudvg $next_pv_device
+                safely lvcreate -n $cloud.node$i-ceph$n -L ${hdd_size}G $cloudvg $next_pv_device
             done
         done
     fi
@@ -410,7 +416,7 @@ function onhost_create_cloud_lvm()
     if [ -n "$hacloud" ] ; then
         for i in `seq 1 $nodenumberdatacluster`; do
             onhost_get_next_pv_device
-            lvcreate -n $cloud.node$i-drbd -L ${drbd_hdd_size=}G $cloudvg $next_pv_device
+            safely lvcreate -n $cloud.node$i-drbd -L ${drbd_hdd_size=}G $cloudvg $next_pv_device
         done
     fi
 }
@@ -418,10 +424,11 @@ function onhost_create_cloud_lvm()
 function onhost_deploy_admin_image()
 {
     pushd /tmp
-    wget --progress=dot:mega -nc http://clouddata.cloud.suse.de/images/SP3-64up.qcow2
+    safely wget --progress=dot:mega -nc \
+        http://clouddata.cloud.suse.de/images/SP3-64up.qcow2
 
     echo "Cloning admin node vdisk from SP3-64up.qcow2 ..."
-    qemu-img convert -p SP3-64up.qcow2 $admin_node_disk
+    safely qemu-img convert -p SP3-64up.qcow2 $admin_node_disk
     popd
 
     if fdisk -l $admin_node_disk | grep -q 2056192 ; then
@@ -429,8 +436,8 @@ function onhost_deploy_admin_image()
         echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $admin_node_disk
         loopdevice=`losetup --find`
         losetup -o $(expr 2056192 \* 512) $loopdevice $admin_node_disk
-        fsck -y -f $loopdevice
-        resize2fs $loopdevice
+        safely fsck -y -f $loopdevice
+        safely resize2fs $loopdevice
         sync
         losetup -d $loopdevice
     fi
@@ -450,7 +457,9 @@ function onhost_enable_ksm
 
 function prepare()
 {
-    zypper --non-interactive in --no-recommends libvirt kvm lvm2 curl wget bridge-utils dnsmasq netcat-openbsd ebtables
+    safely zypper --non-interactive in --no-recommends \
+        libvirt kvm lvm2 curl wget bridge-utils \
+        dnsmasq netcat-openbsd ebtables
 
     if ! [ -e ~/.ssh/id_dsa ]; then
         echo "Creating key for controlling our VMs..."
@@ -607,10 +616,12 @@ function setupadmin()
     keyfile=~/.ssh/id_dsa.pub
     pubkey=`cut -d" " -f2 $keyfile`
     mkdir -p $mnt
-    mount -o loop,offset=$(expr 2056192 \* 512) $admin_node_disk $mnt
+    safely mount -o loop,offset=$(expr 2056192 \* 512) $admin_node_disk $mnt
     mkdir -p $mnt/root/.ssh
-    grep -q "$pubkey" $mnt/root/.ssh/authorized_keys 2>/dev/null || cat $keyfile >> $mnt/root/.ssh/authorized_keys
-    umount $mnt
+    if ! grep -q "$pubkey" $mnt/root/.ssh/authorized_keys 2>/dev/null; then
+        cat $keyfile >> $mnt/root/.ssh/authorized_keys
+    fi
+    safely umount $mnt
     sync
 
     onhost_create_libvirt_adminnode_config /tmp/$cloud-admin.xml

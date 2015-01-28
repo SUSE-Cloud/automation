@@ -40,6 +40,12 @@ function complain() # {{{
     [[ $ex != - ]] && exit $ex
 } # }}}
 
+safely () {
+    if ! "$@"; then
+        complain 30 "$* failed! Aborting."
+    fi
+}
+
 if [ -z $cloud ] ; then
     echo "Error: Parameter missing that defines the cloud name"
     echo "Possible values: [d1, d2, p, virtual]"
@@ -242,7 +248,7 @@ function add_bind_mount()
     if ! grep -q "$src\s\+$dst" /etc/fstab ; then
         echo "$src $dst bind defaults,bind  0 0" >> /etc/fstab
     fi
-    mount "$dst"
+    safely mount "$dst"
 }
 
 function add_nfs_mount()
@@ -259,7 +265,7 @@ function add_nfs_mount()
     fi
 
     echo "$nfs $dir nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
-    mount "$dir"
+    safely mount "$dir"
 }
 
 # mount a zypper repo either from NFS or from the host (if localreposdir_target is set)
@@ -283,7 +289,7 @@ function add_mount()
         wait_for_if_running zypper
         zypper rr "${zypper_alias}"
         wait_for_if_running zypper
-        zypper ar -f "${targetdir}" "${zypper_alias}"
+        safely zypper -n ar -f "${targetdir}" "${zypper_alias}"
     fi
 }
 
@@ -542,12 +548,12 @@ function onadmin_prepare_sles12_repos()
     fi
 
     # create empty repository when there is none yet
-    zypper -n install createrepo
+    safely zypper -n install createrepo
     sles12optionalrepolist="SLE-12-Cloud-Compute5-Pool SLE-12-Cloud-Compute5-Updates SLE12-Cloud-Compute-PTF SLES12-Pool"
     for REPO in $sles12optionalrepolist ; do
         if [ ! -e "$tftpboot_repos12_dir/$REPO/repodata/" ] ; then
-            mkdir "$tftpboot_repos12_dir/$REPO"
-            createrepo "$tftpboot_repos12_dir/$REPO"
+            mkdir -p "$tftpboot_repos12_dir/$REPO"
+            safely createrepo "$tftpboot_repos12_dir/$REPO"
         fi
     done
 
@@ -555,9 +561,9 @@ function onadmin_prepare_sles12_repos()
     if [ ! -e "${targetdir_install}/media.1/" ] ; then
         local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
         local p=$tftpboot_suse12_dir/$f
-        wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f || complain 72 "iso not found"
+        safely wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f || complain 72 "iso not found"
         echo $p ${targetdir_install} iso9660 loop,ro >> /etc/fstab
-        mount ${targetdir_install}
+        safely mount ${targetdir_install}
     fi
 
     if [ ! -e "${targetdir_install}/media.1/" ] ; then
@@ -587,7 +593,7 @@ function onadmin_prepare_cloud_repos()
     fi
 
     zypper rr Cloud
-    zypper ar -f ${targetdir} Cloud
+    safely zypper ar -f ${targetdir} Cloud
 
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
@@ -759,13 +765,13 @@ EOF
         add_suse_storage_repo
     fi
 
-    zypper -n install rsync netcat
+    safely zypper -n install rsync netcat
 
     # setup cloud repos for tftpboot and zypper
     onadmin_prepare_cloud_repos
 
     # --no-gpg-checks for Devel:Cloud repo
-    zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
+    safely zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
     zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
     # disable extra repos
     zypper mr -d sp3sdk
@@ -2035,7 +2041,7 @@ function onadmin_addupdaterepo()
         for repo in ${UPDATEREPOS//+/ } ; do
             wget --progress=dot:mega -r --directory-prefix $UPR --no-parent --no-clobber --accept x86_64.rpm,noarch.rpm $repo || exit 8
         done
-        zypper -n install createrepo
+        safely zypper -n install createrepo
         createrepo -o $UPR $UPR || exit 8
     fi
     zypper ar $UPR cloud-ptf
