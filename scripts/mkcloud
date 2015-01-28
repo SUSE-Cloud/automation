@@ -343,11 +343,9 @@ function cleanup()
             xargs -r lvremove --force
     fi
 
-    for i in /dev/loop* ; do
-        if losetup $i | grep -q $cloud-admin ; then
-            losetup -d $i
-        fi
-    done
+    losetup | awk '$6 ~ /'"$cloud-admin"'/ {print $1}' | \
+        xargs -r losetup -d
+
     rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml \
         /etc/sysconfig/network/ifcfg-$cloudbr.$public_vlan
     if [ -n "$wipe" ] ; then
