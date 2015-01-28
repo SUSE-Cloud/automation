@@ -65,7 +65,7 @@ if [ -n "$CVOL" ] ; then
     echo "The CVOL variable is deprecated."
     echo "Please either set 'cloudvg' or 'cloudpv'"
     echo " cloudvg will use an existing lvm and not destroy other volumes"
-    echo " cloudpv will use an lvm pv device exclusively and destroy all volues"
+    echo " cloudpv will use an lvm pv device exclusively and destroy all volumes"
     echo
     echo "Continuing in 20 seconds with fallback (cloudpv=\$CVOL):"
     echo " cloudpv=$CVOL"
