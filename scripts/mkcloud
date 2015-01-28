@@ -56,6 +56,7 @@
 #                sets the number of CPU cores assigned to each compute node
 # adminvcpus     (default $vcpus)
 #                sets the number of CPU cores assigned to admin node
+# public_vlan    VLAN id for public network (default 300)
 #
 # UNDOCUMENTED OPTIONS:
 #
@@ -117,6 +118,7 @@ fi
 : ${net_fixed:=192.168.123}
 : ${net_public:=192.168.122}
 : ${net_admin:=192.168.124}
+: ${public_vlan:=300}
 : ${adminnetmask:=255.255.248.0}
 adminip=$net_admin.10
 admingw=$net_admin.1
@@ -325,7 +327,7 @@ function cleanup()
         virsh net-undefine $net
     fi
 
-    ip link set ${cloudbr}.300 down
+    ip link set ${cloudbr}.$public_vlan down
     ip link set ${cloudbr} down
     ip link delete ${cloudbr} type bridge
     ip link delete ${cloudbr}-nic
@@ -343,7 +345,7 @@ function cleanup()
         fi
     done
     rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml \
-        /etc/sysconfig/network/ifcfg-$cloudbr.300
+        /etc/sysconfig/network/ifcfg-$cloudbr.$public_vlan
     if [ -n "$wipe" ] ; then
         vgchange -an $cloudvg
         dd if=/dev/zero of=$cloudpv count=1000
@@ -782,8 +784,8 @@ function setuppublicnet()
 {
     # workaround https://bugzilla.novell.com/show_bug.cgi?id=845496
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
-    # public = 300
-    mkvlan 300 $net_public.1
+    # public = $public_vlan
+    mkvlan $public_vlan $net_public.1
 }
 
 function shutdowncloud()
