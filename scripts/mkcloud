@@ -143,6 +143,7 @@ start_time=`date`
 : ${cloud:=cloud}
 : ${cloudvg:=$cloud}
 needcvol=1
+: ${vdisk_dir:=/dev/$cloudvg}
 : ${admin_node_memory:=2097152}
 : ${controller_node_memory:=4194304}
 : ${compute_node_memory:=2097152}
@@ -338,8 +339,8 @@ function cleanup()
 
     # remove all previous volumes for that cloud; this helps preventing
     # accidental booting and freeing space
-    if [ -d /dev/$cloudvg ]; then
-        find -L /dev/$cloudvg -name "$cloud.*" -type b | \
+    if [ -d $vdisk_dir ]; then
+        find -L $vdisk_dir -name "$cloud.*" -type b | \
             xargs -r lvremove --force
     fi
 
@@ -377,11 +378,11 @@ function onhost_create_cloud_lvm()
 
     local hdd_size
 
-    lvrename /dev/$cloudvg/admin /dev/$cloudvg/$cloud.admin # transition until 2015
+    lvrename $vdisk_dir/admin $vdisk_dir/$cloud.admin # transition until 2015
     onhost_get_next_pv_device
     lvcreate -n $cloud.admin -L ${adminnode_hdd_size}G $cloudvg $next_pv_device
     for i in $allnodeids ; do
-        lvrename /dev/$cloudvg/node$i /dev/$cloudvg/$cloud.node$i # transition until 2015
+        lvrename $vdisk_dir/node$i $vdisk_dir/$cloud.node$i # transition until 2015
         onhost_get_next_pv_device
         hdd_size=${computenode_hdd_size}
         test "$i" = "1" && hdd_size=${controller_hdd_size}
@@ -391,7 +392,7 @@ function onhost_create_cloud_lvm()
     if [ $cephvolumenumber -gt 0 ] ; then
         for i in $allnodeids ; do
             for n in $(seq 1 $cephvolumenumber) ; do
-                lvrename /dev/$cloudvg/node$i-ceph$n /dev/$cloudvg/$cloud.node$i-ceph$n # transition until 2015
+                lvrename $vdisk_dir/node$i-ceph$n $vdisk_dir/$cloud.node$i-ceph$n # transition until 2015
                 onhost_get_next_pv_device
                 hdd_size=${cephvolume_hdd_size}
                 test "$i" = "1" -a "$n" = "1" && hdd_size=${controller_ceph_hdd_size}
@@ -413,14 +414,15 @@ function onhost_deploy_admin_image()
 {
     pushd /tmp
     wget --progress=dot:mega -nc http://clouddata.cloud.suse.de/images/SP3-64up.qcow2
-    qemu-img convert -p SP3-64up.qcow2 /dev/$cloudvg/$cloud.admin
+
+    qemu-img convert -p SP3-64up.qcow2 $vdisk_dir/$cloud.admin
     popd
 
-    if fdisk -l /dev/$cloudvg/$cloud.admin | grep -q 2056192 ; then
+    if fdisk -l $vdisk_dir/$cloud.admin | grep -q 2056192 ; then
         # make a bigger partition 2
-        echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/$cloudvg/$cloud.admin
+        echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $vdisk_dir/$cloud.admin
         loopdevice=`losetup --find`
-        losetup -o $(expr 2056192 \* 512) $loopdevice /dev/$cloudvg/$cloud.admin
+        losetup -o $(expr 2056192 \* 512) $loopdevice $vdisk_dir/$cloud.admin
         fsck -y -f $loopdevice
         resize2fs $loopdevice
         sync
@@ -539,7 +541,7 @@ function onhost_create_libvirt_adminnode_config()
       <emulator>$emulator</emulator>
       <disk type='block' device='disk'>
         <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='/dev/$cloudvg/$cloud.admin'/>
+        <source dev='$vdisk_dir/$cloud.admin'/>
         <target dev='vda' bus='virtio'/>
         <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
       </disk>
@@ -599,7 +601,7 @@ function setupadmin()
     keyfile=~/.ssh/id_dsa.pub
     pubkey=`cut -d" " -f2 $keyfile`
     mkdir -p $mnt
-    mount -o loop,offset=$(expr 2056192 \* 512) /dev/$cloudvg/$cloud.admin $mnt
+    mount -o loop,offset=$(expr 2056192 \* 512) $vdisk_dir/$cloud.admin $mnt
     mkdir -p $mnt/root/.ssh
     grep -q "$pubkey" $mnt/root/.ssh/authorized_keys 2>/dev/null || cat $keyfile >> $mnt/root/.ssh/authorized_keys
     umount $mnt
@@ -750,7 +752,7 @@ function onhost_create_libvirt_computenode_config()
     <emulator>$emulator</emulator>
     <disk type='block' device='disk'>
       <driver name='qemu' type='raw' cache='unsafe'/>
-      <source dev='/dev/$cloudvg/$cloud.node$nodecounter'/>
+      <source dev='$vdisk_dir/$cloud.node$nodecounter'/>
       <target dev='vda' bus='virtio'/>
       <boot order='2'/>
     </disk>
@@ -829,7 +831,7 @@ function setupcompute()
     <disk type='block' device='disk'>
         <serial>$cloud-node$i-ceph$n</serial>
         <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='/dev/$cloudvg/$cloud.node$i-ceph$n'/>
+        <source dev='$vdisk_dir/$cloud.node$i-ceph$n'/>
         <target dev='$dev' bus='virtio'/>
     </disk>"
             done
@@ -846,7 +848,7 @@ function setupcompute()
     <disk type='block' device='disk'>
         <serial>$drbd_serial</serial>
         <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='/dev/$cloudvg/$cloud.node$i-drbd'/>
+        <source dev='$vdisk_dir/$cloud.node$i-drbd'/>
         <target dev='$drbddev' bus='virtio'/>
     </disk>"
                 drbdnode_mac_vol="${drbdnode_mac_vol}+${macaddress}#${drbd_serial}"
