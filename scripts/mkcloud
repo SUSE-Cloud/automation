@@ -318,8 +318,13 @@ function cleanup()
         machinectl terminate qemu-$cloud-$n 2>/dev/null ||: # workaround bnc#916518
         virsh undefine $vm
     done
-    virsh net-destroy $cloud-admin
-    virsh net-undefine $cloud-admin
+
+    local net=$cloud-admin
+    if virsh net-uuid $net >/dev/null 2>&1; then
+        virsh net-destroy $net
+        virsh net-undefine $net
+    fi
+
     ip link set ${cloudbr}.300 down
     ip link set ${cloudbr} down
     ip link delete ${cloudbr} type bridge
