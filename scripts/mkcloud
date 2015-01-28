@@ -56,7 +56,39 @@
 #                sets the number of CPU cores assigned to each compute node
 # adminvcpus     (default $vcpus)
 #                sets the number of CPU cores assigned to admin node
-
+#
+# UNDOCUMENTED OPTIONS:
+#
+# virtualcloud
+# cloudfqdn
+# forwardmode
+# net_fixed
+# net_public
+# net_admin
+# adminnetmask
+# adminip
+# admingw
+# nodenumbercomputedefault
+# nodenumberdatacluster
+# nodenumberdataclusterdefault
+# nodenumbernetworkcluster   (why no default for this?)
+# nodenumberservicescluster  (why no default for this?)
+# drbdnode_mac_vol
+# cpuflags
+# admin_node_memory
+# controller_node_memory
+# compute_node_memory
+# hyperv_node_memory
+# adminnode_hdd_size
+# controller_hdd_size
+# computenode_hdd_size
+# cephvolume_hdd_size
+# controller_ceph_hdd_size
+# drbd_hdd_size
+# cloudbr
+# debug
+# localreposdir_src
+# localreposdir_target
 
 if [ -n "$CVOL" ] ; then
     cloudpv=$CVOL
