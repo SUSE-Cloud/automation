@@ -144,6 +144,7 @@ start_time=`date`
 : ${cloudvg:=$cloud}
 needcvol=1
 : ${vdisk_dir:=/dev/$cloudvg}
+: ${admin_node_disk:=$vdisk_dir/$cloud.admin}
 : ${admin_node_memory:=2097152}
 : ${controller_node_memory:=4194304}
 : ${compute_node_memory:=2097152}
@@ -378,7 +379,7 @@ function onhost_create_cloud_lvm()
 
     local hdd_size
 
-    lvrename $vdisk_dir/admin $vdisk_dir/$cloud.admin # transition until 2015
+    lvrename $vdisk_dir/admin $admin_node_disk # transition until 2015
     onhost_get_next_pv_device
     lvcreate -n $cloud.admin -L ${adminnode_hdd_size}G $cloudvg $next_pv_device
     for i in $allnodeids ; do
@@ -415,14 +416,14 @@ function onhost_deploy_admin_image()
     pushd /tmp
     wget --progress=dot:mega -nc http://clouddata.cloud.suse.de/images/SP3-64up.qcow2
 
-    qemu-img convert -p SP3-64up.qcow2 $vdisk_dir/$cloud.admin
+    qemu-img convert -p SP3-64up.qcow2 $admin_node_disk
     popd
 
-    if fdisk -l $vdisk_dir/$cloud.admin | grep -q 2056192 ; then
+    if fdisk -l $admin_node_disk | grep -q 2056192 ; then
         # make a bigger partition 2
-        echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $vdisk_dir/$cloud.admin
+        echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $admin_node_disk
         loopdevice=`losetup --find`
-        losetup -o $(expr 2056192 \* 512) $loopdevice $vdisk_dir/$cloud.admin
+        losetup -o $(expr 2056192 \* 512) $loopdevice $admin_node_disk
         fsck -y -f $loopdevice
         resize2fs $loopdevice
         sync
@@ -541,7 +542,7 @@ function onhost_create_libvirt_adminnode_config()
       <emulator>$emulator</emulator>
       <disk type='block' device='disk'>
         <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='$vdisk_dir/$cloud.admin'/>
+        <source dev='$admin_node_disk'/>
         <target dev='vda' bus='virtio'/>
         <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
       </disk>
@@ -601,7 +602,7 @@ function setupadmin()
     keyfile=~/.ssh/id_dsa.pub
     pubkey=`cut -d" " -f2 $keyfile`
     mkdir -p $mnt
-    mount -o loop,offset=$(expr 2056192 \* 512) $vdisk_dir/$cloud.admin $mnt
+    mount -o loop,offset=$(expr 2056192 \* 512) $admin_node_disk $mnt
     mkdir -p $mnt/root/.ssh
     grep -q "$pubkey" $mnt/root/.ssh/authorized_keys 2>/dev/null || cat $keyfile >> $mnt/root/.ssh/authorized_keys
     umount $mnt
