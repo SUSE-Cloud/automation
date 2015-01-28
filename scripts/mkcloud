@@ -73,54 +73,54 @@ if [ -n "$CVOL" ] ; then
     echo "------------------------------------------------------------------------"
     sleep 20
 fi
-virtualcloud=${virtualcloud:-virtual}
-cloudfqdn=${cloudfqdn:-$virtualcloud.cloud.suse.de}
-forwardmode=${forwardmode:-nat}
-net_fixed=${net_fixed:-192.168.123}
-net_public=${net_public:-192.168.122}
-net_admin=${net_admin:-192.168.124}
-adminnetmask=${adminnetmask:-255.255.248.0}
+: ${virtualcloud:=virtual}
+: ${cloudfqdn:=$virtualcloud.cloud.suse.de}
+: ${forwardmode:=nat}
+: ${net_fixed:=192.168.123}
+: ${net_public:=192.168.122}
+: ${net_admin:=192.168.124}
+: ${adminnetmask:=255.255.248.0}
 adminip=$net_admin.10
 admingw=$net_admin.1
 nodenumbercomputedefault=2
 [ -n "$hacloud" ] && nodenumbercomputedefault=1
-nodenumber=${nodenumber:-$nodenumbercomputedefault}
-nodenumbercompute=${nodenumbercompute:-$nodenumbercomputedefault}
+: ${nodenumber:=$nodenumbercomputedefault}
+: ${nodenumbercompute:=$nodenumbercomputedefault}
 [ -n "$hacloud" ] && nodenumberdataclusterdefault=2 # currently only drbd supported with 2 nodes
-nodenumberdatacluster=${nodenumberdatacluster:-$nodenumberdataclusterdefault}
-nodenumbernetworkcluster=${nodenumbernetworkcluster:-''}
-nodenumberservicescluster=${nodenumberservicescluster:-''}
+: ${nodenumberdatacluster:=$nodenumberdataclusterdefault}
+: ${nodenumbernetworkcluster:=''}
+: ${nodenumberservicescluster:=''}
 # '+'-separated list of MAC#serial_of_drbd_volume of the drbd cluster nodes
-drbdnode_mac_vol=${drbdnode_mac_vol:-''}
-cephvolumenumber=${cephvolumenumber:-0}
+: ${drbdnode_mac_vol:=''}
+: ${cephvolumenumber:=0}
 allnodeids=`seq 1 $nodenumber`
-vcpus=${vcpus:-1}
-adminvcpus=${adminvcpus:-$vcpus}
+: ${vcpus:=1}
+: ${adminvcpus:=$vcpus}
 cpuflags=''
 working_dir_orig=`pwd`
-artifacts_dir=${artifacts_dir:-$working_dir_orig/.artifacts}
+: ${artifacts_dir:=$working_dir_orig/.artifacts}
 start_time=`date`
-cloud=${cloud:-cloud}
-cloudvg=${cloudvg:-$cloud}
+: ${cloud:=cloud}
+: ${cloudvg:=$cloud}
 needcvol=1
-admin_node_memory=${admin_node_memory:-2097152}
-controller_node_memory=${controller_node_memory:-4194304}
-compute_node_memory=${compute_node_memory:-2097152}
+: ${admin_node_memory:=2097152}
+: ${controller_node_memory:=4194304}
+: ${compute_node_memory:=2097152}
 hyperv_node_memory=3000000
 [[ "$libvirt_type" = "hyperv" && $compute_node_memory < $hyperv_node_memory ]] && compute_node_memory=$hyperv_node_memory
 # pvlist is filled below
 pvlist=
 next_pv_device=
 pv_cur_device_no=0
-cloudbr=${cloudbr:-${cloud}br}
+: ${cloudbr:=${cloud}br}
 mnt=/tmp/cloudmnt/$$
 sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
 scp="scp $sshopts"
-debug=${debug:-0}
+: ${debug:=0}
 #if localreposdir_src string is available, the local repositories are used for setup
-localreposdir_src=${localreposdir_src:-""}
+: ${localreposdir_src:=""}
 #localreposdir_target is the 9p target dir and also the mount target dir in the VM
-localreposdir_target=${localreposdir_target:-"/repositories"}
+: ${localreposdir_target:="/repositories"}
 [ -z "$localreposdir_src" ] && localreposdir_target=""
 
 emulator=/usr/bin/qemu-system-$(uname -m)
@@ -314,12 +314,12 @@ function onhost_create_cloud_lvm()
     vgchange -ay $cloudvg # for later boots
 
     # hdd size defaults (unless defined otherwise)
-    adminnode_hdd_size=${adminnode_hdd_size:-15}
-    controller_hdd_size=${controller_hdd_size:-20}
-    computenode_hdd_size=${computenode_hdd_size:-15}
-    cephvolume_hdd_size=${cephvolume_hdd_size:-11}
-    controller_ceph_hdd_size=${controller_ceph_hdd_size:-25}
-    drbd_hdd_size=${drbd_hdd_size:-50}
+    : ${adminnode_hdd_size:=15}
+    : ${controller_hdd_size:=20}
+    : ${computenode_hdd_size:=15}
+    : ${cephvolume_hdd_size:=11}
+    : ${controller_ceph_hdd_size:=25}
+    : ${drbd_hdd_size:=50}
     local hdd_size
 
     lvrename /dev/$cloudvg/admin /dev/$cloudvg/$cloud.admin # transition until 2015
@@ -1138,7 +1138,7 @@ function sanity_checks()
 
     vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
     if [ -n "$needcvol" ] ; then
-        cloudpv=${cloudpv:-/dev/vdb}
+        : ${cloudpv:=/dev/vdb}
         if grep -q $cloudpv /proc/mounts ; then
             complain 92 "The device $cloudpv seems to be used. Exiting."
         fi
