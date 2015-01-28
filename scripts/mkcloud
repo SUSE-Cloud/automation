@@ -108,6 +108,13 @@ needcvol=1
 : ${compute_node_memory:=2097152}
 : ${hyperv_node_memory:=3000000}
 [[ "$libvirt_type" = "hyperv" && $compute_node_memory < $hyperv_node_memory ]] && compute_node_memory=$hyperv_node_memory
+# hdd size defaults (unless defined otherwise)
+: ${adminnode_hdd_size:=15}
+: ${controller_hdd_size:=20}
+: ${computenode_hdd_size:=15}
+: ${cephvolume_hdd_size:=11}
+: ${controller_ceph_hdd_size:=25}
+: ${drbd_hdd_size:=50}
 # pvlist is filled below
 pvlist=
 next_pv_device=
@@ -313,13 +320,6 @@ function onhost_create_cloud_lvm()
     fi
     vgchange -ay $cloudvg # for later boots
 
-    # hdd size defaults (unless defined otherwise)
-    : ${adminnode_hdd_size:=15}
-    : ${controller_hdd_size:=20}
-    : ${computenode_hdd_size:=15}
-    : ${cephvolume_hdd_size:=11}
-    : ${controller_ceph_hdd_size:=25}
-    : ${drbd_hdd_size:=50}
     local hdd_size
 
     lvrename /dev/$cloudvg/admin /dev/$cloudvg/$cloud.admin # transition until 2015
