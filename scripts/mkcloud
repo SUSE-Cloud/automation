@@ -105,6 +105,12 @@ if [ -n "$CVOL" ] ; then
     echo "------------------------------------------------------------------------"
     sleep 20
 fi
+
+# FIXME: separate user-tweakable parameters from script local variables.
+# Currently there is no clearly defined interface point.  One of the
+# causes of this is violation of the common shell coding standard which
+# uses uppercase for environment variables and constants, and lowercase
+# for local variables.
 : ${virtualcloud:=virtual}
 : ${cloudfqdn:=$virtualcloud.cloud.suse.de}
 : ${forwardmode:=nat}
