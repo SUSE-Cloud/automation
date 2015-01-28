@@ -309,10 +309,14 @@ function cleanup()
 {
     # cleanup leftover from last run
     allnodenames=$(seq --format="node%.0f" 1 $(($nodenumber + 20)))
-    for n in admin $allnodenames ; do
-        virsh destroy $cloud-$n
+    for name in admin $allnodenames ; do
+        vm=$cloud-$name
+        if ! virsh domid $vm >/dev/null 2>&1; then
+            continue
+        fi
+        virsh destroy $vm
         machinectl terminate qemu-$cloud-$n 2>/dev/null ||: # workaround bnc#916518
-        virsh undefine $cloud-$n
+        virsh undefine $vm
     done
     virsh net-destroy $cloud-admin
     virsh net-undefine $cloud-admin
