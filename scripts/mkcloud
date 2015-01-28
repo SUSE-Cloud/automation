@@ -327,10 +327,14 @@ function cleanup()
         virsh net-undefine $net
     fi
 
-    ip link set ${cloudbr}.$public_vlan down
-    ip link set ${cloudbr} down
-    ip link delete ${cloudbr} type bridge
-    ip link delete ${cloudbr}-nic
+    if ip link show ${cloudbr}.$public_vlan >/dev/null 2>&1; then
+        ip link set ${cloudbr}.$public_vlan down
+    fi
+    if ip link show ${cloudbr} >/dev/null 2>&1; then
+        ip link set ${cloudbr} down
+        ip link delete ${cloudbr} type bridge
+        ip link delete ${cloudbr}-nic
+    fi
 
     # remove all previous volumes for that cloud; this helps preventing
     # accidental booting and freeing space
