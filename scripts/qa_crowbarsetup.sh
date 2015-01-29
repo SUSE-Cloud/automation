@@ -314,7 +314,7 @@ function iscloudver()
 
 function addsp3testupdates()
 {
-    add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "/srv/tftpboot/repos/SLES11-SP3-Updates/" "sp3tup"
+    add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "$tftpboot_repos_dir/SLES11-SP3-Updates/" "sp3tup"
 }
 function add_sles12ga_testupdates()
 {
@@ -323,32 +323,32 @@ function add_sles12ga_testupdates()
 
 function addcloud3maintupdates()
 {
-    add_mount "SUSE-Cloud-3-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-3-Updates/' "/srv/tftpboot/repos/SUSE-Cloud-3-Updates/" "cloudmaintup"
+    add_mount "SUSE-Cloud-3-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-3-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-3-Updates/" "cloudmaintup"
 }
 
 function addcloud3testupdates()
 {
-    add_mount "SUSE-Cloud-3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' "/srv/tftpboot/repos/SUSE-Cloud-3-Updates/" "cloudtup"
+    add_mount "SUSE-Cloud-3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' "$tftpboot_repos_dir/SUSE-Cloud-3-Updates/" "cloudtup"
 }
 
 function addcloud4maintupdates()
 {
-    add_mount "SUSE-Cloud-4-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-4-Updates/' "/srv/tftpboot/repos/SUSE-Cloud-4-Updates/" "cloudmaintup"
+    add_mount "SUSE-Cloud-4-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-4-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-4-Updates/" "cloudmaintup"
 }
 
 function addcloud4testupdates()
 {
-    add_mount "SUSE-Cloud-4-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' "/srv/tftpboot/repos/SUSE-Cloud-4-Updates/" "cloudtup"
+    add_mount "SUSE-Cloud-4-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' "$tftpboot_repos_dir/SUSE-Cloud-4-Updates/" "cloudtup"
 }
 
 function addcloud5maintupdates()
 {
-    add_mount "SUSE-Cloud-5-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-Updates/' "/srv/tftpboot/repos/SUSE-Cloud-5-Updates/" "cloudmaintup"
+    add_mount "SUSE-Cloud-5-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" "cloudmaintup"
 }
 
 function addcloud5testupdates()
 {
-    add_mount "SUSE-Cloud-5-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/5/' "/srv/tftpboot/repos/SUSE-Cloud-5-Updates/" "cloudtup"
+    add_mount "SUSE-Cloud-5-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/5/' "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" "cloudtup"
 }
 
 function add_ha_repo()
@@ -358,7 +358,7 @@ function add_ha_repo()
         if [ "$hacloud" == "2" && "$repo" == "SLE11-HAE-SP3-Updates-test" ] ; then
             continue
         fi
-        add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
+        add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "$tftpboot_repos_dir/$repo"
     done
 }
 
@@ -367,7 +367,7 @@ function add_suse_storage_repo()
     if [ -n "$want_sles12" ] && iscloudver 5plus ; then
         local repo
         for repo  in "SUSE-Enterprise-Storage-1.0-Pool" "SUSE-Enterprise-Storage-1.0-Updates"; do
-            add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "/srv/tftpboot/repos/$repo"
+            add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "$tftpboot_repos12_dir/$repo"
         done
     else
         echo "Error: You need SLE12 and SUSE Cloud >= 5 to setup storage repos."
@@ -435,7 +435,7 @@ function cluster_node_assignment()
 
 function onadmin_prepare_sles_repos()
 {
-    local targetdir_install="/srv/tftpboot/suse-$suseversion/install/"
+    local targetdir_install="$tftpboot_suse_dir/install/"
 
     if [ -n "${localreposdir_target}" ]; then
         add_mount "SUSE-Cloud-SLE-11-SP3-deps/sle-11-x86_64/" "" "${targetdir_install}" "Cloud-Deps"
@@ -450,13 +450,13 @@ function onadmin_prepare_sles_repos()
         for REPO in $slesrepolist ; do
             local zypprepo=""
             [ "$WITHSLEUPDATES" != "" ] && zypprepo="$REPO"
-            add_mount "$zypprepo" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
+            add_mount "$zypprepo" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "$tftpboot_repos_dir/$REPO"
         done
 
         # just as a fallback if nfs did not work
         if [ ! -e "${targetdir_install}/media.1/" ] ; then
             local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
-            local p=/srv/tftpboot/suse-$suseversion/$f
+            local p=$tftpboot_suse_dir/$f
             wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f || complain 70 "iso not found"
             echo $p ${targetdir_install} iso9660 loop,ro >> /etc/fstab
             mount ${targetdir_install}
@@ -488,15 +488,15 @@ function rsync_iso()
 function onadmin_prepare_sles12_repos()
 {
     suse12version=12.0
-    local targetdir_install="/srv/tftpboot/suse-$suse12version/install/"
-    local targetdir="/srv/tftpboot/repos/SLE12-Cloud-Compute"
+    local targetdir_install="$tftpboot_suse12_dir/install/"
+    local targetdir="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
 
     if ! $longdistance ; then
         add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" "${targetdir_install}"
     fi
 
     for REPO in $sles12repolist ; do
-        add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "/srv/tftpboot/repos/$REPO"
+        add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "$tftpboot_repos12_dir/$REPO"
     done
 
     if [ -n "${localreposdir_target}" ]; then
@@ -509,16 +509,16 @@ function onadmin_prepare_sles12_repos()
     zypper -n install createrepo
     sles12optionalrepolist="SLE-12-Cloud-Compute5-Pool SLE-12-Cloud-Compute5-Updates SLE12-Cloud-Compute-PTF SLES12-Pool"
     for REPO in $sles12optionalrepolist ; do
-        if [ ! -e "/srv/tftpboot/repos/$REPO/repodata/" ] ; then
-            mkdir "/srv/tftpboot/repos/$REPO"
-            createrepo "/srv/tftpboot/repos/$REPO"
+        if [ ! -e "$tftpboot_repos12_dir/$REPO/repodata/" ] ; then
+            mkdir "$tftpboot_repos12_dir/$REPO"
+            createrepo "$tftpboot_repos12_dir/$REPO"
         fi
     done
 
     # just as a fallback if nfs did not work
     if [ ! -e "${targetdir_install}/media.1/" ] ; then
         local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
-        local p=/srv/tftpboot/suse-$suse12version/$f
+        local p=$tftpboot_suse12_dir/$f
         wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f || complain 72 "iso not found"
         echo $p ${targetdir_install} iso9660 loop,ro >> /etc/fstab
         mount ${targetdir_install}
@@ -532,7 +532,7 @@ function onadmin_prepare_sles12_repos()
 
 function onadmin_prepare_cloud_repos()
 {
-    local targetdir="/srv/tftpboot/repos/Cloud/"
+    local targetdir="$tftpboot_repos_dir/Cloud/"
     mkdir -p ${targetdir}
 
     if [ -n "${localreposdir_target}" ]; then
@@ -1930,7 +1930,7 @@ function onadmin_addupdaterepo()
 {
     pre_hook $FUNCNAME
 
-    local UPR=/srv/tftpboot/repos/Cloud-PTF
+    local UPR=$tftpboot_repos_dir/Cloud-PTF
     mkdir -p $UPR
 
     if [[ -n "$UPDATEREPOS" ]]; then
@@ -2412,6 +2412,13 @@ function onadmin_teardown()
 #
 ruby=/usr/bin/ruby
 iscloudver 5plus && ruby=/usr/bin/ruby.ruby2.1
+
+tftpboot_repos_dir=/srv/tftpboot/repos
+tftpboot_suse_dir=/srv/tftpboot/suse-11.3
+iscloudver 5plus && tftpboot_repos_dir=$tftpboot_suse_dir/repos
+
+tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
+tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
 
 if [[ -n "$testfunc" ]] ; then
     $testfunc "$@"
