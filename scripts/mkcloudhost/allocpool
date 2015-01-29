@@ -2,23 +2,24 @@
 # allocate one test dir from a pool and run mkcloud
 use strict;
 use Time::HiRes qw(sleep);
-use List::Util "shuffle";
 use Fcntl qw(:DEFAULT :flock);
 
-my @dirs=(</root/pool/?>,</root/pool/??>);
-my $allocname="queuesched.pid";
-@dirs=shuffle @dirs; # random order to have different running clouds
+my $allocname="tmpqueuesched.pid";
+# Take the oldest directory
+my @dirs= sort { (stat("$a/$allocname"))[9] <=>
+                 (stat("$b/$allocname"))[9] } (</root/pool/?>,</root/pool/??>);
+
 #print "@dirs\n";
 
 sub diag($) {print "@_\n"}
 
-sleep(rand(1)); # reduce chance of collisions with make -j
+sleep(rand(2)); # reduce chance of collisions with make -j
 
 # lock+select testdir
 my $found=0;
 foreach my $d (@dirs) {
 	# use own allocation lock protocol
-	my $a="$d/tmp$allocname";
+	my $a="$d/$allocname";
 	sysopen my $fh, $a, O_RDWR|O_CREAT or die "cant create $a";
 	flock $fh, LOCK_EX or next;
 	my $num = <$fh>;
