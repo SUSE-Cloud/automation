@@ -69,7 +69,7 @@ case "$cloud" in
         want_ipmi=true
     ;;
     d3)
-        nodenumber=2
+        nodenumber=3
         net=$netp.189
         net_public=$netp.188
         vlan_storage=586
