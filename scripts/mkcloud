@@ -416,6 +416,7 @@ function onhost_deploy_admin_image()
     pushd /tmp
     wget --progress=dot:mega -nc http://clouddata.cloud.suse.de/images/SP3-64up.qcow2
 
+    echo "Cloning admin node vdisk from SP3-64up.qcow2 ..."
     qemu-img convert -p SP3-64up.qcow2 $admin_node_disk
     popd
 
