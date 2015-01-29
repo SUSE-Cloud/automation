@@ -1344,12 +1344,32 @@ function custom_configuration()
             if iscloudver 4plus; then
                 proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
             fi
-            if [ -n "$networkingmode" ] ; then
-                proposal_set_value neutron default "['attributes']['neutron']['networking_mode']" "'$networkingmode'"
+
+            # For Cloud > 5 M4, proposal attribute names changed
+            # TODO(toabctl): the milestone/cloud6 check can be removed when milestone 5 is released
+            if iscloudver 5 && [[ ! $cloudsource =~ ^M[1-4]+$ ]] || iscloudver 6plus; then
+                if [ "$networkingplugin" = "openvswitch" ] ; then
+                    proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'ml2'"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vlan']"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_mechanism_drivers']" "['openvswitch']"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_provider_network']" "'vlan'"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_tenant_network']" "'gre'"
+                elif [ "$networkingplugin" = "linuxbridge" ] ; then
+                    proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'ml2'"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_mechanism_drivers']" "['linuxbridge']"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_provider_network']" "'vlan'"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_tenant_network']" "'vlan'"
+                fi
+            else
+                if [ -n "$networkingmode" ] ; then
+                    proposal_set_value neutron default "['attributes']['neutron']['networking_mode']" "'$networkingmode'"
+                fi
+                if [ -n "$networkingplugin" ] ; then
+                    proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'$networkingplugin'"
+                fi
             fi
-            if [ -n "$networkingplugin" ] ; then
-                proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'$networkingplugin'"
-            fi
+
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['cluster:network']"
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['cluster:network']"
