@@ -1362,7 +1362,7 @@ function custom_configuration()
                 proposal_set_value swift default "['attributes']['swift']['ssl']['insecure']" "true"
                 proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
                 proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
-                proposal_set_value swift default "['attributes']['swift']['middlewares']['crossdomain']['enabled']" "true"
+                iscloudver 3 || proposal_set_value swift default "['attributes']['swift']['middlewares']['crossdomain']['enabled']" "true"
                 proposal_set_value swift default "['attributes']['swift']['middlewares']['formpost']['enabled']" "true"
                 proposal_set_value swift default "['attributes']['swift']['middlewares']['staticweb']['enabled']" "true"
                 proposal_set_value swift default "['attributes']['swift']['middlewares']['tempurl']['enabled']" "true"
