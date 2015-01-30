@@ -1793,6 +1793,8 @@ EOH
         nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
         nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
         nova boot --poll --image SP3-64 --flavor m1.smaller --key_name testkey testvm | tee boot.out
+        ret=${PIPESTATUS[0]}
+        [ $ret != 0 ] && complain 43 "nova boot failed"
         instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
         nova show "$instanceid"
         vmip=`nova show "$instanceid" | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
