@@ -675,7 +675,7 @@ EOF
     fi
 
     if [ -n "${localreposdir_target}" ]; then
-        for x in `seq 1 10` ; do
+        while zypper lr -e - | grep -q '^name='; do
             zypper rr 1
         done
     fi
