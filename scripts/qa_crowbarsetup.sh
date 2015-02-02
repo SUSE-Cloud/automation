@@ -1674,65 +1674,6 @@ EOF
             fi
         fi
 
-        cephret=0
-        if [ -n "$wantceph" -a "$wantcephtestsuite" == 1 ] ; then
-            rpm -q git-core &> /dev/null || zypper -n install git-core
-
-            if test -d qa-automation; then
-                pushd qa-automation
-                git reset --hard
-                git pull
-            else
-                git clone git://git.suse.de/ceph/qa-automation.git
-                pushd qa-automation
-            fi
-
-            # write configuration files that we need
-            cat > setup.cfg <<EOH
-[env]
-loglevel = debug
-EOH
-
-            # test suite will expect node names without domain, and in the right
-            # order; since we will write them in reverse order, use a sort -r here
-            yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-            yaml_mons=`echo $cephmons | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-            yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-            # for radosgw, we only want one node, so enforce that
-            yaml_radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
-            ceph_version=`rpm -q --qf %{version} ceph`
-
-            sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
-            sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
-            # client node is the same as the rados gw node, to make our life easier
-            sed -i "s/^clientnode:.*/clientnode: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
-
-            sed -i "/teuthida-4/d" yamldata/testcloud_sanity.yaml
-            for node in $yaml_allnodes; do
-                sed -i "/^allnodes:$/a - $node" yamldata/testcloud_sanity.yaml
-            done
-            for node in $yaml_mons; do
-                sed -i "/^initmons:$/a - $node" yamldata/testcloud_sanity.yaml
-            done
-            for node in $yaml_osds; do
-                sed -i "/^osds:$/a - $node:vdb2" yamldata/testcloud_sanity.yaml
-            done
-
-            # dependency for the test suite
-            rpm -q python-PyYAML &> /dev/null || zypper -n install python-PyYAML
-
-            if ! rpm -q python-nose &> /dev/null; then
-                zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
-                zypper -n --gpg-auto-import-keys --no-gpg-checks install python-nose
-                zypper rr Devel_Cloud_Shared_11-SP3_Update
-            fi
-
-            nosetests testsuites/testcloud_sanity.py
-            cephret=$?
-
-            popd
-        fi
-
         # Run Tempest Smoketests if configured to do so
         tempestret=0
         if [ "$wanttempest" = "1" ]; then
@@ -1912,6 +1853,66 @@ function onadmin_testsetup()
             wantradosgwtest=1
         fi
     fi
+
+    cephret=0
+    if [ -n "$wantceph" -a "$wantcephtestsuite" == 1 ] ; then
+        rpm -q git-core &> /dev/null || zypper -n install git-core
+
+        if test -d qa-automation; then
+            pushd qa-automation
+            git reset --hard
+            git pull
+        else
+            git clone git://git.suse.de/ceph/qa-automation.git
+            pushd qa-automation
+        fi
+
+        # write configuration files that we need
+        cat > setup.cfg <<EOH
+[env]
+loglevel = debug
+EOH
+
+        # test suite will expect node names without domain, and in the right
+        # order; since we will write them in reverse order, use a sort -r here
+        yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+        yaml_mons=`echo $cephmons | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+        yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+        # for radosgw, we only want one node, so enforce that
+        yaml_radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
+        ceph_version=`rpm -q --qf %{version} ceph`
+
+        sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
+        sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
+        # client node is the same as the rados gw node, to make our life easier
+        sed -i "s/^clientnode:.*/clientnode: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
+
+        sed -i "/teuthida-4/d" yamldata/testcloud_sanity.yaml
+        for node in $yaml_allnodes; do
+            sed -i "/^allnodes:$/a - $node" yamldata/testcloud_sanity.yaml
+        done
+        for node in $yaml_mons; do
+            sed -i "/^initmons:$/a - $node" yamldata/testcloud_sanity.yaml
+        done
+        for node in $yaml_osds; do
+            sed -i "/^osds:$/a - $node:vdb2" yamldata/testcloud_sanity.yaml
+        done
+
+        # dependency for the test suite
+        rpm -q python-PyYAML &> /dev/null || zypper -n install python-PyYAML
+
+        if ! rpm -q python-nose &> /dev/null; then
+            zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
+            zypper -n --gpg-auto-import-keys --no-gpg-checks install python-nose
+            zypper rr Devel_Cloud_Shared_11-SP3_Update
+        fi
+
+        nosetests testsuites/testcloud_sanity.py
+        cephret=$?
+
+        popd
+    fi
+
 
     scp $0 $mkcconf $novacontroller:
     ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
