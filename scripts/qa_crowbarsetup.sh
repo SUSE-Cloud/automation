@@ -1829,12 +1829,11 @@ EOF
         nova stop "$instanceid"
         wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
-        echo "Ceph Tests: $cephret"
         echo "RadosGW Tests: $radosgwret"
         echo "Tempest: $tempestret"
         echo "Volume in VM: $volumecreateret & $volumeattachret"
 
-        test $cephret = 0 -a $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0 || exit 102
+        test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0 || exit 102
 }
 
 function onadmin_testsetup()
@@ -1933,6 +1932,8 @@ EOH
         popd
     fi
 
+    echo "Ceph Tests: $cephret"
+    test $cephret = 0 || exit 104
 
     scp $0 $mkcconf $novacontroller:
     ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
