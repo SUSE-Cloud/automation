@@ -1354,6 +1354,13 @@ function custom_configuration()
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['cluster:network']"
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['cluster:network']"
             fi
+            if [[ $networkingplugin = vmware ]] ; then
+                proposal_set_value neutron default "['attributes']['neutron']['vmware']['user']" "'$nsx_user'"
+                proposal_set_value neutron default "['attributes']['neutron']['vmware']['password']" "'$nsx_password'"
+                proposal_set_value neutron default "['attributes']['neutron']['vmware']['controllers']" "'$nsx_controllers'"
+                proposal_set_value neutron default "['attributes']['neutron']['vmware']['tz_uuid']" "'$nsx_tz_uuid'"
+                proposal_set_value neutron default "['attributes']['neutron']['vmware']['l3_gw_uuid']" "'$nsx_l3_gw_uuid'"
+            fi
         ;;
         swift)
             [[ "$nodenumber" -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
@@ -1515,6 +1522,12 @@ function onadmin_proposal()
 
     if iscloudver 5plus; then
         update_one_proposal dns default
+    fi
+    if [ "$networkingplugin" = vmware ] && iscloudver 5plus ; then
+        cmachines=`crowbar machines list`
+        for machine in $cmachines; do
+            ssh $machine 'zypper mr -p 90 SLE-Cloud-PTF'
+        done
     fi
 
     local proposals="pacemaker database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat trove tempest"
