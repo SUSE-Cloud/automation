@@ -1031,7 +1031,7 @@ function onadmin_waitcompute()
     pre_hook $FUNCNAME
     local node
     for node in $(crowbar machines list | grep ^d) ; do
-        wait_for 180 10 "netcat -w 3 -z $node 3389 || sshtest $node rpm -q yast2-core" "node $node" "check_node_resolvconf $node; exit 12"
+        wait_for 200 10 "netcat -w 3 -z $node 3389 || sshtest $node rpm -q yast2-core" "node $node" "check_node_resolvconf $node; exit 12"
         echo "node $node ready"
     done
 }
