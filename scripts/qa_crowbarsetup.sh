@@ -1917,7 +1917,10 @@ EOH
             sed -i "/^initmons:$/a - $node" yamldata/testcloud_sanity.yaml
         done
         for node in $yaml_osds; do
-            sed -i "/^osds:$/a - $node:vdb2" yamldata/testcloud_sanity.yaml
+            nodename=(vda1 vdb1 vdc1 vdd1 vde1)
+            for i in $(seq $cephvolumenumber); do
+                sed -i "/^osds:$/a - $node:${nodename[$i]}" yamldata/testcloud_sanity.yaml
+            done
         done
 
         # dependency for the test suite
