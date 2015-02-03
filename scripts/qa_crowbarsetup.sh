@@ -1899,7 +1899,10 @@ EOH
         yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
         # for radosgw, we only want one node, so enforce that
         yaml_radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
-        ceph_version=`rpm -q --qf %{version} ceph`
+
+        set -- $yaml_mons
+        first_mon_node=$1
+        ceph_version=$(ssh $first_mon_node "rpm -q --qf %{version} ceph")
 
         sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
         sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
