@@ -483,6 +483,7 @@ function onadmin_prepare_sles_repos()
 
     if [ -n "${localreposdir_target}" ]; then
         add_mount "SUSE-Cloud-SLE-11-SP3-deps/sle-11-x86_64/" "" "${targetdir_install}" "Cloud-Deps"
+        zypper_refresh
     else
         zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ sles
 
@@ -710,6 +711,13 @@ function onadmin_set_source_variables()
 }
 
 
+function zypper_refresh()
+{
+    # --no-gpg-checks for Devel:Cloud repo
+    safely zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
+}
+
+
 # setup network/DNS, add repos and install crowbar packages
 function onadmin_prepareinstallcrowbar()
 {
@@ -772,8 +780,9 @@ EOF
     # setup cloud repos for tftpboot and zypper
     onadmin_prepare_cloud_repos
 
-    # --no-gpg-checks for Devel:Cloud repo
-    safely zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
+
+    zypper_refresh
+
     zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
     # disable extra repos
     zypper mr -d sp3sdk
