@@ -312,6 +312,22 @@ function iscloudver()
     return 1
 }
 
+function export_tftpboot_repos_dir()
+{
+    tftpboot_repos_dir=/srv/tftpboot/repos
+    tftpboot_repos12_dir=/srv/tfptboot/repos
+    tftpboot_suse_dir=/srv/tftpboot/suse-11.3
+    tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
+
+    if iscloudver 5plus; then
+        # Cloud 5 M1 to M4 use the old-style paths
+        if iscloudver 6plus || [[ ! $cloudsource =~ ^M[1-4]+$ ]]; then
+            tftpboot_repos_dir=$tftpboot_suse_dir/repos
+            tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
+        fi
+    fi
+}
+
 function addsp3testupdates()
 {
     add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "$tftpboot_repos_dir/SLES11-SP3-Updates/" "sp3tup"
@@ -2291,6 +2307,9 @@ function prepare_cloudupgrade()
 
     export cloudsource=$upgrade_cloudsource
 
+    # Update new repo paths
+    export_tftpboot_repos_dir
+
     # Client nodes need to be up to date
     onadmin_cloudupgrade_clients
 
@@ -2457,18 +2476,7 @@ function onadmin_teardown()
 ruby=/usr/bin/ruby
 iscloudver 5plus && ruby=/usr/bin/ruby.ruby2.1
 
-tftpboot_repos_dir=/srv/tftpboot/repos
-tftpboot_repos12_dir=/srv/tfptboot/repos
-tftpboot_suse_dir=/srv/tftpboot/suse-11.3
-tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
-
-if iscloudver 5plus; then
-    # Cloud 5 M1 to M4 use the old-style paths
-    if iscloudver 6plus || [[ ! $cloudsource =~ ^M[1-4]+$ ]]; then
-        tftpboot_repos_dir=$tftpboot_suse_dir/repos
-        tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
-    fi
-fi
+export_tftpboot_repos_dir
 
 if [[ -n "$testfunc" ]] ; then
     $testfunc "$@"
