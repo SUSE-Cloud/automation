@@ -480,7 +480,7 @@ function cluster_node_assignment()
 
 function onadmin_prepare_sles_repos()
 {
-    local targetdir_install="$tftpboot_suse_dir/install/"
+    local targetdir_install="$tftpboot_suse_dir/install"
 
     if [ -n "${localreposdir_target}" ]; then
         add_mount "SUSE-Cloud-SLE-11-SP3-deps/sle-11-x86_64/" "" "${targetdir_install}" "Cloud-Deps"
@@ -534,7 +534,7 @@ function rsync_iso()
 function onadmin_prepare_sles12_repos()
 {
     suse12version=12.0
-    local targetdir_install="$tftpboot_suse12_dir/install/"
+    local targetdir_install="$tftpboot_suse12_dir/install"
     local targetdir="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
 
     if ! $longdistance ; then
