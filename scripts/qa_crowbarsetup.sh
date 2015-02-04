@@ -2485,6 +2485,7 @@ fi
 
 mount_localreposdir_target
 
+set_proposalvars
 if [ -n "$prepareinstallcrowbar" ] ; then
     onadmin_prepareinstallcrowbar
 fi
@@ -2505,7 +2506,6 @@ if [ -n "$runupdate" ] ; then
     onadmin_runupdate
 fi
 
-set_proposalvars
 if [ -n "$allocate" ] ; then
     onadmin_allocate
 fi
