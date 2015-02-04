@@ -59,6 +59,7 @@ case "$cloud" in
         want_ipmi=true
     ;;
     d2)
+        nodenumber=2
         net=$netp.186
         net_storage=$netp.187
         net_public=$netp.185
