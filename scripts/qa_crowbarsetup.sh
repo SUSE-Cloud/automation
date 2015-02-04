@@ -803,6 +803,11 @@ EOF
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v $netp.167.191 $netfile
         # todo? broadcast
     fi
+    # Setup specific network configuration for d2 cloud
+    if [[ $cloud = d2 ]] ; then
+        /opt/dell/bin/json-edit -a attributes.network.mode -v dual $netfile
+        /opt/dell/bin/json-edit -a attributes.network.teaming.mode -r -v 5 $netfile
+    fi
 
     cp -a $netfile /etc/crowbar/network.json # new place since 2013-07-18
 
