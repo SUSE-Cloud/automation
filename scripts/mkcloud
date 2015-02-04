@@ -652,7 +652,8 @@ function mkvlan()
 
 function hypervisor_has_virtio()
 {
-    [[ "$libvirt_type" = "xen" || "$libvirt_type" = "hyperv" ]] && return 1
+    local llibvirt_type=${1:-$libvirt_type}
+    [[ "$llibvirt_type" = "xen" || "$llibvirt_type" = "hyperv" ]] && return 1
     return 0
 }
 
