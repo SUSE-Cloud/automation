@@ -1937,6 +1937,7 @@ EOH
         done
 
         # dependency for the test suite
+        wait_for_if_running zypper
         rpm -q python-PyYAML &> /dev/null || zypper -n install python-PyYAML
 
         if ! rpm -q python-nose &> /dev/null; then
