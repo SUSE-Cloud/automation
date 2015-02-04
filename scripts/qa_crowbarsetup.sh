@@ -529,11 +529,12 @@ function onadmin_prepare_sles12_repos()
 
     if ! $longdistance ; then
         add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" "${targetdir_install}"
-    fi
 
-    for REPO in $sles12repolist ; do
-        add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "$tftpboot_repos12_dir/$REPO"
-    done
+        for REPO in $sles12repolist ; do
+            add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" \
+                "$tftpboot_repos12_dir/$REPO"
+        done
+    fi
 
     if [ -n "${localreposdir_target}" ]; then
         echo FIXME add_bind_mount "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" "$targetdir"
