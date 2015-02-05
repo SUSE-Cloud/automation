@@ -1722,7 +1722,7 @@ conn = boto.connect_s3(
         is_secure=False,
         calling_format = boto.s3.connection.OrdinaryCallingFormat()
     )
-    bucket = conn.create_bucket("test-s3-bucket")
+bucket = conn.create_bucket("test-s3-bucket")
 EOF
 
             # check if test bucket exists using radosgw-admin API
