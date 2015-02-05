@@ -565,7 +565,7 @@ function setupadmin()
 listen_tcp = 1
 listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
     fi
-    chkconfig --add libvirtd
+    chkconfig libvirtd on
     service libvirtd start
     wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 

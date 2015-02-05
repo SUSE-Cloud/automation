@@ -843,8 +843,8 @@ function do_installcrowbar()
         # prepare Hyper-V 2012 R2 PXE-boot env and export it via Samba:
         zypper -n in samba
         rsync -a clouddata.cloud.suse.de::cloud/hyperv-6.3 /srv/tftpboot/
-        chkconfig -a smb
-        chkconfig -a nmb
+        chkconfig smb on
+        chkconfig nmb on
         cat >> /etc/samba/smb.conf <<EOF
 [reminst]
         comment = MS Windows remote install
