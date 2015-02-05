@@ -698,7 +698,7 @@ EOF
         fi
     fi
 
-    if [ -n "$wantceph"] && [ -n "$want_sles12" ] && iscloudver 5plus; then
+    if [ -n "$wantceph" ] && [ -n "$want_sles12" ] && iscloudver 5plus; then
         add_suse_storage_repo
     fi
 
