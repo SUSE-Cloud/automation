@@ -129,6 +129,7 @@ scp="scp $sshopts"
 #localreposdir_target is the 9p target dir and also the mount target dir in the VM
 : ${localreposdir_target:="/repositories"}
 [ -z "$localreposdir_src" ] && localreposdir_target=""
+hvmix=(${hvmix//,/ })
 
 emulator=/usr/bin/qemu-system-$(uname -m)
 if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
@@ -244,6 +245,7 @@ function sshrun()
         export tempestoptions='${tempestoptions}' ;
         export cephvolumenumber=$cephvolumenumber ;
         export shell=$shell ;
+        export hvmix="${hvmix[*]}";
 
         export all_with_ssl=$all_with_ssl ;
         export glance_with_ssl=$glance_with_ssl ;
@@ -666,7 +668,7 @@ function onhost_create_libvirt_computenode_config()
     cephvolume="$4"
     drbdvolume="$5"
     nicmodel=virtio
-    hypervisor_has_virtio || nicmodel=e1000
+    hypervisor_has_virtio "$6" || nicmodel=e1000
     nodememory=$compute_node_memory
     [ "$nodecounter" = "1" ] && nodememory=$controller_node_memory
 
@@ -722,7 +724,7 @@ function onhost_create_libvirt_computenode_config()
 </domain>
 EOLIBVIRT
 
-    if ! hypervisor_has_virtio ; then
+    if ! hypervisor_has_virtio $6 ; then
         sed -i -e "s/<target dev='vd\([^']*\)' bus='virtio'/<target dev='sd\1' bus='ide'/" $nodeconfigfile
     fi
 }
@@ -756,6 +758,8 @@ function restartcloud()
 # bring up VMs that will take cloud controller/compute/storage roles
 function setupcompute()
 {
+    local libvirtmix
+
     setuppublicnet
     alldevices=$(echo {b..z} {a..z}{a..z})
     for i in $allnodeids ; do
@@ -763,6 +767,7 @@ function setupcompute()
         i2=$( printf %02x $i )
         macaddress="52:54:$i2:77:77:$i2"
 
+        [ "$i" -gt 1 ] && [ -n "${hvmix[$i - 2]}" ] && libvirtmix="${hvmix[$i - 2]}"
         cephvolume=""
         if [ $cephvolumenumber -gt 0 ] ; then
             for n in $(seq 1 $cephvolumenumber) ; do
@@ -797,7 +802,7 @@ function setupcompute()
             fi
         fi
 
-        onhost_create_libvirt_computenode_config /tmp/$cloud-node$i.xml $i $macaddress "$cephvolume" "$drbdvolume"
+        onhost_create_libvirt_computenode_config /tmp/$cloud-node$i.xml $i $macaddress "$cephvolume" "$drbdvolume" "$libvirtmix"
 
         virsh destroy $cloud-node$i 2>/dev/null
         virsh undefine $cloud-node$i 2>/dev/null

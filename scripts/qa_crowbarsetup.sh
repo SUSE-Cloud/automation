@@ -11,6 +11,7 @@ novadashboardserver=
 clusternodesdata=
 clusternodesnetwork=
 clusternodesservices=
+hvmix=($hvmix)
 
 export cloud=${1}
 shift
@@ -839,7 +840,7 @@ function do_installcrowbar()
     # run in screen to not lose session in the middle when network is reconfigured:
     screen -d -m -L /bin/bash -c "$instcmd ; touch /tmp/chef-ready"
 
-    if [ -n "$wanthyperv" ] ; then
+    if [ -n "$wanthyperv" ] || [[ -n `echo ${hvmix[*]} | grep "hyperv"` ]]; then
         # prepare Hyper-V 2012 R2 PXE-boot env and export it via Samba:
         zypper -n in samba
         rsync -a clouddata.cloud.suse.de::cloud/hyperv-6.3 /srv/tftpboot/
@@ -1009,6 +1010,8 @@ function onadmin_allocate()
         set_node_role_and_platform $computenode "compute" "hyperv-6.3"
     fi
 
+    [ ${#hvmix[@]} -gt 0 ] && configure_compute_nodes
+
     echo "Allocating nodes..."
     local m
     for m in `crowbar machines list | grep ^d` ; do
@@ -1025,6 +1028,23 @@ function onadmin_allocate()
     fi
 
     rm -f /root/crowbartest.out
+}
+
+function configure_compute_nodes()
+{
+    echo "Configuring the compute nodes as defined by hvmix..."
+    local computenode
+    local i=0
+    for computenode in `crowbar machines list | LC_ALL=C sort | grep ^d | tail -n +2` ; do
+        echo "Going to set up compute node $computenode"
+        case "${hvmix[$i]}" in
+            hyperv)
+                echo "Setting node $computenode to Hyper-V compute"
+                set_node_role_and_platform $computenode "compute" "hyperv-6.3"
+                ;;
+        esac
+        i=$(($i + 1))
+    done
 }
 
 function sshtest()
@@ -1750,13 +1770,13 @@ EOF
             glance image-show SP3-64 | tee glance.out
         else
             # SP3-64 image not found, so uploading it
-            if [[ -n "$wanthyperv" ]] ; then
+            if [[ -n "$wanthyperv" ]] || [[ -n `echo ${hvmix[*]} | grep "hyperv"` ]]; then
                 mount clouddata.cloud.suse.de:/srv/nfs/ /mnt/
                 zypper -n in virt-utils
                 qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
                 glance --insecure image-create --name=SP3-64 --is-public=True --disk-format=vhd --container-format=bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd | tee glance.out
                 rm /tmp/SP3.vhd ; umount /mnt
-            elif [[ -n "$wantxenpv" ]] ; then
+            elif [ -n "$wantxenpv" ] || [[ -n `echo ${hvmix[*]} | grep "xen"` ]] ; then
                 glance --insecure image-create --name=SP3-64 --is-public=True --disk-format=qcow2 --container-format=bare --property hypervisor_type=xen --property vm_mode=xen --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2 | tee glance.out
             else
                 glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
