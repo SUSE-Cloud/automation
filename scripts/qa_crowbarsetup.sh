@@ -11,6 +11,7 @@ novadashboardserver=
 clusternodesdata=
 clusternodesnetwork=
 clusternodesservices=
+wanthyperv=
 
 export cloud=${1}
 shift
@@ -1661,214 +1662,217 @@ function addfloatingip()
 # uploads an image, create flavor, boots a VM, assigns a floating IP, ssh to VM, attach/detach volume
 function oncontroller_testsetup()
 {
-        . .openrc
-        export LC_ALL=C
-        if [[ -n $wantswift ]] ; then
-            zypper -n install python-swiftclient
-            swift stat
-            swift upload container1 .ssh/authorized_keys
-            swift list container1 || exit 33
+    . .openrc
+
+    export LC_ALL=C
+    if [[ -n $wantswift ]] ; then
+        zypper -n install python-swiftclient
+        swift stat
+        swift upload container1 .ssh/authorized_keys
+        swift list container1 || exit 33
+    fi
+
+    radosgwret=0
+    if [ "$wantradosgwtest" == 1 ] ; then
+
+        zypper -n install python-swiftclient
+
+        if ! swift post swift-test; then
+            echo "creating swift container failed"
+            radosgwret=1
         fi
 
-        radosgwret=0
-        if [ "$wantradosgwtest" == 1 ] ; then
+        if [ "$radosgwret" == 0 ] && ! swift list|grep -q swift-test; then
+            echo "swift-test container not found"
+            radosgwret=2
+        fi
 
-            zypper -n install python-swiftclient
+        if [ "$radosgwret" == 0 ] && ! swift delete swift-test; then
+            echo "deleting swift-test container failed"
+            radosgwret=3
+        fi
 
-            if ! swift post swift-test; then
-                echo "creating swift container failed"
-                radosgwret=1
+        if [ "$radosgwret" == 0 ] ; then
+            # verify file content after uploading & downloading
+            swift upload swift-test .ssh/authorized_keys
+            swift download --output .ssh/authorized_keys-downloaded swift-test .ssh/authorized_keys
+            if ! cmp .ssh/authorized_keys .ssh/authorized_keys-downloaded; then
+                echo "file is different content after download"
+                radosgwret=4
             fi
+        fi
 
-            if [ "$radosgwret" == 0 ] && ! swift list|grep -q swift-test; then
-                echo "swift-test container not found"
-                radosgwret=2
-            fi
+        if [ "$radosgwret" == 0 ] ; then
+            radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
 
-            if [ "$radosgwret" == 0 ] && ! swift delete swift-test; then
-                echo "deleting swift-test container failed"
-                radosgwret=3
-            fi
+            ssh $radosgw radosgw-admin user create --uid=rados --display-name=RadosGW --secret="secret" --access-key="access"
 
-            if [ "$radosgwret" == 0 ] ; then
-                # verify file content after uploading & downloading
-                swift upload swift-test .ssh/authorized_keys
-                swift download --output .ssh/authorized_keys-downloaded swift-test .ssh/authorized_keys
-                if ! cmp .ssh/authorized_keys .ssh/authorized_keys-downloaded; then
-                    echo "file is different content after download"
-                    radosgwret=4
-                fi
-            fi
-
-            if [ "$radosgwret" == 0 ] ; then
-                radosgw-admin user create --uid=rados --display-name=RadosGW --secret="secret" --access-key="access"
-
-                # test S3 access using python API
-                # using curl directly is complicated, see http://ceph.com/docs/master/radosgw/s3/authentication/
-                zypper -n install python-boto
-                python << EOF
+            # test S3 access using python API
+            # using curl directly is complicated, see http://ceph.com/docs/master/radosgw/s3/authentication/
+            zypper -n install python-boto
+            python << EOF
 import boto
 import boto.s3.connection
 
 conn = boto.connect_s3(
-    aws_access_key_id = "access",
-    aws_secret_access_key = "secret",
-    host = "localhost",
-    port = 8080,
-    is_secure=False,
-    calling_format = boto.s3.connection.OrdinaryCallingFormat()
-)
-bucket = conn.create_bucket("test-s3-bucket")
+        aws_access_key_id = "access",
+        aws_secret_access_key = "secret",
+        host = "localhost",
+        port = 8080,
+        is_secure=False,
+        calling_format = boto.s3.connection.OrdinaryCallingFormat()
+    )
+    bucket = conn.create_bucket("test-s3-bucket")
 EOF
 
-                # check if test bucket exists using radosgw-admin API
-                if ! radosgw-admin bucket list|grep -q test-s3-bucket ; then
-                    echo "test-s3-bucket not found"
-                    radosgwret=5
-                fi
+            # check if test bucket exists using radosgw-admin API
+            if ! ssh $radosgw radosgw-admin bucket list|grep -q test-s3-bucket ; then
+                echo "test-s3-bucket not found"
+                radosgwret=5
             fi
         fi
+    fi
 
-        # Run Tempest Smoketests if configured to do so
-        tempestret=0
-        if [ "$wanttempest" = "1" ]; then
-            # Upload a Heat-enabled image
-            glance image-list|grep -q SLE11SP3-x86_64-cfntools || glance image-create --name=SLE11SP3-x86_64-cfntools --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SLES11-SP3-x86_64-cfntools.qcow2 | tee glance.out
-            imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
-            crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
-            pushd /var/lib/openstack-tempest-test
-            echo 1 > /proc/sys/kernel/sysrq
-            ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
-            tempestret=${PIPESTATUS[0]}
-            /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
-            popd
-        fi
-        nova list
-        glance image-list
-
-        if glance image-list | grep -q SP3-64 ; then
-            glance image-show SP3-64 | tee glance.out
-        else
-            # SP3-64 image not found, so uploading it
-            if [[ -n "$wanthyperv" ]] ; then
-                mount clouddata.cloud.suse.de:/srv/nfs/ /mnt/
-                zypper -n in virt-utils
-                qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
-                glance --insecure image-create --name=SP3-64 --is-public=True --disk-format=vhd --container-format=bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd | tee glance.out
-                rm /tmp/SP3.vhd ; umount /mnt
-            elif [[ -n "$wantxenpv" ]] ; then
-                glance --insecure image-create --name=SP3-64 --is-public=True --disk-format=qcow2 --container-format=bare --property hypervisor_type=xen --property vm_mode=xen --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2 | tee glance.out
-            else
-                glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
-            fi
-        fi
-
-        # wait for image to finish uploading
+    # Run Tempest Smoketests if configured to do so
+    tempestret=0
+    if [ "$wanttempest" = "1" ]; then
+        # Upload a Heat-enabled image
+        glance image-list|grep -q SLE11SP3-x86_64-cfntools || glance image-create --name=SLE11SP3-x86_64-cfntools --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SLES11-SP3-x86_64-cfntools.qcow2 | tee glance.out
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
-        if [ "x$imageid" == "x" ]; then
-            echo "Error: Image ID for SP3-64 not found"
-            exit 37
-        fi
+        crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
+        pushd /var/lib/openstack-tempest-test
+        echo 1 > /proc/sys/kernel/sysrq
+        ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
+        tempestret=${PIPESTATUS[0]}
+        /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
+        popd
+    fi
+    nova list
+    glance image-list
 
-        for n in $(seq 1 200) ; do
-            glance image-show $imageid|grep status.*active && break
-            sleep 5
-        done
-
-        # wait for nova-manage to be successful
-        for n in $(seq 1 200) ;  do
-            test "$(nova-manage service list  | fgrep -cv -- \:\-\))" -lt 2 && break
-            sleep 1
-        done
-
-        nova flavor-delete m1.smaller || :
-        nova flavor-create m1.smaller 11 512 10 1
-        nova delete testvm  || :
-        nova keypair-add --pub_key /root/.ssh/id_rsa.pub testkey
-        nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
-        nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
-        nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
-        nova boot --poll --image SP3-64 --flavor m1.smaller --key_name testkey testvm | tee boot.out
-        ret=${PIPESTATUS[0]}
-        [ $ret != 0 ] && complain 43 "nova boot failed"
-        instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
-        nova show "$instanceid"
-        vmip=`nova show "$instanceid" | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
-        echo "VM IP address: $vmip"
-        if [ -z "$vmip" ] ; then
-            tail -n 90 /var/log/nova/*
-            echo "Error: VM IP is empty. Exiting"
-            exit 38
+    if glance image-list | grep -q SP3-64 ; then
+        glance image-show SP3-64 | tee glance.out
+    else
+        # SP3-64 image not found, so uploading it
+        if [[ -n "$wanthyperv" ]] ; then
+            mount clouddata.cloud.suse.de:/srv/nfs/ /mnt/
+            zypper -n in virt-utils
+            qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
+            glance --insecure image-create --name=SP3-64 --is-public=True --disk-format=vhd --container-format=bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd | tee glance.out
+            rm /tmp/SP3.vhd ; umount /mnt
+        elif [[ -n "$wantxenpv" ]] ; then
+            glance --insecure image-create --name=SP3-64 --is-public=True --disk-format=qcow2 --container-format=bare --property hypervisor_type=xen --property vm_mode=xen --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2 | tee glance.out
+        else
+            glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
         fi
-        addfloatingip "$instanceid"
-        vmip=$floatingip
-        n=1000 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $vmip >/dev/null ; do
-            n=$(expr $n - 1)
-            echo -n .
-            set +x
-        done
-        set -x
-        if [ $n = 0 ] ; then
-            echo testvm boot or net failed
-            exit 94
-        fi
-        echo -n "Waiting for the VM to come up: "
-        n=500 ; while test $n -gt 0 && ! netcat -z $vmip 22 ; do
-            sleep 1
-            n=$(($n - 1))
-            echo -n "."
-            set +x
-        done
-        set -x
-        if [ $n = 0 ] ; then
-            echo "VM not accessible in reasonable time, exiting."
-            exit 96
-        fi
+    fi
 
+    # wait for image to finish uploading
+    imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
+    if [ "x$imageid" == "x" ]; then
+        echo "Error: Image ID for SP3-64 not found"
+        exit 37
+    fi
+
+    for n in $(seq 1 200) ; do
+        glance image-show $imageid|grep status.*active && break
+        sleep 5
+    done
+
+    # wait for nova-manage to be successful
+    for n in $(seq 1 200) ;  do
+        test "$(nova-manage service list  | fgrep -cv -- \:\-\))" -lt 2 && break
+        sleep 1
+    done
+
+    nova flavor-delete m1.smaller || :
+    nova flavor-create m1.smaller 11 512 10 1
+    nova delete testvm  || :
+    nova keypair-add --pub_key /root/.ssh/id_rsa.pub testkey
+    nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
+    nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
+    nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
+    nova boot --poll --image SP3-64 --flavor m1.smaller --key_name testkey testvm | tee boot.out
+    ret=${PIPESTATUS[0]}
+    [ $ret != 0 ] && complain 43 "nova boot failed"
+    instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
+    nova show "$instanceid"
+    vmip=`nova show "$instanceid" | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
+    echo "VM IP address: $vmip"
+    if [ -z "$vmip" ] ; then
+        tail -n 90 /var/log/nova/*
+        echo "Error: VM IP is empty. Exiting"
+        exit 38
+    fi
+    addfloatingip "$instanceid"
+    vmip=$floatingip
+    n=1000 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $vmip >/dev/null ; do
+        n=$(expr $n - 1)
+        echo -n .
         set +x
-        echo "Waiting for the SSH keys to be copied over"
-        i=0
-        MAX_RETRIES=40
-        while timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $vmip "echo cloud" 2> /dev/null; [ $? != 0 ]
-        do
-            sleep 5  # wait before retry
-            if [ $i -gt $MAX_RETRIES ] ; then
-                echo "VM not accessible via SSH, something could be wrong with SSH keys"
-                exit 97
-            fi
-            i=$((i+1))
-            echo -n "."
-        done
-        set -x
-        if ! ssh $vmip curl www3.zq1.de/test ; then
-            echo could not reach internet
-            exit 95
+    done
+    set -x
+    if [ $n = 0 ] ; then
+        echo testvm boot or net failed
+        exit 94
+    fi
+    echo -n "Waiting for the VM to come up: "
+    n=500 ; while test $n -gt 0 && ! netcat -z $vmip 22 ; do
+        sleep 1
+        n=$(($n - 1))
+        echo -n "."
+        set +x
+    done
+    set -x
+    if [ $n = 0 ] ; then
+        echo "VM not accessible in reasonable time, exiting."
+        exit 96
+    fi
+
+    set +x
+    echo "Waiting for the SSH keys to be copied over"
+    i=0
+    MAX_RETRIES=40
+    while timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $vmip "echo cloud" 2> /dev/null; [ $? != 0 ]
+    do
+        sleep 5  # wait before retry
+        if [ $i -gt $MAX_RETRIES ] ; then
+            echo "VM not accessible via SSH, something could be wrong with SSH keys"
+            exit 97
         fi
-        nova volume-list | grep -q available || nova volume-create 1 ; sleep 2
-        nova volume-list | grep available
-        volumecreateret=$?
-        volumeid=`nova volume-list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
-        nova volume-attach "$instanceid" "$volumeid" /dev/vdb
-        sleep 15
-        ssh $vmip fdisk -l /dev/vdb | grep 1073741824
-        volumeattachret=$?
-        rand=$RANDOM
-        ssh $vmip "mkfs.ext3 /dev/vdb && mount /dev/vdb /mnt && echo $rand > /mnt/test.txt && umount /mnt"
-        nova volume-detach "$instanceid" "$volumeid" ; sleep 10
-        nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
-        ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
-        ssh $vmip "mount /dev/vdb /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
-        # cleanup so that we can run testvm without leaking volumes, IPs etc
-        nova remove-floating-ip "$instanceid" "$floatingip"
-        nova floating-ip-delete "$floatingip"
-        nova stop "$instanceid"
-        wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
+        i=$((i+1))
+        echo -n "."
+    done
+    set -x
+    if ! ssh $vmip curl www3.zq1.de/test ; then
+        echo could not reach internet
+        exit 95
+    fi
+    nova volume-list | grep -q available || nova volume-create 1 ; sleep 2
+    nova volume-list | grep available
+    volumecreateret=$?
+    volumeid=`nova volume-list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
+    nova volume-attach "$instanceid" "$volumeid" /dev/vdb
+    sleep 15
+    ssh $vmip fdisk -l /dev/vdb | grep 1073741824
+    volumeattachret=$?
+    rand=$RANDOM
+    ssh $vmip "mkfs.ext3 /dev/vdb && mount /dev/vdb /mnt && echo $rand > /mnt/test.txt && umount /mnt"
+    nova volume-detach "$instanceid" "$volumeid" ; sleep 10
+    nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
+    ssh $vmip fdisk -l /dev/vdb | grep 1073741824 || volumeattachret=57
+    ssh $vmip "mount /dev/vdb /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
+    # cleanup so that we can run testvm without leaking volumes, IPs etc
+    nova remove-floating-ip "$instanceid" "$floatingip"
+    nova floating-ip-delete "$floatingip"
+    nova stop "$instanceid"
+    wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
-        echo "RadosGW Tests: $radosgwret"
-        echo "Tempest: $tempestret"
-        echo "Volume in VM: $volumecreateret & $volumeattachret"
+    echo "RadosGW Tests: $radosgwret"
+    echo "Tempest: $tempestret"
+    echo "Volume in VM: $volumecreateret & $volumeattachret"
 
-        test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0 || exit 102
+    test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0 || exit 102
 }
 
 function onadmin_testsetup()
