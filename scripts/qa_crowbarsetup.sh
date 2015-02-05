@@ -1717,7 +1717,7 @@ import boto.s3.connection
 conn = boto.connect_s3(
         aws_access_key_id = "access",
         aws_secret_access_key = "secret",
-        host = "localhost",
+        host = "$radosgw",
         port = 8080,
         is_secure=False,
         calling_format = boto.s3.connection.OrdinaryCallingFormat()
