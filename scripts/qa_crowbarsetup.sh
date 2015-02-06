@@ -399,7 +399,8 @@ function add_suse_storage_repo()
 
 function get_disk_id_by_serial_and_libvirt_type()
 {
-    local libvirt="$1"
+    # default libvirt_type is "kvm"
+    local libvirt="${1:-kvm}"
     local serial="$2"
     diskid="unknown"
     case "$libvirt" in
