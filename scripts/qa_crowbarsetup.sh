@@ -2393,10 +2393,9 @@ function onadmin_cloudupgrade_2nd()
     # Install new features
     if iscloudver 5; then
         update_one_proposal dns default
-    elif iscloudver 4; then
         zypper --non-interactive install crowbar-barclamp-trove
         do_one_proposal trove default
-    elif iscloudver 3; then
+    elif iscloudver 4; then
         zypper --non-interactive install crowbar-barclamp-tempest
         do_one_proposal tempest default
     fi
