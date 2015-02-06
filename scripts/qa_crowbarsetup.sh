@@ -1948,9 +1948,6 @@ EOH
         popd
     fi
 
-    echo "Ceph Tests: $cephret"
-    test $cephret = 0 || exit 104
-
     s3radosgwret=0
     if [ "$wantradosgwtest" == 1 ] ; then
         # test S3 access using python API
@@ -1981,9 +1978,6 @@ EOF
         fi
     fi
 
-    echo "RadosGW S3 Tests: $s3radosgwret"
-    test $s3radosgwret = 0 || exit 105
-
     scp $0 $mkcconf $novacontroller:
     ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
         export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
@@ -1992,7 +1986,16 @@ EOF
         export libvirt_type=\"$libvirt_type\" ;
         oncontroller_testsetup=1 bash -x ./$0 $cloud"
     ret=$?
-    echo ret:$ret
+
+    echo "Tests on controller: $ret"
+    echo "Ceph Tests: $cephret"
+    echo "RadosGW S3 Tests: $s3radosgwret"
+
+    if [ $ret -eq 0 ]; then
+        test $s3radosgwret -eq 0 || ret=105
+        test $cephret -eq 0 || ret=104
+    fi
+
     if [ "$wanttempest" = "1" ]; then
         scp $novacontroller:"/var/lib/openstack-tempest-test/tempest.log" .
     fi
