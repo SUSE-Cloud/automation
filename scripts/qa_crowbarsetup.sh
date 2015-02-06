@@ -390,6 +390,8 @@ function add_ha_repo()
         if [ "$hacloud" == "2" && "$repo" == "SLE11-HAE-SP3-Updates-test" ] ; then
             continue
         fi
+        # Note no zypper alias parameter here since we don't want to
+        # zypper addrepo on the admin node.
         add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "$tftpboot_repos_dir/$repo"
     done
 }
@@ -399,6 +401,8 @@ function add_suse_storage_repo()
     if [ -n "$want_sles12" ] && iscloudver 5plus ; then
         local repo
         for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
+            # Note no zypper alias parameter here since we don't want
+            # to zypper addrepo on the admin node.
             add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "$tftpboot_repos12_dir/$repo"
         done
     else
