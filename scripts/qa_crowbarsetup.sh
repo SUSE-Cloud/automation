@@ -1701,36 +1701,6 @@ function oncontroller_testsetup()
                 radosgwret=4
             fi
         fi
-
-        if [ "$radosgwret" == 0 ] ; then
-            radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
-
-            ssh $radosgw radosgw-admin user create --uid=rados --display-name=RadosGW --secret="secret" --access-key="access"
-
-            # test S3 access using python API
-            # using curl directly is complicated, see http://ceph.com/docs/master/radosgw/s3/authentication/
-            zypper -n install python-boto
-            python << EOF
-import boto
-import boto.s3.connection
-
-conn = boto.connect_s3(
-        aws_access_key_id = "access",
-        aws_secret_access_key = "secret",
-        host = "$radosgw",
-        port = 8080,
-        is_secure=False,
-        calling_format = boto.s3.connection.OrdinaryCallingFormat()
-    )
-bucket = conn.create_bucket("test-s3-bucket")
-EOF
-
-            # check if test bucket exists using radosgw-admin API
-            if ! ssh $radosgw radosgw-admin bucket list|grep -q test-s3-bucket ; then
-                echo "test-s3-bucket not found"
-                radosgwret=5
-            fi
-        fi
     fi
 
     # Run Tempest Smoketests if configured to do so
@@ -1978,8 +1948,35 @@ EOH
         popd
     fi
 
-    echo "Ceph Tests: $cephret"
-    test $cephret = 0 || exit 104
+    s3radosgwret=0
+    if [ "$wantradosgwtest" == 1 ] ; then
+        # test S3 access using python API
+        radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
+        ssh $radosgw radosgw-admin user create --uid=rados --display-name=RadosGW --secret="secret" --access-key="access"
+
+        # using curl directly is complicated, see http://ceph.com/docs/master/radosgw/s3/authentication/
+        zypper -n install python-boto
+        python << EOF
+import boto
+import boto.s3.connection
+
+conn = boto.connect_s3(
+        aws_access_key_id = "access",
+        aws_secret_access_key = "secret",
+        host = "$radosgw",
+        port = 8080,
+        is_secure=False,
+        calling_format = boto.s3.connection.OrdinaryCallingFormat()
+    )
+bucket = conn.create_bucket("test-s3-bucket")
+EOF
+
+        # check if test bucket exists using radosgw-admin API
+        if ! ssh $radosgw radosgw-admin bucket list|grep -q test-s3-bucket ; then
+            echo "test-s3-bucket not found"
+            s3radosgwret=1
+        fi
+    fi
 
     scp $0 $mkcconf $novacontroller:
     ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
@@ -1989,7 +1986,16 @@ EOH
         export libvirt_type=\"$libvirt_type\" ;
         oncontroller_testsetup=1 bash -x ./$0 $cloud"
     ret=$?
-    echo ret:$ret
+
+    echo "Tests on controller: $ret"
+    echo "Ceph Tests: $cephret"
+    echo "RadosGW S3 Tests: $s3radosgwret"
+
+    if [ $ret -eq 0 ]; then
+        test $s3radosgwret -eq 0 || ret=105
+        test $cephret -eq 0 || ret=104
+    fi
+
     if [ "$wanttempest" = "1" ]; then
         scp $novacontroller:"/var/lib/openstack-tempest-test/tempest.log" .
     fi
