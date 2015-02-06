@@ -2443,7 +2443,7 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
 
 function onadmin_qa_test()
 {
-    zypper -n in -y python-{keystone,nova,glance,heat,ceilometer}client
+    zypper -n in -y python-{keystone,nova,glance,heat,cinder,ceilometer}client
 
     get_novacontroller
     scp $novacontroller:.openrc ~/
