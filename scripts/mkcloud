@@ -1096,8 +1096,15 @@ function sanity_checks()
             # currently only drbd with 2 nodes supported
             nodenumberdatacluster=2
             local maxnodes=$(( nodenumber - nodenumbercompute - nodenumberdatacluster ))
-            nodenumbercomputeoffset=$(( maxnodes % 6 ))
+
+            # calculating cluster size
+            # rule1: clustersize % 2 == 1 && clustersize >= 3
+            # rule2: 2 * clustersize + offset = maximum_number_of_nodes
+            # first calculating the offset (may be 0, 1, 2 or 3)
+            nodenumbercomputeoffset=$(( ( maxnodes + 2 ) % 4 ))
+            # new maximum number (double of clustersize)
             local mn=$(( maxnodes - nodenumbercomputeoffset ))
+            # cluster size found
             nodenumbernetworkcluster=$(( mn / 2 ))
             nodenumberservicescluster=$(( mn / 2 ))
         fi
