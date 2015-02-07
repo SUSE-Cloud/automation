@@ -56,7 +56,40 @@
 #                sets the number of CPU cores assigned to each compute node
 # adminvcpus     (default $vcpus)
 #                sets the number of CPU cores assigned to admin node
-
+# public_vlan    VLAN id for public network (default 300)
+#
+# UNDOCUMENTED OPTIONS:
+#
+# virtualcloud
+# cloudfqdn
+# forwardmode
+# net_fixed
+# net_public
+# net_admin
+# adminnetmask
+# adminip
+# admingw
+# nodenumbercomputedefault
+# nodenumberdatacluster
+# nodenumberdataclusterdefault
+# nodenumbernetworkcluster   (why no default for this?)
+# nodenumberservicescluster  (why no default for this?)
+# drbdnode_mac_vol
+# cpuflags
+# admin_node_memory
+# controller_node_memory
+# compute_node_memory
+# hyperv_node_memory
+# adminnode_hdd_size
+# controller_hdd_size
+# computenode_hdd_size
+# cephvolume_hdd_size
+# controller_ceph_hdd_size
+# drbd_hdd_size
+# cloudbr
+# debug
+# localreposdir_src
+# localreposdir_target
 
 if [ -n "$CVOL" ] ; then
     cloudpv=$CVOL
@@ -73,12 +106,19 @@ if [ -n "$CVOL" ] ; then
     echo "------------------------------------------------------------------------"
     sleep 20
 fi
+
+# FIXME: separate user-tweakable parameters from script local variables.
+# Currently there is no clearly defined interface point.  One of the
+# causes of this is violation of the common shell coding standard which
+# uses uppercase for environment variables and constants, and lowercase
+# for local variables.
 : ${virtualcloud:=virtual}
 : ${cloudfqdn:=$virtualcloud.cloud.suse.de}
 : ${forwardmode:=nat}
 : ${net_fixed:=192.168.123}
 : ${net_public:=192.168.122}
 : ${net_admin:=192.168.124}
+: ${public_vlan:=300}
 : ${adminnetmask:=255.255.248.0}
 adminip=$net_admin.10
 admingw=$net_admin.1
@@ -103,6 +143,8 @@ start_time=`date`
 : ${cloud:=cloud}
 : ${cloudvg:=$cloud}
 needcvol=1
+: ${vdisk_dir:=/dev/$cloudvg}
+: ${admin_node_disk:=$vdisk_dir/$cloud.admin}
 : ${admin_node_memory:=2097152}
 : ${controller_node_memory:=4194304}
 : ${compute_node_memory:=2097152}
@@ -271,29 +313,43 @@ function cleanup()
 {
     # cleanup leftover from last run
     allnodenames=$(seq --format="node%.0f" 1 $(($nodenumber + 20)))
-    for n in admin $allnodenames ; do
-        virsh destroy $cloud-$n
+    for name in admin $allnodenames ; do
+        vm=$cloud-$name
+        if ! virsh domid $vm >/dev/null 2>&1; then
+            continue
+        fi
+        virsh destroy $vm
         machinectl terminate qemu-$cloud-$n 2>/dev/null ||: # workaround bnc#916518
-        virsh undefine $cloud-$n
+        virsh undefine $vm
     done
-    virsh net-destroy $cloud-admin
-    virsh net-undefine $cloud-admin
-    ip link set ${cloudbr}.300 down
-    ip link set ${cloudbr} down
-    ip link delete ${cloudbr} type bridge
-    ip link delete ${cloudbr}-nic
+
+    local net=$cloud-admin
+    if virsh net-uuid $net >/dev/null 2>&1; then
+        virsh net-destroy $net
+        virsh net-undefine $net
+    fi
+
+    if ip link show ${cloudbr}.$public_vlan >/dev/null 2>&1; then
+        ip link set ${cloudbr}.$public_vlan down
+    fi
+    if ip link show ${cloudbr} >/dev/null 2>&1; then
+        ip link set ${cloudbr} down
+        ip link delete ${cloudbr} type bridge
+        ip link delete ${cloudbr}-nic
+    fi
 
     # remove all previous volumes for that cloud; this helps preventing
     # accidental booting and freeing space
-    find -L /dev/$cloudvg/$cloud.* -type b | xargs lvremove --force
+    if [ -d $vdisk_dir ]; then
+        find -L $vdisk_dir -name "$cloud.*" -type b | \
+            xargs -r lvremove --force
+    fi
 
-    for i in /dev/loop* ; do
-        if losetup $i | grep -q $cloud-admin ; then
-            losetup -d $i
-        fi
-    done
+    losetup | awk '$6 ~ /'"$cloud-admin"'/ {print $1}' | \
+        xargs -r losetup -d
+
     rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml \
-        /etc/sysconfig/network/ifcfg-$cloudbr.300
+        /etc/sysconfig/network/ifcfg-$cloudbr.$public_vlan
     if [ -n "$wipe" ] ; then
         vgchange -an $cloudvg
         dd if=/dev/zero of=$cloudpv count=1000
@@ -323,11 +379,11 @@ function onhost_create_cloud_lvm()
 
     local hdd_size
 
-    lvrename /dev/$cloudvg/admin /dev/$cloudvg/$cloud.admin # transition until 2015
+    lvrename $vdisk_dir/admin $admin_node_disk # transition until 2015
     onhost_get_next_pv_device
     lvcreate -n $cloud.admin -L ${adminnode_hdd_size}G $cloudvg $next_pv_device
     for i in $allnodeids ; do
-        lvrename /dev/$cloudvg/node$i /dev/$cloudvg/$cloud.node$i # transition until 2015
+        lvrename $vdisk_dir/node$i $vdisk_dir/$cloud.node$i # transition until 2015
         onhost_get_next_pv_device
         hdd_size=${computenode_hdd_size}
         test "$i" = "1" && hdd_size=${controller_hdd_size}
@@ -337,7 +393,7 @@ function onhost_create_cloud_lvm()
     if [ $cephvolumenumber -gt 0 ] ; then
         for i in $allnodeids ; do
             for n in $(seq 1 $cephvolumenumber) ; do
-                lvrename /dev/$cloudvg/node$i-ceph$n /dev/$cloudvg/$cloud.node$i-ceph$n # transition until 2015
+                lvrename $vdisk_dir/node$i-ceph$n $vdisk_dir/$cloud.node$i-ceph$n # transition until 2015
                 onhost_get_next_pv_device
                 hdd_size=${cephvolume_hdd_size}
                 test "$i" = "1" -a "$n" = "1" && hdd_size=${controller_ceph_hdd_size}
@@ -359,14 +415,15 @@ function onhost_deploy_admin_image()
 {
     pushd /tmp
     wget --progress=dot:mega -nc http://clouddata.cloud.suse.de/images/SP3-64up.qcow2
-    qemu-img convert -p SP3-64up.qcow2 /dev/$cloudvg/$cloud.admin
+
+    qemu-img convert -p SP3-64up.qcow2 $admin_node_disk
     popd
 
-    if fdisk -l /dev/$cloudvg/$cloud.admin | grep -q 2056192 ; then
+    if fdisk -l $admin_node_disk | grep -q 2056192 ; then
         # make a bigger partition 2
-        echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk /dev/$cloudvg/$cloud.admin
+        echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $admin_node_disk
         loopdevice=`losetup --find`
-        losetup -o $(expr 2056192 \* 512) $loopdevice /dev/$cloudvg/$cloud.admin
+        losetup -o $(expr 2056192 \* 512) $loopdevice $admin_node_disk
         fsck -y -f $loopdevice
         resize2fs $loopdevice
         sync
@@ -390,8 +447,10 @@ function prepare()
 {
     zypper --non-interactive in --no-recommends libvirt kvm lvm2 curl wget bridge-utils dnsmasq netcat-openbsd ebtables
 
-    echo "Creating key for controlling our VMs..."
-    [ -e ~/.ssh/id_dsa ] || ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
+    if ! [ -e ~/.ssh/id_dsa ]; then
+        echo "Creating key for controlling our VMs..."
+        ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
+    fi
 
     onhost_enable_ksm
     onhost_create_cloud_lvm
@@ -483,7 +542,7 @@ function onhost_create_libvirt_adminnode_config()
       <emulator>$emulator</emulator>
       <disk type='block' device='disk'>
         <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='/dev/$cloudvg/$cloud.admin'/>
+        <source dev='$admin_node_disk'/>
         <target dev='vda' bus='virtio'/>
         <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
       </disk>
@@ -543,7 +602,7 @@ function setupadmin()
     keyfile=~/.ssh/id_dsa.pub
     pubkey=`cut -d" " -f2 $keyfile`
     mkdir -p $mnt
-    mount -o loop,offset=$(expr 2056192 \* 512) /dev/$cloudvg/$cloud.admin $mnt
+    mount -o loop,offset=$(expr 2056192 \* 512) $admin_node_disk $mnt
     mkdir -p $mnt/root/.ssh
     grep -q "$pubkey" $mnt/root/.ssh/authorized_keys 2>/dev/null || cat $keyfile >> $mnt/root/.ssh/authorized_keys
     umount $mnt
@@ -585,7 +644,9 @@ listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
 
     wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
 
-    if ( ! grep -q "iptables -t nat -F PREROUTING" /etc/init.d/boot.local ) && [ -z "$NOSETUPPORTFORWARDING" ] ; then
+    if ! grep -q "iptables -t nat -F PREROUTING" /etc/init.d/boot.local &&
+        [ -z "$NOSETUPPORTFORWARDING" ]
+    then
         nodehostips=$(seq -s ' ' 81 $((80 + $nodenumber)))
         cat >> /etc/init.d/boot.local <<EOS
 iptables -t nat -F PREROUTING
@@ -694,7 +755,7 @@ function onhost_create_libvirt_computenode_config()
     <emulator>$emulator</emulator>
     <disk type='block' device='disk'>
       <driver name='qemu' type='raw' cache='unsafe'/>
-      <source dev='/dev/$cloudvg/$cloud.node$nodecounter'/>
+      <source dev='$vdisk_dir/$cloud.node$nodecounter'/>
       <target dev='vda' bus='virtio'/>
       <boot order='2'/>
     </disk>
@@ -732,8 +793,8 @@ function setuppublicnet()
 {
     # workaround https://bugzilla.novell.com/show_bug.cgi?id=845496
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
-    # public = 300
-    mkvlan 300 $net_public.1
+    # public = $public_vlan
+    mkvlan $public_vlan $net_public.1
 }
 
 function shutdowncloud()
@@ -773,7 +834,7 @@ function setupcompute()
     <disk type='block' device='disk'>
         <serial>$cloud-node$i-ceph$n</serial>
         <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='/dev/$cloudvg/$cloud.node$i-ceph$n'/>
+        <source dev='$vdisk_dir/$cloud.node$i-ceph$n'/>
         <target dev='$dev' bus='virtio'/>
     </disk>"
             done
@@ -790,7 +851,7 @@ function setupcompute()
     <disk type='block' device='disk'>
         <serial>$drbd_serial</serial>
         <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='/dev/$cloudvg/$cloud.node$i-drbd'/>
+        <source dev='$vdisk_dir/$cloud.node$i-drbd'/>
         <target dev='$drbddev' bus='virtio'/>
     </disk>"
                 drbdnode_mac_vol="${drbdnode_mac_vol}+${macaddress}#${drbd_serial}"
