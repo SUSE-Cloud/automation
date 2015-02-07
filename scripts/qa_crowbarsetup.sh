@@ -393,7 +393,8 @@ function add_ha_repo()
         fi
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "$tftpboot_repos_dir/$repo"
+        add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+            "$tftpboot_repos_dir/$repo"
     done
 }
 
@@ -546,7 +547,9 @@ function onadmin_prepare_sles12_repos()
     local targetdir="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
 
     if ! $longdistance ; then
-        add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" "${targetdir_install}"
+        add_mount "SLE-12-Server-Latest" \
+            "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" \
+            "$targetdir_install"
 
         for repo in SLES12-Pool SLES12-Updates ; do
             add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
