@@ -322,15 +322,17 @@ function iscloudver()
 function export_tftpboot_repos_dir()
 {
     tftpboot_repos_dir=/srv/tftpboot/repos
-    tftpboot_repos12_dir=/srv/tfptboot/repos
     tftpboot_suse_dir=/srv/tftpboot/suse-11.3
-    tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
 
     if iscloudver 5plus; then
-        # Cloud 5 M1 to M4 use the old-style paths
+        tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
+
         if iscloudver 6plus || [[ ! $cloudsource =~ ^M[1-4]+$ ]]; then
             tftpboot_repos_dir=$tftpboot_suse_dir/repos
             tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
+        else
+            # Cloud 5 M1 to M4 use the old-style paths
+            tftpboot_repos12_dir=/srv/tftpboot/repos
         fi
     fi
 }
