@@ -492,11 +492,12 @@ function onadmin_prepare_sles_repos()
             add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" "${targetdir_install}"
         fi
 
-        local REPO
-        for REPO in $slesrepolist ; do
+        local repo
+        for repo in $slesrepolist ; do
             local zypprepo=""
-            [ "$WITHSLEUPDATES" != "" ] && zypprepo="$REPO"
-            add_mount "$zypprepo" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" "$tftpboot_repos_dir/$REPO"
+            [ "$WITHSLEUPDATES" != "" ] && zypprepo="$repo"
+            add_mount "$zypprepo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+                "$tftpboot_repos_dir/$repo"
         done
 
         # just as a fallback if nfs did not work
@@ -517,17 +518,19 @@ function onadmin_prepare_sles_repos()
 
 function rsync_iso()
 {
-    local CLOUDDISTPATH="$1"
-    local CLOUDDISTISO="$2"
+    local distpath="$1"
+    local distiso="$2"
     local targetdir="$3"
     mkdir -p /mnt/cloud "$targetdir"
     (
         cd "$targetdir"
-        wget --progress=dot:mega -r -np -nc -A "$CLOUDDISTISO" http://$susedownload$CLOUDDISTPATH/ || complain 71 "iso not found"
-        local CLOUDISO=$(ls */$CLOUDDISTPATH/*.iso|tail -1)
-        mount -o loop,ro -t iso9660 $CLOUDISO /mnt/cloud
+        wget --progress=dot:mega -r -np -nc -A "$distiso" \
+            http://$susedownload$distpath/ \
+        || complain 71 "iso not found"
+        local cloudiso=$(ls */$distpath/*.iso|tail -1)
+        mount -o loop,ro -t iso9660 $cloudiso /mnt/cloud
         rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
-        echo $CLOUDISO > isoversion
+        echo $cloudiso > isoversion
     )
 }
 
@@ -540,9 +543,9 @@ function onadmin_prepare_sles12_repos()
     if ! $longdistance ; then
         add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" "${targetdir_install}"
 
-        for REPO in SLES12-Pool SLES12-Updates ; do
-            add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" \
-                "$tftpboot_repos12_dir/$REPO"
+        for repo in SLES12-Pool SLES12-Updates ; do
+            add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+                "$tftpboot_repos12_dir/$repo"
         done
     fi
 
@@ -555,10 +558,10 @@ function onadmin_prepare_sles12_repos()
     # create empty repository when there is none yet
     safely zypper -n install createrepo
     sles12optionalrepolist="SLE-12-Cloud-Compute5-Pool SLE-12-Cloud-Compute5-Updates SLE12-Cloud-Compute-PTF SLES12-Pool"
-    for REPO in $sles12optionalrepolist ; do
-        if [ ! -e "$tftpboot_repos12_dir/$REPO/repodata/" ] ; then
-            mkdir -p "$tftpboot_repos12_dir/$REPO"
-            safely createrepo "$tftpboot_repos12_dir/$REPO"
+    for repo in $sles12optionalrepolist ; do
+        if [ ! -e "$tftpboot_repos12_dir/$repo/repodata/" ] ; then
+            mkdir -p "$tftpboot_repos12_dir/$repo"
+            safely createrepo "$tftpboot_repos12_dir/$repo"
         fi
     done
 
