@@ -540,9 +540,9 @@ function rsync_iso()
             http://$susedownload$distpath/ \
         || complain 71 "iso not found"
         local cloudiso=$(ls */$distpath/*.iso | tail -1)
-        mount -o loop,ro -t iso9660 $cloudiso /mnt/cloud
-        rsync -av --delete-after /mnt/cloud/ .
-        umount /mnt/cloud
+        safely mount -o loop,ro -t iso9660 $cloudiso /mnt/cloud
+        safely rsync -av --delete-after /mnt/cloud/ .
+        safely umount /mnt/cloud
         echo $cloudiso > isoversion
     )
 }
