@@ -562,15 +562,6 @@ function onadmin_prepare_sles12_repos()
         fi
     done
 
-    # just as a fallback if nfs did not work
-    if [ ! -e "${targetdir_install}/media.1/" ] ; then
-        local f=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
-        local p=$tftpboot_suse12_dir/$f
-        safely wget --progress=dot:mega -nc -O$p http://$susedownload/install/SLES-$slesversion-$slesmilestone/$f || complain 72 "iso not found"
-        echo $p ${targetdir_install} iso9660 loop,ro >> /etc/fstab
-        safely mount ${targetdir_install}
-    fi
-
     if [ ! -e "${targetdir_install}/media.1/" ] ; then
         echo "We do not have SLES12 install media - giving up"
         exit 34
