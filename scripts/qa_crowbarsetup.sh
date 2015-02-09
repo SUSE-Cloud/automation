@@ -1845,7 +1845,7 @@ function oncontroller_testsetup()
     ssh $vmip fdisk -l $device | grep 1073741824
     volumeattachret=$?
     rand=$RANDOM
-    ssh $vmip "mkfs.ext3 $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
+    ssh $vmip "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
     nova volume-detach "$instanceid" "$volumeid" ; sleep 10
     nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
     ssh $vmip fdisk -l $device | grep 1073741824 || volumeattachret=57
