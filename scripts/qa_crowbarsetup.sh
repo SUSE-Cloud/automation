@@ -584,6 +584,44 @@ function onadmin_prepare_cloud_repos()
 
     zypper rr Cloud
     zypper ar -f ${targetdir} Cloud
+
+    if [ -n "$TESTHEAD" ] ; then
+        case "$cloudsource" in
+            GM3|GM3+up)
+                addsp3testupdates
+                addcloud3testupdates
+                ;;
+            GM4|GM4+up)
+                addsp3testupdates
+                addcloud4testupdates
+                ;;
+            susecloud5|GM5|GM5+up)
+                addsp3testupdates
+                add_sles12ga_testupdates
+                addcloud5testupdates
+                ;;
+            develcloud3|develcloud4)
+                addsp3testupdates
+                ;;
+            develcloud5)
+                addsp3testupdates
+                add_sles12ga_testupdates
+                ;;
+            *)
+                echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
+                exit 26
+                ;;
+        esac
+    else
+        case "$cloudsource" in
+            GM3+up)
+                addcloud3maintupdates
+                ;;
+            GM4+up)
+                addcloud4maintupdates
+                ;;
+        esac
+    fi
 }
 
 
@@ -722,43 +760,6 @@ EOF
     # setup cloud repos for tftpboot and zypper
     onadmin_prepare_cloud_repos
 
-    if [ -n "$TESTHEAD" ] ; then
-        case "$cloudsource" in
-            GM3|GM3+up)
-                addsp3testupdates
-                addcloud3testupdates
-                ;;
-            GM4|GM4+up)
-                addsp3testupdates
-                addcloud4testupdates
-                ;;
-            susecloud5|GM5|GM5+up)
-                addsp3testupdates
-                add_sles12ga_testupdates
-                addcloud5testupdates
-                ;;
-            develcloud3|develcloud4)
-                addsp3testupdates
-                ;;
-            develcloud5)
-                addsp3testupdates
-                add_sles12ga_testupdates
-                ;;
-            *)
-                echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
-                exit 26
-                ;;
-        esac
-    else
-        case "$cloudsource" in
-            GM3+up)
-                addcloud3maintupdates
-                ;;
-            GM4+up)
-                addcloud4maintupdates
-                ;;
-        esac
-    fi
     # --no-gpg-checks for Devel:Cloud repo
     zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
     zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
