@@ -539,40 +539,63 @@ function rsync_iso()
 
 function onadmin_prepare_sles12_repos()
 {
-    suse12version=12.0
-    local targetdir_install="$tftpboot_suse12_dir/install"
-    local targetdir="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
+    onadmin_prepare_sles12_repo
+    onadmin_prepare_sles12_compute_repo
 
-    if ! $longdistance ; then
-        add_mount "SLE-12-Server-Latest" \
-            "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" \
-            "$targetdir_install"
+    # These aren't available yet?
+    onadmin_prepare_sles12_other_repos
 
-        for repo in SLES12-Pool SLES12-Updates ; do
-            add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
-                "$tftpboot_repos12_dir/$repo"
-        done
-    fi
+    onadmin_create_sles12_repos
+}
 
-    if [ -n "${localreposdir_target}" ]; then
-        echo FIXME add_bind_mount "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" "$targetdir"
-    else
-        rsync_iso "$CLOUDCOMPUTEPATH" "$CLOUDCOMPUTEISO" "$targetdir"
-    fi
-
-    # create empty repository when there is none yet
+# create empty repository when there is none yet
+function onadmin_create_sles12_repos()
+{
     safely zypper -n install createrepo
-    sles12optionalrepolist="SLE-12-Cloud-Compute5-Pool SLE-12-Cloud-Compute5-Updates SLE12-Cloud-Compute-PTF SLES12-Pool"
-    for repo in $sles12optionalrepolist ; do
+    local sles12optionalrepolist=(
+        SLE-12-Cloud-Compute5-Pool
+        SLE-12-Cloud-Compute5-Updates
+        SLE12-Cloud-Compute-PTF SLES12-Pool
+    )
+    for repo in ${sles12optionalrepolist[@]}; do
         if [ ! -e "$tftpboot_repos12_dir/$repo/repodata/" ] ; then
             mkdir -p "$tftpboot_repos12_dir/$repo"
             safely createrepo "$tftpboot_repos12_dir/$repo"
         fi
     done
+}
 
-    if [ ! -e "${targetdir_install}/media.1/" ] ; then
+function onadmin_prepare_sles12_repo()
+{
+    local sles12_mount="$tftpboot_suse12_dir/install"
+    add_mount "SLE-12-Server-LATEST/sle-11-x86_64" \
+        "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" \
+        "$sles12_mount"
+
+    if [ ! -d "$sles12_mount/media.1" ] ; then
         complain 34 "We do not have SLES12 install media - giving up"
     fi
+}
+
+function onadmin_prepare_sles12_compute_repo()
+{
+    local sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
+    if [ -n "$localreposdir_target" ]; then
+        echo "FIXME: SLE12-Cloud-Compute not available from clouddata yet." >&2
+        echo "Will manually download and rsync." >&2
+        # add_mount "SLE12-Cloud-Compute" \
+        #     "clouddata.cloud.suse.de:/srv/nfs/repos/SLE12-Cloud-Compute" \
+        #     "$targetdir_install"
+    fi
+    rsync_iso "$CLOUDCOMPUTEPATH" "$CLOUDCOMPUTEISO" "$sles12_compute_mount"
+}
+
+function onadmin_prepare_sles12_other_repos()
+{
+    for repo in SLES12-GA-{Pool,Updates}; do
+        add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+            "$tftpboot_repos12_dir/$repo"
+    done
 }
 
 function download_and_mount_sles()
@@ -734,7 +757,6 @@ function onadmin_set_source_variables()
             slesmilestone=GM
         ;;
     esac
-
 }
 
 
