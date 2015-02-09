@@ -277,7 +277,9 @@ function add_mount()
         [ -n "${nfssrc}" ] && add_nfs_mount "${nfssrc}" "${targetdir}"
     fi
     if [ -n "${zypper_alias}" ]; then
+        wait_for_if_running zypper
         zypper rr "${zypper_alias}"
+        wait_for_if_running zypper
         zypper ar -f "${targetdir}" "${zypper_alias}"
     fi
 }
