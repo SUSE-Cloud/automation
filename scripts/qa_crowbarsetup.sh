@@ -1412,7 +1412,7 @@ function custom_configuration()
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['cluster:network']"
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['cluster:network']"
             fi
-            if [[ $networkingplugin = vmware ]] ; then
+            if [[ "$networkingplugin" = "vmware" ]] ; then
                 proposal_set_value neutron default "['attributes']['neutron']['vmware']['user']" "'$nsx_user'"
                 proposal_set_value neutron default "['attributes']['neutron']['vmware']['password']" "'$nsx_password'"
                 proposal_set_value neutron default "['attributes']['neutron']['vmware']['controllers']" "'$nsx_controllers'"
@@ -1583,7 +1583,7 @@ function onadmin_proposal()
     if iscloudver 5plus; then
         update_one_proposal dns default
     fi
-    if [ "$networkingplugin" = vmware ] && iscloudver 5plus ; then
+    if [ "$networkingplugin" = "vmware" ] && iscloudver 5plus ; then
         cmachines=`crowbar machines list`
         for machine in $cmachines; do
             ssh $machine 'zypper mr -p 90 SLE-Cloud-PTF'
@@ -2394,22 +2394,13 @@ function onadmin_cloudupgrade_2nd()
     fi
     crowbar provisioner proposal commit default
 
-    # Install new features
-    if iscloudver 5; then
-        update_one_proposal dns default
-        zypper --non-interactive install crowbar-barclamp-trove
-        do_one_proposal trove default
-    elif iscloudver 4; then
-        zypper --non-interactive install crowbar-barclamp-tempest
-        do_one_proposal tempest default
-    fi
-
     # Allow vendor changes for packages as we might be updating an official
     # Cloud release to something form the Devel:Cloud projects. Note: On the
     # client nodes this needs to happen after the updated provisioner
     # proposal is applied since crudini is not part of older Cloud releases.
     for node in $(crowbar machines list | grep ^d) ; do
-        ssh $node "zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install crudini; crudini --set /etc/zypp/zypp.conf main solver.allowVendorChange true"
+        echo "Enabling VendorChange on $node"
+        timeout 60 ssh $node "zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install crudini; crudini --set /etc/zypp/zypp.conf main solver.allowVendorChange true"
     done
 }
 
@@ -2438,7 +2429,7 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
     sleep 60
     waitnodes nodes
 
-    # renable and apply the openstack propsals
+    # reenable and apply the openstack propsals
     for barclamp in pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat ; do
         applied_proposals=$(crowbar "$barclamp" proposal list )
         if test "$applied_proposals" == "No current proposals"; then
@@ -2454,6 +2445,15 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
         done
     done
 
+    # Install new features
+    if iscloudver 5; then
+        update_one_proposal dns default
+        zypper --non-interactive install crowbar-barclamp-trove
+        do_one_proposal trove default
+    elif iscloudver 4; then
+        zypper --non-interactive install crowbar-barclamp-tempest
+        do_one_proposal tempest default
+    fi
 
     # TODO: restart any suspended instance?
 }
