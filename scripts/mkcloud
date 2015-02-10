@@ -416,6 +416,7 @@ function onhost_deploy_admin_image()
     pushd /tmp
     wget --progress=dot:mega -nc http://clouddata.cloud.suse.de/images/SP3-64up.qcow2
 
+    echo "Cloning admin node vdisk from SP3-64up.qcow2 ..."
     qemu-img convert -p SP3-64up.qcow2 $admin_node_disk
     popd
 
@@ -668,7 +669,11 @@ EOS
 
     echo "waiting some more for sshd+named to start"
     sleep 25
-    ssh_password $adminip "mkdir ~/.ssh ; grep -q $pubkey ~/.ssh/authorized_keys 2>/dev/null || echo ssh-dss $pubkey injected-key-from-host >> ~/.ssh/authorized_keys"
+    ssh_password $adminip "
+        mkdir -p ~/.ssh;
+        grep -q $pubkey ~/.ssh/authorized_keys 2>/dev/null ||
+            echo ssh-dss $pubkey injected-key-from-host >> ~/.ssh/authorized_keys
+    "
     echo "you can now proceed with installing crowbar"
 }
 
