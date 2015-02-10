@@ -6,6 +6,9 @@ test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
 mkcconf=mkcloud.config
 [ -e $mkcconf ] && source $mkcconf
 
+# defaults
+: ${libvirt_type:=kvm}
+
 novacontroller=
 novadashboardserver=
 clusternodesdata=
@@ -1336,7 +1339,6 @@ function custom_configuration()
         ;;
         nova)
             # custom nova config of libvirt
-            [ -n "$libvirt_type" ] || libvirt_type='kvm';
             proposal_set_value nova default "['attributes']['nova']['libvirt_type']" "'$libvirt_type'"
             proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
             [[ "$libvirt_type" = xen ]] && sed -i -e "s/nova-multi-compute-$libvirt_type/nova-multi-compute-xxx/g; s/nova-multi-compute-kvm/nova-multi-compute-$libvirt_type/g; s/nova-multi-compute-xxx/nova-multi-compute-kvm/g" $pfile
