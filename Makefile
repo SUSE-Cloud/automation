@@ -24,12 +24,20 @@ roundup:
 	cd scripts && roundup
 
 # for travis-CI:
-install:
+install: debianinstall genericinstall
+
+debianinstall:
 	sudo apt-get update -qq
 	sudo apt-get -y install libxml-libxml-perl libjson-xs-perl
+
+suseinstall:
+	sudo zypper install perl-JSON-XS perl-libxml-perl
+
+genericinstall:
 	sudo pip install bashate
 	git clone https://github.com/SUSE-Cloud/roundup && \
 	cd roundup && \
 	./configure && \
 	make && \
 	sudo make install
+
