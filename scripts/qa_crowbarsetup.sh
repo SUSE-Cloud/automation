@@ -1903,8 +1903,8 @@ function onadmin_testsetup()
         echo "ceph mons:" $cephmons
         echo "ceph osds:" $cephosds
         echo "ceph radosgw:" $cephradosgws
-        iscloudver 4plus && wantcephtestsuite=1
-        if [ -n "$cephradosgws" ] ; then
+        if iscloudver 4plus && [ -n "$cephradosgws" ] ; then
+            wantcephtestsuite=1
             wantradosgwtest=1
         fi
     fi
