@@ -314,13 +314,17 @@ function cleanup()
     # cleanup leftover from last run
     allnodenames=$(seq --format="node%.0f" 1 $(($nodenumber + 20)))
     for name in admin $allnodenames ; do
-        vm=$cloud-$name
-        if ! virsh domid $vm >/dev/null 2>&1; then
-            continue
+        local vm=$cloud-$name
+        if virsh domstate $vm 2>/dev/null | grep -q running ; then
+            virsh destroy $vm
         fi
-        virsh destroy $vm
-        machinectl terminate qemu-$cloud-$n 2>/dev/null ||: # workaround bnc#916518
-        virsh undefine $vm
+        if virsh domid $vm >/dev/null 2>&1; then
+            virsh undefine $vm
+        fi
+        local machine=qemu-$vm
+        if test -x /usr/bin/machinectl && machinectl status $machine 2>/dev/null ; then
+            machinectl terminate $machine # workaround bnc#916518
+        fi
     done
 
     local net=$cloud-admin
