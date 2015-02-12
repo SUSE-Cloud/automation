@@ -278,16 +278,8 @@ function sshrun()
         export upgrade_cloudsource=$upgrade_cloudsource ;
         export hacloud=$hacloud ;
         export libvirt_type=$libvirt_type ;
-        export net_admin=$net_admin ;
-        export net_public=$net_public ;
-        export net_fixed=$net_fixed ;
         export networkingplugin=$networkingplugin ;
         export networkingmode=$networkingmode ;
-        export nodenumber=$nodenumber ;
-        export nodenumbercompute=$nodenumbercompute ;
-        export nodenumbernetworkcluster=$nodenumbernetworkcluster ;
-        export nodenumberservicescluster=$nodenumberservicescluster ;
-        export nodenumberdatacluster=$nodenumberdatacluster ;
         export nosetestparameters=${nosetestparameters} ;
         export tempestoptions='${tempestoptions}' ;
         export cephvolumenumber=$cephvolumenumber ;
@@ -307,7 +299,7 @@ function sshrun()
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
 EOF
-    env|grep -e ^pre_ -e ^want_ >> $mkcconf
+    env|grep -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber >> $mkcconf
 
     $scp qa_crowbarsetup.sh $mkcconf root@$adminip:
     ssh $sshopts root@$adminip "$@"
