@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-test: bashate perlcheck roundup
+test: bashate perlcheck rounduptest
 
 bashate:
 	cd scripts && \
@@ -20,7 +20,7 @@ perlcheck:
 	    perl -c $$f || exit 2; \
 	done
 
-roundup:
+rounduptest:
 	cd scripts && roundup
 
 # for travis-CI:
