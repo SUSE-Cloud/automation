@@ -293,46 +293,32 @@ function add_mount()
     fi
 }
 
+function getcloudver()
+{
+    if   [[ $cloudsource =~ ^.*(cloud|GM)3(\+up)?$ ]] ; then
+        echo -n 3
+    elif [[ $cloudsource =~ ^.*(cloud|GM)4(\+up)?$ ]] ; then
+        echo -n 4
+    elif [[ $cloudsource =~ ^(.+5|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM5?)$ ]] ; then
+        echo -n 5
+    else
+        complain 11 "unknown cloudsource version"
+    fi
+}
+
 # return if cloudsource is referring a certain SUSE Cloud version
 # input1: version - 4plus refers to version 4 or later ; only a number refers to one exact version
 function iscloudver()
 {
     local v=$1
-    local bplus=""
+    local operator="="
     if [[ $v =~ plus ]] ; then
         v=${v%%plus}
-        bplus=$(($v+1))plus
+        operator="-ge"
     fi
-    case "$v" in
-        3)
-            [[ $cloudsource =~ ^.*(cloud|GM)3(\+up)?$ ]]
-            ;;
-        4)
-            [[ $cloudsource =~ ^.*(cloud|GM)4(\+up)?$ ]]
-            ;;
-        5)
-            [[ $cloudsource =~ ^(.+5|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM5?)$ ]]
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-    [ $? = 0 ] && return 0
-    if [ -n "$bplus" ] ; then
-        iscloudver $bplus
-        return $?
-    fi
-    return 1
-}
-
-function getcloudver()
-{
-    for v in $(seq 3 9) ; do
-        if iscloudver $v ; then
-            echo -n $v
-            break
-        fi
-    done
+    local ver=`getcloudver` || exit 11
+    [ "$ver" $operator "$v" ]
+    return $?
 }
 
 function export_tftpboot_repos_dir()
