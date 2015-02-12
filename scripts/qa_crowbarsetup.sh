@@ -543,7 +543,7 @@ function onadmin_prepare_sles12_repos()
     if ! $longdistance ; then
         add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" "${targetdir_install}"
 
-        for REPO in $sles12repolist ; do
+        for REPO in SLES12-Pool SLES12-Updates ; do
             add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$REPO" \
                 "$tftpboot_repos12_dir/$REPO"
         done
@@ -715,7 +715,6 @@ function onadmin_set_source_variables()
         ;;
     esac
 
-    sles12repolist="SLES12-Pool SLES12-Updates"
 }
 
 
