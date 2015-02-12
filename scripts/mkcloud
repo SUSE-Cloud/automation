@@ -184,6 +184,11 @@ pidfile=mkcloud.pid
 trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
 
+function is_suse()
+{
+    grep -qi suse /etc/*release
+}
+
 function complain() # {{{
 {
     local ex=$1; shift
@@ -449,10 +454,11 @@ function onhost_enable_ksm
 
 function prepare()
 {
-    safely zypper --non-interactive in --no-recommends \
-        libvirt kvm lvm2 curl wget bridge-utils \
-        dnsmasq netcat-openbsd ebtables
-
+    if is_suse ; then
+        safely zypper --non-interactive in --no-recommends \
+            libvirt kvm lvm2 curl wget bridge-utils \
+            dnsmasq netcat-openbsd ebtables
+    fi
     if ! [ -e ~/.ssh/id_dsa ]; then
         echo "Creating key for controlling our VMs..."
         ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
