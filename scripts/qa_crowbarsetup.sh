@@ -329,7 +329,7 @@ function getcloudver()
 {
     for v in $(seq 3 9) ; do
         if iscloudver $v ; then
-            echo $v
+            echo -n $v
             break
         fi
     done
