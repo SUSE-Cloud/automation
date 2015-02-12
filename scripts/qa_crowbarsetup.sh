@@ -644,7 +644,7 @@ function onadmin_prepare_cloud_repos()
 
     # Ensure Pool/Updates repos are always configured on admin server
     for repo in Pool Updates; do
-        name="SUSE-Cloud-$(getcloudver)-$repo"
+        name="SUSE-Cloud-$(getcloudver | sed "s/3/3.0/")-$repo"
         if ! zypper lr | grep -q "$name"; then
             safely zypper ar -f "$tftpboot_repos_dir/$name/" $name
         fi
