@@ -382,6 +382,11 @@ function addcloud5testupdates()
     add_mount "SUSE-Cloud-5-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/5/' "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" "cloudtup"
 }
 
+function addcloud5pool()
+{
+    add_mount "SUSE-Cloud-5-Pool" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-Pool/' "$tftpboot_repos_dir/SUSE-Cloud-5-Pool/" "cloudpool"
+}
+
 function add_ha_repo()
 {
     local repo
@@ -612,6 +617,7 @@ function onadmin_prepare_cloud_repos()
                 addsp3testupdates
                 add_sles12ga_testupdates
                 addcloud5testupdates
+                addcloud5pool
                 ;;
             develcloud3|develcloud4)
                 addsp3testupdates
@@ -632,6 +638,9 @@ function onadmin_prepare_cloud_repos()
                 ;;
             GM4+up)
                 addcloud4maintupdates
+                ;;
+            susecloud5|GM5|GM5+up)
+                addcloud5pool
                 ;;
         esac
     fi
@@ -863,7 +872,6 @@ function do_installcrowbar()
 
     rm -f /tmp/chef-ready
     rpm -Va crowbar\*
-    export REPOS_SKIP_CHECKS="Cloud SUSE-Cloud-1.0-Pool SUSE-Cloud-1.0-Updates"
     # run in screen to not lose session in the middle when network is reconfigured:
     screen -d -m -L /bin/bash -c "$instcmd ; touch /tmp/chef-ready"
 
