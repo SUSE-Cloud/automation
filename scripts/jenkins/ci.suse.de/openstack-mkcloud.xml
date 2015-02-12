@@ -174,7 +174,7 @@ MKCLOUDTARGET=$mkcloudtarget
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
 
 starttime=`date +%s`
-perl -e "alarm 4*60*60 ; exec '/root/bin/allocpool bash -x /root/bin/mkcloud $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
+perl -e "alarm 4*60*60 ; exec '/root/bin/allocpool bash -x /root/bin/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
 [ ${PIPESTATUS[0]} = 0 ] || exit 1 # check return code before tee
 
 [ -z "$TESTHEAD" ] &amp;&amp; exit 0

@@ -452,13 +452,17 @@ function onhost_enable_ksm
     echo 1000 > /sys/kernel/mm/ksm/pages_to_scan
 }
 
-function prepare()
+function setuphost()
 {
     if is_suse ; then
         safely zypper --non-interactive in --no-recommends \
             libvirt kvm lvm2 curl wget bridge-utils \
             dnsmasq netcat-openbsd ebtables
     fi
+}
+
+function prepare()
+{
     if ! [ -e ~/.ssh/id_dsa ]; then
         echo "Creating key for controlling our VMs..."
         ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
@@ -1254,7 +1258,7 @@ function sanity_checks()
 ## MAIN ##
 step_aliases="alias_new_admin alias_compute alias_upgrade alias_testupdate"
 
-allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
+allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
 wantedcmds=$@
 
 if [ -z "$wantedcmds" ] ; then
