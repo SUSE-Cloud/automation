@@ -325,6 +325,16 @@ function iscloudver()
     return 1
 }
 
+function getcloudver()
+{
+    for v in $(seq 3 9) ; do
+        if iscloudver $v ; then
+            echo $v
+            break
+        fi
+    done
+}
+
 function export_tftpboot_repos_dir()
 {
     tftpboot_repos_dir=/srv/tftpboot/repos
