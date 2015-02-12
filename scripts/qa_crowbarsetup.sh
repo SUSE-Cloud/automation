@@ -706,8 +706,7 @@ function onadmin_set_source_variables()
         ;;
     esac
 
-    # FIXME SLES12-Pool should be here, but it seems to be broken now
-    sles12repolist="SLES12-Updates"
+    sles12repolist="SLES12-Pool SLES12-Updates"
 }
 
 
