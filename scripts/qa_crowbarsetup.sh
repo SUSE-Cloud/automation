@@ -390,7 +390,7 @@ function addcloud5pool()
 function add_ha_repo()
 {
     local repo
-    for repo in "SLE11-HAE-SP3-Pool" "SLE11-HAE-SP3-Updates" "SLE11-HAE-SP3-Updates-test" ; do
+    for repo in SLE11-HAE-SP3-{Pool,Updates,Updates-test}; do
         if [ "$hacloud" == "2" && "$repo" == "SLE11-HAE-SP3-Updates-test" ] ; then
             continue
         fi
@@ -402,7 +402,7 @@ function add_suse_storage_repo()
 {
     if [ -n "$want_sles12" ] && iscloudver 5plus ; then
         local repo
-        for repo  in "SUSE-Enterprise-Storage-1.0-Pool" "SUSE-Enterprise-Storage-1.0-Updates"; do
+        for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
             add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "$tftpboot_repos12_dir/$repo"
         done
     else
