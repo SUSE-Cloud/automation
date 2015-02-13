@@ -437,21 +437,41 @@ function onhost_create_cloud_lvm()
     fi
 }
 
-function onhost_deploy_admin_image()
+function onhost_deploy_image()
 {
+    local image
+    local offset
+    local role=$1
+    local dist=${2:-SLE11}
+    local disk=${3:-$admin_node_disk}
+
+    case $dist in
+    SLE12)
+        image=SLES12.qcow2
+        offset=2039808
+        ;;
+    SLE11)
+        image=SP3-64up.qcow2
+        offset=2056192
+        ;;
+    *)
+        complain 71 "Error: onhost_deploy_image has not enough information about how to deploy. (distribution: $dist)"
+        ;;
+    esac
+
     pushd /tmp
     safely wget --progress=dot:mega -nc \
-        http://clouddata.cloud.suse.de/images/SP3-64up.qcow2
+        http://clouddata.cloud.suse.de/images/$image
 
-    echo "Cloning admin node vdisk from SP3-64up.qcow2 ..."
-    safely qemu-img convert -p SP3-64up.qcow2 $admin_node_disk
+    echo "Cloning $role node vdisk from $image ..."
+    safely qemu-img convert -p $image $disk
     popd
 
-    if fdisk -l $admin_node_disk | grep -q 2056192 ; then
+    if fdisk -l $disk | grep -q $offset ; then
         # make a bigger partition 2
-        echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $admin_node_disk
+        echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $disk
         loopdevice=`losetup --find`
-        losetup -o $(expr 2056192 \* 512) $loopdevice $admin_node_disk
+        losetup -o $(( $offset * 512 )) $loopdevice $disk
         safely fsck -y -f $loopdevice
         safely resize2fs $loopdevice
         sync
@@ -490,7 +510,7 @@ function prepare()
 
     onhost_enable_ksm
     onhost_create_cloud_lvm
-    onhost_deploy_admin_image
+    onhost_deploy_image "admin" "SLE11" "$admin_node_disk"
     onhost_add_etchosts_entries
 }
 
