@@ -48,6 +48,9 @@
 # nodenumber     (default 2)
 #                sets the overall number of nodes to be created
 #
+# nodenumberlonelynode (default 0)
+#                sets the number of lonely nodes to be created in the admin network
+#
 # nodenumbercompute (default $nodenumber resp. 1 in case of hacloud=1)
 #                set the number of compute nodes in a HA setup, the remaining nodes
 #                of $nodenumber - $nodenumercompute is used as HA cluster nodes
@@ -130,10 +133,13 @@ nodenumbercomputedefault=2
 : ${nodenumberdatacluster:=$nodenumberdataclusterdefault}
 : ${nodenumbernetworkcluster:=''}
 : ${nodenumberservicescluster:=''}
+: ${nodenumberlonelynode:=0}
 # '+'-separated list of MAC#serial_of_drbd_volume of the drbd cluster nodes
 : ${drbdnode_mac_vol:=''}
 : ${cephvolumenumber:=0}
-allnodeids=`seq 1 $nodenumber`
+allnodeids=`seq 1 $(( nodenumber + nodenumberlonelynode ))`
+allnodeids_without_lonely=`seq 1 $nodenumber`
+lonelynodeids=`seq $(( nodenumber + 1 )) $(( nodenumber + nodenumberlonelynode ))`
 : ${vcpus:=1}
 : ${adminvcpus:=$vcpus}
 cpuflags=''
@@ -725,6 +731,42 @@ EOS
     echo "you can now proceed with installing crowbar"
 }
 
+# bring up lonely_node(s) in the admin network
+function setuplonelynodes()
+{
+    local i
+    for i in $lonelynodeids; do
+        local mac
+        local i2=$( printf %02x $i )
+        mac="52:54:$i2:88:77:$i2"
+        local lonely_node
+        lonely_node=$cloud-node$i
+        onhost_create_libvirt_computenode_config /tmp/$lonely_node.xml $i $mac
+        # change the boot order to not PXE boot the lonely node
+        sed -i "s/boot order='1'/boot order='3'/g" /tmp/$lonely_node.xml
+
+        local lonely_disk
+        lonely_disk="$vdisk_dir/${cloud}.node$i"
+
+        if [ -n "$want_sles12" ] ; then
+            onhost_deploy_image "lonely" "SLE12" $lonely_disk
+        else
+            onhost_deploy_image "lonely" "SLE11" $lonely_disk
+        fi
+
+        virsh destroy $lonely_node
+        virsh undefine $lonely_node
+        if ! virsh define /tmp/$lonely_node.xml ; then
+            echo "=====================================================>>"
+            complain 76 "Could not define VM for: $lonely_node"
+        fi
+        if ! virsh start $lonely_node ; then
+            echo "=====================================================>>"
+            complain 76 "Could not start VM for: $lonely_node"
+        fi
+    done
+}
+
 # register lonely_node against crowbar
 function crowbar_register()
 {
@@ -883,7 +925,7 @@ function setupcompute()
 {
     setuppublicnet
     alldevices=$(echo {b..z} {a..z}{a..z})
-    for i in $allnodeids ; do
+    for i in $allnodeids_without_lonely ; do
         c=1
         i2=$( printf %02x $i )
         macaddress="52:54:$i2:77:77:$i2"
@@ -1093,7 +1135,7 @@ function usage()
     echo "  'command' is one of:"
     echo "   all instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute"
     echo "   instcompute proposal addupdaterepo runupdate testsetup rebootcrowbar "
-    echo "   rebootcompute help"
+    echo "   setuplonelynodes crowbar_register rebootcompute help"
     echo
     echo "   all      -> expands to: cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
     echo "   all_noreboot -> exp to: cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
@@ -1140,6 +1182,8 @@ function usage()
     echo "         note: proposal step does NOT contain a ceph proposal, do it manually"
     echo "   nodenumber=2    (default 2)"
     echo "       : set the number of nodes to be created (excl. admin node)"
+    echo "   nodenumberlonelynode=2    (default 0)"
+    echo "       : set the number of lonely nodes to be created in the admin network"
     echo '   nodenumbercompute=1  (default $nodenumber resp. 1 in case of hacloud=1)'
     echo "       :  set the number of compute nodes in a HA setup, the remaining nodes"
     echo '          of $nodenumber - $nodenumercompute are used as HA cluster nodes'
@@ -1297,7 +1341,7 @@ function sanity_checks()
 ## MAIN ##
 step_aliases="alias_new_admin alias_compute alias_upgrade alias_testupdate"
 
-allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
+allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register"
 wantedcmds=$@
 
 if [ -z "$wantedcmds" ] ; then
