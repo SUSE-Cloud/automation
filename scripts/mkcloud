@@ -725,6 +725,16 @@ EOS
     echo "you can now proceed with installing crowbar"
 }
 
+# register lonely_node against crowbar
+function crowbar_register()
+{
+    for i in $lonelynodeids; do
+        local i2=$( printf %02x $i )
+        local mac="52:54:$i2:88:77:$i2"
+        sshrun "crowbar_register=1 lonelymac=$mac bash -x qa_crowbarsetup.sh $virtualcloud"
+    done
+}
+
 function prepareinstcrowbar()
 {
     echo "connecting to crowbar admin server at $adminip"
