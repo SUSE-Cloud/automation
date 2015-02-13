@@ -1224,8 +1224,6 @@ function sanity_checks()
 
         nodenumbercompute=$(( $nodenumbercompute + $nodenumbercomputeoffset ))
         echo
-        echo "Waiting 20 seconds review time. Press Ctrl-C to cancel this run."
-        sleep 20
     fi
 
     vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
