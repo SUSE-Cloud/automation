@@ -622,6 +622,7 @@ function onadmin_prepare_cloud_repos()
             develcloud5)
                 addsp3testupdates
                 add_sles12ga_testupdates
+                addcloud5maintupdates
                 addcloud5pool
                 ;;
             *)
@@ -638,6 +639,7 @@ function onadmin_prepare_cloud_repos()
                 addcloud4maintupdates
                 ;;
             susecloud5|GM5|GM5+up)
+                addcloud5maintupdates
                 addcloud5pool
                 ;;
         esac
