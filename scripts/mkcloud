@@ -318,7 +318,7 @@ function cleanup()
     allnodenames=$(seq --format="node%.0f" 1 $(($nodenumber + 20)))
     for name in admin $allnodenames ; do
         local vm=$cloud-$name
-        if virsh domstate $vm 2>/dev/null | grep -q running ; then
+        if LANG=C virsh domstate $vm 2>/dev/null | grep -q running ; then
             safely virsh destroy $vm
         fi
         if virsh domid $vm >/dev/null 2>&1; then
