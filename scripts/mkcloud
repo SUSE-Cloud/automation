@@ -48,6 +48,9 @@
 # nodenumber     (default 2)
 #                sets the overall number of nodes to be created
 #
+# nodenumberlonelynode (default 0)
+#                sets the number of lonely nodes to be created in the admin network
+#
 # nodenumbercompute (default $nodenumber resp. 1 in case of hacloud=1)
 #                set the number of compute nodes in a HA setup, the remaining nodes
 #                of $nodenumber - $nodenumercompute is used as HA cluster nodes
@@ -130,10 +133,13 @@ nodenumbercomputedefault=2
 : ${nodenumberdatacluster:=$nodenumberdataclusterdefault}
 : ${nodenumbernetworkcluster:=''}
 : ${nodenumberservicescluster:=''}
+: ${nodenumberlonelynode:=0}
 # '+'-separated list of MAC#serial_of_drbd_volume of the drbd cluster nodes
 : ${drbdnode_mac_vol:=''}
 : ${cephvolumenumber:=0}
-allnodeids=`seq 1 $nodenumber`
+allnodeids=`seq 1 $(( nodenumber + nodenumberlonelynode ))`
+allnodeids_without_lonely=`seq 1 $nodenumber`
+lonelynodeids=`seq $(( nodenumber + 1 )) $(( nodenumber + nodenumberlonelynode ))`
 : ${vcpus:=1}
 : ${adminvcpus:=$vcpus}
 cpuflags=''
@@ -734,6 +740,16 @@ EOS
     echo "you can now proceed with installing crowbar"
 }
 
+# register lonely_node against crowbar
+function crowbar_register()
+{
+    for i in $lonelynodeids; do
+        local i2=$( printf %02x $i )
+        local mac="52:54:$i2:88:77:$i2"
+        sshrun "crowbar_register=1 lonelymac=$mac adminip=$adminip bash -x qa_crowbarsetup.sh $virtualcloud"
+    done
+}
+
 function prepareinstcrowbar()
 {
     echo "connecting to crowbar admin server at $adminip"
@@ -882,7 +898,7 @@ function setupcompute()
 {
     setuppublicnet
     alldevices=$(echo {b..z} {a..z}{a..z})
-    for i in $allnodeids ; do
+    for i in $allnodeids_without_lonely ; do
         c=1
         i2=$( printf %02x $i )
         macaddress="52:54:$i2:77:77:$i2"
@@ -1139,6 +1155,8 @@ function usage()
     echo "         note: proposal step does NOT contain a ceph proposal, do it manually"
     echo "   nodenumber=2    (default 2)"
     echo "       : set the number of nodes to be created (excl. admin node)"
+    echo "   nodenumberlonelynode=2    (default 0)"
+    echo "       : set the number of lonely nodes to be created in the admin network"
     echo '   nodenumbercompute=1  (default $nodenumber resp. 1 in case of hacloud=1)'
     echo "       :  set the number of compute nodes in a HA setup, the remaining nodes"
     echo '          of $nodenumber - $nodenumercompute are used as HA cluster nodes'
