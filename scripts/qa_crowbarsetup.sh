@@ -2381,6 +2381,11 @@ function prepare_cloudupgrade()
 
 function onadmin_cloudupgrade_1st()
 {
+    if iscloudver 5; then
+        # Workaround registration checks
+        echo "SUSE-Cloud-5-Pool SUSE-Cloud-5-Updates" > /etc/zypp/repos.d/ignore-repos
+    fi
+
     # Disable all openstack proposals stop service on the client
     echo 'y' | suse-cloud-upgrade upgrade
     local ret=$?
