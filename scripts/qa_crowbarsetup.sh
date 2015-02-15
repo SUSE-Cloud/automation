@@ -588,6 +588,7 @@ function onadmin_prepare_cloud_repos()
         exit 35
     fi
 
+    wait_for_if_running zypper
     zypper rr Cloud
     safely zypper ar -f ${targetdir} Cloud
 
@@ -613,6 +614,7 @@ function onadmin_prepare_cloud_repos()
             develcloud5)
                 addsp3testupdates
                 add_sles12ga_testupdates
+                addcloud5pool
                 ;;
             *)
                 echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
@@ -770,6 +772,7 @@ EOF
         add_suse_storage_repo
     fi
 
+    wait_for_if_running zypper
     safely zypper -n install rsync netcat
 
     # setup cloud repos for tftpboot and zypper
@@ -2049,7 +2052,7 @@ function onadmin_addupdaterepo()
         safely zypper -n install createrepo
         createrepo -o $UPR $UPR || exit 8
     fi
-    zypper ar $UPR cloud-ptf
+    safely zypper ar $UPR cloud-ptf
 }
 
 function onadmin_runupdate()
