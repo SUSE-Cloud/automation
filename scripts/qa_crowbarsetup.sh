@@ -2462,7 +2462,7 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
     waitnodes nodes
 
     # reenable and apply the openstack propsals
-    for barclamp in pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat ; do
+    for barclamp in pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat tempest ; do
         applied_proposals=$(crowbar "$barclamp" proposal list )
         if test "$applied_proposals" == "No current proposals"; then
             continue
