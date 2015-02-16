@@ -8,6 +8,7 @@ mkcconf=mkcloud.config
 
 # defaults
 : ${libvirt_type:=kvm}
+: ${networkingplugin:=openvswitch}
 
 novacontroller=
 novadashboardserver=
@@ -1418,6 +1419,8 @@ function custom_configuration()
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_mechanism_drivers']" "['linuxbridge']"
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_provider_network']" "'vlan'"
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_tenant_network']" "'vlan'"
+                else
+                    complain 106 "networkingplugin '$networkingplugin' not yet covered in mkcloud"
                 fi
             else
                 if [ -n "$networkingmode" ] ; then
