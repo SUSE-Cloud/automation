@@ -1335,6 +1335,12 @@ function sanity_checks()
             "Please remount it using the following command:" \
             " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
     fi
+
+    if [[ $wantedcmds =~ "setuplonelynodes" ]] ; then
+        if [[ $nodenumberlonelynode -lt 1 || -z "$nodenumberlonelynode" ]] ; then
+            complain 80 "Please set nodenumberlonelynode."
+        fi
+    fi
 }
 
 
