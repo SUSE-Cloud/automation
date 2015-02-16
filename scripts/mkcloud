@@ -345,15 +345,26 @@ function cleanup()
         ip link delete ${cloudbr}-nic
     fi
 
-    # remove all previous volumes for that cloud; this helps preventing
+    # 1. remove all loop devices that are still open for this cloud
+    local vol
+    dmsetup ls | grep "^${cloudvg}-${cloud}" | awk '{print $1}' | while read vol ; do
+        local link=`readlink /dev/mapper/$vol`
+        local dev=`cd /dev/mapper/ ; readlink -f $link`
+        local lodev=`losetup --associated $dev | cut -d":" -f1`
+        [ -z "$lodev" ] && continue
+
+        if mount | grep "$lodev " ; then
+            umount $lodev || complain 41 "Error: Can not umount $lodev to cleanup $dev ($vol)."
+        fi
+        losetup -d $lodev || complain 41 "Error: Can not remove loopdevice $lodev to cleanup $dev ($vol)."
+    done
+
+    # 2. remove all previous volumes for that cloud; this helps preventing
     # accidental booting and freeing space
     if [ -d $vdisk_dir ]; then
         find -L $vdisk_dir -name "$cloud.*" -type b | \
             xargs -r lvremove --force
     fi
-
-    losetup | awk '$6 ~ /'"$cloud-admin"'/ {print $1}' | \
-        xargs -r losetup -d
 
     rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml \
         /etc/sysconfig/network/ifcfg-$cloudbr.$public_vlan
