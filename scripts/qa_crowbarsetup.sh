@@ -1101,6 +1101,65 @@ function onadmin_waitcompute()
 }
 
 
+# register a new node with crowbar_register
+function onadmin_crowbar_register()
+{
+    wait_for 150 10 "onadmin_get_ip_from_dhcp '$lonelymac'" "complain 78 'node did not receive an IP from dhcp'"
+    local crowbar_register_node_ip=`onadmin_get_ip_from_dhcp "$lonelymac"`
+
+    [ -n "$crowbar_register_node_ip" ] || complain 84 "Could not get IP address of crowbar_register_node"
+
+    wait_for 150 10 "ping -q -c 1 -w 1 $crowbar_register_node_ip >/dev/null" "ping to return from ${cloud}-lonelynode" "complain 82 'could not ping crowbar_register VM ($crowbar_register_node_ip)'"
+
+    local pubkey=`cat /root/.ssh/id_rsa.pub`
+    ssh_password $crowbar_register_node_ip "mkdir -p /root/.ssh; echo '$pubkey' >> /root/.ssh/authorized_keys"
+
+    # call crowbar_register on the lonely node
+    local inject
+    local zyppercmd
+    local adminip
+    local adminfqdn
+    if [ -n "$want_sles12" ] ; then
+        image="suse-12.0"
+        # fix SLE12 image, as it currently contains SLED product
+        zyppercmd="zypper mr -d sle12all &&"
+    else
+        image="suse-11.3"
+        # install SuSEfirewall2 as it is called in crowbar_register
+        #FIXME in barclamp-provisioner
+        zyppercmd="zypper -n install SuSEfirewall2 &&"
+    fi
+
+    adminfqdn=`crowbar machines list | grep crowbar`
+    adminip=`knife node show $adminfqdn -a crowbar.network.admin.address | awk '{print $2}'`
+    inject="
+            rm -f /tmp/crowbar_register_done;
+            screen -d -m -L /bin/bash -c '
+            wget http://$adminip:8091/$image/crowbar_register &&
+            chmod a+x crowbar_register &&
+            $zyppercmd
+            zypper -n ref &&
+            zypper -n up &&
+            yes | ./crowbar_register --no-gpg-checks &&
+            touch /tmp/crowbar_register_done;'
+        "
+
+    ssh $crowbar_register_node_ip "$inject"
+
+    # wait for ip to be changed to a new one
+    wait_for 160 10 "! ping -q -c 1 -w 1 $crowbar_register_node_ip >/dev/null" "ping to fail from ${cloud}-lonelynode (mac: $lonelymac)." "complain 81 'crowbar_register VM did not change its IP'"
+    # get new ip from crowbar
+    sleep 10
+    local crowbar_register_node_ip_new
+    local node=`mac_to_nodename $lonelymac`
+    crowbar_register_node_ip_new=`knife node show $node -a crowbar.network.admin.address | awk '{print $2}'`
+
+    [ -n "$crowbar_register_node_ip_new" ] || complain 84 "Could not get Crowbar assigned IP address of crowbar_register_node"
+
+    wait_for 160 10 "ssh $crowbar_register_node_ip_new '[ -e /tmp/crowbar_register_done ]'" "crowbar_register on $node" "complain 83 'crowbar_register failed'"
+}
+
+
 function waitnodes()
 {
     local n=800
@@ -2577,6 +2636,10 @@ fi
 
 if [ -n "$waitcompute" ] ; then
     onadmin_waitcompute
+fi
+
+if [ -n "$crowbar_register" ] ; then
+    onadmin_crowbar_register
 fi
 
 if [ -n "$prepare_cloudupgrade" ] ; then
