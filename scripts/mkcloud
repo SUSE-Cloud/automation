@@ -1344,6 +1344,12 @@ function sanity_checks()
             "Please remount it using the following command:" \
             " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
     fi
+
+    if [[ $wantedcmds =~ "setuplonelynodes" || $wantedcmds =~ "crowbar_register" ]] ; then
+        if [[ -z "$nodenumberlonelynode" || $nodenumberlonelynode -lt 1 ]] ; then
+            complain 80 "Please set nodenumberlonelynode."
+        fi
+    fi
 }
 
 
