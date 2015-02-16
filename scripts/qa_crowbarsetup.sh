@@ -1100,6 +1100,22 @@ function onadmin_waitcompute()
     done
 }
 
+function mac_to_nodename()
+{
+    local mac=$1
+    echo "d${mac//:/-}.$cloudfqdn"
+}
+
+function onadmin_get_ip_from_dhcp()
+{
+    local mac=$1
+    local leasefile=/var/lib/dhcp/db/dhcpd.leases
+
+    egrep -o 'lease.*{|ethernet.*;' < $leasefile |\
+            awk '{print $2}' | xargs -n 2 | grep $mac |\
+            cut -d';' -f1 | sort | uniq -c | sort -n |\
+            head -n 1 | awk '{print $2}'
+}
 
 function waitnodes()
 {
