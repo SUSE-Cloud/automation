@@ -740,6 +740,42 @@ EOS
     echo "you can now proceed with installing crowbar"
 }
 
+# bring up lonely_node(s) in the admin network
+function setuplonelynodes()
+{
+    local i
+    for i in $lonelynodeids; do
+        local mac
+        local i2=$( printf %02x $i )
+        mac="52:54:$i2:88:77:$i2"
+        local lonely_node
+        lonely_node=$cloud-node$i
+        onhost_create_libvirt_computenode_config /tmp/$lonely_node.xml $i $mac
+        # change the boot order to not PXE boot the lonely node
+        sed -i "s/boot order='1'/boot order='3'/g" /tmp/$lonely_node.xml
+
+        local lonely_disk
+        lonely_disk="$vdisk_dir/${cloud}.node$i"
+
+        if [ -n "$want_sles12" ] ; then
+            onhost_deploy_image "lonely" "SLE12" $lonely_disk
+        else
+            onhost_deploy_image "lonely" "SLE11" $lonely_disk
+        fi
+
+        virsh destroy $lonely_node
+        virsh undefine $lonely_node
+        if ! virsh define /tmp/$lonely_node.xml ; then
+            echo "=====================================================>>"
+            complain 76 "Could not define VM for: $lonely_node"
+        fi
+        if ! virsh start $lonely_node ; then
+            echo "=====================================================>>"
+            complain 76 "Could not start VM for: $lonely_node"
+        fi
+    done
+}
+
 # register lonely_node against crowbar
 function crowbar_register()
 {
@@ -1108,7 +1144,7 @@ function usage()
     echo "  'command' is one of:"
     echo "   all instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute"
     echo "   instcompute proposal addupdaterepo runupdate testsetup rebootcrowbar "
-    echo "   rebootcompute help"
+    echo "   setuplonelynodes crowbar_register rebootcompute help"
     echo
     echo "   all      -> expands to: cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
     echo "   all_noreboot -> exp to: cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
@@ -1314,7 +1350,7 @@ function sanity_checks()
 ## MAIN ##
 step_aliases="alias_new_admin alias_compute alias_upgrade alias_testupdate"
 
-allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
+allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register"
 wantedcmds=$@
 
 if [ -z "$wantedcmds" ] ; then
