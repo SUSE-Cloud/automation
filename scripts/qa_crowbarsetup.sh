@@ -1112,12 +1112,12 @@ function onadmin_get_ip_from_dhcp()
     local leasefile=${2:-/var/lib/dhcp/db/dhcpd.leases}
 
     # this returns the last matching IP
-    mac=$mac perl -wne '
-        if(m/lease ([0-9.]+)/) {$ip=$1}
-        if(m/ethernet $ENV{mac}/) {$found=$ip}
+    ruby -wne '
+        /lease ([0-9.]+)/ =~ $_ and ip=$1
+        /ethernet '$mac';/ =~ $_ and found=ip
         END {
-            exit 1 unless $found;
-            print $found
+            exit 1 unless found;
+            puts found
         }' $leasefile
 }
 
