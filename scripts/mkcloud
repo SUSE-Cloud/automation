@@ -272,6 +272,14 @@ function wait_for()
     fi
 }
 
+function wait_for_if_running()
+{
+    local procname=${1}
+    local timecount=${2:-300}
+
+    wait_for $timecount 5 "! pidofproc ${procname}" "process '${procname}' to terminate"
+}
+
 function sshrun()
 {
     mkcconf=mkcloud.config
@@ -466,6 +474,7 @@ function onhost_enable_ksm
 function setuphost()
 {
     if is_suse ; then
+        wait_for_if_running zypper
         safely zypper --non-interactive in --no-recommends \
             libvirt kvm lvm2 curl wget bridge-utils \
             dnsmasq netcat-openbsd ebtables
