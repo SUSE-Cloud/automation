@@ -1115,6 +1115,7 @@ function onadmin_get_ip_from_dhcp()
             awk '{print $2}' | xargs -n 2 | grep $mac |\
             cut -d';' -f1 | sort | uniq -c | sort -n |\
             head -n 1 | awk '{print $2}'
+    return ${PIPESTATUS[3]}
 }
 
 # register a new node with crowbar_register
