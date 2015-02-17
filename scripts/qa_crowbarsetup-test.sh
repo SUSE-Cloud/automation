@@ -43,6 +43,11 @@ it_returns_correct_getcloudver() {
     test "$results" = "33445555555555"
 }
 
+it_has_correct_mac_to_nodename() {
+    results=`testfunc=mac_to_nodename bash -x ./qa_crowbarsetup.sh x 52:54:03:88:77:03`
+    test "$results" = "d52-54-03-88-77-03.x.cloud.suse.de"
+}
+
 it_parses_dhcpd_leases() {
     results=`testfunc=onadmin_get_ip_from_dhcp bash -x ./qa_crowbarsetup.sh x 52:54:03:88:77:03 test/data/dhcpd.leases`
     test "$results" = "192.168.124.26"
