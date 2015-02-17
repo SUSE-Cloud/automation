@@ -355,7 +355,7 @@ function cleanup()
 
     # 1. remove all loop devices that are still open for this cloud
     local vol
-    dmsetup ls | grep "^${cloudvg}-${cloud}" | awk '{print $1}' | while read vol ; do
+    dmsetup ls | awk "/^$cloudvg-$cloud/ {print \$1}" | while read vol ; do
         local link=`readlink /dev/mapper/$vol`
         local dev=`cd /dev/mapper/ ; readlink -f $link`
         local lodev=`losetup --associated $dev | cut -d":" -f1`
