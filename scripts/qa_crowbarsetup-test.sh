@@ -42,3 +42,11 @@ it_returns_correct_getcloudver() {
     results=`getcloudversionmatrixrow develcloud3 GM3 develcloud4 GM4 develcloud5 GM5 M3 M4 M5 Beta3 Beta4 RC3 GMC susecloud5`
     test "$results" = "33445555555555"
 }
+
+it_parses_dhcpd_leases() {
+    results=`testfunc=onadmin_get_ip_from_dhcp bash -x ./qa_crowbarsetup.sh x 52:54:03:88:77:03 test/data/dhcpd.leases`
+    test "$results" = "192.168.124.26"
+    # negative result test
+    results=`! testfunc=onadmin_get_ip_from_dhcp bash -x ./qa_crowbarsetup.sh x 52:54:03:88:77:07 test/data/dhcpd.leases`
+    test "$results" = ""
+}

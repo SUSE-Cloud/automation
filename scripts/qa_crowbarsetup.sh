@@ -1109,7 +1109,7 @@ function mac_to_nodename()
 function onadmin_get_ip_from_dhcp()
 {
     local mac=$1
-    local leasefile=/var/lib/dhcp/db/dhcpd.leases
+    local leasefile=${2:-/var/lib/dhcp/db/dhcpd.leases}
 
     egrep -o 'lease.*{|ethernet.*;' < $leasefile |\
             awk '{print $2}' | xargs -n 2 | grep $mac |\
