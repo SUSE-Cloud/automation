@@ -440,21 +440,6 @@ function cluster_node_assignment()
         for node in $L ; do
             if crowbar machines show "$node" | grep "\"macaddress\"" | grep -qi $mac ; then
                 clusternodesdata="$clusternodesdata $node"
-
-                # assign drbd volume via knife
-                local nfile
-                nfile=knife.node.${node}.json
-                knife node show ${node} -F json > $nfile
-                $ruby -e "require 'rubygems';require 'json';
-                            j=JSON.parse(STDIN.read);
-                            j['normal']['crowbar_wall']['claimed_disks'].each do |k,v|
-                                next if v.is_a? Hash and v['owner'] !~ /LVM_DRBD/;
-                                j['normal']['crowbar_wall']['claimed_disks'].delete(k);
-                            end ;
-                            j['normal']['crowbar_wall']['claimed_disks']['/dev/disk/by-id/$(get_disk_id_by_serial_and_libvirt_type "$libvirt_type" "$serial")']={'owner' => 'LVM_DRBD'};
-                            puts JSON.pretty_generate(j)" < $nfile > ${nfile}.tmp
-                mv ${nfile}.tmp ${nfile}
-                knife node from file ${nfile}
             fi
         done
         for dnode in $clusternodesdata ; do
