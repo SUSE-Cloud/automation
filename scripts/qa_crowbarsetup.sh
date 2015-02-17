@@ -1111,11 +1111,10 @@ function onadmin_get_ip_from_dhcp()
     local mac=$1
     local leasefile=${2:-/var/lib/dhcp/db/dhcpd.leases}
 
-    egrep -o 'lease.*{|ethernet.*;' < $leasefile |\
-            awk '{print $2}' | xargs -n 2 | grep $mac |\
-            cut -d';' -f1 | sort | uniq -c | sort -n |\
-            head -n 1 | awk '{print $2}'
-    return ${PIPESTATUS[3]}
+    awk '
+        /^lease/   { ip=$2 }
+        /ethernet /{ if ($3=="'$mac';") res=ip }
+        END{ if (res=="") exit 1; print res }' $leasefile
 }
 
 # register a new node with crowbar_register
