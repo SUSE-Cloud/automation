@@ -1623,7 +1623,6 @@ function set_proposalvars()
     # we can not use both swift and ceph as each grabs all disks on a node
     [[ -n "$wantceph" ]] && wantswift=
     [[ "$cephvolumenumber" -lt 1 ]] && wantswift=
-    crowbar_networking=neutron
 
     if [[ -z "$cinder_conf_volume_type" ]]; then
         if [[ -n "$wantceph" ]]; then
@@ -1690,7 +1689,7 @@ function onadmin_proposal()
         done
     fi
 
-    local proposals="pacemaker database rabbitmq keystone ceph glance cinder $crowbar_networking nova nova_dashboard swift ceilometer heat trove tempest"
+    local proposals="pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat trove tempest"
 
     local proposal
     for proposal in $proposals ; do
@@ -2535,7 +2534,7 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
     waitnodes nodes
 
     # reenable and apply the openstack propsals
-    for barclamp in pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat tempest ; do
+    for barclamp in pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat trove tempest ; do
         applied_proposals=$(crowbar "$barclamp" proposal list )
         if test "$applied_proposals" == "No current proposals"; then
             continue
