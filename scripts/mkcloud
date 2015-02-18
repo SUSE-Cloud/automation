@@ -134,6 +134,7 @@ nodenumbercomputedefault=2
 : ${nodenumbernetworkcluster:=''}
 : ${nodenumberservicescluster:=''}
 : ${nodenumberlonelynode:=0}
+export nodenumber nodenumbercompute nodenumberdatacluster nodenumbernetworkcluster nodenumberservicescluster nodenumberlonelynode
 # '+'-separated list of MAC#serial_of_drbd_volume of the drbd cluster nodes
 : ${drbdnode_mac_vol:=''}
 : ${cephvolumenumber:=0}
@@ -318,7 +319,7 @@ function sshrun()
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
 EOF
-    env|grep -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber >> $mkcconf
+    env|grep -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber | sort >> $mkcconf
 
     $scp qa_crowbarsetup.sh $mkcconf root@$adminip:
     ssh $sshopts root@$adminip "$@"
