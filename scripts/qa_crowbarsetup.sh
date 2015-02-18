@@ -622,7 +622,6 @@ function onadmin_prepare_cloud_repos()
             develcloud5)
                 addsp3testupdates
                 add_sles12ga_testupdates
-                addcloud5pool
                 ;;
             *)
                 echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
@@ -638,9 +637,19 @@ function onadmin_prepare_cloud_repos()
                 addcloud4maintupdates
                 ;;
             susecloud5|GM5|GM5+up)
+                addcloud5maintupdates
                 addcloud5pool
                 ;;
         esac
+    fi
+}
+
+
+function do_set_repos_skip_checks()
+{
+    if iscloudver 5plus && [[ $cloudsource =~ develcloud ]]; then
+	# We don't use the proper pool/updates repos when using a devel build
+        export REPOS_SKIP_CHECKS+=" SUSE-Cloud-$(getcloudver)-Pool SUSE-Cloud-$(getcloudver)-Updates"
     fi
 }
 
@@ -872,6 +881,9 @@ EOF
 function do_installcrowbar()
 {
     local instcmd=$1
+
+    do_set_repos_skip_checks
+
     cd /root # we expect the screenlog.0 file here
     echo "Command to install chef: $instcmd"
     intercept "install-chef-suse.sh"
@@ -2467,6 +2479,9 @@ function onadmin_cloudupgrade_1st()
         # Workaround registration checks
         echo "SUSE-Cloud-5-Pool SUSE-Cloud-5-Updates" > /etc/zypp/repos.d/ignore-repos
     fi
+
+    export cloudsource=$upgrade_cloudsource
+    do_set_repos_skip_checks
 
     # Disable all openstack proposals stop service on the client
     echo 'y' | suse-cloud-upgrade upgrade
