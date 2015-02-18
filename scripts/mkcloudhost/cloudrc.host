@@ -1,8 +1,10 @@
 # from mkcloud2 host
 haoffset=0
 vcloudbase=180
+vcloudname=g
 
 # from mkcloud host
 haoffset=4
 vcloudbase=172
+vcloudname=c
 
