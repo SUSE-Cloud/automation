@@ -1,0 +1,8 @@
+# from mkcloud2 host
+haoffset=0
+vcloudbase=180
+
+# from mkcloud host
+haoffset=4
+vcloudbase=172
+

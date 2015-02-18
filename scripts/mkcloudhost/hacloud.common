@@ -1,0 +1,16 @@
+i=$1
+shift
+. /root/cloud.d/cloudrc.host
+
+if [ "$i" -lt 1 -o "$i" -gt 4 ] ; then
+  echo "$i is out of range [1..4]"
+  exit 1
+fi
+
+export net_admin=192.168.$i
+export net_public=10.162.$(( vcloudbase + $i - 1 ))
+export adminnetmask=255.255.255.0
+export virtualcloud=v$(($haoffset + $i))
+export cloud=$virtualcloud
+export cloudvg=mkcvg0
+

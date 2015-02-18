@@ -1,0 +1,22 @@
+#! /bin/sh
+#
+# by Bernhard M. Wiedemann <bmwiedemann@suse.de>
+
+iptables -t nat -F PREROUTING
+echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
+. /root/cloud.d/cloudrc.host
+
+for i in $(seq 1 70) ; do
+    # map crowbar.cN.cloud crowbar IPs
+    iptables -t nat -I PREROUTING -d 10.162.$((vcloudbase+0)).$((255-$i)) -j DNAT --to-destination 192.168.$((100+$i*2)).10
+    # map dashboard.cN.cloud IPs
+    iptables -t nat -I PREROUTING -d 10.162.$((vcloudbase+1)).$((255-$i)) -j DNAT --to-destination 192.168.$((101+$i*2)).2
+done
+
+for i in $(seq 1 4) ; do
+    # map vN.cloud crowbar IPs
+    iptables -t nat -I PREROUTING -d 10.162.$((vcloudbase-1+i)).10 -j DNAT --to-destination 192.168.$i.10
+done
+for x in D I ; do
+    iptables -$x FORWARD -d 192.168.0.0/16 -j ACCEPT
+done

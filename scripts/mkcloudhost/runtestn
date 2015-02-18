@@ -19,12 +19,10 @@ export cloudvg=mkcvg0
 #export networkingplugin=linuxbridge
 #export forwardmode="route"
 #export NOQACROWBARDOWNLOAD=1
-export PARALLEL=yes
 export net_admin=192.168.$((100+$n*2))
 export net_public=192.168.$((101+$n*2))
 export adminnetmask=255.255.254.0
 export virtualcloud=c$n
 export cloud=$virtualcloud
-export PARALLEL=yes
 #exec bash -x ./mkcloud "$@"
 
