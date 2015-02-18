@@ -450,8 +450,16 @@ function cluster_node_assignment()
             fi
         done
         for dnode in $clusternodesdata ; do
+            # filter out the data cluster nodes
             L=`printf "%s\n" $L | grep -iv $dnode`
+
+            # run chef-client on the edited nodes to fill back the hidden data fields (like dmi data)
+            # this is a workaround, because the hidden node data can not be exported, imported or kept during editing
+            echo "not done yet" > ${dnode}.chef-client.ret
+            screen -d -m -L /bin/bash -c "ssh $dnode 'chef-client' ; echo \$? > ${dnode}.chef-client.ret"
         done
+        wait_for 40 15 "! cat *.chef-client.ret | grep -qv '^0$'" "all chef-clients to succeed" \
+            "cat *.chef-client.ret ; complain 73 'Error: Manually triggered chef-client run failed on at least one node.'"
     done
 
     # assign nodes to clusters
