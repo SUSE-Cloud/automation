@@ -129,14 +129,6 @@ case "$cloud" in
         vlan_fixed=563
         want_ipmi=true
     ;;
-        v1)
-                net=$netp.180
-                net_public=$netp.181
-        ;;
-        v2)
-                net=$netp.182
-                net_public=$netp.183
-        ;;
     virtual)
                 true # defaults are fine (and overridable)
     ;;
