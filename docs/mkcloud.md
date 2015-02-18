@@ -71,8 +71,8 @@ To use mkcloud the following additional steps are needed:
 
 ## mkcloud
 
-`mkcloud` can be configured using different environment variables, some of
-them are listed below, to get a complete list run `./mkcloud -h`
+`mkcloud` can be configured using different environment variables.  Some of
+them are listed below.  To get a complete list run: `./mkcloud -h`
 
 * `cloudpv`, block device used by mkcloud to put LVM partitions, these partitions
   are used to host the virtual machines. In development environments this is
