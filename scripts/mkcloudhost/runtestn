@@ -9,7 +9,7 @@ fi
 
 # workaround libvirtd disappearance:
 pidof libvirtd || /usr/local/sbin/fixlibvirt
-
+. /root/cloud.d/cloudfunc
 
 export cloudvg=mkcvg0
 #export cloudsource=GM2.0
@@ -19,8 +19,8 @@ export cloudvg=mkcvg0
 #export networkingplugin=linuxbridge
 #export forwardmode="route"
 #export NOQACROWBARDOWNLOAD=1
-export net_admin=192.168.$((100+$n*2))
-export net_public=192.168.$((101+$n*2))
+export net_admin=$(cloudadminnet $n)
+export net_public=$(cloudpublicnet $n)
 export adminnetmask=255.255.254.0
 export virtualcloud=c$n
 export cloud=$virtualcloud

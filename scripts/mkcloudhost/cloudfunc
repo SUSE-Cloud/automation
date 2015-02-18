@@ -1,0 +1,21 @@
+. /root/cloud.d/cloudrc.host
+
+# note, cloudadminnet must be in the same /23 as cloudpublicnet
+function cloudadminnet()
+{
+    n=$1
+    echo -n 192.168.$((255-2*n))
+}
+
+function cloudpublicnet()
+{
+    n=$1
+    echo -n 192.168.$((254-2*n))
+}
+
+function vcloudpublicnet()
+{
+    n=$1
+    echo -n 10.162.$((vcloudbase-1+n))
+}
+

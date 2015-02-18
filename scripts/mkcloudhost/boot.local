@@ -4,18 +4,18 @@
 
 iptables -t nat -F PREROUTING
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
-. /root/cloud.d/cloudrc.host
+. /root/cloud.d/cloudfunc
 
-for i in $(seq 1 70) ; do
+for n in $(seq 1 70) ; do
     # map crowbar.cN.cloud crowbar IPs
-    iptables -t nat -I PREROUTING -d 10.162.$((vcloudbase+0)).$((255-$i)) -j DNAT --to-destination 192.168.$((100+$i*2)).10
+    iptables -t nat -I PREROUTING -d 10.162.$((vcloudbase+0)).$((255-$n)) -j DNAT --to-destination $(cloudadminnet $n).10
     # map dashboard.cN.cloud IPs
-    iptables -t nat -I PREROUTING -d 10.162.$((vcloudbase+1)).$((255-$i)) -j DNAT --to-destination 192.168.$((101+$i*2)).2
+    iptables -t nat -I PREROUTING -d 10.162.$((vcloudbase+1)).$((255-$n)) -j DNAT --to-destination $(cloudpublicnet $n).2
 done
 
-for i in $(seq 1 4) ; do
+for n in $(seq 1 4) ; do
     # map vN.cloud crowbar IPs
-    iptables -t nat -I PREROUTING -d 10.162.$((vcloudbase-1+i)).10 -j DNAT --to-destination 192.168.$i.10
+    iptables -t nat -I PREROUTING -d $(vcloudpublicnet $n).10 -j DNAT --to-destination 192.168.$n.10
 done
 for x in D I ; do
     iptables -$x FORWARD -d 192.168.0.0/16 -j ACCEPT
