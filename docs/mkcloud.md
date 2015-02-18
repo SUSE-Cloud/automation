@@ -84,7 +84,7 @@ them are listed below, to get a complete list run `./mkcloud -h`
 * `admin_node_memory` and `compute_node_memory` define the amount of memory in
   KB assigned to the admin node and the compute nodes respectively, by default
   both variables are set to 2 GB.
-* `controller_node_memory` define the amount of memory in KB assignet to the controller
+* `controller_node_memory` define the amount of memory in KB assigned to the controller
   node, by default are set to 4 GB.
 
 # Usage
