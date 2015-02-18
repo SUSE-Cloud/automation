@@ -8,7 +8,7 @@ if [ "$n" -lt 1 -o "$n" -gt 4 ] ; then
 fi
 
 export net_admin=192.168.$n
-export net_public=10.162.$(vcloudpublicnet $n)
+export net_public=$(vcloudpublicnet $n)
 export adminnetmask=255.255.255.0
 export virtualcloud=v$(($haoffset + $n))
 export cloud=$virtualcloud
