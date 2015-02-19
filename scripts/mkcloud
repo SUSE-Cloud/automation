@@ -1418,7 +1418,7 @@ function expand_steps()
 }
 
 steplist=`expand_steps $wantedcmds`
-[ -z "$steplist" ] && usage
+[ -z "$steplist" ] || [[ "$steplist" =~ "help" ]] && usage
 
 sanity_checks
 
