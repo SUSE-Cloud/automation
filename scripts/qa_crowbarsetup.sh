@@ -2569,6 +2569,20 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
     # TODO: restart any suspended instance?
 }
 
+function onadmin_cloudbackup()
+{
+    AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup backup /tmp/backup-crowbar.tar.gz
+}
+
+function onadmin_cloudrestore()
+{
+    AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup purge
+    # Need to install crowbar-backup again as purge deletes it
+    safely zypper --non-interactive in --no-recommends crowbar
+
+    AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup restore /tmp/backup-crowbar.tar.gz
+}
+
 function onadmin_qa_test()
 {
     zypper -n in -y python-{keystone,nova,glance,heat,cinder,ceilometer}client
@@ -2680,6 +2694,14 @@ fi
 
 if [ -n "$cloudupgrade_reboot_and_redeploy_clients" ] ; then
     onadmin_cloudupgrade_reboot_and_redeploy_clients
+fi
+
+if [ -n "$cloudbackup" ] ; then
+    onadmin_cloudbackup
+fi
+
+if [ -n "$cloudrestore" ] ; then
+    onadmin_cloudrestore
 fi
 
 set_proposalvars

@@ -1094,7 +1094,7 @@ function qa_test()
 
 function crowbarbackup()
 {
-    sshrun "AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup backup /tmp/backup-crowbar.tar.gz"
+    sshrun "cloudbackup=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     ret=$?
     $scp root@$adminip:/tmp/backup-crowbar.tar.gz .
     [ -d "$artifacts_dir" ] && mv backup-crowbar.tar.gz "$artifacts_dir/"
@@ -1110,12 +1110,8 @@ function crowbarrestore()
         return 56
     fi
     $scp "$btarball" root@$adminip:/tmp/
-    sshrun "AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup purge"
-    # Need to install crowbar-backup again as purge deletes it
-    sshrun "zypper --non-interactive in --no-recommends crowbar"
-    sshrun "AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup restore /tmp/backup-crowbar.tar.gz"
-    ret=$?
-    return $ret
+    sshrun "cloudrestore=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    return $?
 }
 
 function prepare_cloudupgrade()
