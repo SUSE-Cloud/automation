@@ -282,8 +282,8 @@ function wait_for()
     echo
 
     if [ $n = 0 ] ; then
-        complain 11 "Waiting for '$waitfor' timed out." \
-            "This check was used: $condition"
+        complain 11 "Waiting for '$waitfor' timed out
+            This check was used: $condition"
     fi
 }
 
@@ -1254,14 +1254,14 @@ function is_concurrent_run()
 function sanity_checks()
 {
     if test `id -u` != 0 ; then
-        complain 1 "This script needs to be run as root" \
-            "Please be aware that this script will create a LVM" \
-            "and kill all current VMs on this host."
+        complain 1 "This script needs to be run as root
+            Please be aware that this script will create a LVM
+            and kill all current VMs on this host."
     fi
 
     if is_concurrent_run; then
-        complain 33 "mkcloud was started twice from same working directory: `pwd`" \
-            "Please always use a separate working directory for each (parallel) mkcloud run."
+        complain 33 "mkcloud was started twice from same working directory: `pwd`
+            Please always use a separate working directory for each (parallel) mkcloud run."
     fi
 
     # test for existence of qa_crowbarsetup.sh
@@ -1337,22 +1337,22 @@ function sanity_checks()
             complain 92 "The device $cloudpv seems to be used. Exiting."
         fi
         if [ ! -e $cloudpv ] ; then
-            complain 93 "$cloudpv does not exist." \
-                "Please set the cloud volume group to an existing device: export cloudpv=/dev/sdx" \
-                "Running 'partprobe' may help to let the device appear."
+            complain 93 "$cloudpv does not exist.
+                Please set the cloud volume group to an existing device: export cloudpv=/dev/sdx
+                Running 'partprobe' may help to let the device appear."
         fi
     fi
 
     if [ -e /etc/init.d/SuSEfirewall2_init ] && rcSuSEfirewall2 status ; then
-        complain 91 "SuSEfirewall is running - it will interfere with the iptables rules done by libvirt" \
-            "Please stop the SuSEfirewall completely and run mkcloud again" \
-            "Run:  rcSuSEfirewall2 stop && insserv -r SuSEfirewall2_setup && insserv -r SuSEfirewall2_init"
+        complain 91 "SuSEfirewall is running - it will interfere with the iptables rules done by libvirt
+            Please stop the SuSEfirewall completely and run mkcloud again
+            Run:  rcSuSEfirewall2 stop && insserv -r SuSEfirewall2_setup && insserv -r SuSEfirewall2_init"
     fi
 
     if grep "devpts.*[^x]mode=.00" /proc/mounts ; then
-        complain 13 "/dev/pts is not accessible for libvirt, maybe you use autobuild on your system." \
-            "Please remount it using the following command:" \
-            " # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
+        complain 13 "/dev/pts is not accessible for libvirt, maybe you use autobuild on your system.
+            Please remount it using the following command:
+            # mount -o remount,mode=620,gid=5 devpts -t devpts /dev/pts"
     fi
 
     if [[ $wantedcmds =~ "setuplonelynodes" || $wantedcmds =~ "crowbar_register" ]] ; then
