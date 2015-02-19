@@ -2577,8 +2577,11 @@ function onadmin_cloudbackup()
 function onadmin_cloudrestore()
 {
     AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup purge
+
     # Need to install crowbar-backup again as purge deletes it
     safely zypper --non-interactive in --no-recommends crowbar
+
+    do_set_repos_skip_checks
 
     AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup restore /tmp/backup-crowbar.tar.gz
 }
