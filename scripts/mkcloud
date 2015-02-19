@@ -1106,8 +1106,7 @@ function crowbarrestore()
     btarball=backup-crowbar.tar.gz
     [ -e "$artifacts_dir/$btarball" ] && btarball="$artifacts_dir/$btarball"
     if [ ! -e "$btarball" ] ; then
-        echo "No crowbar backup tarball found."
-        return 56
+        complain 56 "No crowbar backup tarball found."
     fi
     $scp "$btarball" root@$adminip:/tmp/
     sshrun "cloudrestore=1 bash -x qa_crowbarsetup.sh $virtualcloud"
