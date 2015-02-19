@@ -60,6 +60,10 @@
 # adminvcpus     (default $vcpus)
 #                sets the number of CPU cores assigned to admin node
 # public_vlan    VLAN id for public network (default 300)
+# install_chef_suse_override (default ./install-chef-suse.sh)
+#                Optional path to an alternate version of install-chef-suse.sh
+#                on the mkcloud host to use instead of the one from the
+#                packages.  This will be scp'd to the admin node before use.
 #
 # UNDOCUMENTED OPTIONS:
 #
@@ -178,6 +182,7 @@ scp="scp $sshopts"
 #localreposdir_target is the 9p target dir and also the mount target dir in the VM
 : ${localreposdir_target:="/repositories"}
 [ -z "$localreposdir_src" ] && localreposdir_target=""
+: ${install_chef_suse_override:=./install-chef-suse.sh}
 
 emulator=/usr/bin/qemu-system-$(uname -m)
 if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
@@ -798,10 +803,17 @@ function prepareinstcrowbar()
     return $?
 }
 
+function scp_install_chef_suse_override()
+{
+    if [ -e "$install_chef_suse_override" ]; then
+        $scp -p "$install_chef_suse_override" \
+            root@$adminip:/tmp/install-chef-suse.sh
+    fi
+}
+
 function instcrowbar()
 {
-    # copy local install-chef-suse.sh, if it exist it will override the original one:
-    $scp -p install-chef-suse.sh root@$adminip:/tmp/
+    scp_install_chef_suse_override
     sshrun "echo `hostname` > cloud ; installcrowbar=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     local ret=$?
     $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
@@ -810,8 +822,7 @@ function instcrowbar()
 
 function instcrowbarfromgit()
 {
-    # copy local install-chef-suse.sh, if it exist it will override the original one:
-    $scp -p install-chef-suse.sh root@$adminip:/tmp/
+    scp_install_chef_suse_override
     sshrun "echo `hostname` > cloud ; installcrowbarfromgit=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     local ret=$?
     $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
