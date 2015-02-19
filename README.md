@@ -8,8 +8,14 @@ This project has several scripts for different automated tasks, some of them are
 
 * create-vm.sh, creates a fresh KVM VM via libvirt.
 * crowbar-prep.sh, prepare a host for Crowbar admin node installation.
-* [mkcloud.sh](docs/mkcloud.md), script used to build a SUSE Cloud environment
+* [`/scripts/mkcloud`](docs/mkcloud.md), script used to build a SUSE Cloud environment
   for development or testing purposes.
+
+# Documentation
+
+Find out more about configuration/usage
+
+* [`/scripts/mkcloud`](docs/mkcloud.md)
 
 # Contributing
 
