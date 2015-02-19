@@ -10,7 +10,7 @@
 
 # Quick introduction:
 #
-# This tool relies on the script qa_crowbarsetup.sh (in the same directory)
+# This tool relies on the script qa_crowbarsetup.sh
 # Please 'export' environment variables according to your needs:
 #
 # Either 'cloudvg' or 'cloudpv' must be set.
@@ -64,6 +64,8 @@
 #                Optional path to an alternate version of install-chef-suse.sh
 #                on the mkcloud host to use instead of the one from the
 #                packages.  This will be scp'd to the admin node before use.
+#
+# qa_crowbarsetup (default /path/to/gitclone) set an optional path to qa_crowbarsetup.sh
 #
 # UNDOCUMENTED OPTIONS:
 #
@@ -119,6 +121,7 @@ fi
 # causes of this is violation of the common shell coding standard which
 # uses uppercase for environment variables and constants, and lowercase
 # for local variables.
+: ${qa_crowbarsetup:=$(dirname $0)/qa_crowbarsetup.sh}
 : ${virtualcloud:=virtual}
 : ${cloudfqdn:=$virtualcloud.cloud.suse.de}
 : ${forwardmode:=nat}
@@ -326,7 +329,7 @@ function sshrun()
 EOF
     env|grep -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber | sort >> $mkcconf
 
-    $scp qa_crowbarsetup.sh $mkcconf root@$adminip:
+    $scp $qa_crowbarsetup $mkcconf root@$adminip:
     ssh $sshopts root@$adminip "$@"
     return $?
 }
@@ -1261,16 +1264,11 @@ function sanity_checks()
             "Please always use a separate working directory for each (parallel) mkcloud run."
     fi
 
-    # always fetch the latest version
-    if [ -z "$NOQACROWBARDOWNLOAD" ] ; then
-        #wget -O qa_crowbarsetup.sh "https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
-        # Switch to curl as wget has an issue with github: https://github.com/netz98/n98-magerun/issues/75
-        curl -s -o qa_crowbarsetup.sh "https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
-    fi
-
-    if [ ! -e qa_crowbarsetup.sh ] ; then
-        complain 87 "qa_crowbarsetup.sh not found in same directory" \
-            "Please put the latest version of this script in the same directory."
+    # test for existence of qa_crowbarsetup.sh
+    if [ ! -e $qa_crowbarsetup ] ; then
+        complain 87 "$qa_crowbarsetup not found
+            Please define the path to it by setting qa_crowbarsetup=/path/to/file
+            or call mkcloud from your git clone."
     fi
 
     if [ -z "$cloudsource" ] ; then
