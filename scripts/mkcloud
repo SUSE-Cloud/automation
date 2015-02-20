@@ -489,7 +489,6 @@ function onhost_deploy_image()
         losetup -o $(( $offset * 512 )) $loopdevice $disk
         safely fsck -y -f $loopdevice
         safely resize2fs $loopdevice
-        sync
         losetup -d $loopdevice
     fi
 }
@@ -680,7 +679,6 @@ function setupadmin()
         cat $keyfile >> $mnt/root/.ssh/authorized_keys
     fi
     safely umount $mnt
-    sync
 
     onhost_create_libvirt_adminnode_config /tmp/$cloud-admin.xml
 
