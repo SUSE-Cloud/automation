@@ -510,9 +510,10 @@ function setuphost()
 {
     if is_suse ; then
         wait_for_if_running zypper
-        safely zypper --non-interactive in --no-recommends \
+        zypper --non-interactive in --no-recommends \
             libvirt kvm lvm2 curl wget bridge-utils \
             dnsmasq netcat-openbsd ebtables
+        [ "$?" != 0 -a "$?" != 4 ] && exit 10
     fi
 }
 
