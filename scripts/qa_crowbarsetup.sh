@@ -4,7 +4,9 @@
 test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
 
 mkcconf=mkcloud.config
-[ -e $mkcconf ] && source $mkcconf
+if [ -z "$testfunc" ] && [ -e $mkcconf ]; then
+    source $mkcconf
+fi
 
 # defaults
 : ${libvirt_type:=kvm}
