@@ -10,7 +10,7 @@ bashate:
 	do \
 	    echo "checking $$f"; \
 	    bash -n $$f || exit 3; \
-	    bashate --ignore E010,E020 $$f || exit 4; \
+	    bashate --ignore E010,E011,E020 $$f || exit 4; \
 	done
 
 perlcheck:

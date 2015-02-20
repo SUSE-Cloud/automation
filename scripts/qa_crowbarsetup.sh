@@ -376,7 +376,8 @@ function add_ha_repo()
         fi
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "$tftpboot_repos_dir/$repo"
+        add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+            "$tftpboot_repos_dir/$repo"
     done
 }
 
@@ -387,7 +388,8 @@ function add_suse_storage_repo()
         for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
             # Note no zypper alias parameter here since we don't want
             # to zypper addrepo on the admin node.
-            add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" "$tftpboot_repos12_dir/$repo"
+            add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+                "$tftpboot_repos12_dir/$repo"
         done
     else
         echo "Error: You need SLE12 and SUSE Cloud >= 5 to setup storage repos."
@@ -479,20 +481,29 @@ function onadmin_prepare_sles_repos()
     local targetdir_install="$tftpboot_suse_dir/install"
 
     if [ -n "${localreposdir_target}" ]; then
-        add_mount "SUSE-Cloud-SLE-11-SP3-deps/sle-11-x86_64/" "" "${targetdir_install}" "Cloud-Deps"
+        add_mount "SUSE-Cloud-SLE-11-SP3-deps/sle-11-x86_64/" "" \
+            "${targetdir_install}" "Cloud-Deps"
         zypper_refresh
     else
-        zypper se -s sles-release|grep -v -e "sp.up\s*$" -e "(System Packages)" |grep -q x86_64 || zypper ar http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ sles
+        zypper se -s sles-release | \
+            grep -v -e "sp.up\s*$" -e "(System Packages)" | \
+            grep -q x86_64 \
+        || zypper ar \
+            http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ \
+            sles
 
         if ! $longdistance ; then
-            add_mount "" "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" "${targetdir_install}"
+            add_mount "" \
+                "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" \
+                "$targetdir_install"
         fi
 
         local repo
         for repo in $slesrepolist ; do
             local zypprepo=""
             [ "$WITHSLEUPDATES" != "" ] && zypprepo="$repo"
-            add_mount "$zypprepo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+            add_mount "$zypprepo" \
+                "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
                 "$tftpboot_repos_dir/$repo"
         done
 
@@ -518,9 +529,10 @@ function rsync_iso()
         wget --progress=dot:mega -r -np -nc -A "$distiso" \
             http://$susedownload$distpath/ \
         || complain 71 "iso not found"
-        local cloudiso=$(ls */$distpath/*.iso|tail -1)
+        local cloudiso=$(ls */$distpath/*.iso | tail -1)
         mount -o loop,ro -t iso9660 $cloudiso /mnt/cloud
-        rsync -av --delete-after /mnt/cloud/ . ; umount /mnt/cloud
+        rsync -av --delete-after /mnt/cloud/ .
+        umount /mnt/cloud
         echo $cloudiso > isoversion
     )
 }
@@ -532,7 +544,9 @@ function onadmin_prepare_sles12_repos()
     local targetdir="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
 
     if ! $longdistance ; then
-        add_mount "SLE-12-Server-Latest" "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" "${targetdir_install}"
+        add_mount "SLE-12-Server-Latest" \
+            "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" \
+            "$targetdir_install"
 
         for repo in SLES12-Pool SLES12-Updates ; do
             add_mount "" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
@@ -582,13 +596,16 @@ function onadmin_prepare_cloud_repos()
     mkdir -p ${targetdir}
 
     if [ -n "${localreposdir_target}" ]; then
-        add_bind_mount "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" "${targetdir}"
+        add_bind_mount \
+            "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" \
+            "${targetdir}"
         echo $CLOUDLOCALREPOS > /etc/cloudversion
     else
         rsync_iso "$CLOUDDISTPATH" "$CLOUDDISTISO" "$targetdir"
         cat "$targetdir/isoversion" > /etc/cloudversion
     fi
-    echo -n "This cloud was installed on `cat ~/cloud` from: " | cat - /etc/cloudversion >> /etc/motd
+    echo -n "This cloud was installed on `cat ~/cloud` from: " | \
+        cat - /etc/cloudversion >> /etc/motd
     echo $cloudsource > /etc/cloudsource
 
     if [ ! -e "${targetdir}/media.1" ] ; then
@@ -751,18 +768,22 @@ BROADCAST='$net.255'
 EOF
     ifdown br0
     rm -f /etc/sysconfig/network/ifcfg-br0
-    grep -q "^default" /etc/sysconfig/network/routes || echo "default $net.1 - -" > /etc/sysconfig/network/routes
+    grep -q "^default" /etc/sysconfig/network/routes || \
+        echo "default $net.1 - -" > /etc/sysconfig/network/routes
     echo "crowbar.$cloudfqdn" > /etc/HOSTNAME
     hostname `cat /etc/HOSTNAME`
     # these vars are used by rabbitmq
     export HOSTNAME=`cat /etc/HOSTNAME`
     export HOST=$HOSTNAME
-    grep -q "$net.*crowbar" /etc/hosts || echo $net.10 crowbar.$cloudfqdn crowbar >> /etc/hosts
+    grep -q "$net.*crowbar" /etc/hosts || \
+        echo $net.10 crowbar.$cloudfqdn crowbar >> /etc/hosts
     rcnetwork restart
     hostname -f # make sure it is a FQDN
     ping -c 1 `hostname -f`
     longdistance=${longdistance:-false}
-    if [[ $(ping -q -c1 clouddata.cloud.suse.de|perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') -gt 100 ]] ; then
+    if [[ $(ping -q -c1 clouddata.cloud.suse.de |
+            perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') -gt 100 ]]
+    then
         longdistance=true
     fi
 
@@ -936,7 +957,10 @@ EOF
     [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
     sleep 20
-    if ! curl -m 59 -s http://localhost:3000 > /dev/null || ! curl -m 59 -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
+    if ! curl -m 59 -s http://localhost:3000 > /dev/null || \
+        ! curl -m 59 -s --digest --user crowbar:crowbar localhost:3000 | \
+        grep -q /nodes/crowbar
+    then
         tail -n 90 /root/screenlog.0
         complain 84 "crowbar self-test failed"
     fi
@@ -970,13 +994,20 @@ EOF
 
 function onadmin_installcrowbarfromgit()
 {
-    do_installcrowbar "CROWBAR_FROM_GIT=1 /opt/dell/bin/install-chef-suse.sh --from-git --verbose"
+    do_installcrowbar \
+        "CROWBAR_FROM_GIT=1
+            /opt/dell/bin/install-chef-suse.sh --from-git --verbose"
 }
 
 function onadmin_installcrowbar()
 {
     pre_hook $FUNCNAME
-    do_installcrowbar "if [ -e /tmp/install-chef-suse.sh ] ; then /tmp/install-chef-suse.sh --verbose ; else /opt/dell/bin/install-chef-suse.sh --verbose ; fi"
+    do_installcrowbar "
+        if [ -e /tmp/install-chef-suse.sh ]; then
+            /tmp/install-chef-suse.sh --verbose;
+        else
+            /opt/dell/bin/install-chef-suse.sh --verbose
+        fi"
 }
 
 # set a node's role and platform
@@ -1002,7 +1033,16 @@ function onadmin_allocate()
         do_one_proposal ipmi default
         local nodelist=$(seq 1 $nodenumber)
         local i
-        local bmc_start=$(crowbar network proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['attributes']['network']['networks']['bmc']['ranges']['host']['start']")
+        local bmc_start=$(
+            crowbar network proposal show default | \
+            $ruby -e "
+                require 'rubygems'
+                require 'json'
+                json = JSON.parse(STDIN.read)
+                networks = json['attributes']['network']['networks']
+                puts networks['bmc']['ranges']['host']['start']
+            "
+        )
         IFS=. read ip1 ip2 ip3 ip4 <<< "$bmc_start"
         local bmc_net="$ip1.$ip2.$ip3"
         for i in $nodelist ; do
@@ -1020,16 +1060,21 @@ function onadmin_allocate()
     echo "Waiting for nodes to come up..."
     while ! crowbar machines list | grep ^d ; do sleep 10 ; done
     echo "Found one node"
-    while test $(crowbar machines list | grep ^d|wc -l) -lt $nodenumber ; do sleep 10 ; done
+    while test $(crowbar machines list | grep ^d|wc -l) -lt $nodenumber; do
+        sleep 10
+    done
     local nodes=$(crowbar machines list | grep ^d)
     local n
     for n in `crowbar machines list | grep ^d` ; do
-        wait_for 100 2 "knife node show -a state $n | grep discovered" "node to enter discovered state"
+        wait_for 100 2 "knife node show -a state $n | grep discovered" \
+            "node to enter discovered state"
     done
     echo "Sleeping 50 more seconds..."
     sleep 50
     echo "Setting first node to controller..."
-    local controllernode=$(crowbar machines list | LC_ALL=C sort | grep ^d | head -n 1)
+    local controllernode=$(
+        crowbar machines list | LC_ALL=C sort | grep ^d | head -n 1
+    )
     local t=$(mktemp).json
 
     knife node show -F json $controllernode > $t
@@ -1039,7 +1084,9 @@ function onadmin_allocate()
 
     if [ -n "$want_sles12" ] && iscloudver 5plus ; then
 
-        local nodes=( $(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 2) )
+        local nodes=(
+            $(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 2)
+        )
         if [ -n "$wantceph" ] ; then
             echo "Setting second last node to SLE12 Storage..."
             set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
@@ -1051,7 +1098,9 @@ function onadmin_allocate()
 
     if [ -n "$wanthyperv" ] ; then
         echo "Setting last node to Hyper-V compute..."
-        local computenode=$(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 1)
+        local computenode=$(
+            crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 1
+        )
         set_node_role_and_platform $computenode "compute" "hyperv-6.3"
     fi
 
@@ -1065,7 +1114,8 @@ function onadmin_allocate()
     done
 
     # check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
-    curl -m 9 -s --digest --user crowbar:crowbar http://localhost:3000| tee /root/crowbartest.out
+    curl -m 9 -s --digest --user crowbar:crowbar http://localhost:3000 | \
+        tee /root/crowbartest.out
     if grep -q "Exception caught" /root/crowbartest.out; then
         complain 27 "simple crowbar test failed"
     fi
@@ -1099,7 +1149,9 @@ function onadmin_waitcompute()
     pre_hook $FUNCNAME
     local node
     for node in $(crowbar machines list | grep ^d) ; do
-        wait_for 200 10 "netcat -w 3 -z $node 3389 || sshtest $node rpm -q yast2-core" "node $node" "check_node_resolvconf $node; exit 12"
+        wait_for 200 10 \
+            "netcat -w 3 -z $node 3389 || sshtest $node rpm -q yast2-core" \
+            "node $node" "check_node_resolvconf $node; exit 12"
         echo "node $node ready"
     done
 }
@@ -1202,7 +1254,11 @@ function waitnodes()
                     n=$((n-1))
                     echo -n "."
                 done
-                n=500 ; while test $n -gt 0 && ! netcat -w 3 -z $i 22 && ! netcat -w 3 -z $i 3389  ; do
+                n=500
+                while test $n -gt 0 && \
+                    ! netcat -w 3 -z $i 22 && \
+                    ! netcat -w 3 -z $i 3389
+                do
                     sleep 1
                     n=$(($n - 1))
                     echo -n "."
@@ -1214,9 +1270,18 @@ function waitnodes()
             echo -n "Waiting for proposal $proposal($proposaltype) to get successful: "
             local proposalstatus=''
             while test $n -gt 0 && ! test "x$proposalstatus" = "xsuccess" ; do
-                proposalstatus=`crowbar $proposal proposal show $proposaltype | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
+                proposalstatus=$(
+                    crowbar $proposal proposal show $proposaltype | \
+                    $ruby -e "
+                        require 'rubygems'
+                        require 'json'
+                        json = JSON.parse(STDIN.read)
+                        puts json['deployment']['$proposal']['crowbar-status']"
+                )
                 if test "x$proposalstatus" = "xfailed" ; then
-                    tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
+                    tail -n 90 \
+                        /opt/dell/crowbar_framework/log/d*.log \
+                        /var/log/crowbar/chef-client/d*.log
                     complain 40 "Error: proposal $proposal failed. Exiting."
                 fi
                 sleep 5
@@ -1254,10 +1319,13 @@ function proposal_modify_value()
 
     local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
 
-    $ruby -e   "require 'rubygems';require 'json';
-                j=JSON.parse(STDIN.read);
-                j${variable}${operator}${value};
-                puts JSON.pretty_generate(j)" < $pfile > ${pfile}.tmp
+    $ruby -e "
+        require 'rubygems'
+        require 'json'
+        j = JSON.parse(STDIN.read)
+        j${variable}${operator}${value}
+        puts JSON.pretty_generate(j)
+    " < $pfile > ${pfile}.tmp
     mv ${pfile}.tmp ${pfile}
 }
 
@@ -1310,18 +1378,24 @@ function hacloud_configure_cluster_defaults()
 
     nodes=`printf "\"%s\"," $@`
     nodes="[ ${nodes%,} ]"
-    proposal_set_value pacemaker "$clustertype" "['deployment']['pacemaker']['elements']['pacemaker-cluster-member']" "$nodes"
+    proposal_set_value pacemaker "$clustertype" \
+        "['deployment']['pacemaker']['elements']['pacemaker-cluster-member']" "$nodes"
 
     if [[ "configuration" = "with per_node" ]] ; then
         for node in $@; do
-            proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']" "{}"
-            proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']['params']" "''"
+            proposal_set_value pacemaker "$clustertype" \
+                "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']" "{}"
+            proposal_set_value pacemaker "$clustertype" \
+                "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']['params']" "''"
         done
     fi
 
-    proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
-    proposal_set_value pacemaker "$clustertype" "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$mkcloudhostip'"
-    proposal_set_value pacemaker "$clustertype" "['description']" "'Pacemaker $clustertype cluster'"
+    proposal_set_value pacemaker "$clustertype" \
+        "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
+    proposal_set_value pacemaker "$clustertype" \
+        "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$mkcloudhostip'"
+    proposal_set_value pacemaker "$clustertype" \
+        "['description']" "'Pacemaker $clustertype cluster'"
 }
 
 function hacloud_configure_data_cluster()
