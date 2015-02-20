@@ -1131,6 +1131,9 @@ function onadmin_crowbar_register()
 
     wait_for 150 10 "ping -q -c 1 -w 1 $crowbar_register_node_ip >/dev/null" "ping to return from ${cloud}-lonelynode" "complain 82 'could not ping crowbar_register VM ($crowbar_register_node_ip)'"
 
+    # wait a bit for sshd.service on ${cloud}-lonelynode
+    wait_for 10 10 "ssh_password $crowbar_register_node_ip 'echo'" "ssh to be running on ${cloud}-lonelynode" "complain 82 'sshd is not responding on ($crowbar_register_node_ip)'"
+
     local pubkey=`cat /root/.ssh/id_rsa.pub`
     ssh_password $crowbar_register_node_ip "mkdir -p /root/.ssh; echo '$pubkey' >> /root/.ssh/authorized_keys"
 
