@@ -24,5 +24,6 @@ export net_public=$(cloudpublicnet $n)
 export adminnetmask=255.255.254.0
 export virtualcloud=$vcloudname$n
 export cloud=$virtualcloud
+export NOSETUPPORTFORWARDING=1
 #exec bash -x ./mkcloud "$@"
 
