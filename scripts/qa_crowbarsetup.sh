@@ -2160,7 +2160,8 @@ function onadmin_addupdaterepo()
         safely zypper -n install createrepo
         createrepo -o $UPR $UPR || exit 8
     fi
-    safely zypper ar $UPR cloud-ptf
+    zypper modifyrepo -e cloud-ptf >/dev/null 2>&1 ||\
+        safely zypper ar $UPR cloud-ptf
 }
 
 function onadmin_runupdate()
