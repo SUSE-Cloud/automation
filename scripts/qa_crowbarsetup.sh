@@ -744,11 +744,19 @@ function zypper_refresh()
     safely zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
 }
 
+function onadmin_repocleanup()
+{
+    # Workaround broken admin image that has SP3 Test update channel enabled
+    zypper mr -d sp3tup
+    # disable extra repos
+    zypper mr -d sp3sdk
+}
 
 # setup network/DNS, add repos and install crowbar packages
 function onadmin_prepareinstallcrowbar()
 {
     pre_hook $FUNCNAME
+    onadmin_repocleanup
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
     cat > /etc/sysconfig/network/ifcfg-eth0 <<EOF
 NAME='eth0'
@@ -812,8 +820,6 @@ EOF
     zypper_refresh
 
     zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
-    # disable extra repos
-    zypper mr -d sp3sdk
 
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
         zypper --no-gpg-checks -n in -l -t pattern cloud_admin
@@ -2166,8 +2172,7 @@ function onadmin_addupdaterepo()
 
 function onadmin_runupdate()
 {
-    # Workaround broken admin image that has SP3 Test update channel enabled
-    zypper mr -d sp3tup
+    onadmin_repocleanup
 
     pre_hook $FUNCNAME
 
