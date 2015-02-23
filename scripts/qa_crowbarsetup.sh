@@ -1642,7 +1642,7 @@ function set_proposalvars()
     iscloudver 4plus && wanttempest=1
     [[ "$want_tempest" = 0 ]] && wanttempest=
 
-    iscloudver 5 && {
+    iscloudver 5 && [ -n "$want_sles12" ] && {
         echo "WARNING: swift currently disabled, because openstack-swift packages for SLES12 are missing"
         wantswift=
     }
