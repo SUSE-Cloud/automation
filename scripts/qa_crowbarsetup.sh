@@ -1642,11 +1642,6 @@ function set_proposalvars()
     iscloudver 4plus && wanttempest=1
     [[ "$want_tempest" = 0 ]] && wanttempest=
 
-    iscloudver 5 && {
-        echo "WARNING: swift currently disabled, because openstack-swift packages for SLES12 are missing"
-        wantswift=
-    }
-
     [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
     # we can not use both swift and ceph as each grabs all disks on a node
     [[ -n "$wantceph" ]] && wantswift=
