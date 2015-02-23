@@ -1851,7 +1851,10 @@ function oncontroller_testsetup()
     tempestret=0
     if [ "$wanttempest" = "1" ]; then
         # Upload a Heat-enabled image
-        glance image-list|grep -q SLE11SP3-x86_64-cfntools || glance image-create --name=SLE11SP3-x86_64-cfntools --is-public=True --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SLES11-SP3-x86_64-cfntools.qcow2 | tee glance.out
+        glance image-list|grep -q SLE11SP3-x86_64-cfntools || glance image-create \
+            --name=SLE11SP3-x86_64-cfntools --is-public=True --disk-format=qcow2 \
+            --container-format=bare --property hypervisor_type=kvm \
+            --copy-from http://clouddata.cloud.suse.de/images/SLES11-SP3-x86_64-cfntools.qcow2 | tee glance.out
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
         crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
         pushd /var/lib/openstack-tempest-test
