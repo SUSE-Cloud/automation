@@ -609,7 +609,7 @@ function onadmin_prepare_cloud_repos()
                 addsp3testupdates
                 addcloud4testupdates
                 ;;
-            susecloud5|GM5|GM5+up)
+            susecloud5|M?|Beta*|RC*|GMC*|GM5|GM5+up)
                 addsp3testupdates
                 add_sles12ga_testupdates
                 addcloud5testupdates
@@ -634,7 +634,7 @@ function onadmin_prepare_cloud_repos()
             GM4+up)
                 addcloud4maintupdates
                 ;;
-            susecloud5|GM5|GM5+up)
+            susecloud5|M?|Beta*|RC*|GMC*|GM5|GM5+up)
                 addcloud5maintupdates
                 addcloud5pool
                 ;;
