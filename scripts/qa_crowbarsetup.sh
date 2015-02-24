@@ -207,15 +207,6 @@ function wait_for_if_running()
     wait_for $timecount 5 "! pidofproc ${procname} >/dev/null" "process '${procname}' to terminate"
 }
 
-function die()
-{
-    local exit_code=$1
-    shift
-    echo >&2
-    echo -e "$@" >&2;
-    exit $exit_code
-}
-
 function mount_localreposdir_target()
 {
     if [ -z "$localreposdir_target" ]; then
@@ -2489,8 +2480,8 @@ function prepare_cloudupgrade()
     # on the admin node, this is NOT a bug). Let's wait for that to finish
     # before trying to install anything.
     wait_for_if_running chef-client
-    zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks refresh -f || die 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
-    zypper --non-interactive install --force suse-cloud-upgrade || die 3 "Couldn't install suse-cloud-upgrade"
+    zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks refresh -f || complain 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
+    zypper --non-interactive install --force suse-cloud-upgrade || complain 3 "Couldn't install suse-cloud-upgrade"
 }
 
 function onadmin_cloudupgrade_1st()
