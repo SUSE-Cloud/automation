@@ -36,6 +36,8 @@ export want_ipmi=${want_ipmi:-false}
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
+export ZYPP_LOCK_TIMEOUT=120
+
 function complain() # {{{
 {
     local ex=$1; shift
@@ -270,9 +272,7 @@ function add_mount()
         [ -n "${nfssrc}" ] && add_nfs_mount "${nfssrc}" "${targetdir}"
     fi
     if [ -n "${zypper_alias}" ]; then
-        wait_for_if_running zypper
         zypper rr "${zypper_alias}"
-        wait_for_if_running zypper
         safely zypper -n ar -f "${targetdir}" "${zypper_alias}"
     fi
 }
@@ -595,7 +595,6 @@ function onadmin_prepare_cloud_repos()
         complain 35 "We do not have cloud install media in ${targetdir} - giving up"
     fi
 
-    wait_for_if_running zypper
     zypper rr Cloud
     safely zypper ar -f ${targetdir} Cloud
 
@@ -793,7 +792,6 @@ EOF
         add_suse_storage_repo
     fi
 
-    wait_for_if_running zypper
     safely zypper -n install rsync netcat
 
     # setup cloud repos for tftpboot and zypper
@@ -929,7 +927,6 @@ EOF
     fi
 
     if iscloudver 4plus; then
-        wait_for_if_running zypper
         zypper -n install crowbar-barclamp-tempest
         # Force restart of crowbar
         rccrowbar stop
@@ -2042,7 +2039,6 @@ EOH
         done
 
         # dependency for the test suite
-        wait_for_if_running zypper
         rpm -q python-PyYAML &> /dev/null || zypper -n install python-PyYAML
 
         if ! rpm -q python-nose &> /dev/null; then
