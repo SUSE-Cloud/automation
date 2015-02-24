@@ -50,10 +50,9 @@ safely () {
 }
 
 if [ -z $cloud ] ; then
-    echo "Error: Parameter missing that defines the cloud name"
-    echo "Possible values: [d1, d2, p, virtual]"
-    echo "Example: $0 d2"
-    exit 101
+    complain 101 "Parameter missing that defines the cloud name" \
+        "Possible values: [d1, d2, p, virtual]" \
+        "Example: $0 d2"
 fi
 
 # common cloud network prefix within SUSE Nuremberg:
@@ -226,8 +225,7 @@ function add_bind_mount()
     mkdir -p "${dst}"
 
     if ! [ -d "${src}" ] ; then
-        echo "source ${src} for bind-mount does not exist"
-        exit 1
+        complain 31 "source ${src} for bind-mount does not exist"
     fi
 
     umount "${dst}"
@@ -452,7 +450,7 @@ function cluster_node_assignment()
             screen -d -m -L /bin/bash -c "ssh $dnode 'chef-client' ; echo \$? > ${dnode}.chef-client.ret"
         done
         wait_for 40 15 "! cat *.chef-client.ret | grep -qv '^0$'" "all chef-clients to succeed" \
-            "cat *.chef-client.ret ; complain 73 'Error: Manually triggered chef-client run failed on at least one node.'"
+            "cat *.chef-client.ret ; complain 73 'Manually triggered chef-client run failed on at least one node.'"
     done
 
     # assign nodes to clusters
@@ -505,8 +503,7 @@ function onadmin_prepare_sles_repos()
     fi
 
     if [ ! -e "${targetdir_install}/media.1/" ] ; then
-        echo "We do not have SLES install media - giving up"
-        exit 34
+        complain 34 "We do not have SLES install media - giving up"
     fi
 }
 
@@ -560,8 +557,7 @@ function onadmin_prepare_sles12_repos()
     done
 
     if [ ! -e "${targetdir_install}/media.1/" ] ; then
-        echo "We do not have SLES12 install media - giving up"
-        exit 34
+        complain 34 "We do not have SLES12 install media - giving up"
     fi
 }
 
@@ -596,8 +592,7 @@ function onadmin_prepare_cloud_repos()
     echo $cloudsource > /etc/cloudsource
 
     if [ ! -e "${targetdir}/media.1" ] ; then
-        echo "We do not have cloud install media in ${targetdir} - giving up"
-        exit 35
+        complain 35 "We do not have cloud install media in ${targetdir} - giving up"
     fi
 
     wait_for_if_running zypper
@@ -628,8 +623,7 @@ function onadmin_prepare_cloud_repos()
                 add_sles12ga_testupdates
                 ;;
             *)
-                echo "no TESTHEAD repos defined for cloudsource=$cloudsource"
-                exit 26
+                complain 26 "no TESTHEAD repos defined for cloudsource=$cloudsource"
                 ;;
         esac
     else
@@ -710,8 +704,7 @@ function onadmin_set_source_variables()
             CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
         *)
-            echo "Error: you must set environment variable cloudsource=develcloud3|develcloud4|develcloud5|susecloud5|GM3|GM4"
-            exit 76
+            complain 76 "You must set environment variable cloudsource=develcloud3|develcloud4|develcloud5|susecloud5|GM3|GM4"
         ;;
     esac
 
@@ -792,8 +785,7 @@ EOF
         if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 3plus ; then
             add_ha_repo
         else
-            echo "Error: You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
-            exit 1
+            complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
         fi
     fi
 
@@ -820,8 +812,7 @@ EOF
             echo "The cloud admin successfully installed."
             echo ".... continuing"
         else
-            echo "Error: zypper returned with exit code $? when installing cloud admin"
-            exit 86
+            complain 86 "zypper returned with exit code $? when installing cloud admin"
         fi
     fi
 
@@ -927,16 +918,14 @@ EOF
         echo -n .
     done
     if [ $n = 0 ] ; then
-        echo "timed out waiting for chef-ready"
-        exit 83
+        complain 83 "timed out waiting for chef-ready"
     fi
     rpm -Va crowbar\*
 
     # Make sure install finished correctly
     if ! [ -e /opt/dell/crowbar_framework/.crowbar-installed-ok ]; then
-        echo "Crowbar \".crowbar-installed-ok\" marker missing"
         tail -n 90 /root/screenlog.0
-        exit 89
+        complain 89 "Crowbar \".crowbar-installed-ok\" marker missing"
     fi
 
     if iscloudver 4plus; then
@@ -952,20 +941,17 @@ EOF
     sleep 20
     if ! curl -m 59 -s http://localhost:3000 > /dev/null || ! curl -m 59 -s --digest --user crowbar:crowbar localhost:3000 | grep -q /nodes/crowbar ; then
         tail -n 90 /root/screenlog.0
-        echo "crowbar self-test failed"
-        exit 84
+        complain 84 "crowbar self-test failed"
     fi
 
     if ! crowbar machines list | grep -q crowbar.$cloudfqdn ; then
         tail -n 90 /root/screenlog.0
-        echo "crowbar 2nd self-test failed"
-        exit 85
+        complain 85 "crowbar 2nd self-test failed"
     fi
 
     if ! (rcxinetd status && rcdhcpd status) ; then
-        echo "Error: provisioner failed to configure all needed services!"
-        echo "Please fix manually."
-        exit 67
+        complain 67 "provisioner failed to configure all needed services!" \
+            "Please fix manually."
     fi
     if [ -n "$ntpserver" ] ; then
         local pfile=`get_proposal_filename ntp default`
@@ -980,8 +966,7 @@ EOF
     fi
 
     if ! validate_data_bags; then
-        echo "Validation error in default data bags. Aborting."
-        exit 68
+        complain 68 "Validation error in default data bags. Aborting."
     fi
 }
 
@@ -1085,7 +1070,7 @@ function onadmin_allocate()
     # check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
     curl -m 9 -s --digest --user crowbar:crowbar http://localhost:3000| tee /root/crowbartest.out
     if grep -q "Exception caught" /root/crowbartest.out; then
-        exit 27
+        complain 27 "simple crowbar test failed"
     fi
 
     rm -f /root/crowbartest.out
@@ -1214,8 +1199,7 @@ function waitnodes()
                 while test $n -gt 0 && ! test "x$machinestatus" = "xready" ; do
                     machinestatus=`crowbar machines show $i state`
                     if test "x$machinestatus" = "xfailed" -o "x$machinestatus" = "xnil" ; then
-                        echo "Error: machine status is failed. Exiting"
-                        exit 39
+                        complain 39 "machine status is failed. Exiting"
                     fi
                     sleep 5
                     n=$((n-1))
@@ -1236,8 +1220,7 @@ function waitnodes()
                 proposalstatus=`crowbar $proposal proposal show $proposaltype | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['$proposal']['crowbar-status']"`
                 if test "x$proposalstatus" = "xfailed" ; then
                     tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
-                    echo "Error: proposal $proposal failed. Exiting."
-                    exit 40
+                    complain 40 "Error: proposal $proposal failed. Exiting."
                 fi
                 sleep 5
                 n=$((n-1))
@@ -1247,14 +1230,12 @@ function waitnodes()
             echo "proposal $proposal successful"
             ;;
         *)
-            echo "Error: waitnodes was called with wrong parameters"
-            exit 72
+            complain 72 "Error: waitnodes was called with wrong parameters"
             ;;
     esac
 
     if [ $n == 0 ] ; then
-        echo "Error: Waiting timed out. Exiting."
-        exit 74
+        complain 74 "Waiting timed out. Exiting."
     fi
 }
 
@@ -1678,8 +1659,7 @@ function update_one_proposal()
     fi
     if [ $ret != 0 ] ; then
         tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
-        echo "Error: commiting the crowbar '$proposaltype' proposal for '$proposal' failed ($ret)."
-        exit 73
+        complain 73 "Committing the crowbar '$proposaltype' proposal for '$proposal' failed ($ret)."
     fi
 }
 
@@ -1805,7 +1785,7 @@ function oncontroller_testsetup()
         zypper -n install python-swiftclient
         swift stat
         swift upload container1 .ssh/authorized_keys
-        swift list container1 || exit 33
+        swift list container1 || complain 33 "swift list failed"
     fi
 
     radosgwret=0
@@ -1879,8 +1859,7 @@ function oncontroller_testsetup()
     # wait for image to finish uploading
     imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
     if [ "x$imageid" == "x" ]; then
-        echo "Error: Image ID for SP3-64 not found"
-        exit 37
+        complain 37 "Error: Image ID for SP3-64 not found"
     fi
 
     for n in $(seq 1 200) ; do
@@ -1910,8 +1889,7 @@ function oncontroller_testsetup()
     echo "VM IP address: $vmip"
     if [ -z "$vmip" ] ; then
         tail -n 90 /var/log/nova/*
-        echo "Error: VM IP is empty. Exiting"
-        exit 38
+        complain 38 "VM IP is empty. Exiting"
     fi
     addfloatingip "$instanceid"
     vmip=$floatingip
@@ -1922,8 +1900,7 @@ function oncontroller_testsetup()
     done
     set -x
     if [ $n = 0 ] ; then
-        echo testvm boot or net failed
-        exit 94
+        complain 94 "testvm boot or net failed"
     fi
     echo -n "Waiting for the VM to come up: "
     n=500 ; while test $n -gt 0 && ! netcat -z $vmip 22 ; do
@@ -1934,8 +1911,7 @@ function oncontroller_testsetup()
     done
     set -x
     if [ $n = 0 ] ; then
-        echo "VM not accessible in reasonable time, exiting."
-        exit 96
+        complain 96 "VM not accessible in reasonable time, exiting."
     fi
 
     set +x
@@ -1946,16 +1922,14 @@ function oncontroller_testsetup()
     do
         sleep 5  # wait before retry
         if [ $i -gt $MAX_RETRIES ] ; then
-            echo "VM not accessible via SSH, something could be wrong with SSH keys"
-            exit 97
+            complain 97 "VM not accessible via SSH, something could be wrong with SSH keys"
         fi
         i=$((i+1))
         echo -n "."
     done
     set -x
     if ! ssh $vmip curl www3.zq1.de/test ; then
-        echo could not reach internet
-        exit 95
+        complain 95 could not reach internet
     fi
     nova volume-list | grep -q available || nova volume-create 1 ; sleep 2
     nova volume-list | grep available
@@ -1995,19 +1969,17 @@ function onadmin_testsetup()
             knife node show $machine -a node.target_platform | grep -q suse- || continue
             ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13'
             if [ $? != 0 ]; then
-                echo "Multi DNS server test failed!"
-                exit 13
+                complain 13 "Multi DNS server test failed!"
             fi
         done
     fi
 
     get_novacontroller
     if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
-        echo "no nova contoller - something went wrong"
-        exit 62
+        complain 62 "no nova contoller - something went wrong"
     fi
     echo "openstack nova contoller: $novacontroller"
-    curl -m 40 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || exit 101
+    curl -m 40 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || complain 101 "simple horizon dashboard test failed"
 
     wantcephtestsuite=0
     if [[ -n "$wantceph" ]]; then
@@ -2189,8 +2161,7 @@ function onadmin_rebootcompute()
     wait_for 400 5 "! crowbar node_state status | grep ^d | grep -vqiE \"ready$|problem$\"" "nodes are back online"
 
     if crowbar node_state status | grep ^d | grep -i "problem$"; then
-        echo "Error: some nodes rebooted with state Problem."
-        exit 1
+        complain 17 "Some nodes rebooted with state Problem."
     fi
 
     scp $0 $novacontroller:
@@ -2237,8 +2208,7 @@ function onadmin_rebootneutron()
     ssh $NEUTRON_SERVER '. .openrc && neutron agent-list'
     ssh $NEUTRON_SERVER 'ping -c1 -w1 8.8.8.8' > /dev/null
     if [ "x$?" != "x0" ]; then
-        echo "Error: ping to 8.8.8.8 from $NEUTRON_SERVER failed."
-        exit 1
+        complain 14 "ping to 8.8.8.8 from $NEUTRON_SERVER failed."
     fi
 }
 
@@ -2457,8 +2427,7 @@ function prepare_cloudupgrade()
     wait_for_if_running chef-client
 
     test -z "$upgrade_cloudsource" && {
-        echo "upgrade_cloudsource is not set"
-        exit 1
+        complain 15 "upgrade_cloudsource is not set"
     }
 
     export cloudsource=$upgrade_cloudsource
@@ -2498,8 +2467,7 @@ function onadmin_cloudupgrade_1st()
     echo 'y' | suse-cloud-upgrade upgrade
     local ret=$?
     if [[ $ret != 0 ]]; then
-        echo "Upgrade failed with $ret"
-        exit $ret
+        complain $ret "Upgrade failed with $ret"
     fi
 }
 
@@ -2519,8 +2487,7 @@ function onadmin_cloudupgrade_2nd()
     echo 'y' | suse-cloud-upgrade upgrade
     local ret=$?
     if [[ $ret != 0 ]]; then
-        echo "Upgrade failed with $ret"
-        exit $ret
+        complain $ret "Upgrade failed with $ret"
     fi
     crowbar provisioner proposal commit default
 
@@ -2568,10 +2535,8 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
 
         for proposal in $applied_proposals; do
             echo "Commiting proposal $proposal of barclamp ${barclamp}..."
-            crowbar "$barclamp" proposal commit "$proposal"
-            if [[ $? != 0 ]]; then
-                exit 30
-            fi
+            crowbar "$barclamp" proposal commit "$proposal" ||\
+                complain 30 "committing barclamp-$barclamp failed"
         done
     done
 
@@ -2613,8 +2578,7 @@ function onadmin_qa_test()
     scp $novacontroller:.openrc ~/
 
     if [ ! -d "qa-openstack-cli" ] ; then
-        echo "Error: please provide a checkout of the qa-openstack-cli repo on the crowbar node."
-        exit 1
+        complain 16 "Please provide a checkout of the qa-openstack-cli repo on the crowbar node."
     fi
 
     pushd qa-openstack-cli
