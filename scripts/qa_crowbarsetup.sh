@@ -1255,7 +1255,7 @@ function waitnodes()
             echo
             echo "proposal $proposal successful"
             ;;
-        default)
+        *)
             echo "Error: waitnodes was called with wrong parameters"
             exit 72
             ;;
