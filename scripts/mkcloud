@@ -1024,9 +1024,8 @@ function setupcompute()
 # and wait for nodes to reach the ready state
 function instcompute()
 {
-    sshrun "allocate=1 bash -x qa_crowbarsetup.sh $virtualcloud"
-    ret=$?
-    [ $ret != 0 ] && return $ret
+    sshrun "allocate=1 bash -x qa_crowbarsetup.sh $virtualcloud" ||\
+        return $?
 
     echo "Waiting for the installation of the nodes ..."
     sshrun "waitcompute=1 bash -x qa_crowbarsetup.sh $virtualcloud"

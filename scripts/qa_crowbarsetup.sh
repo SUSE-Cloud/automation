@@ -1602,9 +1602,8 @@ function custom_configuration()
         ;;
     esac
 
-    crowbar $proposal proposal --file=$pfile edit $proposaltype
-    local ret=$?
-    [ $ret != 0 ] && complain 88 "Error: 'crowbar $proposal proposal --file=$pfile edit $proposaltype' failed with exit code: $ret"
+    crowbar $proposal proposal --file=$pfile edit $proposaltype ||\
+        complain 88 "Error: 'crowbar $proposal proposal --file=$pfile edit $proposaltype' failed with exit code: $?"
 }
 
 # set global variables to be used in and after proposal phase
@@ -1967,10 +1966,8 @@ function onadmin_testsetup()
         cmachines=`crowbar machines list`
         for machine in $cmachines; do
             knife node show $machine -a node.target_platform | grep -q suse- || continue
-            ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13'
-            if [ $? != 0 ]; then
+            ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13' ||\
                 complain 13 "Multi DNS server test failed!"
-            fi
         done
     fi
 
@@ -2464,11 +2461,8 @@ function onadmin_cloudupgrade_1st()
     do_set_repos_skip_checks
 
     # Disable all openstack proposals stop service on the client
-    echo 'y' | suse-cloud-upgrade upgrade
-    local ret=$?
-    if [[ $ret != 0 ]]; then
-        complain $ret "Upgrade failed with $ret"
-    fi
+    echo 'y' | suse-cloud-upgrade upgrade ||\
+        complain $? "Upgrade failed with $?"
 }
 
 function onadmin_cloudupgrade_2nd()
@@ -2484,11 +2478,8 @@ function onadmin_cloudupgrade_2nd()
     zypper --non-interactive up -l
     echo -n "This cloud was upgraded from : " | cat - /etc/cloudversion >> /etc/motd
 
-    echo 'y' | suse-cloud-upgrade upgrade
-    local ret=$?
-    if [[ $ret != 0 ]]; then
-        complain $ret "Upgrade failed with $ret"
-    fi
+    echo 'y' | suse-cloud-upgrade upgrade ||\
+        complain $? "Upgrade failed with $?"
     crowbar provisioner proposal commit default
 
     # Allow vendor changes for packages as we might be updating an official
