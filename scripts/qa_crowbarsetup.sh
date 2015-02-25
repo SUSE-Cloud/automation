@@ -1927,9 +1927,9 @@ function oncontroller_testsetup()
     if ! ssh $vmip curl www3.zq1.de/test ; then
         complain 95 could not reach internet
     fi
-    nova volume-list | grep -q available || nova volume-create 1 ; sleep 2
-    nova volume-list | grep available
-    volumecreateret=$?
+    nova volume-list | grep -q available || nova volume-create 1
+    local volumecreateret=0
+    wait_for 9 5 "nova volume-list | grep available" "volume to become available" "volumecreateret=1"
     volumeid=`nova volume-list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
     nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
     device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
