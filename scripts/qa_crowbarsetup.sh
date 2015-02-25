@@ -2614,12 +2614,12 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
     # TODO: restart any suspended instance?
 }
 
-function onadmin_cloudbackup()
+function onadmin_crowbarbackup()
 {
     AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup backup /tmp/backup-crowbar.tar.gz
 }
 
-function onadmin_cloudpurge()
+function onadmin_crowbarpurge()
 {
     # Purge files to pretend we start from a clean state
     cp -a /var/lib/crowbar/cache/etc/resolv.conf /etc/resolv.conf
@@ -2649,7 +2649,7 @@ function onadmin_cloudpurge()
     killall epmd # need to kill again after uninstall
 }
 
-function onadmin_cloudrestore()
+function onadmin_crowbarrestore()
 {
     # Need to install the addon again, as we removed it
     zypper --non-interactive in --auto-agree-with-licenses -t pattern cloud_admin
@@ -2771,16 +2771,16 @@ if [ -n "$cloudupgrade_reboot_and_redeploy_clients" ] ; then
     onadmin_cloudupgrade_reboot_and_redeploy_clients
 fi
 
-if [ -n "$cloudbackup" ] ; then
-    onadmin_cloudbackup
+if [ -n "$crowbarbackup" ] ; then
+    onadmin_crowbarbackup
 fi
 
-if [ -n "$cloudpurge" ] ; then
-    onadmin_cloudpurge
+if [ -n "$crowbarpurge" ] ; then
+    onadmin_crowbarpurge
 fi
 
-if [ -n "$cloudrestore" ] ; then
-    onadmin_cloudrestore
+if [ -n "$crowbarrestore" ] ; then
+    onadmin_crowbarrestore
 fi
 
 set_proposalvars
