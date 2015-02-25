@@ -96,10 +96,6 @@
 # adminip
 # admingw
 # nodenumbercomputedefault
-# nodenumberdatacluster
-# nodenumberdataclusterdefault
-# nodenumbernetworkcluster   (why no default for this?)
-# nodenumberservicescluster  (why no default for this?)
 # drbdnode_mac_vol
 # cpuflags
 # admin_node_memory
@@ -156,12 +152,10 @@ nodenumbercomputedefault=2
 [ -n "$hacloud" ] && nodenumbercomputedefault=1
 : ${nodenumber:=$nodenumbercomputedefault}
 : ${nodenumbercompute:=$nodenumbercomputedefault}
-[ -n "$hacloud" ] && nodenumberdataclusterdefault=2 # currently only drbd supported with 2 nodes
-: ${nodenumberdatacluster:=$nodenumberdataclusterdefault}
-: ${nodenumbernetworkcluster:=''}
-: ${nodenumberservicescluster:=''}
+# configuration of clusters
+: ${clusterconfig:=''}
 : ${nodenumberlonelynode:=0}
-export nodenumber nodenumbercompute nodenumberdatacluster nodenumbernetworkcluster nodenumberservicescluster nodenumberlonelynode
+export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 # '+'-separated list of MAC#serial_of_drbd_volume of the drbd cluster nodes
 : ${drbdnode_mac_vol:=''}
 : ${cephvolumenumber:=0}
@@ -355,7 +349,7 @@ function sshrun()
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
 EOF
-    env|grep -e ^debug_ -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber | sort >> $mkcconf
+    env|grep -e ^debug_ -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
 
     $scp $qa_crowbarsetup $mkcconf root@$adminip:
     ssh $sshopts root@$adminip "echo `hostname` > cloud ; . qa_crowbarsetup.sh ; $@"
@@ -477,7 +471,7 @@ function onhost_create_cloud_lvm()
 
     # create volumes for drbd
     if [ $drbd_hdd_size != 0 ] ; then
-        for i in `seq 1 $nodenumberdatacluster`; do
+        for i in `seq 1 2`; do
             onhost_get_next_pv_device
             safely lvcreate -n $cloud.node$i-drbd -L ${drbd_hdd_size=}G $cloudvg $next_pv_device
         done
@@ -1048,7 +1042,7 @@ function setupcompute()
 
         drbdvolume=""
         if [ $drbd_hdd_size != 0 ]; then
-            if [ $i -le $nodenumberdatacluster ] ; then
+            if [ $i -le 2 ] ; then
                 drbddev=vd$(echo $alldevices | cut -d" " -f$c)
                 c=$(($c + 1))
                 local drbd_serial
@@ -1352,57 +1346,13 @@ function sanity_checks()
         exit 1
     fi
 
-    if [ -n "$hacloud" ] ; then
-        local nodenumbercomputeoffset=0
-        if [ -z "$nodenumbernetworkcluster" ] || [ -z "$nodenumberservicescluster" ] || [ -z "$nodenumberdatacluster" ] ; then
-            # currently only drbd with 2 nodes supported
-            nodenumberdatacluster=2
-            local maxnodes=$(( nodenumber - nodenumbercompute - nodenumberdatacluster ))
-
-            # calculating cluster size
-            # rule1: clustersize % 2 == 1 && clustersize >= 3
-            # rule2: 2 * clustersize + offset = maximum_number_of_nodes
-            # first calculating the offset (may be 0, 1, 2 or 3)
-            nodenumbercomputeoffset=$(( ( maxnodes + 2 ) % 4 ))
-            # new maximum number (double of clustersize)
-            local mn=$(( maxnodes - nodenumbercomputeoffset ))
-            # cluster size found
-            nodenumbernetworkcluster=$(( mn / 2 ))
-            nodenumberservicescluster=$(( mn / 2 ))
-        fi
-
-        I="    "
-        echo "== HA node number overview =="
-        echo  "configured nodes (min. nodes) : use case"
-        echo                "$I$nodenumber (9) : nodenumber"
-        echo         "$I$nodenumbercompute (1) : nodenumber compute"
-        echo   "$I$nodenumbercomputeoffset (0) : unused nodes added as compute nodes"
-        echo "Resulting HA node numbers:"
-        echo     "$I$nodenumberdatacluster (2) : nodenumber data cluster"
-        echo  "$I$nodenumbernetworkcluster (3) : nodenumber network cluster"
-        echo "$I$nodenumberservicescluster (3) : nodenumber services cluster"
-
-        # sanity check
-        if  [[ $(( $nodenumbercompute + $nodenumbercomputeoffset )) -lt 1  ]] || \
-            [[ $(( $nodenumberservicescluster )) -lt 3 ]] || \
-            [[ $(( $nodenumbernetworkcluster  )) -lt 3 ]] || \
-            [[ $nodenumberdatacluster -lt $nodenumberdataclusterdefault ]] ; then
-            echo
-            echo "Error: too few nodes for a HA cloud setup"
-            echo "Please redefine the number of nodes:"
-            echo " export nodenumber=<x>         and/or"
-            echo " export nodenumbercompute=<y>"
-            echo
-            echo "Note:"
-            echo " For a quorum a cluster needs to have an odd number of nodes, at least 3."
-            echo " For drbd cluster only 2 nodes are supported currently."
-            echo " So your nodenumber shoud be:"
-            echo "     compute_node_number + 2 (drbd cluster) + 2 * odd_number (cluster)"
-            complain 88 "Please raise the number of nodes via e.g. export nodenumber=10"
-        fi
-
-        nodenumbercompute=$(( $nodenumbercompute + $nodenumbercomputeoffset ))
-        echo
+    # checking clusterconfig
+    if [ -n "$hacloud" -a -z "$clusterconfig" ] ; then
+        echo "Examples for clusterconfig:"
+        echo '3 clusters: clusterconfig="data=2:network=3:services=3"'
+        echo '2 clusters: clusterconfig="services+data=2:network=3"'
+        echo '1 cluster:  clusterconfig="data+network+services=2"'
+        complain 70 "No cluster config provided for HA setup."
     fi
 
     vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=

@@ -20,6 +20,7 @@ fi
 # global variables that are set within this script
 novacontroller=
 novadashboardserver=
+clusternodesdrbd=
 clusternodesdata=
 clusternodesnetwork=
 clusternodesservices=
@@ -458,7 +459,7 @@ function cluster_node_assignment()
         # find and remove drbd nodes from nodesavailable
         for node in $nodesavailable ; do
             if crowbar machines show "$node" | grep "\"macaddress\"" | grep -qi $mac ; then
-                clusternodesdata="$clusternodesdata $node"
+                clusternodesdrbd="$clusternodesdrbd $node"
 
                 # assign drbd volume via knife
                 local nfile
@@ -476,10 +477,7 @@ function cluster_node_assignment()
             fi
         done
     done
-    for dnode in $clusternodesdata ; do
-        # filter out the data cluster nodes
-        nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $dnode`
-
+    for dnode in $clusternodesdrbd ; do
         # run chef-client on the edited nodes to fill back the hidden data fields (like dmi data)
         # this is a workaround, because the hidden node data can not be exported, imported or kept during editing
         echo "not done yet" > ${dnode}.chef-client.ret
@@ -488,14 +486,57 @@ function cluster_node_assignment()
     wait_for 40 15 "! cat *.chef-client.ret | grep -qv '^0$'" "all chef-clients to succeed" \
         "cat *.chef-client.ret ; complain 73 'Manually triggered chef-client run failed on at least one node.'"
 
-    # assign nodes to clusters
-    clusternodesnetwork=`printf  "%s\n" $nodesavailable | head -n$nodenumbernetworkcluster`
-    clusternodesservices=`printf "%s\n" $nodesavailable | tail -n$nodenumberservicescluster`
+    ### Examples for clusterconfig:
+    # clusterconfig="data+services+network=2"
+    # clusterconfig="services+data=2:network=3:::"
+    # clusterconfig="services=3:data=2:network=2:"
 
-    for n in $clusternodesnetwork $clusternodesservices ; do
-        nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $n`
+    for cluster in ${clusterconfig//:/ } ; do
+        [ -z "$cluster" ] && continue
+        # split off the number => group
+        local group=${cluster%=*}
+        # split off the group => number
+        local number=${cluster#*=}
+
+        # get first element of the group => clustername
+        local clustername=${group%%+*}
+        local nodes=
+
+        # clusternodesdata can only be the drbd nodes
+        if [[ $group =~ data ]] ; then
+            nodes="$clusternodesdrbd"
+        fi
+
+        # fetch nodes for this cluster if not yet defined
+        if [ -z "$nodes" ] ; then
+            nodes=`printf  "%s\n" $nodesavailable | head -n$number`
+        fi
+
+        # remove the selected nodes from the list of available nodes
+        for onenode in $nodes ; do
+            nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $onenode`
+        done
+
+        case $clustername in
+            data)
+                clusternodesdata="$nodes"
+                [[ $group =~ "+services" ]] && clusternameservices=$clustername
+                [[ $group =~ "+network" ]]  && clusternamenetwork=$clustername
+            ;;
+            services)
+                clusternodesservices="$nodes"
+                [[ $group =~ "+data" ]]     && clusternamedata=$clusternameces
+                [[ $group =~ "+network" ]]  && clusternamenetwork=$clusternameces
+            ;;
+            network)
+                clusternodesnetwork="$nodes"
+                [[ $group =~ "+data" ]]     && clusternamedata=$clustername
+                [[ $group =~ "+services" ]] && clusternameservices=$clustername
+            ;;
+        esac
     done
     nodescompute=$nodesavailable
+
     echo "............................................................"
     echo "The cluster node assignment (for your information):"
     echo "data cluster:"
@@ -1436,47 +1477,66 @@ function enable_ssl_for_nova_dashboard()
     proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['ssl_no_verify']" true
 }
 
-function hacloud_configure_cluster_defaults()
+function hacloud_configure_cluster_members()
 {
-    clustertype=$1
+    local clustername=$1
     shift
 
-    nodes=`printf "\"%s\"," $@`
+    local nodes=`printf "\"%s\"," $@`
     nodes="[ ${nodes%,} ]"
-    proposal_set_value pacemaker "$clustertype" \
-        "['deployment']['pacemaker']['elements']['pacemaker-cluster-member']" "$nodes"
+    proposal_modify_value pacemaker "$clustername" \
+        "['deployment']['pacemaker']['elements']['pacemaker-cluster-member']" "[]" "||="
+    proposal_modify_value pacemaker "$clustername" \
+        "['deployment']['pacemaker']['elements']['pacemaker-cluster-member']" "$nodes" "+="
 
     if [[ "configuration" = "with per_node" ]] ; then
         for node in $@; do
-            proposal_set_value pacemaker "$clustertype" \
+            proposal_set_value pacemaker "$clustername" \
                 "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']" "{}"
-            proposal_set_value pacemaker "$clustertype" \
+            proposal_set_value pacemaker "$clustername" \
                 "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']['params']" "''"
         done
     fi
+}
 
-    proposal_set_value pacemaker "$clustertype" \
+function hacloud_configure_cluster_defaults()
+{
+    local clustername=$1
+    local clustertype=$2
+    local cnodes=
+
+    # assigning the computed nodes as members to the clusters
+    if [[ $clustername == $clustertype ]] ; then
+        case $clustername in
+            data)     cnodes="$clusternodesdata"     ;;
+            services) cnodes="$clusternodesservices" ;;
+            network)  cnodes="$clusternodesnetwork"  ;;
+        esac
+        hacloud_configure_cluster_members $clustername "$cnodes"
+    fi
+
+    proposal_set_value pacemaker "$clustername" \
         "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
-    proposal_set_value pacemaker "$clustertype" \
+    proposal_set_value pacemaker "$clustername" \
         "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$mkcloudhostip'"
-    proposal_set_value pacemaker "$clustertype" \
-        "['description']" "'Pacemaker $clustertype cluster'"
+    proposal_modify_value pacemaker "$clustername" \
+        "['description']" "'Clustername: $clustername, type: $clustertype ; '" "+="
 }
 
 function hacloud_configure_data_cluster()
 {
-    proposal_set_value pacemaker data "['attributes']['pacemaker']['drbd']['enabled']" true
-    hacloud_configure_cluster_defaults "data" $clusternodesdata
+    proposal_set_value pacemaker $clusternamedata "['attributes']['pacemaker']['drbd']['enabled']" true
+    hacloud_configure_cluster_defaults $clusternamedata "data"
 }
 
 function hacloud_configure_network_cluster()
 {
-    hacloud_configure_cluster_defaults "network" $clusternodesnetwork
+    hacloud_configure_cluster_defaults $clusternamenetwork "network"
 }
 
 function hacloud_configure_services_cluster()
 {
-    hacloud_configure_cluster_defaults "services" $clusternodesservices
+    hacloud_configure_cluster_defaults $clusternameservices "services"
 }
 
 function dns_proposal_configuration()
@@ -1501,6 +1561,8 @@ function custom_configuration()
 {
     local proposal=$1
     local proposaltype=${2:-default}
+    local proposaltypemapped=$proposaltype
+    proposaltype=${proposaltype%%+*}
 
     # prepare the proposal file to be edited, it will be read once at the end
     # So, ONLY edit the $pfile  -  DO NOT call "crowbar $x proposal .*" command
@@ -1517,17 +1579,16 @@ function custom_configuration()
 
     case "$proposal" in
         pacemaker)
-            case $proposaltype in
-                data)
-                    hacloud_configure_data_cluster
-                ;;
-                network)
-                    hacloud_configure_network_cluster
-                ;;
-                services)
-                    hacloud_configure_services_cluster
-                ;;
-            esac
+            # multiple matches possible, so separate if's, to allow to configure mapped clusters
+            if [[ $proposaltypemapped =~ .*data.* ]] ; then
+                hacloud_configure_data_cluster
+            fi
+            if [[ $proposaltypemapped =~ .*services.* ]] ; then
+                hacloud_configure_services_cluster
+            fi
+            if [[ $proposaltypemapped =~ .*network.* ]] ; then
+                hacloud_configure_network_cluster
+            fi
         ;;
         database)
             if [[ $hacloud = 1 ]] ; then
@@ -1614,6 +1675,10 @@ function custom_configuration()
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-server']" "['cluster:$clusternameservices']"
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['cluster:$clusternameservices']"
+                # disabling mongodb, because if in one cluster mode the requirements of drbd and mongodb ha conflict:
+                #   drbd can only use 2 nodes max. <> mongodb ha requires 3 nodes min.
+                # this should be adapted when NFS mode is supported for data cluster
+                proposal_set_value ceilometer default "['attributes']['ceilometer']['use_mongodb']" "false"
                 local ceilometernodes
                 ceilometernodes=`printf "\"%s\"," $nodescompute`
                 ceilometernodes="[ ${ceilometernodes%,} ]"
@@ -1853,11 +1918,13 @@ function update_one_proposal()
 {
     local proposal=$1
     local proposaltype=${2:-default}
+    local proposaltypemapped=$proposaltype
+    proposaltype=${proposaltype%%+*}
 
     echo -n "Starting proposal $proposal($proposaltype) at: "
     date
     # hook for changing proposals:
-    custom_configuration $proposal $proposaltype
+    custom_configuration $proposal $proposaltypemapped
     crowbar "$proposal" proposal commit $proposaltype
     local ret=$?
     echo "Commit exit code: $ret"
@@ -1881,8 +1948,12 @@ function do_one_proposal()
     local proposal=$1
     local proposaltype=${2:-default}
 
+    # in ha mode proposaltype may contain names of mapped clusters
+    # extract them for the proposal creation, but pass them to update_one_proposal
+    local proposaltypemapped=$proposaltype
+    proposaltype=${proposaltype%%+*}
     crowbar "$proposal" proposal create $proposaltype
-    update_one_proposal "$proposal" "$proposaltype"
+    update_one_proposal "$proposal" "$proposaltypemapped"
 }
 
 # apply all wanted proposals on crowbar admin node
@@ -1928,8 +1999,11 @@ function onadmin_proposal()
         # create proposal
         case "$proposal" in
             pacemaker)
-                for cluster in data services network ; do
-                    do_one_proposal "$proposal" "$cluster"
+                local clustermapped
+                for clustermapped in ${clusterconfig//:/ } ; do
+                    clustermapped=${clustermapped%=*}
+                    # pass on the cluster name together with the mapped cluster name(s)
+                    do_one_proposal "$proposal" "$clustermapped"
                 done
                 ;;
             *)
