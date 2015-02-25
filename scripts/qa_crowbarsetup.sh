@@ -2547,10 +2547,35 @@ function onadmin_cloudbackup()
 
 function onadmin_cloudrestore()
 {
-    AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup purge
+    # Purge files to pretend we start from a clean state
+    cp -a /var/lib/crowbar/cache/etc/resolv.conf /etc/resolv.conf
 
-    # Need to install crowbar-backup again as purge deletes it
-    safely zypper --non-interactive in --no-recommends crowbar
+    for service in crowbar chef-{server,solr,expander,client} couchdb apache2 named dhcpd xinetd rabbitmq-server ; do
+        [ -e /etc/init.d/$service ] && /etc/init.d/$service stop
+    done
+    killall epmd # part of rabbitmq
+    killall looper_chef_client.sh
+
+    zypper -n rm \
+        `rpm -qa|grep -e crowbar -e chef -e rubygem -e susecloud` \
+        couchdb createrepo erlang rabbitmq-server sleshammer yum-common \
+        bind bind-chrootenv dhcp-server tftp
+
+    rm -rf \
+        /opt/dell \
+        /etc/{bind,chef,crowbar,crowbar.install.key,dhcp3,xinetd.d/tftp} \
+        /etc/sysconfig/{dhcpd,named,rabbitmq-server} \
+        /var/lib/{chef,couchdb,crowbar,dhcp,named,rabbitmq} \
+        /var/run/{chef,crowbar,named,rabbitmq} \
+        /var/log/{apache2,chef,couchdb,crowbar,nodes,rabbitmq} \
+        /var/cache/chef \
+        /var/chef \
+        /srv/tftpboot/{discovery/pxelinux.cfg/*,nodes,validation.pem}
+
+    killall epmd # need to kill again after uninstall
+
+    # Need to install the addon again, as we removed it
+    zypper --non-interactive in --auto-agree-with-licenses -t pattern cloud_admin
 
     do_set_repos_skip_checks
 
