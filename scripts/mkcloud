@@ -1119,7 +1119,7 @@ function crowbarrestore()
         complain 56 "No crowbar backup tarball found."
     fi
     $scp "$btarball" root@$adminip:/tmp/
-    sshrun "cloudrestore=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    sshrun "cloudpurge=1 cloudrestore=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     return $?
 }
 

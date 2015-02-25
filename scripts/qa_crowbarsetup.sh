@@ -2619,7 +2619,7 @@ function onadmin_cloudbackup()
     AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup backup /tmp/backup-crowbar.tar.gz
 }
 
-function onadmin_cloudrestore()
+function onadmin_cloudpurge()
 {
     # Purge files to pretend we start from a clean state
     cp -a /var/lib/crowbar/cache/etc/resolv.conf /etc/resolv.conf
@@ -2647,7 +2647,10 @@ function onadmin_cloudrestore()
         /srv/tftpboot/{discovery/pxelinux.cfg/*,nodes,validation.pem}
 
     killall epmd # need to kill again after uninstall
+}
 
+function onadmin_cloudrestore()
+{
     # Need to install the addon again, as we removed it
     zypper --non-interactive in --auto-agree-with-licenses -t pattern cloud_admin
 
@@ -2770,6 +2773,10 @@ fi
 
 if [ -n "$cloudbackup" ] ; then
     onadmin_cloudbackup
+fi
+
+if [ -n "$cloudpurge" ] ; then
+    onadmin_cloudpurge
 fi
 
 if [ -n "$cloudrestore" ] ; then
