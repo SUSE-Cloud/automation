@@ -2634,7 +2634,7 @@ function onadmin_crowbarpurge()
     killall looper_chef_client.sh
 
     zypper -n rm \
-        `rpm -qa|grep -e crowbar -e chef -e rubygem -e susecloud` \
+        `rpm -qa|grep -e crowbar -e chef -e rubygem -e susecloud -e apache2` \
         couchdb createrepo erlang rabbitmq-server sleshammer yum-common \
         bind bind-chrootenv dhcp-server tftp
 
