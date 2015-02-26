@@ -1107,15 +1107,15 @@ function qa_test()
 function crowbarbackup()
 {
     sshrun "crowbarbackup=1 bash -x qa_crowbarsetup.sh $virtualcloud"
-    ret=$?
-    $scp root@$adminip:/tmp/backup-crowbar.tar.gz .
+    local ret=$?
+    safely $scp root@$adminip:/tmp/backup-crowbar.tar.gz .
     [ -d "$artifacts_dir" ] && mv backup-crowbar.tar.gz "$artifacts_dir/"
     return $ret
 }
 
 function crowbarrestore()
 {
-    btarball=backup-crowbar.tar.gz
+    local btarball=backup-crowbar.tar.gz
     [ -e "$artifacts_dir/$btarball" ] && btarball="$artifacts_dir/$btarball"
     if [ ! -e "$btarball" ] ; then
         complain 56 "No crowbar backup tarball found."
