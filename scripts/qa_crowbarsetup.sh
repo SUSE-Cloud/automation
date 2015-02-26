@@ -2616,6 +2616,7 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
 
 function onadmin_crowbarbackup()
 {
+    rm -f /tmp/backup-crowbar.tar.gz
     AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
         bash -x /usr/sbin/crowbar-backup backup /tmp/backup-crowbar.tar.gz ||\
         complain 21 "crowbar-backup backup failed"
