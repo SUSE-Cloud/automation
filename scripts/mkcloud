@@ -247,17 +247,19 @@ function error_exit()
 {
     exitcode=$1
     message=$2
-    ssh $sshopts root@$adminip '
-        set -x
-        for node in $(crowbar machines list | grep ^d) ; do
-            echo "Collecting supportconfig from $node"
-            timeout 300 ssh $node supportconfig | wc
-            timeout 300 scp $node:/var/log/\*tbz /var/log/
-        done
-        timeout 300 supportconfig | wc
-    '
-    mkdir -p $artifacts_dir
-    $scp root@$adminip:/var/log/*tbz $artifacts_dir/
+    if [ -z "$SKIPSUPPORTCONFIG" ] ; then
+        ssh $sshopts root@$adminip '
+            set -x
+            for node in $(crowbar machines list | grep ^d) ; do
+                echo "Collecting supportconfig from $node"
+                timeout 300 ssh $node supportconfig | wc
+                timeout 300 scp $node:/var/log/\*tbz /var/log/
+            done
+            timeout 300 supportconfig | wc
+        '
+        mkdir -p $artifacts_dir
+        $scp root@$adminip:/var/log/*tbz $artifacts_dir/
+    fi
     pre_exit_cleanup
     echo $message
     show_environment
