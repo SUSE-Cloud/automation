@@ -2616,7 +2616,9 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
 
 function onadmin_crowbarbackup()
 {
-    AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup backup /tmp/backup-crowbar.tar.gz
+    AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
+        bash -x /usr/sbin/crowbar-backup backup /tmp/backup-crowbar.tar.gz ||\
+        complain 21 "crowbar-backup backup failed"
 }
 
 function onadmin_crowbarpurge()
@@ -2656,7 +2658,9 @@ function onadmin_crowbarrestore()
 
     do_set_repos_skip_checks
 
-    AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 bash -x /usr/sbin/crowbar-backup restore /tmp/backup-crowbar.tar.gz
+    AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
+        bash -x /usr/sbin/crowbar-backup restore /tmp/backup-crowbar.tar.gz ||\
+        complain 20 "crowbar-backup restore failed"
 }
 
 function onadmin_qa_test()
