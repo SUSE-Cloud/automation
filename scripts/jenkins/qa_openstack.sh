@@ -74,32 +74,32 @@ ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
 case "$cloudsource" in
     develcloud3)
         $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3/ cloud3iso
-        $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3/$REPO/Devel:Cloud:3.repo
+        $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3/$REPO/ cloud
         if test -n "$OSHEAD" ; then
             $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
         fi
     ;;
     develcloud4)
         $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-4/ cloud4iso
-        $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/4/$REPO/Devel:Cloud:4.repo
+        $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/4/$REPO/ cloud
         if test -n "$OSHEAD" ; then
             $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstackhavana)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana/$REPO/Cloud:OpenStack:Havana.repo
+        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana/$REPO/ cloud
         if test -n "$OSHEAD" ; then
             $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstackicehouse)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse/$REPO/Cloud:OpenStack:Icehouse.repo
+        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse/$REPO/ cloud
         if test -n "$OSHEAD" ; then
             $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstackjuno)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Juno/$REPO/Cloud:OpenStack:Juno.repo
+        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Juno/$REPO/ cloud
         if test -n "$OSHEAD" ; then
             $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Juno:/Staging/$REPO/ cloudhead
         fi
