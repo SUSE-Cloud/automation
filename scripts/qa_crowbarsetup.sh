@@ -2006,10 +2006,10 @@ function oncontroller_testsetup()
     wait_for 9 5 "nova volume-list | grep available" "volume to become available" "volumecreateret=1"
     volumeid=`nova volume-list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
     nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
+    local volumeattachret=$?
     device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
-    sleep 15
-    ssh $vmip fdisk -l $device | grep 1073741824
-    volumeattachret=$?
+    wait_for 9 5 "nova volume-show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
+    ssh $vmip fdisk -l $device | grep 1073741824 || volumeattachret=$?
     rand=$RANDOM
     ssh $vmip "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
     nova volume-detach "$instanceid" "$volumeid" ; sleep 10
