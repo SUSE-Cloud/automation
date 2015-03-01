@@ -71,17 +71,17 @@ zypper rr cloudhead || :
 
 case "$cloudsource" in
     develcloud3)
-        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3/ cloud3iso
+        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3-official/ cloud3iso
         $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3/$REPO/ cloud
         if test -n "$OSHEAD" ; then
             $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
         fi
     ;;
     develcloud4)
-        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-4/ cloud4iso
+        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-4-official/ cloud4iso
         $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/4/$REPO/ cloud
         if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
+            $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/4:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstackhavana)
