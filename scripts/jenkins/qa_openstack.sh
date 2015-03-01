@@ -149,17 +149,10 @@ $zypper rr Virtualization_Cloud # repo was dropped but is still in some images f
 $zypper --gpg-auto-import-keys -n ref
 
 case "$cloudsource" in
-    develcloud1*|openstackessex|openstackfolsom)
-        cn=""
-        tempest=""
-    ;;
     develcloud2.0|develcloud3)
-        cn="cloud_network"
         tempest=""
     ;;
-
     *)
-        cn="cloud_network"
         tempest="openstack-tempest-test"
     ;;
 esac
@@ -171,7 +164,7 @@ $zypper -n rm --force 'python-cheetah < 2.4'
 set -e
 
 # start with patterns
-$zypper -n install -t pattern cloud_controller cloud_compute $cn
+$zypper -n install -t pattern cloud_controller cloud_compute cloud_network
 $zypper -n install --force openstack-quickstart $tempest
 
 # test -e /tmp/openstack-quickstart-demosetup && mv /tmp/openstack-quickstart-demosetup /usr/sbin/openstack-quickstart-demosetup
