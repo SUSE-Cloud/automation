@@ -65,12 +65,10 @@ else
     fi
 fi
 
-hostname=dist.suse.de
 zypper="zypper --non-interactive"
 
 zypper rr cloudhead || :
 
-ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
 case "$cloudsource" in
     develcloud3)
         $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3/ cloud3iso
