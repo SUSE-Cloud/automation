@@ -267,16 +267,8 @@ imgid=$(glance image-list|grep debian-5|cut -f2 -d" ")
 mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
-case "$cloudsource" in
-    openstackgrizzly)
-        KEYNAME_OPTION="--key-name"
-        ;;
-    *)
-        KEYNAME_OPTION="--key_name"
-        ;;
-esac
 
-nova boot --poll --flavor $NOVA_FLAVOR --image $imgid $KEYNAME_OPTION testkey testvm
+nova boot --poll --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm
 nova list
 sleep 30
 . /etc/openstackquickstartrc
@@ -298,8 +290,7 @@ nova delete testvm || :
 for i in $(nova floating-ip-list  |awk '{print $2}' |grep 172); do nova floating-ip-delete $i; done
 
 # run tempest
-# skip on Grizzly, since it is just too broken
-if [ "$cloudsource" != "openstackgrizzly" ] && [ -e /etc/tempest/tempest.conf ]; then
+if [ -e /etc/tempest/tempest.conf ]; then
     $crudini --set /etc/tempest/tempest.conf compute image_ssh_user cirros
     $crudini --set /etc/tempest/tempest.conf compute image_alt_ssh_user cirros
     $crudini --set /etc/tempest/tempest.conf compute ssh_user cirros
