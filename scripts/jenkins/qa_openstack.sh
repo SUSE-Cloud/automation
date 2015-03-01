@@ -223,6 +223,9 @@ test "$(lvs | wc -l)" -gt 1 || exit 1
 
 ssh_user="root"
 openqa=http://195.135.221.151/openqa
+
+cirros_base_url="http://clouddata.cloud.suse.de/images"
+cirros_base_name="cirros-0.3.3-x86_64"
 #openqa=http://www.zq1.de/openqa
 case "$MODE" in
     xen)
@@ -235,19 +238,19 @@ case "$MODE" in
         glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from $openqa/img/debian.5-0.x86.qcow2
     ;;
     *)
-        wget $openqa/images/cirros-0.3.1-x86_64-uec.tar.gz
-        tar xf cirros-0.3.1-x86_64-uec.tar.gz
-        RAMDISK_ID=$(glance image-create --name="cirros-0.3.1-x86_64-uec-initrd" --is-public=True \
-            --disk-format=ari --container-format=ari < cirros-0.3.1-x86_64-initrd | grep ' id ' | awk '{print $4}')
-        KERNEL_ID=$(glance image-create --name="cirros-0.3.1-x86_64-vmlinuz" --is-public=True \
-            --disk-format=aki --container-format=aki < cirros-0.3.1-x86_64-vmlinuz | grep ' id ' | awk '{print $4}')
-        glance image-create --name="cirros-0.3.1-x86_64-uec" --is-public=True \
+        wget $cirros_base_url/$cirros_base_name-uec.tar.gz
+        tar xf $cirros_base_name-uec.tar.gz
+        RAMDISK_ID=$(glance image-create --name="$cirros_base_name-uec-initrd" --is-public=True \
+            --disk-format=ari --container-format=ari < $cirros_base_name-initrd | grep ' id ' | awk '{print $4}')
+        KERNEL_ID=$(glance image-create --name="$cirros_base_name-vmlinuz" --is-public=True \
+            --disk-format=aki --container-format=aki < $cirros_base_name-vmlinuz | grep ' id ' | awk '{print $4}')
+        glance image-create --name="$cirros_base_name-uec" --is-public=True \
             --container-format ami --disk-format ami \
-            --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < cirros-0.3.1-x86_64-blank.img
+            --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < $cirros_base_name-blank.img
 
         glance image-create --name="debian-5" --is-public=True \
             --container-format ami --disk-format ami \
-            --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < cirros-0.3.1-x86_64-blank.img
+            --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < $cirros_base_name-blank.img
 
         ssh_user="cirros"
 
