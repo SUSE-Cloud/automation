@@ -712,7 +712,7 @@ function onadmin_set_source_variables()
         ;;
         M?|Beta*|RC*|GMC*|GM5|GM5+up)
             cs=$cloudsource
-            [ $cs = GM5 ] && cs=GM
+            [[ $cs =~ GM5 ]] && cs=GM
             CLOUDDISTPATH=/install/SUSE-Cloud-5-$cs/
             CLOUDCOMPUTEPATH=$CLOUDDISTPATH
             CLOUDDISTISO="SUSE-CLOUD*1.iso"
