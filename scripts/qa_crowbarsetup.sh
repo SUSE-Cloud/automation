@@ -1319,7 +1319,7 @@ function proposal_modify_value()
 
     local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
 
-    $ruby -e "
+    safely $ruby -e "
         require 'rubygems'
         require 'json'
         j = JSON.parse(STDIN.read)
