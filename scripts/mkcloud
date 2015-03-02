@@ -696,7 +696,7 @@ function setupadmin()
     if configure_libvirtd; then # config was changed
         service libvirtd stop
     fi
-    service libvirtd start
+    safely service libvirtd start
     wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 
     if ! virsh net-dumpxml $cloud-admin > /dev/null 2>&1; then
