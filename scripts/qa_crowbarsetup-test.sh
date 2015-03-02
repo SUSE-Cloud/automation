@@ -28,8 +28,8 @@ it_returns_correct_cloudver_matrix() {
 }
 
 it_returns_correct_cloudver_matrix_milestone() {
-    results=`cloudversionmatrix "M3 M4 M5 Beta3 Beta4 RC3 GMC susecloud5"`
-    test "$results" = " M3=11010 M4=11010 M5=11010 Beta3=11010 Beta4=11010 RC3=11010 GMC=11010 susecloud5=11010"
+    results=`cloudversionmatrix "M3 M4 M5 Beta3 Beta4 RC3 GMC susecloud5 GM5+up"`
+    test "$results" = " M3=11010 M4=11010 M5=11010 Beta3=11010 Beta4=11010 RC3=11010 GMC=11010 susecloud5=11010 GM5+up=11010"
 }
 
 getcloudversionmatrixrow() {

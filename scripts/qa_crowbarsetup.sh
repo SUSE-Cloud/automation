@@ -283,7 +283,7 @@ function getcloudver()
         echo -n 3
     elif [[ $cloudsource =~ ^.*(cloud|GM)4(\+up)?$ ]] ; then
         echo -n 4
-    elif [[ $cloudsource =~ ^(.+5|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM5?)$ ]] ; then
+    elif [[ $cloudsource =~ ^(.+5|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM5?(\+up)?)$ ]] ; then
         echo -n 5
     else
         complain 11 "unknown cloudsource version"
@@ -710,7 +710,7 @@ function onadmin_set_source_variables()
             CLOUDDISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
         ;;
-        M?|Beta*|RC*|GMC*|GM5)
+        M?|Beta*|RC*|GMC*|GM5|GM5+up)
             cs=$cloudsource
             [ $cs = GM5 ] && cs=GM
             CLOUDDISTPATH=/install/SUSE-Cloud-5-$cs/
