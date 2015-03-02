@@ -1585,6 +1585,12 @@ function custom_configuration()
                 fi
             fi
 
+            # assign neutron-l3 role to one of SLE12 nodes
+            if [ -n "$want_sles12" ] && [ -z "$hacloud"] && iscloudver 5plus ; then
+                sle12node=$(knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1)
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "[$sle12node]"
+            fi
+
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['cluster:network']"
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['cluster:network']"
