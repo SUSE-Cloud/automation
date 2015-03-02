@@ -65,25 +65,23 @@ else
     fi
 fi
 
-hostname=dist.suse.de
 zypper="zypper --non-interactive"
 
 zypper rr cloudhead || :
 
-ip a|grep -q 10\.100\. && hostname=fallback.suse.cz
 case "$cloudsource" in
     develcloud3)
-        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3/ cloud3iso
+        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3-official/ cloud3iso
         $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3/$REPO/ cloud
         if test -n "$OSHEAD" ; then
             $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
         fi
     ;;
     develcloud4)
-        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-4/ cloud4iso
+        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-4-official/ cloud4iso
         $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/4/$REPO/ cloud
         if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
+            $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/4:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstackhavana)
@@ -149,17 +147,10 @@ $zypper rr Virtualization_Cloud # repo was dropped but is still in some images f
 $zypper --gpg-auto-import-keys -n ref
 
 case "$cloudsource" in
-    develcloud1*|openstackessex|openstackfolsom)
-        cn=""
-        tempest=""
-    ;;
     develcloud2.0|develcloud3)
-        cn="cloud_network"
         tempest=""
     ;;
-
     *)
-        cn="cloud_network"
         tempest="openstack-tempest-test"
     ;;
 esac
@@ -171,7 +162,7 @@ $zypper -n rm --force 'python-cheetah < 2.4'
 set -e
 
 # start with patterns
-$zypper -n install -t pattern cloud_controller cloud_compute $cn
+$zypper -n install -t pattern cloud_controller cloud_compute cloud_network
 $zypper -n install --force openstack-quickstart $tempest
 
 # test -e /tmp/openstack-quickstart-demosetup && mv /tmp/openstack-quickstart-demosetup /usr/sbin/openstack-quickstart-demosetup
@@ -230,6 +221,9 @@ test "$(lvs | wc -l)" -gt 1 || exit 1
 
 ssh_user="root"
 openqa=http://195.135.221.151/openqa
+
+cirros_base_url="http://clouddata.cloud.suse.de/images"
+cirros_base_name="cirros-0.3.3-x86_64"
 #openqa=http://www.zq1.de/openqa
 case "$MODE" in
     xen)
@@ -242,19 +236,19 @@ case "$MODE" in
         glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from $openqa/img/debian.5-0.x86.qcow2
     ;;
     *)
-        wget $openqa/images/cirros-0.3.1-x86_64-uec.tar.gz
-        tar xf cirros-0.3.1-x86_64-uec.tar.gz
-        RAMDISK_ID=$(glance image-create --name="cirros-0.3.1-x86_64-uec-initrd" --is-public=True \
-            --disk-format=ari --container-format=ari < cirros-0.3.1-x86_64-initrd | grep ' id ' | awk '{print $4}')
-        KERNEL_ID=$(glance image-create --name="cirros-0.3.1-x86_64-vmlinuz" --is-public=True \
-            --disk-format=aki --container-format=aki < cirros-0.3.1-x86_64-vmlinuz | grep ' id ' | awk '{print $4}')
-        glance image-create --name="cirros-0.3.1-x86_64-uec" --is-public=True \
+        wget $cirros_base_url/$cirros_base_name-uec.tar.gz
+        tar xf $cirros_base_name-uec.tar.gz
+        RAMDISK_ID=$(glance image-create --name="$cirros_base_name-uec-initrd" --is-public=True \
+            --disk-format=ari --container-format=ari < $cirros_base_name-initrd | grep ' id ' | awk '{print $4}')
+        KERNEL_ID=$(glance image-create --name="$cirros_base_name-vmlinuz" --is-public=True \
+            --disk-format=aki --container-format=aki < $cirros_base_name-vmlinuz | grep ' id ' | awk '{print $4}')
+        glance image-create --name="$cirros_base_name-uec" --is-public=True \
             --container-format ami --disk-format ami \
-            --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < cirros-0.3.1-x86_64-blank.img
+            --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < $cirros_base_name-blank.img
 
         glance image-create --name="debian-5" --is-public=True \
             --container-format ami --disk-format ami \
-            --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < cirros-0.3.1-x86_64-blank.img
+            --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < $cirros_base_name-blank.img
 
         ssh_user="cirros"
 
@@ -271,16 +265,8 @@ imgid=$(glance image-list|grep debian-5|cut -f2 -d" ")
 mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
-case "$cloudsource" in
-    openstackgrizzly)
-        KEYNAME_OPTION="--key-name"
-        ;;
-    *)
-        KEYNAME_OPTION="--key_name"
-        ;;
-esac
 
-nova boot --poll --flavor $NOVA_FLAVOR --image $imgid $KEYNAME_OPTION testkey testvm
+nova boot --poll --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm
 nova list
 sleep 30
 . /etc/openstackquickstartrc
@@ -302,8 +288,7 @@ nova delete testvm || :
 for i in $(nova floating-ip-list  |awk '{print $2}' |grep 172); do nova floating-ip-delete $i; done
 
 # run tempest
-# skip on Grizzly, since it is just too broken
-if [ "$cloudsource" != "openstackgrizzly" ] && [ -e /etc/tempest/tempest.conf ]; then
+if [ -e /etc/tempest/tempest.conf ]; then
     $crudini --set /etc/tempest/tempest.conf compute image_ssh_user cirros
     $crudini --set /etc/tempest/tempest.conf compute image_alt_ssh_user cirros
     $crudini --set /etc/tempest/tempest.conf compute ssh_user cirros
