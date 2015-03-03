@@ -1528,6 +1528,9 @@ function custom_configuration()
                 novanodes="[ ${novanodes%,} ]"
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "$novanodes"
             fi
+            if [[ $nova_shared_instance_storage = 1 ]] ; then
+                proposal_set_value nova default "['attributes']['nova']['use_shared_instance_storage']" "true"
+            fi
         ;;
         nova_dashboard)
             if [[ $all_with_ssl = 1 || $novadashboard_with_ssl = 1 ]] ; then
