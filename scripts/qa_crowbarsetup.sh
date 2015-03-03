@@ -1563,17 +1563,17 @@ function custom_configuration()
             if iscloudver 5 && [[ ! $cloudsource =~ ^M[1-4]+$ ]] || iscloudver 6plus; then
                 if [ "$networkingplugin" = "openvswitch" ] ; then
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vlan']"
-                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_provider_network']" "'vlan'"
-                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_tenant_network']" "'gre'"
                 elif [ "$networkingplugin" = "linuxbridge" ] ; then
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
-                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_provider_network']" "'vlan'"
-                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_tenant_network']" "'vlan'"
                 else
                     complain 106 "networkingplugin '$networkingplugin' not yet covered in mkcloud"
                 fi
                 proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'ml2'"
                 proposal_set_value neutron default "['attributes']['neutron']['ml2_mechanism_drivers']" "['$networkingplugin']"
+                if [ -n "$networkingmode" ] ; then
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_provider_network']" "'$networkingmode'"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_tenant_network']" "'$networkingmode'"
+                fi
             else
                 if [ -n "$networkingmode" ] ; then
                     proposal_set_value neutron default "['attributes']['neutron']['networking_mode']" "'$networkingmode'"
