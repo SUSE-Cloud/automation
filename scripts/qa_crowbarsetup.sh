@@ -266,11 +266,23 @@ function add_mount()
     local nfssrc="$2"
     local targetdir="$3"
     local zypper_alias="$4"
-    if [ -n "${localreposdir_target}" ]; then
-        [ -n "${bindsrc}" ] && add_bind_mount "${localreposdir_target}/${bindsrc}" "${targetdir}"
+
+    if [ -n "$localreposdir_target" ]; then
+        if [ -z "$bindsrc" ]; then
+            complain 50 "BUG: add_mount() called with empty bindsrc parameter" \
+                "(nfssrc=$nfssrc targetdir=$targetdir alias=$zypper_alias)\n" \
+                "This will break for those not using NFS."
+        fi
+        add_bind_mount "$localreposdir_target/$bindsrc" "$targetdir"
     else
-        [ -n "${nfssrc}" ] && add_nfs_mount "${nfssrc}" "${targetdir}"
+        if [ -z "$nfssrc" ]; then
+            complain 50 "BUG: add_mount() called with empty nfssrc parameter" \
+                "(bindsrc=$bindsrc targetdir=$targetdir alias=$zypper_alias)\n" \
+                "This will break for those using NFS."
+        fi
+        add_nfs_mount "$nfssrc" "$targetdir"
     fi
+
     if [ -n "${zypper_alias}" ]; then
         zypper rr "${zypper_alias}"
         safely zypper -n ar -f "${targetdir}" "${zypper_alias}"
