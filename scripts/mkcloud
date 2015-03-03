@@ -319,6 +319,7 @@ function sshrun()
         export glance_with_ssl=$glance_with_ssl ;
         export keystone_with_ssl=$keystone_with_ssl ;
         export nova_with_ssl=$nova_with_ssl ;
+        export nova_shared_instance_storage=$nova_shared_instance_storage ;
         export novadashboard_with_ssl=$novadashboard_with_ssl ;
 
         export localreposdir_target=$localreposdir_target ;
