@@ -1726,28 +1726,72 @@ function set_proposalvars()
         export cloudsource=$(</etc/cloudsource)
     fi
 
-    deployswift=1
-    [ -z "$want_swift" ] && deployceph=1
+    ### dynamic defaults
+    case "$nodenumber" in
+        0|1)
+            deployswift=
+            deployceph=
+        ;;
+        2)
+            deployswift=1
+            deployceph=
+        ;;
+        *)
+            deployswift=
+            deployceph=1
+        ;;
+    esac
+
+    ### filter (temporarily changing defaults)
+    # F1: hyperV only without swift and ceph
     if [[ $wanthyperv ]] ; then
         deployswift=
         deployceph=
         networkingmode=vlan
     fi
+
+    ### user requests (can override defaults and filters)
+    case "$want_ceph" in
+        '') ;;
+        0)  deployceph= ;;
+        *)  deployceph=1 ;;
+    esac
+    case "$want_swift" in
+        '') ;;
+        0)  deployswift= ;;
+        *)  deployswift=1 ;;
+    esac
+
+    ### constraints
+    # C1: need at least 3 nodes for ceph
+    if [[ $nodenumber -lt 3 && $deployceph == 1 ]] ; then
+        complain 87 "Ceph needs at least 3 nodes to be deployed. You have ${nodenumber} nodes."
+    fi
+
+    # C2: ceph or swift is only possible with at least one volume
+    if [[ $cephvolumenumber -lt 1 ]] ; then
+        deployswift=
+        deployceph=
+    fi
+
+    ### FINAL swift and ceph check
+    if [[ $deployswift && $deployceph ]] ; then
+        complain 89 "Can not deploy ceph and swift at the same time."
+    fi
+    ### do NOT set/change deployceph or deployswift below this line!
+
+    # Tempest
     wanttempest=
     iscloudver 4plus && wanttempest=1
     if [[ $want_tempest == 0 ]] ; then
         wanttempest=
     fi
 
-    [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && deployceph=
-    # we can not use both swift and ceph as each grabs all disks on a node
-    [[ -n "$deployceph" ]] && deployswift=
-    [[ "$cephvolumenumber" -lt 1 ]] && deployswift=
-
-    if [[ -z "$cinder_conf_volume_type" ]]; then
-        if [[ -n "$deployceph" ]]; then
+    # Cinder
+    if [[ ! $cinder_conf_volume_type ]] ; then
+        if [[ $deployceph ]] ; then
             cinder_conf_volume_type="rbd"
-        elif [[ "$cephvolumenumber" -lt 2 ]]; then
+        elif [[ $cephvolumenumber -lt 2 ]] ; then
             cinder_conf_volume_type="local"
         else
             cinder_conf_volume_type="raw"
