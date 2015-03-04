@@ -1754,12 +1754,16 @@ function set_proposalvars()
     case "$want_ceph" in
         '') ;;
         0)  deployceph= ;;
-        *)  deployceph=1 ;;
+        *)  deployceph=1
+            deployswift=
+        ;;
     esac
     case "$want_swift" in
         '') ;;
         0)  deployswift= ;;
-        *)  deployswift=1 ;;
+        *)  deployswift=1
+            deployceph=
+        ;;
     esac
 
     ### constraints
