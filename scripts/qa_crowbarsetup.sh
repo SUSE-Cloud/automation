@@ -1722,14 +1722,22 @@ function custom_configuration()
 function set_proposalvars()
 {
     # Determine if we went through an upgrade
-    [ -f /etc/cloudsource ] && export cloudsource=$(</etc/cloudsource)
+    if [[ -f /etc/cloudsource ]] ; then
+        export cloudsource=$(</etc/cloudsource)
+    fi
 
     wantswift=1
     [ -z "$want_swift" ] && wantceph=1
-    [[ -n "$wanthyperv" ]] && wantswift= && wantceph= && networkingmode=vlan
+    if [[ $wanthyperv ]] ; then
+        wantswift=
+        wantceph=
+        networkingmode=vlan
+    fi
     wanttempest=
     iscloudver 4plus && wanttempest=1
-    [[ "$want_tempest" = 0 ]] && wanttempest=
+    if [[ $want_tempest == 0 ]] ; then
+        wanttempest=
+    fi
 
     [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
     # we can not use both swift and ceph as each grabs all disks on a node
