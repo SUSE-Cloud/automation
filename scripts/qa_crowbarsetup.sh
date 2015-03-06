@@ -1019,6 +1019,8 @@ EOF
         crowbar ntp proposal commit default
     fi
 
+    update_one_proposal provisioner default
+
     if ! validate_data_bags; then
         complain 68 "Validation error in default data bags. Aborting."
     fi
@@ -1257,7 +1259,11 @@ function onadmin_crowbar_register()
     # get new ip from crowbar
     sleep 10
     local crowbar_register_node_ip_new
-    local node=`mac_to_nodename $lonelymac`
+    if [[ $keep_existing_hostname -eq 1 ]] ; then
+        local node="$hostname.$domain"
+    else
+        local node=`mac_to_nodename $lonelymac`
+    fi
     crowbar_register_node_ip_new=`knife node show $node -a crowbar.network.admin.address | awk '{print $2}'`
 
     [ -n "$crowbar_register_node_ip_new" ] || complain 84 "Could not get Crowbar assigned IP address of crowbar_register_node"
@@ -1708,6 +1714,11 @@ function custom_configuration()
                 tempestnodes=`printf "\"%s\"," $nodescompute`
                 tempestnodes="[ ${tempestnodes%,} ]"
                 proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "$tempestnodes"
+            fi
+        ;;
+        provisioner)
+            if [[ $keep_existing_hostname = 1 ]] ; then
+                proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
             fi
         ;;
         *) echo "No hooks defined for service: $proposal"
