@@ -1621,7 +1621,7 @@ function custom_configuration()
             fi
 
             # assign neutron-l3 role to one of SLE12 nodes
-            if [ -n "$want_sles12" ] && [ -z "$hacloud"] && [ -n "$forceneutronsles12" ] && iscloudver 5plus ; then
+            if [ -n "$want_sles12" ] && [ -z "$hacloud"] && [ -n "$want_neutronsles12" ] && iscloudver 5plus ; then
                 # 2015-03-03 off-by-default because Failed to validate proposal: Role neutron-l3 can't be used for suse 12.0, windows /.*/ platform(s).
                 local sle12node=$(knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g')
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['$sle12node']"
