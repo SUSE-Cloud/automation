@@ -67,6 +67,10 @@
 #
 # qa_crowbarsetup (default /path/to/gitclone) set an optional path to qa_crowbarsetup.sh
 #
+# want_neutronsles12 (default 0)
+#                if there is a SLE12 node, deploy neutron-l3 role into the
+#                SLE12 node.
+#
 # UNDOCUMENTED OPTIONS:
 #
 # virtualcloud
