@@ -71,6 +71,9 @@
 #                if there is a SLE12 node, deploy neutron-l3 role into the
 #                SLE12 node.
 #
+# user_keyfile   path to optional user public ssh keyfile to inject into crowbar to
+#                /root/.ssh/authorized_keys file and to provisioner barclamp
+#
 # UNDOCUMENTED OPTIONS:
 #
 # virtualcloud
@@ -684,6 +687,9 @@ function setupadmin()
     mkdir -p $mnt/root/.ssh
     if ! grep -q "$pubkey" $mnt/root/.ssh/authorized_keys 2>/dev/null; then
         cat $keyfile >> $mnt/root/.ssh/authorized_keys
+    fi
+    if [[ -n $user_keyfile ]]; then
+        cat $user_keyfile >> $mnt/root/.ssh/authorized_keys
     fi
     safely umount $mnt
 
