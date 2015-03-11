@@ -222,7 +222,7 @@ test "$(lvs | wc -l)" -gt 1 || exit 1
 ssh_user="root"
 openqa=http://195.135.221.151/openqa
 
-cirros_base_url="http://clouddata.cloud.suse.de/images"
+cirros_base_url="http://download.cirros-cloud.net/0.3.3/"
 cirros_base_name="cirros-0.3.3-x86_64"
 #openqa=http://www.zq1.de/openqa
 case "$MODE" in
