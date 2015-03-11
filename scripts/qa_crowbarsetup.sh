@@ -1582,6 +1582,20 @@ function dns_proposal_configuration()
     proposal_set_value dns default "['deployment']['dns']['elements']['dns-server']" "[$dnsnodes]"
 }
 
+function cinder_netapp_proposal_configuration()
+{
+    local attr_volume_path="['attributes']['cinder']['volumes']"
+    proposal_set_value cinder default "${attr_volume_path}[0]['backend_name']" "'netapp-backend'"
+    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['storage_family']" "'ontap_cluster'"
+    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['storage_protocol']" "'${cinder_netapp_storage_protocol}'"
+    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['netapp_server_hostname']" "'netapp-n1-e0m.cloud.suse.de'"
+    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['vserver']" "'cloud-openstack-svm'"
+    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['netapp_login']" "'${cinder_netapp_login}'"
+    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['netapp_password']" "'${cinder_netapp_password}'"
+    if [ "$cinder_netapp_storage_protocol" = 'nfs' ] ; then
+        proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['nfs_shares']" "'netapp-n1-nfs.cloud.suse.de:/n1_vol_openstack_nfs'"
+    fi
+}
 
 # configure one crowbar barclamp proposal using global vars as source
 #   does not include proposal create or commit
