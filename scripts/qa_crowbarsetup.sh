@@ -567,7 +567,6 @@ function onadmin_create_sles12_repos()
     local sles12optionalrepolist=(
         SLE-12-Cloud-Compute5-Pool
         SLE-12-Cloud-Compute5-Updates
-        SLE12-Cloud-Compute-PTF SLES12-Pool
     )
     for repo in ${sles12optionalrepolist[@]}; do
         if [ ! -e "$tftpboot_repos12_dir/$repo/repodata/" ] ; then
@@ -580,7 +579,7 @@ function onadmin_create_sles12_repos()
 function onadmin_prepare_sles12_repo()
 {
     local sles12_mount="$tftpboot_suse12_dir/install"
-    add_mount "SLE-12-Server-LATEST/sle-11-x86_64" \
+    add_mount "SLE-12-Server-LATEST/sle-12-x86_64" \
         "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" \
         "$sles12_mount"
 
@@ -604,7 +603,7 @@ function onadmin_prepare_sles12_compute_repo()
 
 function onadmin_prepare_sles12_other_repos()
 {
-    for repo in SLES12-GA-{Pool,Updates}; do
+    for repo in SLES12-{Pool,Updates}; do
         add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
             "$tftpboot_repos12_dir/$repo"
     done
