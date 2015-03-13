@@ -1818,8 +1818,10 @@ function custom_configuration()
             esac
 
             # add a second backend to enable multi-backend, if not already present
-            if ! crowbar cinder proposal show default | grep -q local-multi; then
-                proposal_modify_value cinder default "${volumes}" "{ 'backend_driver' => 'local', 'backend_name' => 'local-multi', 'local' => { 'volume_name' => 'cinder-volumes-multi', 'file_size' => 2000, 'file_name' => '/var/lib/cinder/volume-multi.raw'} }" "<<"
+            if [[ $want_cindermultibackend = 1 ]] ; then
+                if ! crowbar cinder proposal show default | grep -q local-multi; then
+                    proposal_modify_value cinder default "${volumes}" "{ 'backend_driver' => 'local', 'backend_name' => 'local-multi', 'local' => { 'volume_name' => 'cinder-volumes-multi', 'file_size' => 2000, 'file_name' => '/var/lib/cinder/volume-multi.raw'} }" "<<"
+                fi
             fi
             if [[ $hacloud = 1 ]] ; then
                 local cinder_volume
