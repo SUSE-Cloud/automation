@@ -1240,12 +1240,20 @@ function onadmin_crowbar_register()
 
     local adminfqdn=`crowbar machines list | grep crowbar`
     local adminip=`knife node show $adminfqdn -a crowbar.network.admin.address | awk '{print $2}'`
+
+    if [[ $keep_existing_hostname -eq 1 ]] ; then
+        local hostname="$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)"
+        local domain="${adminfqdn#*.}"
+        local hostnamecmd='echo "'$hostname'.'$domain'" > /etc/HOSTNAME'
+    fi
+
     inject="
             rm -f /tmp/crowbar_register_done;
             screen -d -m -L /bin/bash -c '
             wget http://$adminip:8091/$image/crowbar_register &&
             chmod a+x crowbar_register &&
             $zyppercmd
+            $hostnamecmd
             zypper -n ref &&
             zypper -n up &&
             yes | ./crowbar_register --no-gpg-checks &&
