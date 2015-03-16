@@ -842,7 +842,7 @@ EOF
         fi
     fi
 
-    if [ -n "$wantceph" ] && [ -n "$want_sles12" ] && iscloudver 5plus; then
+    if [ -n "$deployceph" ] && [ -n "$want_sles12" ] && iscloudver 5plus; then
         add_suse_storage_repo
     fi
 
@@ -1120,7 +1120,7 @@ function onadmin_allocate()
         local nodes=(
             $(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 2)
         )
-        if [ -n "$wantceph" ] ; then
+        if [ -n "$deployceph" ] ; then
             echo "Setting second last node to SLE12 Storage..."
             set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
         fi
@@ -1533,7 +1533,7 @@ function custom_configuration()
             if [[ $all_with_ssl = 1 || $glance_with_ssl = 1 ]] ; then
                 enable_ssl_for_glance
             fi
-            if [[ -n "$wantceph" ]]; then
+            if [[ -n "$deployceph" ]]; then
                 proposal_set_value glance default "['attributes']['glance']['default_store']" "'rbd'"
             fi
             if [[ $hacloud = 1 ]] ; then
@@ -1722,24 +1722,80 @@ function custom_configuration()
 function set_proposalvars()
 {
     # Determine if we went through an upgrade
-    [ -f /etc/cloudsource ] && export cloudsource=$(</etc/cloudsource)
+    if [[ -f /etc/cloudsource ]] ; then
+        export cloudsource=$(</etc/cloudsource)
+    fi
 
-    wantswift=1
-    [ -z "$want_swift" ] && wantceph=1
-    [[ -n "$wanthyperv" ]] && wantswift= && wantceph= && networkingmode=vlan
+    ### dynamic defaults
+    case "$nodenumber" in
+        0|1)
+            deployswift=
+            deployceph=
+        ;;
+        2)
+            deployswift=1
+            deployceph=
+        ;;
+        *)
+            deployswift=
+            deployceph=1
+        ;;
+    esac
+
+    ### filter (temporarily changing defaults)
+    # F1: hyperV only without swift and ceph
+    if [[ $wanthyperv ]] ; then
+        deployswift=
+        deployceph=
+        networkingmode=vlan
+    fi
+
+    ### user requests (can override defaults and filters)
+    case "$want_ceph" in
+        '') ;;
+        0)  deployceph= ;;
+        *)  deployceph=1
+            deployswift=
+        ;;
+    esac
+    case "$want_swift" in
+        '') ;;
+        0)  deployswift= ;;
+        *)  deployswift=1
+            deployceph=
+        ;;
+    esac
+
+    ### constraints
+    # C1: need at least 3 nodes for ceph
+    if [[ $nodenumber -lt 3 && $deployceph == 1 ]] ; then
+        complain 87 "Ceph needs at least 3 nodes to be deployed. You have ${nodenumber} nodes."
+    fi
+
+    # C2: ceph or swift is only possible with at least one volume
+    if [[ $cephvolumenumber -lt 1 ]] ; then
+        deployswift=
+        deployceph=
+    fi
+
+    ### FINAL swift and ceph check
+    if [[ $deployswift && $deployceph ]] ; then
+        complain 89 "Can not deploy ceph and swift at the same time."
+    fi
+    ### do NOT set/change deployceph or deployswift below this line!
+
+    # Tempest
     wanttempest=
     iscloudver 4plus && wanttempest=1
-    [[ "$want_tempest" = 0 ]] && wanttempest=
+    if [[ $want_tempest == 0 ]] ; then
+        wanttempest=
+    fi
 
-    [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
-    # we can not use both swift and ceph as each grabs all disks on a node
-    [[ -n "$wantceph" ]] && wantswift=
-    [[ "$cephvolumenumber" -lt 1 ]] && wantswift=
-
-    if [[ -z "$cinder_conf_volume_type" ]]; then
-        if [[ -n "$wantceph" ]]; then
+    # Cinder
+    if [[ ! $cinder_conf_volume_type ]] ; then
+        if [[ $deployceph ]] ; then
             cinder_conf_volume_type="rbd"
-        elif [[ "$cephvolumenumber" -lt 2 ]]; then
+        elif [[ $cephvolumenumber -lt 2 ]] ; then
             cinder_conf_volume_type="local"
         else
             cinder_conf_volume_type="raw"
@@ -1811,10 +1867,10 @@ function onadmin_proposal()
                 cluster_node_assignment
                 ;;
             ceph)
-                [[ -n "$wantceph" ]] || continue
+                [[ -n "$deployceph" ]] || continue
                 ;;
             swift)
-                [[ -n "$wantswift" ]] || continue
+                [[ -n "$deployswift" ]] || continue
                 ;;
             trove)
                 iscloudver 5plus || continue
@@ -1866,7 +1922,7 @@ function get_novadashboardserver()
 
 function get_ceph_nodes()
 {
-    if [[ -n "$wantceph" ]]; then
+    if [[ -n "$deployceph" ]]; then
         cephmons=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-mon']"`
         cephosds=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-osd']"`
         cephradosgws=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-radosgw']"`
@@ -1892,7 +1948,7 @@ function oncontroller_testsetup()
     . .openrc
 
     export LC_ALL=C
-    if [[ -n $wantswift ]] ; then
+    if [[ -n $deployswift ]] ; then
         zypper -n install python-swiftclient
         swift stat
         swift upload container1 .ssh/authorized_keys
@@ -2091,7 +2147,7 @@ function onadmin_testsetup()
     curl -m 40 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || complain 101 "simple horizon dashboard test failed"
 
     wantcephtestsuite=0
-    if [[ -n "$wantceph" ]]; then
+    if [[ -n "$deployceph" ]]; then
         get_ceph_nodes
         [ "$cephradosgws" = nil ] && cephradosgws=""
         echo "ceph mons:" $cephmons
@@ -2104,7 +2160,7 @@ function onadmin_testsetup()
     fi
 
     cephret=0
-    if [ -n "$wantceph" -a "$wantcephtestsuite" == 1 ] ; then
+    if [ -n "$deployceph" -a "$wantcephtestsuite" == 1 ] ; then
         rpm -q git-core &> /dev/null || zypper -n install git-core
 
         if test -d qa-automation; then
@@ -2199,7 +2255,7 @@ EOF
     fi
 
     scp $0 $mkcconf $novacontroller:
-    ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
+    ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ; export wanttempest=$wanttempest ;
         export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
