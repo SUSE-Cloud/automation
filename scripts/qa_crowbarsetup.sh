@@ -842,7 +842,7 @@ EOF
         fi
     fi
 
-    if [ -n "$wantceph" ] && [ -n "$want_sles12" ] && iscloudver 5plus; then
+    if [ -n "$deployceph" ] && [ -n "$want_sles12" ] && iscloudver 5plus; then
         add_suse_storage_repo
     fi
 
@@ -1120,7 +1120,7 @@ function onadmin_allocate()
         local nodes=(
             $(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 2)
         )
-        if [ -n "$wantceph" ] ; then
+        if [ -n "$deployceph" ] ; then
             echo "Setting second last node to SLE12 Storage..."
             set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
         fi
@@ -1533,7 +1533,7 @@ function custom_configuration()
             if [[ $all_with_ssl = 1 || $glance_with_ssl = 1 ]] ; then
                 enable_ssl_for_glance
             fi
-            if [[ -n "$wantceph" ]]; then
+            if [[ -n "$deployceph" ]]; then
                 proposal_set_value glance default "['attributes']['glance']['default_store']" "'rbd'"
             fi
             if [[ $hacloud = 1 ]] ; then
@@ -1726,11 +1726,11 @@ function set_proposalvars()
         export cloudsource=$(</etc/cloudsource)
     fi
 
-    wantswift=1
-    [ -z "$want_swift" ] && wantceph=1
+    deployswift=1
+    [ -z "$want_swift" ] && deployceph=1
     if [[ $wanthyperv ]] ; then
-        wantswift=
-        wantceph=
+        deployswift=
+        deployceph=
         networkingmode=vlan
     fi
     wanttempest=
@@ -1739,13 +1739,13 @@ function set_proposalvars()
         wanttempest=
     fi
 
-    [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && wantceph=
+    [[ "$nodenumber" -lt 3 || "$cephvolumenumber" -lt 1 ]] && deployceph=
     # we can not use both swift and ceph as each grabs all disks on a node
-    [[ -n "$wantceph" ]] && wantswift=
-    [[ "$cephvolumenumber" -lt 1 ]] && wantswift=
+    [[ -n "$deployceph" ]] && deployswift=
+    [[ "$cephvolumenumber" -lt 1 ]] && deployswift=
 
     if [[ -z "$cinder_conf_volume_type" ]]; then
-        if [[ -n "$wantceph" ]]; then
+        if [[ -n "$deployceph" ]]; then
             cinder_conf_volume_type="rbd"
         elif [[ "$cephvolumenumber" -lt 2 ]]; then
             cinder_conf_volume_type="local"
@@ -1819,10 +1819,10 @@ function onadmin_proposal()
                 cluster_node_assignment
                 ;;
             ceph)
-                [[ -n "$wantceph" ]] || continue
+                [[ -n "$deployceph" ]] || continue
                 ;;
             swift)
-                [[ -n "$wantswift" ]] || continue
+                [[ -n "$deployswift" ]] || continue
                 ;;
             trove)
                 iscloudver 5plus || continue
@@ -1874,7 +1874,7 @@ function get_novadashboardserver()
 
 function get_ceph_nodes()
 {
-    if [[ -n "$wantceph" ]]; then
+    if [[ -n "$deployceph" ]]; then
         cephmons=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-mon']"`
         cephosds=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-osd']"`
         cephradosgws=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-radosgw']"`
@@ -1900,7 +1900,7 @@ function oncontroller_testsetup()
     . .openrc
 
     export LC_ALL=C
-    if [[ -n $wantswift ]] ; then
+    if [[ -n $deployswift ]] ; then
         zypper -n install python-swiftclient
         swift stat
         swift upload container1 .ssh/authorized_keys
@@ -2099,7 +2099,7 @@ function onadmin_testsetup()
     curl -m 40 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || complain 101 "simple horizon dashboard test failed"
 
     wantcephtestsuite=0
-    if [[ -n "$wantceph" ]]; then
+    if [[ -n "$deployceph" ]]; then
         get_ceph_nodes
         [ "$cephradosgws" = nil ] && cephradosgws=""
         echo "ceph mons:" $cephmons
@@ -2112,7 +2112,7 @@ function onadmin_testsetup()
     fi
 
     cephret=0
-    if [ -n "$wantceph" -a "$wantcephtestsuite" == 1 ] ; then
+    if [ -n "$deployceph" -a "$wantcephtestsuite" == 1 ] ; then
         rpm -q git-core &> /dev/null || zypper -n install git-core
 
         if test -d qa-automation; then
@@ -2207,7 +2207,7 @@ EOF
     fi
 
     scp $0 $mkcconf $novacontroller:
-    ssh $novacontroller "export wantswift=$wantswift ; export wantceph=$wantceph ; export wanttempest=$wanttempest ;
+    ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ; export wanttempest=$wanttempest ;
         export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
