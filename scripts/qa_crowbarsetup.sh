@@ -2823,6 +2823,13 @@ function onadmin_teardown()
     done
 }
 
+function onadmin_runlist()
+{
+    for cmd in "$@" ; do
+        onadmin_$cmd || complain $? "$cmd failed with code $?"
+    done
+}
+
 #--
 
 ruby=/usr/bin/ruby

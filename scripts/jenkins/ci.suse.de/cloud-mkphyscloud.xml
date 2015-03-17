@@ -97,9 +97,9 @@ scp mkcloud.config root@$admin:
 ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL; export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ; export cloudsource=$cloudsource ; export libvirt_type=$libvirt_type ; export nodenumber=$nodenumber ; "'
   wget -Oqa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh" 
   
-  [ $WITHREBOOT == "true" ] &amp;&amp; export rebootcompute=1 &amp;&amp; export waitforrebootcompute=1
-  [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export addupdaterepo=1 &amp;&amp; export runupdate=1
-  prepareinstallcrowbar=1 installcrowbar=1 allocate=1 waitcompute=1 proposal=1 testsetup=1 timeout 120m bash -x qa_crowbarsetup.sh $cloud
+  [ $WITHREBOOT == "true" ] &amp;&amp; export rebootsteps="rebootcompute"
+  [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
+  timeout 120m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar installcrowbar allocate $updatesteps waitcompute proposal testsetup $rebootsteps"
 '</command>
     </hudson.tasks.Shell>
   </builders>
