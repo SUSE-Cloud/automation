@@ -346,6 +346,10 @@ EOF
     return $?
 }
 
+function onadmin()
+{
+    sshrun onadmin_$1
+}
 
 function cleanup()
 {
@@ -825,7 +829,7 @@ function prepareinstcrowbar()
     # so we use the host's external IPv4 resolvers,
     # which must allow queries from routed IPs
     grep '^nameserver\s*[0-9]*\.' /etc/resolv.conf | sshrun dd of=/etc/resolv.conf
-    sshrun onadmin_prepareinstallcrowbar
+    onadmin prepareinstallcrowbar
     return $?
 }
 
@@ -840,7 +844,7 @@ function scp_install_chef_suse_override()
 function instcrowbar()
 {
     scp_install_chef_suse_override
-    sshrun onadmin_installcrowbar
+    onadmin installcrowbar
     local ret=$?
     $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
     return $ret
@@ -849,7 +853,7 @@ function instcrowbar()
 function instcrowbarfromgit()
 {
     scp_install_chef_suse_override
-    sshrun onadmin_installcrowbarfromgit
+    onadmin installcrowbarfromgit
     local ret=$?
     $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
     return $ret
@@ -1039,24 +1043,24 @@ function setupcompute()
 # and wait for nodes to reach the ready state
 function instcompute()
 {
-    sshrun onadmin_allocate ||\
+    onadmin allocate ||\
         return $?
 
     echo "Waiting for the installation of the nodes ..."
-    sshrun onadmin_waitcompute
+    onadmin waitcompute
     return $?
 }
 
 
 function proposal()
 {
-    sshrun onadmin_proposal
+    onadmin proposal
     return $?
 }
 
 function testsetup()
 {
-    sshrun onadmin_testsetup
+    onadmin testsetup
     local ret=$?
     $scp root@$adminip:tempest.log "$artifacts_dir/tempest.log"
     return $ret
@@ -1079,20 +1083,20 @@ function rebootcompute()
 {
     # reboot compute nodes
     #  and test if everthing is up and running afterwards
-    sshrun onadmin_rebootcompute
+    onadmin rebootcompute
     return $?
 }
 
 function rebootneutron()
 {
-    sshrun onadmin_rebootneutron
+    onadmin rebootneutron
     return $?
 }
 
 function securitytests()
 {
     # install and run security test suite owasp
-    sshrun onadmin_securitytests
+    onadmin securitytests
     return $?
 }
 
@@ -1109,7 +1113,7 @@ function qa_test()
     fi
     popd
     rsync -av ~/$ghsc/qa-openstack-cli root@$adminip:
-    sshrun onadmin_qa_test
+    onadmin qa_test
     ret=$?
 
     mkdir -p .artifacts
@@ -1119,7 +1123,7 @@ function qa_test()
 
 function crowbarbackup()
 {
-    sshrun onadmin_crowbarbackup
+    onadmin crowbarbackup
     local ret=$?
     safely $scp root@$adminip:/tmp/backup-crowbar.tar.gz .
     [ -d "$artifacts_dir" ] && mv backup-crowbar.tar.gz "$artifacts_dir/"
@@ -1134,37 +1138,37 @@ function crowbarrestore()
         complain 56 "No crowbar backup tarball found."
     fi
     $scp "$btarball" root@$adminip:/tmp/
-    sshrun 'onadmin_crowbarpurge ; onadmin_crowbarrestore'
+    onadmin crowbarpurge && onadmin crowbarrestore
     return $?
 }
 
 function prepare_cloudupgrade()
 {
-    sshrun prepare_cloudupgrade
+    onadmin prepare_cloudupgrade
     return $?
 }
 
 function cloudupgrade_1st()
 {
-    sshrun onadmin_cloudupgrade_1st
+    onadmin cloudupgrade_1st
     return $?
 }
 
 function cloudupgrade_2nd()
 {
-    sshrun onadmin_cloudupgrade_2nd
+    onadmin cloudupgrade_2nd
     return $?
 }
 
 function cloudupgrade_clients()
 {
-    sshrun onadmin_cloudupgrade_clients
+    onadmin cloudupgrade_clients
     return $?
 }
 
 function cloudupgrade_reboot_and_redeploy_clients()
 {
-    sshrun onadmin_cloudupgrade_reboot_and_redeploy_clients
+    onadmin cloudupgrade_reboot_and_redeploy_clients
     return $?
 }
 
@@ -1261,7 +1265,7 @@ function addupdaterepo()
 
 function runupdate()
 {
-    sshrun onadmin_runupdate
+    onadmin runupdate
     return $?
 }
 

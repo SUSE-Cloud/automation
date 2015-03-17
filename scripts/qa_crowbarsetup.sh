@@ -2602,7 +2602,7 @@ function onadmin_securitytests()
     return $ret
 }
 
-function prepare_cloudupgrade()
+function onadmin_prepare_cloudupgrade()
 {
     # TODO: All running cloud instances should be suspended here
 
