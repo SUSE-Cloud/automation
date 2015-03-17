@@ -19,8 +19,6 @@ clusternodesnetwork=
 clusternodesservices=
 wanthyperv=
 
-export cloud=${1}
-shift
 export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
@@ -51,7 +49,7 @@ safely () {
     fi
 }
 
-if [ -z $cloud ] ; then
+if [ -z "$cloud" ] ; then
     complain 101 "Parameter missing that defines the cloud name" \
         "Possible values: [d1, d2, p, virtual]" \
         "Example: $0 d2"
@@ -2145,6 +2143,19 @@ function oncontroller_testsetup()
     test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0 || exit 102
 }
 
+
+function oncontroller()
+{
+    scp qa_crowbarsetup.sh $mkcconf $novacontroller:
+    ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ; export wanttempest=$wanttempest ;
+        export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
+        export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
+        export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
+        export libvirt_type=\"$libvirt_type\" ;
+        export cloud=$cloud ; . ./qa_crowbarsetup.sh ; $@"
+    return $?
+}
+
 function onadmin_testsetup()
 {
     pre_hook $FUNCNAME
@@ -2273,13 +2284,7 @@ EOF
         fi
     fi
 
-    scp $0 $mkcconf $novacontroller:
-    ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ; export wanttempest=$wanttempest ;
-        export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
-        export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
-        export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
-        export libvirt_type=\"$libvirt_type\" ;
-        oncontroller_testsetup=1 bash -x ./$0 $cloud"
+    oncontroller oncontroller_testsetup
     ret=$?
 
     echo "Tests on controller: $ret"
@@ -2347,8 +2352,7 @@ function onadmin_rebootcompute()
         complain 17 "Some nodes rebooted with state Problem."
     fi
 
-    scp $0 $novacontroller:
-    ssh $novacontroller "oncontroller_waitforinstance=1 bash -x ./$0 $cloud"
+    oncontroller oncontroller_waitforinstance
     local ret=$?
     echo "ret:$ret"
     exit $ret
@@ -2819,123 +2823,9 @@ function onadmin_teardown()
     done
 }
 
-#-------------------------------------------------------------------------------
 #--
-#-- for compatibility to legacy calling style
-#--
-#
-# in the long run all steps should be transformed into real functions, just
-# like in mkcloud; this makes it easier to read, understand and edit this file
-#
+
 ruby=/usr/bin/ruby
 iscloudver 5plus && ruby=/usr/bin/ruby.ruby2.1
-
 export_tftpboot_repos_dir
-
-if [[ -n "$testfunc" ]] ; then
-    $testfunc "$@"
-    exit $?
-fi
-
-mount_localreposdir_target
-
 set_proposalvars
-if [ -n "$prepareinstallcrowbar" ] ; then
-    onadmin_prepareinstallcrowbar
-fi
-
-if [ -n "$installcrowbar" ] ; then
-    onadmin_installcrowbar
-fi
-
-if [ -n "$installcrowbarfromgit" ] ; then
-    onadmin_installcrowbarfromgit
-fi
-
-if [ -n "$addupdaterepo" ] ; then
-    onadmin_addupdaterepo
-fi
-
-if [ -n "$runupdate" ] ; then
-    onadmin_runupdate
-fi
-
-if [ -n "$allocate" ] ; then
-    onadmin_allocate
-fi
-
-if [ -n "$waitcompute" ] ; then
-    onadmin_waitcompute
-fi
-
-if [ -n "$crowbar_register" ] ; then
-    onadmin_crowbar_register
-fi
-
-if [ -n "$prepare_cloudupgrade" ] ; then
-    prepare_cloudupgrade
-fi
-
-if [ -n "$cloudupgrade_1st" ] ; then
-    onadmin_cloudupgrade_1st
-fi
-
-if [ -n "$cloudupgrade_2nd" ] ; then
-    onadmin_cloudupgrade_2nd
-fi
-
-if [ -n "$cloudupgrade_clients" ] ; then
-    onadmin_cloudupgrade_clients
-fi
-
-if [ -n "$cloudupgrade_reboot_and_redeploy_clients" ] ; then
-    onadmin_cloudupgrade_reboot_and_redeploy_clients
-fi
-
-if [ -n "$crowbarbackup" ] ; then
-    onadmin_crowbarbackup
-fi
-
-if [ -n "$crowbarpurge" ] ; then
-    onadmin_crowbarpurge
-fi
-
-if [ -n "$crowbarrestore" ] ; then
-    onadmin_crowbarrestore
-fi
-
-set_proposalvars
-if [ -n "$proposal" ] ; then
-    onadmin_proposal
-fi
-
-if [ -n "$testsetup" ] ; then
-    onadmin_testsetup
-fi
-if [ -n "$oncontroller_testsetup" ] ; then
-    oncontroller_testsetup
-fi
-
-if [ -n "$rebootcompute" ] ; then
-    onadmin_rebootcompute
-fi
-
-if [ -n "$oncontroller_waitforinstance" ] ; then
-    oncontroller_waitforinstance
-fi
-
-if [ -n "$rebootneutron" ] ; then
-    onadmin_rebootneutron
-fi
-
-if [ -n "$securitytests" ] ; then
-    onadmin_securitytests
-fi
-
-if [ -n "$qa_test" ] ; then
-    onadmin_qa_test
-fi
-
-if [ -n "$teardown" ] ; then
-    onadmin_teardown
-fi
