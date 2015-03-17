@@ -341,7 +341,7 @@ EOF
     env|grep -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber | sort >> $mkcconf
 
     $scp $qa_crowbarsetup $mkcconf root@$adminip:
-    ssh $sshopts root@$adminip "$@"
+    ssh $sshopts root@$adminip "echo `hostname` > cloud ; $@"
     return $?
 }
 
@@ -824,7 +824,7 @@ function prepareinstcrowbar()
     # so we use the host's external IPv4 resolvers,
     # which must allow queries from routed IPs
     grep '^nameserver\s*[0-9]*\.' /etc/resolv.conf | sshrun dd of=/etc/resolv.conf
-    sshrun "echo `hostname` > cloud ; prepareinstallcrowbar=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    sshrun "prepareinstallcrowbar=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     return $?
 }
 
@@ -839,7 +839,7 @@ function scp_install_chef_suse_override()
 function instcrowbar()
 {
     scp_install_chef_suse_override
-    sshrun "echo `hostname` > cloud ; installcrowbar=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    sshrun "installcrowbar=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     local ret=$?
     $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
     return $ret
@@ -848,7 +848,7 @@ function instcrowbar()
 function instcrowbarfromgit()
 {
     scp_install_chef_suse_override
-    sshrun "echo `hostname` > cloud ; installcrowbarfromgit=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    sshrun "installcrowbarfromgit=1 bash -x qa_crowbarsetup.sh $virtualcloud"
     local ret=$?
     $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
     return $ret
