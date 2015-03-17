@@ -321,6 +321,7 @@ function sshrun()
         export tempestoptions='${tempestoptions}' ;
         export cephvolumenumber=$cephvolumenumber ;
         export shell=$shell ;
+        export keep_existing_hostname=$keep_existing_hostname ;
 
         export all_with_ssl=$all_with_ssl ;
         export glance_with_ssl=$glance_with_ssl ;
@@ -1242,6 +1243,10 @@ function usage()
     echo "   networkingmode"
     echo "       : Set the networking mode to be used by neutron (e.g. gre)"
     echo "         if it isn't defined the barclamp-neutron's default is used."
+    echo "   keep_existing_hostname=1    (default='')"
+    echo "       : If this option is enabled crowbar_register keeps the existing"
+    echo "         hostname. When the crowbar_register option is enabled too then"
+    echo "         it generates and sets random hostnames."
     echo
     exit 1
 }
