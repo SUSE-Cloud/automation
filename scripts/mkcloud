@@ -1070,7 +1070,7 @@ function rebootcrowbar()
     wait_for 500 3   "nc -z $adminip 22" 'crowbar to be back online'
     echo "waiting another 180 seconds for services"
     sleep 180
-    sshrun "mount -a -t nfs" # FIXME workaround repos not mounted on reboot
+    sshrun "mount -a -t nfs" # workaround repos not mounted on reboot because NFS needs bind, but bind says it requires NFS
     return $?
 }
 
