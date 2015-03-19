@@ -310,6 +310,7 @@ function sshrun()
     cat > $mkcconf <<EOF
         export debug=$debug ;
         export drbdnode_mac_vol=$drbdnode_mac_vol ;
+        export cloud=$virtualcloud ;
         export cloudfqdn=$cloudfqdn ;
         export cloudsource=$cloudsource ;
         export upgrade_cloudsource=$upgrade_cloudsource ;
@@ -341,10 +342,14 @@ EOF
     env|grep -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber | sort >> $mkcconf
 
     $scp $qa_crowbarsetup $mkcconf root@$adminip:
-    ssh $sshopts root@$adminip "$@"
+    ssh $sshopts root@$adminip "echo `hostname` > cloud ; . qa_crowbarsetup.sh ; $@"
     return $?
 }
 
+function onadmin()
+{
+    sshrun onadmin_$1
+}
 
 function cleanup()
 {
@@ -813,7 +818,7 @@ function crowbar_register()
     for i in $lonelynodeids; do
         local i2=$( printf %02x $i )
         local mac="52:54:$i2:88:77:$i2"
-        sshrun "crowbar_register=1 lonelymac=$mac adminip=$adminip bash -x qa_crowbarsetup.sh $virtualcloud"
+        sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register"
     done
 }
 
@@ -824,7 +829,7 @@ function prepareinstcrowbar()
     # so we use the host's external IPv4 resolvers,
     # which must allow queries from routed IPs
     grep '^nameserver\s*[0-9]*\.' /etc/resolv.conf | sshrun dd of=/etc/resolv.conf
-    sshrun "echo `hostname` > cloud ; prepareinstallcrowbar=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin prepareinstallcrowbar
     return $?
 }
 
@@ -839,7 +844,7 @@ function scp_install_chef_suse_override()
 function instcrowbar()
 {
     scp_install_chef_suse_override
-    sshrun "echo `hostname` > cloud ; installcrowbar=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin installcrowbar
     local ret=$?
     $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
     return $ret
@@ -848,7 +853,7 @@ function instcrowbar()
 function instcrowbarfromgit()
 {
     scp_install_chef_suse_override
-    sshrun "echo `hostname` > cloud ; installcrowbarfromgit=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin installcrowbarfromgit
     local ret=$?
     $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
     return $ret
@@ -1038,24 +1043,24 @@ function setupcompute()
 # and wait for nodes to reach the ready state
 function instcompute()
 {
-    sshrun "allocate=1 bash -x qa_crowbarsetup.sh $virtualcloud" ||\
+    onadmin allocate ||\
         return $?
 
     echo "Waiting for the installation of the nodes ..."
-    sshrun "waitcompute=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin waitcompute
     return $?
 }
 
 
 function proposal()
 {
-    sshrun "proposal=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin proposal
     return $?
 }
 
 function testsetup()
 {
-    sshrun "testsetup=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin testsetup
     local ret=$?
     $scp root@$adminip:tempest.log "$artifacts_dir/tempest.log"
     return $ret
@@ -1070,7 +1075,7 @@ function rebootcrowbar()
     wait_for 500 3   "nc -z $adminip 22" 'crowbar to be back online'
     echo "waiting another 180 seconds for services"
     sleep 180
-    sshrun "mount -a -t nfs" # FIXME workaround repos not mounted on reboot
+    sshrun "mount -a -t nfs" # workaround repos not mounted on reboot because NFS needs bind, but bind says it requires NFS
     return $?
 }
 
@@ -1078,20 +1083,20 @@ function rebootcompute()
 {
     # reboot compute nodes
     #  and test if everthing is up and running afterwards
-    sshrun "rebootcompute=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin rebootcompute
     return $?
 }
 
 function rebootneutron()
 {
-    sshrun "rebootneutron=1 bash qa_crowbarsetup.sh $virtualcloud"
+    onadmin rebootneutron
     return $?
 }
 
 function securitytests()
 {
     # install and run security test suite owasp
-    sshrun "securitytests=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin securitytests
     return $?
 }
 
@@ -1108,7 +1113,7 @@ function qa_test()
     fi
     popd
     rsync -av ~/$ghsc/qa-openstack-cli root@$adminip:
-    sshrun "qa_test=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin qa_test
     ret=$?
 
     mkdir -p .artifacts
@@ -1118,7 +1123,7 @@ function qa_test()
 
 function crowbarbackup()
 {
-    sshrun "crowbarbackup=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin crowbarbackup
     local ret=$?
     safely $scp root@$adminip:/tmp/backup-crowbar.tar.gz .
     [ -d "$artifacts_dir" ] && mv backup-crowbar.tar.gz "$artifacts_dir/"
@@ -1133,37 +1138,37 @@ function crowbarrestore()
         complain 56 "No crowbar backup tarball found."
     fi
     $scp "$btarball" root@$adminip:/tmp/
-    sshrun "crowbarpurge=1 crowbarrestore=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin crowbarpurge && onadmin crowbarrestore
     return $?
 }
 
 function prepare_cloudupgrade()
 {
-    sshrun "prepare_cloudupgrade=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin prepare_cloudupgrade
     return $?
 }
 
 function cloudupgrade_1st()
 {
-    sshrun "cloudupgrade_1st=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin cloudupgrade_1st
     return $?
 }
 
 function cloudupgrade_2nd()
 {
-    sshrun "cloudupgrade_2nd=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin cloudupgrade_2nd
     return $?
 }
 
 function cloudupgrade_clients()
 {
-    sshrun "cloudupgrade_clients=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin cloudupgrade_clients
     return $?
 }
 
 function cloudupgrade_reboot_and_redeploy_clients()
 {
-    sshrun "cloudupgrade_reboot_and_redeploy_clients=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin cloudupgrade_reboot_and_redeploy_clients
     return $?
 }
 
@@ -1254,13 +1259,13 @@ function usage()
 
 function addupdaterepo()
 {
-    sshrun "addupdaterepo=1 UPDATEREPOS=$UPDATEREPOS  bash -x qa_crowbarsetup.sh $virtualcloud"
+    sshrun "UPDATEREPOS=$UPDATEREPOS onadmin_addupdaterepo"
     return $?
 }
 
 function runupdate()
 {
-    sshrun "runupdate=1 bash -x qa_crowbarsetup.sh $virtualcloud"
+    onadmin runupdate
     return $?
 }
 

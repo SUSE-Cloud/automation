@@ -3,11 +3,12 @@
 describe "roundup(1) testing of qa_crowbarsetup.sh"
 
 verlist="3 4 5 6 4plus"
+export cloud=x
 
 cloudversionmatrixrow() {
     r=""
     for v in $verlist ; do
-        cloudsource=$1 testfunc=iscloudver bash -x ./qa_crowbarsetup.sh x $v && r="${r}0" || r="${r}1"
+        export cloudsource=$1 ; . ./qa_crowbarsetup.sh ; iscloudver $v && r="${r}0" || r="${r}1"
     done
     echo $r
 }
@@ -34,7 +35,7 @@ it_returns_correct_cloudver_matrix_milestone() {
 
 getcloudversionmatrixrow() {
     for v in $@ ; do
-        cloudsource=$v testfunc=getcloudver bash -x ./qa_crowbarsetup.sh x
+        export cloudsource=$v ; . ./qa_crowbarsetup.sh ; getcloudver
     done
 }
 
@@ -44,14 +45,14 @@ it_returns_correct_getcloudver() {
 }
 
 it_has_correct_mac_to_nodename() {
-    results=`testfunc=mac_to_nodename bash -x ./qa_crowbarsetup.sh x 52:54:03:88:77:03`
+    results=`. ./qa_crowbarsetup.sh ; mac_to_nodename 52:54:03:88:77:03`
     test "$results" = "d52-54-03-88-77-03.x.cloud.suse.de"
 }
 
 it_parses_dhcpd_leases() {
-    results=`testfunc=onadmin_get_ip_from_dhcp bash -x ./qa_crowbarsetup.sh x 52:54:03:88:77:03 test/data/dhcpd.leases`
+    results=`. ./qa_crowbarsetup.sh ; onadmin_get_ip_from_dhcp 52:54:03:88:77:03 test/data/dhcpd.leases`
     test "$results" = "192.168.124.26"
     # negative result test
-    results=`! testfunc=onadmin_get_ip_from_dhcp bash -x ./qa_crowbarsetup.sh x 52:54:03:88:77:07 test/data/dhcpd.leases`
+    results=`. ./qa_crowbarsetup.sh ; ! onadmin_get_ip_from_dhcp 52:54:03:88:77:07 test/data/dhcpd.leases`
     test "$results" = ""
 }
