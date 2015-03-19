@@ -1610,7 +1610,11 @@ function custom_configuration()
             # TODO(toabctl): the milestone/cloud6 check can be removed when milestone 5 is released
             if iscloudver 5 && [[ ! $cloudsource =~ ^M[1-4]+$ ]] || iscloudver 6plus; then
                 if [ "$networkingplugin" = "openvswitch" ] ; then
-                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vlan']"
+                    if [[ "$networkingmode" = vxlan ]] || iscloudver 6plus; then
+                        proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vxlan','vlan']"
+                    else
+                        proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vlan']"
+                    fi
                 elif [ "$networkingplugin" = "linuxbridge" ] ; then
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
                 else
