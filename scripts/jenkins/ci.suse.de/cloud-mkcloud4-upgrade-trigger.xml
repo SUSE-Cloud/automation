@@ -5,25 +5,28 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Build:cloud</permission>
-      <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
       <permission>hudson.scm.SCM.Tag:cloud</permission>
       <permission>hudson.model.Run.Delete:cloud</permission>
-      <permission>hudson.model.Item.Cancel:cloud</permission>
-      <permission>hudson.model.Item.Delete:cloud</permission>
-      <permission>hudson.model.Item.Configure:cloud</permission>
-      <permission>hudson.model.Item.Workspace:cloud</permission>
       <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
+      <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Item.Cancel:cloud</permission>
+      <permission>hudson.model.Item.Delete:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
+      <autoRebuild>false</autoRebuild>
+    </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector">
+  <triggers>
     <hudson.triggers.TimerTrigger>
       <spec>32 22 * * *</spec>
     </hudson.triggers.TimerTrigger>
@@ -31,18 +34,19 @@
   <concurrentBuild>false</concurrentBuild>
   <builders/>
   <publishers>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.25">
       <configs>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>cloudsource=GM3
+upgrade_cloudsource=develcloud4
 nodenumber=3
 TESTHEAD=1
 mkcloudtarget=plain_with_upgrade testsetup rebootcompute</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>openstack-mkcloud, </projects>
+          <projects>openstack-mkcloud</projects>
           <condition>SUCCESS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>

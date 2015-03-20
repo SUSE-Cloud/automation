@@ -1,129 +1,97 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<matrix-project plugin="matrix-project@1.4">
   <actions/>
   <description>Checks if all dependencies of Cloud media are satisfied.</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
-    <numToKeep>10</numToKeep>
+    <numToKeep>20</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Build:cloud</permission>
-      <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
       <permission>hudson.scm.SCM.Tag:cloud</permission>
       <permission>hudson.model.Run.Delete:cloud</permission>
-      <permission>hudson.model.Item.Cancel:cloud</permission>
-      <permission>hudson.model.Item.Delete:cloud</permission>
-      <permission>hudson.model.Item.Configure:cloud</permission>
-      <permission>hudson.model.Item.Workspace:cloud</permission>
       <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
+      <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Item.Cancel:cloud</permission>
+      <permission>hudson.model.Item.Delete:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <hudson.model.ParametersDefinitionProperty>
-      <parameterDefinitions>
-        <hudson.model.StringParameterDefinition>
-          <name>RPM_DEPCHECK</name>
-          <description/>
-          <defaultValue>1</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>SRCRPM_DEPCHECK</name>
-          <description/>
-          <defaultValue>0</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>OBS_PROJECT</name>
-          <description>Name of the OBS project, whose 'images' repository is checked for ISOs.</description>
-          <defaultValue>Devel:Cloud:2.0</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>OBS_TYPE</name>
-          <description>Name of the Open Build Service instance hosting the repository.</description>
-          <defaultValue>IBS</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>DEPCHECK_NEEDS_MEDIADEPS</name>
-          <description>Include mediadeps for depcheck if set. This should be checked for Addon products.</description>
-          <defaultValue>true</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
-      </parameterDefinitions>
-    </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
       <autoRebuild>false</autoRebuild>
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
-  <scm class="org.jenkinsci.plugins.multiplescms.MultiSCM" plugin="multiple-scms@0.3">
-    <scms>
-      <hudson.plugins.git.GitSCM plugin="git@2.2.6">
-        <configVersion>2</configVersion>
-        <userRemoteConfigs>
-          <hudson.plugins.git.UserRemoteConfig>
-            <name>origin</name>
-            <refspec>+refs/heads/*:refs/remotes/origin/*</refspec>
-            <url>git@github.com:SUSE/cloud.git</url>
-          </hudson.plugins.git.UserRemoteConfig>
-        </userRemoteConfigs>
-        <branches>
-          <hudson.plugins.git.BranchSpec>
-            <name>**</name>
-          </hudson.plugins.git.BranchSpec>
-        </branches>
-        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-        <submoduleCfg class="list"/>
-        <extensions>
-          <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-            <relativeTargetDir>cloud</relativeTargetDir>
-          </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-          <hudson.plugins.git.extensions.impl.PerBuildTag/>
-        </extensions>
-      </hudson.plugins.git.GitSCM>
-      <hudson.plugins.git.GitSCM plugin="git@2.2.6">
-        <configVersion>2</configVersion>
-        <userRemoteConfigs>
-          <hudson.plugins.git.UserRemoteConfig>
-            <name>origin</name>
-            <refspec>+refs/heads/*:refs/remotes/origin/*</refspec>
-            <url>git@github.com:SUSE-Cloud/automation.git</url>
-          </hudson.plugins.git.UserRemoteConfig>
-        </userRemoteConfigs>
-        <branches>
-          <hudson.plugins.git.BranchSpec>
-            <name>**</name>
-          </hudson.plugins.git.BranchSpec>
-        </branches>
-        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-        <submoduleCfg class="list"/>
-        <extensions>
-          <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-            <relativeTargetDir>automation</relativeTargetDir>
-          </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-          <hudson.plugins.git.extensions.impl.PerBuildTag/>
-        </extensions>
-      </hudson.plugins.git.GitSCM>
-    </scms>
-  </scm>
-  <assignedNode>openstack-trackupstream</assignedNode>
-  <canRoam>false</canRoam>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers/>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H */2 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
   <concurrentBuild>false</concurrentBuild>
+  <axes>
+    <hudson.matrix.TextAxis>
+      <name>project</name>
+      <values>
+        <string>Devel:Cloud:3</string>
+        <string>Devel:Cloud:4</string>
+        <string>Devel:Cloud:5</string>
+        <string>Devel:Cloud:Shared:11-SP3:Update</string>
+        <string>SUSE:SLE-11-SP3:Update:Cloud5:Test</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.TextAxis>
+      <name>subproject</name>
+      <values>
+        <string>:</string>
+        <string>:Staging</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.LabelAxis>
+      <name>label</name>
+      <values>
+        <string>cloud-trackupstream</string>
+      </values>
+    </hudson.matrix.LabelAxis>
+  </axes>
+  <combinationFilter>(["Devel:Cloud:3", "Devel:Cloud:4", "Devel:Cloud:5"].contains(project) || subproject == ":")</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
-      <command># Cleanup isos from old builds
+      <command># temporary, similar to update_automation (not that advanced)
+pushd /root/github.com/SUSE/cloud/
+git pull
+popd
+rm -rf cloud/
+mkdir -p cloud
+rsync -av /root/github.com/SUSE/cloud/scripts ./cloud/
+
+# Cleanup isos from old builds
 rm -f scripts/release-mgmt/*Media1.iso
 
-if ! [[ $DEPCHECK_NEEDS_MEDIADEPS == "true" ]]; then
+# options
+export RPM_DEPCHECK=1
+export SRCRPM_DEPCHECK=0
+
+if [[ "$project" == "Devel:Cloud:Shared:11-SP3:Update" ]]; then
     export RPM_DEPCHECK_MEDIADEPS=" "
     export SRCRPM_DEPCHECK_MEDIADEPS=" "
+    export INSTALLCHECK_EXTRA_OPTS="--exclude pattern:"
 fi
 
-OBS_TYPE=$OBS_TYPE OBS_PROJECT=$OBS_PROJECT make -C cloud/scripts/release-mgmt/ mediacheck
+
+stage=$subproject
+[[ $stage == ":" ]] &amp;&amp; stage=
+
+OBS_TYPE=IBS OBS_PROJECT=$project$stage make -C cloud/scripts/release-mgmt/ mediacheck
 RETVAL=$?
 
 # Cleanup
@@ -134,17 +102,10 @@ rm -r cloud/scripts/release-mgmt/*.iso
 </command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers>
-    <hudson.tasks.Mailer plugin="mailer@1.10">
-      <recipients>cloud-devel@suse.de</recipients>
-      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
-      <sendToIndividuals>false</sendToIndividuals>
-    </hudson.tasks.Mailer>
-  </publishers>
-  <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.14"/>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.3">
-      <template>openstack-mediacheck: ${ENV,var="OBS_PROJECT"}</template>
-    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-  </buildWrappers>
-</project>
+  <publishers/>
+  <buildWrappers/>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>false</runSequentially>
+    <sorter class="hudson.matrix.NoopMatrixConfigurationSorter"/>
+  </executionStrategy>
+</matrix-project>

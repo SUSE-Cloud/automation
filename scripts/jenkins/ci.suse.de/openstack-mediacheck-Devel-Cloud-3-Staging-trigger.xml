@@ -2,7 +2,7 @@
 <project>
   <actions/>
   <description>This is the meta job that triggers the openstack-mediacheck job multiple times with different parameters.</description>
-  <logRotator>
+  <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
     <numToKeep>5</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
@@ -11,26 +11,26 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Build:cloud</permission>
       <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
       <permission>hudson.scm.SCM.Tag:cloud</permission>
-      <permission>hudson.model.Run.Delete:cloud</permission>
-      <permission>hudson.model.Item.Cancel:cloud</permission>
       <permission>hudson.model.Item.Delete:cloud</permission>
+      <permission>hudson.model.Item.Cancel:cloud</permission>
       <permission>hudson.model.Item.Configure:cloud</permission>
-      <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>hudson.model.Run.Delete:cloud</permission>
       <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector">
-    <org.jenkinsci.plugins.urltrigger.URLTrigger>
+  <triggers>
+    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.37">
       <spec>*/5 * * * *</spec>
       <entries>
         <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
@@ -38,6 +38,8 @@
           <proxyActivated>false</proxyActivated>
           <checkStatus>false</checkStatus>
           <statusCode>200</statusCode>
+          <timeout>0</timeout>
+          <checkETag>false</checkETag>
           <checkLastModificationDate>true</checkLastModificationDate>
           <inspectingContent>true</inspectingContent>
           <contentTypes>
@@ -51,7 +53,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders/>
   <publishers>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.25">
       <configs>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
@@ -60,7 +62,7 @@
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>openstack-mediacheck, </projects>
+          <projects>openstack-mediacheck-old</projects>
           <condition>SUCCESS</condition>
           <triggerWithNoParameters>true</triggerWithNoParameters>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
