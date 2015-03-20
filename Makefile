@@ -11,6 +11,7 @@ bashate:
 	    echo "checking $$f"; \
 	    bash -n $$f || exit 3; \
 	    bashate --ignore E010,E011,E020 $$f || exit 4; \
+	    ! grep $$'\t' $$f || exit 5; \
 	done
 
 perlcheck:
