@@ -17,11 +17,15 @@ fi
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
 
+# global variables that are set within this script
 novacontroller=
 novadashboardserver=
 clusternodesdata=
 clusternodesnetwork=
 clusternodesservices=
+clusternamedata="data"
+clusternameservices="services"
+clusternamenetwork="network"
 wanthyperv=
 
 export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
@@ -1529,14 +1533,14 @@ function custom_configuration()
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
                 proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "20"
-                proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:data']"
+                proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
             fi
         ;;
         rabbitmq)
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "20"
-                proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:data']"
+                proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamedata']"
             fi
         ;;
         dns)
@@ -1554,7 +1558,7 @@ function custom_configuration()
                 proposal_set_value keystone default "['attributes']['keystone']['api']['region']" "'CustomRegion'"
             fi
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value keystone default "['deployment']['keystone']['elements']['keystone-server']" "['cluster:services']"
+                proposal_set_value keystone default "['deployment']['keystone']['elements']['keystone-server']" "['cluster:$clusternameservices']"
             fi
         ;;
         glance)
@@ -1565,7 +1569,7 @@ function custom_configuration()
                 proposal_set_value glance default "['attributes']['glance']['default_store']" "'rbd'"
             fi
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value glance default "['deployment']['glance']['elements']['glance-server']" "['cluster:services']"
+                proposal_set_value glance default "['deployment']['glance']['elements']['glance-server']" "['cluster:$clusternameservices']"
             fi
         ;;
         ceph)
@@ -1581,7 +1585,7 @@ function custom_configuration()
                 enable_ssl_for_nova
             fi
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-controller']" "['cluster:services']"
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-controller']" "['cluster:$clusternameservices']"
 
                 # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
                 local novanodes
@@ -1598,18 +1602,18 @@ function custom_configuration()
                 enable_ssl_for_nova_dashboard
             fi
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value nova_dashboard default "['deployment']['nova_dashboard']['elements']['nova_dashboard-server']" "['cluster:services']"
+                proposal_set_value nova_dashboard default "['deployment']['nova_dashboard']['elements']['nova_dashboard-server']" "['cluster:$clusternameservices']"
             fi
         ;;
         heat)
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value heat default "['deployment']['heat']['elements']['heat-server']" "['cluster:services']"
+                proposal_set_value heat default "['deployment']['heat']['elements']['heat-server']" "['cluster:$clusternameservices']"
             fi
         ;;
         ceilometer)
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-server']" "['cluster:services']"
-                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['cluster:services']"
+                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-server']" "['cluster:$clusternameservices']"
+                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['cluster:$clusternameservices']"
                 local ceilometernodes
                 ceilometernodes=`printf "\"%s\"," $nodescompute`
                 ceilometernodes="[ ${ceilometernodes%,} ]"
@@ -1659,8 +1663,8 @@ function custom_configuration()
             fi
 
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['cluster:network']"
-                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['cluster:network']"
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['cluster:$clusternamenetwork']"
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['cluster:$clusternamenetwork']"
             fi
             if [[ "$networkingplugin" = "vmware" ]] ; then
                 proposal_set_value neutron default "['attributes']['neutron']['vmware']['user']" "'$nsx_user'"
@@ -1730,7 +1734,7 @@ function custom_configuration()
                 local cinder_volume
                 # fetch one of the compute nodes as cinder_volume
                 cinder_volume=`printf "%s\n" $nodescompute | tail -n 1`
-                proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['cluster:services']"
+                proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['cluster:$clusternameservices']"
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-volume']" "['$cinder_volume']"
             fi
         ;;
