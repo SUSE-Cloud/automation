@@ -2757,7 +2757,7 @@ function onadmin_crowbarpurge()
     killall epmd # part of rabbitmq
     killall looper_chef_client.sh
 
-    zypper -n rm \
+    safely zypper -n rm \
         `rpm -qa|grep -e crowbar -e chef -e rubygem -e susecloud -e apache2` \
         couchdb createrepo erlang rabbitmq-server sleshammer yum-common \
         bind bind-chrootenv dhcp-server tftp
@@ -2773,7 +2773,7 @@ function onadmin_crowbarpurge()
         /var/chef \
         /srv/tftpboot/{discovery/pxelinux.cfg/*,nodes,validation.pem}
 
-    killall epmd # need to kill again after uninstall
+    killall epmd ||: # need to kill again after uninstall
 }
 
 function onadmin_crowbarrestore()
