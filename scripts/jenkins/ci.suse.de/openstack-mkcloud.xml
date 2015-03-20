@@ -120,6 +120,11 @@ netapp_volume_list ''
           <description>kvm|xen|hyperv</description>
           <defaultValue>kvm</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>WITHCROWBARREGISTER</name>
+          <description>boot up one lonely node in the admin network and register it with crowbar_register (image type depends on want_sles12 parameter)</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
@@ -136,7 +141,8 @@ netapp_volume_list ''
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># use IBS://Devel:Cloud latest iso image
+      <command>set -x
+# use IBS://Devel:Cloud latest iso image
 #export cloudsource=develcloud
 #export cloudsource=susecloud
 # use latest packages from IBS://Devel:Cloud on top
@@ -148,6 +154,7 @@ netapp_volume_list ''
 
 export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
 export debug=0
+export want_neutronsles12=1
 
 
 if [ ! -z "$UPDATEREPOS" ] ; then
@@ -164,7 +171,7 @@ touch $artifacts_dir/.ignore
 
 [ -e ~/bin/update_automation ] || curl -o ~/bin/update_automation https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
 # fetch the latest automation updates
-update_automation mkcloud jenkins-job-trigger allocpool
+update_automation mkcloud qa_crowbarsetup.sh jenkins-job-trigger allocpool
 
 echo "########################################################################"
 env
@@ -172,7 +179,14 @@ echo "########################################################################"
 
 MKCLOUDTARGET=$mkcloudtarget
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
+if [ $WITHCROWBARREGISTER == "true" ] ; then
+  export nodenumberlonelynode=1
+  MKCLOUDTARGET="$MKCLOUDTARGET setuplonelynodes crowbar_register"
+fi
 
+if [ -e mkcloud.pid ] ; then
+    kill -KILL -`mkcloud.pid` ||: # make sure that the previous mkcloud (and subprocesses) are dead
+fi
 starttime=`date +%s`
 perl -e "alarm 4*60*60 ; exec '/root/bin/allocpool bash -x /root/bin/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
 [ ${PIPESTATUS[0]} = 0 ] || exit 1 # check return code before tee

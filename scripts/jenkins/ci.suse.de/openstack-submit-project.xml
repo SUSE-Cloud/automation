@@ -9,10 +9,10 @@ Only packages that built successfully are submitted.&#13;
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
+      <permission>hudson.scm.SCM.Tag:cloud</permission>
+      <permission>hudson.model.Run.Update:cloud</permission>
       <permission>hudson.model.Item.Build:cloud</permission>
       <permission>hudson.model.Item.Discover:cloud</permission>
-      <permission>hudson.model.Run.Update:cloud</permission>
-      <permission>hudson.scm.SCM.Tag:cloud</permission>
       <permission>hudson.model.Run.Delete:cloud</permission>
       <permission>hudson.model.Item.Cancel:cloud</permission>
       <permission>hudson.model.Item.Delete:cloud</permission>
@@ -115,7 +115,7 @@ case $project in
     OSCBUILDDIST=SLE_11_SP3
   ;;
   Devel:Cloud:3)
-    submitcmd="$OSC copypac -K -e"
+    submitcmd="$OSC submitreq -m 'jenkins-submit-project'"
     OSCBUILDDIST=SLE_11_SP3
   ;;
   Devel:Cloud:4)
@@ -156,7 +156,7 @@ for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null | grep -E "^(${packagefilter// /|
   then
     # NOTE(saschpe): the "|| :" is a work-around for an osc bug (should be fixed, but Adrian needs to release a new osc)
     # No need to put this in git.
-    $E $submitcmd $COSS $COMPONENT $COS || :
+    [[ "$COMPONENT" =~ -doc$ ]] || $E $submitcmd $COSS $COMPONENT $COS || :
   fi
 done</command>
     </hudson.tasks.Shell>

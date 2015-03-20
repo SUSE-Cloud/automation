@@ -11,19 +11,19 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:cloud</permission>
       <permission>hudson.model.Item.Discover:cloud</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:cloud</permission>
-      <permission>hudson.model.Item.Build:cloud</permission>
-      <permission>hudson.model.Run.Update:cloud</permission>
-      <permission>hudson.scm.SCM.Tag:cloud</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:cloud</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:cloud</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:cloud</permission>
+      <permission>hudson.model.Run.Update:cloud</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:cloud</permission>
       <permission>hudson.model.Run.Delete:cloud</permission>
+      <permission>hudson.scm.SCM.Tag:cloud</permission>
       <permission>hudson.model.Item.Delete:cloud</permission>
       <permission>hudson.model.Item.Cancel:cloud</permission>
-      <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:cloud</permission>
+      <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
       <permission>hudson.model.Item.Workspace:cloud</permission>
@@ -82,6 +82,7 @@
         <string>crowbar-barclamp-tempest</string>
         <string>crowbar-barclamp-trove</string>
         <string>crowbar-barclamp-updater</string>
+        <string>suse-cloud-upgrade</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
