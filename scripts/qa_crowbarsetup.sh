@@ -822,6 +822,7 @@ EOF
         while zypper lr -e - | grep -q '^name='; do
             zypper rr 1
         done
+        mount_localreposdir_target
     fi
 
     onadmin_set_source_variables
