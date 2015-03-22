@@ -177,7 +177,11 @@ needcvol=1
 : ${computenode_hdd_size:=15}
 : ${cephvolume_hdd_size:=11}
 : ${controller_ceph_hdd_size:=25}
-: ${drbd_hdd_size:=50}
+if [ -n "$hacloud" ]; then
+    : ${drbd_hdd_size:=50}
+else
+    : ${drbd_hdd_size:=0}
+fi
 # pvlist is filled below
 pvlist=
 next_pv_device=
@@ -460,7 +464,7 @@ function onhost_create_cloud_lvm()
     fi
 
     # create volumes for drbd
-    if [ -n "$hacloud" ] ; then
+    if [ $drbd_hdd_size != 0 ] ; then
         for i in `seq 1 $nodenumberdatacluster`; do
             onhost_get_next_pv_device
             safely lvcreate -n $cloud.node$i-drbd -L ${drbd_hdd_size=}G $cloudvg $next_pv_device
@@ -1031,7 +1035,7 @@ function setupcompute()
         fi
 
         drbdvolume=""
-        if [ -n "$hacloud" ] ; then
+        if [ $drbd_hdd_size != 0 ]; then
             if [ $i -le $nodenumberdatacluster ] ; then
                 drbddev=vd$(echo $alldevices | cut -d" " -f$c)
                 c=$(($c + 1))
