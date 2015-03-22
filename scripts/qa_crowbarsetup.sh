@@ -799,8 +799,10 @@ BROADCAST='$net.255'
 EOF
     ifdown br0
     rm -f /etc/sysconfig/network/ifcfg-br0
-    grep -q "^default" /etc/sysconfig/network/routes || \
-        echo "default $net.1 - -" > /etc/sysconfig/network/routes
+    routes_file=/etc/sysconfig/network/routes
+    if ! [ -e $routes_file ] || ! grep -q "^default" $routes_file; then
+        echo "default $net.1 - -" > $routes_file
+    fi
     echo "crowbar.$cloudfqdn" > /etc/HOSTNAME
     hostname `cat /etc/HOSTNAME`
     # these vars are used by rabbitmq
