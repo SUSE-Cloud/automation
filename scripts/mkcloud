@@ -872,7 +872,9 @@ function prepareinstcrowbar()
     # qa_crowbarsetup uses static network which needs static resolv.conf
     # so we use the host's external IPv4 resolvers,
     # which must allow queries from routed IPs
-    grep '^nameserver\s*[0-9]*\.' /etc/resolv.conf | sshrun dd of=/etc/resolv.conf
+    grep '^nameserver\s*[0-9]*\.' /etc/resolv.conf |
+        egrep -v 'nameserver (127\.0\.0\.1|localhost)$' |
+        sshrun dd of=/etc/resolv.conf
     onadmin prepareinstallcrowbar
     return $?
 }
