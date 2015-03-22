@@ -709,15 +709,11 @@ function setupadmin()
         rmmod kvm-intel
     fi
     modprobe kvm-intel
-    # needed for HA/STONITH via libvirtd:
-    if ! grep -q ^listen_tcp /etc/libvirt/libvirtd.conf ; then
+
+    if configure_libvirtd; then # config was changed
         service libvirtd stop
-        echo 'auth_tcp = "none"
-listen_tcp = 1
-listen_addr = "0.0.0.0"' >> /etc/libvirt/libvirtd.conf
     fi
-    chkconfig libvirtd on
-    service libvirtd start
+    safely service libvirtd start
     wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 
     if ! virsh net-dumpxml $cloud-admin > /dev/null 2>&1; then
@@ -774,6 +770,44 @@ EOS
             echo ssh-dss $pubkey injected-key-from-host >> ~/.ssh/authorized_keys
     "
     echo "you can now proceed with installing crowbar"
+}
+
+# Returns success if a change was made
+function confset()
+{
+    file="$1" key="$2" value="$3"
+    if grep -q "^$key *= *$value" "$file"; then
+        return 1 # already set correctly
+    fi
+
+    new_line="$key = $value"
+    if grep -q "^$key[ =]" "$file"; then
+        # change existing value
+        sed -i "s/^$key *=.*/$new_line/" "$file"
+    elif grep -q "^# *$key[ =]" "$file"; then
+        # uncomment existing setting
+        sed -i "s/^# *$key *=.*/$new_line/" "$file"
+    else
+        # add new setting
+        echo "$new_line" >> "$file"
+    fi
+
+    return 0
+}
+
+# Returns success if the config was changed
+function configure_libvirtd()
+{
+    chkconfig libvirtd on
+
+    changed=
+
+    # needed for HA/STONITH via libvirtd:
+    confset /etc/libvirt/libvirtd.conf listen_tcp 1            && changed=y
+    confset /etc/libvirt/libvirtd.conf listen_addr '"0.0.0.0"' && changed=y
+    confset /etc/libvirt/libvirtd.conf auth_tcp '"none"'       && changed=y
+
+    [ -n "$changed" ]
 }
 
 # bring up lonely_node(s) in the admin network
