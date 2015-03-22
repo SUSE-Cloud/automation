@@ -22,12 +22,12 @@ wanthyperv=
 export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
-export want_sles12=${want_sles12:-""}
+export want_sles12
 export nodes=
 export debug=${debug:-0}
-export cinder_conf_volume_type=${cinder_conf_volume_type:-""}
-export cinder_conf_volume_params=${cinder_conf_volume_params:-""}
-export localreposdir_target=${localreposdir_target:-""}
+export cinder_conf_volume_type
+export cinder_conf_volume_params
+export localreposdir_target
 export want_ipmi=${want_ipmi:-false}
 [ "$libvirt_type" = hyperv ] && export wanthyperv=1
 [ "$libvirt_type" = xen ] && export wantxenpv=1 # xenhvm is broken anyway
