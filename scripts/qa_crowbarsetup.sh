@@ -50,6 +50,15 @@ safely () {
     fi
 }
 
+rubyjsonparse()
+{
+    $ruby -e "
+        require 'rubygems'
+        require 'json'
+        j=JSON.parse(STDIN.read)
+        $1"
+}
+
 if [ -z "$cloud" ] ; then
     complain 101 "Parameter missing that defines the cloud name" \
         "Possible values: [d1, d2, p, virtual]" \
@@ -437,8 +446,7 @@ function cluster_node_assignment()
                 local nfile
                 nfile=knife.node.${node}.json
                 knife node show ${node} -F json > $nfile
-                $ruby -e "require 'rubygems';require 'json';
-                            j=JSON.parse(STDIN.read);
+                rubyjsonparse "
                             j['normal']['crowbar_wall']['claimed_disks'].each do |k,v|
                                 next if v.is_a? Hash and v['owner'] !~ /LVM_DRBD/;
                                 j['normal']['crowbar_wall']['claimed_disks'].delete(k);
@@ -1006,8 +1014,7 @@ EOF
     if [ -n "$ntpserver" ] ; then
         local pfile=`get_proposal_filename ntp default`
         crowbar ntp proposal show default |
-            $ruby -e "require 'rubygems';require 'json';
-            j=JSON.parse(STDIN.read);
+            rubyjsonparse "
             j['attributes']['ntp']['external_servers']=['$ntpserver'];
             puts JSON.pretty_generate(j)" > $pfile
         crowbar ntp proposal --file=$pfile edit default
@@ -1066,11 +1073,8 @@ function onadmin_allocate()
         local i
         local bmc_start=$(
             crowbar network proposal show default | \
-            $ruby -e "
-                require 'rubygems'
-                require 'json'
-                json = JSON.parse(STDIN.read)
-                networks = json['attributes']['network']['networks']
+            rubyjsonparse "
+                networks = j['attributes']['network']['networks']
                 puts networks['bmc']['ranges']['host']['start']
             "
         )
@@ -1315,11 +1319,8 @@ function waitnodes()
             while test $n -gt 0 && ! test "x$proposalstatus" = "xsuccess" ; do
                 proposalstatus=$(
                     crowbar $proposal proposal show $proposaltype | \
-                    $ruby -e "
-                        require 'rubygems'
-                        require 'json'
-                        json = JSON.parse(STDIN.read)
-                        puts json['deployment']['$proposal']['crowbar-status']"
+                    rubyjsonparse "
+                        puts j['deployment']['$proposal']['crowbar-status']"
                 )
                 if test "x$proposalstatus" = "xfailed" ; then
                     tail -n 90 \
@@ -1362,10 +1363,7 @@ function proposal_modify_value()
 
     local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
 
-    safely $ruby -e "
-        require 'rubygems'
-        require 'json'
-        j = JSON.parse(STDIN.read)
+    safely rubyjsonparse "
         j${variable}${operator}${value}
         puts JSON.pretty_generate(j)
     " < $pfile > ${pfile}.tmp
@@ -1936,8 +1934,8 @@ function get_first_node_from_cluster()
 {
     local cluster=$1
     crowbar pacemaker proposal show $cluster | \
-        $ruby -e   "require 'rubygems';require 'json';
-                    puts JSON.parse(STDIN.read)['deployment']['pacemaker']\
+        rubyjsonparse "
+                    puts j['deployment']['pacemaker']\
                         ['elements']['pacemaker-cluster-member'].first"
 }
 
@@ -1960,8 +1958,8 @@ function resolve_element_to_node()
 function get_novacontroller()
 {
     novacontroller=`crowbar nova proposal show default | \
-        $ruby -e   "require 'rubygems';require 'json';
-                    puts JSON.parse(STDIN.read)['deployment']['nova']\
+        rubyjsonparse "
+                    puts j['deployment']['nova']\
                         ['elements']['nova-multi-controller']"`
     novacontroller=`resolve_element_to_node "$novacontroller"`
 }
@@ -1969,8 +1967,8 @@ function get_novacontroller()
 function get_novadashboardserver()
 {
     novadashboardserver=`crowbar nova_dashboard proposal show default | \
-        $ruby -e   "require 'rubygems';require 'json';
-                    puts JSON.parse(STDIN.read)['deployment']['nova_dashboard']\
+        rubyjsonparse "
+                    puts j['deployment']['nova_dashboard']\
                         ['elements']['nova_dashboard-server']"`
     novadashboardserver=`resolve_element_to_node "$novadashboardserver"`
 }
@@ -1978,9 +1976,9 @@ function get_novadashboardserver()
 function get_ceph_nodes()
 {
     if [[ -n "$deployceph" ]]; then
-        cephmons=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-mon']"`
-        cephosds=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-osd']"`
-        cephradosgws=`crowbar ceph proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['ceph']['elements']['ceph-radosgw']"`
+        cephmons=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-mon']"`
+        cephosds=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-osd']"`
+        cephradosgws=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-radosgw']"`
     else
         cephmons=
         cephosds=
@@ -2413,8 +2411,7 @@ function oncontroller_waitforinstance()
 
 function get_neutron_server_node()
 {
-    NEUTRON_SERVER=$(crowbar neutron proposal show default| $ruby -e "require 'rubygems';require 'json';
-    j=JSON.parse(STDIN.read);
+    NEUTRON_SERVER=$(crowbar neutron proposal show default| rubyjsonparse "
     puts j['deployment']['neutron']['elements']['neutron-server'][0];")
 }
 
