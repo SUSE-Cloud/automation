@@ -1722,7 +1722,8 @@ function custom_configuration()
         tempest)
             if [[ $hacloud = 1 ]] ; then
                 local tempestnodes
-                tempestnodes=`printf "\"%s\"," $nodescompute`
+                # tempest can only be deployed on one node
+                tempestnodes=`printf "'%s',\n" $nodescompute | head -n 1`
                 tempestnodes="[ ${tempestnodes%,} ]"
                 proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "$tempestnodes"
             fi
