@@ -23,6 +23,7 @@ export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
 export want_sles12
+[[ "$want_sles12" = 0 ]] && want_sles12=
 export nodes=
 export debug=${debug:-0}
 export cinder_conf_volume_type
