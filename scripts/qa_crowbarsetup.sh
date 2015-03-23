@@ -393,7 +393,6 @@ function add_ha_repo()
 
 function add_suse_storage_repo()
 {
-    if [ -n "$want_sles12" ] && iscloudver 5plus ; then
         local repo
         for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
             # Note no zypper alias parameter here since we don't want
@@ -401,9 +400,6 @@ function add_suse_storage_repo()
             add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
                 "$tftpboot_repos12_dir/$repo"
         done
-    else
-        echo "Error: You need SLE12 and SUSE Cloud >= 5 to setup storage repos."
-    fi
 }
 
 function get_disk_id_by_serial_and_libvirt_type()
@@ -841,7 +837,7 @@ EOF
         fi
     fi
 
-    if [ -n "$deployceph" ] && [ -n "$want_sles12" ] && iscloudver 5plus; then
+    if [ -n "$deployceph" ] && iscloudver 5plus; then
         add_suse_storage_repo
     fi
 
