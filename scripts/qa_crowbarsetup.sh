@@ -1800,7 +1800,10 @@ function set_proposalvars()
         deployswift=
         deployceph=
     fi
-
+    # C3: Cloud5 only has ceph for SLES12
+    if iscloudver 5 && [ -z "$want_sles12" ] ; then
+        deployceph=
+    fi
     ### FINAL swift and ceph check
     if [[ $deployswift && $deployceph ]] ; then
         complain 89 "Can not deploy ceph and swift at the same time."
