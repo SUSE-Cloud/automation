@@ -175,7 +175,7 @@ needcvol=1
 : ${adminnode_hdd_size:=15}
 : ${controller_hdd_size:=20}
 : ${computenode_hdd_size:=15}
-: ${cephvolume_hdd_size:=11}
+: ${cephvolume_hdd_size:=21}
 : ${controller_ceph_hdd_size:=25}
 if [ -n "$hacloud" ]; then
     : ${drbd_hdd_size:=50}
