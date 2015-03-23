@@ -1932,15 +1932,47 @@ function set_node_alias()
     iscloudver 5plus && crowbar machines role $node_name $intended_role || :
 }
 
-function get_novacontroller()
+function get_first_node_from_cluster()
 {
-    novacontroller=`crowbar nova proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova']['elements']['nova-multi-controller']"`
+    local cluster=$1
+    crowbar pacemaker proposal show $cluster | \
+        $ruby -e   "require 'rubygems';require 'json';
+                    puts JSON.parse(STDIN.read)['deployment']['pacemaker']\
+                        ['elements']['pacemaker-cluster-member'].first"
 }
 
+# An entry in an elements section can have single or multiple nodes or a cluster alias
+# This function will resolve this element name to a node name.
+function resolve_element_to_node()
+{
+    local name="$1"
+    name=`printf "%s\n" "$name" | head -n 1`
+    case $name in
+        cluster:*)
+            get_first_node_from_cluster ${name#cluster:}
+        ;;
+        *)
+            echo $name
+        ;;
+    esac
+}
+
+function get_novacontroller()
+{
+    novacontroller=`crowbar nova proposal show default | \
+        $ruby -e   "require 'rubygems';require 'json';
+                    puts JSON.parse(STDIN.read)['deployment']['nova']\
+                        ['elements']['nova-multi-controller']"`
+    novacontroller=`resolve_element_to_node "$novacontroller"`
+}
 
 function get_novadashboardserver()
 {
-    novadashboardserver=`crowbar nova_dashboard proposal show default | $ruby -e "require 'rubygems';require 'json';puts JSON.parse(STDIN.read)['deployment']['nova_dashboard']['elements']['nova_dashboard-server']"`
+    novadashboardserver=`crowbar nova_dashboard proposal show default | \
+        $ruby -e   "require 'rubygems';require 'json';
+                    puts JSON.parse(STDIN.read)['deployment']['nova_dashboard']\
+                        ['elements']['nova_dashboard-server']"`
+    novadashboardserver=`resolve_element_to_node "$novadashboardserver"`
 }
 
 function get_ceph_nodes()
