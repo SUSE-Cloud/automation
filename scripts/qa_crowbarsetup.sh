@@ -8,6 +8,11 @@ if [ -z "$testfunc" ] && [ -e $mkcconf ]; then
     source $mkcconf
 fi
 
+# this needs to be after mkcloud.config got sourced
+if [[ $debug_qa_crowbarsetup = 1 ]] ; then
+    set -x
+fi
+
 # defaults
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
@@ -25,7 +30,6 @@ export tempestoptions=${tempestoptions:--t -s}
 export want_sles12
 [[ "$want_sles12" = 0 ]] && want_sles12=
 export nodes=
-export debug=${debug:-0}
 export cinder_conf_volume_type
 export cinder_conf_volume_params
 export localreposdir_target
@@ -1483,7 +1487,7 @@ function custom_configuration()
     local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
     crowbar $proposal proposal show $proposaltype > $pfile
 
-    if [[ $debug = 1 && $proposal != swift ]] ; then
+    if [[ $debug_openstack = 1 && $proposal != swift ]] ; then
         sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/" $pfile
     fi
 
