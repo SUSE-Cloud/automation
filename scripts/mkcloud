@@ -74,6 +74,16 @@
 # user_keyfile   path to optional user public ssh keyfile to inject into crowbar to
 #                /root/.ssh/authorized_keys file and to provisioner barclamp
 #
+# debug_mkcloud  (default 0)
+#                enable debug mode for mkcloud via "set -x"
+#
+# debug_qa_crowbarsetup (default 0)
+#                enable debug mode for qa_crowbarsetup.sh via "set -x"
+#
+# debug_openstack (default 0)
+#                enable debug mode for the openstack components
+#                sets debug true in the openstack proposals
+#
 # UNDOCUMENTED OPTIONS:
 #
 # virtualcloud
@@ -103,9 +113,12 @@
 # controller_ceph_hdd_size
 # drbd_hdd_size
 # cloudbr
-# debug
 # localreposdir_src
 # localreposdir_target
+
+if [[ $debug_mkcloud = 1 ]] ; then
+    set -x
+fi
 
 if [ -n "$CVOL" ] ; then
     cloudpv=$CVOL
@@ -190,7 +203,6 @@ pv_cur_device_no=0
 mnt=/tmp/cloudmnt/$$
 sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
 scp="scp $sshopts"
-: ${debug:=0}
 #if localreposdir_src string is available, the local repositories are used for setup
 : ${localreposdir_src:=""}
 #localreposdir_target is the 9p target dir and also the mount target dir in the VM
@@ -312,7 +324,6 @@ function sshrun()
 {
     mkcconf=mkcloud.config
     cat > $mkcconf <<EOF
-        export debug=$debug ;
         export drbdnode_mac_vol=$drbdnode_mac_vol ;
         export cloud=$virtualcloud ;
         export cloudfqdn=$cloudfqdn ;
@@ -343,7 +354,7 @@ function sshrun()
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
 EOF
-    env|grep -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber | sort >> $mkcconf
+    env|grep -e ^debug_ -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber | sort >> $mkcconf
 
     $scp $qa_crowbarsetup $mkcconf root@$adminip:
     ssh $sshopts root@$adminip "echo `hostname` > cloud ; . qa_crowbarsetup.sh ; $@"
