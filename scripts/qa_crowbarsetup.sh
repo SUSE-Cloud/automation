@@ -445,8 +445,8 @@ function get_disk_id_by_serial_and_libvirt_type()
 
 function cluster_node_assignment()
 {
-    local L
-    L=`crowbar machines list | grep -v crowbar`
+    local nodesavailable
+    nodesavailable=`crowbar machines list | grep -v crowbar`
 
     # the nodes that contain drbd volumes are defined via drbdnode_mac_vol
     for dmachine in ${drbdnode_mac_vol//+/ } ; do
@@ -455,8 +455,8 @@ function cluster_node_assignment()
         mac=${dmachine%#*}
         serial=${dmachine#*#}
 
-        # find and remove drbd nodes from L
-        for node in $L ; do
+        # find and remove drbd nodes from nodesavailable
+        for node in $nodesavailable ; do
             if crowbar machines show "$node" | grep "\"macaddress\"" | grep -qi $mac ; then
                 clusternodesdata="$clusternodesdata $node"
 
@@ -478,7 +478,7 @@ function cluster_node_assignment()
     done
     for dnode in $clusternodesdata ; do
         # filter out the data cluster nodes
-        L=`printf "%s\n" $L | grep -iv $dnode`
+        nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $dnode`
 
         # run chef-client on the edited nodes to fill back the hidden data fields (like dmi data)
         # this is a workaround, because the hidden node data can not be exported, imported or kept during editing
@@ -489,13 +489,13 @@ function cluster_node_assignment()
         "cat *.chef-client.ret ; complain 73 'Manually triggered chef-client run failed on at least one node.'"
 
     # assign nodes to clusters
-    clusternodesnetwork=`printf  "%s\n" $L | head -n$nodenumbernetworkcluster`
-    clusternodesservices=`printf "%s\n" $L | tail -n$nodenumberservicescluster`
+    clusternodesnetwork=`printf  "%s\n" $nodesavailable | head -n$nodenumbernetworkcluster`
+    clusternodesservices=`printf "%s\n" $nodesavailable | tail -n$nodenumberservicescluster`
 
     for n in $clusternodesnetwork $clusternodesservices ; do
-        L=`printf "%s\n" $L | grep -iv $n`
+        nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $n`
     done
-    nodescompute=$L
+    nodescompute=$nodesavailable
     echo "............................................................"
     echo "The cluster node assignment (for your information):"
     echo "data cluster:"
@@ -505,7 +505,7 @@ function cluster_node_assignment()
     echo "services cluster:"
     printf "   %s\n" $clusternodesservices
     echo "compute nodes (no cluster):"
-    printf "   %s\n" $L
+    printf "   %s\n" $nodesavailable
     echo "............................................................"
 }
 
