@@ -415,7 +415,7 @@ function add_ha_repo()
         fi
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+        add_mount "$repo/sle-11-x86_64" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
             "$tftpboot_repos_dir/$repo"
     done
 }
@@ -666,7 +666,7 @@ function onadmin_prepare_sles12_compute_repo()
 function onadmin_prepare_sles12_other_repos()
 {
     for repo in SLES12-{Pool,Updates}; do
-        add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+        add_mount "$repo/sle-12-x86_64" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
             "$tftpboot_repos12_dir/$repo"
     done
 }
