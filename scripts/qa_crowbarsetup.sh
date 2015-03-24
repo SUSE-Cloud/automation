@@ -165,6 +165,7 @@ net_fixed=${net_fixed:-192.168.123}
 net_public=${net_public:-192.168.122}
 net_storage=${net_storage:-192.168.125}
 mkcloudhostip=${net}.1
+: ${adminip:=$net.10}
 
 # run hook code before the actual script does its function
 function pre_hook()
@@ -798,7 +799,7 @@ function onadmin_prepareinstallcrowbar()
 NAME='eth0'
 STARTMODE='auto'
 BOOTPROTO='static'
-IPADDR='$net.10'
+IPADDR='$adminip'
 NETMASK='255.255.255.0'
 BROADCAST='$net.255'
 EOF
@@ -812,7 +813,7 @@ EOF
     export HOSTNAME=`cat /etc/HOSTNAME`
     export HOST=$HOSTNAME
     grep -q "$net.*crowbar" /etc/hosts || \
-        echo $net.10 crowbar.$cloudfqdn crowbar >> /etc/hosts
+        echo $adminip crowbar.$cloudfqdn crowbar >> /etc/hosts
     rcnetwork restart
     hostname -f # make sure it is a FQDN
     ping -c 1 `hostname -f`
