@@ -104,6 +104,15 @@ case "$cloud" in
         vlan_fixed=589
         want_ipmi=true
     ;;
+    qa1)
+        nodenumber=6
+        net=${netp}.26
+        net_public=$net
+        vlan_public=300
+        vlan_fixed=500
+        vlan_storage=200
+        want_ipmi=false
+    ;;
     qa2)
         nodenumber=7
         net=${netp}.24
@@ -902,6 +911,10 @@ EOF
     if [[ $cloud = p || $cloud = p2 ]] ; then
         # production cloud has a /22 network
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.252.0 $netfile
+    fi
+    if [[ $cloud = qa1 ]] ; then
+        # QA clouds have too few IP addrs, so smaller subnets are used
+        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/dual_private_vm_network
     fi
     if [[ $cloud = qa2 ]] ; then
         # QA clouds have too few IP addrs, so smaller subnets are used
