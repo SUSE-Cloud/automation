@@ -95,7 +95,6 @@ case "$cloud" in
         net=${netp}.26
         net_public=$net
         vlan_public=300
-        #vlan_admin=610
         vlan_fixed=500
         vlan_storage=200
         want_ipmi=false
