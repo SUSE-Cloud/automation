@@ -53,7 +53,7 @@
 #
 # nodenumbercompute (default $nodenumber resp. 1 in case of hacloud=1)
 #                set the number of compute nodes in a HA setup, the remaining nodes
-#                of $nodenumber - $nodenumercompute is used as HA cluster nodes
+#                of $nodenumber - $nodenumbercompute is used as HA cluster nodes
 #
 # vcpus          (default 1)
 #                sets the number of CPU cores assigned to each compute node
