@@ -49,7 +49,8 @@
 #                sets the overall number of nodes to be created
 #
 # nodenumberlonelynode (default 0)
-#                sets the number of lonely nodes to be created in the admin network
+#                set the number of non-crowbar registered nodes to be created
+#                in the admin network
 #
 # nodenumbercompute (default $nodenumber resp. 1 in case of hacloud=1)
 #                set the number of compute nodes in a HA setup, the remaining nodes
@@ -1240,6 +1241,8 @@ function usage()
     echo "   setupcompute:  create the compute nodes and let crowbar discover them"
     echo "   instcompute:   allocate and install compute nodes"
     echo "   proposal:      create and apply proposals for default setup"
+    echo "   setuplonelynodes: boot a number (defined by nodenumberlonelynodes) of non-crowbar registered nodes in the admin network"
+    echo "   crowbar_register: register a number (defined by nodenumberlonelynodes) of non-crowbar nodes with crowbar (setuplonelynodes needs to have run before)"
     echo "   testsetup:     start a VM in the cloud"
     echo "   addupdaterepo: addupdate repos defined in UPDATEREPOS= (URLs separated by '+')"
     echo "   runupdate:     run zypper up on the crowbar node"
@@ -1272,7 +1275,7 @@ function usage()
     echo "   nodenumber=2    (default 2)"
     echo "       : set the number of nodes to be created (excl. admin node)"
     echo "   nodenumberlonelynode=2    (default 0)"
-    echo "       : set the number of lonely nodes to be created in the admin network"
+    echo "       : set the number of non-crowbar registered nodes to be created in the admin network"
     echo '   nodenumbercompute=1  (default $nodenumber resp. 1 in case of hacloud=1)'
     echo "       :  set the number of compute nodes in a HA setup, the remaining nodes"
     echo '          of $nodenumber - $nodenumercompute are used as HA cluster nodes'
