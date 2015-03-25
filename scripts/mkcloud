@@ -1237,6 +1237,9 @@ Optional
         Set the memory in KB assigned to compute nodes
     compute_node_memory (default 2097152)
         Set the memory in KB assigned to compute nodes
+    drbd_hdd_size  (default 0, or 50 if hacloud is set)
+        Set the size in GB of the DRBD data disks attached to the
+        nodes in the cluster hosting the database and rabbitmq.
     networkingplugin
         Set the networking plugin to be used by neutron (e.g. openvswitch),
         if it isn't defined the barclamp-neutron's default is used.
@@ -1289,7 +1292,6 @@ EOUSAGE
 # computenode_hdd_size
 # cephvolume_hdd_size
 # controller_ceph_hdd_size
-# drbd_hdd_size
 # cloudbr
 # localreposdir_src
 # localreposdir_target
