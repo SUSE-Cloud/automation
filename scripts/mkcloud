@@ -1275,7 +1275,7 @@ function usage()
     echo "       : set the number of lonely nodes to be created in the admin network"
     echo '   nodenumbercompute=1  (default $nodenumber resp. 1 in case of hacloud=1)'
     echo "       :  set the number of compute nodes in a HA setup, the remaining nodes"
-    echo '          of $nodenumber - $nodenumercompute are used as HA cluster nodes'
+    echo '          of $nodenumber - $nodenumbercompute are used as HA cluster nodes'
     echo "   vcpus=1         (default 1)"
     echo "       : set the number of CPU cores per compute node"
     echo "   adminvcpus=1    (default $vcpus)"
