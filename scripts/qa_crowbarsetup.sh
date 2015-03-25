@@ -1484,10 +1484,13 @@ function hacloud_configure_cluster_members()
 
     local nodes=`printf "\"%s\"," $@`
     nodes="[ ${nodes%,} ]"
-    proposal_modify_value pacemaker "$clustername" \
-        "['deployment']['pacemaker']['elements']['pacemaker-cluster-member']" "[]" "||="
-    proposal_modify_value pacemaker "$clustername" \
-        "['deployment']['pacemaker']['elements']['pacemaker-cluster-member']" "$nodes" "+="
+    local role
+    for role in pacemaker-cluster-member hawk-server; do
+        proposal_modify_value pacemaker "$clustername" \
+            "['deployment']['pacemaker']['elements']['$role']" "[]" "||="
+        proposal_modify_value pacemaker "$clustername" \
+            "['deployment']['pacemaker']['elements']['$role']" "$nodes" "+="
+    done
 
     if [[ "configuration" = "with per_node" ]] ; then
         for node in $@; do
