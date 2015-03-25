@@ -1593,14 +1593,14 @@ function custom_configuration()
         database)
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
-                proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "20"
+                proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
                 proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
             fi
         ;;
         rabbitmq)
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
-                proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "20"
+                proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
                 proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamedata']"
             fi
         ;;
