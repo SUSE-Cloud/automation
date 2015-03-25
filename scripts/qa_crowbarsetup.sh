@@ -410,7 +410,7 @@ function add_ha_repo()
 {
     local repo
     for repo in SLE11-HAE-SP3-{Pool,Updates,Updates-test}; do
-        if [ "$hacloud" == "2" && "$repo" == "SLE11-HAE-SP3-Updates-test" ] ; then
+        if [ "$hacloud" == "2" -a "$repo" == "SLE11-HAE-SP3-Updates-test" ] ; then
             continue
         fi
         # Note no zypper alias parameter here since we don't want to
