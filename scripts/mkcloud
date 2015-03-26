@@ -10,107 +10,11 @@
 
 # Quick introduction:
 #
-# This tool relies on the script qa_crowbarsetup.sh
-# Please 'export' environment variables according to your needs:
-#
-# Either 'cloudvg' or 'cloudpv' must be set.
-# Another required parameter is 'cloudsource'.
-# All other parameters have defaults unless defined otherwise.
-#
-# cloudvg=vg0
-#       volume group name to use to create lvm volumes
-#
-# cloudpv=/dev/vdx  (default=/dev/vdb)
-#       device where a LVM physical volume can be created
-#       should be at least 80 GB
-#       the volume group will be called "cloud"
-#
-# cloudsource=develcloud3|develcloud4|develcloud5|susecloud5|GM3|GM4|GM3+up|GM4+up|M?   (required, no default)
-#       defines the source for the installation of the cloud product
-#       develcloud3   : product from IBS Devel:Cloud:3
-#       develcloud4   : product from IBS Devel:Cloud:4
-#       develcloud5   : product from IBS Devel:Cloud:5
-#       susecloud5    : product from IBS SUSE:SLE....
-#       GM3           : SUSE Cloud Goldmaster 3 without updates
-#       GM4           : SUSE Cloud Goldmaster 4 without updates
-#       GM3+up        : SUSE Cloud Goldmaster 3 with released maintenance updates
-#       GM4+up        : SUSE Cloud Goldmaster 4 with released maintenance updates
-#       M?            : uses official Milestone? ISO image (? is a number)
-#
-# TESTHEAD=''|1   (default='')
-#                will use latest published packages from Devel:Cloud
-#                even if there is no new ISO created yet
-#
-# cephvolumenumber (default 0)
-#                sets the number of 5GB ceph volumes that will be created per node
-#                for ceph testing
-#
-# nodenumber     (default 2)
-#                sets the overall number of nodes to be created
-#
-# nodenumberlonelynode (default 0)
-#                sets the number of lonely nodes to be created in the admin network
-#
-# nodenumbercompute (default $nodenumber resp. 1 in case of hacloud=1)
-#                set the number of compute nodes in a HA setup, the remaining nodes
-#                of $nodenumber - $nodenumbercompute is used as HA cluster nodes
-#
-# vcpus          (default 1)
-#                sets the number of CPU cores assigned to each compute node
-# adminvcpus     (default $vcpus)
-#                sets the number of CPU cores assigned to admin node
-# public_vlan    VLAN id for public network (default 300)
-# install_chef_suse_override (default ./install-chef-suse.sh)
-#                Optional path to an alternate version of install-chef-suse.sh
-#                on the mkcloud host to use instead of the one from the
-#                packages.  This will be scp'd to the admin node before use.
-#
-# qa_crowbarsetup (default /path/to/gitclone) set an optional path to qa_crowbarsetup.sh
-#
-# want_neutronsles12 (default 0)
-#                if there is a SLE12 node, deploy neutron-l3 role into the
-#                SLE12 node.
-#
-# user_keyfile   path to optional user public ssh keyfile to inject into crowbar to
-#                /root/.ssh/authorized_keys file and to provisioner barclamp
-#
-# debug_mkcloud  (default 0)
-#                enable debug mode for mkcloud via "set -x"
-#
-# debug_qa_crowbarsetup (default 0)
-#                enable debug mode for qa_crowbarsetup.sh via "set -x"
-#
-# debug_openstack (default 0)
-#                enable debug mode for the openstack components
-#                sets debug true in the openstack proposals
-#
-# UNDOCUMENTED OPTIONS:
-#
-# virtualcloud
-# cloudfqdn
-# forwardmode
-# net_fixed
-# net_public
-# net_admin
-# adminnetmask
-# adminip
-# admingw
-# nodenumbercomputedefault
-# drbdnode_mac_vol
-# cpuflags
-# admin_node_memory
-# controller_node_memory
-# compute_node_memory
-# hyperv_node_memory
-# adminnode_hdd_size
-# controller_hdd_size
-# computenode_hdd_size
-# cephvolume_hdd_size
-# controller_ceph_hdd_size
-# drbd_hdd_size
-# cloudbr
-# localreposdir_src
-# localreposdir_target
+# 1. read the usage: mkcloud help
+# 2. This tool relies on the script qa_crowbarsetup.sh
+# 3. Please 'export' environment variables according to your needs.
+# 4. read the usage: mkcloud help
+
 
 if [[ $debug_mkcloud = 1 ]] ; then
     set -x
@@ -148,6 +52,7 @@ fi
 : ${adminnetmask:=255.255.248.0}
 : ${adminip:=$net_admin.10}
 : ${admingw:=$net_admin.1}
+# the default nodenumber of compute nodes
 nodenumbercomputedefault=2
 [ -n "$hacloud" ] && nodenumbercomputedefault=1
 : ${nodenumber:=$nodenumbercomputedefault}
@@ -157,6 +62,7 @@ nodenumbercomputedefault=2
 : ${nodenumberlonelynode:=0}
 export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 # '+'-separated list of MAC#serial_of_drbd_volume of the drbd cluster nodes
+# (used only internally to transport this information to qa_crowbarsetup):
 : ${drbdnode_mac_vol:=''}
 : ${cephvolumenumber:=0}
 allnodeids=`seq 1 $(( nodenumber + nodenumberlonelynode ))`
@@ -1218,86 +1124,176 @@ function cloudupgrade_reboot_and_redeploy_clients()
 
 function usage()
 {
-    echo "Usage:"
-    echo "$0 <command> [<command>,...]"
-    echo
-    echo "  'command' is one of:"
-    echo "   all instonly plain cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute"
-    echo "   instcompute proposal addupdaterepo runupdate testsetup rebootcrowbar "
-    echo "   setuplonelynodes crowbar_register rebootcompute help"
-    echo
-    echo "   all      -> expands to: cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupcompute instcompute proposal testsetup rebootcompute"
-    echo "   all_noreboot -> exp to: cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar setupcompute instcompute proposal testsetup"
-    echo "   plain    -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal"
-    echo "   plain_with_upgrade  -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute proposal prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
-    echo "   instonly -> expands to: cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
-    echo
-    echo "   cleanup:       kill all running VMs, zero out boot sectors of all LVM volumes"
-    echo "   prepare:       create LVM volumes, setup libvirt networks"
-    echo "   setupadmin:    create the admin node and install the cloud product"
-    echo "   prepareinstcrowbar: add repos and install crowbar packages"
-    echo "   instcrowbar:   install crowbar and chef on the admin node"
-    echo "   setupcompute:  create the compute nodes and let crowbar discover them"
-    echo "   instcompute:   allocate and install compute nodes"
-    echo "   proposal:      create and apply proposals for default setup"
-    echo "   testsetup:     start a VM in the cloud"
-    echo "   addupdaterepo: addupdate repos defined in UPDATEREPOS= (URLs separated by '+')"
-    echo "   runupdate:     run zypper up on the crowbar node"
-    echo "                  (compute nodes are automaticallyupdated via chef run)"
-    echo "   rebootcrowbar: reboot the crowbar instance and wait for it being up"
-    echo "   rebootcompute: reboot the compute nodes and wait for them being up"
-    echo "   restartcloud:  start a pre-existing cloud again after host reboot"
-    echo "   securitytests: install and run security test suite"
-    echo "   qa_test:       run the qa test suite"
-    echo "   help:          this usage"
-    echo
-    echo " Environment variables (need to be exported):"
-    echo
-    echo " Mandatory"
-    echo "   cloudpv=/dev/vdx (default /dev/vdb)"
-    echo "       :  LVM will be created on this device (at least 80GB)"
-    echo "   cloudsource=develcloud3 | develcloud4 | develcloud5 | susecloud5 | GM3 | GM4 | GM3+up | GM4+up | M?  (default '')"
-    echo "       : defines the installation source"
-    echo
-    echo " Optional"
-    echo "   hacloud='' | 1  (default='')"
-    echo "       : set up a highly available cloud"
-    echo "   upgrade_cloudsource='' (default='')"
-    echo "       : set new cloudsource for upgrade process"
-    echo "   TESTHEAD='' | 1  (default='')"
-    echo "       : use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)"
-    echo "   cephvolumenumber  (default=0)"
-    echo "       : the number of 11GB ceph volumes that will be created per node"
-    echo "         note: proposal step does NOT contain a ceph proposal, do it manually"
-    echo "   nodenumber=2    (default 2)"
-    echo "       : set the number of nodes to be created (excl. admin node)"
-    echo "   nodenumberlonelynode=2    (default 0)"
-    echo "       : set the number of lonely nodes to be created in the admin network"
-    echo '   nodenumbercompute=1  (default $nodenumber resp. 1 in case of hacloud=1)'
-    echo "       :  set the number of compute nodes in a HA setup, the remaining nodes"
-    echo '          of $nodenumber - $nodenumbercompute are used as HA cluster nodes'
-    echo "   vcpus=1         (default 1)"
-    echo "       : set the number of CPU cores per compute node"
-    echo "   adminvcpus=1    (default $vcpus)"
-    echo "       : set the number of CPU cores for admin node"
-    echo "   admin_node_memory (default 2097152)"
-    echo "       : Set the memory in KB assigned to admin node"
-    echo "   controller_node_memory (default 4194304)"
-    echo "       : Set the memory in KB assigned to compute nodes"
-    echo "   compute_node_memory (default 2097152)"
-    echo "       : Set the memory in KB assigned to compute nodes"
-    echo "   networkingplugin"
-    echo "       : Set the networking plugin to be used by neutron (e.g. openvswitch),"
-    echo "         if it isn't defined the barclamp-neutron's default is used."
-    echo "   networkingmode"
-    echo "       : Set the networking mode to be used by neutron (e.g. gre)"
-    echo "         if it isn't defined the barclamp-neutron's default is used."
-    echo "   keep_existing_hostname=1    (default='')"
-    echo "       : If this option is enabled crowbar_register keeps the existing"
-    echo "         hostname. When the crowbar_register option is enabled too then"
-    echo "         it generates and sets random hostnames."
-    echo
+    cat <<EOUSAGE
+Usage:
+$0 <step> [<step>,...]
+
+'step' is one of:
+    $allcmds
+
+These steps are expanding to the following steps:
+    all
+        -> $(expand_steps all)
+    all_noreboot
+        -> $(expand_steps all_noreboot)
+    plain
+        -> $(expand_steps plain)
+    plain_with_upgrade
+        -> $(expand_steps plain_with_upgrade)
+    instonly
+        -> $(expand_steps instonly)
+    alias_new_admin
+        -> $(expand_steps alias_new_admin)
+    alias_compute
+        -> $(expand_steps alias_compute)
+    alias_testupdate
+        -> $(expand_steps alias_testupdate)
+    alias_upgrade
+        -> $(expand_steps alias_upgrade)
+
+Steps:
+    cleanup:        kill all running VMs, zero out boot sectors of all LVM volumes
+    prepare:        create LVM volumes, setup libvirt networks
+    setupadmin:     create the admin node and install the cloud product
+    prepareinstcrowbar: add repos and install crowbar packages
+    instcrowbar:    install crowbar and chef on the admin node
+    setupcompute:   create the compute nodes and let crowbar discover them
+    instcompute:    allocate and install compute nodes
+    proposal:       create and apply proposals for default setup
+    setuplonelynodes: boot a number (defined by nodenumberlonelynodes) of non-crowbar registered nodes in the admin network
+    crowbar_register: register a number (defined by nodenumberlonelynodes) of non-crowbar nodes with crowbar (setuplonelynodes needs to have run before)
+    testsetup:      start a VM in the cloud
+    addupdaterepo:  addupdate repos defined in UPDATEREPOS= (URLs separated by '+')
+    runupdate:      run zypper up on the crowbar node
+                    (compute nodes are automaticallyupdated via chef run)
+    rebootcrowbar:  reboot the crowbar instance and wait for it being up
+    rebootcompute:  reboot the compute nodes and wait for them being up
+    restartcloud:   start a pre-existing cloud again after host reboot
+    securitytests:  install and run security test suite
+    qa_test:        run the qa test suite
+    help:           this usage
+
+
+Environment variables (need to be exported):
+
+Mandatory
+    cloudvg=vg0
+        set the volume group name to create lvm volumes in
+        Cloud volumes will be prefixed with the cloud name.
+        The cleanup function will only cleanup volumes with this prefix.
+    cloudpv=/dev/vdx (default /dev/vdb)
+        Device where a LVM physical volume will be created, all data lost on this device
+        Should be at least 80 GB. The volume group will be called 'cloud'.
+    cloudsource=develcloud3 | develcloud4 | develcloud5 | susecloud5 | GM3 | GM4 | GM3+up | GM4+up | M?  (default '')
+        defines the installation source of the product
+        develcloud3   : product from IBS Devel:Cloud:3
+        develcloud4   : product from IBS Devel:Cloud:4
+        develcloud5   : product from IBS Devel:Cloud:5
+        susecloud5    : product from IBS SUSE:SLE....
+        GM3           : SUSE Cloud Goldmaster 3 without updates
+        GM4           : SUSE Cloud Goldmaster 4 without updates
+        GM3+up        : SUSE Cloud Goldmaster 3 with released maintenance updates
+        GM4+up        : SUSE Cloud Goldmaster 4 with released maintenance updates
+        M?            : uses official Milestone? ISO image (? is a number)
+
+Optional
+    qa_crowbarsetup='path/to/script' (default: same directory as mkcloud is located in)
+        set an optional path to qa_crowbarsetup.sh
+    hacloud='' | 1  (default='')
+        Set up a highly available cloud; requires to configure the clusters via clusterconfig='...'
+    clusterconfig
+        A string with a cluster configuration. The services for data, network and services cluster can
+        be deployed in 1, 2 or 3 clusters. The configuration string looks like this:
+        The string is: '<group1>:<group2>' (a ':' separated list of groups).
+        A group is:    'clustername1+clustername2=clusternodenumber
+        The first clustername of a group defines the name of the cluster.
+        Examples:
+            3 clusters: clusterconfig='data=2:network=3:services=5'
+            2 clusters: clusterconfig='services+data=2:network=3'
+            1 cluster:  clusterconfig='data+network+services=2'
+    upgrade_cloudsource='' (default='')
+        set new cloudsource for upgrade process
+    TESTHEAD='' | 1  (default='')
+        use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)
+    cephvolumenumber  (default=0)
+        the number of 11GB ceph volumes that will be created per node
+        note: proposal step does NOT contain a ceph proposal, do it manually
+    nodenumber=2    (default 2)
+        set the number of nodes to be created for the cloud (excluding admin node)
+        In HA mode (hacloud=1) the nodes needed for clusters are subtracted from nodenumber; the
+        remaining nodes are compute nodes.
+    nodenumberlonelynode=2    (default 0)
+        set the number of non-crowbar registered nodes to be created in the admin network
+    nodenumbercompute=1  (default $nodenumber resp. 1 in case of hacloud=1)'
+        set the number of compute nodes in a HA setup, the remaining nodes
+        of $nodenumber - $nodenumbercompute are used as HA cluster nodes
+    vcpus=1         (default 1)
+        set the number of CPU cores per compute node
+    adminvcpus=1    (default $vcpus)
+        set the number of CPU cores for admin node
+    admin_node_memory (default 2097152)
+        Set the memory in KB assigned to admin node
+    controller_node_memory (default 4194304)
+        Set the memory in KB assigned to compute nodes
+    compute_node_memory (default 2097152)
+        Set the memory in KB assigned to compute nodes
+    networkingplugin
+        Set the networking plugin to be used by neutron (e.g. openvswitch),
+        if it isn't defined the barclamp-neutron's default is used.
+    networkingmode
+        Set the networking mode to be used by neutron (e.g. gre)
+        if it isn't defined the barclamp-neutron's default is used.
+    keep_existing_hostname=1    (default='')
+        If this option is enabled crowbar_register keeps the existing
+        hostname. When the crowbar_register option is enabled too then
+        it generates and sets random hostnames.
+    debug_mkcloud=1  (default 0)
+        enable debug mode for mkcloud via 'set -x'
+    debug_qa_crowbarsetup=1 (default 0)
+        enable debug mode for qa_crowbarsetup.sh via 'set -x'
+    debug_openstack=1 (default 0)
+        enable debug mode for the openstack components
+        sets debug true in the openstack proposals
+    user_keyfile='path/to/file'
+        path to optional user public ssh keyfile to inject into crowbar to
+        /root/.ssh/authorized_keys file and to provisioner barclamp
+    want_neutronsles12=1 (default 0)
+        if there is a SLE12 node, deploy neutron-l3 role into the SLE12 node
+    install_chef_suse_override='path/to/script'
+        Optional path to an alternate version of install-chef-suse.sh on the mkcloud hostto use
+        instead of the one from the packages.  This will be scp'd to the admin node before use.
+    public_vlan=<id> (default 300)
+        VLAN id for public network
+
+EOUSAGE
     exit 1
+
+# UNDOCUMENTED OPTIONS:
+#
+# virtualcloud
+# cloudfqdn
+# forwardmode
+# net_fixed
+# net_public
+# net_admin
+# adminnetmask
+# adminip
+# admingw
+# cpuflags
+# admin_node_memory
+# controller_node_memory
+# compute_node_memory
+# hyperv_node_memory
+# adminnode_hdd_size
+# controller_hdd_size
+# computenode_hdd_size
+# cephvolume_hdd_size
+# controller_ceph_hdd_size
+# drbd_hdd_size
+# cloudbr
+# localreposdir_src
+# localreposdir_target
+
 }
 
 
@@ -1394,10 +1390,6 @@ step_aliases="alias_new_admin alias_compute alias_upgrade alias_testupdate"
 allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register"
 wantedcmds=$@
 
-if [ -z "$wantedcmds" ] ; then
-    usage
-fi
-
 function expand_steps()
 {
     # parse the commands and expand the aliases
@@ -1448,11 +1440,13 @@ function expand_steps()
         [ $found == 0 ] && complain - "Step $cmd not found." && return
 
     done
-    echo "$runcmds"
+    runcmds=${runcmds## }
+    runcmds=${runcmds%% }
+    echo "${runcmds//  / }"
 }
 
 steplist=`expand_steps $wantedcmds`
-[ -z "$steplist" ] || [[ "$steplist" =~ "help" ]] && usage
+[[ ! $steplist ]] || [[ "$steplist" =~ "help" ]] && usage
 
 sanity_checks
 
