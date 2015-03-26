@@ -1394,10 +1394,6 @@ step_aliases="alias_new_admin alias_compute alias_upgrade alias_testupdate"
 allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register"
 wantedcmds=$@
 
-if [ -z "$wantedcmds" ] ; then
-    usage
-fi
-
 function expand_steps()
 {
     # parse the commands and expand the aliases
@@ -1452,7 +1448,7 @@ function expand_steps()
 }
 
 steplist=`expand_steps $wantedcmds`
-[ -z "$steplist" ] || [[ "$steplist" =~ "help" ]] && usage
+[[ ! $steplist ]] || [[ "$steplist" =~ "help" ]] && usage
 
 sanity_checks
 
