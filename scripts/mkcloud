@@ -1444,7 +1444,9 @@ function expand_steps()
         [ $found == 0 ] && complain - "Step $cmd not found." && return
 
     done
-    echo "$runcmds"
+    runcmds=${runcmds## }
+    runcmds=${runcmds%% }
+    echo "${runcmds//  / }"
 }
 
 steplist=`expand_steps $wantedcmds`
