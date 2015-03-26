@@ -95,6 +95,8 @@ if [ -n "$hacloud" ]; then
 else
     : ${drbd_hdd_size:=0}
 fi
+: ${drbd_database_size:=20}
+: ${drbd_rabbitmq_size:=20}
 # pvlist is filled below
 pvlist=
 next_pv_device=
@@ -237,6 +239,8 @@ function sshrun()
         export nosetestparameters=${nosetestparameters} ;
         export tempestoptions='${tempestoptions}' ;
         export cephvolumenumber=$cephvolumenumber ;
+        export drbd_database_size=$drbd_database_size ;
+        export drbd_rabbitmq_size=$drbd_rabbitmq_size ;
         export shell=$shell ;
         export keep_existing_hostname=$keep_existing_hostname ;
 
@@ -1237,6 +1241,17 @@ Optional
         Set the memory in KB assigned to compute nodes
     compute_node_memory (default 2097152)
         Set the memory in KB assigned to compute nodes
+    drbd_hdd_size  (default 0, or 50 if hacloud is set)
+        Set the size in GB of the DRBD data disks attached to the
+        nodes in the cluster hosting the database and rabbitmq.
+    drbd_database_size (default 20)
+        Set the size in GB of the DRBD LV to request the database barclamp
+        to set up within the DRBD data disks attached to the nodes in the
+        cluster hosting the database.
+    drbd_rabbitmq_size (default 20)
+        Set the size in GB of the DRBD LV to request the rabbitmq barclamp
+        to set up within the DRBD data disks attached to the nodes in the
+        cluster hosting RabbitMQ.
     networkingplugin
         Set the networking plugin to be used by neutron (e.g. openvswitch),
         if it isn't defined the barclamp-neutron's default is used.
@@ -1289,7 +1304,6 @@ EOUSAGE
 # computenode_hdd_size
 # cephvolume_hdd_size
 # controller_ceph_hdd_size
-# drbd_hdd_size
 # cloudbr
 # localreposdir_src
 # localreposdir_target
