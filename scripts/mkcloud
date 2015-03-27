@@ -411,7 +411,7 @@ function onhost_deploy_image()
     esac
 
     pushd /tmp
-    safely wget --progress=dot:mega -nc \
+    safely wget --progress=dot:mega -N \
         http://clouddata.cloud.suse.de/images/$image
 
     echo "Cloning $role node vdisk from $image ..."
