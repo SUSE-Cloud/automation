@@ -525,8 +525,8 @@ function cluster_node_assignment()
             ;;
             services)
                 clusternodesservices="$nodes"
-                [[ $group =~ "+data" ]]     && clusternamedata=$clusternameces
-                [[ $group =~ "+network" ]]  && clusternamenetwork=$clusternameces
+                [[ $group =~ "+data" ]]     && clusternamedata=$clustername
+                [[ $group =~ "+network" ]]  && clusternamenetwork=$clustername
             ;;
             network)
                 clusternodesnetwork="$nodes"
