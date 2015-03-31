@@ -1220,8 +1220,9 @@ Optional
     TESTHEAD='' | 1  (default='')
         use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)
     cephvolumenumber  (default=0)
-        the number of 11GB ceph volumes that will be created per node
-        note: proposal step does NOT contain a ceph proposal, do it manually
+        the number of ceph volumes that will be created per node
+        note: proposal step does contain a ceph proposal only in SUSE Cloud 4, in 
+        SUSE OpenStack Cloud 5 do it manually
     nodenumber=2    (default 2)
         set the number of nodes to be created for the cloud (excluding admin node)
         In HA mode (hacloud=1) the nodes needed for clusters are subtracted from nodenumber; the
