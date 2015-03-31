@@ -1221,8 +1221,12 @@ Optional
         use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)
     cephvolumenumber  (default=0)
         the number of ceph volumes that will be created per node
-        note: proposal step does contain a ceph proposal only in SUSE Cloud 4, in 
+        note: proposal step does contain a ceph proposal only in SUSE Cloud 4, in
         SUSE OpenStack Cloud 5 do it manually
+    cephvolume_hdd_size (default 21)
+        Set the size in GB of data disk attached in compute nodes with enabled 'cephvolumenumber'
+    controller_ceph_hdd_size (default 25)
+        Set the size in GB of data disk attached in controller node  with enabled 'cephvolumenumber'
     nodenumber=2    (default 2)
         set the number of nodes to be created for the cloud (excluding admin node)
         In HA mode (hacloud=1) the nodes needed for clusters are subtracted from nodenumber; the
@@ -1303,8 +1307,6 @@ EOUSAGE
 # adminnode_hdd_size
 # controller_hdd_size
 # computenode_hdd_size
-# cephvolume_hdd_size
-# controller_ceph_hdd_size
 # cloudbr
 # localreposdir_src
 # localreposdir_target
