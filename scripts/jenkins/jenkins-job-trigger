@@ -57,7 +57,7 @@ if ( ! $CRUMB ) {
 
 $METHOD ||= 'POST';
 $SCHEME ||= 'https';
-if ($JURL =~ /(ci|river)\.suse\.de/)
+if ($JURL =~ /river\.suse\.de/)
 {
   $SCHEME='http';
 }
