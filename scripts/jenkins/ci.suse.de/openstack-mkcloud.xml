@@ -105,6 +105,11 @@ netapp_volume_list ''
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>want_dvr</name>
+          <description>Set to 1 if distributed routers are created</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>upgrade_cloudsource</name>
           <description>In case of using upgrade, upgrade to that cloudsource version
 </description>
