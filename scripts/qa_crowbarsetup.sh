@@ -1700,6 +1700,9 @@ function custom_configuration()
                 if [ "$networkingplugin" = "openvswitch" ] ; then
                     if [[ "$networkingmode" = vxlan ]] || iscloudver 6plus; then
                         proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vxlan','vlan']"
+                        if [[ -n "$want_dvr" ]]; then
+                            proposal_set_value neutron default "['attributes']['neutron']['use_dvr']" "true"
+                        fi
                     else
                         proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vlan']"
                     fi
