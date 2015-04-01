@@ -1731,16 +1731,18 @@ function custom_configuration()
                 fi
             fi
 
-            # assign neutron-l3 role to one of SLE12 nodes
+            # assign neutron-network role to one of SLE12 nodes
             if [ -n "$want_sles12" ] && [ -z "$hacloud"] && [ -n "$want_neutronsles12" ] && iscloudver 5plus ; then
-                # 2015-03-03 off-by-default because Failed to validate proposal: Role neutron-l3 can't be used for suse 12.0, windows /.*/ platform(s).
+                # 2015-03-03 off-by-default because Failed to validate proposal: Role neutron-network can't be used for suse 12.0, windows /.*/ platform(s).
                 local sle12node=$(knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g')
-                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['$sle12node']"
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sle12node']"
             fi
 
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['cluster:$clusternamenetwork']"
-                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['cluster:$clusternamenetwork']"
+                # neutron-network role is only available since Cloud5+Updates
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['cluster:$clusternamenetwork']" || \
+                    proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['cluster:$clusternamenetwork']"
             fi
             if [[ "$networkingplugin" = "vmware" ]] ; then
                 proposal_set_value neutron default "['attributes']['neutron']['vmware']['user']" "'$nsx_user'"

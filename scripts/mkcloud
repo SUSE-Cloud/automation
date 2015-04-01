@@ -1274,7 +1274,7 @@ Optional
         path to optional user public ssh keyfile to inject into crowbar to
         /root/.ssh/authorized_keys file and to provisioner barclamp
     want_neutronsles12=1 (default 0)
-        if there is a SLE12 node, deploy neutron-l3 role into the SLE12 node
+        if there is a SLE12 node, deploy neutron-network role into the SLE12 node
     want_dvr=1 (default='')
         if DVR support should be turned on by neutron barclamp. Only works with openvswitch and vxlan.
     install_chef_suse_override='path/to/script'
