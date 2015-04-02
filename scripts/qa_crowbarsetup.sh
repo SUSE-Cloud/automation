@@ -344,6 +344,24 @@ function iscloudver()
     return $?
 }
 
+function keystone()
+{
+    command keystone --insecure "$@"
+}
+function glance()
+{
+    command glance --insecure "$@"
+}
+function heat()
+{
+    command heat --insecure "$@"
+}
+export NEUTRONCLIENT_INSECURE=true
+export NOVACLIENT_INSECURE=true
+export SWIFTCLIENT_INSECURE=true
+export CINDERCLIENT_INSECURE=true
+export TROVECLIENT_INSECURE=true
+
 function export_tftpboot_repos_dir()
 {
     tftpboot_repos_dir=/srv/tftpboot/repos
