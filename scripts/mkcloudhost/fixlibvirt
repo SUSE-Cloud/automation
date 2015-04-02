@@ -1,0 +1,10 @@
+#!/bin/bash
+#echo "no more needed with bnc#882598 fixed" ; exit 4
+
+killall dnsmasq
+killall libvirtd
+sleep 3
+/etc/init.d/libvirtd start
+/etc/init.d/boot.local
+sleep 3
+/usr/local/sbin/correlatevirsh

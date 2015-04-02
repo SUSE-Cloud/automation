@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+
+# find and kill kvm processes forgotten by libvirtd
+
+my $v=`virsh list`;
+exit 0 unless $?==0;
+my $ps=`ps ax|grep qemu-kvm`;
+my %vh=();
+my %psh=();
+
+foreach my $vl (split("\n",$v)) {
+        $vl=~m/^\s*\d+\s+(\S+)/ or next;
+        my $vn=$1;
+        my $pid=`cat /var/run/libvirt/qemu/$vn.pid`;
+        $vh{$vn}=$pid;
+        print "$vn $pid\n";
+}
+
+foreach my $psl (split("\n",$ps)) {
+        $psl=~m{^\s*(\d+)\s+\?\s+\S+\s+[0-9:]+\s+/usr/bin/qemu-kvm -name (\S+)};
+        my($pid,$x)=($1,$2);
+        $psh{$x}=$pid;
+        print "$x $pid\n";
+}
+
+foreach(keys(%psh)) {
+        my $pid=$psh{$_};
+        next if $vh{$_} && $vh{$_} eq $pid;
+        print "killing $_ $pid\n";
+        kill 15, $pid;
+}
