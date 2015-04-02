@@ -853,6 +853,11 @@ function onadmin_prepareinstallcrowbar()
     pre_hook $FUNCNAME
     onadmin_repocleanup
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
+    # We want to use static networking which needs a static resolv.conf .
+    # The SUSE sysconfig/ifup scripts drop DNS-servers received from DHCP
+    # when switching from DHCP to static.
+    # This dropping is avoided by stripping comments.
+    sed -i -e 's/#.*//' /etc/resolv.conf
     cat > /etc/sysconfig/network/ifcfg-eth0 <<EOF
 NAME='eth0'
 STARTMODE='auto'
