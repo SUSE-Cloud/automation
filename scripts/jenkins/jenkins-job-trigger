@@ -76,9 +76,11 @@ if ($jtype =~ /^-p$/) {
 }
 
 my $triggerurl=$jurl."/job/".$job;
+my @curlargs=();
 
 if ($jobtype eq 'normal') {
   $triggerurl .= "/build";
+  push @curlargs, ("-H", "Content-Length: 0");
 } elsif ($jobtype eq 'parameter') {
   $triggerurl .= "/buildWithParameters?".join('&', @ARGV);
 } elsif ($jobtype eq 'matrix') {
@@ -86,7 +88,6 @@ if ($jobtype eq 'normal') {
 }
 
 $triggerurl =~ s/ /+/g;
-my @curlargs=();
 push @curlargs, ("-X", $METHOD);
 push @curlargs, ("-H", $CRUMB) if ($CRUMB);
 my @cmd=("curl", @curlargs, $triggerurl);
