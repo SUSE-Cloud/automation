@@ -1196,8 +1196,10 @@ Mandatory
         susecloud5    : product from IBS SUSE:SLE....
         GM3           : SUSE Cloud Goldmaster 3 without updates
         GM4           : SUSE Cloud Goldmaster 4 without updates
+        GM5           : SUSE Cloud Goldmaster 5 without updates
         GM3+up        : SUSE Cloud Goldmaster 3 with released maintenance updates
         GM4+up        : SUSE Cloud Goldmaster 4 with released maintenance updates
+        GM5+up        : SUSE Cloud Goldmaster 5 with released maintenance updates
         M?            : uses official Milestone? ISO image (? is a number)
 
 Optional
@@ -1310,6 +1312,7 @@ EOUSAGE
 # controller_hdd_size
 # computenode_hdd_size
 # cloudbr
+# libvirt_type
 # localreposdir_src
 # localreposdir_target
 
