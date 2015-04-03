@@ -1639,6 +1639,8 @@ function custom_configuration()
         sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/" $pfile
     fi
 
+    local sle12node=$(knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g')
+
     ### NOTE: ONLY USE proposal_{set,modify}_value functions below this line
     ###       The edited proposal will be read and imported at the end
     ###       So, only edit the proposal file, and NOT the proposal itself
@@ -1727,6 +1729,10 @@ function custom_configuration()
             proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
             [[ "$libvirt_type" = xen ]] && sed -i -e "s/nova-multi-compute-$libvirt_type/nova-multi-compute-xxx/g; s/nova-multi-compute-kvm/nova-multi-compute-$libvirt_type/g; s/nova-multi-compute-xxx/nova-multi-compute-kvm/g" $pfile
 
+            if [[ $all_with_ssl = 1 || $nova_with_ssl = 1 ]] ; then
+                enable_ssl_for_nova
+            fi
+
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-controller']" "['cluster:$clusternameservices']"
 
@@ -1736,6 +1742,14 @@ function custom_configuration()
                 novanodes="[ ${novanodes%,} ]"
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "$novanodes"
             fi
+
+            if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-docker']" "['$sle12node']"
+                # do not assign another compute role to this node
+                local novanodes
+                novanodes=`printf "%s\n" $novanodes | grep -iv $sle12node`
+            fi
+
             if [[ $nova_shared_instance_storage = 1 ]] ; then
                 proposal_set_value nova default "['attributes']['nova']['use_shared_instance_storage']" "true"
             fi
@@ -1806,7 +1820,6 @@ function custom_configuration()
             # assign neutron-network role to one of SLE12 nodes
             if [ -n "$want_sles12" ] && [ -z "$hacloud"] && [ -n "$want_neutronsles12" ] && iscloudver 5plus ; then
                 # 2015-03-03 off-by-default because Failed to validate proposal: Role neutron-network can't be used for suse 12.0, windows /.*/ platform(s).
-                local sle12node=$(knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g')
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sle12node']"
             fi
 
@@ -2224,27 +2237,34 @@ function oncontroller_testsetup()
     nova list
     glance image-list
 
-    if glance image-list | grep -q SP3-64 ; then
-        glance image-show SP3-64 | tee glance.out
+    local image_name="SP3-64"
+
+    if glance image-list | grep -q $image_name ; then
+        glance image-show $image_name | tee glance.out
     else
         # SP3-64 image not found, so uploading it
         if [[ -n "$wanthyperv" ]] ; then
             mount clouddata.cloud.suse.de:/srv/nfs/ /mnt/
             zypper -n in virt-utils
             qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
-            glance --insecure image-create --name=SP3-64 --is-public=True --disk-format=vhd --container-format=bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd | tee glance.out
+            glance --insecure image-create --name=$image_name --is-public=True --disk-format=vhd --container-format=bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd | tee glance.out
             rm /tmp/SP3.vhd ; umount /mnt
         elif [[ -n "$wantxenpv" ]] ; then
-            glance --insecure image-create --name=SP3-64 --is-public=True --disk-format=qcow2 --container-format=bare --property hypervisor_type=xen --property vm_mode=xen --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2 | tee glance.out
+            glance --insecure image-create --name=$image_name --is-public=True --disk-format=qcow2 --container-format=bare --property hypervisor_type=xen --property vm_mode=xen --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2 | tee glance.out
         else
-            glance image-create --name=SP3-64 --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
+            glance image-create --name=$image_name --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
         fi
+    fi
+
+    if [ -n "$want_docker" ] ; then
+        glance --insecure image-create --is-public=True --container-format=docker --disk-format=raw --property hypervisor_type=docker --name cirros --copy-from http://clouddata.cloud.suse.de/images/docker/cirros.tar | tee glance.out
+        image_name="cirros"
     fi
 
     # wait for image to finish uploading
     imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
     if [ "x$imageid" == "x" ]; then
-        complain 37 "Error: Image ID for SP3-64 not found"
+        complain 37 "Error: Image ID for $image_name not found"
     fi
 
     for n in $(seq 1 200) ; do
@@ -2269,7 +2289,7 @@ function oncontroller_testsetup()
     nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
     nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
     nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
-    nova boot --poll --image SP3-64 --flavor m1.smaller --key_name testkey testvm | tee boot.out
+    nova boot --poll --image $image_name --flavor m1.smaller --key_name testkey testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
