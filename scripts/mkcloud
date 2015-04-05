@@ -1429,7 +1429,7 @@ function expand_steps()
                         runcmds="$runcmds `expand_steps alias_new_admin` rebootcrowbar `expand_steps alias_compute` testsetup rebootcompute"
                     ;;
                     all_noreboot)
-                        runcmds="$runcmds`expand_steps alias_new_admin` `expand_steps alias_compute` testsetup"
+                        runcmds="$runcmds `expand_steps alias_new_admin` `expand_steps alias_compute` testsetup"
                     ;;
                     alias_testupdate|testupdate)
                         runcmds="$runcmds addupdaterepo runupdate testsetup"
