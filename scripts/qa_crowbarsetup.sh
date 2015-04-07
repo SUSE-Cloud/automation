@@ -1713,6 +1713,7 @@ function custom_configuration()
                     fi
                 elif [ "$networkingplugin" = "linuxbridge" ] ; then
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
+                    proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "false"
                 else
                     complain 106 "networkingplugin '$networkingplugin' not yet covered in mkcloud"
                 fi
