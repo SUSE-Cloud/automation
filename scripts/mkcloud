@@ -1163,6 +1163,15 @@ function sanity_checks()
             complain 101 "$cinder_backend as the cinder backend is currently not supported."
             ;;
     esac
+
+    # allow cloud instances to get responses from dnsmasq
+    # by preventing libvirt to tell it to bind only to the bridge interface
+    # see also PR #290
+    grep -q -- --bind-dynamic /usr/lib*/libvirt.so.0 \
+        && complain 111 "please do: sed -i.orig -e 's/--bind-dynamic/--bindnotthere/g' /usr/lib*/libvirt.so.0 ; rclibvirtd restart
+        This is needed for VMs to have DNS, but might have a security impact
+        if the machine has a global public IP
+        see bnc#928384 and CVE-2012-3411"
 }
 
 
