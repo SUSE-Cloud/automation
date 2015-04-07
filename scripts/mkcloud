@@ -720,7 +720,7 @@ function configure_libvirtd()
 {
     chkconfig libvirtd on
 
-    changed=
+    local changed=
 
     # needed for HA/STONITH via libvirtd:
     confset /etc/libvirt/libvirtd.conf listen_tcp 1            && changed=y
