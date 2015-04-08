@@ -1286,7 +1286,7 @@ function onadmin_get_ip_from_dhcp()
 # register a new node with crowbar_register
 function onadmin_crowbar_register()
 {
-    wait_for 150 10 "onadmin_get_ip_from_dhcp '$lonelymac'" "complain 78 'node did not receive an IP from dhcp'"
+    wait_for 150 10 "onadmin_get_ip_from_dhcp '$lonelymac'" "node to get an IP from DHCP" "exit 78"
     local crowbar_register_node_ip=`onadmin_get_ip_from_dhcp "$lonelymac"`
 
     [ -n "$crowbar_register_node_ip" ] || complain 84 "Could not get IP address of crowbar_register_node"
