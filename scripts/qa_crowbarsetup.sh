@@ -1304,8 +1304,6 @@ function onadmin_crowbar_register()
     local zyppercmd
     if [ -n "$want_sles12" ] ; then
         image="suse-12.0"
-        # fix SLE12 image, as it currently contains SLED product
-        zyppercmd="zypper mr -d sle12all &&"
     else
         image="suse-11.3"
         # install SuSEfirewall2 as it is called in crowbar_register
