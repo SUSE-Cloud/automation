@@ -1323,14 +1323,15 @@ function onadmin_crowbar_register()
     fi
 
     inject="
+            set -x
             rm -f /tmp/crowbar_register_done;
-            screen -d -m -L /bin/bash -c '
             wget http://$adminip:8091/$image/crowbar_register &&
             chmod a+x crowbar_register &&
             $zyppercmd
             $hostnamecmd
             zypper -n ref &&
             zypper -n up &&
+            screen -d -m -L /bin/bash -c '
             yes | ./crowbar_register --no-gpg-checks &&
             touch /tmp/crowbar_register_done;'
         "
