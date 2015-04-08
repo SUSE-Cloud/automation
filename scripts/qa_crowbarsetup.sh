@@ -464,6 +464,25 @@ function get_disk_id_by_serial_and_libvirt_type()
     echo -n "$diskid"
 }
 
+function get_all_nodes()
+{
+    crowbar machines list | LC_ALL=C sort
+}
+
+function get_all_discovered_nodes()
+{
+    # names of discovered nodes start with 'd'
+    # so it is excluding the crowbar node
+    get_all_nodes | grep "^d"
+}
+
+function get_crowbar_node()
+{
+    # crowbar node may have any name, so better use grep -v
+    # and make sure it is only one
+    get_all_nodes | grep -v "^d" | head -n 1
+}
+
 function cluster_node_assignment()
 {
     local nodesavailable
