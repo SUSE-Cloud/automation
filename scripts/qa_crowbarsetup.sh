@@ -1621,7 +1621,7 @@ function custom_configuration()
     ###       So, only edit the proposal file, and NOT the proposal itself
 
     case "$proposal" in
-        keystone|glance)
+        keystone|glance|neutron|cinder)
             if [[ $all_with_ssl = 1 ]] || eval [[ \$${proposal}_with_ssl = 1 ]] ; then
                 enable_ssl_generic $proposal
             fi
