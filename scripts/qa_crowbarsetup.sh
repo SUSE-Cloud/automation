@@ -1480,7 +1480,11 @@ function enable_ssl_generic()
 {
     local service=$1
     echo "Enabling SSL for $service"
-    proposal_set_value $service default "['attributes']['$service']['api']['protocol']" "'https'"
+    if [[ $service = nova ]] ; then
+        proposal_set_value $service default "['attributes']['$service']['ssl']['enabled']" true
+    else
+        proposal_set_value $service default "['attributes']['$service']['api']['protocol']" "'https'"
+    fi
     proposal_set_value $service default "['attributes']['$service']['ssl']['generate_certs']" true
     proposal_set_value $service default "['attributes']['$service']['ssl']['insecure']" true
 }
@@ -1489,8 +1493,7 @@ function enable_ssl_for_nova()
 {
     echo "Enabling SSL for nova"
     enable_ssl_generic nova
-    proposal_set_value nova default "['attributes']['nova']['glance_ssl_no_verify']" true
-    proposal_set_value nova default "['attributes']['nova']['novnc']['ssl_enabled']" true
+    proposal_set_value nova default "['attributes']['nova']['novnc']['ssl']['enabled']" true
 }
 
 
