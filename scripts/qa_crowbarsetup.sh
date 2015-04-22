@@ -2253,6 +2253,10 @@ function oncontroller_testsetup()
         sleep 5
     done
 
+    if [[ $want_ldap ]] ; then
+        keystone user-get bwiedemann | grep -q 82608 || complain 103 "LDAP not working"
+    fi
+
     # wait for nova-manage to be successful
     for n in $(seq 1 200) ;  do
         test "$(nova-manage service list  | fgrep -cv -- \:\-\))" -lt 2 && break
