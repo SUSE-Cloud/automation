@@ -35,8 +35,10 @@ export tempestoptions=${tempestoptions:--t -s}
 export want_sles12
 [[ "$want_sles12" = 0 ]] && want_sles12=
 export nodes=
-export cinder_conf_volume_type
-export cinder_conf_volume_params
+export cinder_backend
+export cinder_netapp_storage_protocol
+export cinder_netapp_login
+export cinder_netapp_password
 export localreposdir_target
 export want_ipmi=${want_ipmi:-false}
 [ "$libvirt_type" = hyperv ] && export wanthyperv=1
@@ -1821,46 +1823,22 @@ function custom_configuration()
             fi
         ;;
         cinder)
-            if iscloudver 4plus ; then
-                if iscloudver 4 ; then
-                    proposal_set_value cinder default "['attributes']['cinder']['enable_v2_api']" "true"
-                fi
+            if iscloudver 4 ; then
+                proposal_set_value cinder default "['attributes']['cinder']['enable_v2_api']" "true"
+            fi
 
-                volumes="['attributes']['cinder']['volumes']"
-                proposal_set_value cinder default "${volumes}[0]['${cinder_conf_volume_type}']" "j['attributes']['cinder']['volume_defaults']['${cinder_conf_volume_type}']"
-                proposal_set_value cinder default "${volumes}[0]['backend_driver']" "'${cinder_conf_volume_type}'"
+            proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['${cinder_backend}']" "j['attributes']['cinder']['volume_defaults']['${cinder_backend}']"
+            proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['backend_driver']" "'${cinder_backend}'"
+            case "$cinder_backend" in
+                netapp)
+                    cinder_netapp_proposal_configuration
+                    ;;
+            esac
 
-                if [ -n "$cinder_conf_volume_params" ]; then
-                    echo "${cinder_conf_volume_params}" | while read -a l; do
-                        case "$cinder_conf_volume_type" in
-                            netapp)
-                                proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['netapp']['${l[0]}']" "${l[1]}"
-                                ;;
-                            *)
-                                echo "Warning: selected cinder volume type $cinder_conf_volume_type is currently not supported"
-                                ;;
-                        esac
-                    done
-                fi
-
-                # add a second backend to enable multi-backend, if not already present
+            # add a second backend to enable multi-backend, if not already present
+            if [[ $want_cindermultibackend = 1 ]] ; then
                 if ! crowbar cinder proposal show default | grep -q local-multi; then
                     proposal_modify_value cinder default "${volumes}" "{ 'backend_driver' => 'local', 'backend_name' => 'local-multi', 'local' => { 'volume_name' => 'cinder-volumes-multi', 'file_size' => 2000, 'file_name' => '/var/lib/cinder/volume-multi.raw'} }" "<<"
-                fi
-            else
-                proposal_set_value cinder default "['attributes']['cinder']['volume']['volume_type']" "'${cinder_conf_volume_type}'"
-
-                if [ -n "$cinder_conf_volume_params" ]; then
-                    echo "${cinder_conf_volume_params}" | while read -a l; do
-                        case "$cinder_conf_volume_type" in
-                            netapp)
-                                proposal_set_value cinder default "['attributes']['cinder']['volume']['netapp']['${l[0]}']" "${l[1]}"
-                                ;;
-                            *)
-                                echo "Warning: selected cinder volume type $cinder_conf_volume_type is currently not supported"
-                                ;;
-                        esac
-                    done
                 fi
             fi
             if [[ $hacloud = 1 ]] ; then
@@ -1970,13 +1948,13 @@ function set_proposalvars()
     fi
 
     # Cinder
-    if [[ ! $cinder_conf_volume_type ]] ; then
+    if [[ ! $cinder_backend ]] ; then
         if [[ $deployceph ]] ; then
-            cinder_conf_volume_type="rbd"
+            cinder_backend="rbd"
         elif [[ $cephvolumenumber -lt 2 ]] ; then
-            cinder_conf_volume_type="local"
+            cinder_backend="local"
         else
-            cinder_conf_volume_type="raw"
+            cinder_backend="raw"
         fi
     fi
 }

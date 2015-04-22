@@ -41,6 +41,10 @@ fi
 # causes of this is violation of the common shell coding standard which
 # uses uppercase for environment variables and constants, and lowercase
 # for local variables.
+: ${cinder_backend:=''}
+: ${cinder_netapp_storage_protocol:=iscsi}
+: ${cinder_netapp_login:=openstack}
+: ${cinder_netapp_password:=''}
 : ${qa_crowbarsetup:=$(dirname $0)/qa_crowbarsetup.sh}
 : ${virtualcloud:=virtual}
 : ${cloudfqdn:=$virtualcloud.cloud.suse.de}
@@ -253,8 +257,10 @@ function sshrun()
 
         export localreposdir_target=$localreposdir_target ;
 
-        export cinder_conf_volume_type=$cinder_conf_volume_type;
-        export cinder_conf_volume_params=$cinder_conf_volume_params;
+        export cinder_backend=$cinder_backend;
+        export cinder_netapp_storage_protocol=$cinder_netapp_storage_protocol;
+        export cinder_netapp_login=$cinder_netapp_login;
+        export cinder_netapp_password=$cinder_netapp_password;
 
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
@@ -1399,6 +1405,14 @@ function sanity_checks()
             complain 80 "Please set nodenumberlonelynode."
         fi
     fi
+
+    case $cinder_backend in
+        ''|netapp|local|raw|rbd)
+            ;;
+        *)
+            complain 101 "$cinder_backend as the cinder backend is currently not supported."
+            ;;
+    esac
 }
 
 
