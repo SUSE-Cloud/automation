@@ -1500,10 +1500,7 @@ function enable_ssl_for_nova()
 function enable_ssl_for_nova_dashboard()
 {
     echo "Enabling SSL for nova_dashboard"
-    proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['use_https']" true
-    proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['use_http']" false
-    proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['redirect_to_https']" false
-    proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['ssl_no_verify']" true
+    proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['ssl']" true
 }
 
 function hacloud_configure_cluster_members()
