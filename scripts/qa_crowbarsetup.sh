@@ -1476,22 +1476,19 @@ function proposal_increment_int()
     proposal_modify_value "$1" "$2" "$3" "$4" "+="
 }
 
-function enable_ssl_for_keystone()
+function enable_ssl_generic()
 {
-    echo "Enabling SSL for keystone"
-    proposal_set_value keystone default "['attributes']['keystone']['api']['protocol']" "'https'"
-}
-
-function enable_ssl_for_glance()
-{
-    echo "Enabling SSL for glance"
-    proposal_set_value glance default "['attributes']['glance']['api']['protocol']" "'https'"
+    local service=$1
+    echo "Enabling SSL for $service"
+    proposal_set_value $service default "['attributes']['$service']['api']['protocol']" "'https'"
+    proposal_set_value $service default "['attributes']['$service']['ssl']['generate_certs']" true
+    proposal_set_value $service default "['attributes']['$service']['ssl']['insecure']" true
 }
 
 function enable_ssl_for_nova()
 {
     echo "Enabling SSL for nova"
-    proposal_set_value nova default "['attributes']['nova']['api']['protocol']" "'https'"
+    enable_ssl_generic nova
     proposal_set_value nova default "['attributes']['nova']['glance_ssl_no_verify']" true
     proposal_set_value nova default "['attributes']['nova']['novnc']['ssl_enabled']" true
 }
@@ -1658,7 +1655,7 @@ function custom_configuration()
         ;;
         keystone)
             if [[ $all_with_ssl = 1 || $keystone_with_ssl = 1 ]] ; then
-                enable_ssl_for_keystone
+                enable_ssl_generic keystone
             fi
             # set a custom region name
             if iscloudver 4plus ; then
@@ -1688,7 +1685,7 @@ function custom_configuration()
         ;;
         glance)
             if [[ $all_with_ssl = 1 || $glance_with_ssl = 1 ]] ; then
-                enable_ssl_for_glance
+                enable_ssl_generic glance
             fi
             if [[ -n "$deployceph" ]]; then
                 proposal_set_value glance default "['attributes']['glance']['default_store']" "'rbd'"
