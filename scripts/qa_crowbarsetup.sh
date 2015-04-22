@@ -1665,6 +1665,24 @@ function custom_configuration()
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value keystone default "['deployment']['keystone']['elements']['keystone-server']" "['cluster:$clusternameservices']"
             fi
+            if [[ $want_ldap ]] ; then
+                local p="proposal_set_value keystone default"
+                $p "['attributes']['keystone']['identity']['driver']" "'keystone.identity.backends.hybrid.Identity'"
+                $p "['attributes']['keystone']['assignment']['driver']" "'keystone.assignment.backends.hybrid.Assignment'"
+                local l="['attributes']['keystone']['ldap']"
+                $p "$l['url']" "'ldap://ldap.suse.de'"
+                $p "$l['suffix']" "'dc=suse,dc=de'"
+                $p "$l['user_tree_dn']" "'ou=accounts,dc=suse,dc=de'"
+                $p "$l['user_objectclass']" "'posixAccount'"
+                $p "$l['user_id_attribute']" "'suseid'"
+                $p "$l['user_name_attribute']" "'uid'"
+                $p "$l['use_tls']" "true"
+                $p "$l['tls_cacertdir']" "'/etc/ssl/certs'"
+                $p "$l['tls_req_cert']" "'allow'" # FIXME: this allows MitM
+                # to be secure, set to 'demand' and run on keystone node:
+                #zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_11_SP3/SUSE:CA.repo
+                #zypper -n --gpg-auto-import-keys in ca-certificates-suse
+            fi
         ;;
         glance)
             if [[ $all_with_ssl = 1 || $glance_with_ssl = 1 ]] ; then
@@ -2234,6 +2252,10 @@ function oncontroller_testsetup()
         glance image-show $imageid|grep status.*active && break
         sleep 5
     done
+
+    if [[ $want_ldap ]] ; then
+        keystone user-get bwiedemann | grep -q 82608 || complain 103 "LDAP not working"
+    fi
 
     # wait for nova-manage to be successful
     for n in $(seq 1 200) ;  do
