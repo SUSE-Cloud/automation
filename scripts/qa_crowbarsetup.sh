@@ -1621,6 +1621,13 @@ function custom_configuration()
     ###       So, only edit the proposal file, and NOT the proposal itself
 
     case "$proposal" in
+        keystone|glance)
+            if [[ $all_with_ssl = 1 ]] || eval [[ \$${proposal}_with_ssl = 1 ]] ; then
+                enable_ssl_generic $proposal
+            fi
+        ;;
+    esac
+    case "$proposal" in
         pacemaker)
             # multiple matches possible, so separate if's, to allow to configure mapped clusters
             if [[ $proposaltypemapped =~ .*data.* ]] ; then
@@ -1654,9 +1661,6 @@ function custom_configuration()
             proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
         ;;
         keystone)
-            if [[ $all_with_ssl = 1 || $keystone_with_ssl = 1 ]] ; then
-                enable_ssl_generic keystone
-            fi
             # set a custom region name
             if iscloudver 4plus ; then
                 proposal_set_value keystone default "['attributes']['keystone']['api']['region']" "'CustomRegion'"
@@ -1684,9 +1688,6 @@ function custom_configuration()
             fi
         ;;
         glance)
-            if [[ $all_with_ssl = 1 || $glance_with_ssl = 1 ]] ; then
-                enable_ssl_generic glance
-            fi
             if [[ -n "$deployceph" ]]; then
                 proposal_set_value glance default "['attributes']['glance']['default_store']" "'rbd'"
             fi
