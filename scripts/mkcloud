@@ -248,12 +248,7 @@ function sshrun()
         export shell=$shell ;
         export keep_existing_hostname=$keep_existing_hostname ;
 
-        export all_with_ssl=$all_with_ssl ;
-        export glance_with_ssl=$glance_with_ssl ;
-        export keystone_with_ssl=$keystone_with_ssl ;
-        export nova_with_ssl=$nova_with_ssl ;
         export nova_shared_instance_storage=$nova_shared_instance_storage ;
-        export novadashboard_with_ssl=$novadashboard_with_ssl ;
 
         export localreposdir_target=$localreposdir_target ;
 
@@ -265,7 +260,7 @@ function sshrun()
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
 EOF
-    env|grep -e ^debug_ -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
+    env|grep -e ^debug_ -e ^pre_ -e ^want_ -e _with_ssl -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
 
     $scp $qa_crowbarsetup $mkcconf root@$adminip:
     ssh $sshopts root@$adminip "echo `hostname` > cloud ; . qa_crowbarsetup.sh ; $@"
