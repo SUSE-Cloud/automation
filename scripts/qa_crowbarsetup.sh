@@ -1480,21 +1480,23 @@ function enable_ssl_generic()
 {
     local service=$1
     echo "Enabling SSL for $service"
+    local p="proposal_set_value $service default"
+    local a="['attributes']['$service']"
     case $service in
         nova)
-            proposal_set_value $service default "['attributes']['$service']['ssl']['enabled']" true
-            proposal_set_value $service default "['attributes']['$service']['novnc']['ssl']['enabled']" true
+            $p "$a['ssl']['enabled']" true
+            $p "$a['novnc']['ssl']['enabled']" true
         ;;
         nova_dashboard)
-            proposal_set_value $service default "['attributes']['$service']['apache']['ssl']" true
+            $p "$a['apache']['ssl']" true
             return
         ;;
         *)
-            proposal_set_value $service default "['attributes']['$service']['api']['protocol']" "'https'"
+            $p "$a['api']['protocol']" "'https'"
         ;;
     esac
-    proposal_set_value $service default "['attributes']['$service']['ssl']['generate_certs']" true
-    proposal_set_value $service default "['attributes']['$service']['ssl']['insecure']" true
+    $p "$a['ssl']['generate_certs']" true
+    $p "$a['ssl']['insecure']" true
 }
 
 function hacloud_configure_cluster_members()
