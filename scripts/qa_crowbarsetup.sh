@@ -483,6 +483,11 @@ function get_crowbar_node()
     get_all_nodes | grep -v "^d" | head -n 1
 }
 
+function get_sle12_node()
+{
+    knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g'
+}
+
 function cluster_node_assignment()
 {
     local nodesavailable
@@ -1639,7 +1644,7 @@ function custom_configuration()
         sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/" $pfile
     fi
 
-    local sle12node=$(knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g')
+    local sle12node=`get_sle12_node`
 
     ### NOTE: ONLY USE proposal_{set,modify}_value functions below this line
     ###       The edited proposal will be read and imported at the end
@@ -1729,10 +1734,6 @@ function custom_configuration()
             proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
             [[ "$libvirt_type" = xen ]] && sed -i -e "s/nova-multi-compute-$libvirt_type/nova-multi-compute-xxx/g; s/nova-multi-compute-kvm/nova-multi-compute-$libvirt_type/g; s/nova-multi-compute-xxx/nova-multi-compute-kvm/g" $pfile
 
-            if [[ $all_with_ssl = 1 || $nova_with_ssl = 1 ]] ; then
-                enable_ssl_for_nova
-            fi
-
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-controller']" "['cluster:$clusternameservices']"
 
@@ -1746,8 +1747,12 @@ function custom_configuration()
             if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-docker']" "['$sle12node']"
                 # do not assign another compute role to this node
-                local novanodes
-                novanodes=`printf "%s\n" $novanodes | grep -iv $sle12node`
+                if [ -n "$nodescompute" ] ; then
+                    local novanodes
+                    novanodes=`printf "\"%s\",\n" $nodescompute | grep -iv $sle12node`
+                    novanodes="[ ${novanodes%,} ]"
+                    proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "$novanodes"
+                fi
             fi
 
             if [[ $nova_shared_instance_storage = 1 ]] ; then
@@ -2238,6 +2243,7 @@ function oncontroller_testsetup()
     glance image-list
 
     local image_name="SP3-64"
+    local ssh_user="root"
 
     if glance image-list | grep -q $image_name ; then
         glance image-show $image_name | tee glance.out
@@ -2259,6 +2265,7 @@ function oncontroller_testsetup()
     if [ -n "$want_docker" ] ; then
         glance --insecure image-create --is-public=True --container-format=docker --disk-format=raw --property hypervisor_type=docker --name cirros --copy-from http://clouddata.cloud.suse.de/images/docker/cirros.tar | tee glance.out
         image_name="cirros"
+        ssh_user="cirros"
     fi
 
     # wait for image to finish uploading
@@ -2323,11 +2330,13 @@ function oncontroller_testsetup()
         complain 96 "VM not accessible in reasonable time, exiting."
     fi
 
+    local ssh_target="$ssh_user@$vmip"
+
     set +x
     echo "Waiting for the SSH keys to be copied over"
     i=0
     MAX_RETRIES=40
-    while timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $vmip "echo cloud" 2> /dev/null; [ $? != 0 ]
+    while timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target "echo cloud" 2> /dev/null; [ $? != 0 ]
     do
         sleep 5  # wait before retry
         if [ $i -gt $MAX_RETRIES ] ; then
@@ -2337,24 +2346,35 @@ function oncontroller_testsetup()
         echo -n "."
     done
     set -x
-    if ! ssh $vmip curl www3.zq1.de/test ; then
+    if ! ssh $ssh_target curl www3.zq1.de/test ; then
         complain 95 could not reach internet
     fi
-    nova volume-list | grep -q available || nova volume-create 1
+
     local volumecreateret=0
-    wait_for 9 5 "nova volume-list | grep available" "volume to become available" "volumecreateret=1"
-    volumeid=`nova volume-list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
-    nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
-    local volumeattachret=$?
-    device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
-    wait_for 9 5 "nova volume-show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
-    ssh $vmip fdisk -l $device | grep 1073741824 || volumeattachret=$?
-    rand=$RANDOM
-    ssh $vmip "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
-    nova volume-detach "$instanceid" "$volumeid" ; sleep 10
-    nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
-    ssh $vmip fdisk -l $device | grep 1073741824 || volumeattachret=57
-    ssh $vmip "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
+    local volumeattachret=0
+    local volumeresult=""
+
+    # do volume tests for non-docker scenario only
+    if [ -z "$want_docker" ] ; then
+        nova volume-list | grep -q available || nova volume-create 1
+        wait_for 9 5 "nova volume-list | grep available" "volume to become available" "volumecreateret=1"
+        volumeid=`nova volume-list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
+        nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
+        volumeattachret=$?
+        device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
+        wait_for 9 5 "nova volume-show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
+        ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
+        rand=$RANDOM
+        ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
+        nova volume-detach "$instanceid" "$volumeid" ; sleep 10
+        nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
+        ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
+        ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
+        volumeresult="$volumecreateret & $volumeattachret"
+    else
+        volumeresult="tests skipped (not supported for docker)"
+    fi
+
     # cleanup so that we can run testvm without leaking volumes, IPs etc
     nova remove-floating-ip "$instanceid" "$floatingip"
     nova floating-ip-delete "$floatingip"
@@ -2363,7 +2383,7 @@ function oncontroller_testsetup()
 
     echo "RadosGW Tests: $radosgwret"
     echo "Tempest: $tempestret"
-    echo "Volume in VM: $volumecreateret & $volumeattachret"
+    echo "Volume in VM: $volumeresult"
 
     test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0 || exit 102
 }
@@ -2507,6 +2527,11 @@ EOF
             echo "test-s3-bucket not found"
             s3radosgwret=1
         fi
+    fi
+
+    # prepare docker image at sle12 compute node
+    if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
+        ssh `get_sle12_node` docker pull cirros
     fi
 
     oncontroller oncontroller_testsetup
