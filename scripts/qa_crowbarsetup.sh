@@ -1480,27 +1480,21 @@ function enable_ssl_generic()
 {
     local service=$1
     echo "Enabling SSL for $service"
-    if [[ $service = nova ]] ; then
-        proposal_set_value $service default "['attributes']['$service']['ssl']['enabled']" true
-    else
-        proposal_set_value $service default "['attributes']['$service']['api']['protocol']" "'https'"
-    fi
+    case $service in
+        nova)
+            proposal_set_value $service default "['attributes']['$service']['ssl']['enabled']" true
+            proposal_set_value $service default "['attributes']['$service']['novnc']['ssl']['enabled']" true
+        ;;
+        nova_dashboard)
+            proposal_set_value $service default "['attributes']['$service']['apache']['ssl']" true
+            return
+        ;;
+        *)
+            proposal_set_value $service default "['attributes']['$service']['api']['protocol']" "'https'"
+        ;;
+    esac
     proposal_set_value $service default "['attributes']['$service']['ssl']['generate_certs']" true
     proposal_set_value $service default "['attributes']['$service']['ssl']['insecure']" true
-}
-
-function enable_ssl_for_nova()
-{
-    echo "Enabling SSL for nova"
-    enable_ssl_generic nova
-    proposal_set_value nova default "['attributes']['nova']['novnc']['ssl']['enabled']" true
-}
-
-
-function enable_ssl_for_nova_dashboard()
-{
-    echo "Enabling SSL for nova_dashboard"
-    proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['ssl']" true
 }
 
 function hacloud_configure_cluster_members()
@@ -1621,7 +1615,7 @@ function custom_configuration()
     ###       So, only edit the proposal file, and NOT the proposal itself
 
     case "$proposal" in
-        keystone|glance|neutron|cinder)
+        keystone|glance|neutron|cinder|nova|nova_dashboard)
             if [[ $all_with_ssl = 1 ]] || eval [[ \$${proposal}_with_ssl = 1 ]] ; then
                 enable_ssl_generic $proposal
             fi
@@ -1704,9 +1698,6 @@ function custom_configuration()
             proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
             [[ "$libvirt_type" = xen ]] && sed -i -e "s/nova-multi-compute-$libvirt_type/nova-multi-compute-xxx/g; s/nova-multi-compute-kvm/nova-multi-compute-$libvirt_type/g; s/nova-multi-compute-xxx/nova-multi-compute-kvm/g" $pfile
 
-            if [[ $all_with_ssl = 1 || $nova_with_ssl = 1 ]] ; then
-                enable_ssl_for_nova
-            fi
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-controller']" "['cluster:$clusternameservices']"
 
@@ -1721,9 +1712,6 @@ function custom_configuration()
             fi
         ;;
         nova_dashboard)
-            if [[ $all_with_ssl = 1 || $novadashboard_with_ssl = 1 ]] ; then
-                enable_ssl_for_nova_dashboard
-            fi
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value nova_dashboard default "['deployment']['nova_dashboard']['elements']['nova_dashboard-server']" "['cluster:$clusternameservices']"
             fi
