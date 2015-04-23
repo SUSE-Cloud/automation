@@ -1476,34 +1476,30 @@ function proposal_increment_int()
     proposal_modify_value "$1" "$2" "$3" "$4" "+="
 }
 
-function enable_ssl_for_keystone()
+function enable_ssl_generic()
 {
-    echo "Enabling SSL for keystone"
-    proposal_set_value keystone default "['attributes']['keystone']['api']['protocol']" "'https'"
-}
-
-function enable_ssl_for_glance()
-{
-    echo "Enabling SSL for glance"
-    proposal_set_value glance default "['attributes']['glance']['api']['protocol']" "'https'"
-}
-
-function enable_ssl_for_nova()
-{
-    echo "Enabling SSL for nova"
-    proposal_set_value nova default "['attributes']['nova']['api']['protocol']" "'https'"
-    proposal_set_value nova default "['attributes']['nova']['glance_ssl_no_verify']" true
-    proposal_set_value nova default "['attributes']['nova']['novnc']['ssl_enabled']" true
-}
-
-
-function enable_ssl_for_nova_dashboard()
-{
-    echo "Enabling SSL for nova_dashboard"
-    proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['use_https']" true
-    proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['use_http']" false
-    proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['apache']['redirect_to_https']" false
-    proposal_set_value nova_dashboard default "['attributes']['nova_dashboard']['ssl_no_verify']" true
+    local service=$1
+    echo "Enabling SSL for $service"
+    local p="proposal_set_value $service default"
+    local a="['attributes']['$service']"
+    case $service in
+        swift)
+            $p "$a['ssl']['enabled']" true
+        ;;
+        nova)
+            $p "$a['ssl']['enabled']" true
+            $p "$a['novnc']['ssl']['enabled']" true
+        ;;
+        nova_dashboard)
+            $p "$a['apache']['ssl']" true
+            return
+        ;;
+        *)
+            $p "$a['api']['protocol']" "'https'"
+        ;;
+    esac
+    $p "$a['ssl']['generate_certs']" true
+    $p "$a['ssl']['insecure']" true
 }
 
 function hacloud_configure_cluster_members()
@@ -1624,6 +1620,13 @@ function custom_configuration()
     ###       So, only edit the proposal file, and NOT the proposal itself
 
     case "$proposal" in
+        keystone|glance|neutron|cinder|swift|nova|nova_dashboard)
+            if [[ $want_all_ssl = 1 ]] || eval [[ \$want_${proposal}_ssl = 1 ]] ; then
+                enable_ssl_generic $proposal
+            fi
+        ;;
+    esac
+    case "$proposal" in
         pacemaker)
             # multiple matches possible, so separate if's, to allow to configure mapped clusters
             if [[ $proposaltypemapped =~ .*data.* ]] ; then
@@ -1657,9 +1660,6 @@ function custom_configuration()
             proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
         ;;
         keystone)
-            if [[ $all_with_ssl = 1 || $keystone_with_ssl = 1 ]] ; then
-                enable_ssl_for_keystone
-            fi
             # set a custom region name
             if iscloudver 4plus ; then
                 proposal_set_value keystone default "['attributes']['keystone']['api']['region']" "'CustomRegion'"
@@ -1687,9 +1687,6 @@ function custom_configuration()
             fi
         ;;
         glance)
-            if [[ $all_with_ssl = 1 || $glance_with_ssl = 1 ]] ; then
-                enable_ssl_for_glance
-            fi
             if [[ -n "$deployceph" ]]; then
                 proposal_set_value glance default "['attributes']['glance']['default_store']" "'rbd'"
             fi
@@ -1706,9 +1703,6 @@ function custom_configuration()
             proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
             [[ "$libvirt_type" = xen ]] && sed -i -e "s/nova-multi-compute-$libvirt_type/nova-multi-compute-xxx/g; s/nova-multi-compute-kvm/nova-multi-compute-$libvirt_type/g; s/nova-multi-compute-xxx/nova-multi-compute-kvm/g" $pfile
 
-            if [[ $all_with_ssl = 1 || $nova_with_ssl = 1 ]] ; then
-                enable_ssl_for_nova
-            fi
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-controller']" "['cluster:$clusternameservices']"
 
@@ -1723,9 +1717,6 @@ function custom_configuration()
             fi
         ;;
         nova_dashboard)
-            if [[ $all_with_ssl = 1 || $novadashboard_with_ssl = 1 ]] ; then
-                enable_ssl_for_nova_dashboard
-            fi
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value nova_dashboard default "['deployment']['nova_dashboard']['elements']['nova_dashboard-server']" "['cluster:$clusternameservices']"
             fi
@@ -1812,8 +1803,6 @@ function custom_configuration()
         swift)
             [[ "$nodenumber" -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
             if iscloudver 3plus ; then
-                proposal_set_value swift default "['attributes']['swift']['ssl']['generate_certs']" "true"
-                proposal_set_value swift default "['attributes']['swift']['ssl']['insecure']" "true"
                 proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
                 proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
                 iscloudver 3 || proposal_set_value swift default "['attributes']['swift']['middlewares']['crossdomain']['enabled']" "true"
