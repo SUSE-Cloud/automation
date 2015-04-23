@@ -1621,7 +1621,7 @@ function custom_configuration()
 
     case "$proposal" in
         keystone|glance|neutron|cinder|swift|nova|nova_dashboard)
-            if [[ $all_with_ssl = 1 ]] || eval [[ \$${proposal}_with_ssl = 1 ]] ; then
+            if [[ $want_all_ssl = 1 ]] || eval [[ \$want_${proposal}_ssl = 1 ]] ; then
                 enable_ssl_generic $proposal
             fi
         ;;
