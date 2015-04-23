@@ -1582,16 +1582,24 @@ function dns_proposal_configuration()
 
 function cinder_netapp_proposal_configuration()
 {
-    local attr_volume_path="['attributes']['cinder']['volumes']"
-    proposal_set_value cinder default "${attr_volume_path}[0]['backend_name']" "'netapp-backend'"
-    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['storage_family']" "'ontap_cluster'"
-    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['storage_protocol']" "'${cinder_netapp_storage_protocol}'"
-    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['netapp_server_hostname']" "'netapp-n1-e0m.cloud.suse.de'"
-    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['vserver']" "'cloud-openstack-svm'"
-    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['netapp_login']" "'${cinder_netapp_login}'"
-    proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['netapp_password']" "'${cinder_netapp_password}'"
-    if [ "$cinder_netapp_storage_protocol" = 'nfs' ] ; then
-        proposal_set_value cinder default "${attr_volume_path}[0]['netapp']['nfs_shares']" "'netapp-n1-nfs.cloud.suse.de:/n1_vol_openstack_nfs'"
+    local volnumber=$1
+    local storage_protocol=${2:-$cinder_netapp_storage_protocol}
+    local p="proposal_set_value cinder default"
+    local a="['attributes']['cinder']['volumes']"
+    if [[ $volnumber -gt 0 ]]; then
+        proposal_modify_value cinder default "$a" "{}" "<<"
+        $p "$a[$volnumber]['netapp']" "j['attributes']['cinder']['volume_defaults']['netapp']"
+        $p "$a[$volnumber]['backend_driver']" "'netapp'"
+    fi
+    $p "$a[$volnumber]['backend_name']" "'netapp-backend-${storage_protocol}'"
+    $p "$a[$volnumber]['netapp']['storage_family']" "'ontap_cluster'"
+    $p "$a[$volnumber]['netapp']['storage_protocol']" "'${storage_protocol}'"
+    $p "$a[$volnumber]['netapp']['netapp_server_hostname']" "'netapp-n1-e0m.cloud.suse.de'"
+    $p "$a[$volnumber]['netapp']['vserver']" "'cloud-openstack-svm'"
+    $p "$a[$volnumber]['netapp']['netapp_login']" "'${cinder_netapp_login}'"
+    $p "$a[$volnumber]['netapp']['netapp_password']" "'${cinder_netapp_password}'"
+    if [[ $storage_protocol = "nfs" ]] ; then
+        $p "$a[$volnumber]['netapp']['nfs_shares']" "'netapp-n1-nfs.cloud.suse.de:/n1_vol_openstack_nfs'"
     fi
 }
 
@@ -1820,16 +1828,24 @@ function custom_configuration()
             proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['backend_driver']" "'${cinder_backend}'"
             case "$cinder_backend" in
                 netapp)
-                    cinder_netapp_proposal_configuration
+                    cinder_netapp_proposal_configuration "0"
                     ;;
             esac
 
             # add a second backend to enable multi-backend, if not already present
             if [[ $want_cindermultibackend = 1 ]] ; then
-                if ! crowbar cinder proposal show default | grep -q local-multi; then
+                # in case of testing netapp, add a second backend with a different storage protocol
+                if [[ $cinder_backend = "netapp" ]]; then
+                    if [[ $cinder_netapp_storage_protocol = "iscsi" ]] ; then
+                        cinder_netapp_proposal_configuration "1" "nfs"
+                    else
+                        cinder_netapp_proposal_configuration "1" "iscsi"
+                    fi
+                elif ! crowbar cinder proposal show default | grep -q local-multi; then
                     proposal_modify_value cinder default "${volumes}" "{ 'backend_driver' => 'local', 'backend_name' => 'local-multi', 'local' => { 'volume_name' => 'cinder-volumes-multi', 'file_size' => 2000, 'file_name' => '/var/lib/cinder/volume-multi.raw'} }" "<<"
                 fi
             fi
+
             if [[ $hacloud = 1 ]] ; then
                 local cinder_volume
                 # fetch one of the compute nodes as cinder_volume
