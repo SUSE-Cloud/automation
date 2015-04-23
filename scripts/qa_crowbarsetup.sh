@@ -486,7 +486,7 @@ function get_crowbar_node()
 function cluster_node_assignment()
 {
     local nodesavailable
-    nodesavailable=`crowbar machines list | grep -v crowbar`
+    nodesavailable=`get_all_discovered_nodes`
 
     # the nodes that contain drbd volumes are defined via drbdnode_mac_vol
     for dmachine in ${drbdnode_mac_vol//+/ } ; do
@@ -1111,7 +1111,7 @@ EOF
         complain 84 "crowbar self-test failed"
     fi
 
-    if ! crowbar machines list | grep -q crowbar.$cloudfqdn ; then
+    if ! get_all_nodes | grep -q crowbar.$cloudfqdn ; then
         tail -n 90 /root/screenlog.0
         complain 85 "crowbar 2nd self-test failed"
     fi
@@ -1202,23 +1202,22 @@ function onadmin_allocate()
     fi
 
     echo "Waiting for nodes to come up..."
-    while ! crowbar machines list | grep ^d ; do sleep 10 ; done
-    echo "Found one node"
-    while test $(crowbar machines list | grep ^d|wc -l) -lt $nodenumber; do
+    while test $(get_all_discovered_nodes | wc -l) -lt 1 ; do
         sleep 10
     done
-    local nodes=$(crowbar machines list | grep ^d)
+    echo "Found one node"
+    while test $(get_all_discovered_nodes | wc -l) -lt $nodenumber ; do
+        sleep 10
+    done
     local n
-    for n in `crowbar machines list | grep ^d` ; do
+    for n in `get_all_discovered_nodes` ; do
         wait_for 100 2 "knife node show -a state $n | grep discovered" \
             "node to enter discovered state"
     done
     echo "Sleeping 50 more seconds..."
     sleep 50
     echo "Setting first node to controller..."
-    local controllernode=$(
-        crowbar machines list | LC_ALL=C sort | grep ^d | head -n 1
-    )
+    local controllernode=$(get_all_discovered_nodes | head -n 1)
     local t=$(mktemp).json
 
     knife node show -F json $controllernode > $t
@@ -1229,7 +1228,7 @@ function onadmin_allocate()
     if [ -n "$want_sles12" ] && iscloudver 5plus ; then
 
         local nodes=(
-            $(crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 2)
+            $(get_all_discovered_nodes | tail -n 2)
         )
         if [ -n "$deployceph" ] ; then
             echo "Setting second last node to SLE12 Storage..."
@@ -1242,15 +1241,13 @@ function onadmin_allocate()
 
     if [ -n "$wanthyperv" ] ; then
         echo "Setting last node to Hyper-V compute..."
-        local computenode=$(
-            crowbar machines list | LC_ALL=C sort | grep ^d | tail -n 1
-        )
+        local computenode=$(get_all_discovered_nodes | tail -n 1)
         set_node_role_and_platform $computenode "compute" "hyperv-6.3"
     fi
 
     echo "Allocating nodes..."
     local m
-    for m in `crowbar machines list | grep ^d` ; do
+    for m in `get_all_discovered_nodes` ; do
         while knife node show -a state $m | grep discovered; do # workaround bnc#773041
             crowbar machines allocate "$m"
             sleep 10
@@ -1297,7 +1294,7 @@ function onadmin_waitcompute()
 {
     pre_hook $FUNCNAME
     local node
-    for node in $(crowbar machines list | grep ^d) ; do
+    for node in `get_all_discovered_nodes` ; do
         wait_for 200 10 \
             "netcat -w 3 -z $node 3389 || sshtest $node rpm -q yast2-core" \
             "node $node" "check_node_resolvconf $node; exit 12"
@@ -1350,7 +1347,7 @@ function onadmin_crowbar_register()
         zyppercmd="zypper -n install SuSEfirewall2 &&"
     fi
 
-    local adminfqdn=`crowbar machines list | grep crowbar`
+    local adminfqdn=`get_crowbar_node`
     local adminip=`knife node show $adminfqdn -a crowbar.network.admin.address | awk '{print $2}'`
 
     if [[ $keep_existing_hostname -eq 1 ]] ; then
@@ -1403,7 +1400,7 @@ function waitnodes()
         nodes)
             echo -n "Waiting for nodes to get ready: "
             local i
-            for i in `crowbar machines list | grep ^d` ; do
+            for i in `get_all_discovered_nodes` ; do
                 local machinestatus=''
                 while test $n -gt 0 && ! test "x$machinestatus" = "xready" ; do
                     machinestatus=`crowbar machines show $i state`
@@ -1588,10 +1585,10 @@ function hacloud_configure_services_cluster()
 
 function dns_proposal_configuration()
 {
-    local cnumber=`crowbar machines list | wc -l`
+    local cnumber=$(get_all_nodes | wc -l)
     local cnumber=`expr $cnumber - 1`
     [[ $cnumber -gt 3 ]] && local local cnumber=3
-    local cmachines=`crowbar machines list | sort | head -n ${cnumber}`
+    local cmachines=$(get_all_nodes | head -n ${cnumber})
     local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
     proposal_set_value dns default "['attributes']['dns']['records']" "{}"
     proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
@@ -2020,7 +2017,7 @@ function onadmin_proposal()
         update_one_proposal dns default
     fi
     if [ "$networkingplugin" = "vmware" ] && iscloudver 5plus ; then
-        cmachines=`crowbar machines list`
+        cmachines=$(get_all_nodes)
         for machine in $cmachines; do
             ssh $machine 'zypper mr -p 90 SLE-Cloud-PTF'
         done
@@ -2353,7 +2350,7 @@ function onadmin_testsetup()
     pre_hook $FUNCNAME
 
     if iscloudver 5plus; then
-        cmachines=`crowbar machines list`
+        cmachines=$(get_all_nodes)
         for machine in $cmachines; do
             knife node show $machine -a node.target_platform | grep -q suse- || continue
             ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13' ||\
@@ -2531,7 +2528,7 @@ function onadmin_rebootcompute()
     pre_hook $FUNCNAME
     get_novacontroller
 
-    local cmachines=`crowbar machines list | grep ^d`
+    local cmachines=$(get_all_discovered_nodes)
     local m
     for m in $cmachines ; do
         ssh $m "reboot"
@@ -2867,7 +2864,7 @@ function onadmin_cloudupgrade_2nd()
     # Cloud release to something form the Devel:Cloud projects. Note: On the
     # client nodes this needs to happen after the updated provisioner
     # proposal is applied since crudini is not part of older Cloud releases.
-    for node in $(crowbar machines list | grep ^d) ; do
+    for node in $(get_all_discovered_nodes) ; do
         echo "Enabling VendorChange on $node"
         timeout 60 ssh $node "zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install crudini; crudini --set /etc/zypp/zypp.conf main solver.allowVendorChange true"
     done
@@ -3009,7 +3006,7 @@ function onadmin_teardown()
     done
 
     local node
-    for node in $(crowbar machines list | grep ^d) ; do
+    for node in $(get_all_discovered_nodes) ; do
         crowbar machines delete $node
     done
 }
