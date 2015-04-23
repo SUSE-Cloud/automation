@@ -1483,6 +1483,9 @@ function enable_ssl_generic()
     local p="proposal_set_value $service default"
     local a="['attributes']['$service']"
     case $service in
+        swift)
+            $p "$a['ssl']['enabled']" true
+        ;;
         nova)
             $p "$a['ssl']['enabled']" true
             $p "$a['novnc']['ssl']['enabled']" true
@@ -1617,7 +1620,7 @@ function custom_configuration()
     ###       So, only edit the proposal file, and NOT the proposal itself
 
     case "$proposal" in
-        keystone|glance|neutron|cinder|nova|nova_dashboard)
+        keystone|glance|neutron|cinder|swift|nova|nova_dashboard)
             if [[ $all_with_ssl = 1 ]] || eval [[ \$${proposal}_with_ssl = 1 ]] ; then
                 enable_ssl_generic $proposal
             fi
@@ -1800,8 +1803,6 @@ function custom_configuration()
         swift)
             [[ "$nodenumber" -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
             if iscloudver 3plus ; then
-                proposal_set_value swift default "['attributes']['swift']['ssl']['generate_certs']" "true"
-                proposal_set_value swift default "['attributes']['swift']['ssl']['insecure']" "true"
                 proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
                 proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
                 iscloudver 3 || proposal_set_value swift default "['attributes']['swift']['middlewares']['crossdomain']['enabled']" "true"
