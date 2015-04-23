@@ -102,6 +102,12 @@ case "$cloudsource" in
             $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Juno:/Staging/$REPO/ cloudhead
         fi
     ;;
+    openstackkilo)
+        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Kilo/$REPO/ cloud
+        if test -n "$OSHEAD" ; then
+            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Kilo:/Staging/$REPO/ cloudhead
+        fi
+    ;;
     openstackmaster)
         $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/ cloud || :
         # no staging for master
