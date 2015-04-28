@@ -128,6 +128,12 @@ pidfile=mkcloud.pid
 trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
 
+# read all global variables
+function global_vars()
+{
+    (set -p posix; set) | sed '1,/_=posix/d' | grep ^[a-z].*=
+}
+
 function is_suse()
 {
     grep -qi suse /etc/*release
