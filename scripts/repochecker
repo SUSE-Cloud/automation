@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -e
+
+: ${REPCHECK_CACHE_DIR:=${XDG_CACHE_HOME:="$HOME/.cache/repochecker"}}
+# project to check
+: ${REPCHECK_PROJECT:="Cloud:OpenStack:Master"}
+# openSUSE or SLE
+: ${REPCHECK_DIST_NAME:="openSUSE"}
+# i.e. 13.2 , Tumbleweed, 11_SP3, 12
+: ${REPCHECK_DIST_VERSION:="13.2"}
+: ${REPCHECK_INSTCHECK_EXCLUDES:="-kmp-"}
+
+D="${REPCHECK_CACHE_DIR}/${REPCHECK_DIST_NAME}/${REPCHECK_DIST_VERSION}/${REPCHECK_PROJECT}/"
+zypper="zypper --gpg-auto-import-keys -n --root $D"
+
+
+mkdir -p $D
+
+if [[ $REPCHECK_DIST_NAME == "openSUSE" ]]; then
+    # base os repos
+    $zypper ar -f http://download.opensuse.org/distribution/${REPCHECK_DIST_VERSION}/repo/oss/ Base || true
+    $zypper ar -f http://download.opensuse.org/update/${REPCHECK_DIST_VERSION}/${REPCHECK_DIST_NAME}:${REPCHECK_DIST_VERSION}:Update.repo || true
+fi
+
+if [[ $REPCHECK_DIST_NAME == "SLE" ]]; then
+    if [[ $REPCHECK_DIST_VERSION == 12* ]]; then
+        $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/${REPCHECK_DIST_VERSION}/x86_64/update/" Updates || true
+        $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/${REPCHECK_DIST_VERSION}/x86_64/product" Base || true
+    fi
+
+    if [[ $REPCHECK_DIST_VERSION == 11* ]]; then
+        v=${REPCHECK_DIST_VERSION//_/-}
+        $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SLES${v}-Pool/sle-11-x86_64/" Base || true
+        $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SLES${v}-Updates/sle-11-x86_64/" Updates || true
+    fi
+fi
+
+# project repos
+p=${REPCHECK_PROJECT//:/:\/}
+$zypper ar -f http://download.opensuse.org/repositories/${p}/${REPCHECK_DIST_NAME}_${REPCHECK_DIST_VERSION}/${REPCHECK_PROJECT}.repo || true
+
+$zypper ref
+
+# check package installations
+pro_alias=${REPCHECK_PROJECT//:/_}
+installcheck x86_64 --withobsoletes --exclude ${REPCHECK_INSTCHECK_EXCLUDES} \
+             $D/var/cache/zypp/raw/${pro_alias}/repodata/*primary.xml.gz \
+             --nocheck $D/var/cache/zypp/solv/*/solv
