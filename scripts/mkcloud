@@ -1437,13 +1437,13 @@ function expand_steps()
                         runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar"
                     ;;
                     nodes)
-                        runcmds="$runcmds setupnodes instnodes proposal"
+                        runcmds="$runcmds setupnodes instnodes"
                     ;;
                     all)
-                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps nodes` testsetup rebootcompute"
+                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps nodes` proposal testsetup rebootcompute"
                     ;;
                     all_noreboot)
-                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps nodes` testsetup"
+                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps nodes` proposal testsetup"
                     ;;
                     _testupdate|testupdate)
                         runcmds="$runcmds addupdaterepo runupdate testsetup"
