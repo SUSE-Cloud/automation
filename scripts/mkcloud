@@ -1149,6 +1149,8 @@ These steps are expanding to the following steps:
         -> $(expand_steps crowbar)
     crowbar_admin
         -> $(expand_steps crowbar_admin)
+    updated_crowbar_admin
+        -> $(expand_steps updated_crowbar_admin)
     instonly
         -> $(expand_steps instonly)
     nodes
@@ -1414,7 +1416,7 @@ function sanity_checks()
 
 
 ## MAIN ##
-step_aliases="blank_admin crowbar crowbar_admin _new_admin updates nodes _upgrade _testupdate"
+step_aliases="blank_admin crowbar crowbar_admin updated_crowbar_admin updates nodes _upgrade _testupdate"
 
 allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupnodes setupcompute instnodes instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register"
 wantedcmds=$@
@@ -1450,20 +1452,20 @@ function expand_steps()
                     crowbar_admin)
                         runcmds="$runcmds `expand_steps blank_admin` `expand_steps crowbar`"
                     ;;
+                    updated_crowbar_admin)
+                        runcmds="$runcmds `expand_steps blank_admin` `expand_steps updates` `expand_steps crowbar`"
+                    ;;
                     updates)
                         runcmds="$runcmds addupdaterepo runupdate"
-                    ;;
-                    _new_admin)
-                        runcmds="$runcmds `expand_steps blank_admin` `expand_steps updates` `expand_steps crowbar`"
                     ;;
                     nodes)
                         runcmds="$runcmds setupnodes instnodes"
                     ;;
                     all)
-                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps nodes` proposal testsetup rebootcompute"
+                        runcmds="$runcmds `expand_steps updated_crowbar_admin` rebootcrowbar `expand_steps nodes` proposal testsetup rebootcompute"
                     ;;
                     all_noreboot)
-                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps nodes` proposal testsetup"
+                        runcmds="$runcmds `expand_steps updated_crowbar_admin` `expand_steps nodes` proposal testsetup"
                     ;;
                     _testupdate|testupdate)
                         runcmds="$runcmds `expand_steps updates` testsetup"
