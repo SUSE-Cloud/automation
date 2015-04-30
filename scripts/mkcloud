@@ -1452,7 +1452,7 @@ function expand_steps()
                         runcmds="$runcmds `expand_steps instonly` proposal"
                     ;;
                     instonly)
-                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupnodes instnodes"
+                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar `expand_steps nodes`"
                     ;;
                     _upgrade)
                         runcmds="$runcmds prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
