@@ -324,6 +324,13 @@ function cleanup()
     if [ -d $vdisk_dir ]; then
         find -L $vdisk_dir -name "$cloud.*" -type b | \
             xargs -r lvremove --force
+        if [ $? != 0 ]; then
+            echo >&2
+            echo "Failed to free up previous volumes:" >&2
+            echo >&2
+            find -L $vdisk_dir -name "$cloud.*" -type b
+            exit 42
+        fi
     fi
 
     rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml \
