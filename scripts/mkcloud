@@ -923,7 +923,7 @@ function restartcloud()
 }
 
 # bring up VMs that will take cloud controller/compute/storage roles
-function setupcompute()
+function setupnodes()
 {
     setuppublicnet
     alldevices=$(echo {b..z} {a..z}{a..z})
@@ -992,7 +992,7 @@ function setupcompute()
 
 # allocate cloud nodes with an operating system
 # and wait for nodes to reach the ready state
-function instcompute()
+function instnodes()
 {
     onadmin allocate ||\
         return $?
@@ -1150,8 +1150,8 @@ Steps:
     setupadmin:     create the admin node and install the cloud product
     prepareinstcrowbar: add repos and install crowbar packages
     instcrowbar:    install crowbar and chef on the admin node
-    setupcompute:   create the compute nodes and let crowbar discover them
-    instcompute:    allocate and install compute nodes
+    setupnodes:     create the nodes and let crowbar discover them
+    instnodes:      allocate and install compute nodes
     proposal:       create and apply proposals for default setup
     setuplonelynodes: boot a number (defined by nodenumberlonelynodes) of non-crowbar registered nodes in the admin network
     crowbar_register: register a number (defined by nodenumberlonelynodes) of non-crowbar nodes with crowbar (setuplonelynodes needs to have run before)
@@ -1406,7 +1406,7 @@ function sanity_checks()
 ## MAIN ##
 step_aliases="_new_admin _compute _upgrade _testupdate"
 
-allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupcompute instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register"
+allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupnodes setupcompute instnodes instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register"
 wantedcmds=$@
 
 function expand_steps()
@@ -1423,11 +1423,19 @@ function expand_steps()
             if [ $onecmd = $cmd ] ; then
                 found=1
                 case "$cmd" in
+                    setupcompute|instcompute)
+                        corrected=${cmd/compute/nodes}
+                        echo "WARNING: the '$cmd' step is deprecated; use '$corrected' instead." >&2
+                        cmd=$corrected
+                        ;;
+                esac
+
+                case "$cmd" in
                     _new_admin)
                         runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar"
                     ;;
                     _compute)
-                        runcmds="$runcmds setupcompute instcompute proposal"
+                        runcmds="$runcmds setupnodes instnodes proposal"
                     ;;
                     all)
                         runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` testsetup rebootcompute"
@@ -1442,7 +1450,7 @@ function expand_steps()
                         runcmds="$runcmds `expand_steps instonly` proposal"
                     ;;
                     instonly)
-                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupcompute instcompute"
+                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupnodes instnodes"
                     ;;
                     _upgrade)
                         runcmds="$runcmds prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
