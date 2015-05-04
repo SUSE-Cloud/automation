@@ -2032,12 +2032,11 @@ function onadmin_proposal()
     if iscloudver 5plus; then
         update_one_proposal dns default
     fi
-    if [ "$networkingplugin" = "vmware" ] && iscloudver 5plus ; then
-        cmachines=$(get_all_nodes)
-        for machine in $cmachines; do
-            ssh $machine 'zypper mr -p 90 SLE-Cloud-PTF'
-        done
-    fi
+
+    cmachines=$(get_all_nodes)
+    for machine in $cmachines; do
+        ssh $machine 'zypper mr -p 90 SLE-Cloud-PTF'
+    done
 
     local proposals="pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat trove tempest"
 
