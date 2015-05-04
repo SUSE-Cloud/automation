@@ -18,9 +18,14 @@ zypper="zypper --gpg-auto-import-keys -n --root $D"
 mkdir -p $D
 
 if [[ $REPCHECK_DIST_NAME == "openSUSE" ]]; then
-    # base os repos
-    $zypper ar -f http://download.opensuse.org/distribution/${REPCHECK_DIST_VERSION}/repo/oss/ Base || true
-    $zypper ar -f http://download.opensuse.org/update/${REPCHECK_DIST_VERSION}/${REPCHECK_DIST_NAME}:${REPCHECK_DIST_VERSION}:Update.repo || true
+    if [[ $REPCHECK_DIST_VERSION == "Tumbleweed" ]]; then
+        # Tumbleweed needs to be lower case
+        dv=${REPCHECK_DIST_VERSION,,}
+        $zypper ar -f http://download.opensuse.org/${dv}/repo/oss/ Base || true
+    else
+        $zypper ar -f http://download.opensuse.org/distribution/${REPCHECK_DIST_VERSION}/repo/oss/ Base || true
+        $zypper ar -f http://download.opensuse.org/update/${REPCHECK_DIST_VERSION}/${REPCHECK_DIST_NAME}:${REPCHECK_DIST_VERSION}:Update.repo || true
+    fi
 fi
 
 if [[ $REPCHECK_DIST_NAME == "SLE" ]]; then
