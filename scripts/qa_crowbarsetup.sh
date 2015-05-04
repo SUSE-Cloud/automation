@@ -2522,7 +2522,7 @@ function onadmin_addupdaterepo()
                 --no-parent \
                 --no-clobber \
                 --accept x86_64.rpm,noarch.rpm \
-                $repo \
+                ${repo%/}/ \
             || exit 8
         done
         safely zypper -n install createrepo
