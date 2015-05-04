@@ -1404,7 +1404,7 @@ function sanity_checks()
 
 
 ## MAIN ##
-step_aliases="_new_admin _compute _upgrade _testupdate"
+step_aliases="_new_admin _nodes _upgrade _testupdate"
 
 allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupnodes setupcompute instnodes instcompute proposal testsetup rebootcrowbar rebootcompute addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register"
 wantedcmds=$@
@@ -1434,14 +1434,14 @@ function expand_steps()
                     _new_admin)
                         runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar"
                     ;;
-                    _compute)
+                    _nodes)
                         runcmds="$runcmds setupnodes instnodes proposal"
                     ;;
                     all)
-                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` testsetup rebootcompute"
+                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _nodes` testsetup rebootcompute"
                     ;;
                     all_noreboot)
-                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps _compute` testsetup"
+                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps _nodes` testsetup"
                     ;;
                     _testupdate|testupdate)
                         runcmds="$runcmds addupdaterepo runupdate testsetup"
