@@ -2517,7 +2517,13 @@ function onadmin_addupdaterepo()
     if [[ -n "$UPDATEREPOS" ]]; then
         local repo
         for repo in ${UPDATEREPOS//+/ } ; do
-            wget --progress=dot:mega -r --directory-prefix $UPR --no-parent --no-clobber --accept x86_64.rpm,noarch.rpm $repo || exit 8
+            wget --progress=dot:mega \
+                -r --directory-prefix $UPR \
+                --no-parent \
+                --no-clobber \
+                --accept x86_64.rpm,noarch.rpm \
+                $repo \
+            || exit 8
         done
         safely zypper -n install createrepo
         createrepo -o $UPR $UPR || exit 8
