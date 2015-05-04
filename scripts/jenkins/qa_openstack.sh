@@ -21,6 +21,7 @@ if ! test -e $dev && file -s /dev/sdb|grep -q "ext3 filesystem data" ; then
     dev=/dev/sdb
 fi
 if [ -e $dev ]; then
+    dd if=/dev/zero of=$dev bs=512 count=1
     pvcreate -f $dev
     vgcreate -f cinder-volumes $dev
 fi
