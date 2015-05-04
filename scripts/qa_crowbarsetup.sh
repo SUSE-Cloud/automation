@@ -2524,6 +2524,7 @@ function onadmin_addupdaterepo()
     fi
     zypper modifyrepo -e cloud-ptf >/dev/null 2>&1 ||\
         safely zypper ar $UPR cloud-ptf
+    safely zypper mr -p 90 cloud-ptf
 }
 
 function onadmin_runupdate()
