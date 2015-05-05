@@ -585,7 +585,7 @@ function cluster_node_assignment()
     echo "services cluster:"
     printf "   %s\n" $clusternodesservices
     echo "compute nodes (no cluster):"
-    printf "   %s\n" $nodesavailable
+    printf "   %s\n" $nodescompute
     echo "............................................................"
 }
 
@@ -2047,8 +2047,13 @@ function onadmin_proposal()
         # proposal filter
         case "$proposal" in
             pacemaker)
-                [ -n "$hacloud" ] || continue
-                cluster_node_assignment
+                if [[ $hacloud = 1 ]] ; then
+                    cluster_node_assignment
+                else
+                    # no cluster for non-HA, but get compute nodes
+                    nodescompute=`get_all_discovered_nodes`
+                    continue
+                fi
                 ;;
             ceph)
                 [[ -n "$deployceph" ]] || continue
