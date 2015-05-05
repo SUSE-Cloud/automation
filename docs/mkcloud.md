@@ -71,8 +71,13 @@ To use mkcloud the following additional steps are needed:
 
 ## mkcloud
 
-`mkcloud` can be configured using different environment variables.  Some of
-them are listed below.  To get a complete list run: `./mkcloud -h`
+`mkcloud` consists of different steps which can be run independently, provided the order is logical.
+
+`mkcloud` can be configured using different environment variables.
+
+To get a complete list run: `./mkcloud help`
+
+### Additional Information
 
 * `cloudpv`, block device used by mkcloud to put LVM partitions, these partitions
   are used to host the virtual machines. In development environments this is
@@ -89,10 +94,20 @@ them are listed below.  To get a complete list run: `./mkcloud -h`
 
 # Usage
 
-Example usage
+You can run `mkcloud` from anywhere although it is not recommended to run it directly from your git clone.
+
+Usually it is useful to have a runtest.foo bash script to setup the environment similar to `scripts/mkcloudhost/runtestn` or the one further down in this document.
+
+It is best to have an `exec /path/to/mkcloud` in the last line.
+
+Using this exec instead of sourcing the environment has the big advantage that you can never forget to unset variables that will then unexpectedly influence later runs.
+
+Furthermore your git clone will not be littered with files that are created in your working directory during a `mkcloud` run.
+
+## Example usage
 
 ```
-$ sudo env cloudpv=/dev/loop0 cloudsource=susecloud4 ./mkcloud plain
+$ sudo env cloudpv=/dev/loop0 cloudsource=susecloud4 /path/to/mkcloud plain
 ```
 
 This will create a cloud with an admin node (crowbar) and 2 nodes (1 for
@@ -102,12 +117,13 @@ If you want to run `tempest` in an already created cloud you can run the
 following command:
 
 ```
-$ sudo ./mkcloud testsetup
+$ sudo /path/to/mkcloud testsetup
 ```
 
-Usually it is useful to have a runtest.foo bash script to setup the environment similar to scripts/mkcloudhost/runtestn or the one further down in this document.
-It is best to have an exec mkcloud in the last line.
-Using this exec instead of sourcing the environment has the big advantage that you can never forget to unset variables that will then unexpectedly influence later runs.
+If you want to test `crowbar_register` for 1 non-crowbar node within an already deployed cloud, run:
+```
+sudo env nodenumberlonelynode=1 /path/to/mkcloud setuplonelynodes crowbar_register
+```
 
 ## Using with local repositories
 
@@ -117,9 +133,11 @@ The repositories are `SUSE-Cloud-SLE-11-SP3-deps` and `SUSE-Cloud-5-devel`. Depe
 env variables, other repositories maybe needed.
 The repositories can be synced with a tool called `sync-repos` (which is a SUSE internal tool).
 
-Here's an example script you can source to create a full cloud:
+Here's an example script you can execute to create a full cloud:
 
 ```
+#!/bin/bash
+
 # path to the locally available repositories
 export localreposdir_src=/home/tom/devel/repositories/
 
@@ -143,11 +161,6 @@ export net_fixed=192.168.150
 export net_public=192.168.151
 export net_admin=192.168.152
 export vcpus=2
-export NOQACROWBARDOWNLOAD=yes
-```
 
-Now source the file and create your cloud with:
-
-```
-mkcloud plain
+exec /path/to/mkcloud "$@"
 ```

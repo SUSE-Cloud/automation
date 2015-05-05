@@ -11,9 +11,9 @@
 # Quick introduction:
 #
 # 1. read the usage: mkcloud help
+#    or visit https://github.com/SUSE-Cloud/automation/blob/master/docs/mkcloud.md
 # 2. This tool relies on the script qa_crowbarsetup.sh
 # 3. Please 'export' environment variables according to your needs.
-# 4. read the usage: mkcloud help
 
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
