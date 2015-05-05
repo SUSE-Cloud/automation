@@ -929,9 +929,10 @@ EOF
     fi
 
     if [ -n "${localreposdir_target}" ]; then
-        while zypper lr -e - | grep -q '^name='; do
-            zypper rr 1
-        done
+        # Delete all repos except PTF repo, because this step could
+        # be called after the addupdaterepo step.
+        zypper lr -e - | sed -n '/^name=/ {s///; /ptf/! p}' | \
+            xargs -r zypper rr
         mount_localreposdir_target
     fi
 
