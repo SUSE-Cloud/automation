@@ -823,8 +823,10 @@ function onadmin_prepare_cloud_repos()
 
 function do_set_repos_skip_checks()
 {
-    if iscloudver 5plus && [[ $cloudsource =~ develcloud ]]; then
-        # We don't use the proper pool/updates repos when using a devel build
+    # We don't use the proper pool/updates repos when using a devel build
+    if iscloudver 6plus && [[ $cloudsource =~ develcloud ]]; then
+        export REPOS_SKIP_CHECKS+=" SUSE-OpenStack-Cloud-SLE11-$(getcloudver)-Pool SUSE-OpenStack-Cloud-SLE11-$(getcloudver)-Updates"
+    elif iscloudver 5plus && [[ $cloudsource =~ develcloud ]]; then
         export REPOS_SKIP_CHECKS+=" SUSE-Cloud-$(getcloudver)-Pool SUSE-Cloud-$(getcloudver)-Updates"
     fi
 }
