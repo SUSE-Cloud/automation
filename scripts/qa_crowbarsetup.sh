@@ -673,10 +673,20 @@ function onadmin_prepare_sles12_repos()
 function onadmin_create_sles12_repos()
 {
     safely zypper -n install createrepo
-    local sles12optionalrepolist=(
-        SLE-12-Cloud-Compute5-Pool
-        SLE-12-Cloud-Compute5-Updates
-    )
+
+    local sles12optionalrepolist
+    if iscloudver 6plus; then
+        sles12optionalrepolist=(
+            SUSE-OpenStack-Cloud-6-Pool
+            SUSE-OpenStack-Cloud-6-Updates
+        )
+    else
+        sles12optionalrepolist=(
+            SLE-12-Cloud-Compute5-Pool
+            SLE-12-Cloud-Compute5-Updates
+        )
+    fi
+
     for repo in ${sles12optionalrepolist[@]}; do
         if [ ! -e "$tftpboot_repos12_dir/$repo/repodata/" ] ; then
             mkdir -p "$tftpboot_repos12_dir/$repo"
@@ -699,7 +709,12 @@ function onadmin_prepare_sles12_repo()
 
 function onadmin_prepare_sles12_compute_repo()
 {
-    local sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
+    local sles12_compute_mount
+    if iscloudver 6plus; then
+        sles12_compute_mount="$tftpboot_repos12_dir/Cloud"
+    else
+        sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
+    fi
     if [ -n "$localreposdir_target" ]; then
         echo "FIXME: SLE12-Cloud-Compute not available from clouddata yet." >&2
         echo "Will manually download and rsync." >&2
