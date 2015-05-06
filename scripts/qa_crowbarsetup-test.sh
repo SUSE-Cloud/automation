@@ -29,8 +29,8 @@ it_returns_correct_cloudver_matrix() {
 }
 
 it_returns_correct_cloudver_matrix_milestone() {
-    results=`cloudversionmatrix "M3 M4 M5 Beta3 Beta4 RC3 GMC susecloud5 GM5+up"`
-    test "$results" = " M3=11010 M4=11010 M5=11010 Beta3=11010 Beta4=11010 RC3=11010 GMC=11010 susecloud5=11010 GM5+up=11010"
+    results=`cloudversionmatrix "M3 M4 M5 Beta3 Beta4 RC3 GMC susecloud6 GM6+up"`
+    test "$results" = " M3=11100 M4=11100 M5=11100 Beta3=11100 Beta4=11100 RC3=11100 GMC=11100 susecloud6=11100 GM6+up=11100"
 }
 
 getcloudversionmatrixrow() {
@@ -40,8 +40,8 @@ getcloudversionmatrixrow() {
 }
 
 it_returns_correct_getcloudver() {
-    results=`getcloudversionmatrixrow develcloud3 GM3 develcloud4 GM4 develcloud5 GM5 M3 M4 M5 Beta3 Beta4 RC3 GMC susecloud5`
-    test "$results" = "33445555555555"
+    results=`getcloudversionmatrixrow develcloud3 GM3 develcloud4 GM4 develcloud5 susecloud5 GM5 M3 M4 M5 Beta3 Beta4 RC3 GMC`
+    test "$results" = "33445556666666"
 }
 
 it_has_correct_mac_to_nodename() {

@@ -186,6 +186,7 @@ net_public=${net_public:-192.168.122}
 net_storage=${net_storage:-192.168.125}
 mkcloudhostip=${net}.1
 : ${adminip:=$net.10}
+: ${arch:=$(uname -m)}
 
 # run hook code before the actual script does its function
 function pre_hook()
@@ -324,8 +325,10 @@ function getcloudver()
         echo -n 3
     elif [[ $cloudsource =~ ^.*(cloud|GM)4(\+up)?$ ]] ; then
         echo -n 4
-    elif [[ $cloudsource =~ ^(.+5|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM5?(\+up)?)$ ]] ; then
+    elif [[ $cloudsource =~ ^.*(cloud|GM)5(\+up)?$ ]] ; then
         echo -n 5
+    elif [[ $cloudsource =~ ^(.+6|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM6?(\+up)?)$ ]] ; then
+        echo -n 6
     else
         complain 11 "unknown cloudsource version"
     fi
@@ -778,6 +781,10 @@ function onadmin_prepare_cloud_repos()
                 addsp3testupdates
                 add_sles12ga_testupdates
                 ;;
+            develcloud6)
+                addsp3testupdates
+                add_sles12ga_testupdates
+                ;;
             *)
                 complain 26 "no TESTHEAD repos defined for cloudsource=$cloudsource"
                 ;;
@@ -833,6 +840,14 @@ function onadmin_set_source_variables()
             CLOUDCOMPUTEISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-devel"
         ;;
+        develcloud6)
+            CLOUDDISTPATH=/ibs/Devel:/Cloud:/6/images/iso
+            [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
+            CLOUDCOMPUTEPATH=$CLOUDDISTPATH
+            CLOUDDISTISO="SUSE-OPENSTACK-CLOUD-SLE11-6-$arch*Media1.iso"
+            CLOUDCOMPUTEISO="SUSE-SLE12-CLOUD-6-COMPUTE-x86_64*Media1.iso" # FIXME: not existing
+            CLOUDLOCALREPOS="SUSE-Cloud-6-devel"
+        ;;
         susecloud5)
             CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud5:/Test/images/iso
             CLOUDCOMPUTEPATH=/ibs/SUSE:/SLE-12:/Update:/Products:/Cloud5/images/iso/
@@ -850,17 +865,24 @@ function onadmin_set_source_variables()
             CLOUDDISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
         ;;
-        M?|Beta*|RC*|GMC*|GM5|GM5+up)
-            cs=$cloudsource
-            [[ $cs =~ GM5 ]] && cs=GM
-            CLOUDDISTPATH=/install/SUSE-Cloud-5-$cs/
+        GM5|GM5+up)
+            CLOUDDISTPATH=/install/SUSE-Cloud-5-GM/
             CLOUDCOMPUTEPATH=$CLOUDDISTPATH
             CLOUDDISTISO="SUSE-CLOUD*1.iso"
-            CLOUDCOMPUTEISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*Media1.iso"
+            CLOUDCOMPUTEISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
+        M?|Beta*|RC*|GMC*|GM6|GM6+up)
+            cs=$cloudsource
+            [[ $cs =~ GM6 ]] && cs=GM
+            CLOUDDISTPATH=/install/SUSE-Cloud-6-$cs/
+            CLOUDCOMPUTEPATH=$CLOUDDISTPATH
+            CLOUDDISTISO="SUSE-OPENSTACK-CLOUD*1.iso"
+            CLOUDCOMPUTEISO="SUSE-SLE12-CLOUD-6-COMPUTE-x86_64*1.iso" # FIXME
+            CLOUDLOCALREPOS="SUSE-Cloud-6-official"
+        ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud3|develcloud4|develcloud5|susecloud5|GM3|GM4"
+            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|susecloud5|GM4|GM5"
         ;;
     esac
 
