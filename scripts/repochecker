@@ -57,5 +57,5 @@ $zypper ref
 # check package installations
 pro_alias=${REPCHECK_PROJECT//:/_}
 installcheck x86_64 --withobsoletes --exclude ${REPCHECK_INSTCHECK_EXCLUDES} \
-             $D/var/cache/zypp/raw/${pro_alias}/repodata/*primary.xml.gz \
-             --nocheck $D/var/cache/zypp/solv/*/solv
+    $D/var/cache/zypp/raw/${pro_alias}/repodata/*primary.xml.gz \
+    --nocheck $D/var/cache/zypp/solv/*/solv

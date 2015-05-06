@@ -4,7 +4,7 @@ test: bashate perlcheck rounduptest
 bashate:
 	cd scripts && \
 	for f in \
-	    *.sh mkcloud mkchroot \
+	    *.sh mkcloud mkchroot repochecker \
 	    jenkins/{update_automation,*.sh} \
 	    jenkins/ci1/*; \
 	do \
