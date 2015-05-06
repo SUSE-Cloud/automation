@@ -856,7 +856,7 @@ function onadmin_set_source_variables()
             CLOUDDISTPATH=/install/SUSE-Cloud-5-$cs/
             CLOUDCOMPUTEPATH=$CLOUDDISTPATH
             CLOUDDISTISO="SUSE-CLOUD*1.iso"
-            CLOUDCOMPUTEISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*Media1.iso"
+            CLOUDCOMPUTEISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64-GM-DVD1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
         *)
