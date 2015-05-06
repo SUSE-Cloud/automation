@@ -863,7 +863,7 @@ function onadmin_set_source_variables()
             CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
             CLOUDSLE11DISTISO="SUSE-OPENSTACK-CLOUD-SLE11-6-$arch*Media1.iso"
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-6-devel"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         susecloud5)
             CLOUDSLE11DISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud5:/Test/images/iso
@@ -896,7 +896,7 @@ function onadmin_set_source_variables()
             CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
             CLOUDSLE11DISTISO="SUSE-OPENSTACK-CLOUD-SLE11-6-$arch*1.iso"
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-6-official"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
         *)
             complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|susecloud5|GM4|GM5"
