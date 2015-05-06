@@ -277,7 +277,7 @@ nova boot --poll --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm
 nova list
 sleep 30
 . /etc/openstackquickstartrc
-FLOATING_IP=$(nova floating-ip-list |grep 172.31 | head -n 1 |awk '{print $2}')
+FLOATING_IP=$(nova floating-ip-list | grep -P -o "172.31\S+" | head -n 1)
 nova add-floating-ip testvm $FLOATING_IP
 sleep 5
 echo "FLOATING IP: $FLOATING_IP"
