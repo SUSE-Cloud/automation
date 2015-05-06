@@ -845,7 +845,7 @@ function onadmin_set_source_variables()
             [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
             CLOUDCOMPUTEPATH=$CLOUDDISTPATH
             CLOUDSLE11DISTISO="SUSE-OPENSTACK-CLOUD-SLE11-6-$arch*Media1.iso"
-            CLOUDSLE12DISTISO="SUSE-SLE12-CLOUD-6-COMPUTE-x86_64*Media1.iso" # FIXME: not existing
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-6-devel"
         ;;
         susecloud5)
