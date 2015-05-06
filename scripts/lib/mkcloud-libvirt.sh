@@ -266,7 +266,7 @@ function libvirt_vm_start()
 
 function libvirt_setupadmin()
 {
-    libvirt_create_adminnode_config
+    libvirt_onhost_create_adminnode_config
     libvirt_onhost_create_admin_network_config
     libvirt_modprobe_kvm
     libvirt_start_daemon
