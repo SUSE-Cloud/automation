@@ -661,7 +661,7 @@ function rsync_iso()
 function onadmin_prepare_sles12_repos()
 {
     onadmin_prepare_sles12_repo
-    onadmin_prepare_sles12_compute_repo
+    onadmin_prepare_sles12_cloud_repo
 
     # These aren't available yet?
     onadmin_prepare_sles12_other_repos
@@ -707,7 +707,7 @@ function onadmin_prepare_sles12_repo()
     fi
 }
 
-function onadmin_prepare_sles12_compute_repo()
+function onadmin_prepare_sles12_cloud_repo()
 {
     local sles12_compute_mount
     if iscloudver 6plus; then
