@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project>
+<matrix-project plugin="matrix-project@1.4.1">
   <actions/>
   <description>run unittests on different workers with different base-OS and different library versions</description>
   <logRotator class="hudson.tasks.LogRotator">
@@ -10,18 +10,25 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.2">
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.14">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.4">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
       <maxConcurrentTotal>0</maxConcurrentTotal>
       <categories/>
       <throttleEnabled>false</throttleEnabled>
       <throttleOption>project</throttleOption>
+      <matrixOptions>
+        <throttleMatrixBuilds>true</throttleMatrixBuilds>
+        <throttleMatrixConfigurations>false</throttleMatrixConfigurations>
+      </matrixOptions>
       <configVersion>1</configVersion>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
@@ -65,7 +72,6 @@
         <string>master</string>
         <string>icehouse</string>
         <string>havana</string>
-        <string>grizzly</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.TextAxis>
@@ -78,13 +84,13 @@
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>["grizzly", "havana", "icehouse"].contains(openstackrelease) &amp;&amp;   (    ( openstackrelease=="grizzly" &amp;&amp;  ["openSUSE-12.3", "SLE-11-SP3"].contains(distribution) &amp;&amp;     ! ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove",        "python-neutronclient", "openstack-neutron", "openstack-tuskar", "openstack-tuskar_ui"].contains(component) )  ||    ( openstackrelease=="havana"   &amp;&amp;  ["openSUSE-13.1", "SLE-11-SP3"].contains(distribution) &amp;&amp;     ! ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove",        "python-ironicclient", "openstack-tuskar", "openstack-tuskar_ui" ].contains(component)                      )  ||    ( openstackrelease=="icehouse" &amp;&amp;  ["openSUSE-13.1", "SLE-11-SP3"].contains(distribution) )  ||   ( openstackrelease=="master"   &amp;&amp;  ["openSUSE-13.1", "SLE-11-SP3"].contains(distribution) )  )</combinationFilter>
+  <combinationFilter>["havana", "icehouse"].contains(openstackrelease) &amp;&amp;   (    ( openstackrelease=="grizzly" &amp;&amp;  ["openSUSE-12.3", "SLE-11-SP3"].contains(distribution) &amp;&amp;     ! ["openstack-designate", "openstack-marconi", "openstack-ironic", "openstack-trove",        "python-neutronclient", "openstack-neutron", "openstack-tuskar", "openstack-tuskar_ui"].contains(component) )  ||    ( openstackrelease=="havana"   &amp;&amp;  ["openSUSE-13.1", "SLE-11-SP3"].contains(distribution) &amp;&amp;     ! ["openstack-marconi", "python-marconiclient", "openstack-designate", "openstack-ironic", "openstack-trove",        "python-ironicclient", "openstack-tuskar", "openstack-tuskar_ui" ].contains(component)                      )  ||    ( openstackrelease=="icehouse" &amp;&amp;  ["openSUSE-13.1", "SLE-11-SP3"].contains(distribution) )  ||   ( openstackrelease=="master"   &amp;&amp;  ["openSUSE-13.1", "SLE-11-SP3"].contains(distribution) )  )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># fetch the latest automation updates
 mkdir -p ~/bin
-[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
-withlock --verbose -w 30 /root/update_automation.lock update_automation openstack-unittest-testconfig.pl chroot-unittest
+[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
+withlock --verbose -w 30 /root/update_automation.lock update_automation openstack-unittest-testconfig.pl chroot-unittest.sh
 
 # package is a reserved name in groovy (see combination filter)
 package=$component
@@ -102,8 +108,6 @@ esac
 case $openstackrelease in
   master)  dist=Cloud:OpenStack:Master
           ;;
-  grizzly) dist=Cloud:OpenStack:Grizzly:Staging
-          ;;
   havana) dist=Cloud:OpenStack:Havana:Staging
           ;;
   icehouse) dist=Cloud:OpenStack:Icehouse:Staging
@@ -117,7 +121,7 @@ chname="$openstackrelease-$distribution"
 ch="/chroot/$chname"
 # TODO: create chroot if needed
 mkchroot enable "$chname"
-rsync -LvrptgoD /root/bin/openstack-unittest-testconfig.pl /root/bin/chroot-unittest $ch/root/bin/
+rsync -LvrptgoD /root/bin/openstack-unittest-testconfig.pl /root/bin/chroot-unittest.sh $ch/root/bin/
 rsync -LvrptgoD /root/.oscrc $ch/root/
 
 ##
@@ -129,13 +133,13 @@ export dist
 ##
 
 
-withlock --verbose -w 2000 $ch.lock chroot $ch "/bin/bash -x /root/bin/chroot-unittest"
+withlock --verbose -w 2000 $ch.lock chroot $ch "/bin/bash -x /root/bin/chroot-unittest.sh"
 </command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.9"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.6"/>
   </buildWrappers>
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
     <runSequentially>false</runSequentially>

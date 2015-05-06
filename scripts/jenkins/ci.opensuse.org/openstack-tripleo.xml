@@ -1,90 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project plugin="matrix-project@1.3">
+<matrix-project plugin="matrix-project@1.4">
   <actions/>
   <description/>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Cancel:mmeister</permission>
-      <permission>hudson.model.Item.Cancel:vuntz</permission>
-      <permission>hudson.model.Item.Cancel:jdsn</permission>
-      <permission>hudson.model.Item.Cancel:aspiers</permission>
-      <permission>hudson.model.Item.Cancel:dirkmueller</permission>
-      <permission>hudson.model.Item.Cancel:bmwiedemann</permission>
-      <permission>hudson.model.Item.Cancel:toabctl</permission>
-      <permission>hudson.model.Item.Discover:mmeister</permission>
-      <permission>hudson.model.Item.Discover:vuntz</permission>
-      <permission>hudson.model.Item.Discover:jdsn</permission>
-      <permission>hudson.model.Item.Discover:aspiers</permission>
-      <permission>hudson.model.Item.Discover:dirkmueller</permission>
-      <permission>hudson.model.Item.Discover:bmwiedemann</permission>
-      <permission>hudson.model.Item.Discover:toabctl</permission>
-      <permission>hudson.model.Item.Read:mmeister</permission>
-      <permission>hudson.model.Item.Read:vuntz</permission>
-      <permission>hudson.model.Item.Read:jdsn</permission>
-      <permission>hudson.model.Item.Read:aspiers</permission>
-      <permission>hudson.model.Item.Read:dirkmueller</permission>
-      <permission>hudson.model.Item.Read:bmwiedemann</permission>
-      <permission>hudson.model.Item.Read:toabctl</permission>
-      <permission>hudson.model.Item.Delete:mmeister</permission>
-      <permission>hudson.model.Item.Delete:vuntz</permission>
-      <permission>hudson.model.Item.Delete:jdsn</permission>
-      <permission>hudson.model.Item.Delete:aspiers</permission>
-      <permission>hudson.model.Item.Delete:dirkmueller</permission>
-      <permission>hudson.model.Item.Delete:bmwiedemann</permission>
-      <permission>hudson.model.Item.Delete:toabctl</permission>
-      <permission>hudson.model.Item.Build:mmeister</permission>
-      <permission>hudson.model.Item.Build:vuntz</permission>
-      <permission>hudson.model.Item.Build:jdsn</permission>
-      <permission>hudson.model.Item.Build:dirkmueller</permission>
-      <permission>hudson.model.Item.Build:bmwiedemann</permission>
-      <permission>hudson.model.Item.Build:toabctl</permission>
       <permission>hudson.model.Item.Workspace:mmeister</permission>
-      <permission>hudson.model.Item.Workspace:vuntz</permission>
       <permission>hudson.model.Item.Workspace:jdsn</permission>
+      <permission>hudson.model.Item.Workspace:vuntz</permission>
       <permission>hudson.model.Item.Workspace:aspiers</permission>
       <permission>hudson.model.Item.Workspace:dirkmueller</permission>
       <permission>hudson.model.Item.Workspace:bmwiedemann</permission>
       <permission>hudson.model.Item.Workspace:toabctl</permission>
-      <permission>hudson.scm.SCM.Tag:mmeister</permission>
-      <permission>hudson.scm.SCM.Tag:vuntz</permission>
-      <permission>hudson.scm.SCM.Tag:jdsn</permission>
-      <permission>hudson.scm.SCM.Tag:aspiers</permission>
-      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
-      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
-      <permission>hudson.scm.SCM.Tag:toabctl</permission>
-      <permission>hudson.model.Run.Update:mmeister</permission>
-      <permission>hudson.model.Run.Update:vuntz</permission>
-      <permission>hudson.model.Run.Update:jdsn</permission>
-      <permission>hudson.model.Run.Update:aspiers</permission>
-      <permission>hudson.model.Run.Update:dirkmueller</permission>
-      <permission>hudson.model.Run.Update:bmwiedemann</permission>
-      <permission>hudson.model.Run.Update:toabctl</permission>
-      <permission>hudson.model.Run.Delete:mmeister</permission>
-      <permission>hudson.model.Run.Delete:vuntz</permission>
-      <permission>hudson.model.Run.Delete:jdsn</permission>
-      <permission>hudson.model.Run.Delete:aspiers</permission>
-      <permission>hudson.model.Run.Delete:dirkmueller</permission>
-      <permission>hudson.model.Run.Delete:bmwiedemann</permission>
-      <permission>hudson.model.Run.Delete:toabctl</permission>
       <permission>hudson.model.Item.Configure:mmeister</permission>
-      <permission>hudson.model.Item.Configure:vuntz</permission>
       <permission>hudson.model.Item.Configure:jdsn</permission>
+      <permission>hudson.model.Item.Configure:vuntz</permission>
       <permission>hudson.model.Item.Configure:aspiers</permission>
       <permission>hudson.model.Item.Configure:dirkmueller</permission>
       <permission>hudson.model.Item.Configure:bmwiedemann</permission>
       <permission>hudson.model.Item.Configure:toabctl</permission>
+      <permission>hudson.model.Run.Update:mmeister</permission>
+      <permission>hudson.model.Run.Update:jdsn</permission>
+      <permission>hudson.model.Run.Update:vuntz</permission>
+      <permission>hudson.model.Run.Update:aspiers</permission>
+      <permission>hudson.model.Run.Update:dirkmueller</permission>
+      <permission>hudson.model.Run.Update:bmwiedemann</permission>
+      <permission>hudson.model.Run.Update:toabctl</permission>
+      <permission>hudson.scm.SCM.Tag:mmeister</permission>
+      <permission>hudson.scm.SCM.Tag:jdsn</permission>
+      <permission>hudson.scm.SCM.Tag:vuntz</permission>
+      <permission>hudson.scm.SCM.Tag:aspiers</permission>
+      <permission>hudson.scm.SCM.Tag:dirkmueller</permission>
+      <permission>hudson.scm.SCM.Tag:bmwiedemann</permission>
+      <permission>hudson.scm.SCM.Tag:toabctl</permission>
+      <permission>hudson.model.Run.Delete:mmeister</permission>
+      <permission>hudson.model.Run.Delete:jdsn</permission>
+      <permission>hudson.model.Run.Delete:vuntz</permission>
+      <permission>hudson.model.Run.Delete:aspiers</permission>
+      <permission>hudson.model.Run.Delete:dirkmueller</permission>
+      <permission>hudson.model.Run.Delete:bmwiedemann</permission>
+      <permission>hudson.model.Run.Delete:toabctl</permission>
+      <permission>hudson.model.Item.Read:mmeister</permission>
+      <permission>hudson.model.Item.Read:jdsn</permission>
+      <permission>hudson.model.Item.Read:vuntz</permission>
+      <permission>hudson.model.Item.Read:aspiers</permission>
+      <permission>hudson.model.Item.Read:dirkmueller</permission>
+      <permission>hudson.model.Item.Read:bmwiedemann</permission>
+      <permission>hudson.model.Item.Read:toabctl</permission>
+      <permission>hudson.model.Item.Build:mmeister</permission>
+      <permission>hudson.model.Item.Build:jdsn</permission>
+      <permission>hudson.model.Item.Build:vuntz</permission>
+      <permission>hudson.model.Item.Build:dirkmueller</permission>
+      <permission>hudson.model.Item.Build:bmwiedemann</permission>
+      <permission>hudson.model.Item.Build:toabctl</permission>
+      <permission>hudson.model.Item.Discover:mmeister</permission>
+      <permission>hudson.model.Item.Discover:jdsn</permission>
+      <permission>hudson.model.Item.Discover:vuntz</permission>
+      <permission>hudson.model.Item.Discover:aspiers</permission>
+      <permission>hudson.model.Item.Discover:dirkmueller</permission>
+      <permission>hudson.model.Item.Discover:bmwiedemann</permission>
+      <permission>hudson.model.Item.Discover:toabctl</permission>
+      <permission>hudson.model.Item.Cancel:mmeister</permission>
+      <permission>hudson.model.Item.Cancel:jdsn</permission>
+      <permission>hudson.model.Item.Cancel:vuntz</permission>
+      <permission>hudson.model.Item.Cancel:aspiers</permission>
+      <permission>hudson.model.Item.Cancel:dirkmueller</permission>
+      <permission>hudson.model.Item.Cancel:bmwiedemann</permission>
+      <permission>hudson.model.Item.Cancel:toabctl</permission>
+      <permission>hudson.model.Item.Delete:mmeister</permission>
+      <permission>hudson.model.Item.Delete:jdsn</permission>
+      <permission>hudson.model.Item.Delete:vuntz</permission>
+      <permission>hudson.model.Item.Delete:aspiers</permission>
+      <permission>hudson.model.Item.Delete:dirkmueller</permission>
+      <permission>hudson.model.Item.Delete:bmwiedemann</permission>
+      <permission>hudson.model.Item.Delete:toabctl</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.2">
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.4">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
       <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories/>
       <throttleEnabled>false</throttleEnabled>
       <throttleOption>project</throttleOption>
+      <configVersion>1</configVersion>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
@@ -121,7 +123,7 @@
 # fetch the latest automation updates
 update_automation jenkins-job-trigger
 
-freshvm cleanvm $image
+sudo /usr/local/sbin/freshvm cleanvm $image
 sleep 100
 
 cloudsource=openstack$openstack_version
@@ -135,7 +137,7 @@ ssh root@cleanvm "export cloudsource=$cloudsource; export OSHEAD=$oshead; export
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.9"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.15"/>
   </buildWrappers>
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
     <runSequentially>true</runSequentially>
