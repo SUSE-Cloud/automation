@@ -45,6 +45,13 @@ fi
 p=${REPCHECK_PROJECT//:/:\/}
 $zypper ar -f http://download.opensuse.org/repositories/${p}/${REPCHECK_DIST_NAME}_${REPCHECK_DIST_VERSION}/${REPCHECK_PROJECT}.repo || true
 
+# if it's a staging repo, also add the non-staging one
+if [[ "$REPCHECK_PROJECT" == *:Staging ]]; then
+    pro_nonstaging=${REPCHECK_PROJECT//:Staging/}
+    p=${pro_nonstaging//:/:\/}
+    $zypper ar -f http://download.opensuse.org/repositories/${p}/${REPCHECK_DIST_NAME}_${REPCHECK_DIST_VERSION}/${pro_nonstaging}.repo || true
+fi
+
 $zypper ref
 
 # check package installations
