@@ -877,8 +877,8 @@ function onadmin_set_source_variables()
             [[ $cs =~ GM6 ]] && cs=GM
             CLOUDDISTPATH=/install/SUSE-Cloud-6-$cs/
             CLOUDCOMPUTEPATH=$CLOUDDISTPATH
-            CLOUDSLE11DISTISO="SUSE-OPENSTACK-CLOUD*1.iso"
-            CLOUDSLE12DISTISO="SUSE-SLE12-CLOUD-6-COMPUTE-x86_64*1.iso" # FIXME
+            CLOUDSLE11DISTISO="SUSE-OPENSTACK-CLOUD-SLE11-6-$arch*1.iso"
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-6-official"
         ;;
         *)
