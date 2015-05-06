@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# repochecker tries to solve runtime dependencies for a given repository. It's
+# used for the openSUSE/SLE Cloud packages to check the dependencies for the
+# different repositories. Use it for instance with:
+#
+# REPCHECK_DIST_VERSION=13.2 REPCHECK_DIST_NAME=openSUSE \
+#     REPCHECK_PROJECT="Cloud:OpenStack:Kilo:Staging" repochecker
+
 set -e
 
 : ${REPCHECK_CACHE_DIR:=${XDG_CACHE_HOME:="$HOME/.cache/repochecker"}}
