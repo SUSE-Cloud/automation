@@ -189,6 +189,10 @@ mkcloudhostip=${net}.1
 : ${arch:=$(uname -m)}
 
 # run hook code before the actual script does its function
+# example usage: export pre_onadmin_installcrowbar=$(base64 -w 0 <<EOF
+# echo foo
+# EOF
+# )
 function pre_hook()
 {
     func=$1
