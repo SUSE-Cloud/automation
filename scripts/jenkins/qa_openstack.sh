@@ -120,6 +120,9 @@ case "$cloudsource" in
     ;;
 esac
 
+# be sure to use packages from cloud repository
+$zypper dup --no-recommends --from cloud
+
 # when using OSHEAD, dup from there
 if [ -n "$OSHEAD" ]; then
     $zypper dup --from cloudhead
