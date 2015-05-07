@@ -661,7 +661,7 @@ function rsync_iso()
 function onadmin_prepare_sles12_repos()
 {
     onadmin_prepare_sles12_repo
-    onadmin_prepare_sles12_compute_repo
+    onadmin_prepare_sles12_cloud_repo
 
     # These aren't available yet?
     onadmin_prepare_sles12_other_repos
@@ -673,10 +673,20 @@ function onadmin_prepare_sles12_repos()
 function onadmin_create_sles12_repos()
 {
     safely zypper -n install createrepo
-    local sles12optionalrepolist=(
-        SLE-12-Cloud-Compute5-Pool
-        SLE-12-Cloud-Compute5-Updates
-    )
+
+    local sles12optionalrepolist
+    if iscloudver 6plus; then
+        sles12optionalrepolist=(
+            SUSE-OpenStack-Cloud-6-Pool
+            SUSE-OpenStack-Cloud-6-Updates
+        )
+    else
+        sles12optionalrepolist=(
+            SLE-12-Cloud-Compute5-Pool
+            SLE-12-Cloud-Compute5-Updates
+        )
+    fi
+
     for repo in ${sles12optionalrepolist[@]}; do
         if [ ! -e "$tftpboot_repos12_dir/$repo/repodata/" ] ; then
             mkdir -p "$tftpboot_repos12_dir/$repo"
@@ -697,9 +707,14 @@ function onadmin_prepare_sles12_repo()
     fi
 }
 
-function onadmin_prepare_sles12_compute_repo()
+function onadmin_prepare_sles12_cloud_repo()
 {
-    local sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
+    local sles12_compute_mount
+    if iscloudver 6plus; then
+        sles12_compute_mount="$tftpboot_repos12_dir/Cloud"
+    else
+        sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
+    fi
     if [ -n "$localreposdir_target" ]; then
         echo "FIXME: SLE12-Cloud-Compute not available from clouddata yet." >&2
         echo "Will manually download and rsync." >&2
@@ -707,7 +722,7 @@ function onadmin_prepare_sles12_compute_repo()
         #     "clouddata.cloud.suse.de:/srv/nfs/repos/SLE12-Cloud-Compute" \
         #     "$targetdir_install"
     fi
-    rsync_iso "$CLOUDCOMPUTEPATH" "$CLOUDSLE12DISTISO" "$sles12_compute_mount"
+    rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$sles12_compute_mount"
 }
 
 function onadmin_prepare_sles12_other_repos()
@@ -744,7 +759,7 @@ function onadmin_prepare_cloud_repos()
             "${targetdir}"
         echo $CLOUDLOCALREPOS > /etc/cloudversion
     else
-        rsync_iso "$CLOUDDISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
+        rsync_iso "$CLOUDSLE11DISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
         cat "$targetdir/isoversion" > /etc/cloudversion
     fi
     echo -n "This cloud was installed on `cat ~/cloud` from: " | \
@@ -808,8 +823,10 @@ function onadmin_prepare_cloud_repos()
 
 function do_set_repos_skip_checks()
 {
-    if iscloudver 5plus && [[ $cloudsource =~ develcloud ]]; then
-        # We don't use the proper pool/updates repos when using a devel build
+    # We don't use the proper pool/updates repos when using a devel build
+    if iscloudver 6plus && [[ $cloudsource =~ develcloud ]]; then
+        export REPOS_SKIP_CHECKS+=" SUSE-OpenStack-Cloud-SLE11-$(getcloudver)-Pool SUSE-OpenStack-Cloud-SLE11-$(getcloudver)-Updates"
+    elif iscloudver 5plus && [[ $cloudsource =~ develcloud ]]; then
         export REPOS_SKIP_CHECKS+=" SUSE-Cloud-$(getcloudver)-Pool SUSE-Cloud-$(getcloudver)-Updates"
     fi
 }
@@ -821,53 +838,53 @@ function onadmin_set_source_variables()
     : ${susedownload:=download.nue.suse.com}
     case "$cloudsource" in
         develcloud3)
-            CLOUDDISTPATH=/ibs/Devel:/Cloud:/3/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/3:/Staging/images/iso
+            CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/3/images/iso
+            [ -n "$TESTHEAD" ] && CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/3:/Staging/images/iso
             CLOUDSLE11DISTISO="S*-CLOUD*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-3-devel"
         ;;
         develcloud4)
-            CLOUDDISTPATH=/ibs/Devel:/Cloud:/4/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/4:/Staging/images/iso
+            CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/4/images/iso
+            [ -n "$TESTHEAD" ] && CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/4:/Staging/images/iso
             CLOUDSLE11DISTISO="S*-CLOUD*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-devel"
         ;;
         develcloud5)
-            CLOUDDISTPATH=/ibs/Devel:/Cloud:/5/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/5:/Staging/images/iso
-            CLOUDCOMPUTEPATH=$CLOUDDISTPATH
+            CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/5/images/iso
+            [ -n "$TESTHEAD" ] && CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/5:/Staging/images/iso
+            CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
             CLOUDSLE11DISTISO="SUSE-CLOUD*Media1.iso"
             CLOUDSLE12DISTISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-devel"
         ;;
         develcloud6)
-            CLOUDDISTPATH=/ibs/Devel:/Cloud:/6/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDDISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
-            CLOUDCOMPUTEPATH=$CLOUDDISTPATH
+            CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/6/images/iso
+            [ -n "$TESTHEAD" ] && CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
+            CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
             CLOUDSLE11DISTISO="SUSE-OPENSTACK-CLOUD-SLE11-6-$arch*Media1.iso"
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-6-devel"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         susecloud5)
-            CLOUDDISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud5:/Test/images/iso
-            CLOUDCOMPUTEPATH=/ibs/SUSE:/SLE-12:/Update:/Products:/Cloud5/images/iso/
+            CLOUDSLE11DISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud5:/Test/images/iso
+            CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12:/Update:/Products:/Cloud5/images/iso/
             CLOUDSLE11DISTISO="SUSE-CLOUD*Media1.iso"
             CLOUDSLE12DISTISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
         GM3|GM3+up)
-            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-3-GM/
+            CLOUDSLE11DISTPATH=/install/SLE-11-SP3-Cloud-3-GM/
             CLOUDSLE11DISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-3-official"
         ;;
         GM4|GM4+up)
-            CLOUDDISTPATH=/install/SLE-11-SP3-Cloud-4-GM/
+            CLOUDSLE11DISTPATH=/install/SLE-11-SP3-Cloud-4-GM/
             CLOUDSLE11DISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
         ;;
         GM5|GM5+up)
-            CLOUDDISTPATH=/install/SUSE-Cloud-5-GM/
-            CLOUDCOMPUTEPATH=$CLOUDDISTPATH
+            CLOUDSLE11DISTPATH=/install/SUSE-Cloud-5-GM/
+            CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
             CLOUDSLE11DISTISO="SUSE-CLOUD*1.iso"
             CLOUDSLE12DISTISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-official"
@@ -875,11 +892,11 @@ function onadmin_set_source_variables()
         M?|Beta*|RC*|GMC*|GM6|GM6+up)
             cs=$cloudsource
             [[ $cs =~ GM6 ]] && cs=GM
-            CLOUDDISTPATH=/install/SUSE-Cloud-6-$cs/
-            CLOUDCOMPUTEPATH=$CLOUDDISTPATH
-            CLOUDSLE11DISTISO="SUSE-OPENSTACK-CLOUD*1.iso"
-            CLOUDSLE12DISTISO="SUSE-SLE12-CLOUD-6-COMPUTE-x86_64*1.iso" # FIXME
-            CLOUDLOCALREPOS="SUSE-Cloud-6-official"
+            CLOUDSLE11DISTPATH=/install/SUSE-Cloud-6-$cs/
+            CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
+            CLOUDSLE11DISTISO="SUSE-OPENSTACK-CLOUD-SLE11-6-$arch*1.iso"
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
         *)
             complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|susecloud5|GM4|GM5"
@@ -2902,7 +2919,7 @@ function onadmin_prepare_cloudupgrade()
     # Client nodes need to be up to date
     onadmin_cloudupgrade_clients
 
-    # change CLOUDSLE11DISTISO/CLOUDDISTPATH according to the new cloudsource
+    # change CLOUDSLE11DISTISO/CLOUDSLE11DISTPATH according to the new cloudsource
     onadmin_set_source_variables
 
     # recreate the SUSE-Cloud Repo with the latest iso
