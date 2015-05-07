@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# repochecker tries to solve runtime dependencies for a given repository. It's
+# used for the openSUSE/SLE Cloud packages to check the dependencies for the
+# different repositories. Use it for instance with:
+#
+# REPCHECK_DIST_VERSION=13.2 REPCHECK_DIST_NAME=openSUSE \
+#     REPCHECK_PROJECT="Cloud:OpenStack:Kilo:Staging" repochecker
+
 set -e
 
 : ${REPCHECK_CACHE_DIR:=${XDG_CACHE_HOME:="$HOME/.cache/repochecker"}}
@@ -45,10 +52,17 @@ fi
 p=${REPCHECK_PROJECT//:/:\/}
 $zypper ar -f http://download.opensuse.org/repositories/${p}/${REPCHECK_DIST_NAME}_${REPCHECK_DIST_VERSION}/${REPCHECK_PROJECT}.repo || true
 
+# if it's a staging repo, also add the non-staging one
+if [[ "$REPCHECK_PROJECT" == *:Staging ]]; then
+    pro_nonstaging=${REPCHECK_PROJECT//:Staging/}
+    p=${pro_nonstaging//:/:\/}
+    $zypper ar -f http://download.opensuse.org/repositories/${p}/${REPCHECK_DIST_NAME}_${REPCHECK_DIST_VERSION}/${pro_nonstaging}.repo || true
+fi
+
 $zypper ref
 
 # check package installations
 pro_alias=${REPCHECK_PROJECT//:/_}
 installcheck x86_64 --withobsoletes --exclude ${REPCHECK_INSTCHECK_EXCLUDES} \
-             $D/var/cache/zypp/raw/${pro_alias}/repodata/*primary.xml.gz \
-             --nocheck $D/var/cache/zypp/solv/*/solv
+    $D/var/cache/zypp/raw/${pro_alias}/repodata/*primary.xml.gz \
+    --nocheck $D/var/cache/zypp/solv/*/solv

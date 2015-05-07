@@ -10,6 +10,7 @@ This project has several scripts for different automated tasks, some of them are
 * crowbar-prep.sh, prepare a host for Crowbar admin node installation.
 * [`/scripts/mkcloud`](docs/mkcloud.md), script used to build a SUSE Cloud environment
   for development or testing purposes.
+* repochecker, try to solve runtime dependencies for a given repository
 
 # Documentation
 
