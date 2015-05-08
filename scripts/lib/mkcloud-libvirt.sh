@@ -240,15 +240,6 @@ function libvirt_start_daemon()
     wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 }
 
-function libvirt_net_start()
-{
-    local network=$1
-    if ! virsh net-dumpxml $network > /dev/null 2>&1; then
-        virsh net-define /tmp/${network}.net.xml
-    fi
-    virsh net-start $network
-}
-
 function libvirt_vm_start()
 {
     local vm=$1
@@ -270,6 +261,6 @@ function libvirt_setupadmin()
     libvirt_onhost_create_admin_network_config
     libvirt_modprobe_kvm
     libvirt_start_daemon
-    libvirt_net_start $cloud-admin
+    python ${mkcloud_lib_dir}/libvirt/net-start.py $cloud-admin
     libvirt_vm_start $cloud-admin
 }
