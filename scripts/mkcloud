@@ -328,8 +328,6 @@ function cleanup()
         fi
     fi
 
-    rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml \
-        /etc/sysconfig/network/ifcfg-$cloudbr.$public_vlan
     if [ -n "$wipe" ] ; then
         vgchange -an $cloudvg
         dd if=/dev/zero of=$cloudpv count=1000
