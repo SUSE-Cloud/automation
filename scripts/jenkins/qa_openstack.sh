@@ -227,11 +227,11 @@ NOVA_FLAVOR="42"
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
 ssh_user="root"
-openqa=http://195.135.221.151/openqa
+mirror=http://149.44.161.38/images # ci1-opensuse
 
 cirros_base_url="http://download.cirros-cloud.net/0.3.3/"
+cirros_base_url="$mirror"
 cirros_base_name="cirros-0.3.3-x86_64"
-#openqa=http://www.zq1.de/openqa
 case "$MODE" in
     xen)
         glance image-create --is-public=True --disk-format=qcow2 --container-format=bare --name jeos-64-pv --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
@@ -240,7 +240,7 @@ case "$MODE" in
         glance image-create --is-public=True --disk-format=ami --container-format=ami --name=debian-5 --property vm_mode=xen ramdisk_id=f663eb9a-986b-466f-bd3e-f0aa2c847eef kernel_id=d654691a-0135-4f6d-9a60-536cf534b284 < debian.5-0.x86.img
     ;;
     lxc)
-        glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from $openqa/img/debian.5-0.x86.qcow2
+        glance image-create --name="debian-5" --is-public=True --disk-format=ami --container-format=ami --copy-from $mirror/debian.5-0.x86.qcow2
     ;;
     *)
         wget $cirros_base_url/$cirros_base_name-uec.tar.gz
