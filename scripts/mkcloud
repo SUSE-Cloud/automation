@@ -55,11 +55,13 @@ fi
 # causes of this is violation of the common shell coding standard which
 # uses uppercase for environment variables and constants, and lowercase
 # for local variables.
+: ${mkcloud_dir:=$(dirname $0)}
+: ${qa_crowbarsetup:=${mkcloud_dir}/qa_crowbarsetup.sh}
+mkcloud_lib_dir=${mkcloud_dir}/lib
 : ${cinder_backend:=''}
 : ${cinder_netapp_storage_protocol:=iscsi}
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
-: ${qa_crowbarsetup:=$(dirname $0)/qa_crowbarsetup.sh}
 : ${virtualcloud:=virtual}
 : ${cloudfqdn:=$virtualcloud.cloud.suse.de}
 : ${forwardmode:=nat}
