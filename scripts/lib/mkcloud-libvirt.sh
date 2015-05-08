@@ -240,21 +240,6 @@ function libvirt_start_daemon()
     wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 }
 
-function libvirt_vm_start()
-{
-    local vm=$1
-    virsh destroy $vm 2>/dev/null
-    virsh undefine $vm 2>/dev/null
-    if ! virsh define /tmp/${vm}.xml ; then
-        echo "=====================================================>>"
-        complain 76 "Could not define VM for: $vm"
-    fi
-    if ! virsh start $vm ; then
-        echo "=====================================================>>"
-        complain 76 "Could not start VM for: $vm"
-    fi
-}
-
 function libvirt_setupadmin()
 {
     libvirt_onhost_create_adminnode_config
@@ -262,5 +247,5 @@ function libvirt_setupadmin()
     libvirt_modprobe_kvm
     libvirt_start_daemon
     python ${mkcloud_lib_dir}/libvirt/net-start.py $cloud-admin
-    libvirt_vm_start $cloud-admin
+    python ${mkcloud_lib_dir}/libvirt/vm-start.py $cloud-admin
 }

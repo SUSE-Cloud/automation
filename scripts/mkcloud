@@ -605,7 +605,7 @@ function setuplonelynodes()
             onhost_deploy_image "lonely" "SLE11" $lonely_disk
         fi
 
-        libvirt_vm_start $lonely_node
+        python ${mkcloud_lib_dir}/libvirt/vm-start.py $lonely_node
     done
 }
 
@@ -739,7 +739,7 @@ function setupnodes()
         fi
 
         libvirt_onhost_create_computenode_config /tmp/$cloud-node$i.xml $i $macaddress "$cephvolume" "$drbdvolume"
-        libvirt_vm_start $cloud-node$i
+        python ${mkcloud_lib_dir}/libvirt/vm-start.py $cloud-node$i
     done
     echo "========================================================"
     echo " Note: If you interrupt mkcloud now and want to proceed"
