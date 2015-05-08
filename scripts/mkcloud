@@ -291,7 +291,7 @@ function onadmin()
 function cleanup()
 {
     # cleanup leftover from last run
-    libvirt_cleanup
+    python ${mkcloud_lib_dir}/libvirt/cleanup.py $cloud $nodenumber $cloudbr $public_vlan
 
     if ip link show ${cloudbr}.$public_vlan >/dev/null 2>&1; then
         ip link set ${cloudbr}.$public_vlan down

@@ -1,30 +1,3 @@
-function libvirt_cleanup()
-{
-    allnodenames=$(seq --format="node%.0f" 1 $(($nodenumber + 20)))
-    for name in admin $allnodenames ; do
-        local vm=$cloud-$name
-        if LANG=C virsh domstate $vm 2>/dev/null | grep -q running ; then
-            safely virsh destroy $vm
-        fi
-        if virsh domid $vm >/dev/null 2>&1; then
-            safely virsh undefine $vm
-        fi
-        local machine=qemu-$vm
-        if test -x /usr/bin/machinectl && machinectl status $machine 2>/dev/null ; then
-            safely machinectl terminate $machine # workaround bnc#916518
-        fi
-    done
-
-    local net=$cloud-admin
-    if virsh net-uuid $net >/dev/null 2>&1; then
-        virsh net-destroy $net
-        safely virsh net-undefine $net
-    fi
-
-    rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml \
-            /etc/sysconfig/network/ifcfg-$cloudbr.$public_vlan
-}
-
 function libvirt_onhost_cpuflags_settings()
 { # used for admin and compute nodes
     cpuflags="<cpu match='minimum'>
