@@ -1,30 +1,3 @@
-function libvirt_cleanup()
-{
-    allnodenames=$(seq --format="node%.0f" 1 $(($nodenumber + 20)))
-    for name in admin $allnodenames ; do
-        local vm=$cloud-$name
-        if LANG=C virsh domstate $vm 2>/dev/null | grep -q running ; then
-            safely virsh destroy $vm
-        fi
-        if virsh domid $vm >/dev/null 2>&1; then
-            safely virsh undefine $vm
-        fi
-        local machine=qemu-$vm
-        if test -x /usr/bin/machinectl && machinectl status $machine 2>/dev/null ; then
-            safely machinectl terminate $machine # workaround bnc#916518
-        fi
-    done
-
-    local net=$cloud-admin
-    if virsh net-uuid $net >/dev/null 2>&1; then
-        virsh net-destroy $net
-        safely virsh net-undefine $net
-    fi
-
-    rm -f /var/run/libvirt/qemu/$cloud-*.xml /var/lib/libvirt/network/$cloud-*.xml \
-            /etc/sysconfig/network/ifcfg-$cloudbr.$public_vlan
-}
-
 function libvirt_onhost_cpuflags_settings()
 { # used for admin and compute nodes
     cpuflags="<cpu match='minimum'>
@@ -240,36 +213,12 @@ function libvirt_start_daemon()
     wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 }
 
-function libvirt_net_start()
-{
-    local network=$1
-    if ! virsh net-dumpxml $network > /dev/null 2>&1; then
-        virsh net-define /tmp/${network}.net.xml
-    fi
-    virsh net-start $network
-}
-
-function libvirt_vm_start()
-{
-    local vm=$1
-    virsh destroy $vm 2>/dev/null
-    virsh undefine $vm 2>/dev/null
-    if ! virsh define /tmp/${vm}.xml ; then
-        echo "=====================================================>>"
-        complain 76 "Could not define VM for: $vm"
-    fi
-    if ! virsh start $vm ; then
-        echo "=====================================================>>"
-        complain 76 "Could not start VM for: $vm"
-    fi
-}
-
 function libvirt_setupadmin()
 {
     libvirt_onhost_create_adminnode_config
     libvirt_onhost_create_admin_network_config
     libvirt_modprobe_kvm
     libvirt_start_daemon
-    libvirt_net_start $cloud-admin
-    libvirt_vm_start $cloud-admin
+    python ${mkcloud_lib_dir}/libvirt/net-start.py $cloud-admin
+    python ${mkcloud_lib_dir}/libvirt/vm-start.py $cloud-admin
 }
