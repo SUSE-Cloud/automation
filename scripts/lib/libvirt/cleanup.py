@@ -47,7 +47,7 @@ def main():
             machine_status = subprocess.call(["machinectl", "status", machine], stdout=devnull, stderr=subprocess.STDOUT)
             if (machinectl == 0 and machine_status == 0):
                 subprocess.call(["machinectl", "terminate", machine]) # workaround bnc#916518
-    except Exception:
+    except libvirt.libvirtError:
         print("...skipping undefined domains")
 
     try:
@@ -57,7 +57,7 @@ def main():
         network.destroy()
         print("undefining {0}".format(net_name))
         network.undefine()
-    except Exception:
+    except libvirt.libvirtError:
         print("...skipping undefined network")
 
     remove_files("/var/run/libvirt/qemu/{0}-*.xml".format(args.cloud))
