@@ -865,7 +865,7 @@ function onadmin_set_source_variables()
             CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/6/images/iso
             [ -n "$TESTHEAD" ] && CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
             CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
-            CLOUDSLE11DISTISO="SUSE-OPENSTACK-CLOUD-SLE11-6-$arch*Media1.iso"
+            CLOUDSLE11DISTISO="SUSE-SLE11-OPENSTACK-CLOUD-6-$arch*Media1.iso"
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
@@ -898,7 +898,7 @@ function onadmin_set_source_variables()
             [[ $cs =~ GM6 ]] && cs=GM
             CLOUDSLE11DISTPATH=/install/SUSE-Cloud-6-$cs/
             CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
-            CLOUDSLE11DISTISO="SUSE-OPENSTACK-CLOUD-SLE11-6-$arch*1.iso"
+            CLOUDSLE11DISTISO="SUSE-SLE11-OPENSTACK-SLE11-6-$arch*1.iso"
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
