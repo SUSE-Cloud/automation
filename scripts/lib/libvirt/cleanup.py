@@ -43,7 +43,7 @@ def main():
                 dom.undefine()
 
             machine = "{0}-{1}".format("qemu", vm)
-            machinectl = os.access("/usr/bin/machinectl". os.X_OK)
+            machinectl = os.access("/usr/bin/machinectl", os.X_OK)
             machine_status = subprocess.call(["machinectl", "status", machine], stdout=devnull, stderr=subprocess.STDOUT)
             if (machinectl == 0 and machine_status == 0):
                 subprocess.call(["machinectl", "terminate", machine]) # workaround bnc#916518
