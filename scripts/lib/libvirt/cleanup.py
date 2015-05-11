@@ -31,8 +31,8 @@ def main():
     allnodenames = ["admin"]
     allnodenames.extend("node%s"%i for i in range(1, args.nodenumber+20))
 
-    try:
-        for nodename in allnodenames:
+    for nodename in allnodenames:
+        try:
             vm = "{0}-{1}".format(args.cloud, nodename)
             dom = conn.lookupByName(vm)
             if dom.isActive():
@@ -47,8 +47,8 @@ def main():
             machine_status = subprocess.call(["machinectl", "status", machine], stdout=devnull, stderr=subprocess.STDOUT)
             if (machinectl == 0 and machine_status == 0):
                 subprocess.call(["machinectl", "terminate", machine]) # workaround bnc#916518
-    except libvirt.libvirtError:
-        print("...skipping undefined domains")
+        except libvirt.libvirtError:
+            print("...skipping undefined domains")
 
     try:
         net_name = "{0}-admin".format(args.cloud)
