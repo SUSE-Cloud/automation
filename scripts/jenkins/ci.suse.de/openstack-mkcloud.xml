@@ -214,7 +214,7 @@ if [ -e mkcloud.pid ] ; then
     kill -KILL -`mkcloud.pid` ||: # make sure that the previous mkcloud (and subprocesses) are dead
 fi
 starttime=`date +%s`
-perl -e "alarm 4*60*60 ; exec '/root/bin/allocpool bash -x /root/bin/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
+perl -e "alarm 4*60*60 ; exec '/root/bin/allocpool bash -x /root/github.com/SUSE-Cloud/automation/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
 [ ${PIPESTATUS[0]} = 0 ] || exit 1 # check return code before tee
 
 [[ ! $TESTHEAD ]] &amp;&amp; exit 0

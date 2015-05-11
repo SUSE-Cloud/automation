@@ -450,7 +450,7 @@ function setuphost()
         export ZYPP_LOCK_TIMEOUT=60
         zypper --non-interactive in --no-recommends \
             libvirt kvm lvm2 curl wget bridge-utils \
-            dnsmasq netcat-openbsd ebtables
+            dnsmasq netcat-openbsd ebtables libvirt-python
         [ "$?" == 0 -o "$?" == 4 ] || exit 10
     fi
 }
