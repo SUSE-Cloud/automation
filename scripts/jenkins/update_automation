@@ -33,11 +33,4 @@ else
     popd > /dev/null
 fi
 
-for sc in $@ $(basename $0) ; do
-    find $a_dir -type f -name "${sc}" | while read scriptname ; do
-        ln -s -f ~/${scriptname} ~/bin/$sc
-        echo "Updated link to script $sc"
-    done
-done
-
 popd > /dev/null
