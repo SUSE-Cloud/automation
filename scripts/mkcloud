@@ -1030,6 +1030,11 @@ Optional
         /root/.ssh/authorized_keys file and to provisioner barclamp
     want_neutronsles12=1 (default 0)
         if there is a SLE12 node, deploy neutron-network role into the SLE12 node
+    want_sles12=1 (default 0)
+        setup SLE12 compute nodes
+    want_sles12_controller=1 (default 0)
+        setup SLE12 controller node, deploy SLE12 services ready for SLE12 controller
+        Only for SUSE OpenStack Cloud 6
     want_dvr=1 (default='')
         if DVR support should be turned on by neutron barclamp. Only works with openvswitch and vxlan.
     want_docker=1 (default='')

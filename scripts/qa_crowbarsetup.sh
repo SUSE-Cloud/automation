@@ -495,6 +495,11 @@ function get_sle12_node()
     knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g'
 }
 
+function get_sle12_controller()
+{
+    knife search node "target_platform:suse-12.0 && intended_role:no_role" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g'
+}
+
 function cluster_node_assignment()
 {
     local nodesavailable
@@ -1265,14 +1270,16 @@ function onadmin_allocate()
     done
     echo "Sleeping 50 more seconds..."
     sleep 50
+    local controllernodes=(
+            $(get_all_discovered_nodes | head -n 2)
+        )
     echo "Setting first node to controller..."
-    local controllernode=$(get_all_discovered_nodes | head -n 1)
-    local t=$(mktemp).json
+    set_node_role_and_platform ${controllernodes[0]} "controller" "suse-11.3"
 
-    knife node show -F json $controllernode > $t
-    json-edit $t -a normal.crowbar_wall.intended_role -v "controller"
-    knife node from file $t
-    rm -f $t
+    if [ -n "$want_sles12_controller" ] && iscloudver 6plus ; then
+        echo "Setting second node as SLE12 controller ..."
+        set_node_role_and_platform ${controllernodes[1]} "no_role" "suse-12.0"
+    fi
 
     if [ -n "$want_sles12" ] && iscloudver 5plus ; then
 
@@ -1689,6 +1696,7 @@ function custom_configuration()
     fi
 
     local sle12node=`get_sle12_node`
+    local sle12controller=`get_sle12_controller`
 
     ### NOTE: ONLY USE proposal_{set,modify}_value functions below this line
     ###       The edited proposal will be read and imported at the end
@@ -1715,6 +1723,10 @@ function custom_configuration()
             fi
         ;;
         database)
+            if [ -n "$want_sles12_controller" ] && iscloudver 6plus ; then
+                proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['$sle12controller']"
+            fi
+
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
                 proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
@@ -2017,6 +2029,11 @@ function set_proposalvars()
     if iscloudver 5 && [ -z "$want_sles12" ] ; then
         deployceph=
     fi
+    # C4: Cloud6 controller SLE12 node
+    if ! iscloudver 6plus ; then
+        want_sles12_controller=
+    fi
+    [[ $want_sles12_controller ]] && want_sles12=1
     ### FINAL swift and ceph check
     if [[ $deployswift && $deployceph ]] ; then
         complain 89 "Can not deploy ceph and swift at the same time."
