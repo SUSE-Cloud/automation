@@ -56,6 +56,9 @@ def main():
         network = conn.networkLookupByName(net_name)
         print("destroying {0}".format(net_name))
         network.destroy()
+    except libvirt.libvirtError:
+        print("...skipping stopped network")
+    try:
         print("undefining {0}".format(net_name))
         network.undefine()
     except libvirt.libvirtError:
