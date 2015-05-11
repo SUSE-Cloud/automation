@@ -18,23 +18,23 @@ args = parser.parse_args()
 def main():
     vm = args.vm
     try:
-        print("cleaning up {}".format(vm))
+        print("cleaning up {0}".format(vm))
         dom = conn.lookupByName(vm)
         if dom.isActive():
-            print("destroying {} vm".format(dom.name()))
+            print("destroying {0} vm".format(dom.name()))
             dom.destroy()
         if dom.ID():
-            print("undefining {} vm".format(dom.name()))
+            print("undefining {0} vm".format(dom.name()))
             dom.undefine()
     except:
-        print("no domain for {} active".format(vm))
+        print("no domain for {0} active".format(vm))
 
-    xml = open("/tmp/{}.xml".format(vm)).read()
-    print("defining {} vm".format(vm))
+    xml = open("/tmp/{0}.xml".format(vm)).read()
+    print("defining {0} vm".format(vm))
     conn.defineXML(xml)
     if not "dom" in locals():
         dom = conn.lookupByName(vm)
-    print("booting {} vm".format(vm))
+    print("booting {0} vm".format(vm))
     dom.create()
 
 if __name__ == "__main__":

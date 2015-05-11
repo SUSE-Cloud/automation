@@ -17,13 +17,13 @@ args = parser.parse_args()
 
 def main():
     net = args.net
-    print("defining {} network".format(net))
+    print("defining {0} network".format(net))
     networks = conn.listNetworks()
     if net not in networks:
-        print("defining {} network".format(net))
-        xml = open("/tmp/{}.net.xml".format(net)).read()
+        print("defining {0} network".format(net))
+        xml = open("/tmp/{0}.net.xml".format(net)).read()
         conn.networkDefineXML(xml)
-    print("starting {} network".format(net))
+    print("starting {0} network".format(net))
     dom = conn.networkLookupByName(net)
     dom.create()
 
