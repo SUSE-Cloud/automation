@@ -3,8 +3,8 @@
   <actions/>
   <description/>
   <logRotator class="hudson.tasks.LogRotator">
-    <daysToKeep>20</daysToKeep>
-    <numToKeep>100</numToKeep>
+    <daysToKeep>300</daysToKeep>
+    <numToKeep>1000</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
@@ -71,30 +71,6 @@ Default: vlan for linuxbridge, gre for openvswitch.</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>cinder_conf_volume_type</name>
-          <description>Set the cinder volume backend type. Possible choices are e.g. "local", "raw", "netapp". Some parameters need extra configuration values which can be set with $cinder_conf_volume_params
-Default: rbd if ceph is deployed, or raw if there's a disk, local otherwise.</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>cinder_conf_volume_params</name>
-          <description>Set extra parameters for the selected cinder_conf_volume_type . For netapp, the parameters could be:
-
-storage_family 'ontap_7mode'
-storage_protocol 'iscsi'
-nfs_shares ''
-vserver ''
-netapp_server_hostname '192.168.124.11'
-netapp_server_port 443
-netapp_login 'admin'
-netapp_password ''
-netapp_vfiler ''
-netapp_transport_type 'https'
-netapp_volume_list ''
-</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>mkcloudtarget</name>
           <description>Set mkcloudtarget to define the mkcloud command line parameters.</description>
           <defaultValue>all</defaultValue>
@@ -105,11 +81,6 @@ netapp_volume_list ''
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>want_dvr</name>
-          <description>Set to 1 if distributed routers are created</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>upgrade_cloudsource</name>
           <description>In case of using upgrade, upgrade to that cloudsource version
 </description>
@@ -117,7 +88,7 @@ netapp_volume_list ''
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>hacloud</name>
-          <description>If hacloud=1 then deploy a 9-node cluster</description>
+          <description>If hacloud=1 then deploy a 4-node cluster</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -128,6 +99,41 @@ netapp_volume_list ''
         <hudson.model.BooleanParameterDefinition>
           <name>WITHCROWBARREGISTER</name>
           <description>boot up one lonely node in the admin network and register it with crowbar_register (image type depends on want_sles12 parameter)</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_swift</name>
+          <description>can be used for force off(0) or on(1)</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_ceph</name>
+          <description>can be used for force off(0) or on(1)</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_all_ssl</name>
+          <description>set to 1 to deploy all cloud services with SSL aka HTTPS</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>cinder_backend</name>
+          <description>can be one of local|raw|rbd|netapp</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>cinder_netapp_login</name>
+          <description>this is currently the user "openstack" as configured on the netapp server</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>cinder_netapp_password</name>
+          <description>the password for the user "openstack" as configured on the netapp server</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>want_cindermultibackend</name>
+          <description>enables deployment of more than one cinder backend</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
@@ -155,11 +161,26 @@ netapp_volume_list ''
 #export CVOL=/dev/loop4
 #losetup /dev/loop4 || losetup /dev/loop4 /abuild/cloud || true
 
-[[ $hacloud == 1 ]] &amp;&amp; [[ $nodenumber &lt; 9 ]] &amp;&amp; export nodenumber=9
-
+export debug_qa_crowbarsetup=1
 export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
 export debug=0
 export want_neutronsles12=1
+export want_ldap=1
+
+
+# HAcloud
+if [[ $hacloud == 1 ]] ; then
+  export clusterconfig="data+services+network=2"
+  if [[ $nodenumber &lt; 4 ]] ; then
+    export nodenumber=4
+  fi
+  
+  # for now disable ceph deployment in HA mode explicitly
+  # it would need 5 nodes (2 for the cluster + 3 nodes for compute and ceph)
+  export want_ceph=0
+  export cephvolumenumber=0
+fi
+
 
 
 if [ ! -z "$UPDATEREPOS" ] ; then
@@ -193,11 +214,11 @@ if [ -e mkcloud.pid ] ; then
     kill -KILL -`mkcloud.pid` ||: # make sure that the previous mkcloud (and subprocesses) are dead
 fi
 starttime=`date +%s`
-perl -e "alarm 4*60*60 ; exec '/root/bin/allocpool bash -x /root/bin/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
+perl -e "alarm 4*60*60 ; exec '/root/bin/allocpool bash -x /root/github.com/SUSE-Cloud/automation/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
 [ ${PIPESTATUS[0]} = 0 ] || exit 1 # check return code before tee
 
-[ -z "$TESTHEAD" ] &amp;&amp; exit 0
-[[ "$hacloud" == 1 ]] &amp;&amp; exit 0  # for now disable package submission for ha setups
+[[ ! $TESTHEAD ]] &amp;&amp; exit 0
+[[ $hacloud == 1 ]] &amp;&amp; exit 0  # for now disable package submission for ha setups
 
 
 case "$cloudsource" in
@@ -209,17 +230,22 @@ case "$cloudsource" in
   develcloud3)
     project=Devel:Cloud:3
     subproject=Staging
-    packagefilter="crowbar python openstack"
+    packagefilter="crowbar python openstack suse-cloud-upgrade"
   ;;
   develcloud4)
     project=Devel:Cloud:4
     subproject=Staging
-    packagefilter="crowbar python openstack"
+    packagefilter="crowbar python openstack suse-cloud-upgrade"
   ;;
   develcloud5)
     project=Devel:Cloud:5
     subproject=Staging
-    packagefilter="crowbar python openstack"
+    packagefilter="crowbar python openstack suse-cloud-upgrade"
+  ;;
+  develcloud6)
+    project=Devel:Cloud:6
+    subproject=Staging
+    packagefilter="crowbar python openstack patterns suse-cloud-upgrade"
   ;;
   *)
     echo "nothing to submit"
@@ -238,7 +264,7 @@ jenkins-job-trigger openstack-submit-project -p project="${project}" subproject=
       <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
     </hudson.tasks.ArtifactArchiver>
-    <hudson.tasks.Mailer plugin="mailer@1.15">
+    <hudson.tasks.Mailer plugin="mailer@1.11">
       <recipients>cloud-devel@suse.de</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
@@ -253,7 +279,7 @@ jenkins-job-trigger openstack-submit-project -p project="${project}" subproject=
         <hudson.plugins.build__timeout.operations.FailOperation/>
       </operationList>
     </hudson.plugins.build__timeout.BuildTimeoutWrapper>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.15"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.6"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.3">
       <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"})</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
