@@ -209,17 +209,22 @@ case "$cloudsource" in
   develcloud3)
     project=Devel:Cloud:3
     subproject=Staging
-    packagefilter="crowbar python openstack"
+    packagefilter="crowbar python openstack suse-cloud-upgrade"
   ;;
   develcloud4)
     project=Devel:Cloud:4
     subproject=Staging
-    packagefilter="crowbar python openstack"
+    packagefilter="crowbar python openstack suse-cloud-upgrade"
   ;;
   develcloud5)
     project=Devel:Cloud:5
     subproject=Staging
-    packagefilter="crowbar python openstack"
+    packagefilter="crowbar python openstack suse-cloud-upgrade"
+  ;;
+  develcloud6)
+    project=Devel:Cloud:6
+    subproject=Staging
+    packagefilter="crowbar python openstack patterns suse-cloud-upgrade"
   ;;
   *)
     echo "nothing to submit"
