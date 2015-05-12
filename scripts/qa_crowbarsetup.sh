@@ -1276,7 +1276,7 @@ function onadmin_allocate()
     echo "Setting first node to controller..."
     set_node_role_and_platform ${controllernodes[0]} "controller" "suse-11.3"
 
-    if [ -n "$want_sles12_controller" ] && iscloudver 6plus ; then
+    if [ -n "$want_sles12_controller" ] ; then
         echo "Setting second node as SLE12 controller ..."
         set_node_role_and_platform ${controllernodes[1]} "no_role" "suse-12.0"
     fi
@@ -1709,6 +1709,25 @@ function custom_configuration()
             fi
         ;;
     esac
+    if [ -n "$want_sles12_controller" ] ; then
+        case "$proposal" in
+            database|keystone|glance|heat)
+                proposal_set_value ${proposal} default "['deployment']['${proposal}']['elements']['${proposal}-server']" "['$sle12controller']"
+            ;;
+            cinder)
+                proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['$sle12controller']"
+            ;;
+            #neutron)
+                #FIXME: till bug#930986 this part can be enabled once again
+                # https://bugzilla.suse.com/show_bug.cgi?id=930986
+                #proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['$sle12controller']"
+                #proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sle12controller']"
+            #;;
+            ceilometer)
+                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['$sle12controller']"
+            ;;
+        esac
+    fi
     case "$proposal" in
         pacemaker)
             # multiple matches possible, so separate if's, to allow to configure mapped clusters
@@ -1723,10 +1742,6 @@ function custom_configuration()
             fi
         ;;
         database)
-            if [ -n "$want_sles12_controller" ] && iscloudver 6plus ; then
-                proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['$sle12controller']"
-            fi
-
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
                 proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
