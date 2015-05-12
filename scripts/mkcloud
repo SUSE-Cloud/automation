@@ -1262,6 +1262,7 @@ for cmd in `echo $steplist` ; do
     $cmd
     ret=$?
     if [ $ret != 0 ] ; then
+        set +x
         echo
         echo '$h1!!'
         echo "Error detected. Stopping mkcloud."
