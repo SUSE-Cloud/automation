@@ -5,12 +5,15 @@ use strict;
 
 # This tool updates jenkins build descriptions with extracts from result logs
 
-my $startnum=3640;
-my $endnum=3656;
+my $numfile="mkcloudbuildstartnum";
+my $startnum=`cat $numfile`;
+my $endnum=$startnum+20;
 for my $num ($startnum..$endnum) {
     my $build = "openstack-mkcloud/$num";
     $_ = `curl -s https://ci.suse.de/job/$build/consoleText`;
-    m/Finished: FAILURE/ || next;
+    last if m/<body><h2>HTTP ERROR 404/;
+    next unless m/Finished: FAILURE/;
+    system("echo \$((1+$num)) > $numfile");
     my $descr = "unknown cause";
     /java.lang.OutOfMemoryError/ and $descr=$&;
     /\+ '\[' (\d+) = 0 '\]'\n\+ exit 1\nBuild step/ and $1 and $descr="ret=$1";
