@@ -21,15 +21,17 @@ parser.add_argument("public_vlan", type=str, help="Name of the public vlan")
 
 args = parser.parse_args()
 
+
 def remove_files(files):
     for f in glob.glob(files):
         print("removing {0}".format(f))
         os.remove(f)
 
+
 def main():
     devnull = open(os.devnull, "w")
     allnodenames = ["admin"]
-    allnodenames.extend("node%s"%i for i in range(1, args.nodenumber+20))
+    allnodenames.extend("node%s" % i for i in range(1, args.nodenumber + 20))
 
     for nodename in allnodenames:
         try:
@@ -45,9 +47,12 @@ def main():
             machine = "{0}-{1}".format("qemu", vm)
             machinectl = os.access("/usr/bin/machinectl", os.X_OK)
             if machinectl:
-                machine_status = subprocess.call(["machinectl", "status", machine], stdout=devnull, stderr=subprocess.STDOUT)
+                machine_status = subprocess.call(
+                    ["machinectl", "status", machine],
+                    stdout=devnull, stderr=subprocess.STDOUT)
                 if machine_status == 0:
-                    subprocess.call(["machinectl", "terminate", machine]) # workaround bnc#916518
+                    # workaround bnc#916518
+                    subprocess.call(["machinectl", "terminate", machine])
         except libvirt.libvirtError:
             print("...skipping undefined domains")
 
@@ -66,7 +71,9 @@ def main():
 
     remove_files("/var/run/libvirt/qemu/{0}-*.xml".format(args.cloud))
     remove_files("/var/lib/libvirt/network/{0}-*.xml".format(args.cloud))
-    remove_files("/etc/sysconfig/network/ifcfg-{0}.{1}".format(args.cloudbr, args.public_vlan))
+    remove_files("/etc/sysconfig/network/ifcfg-{0}.{1}".format(
+        args.cloudbr, args.public_vlan))
+
 
 if __name__ == "__main__":
     main()

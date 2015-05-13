@@ -148,8 +148,10 @@ class SSH(object):
         key = "'%s'" % open(self.key.pub_key()).read().strip()
         self._connect.grep('-v', key, '~/.ssh/authorized_keys',
                            '> ~/.ssh/authorized_keys.TMP')
-        self._connect.cp('-a', '~/.ssh/authorized_keys', '~/.ssh/authorized_keys.BAK')
-        self._connect.mv('~/.ssh/authorized_keys.TMP', '~/.ssh/authorized_keys')
+        self._connect.cp('-a', '~/.ssh/authorized_keys',
+                         '~/.ssh/authorized_keys.BAK')
+        self._connect.mv('~/.ssh/authorized_keys.TMP',
+                         '~/.ssh/authorized_keys')
         self._connect = None
 
     def connect(self):
@@ -218,7 +220,8 @@ class ISCSI(object):
             fedit = fname + '.EDIT'
             self.ssh.cp('-a', fname, fedit)
             self.ssh.mv(fbackup, fname)
-            raise Exception('Configuration file reverted. Check %s for more details' % fedit)
+            raise Exception('Configuration file reverted. '
+                            'Check %s for more details' % fedit)
         else:
             self.ssh.rm(fbackup)
 
@@ -408,13 +411,15 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--host', default=None,
                         help='Host address for the machine to configure')
     parser.add_argument('-t', '--target_host', default=None,
-                        help='Host address where the initiator search the target')
+                        help='Host address where the initiator search the '
+                        'target')
     parser.add_argument('-d', '--device', default='/dev/loop0',
                         help='Device for the target (/dev/loop0)')
     parser.add_argument('--id', default='id01',
                         help='Suffix ID for the iSCSI name')
     parser.add_argument('--test', action='store_true', default=False,
-                        help='Test the code against a local mkcloud installation')
+                        help='Test the code against a local mkcloud '
+                        'installation')
     args = parser.parse_args()
 
     if args.test:
@@ -424,10 +429,12 @@ if __name__ == '__main__':
             msg = 'Please, provide a kind of service: {target, initiator}'
             parser.error(msg)
         if not args.host:
-            msg = 'Please, provide the host name or IP address of the machine to be configured'
+            msg = 'Please, provide the host name or IP address of the ' \
+                  'machine to be configured'
             parser.error(msg)
         if args.service == 'initiator' and not args.target_host:
-            msg = 'Please, provide the host name or IP address of the machine with the target role'
+            msg = 'Please, provide the host name or IP address of the ' \
+                  'machine with the target role'
             parser.error(msg)
 
         if args.service == 'target':

@@ -15,6 +15,7 @@ parser.add_argument("net", type=str, help="Name of the network")
 
 args = parser.parse_args()
 
+
 def main():
     net = args.net
     print("defining {0} network".format(net))

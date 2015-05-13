@@ -6,7 +6,7 @@ import sys
 import argparse
 
 conn = libvirt.open("qemu:///system")
-if conn == None:
+if conn is None:
     print("Failed to open connection to the hypervisor")
     sys.exit(1)
 
@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description="Start a Virtual Machine.")
 parser.add_argument("vm", type=str, help="Name of the vm")
 
 args = parser.parse_args()
+
 
 def main():
     vm = args.vm
@@ -32,7 +33,7 @@ def main():
     xml = open("/tmp/{0}.xml".format(vm)).read()
     print("defining {0} vm".format(vm))
     conn.defineXML(xml)
-    if not "dom" in locals():
+    if "dom" not in locals():
         dom = conn.lookupByName(vm)
     print("booting {0} vm".format(vm))
     dom.create()

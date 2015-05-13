@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-test: bashate perlcheck rounduptest
+test: bashate perlcheck rounduptest flake8
 
 bashate:
 	cd scripts && \
@@ -24,6 +24,9 @@ perlcheck:
 rounduptest:
 	cd scripts && roundup
 
+flake8:
+	flake8 scripts/
+
 # for travis-CI:
 install: debianinstall genericinstall
 
@@ -35,7 +38,7 @@ suseinstall:
 	sudo zypper install perl-JSON-XS perl-libxml-perl
 
 genericinstall:
-	sudo pip install bashate
+	sudo pip install bashate flake8
 	git clone https://github.com/SUSE-Cloud/roundup && \
 	cd roundup && \
 	./configure && \
