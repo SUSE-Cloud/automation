@@ -242,23 +242,37 @@ sub pushall_jobs
   push_jobs(@joblist);
 }
 
+sub urlencode($)
+{
+  my $x=shift;
+  $x =~ s/[^\w.-]/sprintf("%%%02X",ord($&))/ge;
+  return $x;
+}
+
+sub setdescription
+{
+  my $build=shift; # e.g. "openstack-mkcloud/3668"
+  my $descr=urlencode(shift); # Text to set
+  system("curl", "--silent", "-H", $CRUMB, "${jurlbase}/job/${build}/submitDescription?description=$descr");
+}
+
 
 
 ### MAIN ###
 
 my $cmd=shift || die usage();
+my %handlefunc=(
+    reformat => \&clean_xml,
+    setdescription => \&setdescription,
+  );
+foreach my $c (qw(fetch fetch-all push push-all)) {
+  my $func = "${c}_jobs";
+  $func =~ s/-//;
+  $handlefunc{$c} = eval "\\&$func";
+}
 
-if ($cmd eq "fetch") {
-  fetch_jobs(@ARGV);
-} elsif ($cmd eq "fetch-all") {
-  fetchall_jobs(@ARGV);
-} elsif ($cmd eq "push") {
-  push_jobs(@ARGV);
-} elsif ($cmd eq "push-all") {
-  pushall_jobs(@ARGV);
-} elsif ($cmd eq "reformat") {
-  my $jobfile=shift;
-  clean_xml($jobfile);
+if (my $func = $handlefunc{$cmd}) {
+  &$func(@ARGV);
 } else {
   die usage();
 }
