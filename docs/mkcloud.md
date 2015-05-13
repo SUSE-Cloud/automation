@@ -164,3 +164,59 @@ export vcpus=2
 
 exec /path/to/mkcloud "$@"
 ```
+
+## Testing patches via PTF packages
+
+If you need to test patches, it is recommended to build packages and
+use the PTF update mechanism to apply them.  This is especially useful
+for patches which affect code used during the early stages of
+installation, otherwise you would have to split up the `mkcloud` steps
+and manually install the PTF packages before e.g. applying Crowbar
+barclamp proposals.
+
+### Building the PTF packages
+
+You can use the [`build-rpms`](https://github.com/openSUSE/pack-tools/blob/master/contrib/BS-pkg-testing/README.md) tool to build a package from a `git` branch
+in a local (or remote) repository.  Once you have followed the installation
+instructions, this process is as simple as a one-line command, e.g.
+
+    $ build-rpms -l -r my-git-branch ~/IBS/Devel/Cloud/5/crowbar-barclamp-rabbitmq
+
+The output of this command should end with something like:
+
+    /var/tmp/build-root/SLE_11_SP3/x86_64/usr/src/packages/RPMS/noarch/crowbar-barclamp-rabbitmq-1.9+git.1428427665.a11b19b-0.noarch.rpm
+    rpms saved in /home/adam/tmp/build-rpms/IBS_Devel_Cloud_5_crowbar-barclamp-rabbitmq
+
+### Getting `mkcloud` to use PTF packages
+
+You will need a directory on the `mkcloud` host which contains all
+PTFs which should be applied via the next `mkcloud` run, and this
+directory should be accessible over HTTP.  It is suggested that you
+create a directory for each topic you want to test, to avoid
+accidentally mixing up which PTF packages get applied during a
+particular mkcloud test run.  For example,
+
+    # ptfdir=/data/install/Cloud-PTF/rabbitmq-bugfix
+    # mkdir -p $ptfdir
+    # cp ~/tmp/build-rpms/IBS_Devel_Cloud_5_crowbar-barclamp-rabbitmq/*.noarch.rpm $ptfdir
+
+Set up Apache on the host to export `$ptfdir` as http://192.168.124.1/ptf/
+
+    # cat <<EOF >/etc/apache2/conf.d/cloud-ptf.conf
+    Alias /ptf /data/install/Cloud-PTF/
+    <Directory /data/install/Cloud-PTF/>
+        Options +Indexes +FollowSymLinks
+        IndexOptions +NameWidth=*
+
+        Order allow,deny
+        Allow from all
+    </Directory>
+    EOF
+
+Now it is ready to be used by `mkcloud`:
+
+    # export UPDATEREPOS=http://192.168.124.1/ptf/rabbitmq-bugfix/
+    # mkcloud plain
+
+Now subsequent `mkcloud` runs will automatically apply any packages
+found under `/data/install/Cloud-PTF/rabbitmq-bugfix`.
