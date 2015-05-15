@@ -1030,6 +1030,11 @@ Optional
         /root/.ssh/authorized_keys file and to provisioner barclamp
     want_neutronsles12=1 (default 0)
         if there is a SLE12 node, deploy neutron-network role into the SLE12 node
+    want_sles12=1 (default 0)
+        setup SLE12 compute nodes
+    want_sles12_controller=1 (default 0)
+        setup SLE12 controller node, deploy SLE12 services ready for SLE12 controller
+        Only for SUSE OpenStack Cloud 6
     want_dvr=1 (default='')
         if DVR support should be turned on by neutron barclamp. Only works with openvswitch and vxlan.
     want_docker=1 (default='')
@@ -1172,6 +1177,10 @@ function sanity_checks()
         This is needed for VMs to have DNS, but might have a security impact
         if the machine has a global public IP
         see bnc#928384 and CVE-2012-3411"
+
+    if [ "$want_sles12" -eq 1 ] && [ "$want_sles12_controller" -eq 1 ] && [ "$want_ceph" -eq 1 ] && [ "$nodenumber" -lt 4 ] ; then
+        complain 113 "Please increase number of nodes for this setup, minimal nodenumber=4"
+    fi
 }
 
 
