@@ -490,12 +490,12 @@ function get_crowbar_node()
     get_all_nodes | grep -v "^d" | head -n 1
 }
 
-function get_sle12_node()
+function get_sles12_node()
 {
     knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g'
 }
 
-function get_sle12_controller()
+function get_sles12_controller()
 {
     knife search node "target_platform:suse-12.0 && intended_role:no_role" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g'
 }
@@ -1695,8 +1695,8 @@ function custom_configuration()
         sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/" $pfile
     fi
 
-    local sle12node=`get_sle12_node`
-    local sle12controller=`get_sle12_controller`
+    local sles12node=`get_sles12_node`
+    local sles12controller=`get_sles12_controller`
 
     ### NOTE: ONLY USE proposal_{set,modify}_value functions below this line
     ###       The edited proposal will be read and imported at the end
@@ -1712,19 +1712,19 @@ function custom_configuration()
     if [ -n "$want_sles12_controller" ] ; then
         case "$proposal" in
             database|keystone|glance|heat)
-                proposal_set_value ${proposal} default "['deployment']['${proposal}']['elements']['${proposal}-server']" "['$sle12controller']"
+                proposal_set_value ${proposal} default "['deployment']['${proposal}']['elements']['${proposal}-server']" "['$sles12controller']"
             ;;
             cinder)
-                proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['$sle12controller']"
+                proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['$sles12controller']"
             ;;
             #neutron)
                 #FIXME: till bug#930986 this part can be enabled once again
                 # https://bugzilla.suse.com/show_bug.cgi?id=930986
-                #proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['$sle12controller']"
-                #proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sle12controller']"
+                #proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['$sles12controller']"
+                #proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sles12controller']"
             #;;
             ceilometer)
-                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['$sle12controller']"
+                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['$sles12controller']"
             ;;
         esac
     fi
@@ -1816,11 +1816,11 @@ function custom_configuration()
             fi
 
             if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
-                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-docker']" "['$sle12node']"
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-docker']" "['$sles12node']"
                 # do not assign another compute role to this node
                 if [ -n "$nodescompute" ] ; then
                     local novanodes
-                    novanodes=`printf "\"%s\",\n" $nodescompute | grep -iv $sle12node`
+                    novanodes=`printf "\"%s\",\n" $nodescompute | grep -iv $sles12node`
                     novanodes="[ ${novanodes%,} ]"
                     proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "$novanodes"
                 fi
@@ -1896,7 +1896,7 @@ function custom_configuration()
             # assign neutron-network role to one of SLE12 nodes
             if [ -n "$want_sles12" ] && [ -z "$hacloud"] && [ -n "$want_neutronsles12" ] && iscloudver 5plus ; then
                 # 2015-03-03 off-by-default because Failed to validate proposal: Role neutron-network can't be used for suse 12.0, windows /.*/ platform(s).
-                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sle12node']"
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sles12node']"
             fi
 
             if [[ $hacloud = 1 ]] ; then
@@ -2610,9 +2610,9 @@ EOF
         fi
     fi
 
-    # prepare docker image at sle12 compute node
+    # prepare docker image at sles12 compute node
     if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
-        ssh `get_sle12_node` docker pull cirros
+        ssh `get_sles12_node` docker pull cirros
     fi
 
     oncontroller oncontroller_testsetup
