@@ -273,24 +273,56 @@ mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
 
-nova boot --poll --flavor $NOVA_FLAVOR --image $imgid --key_name testkey testvm
-nova list
+cat - > testvm.stack <<EOF
+heat_template_version: 2013-05-23
+
+description: Test VM
+
+resources:
+  my_instance:
+    type: OS::Nova::Server
+    properties:
+      key_name: testkey
+      image: $imgid
+      flavor: $NOVA_FLAVOR
+      networks:
+        - port: { get_resource: my_fixed_port }
+
+  my_fixed_port:
+    type: OS::Neutron::Port
+    properties:
+      network: fixed
+      security_groups: [ default ]
+
+  my_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: ext
+      port_id: { get_resource: my_fixed_port }
+
+outputs:
+  server_floating_ip:
+    value: { get_attr: [ my_floating_ip, floating_ip_address ] }
+EOF
+
+heat stack-create -f $PWD/testvm.stack teststack
+
 sleep 30
 . /etc/openstackquickstartrc
-FLOATING_IP=$(nova floating-ip-list | grep -P -o "172.31\S+" | head -n 1)
-nova add-floating-ip testvm $FLOATING_IP
-sleep 5
+
+FLOATING_IP=$(eval echo $(heat output-show teststack server_floating_ip))
 echo "FLOATING IP: $FLOATING_IP"
 if [ -n "$FLOATING_IP" ]; then
     ping -c 2 $FLOATING_IP || true
     ssh -o "StrictHostKeyChecking no" $ssh_user@$FLOATING_IP curl --silent www3.zq1.de/test || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
-    nova show testvm
+    heat resource-show teststack
 
     exit 1
 fi
-nova delete testvm || :
+heat stack-delete teststack || :
+sleep 3
 
 for i in $(nova floating-ip-list  |awk '{print $2}' |grep 172); do nova floating-ip-delete $i; done
 
