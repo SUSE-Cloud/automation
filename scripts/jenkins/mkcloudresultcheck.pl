@@ -27,6 +27,7 @@ for my $num ($startnum..$endnum) {
                 if(m/FAILED \((failures=\d+)\)\n\+ tempestret=/) {$descr.="/$1"}
             }
         }
+        if(m/Error: Committing the crowbar '\w+' proposal for '(\w+)' failed/) {$descr.="/$1"}
     }
     print "$build $descr\n";
     system("./japi", "setdescription", $build, $descr);
