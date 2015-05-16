@@ -187,7 +187,7 @@ fi
 if [ -n "$tempest" ]; then
     sed -i -e "s/with_tempest=no/with_tempest=yes/" /etc/openstackquickstartrc
 fi
-sed -i -e "s/with_horizon=yes/with_horizon=no/" /etc/openstackquickstartrc
+sed -i -e "s/with_horizon=no/with_horizon=yes/" /etc/openstackquickstartrc
 sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
 unset http_proxy
 openstack-quickstart-demosetup
