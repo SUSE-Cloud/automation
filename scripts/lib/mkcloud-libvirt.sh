@@ -157,28 +157,6 @@ EOLIBVIRT
     fi
 }
 
-function libvirt_onhost_create_admin_network_config()
-{
-    local file=/tmp/$cloud-admin.net.xml
-    # dont specify range
-    # this allows to use the same network for cloud-nodes that get DHCP from crowbar
-    # doc: http://libvirt.org/formatnetwork.html
-    cat > $file <<EOLIBVIRTNET
-  <network>
-    <name>$cloud-admin</name>
-    <bridge name='$cloudbr' stp='off' delay='0' />
-    <mac address='52:54:00:AB:B1:77'/>
-    <ip address='$admingw' netmask='$adminnetmask'>
-      <dhcp>
-        <host mac="52:54:00:77:77:70" name="crowbar.$cloudfqdn" ip="$adminip"/>
-      </dhcp>
-    </ip>
-    <forward mode='$forwardmode'>
-    </forward>
-  </network>
-EOLIBVIRTNET
-}
-
 function libvirt_modprobe_kvm()
 {
     modprobe kvm-amd
@@ -216,7 +194,7 @@ function libvirt_start_daemon()
 function libvirt_setupadmin()
 {
     libvirt_onhost_create_adminnode_config
-    libvirt_onhost_create_admin_network_config
+    ${mkcloud_lib_dir}/libvirt/net-config $cloud $cloudbr $admingw $adminnetmask $cloudfqdn $adminip $forwardmode > /tmp/$cloud-admin.net.xml
     libvirt_modprobe_kvm
     libvirt_start_daemon
     ${mkcloud_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
