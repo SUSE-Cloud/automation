@@ -272,6 +272,11 @@ imgid=$(glance image-list|grep debian-5|cut -f2 -d" ")
 mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
+function get_fixed_network_id () {
+    local id
+    eval `neutron net-show -f shell -F id fixed`
+    echo "$id"
+}
 
 cat - > testvm.stack <<EOF
 heat_template_version: 2013-05-23
@@ -291,7 +296,7 @@ resources:
   my_fixed_port:
     type: OS::Neutron::Port
     properties:
-      network: fixed
+      network_id: $(get_fixed_network_id)
       security_groups: [ default ]
 
   my_floating_ip:
