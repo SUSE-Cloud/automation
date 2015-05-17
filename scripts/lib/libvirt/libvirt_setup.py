@@ -1,0 +1,215 @@
+from __future__ import print_function
+import xml.etree.ElementTree as ET
+import glob
+import libvirt
+import os
+from string import Template
+import sys
+import subprocess
+
+TEMPLATE_DIR = "{0}/templates".format(os.path.dirname(__file__))
+
+
+def libvirt_connect():
+    conn = libvirt.open("qemu:///system")
+    if not conn:
+        print("Failed to open connection to the hypervisor")
+        sys.exit(1)
+    return conn
+
+
+def readfile(fname):
+    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
+        ret = f.read()
+    return ret
+
+
+def remove_files(files):
+    for f in glob.glob(files):
+        print("removing {0}".format(f))
+        os.remove(f)
+
+
+def cpuflags():
+    cpu_flags = readfile("{0}/cpu-default.xml".format(TEMPLATE_DIR))
+    if (subprocess.call(["grep", "-q", "flags.* npt", "/proc/cpuinfo"]) == 0):
+        cpu_flags = ""
+    if (subprocess.call(["grep", "-q", "vendor_id.*GenuineIntel",
+                        "/proc/cpuinfo"]) == 0):
+        cpu_flags = readfile("{0}/cpu-intel.xml".format(TEMPLATE_DIR))
+    return cpu_flags
+
+
+def hypervisor_has_virtio(libvirt_type):
+    if (libvirt_type == "xen" or libvirt_type == "hyperv"):
+        return False
+    else:
+        return True
+
+
+def get_config(values, fin):
+    template = Template(readfile(fin))
+    return template.substitute(values)
+
+
+def admin_config(args, cpu_flags=cpuflags()):
+    fin = "{0}/admin-node.xml".format(TEMPLATE_DIR)
+
+    # add xml snippet to be able to mount a local dir via 9p in a VM
+    localrepomount = ""
+    if args.localreposrc and args.localrepotgt:
+        local_repo_template = Template(readfile(
+            "{0}/local-repository-mount.xml".format(TEMPLATE_DIR)))
+        local_repo_values = dict(localreposdir_src=args.localreposrc,
+                                 localreposdir_target=args.localrepotgt)
+        localrepomount = local_repo_template.substitute(local_repo_values)
+
+    values = dict(
+        cloud=args.cloud,
+        admin_node_memory=args.adminnodememory,
+        adminvcpus=args.adminvcpus,
+        cpuflags=cpu_flags,
+        emulator=args.emulator,
+        admin_node_disk=args.adminnodedisk,
+        local_repository_mount=localrepomount)
+
+    return get_config(values, fin)
+
+
+def net_config(args):
+    cloud = args.cloud
+    fin = "{0}/admin-net.xml".format(TEMPLATE_DIR)
+    values = dict(
+        cloud=cloud,
+        cloudbr=args.cloudbr,
+        admingw=args.admingw,
+        adminnetmask=args.adminnetmask,
+        cloudfqdn=args.cloudfqdn,
+        adminip=args.adminip,
+        forwardmode=args.forwardmode)
+
+    return get_config(values, fin)
+
+
+def compute_config(args, cpu_flags=cpuflags()):
+    fin = "{0}/compute-node.xml".format(TEMPLATE_DIR)
+    libvirt_type = args.libvirttype
+    if hypervisor_has_virtio(libvirt_type):
+        nicmodel = "e1000"
+        targetdev = "vda"
+        targetbus = "virtio"
+    else:
+        nicmodel = "virtio"
+        targetdev = "sda"
+        targetbus = "ide"
+    if args.nodecounter == "1":
+        nodememory = args.computenodememory
+    else:
+        nodememory = args.controllernodememory
+
+    values = dict(
+        cloud=args.cloud,
+        nodecounter=args.nodecounter,
+        nodememory=nodememory,
+        vcpus=args.vcpus,
+        cpuflags=cpu_flags,
+        emulator=args.emulator,
+        vdisk_dir=args.vdiskdir,
+        cephvolume=args.cephvolume,
+        drbdvolume=args.drbdvolume,
+        macaddress=args.macaddress,
+        nicmodel=nicmodel,
+        target_dev=targetdev,
+        target_bus=targetbus,
+        bootorder=args.bootorder)
+
+    return get_config(values, fin)
+
+
+def cleanup(args):
+    conn = libvirt_connect()
+    devnull = open(os.devnull, "w")
+    domains = [i for i in conn.listAllDomains()
+               if i.name().startswith(args.cloud)]
+
+    for dom in domains:
+        domain_cleanup(dom)
+        machine = "{0}-{1}".format("qemu", dom.name())
+        try:
+            machine_status = subprocess.call(
+                ["machinectl", "status", machine],
+                stdout=devnull, stderr=subprocess.STDOUT)
+            if machine_status == 0:
+                # workaround bnc#916518
+                print("Working around bnc#916518 by \
+                      'machinectl terminate {0}'".format(machine))
+                subprocess.call(["machinectl", "terminate", machine])
+        except OSError:
+            # no machinectl available
+            pass
+
+    networks = [i for i in conn.listAllNetworks()
+                if i.name() == "{0}-admin".format(args.cloud)]
+    for network in networks:
+        if network.isActive():
+            print("destroying {0}".format(network.name()))
+            network.destroy()
+
+        print("undefining {0}".format(network.name()))
+        network.undefine()
+
+    remove_files("/tmp/{0}-*.xml".format(args.cloud))
+    remove_files("/var/run/libvirt/qemu/{0}-*.xml".format(args.cloud))
+    remove_files("/var/lib/libvirt/network/{0}-*.xml".format(args.cloud))
+    remove_files("/etc/sysconfig/network/ifcfg-{0}.{1}".format(
+        args.cloudbr, args.public_vlan))
+
+
+def domain_cleanup(dom):
+    if dom.isActive():
+        print("destroying {0}".format(dom.name()))
+        dom.destroy()
+
+    print("undefining {0}".format(dom.name()))
+    dom.undefine()
+
+
+def xml_get_value(path, attrib):
+    tree = ET.parse(path)
+    return tree.find(attrib).text
+
+
+def net_start(args):
+    conn = libvirt_connect()
+    netpath = args.netpath
+    netname = xml_get_value(args.netpath, "name")
+    print("defining network from {0}".format(netname))
+    networks = conn.listNetworks()
+    if netname not in networks:
+        print("defining network from {0}".format(netpath))
+        xml = readfile(netpath)
+        conn.networkDefineXML(xml)
+    print("starting {0} network".format(netname))
+    dom = conn.networkLookupByName(netname)
+    dom.create()
+
+
+def vm_start(args):
+    conn = libvirt_connect()
+    vmpath = args.vmpath
+    vmname = xml_get_value(args.vmpath, "name")
+    # cleanup old domain
+    try:
+        print("cleaning up {0}".format(vmname))
+        dom = conn.lookupByName(vmname)
+        domain_cleanup(dom)
+    except:
+        print("no domain for {0} active".format(vmname))
+
+    xml = readfile(vmpath)
+    print("defining VM from {0}".format(vmpath))
+    conn.defineXML(xml)
+    if "dom" not in locals():
+        dom = conn.lookupByName(vmname)
+    print("booting {0} VM".format(vmname))
+    dom.create()

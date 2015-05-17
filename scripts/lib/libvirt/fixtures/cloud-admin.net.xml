@@ -1,0 +1,12 @@
+<network>
+  <name>cloud-admin</name>
+  <bridge name='cloudbr' stp='off' delay='0' />
+  <mac address='52:54:00:AB:B1:77'/>
+  <ip address='192.168.124.1' netmask='255.255.248.0'>
+    <dhcp>
+      <host mac="52:54:00:77:77:70" name="crowbar.unittest.suse.de" ip="192.168.124.10"/>
+    </dhcp>
+  </ip>
+  <forward mode='nat'>
+  </forward>
+</network>

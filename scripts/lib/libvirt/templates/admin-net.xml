@@ -1,0 +1,12 @@
+<network>
+  <name>${cloud}-admin</name>
+  <bridge name='${cloudbr}' stp='off' delay='0' />
+  <mac address='52:54:00:AB:B1:77'/>
+  <ip address='${admingw}' netmask='${adminnetmask}'>
+    <dhcp>
+      <host mac="52:54:00:77:77:70" name="crowbar.${cloudfqdn}" ip="${adminip}"/>
+    </dhcp>
+  </ip>
+  <forward mode='${forwardmode}'>
+  </forward>
+</network>
