@@ -219,6 +219,6 @@ function libvirt_setupadmin()
     libvirt_onhost_create_admin_network_config
     libvirt_modprobe_kvm
     libvirt_start_daemon
-    python ${mkcloud_lib_dir}/libvirt/net-start.py $cloud-admin || exit $?
+    ${mkcloud_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
     ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
 }
