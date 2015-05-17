@@ -191,7 +191,7 @@ sed -i -e "s/with_horizon=no/with_horizon=yes/" /etc/openstackquickstartrc
 sed -i -e "s/node_is_compute=.*/node_is_compute=yes/" /etc/openstackquickstartrc
 sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
 unset http_proxy
-openstack-quickstart-demosetup
+bash -x openstack-quickstart-demosetup
 
 if [ "$(uname -r  | cut -d. -f2)" -ge 10 ]; then
     echo "APPLYING HORRIBLE HACK PLEASE REMOVE"
