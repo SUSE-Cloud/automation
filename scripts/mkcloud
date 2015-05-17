@@ -569,9 +569,7 @@ function setuplonelynodes()
         mac="52:54:$i2:88:77:$i2"
         local lonely_node
         lonely_node=$cloud-node$i
-        libvirt_onhost_create_computenode_config /tmp/$lonely_node.xml $i $mac
-        # change the boot order to not PXE boot the lonely node
-        sed -i "s/boot order='1'/boot order='3'/g" /tmp/$lonely_node.xml
+        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $macaddress "$cephvolume" "$drbdvolume" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "3" > /tmp/$cloud-node$i.xml
 
         local lonely_disk
         lonely_disk="$vdisk_dir/${cloud}.node$i"

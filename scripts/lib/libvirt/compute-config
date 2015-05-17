@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+
+import argparse
+
+import libvirt_setup
+
+
+def main():
+
+    parser = argparse.ArgumentParser(description="Create Compute Node Config.")
+    parser.add_argument("cloud", type=str, help="Name of the Cloud")
+    parser.add_argument("nodecounter", type=str,
+                        help="Node Counter \
+                        (when this script is called within a loop, this \
+                        is usually an incremented number)")
+    parser.add_argument("macaddress", type=str, help="MAC Address")
+    parser.add_argument("cephvolume", type=str, help="Ceph Volume XML Snippet")
+    parser.add_argument("drbdvolume", type=str, help="DRBD Volume XML Snippet")
+    parser.add_argument("computenodememory", type=str,
+                        help="Compute Node Memory (kB)")
+    parser.add_argument("controllernodememory", type=str,
+                        help="Controller Node Memory (kB)")
+    parser.add_argument("libvirttype", type=str,
+                        help="Libvirt Type (e.g. kvm)")
+    parser.add_argument("vcpus", type=str, help=" Number of VCPUs")
+    parser.add_argument("emulator", type=str,
+                        help="Emulator (e.g. /usr/bin/qemu-system-x86_64)")
+    parser.add_argument("vdiskdir", type=str,
+                        help="Virtual Disk Directory (e.g /dev/cloud)")
+    parser.add_argument("bootorder", type=str,
+                        help="Boot Order (e.g. 2)")
+
+    args = parser.parse_args()
+
+    print(libvirt_setup.compute_config(args))
+
+if __name__ == "__main__":
+    main()
