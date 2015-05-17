@@ -322,9 +322,9 @@ else
     exit 1
 fi
 heat stack-delete teststack || :
-sleep 3
+sleep 10
 
-for i in $(nova floating-ip-list  |awk '{print $2}' |grep 172); do nova floating-ip-delete $i; done
+for i in $(nova floating-ip-list | grep -P -o "172.31\S+"); do nova floating-ip-delete $i; done
 
 # run tempest
 if [ -e /etc/tempest/tempest.conf ]; then
