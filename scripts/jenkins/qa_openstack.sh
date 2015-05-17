@@ -188,6 +188,7 @@ if [ -n "$tempest" ]; then
     sed -i -e "s/with_tempest=no/with_tempest=yes/" /etc/openstackquickstartrc
 fi
 sed -i -e "s/with_horizon=no/with_horizon=yes/" /etc/openstackquickstartrc
+sed -i -e "s/node_is_compute=.*/node_is_compute=yes/" /etc/openstackquickstartrc
 sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
 unset http_proxy
 openstack-quickstart-demosetup
@@ -272,9 +273,9 @@ imgid=$(glance image-list|grep debian-5|cut -f2 -d" ")
 mkdir -p ~/.ssh
 ( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
 
-function get_fixed_network_id () {
+function get_network_id() {
     local id
-    eval `neutron net-show -f shell -F id fixed`
+    eval `neutron net-show -f shell -F id $1`
     echo "$id"
 }
 
@@ -296,13 +297,13 @@ resources:
   my_fixed_port:
     type: OS::Neutron::Port
     properties:
-      network_id: $(get_fixed_network_id)
+      network_id: $(get_network_id fixed)
       security_groups: [ default ]
 
   my_floating_ip:
     type: OS::Neutron::FloatingIP
     properties:
-      floating_network: ext
+      floating_network_id: $(get_network_id ext)
       port_id: { get_resource: my_fixed_port }
 
 outputs:
