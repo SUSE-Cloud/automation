@@ -470,21 +470,6 @@ EOSSHASK
     DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh $sshopts -oNumberOfPasswordPrompts=1 "$@"
 }
 
-function onhost_local_repository_mount()
-{
-    #add xml snippet to be able to mount a local dir via 9p in a VM
-    if [ -n "${localreposdir_src}" ]; then
-        local_repository_mount="<filesystem type='mount' accessmode='squash'>
-            <source dir='$localreposdir_src'/>
-            <target dir='$localreposdir_target'/>
-            <readonly/>
-            <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
-            </filesystem>"
-    else
-        local_repository_mount=""
-    fi
-}
-
 
 # bring up the VM for crowbar
 function setupadmin()
