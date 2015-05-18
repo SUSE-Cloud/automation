@@ -55,7 +55,7 @@ fi
 # causes of this is violation of the common shell coding standard which
 # uses uppercase for environment variables and constants, and lowercase
 # for local variables.
-: ${mkcloud_dir:=$(dirname $0)}
+: ${mkcloud_dir:=$(dirname $(readlink -e $0))}
 : ${qa_crowbarsetup:=${mkcloud_dir}/qa_crowbarsetup.sh}
 mkcloud_lib_dir=${mkcloud_dir}/lib
 : ${cinder_backend:=''}
