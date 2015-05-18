@@ -202,8 +202,9 @@ fi
 
 . /etc/bash.bashrc.local
 
-nova flavor-delete m1.nano || :
-nova flavor-create m1.nano --ephemeral 20 42 128 0 1
+NOVA_FLAVOR="m1.nano"
+nova flavor-delete $NOVA_FLAVOR || :
+nova flavor-create $NOVA_FLAVOR --ephemeral 20 42 128 0 1
 nova flavor-delete m1.micro || :
 nova flavor-create m1.micro --ephemeral 20 84 256 0 1
 
@@ -224,7 +225,6 @@ cinder create 1 ; sleep 10
 vol_id=$(cinder list | grep available | cut -d' ' -f2)
 cinder list
 cinder delete $vol_id
-NOVA_FLAVOR="42"
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
 ssh_user="root"
