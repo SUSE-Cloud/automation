@@ -1492,7 +1492,7 @@ function waitnodes()
                     tail -n 90 \
                         /opt/dell/crowbar_framework/log/d*.log \
                         /var/log/crowbar/chef-client/d*.log
-                    complain 40 "Error: proposal $proposal failed. Exiting."
+                    complain 40 "proposal $proposal failed. Exiting."
                 fi
                 sleep 5
                 n=$((n-1))
@@ -1502,7 +1502,7 @@ function waitnodes()
             echo "proposal $proposal successful"
             ;;
         *)
-            complain 72 "Error: waitnodes was called with wrong parameters"
+            complain 72 "waitnodes was called with wrong parameters"
             ;;
     esac
 
@@ -1978,7 +1978,7 @@ function custom_configuration()
     esac
 
     crowbar $proposal proposal --file=$pfile edit $proposaltype ||\
-        complain 88 "Error: 'crowbar $proposal proposal --file=$pfile edit $proposaltype' failed with exit code: $?"
+        complain 88 "'crowbar $proposal proposal --file=$pfile edit $proposaltype' failed with exit code: $?"
 }
 
 # set global variables to be used in and after proposal phase
@@ -2352,7 +2352,7 @@ function oncontroller_testsetup()
     # wait for image to finish uploading
     imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
     if [ "x$imageid" == "x" ]; then
-        complain 37 "Error: Image ID for $image_name not found"
+        complain 37 "Image ID for $image_name not found"
     fi
 
     for n in $(seq 1 200) ; do
