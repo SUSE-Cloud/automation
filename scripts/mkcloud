@@ -1178,7 +1178,7 @@ function sanity_checks()
         if the machine has a global public IP
         see bnc#928384 and CVE-2012-3411"
 
-    if [ "$want_sles12" -eq 1 ] && [ "$want_sles12_controller" -eq 1 ] && [ "$want_ceph" -eq 1 ] && [ "$nodenumber" -lt 4 ] ; then
+    if [[ $want_sles12 ]] && [[ $want_sles12_controller ]] && [[ $want_ceph = 1 ]] && [[ $nodenumber -lt 4 ]] ; then
         complain 113 "Please increase number of nodes for this setup, minimal nodenumber=4"
     fi
 }
