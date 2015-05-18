@@ -66,7 +66,7 @@ def main():
     try:
         print("undefining {0}".format(net_name))
         network.undefine()
-    except libvirt.libvirtError:
+    except (libvirt.libvirtError, UnboundLocalError):
         print("...skipping undefined network")
 
     remove_files("/var/run/libvirt/qemu/{0}-*.xml".format(args.cloud))
