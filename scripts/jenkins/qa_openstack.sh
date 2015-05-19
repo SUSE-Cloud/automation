@@ -345,7 +345,9 @@ if [ -e /etc/tempest/tempest.conf ]; then
     if ! [ -d ".testrepository" ]; then
         testr init
     fi
-    testr list-tests
+    testr list-tests >/dev/null
+
+    tempest-cleanup --init-saved-state
 
     ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
     [ ${PIPESTATUS[0]} == 0 ] || exit 4
