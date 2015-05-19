@@ -140,15 +140,7 @@ fi
 $zypper -n patch --skip-interactive || $zypper -n patch --skip-interactive
 
 # grizzly or master does not want dlp
-if [ "$cloudsource" == "develcloud1.0" -o "$cloudsource" == "develcloud" ]; then
-    if [ $VERSION = 12.2 ] ; then
-        $zypper ar http://download.opensuse.org/repositories/devel:/languages:/python/$REPO/ dlp
-        $zypper ar http://download.opensuse.org/repositories/Virtualization:/openSUSE12.2/openSUSE_12.2/Virtualization:openSUSE12.2.repo # workaround https://bugzilla.novell.com/793900
-    fi
-    $zypper mr --priority 200 dlp
-else
-    $zypper rr dlp || true
-fi
+$zypper rr dlp || true
 
 $zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 $zypper --gpg-auto-import-keys -n ref
