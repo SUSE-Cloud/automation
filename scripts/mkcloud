@@ -122,7 +122,6 @@ pvlist=
 next_pv_device=
 pv_cur_device_no=0
 : ${cloudbr:=${cloud}br}
-mnt=/tmp/cloudmnt/$$
 sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
 scp="scp $sshopts"
 #if localreposdir_src string is available, the local repositories are used for setup
@@ -501,6 +500,8 @@ function setupadmin()
     echo "Injecting public key into image..."
     keyfile=~/.ssh/id_dsa.pub
     pubkey=`cut -d" " -f2 $keyfile`
+    local mnt=/tmp/cloudmnt/$$
+    rm -rf $mnt
     mkdir -p $mnt
     safely mount -o loop,offset=$(expr 2056192 \* 512) $admin_node_disk $mnt
     mkdir -p $mnt/root/.ssh
@@ -511,6 +512,7 @@ function setupadmin()
         cat $user_keyfile >> $mnt/root/.ssh/authorized_keys
     fi
     safely umount $mnt
+    safely rmdir $mnt
 
     libvirt_setupadmin
 
