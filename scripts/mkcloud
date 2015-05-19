@@ -311,9 +311,9 @@ function cleanup()
         [ -z "$lodev" ] && continue
 
         if mount | grep "$lodev " ; then
-            umount $lodev || complain 41 "Error: Can not umount $lodev to cleanup $dev ($vol)."
+            umount $lodev || complain 41 "Can not umount $lodev to cleanup $dev ($vol)."
         fi
-        losetup -d $lodev || complain 41 "Error: Can not remove loopdevice $lodev to cleanup $dev ($vol)."
+        losetup -d $lodev || complain 41 "Can not remove loopdevice $lodev to cleanup $dev ($vol)."
     done
 
     # 2. remove all previous volumes for that cloud; this helps preventing
@@ -409,7 +409,7 @@ function onhost_deploy_image()
         offset=2056192
         ;;
     *)
-        complain 71 "Error: onhost_deploy_image has not enough information about how to deploy. (distribution: $dist)"
+        complain 71 "onhost_deploy_image has not enough information about how to deploy. (distribution: $dist)"
         ;;
     esac
 
