@@ -2524,7 +2524,7 @@ function onadmin_testsetup()
             git reset --hard
             git pull
         else
-            git clone git://git.suse.de/ceph/qa-automation.git
+            git clone http://clouddata.cloud.suse.de/git/qa-automation.git
             pushd qa-automation
         fi
 
