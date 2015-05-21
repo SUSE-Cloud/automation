@@ -22,13 +22,27 @@ for my $num ($startnum..$endnum) {
         if($2 eq "102") {
             if(m/RadosGW Tests: [^0]/) {$descr.="/radosgw"}
             if(m/Volume in VM: (\d+) & (\d+)/ and ($1||$2)) {$descr.="/volume=$1&$2"}
-            if(m/Tempest: [^0]/) {
-                $descr.="/tempest";
-                if(m/FAILED \((failures=\d+)\)\n\+ tempestret=/) {$descr.="/$1"}
-            }
+            $descr.=tempestdetails() if(m/Tempest: [^0]/);
         }
         if(m/Error: Committing the crowbar '\w+' proposal for '(\w+)' failed/) {$descr.="/$1"}
     }
     print "$build $descr\n";
     system("./japi", "setdescription", $build, $descr);
+}
+
+sub tempestdetails {
+    my $descr="/tempest";
+    foreach my $regexp (
+        'FAILED \((failures=\d+)\)\n\+ tempestret=',
+        '(ServerFault): Got server fault',
+        'Cannot get interface (MTU) on \'brq',
+        '(Volume) \S+ failed to reach in-use status',
+        '(SSHTimeout): Connection to the',
+        '(KeyError): ',
+        '(MismatchError): ',
+        '(AssertionError): ',
+    ) {
+        if(m/$regexp/) {$descr.="/$1"}
+    }
+    return $descr;
 }
