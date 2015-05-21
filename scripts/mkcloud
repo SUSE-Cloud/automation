@@ -931,7 +931,7 @@ Mandatory
     cloudpv=/dev/vdx (default /dev/vdb)
         Device where a LVM physical volume will be created, all data lost on this device
         Should be at least 80 GB. The volume group will be called 'cloud'.
-    cloudsource=develcloud3 | develcloud4 | develcloud5 | develcloud6 | susecloud5 | GM3 | GM4 | GM3+up | GM4+up | M?  (default '')
+    cloudsource=develcloud3 | develcloud4 | develcloud5 | develcloud6 | susecloud5 | GM3 | GM4 | GM3+up | GM4+up | GM5 | GM5+up | M?  (default '')
         defines the installation source of the product
         develcloud3   : product from IBS Devel:Cloud:3
         develcloud4   : product from IBS Devel:Cloud:4
@@ -1112,7 +1112,7 @@ function sanity_checks()
 
     if [ -z "$cloudsource" ] ; then
         echo "Please set the env variable:"
-        echo "export cloudsource=M?|develcloud3|develcloud4|develcloud5|develcloud6|susecloud5|GM3|GM4|GM3+up|GM4+up"
+        echo "export cloudsource=M?|develcloud3|develcloud4|develcloud5|develcloud6|susecloud5|GM3|GM4|GM3+up|GM4+up|GM5|GM5+up"
         exit 1
     fi
 
