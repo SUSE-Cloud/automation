@@ -52,6 +52,9 @@ $UP="${USER}:${APIKEY}\@" if (defined ${USER} && defined ${APIKEY} && ${USER} ne
 my $jurlbase="${SCHEME}://${UP}${JURL}";
 my $jurl=$jurlbase."/api/xml";
 
+# get 'one' parser
+my $parser=XML::LibXML->new();
+
 sub usage()
 {
   return "Usage: $0 <command> [<parameter> ..]
@@ -111,7 +114,6 @@ sub file_read_xml($)
   my $file = shift || die "Error: no input file to read the service xml data from.";
   open (my $FH, '<', $file) or die $!;
   binmode $FH;
-  my $parser=XML::LibXML->new();
   my $xml = $parser->load_xml(
     IO => $FH,
     { no_blanks => 1 }
@@ -151,7 +153,6 @@ sub curl(@)
 sub get_cloud_job_list
 {
   my $jenkinscfg=curl("$jurl/config.xml");
-  my $parser=XML::LibXML->new();
   my $xml = $parser->parse_string($jenkinscfg);
   return xml_get_elements($xml,"/hudson/job/name");
 }
