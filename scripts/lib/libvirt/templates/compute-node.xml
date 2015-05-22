@@ -24,8 +24,8 @@
       <target dev='$target_dev' bus='$target_bus'/>
       <boot order='$bootorder'/>
     </disk>
-    $cephvolume
-    $drbdvolume
+$cephvolume
+$drbdvolume
     <interface type='network'>
       <mac address='$macaddress'/>
       <source network='$cloud-admin'/>
