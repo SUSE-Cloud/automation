@@ -15,8 +15,15 @@ for my $num ($startnum..$endnum) {
     last if m/<body><h2>HTTP ERROR 404/;
     next unless m/Finished: FAILURE/;
     system("echo \$((1+$num)) > $numfile");
-    my $descr = "unknown cause";
-    /java.lang.OutOfMemoryError/ and $descr=$&;
+    my $descr = "";
+    foreach my $regexp (
+        '(java.lang.OutOfMemoryError)',
+        '(Slave went offline) during the build',
+        '(Crowbar inst)allation terminated prematurely.  Please examine the above',
+        'Build (timed out) \(after \d+ minutes\). Marking the build as failed.',
+    ) {
+        if(m/$regexp/) {$descr.=" $1"}
+    }
     /\+ '\[' (\d+) = 0 '\]'\n\+ exit 1\nBuild step/ and $1 and $descr="ret=$1";
     if(/The step '(\w+)' returned with exit code (\d+)/) {
         $descr="$1/ret=$2";
@@ -27,6 +34,7 @@ for my $num ($startnum..$endnum) {
         }
         if(m/Error: Committing the crowbar '\w+' proposal for '(\w+)' failed/) {$descr.="/$1"}
     }
+    $descr ||= "unknown cause";
     print "$build $descr\n";
     system("./japi", "setdescription", $build, $descr);
 }
