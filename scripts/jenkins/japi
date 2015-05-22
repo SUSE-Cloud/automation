@@ -64,6 +64,8 @@ sub usage()
     fetch-all <prefix> : fetch all jobs that match one of the <prefix>es
     push-all  <prefix> : push all jobs that match one of the <prefix>es
     reformat  <file>   : reformat the XML after manual changes
+    setdescription <build> <description> : set description of a build
+    getbuilds <jobname> : get build numbers
 
   The <jobname> has to be the exact job name (no directory, no trailing .xml)
   The <prefix> will match all
@@ -257,13 +259,21 @@ sub setdescription
   curl("${jurlbase}/job/${build}/submitDescription?description=$descr");
 }
 
+sub getbuilds
+{
+  my $jobname=shift;
+  $jobname or die "needs jobname";
+  my $buildxml=curl("${jurlbase}/job/${jobname}/api/xml?xpath=//number&wrapper=builds");
+  my $xml = $parser->parse_string($buildxml);
+  print map {"$_\n"} xml_get_elements($xml, "/builds/number");
+}
 
 
 ### MAIN ###
 
 my $cmd=shift || die usage();
 my %handlefunc=();
-foreach my $func (qw(reformat setdescription)) {
+foreach my $func (qw(reformat setdescription getbuilds)) {
   $handlefunc{$func} = eval "\\&$func";
 }
 foreach my $c (qw(fetch fetch-all push push-all)) {
