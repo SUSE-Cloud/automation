@@ -139,10 +139,18 @@ sub reformat($)
   file_write($tufile, $xmldom->toString(1));
 }
 
+sub curl(@)
+{
+  my @cmd=("curl", "--silent", "-H", $CRUMB, @_);
+  print join(" ", @cmd)."\n" if ($ENV{debug});
+  open(my $pipe, "-|", @cmd);
+  local $/;
+  return scalar <$pipe>;
+}
+
 sub get_cloud_job_list
 {
-  my $curlcmd="curl -H '$CRUMB' --silent $jurl/config.xml";
-  my $jenkinscfg=`$curlcmd`;
+  my $jenkinscfg=curl("$jurl/config.xml");
   my $parser=XML::LibXML->new();
   my $xml = $parser->parse_string($jenkinscfg);
   return xml_get_elements($xml,"/hudson/job/name");
@@ -153,9 +161,7 @@ sub fetch_job($)
   my $jobname=shift || die "Error: no job name specified";
   my $fetchurl=$jurlbase."/job/$jobname/config.xml";
   print "fetching $jobname\n";
-  my @cmd=("curl", "-H", "$CRUMB", "--silent", "--output", "./${JURL}/${jobname}.xml", "$fetchurl");
-  print join(" ", @cmd)."\n" if ( $ENV{debug});
-  system(@cmd);
+  curl("--output", "./${JURL}/${jobname}.xml", "$fetchurl");
   # beautify the xml in order to have consistent LibXML output and prevent useless diffs
   clean_xml("./${JURL}/${jobname}.xml");
 }
@@ -188,13 +194,7 @@ sub fetchall_jobs
 
 sub has_error
 {
-  my $pipe=shift;
-  while (<$pipe>) {
-    if (/(error|500)/i) {
-      return 1;
-    }
-  }
-  return 0;
+  return $_[0]=~/(error|500)/i;
 }
 
 sub push_job($)
@@ -205,12 +205,12 @@ sub push_job($)
   # make sure the output is reformatted by libXML
   clean_xml("${JURL}/${jobname}.xml");
   # update
-  open(my $pipe, "-|", "curl", "--silent", "-H", $CRUMB, "-X", "$METHOD", "--data-binary", "\@${JURL}/${jobname}.xml", $pushurl);
-  if (has_error($pipe)) {
+  my $result=curl("-X", "$METHOD", "--data-binary", "\@${JURL}/${jobname}.xml", $pushurl);
+  if (has_error($result)) {
     print "  updating failed .. ";
     # create
-    open(my $pipe, "-|", "curl", "--silent", "-H", $CRUMB, "-X", "$METHOD", "-H", "Content-Type: text/xml", "--data-binary", "\@${JURL}/${jobname}.xml", "${jurlbase}/createItem?name=${jobname}");
-    if ( has_error($pipe) ) {
+    $result=curl("-X", "$METHOD", "-H", "Content-Type: text/xml", "--data-binary", "\@${JURL}/${jobname}.xml", "${jurlbase}/createItem?name=${jobname}");
+    if (has_error($result)) {
       print "creating failed as well .. -> ERROR!\n";
     } else {
       print "job successfully created\n";
@@ -253,7 +253,7 @@ sub setdescription
 {
   my $build=shift; # e.g. "openstack-mkcloud/3668"
   my $descr=urlencode(shift); # Text to set
-  system("curl", "--silent", "-H", $CRUMB, "${jurlbase}/job/${build}/submitDescription?description=$descr");
+  curl("${jurlbase}/job/${build}/submitDescription?description=$descr");
 }
 
 
