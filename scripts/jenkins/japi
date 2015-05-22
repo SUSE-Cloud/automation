@@ -129,7 +129,7 @@ sub file_write($$)
   close $FH;
 }
 
-sub clean_xml($)
+sub reformat($)
 {
   # just reformat the xml, this will make sure the LibXML output gets versioned
   # the output of the jenkins api is a slightly different and would create useless diffs over and over
@@ -261,10 +261,10 @@ sub setdescription
 ### MAIN ###
 
 my $cmd=shift || die usage();
-my %handlefunc=(
-    reformat => \&clean_xml,
-    setdescription => \&setdescription,
-  );
+my %handlefunc=();
+foreach my $func (qw(reformat setdescription)) {
+  $handlefunc{$func} = eval "\\&$func";
+}
 foreach my $c (qw(fetch fetch-all push push-all)) {
   my $func = "${c}_jobs";
   $func =~ s/-//;
