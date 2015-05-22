@@ -123,8 +123,8 @@ class TestLibvirtComputeConfig(unittest.TestCase):
             ["cloud",
              "nodecounter",
              "macaddress",
-             "cephvolume",
-             "drbdvolume",
+             "cephvolumenumber",
+             "drbdserial",
              "computenodememory",
              "controllernodememory",
              "libvirttype",
@@ -134,22 +134,14 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         args.cloud = "cloud"
         args.nodecounter = "1"
         args.macaddress = "52:54:01:77:77:01"
-        args.cephvolume = """
-    <disk type='block' device='disk'>
-        <serial>cloud-node1-ceph1</serial>
-        <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='/dev/cloud/cloud.node1-ceph1'/>
-        <target dev='vdb' bus='virtio'/>
-    </disk>"""
-        args.drbdvolume = ""
+        args.cephvolumenumber = "1"
         args.computenodememory = "2097152"
         args.controllernodememory = "2097152"
         args.libvirttype = "kvm"
         args.vcpus = "1"
         args.emulator = "/usr/bin/qemu-system-x86_64"
         args.vdiskdir = "/dev/cloud"
-        args.target_dev = "vda"
-        args.target_bus = "ide"
+        args.drbdserial = ""
         args.bootorder = "2"
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))

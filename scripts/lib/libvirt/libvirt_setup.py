@@ -3,9 +3,10 @@ import xml.etree.ElementTree as ET
 import glob
 import libvirt
 import os
-from string import Template
+from string import (Template, lowercase)
 import sys
 import subprocess
+import itertools as it
 
 TEMPLATE_DIR = "{0}/templates".format(os.path.dirname(__file__))
 
@@ -94,18 +95,54 @@ def net_config(args):
 def compute_config(args, cpu_flags=cpuflags()):
     fin = "{0}/compute-node.xml".format(TEMPLATE_DIR)
     libvirt_type = args.libvirttype
+    alldevices = it.chain(it.chain(lowercase[1:]),
+                          it.product(lowercase, lowercase))
+
     if hypervisor_has_virtio(libvirt_type):
         nicmodel = "e1000"
-        targetdev = "vda"
+        targetdevprefix = "vd"
         targetbus = "virtio"
     else:
         nicmodel = "virtio"
-        targetdev = "sda"
+        targetdevprefix = "sd"
         targetbus = "ide"
     if args.nodecounter == "1":
         nodememory = args.computenodememory
     else:
         nodememory = args.controllernodememory
+
+    cephvolume = ""
+    if args.cephvolumenumber and args.cephvolumenumber > 0:
+        for i in range(1, int(args.cephvolumenumber) + 1):
+            ceph_template = Template(readfile(
+                "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
+            ceph_values = dict(
+                volume_serial="{0}-node{1}-ceph{2}".format(
+                    args.cloud,
+                    args.nodecounter,
+                    i),
+                source_dev="{0}/{1}.node{2}-ceph{3}".format(
+                    args.vdiskdir,
+                    args.cloud,
+                    args.nodecounter,
+                    i),
+                target_dev=targetdevprefix + ''.join(alldevices.next()),
+                target_bus=targetbus)
+            cephvolume += "\n" + ceph_template.substitute(ceph_values)
+
+    drbdvolume = ""
+    if args.drbdserial:
+        drbd_template = Template(readfile(
+            "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
+        drbd_values = dict(
+            volume_serial=args.drbdserial,
+            source_dev="{0}/{1}.node{2}-drbd".format(
+                args.vdiskdir,
+                args.cloud,
+                args.nodecounter),
+            target_dev=targetdevprefix + ''.join(alldevices.next()),
+            target_bus=targetbus)
+        drbdvolume = drbd_template.substitute(drbd_values)
 
     values = dict(
         cloud=args.cloud,
@@ -115,11 +152,11 @@ def compute_config(args, cpu_flags=cpuflags()):
         cpuflags=cpu_flags,
         emulator=args.emulator,
         vdisk_dir=args.vdiskdir,
-        cephvolume=args.cephvolume,
-        drbdvolume=args.drbdvolume,
+        cephvolume=cephvolume,
+        drbdvolume=drbdvolume,
         macaddress=args.macaddress,
         nicmodel=nicmodel,
-        target_dev=targetdev,
+        target_dev=targetdevprefix + 'a',
         target_bus=targetbus,
         bootorder=args.bootorder)
 

@@ -14,8 +14,8 @@ def main():
                         (when this script is called within a loop, this \
                         is usually an incremented number)")
     parser.add_argument("macaddress", type=str, help="MAC Address")
-    parser.add_argument("cephvolume", type=str, help="Ceph Volume XML Snippet")
-    parser.add_argument("drbdvolume", type=str, help="DRBD Volume XML Snippet")
+    parser.add_argument("cephvolumenumber", type=str, help="Number of Ceph Volumes")
+    parser.add_argument("drbdserial", type=str, help="DRBD Volume Serial")
     parser.add_argument("computenodememory", type=str,
                         help="Compute Node Memory (kB)")
     parser.add_argument("controllernodememory", type=str,
