@@ -5,11 +5,12 @@ use strict;
 
 # This tool updates jenkins build descriptions with extracts from result logs
 
-my $numfile="mkcloudbuildstartnum";
+my $jobname=$ENV{jobname}||"openstack-mkcloud";
+my $numfile="$jobname.buildnum";
 my $startnum=`cat $numfile`;
 my $endnum=$startnum+20;
 for my $num ($startnum..$endnum) {
-    my $build = "openstack-mkcloud/$num";
+    my $build = "$jobname/$num";
     $_ = `curl -s https://ci.suse.de/job/$build/consoleText`;
     last if m/<body><h2>HTTP ERROR 404/;
     next unless m/Finished: FAILURE/;
