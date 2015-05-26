@@ -86,6 +86,7 @@ cpuflags=''
 working_dir_orig=`pwd`
 : ${artifacts_dir:=$working_dir_orig/.artifacts}
 start_time=`date`
+: ${libvirt_type:=kvm}
 : ${cloud:=cloud}
 : ${cloudvg:=$cloud}
 needcvol=1
