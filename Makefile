@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-test: bashate perlcheck rounduptest flake8
+test: bashate perlcheck rounduptest flake8 python_unittest
 
 bashate:
 	cd scripts && \
@@ -27,15 +27,18 @@ rounduptest:
 flake8:
 	flake8 scripts/
 
+python_unittest:
+	python -m unittest discover -v -s scripts/lib/libvirt/
+
 # for travis-CI:
 install: debianinstall genericinstall
 
 debianinstall:
 	sudo apt-get update -qq
-	sudo apt-get -y install libxml-libxml-perl libjson-xs-perl
+	sudo apt-get -y install libxml-libxml-perl libjson-xs-perl python-libvirt
 
 suseinstall:
-	sudo zypper install perl-JSON-XS perl-libxml-perl
+	sudo zypper install perl-JSON-XS perl-libxml-perl libvirt-python
 
 genericinstall:
 	sudo pip install bashate flake8

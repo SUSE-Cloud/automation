@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+
+import argparse
+
+import libvirt_setup
+
+
+def main():
+
+    parser = argparse.ArgumentParser(description="Start a Virtual Machine")
+    parser.add_argument("vmpath", type=str, help="Path to the VM XML")
+
+    args = parser.parse_args()
+
+    libvirt_setup.vm_start(args)
+
+
+if __name__ == "__main__":
+    main()

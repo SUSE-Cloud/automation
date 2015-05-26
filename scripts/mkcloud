@@ -282,7 +282,7 @@ function onadmin()
 function cleanup()
 {
     # cleanup leftover from last run
-    python ${mkcloud_lib_dir}/libvirt/cleanup.py $cloud $nodenumber $cloudbr $public_vlan
+    ${mkcloud_lib_dir}/libvirt/cleanup $cloud $nodenumber $cloudbr $public_vlan
 
     if ip link show ${cloudbr}.$public_vlan >/dev/null 2>&1; then
         ip link set ${cloudbr}.$public_vlan down
@@ -470,21 +470,6 @@ EOSSHASK
     DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh $sshopts -oNumberOfPasswordPrompts=1 "$@"
 }
 
-function onhost_local_repository_mount()
-{
-    #add xml snippet to be able to mount a local dir via 9p in a VM
-    if [ -n "${localreposdir_src}" ]; then
-        local_repository_mount="<filesystem type='mount' accessmode='squash'>
-            <source dir='$localreposdir_src'/>
-            <target dir='$localreposdir_target'/>
-            <readonly/>
-            <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
-            </filesystem>"
-    else
-        local_repository_mount=""
-    fi
-}
-
 
 # bring up the VM for crowbar
 function setupadmin()
@@ -584,9 +569,7 @@ function setuplonelynodes()
         mac="52:54:$i2:88:77:$i2"
         local lonely_node
         lonely_node=$cloud-node$i
-        libvirt_onhost_create_computenode_config /tmp/$lonely_node.xml $i $mac
-        # change the boot order to not PXE boot the lonely node
-        sed -i "s/boot order='1'/boot order='3'/g" /tmp/$lonely_node.xml
+        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $macaddress "$cephvolume" "$drbdvolume" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "3" > /tmp/$cloud-node$i.xml
 
         local lonely_disk
         lonely_disk="$vdisk_dir/${cloud}.node$i"
@@ -597,7 +580,7 @@ function setuplonelynodes()
             onhost_deploy_image "lonely" "SLE11" $lonely_disk
         fi
 
-        python ${mkcloud_lib_dir}/libvirt/vm-start.py $lonely_node
+        ${mkcloud_lib_dir}/libvirt/vm-start /tmp/${lonelynode}.xml
     done
 }
 
@@ -690,49 +673,24 @@ function restartcloud()
 function setupnodes()
 {
     setuppublicnet
-    alldevices=$(echo {b..z} {a..z}{a..z})
     for i in $allnodeids_without_lonely ; do
-        c=1
         i2=$( printf %02x $i )
         macaddress="52:54:$i2:77:77:$i2"
 
-        cephvolume=""
-        if [ $cephvolumenumber -gt 0 ] ; then
-            for n in $(seq 1 $cephvolumenumber) ; do
-                dev=vd$(echo $alldevices | cut -d" " -f$c)
-                c=$(($c + 1))
-                cephvolume="$cephvolume
-    <disk type='block' device='disk'>
-        <serial>$cloud-node$i-ceph$n</serial>
-        <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='$vdisk_dir/$cloud.node$i-ceph$n'/>
-        <target dev='$dev' bus='virtio'/>
-    </disk>"
-            done
-        fi
-
-        drbdvolume=""
+        # transport drdb volume information to admin node (needed for proposal of data cluster)
+        drbd_serial=""
         if [ $drbd_hdd_size != 0 ]; then
             if [ $i -le 2 ] ; then
-                drbddev=vd$(echo $alldevices | cut -d" " -f$c)
-                c=$(($c + 1))
-                local drbd_serial
                 drbd_serial="$cloud-node$i-drbd"
-                drbdvolume="
-    <disk type='block' device='disk'>
-        <serial>$drbd_serial</serial>
-        <driver name='qemu' type='raw' cache='unsafe'/>
-        <source dev='$vdisk_dir/$cloud.node$i-drbd'/>
-        <target dev='$drbddev' bus='virtio'/>
-    </disk>"
                 drbdnode_mac_vol="${drbdnode_mac_vol}+${macaddress}#${drbd_serial}"
                 drbdnode_mac_vol="${drbdnode_mac_vol#+}"
             fi
         fi
 
-        libvirt_onhost_create_computenode_config /tmp/$cloud-node$i.xml $i $macaddress "$cephvolume" "$drbdvolume"
-        python ${mkcloud_lib_dir}/libvirt/vm-start.py $cloud-node$i
+        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $macaddress $cephvolumenumber "$drbd_serial" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "2" > /tmp/$cloud-node$i.xml
+        ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
     done
+
     echo "========================================================"
     echo " Note: If you interrupt mkcloud now and want to proceed"
     echo "       later, make sure to run the following command:"

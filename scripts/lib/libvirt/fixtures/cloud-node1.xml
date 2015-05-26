@@ -1,0 +1,60 @@
+<domain type='kvm'>
+  <name>cloud-node1</name>
+  <memory>2097152</memory>
+  <currentMemory>2097152</currentMemory>
+  <vcpu>1</vcpu>
+  <os>
+    <type arch='x86_64' machine='pc-0.14'>hvm</type>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+    <pae/>
+  </features>
+  <cpu mode='custom' match='exact'>
+  <model fallback='allow'>core2duo</model>
+  <feature policy='require' name='vmx'/>
+</cpu>
+
+  <clock offset='utc'/>
+  <on_poweroff>preserve</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='unsafe'/>
+      <source dev='/dev/cloud/cloud.node1'/>
+      <target dev='vda' bus='virtio'/>
+      <boot order='2'/>
+    </disk>
+
+<disk type='block' device='disk'>
+  <serial>cloud-node1-ceph1</serial>
+  <driver name='qemu' type='raw' cache='unsafe'/>
+  <source dev='/dev/cloud/cloud.node1-ceph1'/>
+  <target dev='vdb' bus='virtio'/>
+</disk>
+
+
+    <interface type='network'>
+      <mac address='52:54:01:77:77:01'/>
+      <source network='cloud-admin'/>
+      <model type='e1000'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+      <boot order='1'/>
+    </interface>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+    <input type='mouse' bus='ps2'/>
+    <graphics type='vnc' port='-1' autoport='yes'/>
+    <video>
+      <model type='cirrus' vram='9216' heads='1'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
+    </video>
+  </devices>
+</domain>
