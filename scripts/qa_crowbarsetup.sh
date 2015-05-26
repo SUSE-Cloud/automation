@@ -1717,6 +1717,9 @@ function custom_configuration()
             cinder)
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['$sles12controller']"
             ;;
+            tempest)
+                proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "['$sles12controller']"
+            ;;
             #neutron)
                 #FIXME: till bug#930986 this part can be enabled once again
                 # https://bugzilla.suse.com/show_bug.cgi?id=930986
