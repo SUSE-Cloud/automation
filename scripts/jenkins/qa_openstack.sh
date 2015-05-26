@@ -305,7 +305,7 @@ EOF
 
 heat stack-create -f $PWD/testvm.stack teststack
 
-sleep 30
+sleep 60
 . /etc/openstackquickstartrc
 
 FLOATING_IP=$(eval echo $(heat output-show teststack server_floating_ip))
