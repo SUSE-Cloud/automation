@@ -347,8 +347,7 @@ if [ -e /etc/tempest/tempest.conf ]; then
     fi
     testr list-tests >/dev/null
 
-    tempest-cleanup --init-saved-state
-
+    test -x "$(type -p tempest-cleanup)" && tempest-cleanup --init-saved-state
     ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
     [ ${PIPESTATUS[0]} == 0 ] || exit 4
     popd
