@@ -581,7 +581,7 @@ function setuplonelynodes()
             onhost_deploy_image "lonely" "SLE11" $lonely_disk
         fi
 
-        ${mkcloud_lib_dir}/libvirt/vm-start /tmp/${lonelynode}.xml
+        ${mkcloud_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
     done
 }
 
