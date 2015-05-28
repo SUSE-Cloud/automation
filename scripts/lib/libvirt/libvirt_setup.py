@@ -99,11 +99,11 @@ def compute_config(args, cpu_flags=cpuflags()):
                           it.product(lowercase, lowercase))
 
     if hypervisor_has_virtio(libvirt_type):
-        nicmodel = "e1000"
+        nicmodel = "virtio"
         targetdevprefix = "vd"
         targetbus = "virtio"
     else:
-        nicmodel = "virtio"
+        nicmodel = "e1000"
         targetdevprefix = "sd"
         targetbus = "ide"
     if args.nodecounter == "1":
