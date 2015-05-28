@@ -1711,7 +1711,7 @@ function custom_configuration()
     esac
     if [ -n "$want_sles12_controller" ] ; then
         case "$proposal" in
-            database|keystone|glance|heat)
+            database|keystone|glance|nova_dashboard|heat)
                 proposal_set_value ${proposal} default "['deployment']['${proposal}']['elements']['${proposal}-server']" "['$sles12controller']"
             ;;
             cinder)
@@ -1720,12 +1720,15 @@ function custom_configuration()
             tempest)
                 proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "['$sles12controller']"
             ;;
-            #neutron)
+            neutron)
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['$sles12controller']"
                 #FIXME: till bug#930986 this part can be enabled once again
                 # https://bugzilla.suse.com/show_bug.cgi?id=930986
-                #proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['$sles12controller']"
                 #proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sles12controller']"
-            #;;
+            ;;
+            nova)
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-controller']" "['$sles12controller']"
+            ;;
             ceilometer)
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['$sles12controller']"
             ;;
