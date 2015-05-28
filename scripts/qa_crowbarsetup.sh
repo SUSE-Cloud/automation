@@ -1726,6 +1726,9 @@ function custom_configuration()
                 #proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['$sles12controller']"
                 #proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sles12controller']"
             #;;
+            nova)
+                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['nova-multi-controller']" "['$sles12controller']"
+            ;;
             ceilometer)
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['$sles12controller']"
             ;;
