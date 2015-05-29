@@ -64,19 +64,9 @@ function h_setup_base_repos()
 
 function h_setup_extra_repos()
 {
-    (
-        . /etc/os-release
-
-        DIST_NAME="${NAME}_${VERSION_ID}"
-
-        if [ "$DIST_NAME" = "SLES_12" ]; then
-            DIST_NAME=SLE_12
-        fi
-
-        # NOTE(toabctl): This is currently needed for i.e. haproxy package.
-        $zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${DIST_NAME}/Cloud:OpenStack:Master.repo
-        $zypper ref
-    )
+    # NOTE(toabctl): This is currently needed for i.e. haproxy package (and I guess for other packages/OS-versions too)
+    # This package is not available in openSUSE 13.1 but needs to be installed for lbaas tempest tests
+    $zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${DIST_NAME}_${DIST_VERSION}/Cloud:OpenStack:Master.repo || true
 }
 
 function h_setup_screen()
@@ -155,6 +145,7 @@ EOF
 h_echo_header "Setup"
 h_setup_base_repos
 h_setup_extra_repos
+$zypper ref
 h_setup_screen
 # setup extra disk if parameters given
 if [ -e "/dev/vdb" ]; then
