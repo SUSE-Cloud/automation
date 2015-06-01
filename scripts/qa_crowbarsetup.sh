@@ -1254,6 +1254,9 @@ function onadmin_allocate()
         done
         wait
     fi
+    if [[ $cloud = qa1 ]] ; then
+        curl http://clouddata.cloud.suse.de/git/automation/scripts/qa1_nodes_reboot | bash
+    fi
 
     echo "Waiting for nodes to come up..."
     while test $(get_all_discovered_nodes | wc -l) -lt 1 ; do

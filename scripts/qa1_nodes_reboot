@@ -1,0 +1,11 @@
+#!/bin/sh
+echo "Rebooting qa1 cloud nodes... "
+rm -f cjar
+curl -s -k --cookie-jar cjar --data "username=admin&password=$qa1password" https://ix64mm1030.qa.suse.de/index.php
+curl -s -k -b cjar --data "parameters=%7B%22responder%22%3A%22ActionForm%22%2C%22id%22%3A%22actionForm%22%2C%22tag%22%3A%22FORM%22%2C%22idCurrent%22%3A%22actionForm%22%2C%22tagCurrent%22%3A%22FORM%22%2C%22classCurrent%22%3A%22actionDialog%22%2C%22url%22%3A%22https%3A%2F%2Fix64mm1030.qa.suse.de%2Fcomponent_view%2Findex.php%23f-1%22%2C%22formName%22%3A%22actionForm%22%2C%22formData%22%3A%22param%255B0%255D%3D2%26param%255B1%255D%255B1%255D%3D1%26param%255B1%255D%255B2%255D%3D1%26param%255B1%255D%255B3%255D%3D1%26param%255B1%255D%255B4%255D%3D1%26param%255B1%255D%255B5%255D%3D1%26param%255B1%255D%255B6%255D%3D1%26fromFirmwarePage%3D%26method%3DdoPowerAllServers%26componentID%3D1%26instanceId%3D%26buttonLabel%3DPower%2520On%252FOff%2520Multiple%2520Servers%26winTitle%3D%26submit%3DApply%26cancel%3DCancel%22%7D" \
+-H "Referer: https://ix64mm1030.qa.suse.de/component_view/index.php" \
+-H "X-Requested-With: XMLHttpRequest" \
+-H "Accept: text/javascript, text/html, application/xml, text/xml, */*" \
+https://ix64mm1030.qa.suse.de/component_view/index.php > /dev/null
+rm -f cjar
+echo "Done"
