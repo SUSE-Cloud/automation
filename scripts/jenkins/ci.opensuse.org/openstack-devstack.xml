@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <matrix-project plugin="matrix-project@1.4.1">
   <actions/>
   <description>Run devstack</description>
@@ -105,6 +105,7 @@
       <name>image</name>
       <values>
         <string>openSUSE-13.2-64-minimal</string>
+        <string>SLE_12-64-minimal</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
@@ -114,7 +115,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>slave == &quot;cloud-cleanvm&quot;</combinationFilter>
+  <combinationFilter>slave == "cloud-cleanvm"</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
@@ -128,9 +129,9 @@ set -u
 set +ex
 
 scp ~/github.com/SUSE-Cloud/automation/scripts/jenkins/qa_devstack.sh root@cleanvm:
-ssh root@cleanvm &quot;bash -x ~/qa_devstack.sh&quot;
+ssh root@cleanvm "bash -x ~/qa_devstack.sh"
 ret=$?
-if [ &quot;$ret&quot; != 0 ] ; then
+if [ "$ret" != 0 ] ; then
   virsh shutdown cleanvm
   # wait for clean shutdown
   n=20 ; while [[ $n &gt; 0 ]] &amp;&amp; virsh list |grep cleanvm.*running ; do sleep 2 ; n=$(($n-1)) ; done
