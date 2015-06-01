@@ -166,7 +166,7 @@ sub fetch_job($)
   print "fetching $jobname\n";
   curl("--output", "./${JURL}/${jobname}.xml", "$fetchurl");
   # beautify the xml in order to have consistent LibXML output and prevent useless diffs
-  clean_xml("./${JURL}/${jobname}.xml");
+  reformat("./${JURL}/${jobname}.xml");
 }
 
 sub fetch_jobs
@@ -206,7 +206,7 @@ sub push_job($)
   my $pushurl=$jurlbase."/job/$jobname/config.xml";
   print "processing job: $jobname:\n";
   # make sure the output is reformatted by libXML
-  clean_xml("${JURL}/${jobname}.xml");
+  reformat("${JURL}/${jobname}.xml");
   # update
   my $result=curl("-X", "$METHOD", "--data-binary", "\@${JURL}/${jobname}.xml", $pushurl);
   if (has_error($result)) {
