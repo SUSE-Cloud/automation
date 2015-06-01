@@ -21,8 +21,14 @@ function h_setup_extra_repos()
     (
         . /etc/os-release
 
+        DIST_NAME="${NAME}_${VERSION_ID}"
+
+        if [ "$DIST_NAME" = "SLES_12" ]; then
+            DIST_NAME=SLE_12
+        fi
+
         # NOTE(toabctl): This is currently needed for i.e. haproxy package.
-        zypper --non-interactive ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${NAME}_${VERSION_ID}/Cloud:OpenStack:Master.repo
+        zypper --non-interactive ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${DIST_NAME}/Cloud:OpenStack:Master.repo
         zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
     )
 }
