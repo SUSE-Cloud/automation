@@ -351,11 +351,9 @@ function onhost_create_cloud_lvm()
 
     local hdd_size
 
-    lvrename $vdisk_dir/admin $admin_node_disk # transition until 2015
     onhost_get_next_pv_device
     safely lvcreate -n $cloud.admin -L ${adminnode_hdd_size}G $cloudvg $next_pv_device
     for i in $allnodeids ; do
-        lvrename $vdisk_dir/node$i $vdisk_dir/$cloud.node$i # transition until 2015
         onhost_get_next_pv_device
         hdd_size=${computenode_hdd_size}
         test "$i" = "1" && hdd_size=${controller_hdd_size}
@@ -365,7 +363,6 @@ function onhost_create_cloud_lvm()
     if [ $cephvolumenumber -gt 0 ] ; then
         for i in $allnodeids ; do
             for n in $(seq 1 $cephvolumenumber) ; do
-                lvrename $vdisk_dir/node$i-ceph$n $vdisk_dir/$cloud.node$i-ceph$n # transition until 2015
                 onhost_get_next_pv_device
                 hdd_size=${cephvolume_hdd_size}
                 test "$i" = "1" -a "$n" = "1" && hdd_size=${controller_ceph_hdd_size}
