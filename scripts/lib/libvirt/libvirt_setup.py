@@ -51,10 +51,7 @@ def cpuflags():
 
 
 def hypervisor_has_virtio(libvirt_type):
-    if (libvirt_type == "xen" or libvirt_type == "hyperv"):
-        return False
-    else:
-        return True
+    return libvirt_type == "kvm":
 
 
 def get_config(values, fin):
