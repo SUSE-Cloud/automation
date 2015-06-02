@@ -167,7 +167,7 @@ def cleanup(args):
     conn = libvirt_connect()
     devnull = open(os.devnull, "w")
     domains = [i for i in conn.listAllDomains()
-               if i.name().startswith(args.cloud)]
+               if i.name().startswith(args.cloud+"-")]
 
     for dom in domains:
         domain_cleanup(dom)
