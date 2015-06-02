@@ -251,7 +251,7 @@ def vm_start(args):
         print("cleaning up {0}".format(vmname))
         dom = conn.lookupByName(vmname)
         domain_cleanup(dom)
-    except:
+    except libvirt.libvirtError as e:
         print("no domain for {0} active".format(vmname))
 
     xml = readfile(vmpath)
