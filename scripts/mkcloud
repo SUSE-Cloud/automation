@@ -339,6 +339,20 @@ function onhost_get_next_pv_device()
     pv_cur_device_no=$(( $pv_cur_device_no + 1 ))
 }
 
+# create lv device wrapper
+function _lvcreate()
+{
+    lv_name=$1
+    lv_size=$2
+    lv_vg=$3
+    lv_pv=$4
+
+    # first: create on the PV device (spread IO)
+    # fallback: create in VG (if PVs with different size exist)
+    lvcreate -n $lv_name -L ${lv_size}G $lv_vg $lv_pv || \
+        safely lvcreate -n $lv_name -L ${lv_size}G $lv_vg
+}
+
 # spread block devices over a LVM's PVs so that different VMs
 # are likely to use different PVs to optimize concurrent IO throughput
 function onhost_create_cloud_lvm()
@@ -352,12 +366,12 @@ function onhost_create_cloud_lvm()
     local hdd_size
 
     onhost_get_next_pv_device
-    safely lvcreate -n $cloud.admin -L ${adminnode_hdd_size}G $cloudvg $next_pv_device
+    _lvcreate $cloud.admin $adminnode_hdd_size $cloudvg $next_pv_device
     for i in $allnodeids ; do
         onhost_get_next_pv_device
         hdd_size=${computenode_hdd_size}
         test "$i" = "1" && hdd_size=${controller_hdd_size}
-        safely lvcreate -n $cloud.node$i -L ${hdd_size}G $cloudvg $next_pv_device
+        _lvcreate $cloud.node$i $hdd_size $cloudvg $next_pv_device
     done
 
     if [ $cephvolumenumber -gt 0 ] ; then
@@ -366,7 +380,7 @@ function onhost_create_cloud_lvm()
                 onhost_get_next_pv_device
                 hdd_size=${cephvolume_hdd_size}
                 test "$i" = "1" -a "$n" = "1" && hdd_size=${controller_ceph_hdd_size}
-                safely lvcreate -n $cloud.node$i-ceph$n -L ${hdd_size}G $cloudvg $next_pv_device
+                _lvcreate $cloud.node$i-ceph$n $hdd_size $cloudvg $next_pv_device
             done
         done
     fi
@@ -375,7 +389,7 @@ function onhost_create_cloud_lvm()
     if [ $drbd_hdd_size != 0 ] ; then
         for i in `seq 1 2`; do
             onhost_get_next_pv_device
-            safely lvcreate -n $cloud.node$i-drbd -L ${drbd_hdd_size=}G $cloudvg $next_pv_device
+            _lvcreate $cloud.node$i-drbd $drbd_hdd_size $cloudvg $next_pv_device
         done
     fi
 }
