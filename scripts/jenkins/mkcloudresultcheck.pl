@@ -21,6 +21,7 @@ for my $num ($startnum..$endnum) {
         '(Slave went offline) during the build',
         '(Crowbar inst)allation terminated prematurely.  Please examine the above',
         'Build (timed out) \(after \d+ minutes\). Marking the build as failed.',
+        'crowbar\.(\w\d+)\.cloud\.suse\.de',
     ) {
         if(m/$regexp/) {$descr.=" $1"}
     }
