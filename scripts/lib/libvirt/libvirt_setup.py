@@ -16,10 +16,15 @@ TEMPLATE_DIR = "{0}/templates".format(os.path.dirname(__file__))
 
 
 def libvirt_connect():
-    conn = libvirt.open("qemu:///system")
-    if not conn:
-        print("Failed to open connection to the hypervisor")
+
+    conn_uri = "qemu:///system"
+
+    try:
+        conn = libvirt.open(conn_uri)
+    except libvirt.libvirtError as e:
+        print(e.message)
         sys.exit(1)
+
     return conn
 
 
