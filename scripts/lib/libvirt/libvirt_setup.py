@@ -1,12 +1,16 @@
 from __future__ import print_function
-import xml.etree.ElementTree as ET
+
 import glob
-import libvirt
-import os
-from string import (Template, lowercase)
-import sys
-import subprocess
 import itertools as it
+import os
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+from string import Template
+from string import lowercase
+
+import libvirt
+
 
 TEMPLATE_DIR = "{0}/templates".format(os.path.dirname(__file__))
 

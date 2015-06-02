@@ -41,7 +41,7 @@ suseinstall:
 	sudo zypper install perl-JSON-XS perl-libxml-perl libvirt-python
 
 genericinstall:
-	sudo pip install bashate flake8
+	sudo pip install bashate flake8 flake8-import-order
 	git clone https://github.com/SUSE-Cloud/roundup && \
 	cd roundup && \
 	./configure && \

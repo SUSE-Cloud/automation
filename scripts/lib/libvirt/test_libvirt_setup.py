@@ -2,8 +2,8 @@
 
 import argparse
 import os
-import unittest
 import tempfile
+import unittest
 
 import libvirt_setup
 
