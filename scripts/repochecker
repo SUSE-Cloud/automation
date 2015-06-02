@@ -17,6 +17,10 @@ set -e
 # i.e. 13.2 , Tumbleweed, 11_SP3, 12
 : ${REPCHECK_DIST_VERSION:="13.2"}
 : ${REPCHECK_INSTCHECK_EXCLUDES:="-kmp-"}
+# buildservice instance used for $REPCHECK_PROJECT.
+# use "ibs" for SUSE internal buildservice. Otherwise leave blank
+: ${REPCHECK_BS_INSTANCE:=""}
+
 
 D="${REPCHECK_CACHE_DIR}/${REPCHECK_DIST_NAME}/${REPCHECK_DIST_VERSION}/${REPCHECK_PROJECT}/"
 zypper="zypper --gpg-auto-import-keys -n --root $D"
@@ -49,14 +53,20 @@ if [[ $REPCHECK_DIST_NAME == "SLE" ]]; then
 fi
 
 # project repos
+if [[ $REPCHECK_BS_INSTANCE == "ibs" ]]; then
+    repo_url="http://download.suse.de/ibs"
+else
+    repo_url="http://download.opensuse.org/repositories"
+fi
+
 p=${REPCHECK_PROJECT//:/:\/}
-$zypper ar -f http://download.opensuse.org/repositories/${p}/${REPCHECK_DIST_NAME}_${REPCHECK_DIST_VERSION}/${REPCHECK_PROJECT}.repo || true
+$zypper ar -f ${repo_url}/${p}/${REPCHECK_DIST_NAME}_${REPCHECK_DIST_VERSION}/${REPCHECK_PROJECT}.repo || true
 
 # if it's a staging repo, also add the non-staging one
 if [[ "$REPCHECK_PROJECT" == *:Staging ]]; then
     pro_nonstaging=${REPCHECK_PROJECT//:Staging/}
     p=${pro_nonstaging//:/:\/}
-    $zypper ar -f http://download.opensuse.org/repositories/${p}/${REPCHECK_DIST_NAME}_${REPCHECK_DIST_VERSION}/${pro_nonstaging}.repo || true
+    $zypper ar -f ${repo_url}/${p}/${REPCHECK_DIST_NAME}_${REPCHECK_DIST_VERSION}/${pro_nonstaging}.repo || true
 fi
 
 $zypper ref
