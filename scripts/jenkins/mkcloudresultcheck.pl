@@ -23,11 +23,11 @@ for my $num ($startnum..$endnum) {
         'Build (timed out) \(after \d+ minutes\). Marking the build as failed.',
         'crowbar\.(\w\d+)\.cloud\.suse\.de',
     ) {
-        if(m/$regexp/) {$descr.=" $1"}
+        if(m/$regexp/) {$descr.="$1 "}
     }
-    /\+ '\[' (\d+) = 0 '\]'\n\+ exit 1\nBuild step/ and $1 and $descr="ret=$1";
+    /\+ '\[' (\d+) = 0 '\]'\n\+ exit 1\nBuild step/ and $1 and $descr.="ret=$1";
     if(/The step '(\w+)' returned with exit code (\d+)/) {
-        $descr="$1/ret=$2";
+        $descr.="/$2/$1";
         if($2 eq "102") {
             if(m/RadosGW Tests: [^0]/) {$descr.="/radosgw"}
             if(m/Volume in VM: (\d+) & (\d+)/ and ($1||$2)) {$descr.="/volume=$1&$2"}
