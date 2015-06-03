@@ -421,11 +421,13 @@ function addcloud4testupdates()
 function addcloud5maintupdates()
 {
     add_mount "SUSE-Cloud-5-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" "cloudmaintup"
+    add_mount "SUSE-Cloud-5-SLE-12-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/' "$tftpboot_repos_dir/SLE-12-Cloud-Compute5-Updates/"
 }
 
 function addcloud5testupdates()
 {
     add_mount "SUSE-Cloud-5-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/5/' "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" "cloudtup"
+    add_mount "SUSE-Cloud-5-SLE-12-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/' "$tftpboot_repos_dir/SLE-12-Cloud-Compute5-Updates/"
 }
 
 function addcloud5pool()
