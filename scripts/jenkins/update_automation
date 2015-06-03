@@ -23,8 +23,10 @@ p_dir=${a_dir%/*}
 
 if [ -d $a_dir ] ; then
     pushd $a_dir > /dev/null
-        # git checkout master
-        git pull
+        git clean -f
+        git checkout master
+        git fetch origin
+        git reset --hard origin/master
     popd > /dev/null
 else
     mkdir -p $p_dir
