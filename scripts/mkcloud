@@ -445,8 +445,7 @@ function onhost_deploy_image()
     if fdisk -l $disk | grep -q $offset ; then
         # make a bigger partition 2
         echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $disk
-        loopdevice=`losetup --find`
-        losetup -o $(( $offset * 512 )) $loopdevice $disk
+        loopdevice=$(losetup --find --show -o $(( $offset * 512 )) $loopdevice $disk)
         safely fsck -y -f $loopdevice
         safely resize2fs $loopdevice
         losetup -d $loopdevice
