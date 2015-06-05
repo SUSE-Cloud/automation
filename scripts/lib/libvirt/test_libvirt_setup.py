@@ -136,7 +136,7 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         args.macaddress = "52:54:01:77:77:01"
         args.cephvolumenumber = "1"
         args.computenodememory = "2097152"
-        args.controllernodememory = "2097152"
+        args.controllernodememory = "4194304"
         args.libvirttype = "kvm"
         args.vcpus = "1"
         args.emulator = "/usr/bin/qemu-system-x86_64"

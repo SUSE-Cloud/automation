@@ -106,7 +106,7 @@ def compute_config(args, cpu_flags=cpuflags()):
         nicmodel = "e1000"
         targetdevprefix = "sd"
         targetbus = "ide"
-    if args.nodecounter == "1":
+    if args.nodecounter != "1":
         nodememory = args.computenodememory
     else:
         nodememory = args.controllernodememory
