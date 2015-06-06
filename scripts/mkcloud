@@ -193,10 +193,10 @@ function error_exit()
             set -x
             for node in $(crowbar machines list | grep ^d) ; do
                 echo "Collecting supportconfig from $node"
-                timeout 300 ssh $node supportconfig | wc
+                timeout 400 ssh $node supportconfig | wc
                 timeout 300 scp $node:/var/log/\*tbz /var/log/
             done
-            timeout 300 supportconfig | wc
+            timeout 500 supportconfig | wc
         '
         mkdir -p $artifacts_dir
         $scp root@$adminip:/var/log/*tbz $artifacts_dir/
