@@ -3,11 +3,10 @@ from __future__ import print_function
 import glob
 import itertools as it
 import os
+import string
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
-from string import Template
-from string import lowercase
 
 import libvirt
 
@@ -53,7 +52,7 @@ def hypervisor_has_virtio(libvirt_type):
 
 
 def get_config(values, fin):
-    template = Template(readfile(fin))
+    template = string.Template(readfile(fin))
     return template.substitute(values)
 
 
@@ -63,7 +62,7 @@ def admin_config(args, cpu_flags=cpuflags()):
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
     if args.localreposrc and args.localrepotgt:
-        local_repo_template = Template(readfile(
+        local_repo_template = string.Template(readfile(
             "{0}/local-repository-mount.xml".format(TEMPLATE_DIR)))
         local_repo_values = dict(localreposdir_src=args.localreposrc,
                                  localreposdir_target=args.localrepotgt)
@@ -99,8 +98,8 @@ def net_config(args):
 def compute_config(args, cpu_flags=cpuflags()):
     fin = "{0}/compute-node.xml".format(TEMPLATE_DIR)
     libvirt_type = args.libvirttype
-    alldevices = it.chain(it.chain(lowercase[1:]),
-                          it.product(lowercase, lowercase))
+    alldevices = it.chain(it.chain(string.lowercase[1:]),
+                          it.product(string.lowercase, string.lowercase))
 
     if hypervisor_has_virtio(libvirt_type):
         nicmodel = "virtio"
@@ -118,7 +117,7 @@ def compute_config(args, cpu_flags=cpuflags()):
     cephvolume = ""
     if args.cephvolumenumber and args.cephvolumenumber > 0:
         for i in range(1, int(args.cephvolumenumber) + 1):
-            ceph_template = Template(readfile(
+            ceph_template = string.Template(readfile(
                 "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
             ceph_values = dict(
                 volume_serial="{0}-node{1}-ceph{2}".format(
@@ -136,7 +135,7 @@ def compute_config(args, cpu_flags=cpuflags()):
 
     drbdvolume = ""
     if args.drbdserial:
-        drbd_template = Template(readfile(
+        drbd_template = string.Template(readfile(
             "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
         drbd_values = dict(
             volume_serial=args.drbdserial,
