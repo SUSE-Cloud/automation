@@ -5,7 +5,6 @@ import itertools as it
 import os
 import string
 import subprocess
-import sys
 import xml.etree.ElementTree as ET
 
 import libvirt
@@ -15,11 +14,7 @@ TEMPLATE_DIR = "{0}/templates".format(os.path.dirname(__file__))
 
 
 def libvirt_connect():
-    conn = libvirt.open("qemu:///system")
-    if not conn:
-        print("Failed to open connection to the hypervisor")
-        sys.exit(1)
-    return conn
+    return libvirt.open("qemu:///system")
 
 
 def readfile(fname):
