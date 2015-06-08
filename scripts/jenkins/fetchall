@@ -1,0 +1,5 @@
+#!/bin/sh
+./japi fetch-all cloud openstack crowbar > /dev/null
+git add ci.suse.de/*.xml
+git commit -q -m "jenkins checkin $(date '+%Y-%m-%d %H:%M')" > /dev/null
+
