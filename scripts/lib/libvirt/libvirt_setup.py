@@ -216,14 +216,19 @@ def net_start(args):
     netpath = args.netpath
     netname = xml_get_value(args.netpath, "name")
     print("defining network from {0}".format(netname))
-    networks = conn.listNetworks()
+    # Get the names of active and inactive network domains.
+    networks = [network.name() for network in conn.listAllNetworks()]
+    # If network domain exists
     if netname not in networks:
         print("defining network from {0}".format(netpath))
         xml = readfile(netpath)
         conn.networkDefineXML(xml)
-    print("starting {0} network".format(netname))
-    dom = conn.networkLookupByName(netname)
-    dom.create()
+
+    net_dom = conn.networkLookupByName(netname)
+    # Check if active, then activate the network
+    if not net_dom.isActive():
+        print("starting {0} network".format(netname))
+        net_dom.create()
 
 
 def vm_start(args):
