@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>Just a trigger to automatically trigger daily runs with cinder backend "netapp" enabled.&#13;
-This trigger does not run the full tempest testsuite. Some tests don't work because of missing NetApp licenses.</description>
+  <description>obsolete with mode=basetest triggering&#13;
+&#13;
+Trigger Cloud5 with storage.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Workspace:cloud</permission>
-      <permission>hudson.model.Item.Configure:cloud</permission>
-      <permission>hudson.model.Run.Update:cloud</permission>
       <permission>hudson.scm.SCM.Tag:cloud</permission>
       <permission>hudson.model.Run.Delete:cloud</permission>
-      <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
-      <permission>hudson.model.Item.Build:cloud</permission>
+      <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
       <permission>hudson.model.Item.Cancel:cloud</permission>
       <permission>hudson.model.Item.Delete:cloud</permission>
+      <permission>hudson.model.Item.Configure:cloud</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
+      <autoRebuild>false</autoRebuild>
+    </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
@@ -26,8 +30,7 @@ This trigger does not run the full tempest testsuite. Some tests don't work beca
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
     <hudson.triggers.TimerTrigger>
-      <spec>43 1 * * 1
-</spec>
+      <spec>H 12 * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
@@ -38,16 +41,11 @@ This trigger does not run the full tempest testsuite. Some tests don't work beca
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>cloudsource=develcloud4
-nodenumber=2
-cinder_conf_volume_type=netapp
-cinder_conf_volume_params="\
-netapp_server_hostname '10.120.0.113'\n\
-netapp_login 'cloud'\n\
-netapp_password 'cr0wBar!'\
-"</properties>
+              <properties>cloudsource=develcloud5
+want_sles12=1
+nodenumber=3
+networkingplugin=linuxbridge</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
           </configs>
           <projects>openstack-mkcloud</projects>
           <condition>SUCCESS</condition>

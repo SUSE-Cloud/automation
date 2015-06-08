@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>Just a trigger to automatically trigger daily runs with cinder backend "netapp" enabled.&#13;
-This trigger does not run the full tempest testsuite. Some tests don't work because of missing NetApp licenses.</description>
+  <description>Just a trigger to automatically trigger daily runs with reboot enabled (default is to not do reboots in order to save build time for regular runs).</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
@@ -18,6 +17,9 @@ This trigger does not run the full tempest testsuite. Some tests don't work beca
       <permission>hudson.model.Item.Cancel:cloud</permission>
       <permission>hudson.model.Item.Delete:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
+      <autoRebuild>false</autoRebuild>
+    </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
@@ -26,28 +28,21 @@ This trigger does not run the full tempest testsuite. Some tests don't work beca
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
     <hudson.triggers.TimerTrigger>
-      <spec>43 1 * * 1
-</spec>
+      <spec>44 5 * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders/>
   <publishers>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.26">
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.25">
       <configs>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>cloudsource=develcloud4
-nodenumber=2
-cinder_conf_volume_type=netapp
-cinder_conf_volume_params="\
-netapp_server_hostname '10.120.0.113'\n\
-netapp_login 'cloud'\n\
-netapp_password 'cr0wBar!'\
-"</properties>
+              <properties>cloudsource=develcloud3
+nodenumber=3
+networkingplugin=linuxbridge</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
           </configs>
           <projects>openstack-mkcloud</projects>
           <condition>SUCCESS</condition>

@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project plugin="matrix-project@1.3">
+<matrix-project plugin="matrix-project@1.4.1">
   <actions/>
   <description>update OBS/IBS packages from git or tarballs via OBS _service feature</description>
   <logRotator class="hudson.tasks.LogRotator">
-    <daysToKeep>30</daysToKeep>
-    <numToKeep>30</numToKeep>
+    <daysToKeep>300</daysToKeep>
+    <numToKeep>600</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Discover:cloud</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:cloud</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:cloud</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:cloud</permission>
-      <permission>hudson.model.Run.Update:cloud</permission>
-      <permission>hudson.model.Item.Build:cloud</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:cloud</permission>
-      <permission>hudson.model.Run.Delete:cloud</permission>
-      <permission>hudson.scm.SCM.Tag:cloud</permission>
-      <permission>hudson.model.Item.Delete:cloud</permission>
-      <permission>hudson.model.Item.Cancel:cloud</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:cloud</permission>
       <permission>hudson.model.Item.Configure:cloud</permission>
+      <permission>hudson.model.Run.Update:cloud</permission>
+      <permission>hudson.scm.SCM.Tag:cloud</permission>
+      <permission>hudson.model.Run.Delete:cloud</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
+      <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Item.Delete:cloud</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:cloud</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:cloud</permission>
       <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
-      <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:cloud</permission>
+      <permission>hudson.model.Item.Cancel:cloud</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
       <autoRebuild>false</autoRebuild>
@@ -82,6 +82,7 @@
         <string>crowbar-barclamp-tempest</string>
         <string>crowbar-barclamp-trove</string>
         <string>crowbar-barclamp-updater</string>
+        <string>openstack-dashboard-theme-SUSE</string>
         <string>suse-cloud-upgrade</string>
       </values>
     </hudson.matrix.TextAxis>
@@ -97,10 +98,11 @@
         <string>Devel:Cloud:3:Staging</string>
         <string>Devel:Cloud:4:Staging</string>
         <string>Devel:Cloud:5:Staging</string>
+        <string>Devel:Cloud:6:Staging</string>
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>! (      ["Devel:Cloud:2.0:Staging"].contains(project)          &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-neutron", "crowbar-barclamp-pacemaker", "crowbar-barclamp-raid", "crowbar-barclamp-tempest", "crowbar-barclamp-trove"].contains(component)      ||  ["Devel:Cloud:3:Staging"].contains(project)      &amp;&amp;  ["crowbar-barclamp-quantum", "crowbar-barclamp-tempest", "crowbar-barclamp-trove"].contains(component)      ||  ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project)          &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)  )     </combinationFilter>
+  <combinationFilter>! (      ["Devel:Cloud:2.0:Staging"].contains(project)          &amp;&amp;  ["crowbar-barclamp-bios", "crowbar-barclamp-neutron", "crowbar-barclamp-pacemaker", "crowbar-barclamp-raid", "crowbar-barclamp-tempest", "crowbar-barclamp-trove"].contains(component)      ||  ["Devel:Cloud:3:Staging"].contains(project)      &amp;&amp;  ["crowbar-barclamp-quantum", "crowbar-barclamp-tempest", "crowbar-barclamp-trove"].contains(component)      ||  ["Devel:Cloud:2.0:Staging", "Devel:Cloud:3:Staging", "Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project)          &amp;&amp;  ["openstack-dashboard-theme-SUSE"].contains(component)  || ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging", "Devel:Cloud:6:Staging"].contains(project)          &amp;&amp;  ["crowbar-barclamp-quantum"].contains(component)  )     </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}

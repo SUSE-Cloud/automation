@@ -11,17 +11,17 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Run.Update:cloud</permission>
-      <permission>hudson.model.Item.Build:cloud</permission>
-      <permission>hudson.model.Item.Discover:cloud</permission>
-      <permission>hudson.model.Run.Delete:cloud</permission>
       <permission>hudson.scm.SCM.Tag:cloud</permission>
+      <permission>hudson.model.Run.Delete:cloud</permission>
+      <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Item.Read:cloud</permission>
+      <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
       <permission>hudson.model.Item.Cancel:cloud</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
       <permission>hudson.model.Item.Delete:cloud</permission>
       <permission>hudson.model.Item.Configure:cloud</permission>
-      <permission>hudson.model.Item.Workspace:cloud</permission>
-      <permission>hudson.model.Item.Read:cloud</permission>
-      <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
       <autoRebuild>false</autoRebuild>
@@ -41,12 +41,13 @@
   <concurrentBuild>false</concurrentBuild>
   <builders/>
   <publishers>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.25">
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.26">
       <configs>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>cloudsource=develcloud4
+              <properties>mode=basetest
+cloudsource=develcloud4
 nodenumber=2
 mkcloudtarget=all crowbarbackup crowbarrestore</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>

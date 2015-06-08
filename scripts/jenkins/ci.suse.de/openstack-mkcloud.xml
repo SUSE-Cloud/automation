@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description/>
+  <description>run https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud&#13;
+&#13;
+results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl on bernhard@trollolo.cloud.suse.de every 15 minutes</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>300</daysToKeep>
     <numToKeep>1000</numToKeep>
@@ -11,17 +13,17 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Workspace:cloud</permission>
-      <permission>hudson.model.Item.Configure:cloud</permission>
-      <permission>hudson.model.Run.Update:cloud</permission>
       <permission>hudson.scm.SCM.Tag:cloud</permission>
       <permission>hudson.model.Run.Delete:cloud</permission>
-      <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
-      <permission>hudson.model.Item.Build:cloud</permission>
+      <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
       <permission>hudson.model.Item.Cancel:cloud</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
       <permission>hudson.model.Item.Delete:cloud</permission>
+      <permission>hudson.model.Item.Configure:cloud</permission>
+      <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -136,6 +138,17 @@ Default: vlan for linuxbridge, gre for openvswitch.</description>
           <description>enables deployment of more than one cinder backend</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>automation_pr</name>
+          <description>PullRequest ID of github (see https://github.com/SUSE-Cloud/automation/pulls)
+Setting a PullRequest ID will use the modified version of the mkcloud scripts. This is used for self-gating mkcloud changes.</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>mode</name>
+          <description>mode=basetest is for use by special triggers. Success on such a run will trigger more runs on this cloudsource.</description>
+          <defaultValue>standard</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
@@ -153,14 +166,17 @@ Default: vlan for linuxbridge, gre for openvswitch.</description>
   <builders>
     <hudson.tasks.Shell>
       <command>set -x
-# use IBS://Devel:Cloud latest iso image
-#export cloudsource=develcloud
-#export cloudsource=susecloud
-# use latest packages from IBS://Devel:Cloud on top
-#export TESTHEAD=1
-#export CVOL=/dev/loop4
-#losetup /dev/loop4 || losetup /dev/loop4 /abuild/cloud || true
 
+# emptying the workspace
+mkdir -p empty
+rsync -r --delete empty/ ./
+
+export artifacts_dir=$WORKSPACE/.artifacts
+rm -rf $artifacts_dir
+mkdir -p $artifacts_dir
+touch $artifacts_dir/.ignore
+
+export automationrepo=~/github.com/SUSE-Cloud/automation
 export debug_qa_crowbarsetup=1
 export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
 export debug=0
@@ -190,14 +206,33 @@ if [ ! -z "$UPDATEREPOS" ] ; then
   export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
 fi
 
-export artifacts_dir=$WORKSPACE/.artifacts
-rm -rf $artifacts_dir
-mkdir -p $artifacts_dir
-touch $artifacts_dir/.ignore
 
-[ -e ~/bin/update_automation ] || curl -o ~/bin/update_automation https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
+
+if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+  curl -o ${automationrepo}/scripts/jenkins/update_automation https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation
+  chmod a+x ${automationrepo}/scripts/jenkins/update_automation
+fi
 # fetch the latest automation updates
-update_automation mkcloud qa_crowbarsetup.sh jenkins-job-trigger allocpool
+update_automation #NO PARAMETERS HERE ANY MORE!!!
+
+
+## mkcloud self-gating
+if [[ $automation_pr ]] ; then
+  automationrepo_orig=$automationrepo
+  pr_dir=`mktemp -d $WORKSPACE/SUSE-Cloud.automation.XXXXXX`
+  automationrepo=$pr_dir/automation
+
+  mkdir -p $automationrepo
+  rsync -a ${automationrepo_orig%/}/ $automationrepo/
+  pushd $automationrepo
+  ghremote=origin
+  git config --get-all remote.${ghremote}.fetch | grep -q pull || \
+    git config --add remote.${ghremote}.fetch "+refs/pull/*/head:refs/remotes/${ghremote}/pr/*"
+  git fetch $ghremote
+  git checkout -t $ghremote/pr/$automation_pr
+  popd
+fi
+
 
 echo "########################################################################"
 env
@@ -214,11 +249,37 @@ if [ -e mkcloud.pid ] ; then
     kill -KILL -`mkcloud.pid` ||: # make sure that the previous mkcloud (and subprocesses) are dead
 fi
 starttime=`date +%s`
-perl -e "alarm 4*60*60 ; exec '/root/bin/allocpool bash -x /root/github.com/SUSE-Cloud/automation/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
-[ ${PIPESTATUS[0]} = 0 ] || exit 1 # check return code before tee
+perl -e "alarm 4*60*60 ; exec '${automationrepo}/scripts/mkcloudhost/allocpool bash -x ${automationrepo}/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
+ret=${PIPESTATUS[0]}
+if [[ $ret != 0 ]] ; then
+    echo "mkcloud ret=$ret"
+    exit $ret # check return code before tee
+fi
 
-[[ ! $TESTHEAD ]] &amp;&amp; exit 0
-[[ $hacloud == 1 ]] &amp;&amp; exit 0  # for now disable package submission for ha setups
+[[ $TESTHEAD ]] || exit 0
+[[ ! $hacloud  ]] || exit 0  # for now disable package submission for ha setups
+[[ ! $automation_pr ]] || exit 0 # TODO: verify
+
+
+if [[ $mode == "basetest" ]] ; then
+    echo "$mode succeeded - triggering extra tests"
+    d=/root/lasttriggered
+    f=$d/$cloudsource
+    last=$(cat $f || echo 0)
+    echo "if [[ $(($last + 1800)) -gt $(date +%s) ]] ; then echo we just triggered ... skipping ; exit 0 ; fi"
+    mkdir -p $d
+    date +%s &gt; $f
+    extra=""
+    case $cloudsource in
+        develcloud5|develcloud6)
+            extra="want_sles12=1"
+            ;;
+    esac
+    # linuxbridge+ceph:
+    ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-mkcloud -p mode=submit cloudsource="${cloudsource}" nodenumber=3 networkingplugin=linuxbridge $extra
+fi
+
+[[ $mode == "submit" ]] || exit 0 # only submit on mode=submit
 
 
 case "$cloudsource" in
@@ -253,7 +314,8 @@ case "$cloudsource" in
   ;;
 esac
 
-jenkins-job-trigger openstack-submit-project -p project="${project}" subproject="${subproject}" packagefilter="${packagefilter}" starttime="${starttime}"</command>
+
+${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-submit-project -p project="${project}" subproject="${subproject}" packagefilter="${packagefilter}" starttime="${starttime}"</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -264,7 +326,7 @@ jenkins-job-trigger openstack-submit-project -p project="${project}" subproject=
       <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
     </hudson.tasks.ArtifactArchiver>
-    <hudson.tasks.Mailer plugin="mailer@1.11">
+    <hudson.tasks.Mailer plugin="mailer@1.15">
       <recipients>cloud-devel@suse.de</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
@@ -281,7 +343,7 @@ jenkins-job-trigger openstack-submit-project -p project="${project}" subproject=
     </hudson.plugins.build__timeout.BuildTimeoutWrapper>
     <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.6"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.3">
-      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"})</template>
+      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"}/${ENV,var="automation_pr"})</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
   </buildWrappers>
 </project>

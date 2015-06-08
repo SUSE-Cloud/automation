@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project plugin="matrix-project@1.4">
+<matrix-project plugin="matrix-project@1.4.1">
   <actions/>
   <description>Checks if all dependencies of Cloud media are satisfied.</description>
   <logRotator class="hudson.tasks.LogRotator">
@@ -45,6 +45,9 @@
         <string>Devel:Cloud:3</string>
         <string>Devel:Cloud:4</string>
         <string>Devel:Cloud:5</string>
+        <string>Devel:Cloud:5/SLE_12</string>
+        <string>Devel:Cloud:6</string>
+        <string>Devel:Cloud:6/SLE_12</string>
         <string>Devel:Cloud:Shared:11-SP3:Update</string>
         <string>SUSE:SLE-11-SP3:Update:Cloud5:Test</string>
       </values>
@@ -63,7 +66,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>(["Devel:Cloud:3", "Devel:Cloud:4", "Devel:Cloud:5"].contains(project) || subproject == ":")</combinationFilter>
+  <combinationFilter>(["Devel:Cloud:3", "Devel:Cloud:4", "Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12"].contains(project) || subproject == ":")</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># temporary, similar to update_automation (not that advanced)
@@ -91,7 +94,17 @@ fi
 stage=$subproject
 [[ $stage == ":" ]] &amp;&amp; stage=
 
-OBS_TYPE=IBS OBS_PROJECT=$project$stage make -C cloud/scripts/release-mgmt/ mediacheck
+OBS_PROJECT=$project
+
+if [ -n "$stage" ]; then
+    if [ "${OBS_PROJECT##*\/}" != "${OBS_PROJECT}" ]; then
+        OBS_PROJECT=${OBS_PROJECT%%\/*}$stage/${OBS_PROJECT##*\/}
+    else
+        OBS_PROJECT=${OBS_PROJECT%%\/*}$stage    
+    fi
+fi
+
+OBS_TYPE=IBS OBS_PROJECT=$OBS_PROJECT make -C cloud/scripts/release-mgmt/ mediacheck
 RETVAL=$?
 
 # Cleanup

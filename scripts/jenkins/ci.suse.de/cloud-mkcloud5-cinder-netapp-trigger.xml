@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>Just a trigger to automatically trigger daily runs with cinder backend "netapp" enabled.&#13;
-This trigger does not run the full tempest testsuite. Some tests don't work because of missing NetApp licenses.</description>
+  <description>Automatically trigger daily runs with cinder backend "netapp" enabled.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
@@ -18,10 +17,13 @@ This trigger does not run the full tempest testsuite. Some tests don't work beca
       <permission>hudson.model.Item.Cancel:cloud</permission>
       <permission>hudson.model.Item.Delete:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
+      <autoRebuild>false</autoRebuild>
+    </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
@@ -38,14 +40,12 @@ This trigger does not run the full tempest testsuite. Some tests don't work beca
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>cloudsource=develcloud4
+              <properties>cloudsource=develcloud5
 nodenumber=2
-cinder_conf_volume_type=netapp
-cinder_conf_volume_params="\
-netapp_server_hostname '10.120.0.113'\n\
-netapp_login 'cloud'\n\
-netapp_password 'cr0wBar!'\
-"</properties>
+cinder_backend=netapp
+cinder_netapp_login=openstack
+cinder_netapp_password=0penStack!
+want_cindermultibackend=1</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
           </configs>
