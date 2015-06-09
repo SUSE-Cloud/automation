@@ -650,6 +650,7 @@ function instcrowbar()
 function instcrowbarfromgit()
 {
     scp_install_chef_suse_override
+    safely rsync -av --exclude ".git" --exclude ".ci-tracking" ./crowbar root@$adminip:/root/
     onadmin installcrowbarfromgit
     local ret=$?
     $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
