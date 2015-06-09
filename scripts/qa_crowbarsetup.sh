@@ -1204,6 +1204,12 @@ EOF
 
 function onadmin_installcrowbarfromgit()
 {
+    if iscloudver 5plus ; then
+        # on SLE11 we dont have update-alternatives for ruby
+        # but we need a "ruby" in PATH for various crowbar scripts
+        ln -s /usr/bin/ruby.ruby2.1 /usr/bin/ruby
+        ln -s /usr/bin/gem.ruby2.1 /usr/bin/gem
+    fi
     export CROWBAR_FROM_GIT=1
     do_installcrowbar "--from-git"
 }
