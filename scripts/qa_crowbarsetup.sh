@@ -1103,8 +1103,14 @@ EOF
 # and do some sanity checks on the result
 function do_installcrowbar()
 {
-    local instcmd=$1
-
+    local instparams="$1 --verbose"
+    pre_hook $FUNCNAME
+    local instcmd
+    if [ -e /tmp/install-chef-suse.sh ]; then
+        instcmd="/tmp/install-chef-suse.sh $instparams"
+    else
+        instcmd="/opt/dell/bin/install-chef-suse.sh $instparams"
+    fi
     do_set_repos_skip_checks
 
     cd /root # we expect the screenlog.0 file here
@@ -1198,20 +1204,13 @@ EOF
 
 function onadmin_installcrowbarfromgit()
 {
-    do_installcrowbar \
-        "CROWBAR_FROM_GIT=1
-            /opt/dell/bin/install-chef-suse.sh --from-git --verbose"
+    export CROWBAR_FROM_GIT=1
+    do_installcrowbar "--from-git"
 }
 
 function onadmin_installcrowbar()
 {
-    pre_hook $FUNCNAME
-    do_installcrowbar "
-        if [ -e /tmp/install-chef-suse.sh ]; then
-            /tmp/install-chef-suse.sh --verbose;
-        else
-            /opt/dell/bin/install-chef-suse.sh --verbose
-        fi"
+    do_installcrowbar ""
 }
 
 # set a node's role and platform
