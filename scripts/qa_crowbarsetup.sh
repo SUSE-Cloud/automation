@@ -945,6 +945,7 @@ function onadmin_repocleanup()
 function onadmin_prepareinstallcrowbar()
 {
     pre_hook $FUNCNAME
+    [[ $forcephysicaladmin ]] || lsmod | grep -q ^virtio_blk || complain 25 "this script should be run in the crowbar admin VM"
     onadmin_repocleanup
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
     # We want to use static networking which needs a static resolv.conf .
