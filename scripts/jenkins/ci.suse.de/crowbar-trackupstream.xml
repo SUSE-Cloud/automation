@@ -95,7 +95,6 @@
     <hudson.matrix.TextAxis>
       <name>project</name>
       <values>
-        <string>Devel:Cloud:3:Staging</string>
         <string>Devel:Cloud:4:Staging</string>
         <string>Devel:Cloud:5:Staging</string>
         <string>Devel:Cloud:6:Staging</string>
