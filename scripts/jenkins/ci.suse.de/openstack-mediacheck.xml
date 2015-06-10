@@ -11,19 +11,19 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Workspace:cloud</permission>
-      <permission>hudson.model.Item.Configure:cloud</permission>
-      <permission>hudson.model.Run.Update:cloud</permission>
       <permission>hudson.scm.SCM.Tag:cloud</permission>
       <permission>hudson.model.Run.Delete:cloud</permission>
-      <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
-      <permission>hudson.model.Item.Build:cloud</permission>
+      <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
       <permission>hudson.model.Item.Cancel:cloud</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
       <permission>hudson.model.Item.Delete:cloud</permission>
+      <permission>hudson.model.Item.Configure:cloud</permission>
+      <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.24">
       <autoRebuild>false</autoRebuild>
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
@@ -90,11 +90,10 @@ if [[ "$project" == "Devel:Cloud:Shared:11-SP3:Update" ]]; then
     export INSTALLCHECK_EXTRA_OPTS="--exclude pattern:"
 fi
 
-
+OBS_PROJECT=$project
 stage=$subproject
 [[ $stage == ":" ]] &amp;&amp; stage=
 
-OBS_PROJECT=$project
 
 if [ -n "$stage" ]; then
     if [ "${OBS_PROJECT##*\/}" != "${OBS_PROJECT}" ]; then

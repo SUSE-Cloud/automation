@@ -11,21 +11,21 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:cloud</permission>
-      <permission>hudson.model.Item.Configure:cloud</permission>
-      <permission>hudson.model.Run.Update:cloud</permission>
       <permission>hudson.scm.SCM.Tag:cloud</permission>
-      <permission>hudson.model.Run.Delete:cloud</permission>
-      <permission>hudson.model.Item.Build:cloud</permission>
-      <permission>hudson.model.Item.Discover:cloud</permission>
-      <permission>hudson.model.Item.Delete:cloud</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:cloud</permission>
-      <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:cloud</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:cloud</permission>
-      <permission>hudson.model.Item.Read:cloud</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Item.Read:cloud</permission>
+      <permission>hudson.model.Item.Configure:cloud</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>hudson.model.Run.Delete:cloud</permission>
+      <permission>hudson.model.Item.Discover:cloud</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:cloud</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:cloud</permission>
       <permission>hudson.model.Item.Cancel:cloud</permission>
+      <permission>hudson.model.Item.Delete:cloud</permission>
+      <permission>hudson.model.Run.Update:cloud</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
