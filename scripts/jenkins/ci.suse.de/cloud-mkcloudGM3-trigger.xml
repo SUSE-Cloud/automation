@@ -44,7 +44,7 @@ of Cloud 3 GM + update-test repo</description>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>cloudsource=GM3
+              <properties>cloudsource=GM3+up
 nodenumber=2
 WITHTEMPEST=1
 TESTHEAD=1</properties>

@@ -70,8 +70,7 @@ also trigger on publish of iso</description>
               <properties>mode=basetest
 cloudsource=develcloud5
 nodenumber=2
-mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
-want_swift=0</properties>
+mkcloudtarget=plain crowbarbackup crowbarrestore testsetup</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>

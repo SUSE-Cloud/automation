@@ -44,7 +44,7 @@ of Cloud 4 GM + update-test repos</description>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>cloudsource=GM4
+              <properties>cloudsource=GM5+up
 nodenumber=2
 TESTHEAD=1</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
