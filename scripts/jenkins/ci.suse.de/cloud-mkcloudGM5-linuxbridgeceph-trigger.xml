@@ -48,7 +48,9 @@ of Cloud 5 GM + update-test repos</description>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>cloudsource=GM5+up
-nodenumber=2
+nodenumber=3
+want_sles12=1
+networkingplugin=linuxbridge
 TESTHEAD=1</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
