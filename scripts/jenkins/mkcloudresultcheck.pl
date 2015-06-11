@@ -44,6 +44,7 @@ sub tempestdetails {
     my $descr="/tempest";
     foreach my $regexp (
         'FAILED \((failures=\d+)\)\n\+ tempestret=',
+        'FAIL: tempest\.([a-z0-9._]+)\.',
         '(ServerFault): Got server fault',
         'Cannot get interface (MTU) on \'brq',
         '(Volume) \S+ failed to reach in-use status',
@@ -52,7 +53,7 @@ sub tempestdetails {
         '(MismatchError): ',
         '(AssertionError): ',
     ) {
-        if(m/$regexp/) {$descr.="/$1"}
+        if(m/$regexp/) {$descr.=" $1"}
     }
     return $descr;
 }
