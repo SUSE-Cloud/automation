@@ -3,11 +3,9 @@ from __future__ import print_function
 import glob
 import itertools as it
 import os
+import string
 import subprocess
-import sys
 import xml.etree.ElementTree as ET
-from string import Template
-from string import lowercase
 
 import libvirt
 
@@ -16,11 +14,7 @@ TEMPLATE_DIR = "{0}/templates".format(os.path.dirname(__file__))
 
 
 def libvirt_connect():
-    conn = libvirt.open("qemu:///system")
-    if not conn:
-        print("Failed to open connection to the hypervisor")
-        sys.exit(1)
-    return conn
+    return libvirt.open("qemu:///system")
 
 
 def readfile(fname):
@@ -46,14 +40,11 @@ def cpuflags():
 
 
 def hypervisor_has_virtio(libvirt_type):
-    if (libvirt_type == "xen" or libvirt_type == "hyperv"):
-        return False
-    else:
-        return True
+    return libvirt_type == "kvm"
 
 
 def get_config(values, fin):
-    template = Template(readfile(fin))
+    template = string.Template(readfile(fin))
     return template.substitute(values)
 
 
@@ -63,7 +54,7 @@ def admin_config(args, cpu_flags=cpuflags()):
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
     if args.localreposrc and args.localrepotgt:
-        local_repo_template = Template(readfile(
+        local_repo_template = string.Template(readfile(
             "{0}/local-repository-mount.xml".format(TEMPLATE_DIR)))
         local_repo_values = dict(localreposdir_src=args.localreposrc,
                                  localreposdir_target=args.localrepotgt)
@@ -99,8 +90,8 @@ def net_config(args):
 def compute_config(args, cpu_flags=cpuflags()):
     fin = "{0}/compute-node.xml".format(TEMPLATE_DIR)
     libvirt_type = args.libvirttype
-    alldevices = it.chain(it.chain(lowercase[1:]),
-                          it.product(lowercase, lowercase))
+    alldevices = it.chain(it.chain(string.lowercase[1:]),
+                          it.product(string.lowercase, string.lowercase))
 
     if hypervisor_has_virtio(libvirt_type):
         nicmodel = "virtio"
@@ -118,7 +109,7 @@ def compute_config(args, cpu_flags=cpuflags()):
     cephvolume = ""
     if args.cephvolumenumber and args.cephvolumenumber > 0:
         for i in range(1, int(args.cephvolumenumber) + 1):
-            ceph_template = Template(readfile(
+            ceph_template = string.Template(readfile(
                 "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
             ceph_values = dict(
                 volume_serial="{0}-node{1}-ceph{2}".format(
@@ -136,7 +127,7 @@ def compute_config(args, cpu_flags=cpuflags()):
 
     drbdvolume = ""
     if args.drbdserial:
-        drbd_template = Template(readfile(
+        drbd_template = string.Template(readfile(
             "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
         drbd_values = dict(
             volume_serial=args.drbdserial,
@@ -225,14 +216,19 @@ def net_start(args):
     netpath = args.netpath
     netname = xml_get_value(args.netpath, "name")
     print("defining network from {0}".format(netname))
-    networks = conn.listNetworks()
+    # Get the names of active and inactive network domains.
+    networks = [network.name() for network in conn.listAllNetworks()]
+    # If network domain exists
     if netname not in networks:
         print("defining network from {0}".format(netpath))
         xml = readfile(netpath)
         conn.networkDefineXML(xml)
-    print("starting {0} network".format(netname))
-    dom = conn.networkLookupByName(netname)
-    dom.create()
+
+    net_dom = conn.networkLookupByName(netname)
+    # Check if active, then activate the network
+    if not net_dom.isActive():
+        print("starting {0} network".format(netname))
+        net_dom.create()
 
 
 def vm_start(args):
@@ -244,7 +240,7 @@ def vm_start(args):
         print("cleaning up {0}".format(vmname))
         dom = conn.lookupByName(vmname)
         domain_cleanup(dom)
-    except:
+    except libvirt.libvirtError as e:
         print("no domain for {0} active".format(vmname))
 
     xml = readfile(vmpath)
