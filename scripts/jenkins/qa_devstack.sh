@@ -12,16 +12,14 @@ set -ex
 zypper="zypper --gpg-auto-import-keys -n"
 
 
-function h_echo_header()
-{
+function h_echo_header {
     local text=$1
     echo "################################################"
     echo "$text"
     echo "################################################"
 }
 
-function h_setup_base_repos()
-{
+function h_setup_base_repos {
     if [[ -r /etc/os-release ]]; then
         . /etc/os-release
 
@@ -62,15 +60,13 @@ function h_setup_base_repos()
 }
 
 
-function h_setup_extra_repos()
-{
+function h_setup_extra_repos {
     # NOTE(toabctl): This is currently needed for i.e. haproxy package (and I guess for other packages/OS-versions too)
     # This package is not available in openSUSE 13.1 but needs to be installed for lbaas tempest tests
     $zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${DIST_NAME}_${DIST_VERSION}/Cloud:OpenStack:Master.repo || true
 }
 
-function h_setup_screen()
-{
+function h_setup_screen {
     cat > ~/.screenrc <<EOF
 altscreen on
 defscrollback 20000
@@ -80,15 +76,13 @@ hardstatus string '%H (%S%?;%u%?) %-Lw%{= BW}%50>%n%f* %t%{-}%+Lw%<'
 EOF
 }
 
-function h_setup_extra_disk()
-{
+function h_setup_extra_disk {
     mkfs.ext3 /dev/vdb
     mkdir -p /opt/stack
     mount /dev/vdb /opt/stack
 }
 
-function h_setup_devstack()
-{
+function h_setup_devstack {
     $zypper in git-core crudini
     # git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
     git clone https://github.com/dirkmueller/devstack.git $DEVSTACK_DIR
