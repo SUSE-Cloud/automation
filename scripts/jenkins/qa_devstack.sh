@@ -8,6 +8,10 @@ DEVSTACK_DIR="/tmp/devstack"
 
 set -ex
 
+
+zypper="zypper --gpg-auto-import-keys -n"
+
+
 function h_echo_header()
 {
     local text=$1
@@ -16,21 +20,53 @@ function h_echo_header()
     echo "################################################"
 }
 
-function h_setup_extra_repos()
+function h_setup_base_repos()
 {
-    (
+    if [[ -r /etc/os-release ]]; then
         . /etc/os-release
 
-        DIST_NAME="${NAME}_${VERSION_ID}"
+        DIST_NAME=${NAME}
+        DIST_VERSION=${VERSION}
 
-        if [ "$DIST_NAME" = "SLES_12" ]; then
-            DIST_NAME=SLE_12
+        # /etc/os-release has SLES as $NAME, but we need SLE for repositories
+        if [[ $DIST_NAME == "SLES" ]]; then
+            DIST_NAME="SLE"
         fi
 
-        # NOTE(toabctl): This is currently needed for i.e. haproxy package.
-        zypper --non-interactive ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${DIST_NAME}/Cloud:OpenStack:Master.repo
-        zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
-    )
+        # /etc/os-release has a date and string combination for Tumbleweed
+        # we need only the string for repositories
+        if [[ $VERSION == *"Tumbleweed"* ]]; then
+            DIST_VERSION="Tumbleweed"
+        fi
+    fi
+
+    if [[ $DIST_NAME == "openSUSE" ]]; then
+        if [[ $DIST_VERSION == "Tumbleweed" ]]; then
+            # Tumbleweed needs to be lower case
+            dv=${DIST_VERSION,,}
+            $zypper ar -f http://download.opensuse.org/${dv}/repo/oss/ Base || true
+        else
+            $zypper ar -f http://download.opensuse.org/distribution/${DIST_VERSION}/repo/oss/ Base || true
+            $zypper ar -f http://download.opensuse.org/update/${DIST_VERSION}/${DIST_NAME}:${DIST_VERSION}:Update.repo || true
+        fi
+    fi
+
+    if [[ $DIST_NAME == "SLE" ]]; then
+        if [[ $DIST_VERSION == 12* ]]; then
+            $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/${DIST_VERSION}/x86_64/update/" Updates || true
+            $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/${DIST_VERSION}/x86_64/product" Base || true
+            $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SDK/${DIST_VERSION}/x86_64/product" SDK || true
+            $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SDK/${DIST_VERSION}/x86_64/update/" SDK-Update || true
+        fi
+    fi
+}
+
+
+function h_setup_extra_repos()
+{
+    # NOTE(toabctl): This is currently needed for i.e. haproxy package (and I guess for other packages/OS-versions too)
+    # This package is not available in openSUSE 13.1 but needs to be installed for lbaas tempest tests
+    $zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${DIST_NAME}_${DIST_VERSION}/Cloud:OpenStack:Master.repo || true
 }
 
 function h_setup_screen()
@@ -53,9 +89,10 @@ function h_setup_extra_disk()
 
 function h_setup_devstack()
 {
-    zypper -n in git-core crudini
+    $zypper in git-core crudini
     # git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
     git clone https://github.com/dirkmueller/devstack.git $DEVSTACK_DIR
+
     # setup non-root user (username is "stack")
     (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)
     # configure devstack
@@ -106,7 +143,9 @@ EOF
 
 ###################### Start running code #########################
 h_echo_header "Setup"
+h_setup_base_repos
 h_setup_extra_repos
+$zypper ref
 h_setup_screen
 # setup extra disk if parameters given
 if [ -e "/dev/vdb" ]; then
