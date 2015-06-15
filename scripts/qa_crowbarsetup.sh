@@ -1727,6 +1727,7 @@ function custom_configuration()
             ;;
             cinder)
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['$sles12controller']"
+                proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-volume']" "['$sles12controller']"
             ;;
             tempest)
                 proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "['$sles12controller']"
