@@ -357,13 +357,13 @@ function keystone()
 {
     command keystone --insecure "$@"
 }
-function glance()
-{
-    command glance --insecure "$@"
-}
 function heat()
 {
     command heat --insecure "$@"
+}
+function openstack()
+{
+    command openstack --insecure "$@"
 }
 export NEUTRONCLIENT_INSECURE=true
 export NOVACLIENT_INSECURE=true
@@ -2324,10 +2324,10 @@ function oncontroller_testsetup()
     tempestret=0
     if [ "$wanttempest" = "1" ]; then
         # Upload a Heat-enabled image
-        glance image-list|grep -q SLE11SP3-x86_64-cfntools || glance image-create \
-            --name=SLE11SP3-x86_64-cfntools --is-public=True --disk-format=qcow2 \
-            --container-format=bare --property hypervisor_type=kvm \
-            --copy-from http://clouddata.cloud.suse.de/images/SLES11-SP3-x86_64-cfntools.qcow2 | tee glance.out
+        openstack image list | grep -q SLE11SP3-x86_64-cfntools || openstack image create \
+            --public --disk-format qcow2 --container-format bare --property hypervisor_type=kvm \
+            --copy-from http://clouddata.cloud.suse.de/images/SLES11-SP3-x86_64-cfntools.qcow2 \
+            SLE11SP3-x86_64-cfntools | tee glance.out
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
         crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
         pushd /var/lib/openstack-tempest-test
@@ -2338,32 +2338,32 @@ function oncontroller_testsetup()
         popd
     fi
     nova list
-    glance image-list
+    openstack image list
 
     local image_name="SP3-64"
     local ssh_user="root"
 
-    if glance image-list | grep -q $image_name ; then
-        glance image-show $image_name | tee glance.out
+    if openstack image list | grep -q $image_name ; then
+        openstack image show $image_name | tee glance.out
     else
         # SP3-64 image not found, so uploading it
         if [[ -n "$wanthyperv" ]] ; then
             mount clouddata.cloud.suse.de:/srv/nfs/ /mnt/
             zypper -n in virt-utils
             qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
-            glance --insecure image-create --name=$image_name --is-public=True --disk-format=vhd --container-format=bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd | tee glance.out
+            openstack image create --public --disk-format vhd --container-format bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd $image_name | tee glance.out
             rm /tmp/SP3.vhd ; umount /mnt
         elif [[ -n "$wantxenpv" ]] ; then
-            glance --insecure image-create --name=$image_name --is-public=True --disk-format=qcow2 --container-format=bare --property hypervisor_type=xen --property vm_mode=xen --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2 | tee glance.out
+            openstack image create --public --disk-format qcow2 --container-format bare --property hypervisor_type=xen --property vm_mode=xen --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2 $image_name | tee glance.out
         else
-            glance image-create --name=$image_name --is-public=True --property vm_mode=hvm --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 | tee glance.out
+            openstack image create --public --property vm_mode=hvm --disk-format qcow2 --container-format bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 $image_name | tee glance.out
         fi
     fi
 
     if [ -n "$want_docker" ] ; then
-        glance --insecure image-create --is-public=True --container-format=docker --disk-format=raw --property hypervisor_type=docker --name cirros --copy-from http://clouddata.cloud.suse.de/images/docker/cirros.tar | tee glance.out
         image_name="cirros"
         ssh_user="cirros"
+        openstack image create --public --container-format docker --disk-format raw --property hypervisor_type=docker --name cirros --copy-from http://clouddata.cloud.suse.de/images/docker/cirros.tar $image_name | tee glance.out
     fi
 
     # wait for image to finish uploading
@@ -2373,7 +2373,7 @@ function oncontroller_testsetup()
     fi
 
     for n in $(seq 1 200) ; do
-        glance image-show $imageid|grep status.*active && break
+        openstack image show $imageid | grep status.*active && break
         sleep 5
     done
 
