@@ -1,0 +1,6 @@
+source 'https://rubygems.org'
+
+gem "octokit", "~> 3.0"
+gem "netrc"
+# only needed for debugging
+#gem "faraday-detailed_logger"
