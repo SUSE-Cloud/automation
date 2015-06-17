@@ -181,7 +181,8 @@ export debug_qa_crowbarsetup=1
 export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
 export debug=0
 export want_neutronsles12=1
-export want_ldap=1
+
+[[ $nodenumber == 2 ]] &amp;&amp; export want_ldap=1
 
 
 # HAcloud
