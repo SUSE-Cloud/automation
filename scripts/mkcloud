@@ -680,6 +680,10 @@ function setuppublicnet()
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
     # public = $public_vlan
     mkvlan $public_vlan $net_public.1
+    if [[ -n $mkch_physcloudif ]] ; then
+        brctl addif $cloudbr $mkch_physcloudif
+        ip link set dev $mkch_physcloudif up
+    fi
 }
 
 function shutdowncloud()
