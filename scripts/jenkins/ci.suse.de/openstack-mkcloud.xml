@@ -27,6 +27,66 @@ results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scr
     </hudson.security.AuthorizationMatrixProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>cloudsource</name>
+          <description>Can be something like "develcloud3" (uses Devel:Cloud:*, see TESTHEAD parameter for Staging), "susecloud3" (uses SUSE:*), "GM3" (uses the GM ISO)</description>
+          <defaultValue>develcloud5</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>mode</name>
+          <description>mode=basetest is for use by special triggers. Success on such a run will trigger more runs on this cloudsource.</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>standard</string>
+              <string>basetest</string>
+              <string>submit</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>mkcloudtarget</name>
+          <description>Set mkcloudtarget to define the mkcloud command line parameters.</description>
+          <defaultValue>all</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>libvirt_type</name>
+          <description/>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>kvm</string>
+              <string>xen</string>
+              <string>hyperv</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>networkingplugin</name>
+          <description/>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openvswitch</string>
+              <string>linuxbridge</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>networkingmode</name>
+          <description/>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>gre</string>
+              <string>vlan</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>automation_pr</name>
+          <description>&lt;PRID&gt;:&lt;SHA1&gt; of PR to be tested (SHA1 must be latest commit in PR)
+Usually this is automatically triggered via openstack-mkcloud-pr-trigger. SHA1 introduced to prevent accidental run of external PRs code.
+PullRequest ID of github (see https://github.com/SUSE-Cloud/automation/pulls)
+Setting a PullRequest ID will use the modified version of the mkcloud scripts. This is used for self-gating mkcloud changes.</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
           <description>Update repositories (one URL per line)</description>
@@ -37,11 +97,6 @@ results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scr
           <description>add update repos before crowbar install</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>cloudsource</name>
-          <description>Can be something like "develcloud3" (uses Devel:Cloud:*, see TESTHEAD parameter for Staging), "susecloud3" (uses SUSE:*), "GM3" (uses the GM ISO)</description>
-          <defaultValue>develcloud5</defaultValue>
-        </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
           <description>if non-empty, test latest version from Devel:Cloud (:1.0)</description>
@@ -54,28 +109,11 @@ minimum 2=controller+compute</description>
           <defaultValue>2</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>networkingplugin</name>
-          <description>neutron networking plugin: openvswitch|linuxbridge
-Default: openvswitch</description>
-          <defaultValue>openvswitch</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>tempestoptions</name>
           <description>Additional options to pass to the "run_tempest.sh -N " step.
 Use just "-t" for a full tempest run.
 Default: -t -s.</description>
           <defaultValue>-t -s</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>networkingmode</name>
-          <description>Set the networking mode to be used by neutron: vlan|gre.
-Default: vlan for linuxbridge, gre for openvswitch.</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>mkcloudtarget</name>
-          <description>Set mkcloudtarget to define the mkcloud command line parameters.</description>
-          <defaultValue>all</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_sles12</name>
@@ -92,11 +130,6 @@ Default: vlan for linuxbridge, gre for openvswitch.</description>
           <name>hacloud</name>
           <description>If hacloud=1 then deploy a 4-node cluster</description>
           <defaultValue/>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>libvirt_type</name>
-          <description>kvm|xen|hyperv</description>
-          <defaultValue>kvm</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>WITHCROWBARREGISTER</name>
@@ -118,11 +151,24 @@ Default: vlan for linuxbridge, gre for openvswitch.</description>
           <description>set to 1 to deploy all cloud services with SSL aka HTTPS</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
           <name>cinder_backend</name>
-          <description>can be one of local|raw|rbd|netapp</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
+          <description/>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string> </string>
+              <string>local</string>
+              <string>raw</string>
+              <string>rbd</string>
+              <string>netapp</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>want_cindermultibackend</name>
+          <description>enables deployment of more than one cinder backend</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cinder_netapp_login</name>
           <description>this is currently the user "openstack" as configured on the netapp server</description>
@@ -133,22 +179,14 @@ Default: vlan for linuxbridge, gre for openvswitch.</description>
           <description>the password for the user "openstack" as configured on the netapp server</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>want_cindermultibackend</name>
-          <description>enables deployment of more than one cinder backend</description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>automation_pr</name>
-          <description>PullRequest ID of github (see https://github.com/SUSE-Cloud/automation/pulls)
-Setting a PullRequest ID will use the modified version of the mkcloud scripts. This is used for self-gating mkcloud changes.</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>mode</name>
-          <description>mode=basetest is for use by special triggers. Success on such a run will trigger more runs on this cloudsource.</description>
-          <defaultValue>standard</defaultValue>
-        </hudson.model.StringParameterDefinition>
+        <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@1.5.1">
+          <name>label</name>
+          <description>Default: openstack-mkcloud | Possible values openstack-mkcloud-SLE11|openstack-mkcloud-SLE12 to build on SLE11 resp. SLE12</description>
+          <defaultValue>openstack-mkcloud</defaultValue>
+          <allNodesMatchingLabel>false</allNodesMatchingLabel>
+          <triggerIfResult>allCases</triggerIfResult>
+          <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
+        </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.24">
@@ -184,6 +222,10 @@ export want_neutronsles12=1
 
 [[ $nodenumber == 2 ]] &amp;&amp; export want_ldap=1
 
+if [[ $cinder_backend = " " ]] ; then
+  cinder_backend=""
+fi
+
 
 # HAcloud
 if [[ $hacloud == 1 ]] ; then
@@ -210,15 +252,31 @@ fi
 
 
 if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+  mkdir -p ${automationrepo}/scripts/jenkins
   curl -o ${automationrepo}/scripts/jenkins/update_automation https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation
   chmod a+x ${automationrepo}/scripts/jenkins/update_automation
 fi
 # fetch the latest automation updates
-update_automation #NO PARAMETERS HERE ANY MORE!!!
+${automationrepo}/scripts/jenkins/update_automation #NO PARAMETERS HERE ANY MORE!!!
 
+
+function selfgating_trap()
+{
+  $ghs -a set-status -s "failure" -t $BUILD_URL -c $automation_pr_sha
+}
 
 ## mkcloud self-gating
 if [[ $automation_pr ]] ; then
+  automation_pr_sha=${automation_pr##*:}
+  automation_pr_id=${automation_pr%%:*}
+  ghs=${automationrepo}/scripts/github-status/github-status.rb
+  
+  if ! $ghs -a is-latest-sha -p $automation_pr_id -c $automation_pr_sha ; then
+    $ghs -a set-status -s "error" -t $BUILD_URL -c $automation_pr_sha -m "Latest SHA1 from PR does not match this SHA1"
+    exit 1
+  fi
+    
+  trap "selfgating_trap" ERR
   automationrepo_orig=$automationrepo
   pr_dir=`mktemp -d $WORKSPACE/SUSE-Cloud.automation.XXXXXX`
   automationrepo=$pr_dir/automation
@@ -230,8 +288,14 @@ if [[ $automation_pr ]] ; then
   git config --get-all remote.${ghremote}.fetch | grep -q pull || \
     git config --add remote.${ghremote}.fetch "+refs/pull/*/head:refs/remotes/${ghremote}/pr/*"
   git fetch $ghremote
-  git checkout -t $ghremote/pr/$automation_pr
+  git checkout -t $ghremote/pr/$automation_pr_id
+  #temporary workaround for unrebased PRs:
+  if [ ! -e $ghs ] ; then
+    git merge master
+  fi
   popd
+    
+  $ghs -a set-status -s "pending" -t $BUILD_URL -c $automation_pr_sha
 fi
 
 
@@ -255,6 +319,12 @@ ret=${PIPESTATUS[0]}
 if [[ $ret != 0 ]] ; then
     echo "mkcloud ret=$ret"
     exit $ret # check return code before tee
+fi
+
+# report self-gating status
+if [[ $automation_pr_sha ]] ; then
+  $ghs -a set-status -s "success" -t $BUILD_URL -c $automation_pr_sha
+  trap "-" ERR
 fi
 
 [[ $TESTHEAD ]] || exit 0
