@@ -87,17 +87,17 @@ class GHClientHandler
 
   def show_unseen_pull_requests
     print_pr_sha_info(
-      get_all_pull_requests('open', ['']))
+      get_own_pull_requests('open', ['']))
   end
 
   def show_rebuild_pull_requests
     print_pr_sha_info(
-      get_all_pull_requests('open', ['', 'pending']))
+      get_own_pull_requests('open', ['', 'pending']))
   end
 
   def show_forcerebuild_pull_requests
     print_pr_sha_info(
-      get_all_pull_requests('open', ['', 'pending', 'error', 'failure']))
+      get_own_pull_requests('open', ['', 'pending', 'error', 'failure']))
   end
 
 end
