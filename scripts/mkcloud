@@ -69,6 +69,10 @@ nodenumbercomputedefault=2
 [ -n "$hacloud" ] && nodenumbercomputedefault=1
 : ${nodenumber:=$nodenumbercomputedefault}
 : ${nodenumbercompute:=$nodenumbercomputedefault}
+# expect to have this many physical machines attached via $mkch_physcloudif
+# these replace virtual machines, so we start less VMs
+: ${nodenumberphys:=0}
+[[ $nodenumberphys = 0 ]] || [[ -n $mkch_physcloudif ]] || complain 100 "need to set mkch_physcloudif for physical nodes"
 # configuration of clusters
 : ${clusterconfig:=''}
 : ${nodenumberlonelynode:=0}
@@ -77,7 +81,7 @@ export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 # (used only internally to transport this information to qa_crowbarsetup):
 : ${drbdnode_mac_vol:=''}
 : ${cephvolumenumber:=1}
-allnodeids_without_lonely=`seq 1 $nodenumber`
+allnodeids_without_lonely=`seq 1 $((nodenumber-nodenumberphys))`
 lonelynodeids=`seq $(( nodenumber + 1 )) $(( nodenumber + nodenumberlonelynode ))`
 allnodeids="$allnodeids_without_lonely $lonelynodeids"
 : ${vcpus:=1}
