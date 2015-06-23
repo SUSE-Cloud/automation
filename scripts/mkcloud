@@ -734,6 +734,12 @@ function setupnodes()
     echo
     echo "========================================================"
     sleep 10
+
+    # mkch_physwol can be set by the user to a space-separated list of MAC-addrs
+    # of pysical nodes to wake up using WoL
+    for i in $mkch_physwol ; do
+        ether-wake -i $cloudbr $i
+    done
     return 0
 }
 
