@@ -69,6 +69,10 @@ nodenumbercomputedefault=2
 [ -n "$hacloud" ] && nodenumbercomputedefault=1
 : ${nodenumber:=$nodenumbercomputedefault}
 : ${nodenumbercompute:=$nodenumbercomputedefault}
+# expect to have this many physical machines attached via $mkch_physcloudif
+# these replace virtual machines, so we start less VMs
+: ${nodenumberphys:=0}
+[[ $nodenumberphys = 0 ]] || [[ -n $mkch_physcloudif ]] || complain 100 "need to set mkch_physcloudif for physical nodes"
 # configuration of clusters
 : ${clusterconfig:=''}
 : ${nodenumberlonelynode:=0}
@@ -77,9 +81,9 @@ export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 # (used only internally to transport this information to qa_crowbarsetup):
 : ${drbdnode_mac_vol:=''}
 : ${cephvolumenumber:=1}
-allnodeids=`seq 1 $(( nodenumber + nodenumberlonelynode ))`
-allnodeids_without_lonely=`seq 1 $nodenumber`
+allnodeids_without_lonely=`seq 1 $((nodenumber-nodenumberphys))`
 lonelynodeids=`seq $(( nodenumber + 1 )) $(( nodenumber + nodenumberlonelynode ))`
+allnodeids="$allnodeids_without_lonely $lonelynodeids"
 : ${vcpus:=1}
 : ${adminvcpus:=$vcpus}
 cpuflags=''
@@ -680,6 +684,10 @@ function setuppublicnet()
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
     # public = $public_vlan
     mkvlan $public_vlan $net_public.1
+    if [[ -n $mkch_physcloudif ]] ; then
+        brctl addif $cloudbr $mkch_physcloudif
+        ip link set dev $mkch_physcloudif up
+    fi
 }
 
 function shutdowncloud()
@@ -730,6 +738,12 @@ function setupnodes()
     echo
     echo "========================================================"
     sleep 10
+
+    # mkch_physwol can be set by the user to a space-separated list of MAC-addrs
+    # of pysical nodes to wake up using WoL
+    for i in $mkch_physwol ; do
+        ether-wake -i $cloudbr $i
+    done
     return 0
 }
 
