@@ -77,9 +77,9 @@ export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 # (used only internally to transport this information to qa_crowbarsetup):
 : ${drbdnode_mac_vol:=''}
 : ${cephvolumenumber:=1}
-allnodeids=`seq 1 $(( nodenumber + nodenumberlonelynode ))`
 allnodeids_without_lonely=`seq 1 $nodenumber`
 lonelynodeids=`seq $(( nodenumber + 1 )) $(( nodenumber + nodenumberlonelynode ))`
+allnodeids="$allnodeids_without_lonely $lonelynodeids"
 : ${vcpus:=1}
 : ${adminvcpus:=$vcpus}
 cpuflags=''
