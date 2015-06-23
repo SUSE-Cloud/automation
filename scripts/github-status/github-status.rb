@@ -63,29 +63,41 @@ class GHClientHandler
     end
   end
 
+  def get_own_pull_requests(state, status = [])
+    # filter for our own PRs, as we do not want to build anybodys PR
+    pulls = get_all_pull_requests(state, status)
+    pulls.select do |p|
+      user = p.head.repo.owner.login rescue ''
+      return false unless user
+      # team id 1541628 -> SUSE-Cloud/developers
+      # team id 159206 -> SUSE-Cloud/Owners
+      @client.team_member?(1541628, user) || @client.team_member?(159206, user)
+    end
+  end
+
   def print_pr_sha_info(pull)
     if pull.is_a? Array
       pull.each do |p|
         print_pr_sha_info(p)
       end
     else
-      puts "#{pull.number}:#{pull.head.sha}"
+      puts "#{pull.number}:#{pull.head.sha}" if pull
     end
   end
 
   def show_unseen_pull_requests
     print_pr_sha_info(
-      get_all_pull_requests('open', ['']))
+      get_own_pull_requests('open', ['']))
   end
 
   def show_rebuild_pull_requests
     print_pr_sha_info(
-      get_all_pull_requests('open', ['', 'pending']))
+      get_own_pull_requests('open', ['', 'pending']))
   end
 
   def show_forcerebuild_pull_requests
     print_pr_sha_info(
-      get_all_pull_requests('open', ['', 'pending', 'error', 'failure']))
+      get_own_pull_requests('open', ['', 'pending', 'error', 'failure']))
   end
 
 end
