@@ -39,18 +39,6 @@ class GHClientHandler
     )
   end
 
-  def create_success_status(commit, target_url = '')
-    create_status(commit, 'success', @comment_prefix + 'succeeded', target_url)
-  end
-
-  def create_failure_status(commit, target_url = '')
-    create_status(commit, 'failure', @comment_prefix + 'failed', target_url)
-  end
-
-  def create_pending_status(commit, target_url = '')
-    create_status(commit, 'pending', @comment_prefix + 'is pending', target_url)
-  end
-
   def get_full_sha_status(sha)
     status = @client.status(@repository, sha)
     status.statuses.select{ |s| s.context == @context }.first rescue {}
