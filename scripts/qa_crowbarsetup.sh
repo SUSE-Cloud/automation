@@ -1747,6 +1747,7 @@ function custom_configuration()
             ;;
             ceilometer)
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['$sles12controller']"
+                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-server']" "['$sles12controller']"
             ;;
         esac
     fi
