@@ -1725,6 +1725,11 @@ function custom_configuration()
             database|keystone|glance|nova_dashboard|heat)
                 proposal_set_value ${proposal} default "['deployment']['${proposal}']['elements']['${proposal}-server']" "['$sles12controller']"
             ;;
+            swift)
+                proposal_set_value swift default "['deployment']['swift']['elements']['swift-proxy']" "['$sles12controller']"
+                proposal_set_value swift default "['deployment']['swift']['elements']['swift-dispersion']" "['$sles12controller']"
+                proposal_set_value swift default "['deployment']['swift']['elements']['swift-ring-compute']" "['$sles12controller']"
+            ;;
             cinder)
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['$sles12controller']"
             ;;
