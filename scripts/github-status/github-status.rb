@@ -126,6 +126,10 @@ optparse = OptionParser.new do |opts|
     options[:status] = status
   end
 
+  opts.on('-m', '--message MSG', 'Message to show in github next to the status.') do |msg|
+    options[:message] = msg
+  end
+
   opts.on('-h', '--help', 'Show usage') do |h|
     puts opts
     exit
