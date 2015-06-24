@@ -14,14 +14,27 @@ class GHClientHandler
     @client.login
   end
 
-  def create_status(commit, result, description = '', target_url = '')
+  def create_status(commit, result, description = nil, target_url = nil)
+    description ||= @comment_prefix + case result
+    when :success
+      'succeeded'
+    when :failure
+      'failed'
+    when :error
+      'has an error'
+    when :pending
+      'is pending'
+    else
+      ''
+    end
+
     @client.create_status(
       @repository,
       commit,
       result,
       { :context => @context,
         :description => description,
-        :target_url => target_url
+        :target_url => target_url.to_s
       }
     )
   end
@@ -123,7 +136,7 @@ optparse = OptionParser.new do |opts|
   end
 
   opts.on('-s', '--status STATUS', 'Github Status of a CI Build [pending,success,failure,error]') do |status|
-    options[:status] = status
+    options[:status] = status.to_sym
   end
 
   opts.on('-m', '--message MSG', 'Message to show in github next to the status.') do |msg|
@@ -141,6 +154,12 @@ optparse.parse!
 
 ghc=GHClientHandler.new()
 
+def require_parameter(param, message)
+  if param.to_s.empty?
+    raise message
+  end
+end
+
 case options[:action]
   when 'list-unseen-prs'
     ghc.show_unseen_pull_requests
@@ -149,24 +168,18 @@ case options[:action]
   when 'list-forcerebuild-prs'
     ghc.show_forcerebuild_pull_requests
   when 'is-latest-sha'
-    raise if options[:sha].nil? || options[:sha].empty?
-    raise if options[:pr].nil? || options[:pr].empty?
+    require_parameter(options[:sha], 'Commit SHA1 sum undefined.')
+    require_parameter(options[:pr], 'PullRequest ID undefined.')
     exit ghc.is_latest_sha?(options[:pr], options[:sha]) ? 0 : 1
   when 'get-latest-sha'
-    raise if options[:pr].nil? || options[:pr].empty?
+    require_parameter(options[:pr], 'PullRequest ID undefined.')
     puts ghc.get_pr_latest_sha(options[:pr])
   when 'set-status'
-    raise unless ['success', 'failure', 'error', 'pending'].include? options[:status]
-    raise if options[:sha].nil? || options[:sha].empty?
-    raise if options[:target_url].nil? || options[:target_url].empty?
-    case options[:status]
-      when 'success'
-        ghc.create_success_status(options[:sha], options[:target_url])
-      when 'failure', 'error'
-        ghc.create_failure_status(options[:sha], options[:target_url])
-      when 'pending'
-        ghc.create_pending_status(options[:sha], options[:target_url])
-    end
+    valid_status = [:success, :failure, :error, :pending]
+    require_parameter((valid_status & [options[:status]]).join(''),
+                      "Unsupported status #{options[:status].to_s}.")
+    require_parameter(options[:sha], 'Commit SHA1 sum undefined.')
+    ghc.create_status(options[:sha], options[:status], options[:message], options[:target_url])
   else
     puts optparse
 end
