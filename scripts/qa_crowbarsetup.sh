@@ -2356,6 +2356,10 @@ function oncontroller_testsetup()
         fi
     fi
 
+    #test for Glance scrubber service, added after bnc#930739
+    su - glance -s /bin/sh -c "/usr/bin/glance-scrubber --config-dir /etc/glance" \
+        || complain 113 "Glance scrubber doesn't work properly"
+
     if [ -n "$want_docker" ] ; then
         image_name="cirros"
         ssh_user="cirros"
