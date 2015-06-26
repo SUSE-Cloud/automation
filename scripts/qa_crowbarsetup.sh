@@ -1730,9 +1730,6 @@ function custom_configuration()
                 proposal_set_value swift default "['deployment']['swift']['elements']['swift-dispersion']" "['$sles12controller']"
                 proposal_set_value swift default "['deployment']['swift']['elements']['swift-ring-compute']" "['$sles12controller']"
             ;;
-            cinder)
-                proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['$sles12controller']"
-            ;;
             tempest)
                 proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "['$sles12controller']"
             ;;
