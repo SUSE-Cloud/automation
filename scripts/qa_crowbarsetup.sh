@@ -2343,6 +2343,7 @@ function oncontroller_testsetup()
         echo 1 > /proc/sys/kernel/sysrq
         ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
         tempestret=${PIPESTATUS[0]}
+        testr last --subunit | subunit-1to2 > tempest.subunit.log
         /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
         popd
     fi
@@ -2674,6 +2675,7 @@ EOF
 
     if [ "$wanttempest" = "1" ]; then
         scp $novacontroller:"/var/lib/openstack-tempest-test/tempest.log" .
+        scp $novacontroller:"/var/lib/openstack-tempest-test/tempest.subunit.log" .
     fi
     exit $ret
 }
