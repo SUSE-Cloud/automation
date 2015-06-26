@@ -1722,7 +1722,7 @@ function custom_configuration()
     esac
     if [ -n "$want_sles12_controller" ] ; then
         case "$proposal" in
-            database|keystone|glance|nova_dashboard|heat)
+            database|rabbitmq|keystone|glance|nova_dashboard|heat)
                 proposal_set_value ${proposal} default "['deployment']['${proposal}']['elements']['${proposal}-server']" "['$sles12controller']"
             ;;
             swift)
