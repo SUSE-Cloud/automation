@@ -1248,34 +1248,41 @@ function set_node_role_and_platform()
     rm -f $t
 }
 
+# Reboot the nodes with ipmi
+function reboot_nodes_via_ipmi()
+{
+    do_one_proposal ipmi default
+    local nodelist=$(seq 1 $nodenumber)
+    local i
+    local bmc_start=$(
+        crowbar network proposal show default | \
+        rubyjsonparse "
+            networks = j['attributes']['network']['networks']
+            puts networks['bmc']['ranges']['host']['start']
+        "
+    )
+    IFS=. read ip1 ip2 ip3 ip4 <<< "$bmc_start"
+    local bmc_net="$ip1.$ip2.$ip3"
+    for i in $nodelist ; do
+        local pw
+        for pw in 'cr0wBar!' $extraipmipw ; do
+            local ip=$bmc_net.$(($ip4 + $i))
+            (ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "$bmc_net.1"
+            ipmitool -H $ip -U root -P $pw power on
+            ipmitool -H $ip -U root -P $pw power reset) &
+        done
+    done
+    wait
+}
+
 function onadmin_allocate()
 {
     pre_hook $FUNCNAME
-    #chef-client
+
     if $want_ipmi ; then
-        do_one_proposal ipmi default
-        local nodelist=$(seq 1 $nodenumber)
-        local i
-        local bmc_start=$(
-            crowbar network proposal show default | \
-            rubyjsonparse "
-                networks = j['attributes']['network']['networks']
-                puts networks['bmc']['ranges']['host']['start']
-            "
-        )
-        IFS=. read ip1 ip2 ip3 ip4 <<< "$bmc_start"
-        local bmc_net="$ip1.$ip2.$ip3"
-        for i in $nodelist ; do
-            local pw
-            for pw in 'cr0wBar!' $extraipmipw ; do
-                local ip=$bmc_net.$(($ip4 + $i))
-                (ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "$bmc_net.1"
-                ipmitool -H $ip -U root -P $pw power on
-                ipmitool -H $ip -U root -P $pw power reset) &
-            done
-        done
-        wait
+        reboot_nodes_via_ipmi
     fi
+
     if [[ $cloud = qa1 ]] ; then
         curl http://clouddata.cloud.suse.de/git/automation/scripts/qa1_nodes_reboot | bash
     fi
@@ -2130,8 +2137,7 @@ function do_one_proposal()
     update_one_proposal "$proposal" "$proposaltypemapped"
 }
 
-# apply all wanted proposals on crowbar admin node
-function onadmin_proposal()
+function prepare_proposals()
 {
     pre_hook $FUNCNAME
     waitnodes nodes
@@ -2146,54 +2152,74 @@ function onadmin_proposal()
         done
     fi
 
+}
+
+# Set dashboard node alias
+function set_dashboard_alias()
+{
+    get_novadashboardserver
+    set_node_alias `echo "$novadashboardserver" | cut -d . -f 1` dashboard controller
+}
+
+function deploy_single_proposal()
+{
+    local proposal=$1
+
+    # proposal filter
+    case "$proposal" in
+        pacemaker)
+            if [[ $hacloud = 1 ]] ; then
+                cluster_node_assignment
+            else
+                # no cluster for non-HA, but get compute nodes
+                nodescompute=`get_all_discovered_nodes`
+                continue
+            fi
+            ;;
+        ceph)
+            [[ -n "$deployceph" ]] || continue
+            ;;
+        swift)
+            [[ -n "$deployswift" ]] || continue
+            ;;
+        trove)
+            iscloudver 5plus || continue
+            ;;
+        tempest)
+            [[ -n "$wanttempest" ]] || continue
+            ;;
+    esac
+
+    # create proposal
+    case "$proposal" in
+        pacemaker)
+            local clustermapped
+            for clustermapped in ${clusterconfig//:/ } ; do
+                clustermapped=${clustermapped%=*}
+                # pass on the cluster name together with the mapped cluster name(s)
+                do_one_proposal "$proposal" "$clustermapped"
+            done
+            ;;
+        *)
+            do_one_proposal "$proposal" "default"
+            ;;
+    esac
+}
+
+# apply all wanted proposals on crowbar admin node
+function onadmin_proposal()
+{
+
+    prepare_proposals
+
     local proposals="pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat trove tempest"
 
     local proposal
     for proposal in $proposals ; do
-        # proposal filter
-        case "$proposal" in
-            pacemaker)
-                if [[ $hacloud = 1 ]] ; then
-                    cluster_node_assignment
-                else
-                    # no cluster for non-HA, but get compute nodes
-                    nodescloud=`get_all_discovered_nodes`
-                    continue
-                fi
-                ;;
-            ceph)
-                [[ -n "$deployceph" ]] || continue
-                ;;
-            swift)
-                [[ -n "$deployswift" ]] || continue
-                ;;
-            trove)
-                iscloudver 5plus || continue
-                ;;
-            tempest)
-                [[ -n "$wanttempest" ]] || continue
-                ;;
-        esac
-
-        # create proposal
-        case "$proposal" in
-            pacemaker)
-                local clustermapped
-                for clustermapped in ${clusterconfig//:/ } ; do
-                    clustermapped=${clustermapped%=*}
-                    # pass on the cluster name together with the mapped cluster name(s)
-                    do_one_proposal "$proposal" "$clustermapped"
-                done
-                ;;
-            *)
-                do_one_proposal "$proposal" "default"
-                ;;
-        esac
+        deploy_single_proposal $proposal
     done
 
-    # Set dashboard node alias
-    get_novadashboardserver
-    set_node_alias `echo "$novadashboardserver" | cut -d . -f 1` dashboard controller
+    set_dashboard_alias
 }
 
 function set_node_alias()
