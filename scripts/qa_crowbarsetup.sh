@@ -514,7 +514,7 @@ function get_sles12_node()
 
 function get_sles12_controller()
 {
-    knife search node "target_platform:suse-12.0 && intended_role:no_role" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g'
+    knife search node "target_platform:suse-12.0 && intended_role:controller" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g'
 }
 
 function cluster_node_assignment()
@@ -1305,19 +1305,20 @@ function onadmin_allocate()
     echo "Setting first node to controller..."
     set_node_role_and_platform ${controllernodes[0]} "controller" "suse-11.3"
 
-    if [ -n "$want_sles12_controller" ] ; then
-        echo "Setting second node as SLE12 controller ..."
-        set_node_role_and_platform ${controllernodes[1]} "no_role" "suse-12.0"
-    fi
-
     if [ -n "$want_sles12" ] && iscloudver 5plus ; then
 
         local nodes=(
             $(get_all_discovered_nodes | tail -n 2)
         )
+
         if [ -n "$deployceph" ] ; then
             echo "Setting second last node to SLE12 Storage..."
             set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
+        fi
+
+        if [ -n "$want_sles12_controller" ] ; then
+            echo "Setting second node as SLE12 controller ..."
+            set_node_role_and_platform ${controllernodes[1]} "controller" "suse-12.0"
         fi
 
         echo "Setting last node to SLE12 compute..."
