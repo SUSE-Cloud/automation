@@ -512,11 +512,6 @@ function get_sles12_node()
     knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g'
 }
 
-function get_sles12_controller()
-{
-    knife search node "target_platform:suse-12.0 && intended_role:controller" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g'
-}
-
 function cluster_node_assignment()
 {
     local nodesavailable
@@ -1302,8 +1297,14 @@ function onadmin_allocate()
     local controllernodes=(
             $(get_all_discovered_nodes | head -n 2)
         )
+
+    controller_os="suse-11.3"
+    if iscloudver 6plus; then
+        controller_os="suse-12.0"
+    fi
+
     echo "Setting first node to controller..."
-    set_node_role_and_platform ${controllernodes[0]} "controller" "suse-11.3"
+    set_node_role_and_platform ${controllernodes[0]} "controller" $controller_os
 
     if [ -n "$want_sles12" ] && iscloudver 5plus ; then
 
@@ -1314,11 +1315,6 @@ function onadmin_allocate()
         if [ -n "$deployceph" ] ; then
             echo "Setting second last node to SLE12 Storage..."
             set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
-        fi
-
-        if [ -n "$want_sles12_controller" ] ; then
-            echo "Setting second node as SLE12 controller ..."
-            set_node_role_and_platform ${controllernodes[1]} "controller" "suse-12.0"
         fi
 
         echo "Setting last node to SLE12 compute..."
@@ -1726,7 +1722,6 @@ function custom_configuration()
     fi
 
     local sles12node=`get_sles12_node`
-    local sles12controller=`get_sles12_controller`
 
     ### NOTE: ONLY USE proposal_{set,modify}_value functions below this line
     ###       The edited proposal will be read and imported at the end
@@ -1739,34 +1734,7 @@ function custom_configuration()
             fi
         ;;
     esac
-    if [ -n "$want_sles12_controller" ] ; then
-        case "$proposal" in
-            database|rabbitmq|keystone|glance|nova_dashboard|heat)
-                proposal_set_value ${proposal} default "['deployment']['${proposal}']['elements']['${proposal}-server']" "['$sles12controller']"
-            ;;
-            swift)
-                proposal_set_value swift default "['deployment']['swift']['elements']['swift-proxy']" "['$sles12controller']"
-                proposal_set_value swift default "['deployment']['swift']['elements']['swift-dispersion']" "['$sles12controller']"
-                proposal_set_value swift default "['deployment']['swift']['elements']['swift-ring-compute']" "['$sles12controller']"
-            ;;
-            tempest)
-                proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "['$sles12controller']"
-            ;;
-            neutron)
-                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['$sles12controller']"
-                #FIXME: till bug#930986 this part can be enabled once again
-                # https://bugzilla.suse.com/show_bug.cgi?id=930986
-                #proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sles12controller']"
-            ;;
-            nova)
-                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-controller']" "['$sles12controller']"
-            ;;
-            ceilometer)
-                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['$sles12controller']"
-                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-server']" "['$sles12controller']"
-            ;;
-        esac
-    fi
+
     case "$proposal" in
         pacemaker)
             # multiple matches possible, so separate if's, to allow to configure mapped clusters
@@ -2083,11 +2051,9 @@ function set_proposalvars()
     if iscloudver 5 && [ -z "$want_sles12" ] ; then
         deployceph=
     fi
-    # C4: Cloud6 controller SLE12 node
-    if ! iscloudver 6plus ; then
-        want_sles12_controller=
+    if iscloudver 6plus ; then
+        want_sles12=1
     fi
-    [[ $want_sles12_controller ]] && want_sles12=1
     ### FINAL swift and ceph check
     if [[ $deployswift && $deployceph ]] ; then
         complain 89 "Can not deploy ceph and swift at the same time."
