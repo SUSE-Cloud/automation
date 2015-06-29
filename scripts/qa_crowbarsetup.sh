@@ -449,6 +449,21 @@ function add_ha_repo()
     done
 }
 
+function add_ha12_repo()
+{
+    # TODO: add Updates-Test repo
+    local repo
+    for repo in SLE12-HA-{Pool,Updates}; do
+        if [ "$hacloud" == "2" -a "$repo" == "SLE12-HA-Updates-test" ] ; then
+            continue
+        fi
+        # Note no zypper alias parameter here since we don't want to
+        # zypper addrepo on the admin node.
+        add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+            "$tftpboot_repos12_dir/$repo"
+    done
+}
+
 function add_suse_storage_repo()
 {
         local repo
@@ -1005,6 +1020,9 @@ EOF
             add_ha_repo
         else
             complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
+        fi
+        if iscloudver 6plus; then
+            add_ha12_repo
         fi
     fi
 
