@@ -1269,6 +1269,7 @@ for cmd in `echo $steplist` ; do
     echo "============> MKCLOUD STEP START: $cmd <============"
     echo
     sleep 2
+    echo $cmd >> mkcloud.steps.log
     $cmd
     ret=$?
     if [ $ret != 0 ] ; then

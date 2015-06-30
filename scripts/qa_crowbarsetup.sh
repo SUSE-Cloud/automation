@@ -198,6 +198,7 @@ function pre_hook()
     func=$1
     pre=$(eval echo \$pre_$func | base64 -d)
     test -n "$pre" && eval "$pre"
+    echo $func >> /root/qa_crowbarsetup.steps.log
 }
 
 function intercept()
