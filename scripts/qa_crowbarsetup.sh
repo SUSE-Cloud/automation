@@ -198,6 +198,7 @@ function pre_hook()
     func=$1
     pre=$(eval echo \$pre_$func | base64 -d)
     test -n "$pre" && eval "$pre"
+    echo $func >> /root/qa_crowbarsetup.steps.log
 }
 
 function intercept()
@@ -1407,6 +1408,7 @@ function onadmin_get_ip_from_dhcp()
 # register a new node with crowbar_register
 function onadmin_crowbar_register()
 {
+    pre_hook $FUNCNAME
     wait_for 150 10 "onadmin_get_ip_from_dhcp '$lonelymac'" "node to get an IP from DHCP" "exit 78"
     local crowbar_register_node_ip=`onadmin_get_ip_from_dhcp "$lonelymac"`
 
@@ -2771,6 +2773,7 @@ function get_neutron_server_node()
 
 function onadmin_rebootneutron()
 {
+    pre_hook $FUNCNAME
     get_neutron_server_node
     echo "Rebooting neutron server: $NEUTRON_SERVER ..."
 
@@ -3073,7 +3076,7 @@ function onadmin_cloudupgrade_2nd()
 
 function onadmin_cloudupgrade_clients()
 {
-
+    pre_hook $FUNCNAME
     # Upgrade Packages on the client nodes
     crowbar updater proposal create default
     crowbar updater proposal show default > updater.json
@@ -3125,6 +3128,7 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
 
 function onadmin_crowbarbackup()
 {
+    pre_hook $FUNCNAME
     rm -f /tmp/backup-crowbar.tar.gz
     AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
         bash -x /usr/sbin/crowbar-backup backup /tmp/backup-crowbar.tar.gz ||\
@@ -3133,6 +3137,7 @@ function onadmin_crowbarbackup()
 
 function onadmin_crowbarpurge()
 {
+    pre_hook $FUNCNAME
     # Purge files to pretend we start from a clean state
     cp -a /var/lib/crowbar/cache/etc/resolv.conf /etc/resolv.conf
 
@@ -3163,6 +3168,7 @@ function onadmin_crowbarpurge()
 
 function onadmin_crowbarrestore()
 {
+    pre_hook $FUNCNAME
     # Need to install the addon again, as we removed it
     zypper --non-interactive in --auto-agree-with-licenses -t pattern cloud_admin
 
@@ -3175,6 +3181,7 @@ function onadmin_crowbarrestore()
 
 function onadmin_qa_test()
 {
+    pre_hook $FUNCNAME
     zypper -n in -y python-{keystone,nova,glance,heat,cinder,ceilometer}client
 
     get_novacontroller
@@ -3196,6 +3203,7 @@ function onadmin_qa_test()
 # can be useful for faster testing cycles
 function onadmin_teardown()
 {
+    pre_hook $FUNCNAME
     #BMCs at ${netp}.178.163-6 #node 6-9
     #BMCs at ${netp}.$net.163-4 #node 11-12
 
