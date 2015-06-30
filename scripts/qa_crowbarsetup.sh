@@ -2520,6 +2520,20 @@ function oncontroller()
     return $?
 }
 
+function install_suse_ca()
+{
+    # trust build key - workaround https://bugzilla.opensuse.org/show_bug.cgi?id=935020
+    wget --no-check-certificate -O build.suse.de.key.pgp https://api.suse.de/public/source/SUSE/_pubkey
+    safely sha1sum -c <<EOF
+ee896d59206e451d563fcecef72608546bf10ad6  build.suse.de.key.pgp
+EOF
+    rpm --import build.suse.de.key.pgp
+
+    onadmin_set_source_variables # for $slesdist
+    zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/$slesdist/SUSE:CA.repo
+    safely zypper -n in ca-certificates-suse
+}
+
 function onadmin_testsetup()
 {
     pre_hook $FUNCNAME
@@ -2562,8 +2576,9 @@ function onadmin_testsetup()
             git reset --hard
             git pull
         else
-            git clone http://clouddata.cloud.suse.de/git/qa-automation.git
-            pushd qa-automation
+            install_suse_ca
+            safely git clone https://gitlab.suse.de/ceph/qa-automation.git
+            safely pushd qa-automation
         fi
 
         # write configuration files that we need
