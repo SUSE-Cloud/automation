@@ -17,6 +17,8 @@ fi
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
 
+: ${arch:=$(uname -m)}
+
 # global variables that are set within this script
 novacontroller=
 novadashboardserver=
@@ -29,7 +31,6 @@ clusternameservices="services"
 clusternamenetwork="network"
 wanthyperv=
 
-export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
 export want_sles12
@@ -70,6 +71,10 @@ rubyjsonparse()
         $1"
 }
 
+setcloudnetvars()
+{
+    local cloud=$1
+    export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
 if [ -z "$cloud" ] ; then
     complain 101 "Parameter missing that defines the cloud name" \
         "Possible values: [d1, d2, p, virtual]" \
@@ -186,7 +191,7 @@ net_public=${net_public:-192.168.122}
 net_storage=${net_storage:-192.168.125}
 mkcloudhostip=${net}.1
 : ${adminip:=$net.10}
-: ${arch:=$(uname -m)}
+}
 
 # run hook code before the actual script does its function
 # example usage: export pre_onadmin_installcrowbar=$(base64 -w 0 <<EOF
@@ -197,6 +202,7 @@ function pre_hook()
 {
     func=$1
     pre=$(eval echo \$pre_$func | base64 -d)
+    setcloudnetvars $cloud
     test -n "$pre" && eval "$pre"
     echo $func >> /root/qa_crowbarsetup.steps.log
 }

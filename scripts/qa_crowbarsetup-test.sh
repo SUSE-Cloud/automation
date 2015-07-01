@@ -45,7 +45,7 @@ it_returns_correct_getcloudver() {
 }
 
 it_has_correct_mac_to_nodename() {
-    results=`. ./qa_crowbarsetup.sh ; mac_to_nodename 52:54:03:88:77:03`
+    results=`. ./qa_crowbarsetup.sh ; setcloudnetvars $cloud ; mac_to_nodename 52:54:03:88:77:03`
     test "$results" = "d52-54-03-88-77-03.x.cloud.suse.de"
 }
 
