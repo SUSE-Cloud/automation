@@ -604,7 +604,7 @@ function cluster_node_assignment()
             ;;
         esac
     done
-    nodescompute=$nodesavailable
+    nodescloud=$nodesavailable
 
     echo "............................................................"
     echo "The cluster node assignment (for your information):"
@@ -615,7 +615,7 @@ function cluster_node_assignment()
     echo "services cluster:"
     printf "   %s\n" $clusternodesservices
     echo "compute nodes (no cluster):"
-    printf "   %s\n" $nodescompute
+    printf "   %s\n" $nodescloud
     echo "............................................................"
 }
 
@@ -1382,7 +1382,7 @@ function wait_node_ready()
     echo "node $node ready"
 }
 
-function onadmin_waitcompute()
+function onadmin_waitcloud()
 {
     pre_hook $FUNCNAME
     local node
@@ -1825,7 +1825,7 @@ function custom_configuration()
 
                 # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
                 local novanodes
-                novanodes=`printf "\"%s\"," $nodescompute`
+                novanodes=`printf "\"%s\"," $nodescloud`
                 novanodes="[ ${novanodes%,} ]"
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "$novanodes"
             fi
@@ -1833,9 +1833,9 @@ function custom_configuration()
             if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-docker']" "['$sles12node']"
                 # do not assign another compute role to this node
-                if [ -n "$nodescompute" ] ; then
+                if [ -n "$nodescloud" ] ; then
                     local novanodes
-                    novanodes=`printf "\"%s\",\n" $nodescompute | grep -iv $sles12node`
+                    novanodes=`printf "\"%s\",\n" $nodescloud | grep -iv $sles12node`
                     novanodes="[ ${novanodes%,} ]"
                     proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "$novanodes"
                 fi
@@ -1864,7 +1864,7 @@ function custom_configuration()
                 # this should be adapted when NFS mode is supported for data cluster
                 proposal_set_value ceilometer default "['attributes']['ceilometer']['use_mongodb']" "false"
                 local ceilometernodes
-                ceilometernodes=`printf "\"%s\"," $nodescompute`
+                ceilometernodes=`printf "\"%s\"," $nodescloud`
                 ceilometernodes="[ ${ceilometernodes%,} ]"
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-agent']" "$ceilometernodes"
             fi
@@ -1969,7 +1969,7 @@ function custom_configuration()
             if [[ $hacloud = 1 ]] ; then
                 local cinder_volume
                 # fetch one of the compute nodes as cinder_volume
-                cinder_volume=`printf "%s\n" $nodescompute | tail -n 1`
+                cinder_volume=`printf "%s\n" $nodescloud | tail -n 1`
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['cluster:$clusternameservices']"
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-volume']" "['$cinder_volume']"
             fi
@@ -1978,7 +1978,7 @@ function custom_configuration()
             if [[ $hacloud = 1 ]] ; then
                 local tempestnodes
                 # tempest can only be deployed on one node
-                tempestnodes=`printf "'%s',\n" $nodescompute | head -n 1`
+                tempestnodes=`printf "'%s',\n" $nodescloud | head -n 1`
                 tempestnodes="[ ${tempestnodes%,} ]"
                 proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "$tempestnodes"
             fi
@@ -2157,7 +2157,7 @@ function onadmin_proposal()
                     cluster_node_assignment
                 else
                     # no cluster for non-HA, but get compute nodes
-                    nodescompute=`get_all_discovered_nodes`
+                    nodescloud=`get_all_discovered_nodes`
                     continue
                 fi
                 ;;
@@ -2737,7 +2737,7 @@ function onadmin_rebootcompute()
         complain 17 "Some nodes rebooted with state Problem."
     fi
 
-    onadmin_waitcompute
+    onadmin_waitcloud
     onneutron_wait_for_neutron
     oncontroller oncontroller_waitforinstance
 
