@@ -50,6 +50,8 @@ mkcloud_temporary_scripts="mkcloud-libvirt.sh"
 for script in $mkcloud_temporary_scripts; do
     source ${mkcloud_lib_dir}/$script
 done
+source $qa_crowbarsetup
+
 : ${cinder_backend:=''}
 : ${cinder_netapp_storage_protocol:=iscsi}
 : ${cinder_netapp_login:=openstack}
@@ -145,19 +147,6 @@ function is_suse()
     grep -qi suse /etc/*release
 }
 
-function complain() # {{{
-{
-    local ex=$1; shift
-    printf "Error: %s\n" "$@" >&2
-    [[ $ex != - ]] && exit $ex
-} # }}}
-
-safely () {
-    if ! "$@"; then
-        complain 30 "$* failed! Aborting."
-    fi
-}
-
 function show_environment()
 {
     end_time=`date`
@@ -209,37 +198,6 @@ function error_exit()
     show_environment
     exit $exitcode
 } >&2
-
-function wait_for()
-{
-    timecount=${1:-300}
-    timesleep=${2:-1}
-    condition=${3:-'/bin/true'}
-    waitfor=${4:-'unknown process'}
-
-    echo "Waiting for: $waitfor"
-    n=$timecount
-    while test $n -gt 0 && ! eval $condition
-    do
-        echo -n .
-        sleep $timesleep
-        n=$(($n - 1))
-    done
-    echo
-
-    if [ $n = 0 ] ; then
-        complain 11 "Waiting for '$waitfor' timed out." \
-            "This check was used: $condition"
-    fi
-}
-
-function wait_for_if_running()
-{
-    local procname=${1}
-    local timecount=${2:-300}
-
-    wait_for $timecount 5 "! pidofproc ${procname} >/dev/null" "process '${procname}' to terminate"
-}
 
 function sshrun()
 {
