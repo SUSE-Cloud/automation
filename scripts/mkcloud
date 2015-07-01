@@ -1176,10 +1176,8 @@ function sanity_checks()
         if the machine has a global public IP
         see bnc#928384 and CVE-2012-3411"
 
-    if ! iscloudver 6plus; then
-        if [[ $want_sles12 ]] && [[ $want_ceph = 1 ]] && [[ $nodenumber -lt 4 ]] ; then
-            complain 113 "Please increase number of nodes for this setup, minimal nodenumber=4"
-        fi
+    if [[ $want_sles12 = 1 ]] && [[ $want_ceph = 1 ]] && [[ $nodenumber -lt 3 ]] ; then
+        complain 113 "Please increase number of nodes for this setup, minimal nodenumber=3"
     fi
 }
 
