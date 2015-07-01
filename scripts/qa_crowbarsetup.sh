@@ -1373,15 +1373,21 @@ function check_node_resolvconf()
     ssh_password $1 'grep "^nameserver" /etc/resolv.conf || echo fail'
 }
 
+function wait_node_ready()
+{
+    local node=$1
+    wait_for 200 10 \
+        "netcat -w 3 -z $node 3389 || sshtest $node rpm -q yast2-core" \
+        "node $node" "check_node_resolvconf $node; exit 12"
+    echo "node $node ready"
+}
+
 function onadmin_waitcompute()
 {
     pre_hook $FUNCNAME
     local node
     for node in `get_all_discovered_nodes` ; do
-        wait_for 200 10 \
-            "netcat -w 3 -z $node 3389 || sshtest $node rpm -q yast2-core" \
-            "node $node" "check_node_resolvconf $node; exit 12"
-        echo "node $node ready"
+        wait_node_ready $node
     done
 }
 
@@ -2691,6 +2697,26 @@ function onadmin_runupdate()
     wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
 }
 
+function get_neutron_server_node()
+{
+    NEUTRON_SERVER=$(crowbar neutron proposal show default| rubyjsonparse "
+    puts j['deployment']['neutron']['elements']['neutron-server'][0];")
+}
+
+function onneutron_wait_for_neutron()
+{
+    get_neutron_server_node
+
+    wait_for 300 3 "ssh $NEUTRON_SERVER 'rcopenstack-neutron status' |grep -q running" "neutron-server service running state"
+    wait_for 200 3 " ! ssh $NEUTRON_SERVER '. .openrc && neutron agent-list -f csv --quote none'|tail -n+2 | grep -q -v ':-)'" "neutron agents up"
+
+    ssh $NEUTRON_SERVER '. .openrc && neutron agent-list'
+    ssh $NEUTRON_SERVER 'ping -c1 -w1 8.8.8.8' > /dev/null
+    if [ "x$?" != "x0" ]; then
+        complain 14 "ping to 8.8.8.8 from $NEUTRON_SERVER failed."
+    fi
+}
+
 # reboot all cloud nodes (controller+compute+storage)
 # wait for nodes to go down and come up again
 function onadmin_rebootcompute()
@@ -2711,7 +2737,10 @@ function onadmin_rebootcompute()
         complain 17 "Some nodes rebooted with state Problem."
     fi
 
+    onadmin_waitcompute
+    onneutron_wait_for_neutron
     oncontroller oncontroller_waitforinstance
+
     local ret=$?
     echo "ret:$ret"
     exit $ret
@@ -2723,19 +2752,13 @@ function onadmin_rebootcompute()
 function oncontroller_waitforinstance()
 {
     . .openrc
-    nova list
-    nova start testvm || exit 28
-    nova list
+    safely nova list
+    nova start testvm || complain 28 "Failed to start VM"
+    safely nova list
     addfloatingip testvm
     local vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
     [[ -z "$vmip" ]] && complain 12 "no IP found for instance"
     wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
-}
-
-function get_neutron_server_node()
-{
-    NEUTRON_SERVER=$(crowbar neutron proposal show default| rubyjsonparse "
-    puts j['deployment']['neutron']['elements']['neutron-server'][0];")
 }
 
 function onadmin_rebootneutron()
@@ -2748,14 +2771,7 @@ function onadmin_rebootneutron()
     wait_for 100 1 " ! netcat -z $NEUTRON_SERVER 22 >/dev/null" "node $NEUTRON_SERVER to go down"
     wait_for 200 3 "netcat -z $NEUTRON_SERVER 22 >/dev/null" "node $NEUTRON_SERVER to be back online"
 
-    wait_for 300 3 "ssh $NEUTRON_SERVER 'rcopenstack-neutron status' |grep -q running" "neutron-server service running state"
-    wait_for 200 3 " ! ssh $NEUTRON_SERVER '. .openrc && neutron agent-list -f csv --quote none'|tail -n+2 | grep -q -v ':-)'" "neutron agents up"
-
-    ssh $NEUTRON_SERVER '. .openrc && neutron agent-list'
-    ssh $NEUTRON_SERVER 'ping -c1 -w1 8.8.8.8' > /dev/null
-    if [ "x$?" != "x0" ]; then
-        complain 14 "ping to 8.8.8.8 from $NEUTRON_SERVER failed."
-    fi
+    onneutron_wait_for_neutron
 }
 
 function create_owasp_testsuite_config()
