@@ -194,7 +194,7 @@ def cleanup(args):
     remove_files("/var/run/libvirt/qemu/{0}-*.xml".format(args.cloud))
     remove_files("/var/lib/libvirt/network/{0}-*.xml".format(args.cloud))
     remove_files("/etc/sysconfig/network/ifcfg-{0}.{1}".format(
-        args.cloudbr, args.public_vlan))
+        args.cloudbr, args.vlan_public))
 
 
 def domain_cleanup(dom):
