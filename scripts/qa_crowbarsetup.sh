@@ -193,7 +193,7 @@ setcloudnetvars()
     net_fixed=${net_fixed:-192.168.123}
     net_public=${net_public:-192.168.122}
     net_storage=${net_storage:-192.168.125}
-    mkcloudhostip=${net}.1
+    : ${admingw:=$net.1}
     : ${adminip:=$net.10}
 }
 
@@ -1662,7 +1662,7 @@ function hacloud_configure_cluster_defaults()
     proposal_set_value pacemaker "$clustername" \
         "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
     proposal_set_value pacemaker "$clustername" \
-        "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$mkcloudhostip'"
+        "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$admingw'"
     proposal_modify_value pacemaker "$clustername" \
         "['description']" "'Clustername: $clustername, type: $clustertype ; '" "+="
 }

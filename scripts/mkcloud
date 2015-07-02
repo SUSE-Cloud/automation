@@ -53,15 +53,11 @@ done
 source $qa_crowbarsetup
 
 : ${virtualcloud:=virtual}
-: ${cloudfqdn:=$virtualcloud.cloud.suse.de}
-: ${forwardmode:=nat}
-: ${net_fixed:=192.168.123}
-: ${net_public:=192.168.122}
 : ${net_admin:=192.168.124}
+setcloudnetvars $virtualcloud
+: ${forwardmode:=nat}
 : ${public_vlan:=300}
 : ${adminnetmask:=255.255.248.0}
-: ${adminip:=$net_admin.10}
-: ${admingw:=$net_admin.1}
 # the default nodenumber of compute nodes
 nodenumbercomputedefault=2
 [ -n "$hacloud" ] && nodenumbercomputedefault=1
@@ -88,7 +84,6 @@ cpuflags=''
 working_dir_orig=`pwd`
 : ${artifacts_dir:=$working_dir_orig/.artifacts}
 start_time=`date`
-: ${libvirt_type:=kvm}
 : ${cloud:=cloud}
 : ${cloudvg:=$cloud}
 needcvol=1
@@ -1006,7 +1001,6 @@ EOUSAGE
 # virtualcloud
 # cloudfqdn
 # forwardmode
-# net_fixed
 # net_public
 # net_admin
 # adminnetmask
