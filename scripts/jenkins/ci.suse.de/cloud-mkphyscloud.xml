@@ -103,9 +103,9 @@ ret=0
 ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL; export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ; export cloudsource=$cloudsource ; export libvirt_type=$libvirt_type ; export nodenumber=$nodenumber ; "'
   wget -Oqa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh" 
   
-  [ $WITHREBOOT == "true" ] &amp;&amp; export rebootsteps="rebootcompute"
+  [ $WITHREBOOT == "true" ] &amp;&amp; export rebootsteps="rebootcloud"
   [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
-  timeout --signal=ALRM 130m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar addupdaterepo installcrowbar allocate $updatesteps waitcompute proposal testsetup $rebootsteps"
+  timeout --signal=ALRM 130m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar addupdaterepo installcrowbar allocate $updatesteps waitcloud proposal testsetup $rebootsteps"
 ' || ret=$?
 echo "mkphyscloud ret=$ret"
 exit $ret

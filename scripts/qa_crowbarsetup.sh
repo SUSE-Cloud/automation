@@ -2719,7 +2719,7 @@ function onneutron_wait_for_neutron()
 
 # reboot all cloud nodes (controller+compute+storage)
 # wait for nodes to go down and come up again
-function onadmin_rebootcompute()
+function onadmin_rebootcloud()
 {
     pre_hook $FUNCNAME
     get_novacontroller

@@ -43,7 +43,7 @@
 upgrade_cloudsource=develcloud4
 nodenumber=3
 TESTHEAD=1
-mkcloudtarget=plain_with_upgrade testsetup rebootcompute</properties>
+mkcloudtarget=plain_with_upgrade testsetup rebootcloud</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>

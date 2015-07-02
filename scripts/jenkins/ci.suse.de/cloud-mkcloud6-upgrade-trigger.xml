@@ -45,7 +45,7 @@ FIXME: SLE12 upgrade not possible via zypper</description>
 upgrade_cloudsource=develcloud6
 nodenumber=2
 TESTHEAD=1
-mkcloudtarget=plain_with_upgrade testsetup rebootcompute</properties>
+mkcloudtarget=plain_with_upgrade testsetup rebootcloud</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
