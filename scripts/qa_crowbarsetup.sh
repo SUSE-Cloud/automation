@@ -954,6 +954,17 @@ function zypper_refresh()
     safely zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
 }
 
+
+function ensure_packages_installed()
+{
+    local zypper_params="--non-interactive --gpg-auto-import-keys --no-gpg-checks"
+    local pack
+    for pack in "$@" ; do
+        rpm -q $pack &> /dev/null || safely zypper $zypper_params install "$pack"
+    done
+}
+
+
 function onadmin_repocleanup()
 {
     # Workaround broken admin image that has SP3 Test update channel enabled
