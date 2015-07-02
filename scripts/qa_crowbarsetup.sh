@@ -16,6 +16,10 @@ fi
 # defaults
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
+: ${cinder_backend:=''}
+: ${cinder_netapp_storage_protocol:=iscsi}
+: ${cinder_netapp_login:=openstack}
+: ${cinder_netapp_password:=''}
 
 : ${arch:=$(uname -m)}
 

@@ -52,10 +52,6 @@ for script in $mkcloud_temporary_scripts; do
 done
 source $qa_crowbarsetup
 
-: ${cinder_backend:=''}
-: ${cinder_netapp_storage_protocol:=iscsi}
-: ${cinder_netapp_login:=openstack}
-: ${cinder_netapp_password:=''}
 : ${virtualcloud:=virtual}
 : ${cloudfqdn:=$virtualcloud.cloud.suse.de}
 : ${forwardmode:=nat}
