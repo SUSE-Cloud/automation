@@ -105,7 +105,7 @@ ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export U
   
   [ $WITHREBOOT == "true" ] &amp;&amp; export rebootsteps="rebootcloud"
   [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
-  timeout --signal=ALRM 130m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar addupdaterepo installcrowbar allocate $updatesteps waitcloud proposal testsetup $rebootsteps"
+  timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar addupdaterepo installcrowbar allocate $updatesteps waitcloud proposal testsetup $rebootsteps"
 ' || ret=$?
 echo "mkphyscloud ret=$ret"
 exit $ret
