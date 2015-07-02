@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>mode</name>
+          <description>normal: trigger unseen PRs
+rebuild: trigger unseend and pending PRs
+forcerebuild: trigger unseen, pending and failed PRs</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>normal</string>
+              <string>rebuild</string>
+              <string>forcerebuild</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.TextParameterDefinition>
+          <name>automation_prs</name>
+          <description>Space separated list of PullRequest IDs. Builds for only these PRs will be triggered and github API will not be queried for the latest changes.</description>
+          <defaultValue/>
+        </hudson.model.TextParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.24">
+      <autoRebuild>false</autoRebuild>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>openstack-mkcloud-SLE12</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H/30 * * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>set -x
+
+export automationrepo=~/github.com/SUSE-Cloud/automation
+
+if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+  mkdir -p ${automationrepo}/scripts/jenkins
+  curl -o ${automationrepo}/scripts/jenkins/update_automation https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation
+  chmod a+x ${automationrepo}/scripts/jenkins/update_automation
+fi
+# fetch the latest automation updates
+${automationrepo}/scripts/jenkins/update_automation
+
+
+action=list-unseen-prs
+case $mode in
+  rebuild) action=list-rebuild-prs
+  ;;
+  forcerebuild) action=list-forcerebuild-prs
+  ;;
+esac
+
+# PR testing is only possible on SLE12 nodes, so set a label
+staticconfig="label=openstack-mkcloud-SLE12"
+
+## mkcloud self-gating
+ghs=${automationrepo}/scripts/github-status/github-status.rb
+
+
+prs=${automation_prs}
+prs=${prs:-`$ghs -a ${action}`}
+
+for automation_pr in $prs ; do
+  pr_sha=${automation_pr##*:}
+
+  # default config / may be overridden by tags from PR message
+  mkcloudtarget=plain
+  cloudsource=develcloud5
+  nodenumber=3
+  networkingplugin=openvswitch
+  #echo eval `$ghs -a get-pr-config -p $pr_sha` # not yet implemented
+  
+  ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-mkcloud -p mode=standard automation_pr=${automation_pr} mkcloudtarget=${mkcloudtarget} cloudsource="${cloudsource}" nodenumber=${nodenumber} networkingplugin=${networkingplugin} $staticconfig
+  $ghs -a set-status -s "pending" -t $BUILD_URL -c $pr_sha
+done
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
