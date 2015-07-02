@@ -704,7 +704,7 @@ function onadmin_prepare_sles12_repos()
 # create empty repository when there is none yet
 function onadmin_create_sles12_repos()
 {
-    safely zypper -n install createrepo
+    ensure_packages_installed createrepo
 
     local sles12optionalrepolist
     if iscloudver 6plus; then
@@ -1047,7 +1047,7 @@ EOF
         add_suse_storage_repo
     fi
 
-    safely zypper -n install rsync netcat
+    ensure_packages_installed rsync netcat
 
     # setup cloud repos for tftpboot and zypper
     onadmin_prepare_cloud_repos
@@ -1192,7 +1192,7 @@ EOF
     fi
 
     if iscloudver 4plus; then
-        zypper -n install crowbar-barclamp-tempest
+        ensure_packages_installed crowbar-barclamp-tempest
         # Force restart of crowbar
         rccrowbar stop
     fi
@@ -2303,7 +2303,7 @@ function oncontroller_testsetup()
 
     export LC_ALL=C
     if [[ -n $deployswift ]] ; then
-        zypper -n install python-swiftclient
+        ensure_packages_installed python-swiftclient
         swift stat
         swift upload container1 .ssh/authorized_keys
         swift list container1 || complain 33 "swift list failed"
@@ -2312,7 +2312,7 @@ function oncontroller_testsetup()
     radosgwret=0
     if [ "$wantradosgwtest" == 1 ] ; then
 
-        zypper -n install python-swiftclient
+        ensure_packages_installed python-swiftclient
 
         if ! swift post swift-test; then
             echo "creating swift container failed"
@@ -2573,7 +2573,7 @@ function onadmin_testsetup()
 
     cephret=0
     if [ -n "$deployceph" -a "$wantcephtestsuite" == 1 ] ; then
-        rpm -q git-core &> /dev/null || zypper -n install git-core
+        ensure_packages_installed git-core
 
         if test -d qa-automation; then
             pushd qa-automation
@@ -2623,11 +2623,11 @@ EOH
         done
 
         # dependency for the test suite
-        rpm -q python-PyYAML &> /dev/null || zypper -n install python-PyYAML
+        ensure_packages_installed python-PyYAML
 
         if ! rpm -q python-nose &> /dev/null; then
             zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
-            zypper -n --gpg-auto-import-keys --no-gpg-checks install python-nose
+            ensure_packages_installed python-nose
             zypper rr Devel_Cloud_Shared_11-SP3_Update
         fi
 
@@ -2644,7 +2644,7 @@ EOH
         ssh $radosgw radosgw-admin user create --uid=rados --display-name=RadosGW --secret="secret" --access-key="access"
 
         # using curl directly is complicated, see http://ceph.com/docs/master/radosgw/s3/authentication/
-        zypper -n install python-boto
+        ensure_packages_installed python-boto
         python << EOF
 import boto
 import boto.s3.connection
@@ -2709,7 +2709,7 @@ function onadmin_addupdaterepo()
                 ${repo%/}/ \
             || exit 8
         done
-        safely zypper -n install createrepo
+        ensure_packages_installed createrepo
         createrepo -o $UPR $UPR || exit 8
     fi
     zypper modifyrepo -e cloud-ptf >/dev/null 2>&1 ||\
@@ -3042,7 +3042,7 @@ function onadmin_prepare_cloudupgrade()
     # before trying to install anything.
     wait_for_if_running chef-client
     zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks refresh -f || complain 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
-    zypper --non-interactive install --force suse-cloud-upgrade || complain 3 "Couldn't install suse-cloud-upgrade"
+    ensure_packages_installed suse-cloud-upgrade
 }
 
 function onadmin_cloudupgrade_1st()
@@ -3066,7 +3066,7 @@ function onadmin_cloudupgrade_2nd()
     # Cloud release to something form the Devel:Cloud projects. Note: For the
     # client nodes this is needs to happen after the updated provisioner
     # proposal is applied (see below).
-    zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install crudini
+    ensure_packages_installed crudini
     crudini --set /etc/zypp/zypp.conf main solver.allowVendorChange true
 
     # Upgrade Admin node
@@ -3129,10 +3129,10 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
     # Install new features
     if iscloudver 5; then
         update_one_proposal dns default
-        zypper --non-interactive install crowbar-barclamp-trove
+        ensure_packages_installed crowbar-barclamp-trove
         do_one_proposal trove default
     elif iscloudver 4; then
-        zypper --non-interactive install crowbar-barclamp-tempest
+        ensure_packages_installed crowbar-barclamp-tempest
         do_one_proposal tempest default
     fi
 
