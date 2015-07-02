@@ -319,14 +319,7 @@ function cleanup()
     # accidental booting and freeing space
     if [ -d $vdisk_dir ]; then
         find -L $vdisk_dir -name "$cloud.*" -type b | \
-            xargs -r lvremove --force
-        if [ $? != 0 ]; then
-            echo >&2
-            echo "Failed to free up previous volumes:" >&2
-            echo >&2
-            find -L $vdisk_dir -name "$cloud.*" -type b
-            exit 42
-        fi
+            safely xargs --no-run-if-empty lvremove --force
     fi
 
     if [ -n "$wipe" ] ; then
