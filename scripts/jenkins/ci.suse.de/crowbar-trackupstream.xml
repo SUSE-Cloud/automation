@@ -177,8 +177,7 @@ if [ ${OBS_PROJECT} != "Cloud:OpenStack:Master" ] ; then
   grep -q "&lt;linkinfo" .osc/_files || exit 2
 fi
 
-# call script in /root/bin
-track-upstream-and-package.pl</command>
+/root/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-and-package.pl</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
