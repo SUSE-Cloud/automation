@@ -1802,6 +1802,9 @@ function custom_configuration()
                 #zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_11_SP3/SUSE:CA.repo
                 #zypper -n --gpg-auto-import-keys in ca-certificates-suse
             fi
+            if [[ $want_keystone_v3 ]] ; then
+                proposal_set_value keystone default "['attributes']['keystone']['api']['version']" "'3'"
+            fi
         ;;
         glance)
             if [[ -n "$deployceph" ]]; then
