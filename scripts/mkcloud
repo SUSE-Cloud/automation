@@ -713,8 +713,58 @@ function testsetup()
 {
     onadmin testsetup
     local ret=$?
-    $scp root@$adminip:tempest.log "$artifacts_dir/tempest.log"
+    mkdir -p "$artifacts_dir"
+    $scp root@$adminip:tempest*.log "$artifacts_dir/"
+
+    # Register the cloud in Rally and import the results
+    if [[ $rally_server && -f $artifacts_dir/tempest.subunit.log ]] ; then
+        local title=$(testname)
+        local type=$(testtype)
+
+        $scp root@$adminip:.openrc "$artifacts_dir/"
+        local tmpdir=`ssh $sshopts rally@$rally_server "mktemp -d rally-XXXXXX"`
+        $scp "$artifacts_dir/tempest.subunit.log" "$artifacts_dir/.openrc" rally@$rally_server:$tmpdir
+        ssh $sshopts rally@$rally_server "
+            source rally/bin/activate
+            source $tmpdir/.openrc
+            deployment=\$(rally deployment create --fromenv --name=\"$title\" | awk '/Using deployment:/{print \$3}')
+            rally verify start \"$type\" --tempest-log=$tmpdir/tempest.subunit.log --deployment=\$deployment
+            rm -fr $tmpdir
+        "
+    fi
+
     return $ret
+}
+
+function testname()
+{
+    local name="$cloudsource/ha:$hacloud/ceph:$cephvolumenumber/cinder:$cinder_backend"
+
+    # Check if this instance of mkcloud is running inside Jenkins
+    if [[ $JENKINS_URL ]] ; then
+        name="$BUILD_NUMBER - $JOB_NAME - $BUILD_URL"
+    fi
+
+    echo $name
+}
+
+function testtype()
+{
+    # If `tempestoptions` contains '-s' or '--smoke' parameter, is a
+    # smoke test.  If there is '--load-list 2015.03.required.txt' is a
+    # defcore test.  A full test is supossed by default.
+    local type="full"
+    if [[ $tempestoptions ]] ; then
+        if [[ $tempestoptions =~ -s ]] ; then
+            type="smoke"
+        elif [[ $tempestoptions =~ --load-list.*.required.txt ]] ; then
+            type="defcore"
+        elif [[ $tempestoptions =~ --load-list ]] ; then
+            type="ad-hoc"
+        fi
+    fi
+
+    echo $type
 }
 
 function rebootcrowbar()
@@ -990,6 +1040,10 @@ Optional
         instead of the one from the packages.  This will be scp'd to the admin node before use.
     vlan_public=<id> (default 300)
         VLAN id for public network
+    tempestoptions (default='-t -s')
+        parameters passed to run_tempest.sh script
+    rally_server (default='')
+        rally server address
 
 EOUSAGE
     exit 1
