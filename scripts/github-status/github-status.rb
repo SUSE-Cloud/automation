@@ -72,7 +72,9 @@ class GHClientHandler
       return false unless user
       # team id 1541628 -> SUSE-Cloud/developers
       # team id 159206 -> SUSE-Cloud/Owners
-      @client.team_member?(1541628, user) || @client.team_member?(159206, user)
+      user == "SUSE-Cloud" ||
+        @client.team_member?(1541628, user) ||
+        @client.team_member?(159206, user)
     end
   end
 
