@@ -11,7 +11,7 @@ def main():
     parser.add_argument("cloud", type=str, help="Name of the Cloud")
     parser.add_argument("nodenumber", type=int, help="Number of Nodes")
     parser.add_argument("cloudbr", type=str, help="Name of the Virtual Bridge")
-    parser.add_argument("public_vlan", type=str,
+    parser.add_argument("vlan_public", type=str,
                         help="ID of the Public VLAN")
 
     args = parser.parse_args()

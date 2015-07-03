@@ -50,20 +50,13 @@ mkcloud_temporary_scripts="mkcloud-libvirt.sh"
 for script in $mkcloud_temporary_scripts; do
     source ${mkcloud_lib_dir}/$script
 done
-: ${cinder_backend:=''}
-: ${cinder_netapp_storage_protocol:=iscsi}
-: ${cinder_netapp_login:=openstack}
-: ${cinder_netapp_password:=''}
+source $qa_crowbarsetup
+
 : ${virtualcloud:=virtual}
-: ${cloudfqdn:=$virtualcloud.cloud.suse.de}
-: ${forwardmode:=nat}
-: ${net_fixed:=192.168.123}
-: ${net_public:=192.168.122}
 : ${net_admin:=192.168.124}
-: ${public_vlan:=300}
+setcloudnetvars $virtualcloud
+: ${forwardmode:=nat}
 : ${adminnetmask:=255.255.248.0}
-: ${adminip:=$net_admin.10}
-: ${admingw:=$net_admin.1}
 # the default nodenumber of compute nodes
 nodenumbercomputedefault=2
 [ -n "$hacloud" ] && nodenumbercomputedefault=1
@@ -90,7 +83,6 @@ cpuflags=''
 working_dir_orig=`pwd`
 : ${artifacts_dir:=$working_dir_orig/.artifacts}
 start_time=`date`
-: ${libvirt_type:=kvm}
 : ${cloud:=cloud}
 : ${cloudvg:=$cloud}
 needcvol=1
@@ -145,19 +137,6 @@ function is_suse()
     grep -qi suse /etc/*release
 }
 
-function complain() # {{{
-{
-    local ex=$1; shift
-    printf "Error: %s\n" "$@" >&2
-    [[ $ex != - ]] && exit $ex
-} # }}}
-
-safely () {
-    if ! "$@"; then
-        complain 30 "$* failed! Aborting."
-    fi
-}
-
 function show_environment()
 {
     end_time=`date`
@@ -210,37 +189,6 @@ function error_exit()
     exit $exitcode
 } >&2
 
-function wait_for()
-{
-    timecount=${1:-300}
-    timesleep=${2:-1}
-    condition=${3:-'/bin/true'}
-    waitfor=${4:-'unknown process'}
-
-    echo "Waiting for: $waitfor"
-    n=$timecount
-    while test $n -gt 0 && ! eval $condition
-    do
-        echo -n .
-        sleep $timesleep
-        n=$(($n - 1))
-    done
-    echo
-
-    if [ $n = 0 ] ; then
-        complain 11 "Waiting for '$waitfor' timed out." \
-            "This check was used: $condition"
-    fi
-}
-
-function wait_for_if_running()
-{
-    local procname=${1}
-    local timecount=${2:-300}
-
-    wait_for $timecount 5 "! pidofproc ${procname} >/dev/null" "process '${procname}' to terminate"
-}
-
 function sshrun()
 {
     mkcconf=mkcloud.config
@@ -290,10 +238,10 @@ function onadmin()
 function cleanup()
 {
     # cleanup leftover from last run
-    ${mkcloud_lib_dir}/libvirt/cleanup $cloud $nodenumber $cloudbr $public_vlan
+    ${mkcloud_lib_dir}/libvirt/cleanup $cloud $nodenumber $cloudbr $vlan_public
 
-    if ip link show ${cloudbr}.$public_vlan >/dev/null 2>&1; then
-        ip link set ${cloudbr}.$public_vlan down
+    if ip link show ${cloudbr}.$vlan_public >/dev/null 2>&1; then
+        ip link set ${cloudbr}.$vlan_public down
     fi
     if ip link show ${cloudbr} >/dev/null 2>&1; then
         ip link set ${cloudbr} down
@@ -678,8 +626,7 @@ function setuppublicnet()
 {
     # workaround https://bugzilla.novell.com/show_bug.cgi?id=845496
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
-    # public = $public_vlan
-    mkvlan $public_vlan $net_public.1
+    mkvlan $vlan_public $net_public.1
     if [[ -n $mkch_physcloudif ]] ; then
         brctl addif $cloudbr $mkch_physcloudif
         ip link set dev $mkch_physcloudif up
@@ -1041,7 +988,7 @@ Optional
     install_chef_suse_override='path/to/script'
         Optional path to an alternate version of install-chef-suse.sh on the mkcloud hostto use
         instead of the one from the packages.  This will be scp'd to the admin node before use.
-    public_vlan=<id> (default 300)
+    vlan_public=<id> (default 300)
         VLAN id for public network
 
 EOUSAGE
@@ -1052,7 +999,6 @@ EOUSAGE
 # virtualcloud
 # cloudfqdn
 # forwardmode
-# net_fixed
 # net_public
 # net_admin
 # adminnetmask

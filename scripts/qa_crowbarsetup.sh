@@ -16,6 +16,12 @@ fi
 # defaults
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
+: ${cinder_backend:=''}
+: ${cinder_netapp_storage_protocol:=iscsi}
+: ${cinder_netapp_login:=openstack}
+: ${cinder_netapp_password:=''}
+
+: ${arch:=$(uname -m)}
 
 # global variables that are set within this script
 novacontroller=
@@ -29,7 +35,6 @@ clusternameservices="services"
 clusternamenetwork="network"
 wanthyperv=
 
-export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
 export want_sles12
@@ -70,123 +75,127 @@ rubyjsonparse()
         $1"
 }
 
-if [ -z "$cloud" ] ; then
-    complain 101 "Parameter missing that defines the cloud name" \
-        "Possible values: [d1, d2, p, virtual]" \
-        "Example: $0 d2"
-fi
+setcloudnetvars()
+{
+    local cloud=$1
+    export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
+    if [ -z "$cloud" ] ; then
+        complain 101 "Parameter missing that defines the cloud name" \
+            "Possible values: [d1, d2, p, virtual]" \
+            "Example: $0 d2"
+    fi
 
-# common cloud network prefix within SUSE Nuremberg:
-netp=10.162
-net=${net_admin:-192.168.124}
-case "$cloud" in
-    d1)
-        nodenumber=5
-        net=$netp.178
-        net_storage=$netp.179
-        net_public=$netp.177
-        net_fixed=$netp.176
-        vlan_storage=568
-        vlan_public=567
-        vlan_fixed=566
-        want_ipmi=true
-    ;;
-    d2)
-        nodenumber=2
-        net=$netp.186
-        net_storage=$netp.187
-        net_public=$netp.185
-        net_fixed=$netp.184
-        vlan_storage=581
-        vlan_public=580
-        vlan_fixed=569
-        want_ipmi=true
-    ;;
-    d3)
-        nodenumber=3
-        net=$netp.189
-        net_public=$netp.188
-        vlan_storage=586
-        vlan_public=588
-        vlan_fixed=589
-        want_ipmi=true
-    ;;
-    qa1)
-        nodenumber=6
-        net=${netp}.26
-        net_public=$net
-        vlan_public=300
-        vlan_fixed=500
-        vlan_storage=200
-        want_ipmi=false
-    ;;
-    qa2)
-        nodenumber=7
-        net=${netp}.24
-        net_public=$net
-        vlan_public=12
-        #vlan_admin=610
-        vlan_fixed=611
-        vlan_storage=612
-        want_ipmi=true
-    ;;
-    qa3)
-        nodenumber=8
-        net=${netp}.25
-        net_public=$net
-        vlan_public=12
-        #vlan_admin=615
-        vlan_fixed=615
-        vlan_storage=616
-        want_ipmi=true
-    ;;
-    p2)
-        net=$netp.171
-        net_storage=$netp.172
-        net_public=$netp.164
-        net_fixed=44.0.0
-        vlan_storage=563
-        vlan_public=564
-        vlan_fixed=565
-        want_ipmi=true
-    ;;
-    p)
-        net=$netp.169
-        net_storage=$netp.170
-        net_public=$netp.168
-        net_fixed=$netp.160
-        vlan_storage=565
-        vlan_public=564
-        vlan_fixed=563
-        want_ipmi=true
-    ;;
-    virtual)
-                true # defaults are fine (and overridable)
-    ;;
-    cumulus)
-        net=$netp.189
-        net_storage=$netp.187
-        net_public=$netp.190
-        net_fixed=$netp.188
-        vlan_storage=577
-        vlan_public=579
-        vlan_fixed=578
-    ;;
-    *)
-                true # defaults are fine (and overridable)
-    ;;
-esac
-# default networks in crowbar:
-vlan_storage=${vlan_storage:-200}
-vlan_public=${vlan_public:-300}
-vlan_fixed=${vlan_fixed:-500}
-vlan_sdn=${vlan_sdn:-$vlan_storage}
-net_fixed=${net_fixed:-192.168.123}
-net_public=${net_public:-192.168.122}
-net_storage=${net_storage:-192.168.125}
-mkcloudhostip=${net}.1
-: ${adminip:=$net.10}
-: ${arch:=$(uname -m)}
+    # common cloud network prefix within SUSE Nuremberg:
+    netp=10.162
+    net=${net_admin:-192.168.124}
+    case "$cloud" in
+        d1)
+            nodenumber=5
+            net=$netp.178
+            net_storage=$netp.179
+            net_public=$netp.177
+            net_fixed=$netp.176
+            vlan_storage=568
+            vlan_public=567
+            vlan_fixed=566
+            want_ipmi=true
+        ;;
+        d2)
+            nodenumber=2
+            net=$netp.186
+            net_storage=$netp.187
+            net_public=$netp.185
+            net_fixed=$netp.184
+            vlan_storage=581
+            vlan_public=580
+            vlan_fixed=569
+            want_ipmi=true
+        ;;
+        d3)
+            nodenumber=3
+            net=$netp.189
+            net_public=$netp.188
+            vlan_storage=586
+            vlan_public=588
+            vlan_fixed=589
+            want_ipmi=true
+        ;;
+        qa1)
+            nodenumber=6
+            net=${netp}.26
+            net_public=$net
+            vlan_public=300
+            vlan_fixed=500
+            vlan_storage=200
+            want_ipmi=false
+        ;;
+        qa2)
+            nodenumber=7
+            net=${netp}.24
+            net_public=$net
+            vlan_public=12
+            #vlan_admin=610
+            vlan_fixed=611
+            vlan_storage=612
+            want_ipmi=true
+        ;;
+        qa3)
+            nodenumber=8
+            net=${netp}.25
+            net_public=$net
+            vlan_public=12
+            #vlan_admin=615
+            vlan_fixed=615
+            vlan_storage=616
+            want_ipmi=true
+        ;;
+        p2)
+            net=$netp.171
+            net_storage=$netp.172
+            net_public=$netp.164
+            net_fixed=44.0.0
+            vlan_storage=563
+            vlan_public=564
+            vlan_fixed=565
+            want_ipmi=true
+        ;;
+        p)
+            net=$netp.169
+            net_storage=$netp.170
+            net_public=$netp.168
+            net_fixed=$netp.160
+            vlan_storage=565
+            vlan_public=564
+            vlan_fixed=563
+            want_ipmi=true
+        ;;
+        virtual)
+                    true # defaults are fine (and overridable)
+        ;;
+        cumulus)
+            net=$netp.189
+            net_storage=$netp.187
+            net_public=$netp.190
+            net_fixed=$netp.188
+            vlan_storage=577
+            vlan_public=579
+            vlan_fixed=578
+        ;;
+        *)
+                    true # defaults are fine (and overridable)
+        ;;
+    esac
+    # default networks in crowbar:
+    vlan_storage=${vlan_storage:-200}
+    vlan_public=${vlan_public:-300}
+    vlan_fixed=${vlan_fixed:-500}
+    vlan_sdn=${vlan_sdn:-$vlan_storage}
+    net_fixed=${net_fixed:-192.168.123}
+    net_public=${net_public:-192.168.122}
+    net_storage=${net_storage:-192.168.125}
+    : ${admingw:=$net.1}
+    : ${adminip:=$net.10}
+}
 
 # run hook code before the actual script does its function
 # example usage: export pre_onadmin_installcrowbar=$(base64 -w 0 <<EOF
@@ -197,6 +206,7 @@ function pre_hook()
 {
     func=$1
     pre=$(eval echo \$pre_$func | base64 -d)
+    setcloudnetvars $cloud
     test -n "$pre" && eval "$pre"
     echo $func >> /root/qa_crowbarsetup.steps.log
 }
@@ -1652,7 +1662,7 @@ function hacloud_configure_cluster_defaults()
     proposal_set_value pacemaker "$clustername" \
         "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
     proposal_set_value pacemaker "$clustername" \
-        "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$mkcloudhostip'"
+        "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$admingw'"
     proposal_modify_value pacemaker "$clustername" \
         "['description']" "'Clustername: $clustername, type: $clustertype ; '" "+="
 }
