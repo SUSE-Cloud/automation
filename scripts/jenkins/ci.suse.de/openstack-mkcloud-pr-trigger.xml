@@ -79,7 +79,7 @@ for automation_pr in $prs ; do
   pr_sha=${automation_pr##*:}
 
   # default config / may be overridden by tags from PR message
-  mkcloudtarget=plain
+  mkcloudtarget=all_noreboot
   cloudsource=develcloud5
   nodenumber=3
   networkingplugin=openvswitch
