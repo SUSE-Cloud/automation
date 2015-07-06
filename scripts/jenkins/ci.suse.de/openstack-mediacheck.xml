@@ -42,7 +42,6 @@
     <hudson.matrix.TextAxis>
       <name>project</name>
       <values>
-        <string>Devel:Cloud:3</string>
         <string>Devel:Cloud:4</string>
         <string>Devel:Cloud:5</string>
         <string>Devel:Cloud:5/SLE_12</string>
@@ -62,14 +61,20 @@
     <hudson.matrix.LabelAxis>
       <name>label</name>
       <values>
-        <string>cloud-trackupstream</string>
+        <string>cloud-trackupstream-sle12</string>
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>(["Devel:Cloud:3", "Devel:Cloud:4", "Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12"].contains(project) || subproject == ":")</combinationFilter>
+  <combinationFilter>(["Devel:Cloud:4", "Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12"].contains(project) || subproject == ":")</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># temporary, similar to update_automation (not that advanced)
+if [ ! -e  /root/github.com/SUSE/cloud/ ] ; then
+  mkdir -p /root/github.com/SUSE
+  pushd /root/github.com/SUSE/
+  git clone git@github.com:SUSE/cloud.git
+  popd
+fi
 pushd /root/github.com/SUSE/cloud/
 git pull
 popd
