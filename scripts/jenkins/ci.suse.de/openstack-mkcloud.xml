@@ -221,7 +221,14 @@ export debug=0
 export want_neutronsles12=1
 export rally_server=backup.cloudadm.qa.suse.de
 
-[[ $nodenumber == 2 ]] &amp;&amp; export want_ldap=1
+case $cloudsource in
+    GM4|GM4+up|GM5|GM5+up)
+        echo "Not setting want_ldap"
+        ;;
+    *)
+        [[ $nodenumber == 2 ]] &amp;&amp; export want_ldap=1
+        ;;
+esac
 
 if [[ $cinder_backend = " " ]] ; then
   cinder_backend=""
