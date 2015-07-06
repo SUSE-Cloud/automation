@@ -58,7 +58,7 @@ function complain() # {{{
 {
     local ex=$1; shift
     printf "Error: %s\n" "$@" >&2
-    [[ $ex != - ]] && exit $ex
+    [[ $ex = - ]] || exit $ex
 } # }}}
 
 safely () {
