@@ -404,19 +404,20 @@ function addsp3testupdates()
 {
     add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "$tftpboot_repos_dir/SLES11-SP3-Updates/" "sp3tup"
 }
-function add_sles12ga_testupdates()
+
+function addsp4testupdates()
+{
+    add_mount "SLES11-SP4-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP4/' "$tftpboot_repos_dir/SLES11-SP4-Updates/" "sp4tup"
+}
+
+function addsles12testupdates()
 {
     echo "TODO: add SLES-12-GA Updates-test repo"
 }
 
-function addcloud3maintupdates()
+function addsles12sp1testupdates()
 {
-    add_mount "SUSE-Cloud-3-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-3-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-3-Updates/" "cloudmaintup"
-}
-
-function addcloud3testupdates()
-{
-    add_mount "SUSE-Cloud-3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/3.0/' "$tftpboot_repos_dir/SUSE-Cloud-3-Updates/" "cloudtup"
+    echo "TODO: add SLES-12-SP1 Updates-test repo"
 }
 
 function addcloud4maintupdates()
@@ -444,6 +445,25 @@ function addcloud5testupdates()
 function addcloud5pool()
 {
     add_mount "SUSE-Cloud-5-Pool" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-Pool/' "$tftpboot_repos_dir/SUSE-Cloud-5-Pool/" "cloudpool"
+}
+
+function addcloud6maintupdates()
+{
+    add_mount "SUSE-Cloud-6-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-6-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-6-Updates/" "cloudmaintup"
+    #TBD
+    #add_mount "SUSE-Cloud-6-SLES11-SP4-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
+}
+
+function addcloud6testupdates()
+{
+    add_mount "SUSE-Cloud-6-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/5/' "$tftpboot_repos_dir/SUSE-Cloud-6-Updates/" "cloudtup"
+    #TBD
+    #add_mount "SUSE-Cloud-6-SLES11-SP4-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
+}
+
+function addcloud6pool()
+{
+    add_mount "SUSE-Cloud-6-Pool" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-6-Pool/' "$tftpboot_repos_dir/SUSE-Cloud-6-Pool/" "cloudpool"
 }
 
 function add_ha_repo()
@@ -807,30 +827,37 @@ function onadmin_prepare_cloud_repos()
 
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
-            GM3|GM3+up)
+            GM4)
                 addsp3testupdates
-                addcloud3testupdates
                 ;;
-            GM4|GM4+up)
+            GM4+up)
                 addsp3testupdates
                 addcloud4testupdates
                 ;;
-            susecloud5|M?|Beta*|RC*|GMC*|GM5|GM5+up)
+            GM5)
                 addsp3testupdates
-                add_sles12ga_testupdates
+                addsles12testupdates
+                addcloud5pool
+                ;;
+            GM5+up)
+                addsp3testupdates
+                addsles12testupdates
                 addcloud5testupdates
                 addcloud5pool
                 ;;
-            develcloud3|develcloud4)
+            develcloud4)
                 addsp3testupdates
                 ;;
-            develcloud5)
+            develcloud5|develcloud6)
                 addsp3testupdates
-                add_sles12ga_testupdates
+                addsles12testupdates
                 ;;
-            develcloud6)
+            susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
                 addsp3testupdates
-                add_sles12ga_testupdates
+                addsp4testupdates
+                addsles12sp1testupdates
+                addcloud6testupdates
+                addcloud6pool
                 ;;
             *)
                 complain 26 "no TESTHEAD repos defined for cloudsource=$cloudsource"
@@ -838,15 +865,16 @@ function onadmin_prepare_cloud_repos()
         esac
     else
         case "$cloudsource" in
-            GM3+up)
-                addcloud3maintupdates
-                ;;
             GM4+up)
                 addcloud4maintupdates
                 ;;
-            susecloud5|M?|Beta*|RC*|GMC*|GM5|GM5+up)
+            GM5+up)
                 addcloud5maintupdates
                 addcloud5pool
+                ;;
+            susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
+                addcloud6maintupdates
+                addcloud6pool
                 ;;
         esac
     fi
@@ -869,12 +897,6 @@ function onadmin_set_source_variables()
     suseversion=11.3
     : ${susedownload:=download.nue.suse.com}
     case "$cloudsource" in
-        develcloud3)
-            CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/3/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/3:/Staging/images/iso
-            CLOUDSLE11DISTISO="S*-CLOUD*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-3-devel"
-        ;;
         develcloud4)
             CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/4/images/iso
             [ -n "$TESTHEAD" ] && CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/4:/Staging/images/iso
@@ -897,17 +919,12 @@ function onadmin_set_source_variables()
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
-        susecloud5)
-            CLOUDSLE11DISTPATH=/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud5:/Test/images/iso
-            CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12:/Update:/Products:/Cloud5/images/iso/
-            CLOUDSLE11DISTISO="SUSE-CLOUD*Media1.iso"
-            CLOUDSLE12DISTISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-5-official"
-        ;;
-        GM3|GM3+up)
-            CLOUDSLE11DISTPATH=/install/SLE-11-SP3-Cloud-3-GM/
-            CLOUDSLE11DISTISO="S*-CLOUD*1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-3-official"
+        susecloud6)
+            CLOUDSLE11DISTPATH=/ibs/SUSE:/ibs/SUSE:/SLE-11-SP4:/Update:/Products:/Cloud6/images/iso/
+            CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP1:/Update:/Products:/Cloud6/images/iso/
+            CLOUDSLE11DISTISO="SUSE-SLE11-OPENSTACK-CLOUD-6-$arch*Media1.iso"
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-Cloud-6-official"
         ;;
         GM4|GM4+up)
             CLOUDSLE11DISTPATH=/install/SLE-11-SP3-Cloud-4-GM/
