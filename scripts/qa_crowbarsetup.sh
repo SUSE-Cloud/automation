@@ -2687,8 +2687,9 @@ EOF
     fi
 
     if [ "$wanttempest" = "1" ]; then
-        scp $novacontroller:"/var/lib/openstack-tempest-test/tempest.log" .
-        scp $novacontroller:"/var/lib/openstack-tempest-test/tempest.subunit.log" .
+        scp $novacontroller:/var/lib/openstack-tempest-test/tempest.log .
+        scp $novacontroller:/var/lib/openstack-tempest-test/tempest.subunit.log .
+        scp $novacontroller:.openrc .
     fi
     exit $ret
 }
