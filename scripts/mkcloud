@@ -968,7 +968,7 @@ Optional
         set new cloudsource for upgrade process
     TESTHEAD='' | 1  (default='')
         use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)
-    cephvolumenumber  (default=0)
+    cephvolumenumber  (default=1)
         the number of ceph volumes that will be created per node
         note: proposal step does contain a ceph proposal only in SUSE Cloud 4, in
         SUSE OpenStack Cloud 5 do it manually
