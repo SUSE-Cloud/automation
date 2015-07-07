@@ -27,20 +27,9 @@
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
-    <org.jenkinsci.plugins.buildresulttrigger.BuildResultTrigger plugin="buildresult-trigger@0.17">
-      <spec>H 5 * * */3</spec>
-      <combinedJobs>false</combinedJobs>
-      <jobsInfo>
-        <org.jenkinsci.plugins.buildresulttrigger.model.BuildResultTriggerInfo>
-          <jobNames>openstack-mkcloud, </jobNames>
-          <checkedResults>
-            <org.jenkinsci.plugins.buildresulttrigger.model.CheckedResult>
-              <checked>SUCCESS</checked>
-            </org.jenkinsci.plugins.buildresulttrigger.model.CheckedResult>
-          </checkedResults>
-        </org.jenkinsci.plugins.buildresulttrigger.model.BuildResultTriggerInfo>
-      </jobsInfo>
-    </org.jenkinsci.plugins.buildresulttrigger.BuildResultTrigger>
+    <hudson.triggers.TimerTrigger>
+      <spec>H 3 * * *</spec>
+    </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders/>
