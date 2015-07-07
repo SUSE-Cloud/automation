@@ -2382,8 +2382,10 @@ function oncontroller_testsetup()
     fi
 
     #test for Glance scrubber service, added after bnc#930739
-    su - glance -s /bin/sh -c "/usr/bin/glance-scrubber --config-dir /etc/glance" \
-        || complain 113 "Glance scrubber doesn't work properly"
+    if iscloudver 6plus || [[ $cloudsource =~ develcloud ]]; then
+        su - glance -s /bin/sh -c "/usr/bin/glance-scrubber" \
+            || complain 113 "Glance scrubber doesn't work properly"
+    fi
 
     if [ -n "$want_docker" ] ; then
         image_name="cirros"
