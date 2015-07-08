@@ -50,6 +50,8 @@ mkcloud_temporary_scripts="mkcloud-libvirt.sh"
 for script in $mkcloud_temporary_scripts; do
     source ${mkcloud_lib_dir}/$script
 done
+mkcconf=mkcloud.config
+rm -f $mkcconf # we dont want to source old info in the line below
 source $qa_crowbarsetup
 
 : ${virtualcloud:=virtual}
@@ -191,7 +193,6 @@ function error_exit()
 
 function sshrun()
 {
-    mkcconf=mkcloud.config
     cat > $mkcconf <<EOF
         export drbdnode_mac_vol=$drbdnode_mac_vol ;
         export cloud=$virtualcloud ;
