@@ -69,18 +69,17 @@
   <builders>
     <hudson.tasks.Shell>
       <command># temporary, similar to update_automation (not that advanced)
-if [ ! -e  /root/github.com/SUSE/cloud/ ] ; then
+d=/root/github.com/SUSE/cloud/
+if [ ! -e  $d ] ; then
   mkdir -p /root/github.com/SUSE
-  pushd /root/github.com/SUSE/
-  git clone git@github.com:SUSE/cloud.git
-  popd
+  git clone git@github.com:SUSE/cloud.git $d
 fi
-pushd /root/github.com/SUSE/cloud/
+pushd $d
 git pull
 popd
 rm -rf cloud/
 mkdir -p cloud
-rsync -av /root/github.com/SUSE/cloud/scripts ./cloud/
+rsync -av $d/scripts ./cloud/
 
 # Cleanup isos from old builds
 rm -f scripts/release-mgmt/*Media1.iso
