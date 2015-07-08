@@ -419,29 +419,46 @@ function addsles12testupdates()
 
 function addcloud4maintupdates()
 {
-    add_mount "SUSE-Cloud-4-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-4-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-4-Updates/" "cloudmaintup"
+    add_mount "SUSE-Cloud-4-Updates" \
+        $clouddata':/srv/nfs/repos/SUSE-Cloud-4-Updates/' \
+        "$tftpboot_repos_dir/SUSE-Cloud-4-Updates/" "cloudmaintup"
 }
 
 function addcloud4testupdates()
 {
-    add_mount "SUSE-Cloud-4-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/4/' "$tftpboot_repos_dir/SUSE-Cloud-4-Updates/" "cloudtup"
+    add_mount "SUSE-Cloud-4-Updates-test" \
+        'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/' \
+        "$tftpboot_repos_dir/SUSE-Cloud-4-Updates-test/" "cloudtup"
 }
 
 function addcloud5maintupdates()
 {
-    add_mount "SUSE-Cloud-5-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" "cloudmaintup"
-    add_mount "SUSE-Cloud-5-SLE-12-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/' "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates/"
+    add_mount "SUSE-Cloud-5-Updates" \
+        $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Updates/' \
+        "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" \
+        "cloudmaintup"
+    add_mount "SUSE-Cloud-5-SLE-12-Updates" \
+        $clouddata':/srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/' \
+        "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates/"
 }
 
 function addcloud5testupdates()
 {
-    add_mount "SUSE-Cloud-5-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/5/' "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" "cloudtup"
-    add_mount "SUSE-Cloud-5-SLE-12-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/' "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates/"
+    add_mount "SUSE-Cloud-5-Updates-test" \
+        'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/' \
+        "$tftpboot_repos_dir/SUSE-Cloud-5-Updates-test/" "cloudtup"
+    # TODO: doesn't exist
+    #add_mount "SUSE-Cloud-5-SLE-12-Updates-test" \
+    #    'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD-COMPUTE:/5:/x86_64/update/' \
+    #    "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/"
 }
 
 function addcloud5pool()
 {
-    add_mount "SUSE-Cloud-5-Pool" $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Pool/' "$tftpboot_repos_dir/SUSE-Cloud-5-Pool/" "cloudpool"
+    add_mount "SUSE-Cloud-5-Pool" \
+        $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Pool/' \
+        "$tftpboot_repos_dir/SUSE-Cloud-5-Pool/" \
+        "cloudpool"
 }
 
 function addcloud6maintupdates()
@@ -2075,6 +2092,20 @@ function custom_configuration()
                     "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/'"
             fi
 
+            if [ -d "$tftpboot_repos_dir/SUSE-Cloud-4-Updates-test/" ]; then
+                proposal_set_value provisioner default "$repos" "{}"
+                proposal_set_value provisioner default "$repos['SUSE-Cloud-4-Updates-test']" "{}"
+                proposal_set_value provisioner default "$repos['SUSE-Cloud-4-Updates-test']['url']" \
+                    "'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/'"
+            fi
+
+            if [ -d "$tftpboot_repos_dir/SUSE-Cloud-5-Updates-test/" ]; then
+                proposal_set_value provisioner default "$repos" "{}"
+                proposal_set_value provisioner default "$repos['SUSE-Cloud-5-Updates-test']" "{}"
+                proposal_set_value provisioner default "$repos['SUSE-Cloud-5-Updates-test']['url']" \
+                    "'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/'"
+            fi
+
             # 2015-08-01: SLE12 test updates break autoyast right now :-(
             if false && iscloudver 5plus ; then
                 if [ -d "$tftpboot_repos12_dir/SLES12-Updates-test/" ]; then
@@ -2085,6 +2116,15 @@ function custom_configuration()
                         "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/'"
                 fi
             fi
+
+
+            if iscloudver 5plus ; then
+                if [ -d "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/" ]; then
+                    repos="$autoyast['repos']['suse-12.0']"
+                    # TODO, this does not exist
+                fi
+            fi
+
         ;;
         *) echo "No hooks defined for service: $proposal"
         ;;
