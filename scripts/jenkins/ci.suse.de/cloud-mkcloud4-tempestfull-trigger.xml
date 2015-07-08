@@ -37,8 +37,9 @@
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>cloudsource=develcloud4
 nodenumber=2
-WITHTEMPEST=1
-tempestoptions=-t</properties>
+tempestoptions=-t
+mkcloudtarget=all_noreboot
+TESTHEAD=</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
