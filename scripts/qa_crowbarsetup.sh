@@ -404,22 +404,16 @@ function export_tftpboot_repos_dir()
 
 function addsp3testupdates()
 {
-    add_mount "SLES11-SP3-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP3/' "$tftpboot_repos_dir/SLES11-SP3-Updates/" "sp3tup"
-}
-
-function addsp4testupdates()
-{
-    add_mount "SLES11-SP4-Updates" 'you.suse.de:/you/http/download/x86_64/update/SLE-SERVER/11-SP4/' "$tftpboot_repos_dir/SLES11-SP4-Updates/" "sp4tup"
+    add_mount "SLES11-SP3-Updates-test" \
+        'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
+        "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
 }
 
 function addsles12testupdates()
 {
-    echo "TODO: add SLES-12-GA Updates-test repo"
-}
-
-function addsles12sp1testupdates()
-{
-    echo "TODO: add SLES-12-SP1 Updates-test repo"
+    add_mount "SLES12-Updates-test" \
+        'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
+        "$tftpboot_repos12_dir/SLES12-Updates-test/"
 }
 
 function addcloud4maintupdates()
@@ -727,9 +721,7 @@ function onadmin_prepare_sles12_repos()
     onadmin_prepare_sles12_repo
     onadmin_prepare_sles12_cloud_repo
 
-    # These aren't available yet?
     onadmin_prepare_sles12_other_repos
-
     onadmin_create_sles12_repos
 }
 
@@ -847,15 +839,15 @@ function onadmin_prepare_cloud_repos()
                 addcloud4testupdates
                 ;;
             GM5)
+                addcloud5pool
                 addsp3testupdates
                 addsles12testupdates
-                addcloud5pool
                 ;;
             GM5+up)
+                addcloud5pool
                 addsp3testupdates
                 addsles12testupdates
                 addcloud5testupdates
-                addcloud5pool
                 ;;
             develcloud4)
                 addsp3testupdates
@@ -866,8 +858,6 @@ function onadmin_prepare_cloud_repos()
                 ;;
             susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
                 addsp3testupdates
-                addsp4testupdates
-                addsles12sp1testupdates
                 addcloud6testupdates
                 addcloud6pool
                 ;;
@@ -881,8 +871,8 @@ function onadmin_prepare_cloud_repos()
                 addcloud4maintupdates
                 ;;
             GM5+up)
-                addcloud5maintupdates
                 addcloud5pool
+                addcloud5maintupdates
                 ;;
             susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
                 addcloud6maintupdates
@@ -1083,6 +1073,9 @@ EOF
 
 
     zypper_refresh
+
+    # we have potentially new update repos, patch again
+    zypper_patch
 
     zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
 
@@ -2039,6 +2032,35 @@ function custom_configuration()
             if [[ $keep_existing_hostname = 1 ]] ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
             fi
+
+            proposal_set_value provisioner default "['attributes']['provisioner']['suse']" "{}"
+            proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']" "{}"
+            proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']['repos']" "{}"
+
+            local autoyast="['attributes']['provisioner']['suse']['autoyast']"
+            local repos="$autoyast['repos']"
+
+            if iscloudver 5plus ; then
+                repos="$autoyast['repos']['suse-11.3']"
+            fi
+
+            if [ -d "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" ]; then
+                proposal_set_value provisioner default "$repos" "{}"
+                proposal_set_value provisioner default "$repos['SLES11-SP3-Updates-test']" "{}"
+                proposal_set_value provisioner default "$repos['SLES11-SP3-Updates-test']['url']" \
+                    "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/'"
+            fi
+
+            # 2015-08-01: SLE12 test updates break autoyast right now :-(
+            if false && iscloudver 5plus ; then
+                if [ -d "$tftpboot_repos12_dir/SLES12-Updates-test/" ]; then
+                    repos="$autoyast['repos']['suse-12.0']"
+                    proposal_set_value provisioner default "$repos" "{}"
+                    proposal_set_value provisioner default "$repos['SLES12-Updates-test']" "{}"
+                    proposal_set_value provisioner default "$repos['SLES12-Updates-test']['url']" \
+                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/'"
+                fi
+            fi
         ;;
         *) echo "No hooks defined for service: $proposal"
         ;;
@@ -2770,15 +2792,20 @@ function onadmin_addupdaterepo()
     safely zypper mr -p 90 cloud-ptf
 }
 
+function zypper_patch
+{
+    wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
+    wait_for 30 3 ' zypper --non-interactive patch ; ret=$?; if [ $ret == 103 ]; then zypper --non-interactive patch ; ret=$?; fi; [[ $ret != 4 ]] ' "successful zypper run" "exit 9"
+    wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
+}
+
 function onadmin_runupdate()
 {
     onadmin_repocleanup
 
     pre_hook $FUNCNAME
 
-    wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
-    wait_for 30 3 ' zypper --non-interactive patch ; ret=$?; if [ $ret == 103 ]; then zypper --non-interactive patch ; ret=$?; fi; [[ $ret != 4 ]] ' "successful zypper run" "exit 9"
-    wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
+    zypper_patch
 }
 
 function get_neutron_server_node()
