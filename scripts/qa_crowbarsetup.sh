@@ -2405,7 +2405,7 @@ function oncontroller_testsetup()
     if [ -n "$want_docker" ] ; then
         image_name="cirros"
         ssh_user="cirros"
-        openstack image create --public --container-format docker --disk-format raw --property hypervisor_type=docker --name cirros --copy-from http://clouddata.cloud.suse.de/images/docker/cirros.tar $image_name | tee glance.out
+        openstack image create --public --container-format docker --disk-format raw --property hypervisor_type=docker --copy-from http://clouddata.cloud.suse.de/images/docker/cirros.tar $image_name | tee glance.out
     fi
 
     # wait for image to finish uploading
