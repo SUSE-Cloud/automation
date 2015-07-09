@@ -3,7 +3,7 @@
   <actions/>
   <description>run https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud&#13;
 &#13;
-results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl on bernhard@trollolo.cloud.suse.de every 15 minutes</description>
+results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl on bwiedemann@trollolo.cloud.suse.de every 15 minutes</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>300</daysToKeep>
     <numToKeep>1000</numToKeep>
