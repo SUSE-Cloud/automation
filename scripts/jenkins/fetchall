@@ -3,3 +3,5 @@
 git add ci.suse.de/*.xml
 git commit -q -m "jenkins checkin $(date '+%Y-%m-%d %H:%M')" > /dev/null
 
+export SSH_AUTH_SOCK ; for s in `/bin/ls /tmp/ssh-*/*` ; do SSH_AUTH_SOCK="$s" ; ssh-add -l > /dev/null 2>&1 && break ; done
+git push 2> /dev/null
