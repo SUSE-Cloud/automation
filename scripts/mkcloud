@@ -739,11 +739,29 @@ function testsetup()
 
 function testname()
 {
-    local name="$cloudsource/ha:$hacloud/ceph:$cephvolumenumber/cinder:$cinder_backend"
+    local -a var_names=(ha cluster upgrade ceph cinder drbd net
+        netmode sles12 dvr docker)
+    local -a var_values=("$hacloud" "$clusterconfig"
+        "$upgrade_cloudsource" "$cephvolumenumber" "$cinder_backend"
+        "$drbd_hdd_size" "$networkingplugin" "$networkingmode"
+        "$want_sles12" "$want_dvr" "$want_docker")
+
+    if [[ ${#var_names[@]} != ${#var_values[@]} ]] ; then
+        complain 123 "testname error: arrays of different length, please check the code"
+    fi
+
+    local name="$cloudsource"
+    local i=0
+    for n in ${var_names[@]} ; do
+        if [[ ${var_values[$i]} ]] ; then
+            name="$name/$n:${var_values[$i]}"
+        fi
+        i=$(($i+1))
+    done
 
     # Check if this instance of mkcloud is running inside Jenkins
     if [[ $JENKINS_URL ]] ; then
-        name="$BUILD_NUMBER - $JOB_NAME - $BUILD_URL"
+        name="$BUILD_NUMBER - $name - $BUILD_URL"
     fi
 
     echo $name
