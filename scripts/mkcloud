@@ -196,6 +196,8 @@ function sshrun()
     cat > $mkcconf <<EOF
         export drbdnode_mac_vol=$drbdnode_mac_vol ;
         export cloud=$virtualcloud ;
+        # hostname of NFS server with repos and images:
+        export clouddata=$clouddata ;
         export cloudfqdn=$cloudfqdn ;
         export cloudsource=$cloudsource ;
         export upgrade_cloudsource=$upgrade_cloudsource ;

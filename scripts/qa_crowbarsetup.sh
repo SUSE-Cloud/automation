@@ -20,6 +20,7 @@ fi
 : ${cinder_netapp_storage_protocol:=iscsi}
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
+: ${clouddata:=clouddata.cloud.suse.de}
 
 : ${arch:=$(uname -m)}
 
@@ -422,7 +423,7 @@ function addsles12sp1testupdates()
 
 function addcloud4maintupdates()
 {
-    add_mount "SUSE-Cloud-4-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-4-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-4-Updates/" "cloudmaintup"
+    add_mount "SUSE-Cloud-4-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-4-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-4-Updates/" "cloudmaintup"
 }
 
 function addcloud4testupdates()
@@ -432,38 +433,38 @@ function addcloud4testupdates()
 
 function addcloud5maintupdates()
 {
-    add_mount "SUSE-Cloud-5-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" "cloudmaintup"
-    add_mount "SUSE-Cloud-5-SLE-12-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/' "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates/"
+    add_mount "SUSE-Cloud-5-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" "cloudmaintup"
+    add_mount "SUSE-Cloud-5-SLE-12-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/' "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates/"
 }
 
 function addcloud5testupdates()
 {
     add_mount "SUSE-Cloud-5-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/5/' "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" "cloudtup"
-    add_mount "SUSE-Cloud-5-SLE-12-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/' "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates/"
+    add_mount "SUSE-Cloud-5-SLE-12-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/' "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates/"
 }
 
 function addcloud5pool()
 {
-    add_mount "SUSE-Cloud-5-Pool" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-5-Pool/' "$tftpboot_repos_dir/SUSE-Cloud-5-Pool/" "cloudpool"
+    add_mount "SUSE-Cloud-5-Pool" $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Pool/' "$tftpboot_repos_dir/SUSE-Cloud-5-Pool/" "cloudpool"
 }
 
 function addcloud6maintupdates()
 {
-    add_mount "SUSE-Cloud-6-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-6-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-6-Updates/" "cloudmaintup"
+    add_mount "SUSE-Cloud-6-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-6-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-6-Updates/" "cloudmaintup"
     #TBD
-    #add_mount "SUSE-Cloud-6-SLES11-SP4-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
+    #add_mount "SUSE-Cloud-6-SLES11-SP4-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
 }
 
 function addcloud6testupdates()
 {
     add_mount "SUSE-Cloud-6-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/5/' "$tftpboot_repos_dir/SUSE-Cloud-6-Updates/" "cloudtup"
     #TBD
-    #add_mount "SUSE-Cloud-6-SLES11-SP4-Updates" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
+    #add_mount "SUSE-Cloud-6-SLES11-SP4-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
 }
 
 function addcloud6pool()
 {
-    add_mount "SUSE-Cloud-6-Pool" 'clouddata.cloud.suse.de:/srv/nfs/repos/SUSE-Cloud-6-Pool/' "$tftpboot_repos_dir/SUSE-Cloud-6-Pool/" "cloudpool"
+    add_mount "SUSE-Cloud-6-Pool" $clouddata':/srv/nfs/repos/SUSE-Cloud-6-Pool/' "$tftpboot_repos_dir/SUSE-Cloud-6-Pool/" "cloudpool"
 }
 
 function add_ha_repo()
@@ -475,7 +476,7 @@ function add_ha_repo()
         fi
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo/sle-11-x86_64" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+        add_mount "$repo/sle-11-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
             "$tftpboot_repos_dir/$repo"
     done
 }
@@ -490,7 +491,7 @@ function add_ha12_repo()
         fi
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+        add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
             "$tftpboot_repos12_dir/$repo"
     done
 }
@@ -501,7 +502,7 @@ function add_suse_storage_repo()
         for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
             # Note no zypper alias parameter here since we don't want
             # to zypper addrepo on the admin node.
-            add_mount "$repo" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+            add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
                 "$tftpboot_repos12_dir/$repo"
         done
 }
@@ -667,7 +668,7 @@ function onadmin_prepare_sles_repos()
 
         if ! $longdistance ; then
             add_mount "" \
-                "clouddata.cloud.suse.de:/srv/nfs/suse-$suseversion/install" \
+                "$clouddata:/srv/nfs/suse-$suseversion/install" \
                 "$targetdir_install"
         fi
 
@@ -676,7 +677,7 @@ function onadmin_prepare_sles_repos()
             local zypprepo=""
             [ "$WITHSLEUPDATES" != "" ] && zypprepo="$repo"
             add_mount "$zypprepo" \
-                "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+                "$clouddata:/srv/nfs/repos/$repo" \
                 "$tftpboot_repos_dir/$repo"
         done
 
@@ -751,7 +752,7 @@ function onadmin_prepare_sles12_repo()
 {
     local sles12_mount="$tftpboot_suse12_dir/install"
     add_mount "SLE-12-Server-LATEST/sle-12-x86_64" \
-        "clouddata.cloud.suse.de:/srv/nfs/suse-12.0/install" \
+        "$clouddata:/srv/nfs/suse-12.0/install" \
         "$sles12_mount"
 
     if [ ! -d "$sles12_mount/media.1" ] ; then
@@ -771,7 +772,7 @@ function onadmin_prepare_sles12_cloud_repo()
         echo "FIXME: SLE12-Cloud-Compute not available from clouddata yet." >&2
         echo "Will manually download and rsync." >&2
         # add_mount "SLE12-Cloud-Compute" \
-        #     "clouddata.cloud.suse.de:/srv/nfs/repos/SLE12-Cloud-Compute" \
+        #     "$clouddata:/srv/nfs/repos/SLE12-Cloud-Compute" \
         #     "$targetdir_install"
     fi
     rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$sles12_compute_mount"
@@ -780,7 +781,7 @@ function onadmin_prepare_sles12_cloud_repo()
 function onadmin_prepare_sles12_other_repos()
 {
     for repo in SLES12-{Pool,Updates}; do
-        add_mount "$repo/sle-12-x86_64" "clouddata.cloud.suse.de:/srv/nfs/repos/$repo" \
+        add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
             "$tftpboot_repos12_dir/$repo"
     done
 }
@@ -1027,7 +1028,7 @@ EOF
     hostname -f # make sure it is a FQDN
     ping -c 1 `hostname -f`
     longdistance=${longdistance:-false}
-    if [[ $(ping -q -c1 clouddata.cloud.suse.de |
+    if [[ $(ping -q -c1 $clouddata |
             perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') -gt 100 ]]
     then
         longdistance=true
@@ -1177,7 +1178,7 @@ function do_installcrowbar()
     if [ -n "$wanthyperv" ] ; then
         # prepare Hyper-V 2012 R2 PXE-boot env and export it via Samba:
         zypper -n in samba
-        rsync -a clouddata.cloud.suse.de::cloud/hyperv-6.3 /srv/tftpboot/
+        rsync -a $clouddata::cloud/hyperv-6.3 /srv/tftpboot/
         chkconfig smb on
         chkconfig nmb on
         cat >> /etc/samba/smb.conf <<EOF
@@ -1322,7 +1323,7 @@ function onadmin_allocate()
     fi
 
     if [[ $cloud = qa1 ]] ; then
-        curl http://clouddata.cloud.suse.de/git/automation/scripts/qa1_nodes_reboot | bash
+        curl http://$clouddata/git/automation/scripts/qa1_nodes_reboot | bash
     fi
 
     echo "Waiting for nodes to come up..."
@@ -2382,7 +2383,7 @@ function oncontroller_testsetup()
         # Upload a Heat-enabled image
         openstack image list | grep -q SLE11SP3-x86_64-cfntools || openstack image create \
             --public --disk-format qcow2 --container-format bare --property hypervisor_type=kvm \
-            --copy-from http://clouddata.cloud.suse.de/images/SLES11-SP3-x86_64-cfntools.qcow2 \
+            --copy-from http://$clouddata/images/SLES11-SP3-x86_64-cfntools.qcow2 \
             SLE11SP3-x86_64-cfntools | tee glance.out
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
         crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
@@ -2405,15 +2406,15 @@ function oncontroller_testsetup()
     else
         # SP3-64 image not found, so uploading it
         if [[ -n "$wanthyperv" ]] ; then
-            mount clouddata.cloud.suse.de:/srv/nfs/ /mnt/
+            mount $clouddata:/srv/nfs/ /mnt/
             zypper -n in virt-utils
             qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
             openstack image create --public --disk-format vhd --container-format bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd $image_name | tee glance.out
             rm /tmp/SP3.vhd ; umount /mnt
         elif [[ -n "$wantxenpv" ]] ; then
-            openstack image create --public --disk-format qcow2 --container-format bare --property hypervisor_type=xen --property vm_mode=xen --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2 $image_name | tee glance.out
+            openstack image create --public --disk-format qcow2 --container-format bare --property hypervisor_type=xen --property vm_mode=xen --copy-from http://$clouddata/images/jeos-64-pv.qcow2 $image_name | tee glance.out
         else
-            openstack image create --public --property vm_mode=hvm --disk-format qcow2 --container-format bare --copy-from http://clouddata.cloud.suse.de/images/SP3-64up.qcow2 $image_name | tee glance.out
+            openstack image create --public --property vm_mode=hvm --disk-format qcow2 --container-format bare --copy-from http://$clouddata/images/SP3-64up.qcow2 $image_name | tee glance.out
         fi
     fi
 
@@ -2426,7 +2427,7 @@ function oncontroller_testsetup()
     if [ -n "$want_docker" ] ; then
         image_name="cirros"
         ssh_user="cirros"
-        openstack image create --public --container-format docker --disk-format raw --property hypervisor_type=docker --copy-from http://clouddata.cloud.suse.de/images/docker/cirros.tar $image_name | tee glance.out
+        openstack image create --public --container-format docker --disk-format raw --property hypervisor_type=docker --copy-from http://$clouddata/images/docker/cirros.tar $image_name | tee glance.out
     fi
 
     # wait for image to finish uploading
@@ -3018,7 +3019,7 @@ EOOWASP
 function onadmin_securitytests()
 {
     # download latest owasp package
-    local owaspdomain=clouddata.cloud.suse.de   # works only SUSE-internally for now
+    local owaspdomain=$clouddata   # works only SUSE-internally for now
     local owasppath=/tools/security-testsuite/
     #owaspdomain=download.opensuse.org
     #owasppath=/repositories/home:/thomasbiege/openSUSE_Factory/noarch/
