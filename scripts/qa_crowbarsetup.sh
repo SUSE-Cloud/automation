@@ -1881,12 +1881,7 @@ function custom_configuration()
             if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-docker']" "['$sles12node']"
                 # do not assign another compute role to this node
-                if [ -n "$nodescloud" ] ; then
-                    local novanodes
-                    novanodes=`printf "\"%s\",\n" $nodescloud | grep -iv $sles12node`
-                    novanodes="[ ${novanodes%,} ]"
-                    proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "$novanodes"
-                fi
+                proposal_modify_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "['$sles12node']" "-="
             fi
 
             if [[ $nova_shared_instance_storage = 1 ]] ; then
