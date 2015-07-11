@@ -318,6 +318,7 @@ starttime=`date +%s`
 perl -e "alarm 4*60*60 ; exec '${automationrepo}/scripts/mkcloudhost/allocpool bash -x ${automationrepo}/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
 ret=${PIPESTATUS[0]}
 if [[ $ret != 0 ]] ; then
+    [[ ! $automation_pr ]] || selfgating_trap
     echo "mkcloud ret=$ret"
     exit $ret # check return code before tee
 fi
