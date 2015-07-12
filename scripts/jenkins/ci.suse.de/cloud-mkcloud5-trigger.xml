@@ -39,7 +39,7 @@ also trigger on publish of iso</description>
       <spec>H 19 */2 * *
 </spec>
     </hudson.triggers.TimerTrigger>
-    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.38">
+    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.37">
       <spec>H/5 * * * *</spec>
       <entries>
         <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
