@@ -34,7 +34,7 @@
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
     <hudson.triggers.TimerTrigger>
-      <spec>29 3 * * *
+      <spec>H 19 */2 * *
 </spec>
     </hudson.triggers.TimerTrigger>
     <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.38">
