@@ -1148,6 +1148,8 @@ EOF
     # setup_base_images.rb is for SUSE Cloud 1.0 and update_nodes.rb is for 2.0
     sed -i -e 's/\(rootpw_hash.*\)""/\1"$2y$10$u5mQA7\/8YjHdutDPEMPtBeh\/w8Bq0wEGbxleUT4dO48dxgwyPD8D."/' /opt/dell/chef/cookbooks/provisioner/recipes/setup_base_images.rb /opt/dell/chef/cookbooks/provisioner/recipes/update_nodes.rb
 
+    echo EDITOR=edit > ~/.profile
+
     # exit code of the sed don't matter, so just:
     return 0
 }
