@@ -942,9 +942,9 @@ function onadmin_set_source_variables()
         M?|Beta*|RC*|GMC*|GM6|GM6+up)
             cs=$cloudsource
             [[ $cs =~ GM6 ]] && cs=GM
-            CLOUDSLE11DISTPATH=/install/SUSE-Cloud-6-$cs/
+            CLOUDSLE11DISTPATH=/install/SLE-12-Cloud6-$cs/
             CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
-            CLOUDSLE11DISTISO="SUSE-SLE11-OPENSTACK-SLE11-6-$arch*1.iso"
+            CLOUDSLE11DISTISO="SUSE-SLE11-OPENSTACK-CLOUD-6-$arch*1.iso"
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
