@@ -1101,10 +1101,10 @@ EOF
         -e "s/192.168.125/$net_storage/g" \
         -e "s/192.168.123/$net_fixed/g" \
         -e "s/192.168.122/$net_public/g" \
-        -e "s/200/$vlan_storage/g" \
-        -e "s/300/$vlan_public/g" \
-        -e "s/500/$vlan_fixed/g" \
-        -e "s/[47]00/$vlan_sdn/g" \
+        -e "s/ 200/ $vlan_storage/g" \
+        -e "s/ 300/ $vlan_public/g" \
+        -e "s/ 500/ $vlan_fixed/g" \
+        -e "s/ [47]00/ $vlan_sdn/g" \
         $netfile
 
     if [[ $cloud = p || $cloud = p2 ]] ; then
