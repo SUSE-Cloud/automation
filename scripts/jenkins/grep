@@ -1,0 +1,27 @@
+#!/usr/bin/perl -w
+#
+# Bernhard M. Wiedemann <bwiedemann@suse.de>
+#
+# A simple redirect tool to grep web page results
+# for setup:
+# zypper in perl-libwww-perl
+#
+# Usage:
+#   http://clouddata.cloud.suse.de/cgi-bin/grep/<url>?regexp=<regexp>
+
+use strict;
+use CGI ":standard";
+use LWP::Simple "get";
+
+print header("text/plain");
+my $p=$ENV{PATH_INFO};
+$p =~ s#^/##;
+
+my $regexp=param("regexp");
+#exec "curl --insecure https://$p | grep $regexp"; # bad because exploitable
+my $content=get("http://$p");
+foreach(split("\n", $content)) {
+        next unless m/$regexp/o;
+        print "$_\n";
+}
+
