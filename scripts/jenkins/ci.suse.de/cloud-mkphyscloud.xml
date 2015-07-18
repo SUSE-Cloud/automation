@@ -76,8 +76,9 @@ Default: openvswitch</description>
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>admin=admin4
-cloud=d3
+      <command>n=3
+admin=admin$((n+1))
+cloud=d$n
 nodenumber=2
 tempestoptions="-t"
 
