@@ -17,4 +17,4 @@ $p =~ s#^/##;
 my ($USER, $PASSWORD);
 eval `cat /etc/apicheck.cred`;
 
-exec "curl --insecure https://$USER:$PASSWORD\@$p";
+exec "curl", "--insecure", "https://$USER:$PASSWORD\@$p";
