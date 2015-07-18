@@ -223,12 +223,13 @@ export rally_server=backup.cloudadm.qa.suse.de
 
 case $cloudsource in
     GM4|GM4+up|GM5|GM5+up)
-        echo "Not setting want_ldap"
+        echo "Not setting want_ldap=1"
         ;;
     *)
         [[ $nodenumber == 2 ]] &amp;&amp; export want_ldap=1
         ;;
 esac
+   
 
 if [[ $cinder_backend = " " ]] ; then
   cinder_backend=""
