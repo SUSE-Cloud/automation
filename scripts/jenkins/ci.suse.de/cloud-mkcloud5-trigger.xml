@@ -43,7 +43,7 @@ also trigger on publish of iso</description>
       <spec>H/5 * * * *</spec>
       <entries>
         <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-          <url>http://download.suse.de/ibs/Devel:/Cloud:/5:/Staging/images/iso/</url>
+          <url>http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/Devel:/Cloud:/5:/Staging/images/iso/?regexp=x86_64</url>
           <proxyActivated>false</proxyActivated>
           <checkStatus>false</checkStatus>
           <statusCode>200</statusCode>
