@@ -53,7 +53,6 @@ class JenkinsProject
     k = 0 if k < 0
     @detail.keys.sort[k..i].each do |b|
       d = get_build_detail b
-      success = 'BUILDING NOW' if d[:building]
       puts "Build #{b} :: #{d[:result]} :: #{d[:id]}"
       # duration and timestamp calculation is somehow broken
       #puts "      took: #{d[:duration]} at: #{d[:timestamp]}"
@@ -124,7 +123,7 @@ case @action
     @p.get_build_log(@number, @numberup)
   when 'show'
     @p.show_build_log @number
-  else 'help'
+  else # help
     puts "Usage: #{$0} <project> <action> [<number> <uppernum>]"
     puts
     puts '  project:  a jenkins project name'

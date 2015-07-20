@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-test: bashate perlcheck rounduptest flake8 python_unittest
+test: bashate perlcheck rubycheck rounduptest flake8 python_unittest
 
 bashate:
 	cd scripts && \
@@ -16,9 +16,15 @@ bashate:
 
 perlcheck:
 	cd scripts && \
-	for f in *.pl jenkins/{apicheck,jenkins-job-trigger,*.pl}; \
+	for f in `find -name \*.pl` jenkins/{apicheck,grep,japi,jenkins-job-trigger}; \
 	do \
-	    perl -c $$f || exit 2; \
+	    perl -wc $$f || exit 2; \
+	done
+
+rubycheck:
+	for f in `find -name \*.rb` scripts/jenkins/jenkinslog; \
+	do \
+	    ruby -wc $$f || exit 2; \
 	done
 
 rounduptest:
