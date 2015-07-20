@@ -550,7 +550,7 @@ function setuplonelynodes()
         mac="52:54:$i2:88:77:$i2"
         local lonely_node
         lonely_node=$cloud-node$i
-        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $mac "$cephvolume" "$drbdvolume" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "3" > /tmp/$cloud-node$i.xml
+        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $mac "$cephvolume" "$drbdvolume" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "1" > /tmp/$cloud-node$i.xml
 
         local lonely_disk
         lonely_disk="$vdisk_dir/${cloud}.node$i"
@@ -672,7 +672,7 @@ function setupnodes()
             fi
         fi
 
-        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $macaddress $cephvolumenumber "$drbd_serial" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "2" > /tmp/$cloud-node$i.xml
+        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $macaddress $cephvolumenumber "$drbd_serial" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "3" > /tmp/$cloud-node$i.xml
         ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
     done
 

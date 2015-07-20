@@ -142,7 +142,7 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         args.emulator = "/usr/bin/qemu-system-x86_64"
         args.vdiskdir = "/dev/cloud"
         args.drbdserial = ""
-        args.bootorder = "2"
+        args.bootorder = "3"
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
