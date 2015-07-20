@@ -34,28 +34,9 @@
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
     <hudson.triggers.TimerTrigger>
-      <spec>11 2 * * *
+      <spec>H 20 * * *
 </spec>
     </hudson.triggers.TimerTrigger>
-    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.37">
-      <spec>H/5 * * * *</spec>
-      <entries>
-        <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-          <url>http://download.suse.de/ibs/Devel:/Cloud:/6:/Staging/images/iso/</url>
-          <proxyActivated>false</proxyActivated>
-          <checkStatus>false</checkStatus>
-          <statusCode>200</statusCode>
-          <timeout>300</timeout>
-          <checkETag>false</checkETag>
-          <checkLastModificationDate>false</checkLastModificationDate>
-          <inspectingContent>true</inspectingContent>
-          <contentTypes>
-            <org.jenkinsci.plugins.urltrigger.content.SimpleContentType/>
-          </contentTypes>
-        </org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-      </entries>
-      <labelRestriction>false</labelRestriction>
-    </org.jenkinsci.plugins.urltrigger.URLTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders/>
@@ -65,11 +46,8 @@
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>mode=basetest
-cloudsource=develcloud6
-nodenumber=2
-want_docker=1
-mkcloudtarget=plain crowbarbackup crowbarrestore testsetup</properties>
+              <properties>cloudsource=develcloud6
+want_docker=1</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
