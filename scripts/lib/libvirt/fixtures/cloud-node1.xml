@@ -26,7 +26,7 @@
       <driver name='qemu' type='raw' cache='unsafe'/>
       <source dev='/dev/cloud/cloud.node1'/>
       <target dev='vda' bus='virtio'/>
-      <boot order='2'/>
+      <boot order='3'/>
     </disk>
 
 <disk type='block' device='disk'>
@@ -42,7 +42,7 @@
       <source network='cloud-admin'/>
       <model type='virtio'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
-      <boot order='1'/>
+      <boot order='2'/>
     </interface>
     <serial type='pty'>
       <target port='0'/>
