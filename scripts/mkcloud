@@ -121,6 +121,7 @@ scp="scp $sshopts"
 : ${localreposdir_target:="/repositories"}
 [ -z "$localreposdir_src" ] && localreposdir_target=""
 : ${install_chef_suse_override:=./install-chef-suse.sh}
+: ${cct_tests:="features:base"}
 
 emulator=/usr/bin/qemu-system-$(uname -m)
 if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
@@ -213,6 +214,7 @@ function sshrun()
         export drbd_rabbitmq_size=$drbd_rabbitmq_size ;
         export shell=$shell ;
         export keep_existing_hostname=$keep_existing_hostname ;
+        export cct_tests=$cct_tests ;
 
         export nova_shared_instance_storage=$nova_shared_instance_storage ;
 
@@ -901,6 +903,12 @@ function cloudupgrade_reboot_and_redeploy_clients()
     return $?
 }
 
+function cct()
+{
+    onadmin run_cct "$@"
+    return $?
+}
+
 function usage()
 {
     cat <<EOUSAGE
@@ -1064,6 +1072,8 @@ Optional
         parameters passed to run_tempest.sh script
     rally_server (default='')
         rally server address
+    cct_tests='test1+test2' (default='features')
+        Defines which cct_tests should be run while the cct step.
 
 EOUSAGE
     exit 1
@@ -1205,7 +1215,7 @@ function sanity_checks()
 ## MAIN ##
 step_aliases="_new_admin _compute _upgrade _testupdate"
 
-allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupnodes setupcompute instnodes instcompute proposal testsetup rebootcrowbar rebootcloud addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register"
+allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupnodes setupcompute instnodes instcompute proposal testsetup rebootcrowbar rebootcloud addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register cct"
 wantedcmds=$@
 
 function expand_steps()

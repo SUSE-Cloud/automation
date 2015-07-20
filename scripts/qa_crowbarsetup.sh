@@ -467,6 +467,11 @@ function addcloud6pool()
     add_mount "SUSE-Cloud-6-Pool" $clouddata':/srv/nfs/repos/SUSE-Cloud-6-Pool/' "$tftpboot_repos_dir/SUSE-Cloud-6-Pool/" "cloudpool"
 }
 
+function addcloudrubygemrepo()
+{
+  zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
+}
+
 function add_ha_repo()
 {
     local repo
@@ -3250,6 +3255,37 @@ function onadmin_qa_test()
     local ret=${PIPESTATUS[0]}
     popd
     return $ret
+}
+
+function onadmin_run_cct()
+{
+
+    addcloudrubygemrepo
+    # - install cct dependencies
+    ensure_packages_installed git-core gcc make ruby2.1-devel
+
+    # - default checkout location for mkcloud based setups:
+    mkdir -p /root/github.com/SUSE-Cloud
+    pushd /root/github.com/SUSE-Cloud/
+    git clone https://github.com/SUSE-Cloud/cct.git
+    cd cct
+    bundle install
+
+    if [[ -n $cct_tests ]]; then
+        local IFS
+        IFS='+'
+        for test in $cct_tests; do
+            bundle exec rake $test
+            ret=$?
+            if [[ $ret -gt 0 ]]; then
+                popd
+                return $ret
+            fi
+        done
+    fi
+
+    popd
+    return 0
 }
 
 # deactivate proposals and forget cloud nodes
