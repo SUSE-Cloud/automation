@@ -16,9 +16,9 @@ bashate:
 
 perlcheck:
 	cd scripts && \
-	for f in *.pl jenkins/{apicheck,jenkins-job-trigger,*.pl}; \
+	for f in `find -name \*.pl` jenkins/{apicheck,grep,japi,jenkins-job-trigger}; \
 	do \
-	    perl -c $$f || exit 2; \
+	    perl -wc $$f || exit 2; \
 	done
 
 rounduptest:
