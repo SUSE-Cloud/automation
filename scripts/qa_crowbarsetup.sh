@@ -1957,7 +1957,6 @@ function custom_configuration()
 
             # assign neutron-network role to one of SLE12 nodes
             if [ -n "$want_sles12" ] && [ -z "$hacloud"] && [ -n "$want_neutronsles12" ] && iscloudver 5plus ; then
-                # 2015-03-03 off-by-default because Failed to validate proposal: Role neutron-network can't be used for suse 12.0, windows /.*/ platform(s).
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sles12node']"
             fi
 
