@@ -196,15 +196,15 @@ create a directory for each topic you want to test, to avoid
 accidentally mixing up which PTF packages get applied during a
 particular mkcloud test run.  For example,
 
-    # ptfdir=/data/install/Cloud-PTF/rabbitmq-bugfix
+    # ptfdir=/data/install/PTF/rabbitmq-bugfix
     # mkdir -p $ptfdir
     # cp ~/tmp/build-rpms/IBS_Devel_Cloud_5_crowbar-barclamp-rabbitmq/*.noarch.rpm $ptfdir
 
 Set up Apache on the host to export `$ptfdir` as http://192.168.124.1/ptf/
 
     # cat <<EOF >/etc/apache2/conf.d/cloud-ptf.conf
-    Alias /ptf /data/install/Cloud-PTF/
-    <Directory /data/install/Cloud-PTF/>
+    Alias /ptf /data/install/PTF/
+    <Directory /data/install/PTF/>
         Options +Indexes +FollowSymLinks
         IndexOptions +NameWidth=*
 
@@ -219,4 +219,4 @@ Now it is ready to be used by `mkcloud`:
     # mkcloud plain
 
 Now subsequent `mkcloud` runs will automatically apply any packages
-found under `/data/install/Cloud-PTF/rabbitmq-bugfix`.
+found under `/data/install/PTF/rabbitmq-bugfix`.

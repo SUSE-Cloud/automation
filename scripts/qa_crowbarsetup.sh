@@ -2740,6 +2740,8 @@ function onadmin_addupdaterepo()
     pre_hook $FUNCNAME
 
     local UPR=$tftpboot_repos_dir/Cloud-PTF
+    iscloudver 6plus && UPR=$tftpboot_repos_dir/PTF
+
     mkdir -p $UPR
 
     if [[ -n "$UPDATEREPOS" ]]; then
