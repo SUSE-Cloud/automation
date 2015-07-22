@@ -197,7 +197,7 @@ sub fetchall_jobs
 
 sub has_error
 {
-  return $_[0]=~/(error|500)/i;
+  return $_[0]=~/(error|<title>[45]\d\d )/i;
 }
 
 sub push_job($)
