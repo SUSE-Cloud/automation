@@ -71,7 +71,7 @@ also trigger on publish of iso</description>
 cloudsource=develcloud6
 nodenumber=2
 want_sles12=
-mkcloudtarget=plain crowbarbackup crowbarrestore testsetup</properties>
+mkcloudtarget=plain crowbarbackup crowbarrestore rebootcloud testsetup</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
