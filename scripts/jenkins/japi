@@ -145,7 +145,7 @@ sub reformat($)
 
 sub curl(@)
 {
-  my @cmd=("curl", "--silent", "-H", $CRUMB, @_);
+  my @cmd=(qw"curl --silent -H Expect: -H", $CRUMB, @_);
   print join(" ", @cmd)."\n" if ($ENV{debug});
   open(my $pipe, "-|", @cmd);
   local $/;
