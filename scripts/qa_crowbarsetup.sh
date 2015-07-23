@@ -2599,7 +2599,7 @@ function onadmin_testsetup()
         complain 62 "no nova contoller - something went wrong"
     fi
     echo "openstack nova contoller: $novacontroller"
-    curl -m 40 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || complain 101 "simple horizon dashboard test failed"
+    curl -L -m 40 -s http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || complain 101 "simple horizon dashboard test failed"
 
     wantcephtestsuite=0
     if [[ -n "$deployceph" ]]; then
