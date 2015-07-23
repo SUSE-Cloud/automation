@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>This job will redeploy the d3.cloud - it will wipe all (two) d3 machines.</description>
+  <description>This job will redeploy the d3.cloud - it will wipe all (three) d3 machines.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
