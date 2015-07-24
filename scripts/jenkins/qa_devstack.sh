@@ -24,7 +24,7 @@ function h_setup_base_repos {
         . /etc/os-release
 
         DIST_NAME=${NAME}
-        DIST_VERSION=${VERSION}
+        DIST_VERSION=${VERSION_ID}
 
         # /etc/os-release has SLES as $NAME, but we need SLE for repositories
         if [[ $DIST_NAME == "SLES" ]]; then
