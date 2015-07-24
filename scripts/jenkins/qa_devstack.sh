@@ -59,13 +59,6 @@ function h_setup_base_repos {
     fi
 }
 
-
-function h_setup_extra_repos {
-    # NOTE(toabctl): This is currently needed for i.e. haproxy package (and I guess for other packages/OS-versions too)
-    # This package is not available in openSUSE 13.1 but needs to be installed for lbaas tempest tests
-    $zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${DIST_NAME}_${DIST_VERSION}/Cloud:OpenStack:Master.repo || true
-}
-
 function h_setup_screen {
     cat > ~/.screenrc <<EOF
 altscreen on
@@ -138,7 +131,6 @@ EOF
 ###################### Start running code #########################
 h_echo_header "Setup"
 h_setup_base_repos
-h_setup_extra_repos
 $zypper ref
 h_setup_screen
 # setup extra disk if parameters given
