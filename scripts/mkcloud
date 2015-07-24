@@ -279,6 +279,10 @@ function cleanup()
         vgchange -an $cloudvg
         dd if=/dev/zero of=$cloudpv count=1000
     fi
+
+    # 3. cleanup file entries
+    sed -i '/ crowbar.* crowbar$/d' /etc/hosts
+
     return 0
 }
 
