@@ -408,7 +408,7 @@ ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-submit-project -
       <defaultExcludes>true</defaultExcludes>
     </hudson.tasks.ArtifactArchiver>
     <hudson.tasks.Mailer plugin="mailer@1.11">
-      <recipients>cloud-devel@suse.de</recipients>
+      <recipients/>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
