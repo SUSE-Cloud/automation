@@ -71,26 +71,6 @@ zypper="zypper --non-interactive"
 zypper rr cloudhead || :
 
 case "$cloudsource" in
-    develcloud3)
-        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-3-official/ cloud3iso
-        $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/3:/Staging/$REPO/ cloudhead
-        fi
-    ;;
-    develcloud4)
-        $zypper ar -G -f http://clouddata.cloud.suse.de/repos/SUSE-Cloud-4-official/ cloud4iso
-        $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/4/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://dist.suse.de/ibs/Devel:/Cloud:/4:/Staging/$REPO/ cloudhead
-        fi
-    ;;
-    openstackhavana)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Havana:/Staging/$REPO/ cloudhead
-        fi
-    ;;
     openstackicehouse)
         $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse/$REPO/ cloud
         if test -n "$OSHEAD" ; then
@@ -145,15 +125,6 @@ $zypper rr dlp || true
 $zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 $zypper --gpg-auto-import-keys -n ref
 
-case "$cloudsource" in
-    develcloud2.0|develcloud3)
-        tempest=""
-    ;;
-    *)
-        tempest="openstack-tempest-test"
-    ;;
-esac
-
 # deinstall some leftover crap from the cleanvm
 $zypper -n rm --force 'python-cheetah < 2.4'
 
@@ -162,7 +133,7 @@ set -e
 
 # start with patterns
 $zypper -n install -t pattern cloud_controller cloud_compute cloud_network
-$zypper -n install --force openstack-quickstart $tempest
+$zypper -n install --force openstack-quickstart openstack-tempest-test
 
 # test -e /tmp/openstack-quickstart-demosetup && mv /tmp/openstack-quickstart-demosetup /usr/sbin/openstack-quickstart-demosetup
 
@@ -176,9 +147,7 @@ done
 if [ -n "$IP" ] ; then
     sed -i -e s/127.0.0.1/$IP/ /etc/openstackquickstartrc
 fi
-if [ -n "$tempest" ]; then
-    sed -i -e "s/with_tempest=no/with_tempest=yes/" /etc/openstackquickstartrc
-fi
+sed -i -e "s/with_tempest=no/with_tempest=yes/" /etc/openstackquickstartrc
 sed -i -e "s/with_horizon=no/with_horizon=yes/" /etc/openstackquickstartrc
 sed -i -e "s/node_is_compute=.*/node_is_compute=yes/" /etc/openstackquickstartrc
 sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
