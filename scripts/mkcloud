@@ -523,6 +523,24 @@ EOS
     echo "you can now proceed with installing crowbar"
 }
 
+function createadminsnapshot()
+{
+    virsh shutdown $cloud-admin
+    wait_for 150 1 "virsh domstate $cloud-admin|grep shut.off" 'admin node to shut down'
+    lvremove -f $admin_node_disk.snap
+    safely lvcreate -l100%ORIGIN -s -n $cloud.admin.snap $admin_node_disk
+    virsh start $cloud-admin
+    wait_for_crowbar_ssh
+}
+
+function restoreadminfromsnapshot()
+{
+    safely test -b $admin_node_disk.snap
+    virsh destroy $cloud-admin
+    safely lvconvert --merge $admin_node_disk.snap
+    createadminsnapshot
+}
+
 # Returns success if a change was made
 function confset()
 {
@@ -953,6 +971,8 @@ Steps:
     rebootcrowbar:  reboot the crowbar instance and wait for it being up
     rebootcloud:    reboot the cloud nodes and wait for them being up
     restartcloud:   start a pre-existing cloud again after host reboot
+    createadminsnapshot: create snapshot of admin node disk
+    restoreadminfromsnapshot: restore admin node disk from snapshot
     securitytests:  install and run security test suite
     qa_test:        run the qa test suite
     help:           this usage
@@ -1220,7 +1240,7 @@ function sanity_checks()
 ## MAIN ##
 step_aliases="_new_admin _compute _upgrade _testupdate"
 
-allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupnodes setupcompute instnodes instcompute proposal testsetup rebootcrowbar rebootcloud addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register cct"
+allcmds="$step_aliases all all_noreboot instonly plain plain_with_upgrade cleanup setuphost prepare setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupnodes setupcompute instnodes instcompute proposal testsetup rebootcrowbar rebootcloud addupdaterepo runupdate testupdate securitytests crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients setuplonelynodes crowbar_register createadminsnapshot restoreadminfromsnapshot cct"
 wantedcmds=$@
 
 function expand_steps()
