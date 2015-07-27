@@ -615,6 +615,7 @@ function mkvlan()
 {
     local DEFVLAN=$1 ; shift
     local IP=$1 ; shift
+    vconfig set_name_type DEV_PLUS_VID_NO_PAD
     vconfig add $cloudbr $DEFVLAN
     ifconfig $cloudbr.$DEFVLAN $IP/24
     ethtool -K $cloudbr tx off
