@@ -1358,7 +1358,7 @@ function onadmin_allocate()
     echo "Setting first node to controller..."
     set_node_role_and_platform ${controllernodes[0]} "controller" $controller_os
 
-    if [ -n "$want_sles12" ] && iscloudver 5plus ; then
+    if [ -n "$want_sles12" ] && iscloudver 5 ; then
 
         local nodes=(
             $(get_all_discovered_nodes | tail -n 2)
