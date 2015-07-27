@@ -453,6 +453,10 @@ EOSSHASK
     DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh $sshopts -oNumberOfPasswordPrompts=1 "$@"
 }
 
+function wait_for_crowbar_ssh()
+{
+    wait_for 150 1 "nc -z $adminip 22" 'admin node to start ssh daemon'
+}
 
 # bring up the VM for crowbar
 function setupadmin()
@@ -507,7 +511,7 @@ EOS
     chmod +x /etc/init.d/boot.mkcloud
     /etc/init.d/boot.mkcloud
 
-    wait_for 150 1 "nc -z $adminip 22" 'starting ssh daemon'
+    wait_for_crowbar_ssh
 
     echo "waiting some more for sshd+named to start"
     sleep 25
@@ -796,8 +800,8 @@ function rebootcrowbar()
     # reboot the crowbar instance
     #  and test if everything is up and running afterwards
     sshrun "reboot"
-    wait_for 500 3 "! nc -z $adminip 22" 'crowbar to go down'
-    wait_for 500 3   "nc -z $adminip 22" 'crowbar to be back online'
+    wait_for 50 3 "! nc -z $adminip 22" 'crowbar to go down'
+    wait_for_crowbar_ssh
     echo "waiting another 180 seconds for services"
     sleep 180
     sshrun "mount -a -t nfs" # workaround repos not mounted on reboot because NFS needs bind, but bind says it requires NFS
