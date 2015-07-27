@@ -2184,12 +2184,11 @@ function prepare_proposals()
     if iscloudver 5plus; then
         update_one_proposal dns default
     fi
-    if [ "$networkingplugin" = "vmware" ] && iscloudver 5plus ; then
-        cmachines=$(get_all_nodes)
-        for machine in $cmachines; do
-            ssh $machine 'zypper mr -p 90 SLE-Cloud-PTF'
-        done
-    fi
+
+    cmachines=$(get_all_nodes)
+    for machine in $cmachines; do
+        ssh $machine 'zypper mr -p 90 SLE-Cloud-PTF'
+    done
 
 }
 
@@ -2760,6 +2759,7 @@ function onadmin_addupdaterepo()
     fi
     zypper modifyrepo -e cloud-ptf >/dev/null 2>&1 ||\
         safely zypper ar $UPR cloud-ptf
+    safely zypper mr -p 90 cloud-ptf
 }
 
 function onadmin_runupdate()
