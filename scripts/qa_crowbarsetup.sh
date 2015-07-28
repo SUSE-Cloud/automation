@@ -550,6 +550,11 @@ function get_sles12_node()
     knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g'
 }
 
+function get_docker_nodes()
+{
+    knife search node "roles:nova-multi-compute-docker" -a name | grep ^name: | cut -d : -f 2 | sed 's/\s//g'
+}
+
 function cluster_node_assignment()
 {
     local nodesavailable
@@ -2710,9 +2715,11 @@ EOF
         fi
     fi
 
-    # prepare docker image at sles12 compute node
+    # prepare docker image at docker compute nodes
     if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
-        ssh `get_sles12_node` docker pull cirros
+        for n in `get_docker_nodes` ; do
+            ssh $n docker pull cirros
+        done
     fi
 
     oncontroller oncontroller_testsetup
