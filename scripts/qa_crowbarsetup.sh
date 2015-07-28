@@ -354,6 +354,7 @@ function getcloudver()
 # input1: version - 4plus refers to version 4 or later ; only a number refers to one exact version
 function iscloudver()
 {
+    [[ -n "$cloudsource" ]] || return 1
     local v=$1
     local operator="="
     if [[ $v =~ plus ]] ; then
