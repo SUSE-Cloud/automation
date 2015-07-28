@@ -2511,7 +2511,7 @@ function oncontroller_testsetup()
         echo -n "."
     done
     set -x
-    if ! ssh $ssh_target curl www3.zq1.de/test ; then
+    if ! ssh $ssh_target curl $clouddata/test ; then
         complain 95 could not reach internet
     fi
 
