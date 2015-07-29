@@ -1,7 +1,7 @@
 <domain type='kvm'>
   <name>cloud-node1</name>
-  <memory>4194304</memory>
-  <currentMemory>4194304</currentMemory>
+  <memory>5242880</memory>
+  <currentMemory>5242880</currentMemory>
   <vcpu>1</vcpu>
   <os>
     <type arch='x86_64' machine='pc-0.14'>hvm</type>
