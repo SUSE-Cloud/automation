@@ -2747,13 +2747,13 @@ function onadmin_addupdaterepo()
     if [[ -n "$UPDATEREPOS" ]]; then
         local repo
         for repo in ${UPDATEREPOS//+/ } ; do
-            wget --progress=dot:mega \
+            safely wget --progress=dot:mega \
                 -r --directory-prefix $UPR \
+                --no-check-certificate \
                 --no-parent \
                 --no-clobber \
                 --accept x86_64.rpm,noarch.rpm \
-                ${repo%/}/ \
-            || exit 8
+                ${repo%/}/
         done
         ensure_packages_installed createrepo
         createrepo -o $UPR $UPR || exit 8
@@ -3039,7 +3039,7 @@ function onadmin_securitytests()
     # pulled in automatically
     #zypper --non-interactive in perl-HTTP-Cookies perl-Config-Simple
 
-    wget --progress=dot:mega -r --directory-prefix owasp -np -nc -A "owasp*.rpm","sslscan*rpm" $owaspsource
+    safely wget --progress=dot:mega -r --directory-prefix owasp -np -nc -A "owasp*.rpm","sslscan*rpm" $owaspsource
     zypper --non-interactive --gpg-auto-import-keys in `find owasp/ -type f -name "*rpm"`
 
     pushd /usr/share/owasp-test-suite >/dev/null
