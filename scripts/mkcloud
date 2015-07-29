@@ -253,19 +253,10 @@ function cleanup()
         ip link delete ${cloudbr} type bridge
         ip link delete ${cloudbr}-nic
     fi
-
-    # 1. remove all loop devices that are still open for this cloud
+    # 1. remove leftover partition mappings that are still open for this cloud
     local vol
     dmsetup ls | awk "/^$cloudvg-${cloud}\./ {print \$1}" | while read vol ; do
-        local link=`readlink /dev/mapper/$vol`
-        local dev=`cd /dev/mapper/ ; readlink -f $link`
-        local lodev=`losetup --associated $dev | cut -d":" -f1`
-        [ -z "$lodev" ] && continue
-
-        if mount | grep "$lodev " ; then
-            umount $lodev || complain 41 "Can not umount $lodev to cleanup $dev ($vol)."
-        fi
-        losetup -d $lodev || complain 41 "Can not remove loopdevice $lodev to cleanup $dev ($vol)."
+        kpartx -d /dev/mapper/$vol
     done
 
     # 2. remove all previous volumes for that cloud; this helps preventing
@@ -369,7 +360,6 @@ EOF
 function onhost_deploy_image()
 {
     local image
-    local offset
     local role=$1
     local dist=${2:-SLE11}
     local disk=${3:-$admin_node_disk}
@@ -377,11 +367,9 @@ function onhost_deploy_image()
     case $dist in
     SLE12)
         image=SLES12.qcow2
-        offset=2039808
         ;;
     SLE11)
         image=SP3-64up.qcow2
-        offset=2056192
         ;;
     *)
         complain 71 "onhost_deploy_image has not enough information about how to deploy. (distribution: $dist)"
@@ -396,13 +384,17 @@ function onhost_deploy_image()
     safely qemu-img convert -p $image $disk
     popd
 
-    if fdisk -l $disk | grep -q $offset ; then
+    # only resize if we have a 2nd partition with a rootfs
+    if fdisk -l $disk | grep -q "2 *\* *.*83 *Linux" ; then
         # make a bigger partition 2
         echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $disk
-        local loopdevice=$(losetup --find --show -o $(( $offset * 512 )) $disk)
-        safely fsck -y -f $loopdevice
-        safely resize2fs $loopdevice
-        losetup -d $loopdevice
+        part2=$(kpartx -asv $disk|perl -ne 'm/add map (\S+2) / && print $1')
+        test -n "$part2" || complain 31 "failed to find partition #2"
+        local bdev=/dev/mapper/$part2
+        safely fsck -y -f $bdev
+        safely resize2fs $bdev
+        sleep 1 # time for dev to become unused
+        safely kpartx -dv $disk
     fi
 }
 
