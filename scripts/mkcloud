@@ -91,7 +91,7 @@ needcvol=1
 : ${vdisk_dir:=/dev/$cloudvg}
 : ${admin_node_disk:=$vdisk_dir/$cloud.admin}
 : ${admin_node_memory:=2097152}
-: ${controller_node_memory:=4194304}
+: ${controller_node_memory:=5242880}
 : ${compute_node_memory:=2097152}
 : ${hyperv_node_memory:=3000000}
 [[ "$libvirt_type" = "hyperv" && $compute_node_memory -lt $hyperv_node_memory ]] && compute_node_memory=$hyperv_node_memory
@@ -1039,7 +1039,7 @@ Optional
         set the number of CPU cores for admin node
     admin_node_memory (default 2097152)
         Set the memory in KB assigned to admin node
-    controller_node_memory (default 4194304)
+    controller_node_memory (default 5242880)
         Set the memory in KB assigned to compute nodes
     compute_node_memory (default 2097152)
         Set the memory in KB assigned to compute nodes
