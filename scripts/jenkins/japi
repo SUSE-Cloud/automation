@@ -145,11 +145,14 @@ sub reformat($)
 
 sub curl(@)
 {
-  my @cmd=(qw"curl --silent -H Expect: -H", $CRUMB, @_);
+  my @cmd=(qw"curl --silent --show-error -H Expect: -H", $CRUMB, @_);
   print join(" ", @cmd)."\n" if ($ENV{debug});
   open(my $pipe, "-|", @cmd);
   local $/;
-  return scalar <$pipe>;
+  my $ret=<$pipe>;
+  close $pipe;
+  if($?>>8) { print "ERROR ".($?>>8)."\n$ret" }
+  return $ret;
 }
 
 sub get_cloud_job_list
