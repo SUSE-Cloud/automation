@@ -76,17 +76,17 @@ prs=${automation_prs}
 prs=${prs:-`$ghs -a ${action}`}
 
 for automation_pr in $prs ; do
-  pr_sha=${automation_pr##*:}
+  automation_opts=(${automation_pr//:/ })
+  automation_pr_sha=${automation_opts[1]}
 
   # default config / may be overridden by tags from PR message
   mkcloudtarget=all_noreboot
   cloudsource=develcloud5
   nodenumber=3
   networkingplugin=openvswitch
-  #echo eval `$ghs -a get-pr-config -p $pr_sha` # not yet implemented
-  
-  ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-mkcloud -p mode=standard automation_pr=${automation_pr} mkcloudtarget=${mkcloudtarget} cloudsource="${cloudsource}" nodenumber=${nodenumber} networkingplugin=${networkingplugin} $staticconfig
-  $ghs -a set-status -s "pending" -t $BUILD_URL -c $pr_sha
+  #echo eval `$ghs -a get-pr-config -p $automation_pr_sha` # not yet implemented
+  ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-mkcloud -p mode=standard github_pr=SUSE-Cloud/automation:${automation_pr} mkcloudtarget=${mkcloudtarget} cloudsource="${cloudsource}" nodenumber=${nodenumber} networkingplugin=${networkingplugin} $staticconfig
+  $ghs -a set-status -s "pending" -t $BUILD_URL -c $automation_pr_sha
 done
 </command>
     </hudson.tasks.Shell>

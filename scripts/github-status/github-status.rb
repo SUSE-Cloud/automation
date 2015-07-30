@@ -84,7 +84,7 @@ class GHClientHandler
         print_pr_sha_info(p)
       end
     else
-      puts "#{pull.number}:#{pull.head.sha}" if pull
+      puts "#{pull.number}:#{pull.head.sha}:#{pull.base.ref}" if pull
     end
   end
 
