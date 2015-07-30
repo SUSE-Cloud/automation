@@ -279,15 +279,18 @@ function selfgating_trap()
 
 ## mkcloud self-gating
 if [[ $automation_pr ]] ; then
-  automation_pr_sha=${automation_pr##*:}
-  automation_pr_id=${automation_pr%%:*}
+  automation_opts=(${automation_pr//:/ })
+  automation_pr_id=${automation_opts[0]}
+  automation_pr_sha=${automation_opts[1]}
+  automation_pr_branch=${automation_opts[2]}
+
   ghs=${automationrepo}/scripts/github-status/github-status.rb
-  
+
   if ! $ghs -a is-latest-sha -p $automation_pr_id -c $automation_pr_sha ; then
     $ghs -a set-status -s "error" -t $BUILD_URL -c $automation_pr_sha -m "Latest SHA1 from PR does not match this SHA1"
     exit 1
   fi
-    
+
   trap "selfgating_trap" ERR
   automationrepo_orig=$automationrepo
   pr_dir=`mktemp -d $WORKSPACE/SUSE-Cloud.automation.XXXXXX`
