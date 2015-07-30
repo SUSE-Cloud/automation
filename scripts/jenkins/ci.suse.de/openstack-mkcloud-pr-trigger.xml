@@ -85,8 +85,7 @@ for automation_pr in $prs ; do
   nodenumber=3
   networkingplugin=openvswitch
   #echo eval `$ghs -a get-pr-config -p $automation_pr_sha` # not yet implemented
-  
-  ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-mkcloud -p mode=standard automation_pr=${automation_pr} mkcloudtarget=${mkcloudtarget} cloudsource="${cloudsource}" nodenumber=${nodenumber} networkingplugin=${networkingplugin} $staticconfig
+  ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-mkcloud -p mode=standard github_pr=SUSE-Cloud/automation:${automation_pr} mkcloudtarget=${mkcloudtarget} cloudsource="${cloudsource}" nodenumber=${nodenumber} networkingplugin=${networkingplugin} $staticconfig
   $ghs -a set-status -s "pending" -t $BUILD_URL -c $automation_pr_sha
 done
 </command>
