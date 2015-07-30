@@ -225,6 +225,9 @@ case $cloudsource in
     GM4|GM4+up|GM5|GM5+up)
         echo "Not setting want_ldap=1"
         ;;
+    develcloud6)
+        echo "FIXME: Not setting want_ldap=1 until hybrid backend is ported to Kilo"
+        ;;
     *)
         [[ $nodenumber == 2 ]] &amp;&amp; export want_ldap=1
         ;;
@@ -298,10 +301,8 @@ if [[ $automation_pr ]] ; then
     git config --add remote.${ghremote}.fetch "+refs/pull/*/head:refs/remotes/${ghremote}/pr/*"
   git fetch $ghremote
   git checkout -t $ghremote/pr/$automation_pr_id
-  #temporary workaround for unrebased PRs:
-  if [ ! -e $ghs ] ; then
-    git merge master
-  fi
+  echo "we merge to always test what will end up in master"
+  git merge master -m temp-merge-commit
   popd
     
   $ghs -a set-status -s "pending" -t $BUILD_URL -c $automation_pr_sha
