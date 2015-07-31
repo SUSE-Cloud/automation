@@ -285,6 +285,7 @@ if [[ $github_pr ]] ; then
     github_pr_sha=${github_opts[2]}
 
     ghs=${automationrepo}/scripts/github-status/github-status.rb
+    zypper -n install "rubygem(netrc)" "rubygem(octokit)"
 
     if ! $ghs -r $github_pr_repo -a is-latest-sha -p $github_pr_id -c $github_pr_sha ; then
         $ghs -a set-status -s "error" -t $BUILD_URL -r $github_pr_repo -c $github_pr_sha -m "Latest SHA1 from PR does not match this SHA1"
