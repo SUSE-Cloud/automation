@@ -21,6 +21,7 @@ for my $num ($startnum..$endnum) {
         '(Slave went offline) during the build',
         '(Crowbar inst)allation terminated prematurely.  Please examine the above',
         'Build (timed out) \(after \d+ minutes\). Marking the build as failed.',
+        'Latest (SHA1 from PR does not match) this SHA1',
         'crowbar\.(\w\d+)\.cloud\.suse\.de',
         'mk(?:phys)?cloud (ret=\d+)',
     ) {
