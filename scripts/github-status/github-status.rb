@@ -6,9 +6,9 @@ require 'optparse'
 class GHClientHandler
 
   def initialize(config = {})
-    @comment_prefix = config[:comment_prefix] || 'CI mkcloud self gating '
+    @comment_prefix = config[:comment_prefix] || 'CI mkcloud gating '
     @repository = config[:repository] || 'SUSE-Cloud/automation'
-    @context = config[:context] || 'ci.suse.de/openstack-mkcloud/self-gating'
+    @context = config[:context] || 'ci.suse.de/openstack-mkcloud/gating'
     @client = Octokit::Client.new(:netrc => true)
     @client.auto_paginate = true
     @client.login
@@ -71,9 +71,11 @@ class GHClientHandler
       user = p.head.repo.owner.login rescue ''
       return false unless user
       # team id 1541628 -> SUSE-Cloud/developers
+      # team id 291046 -> crowbar/Owners
       # team id 159206 -> SUSE-Cloud/Owners
       user == "SUSE-Cloud" ||
         @client.team_member?(1541628, user) ||
+        @client.team_member?(291046, user) ||
         @client.team_member?(159206, user)
     end
   end
