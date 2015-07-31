@@ -1,10 +1,19 @@
 # from mkcloud2 host
+export cloudvg=mkcvg0
 haoffset=0
 vcloudbase=180
 vcloudname=g
 
 # from mkcloud host
+export cloudvg=mkcvg0
 haoffset=4
 vcloudbase=172
 vcloudname=c
+
+# from mkcloud3 host
+export cloudvg=mkcvg3
+haoffset=8
+# temp:
+vcloudbase=162
+vcloudname=h
 
