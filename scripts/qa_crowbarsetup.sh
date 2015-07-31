@@ -2341,6 +2341,16 @@ function addfloatingip()
     nova add-floating-ip "$instanceid" "$floatingip"
 }
 
+# by setting --dns-nameserver for subnet, docker instance gets this as
+# DNS info (otherwise it would use /etc/resolv.conf from its host)
+function adapt_dns_for_docker()
+{
+    # DNS server is the first IP from the allocation pool, or the
+    # second one from the network range
+    local dns_server=`neutron subnet-show fixed | grep allocation_pools | cut -d '"' -f4`
+    neutron subnet-update --dns-nameserver "$dns_server" fixed
+}
+
 # code run on controller/dashboard node to do basic tests of deployed cloud
 # uploads an image, create flavor, boots a VM, assigns a floating IP, ssh to VM, attach/detach volume
 function oncontroller_testsetup()
@@ -2437,6 +2447,7 @@ function oncontroller_testsetup()
         image_name="cirros"
         ssh_user="cirros"
         openstack image create --public --container-format docker --disk-format raw --property hypervisor_type=docker --copy-from http://$clouddata/images/docker/cirros.tar $image_name | tee glance.out
+        adapt_dns_for_docker
     fi
 
     # wait for image to finish uploading
