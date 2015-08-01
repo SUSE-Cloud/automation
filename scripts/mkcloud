@@ -237,7 +237,10 @@ EOF
 
 function onadmin()
 {
-    sshrun onadmin_$1
+    # functions can have parameters, so pass on all except $1
+    local cmd=$1
+    shift
+    sshrun onadmin_$cmd "$@"
 }
 
 function cleanup()
@@ -1263,7 +1266,7 @@ function expand_steps()
         local found=0
         local onecmd
         for onecmd in $allcmds ; do
-            if [ $onecmd = $cmd ] ; then
+            if [[ $cmd =~ ^$onecmd(\+.+)?$ ]] ; then
                 found=1
                 case "$cmd" in
                     setupcompute|instcompute)
@@ -1332,7 +1335,11 @@ for cmd in `echo $steplist` ; do
     echo
     sleep 2
     echo $cmd >> mkcloud.steps.log
-    $cmd
+    # support calls to functions with parameters
+    # this is currently used for the cct function
+    cmd_parameters="${cmd#*+}"
+    cmd=${cmd%%+*}
+    $cmd "${cmd_parameters//+/ }"
     ret=$?
     if [ $ret != 0 ] ; then
         set +x
