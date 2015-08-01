@@ -48,7 +48,7 @@
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>cloudsource=develcloud5
 want_all_ssl=1
-mkcloudtarget=plain crowbarbackup crowbarrestore testsetup</properties>
+mkcloudtarget=all_noreboot</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
