@@ -86,7 +86,6 @@ SHA1 introduced to prevent accidental run of external PRs code.
 Will notify the github PR with mkcloud test results</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
-
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
           <description>Update repositories (one URL per line)</description>
@@ -284,6 +283,7 @@ if [[ $github_pr ]] ; then
     github_pr_id=${github_opts[1]}
     github_pr_sha=${github_opts[2]}
 
+    echo "testing PR: https://github.com/$github_pr_repo/pull/$github_pr_id"
     ghs=${automationrepo}/scripts/github-status/github-status.rb
     zypper -n install "rubygem(netrc)" "rubygem(octokit)"
 
@@ -321,6 +321,7 @@ echo "########################################################################"
 
 MKCLOUDTARGET=$mkcloudtarget
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
+
 if [ $WITHCROWBARREGISTER == "true" ] ; then
   export nodenumberlonelynode=1
   MKCLOUDTARGET="$MKCLOUDTARGET setuplonelynodes crowbar_register"
