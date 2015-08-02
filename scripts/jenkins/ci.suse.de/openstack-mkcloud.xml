@@ -292,6 +292,8 @@ if [[ $github_pr ]] ; then
         exit 1
     fi
 
+    trap "mkcloudgating_trap" ERR
+
     # Support for automation self-gating
     if [[ "$github_pr_repo" = "SUSE-Cloud/automation" ]]; then
         automationrepo_orig=$automationrepo
@@ -311,7 +313,6 @@ if [[ $github_pr ]] ; then
         popd
     fi
 
-    trap "mkcloudgating_trap" ERR
     $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha
 fi
 
