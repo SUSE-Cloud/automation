@@ -46,13 +46,30 @@ htdocs_dir = '/srv/www/htdocs/mkcloud'
 htdocs_url = 'http://tu-sle12.j.cloud.suse.de/mkcloud/'
 
 
+def ghs_set_status(repo, pr_id, head_sha1, status):
+    ghs = Command(
+        os.path.abspath(
+            os.path.join(os.path.dirname(sys.argv[0]),
+                         'github-status/github-status.rb')))
+
+    ghs('-r', 'crowbar/' + repo,
+        '-p', pr_id, '-c', head_sha1, '-a', 'set-status',
+        '-s', status)
+
+
 def trigger_testbuild(repo, github_opts):
     pr_id, head_sha1, pr_branch = github_opts.split(':')
 
     iosc = functools.partial(
         Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
+    jenkins = Command(
+        os.path.abspath(
+            os.path.join(os.path.dirname(sys.argv[0]),
+                         'jenkins/jenkins-job-trigger')))
+
     olddir = os.getcwd()
     workdir = tempfile.mkdtemp()
+    build_failed = False
     try:
         patch_url = "https://github.com/crowbar/%s/pull/%s.patch" % (
             repo, pr_id)
@@ -75,53 +92,47 @@ def trigger_testbuild(repo, github_opts):
         buildroot = os.path.join(os.getcwd(), 'BUILD')
         try:
             iosc('build', '--root', buildroot,
-                '--noverify', '--noservice', 'SLE_11_SP3', 'x86_64',
-                pkg + '.spec', _out=sys.stdout)
-        finally:
-            sh.cp('-p', os.path.join(buildroot, '.build.log'),
-                os.path.join(webroot, 'build.log'))
+                 '--noverify', '--noservice', 'SLE_11_SP3', 'x86_64',
+                 pkg + '.spec', _out=sys.stdout)
+        except:
+            build_failed = True
         else:
             sh.cp('-p',
-                sh.glob(os.path.join(buildroot,
-                                    'usr/src/packages/RPMS/*/*.rpm')),
-                webroot)
+                  sh.glob(os.path.join(buildroot,
+                                       'usr/src/packages/RPMS/*/*.rpm')),
+                  webroot)
+
+            print("ready with " + htdocs_url + ptfdir)
+
+            job_parameters = (
+                'nodenumber=2', 'networkingplugin=openvswitch')
+
+            if repo in JOB_PARAMETERS:
+                job_parameters = JOB_PARAMETERS[repo]
+
+            job_parameters += ('all_noreboot',)
+
+            print(jenkins(
+                'openstack-mkcloud',
+                '-p', 'mode=standard',
+                "github_pr=crowbar/%s:%s" % (repo, github_opts),
+                "cloudsource=" + CLOUDSRC[pr_branch],
+                'label=openstack-mkcloud-SLE12',
+                'UPDATEREPOS=' + htdocs_url + ptfdir,
+                'mkcloudtarget=all_noreboot',
+                *job_parameters))
+
+        finally:
+            sh.cp(
+                '-p', os.path.join(buildroot, '.build.log'),
+                os.path.join(webroot, 'build.log'))
     finally:
         sh.sudo.rm('-rf', workdir)
     os.chdir(olddir)
 
-    print("ready with " + htdocs_url + ptfdir)
-
-    jenkins = Command(
-        os.path.abspath(
-            os.path.join(os.path.dirname(sys.argv[0]),
-                         'jenkins/jenkins-job-trigger')))
-
-    job_parameters = (
-        'nodenumber=2', 'networkingplugin=openvswitch')
-
-    if repo in JOB_PARAMETERS:
-        job_parameters = JOB_PARAMETERS[repo]
-
-    job_parameters += ('all_noreboot',)
-
-    print(jenkins(
-        'openstack-mkcloud',
-        '-p', 'mode=standard',
-        "github_pr=crowbar/%s:%s" % (repo, github_opts),
-        "cloudsource=" + CLOUDSRC[pr_branch],
-        'label=openstack-mkcloud-SLE12',
-        'UPDATEREPOS=' + htdocs_url + ptfdir,
-        'mkcloudtarget=all_noreboot',
-        *job_parameters))
-
-    ghs = Command(
-        os.path.abspath(
-            os.path.join(os.path.dirname(sys.argv[0]),
-                         'github-status/github-status.rb')))
-
-    ghs('-r', 'crowbar/' + repo,
-        '-p', pr_id, '-c', head_sha1, '-a', 'set-status',
-        '-s', 'pending')
+    ghs_set_status(
+        repo, pr_id, head_sha1,
+        'failure' if build_failed else'pending')
 
 
 if __name__ == '__main__':
