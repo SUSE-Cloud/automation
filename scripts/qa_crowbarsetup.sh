@@ -3273,14 +3273,16 @@ function onadmin_run_cct()
     # - install cct dependencies
     ensure_packages_installed git-core gcc make ruby2.1-devel
 
-    # - default checkout location for mkcloud based setups:
-    mkdir -p /root/github.com/SUSE-Cloud
-    pushd /root/github.com/SUSE-Cloud/
-    git clone https://github.com/SUSE-Cloud/cct.git
-    cd cct
-    bundle install
+    if iscloudver 6plus && [[ -n $cct_tests ]]; then
 
-    if [[ -n $cct_tests ]]; then
+        # - default checkout location for mkcloud based setups:
+        mkdir -p /root/github.com/SUSE-Cloud
+        pushd /root/github.com/SUSE-Cloud/
+        git clone https://github.com/SUSE-Cloud/cct.git
+        # TODO checkout branches for older versions
+        cd cct
+        bundle install
+
         local IFS
         IFS='+'
         for test in $cct_tests; do
