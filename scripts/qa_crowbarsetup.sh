@@ -3293,9 +3293,9 @@ function onadmin_run_cct()
                 return $ret
             fi
         done
+        popd
     fi
 
-    popd
     return 0
 }
 
