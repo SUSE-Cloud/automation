@@ -39,7 +39,7 @@ CLOUDSRC = {
 
 JOB_PARAMETERS = {
     'barclamp-ceph': ('nodenumber=3', 'networkingplugin=linuxbridge'),
-    'barclamp-pacemaker': ('nodenumer=3', 'hacloud=1')
+    'barclamp-pacemaker': ('nodenumber=3', 'hacloud=1')
 }
 
 htdocs_dir = '/srv/www/htdocs/mkcloud'
