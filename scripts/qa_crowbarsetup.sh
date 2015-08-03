@@ -1087,7 +1087,11 @@ EOF
     zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
 
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
-        zypper --no-gpg-checks -n in -l -t pattern cloud_admin
+        if [[ $want_sles12_admin ]]; then
+          zypper --no-gpg-checks -n in -l patterns-cloud-admin
+        else
+          zypper --no-gpg-checks -n in -l -t pattern cloud_admin
+        fi
         local ret=$?
 
         if [ $ret = 0 ] ; then
