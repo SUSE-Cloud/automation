@@ -76,6 +76,7 @@ results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scr
             <a class="string-array">
               <string>gre</string>
               <string>vlan</string>
+              <string>vxlan</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
