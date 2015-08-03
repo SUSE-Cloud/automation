@@ -837,6 +837,11 @@ function onadmin_prepare_cloud_repos()
     zypper rr Cloud
     safely zypper ar -f ${targetdir} Cloud
 
+    if [[ $want_sles12_admin ]]; then
+      zypper rr Cloud12
+      safely zypper ar -f ${tftpboot_repos12_dir}/Cloud/ Cloud12
+    fi
+
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
             GM4)
