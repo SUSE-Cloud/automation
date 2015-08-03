@@ -57,22 +57,40 @@ def ghs_set_status(repo, pr_id, head_sha1, status):
         '-s', status)
 
 
-def trigger_testbuild(repo, github_opts):
-    pr_id, head_sha1, pr_branch = github_opts.split(':')
+def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
+    print("triggering jenkins job with " + htdocs_url + ptfdir)
 
-    iosc = functools.partial(
-        Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
     jenkins = Command(
         os.path.abspath(
             os.path.join(os.path.dirname(sys.argv[0]),
                          'jenkins/jenkins-job-trigger')))
 
+    job_parameters = (
+        'nodenumber=2', 'networkingplugin=openvswitch')
+
+    if repo in JOB_PARAMETERS:
+        job_parameters = JOB_PARAMETERS[repo]
+
+    job_parameters += ('all_noreboot',)
+
+    print(jenkins(
+        'openstack-mkcloud',
+        '-p', 'mode=standard',
+        "github_pr=crowbar/%s:%s" % (repo, github_opts),
+        "cloudsource=" + cloudsource,
+        'label=openstack-mkcloud-SLE12',
+        'UPDATEREPOS=' + htdocs_url + ptfdir,
+        'mkcloudtarget=all_noreboot',
+        *job_parameters))
+
+
+def trigger_testbuild(repo, github_opts):
+    pr_id, head_sha1, pr_branch = github_opts.split(':')
+
     olddir = os.getcwd()
     workdir = tempfile.mkdtemp()
     build_failed = False
     try:
-        patch_url = "https://github.com/crowbar/%s/pull/%s.patch" % (
-            repo, pr_id)
         ptfdir = repo + ':' + github_opts
         webroot = os.path.join(htdocs_dir, ptfdir)
         pkg = repo if repo == "crowbar" else "crowbar-" + repo
@@ -81,16 +99,21 @@ def trigger_testbuild(repo, github_opts):
         sh.rm('-rf', webroot)
         sh.mkdir('-p', webroot)
 
-        os.chdir(workdir)
-        iosc('co', IBS_MAPPING[pr_branch], pkg)
-        os.chdir(os.path.join(IBS_MAPPING[pr_branch], pkg))
-        sh.curl('-s', '-k', '-L', patch_url, '-o', 'prtest.patch')
-        sh.sed('-i', '-e', 's,Url:.*,%define _default_patch_fuzz 2,',
-               '-e', 's,%patch[0-36-9].*,,', spec)
-        Command('/usr/lib/build/spec_add_patch')(spec, 'prtest.patch')
-        iosc('vc', '-m', " added PR test patch from " + ptfdir)
-        buildroot = os.path.join(os.getcwd(), 'BUILD')
         try:
+            os.chdir(workdir)
+            iosc = functools.partial(
+                Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
+            iosc('co', IBS_MAPPING[pr_branch], pkg)
+            os.chdir(os.path.join(IBS_MAPPING[pr_branch], pkg))
+            sh.curl(
+                '-s', '-k', '-L',
+                "https://github.com/crowbar/%s/pull/%s.patch" % (repo, pr_id),
+                '-o', 'prtest.patch')
+            sh.sed('-i', '-e', 's,Url:.*,%define _default_patch_fuzz 2,',
+                '-e', 's,%patch[0-36-9].*,,', spec)
+            Command('/usr/lib/build/spec_add_patch')(spec, 'prtest.patch')
+            iosc('vc', '-m', " added PR test patch from " + ptfdir)
+            buildroot = os.path.join(os.getcwd(), 'BUILD')
             iosc('build', '--root', buildroot,
                  '--noverify', '--noservice', 'SLE_11_SP3', 'x86_64',
                  pkg + '.spec', _out=sys.stdout)
@@ -102,33 +125,17 @@ def trigger_testbuild(repo, github_opts):
                                        'usr/src/packages/RPMS/*/*.rpm')),
                   webroot)
 
-            print("ready with " + htdocs_url + ptfdir)
-
-            job_parameters = (
-                'nodenumber=2', 'networkingplugin=openvswitch')
-
-            if repo in JOB_PARAMETERS:
-                job_parameters = JOB_PARAMETERS[repo]
-
-            job_parameters += ('all_noreboot',)
-
-            print(jenkins(
-                'openstack-mkcloud',
-                '-p', 'mode=standard',
-                "github_pr=crowbar/%s:%s" % (repo, github_opts),
-                "cloudsource=" + CLOUDSRC[pr_branch],
-                'label=openstack-mkcloud-SLE12',
-                'UPDATEREPOS=' + htdocs_url + ptfdir,
-                'mkcloudtarget=all_noreboot',
-                *job_parameters))
-
         finally:
+            os.chdir(olddir)
             sh.cp(
                 '-p', os.path.join(buildroot, '.build.log'),
                 os.path.join(webroot, 'build.log'))
     finally:
         sh.sudo.rm('-rf', workdir)
-    os.chdir(olddir)
+
+    if not build_failed:
+        jenkins_job_trigger(
+            repo, github_opts, CLOUDSRC[pr_branch], ptfdir)
 
     ghs_set_status(
         repo, pr_id, head_sha1,
