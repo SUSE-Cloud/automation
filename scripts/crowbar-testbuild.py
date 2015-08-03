@@ -45,6 +45,9 @@ JOB_PARAMETERS = {
 htdocs_dir = '/srv/www/htdocs/mkcloud'
 htdocs_url = 'http://tu-sle12.j.cloud.suse.de/mkcloud/'
 
+iosc = functools.partial(
+    Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
+
 
 def ghs_set_status(repo, pr_id, head_sha1, status):
     ghs = Command(
@@ -84,6 +87,17 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
         *job_parameters))
 
 
+def add_pr_to_checkout(repo, pr_id, spec):
+    sh.curl(
+        '-s', '-k', '-L',
+        "https://github.com/crowbar/%s/pull/%s.patch" % (repo, pr_id),
+        '-o', 'prtest.patch')
+    sh.sed('-i', '-e', 's,Url:.*,%define _default_patch_fuzz 2,',
+           '-e', 's,%patch[0-36-9].*,,', spec)
+    Command('/usr/lib/build/spec_add_patch')(spec, 'prtest.patch')
+    iosc('vc', '-m', " added PR test patch from %s/%s" % (repo, pr_id))
+
+
 def trigger_testbuild(repo, github_opts):
     pr_id, head_sha1, pr_branch = github_opts.split(':')
 
@@ -105,18 +119,11 @@ def trigger_testbuild(repo, github_opts):
                 Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
             iosc('co', IBS_MAPPING[pr_branch], pkg)
             os.chdir(os.path.join(IBS_MAPPING[pr_branch], pkg))
-            sh.curl(
-                '-s', '-k', '-L',
-                "https://github.com/crowbar/%s/pull/%s.patch" % (repo, pr_id),
-                '-o', 'prtest.patch')
-            sh.sed('-i', '-e', 's,Url:.*,%define _default_patch_fuzz 2,',
-                '-e', 's,%patch[0-36-9].*,,', spec)
-            Command('/usr/lib/build/spec_add_patch')(spec, 'prtest.patch')
-            iosc('vc', '-m', " added PR test patch from " + ptfdir)
+            add_pr_to_checkout(repo, pr_id, spec)
             buildroot = os.path.join(os.getcwd(), 'BUILD')
             iosc('build', '--root', buildroot,
                  '--noverify', '--noservice', 'SLE_11_SP3', 'x86_64',
-                 pkg + '.spec', _out=sys.stdout)
+                 spec, _out=sys.stdout)
         except:
             build_failed = True
         else:
