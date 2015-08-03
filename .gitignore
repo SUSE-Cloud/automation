@@ -6,3 +6,6 @@ __pycache__/
 *.py[cod]
 
 roundup/
+
+.artifacts/
+mkcloud.config
