@@ -31,7 +31,7 @@ forcerebuild: trigger unseen, pending and failed PRs</description>
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>openstack-mkcloud-SLE12</assignedNode>
+  <assignedNode>openstack-trackupstream</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>

@@ -87,7 +87,6 @@ SHA1 introduced to prevent accidental run of external PRs code.
 Will notify the github PR with mkcloud test results</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
-
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
           <description>Update repositories (one URL per line)</description>
@@ -285,6 +284,7 @@ if [[ $github_pr ]] ; then
     github_pr_id=${github_opts[1]}
     github_pr_sha=${github_opts[2]}
 
+    echo "testing PR: https://github.com/$github_pr_repo/pull/$github_pr_id"
     ghs=${automationrepo}/scripts/github-status/github-status.rb
     zypper -n install "rubygem(netrc)" "rubygem(octokit)"
 
@@ -292,6 +292,8 @@ if [[ $github_pr ]] ; then
         $ghs -a set-status -s "error" -t $BUILD_URL -r $github_pr_repo -c $github_pr_sha -m "Latest SHA1 from PR does not match this SHA1"
         exit 1
     fi
+
+    trap "mkcloudgating_trap" ERR
 
     # Support for automation self-gating
     if [[ "$github_pr_repo" = "SUSE-Cloud/automation" ]]; then
@@ -312,7 +314,6 @@ if [[ $github_pr ]] ; then
         popd
     fi
 
-    trap "mkcloudgating_trap" ERR
     $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha
 fi
 
@@ -322,6 +323,7 @@ echo "########################################################################"
 
 MKCLOUDTARGET=$mkcloudtarget
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
+
 if [ $WITHCROWBARREGISTER == "true" ] ; then
   export nodenumberlonelynode=1
   MKCLOUDTARGET="$MKCLOUDTARGET setuplonelynodes crowbar_register"
