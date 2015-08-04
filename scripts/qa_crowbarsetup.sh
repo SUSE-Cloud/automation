@@ -1240,10 +1240,10 @@ EOF
     if iscloudver 4plus; then
         ensure_packages_installed crowbar-barclamp-tempest
         # Force restart of crowbar
-        rccrowbar stop
+        service crowbar stop
     fi
 
-    rccrowbar status || rccrowbar start
+    service crowbar status || service crowbar start
     [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
     sleep 20
