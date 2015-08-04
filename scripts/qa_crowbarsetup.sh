@@ -2793,7 +2793,13 @@ function onadmin_addupdaterepo()
     pre_hook $FUNCNAME
 
     local UPR=$tftpboot_repos_dir/Cloud-PTF
-    iscloudver 6plus && UPR=$tftpboot_repos_dir/PTF
+    if iscloudver 6plus; then
+        if [ -n "$want_sles12_admin" ]; then
+            UPR=$tftpboot_repos12_dir/PTF
+        else
+            UPR=$tftpboot_repos_dir/PTF
+        fi
+    fi
 
     mkdir -p $UPR
 
