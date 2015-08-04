@@ -404,9 +404,10 @@ function export_tftpboot_repos_dir()
 
 function addsp3testupdates()
 {
+    local zypper_alias="$1"
     add_mount "SLES11-SP3-Updates-test" \
         'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
-        "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
+        "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "${zypper_alias}"
 }
 
 function addsles12testupdates()
@@ -824,32 +825,40 @@ function onadmin_prepare_cloud_repos()
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
             GM4)
-                addsp3testupdates
+                addsp3testupdates "sp3tup"
                 ;;
             GM4+up)
-                addsp3testupdates
+                addsp3testupdates "sp3tup"
                 addcloud4testupdates
                 ;;
             GM5)
                 addcloud5pool
-                addsp3testupdates
+                addsp3testupdates "sp3tup"
                 addsles12testupdates
                 ;;
             GM5+up)
                 addcloud5pool
-                addsp3testupdates
+                addsp3testupdates "sp3tup"
                 addsles12testupdates
                 addcloud5testupdates
                 ;;
             develcloud4)
-                addsp3testupdates
+                addsp3testupdates "sp3tup"
                 ;;
             develcloud5|develcloud6)
-                addsp3testupdates
+                if [ -n "$want_sles12_admin" ]; then
+                  addsp3testupdates
+                else
+                  addsp3testupdates "sp3tup"
+                fi
                 addsles12testupdates
                 ;;
             susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
-                addsp3testupdates
+                if [ -n "$want_sles12_admin" ]; then
+                  addsp3testupdates
+                else
+                  addsp3testupdates "sp3tup"
+                fi
                 addcloud6testupdates
                 addcloud6pool
                 ;;
