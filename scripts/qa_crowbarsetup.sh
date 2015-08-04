@@ -813,21 +813,13 @@ function onadmin_prepare_cloud_repos()
         add_bind_mount \
             "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" \
             "${targetdir}"
-        echo $CLOUDLOCALREPOS > /etc/cloudversion
     else
         rsync_iso "$CLOUDSLE11DISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
-        cat "$targetdir/isoversion" > /etc/cloudversion
     fi
-    echo -n "This cloud was installed on `cat ~/cloud` from: " | \
-        cat - /etc/cloudversion >> /etc/motd
-    echo $cloudsource > /etc/cloudsource
 
     if [ ! -e "${targetdir}/media.1" ] ; then
         complain 35 "We do not have cloud install media in ${targetdir} - giving up"
     fi
-
-    zypper rr Cloud
-    safely zypper ar -f ${targetdir} Cloud
 
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
@@ -880,6 +872,29 @@ function onadmin_prepare_cloud_repos()
                 ;;
         esac
     fi
+}
+
+
+function onadmin_add_cloud_repo()
+{
+    if [ -n "$want_sles12_admin" ]; then
+      local targetdir="$tftpboot_repos12_dir/Cloud/"
+    else
+      local targetdir="$tftpboot_repos_dir/Cloud/"
+    fi
+
+    zypper rr Cloud
+    safely zypper ar -f ${targetdir} Cloud
+
+    if [ -n "${localreposdir_target}" ]; then
+      echo $CLOUDLOCALREPOS > /etc/cloudversion
+    else
+      cat "$targetdir/isoversion" > /etc/cloudversion
+    fi
+
+    echo -n "This cloud was installed on `cat ~/cloud` from: " | \
+        cat - /etc/cloudversion >> /etc/motd
+    echo $cloudsource > /etc/cloudsource
 }
 
 
@@ -1070,7 +1085,7 @@ EOF
 
     # setup cloud repos for tftpboot and zypper
     onadmin_prepare_cloud_repos
-
+    onadmin_add_cloud_repo
 
     zypper_refresh
 
