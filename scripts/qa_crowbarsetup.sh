@@ -719,7 +719,6 @@ function rsync_iso()
 function onadmin_prepare_sles12_repos()
 {
     onadmin_prepare_sles12_repo
-    onadmin_prepare_sles12_cloud_repo
 
     onadmin_prepare_sles12_other_repos
     onadmin_create_sles12_repos
@@ -779,6 +778,7 @@ function onadmin_prepare_sles12_cloud_repo()
         #     "$targetdir_install"
     fi
     rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$sles12_compute_mount"
+    cat "$sles12_compute_mount/isoversion" > /etc/cloudversion
 }
 
 function onadmin_prepare_sles12_other_repos()
@@ -807,13 +807,18 @@ function download_and_mount_sles()
 function onadmin_prepare_cloud_repos()
 {
     local targetdir="$tftpboot_repos_dir/Cloud/"
+    [[ $want_sles12_admin ]] && targetdir="$tftpboot_repos12_dir/Cloud/"
     mkdir -p ${targetdir}
 
     if [ -n "${localreposdir_target}" ]; then
+        local localrepo_path="sle-11-x86_64"
+        [[ $want_sles12_admin ]] && localrepo_path="sle-12-x86_64"
         add_bind_mount \
-            "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" \
+            "${localreposdir_target}/${CLOUDLOCALREPOS}/${localrepo_path}" \
             "${targetdir}"
         echo $CLOUDLOCALREPOS > /etc/cloudversion
+    elif [[ $want_sles12_admin ]]; then
+        onadmin_prepare_sles12_cloud_repo
     else
         rsync_iso "$CLOUDSLE11DISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
         cat "$targetdir/isoversion" > /etc/cloudversion
@@ -853,7 +858,7 @@ function onadmin_prepare_cloud_repos()
                 addsp3testupdates
                 ;;
             develcloud5|develcloud6)
-                addsp3testupdates
+                [[ ! $want_sles12_admin ]] && addsp3testupdates
                 addsles12testupdates
                 ;;
             susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
