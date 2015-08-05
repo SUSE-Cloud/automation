@@ -2,6 +2,7 @@
 
 require 'octokit'
 require 'optparse'
+require 'json'
 
 class GHClientHandler
 
@@ -46,6 +47,11 @@ class GHClientHandler
 
   def get_sha_status(sha)
     get_full_sha_status(sha).state rescue ''
+  end
+
+  def get_pr_info(pr)
+    pr_stat = @client.pull_request(@repository, pr)
+    pr_stat.to_attrs
   end
 
   def get_pr_latest_sha(pr)
@@ -111,8 +117,9 @@ ACTIONS = %w(
   list-unseen-prs
   list-rebuild-prs
   list-forcerebuild-prs
-  is-latest-sha
+  get-pr-info
   get-latest-sha
+  is-latest-sha
   set-status
 )
 
@@ -149,6 +156,13 @@ optparse = OptionParser.new do |opts|
     options[:message] = msg
   end
 
+  opts.on('-k', '--key KEY',
+          'Dot-separated attribute path to extract from PR JSON, ' \
+          'e.g. base.head.owner.  Optional, only for use with ' \
+          'get-pr-info action.') do |key|
+    options[:key] = key
+  end
+
   opts.on('-h', '--help', 'Show usage') do |h|
     puts opts
     exit
@@ -177,6 +191,20 @@ case options[:action]
     require_parameter(options[:sha], 'Commit SHA1 sum undefined.')
     require_parameter(options[:pr], 'PullRequest ID undefined.')
     exit ghc.is_latest_sha?(options[:pr], options[:sha]) ? 0 : 1
+  when 'get-pr-info'
+    require_parameter(options[:pr], 'PullRequest ID undefined.')
+    data = ghc.get_pr_info(options[:pr])
+    if options[:key]
+      options[:key].split(/(?<!\\)\./).each do |key|
+        key = key.to_sym
+        if data.has_key? key
+          data = data[key]
+        else
+          abort "No key '#{key}' in PR JSON:\n#{JSON.pretty_generate(data)}"
+        end
+      end
+    end
+    puts data.is_a?(Hash) ? JSON.pretty_generate(data) : data
   when 'get-latest-sha'
     require_parameter(options[:pr], 'PullRequest ID undefined.')
     puts ghc.get_pr_latest_sha(options[:pr])
