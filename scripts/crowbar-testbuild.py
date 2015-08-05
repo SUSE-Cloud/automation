@@ -62,19 +62,23 @@ iosc = functools.partial(
     Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
 
 
-def ghs_set_status(repo, pr_id, head_sha1, status, message):
+def ghs_set_status(repo, pr_id, head_sha1, url, status, message):
     ghs = Command(
         os.path.abspath(
             os.path.join(os.path.dirname(sys.argv[0]),
                          'github-status/github-status.rb')))
 
     ghs('-r', repo,
-        '-p', pr_id, '-c', head_sha1, '-a', 'set-status',
-        '-s', status, '-m', message)
+        '-p', pr_id,
+        '-c', head_sha1,
+        '-t', url,
+        '-a', 'set-status',
+        '-s', status,
+        '-m', message)
 
 
-def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
-    print("triggering jenkins job with " + htdocs_url + ptfdir)
+def jenkins_job_trigger(repo, github_opts, cloudsource, ptf_url):
+    print("triggering jenkins job with " + ptf_url)
 
     jenkins = Command(
         os.path.abspath(
@@ -94,7 +98,7 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
         '-p', 'mode=standard',
         "github_pr=%s:%s" % (repo, github_opts),
         "cloudsource=" + cloudsource,
-        'UPDATEREPOS=' + htdocs_url + ptfdir,
+        'UPDATEREPOS=' + ptf_url,
         'mkcloudtarget=all_noreboot',
         *job_parameters)
 
@@ -176,15 +180,17 @@ def trigger_testbuild(org_repo, github_opts):
     finally:
         sh.sudo.rm('-rf', workdir)
 
+    ptf_url = htdocs_url + ptfdir
+
     pr_set_status = \
-        functools.partial(ghs_set_status, org_repo, pr_id, head_sha1)
+        functools.partial(ghs_set_status, org_repo, pr_id, head_sha1, ptf_url)
 
     if build_failed:
         pr_set_status('failure', 'PTF package build failed')
     else:
         result = jenkins_job_trigger(
             org_repo, github_opts,
-            CLOUDSRC[pr_branch], ptfdir)
+            CLOUDSRC[pr_branch], ptf_url)
         print(result)
         pr_set_status('pending', 'mkcloud job triggered')
 
