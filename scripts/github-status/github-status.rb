@@ -107,11 +107,21 @@ class GHClientHandler
 
 end
 
+ACTIONS = %w(
+  list-unseen-prs
+  list-rebuild-prs
+  list-forcerebuild-prs
+  is-latest-sha
+  get-latest-sha
+  set-status
+)
+
 options = {}
 optparse = OptionParser.new do |opts|
   opts.banner = "Query github for pull request status"
 
-  opts.on('-a', '--action ACTION', 'Action to perform') do |a|
+  actions = ACTIONS.join ', '
+  opts.on('-a', '--action ACTION', "Action to perform (#{actions})") do |a|
     options[:action] = a
   end
 
