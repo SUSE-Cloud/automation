@@ -114,31 +114,27 @@ def trigger_testbuild(repo, github_opts):
 
         sh.rm('-rf', webroot)
         sh.mkdir('-p', webroot)
-
         try:
             os.chdir(workdir)
             buildroot = os.path.join(os.getcwd(), 'BUILD')
             iosc('co', IBS_MAPPING[pr_branch], pkg)
             os.chdir(os.path.join(IBS_MAPPING[pr_branch], pkg))
             add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec)
-            iosc('build', '--root', buildroot,
-                 '--noverify', '--noservice', 'SLE_11_SP3', 'x86_64',
-                 spec, _out=sys.stdout)
+            repository = 'SLE_12' if pr_branch == 'master' else 'SLE_11_SP3'
+            iosc('build', '--root', buildroot, '--noverify', '--noservice',
+                 repository, 'x86_64', spec, _out=sys.stdout)
         except:
             build_failed = True
             print("Build failed: " + str(sys.exc_info()[0]))
             raise
         else:
-            sh.cp('-p',
-                  sh.glob(os.path.join(buildroot,
-                                       'usr/src/packages/RPMS/*/*.rpm')),
-                  webroot)
-
+            sh.cp('-p', sh.glob(
+                os.path.join(buildroot, '.build.packages/RPMS/*/*.rpm')),
+                webroot)
         finally:
             os.chdir(olddir)
-            sh.cp(
-                '-p', os.path.join(buildroot, '.build.log'),
-                os.path.join(webroot, 'build.log'))
+            sh.cp('-p', os.path.join(buildroot, '.build.log'),
+                  os.path.join(webroot, 'build.log'))
     finally:
         sh.sudo.rm('-rf', workdir)
 
