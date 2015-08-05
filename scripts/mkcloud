@@ -427,7 +427,7 @@ function setuphost()
 function prepare()
 {
     local image="SLE11"
-    [[ $want_sles12_admin = 1 ]] && iscloudver 6plus && image="SLE12"
+    iscloudver 6plus && image="SLE12"
 
     if ! [ -e ~/.ssh/id_dsa ]; then
         echo "Creating key for controlling our VMs..."
@@ -1082,8 +1082,6 @@ Optional
         /root/.ssh/authorized_keys file and to provisioner barclamp
     want_neutronsles12=1 (default 0)
         if there is a SLE12 node, deploy neutron-network role into the SLE12 node
-    want_sles12_admin=1 (default 0)
-        setup SLE12 admin node (only cloud6plus)
     want_sles12=1 (default 0)
         setup SLE12 compute nodes
     want_dvr=1 (default='')

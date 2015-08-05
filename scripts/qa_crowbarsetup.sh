@@ -845,20 +845,16 @@ function onadmin_prepare_cloud_repos()
             develcloud4)
                 addsp3testupdates "sp3tup"
                 ;;
-            develcloud5|develcloud6)
-                if [ -n "$want_sles12_admin" ]; then
-                  addsp3testupdates
-                else
-                  addsp3testupdates "sp3tup"
-                fi
+            develcloud5)
+                addsp3testupdates "sp3tup"
+                addsles12testupdates
+                ;;
+            develcloud6)
+                addsp3testupdates
                 addsles12testupdates
                 ;;
             susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
-                if [ -n "$want_sles12_admin" ]; then
-                  addsp3testupdates
-                else
-                  addsp3testupdates "sp3tup"
-                fi
+                addsp3testupdates
                 addcloud6testupdates
                 addcloud6pool
                 ;;
@@ -886,7 +882,7 @@ function onadmin_prepare_cloud_repos()
 
 function onadmin_add_cloud_repo()
 {
-    if [ -n "$want_sles12_admin" ]; then
+    if iscloudver 6plus; then
       local targetdir="$tftpboot_repos12_dir/Cloud/"
     else
       local targetdir="$tftpboot_repos_dir/Cloud/"
@@ -2793,13 +2789,7 @@ function onadmin_addupdaterepo()
     pre_hook $FUNCNAME
 
     local UPR=$tftpboot_repos_dir/Cloud-PTF
-    if iscloudver 6plus; then
-        if [ -n "$want_sles12_admin" ]; then
-            UPR=$tftpboot_repos12_dir/PTF
-        else
-            UPR=$tftpboot_repos_dir/PTF
-        fi
-    fi
+    iscloudver 6plus && UPR=$tftpboot_repos12_dir/PTF
 
     mkdir -p $UPR
 
