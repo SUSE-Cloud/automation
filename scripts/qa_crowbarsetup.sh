@@ -404,9 +404,10 @@ function export_tftpboot_repos_dir()
 
 function addsp3testupdates()
 {
+    local zypper_alias="$1"
     add_mount "SLES11-SP3-Updates-test" \
         'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
-        "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
+        "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "${zypper_alias}"
 }
 
 function addsles12testupdates()
@@ -813,51 +814,51 @@ function onadmin_prepare_cloud_repos()
         add_bind_mount \
             "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" \
             "${targetdir}"
-        echo $CLOUDLOCALREPOS > /etc/cloudversion
     else
         rsync_iso "$CLOUDSLE11DISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
-        cat "$targetdir/isoversion" > /etc/cloudversion
     fi
-    echo -n "This cloud was installed on `cat ~/cloud` from: " | \
-        cat - /etc/cloudversion >> /etc/motd
-    echo $cloudsource > /etc/cloudsource
 
     if [ ! -e "${targetdir}/media.1" ] ; then
         complain 35 "We do not have cloud install media in ${targetdir} - giving up"
     fi
 
-    zypper rr Cloud
-    safely zypper ar -f ${targetdir} Cloud
-
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
             GM4)
-                addsp3testupdates
+                addsp3testupdates "sp3tup"
                 ;;
             GM4+up)
-                addsp3testupdates
+                addsp3testupdates "sp3tup"
                 addcloud4testupdates
                 ;;
             GM5)
                 addcloud5pool
-                addsp3testupdates
+                addsp3testupdates "sp3tup"
                 addsles12testupdates
                 ;;
             GM5+up)
                 addcloud5pool
-                addsp3testupdates
+                addsp3testupdates "sp3tup"
                 addsles12testupdates
                 addcloud5testupdates
                 ;;
             develcloud4)
-                addsp3testupdates
+                addsp3testupdates "sp3tup"
                 ;;
             develcloud5|develcloud6)
-                addsp3testupdates
+                if [ -n "$want_sles12_admin" ]; then
+                  addsp3testupdates
+                else
+                  addsp3testupdates "sp3tup"
+                fi
                 addsles12testupdates
                 ;;
             susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
-                addsp3testupdates
+                if [ -n "$want_sles12_admin" ]; then
+                  addsp3testupdates
+                else
+                  addsp3testupdates "sp3tup"
+                fi
                 addcloud6testupdates
                 addcloud6pool
                 ;;
@@ -880,6 +881,29 @@ function onadmin_prepare_cloud_repos()
                 ;;
         esac
     fi
+}
+
+
+function onadmin_add_cloud_repo()
+{
+    if [ -n "$want_sles12_admin" ]; then
+      local targetdir="$tftpboot_repos12_dir/Cloud/"
+    else
+      local targetdir="$tftpboot_repos_dir/Cloud/"
+    fi
+
+    zypper rr Cloud
+    safely zypper ar -f ${targetdir} Cloud
+
+    if [ -n "${localreposdir_target}" ]; then
+      echo $CLOUDLOCALREPOS > /etc/cloudversion
+    else
+      cat "$targetdir/isoversion" > /etc/cloudversion
+    fi
+
+    echo -n "This cloud was installed on `cat ~/cloud` from: " | \
+        cat - /etc/cloudversion >> /etc/motd
+    echo $cloudsource > /etc/cloudsource
 }
 
 
@@ -1070,7 +1094,7 @@ EOF
 
     # setup cloud repos for tftpboot and zypper
     onadmin_prepare_cloud_repos
-
+    onadmin_add_cloud_repo
 
     zypper_refresh
 
@@ -1216,10 +1240,10 @@ EOF
     if iscloudver 4plus; then
         ensure_packages_installed crowbar-barclamp-tempest
         # Force restart of crowbar
-        rccrowbar stop
+        service crowbar stop
     fi
 
-    rccrowbar status || rccrowbar start
+    service crowbar status || service crowbar start
     [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
     sleep 20
@@ -2769,7 +2793,13 @@ function onadmin_addupdaterepo()
     pre_hook $FUNCNAME
 
     local UPR=$tftpboot_repos_dir/Cloud-PTF
-    iscloudver 6plus && UPR=$tftpboot_repos_dir/PTF
+    if iscloudver 6plus; then
+        if [ -n "$want_sles12_admin" ]; then
+            UPR=$tftpboot_repos12_dir/PTF
+        else
+            UPR=$tftpboot_repos_dir/PTF
+        fi
+    fi
 
     mkdir -p $UPR
 
