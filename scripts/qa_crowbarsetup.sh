@@ -465,7 +465,14 @@ function addcloud6pool()
 
 function addcloudrubygemrepo()
 {
-  zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
+    case "$cloudsource" in
+        develcloud5|GM5|GM5+up)
+            zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
+            ;;
+        develcloud6|susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
+            zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12/Devel:Cloud:Shared:Rubygem.repo
+            ;;
+    esac
 }
 
 function add_ha_repo()
@@ -3322,16 +3329,20 @@ function onadmin_run_cct()
     # - install cct dependencies
     ensure_packages_installed git-core gcc make ruby2.1-devel
 
-    if iscloudver 6plus && [[ -n $cct_tests ]]; then
-
+    if iscloudver 5plus && [[ -n $cct_tests ]]; then
+        local checkout_branch
+        # checkout branches if needed, otherwise use master
+        case "$cloudsource" in
+            develcloud5|GM5|GM5+up)
+                checkout_branch="-b cloud5"
+                ;;
+        esac
         # - default checkout location for mkcloud based setups:
         mkdir -p /root/github.com/SUSE-Cloud
         pushd /root/github.com/SUSE-Cloud/
-        git clone https://github.com/SUSE-Cloud/cct.git
-        # TODO checkout branches for older versions
+        git clone https://github.com/SUSE-Cloud/cct.git $checkout_branch
         cd cct
         bundle install
-
         local IFS
         IFS='+'
         for test in $cct_tests; do
