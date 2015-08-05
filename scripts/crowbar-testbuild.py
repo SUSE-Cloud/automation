@@ -170,6 +170,12 @@ def trigger_testbuild(org_repo, github_opts):
     ptfdir = ptfdir.replace('/', '_')
     webroot = prep_webroot(ptfdir)
 
+    ptf_url = htdocs_url + ptfdir
+    pr_set_status = \
+        functools.partial(ghs_set_status, org_repo, pr_id, head_sha1, ptf_url)
+
+    pr_set_status('pending', 'building PTF package')
+
     try:
         prep_osc_dir(workdir, org_repo, pr_id, head_sha1, pr_branch, pkg, spec)
         build_package(spec, webroot, pr_branch)
@@ -182,11 +188,6 @@ def trigger_testbuild(org_repo, github_opts):
             err.write(msg)
     finally:
         sh.sudo.rm('-rf', workdir)
-
-    ptf_url = htdocs_url + ptfdir
-
-    pr_set_status = \
-        functools.partial(ghs_set_status, org_repo, pr_id, head_sha1, ptf_url)
 
     if build_failed:
         pr_set_status('failure', 'PTF package build failed')
