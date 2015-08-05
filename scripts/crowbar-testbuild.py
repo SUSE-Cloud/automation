@@ -130,7 +130,7 @@ def prep_webroot(ptfdir):
     return webroot
 
 
-def build_package(spec, webroot, olddir, pr_branch):
+def build_package(spec, webroot, pr_branch):
     buildroot = os.path.join(os.getcwd(), 'BUILD')
     repository = 'SLE_12' if pr_branch == 'master' else 'SLE_11_SP3'
 
@@ -142,7 +142,6 @@ def build_package(spec, webroot, olddir, pr_branch):
              repository, 'x86_64', spec,
              _out=sys.stdout)
     finally:
-        os.chdir(olddir)
         log = os.path.join(buildroot, '.build.log')
         if os.path.exists(log):
             shutil.copy2(log, os.path.join(webroot, 'build.log'))
@@ -157,7 +156,6 @@ def trigger_testbuild(org_repo, github_opts):
     pr_id, head_sha1, pr_branch = github_opts.split(':')
     org, repo = org_repo.split('/')
 
-    olddir = os.getcwd()
     workdir = tempfile.mkdtemp()
     build_failed = False
 
@@ -172,7 +170,7 @@ def trigger_testbuild(org_repo, github_opts):
 
     try:
         prep_osc_dir(workdir, org_repo, pr_id, head_sha1, pr_branch, pkg, spec)
-        build_package(spec, webroot, olddir, pr_branch)
+        build_package(spec, webroot, pr_branch)
     except:
         build_failed = True
         exc_type, exc_val, exc_tb = sys.exc_info()
