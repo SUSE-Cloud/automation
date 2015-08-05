@@ -134,17 +134,25 @@ def build_package(spec, webroot, pr_branch):
     buildroot = os.path.join(os.getcwd(), 'BUILD')
     repository = 'SLE_12' if pr_branch == 'master' else 'SLE_11_SP3'
 
+    dst_log = os.path.join(webroot, 'build.log')
+    out = open(dst_log, 'w')
+
+    # Write output to webroot as we go, so that we can follow
+    # progress directly from the link in the github PR web UI.
+    def tee(line):
+        print line,
+        out.write(line)
+        out.flush()
+
     try:
         iosc('build',
              '--root', buildroot,
              '--noverify',
              '--noservice',
              repository, 'x86_64', spec,
-             _out=sys.stdout)
+             _out=tee)
     finally:
-        log = os.path.join(buildroot, '.build.log')
-        if os.path.exists(log):
-            shutil.copy2(log, os.path.join(webroot, 'build.log'))
+        out.close()
 
     sh.cp('-p',
           sh.glob(os.path.join(buildroot,
