@@ -61,15 +61,14 @@ iosc = functools.partial(
     Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
 
 
-def ghs_set_status(repo, pr_id, head_sha1, status):
+def ghs_set_status(repo, head_sha1, status):
     ghs = Command(
         os.path.abspath(
             os.path.join(os.path.dirname(sys.argv[0]),
                          'github-status/github-status.rb')))
 
     ghs('-r', 'crowbar/' + repo,
-        '-p', pr_id, '-c', head_sha1, '-a', 'set-status',
-        '-s', status)
+        '-c', head_sha1, '-a', 'set-status', '-s', status)
 
 
 def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
@@ -160,7 +159,7 @@ def trigger_testbuild(repo, github_opts):
             repo, github_opts, CLOUDSRC[pr_branch], ptfdir)
 
     ghs_set_status(
-        repo, pr_id, head_sha1,
+        repo, head_sha1,
         'failure' if build_failed else'pending')
 
 
