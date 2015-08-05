@@ -2238,8 +2238,10 @@ function prepare_proposals()
     fi
 
     cmachines=$(get_all_nodes)
+    local ptfchannel="SLE-Cloud-PTF"
+    iscloudver 6plus && ptfchannel="PTF"
     for machine in $cmachines; do
-        ssh $machine 'zypper mr -p 90 SLE-Cloud-PTF'
+        ssh $machine "zypper mr -p 90 $ptfchannel"
     done
 
 }
