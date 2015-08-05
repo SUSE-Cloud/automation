@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>Just a trigger to automatically trigger daily runs with docker enabled&#13;
-</description>
+  <description>Just a trigger to automatically trigger daily runs with raid setup for controller node.</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
     <numToKeep>7</numToKeep>
@@ -24,33 +23,34 @@
       <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.24">
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
       <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <canRoam>true</canRoam>
+  <assignedNode>cloud-trigger</assignedNode>
+  <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
     <hudson.triggers.TimerTrigger>
-      <spec>H 22 * * *
+      <spec>H 20 * * *
 </spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.26">
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.28">
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>cloudsource=develcloud5
-nodenumber=3
-want_docker=1
-want_sles12=1
-mkcloudtarget=plain crowbarbackup crowbarrestore testsetup</properties>
+              <properties>cloudsource=develcloud6
+controller_raid_volumes=2
+want_raidtype=raid1
+mkcloudtarget=all_noreboot</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>

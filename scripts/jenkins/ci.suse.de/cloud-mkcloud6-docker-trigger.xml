@@ -46,7 +46,8 @@
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>cloudsource=develcloud6
-want_docker=1</properties>
+want_docker=1
+mkcloudtarget=all_noreboot</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
