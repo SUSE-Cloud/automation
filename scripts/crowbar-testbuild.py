@@ -167,6 +167,7 @@ def trigger_testbuild(org_repo, github_opts):
 
     spec = pkg + '.spec'
     ptfdir = org_repo + ':' + github_opts
+    ptfdir = ptfdir.replace('/', '_')
     webroot = prep_webroot(ptfdir)
 
     try:
