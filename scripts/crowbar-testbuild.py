@@ -61,12 +61,14 @@ htdocs_url = 'http://tu-sle12.j.cloud.suse.de/mkcloud/'
 iosc = functools.partial(
     Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
 
+script_dir = os.path.join(os.getcwd(), os.path.dirname(__file__))
+
 
 def ghs_set_status(repo, pr_id, head_sha1, url, status, message):
-    ghs = Command(
-        os.path.abspath(
-            os.path.join(os.path.dirname(sys.argv[0]),
-                         'github-status/github-status.rb')))
+    # script could be invoked as ./crowbar-testbuild.py
+    ghs_path = os.path.join(script_dir, 'github-status/github-status.rb')
+    ghs_path = os.path.normpath(ghs_path)
+    ghs = Command(ghs_path)
 
     ghs('-r', repo,
         '-p', pr_id,
@@ -80,10 +82,9 @@ def ghs_set_status(repo, pr_id, head_sha1, url, status, message):
 def jenkins_job_trigger(repo, github_opts, cloudsource, ptf_url):
     print("triggering jenkins job with " + ptf_url)
 
-    jenkins = Command(
-        os.path.abspath(
-            os.path.join(os.path.dirname(sys.argv[0]),
-                         'jenkins/jenkins-job-trigger')))
+    jenkins_path = os.path.join(script_dir, 'jenkins/jenkins-job-trigger')
+    jenkins_path = os.path.normpath(jenkins_path)
+    jenkins = Command(jenkins_path)
 
     job_parameters = (
         'nodenumber=2', 'networkingplugin=openvswitch')
