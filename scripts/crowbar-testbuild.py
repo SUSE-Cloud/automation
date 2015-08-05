@@ -176,7 +176,10 @@ def trigger_testbuild(org_repo, github_opts):
     except:
         build_failed = True
         exc_type, exc_val, exc_tb = sys.exc_info()
-        print("Build failed: %s" % exc_val)
+        msg = "Build failed: %s" % exc_val
+        print(msg)
+        with open(os.path.join(webroot, 'build.err'), 'w') as err:
+            err.write(msg)
     finally:
         sh.sudo.rm('-rf', workdir)
 
