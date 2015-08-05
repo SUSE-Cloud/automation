@@ -71,7 +71,6 @@ staticconfig="label=openstack-mkcloud-SLE12"
 ## mkcloud self-gating
 ghs=${automationrepo}/scripts/github-status/github-status.rb
 
-
 prs=${automation_prs}
 prs=${prs:-`$ghs -a ${action}`}
 
@@ -82,12 +81,64 @@ for automation_pr in $prs ; do
   # default config / may be overridden by tags from PR message
   mkcloudtarget=all_noreboot
   cloudsource=develcloud5
-  nodenumber=3
+  nodenumber=2
   networkingplugin=openvswitch
   #echo eval `$ghs -a get-pr-config -p $automation_pr_sha` # not yet implemented
   ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-mkcloud -p mode=standard github_pr=SUSE-Cloud/automation:${automation_pr} mkcloudtarget=${mkcloudtarget} cloudsource="${cloudsource}" nodenumber=${nodenumber} networkingplugin=${networkingplugin} $staticconfig
   $ghs -a set-status -s "pending" -t $BUILD_URL -c $automation_pr_sha
 done
+
+# TODO run test for SUSE-Cloud/cct
+
+
+pushd ${automationrepo}/scripts
+
+# PR testing for crowbar repos
+declare -a crowbar_repos=(
+    crowbar
+    barclamp-ceilometer
+    barclamp-ceph
+    barclamp-cinder
+    barclamp-cisco-ucs
+    barclamp-crowbar
+    barclamp-database
+    barclamp-dell_raid
+    barclamp-deployer
+    barclamp-dns
+    barclamp-ganglia
+    barclamp-glance
+    barclamp-heat
+    barclamp-ipmi
+    barclamp-keystone
+    barclamp-logging
+    barclamp-manila
+    barclamp-network
+    barclamp-neutron
+    barclamp-nfs_client
+    barclamp-nova
+    barclamp-nova_dashboard
+    barclamp-ntp
+    barclamp-openstack
+    barclamp-pacemaker
+    barclamp-provisioner
+    barclamp-rabbitmq
+    barclamp-raid
+    barclamp-suse-manager-client
+    barclamp-swift
+    barclamp-tempest
+    barclamp-trove
+    barclamp-updater
+)
+
+for repo in ${crowbar_repos[@]}; do
+    for github_pr in $($ghs -r crowbar/$repo -a $action); do
+        ./crowbar-testbuild.py $repo $github_pr
+    done
+done
+
+popd
+
+
 </command>
     </hudson.tasks.Shell>
   </builders>

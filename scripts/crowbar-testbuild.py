@@ -115,17 +115,17 @@ def trigger_testbuild(repo, github_opts):
 
         try:
             os.chdir(workdir)
-            iosc = functools.partial(
-                Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
+            buildroot = os.path.join(os.getcwd(), 'BUILD')
             iosc('co', IBS_MAPPING[pr_branch], pkg)
             os.chdir(os.path.join(IBS_MAPPING[pr_branch], pkg))
             add_pr_to_checkout(repo, pr_id, spec)
-            buildroot = os.path.join(os.getcwd(), 'BUILD')
             iosc('build', '--root', buildroot,
                  '--noverify', '--noservice', 'SLE_11_SP3', 'x86_64',
                  spec, _out=sys.stdout)
         except:
             build_failed = True
+            print("Build failed: " + sys.exc_info()[0])
+            raise
         else:
             sh.cp('-p',
                   sh.glob(os.path.join(buildroot,
