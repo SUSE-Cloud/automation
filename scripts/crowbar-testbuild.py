@@ -87,15 +87,17 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
         *job_parameters))
 
 
-def add_pr_to_checkout(repo, pr_id, spec):
+def add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec):
     sh.curl(
         '-s', '-k', '-L',
-        "https://github.com/crowbar/%s/pull/%s.patch" % (repo, pr_id),
+        "https://github.com/crowbar/%s/compare/%s...%s.patch" % (
+            repo, pr_branch, head_sha1),
         '-o', 'prtest.patch')
     sh.sed('-i', '-e', 's,Url:.*,%define _default_patch_fuzz 2,',
            '-e', 's,%patch[0-36-9].*,,', spec)
     Command('/usr/lib/build/spec_add_patch')(spec, 'prtest.patch')
-    iosc('vc', '-m', " added PR test patch from %s/%s" % (repo, pr_id))
+    iosc('vc', '-m', " added PR test patch from %s#%s (%s)" % (
+        repo, pr_id, head_sha1))
 
 
 def trigger_testbuild(repo, github_opts):
@@ -118,7 +120,7 @@ def trigger_testbuild(repo, github_opts):
             buildroot = os.path.join(os.getcwd(), 'BUILD')
             iosc('co', IBS_MAPPING[pr_branch], pkg)
             os.chdir(os.path.join(IBS_MAPPING[pr_branch], pkg))
-            add_pr_to_checkout(repo, pr_id, spec)
+            add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec)
             iosc('build', '--root', buildroot,
                  '--noverify', '--noservice', 'SLE_11_SP3', 'x86_64',
                  spec, _out=sys.stdout)

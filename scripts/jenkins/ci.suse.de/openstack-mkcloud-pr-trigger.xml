@@ -19,11 +19,6 @@ forcerebuild: trigger unseen, pending and failed PRs</description>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
-        <hudson.model.TextParameterDefinition>
-          <name>automation_prs</name>
-          <description>Space separated list of PullRequest IDs. Builds for only these PRs will be triggered and github API will not be queried for the latest changes.</description>
-          <defaultValue/>
-        </hudson.model.TextParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.24">
@@ -65,31 +60,38 @@ case $mode in
   ;;
 esac
 
-# PR testing is only possible on SLE12 nodes, so set a label
-staticconfig="label=openstack-mkcloud-SLE12"
-
-## mkcloud self-gating
 ghs=${automationrepo}/scripts/github-status/github-status.rb
 
-prs=${automation_prs}
-prs=${prs:-`$ghs -a ${action}`}
+declare -a cloud_repos=(
+    SUSE-Cloud/automation
+    SUSE-Cloud/cct
+)
 
-for automation_pr in $prs ; do
-  automation_opts=(${automation_pr//:/ })
-  automation_pr_sha=${automation_opts[1]}
+for repo in ${cloud_repos[@]}; do
+    for github_pr in $($ghs -r $repo -a $action); do
+        github_pr_opts=(${github_pr//:/ })
+        github_pr_sha=${github_pr_opts[1]}
+        github_pr_branch=${github_pr_opts[2]}
 
-  # default config / may be overridden by tags from PR message
-  mkcloudtarget=all_noreboot
-  cloudsource=develcloud5
-  nodenumber=2
-  networkingplugin=openvswitch
-  #echo eval `$ghs -a get-pr-config -p $automation_pr_sha` # not yet implemented
-  ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-mkcloud -p mode=standard github_pr=SUSE-Cloud/automation:${automation_pr} mkcloudtarget=${mkcloudtarget} cloudsource="${cloudsource}" nodenumber=${nodenumber} networkingplugin=${networkingplugin} $staticconfig
-  $ghs -a set-status -s "pending" -t $BUILD_URL -c $automation_pr_sha
+        if [ "$github_pr_branch" = "master" ]; then
+            # default config / may be overridden by tags from PR message
+            mkcloudtarget=all_noreboot
+            cloudsource=develcloud5
+            nodenumber=2
+            networkingplugin=openvswitch
+            #echo eval `$ghs -a get-pr-config -p $github_pr_sha` # not yet implemented
+            ${automationrepo}/scripts/jenkins/jenkins-job-trigger \
+                openstack-mkcloud -p mode=standard \
+                label=openstack-mkcloud-SLE12 \
+                github_pr=${repo}:${github_pr} \
+                mkcloudtarget=${mkcloudtarget} \
+                cloudsource="${cloudsource}" \
+                nodenumber=${nodenumber} \
+                networkingplugin=${networkingplugin}
+            $ghs -r $repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha
+        fi
+    done
 done
-
-# TODO run test for SUSE-Cloud/cct
-
 
 pushd ${automationrepo}/scripts
 
@@ -131,14 +133,14 @@ declare -a crowbar_repos=(
 )
 
 for repo in ${crowbar_repos[@]}; do
-    for github_pr in $($ghs -r crowbar/$repo -a $action); do
+for github_pr in $($ghs -r crowbar/$repo -a $action); do
+        # Skip any that we have tried before
+        test -d /srv/www/htdocs/mkcloud/$repo:$github_pr &amp;&amp; continue
         ./crowbar-testbuild.py $repo $github_pr
     done
 done
 
 popd
-
-
 </command>
     </hudson.tasks.Shell>
   </builders>
