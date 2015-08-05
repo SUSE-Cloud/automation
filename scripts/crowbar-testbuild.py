@@ -64,14 +64,13 @@ iosc = functools.partial(
 script_dir = os.path.join(os.getcwd(), os.path.dirname(__file__))
 
 
-def ghs_set_status(repo, pr_id, head_sha1, url, status, message):
+def ghs_set_status(repo, head_sha1, url, status, message):
     # script could be invoked as ./crowbar-testbuild.py
     ghs_path = os.path.join(script_dir, 'github-status/github-status.rb')
     ghs_path = os.path.normpath(ghs_path)
     ghs = Command(ghs_path)
 
     ghs('-r', repo,
-        '-p', pr_id,
         '-c', head_sha1,
         '-t', url,
         '-a', 'set-status',
@@ -172,7 +171,7 @@ def trigger_testbuild(org_repo, github_opts):
 
     ptf_url = htdocs_url + ptfdir
     pr_set_status = \
-        functools.partial(ghs_set_status, org_repo, pr_id, head_sha1, ptf_url)
+        functools.partial(ghs_set_status, org_repo, head_sha1, ptf_url)
 
     pr_set_status('pending', 'building PTF package')
 
