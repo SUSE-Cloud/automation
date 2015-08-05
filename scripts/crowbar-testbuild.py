@@ -149,8 +149,9 @@ def trigger_testbuild(repo, github_opts):
                 webroot)
         finally:
             os.chdir(olddir)
-            sh.cp('-p', os.path.join(buildroot, '.build.log'),
-                  os.path.join(webroot, 'build.log'))
+            log = os.path.join(buildroot, '.build.log')
+            if os.path.exists(log):
+                sh.cp('-p', log, os.path.join(webroot, 'build.log'))
     finally:
         sh.sudo.rm('-rf', workdir)
 
