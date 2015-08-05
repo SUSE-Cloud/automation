@@ -117,8 +117,8 @@ def trigger_testbuild(repo, github_opts):
         try:
             os.chdir(workdir)
             buildroot = os.path.join(os.getcwd(), 'BUILD')
-            iosc('co', IBS_MAPPING[pr_branch], pkg)
-            os.chdir(os.path.join(IBS_MAPPING[pr_branch], pkg))
+            iosc('co', IBS_MAPPING[pr_branch], pkg, '-c')
+            os.chdir(pkg)
             add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec)
             repository = 'SLE_12' if pr_branch == 'master' else 'SLE_11_SP3'
             iosc('build', '--root', buildroot, '--noverify', '--noservice',
