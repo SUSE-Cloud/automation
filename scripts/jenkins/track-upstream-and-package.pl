@@ -63,27 +63,6 @@ sub servicefile_read_xml($)
   return $xml;
 }
 
-sub servicefile_write($$)
-{
-  my ($file, $data) = @_;
-  open (my $FH, '>', $file) or die $!;
-  binmode $FH;
-  print $FH $data;
-  close $FH;
-}
-
-sub xml_replace_text($$$)
-{
-  my ($node, $path, $text) = @_;
-  die "Error: node, path or text undefined." unless ($node && $path && defined $text);
-  my $nodeL = $node->find($path);
-  my $onenode;
-  $onenode = $nodeL->pop() if $nodeL->size() > 0;
-  die "Error: Could not find an xml element with the statement $path, exiting." unless $onenode;
-  $onenode->removeChildNodes();
-  $onenode->addChild(XML::LibXML::Text->new($text));
-}
-
 sub xml_get_text($$;$)
 {
   my ($node, $path, $attribute) = @_;
@@ -93,28 +72,6 @@ sub xml_get_text($$;$)
   $onenode = $nodeL->pop() if $nodeL->size() > 0;
   die "Error: Could not find an xml element with the statement $path, exiting." unless $onenode;
   return $attribute ? $onenode->getAttribute($attribute) : $onenode->textContent();
-}
-
-sub servicefile_modify($)
-{
-  my $gitrev= shift || '';
-
-  local $XML::LibXML::skipXMLDeclaration = 1;
-  my $xmlorig = $xmldom->toString() . "\n";
-
-  xml_replace_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="revision"][1]', $gitrev);
-  my $xmlnewrev = $xmldom->toString()."\n";
-  servicefile_write($xmlfile, $xmlnewrev);
-  #xml_replace_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="url"][1]', $gitrepo);
-}
-
-
-sub pack_cleanup(@)
-{
-  my @deletes = @_;
-  foreach my $del (@deletes) {
-    `rm -fv $del`;
-  }
 }
 
 sub pack_servicerun()
@@ -271,106 +228,6 @@ sub osc_checkin()
   return $exitcode >> 8;
 }
 
-sub get_osc_package_info()
-{
-  # read xml info from .osc/_files and return a hash
-  # later may be extended to make an api call and return all possible information
-  my $file = ".osc/_files";
-  open (my $FH, '<', $file) or die $!;
-  binmode $FH;
-  my $parser=XML::LibXML->new();
-  my $xmldom = $parser->parse_fh($FH);
-  # print Data::Dumper->Dump([$xmldom],["XML"]);
-  #print $xmldom->toString();
-  close $FH;
-
-  my %info = ();
-  $info{project} = `cat .osc/_project`;
-  chomp($info{project});
-  $info{package} = xml_get_text($xmldom, '/directory[@name][1]', 'name');
-  $info{_link_project} = xml_get_text($xmldom, '/directory/linkinfo[@project][1]', 'project');
-
-  return \%info;
-}
-
-sub get_tarname_from_spec
-{
-  my $spec = shift;
-  my %defines;
-  my $tarname;
-
-  open (my $FH, '<', $spec) or die $!;
-  while (<$FH>)
-  {
-    chomp;
-    if (/^%define\s+(.*)\s+(.*)$/)
-    {
-      $defines{'%{'.$1.'}'} = $2;
-      $defines{'%'.$1} = $2;
-    }
-    elsif (/^Name:\s+(.*)\s*$/)
-    {
-      $defines{"%{name}"} = $1;
-      $defines{"%name"} = $1;
-    }
-    elsif (/^Version:\s+(.*)\s*$/)
-    {
-      $defines{"%{version}"} = $1;
-      $defines{"%version"} = $1;
-    }
-    elsif (/^Source0?:\s+(.*)\s*$/)
-    {
-      $tarname = $1;
-    }
-  }
-  close $FH;
-
-  # substitute all the defines
-  my $regex = join "|", map quotemeta, keys %defines;
-  my $cregex = qr/$regex/; # compile
-  my $oldtarname = '';
-  while ($oldtarname ne $tarname)
-  {
-    $oldtarname = $tarname;
-    $tarname =~ s/($cregex)/$defines{$1}/g;
-  }
-
-  # keep basename
-  $tarname =~ s/.*\///g;
-
-  return $tarname;
-}
-
-sub extract_file_from_tarball
-{
-  my($filename, $tarball, $requires) = @_;
-
-  `tar --extract --to-stdout --file $tarball $requires > $filename`;
-  return $?==0;
-}
-
-sub email_changes_diff
-{
-  my ($diff_file, $requires_type) = @_;
-
-  my $to_email = "cloud-devel\@suse.de";
-  my $from_email = "hudson\@suse.de";
-  my $reply_to = "cloud-devel\@suse.de";
-  my $obs_project = `cat .osc/_project`;
-  chomp $obs_project;
-
-  open(MAIL,
-    "|mail -s \"$requires_type have changed for package ".
-    "$obs_project/$project \" ".
-    "-r $from_email -R $reply_to -a $diff_file ".
-    "$to_email") or die "Cannot open mail: $!";
-  print MAIL "The $requires_type from the package $project ".
-    "in $obs_project have changed. Please see the attached diff.\n\n";
-  close(MAIL);
-
-  print "Sent $requires_type changes email to $to_email.\n";
-}
-
 #### MAIN ####
 
   # make sure the caching directories are setup
@@ -429,12 +286,9 @@ sub email_changes_diff
     $tarball = "$tarballbase.$tarballext";
     push @oldtarballfiles, glob($tarball);
     $oldgitrev = find_gitrev(\@oldtarballfiles);
-    #pack_cleanup(($tarball,));
 
     @oldtarballfiles || die "Error: Could not find any current tarball. Please check the state of the osc checkout manually.";
     system('osc', 'rm', @oldtarballfiles) && die "Error: osc rm failed. Please check manually.";
-
-    #servicefile_modify($revision);
   }
 
   my $exitcode;
