@@ -2118,8 +2118,7 @@ function custom_configuration()
                     "'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/'"
             fi
 
-            # 2015-08-01: SLE12 test updates break autoyast right now :-(
-            if false && iscloudver 5plus ; then
+            if iscloudver 5plus ; then
                 if [ -d "$tftpboot_repos12_dir/SLES12-Updates-test/" ]; then
                     repos="$autoyast['repos']['suse-12.0']"
                     proposal_set_value provisioner default "$repos" "{}"
