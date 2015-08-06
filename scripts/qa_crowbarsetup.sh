@@ -885,11 +885,9 @@ function onadmin_prepare_cloud_repos()
                 addsles12testupdates
                 ;;
             develcloud6)
-                addsp3testupdates
                 addsles12testupdates
                 ;;
             susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
-                addsp3testupdates
                 addcloud6testupdates
                 addcloud6pool
                 ;;
