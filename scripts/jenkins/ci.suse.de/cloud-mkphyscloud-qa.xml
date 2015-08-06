@@ -60,6 +60,11 @@ Default: openvswitch</description>
           <description>gre|vlan|vxlan</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>cct_tests</name>
+          <description>Run cct</description>
+          <defaultValue>features:base</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.24">
@@ -112,7 +117,7 @@ ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export U
 
   [ $WITHREBOOT == "true" ] &amp;&amp; export rebootsteps="rebootcloud"
   [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
-  timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar addupdaterepo installcrowbar allocate $updatesteps waitcloud proposal testsetup $rebootsteps"
+  timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar addupdaterepo installcrowbar allocate $updatesteps waitcloud proposal run_cct testsetup $rebootsteps"
 ' || ret=$?
 echo "mkphyscloud ret=$ret"
 exit $ret
