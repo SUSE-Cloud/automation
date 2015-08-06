@@ -43,7 +43,6 @@ our @OSCBASE=('osc');
 push @OSCBASE, "-c", $OSCRC  if $OSCRC;
 push @OSCBASE, "-A", $OSCAPI if $OSCAPI;
 our $OSC_BUILD_ARCH = $ENV{OSC_BUILD_ARCH} || '';
-our $OSC_BUILD_DIST = $ENV{OSC_BUILD_DIST} || 'SLE_11_SP3';
 our $OSC_BUILD_LOG;
 our $OSC_BUILD_LOG_OLD;
 our @tarballfiles;
@@ -92,9 +91,14 @@ sub pack_servicerun()
 
 sub osc_build()
 {
-  #my @cmd = (@OSCBASE, 'build', '--no-verify', $OSC_BUILD_DIST, $OSC_BUILD_ARCH);
-  #my $exitcode = system(@cmd);
   local $| = 1;
+  my $OSC_BUILD_DIST = $ENV{OSC_BUILD_DIST};
+  unless($OSC_BUILD_DIST) {
+    my $prj = `cat .osc/_project`;
+    $OSC_BUILD_DIST = "SLE_12";
+    $OSC_BUILD_DIST = "SLE_11_SP3" if ($prj =~ /Devel:Cloud:[1-5]/);
+  }
+
   my $cmd = "yes '1' | ".join(' ',@OSCBASE)." build --clean --no-verify $OSC_BUILD_DIST $OSC_BUILD_ARCH 2>&1 | ";
   open (my $FH, $cmd) or die $!;
   open (my $LOGFH, '>', $OSC_BUILD_LOG) or die $!;
