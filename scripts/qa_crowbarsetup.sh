@@ -835,11 +835,22 @@ function onadmin_prepare_cloud_repos()
     mkdir -p ${targetdir}
 
     if [ -n "${localreposdir_target}" ]; then
-        add_bind_mount \
-            "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" \
-            "${targetdir}"
+        if iscloudver 6plus; then
+            add_bind_mount \
+                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-12-x86_64/" \
+                "${targetdir}"
+        else
+            add_bind_mount \
+                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" \
+                "${targetdir}"
+        fi
     else
-        rsync_iso "$CLOUDSLE11DISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
+        if iscloudver 6plus; then
+            rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$targetdir"
+        else
+            rsync_iso "$CLOUDSLE11DISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
+        fi
+
     fi
 
     if [ ! -e "${targetdir}/media.1" ] ; then
@@ -958,17 +969,13 @@ function onadmin_set_source_variables()
             CLOUDLOCALREPOS="SUSE-Cloud-5-devel"
         ;;
         develcloud6)
-            CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/6/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
-            CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
-            CLOUDSLE11DISTISO="SUSE-SLE11-OPENSTACK-CLOUD-6-$arch*Media1.iso"
+            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6/images/iso
+            [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         susecloud6)
-            CLOUDSLE11DISTPATH=/ibs/SUSE:/ibs/SUSE:/SLE-11-SP4:/Update:/Products:/Cloud6/images/iso/
             CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP1:/Update:/Products:/Cloud6/images/iso/
-            CLOUDSLE11DISTISO="SUSE-SLE11-OPENSTACK-CLOUD-6-$arch*Media1.iso"
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-6-official"
         ;;
@@ -987,9 +994,7 @@ function onadmin_set_source_variables()
         M?|Beta*|RC*|GMC*|GM6|GM6+up)
             cs=$cloudsource
             [[ $cs =~ GM6 ]] && cs=GM
-            CLOUDSLE11DISTPATH=/install/SLE-12-Cloud6-$cs/
-            CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
-            CLOUDSLE11DISTISO="SUSE-SLE11-OPENSTACK-CLOUD-6-$arch*1.iso"
+            CLOUDSLE12DISTPATH=/install/SLE-12-Cloud6-$cs/
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
@@ -1089,10 +1094,14 @@ EOF
 
     onadmin_set_source_variables
 
-    onadmin_prepare_sles_repos
-
-    if iscloudver 5plus ; then
+    if iscloudver 6plus ; then
         onadmin_prepare_sles12_repos
+    else
+        onadmin_prepare_sles_repos
+
+        if iscloudver 5plus ; then
+            onadmin_prepare_sles12_repos
+        fi
     fi
 
     if [ -n "$hacloud" ]; then
