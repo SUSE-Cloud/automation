@@ -404,6 +404,9 @@ function export_tftpboot_repos_dir()
 
 function addsp3testupdates()
 {
+    add_mount "SLES11-SP3-Updates" \
+        $clouddata':/srv/nfs/repos/SLES11-SP3-Updates/' \
+        "$tftpboot_repos_dir/SLES11-SP3-Updates/" "sp3up"
     add_mount "SLES11-SP3-Updates-test" \
         'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
@@ -863,6 +866,7 @@ function onadmin_prepare_cloud_repos()
                 ;;
             GM4+up)
                 addsp3testupdates
+                addcloud4maintupdates
                 addcloud4testupdates
                 ;;
             GM5)
@@ -874,6 +878,7 @@ function onadmin_prepare_cloud_repos()
                 addcloud5pool
                 addsp3testupdates
                 addsles12testupdates
+                addcloud5maintupdates
                 addcloud5testupdates
                 ;;
             develcloud4)
