@@ -3374,12 +3374,11 @@ function onadmin_qa_test()
 
 function onadmin_run_cct()
 {
-
-    addcloudrubygemrepo
-    # - install cct dependencies
-    ensure_packages_installed git-core gcc make ruby2.1-devel
-
     if iscloudver 5plus && [[ -n $cct_tests ]]; then
+        addcloudrubygemrepo
+        # - install cct dependencies
+        ensure_packages_installed git-core gcc make ruby2.1-devel
+
         local checkout_branch
         # checkout branches if needed, otherwise use master
         case "$cloudsource" in
