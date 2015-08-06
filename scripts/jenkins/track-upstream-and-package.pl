@@ -51,6 +51,7 @@ our $gitrev;
 our @oldtarballfiles;
 our $oldgitrev;
 
+
 sub servicefile_read_xml($)
 {
   my $file = shift || die "Error: no input file to read the service xml data from.";
@@ -63,6 +64,7 @@ sub servicefile_read_xml($)
   return $xml;
 }
 
+
 sub xml_get_text($$;$)
 {
   my ($node, $path, $attribute) = @_;
@@ -73,6 +75,7 @@ sub xml_get_text($$;$)
   die "Error: Could not find an xml element with the statement $path, exiting." unless $onenode;
   return $attribute ? $onenode->getAttribute($attribute) : $onenode->textContent();
 }
+
 
 sub pack_servicerun()
 {
@@ -115,6 +118,7 @@ sub osc_st($)
   push @lines, `$cmd`;
   return @lines;
 }
+
 
 sub die_on_error($$)
 {
