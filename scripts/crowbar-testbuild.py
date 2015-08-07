@@ -62,7 +62,7 @@ iosc = functools.partial(
     Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
 
 
-def ghs_set_status(repo, pr_id, head_sha1, status):
+def ghs_set_status(repo, pr_id, head_sha1, status, message):
     ghs = Command(
         os.path.abspath(
             os.path.join(os.path.dirname(sys.argv[0]),
@@ -70,7 +70,7 @@ def ghs_set_status(repo, pr_id, head_sha1, status):
 
     ghs('-r', repo,
         '-p', pr_id, '-c', head_sha1, '-a', 'set-status',
-        '-s', status)
+        '-s', status, '-m', message)
 
 
 def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
@@ -89,14 +89,14 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
 
     job_parameters += ('all_noreboot',)
 
-    print(jenkins(
+    return jenkins(
         'openstack-mkcloud',
         '-p', 'mode=standard',
         "github_pr=%s:%s" % (repo, github_opts),
         "cloudsource=" + cloudsource,
         'UPDATEREPOS=' + htdocs_url + ptfdir,
         'mkcloudtarget=all_noreboot',
-        *job_parameters))
+        *job_parameters)
 
 
 def add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec):
@@ -173,13 +173,17 @@ def trigger_testbuild(org_repo, github_opts):
     finally:
         sh.sudo.rm('-rf', workdir)
 
-    if not build_failed:
-        jenkins_job_trigger(
-            org_repo, github_opts, CLOUDSRC[pr_branch], ptfdir)
+    pr_set_status = \
+        functools.partial(ghs_set_status, org_repo, pr_id, head_sha1)
 
-    ghs_set_status(
-        org_repo, pr_id, head_sha1,
-        'failure' if build_failed else'pending')
+    if build_failed:
+        pr_set_status('failure', 'PTF package build failed')
+    else:
+        result = jenkins_job_trigger(
+            org_repo, github_opts,
+            CLOUDSRC[pr_branch], ptfdir)
+        print(result)
+        pr_set_status('pending', 'mkcloud job triggered')
 
 
 def main():
