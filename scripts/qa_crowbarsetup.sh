@@ -2700,9 +2700,9 @@ function onadmin_testsetup()
 
     get_novacontroller
     if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
-        complain 62 "no nova contoller - something went wrong"
+        complain 62 "no nova controller - something went wrong"
     fi
-    echo "openstack nova contoller: $novacontroller"
+    echo "openstack nova controller: $novacontroller"
     curl -L -m 40 -s -S -k http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || complain 101 "simple horizon dashboard test failed"
 
     wantcephtestsuite=0
