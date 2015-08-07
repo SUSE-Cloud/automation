@@ -163,7 +163,7 @@ def trigger_testbuild(repo, github_opts):
         'failure' if build_failed else'pending')
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Test a crowbar/ PR')
     parser.add_argument("repo", help='github ORG/REPO')
     parser.add_argument('pr', help='github PR <PRID>:<SHA1>:<BRANCH>')
@@ -171,4 +171,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     trigger_testbuild(args.repo, args.pr)
-    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
