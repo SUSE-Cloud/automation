@@ -119,6 +119,13 @@ def prep_osc_dir(workdir, repo, pr_id, head_sha1, pr_branch, pkg, spec):
     add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec)
 
 
+def prep_webroot(ptfdir):
+    webroot = os.path.join(htdocs_dir, ptfdir)
+    shutil.rmtree('-rf', webroot)
+    os.makedirs(webroot)
+    return webroot
+
+
 def build_package(spec, webroot, olddir, pr_branch):
     buildroot = os.path.join(os.getcwd(), 'BUILD')
     repository = 'SLE_12' if pr_branch == 'master' else 'SLE_11_SP3'
@@ -148,20 +155,17 @@ def trigger_testbuild(org_repo, github_opts):
     olddir = os.getcwd()
     workdir = tempfile.mkdtemp()
     build_failed = False
+
+    if "crowbar" in repo:
+        pkg = repo
+    else:
+        pkg = "crowbar-" + repo
+
+    spec = pkg + '.spec'
+    ptfdir = org_repo + ':' + github_opts
+    webroot = prep_webroot(ptfdir)
+
     try:
-        ptfdir = org_repo + ':' + github_opts
-        webroot = os.path.join(htdocs_dir, ptfdir)
-
-        if "crowbar" in repo:
-            pkg = repo
-        else:
-            pkg = "crowbar-" + repo
-
-        spec = pkg + '.spec'
-
-        shutil.rmtree('-rf', webroot)
-        os.makedirs(webroot)
-
         prep_osc_dir(workdir, org_repo, pr_id, head_sha1, pr_branch, pkg, spec)
         build_package(spec, webroot, olddir, pr_branch)
     except:
