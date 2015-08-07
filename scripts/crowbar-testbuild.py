@@ -49,10 +49,10 @@ MKCLOUD_CEPH_PARAMETERS = (
     'networkingplugin=linuxbridge')
 
 JOB_PARAMETERS = {
-    'crowbar-ha': MKCLOUD_HA_PARAMETERS,
-    'crowbar-ceph': MKCLOUD_CEPH_PARAMETERS,
-    'barclamp-ceph': MKCLOUD_CEPH_PARAMETERS,
-    'barclamp-pacemaker': MKCLOUD_HA_PARAMETERS
+    'crowbar/crowbar-ha': MKCLOUD_HA_PARAMETERS,
+    'crowbar/crowbar-ceph': MKCLOUD_CEPH_PARAMETERS,
+    'crowbar/barclamp-ceph': MKCLOUD_CEPH_PARAMETERS,
+    'crowbar/barclamp-pacemaker': MKCLOUD_HA_PARAMETERS
 }
 
 htdocs_dir = '/srv/www/htdocs/mkcloud'
@@ -68,7 +68,7 @@ def ghs_set_status(repo, pr_id, head_sha1, status):
             os.path.join(os.path.dirname(sys.argv[0]),
                          'github-status/github-status.rb')))
 
-    ghs('-r', 'crowbar/' + repo,
+    ghs('-r', repo,
         '-p', pr_id, '-c', head_sha1, '-a', 'set-status',
         '-s', status)
 
@@ -92,7 +92,7 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
     print(jenkins(
         'openstack-mkcloud',
         '-p', 'mode=standard',
-        "github_pr=crowbar/%s:%s" % (repo, github_opts),
+        "github_pr=%s:%s" % (repo, github_opts),
         "cloudsource=" + cloudsource,
         'UPDATEREPOS=' + htdocs_url + ptfdir,
         'mkcloudtarget=all_noreboot',
@@ -102,7 +102,7 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
 def add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec):
     sh.curl(
         '-s', '-k', '-L',
-        "https://github.com/crowbar/%s/compare/%s...%s.patch" % (
+        "https://github.com/%s/compare/%s...%s.patch" % (
             repo, pr_branch, head_sha1),
         '-o', 'prtest.patch')
     sh.sed('-i', '-e', 's,Url:.*,%define _default_patch_fuzz 2,',
@@ -141,14 +141,15 @@ def build_package(spec, webroot, olddir, pr_branch):
             shutil.copy2(log, os.path.join(webroot, 'build.log'))
 
 
-def trigger_testbuild(repo, github_opts):
+def trigger_testbuild(org_repo, github_opts):
     pr_id, head_sha1, pr_branch = github_opts.split(':')
+    org, repo = org_repo.split('/')
 
     olddir = os.getcwd()
     workdir = tempfile.mkdtemp()
     build_failed = False
     try:
-        ptfdir = repo + ':' + github_opts
+        ptfdir = org_repo + ':' + github_opts
         webroot = os.path.join(htdocs_dir, ptfdir)
 
         if "crowbar" in repo:
@@ -161,7 +162,7 @@ def trigger_testbuild(repo, github_opts):
         shutil.rmtree('-rf', webroot)
         os.makedirs(webroot)
 
-        prep_osc_dir(workdir, repo, pr_id, head_sha1, pr_branch, pkg, spec)
+        prep_osc_dir(workdir, org_repo, pr_id, head_sha1, pr_branch, pkg, spec)
         build_package(spec, webroot, olddir, pr_branch)
     except:
         build_failed = True
@@ -170,22 +171,22 @@ def trigger_testbuild(repo, github_opts):
 
     if not build_failed:
         jenkins_job_trigger(
-            repo, github_opts, CLOUDSRC[pr_branch], ptfdir)
+            org_repo, github_opts, CLOUDSRC[pr_branch], ptfdir)
 
     ghs_set_status(
-        repo, pr_id, head_sha1,
+        org_repo, pr_id, head_sha1,
         'failure' if build_failed else'pending')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test a github pull request')
-    parser.add_argument('repo', metavar='REPO',
-                        help='github repo in the crowbar organization')
+    parser.add_argument('orgrepo', metavar='ORG/REPO',
+                        help='github organization and repository')
     parser.add_argument('pr', metavar='PRID:SHA1:BRANCH',
                         help='github PR id, SHA1 head of PR, and '
                              'destination branch of PR')
 
     args = parser.parse_args()
 
-    trigger_testbuild(args.repo, args.pr)
+    trigger_testbuild(args.orgrepo, args.pr)
     sys.exit(0)
