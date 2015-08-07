@@ -823,7 +823,7 @@ function rebootcloud()
 
 function rebootcompute()
 {
-    # compat, remove
+    echo "WARNING: called deprecated rebootcompute step" >&2
     rebootcloud
     return $?
 }
