@@ -568,12 +568,12 @@ function get_crowbar_node()
 
 function get_sles12_node()
 {
-    knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | tail -n 1 | sed 's/\s//g'
+    knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | sort | tail -n 1 | sed 's/\s//g'
 }
 
 function get_docker_nodes()
 {
-    knife search node "roles:nova-multi-compute-docker" -a name | grep ^name: | cut -d : -f 2 | sed 's/\s//g'
+    knife search node "roles:nova-multi-compute-docker" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'
 }
 
 function cluster_node_assignment()
