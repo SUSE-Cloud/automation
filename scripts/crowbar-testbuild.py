@@ -104,14 +104,17 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptf_url):
 
 
 def add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec):
-    sh.curl(
-        '-s', '-k', '-L',
-        "https://github.com/%s/compare/%s...%s.patch" % (
-            repo, pr_branch, head_sha1),
-        '-o', 'prtest.patch')
+    patch = 'prtest.patch'
+    url = "https://github.com/%s/compare/%s...%s.patch" % \
+          (repo, pr_branch, head_sha1)
+    sh.curl('-s', '-k', '-L', url, '-o', patch)
+    if not os.path.exists(patch):
+        raise RuntimeError("failed to retrieve patch from " + url)
+    if os.path.getsize(patch) == 0:
+        raise RuntimeError("Patch from %s was empty; already merged?" % url)
     sh.sed('-i', '-e', 's,Url:.*,%define _default_patch_fuzz 2,',
            '-e', 's,%patch[0-36-9].*,,', spec)
-    Command('/usr/lib/build/spec_add_patch')(spec, 'prtest.patch')
+    Command('/usr/lib/build/spec_add_patch')(spec, patch)
     iosc('vc', '-m', "added PR test patch from %s#%s (%s)" % (
         repo, pr_id, head_sha1))
 
