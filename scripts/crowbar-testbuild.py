@@ -178,7 +178,7 @@ def trigger_testbuild(org_repo, github_opts):
         'failure' if build_failed else'pending')
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Test a github pull request')
     parser.add_argument('orgrepo', metavar='ORG/REPO',
                         help='github organization and repository')
@@ -189,4 +189,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     trigger_testbuild(args.orgrepo, args.pr)
-    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
