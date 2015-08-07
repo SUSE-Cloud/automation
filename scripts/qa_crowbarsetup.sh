@@ -2379,13 +2379,10 @@ function set_node_alias()
     iscloudver 5plus && crowbar machines role $node_name $intended_role || :
 }
 
-function get_first_node_from_cluster()
+function get_cluster_vip_hostname()
 {
     local cluster=$1
-    crowbar pacemaker proposal show $cluster | \
-        rubyjsonparse "
-                    puts j['deployment']['pacemaker']\
-                        ['elements']['pacemaker-cluster-member'].first"
+    echo "cluster-$cluster.$cloudfqdn"
 }
 
 # An entry in an elements section can have single or multiple nodes or a cluster alias
@@ -2396,7 +2393,7 @@ function resolve_element_to_node()
     name=`printf "%s\n" "$name" | head -n 1`
     case $name in
         cluster:*)
-            get_first_node_from_cluster ${name#cluster:}
+            get_cluster_vip_hostname ${name#cluster:}
         ;;
         *)
             echo $name
