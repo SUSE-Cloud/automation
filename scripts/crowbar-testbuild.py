@@ -164,9 +164,13 @@ def trigger_testbuild(repo, github_opts):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Test a crowbar/ PR')
-    parser.add_argument("repo", help='github ORG/REPO')
-    parser.add_argument('pr', help='github PR <PRID>:<SHA1>:<BRANCH>')
+    parser = argparse.ArgumentParser(
+        description='Build a testpackage for a crowbar/ Pull Request')
+    parser.add_argument('repo', metavar='REPO',
+                        help='github repo in the crowbar organization')
+    parser.add_argument('pr', metavar='PRID:SHA1:BRANCH',
+                        help='github PR id, SHA1 head of PR, and '
+                             'destination branch of PR')
 
     args = parser.parse_args()
 
