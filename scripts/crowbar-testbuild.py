@@ -131,21 +131,22 @@ def build_package(spec, webroot, olddir, pr_branch):
     repository = 'SLE_12' if pr_branch == 'master' else 'SLE_11_SP3'
 
     try:
-        iosc('build', '--root', buildroot, '--noverify', '--noservice',
-             repository, 'x86_64', spec, _out=sys.stdout)
-    except:
-        print("Build failed: " + str(sys.exc_info()[0]))
-        raise
-    else:
-        sh.cp('-p',
-              sh.glob(os.path.join(buildroot, 
-                                   '.build.packages/RPMS/*/*.rpm')),
-              webroot)
+        iosc('build',
+             '--root', buildroot,
+             '--noverify',
+             '--noservice',
+             repository, 'x86_64', spec,
+             _out=sys.stdout)
     finally:
         os.chdir(olddir)
         log = os.path.join(buildroot, '.build.log')
         if os.path.exists(log):
             shutil.copy2(log, os.path.join(webroot, 'build.log'))
+
+    sh.cp('-p',
+          sh.glob(os.path.join(buildroot,
+                               '.build.packages/RPMS/*/*.rpm')),
+          webroot)
 
 
 def trigger_testbuild(org_repo, github_opts):
@@ -170,6 +171,8 @@ def trigger_testbuild(org_repo, github_opts):
         build_package(spec, webroot, olddir, pr_branch)
     except:
         build_failed = True
+        exc_type, exc_val, exc_tb = sys.exc_info()
+        print("Build failed: %s" % exc_val)
     finally:
         sh.sudo.rm('-rf', workdir)
 
