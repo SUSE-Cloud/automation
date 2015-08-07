@@ -667,7 +667,7 @@ function cluster_node_assignment()
             ;;
         esac
     done
-    nodescloud=$nodesavailable
+    unclustered_nodes=$nodesavailable
 
     echo "............................................................"
     echo "The cluster node assignment (for your information):"
@@ -677,8 +677,8 @@ function cluster_node_assignment()
     printf "   %s\n" $clusternodesnetwork
     echo "services cluster:"
     printf "   %s\n" $clusternodesservices
-    echo "compute nodes (no cluster):"
-    printf "   %s\n" $nodescloud
+    echo "other non-clustered nodes (free for compute / storage):"
+    printf "   %s\n" $unclustered_nodes
     echo "............................................................"
 }
 
@@ -1944,7 +1944,7 @@ function custom_configuration()
 
                 # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
                 local novanodes
-                novanodes=`printf "\"%s\"," $nodescloud`
+                novanodes=`printf "\"%s\"," $unclustered_nodes`
                 novanodes="[ ${novanodes%,} ]"
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "$novanodes"
             fi
@@ -1978,7 +1978,7 @@ function custom_configuration()
                 # this should be adapted when NFS mode is supported for data cluster
                 proposal_set_value ceilometer default "['attributes']['ceilometer']['use_mongodb']" "false"
                 local ceilometernodes
-                ceilometernodes=`printf "\"%s\"," $nodescloud`
+                ceilometernodes=`printf "\"%s\"," $unclustered_nodes`
                 ceilometernodes="[ ${ceilometernodes%,} ]"
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-agent']" "$ceilometernodes"
             fi
@@ -2080,7 +2080,7 @@ function custom_configuration()
             if [[ $hacloud = 1 ]] ; then
                 local cinder_volume
                 # fetch one of the compute nodes as cinder_volume
-                cinder_volume=`printf "%s\n" $nodescloud | tail -n 1`
+                cinder_volume=`printf "%s\n" $unclustered_nodes | tail -n 1`
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['cluster:$clusternameservices']"
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-volume']" "['$cinder_volume']"
             fi
