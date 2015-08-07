@@ -27,6 +27,7 @@ fi
 # global variables that are set within this script
 novacontroller=
 novadashboardserver=
+novadashboardservice=
 clusternodesdrbd=
 clusternodesdata=
 clusternodesnetwork=
@@ -2311,10 +2312,19 @@ function prepare_proposals()
 
 }
 
-# Set dashboard node alias
+# Set dashboard node alias.
+#
+# FIXME: In HA mode, this results in a single node in the cluster
+# which contains the dashboard being aliased to 'dashboard', which is
+# misleading.  It might be better to call them dashboard1, dashboard2 etc.
+#
+# Even in non-HA mode, it doesn't make much sense since typically lots
+# of other services run on the same node.  However it might save one
+# or two people some typing during manual testing, so let's leave it
+# for now.
 function set_dashboard_alias()
 {
-    get_novadashboardserver
+    get_novadashboard
     set_node_alias `echo "$novadashboardserver" | cut -d . -f 1` dashboard controller
 }
 
@@ -2402,15 +2412,28 @@ function get_first_node_from_cluster()
                         ['elements']['pacemaker-cluster-member'].first"
 }
 
-# An entry in an elements section can have single or multiple nodes or a cluster alias
-# This function will resolve this element name to a node name.
+function get_cluster_vip_hostname()
+{
+    local cluster=$1
+    echo "cluster-$cluster.$cloudfqdn"
+}
+
+# An entry in an elements section can have single or multiple nodes or
+# a cluster alias.  This function will resolve this element name to a
+# node name, or to a hostname for a VIP if the second service
+# parameter is non-empty and the element refers to a cluster.
 function resolve_element_to_hostname()
 {
-    local name="$1"
+    local name="$1" service="$2"
     name=`printf "%s\n" "$name" | head -n 1`
     case $name in
         cluster:*)
-            get_first_node_from_cluster ${name#cluster:}
+            local cluster=${name#cluster:}
+            if [ -z "$service" ]; then
+                get_first_node_from_cluster "$cluster"
+            else
+                get_cluster_vip_hostname "$cluster"
+            fi
         ;;
         *)
             echo $name
@@ -2420,20 +2443,21 @@ function resolve_element_to_hostname()
 
 function get_novacontroller()
 {
-    novacontroller=`crowbar nova proposal show default | \
+    local element=`crowbar nova proposal show default | \
         rubyjsonparse "
                     puts j['deployment']['nova']\
                         ['elements']['nova-multi-controller']"`
-    novacontroller=`resolve_element_to_hostname "$novacontroller"`
+    novacontroller=`resolve_element_to_hostname "$element"`
 }
 
-function get_novadashboardserver()
+function get_novadashboard()
 {
-    novadashboardserver=`crowbar nova_dashboard proposal show default | \
+    local element=`crowbar nova_dashboard proposal show default | \
         rubyjsonparse "
                     puts j['deployment']['nova_dashboard']\
                         ['elements']['nova_dashboard-server']"`
-    novadashboardserver=`resolve_element_to_hostname "$novadashboardserver"`
+    novadashboardserver=`resolve_element_to_hostname "$element"`
+    novadashboardservice=`resolve_element_to_hostname "$element" service`
 }
 
 function get_ceph_nodes()
@@ -2719,8 +2743,14 @@ function onadmin_testsetup()
     if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
         complain 62 "no nova controller - something went wrong"
     fi
-    echo "openstack nova controller: $novacontroller"
-    curl -L -m 40 -s -S -k http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || complain 101 "simple horizon dashboard test failed"
+    echo "openstack nova controller node:   $novacontroller"
+
+    get_novadashboard
+    echo "openstack nova dashboard server:  $novadashboardserver"
+    echo "openstack nova dashboard service: $novadashboardservice"
+    curl -L -m 40 -s -S -k http://$novadashboardservice | \
+        grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
+    || complain 101 "simple horizon dashboard test failed"
 
     wantcephtestsuite=0
     if [[ -n "$deployceph" ]]; then
