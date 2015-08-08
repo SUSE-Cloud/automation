@@ -2379,13 +2379,10 @@ function set_node_alias()
     iscloudver 5plus && crowbar machines role $node_name $intended_role || :
 }
 
-function get_first_node_from_cluster()
+function get_cluster_vip_hostname()
 {
     local cluster=$1
-    crowbar pacemaker proposal show $cluster | \
-        rubyjsonparse "
-                    puts j['deployment']['pacemaker']\
-                        ['elements']['pacemaker-cluster-member'].first"
+    echo "cluster-$cluster.$cloudfqdn"
 }
 
 # An entry in an elements section can have single or multiple nodes or a cluster alias
@@ -2396,7 +2393,7 @@ function resolve_element_to_node()
     name=`printf "%s\n" "$name" | head -n 1`
     case $name in
         cluster:*)
-            get_first_node_from_cluster ${name#cluster:}
+            get_cluster_vip_hostname ${name#cluster:}
         ;;
         *)
             echo $name
@@ -2703,9 +2700,9 @@ function onadmin_testsetup()
 
     get_novacontroller
     if [ -z "$novacontroller" ] || ! ssh $novacontroller true ; then
-        complain 62 "no nova contoller - something went wrong"
+        complain 62 "no nova controller - something went wrong"
     fi
-    echo "openstack nova contoller: $novacontroller"
+    echo "openstack nova controller: $novacontroller"
     curl -L -m 40 -s -S -k http://$novacontroller | grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" || complain 101 "simple horizon dashboard test failed"
 
     wantcephtestsuite=0
