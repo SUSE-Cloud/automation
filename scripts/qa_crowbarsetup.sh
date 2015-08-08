@@ -2920,7 +2920,6 @@ function onadmin_rebootcloud()
     for m in $cmachines ; do
         ssh $m "reboot"
         wait_for 100 1 " ! netcat -z $m 22 >/dev/null" "node $m to go down"
-        wait_for 400 5 "crowbar node_state status | grep $m | grep -q 'Power'"
     done
 
     wait_for 400 5 "! crowbar node_state status | grep ^d | grep -vqiE \"ready$|problem$\"" "nodes are back online"
