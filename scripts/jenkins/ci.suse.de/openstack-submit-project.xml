@@ -93,31 +93,9 @@ COS=$project
 COSS=$COS:$subproject
 export BS_CHECKOUT=/home/jenkins/${BS}_CHECKOUT/$COSS
 submitcmd="echo no submit for project=$project"
-OSCBUILDDIST=SLE_11_SP2
+OSCBUILDDIST=SLE_11_SP3
 
 case $project in
-  ### backward compatibility for Cloud 1.0
-  Devel:Cloud:1.0)
-    submitcmd="$OSC submitreq -m 'jenkins-submit-project'"
-    OSCBUILDDIST=SLE_11_SP2
-  ;;
-  ### end for Cloud 1.0
-  Cloud:OpenStack:[EF]*)
-    submitcmd="$OSC copypac -K -e"
-    OSCBUILDDIST=SLE_11_SP2
-  ;;
-  Cloud:OpenStack:[GH]*)
-    submitcmd="$OSC copypac -K -e"
-    OSCBUILDDIST=SLE_11_SP3
-  ;;
-  Devel:Cloud:2.0)
-    submitcmd="$OSC submitreq -m 'jenkins-submit-project'"
-    OSCBUILDDIST=SLE_11_SP3
-  ;;
-  Devel:Cloud:3)
-    submitcmd="$OSC submitreq -m 'jenkins-submit-project'"
-    OSCBUILDDIST=SLE_11_SP3
-  ;;
   Devel:Cloud:4)
     submitcmd="$OSC copypac -K -e"
     OSCBUILDDIST=SLE_11_SP3
@@ -128,7 +106,7 @@ case $project in
   ;;
   Devel:Cloud:6)
     submitcmd="$OSC copypac -K -e"
-    OSCBUILDDIST=SLE_11_SP3
+    OSCBUILDDIST=SLE_12
   ;;
   isv:SUSE:Cloud:2.[05]|isv:SUSE:Cloud:3.0)
     submitcmd="$OSC copypac -K -e"
