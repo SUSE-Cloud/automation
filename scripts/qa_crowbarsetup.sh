@@ -2088,10 +2088,10 @@ function custom_configuration()
         ;;
         tempest)
             if [[ $hacloud = 1 ]] ; then
-                local tempestnodes
-                # tempest can only be deployed on one node
-                tempestnodes=`printf "'%s',\n" $nodescloud | head -n 1`
-                tempestnodes="[ ${tempestnodes%,} ]"
+                get_novacontroller
+                # tempest can only be deployed on one node, and we run it on
+                # the same nova controller we use for other stuff.
+                tempestnodes="[ '$novacontroller' ]"
                 proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "$tempestnodes"
             fi
         ;;
