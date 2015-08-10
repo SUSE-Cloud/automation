@@ -2404,7 +2404,7 @@ function get_first_node_from_cluster()
 
 # An entry in an elements section can have single or multiple nodes or a cluster alias
 # This function will resolve this element name to a node name.
-function resolve_element_to_node()
+function resolve_element_to_hostname()
 {
     local name="$1"
     name=`printf "%s\n" "$name" | head -n 1`
@@ -2424,7 +2424,7 @@ function get_novacontroller()
         rubyjsonparse "
                     puts j['deployment']['nova']\
                         ['elements']['nova-multi-controller']"`
-    novacontroller=`resolve_element_to_node "$novacontroller"`
+    novacontroller=`resolve_element_to_hostname "$novacontroller"`
 }
 
 function get_novadashboardserver()
@@ -2433,7 +2433,7 @@ function get_novadashboardserver()
         rubyjsonparse "
                     puts j['deployment']['nova_dashboard']\
                         ['elements']['nova_dashboard-server']"`
-    novadashboardserver=`resolve_element_to_node "$novadashboardserver"`
+    novadashboardserver=`resolve_element_to_hostname "$novadashboardserver"`
 }
 
 function get_ceph_nodes()
