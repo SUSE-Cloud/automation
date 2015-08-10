@@ -2557,10 +2557,7 @@ function oncontroller_testsetup()
     fi
 
     # wait for nova-manage to be successful
-    for n in $(seq 1 200) ;  do
-        test "$(nova-manage service list  | fgrep -cv -- \:\-\))" -lt 2 && break
-        sleep 1
-    done
+    wait_for_nova_services_up
 
     nova flavor-delete m1.smaller || :
     nova flavor-create m1.smaller 11 512 10 1
@@ -2908,6 +2905,18 @@ function onneutron_wait_for_neutron()
     fi
 }
 
+function wait_for_nova_services_up()
+{
+    wait_for 200 1 'test "$(nova-manage service list  | fgrep -cv -- \:\-\))" -lt 2' "nova-manage services running"
+}
+
+function onnovacontroller_wait_for_nova()
+{
+    get_novacontroller
+    wait_for 300 3 "ssh $novacontroller 'service openstack-nova-api status'" "nova-api service running state"
+    wait_for_nova_services_up
+}
+
 # reboot all cloud nodes (controller+compute+storage)
 # wait for nodes to go down and come up again
 function onadmin_rebootcloud()
@@ -2942,6 +2951,7 @@ function onadmin_rebootcloud()
 # adds a floating IP to VM
 function oncontroller_waitforinstance()
 {
+    onnovacontroller_wait_for_nova
     . .openrc
     safely nova list
     nova start testvm || complain 28 "Failed to start VM"
