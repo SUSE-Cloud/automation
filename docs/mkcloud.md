@@ -83,6 +83,8 @@ To get a complete list run: `./mkcloud help`
   are used to host the virtual machines. In development environments this is
   usually a loop device (e.g. `/dev/loop0`)
 * `cloudsource`, defines what version of SUSE Cloud will be deployed (e.g. `susecloud4`)
+  The latest version always is in development. So do not expect it to work out of the box.
+  If you need a stable/working version use <latest-version>-1.
 * `TESTHEAD`, if this variable is set mkcloud will use `Devel:Cloud:Staging`
   repository to install and then update the system using the SUSE Cloud
   repositories (if they are available).

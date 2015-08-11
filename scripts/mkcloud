@@ -990,6 +990,8 @@ Mandatory
         Device where a LVM physical volume will be created, all data lost on this device
         Should be at least 80 GB. The volume group will be called 'cloud'.
     cloudsource=develcloud4 | develcloud5 | develcloud6 | susecloud6 | GM4 | GM4+up | GM5 | GM5+up | GM6 | GM6+up | M?  (default '')
+        NOTE: The latest version always is in development. So do NOT expect it to work out of the box.
+        NOTE: If you need a stable/working version use <latest-version>-1.
         defines the installation source of the product
         develcloud4   : product from IBS Devel:Cloud:4
         develcloud5   : product from IBS Devel:Cloud:5
