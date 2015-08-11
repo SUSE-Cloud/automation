@@ -2925,7 +2925,7 @@ function onadmin_rebootcloud()
         # "crowbar machines list" returns FQDNs but "crowbar node_state status"
         # only hostnames. Get hostname part of FQDN
         m_hostname=$(echo $m| cut -d '.' -f 1)
-        wait_for 400 1 'crowbar node_state status | grep -q -e "$m_hostname\s*Power"' \
+        wait_for 400 1 'crowbar node_state status | grep -q -P "$m_hostname\s*Power"' \
             "node $m_hostname to power off"
     done
 
