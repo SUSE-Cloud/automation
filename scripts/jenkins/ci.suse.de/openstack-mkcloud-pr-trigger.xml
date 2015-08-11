@@ -98,6 +98,11 @@ pushd ${automationrepo}/scripts
 # PR testing for crowbar repos
 declare -a crowbar_repos=(
     crowbar
+    crowbar-ceph
+    crowbar-core
+    crowbar-ha
+    crowbar-hyperv
+    crowbar-openstack
     barclamp-ceilometer
     barclamp-ceph
     barclamp-cinder
