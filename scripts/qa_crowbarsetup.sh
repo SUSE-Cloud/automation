@@ -2328,6 +2328,9 @@ function deploy_single_proposal()
         ceph)
             [[ -n "$deployceph" ]] || continue
             ;;
+        manila)
+            iscloudver 6plus || continue
+            ;;
         swift)
             [[ -n "$deployswift" ]] || continue
             ;;
@@ -2361,7 +2364,7 @@ function onadmin_proposal()
 
     prepare_proposals
 
-    local proposals="pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat trove tempest"
+    local proposals="pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat manila trove tempest"
 
     local proposal
     for proposal in $proposals ; do
