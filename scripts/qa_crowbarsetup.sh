@@ -956,7 +956,12 @@ function do_set_repos_skip_checks()
 
 function onadmin_set_source_variables()
 {
-    suseversion=11.3
+    if iscloudver 6plus; then
+        suseversion=12.0
+    else
+        suseversion=11.3
+    fi
+
     : ${susedownload:=download.nue.suse.com}
     case "$cloudsource" in
         develcloud4)
@@ -1015,6 +1020,12 @@ function onadmin_set_source_variables()
             slesrepolist="SLES11-SP3-Pool SLES11-SP3-Updates"
             slesversion=11-SP3
             slesdist=SLE_11_SP3
+            slesmilestone=GM
+        ;;
+        12.0)
+            slesrepolist="SLES12-Pool SLES12-Updates"
+            slesversion=12
+            slesdist=SLE_12
             slesmilestone=GM
         ;;
     esac
