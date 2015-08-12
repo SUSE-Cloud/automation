@@ -42,7 +42,7 @@
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
           <description>if non-empty, test latest version from Devel:Cloud Staging</description>
-          <defaultValue/>
+          <defaultValue>1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>libvirt_type</name>
@@ -65,10 +65,41 @@ Default: openvswitch</description>
           <description>Run cct</description>
           <defaultValue>features:base</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_ceph</name>
+          <description>Install ceph barclamp</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>hw_number</name>
+          <description>Name of the  QA cloud server (we have 2,3,4)</description>
+          <defaultValue>2</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>hacloud</name>
+          <description>By default we don't want HA configured and installed</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>clusterconfig</name>
+          <description>HA configuration for clusters. Make sense only if ha=1</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>nodenumber</name>
+          <description>Default nodenumber is 7 as the qa2 cloud is the default here and it has 7 nodes. Cloud qa3 has 8 nodes</description>
+          <defaultValue>7</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_ipmi</name>
+          <description/>
+          <defaultValue>true</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.24">
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
       <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
@@ -85,10 +116,8 @@ Default: openvswitch</description>
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>n=2
-admin=crowbar$n
-cloud=qa$n
-nodenumber=7
+      <command>admin=crowbar$hw_number
+cloud=qa$hw_number
 tempestoptions="-t -s"
 
 if [ ! -z "$UPDATEREPOS" ] ; then
@@ -102,7 +131,7 @@ rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 cd /home/jenkins
-freshadminvm $admin
+freshadminvm_cloud6 $admin qcow2
 sleep 100 # time for the admin VM to boot
 
 
@@ -110,14 +139,14 @@ sleep 100 # time for the admin VM to boot
 env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
 scp mkcloud.config root@$admin:
 ret=0
-ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL; export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ; export cloudsource=$cloudsource ; export libvirt_type=$libvirt_type ; export nodenumber=$nodenumber ; "'
-  zypper ar http://clouddata.cloud.suse.de/repos/SLES11-SP3-Updates/ sp3up
-  zypper -n up wget # for cert-check to work
-  wget -Oqa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
+ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL; export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ;
+export cloudsource=$cloudsource ; export libvirt_type=$libvirt_type ; export nodenumber=$nodenumber ; export hacloud=$hacloud; export clusterconfig=$clusterconfig; "'
+ 
+  wget --no-check-certificate -Oqa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
 
   [ $WITHREBOOT == "true" ] &amp;&amp; export rebootsteps="rebootcloud"
   [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
-  timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar addupdaterepo installcrowbar allocate $updatesteps waitcloud proposal run_cct testsetup $rebootsteps"
+  timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar installcrowbar allocate waitcloud proposal testsetup run_cct $rebootsteps"
 ' || ret=$?
 echo "mkphyscloud ret=$ret"
 exit $ret
@@ -132,16 +161,16 @@ exit $ret
       <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
     </hudson.tasks.ArtifactArchiver>
-    <hudson.tasks.Mailer plugin="mailer@1.11">
-      <recipients>vmoravec@suse.com kbaikov@suse.de cmueller@suse.de bwiedemann@suse.de</recipients>
+    <hudson.tasks.Mailer plugin="mailer@1.15">
+      <recipients>vmoravec@suse.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.6.2"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.7.1"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.3">
-      <template>#${BUILD_NUMBER}: ${ENV,var="libvirt_type"}</template>
+      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"} ${ENV,var="hacloud"})</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
   </buildWrappers>
 </project>
