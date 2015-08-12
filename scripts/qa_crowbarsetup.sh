@@ -1794,10 +1794,7 @@ function hacloud_configure_services_cluster()
 
 function dns_proposal_configuration()
 {
-    local cnumber=$(get_all_nodes | wc -l)
-    local cnumber=`expr $cnumber - 1`
-    [[ $cnumber -gt 3 ]] && local local cnumber=3
-    local cmachines=$(get_all_nodes | head -n ${cnumber})
+    local cmachines=$(get_all_nodes | head -n 3)
     local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
     proposal_set_value dns default "['attributes']['dns']['records']" "{}"
     proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
