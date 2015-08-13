@@ -20,7 +20,8 @@ fi
 : ${cinder_netapp_storage_protocol:=iscsi}
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
-: ${clouddata:=clouddata.cloud.suse.de}
+: ${clouddata:=$(dig -t A +short clouddata.cloud.suse.de)}
+: ${distsuse:=$(dig -t A +short dist.suse.de)}
 
 : ${arch:=$(uname -m)}
 
@@ -408,14 +409,14 @@ function addsp3testupdates()
         $clouddata':/srv/nfs/repos/SLES11-SP3-Updates/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates/" "sp3up"
     add_mount "SLES11-SP3-Updates-test" \
-        'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
+        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
 }
 
 function addsles12testupdates()
 {
     add_mount "SLES12-Updates-test" \
-        'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
+        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
         "$tftpboot_repos12_dir/SLES12-Updates-test/"
 }
 
@@ -429,7 +430,7 @@ function addcloud4maintupdates()
 function addcloud4testupdates()
 {
     add_mount "SUSE-Cloud-4-Updates-test" \
-        'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/' \
+        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/' \
         "$tftpboot_repos_dir/SUSE-Cloud-4-Updates-test/" "cloudtup"
 }
 
@@ -447,11 +448,11 @@ function addcloud5maintupdates()
 function addcloud5testupdates()
 {
     add_mount "SUSE-Cloud-5-Updates-test" \
-        'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/' \
+        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/' \
         "$tftpboot_repos_dir/SUSE-Cloud-5-Updates-test/" "cloudtup"
     # TODO: doesn't exist
     #add_mount "SUSE-Cloud-5-SLE-12-Updates-test" \
-    #    'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD-COMPUTE:/5:/x86_64/update/' \
+    #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD-COMPUTE:/5:/x86_64/update/' \
     #    "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/"
 }
 
@@ -1321,6 +1322,7 @@ EOF
     fi
 
     update_one_proposal provisioner default
+    update_one_proposal dns default
 
     if ! validate_data_bags; then
         complain 68 "Validation error in default data bags. Aborting."
@@ -1792,16 +1794,6 @@ function hacloud_configure_services_cluster()
     hacloud_configure_cluster_defaults $clusternameservices "services"
 }
 
-function dns_proposal_configuration()
-{
-    local cmachines=$(get_all_nodes | head -n 3)
-    local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
-    proposal_set_value dns default "['attributes']['dns']['records']" "{}"
-    proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
-    proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']['ips']" "['10.11.12.13']"
-    proposal_set_value dns default "['deployment']['dns']['elements']['dns-server']" "[$dnsnodes]"
-}
-
 function cinder_netapp_proposal_configuration()
 {
     local volnumber=$1
@@ -1887,7 +1879,12 @@ function custom_configuration()
             fi
         ;;
         dns)
-            dns_proposal_configuration
+            local cmachines=$(get_all_nodes | head -n 3)
+            local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
+            proposal_set_value dns default "['attributes']['dns']['records']" "{}"
+            proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
+            proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']['ips']" "['10.11.12.13']"
+            proposal_set_value dns default "['deployment']['dns']['elements']['dns-server']" "[$dnsnodes]"
         ;;
         ipmi)
             proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
