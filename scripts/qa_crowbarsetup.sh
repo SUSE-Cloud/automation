@@ -1123,11 +1123,10 @@ EOF
     if [ -n "$hacloud" ]; then
         if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 3plus ; then
             add_ha_repo
+        elif iscloudver 6plus; then
+            add_ha12_repo
         else
             complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
-        fi
-        if iscloudver 6plus; then
-            add_ha12_repo
         fi
     fi
 
