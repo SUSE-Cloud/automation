@@ -2021,7 +2021,7 @@ function custom_configuration()
             fi
 
             # assign neutron-network role to one of SLE12 nodes
-            if [ -n "$want_sles12" ] && [ -z "$hacloud"] && [ -n "$want_neutronsles12" ] && iscloudver 5plus ; then
+            if [ -n "$want_sles12" ] && [ -z "$hacloud" ] && [ -n "$want_neutronsles12" ] && iscloudver 5plus ; then
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sles12node']"
             fi
 
