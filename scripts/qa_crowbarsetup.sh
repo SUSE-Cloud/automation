@@ -2121,14 +2121,14 @@ function custom_configuration()
                 proposal_set_value provisioner default "$repos" "{}"
                 proposal_set_value provisioner default "$repos['SUSE-Cloud-4-Updates-test']" "{}"
                 proposal_set_value provisioner default "$repos['SUSE-Cloud-4-Updates-test']['url']" \
-                    "'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/'"
+                    "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/'"
             fi
 
             if [ -d "$tftpboot_repos_dir/SUSE-Cloud-5-Updates-test/" ]; then
                 proposal_set_value provisioner default "$repos" "{}"
                 proposal_set_value provisioner default "$repos['SUSE-Cloud-5-Updates-test']" "{}"
                 proposal_set_value provisioner default "$repos['SUSE-Cloud-5-Updates-test']['url']" \
-                    "'dist.suse.de:/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/'"
+                    "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/'"
             fi
 
             # 2015-08-06: Test update channel is broken again
