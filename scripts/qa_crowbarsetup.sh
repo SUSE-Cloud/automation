@@ -2382,7 +2382,12 @@ function deploy_single_proposal()
             [[ -n "$deployceph" ]] || continue
             ;;
         manila)
-            iscloudver 6plus || continue
+            if ! iscloudver 6plus; then
+                # manila barclamp only works with SLE12
+                if ! iscloudver 5plus || [ -z "$want_sles12" ]; then
+                    continue
+                fi
+            fi
             ;;
         swift)
             [[ -n "$deployswift" ]] || continue
