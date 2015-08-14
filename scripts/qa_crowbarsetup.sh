@@ -3036,6 +3036,7 @@ function onadmin_prepare_cloudupgrade()
 
     # recreate the SUSE-Cloud Repo with the latest iso
     onadmin_prepare_cloud_repos
+    onadmin_add_cloud_repo
 
     # Applying the updater barclamp (in onadmin_cloudupgrade_clients) triggers
     # a chef-client run on the admin node (even it the barclamp is not applied
