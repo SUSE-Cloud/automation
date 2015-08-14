@@ -451,10 +451,9 @@ function addcloud5testupdates()
     add_mount "SUSE-Cloud-5-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/' \
         "$tftpboot_repos_dir/SUSE-Cloud-5-Updates-test/" "cloudtup"
-    # TODO: doesn't exist
-    #add_mount "SUSE-Cloud-5-SLE-12-Updates-test" \
-    #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD-COMPUTE:/5:/x86_64/update/' \
-    #    "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/"
+    add_mount "SUSE-Cloud-5-SLE-12-Updates-test" \
+        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update' \
+        "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/"
 }
 
 function addcloud5pool()
@@ -2142,7 +2141,10 @@ function custom_configuration()
             if iscloudver 5plus ; then
                 if [ -d "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/" ]; then
                     repos="$autoyast['repos']['suse-12.0']"
-                    # TODO, this does not exist
+                    proposal_set_value provisioner default "$repos" "{}"
+                    proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']" "{}"
+                    proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']['url']" \
+                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/'"
                 fi
             fi
 
