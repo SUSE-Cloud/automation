@@ -83,6 +83,8 @@ onadmin_help()
     cat <<EOUSAGE
     want_neutronsles12=1 (default 0)
         if there is a SLE12 node, deploy neutron-network role into the SLE12 node
+    want_mtu_size=<size>|"jumbo" (default='')
+        Option to set variable MTU size or select Jumbo Frames for Admin and Storage nodes. 1500 is used if not set.
 EOUSAGE
 }
 
@@ -1230,6 +1232,17 @@ EOF
     if [[ $cloud = d2 ]] ; then
         /opt/dell/bin/json-edit -a attributes.network.mode -v dual $netfile
         /opt/dell/bin/json-edit -a attributes.network.teaming.mode -r -v 5 $netfile
+    fi
+    # Setup network attributes for JUMBO Frames.
+    if [[ $want_mtu_size == "jumbo" ]] ; then
+        want_mtu_size=8900
+        # Jumbo Frame size is set to 8900 instead of the MAX 9000 to accomodate
+        # for the additional headers in case of GRE/VXLAN networks.
+    fi
+    if [[ $want_mtu_size ]]; then
+        echo "Setting MTU to custom value of: $want_mtu_size"
+        /opt/dell/bin/json-edit -a attributes.network.networks.storage.mtu -r -v $want_mtu_size $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.mtu -r -v $want_mtu_size $netfile
     fi
 
     cp -a $netfile /etc/crowbar/network.json # new place since 2013-07-18
