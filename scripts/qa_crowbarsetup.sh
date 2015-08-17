@@ -152,6 +152,16 @@ setcloudnetvars()
             vlan_storage=616
             want_ipmi=true
         ;;
+        qa4)
+            nodenumber=7
+            net=${netp}.33
+            net_public=$net
+            vlan_public=12
+            #vlan_admin=615
+            vlan_fixed=621
+            vlan_storage=622
+            want_ipmi=true
+        ;;
         p2)
             net=$netp.171
             net_storage=$netp.172
@@ -1194,6 +1204,9 @@ EOF
     fi
     if [[ $cloud = qa3 ]] ; then
         wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/cloud3_dual_private_vm_network
+    fi
+    if [[ $cloud = qa4 ]] ; then
+        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/cloud4_dual_private_vm_network
     fi
     if [[ $cloud = p2 ]] ; then
         /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.252.0 $netfile
