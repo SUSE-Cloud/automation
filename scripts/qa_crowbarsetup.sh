@@ -78,6 +78,14 @@ rubyjsonparse()
         $1"
 }
 
+onadmin_help()
+{
+    cat <<EOUSAGE
+    want_neutronsles12=1 (default 0)
+        if there is a SLE12 node, deploy neutron-network role into the SLE12 node
+EOUSAGE
+}
+
 setcloudnetvars()
 {
     local cloud=$1
