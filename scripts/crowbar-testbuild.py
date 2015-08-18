@@ -109,7 +109,12 @@ def trigger_testbuild(repo, github_opts):
     try:
         ptfdir = repo + ':' + github_opts
         webroot = os.path.join(htdocs_dir, ptfdir)
-        pkg = repo if repo == "crowbar" else "crowbar-" + repo
+
+        if "crowbar" in repo:
+            pkg = repo
+        else:
+            pkg = "crowbar-" + repo
+
         spec = pkg + '.spec'
 
         sh.rm('-rf', webroot)
