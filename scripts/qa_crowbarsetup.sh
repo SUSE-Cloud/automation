@@ -2498,6 +2498,9 @@ function adapt_dns_for_docker()
     # DNS server is the first IP from the allocation pool, or the
     # second one from the network range
     local dns_server=`neutron subnet-show fixed | grep allocation_pools | cut -d '"' -f4`
+    if [ -z "$dns_server" ] ; then
+        complain 36 "DNS server info not found. Exiting"
+    fi
     neutron subnet-update --dns-nameserver "$dns_server" fixed
 }
 
