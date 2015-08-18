@@ -411,6 +411,8 @@ function onhost_enable_ksm
     # enable kernel-samepage-merging to save RAM
     echo 1 > /sys/kernel/mm/ksm/run
     echo 1000 > /sys/kernel/mm/ksm/pages_to_scan
+    # huge pages can not be shared or swapped, so do not use them
+    echo never > /sys/kernel/mm/transparent_hugepage/enabled
 }
 
 function setuphost()
@@ -1074,8 +1076,6 @@ Optional
     user_keyfile='path/to/file'
         path to optional user public ssh keyfile to inject into crowbar to
         /root/.ssh/authorized_keys file and to provisioner barclamp
-    want_neutronsles12=1 (default 0)
-        if there is a SLE12 node, deploy neutron-network role into the SLE12 node
     want_sles12=1 (default 0)
         setup SLE12 compute nodes
     want_dvr=1 (default='')
@@ -1094,8 +1094,8 @@ Optional
         rally server address
     cct_tests='test1+test2' (default='features')
         Defines which cct_tests should be run while the cct step.
-
 EOUSAGE
+    onadmin_help
     exit 1
 
 # UNDOCUMENTED OPTIONS:
