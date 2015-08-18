@@ -48,6 +48,11 @@
       <name>component</name>
       <values>
         <string>crowbar</string>
+        <string>crowbar-core</string>
+        <string>crowbar-openstack</string>
+        <string>crowbar-ceph</string>
+        <string>crowbar-ha</string>
+        <string>crowbar-hyperv</string>
         <string>crowbar-barclamp-bios</string>
         <string>crowbar-barclamp-ceilometer</string>
         <string>crowbar-barclamp-ceph</string>
@@ -101,9 +106,7 @@
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>! (
-      ( ["Devel:Cloud:4:Staging"].contains(project)  &amp;&amp;  ["crowbar-barclamp-manila"].contains(component) ) ||
-        ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project)  &amp;&amp;  ["openstack-dashboard-theme-SUSE", ].contains(component) ) </combinationFilter>
+  <combinationFilter>!(       ( ["Devel:Cloud:4:Staging"].contains(project)  &amp;&amp;       ["crowbar-barclamp-manila"].contains(component)     )   ||      (       ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project)  &amp;&amp;       ["openstack-dashboard-theme-SUSE", "crowbar-core", "crowbar-openstack", "crowbar-ha", "crowbar-hyperv", "crowbar-ceph"].contains(component)      )   ||     (        ( ! ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project) ) &amp;&amp;       component.startsWith('crowbar-barclamp-')     ) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}
