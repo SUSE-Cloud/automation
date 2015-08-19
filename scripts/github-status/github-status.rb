@@ -10,6 +10,7 @@ class GHClientHandler
     @comment_prefix = config[:comment_prefix] || 'CI mkcloud gating '
     @repository = config[:repository] || 'SUSE-Cloud/automation'
     @context = config[:context] || 'ci.suse.de/openstack-mkcloud/gating'
+    @branch = config[:branch] || ''
     @client = Octokit::Client.new(:netrc => true)
     @client.auto_paginate = true
     @client.login
@@ -66,7 +67,8 @@ class GHClientHandler
   def get_all_pull_requests(state, status = [])
     pulls = @client.pull_requests(@repository, :state => state)
     pulls.select do |p|
-      status.include? get_sha_status(p.head.sha)
+      status.include?(get_sha_status(p.head.sha)) &&
+        (@branch.to_s.empty? || @branch.to_s == p.base.ref)
     end
   end
 
@@ -156,6 +158,10 @@ optparse = OptionParser.new do |opts|
     options[:message] = msg
   end
 
+  opts.on('-b', '--branch BRANCHNAME', 'Filters pull requests by target branch name.') do |br|
+    options[:branch] = br
+  end
+
   opts.on('-k', '--key KEY',
           'Dot-separated attribute path to extract from PR JSON, ' \
           'e.g. base.head.owner.  Optional, only for use with ' \
@@ -172,7 +178,7 @@ end
 
 optparse.parse!
 
-ghc=GHClientHandler.new(repository: options[:repository])
+ghc=GHClientHandler.new(repository: options[:repository], branch: options[:branch])
 
 def require_parameter(param, message)
   if param.to_s.empty?
