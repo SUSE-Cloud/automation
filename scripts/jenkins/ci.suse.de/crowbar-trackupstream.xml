@@ -126,8 +126,15 @@ update_automation track-upstream-and-package.pl
 OBS_TYPE=${PROJECTSOURCE%%/*}
 OBS_PROJECT=${PROJECTSOURCE##*/}
 
-# default is SLE_11_SP3
-BUILD_DIST=SLE_11_SP3
+# default is SLE_12
+BUILD_DIST=SLE_12
+
+case $project in
+  Devel:Cloud:[45]*)
+    BUILD_DIST=SLE_11_SP3
+  ;;
+esac
+
 
 case $OBS_TYPE in
   OBS) OSCAPI="https://api.opensuse.org"
