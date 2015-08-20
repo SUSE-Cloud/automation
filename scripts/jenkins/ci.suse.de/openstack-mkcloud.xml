@@ -315,6 +315,10 @@ if [[ $github_pr ]] ; then
     fi
 
     $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha
+    
+    
+    #special config for PR testing as of: XXX trello card
+    export want_mtu_size=jumbo
 fi
 
 echo "########################################################################"
