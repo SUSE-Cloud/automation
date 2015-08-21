@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-test: bashate perlcheck rubycheck rounduptest flake8 python_unittest
+test: bashate perlcheck rubycheck pythoncheck rounduptest flake8 python_unittest
 
 bashate:
 	cd scripts && \
@@ -25,6 +25,12 @@ rubycheck:
 	for f in `find -name \*.rb` scripts/jenkins/jenkinslog; \
 	do \
 	    ruby -wc $$f || exit 2; \
+	done
+
+pythoncheck:
+	for f in `find -name \*.py` scripts/lib/libvirt/{admin-config,cleanup,compute-config,net-config,net-start,vm-start} ; \
+        do \
+	    python -m py_compile $$f || exit 22; \
 	done
 
 rounduptest:
