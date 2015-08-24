@@ -1301,9 +1301,7 @@ function do_installcrowbar()
 EOF
         service smb restart
     fi
-    # temporary raised to 600 due to crowbar merge
-    # every barclamp installation uploads now all cookbooks
-    local n=1000
+    local n=300
     while [ $n -gt 0 ] && [ ! -e /tmp/chef-ready ] ; do
         n=$(expr $n - 1)
         sleep 5;
