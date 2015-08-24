@@ -136,6 +136,8 @@ $zypper -n install -t pattern cloud_controller cloud_compute cloud_network
 $zypper -n install --force openstack-quickstart openstack-tempest-test
 
 # test -e /tmp/openstack-quickstart-demosetup && mv /tmp/openstack-quickstart-demosetup /usr/sbin/openstack-quickstart-demosetup
+# test -e /tmp/keystone_data.sh && mv /tmp/keystone_data.sh /usr/lib/devstack/keystone_data.sh
+# test -e /tmp/functions.sh && mv /tmp/functions.sh /usr/lib/openstack-quickstart/functions.sh
 
 crudini=crudini
 test -z "$(type -p crudini 2>/dev/null)" && crudini="openstack-config"
