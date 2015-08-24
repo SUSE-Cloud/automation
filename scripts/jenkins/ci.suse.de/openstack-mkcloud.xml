@@ -318,7 +318,7 @@ if [[ $github_pr ]] ; then
     
     
     #special config for PR testing as of: XXX trello card
-    export want_mtu_size=jumbo
+    [[ $cloudsource = develcloud6 ]] &amp;&amp; export want_mtu_size=8900
 fi
 
 echo "########################################################################"

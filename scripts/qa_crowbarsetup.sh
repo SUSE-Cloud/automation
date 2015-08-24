@@ -1233,12 +1233,7 @@ EOF
         /opt/dell/bin/json-edit -a attributes.network.mode -v dual $netfile
         /opt/dell/bin/json-edit -a attributes.network.teaming.mode -r -v 5 $netfile
     fi
-    # Setup network attributes for JUMBO Frames.
-    if [[ $want_mtu_size == "jumbo" ]] ; then
-        want_mtu_size=8900
-        # Jumbo Frame size is set to 8900 instead of the MAX 9000 to accomodate
-        # for the additional headers in case of GRE/VXLAN networks.
-    fi
+    # Setup network attributes for jumbo frames
     if [[ $want_mtu_size ]]; then
         echo "Setting MTU to custom value of: $want_mtu_size"
         local lnet
