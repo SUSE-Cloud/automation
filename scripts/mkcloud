@@ -510,6 +510,11 @@ EOS
         cat $user_keyfile | ssh $adminip "cat >> ~/.ssh/authorized_keys"
     fi
     echo "you can now proceed with installing crowbar"
+    # prevent jumbo frames from going out
+    if [[ $want_mtu_size ]] ; then
+        iptables -D FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1500 2>/dev/null
+        iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1500
+    fi
 }
 
 function createadminsnapshot()
