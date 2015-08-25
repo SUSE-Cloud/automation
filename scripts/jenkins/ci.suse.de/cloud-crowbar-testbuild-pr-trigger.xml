@@ -127,7 +127,7 @@ for repo in ${crowbar_repos[@]}; do
         crowbar-*)
             branches=${master_branches[@]}
             ;;
-        barclamp-crowbar-*)
+        barclamp-*)
             branches=${master_branches_old[@]}
             ;;
     esac
