@@ -2766,7 +2766,7 @@ function oncontroller()
 function install_suse_ca()
 {
     # trust build key - workaround https://bugzilla.opensuse.org/show_bug.cgi?id=935020
-    wget --no-check-certificate -O build.suse.de.key.pgp https://api.suse.de/public/source/SUSE/_pubkey
+    wget -O build.suse.de.key.pgp http://download.suse.de/ibs/SUSE:/CA/SLE_12/repodata/repomd.xml.key
     safely sha1sum -c <<EOF
 ee896d59206e451d563fcecef72608546bf10ad6  build.suse.de.key.pgp
 EOF
