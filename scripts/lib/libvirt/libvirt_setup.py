@@ -224,12 +224,6 @@ def net_start(args):
         xml = readfile(netpath)
         conn.networkDefineXML(xml)
 
-    net_dom = conn.networkLookupByName(netname)
-    # Check if active, then activate the network
-    if not net_dom.isActive():
-        print("starting {0} network".format(netname))
-        net_dom.create()
-
 
 def vm_start(args):
     conn = libvirt_connect()

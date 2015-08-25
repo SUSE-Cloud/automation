@@ -665,7 +665,7 @@ function shutdowncloud()
 
 function restartcloud()
 {
-    virsh net-start $cloud-admin
+    libvirt_net_start
     virsh start $cloud-admin
     setuppublicnet
     for i in $allnodeids ; do
