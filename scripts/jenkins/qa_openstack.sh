@@ -128,6 +128,9 @@ $zypper --gpg-auto-import-keys -n ref
 # deinstall some leftover crap from the cleanvm
 $zypper -n rm --force 'python-cheetah < 2.4'
 
+# deinstall cloud-init and dependencies
+$zypper -n rm --force -u cloud-init
+
 # Everything below here is fatal
 set -e
 
