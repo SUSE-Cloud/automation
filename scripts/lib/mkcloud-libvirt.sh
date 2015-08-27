@@ -32,6 +32,14 @@ function libvirt_start_daemon()
     wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 }
 
+function libvirt_net_start()
+{
+    virsh net-start $cloud-admin
+    for dev in $cloudbr-nic $cloudbr ; do
+        ip link set mtu 9000 dev $dev
+    done
+}
+
 function libvirt_setupadmin()
 {
     ${mkcloud_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $emulator $admin_node_disk "$localreposdir_src" "$localreposdir_target" > /tmp/$cloud-admin.xml
@@ -39,5 +47,6 @@ function libvirt_setupadmin()
     libvirt_modprobe_kvm
     libvirt_start_daemon
     ${mkcloud_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
+    libvirt_net_start
     ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
 }
