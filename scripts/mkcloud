@@ -76,6 +76,7 @@ export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 # (used only internally to transport this information to qa_crowbarsetup):
 : ${drbdnode_mac_vol:=''}
 : ${cephvolumenumber:=1}
+: ${raidvolumenumber:=1}
 allnodeids_without_lonely=`seq 1 $((nodenumber-nodenumberphys))`
 lonelynodeids=`seq $(( nodenumber + 1 )) $(( nodenumber + nodenumberlonelynode ))`
 allnodeids="$allnodeids_without_lonely $lonelynodeids"
@@ -211,6 +212,7 @@ function sshrun()
         export nosetestparameters=${nosetestparameters} ;
         export tempestoptions='${tempestoptions}' ;
         export cephvolumenumber=$cephvolumenumber ;
+        export raidvolumenumber=$raidvolumenumber ;
         export drbd_database_size=$drbd_database_size ;
         export drbd_rabbitmq_size=$drbd_rabbitmq_size ;
         export shell=$shell ;
@@ -323,6 +325,16 @@ function onhost_create_cloud_lvm()
         test "$i" = "1" && hdd_size=${controller_hdd_size}
         _lvcreate $cloud.node$i $hdd_size $cloudvg $next_pv_device
     done
+    if [ $raidvolumenumber -gt 1 ] ; then
+        for i in $allnodeids ; do
+            for n in $(seq 1 $(($raidvolumenumber-1))) ; do
+                onhost_get_next_pv_device
+                hdd_size=${computenode_hdd_size}
+                test "$i" = "1" && hdd_size=${controller_hdd_size}
+                _lvcreate $cloud.node$i-raid$n $hdd_size $cloudvg $next_pv_device
+            done
+        done
+    fi
 
     if [ $cephvolumenumber -gt 0 ] ; then
         for i in $allnodeids ; do
@@ -694,7 +706,7 @@ function setupnodes()
             fi
         fi
 
-        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $macaddress $cephvolumenumber "$drbd_serial" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "3" > /tmp/$cloud-node$i.xml
+        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $macaddress $raidvolumenumber $cephvolumenumber "$drbd_serial" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "3" > /tmp/$cloud-node$i.xml
         ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
     done
 
@@ -1033,6 +1045,9 @@ Optional
         set new cloudsource for upgrade process
     TESTHEAD='' | 1  (default='')
         use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)
+    raidvolumenumber (default=1)
+        The number of disks to join into the software RAID for each node.
+        Default value of 1 means just one system disk and no RAID.
     cephvolumenumber  (default=1)
         the number of ceph volumes that will be created per node
         note: proposal step does contain a ceph proposal only in SUSE Cloud 4, in
