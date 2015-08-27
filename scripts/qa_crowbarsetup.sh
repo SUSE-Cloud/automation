@@ -2588,6 +2588,10 @@ function oncontroller_testsetup()
         crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
         pushd /var/lib/openstack-tempest-test
         echo 1 > /proc/sys/kernel/sysrq
+        if [ -n "$want_docker" ] ; then
+            testr list-tests | grep -v "tempest.api.compute.volumes" > docker_tests_excluding_volumes
+            export tempestoptions+="-- --load-list docker_tests_excluding_volumes"
+        fi
         ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
         tempestret=${PIPESTATUS[0]}
         testr last --subunit | subunit-1to2 > tempest.subunit.log
