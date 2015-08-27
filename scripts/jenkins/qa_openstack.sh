@@ -207,41 +207,39 @@ else
     GLANCECLIENT_VISIBILITY_PARAMS=" --is-public=true"
 fi
 
+GC_IMAGE_CREATE="glance image-create --progress $GLANCECLIENT_VISIBILITY_PARAMS"
+
 case "$MODE" in
     xen)
-        glance image-create $GLANCECLIENT_VISIBILITY_PARAMS --disk-format=qcow2 --container-format=bare --name jeos-64-pv --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
-        glance image-create $GLANCECLIENT_VISIBILITY_PARAMS --disk-format=aki --container-format=aki --name=debian-kernel < xen-kernel/vmlinuz-2.6.24-19-xen
-        glance image-create $GLANCECLIENT_VISIBILITY_PARAMS --disk-format=ari --container-format=ari --name=debian-initrd < xen-kernel/initrd.img-2.6.24-19-xen
-        glance image-create $GLANCECLIENT_VISIBILITY_PARAMS --disk-format=ami --container-format=ami --name=debian-5 --property vm_mode=xen ramdisk_id=f663eb9a-986b-466f-bd3e-f0aa2c847eef kernel_id=d654691a-0135-4f6d-9a60-536cf534b284 < debian.5-0.x86.img
+        $GC_IMAGE_CREATE --disk-format=qcow2 --container-format=bare --name jeos-64-pv --copy-from http://clouddata.cloud.suse.de/images/jeos-64-pv.qcow2
+        $GC_IMAGE_CREATE --disk-format=aki --container-format=aki --name=debian-kernel < xen-kernel/vmlinuz-2.6.24-19-xen
+        $GC_IMAGE_CREATE --disk-format=ari --container-format=ari --name=debian-initrd < xen-kernel/initrd.img-2.6.24-19-xen
+        $GC_IMAGE_CREATE --disk-format=ami --container-format=ami --name=debian-5 --property vm_mode=xen ramdisk_id=f663eb9a-986b-466f-bd3e-f0aa2c847eef kernel_id=d654691a-0135-4f6d-9a60-536cf534b284 < debian.5-0.x86.img
     ;;
     lxc)
-        glance image-create --name="debian-5" $GLANCECLIENT_VISIBILITY_PARAMS --disk-format=ami --container-format=ami --copy-from $mirror/debian.5-0.x86.qcow2
+        $GC_IMAGE_CREATE --name="debian-5" --disk-format=ami --container-format=ami --copy-from $mirror/debian.5-0.x86.qcow2
     ;;
     *)
         wget $cirros_base_url/$cirros_base_name-uec.tar.gz
         tar xf $cirros_base_name-uec.tar.gz
-        RAMDISK_ID=$(glance image-create --name="$cirros_base_name-uec-initrd" $GLANCECLIENT_VISIBILITY_PARAMS \
+        RAMDISK_ID=$($GC_IMAGE_CREATE --name="$cirros_base_name-uec-initrd" \
             --disk-format=ari --container-format=ari < $cirros_base_name-initrd | grep ' id ' | awk '{print $4}')
-        KERNEL_ID=$(glance image-create --name="$cirros_base_name-vmlinuz" $GLANCECLIENT_VISIBILITY_PARAMS \
+        KERNEL_ID=$($GC_IMAGE_CREATE --name="$cirros_base_name-vmlinuz" \
             --disk-format=aki --container-format=aki < $cirros_base_name-vmlinuz | grep ' id ' | awk '{print $4}')
-        glance image-create --name="$cirros_base_name-uec" $GLANCECLIENT_VISIBILITY_PARAMS \
+        $GC_IMAGE_CREATE --name="$cirros_base_name-uec" \
             --container-format ami --disk-format ami \
             --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < $cirros_base_name-blank.img
 
-        glance image-create --name="debian-5" $GLANCECLIENT_VISIBILITY_PARAMS \
+        $GC_IMAGE_CREATE --name="debian-5" \
             --container-format ami --disk-format ami \
             --property kernel_id=$KERNEL_ID --property ramdisk_id=$RAMDISK_ID < $cirros_base_name-blank.img
 
         ssh_user="cirros"
 
-        #glance image-create --name="debian-5" $GLANCECLIENT_VISIBILITY_PARAMS --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/cirros-0.3.1-x86_64-disk.img
+        #$GC_IMAGE_CREATE --name="debian-5" --disk-format=qcow2 --container-format=bare --copy-from http://clouddata.cloud.suse.de/images/cirros-0.3.1-x86_64-disk.img
     ;;
 esac
 
-for i in $(seq 1 60) ; do # wait for image to finish uploading
-    glance image-list|grep active && break
-    sleep 5
-done
 glance image-list
 imgid=$(glance image-list|grep debian-5|cut -f2 -d" ")
 mkdir -p ~/.ssh
