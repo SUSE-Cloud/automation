@@ -170,9 +170,9 @@ fi
 
 NOVA_FLAVOR="m1.nano"
 nova flavor-delete $NOVA_FLAVOR || :
-nova flavor-create $NOVA_FLAVOR --ephemeral 20 42 128 0 1
+nova flavor-create $NOVA_FLAVOR 42 128 0 1
 nova flavor-delete m1.micro || :
-nova flavor-create m1.micro --ephemeral 20 84 256 0 1
+nova flavor-create m1.micro 84 256 0 1
 
 # make sure glance is working
 for i in $(seq 1 5); do
