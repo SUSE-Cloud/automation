@@ -2863,12 +2863,16 @@ EOH
         done
 
         # dependency for the test suite
-        ensure_packages_installed python-PyYAML
+        ensure_packages_installed python-PyYAML python-setuptools
 
-        if ! rpm -q python-nose &> /dev/null; then
-            zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
-            ensure_packages_installed python-nose
-            zypper rr Devel_Cloud_Shared_11-SP3_Update
+        if iscloudver 6plus; then
+            rpm -Uvh http://download.suse.de/ibs/SUSE:/SLE-12:/GA/standard/noarch/python-nose-1.3.0-8.4.noarch.rpm
+        else
+            if ! rpm -q python-nose &> /dev/null; then
+                zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
+                ensure_packages_installed python-nose
+                zypper rr Devel_Cloud_Shared_11-SP3_Update
+            fi
         fi
 
         nosetests testsuites/testcloud_sanity.py
