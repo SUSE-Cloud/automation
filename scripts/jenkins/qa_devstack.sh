@@ -76,7 +76,7 @@ function h_setup_extra_disk {
 }
 
 function h_setup_devstack {
-    $zypper in git-core crudini
+    $zypper in git-core
     # git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
     git clone https://github.com/dirkmueller/devstack.git $DEVSTACK_DIR
 
@@ -145,6 +145,7 @@ FORCE=yes ./stack.sh
 EOF
 h_echo_header "Run tempest"
 # FIXME(toabctl): enable the extensions for tempest
+$zypper in crudini
 crudini --set /opt/stack/tempest/etc/tempest.conf network-feature-enabled api_extensions "provider,security-group,dhcp_agent_scheduler,external-net,ext-gw-mode,binding,agent,quotas,l3_agent_scheduler,multi-provider,router,extra_dhcp_opt,allowed-address-pairs,extraroute,metering,fwaas,service-type,lbaas,lbaas_agent_scheduler"
 
 if [ -z "${DISABLE_TEMPESTRUN}" ]; then
