@@ -107,23 +107,23 @@ def compute_config(args, cpu_flags=cpuflags()):
         nodememory = args.controllernodememory
 
     raidvolume = ""
-    if args.raidvolumenumber and args.raidvolumenumber > 1:
-        for i in range(1, int(args.raidvolumenumber)):
-            raid_template = string.Template(readfile(
-                "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
-            raid_values = dict(
-                volume_serial="{0}-node{1}-raid{2}".format(
-                    args.cloud,
-                    args.nodecounter,
-                    i),
-                source_dev="{0}/{1}.node{2}-raid{3}".format(
-                    args.vdiskdir,
-                    args.cloud,
-                    args.nodecounter,
-                    i),
-                target_dev=targetdevprefix + ''.join(alldevices.next()),
-                target_bus=targetbus)
-            raidvolume += "\n" + raid_template.substitute(raid_values)
+    for i in range(1, args.raidvolumenumber):
+        raid_template = string.Template(readfile(
+            "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
+        raid_values = {
+            'volume_serial': "{0}-node{1}-raid{2}".format(
+                args.cloud,
+                args.nodecounter,
+                i),
+            'source_dev': "{0}/{1}.node{2}-raid{3}".format(
+                args.vdiskdir,
+                args.cloud,
+                args.nodecounter,
+                i),
+            'target_dev': targetdevprefix + ''.join(alldevices.next()),
+            'target_bus': targetbus
+        }
+        raidvolume += "\n" + raid_template.substitute(raid_values)
 
     cephvolume = ""
     if args.cephvolumenumber and args.cephvolumenumber > 0:

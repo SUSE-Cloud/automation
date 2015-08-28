@@ -135,7 +135,7 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         args.cloud = "cloud"
         args.nodecounter = "1"
         args.macaddress = "52:54:01:77:77:01"
-        args.raidvolumenumber = "1"
+        args.raidvolumenumber = 0
         args.cephvolumenumber = "1"
         args.computenodememory = "2097152"
         args.controllernodememory = "5242880"
@@ -171,7 +171,7 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         args.cloud = "cloud"
         args.nodecounter = "1"
         args.macaddress = "52:54:01:77:77:01"
-        args.raidvolumenumber = "2"
+        args.raidvolumenumber = 2
         args.cephvolumenumber = "2"
         args.computenodememory = "2097152"
         args.controllernodememory = "5242880"

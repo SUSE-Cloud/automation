@@ -22,6 +22,7 @@ fi
 : ${cinder_netapp_password:=''}
 : ${clouddata:=$(dig -t A +short clouddata.cloud.suse.de)}
 : ${distsuse:=$(dig -t A +short dist.suse.de)}
+: ${want_raidtype:="raid1"}
 
 : ${arch:=$(uname -m)}
 
@@ -85,6 +86,8 @@ onadmin_help()
         if there is a SLE12 node, deploy neutron-network role into the SLE12 node
     want_mtu_size=<size>|"jumbo" (default='')
         Option to set variable MTU size or select Jumbo Frames for Admin and Storage nodes. 1500 is used if not set.
+    want_raidtype (default='raid1')
+        The type of RAID to create.
 EOUSAGE
 }
 
@@ -1488,9 +1491,8 @@ function onadmin_allocate()
 
     # setup RAID for all nodes
     if [[ $raidvolumenumber -gt 1 ]] ; then
-        raid_type="raid1" #FIXME
         for n in `get_all_discovered_nodes` ; do
-            set_node_raid $n $raid_type $raidvolumenumber
+            set_node_raid $n $want_raidtype $raidvolumenumber
         done
     fi
 

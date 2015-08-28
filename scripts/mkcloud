@@ -76,7 +76,7 @@ export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 # (used only internally to transport this information to qa_crowbarsetup):
 : ${drbdnode_mac_vol:=''}
 : ${cephvolumenumber:=1}
-: ${raidvolumenumber:=1}
+: ${raidvolumenumber:=0}
 allnodeids_without_lonely=`seq 1 $((nodenumber-nodenumberphys))`
 lonelynodeids=`seq $(( nodenumber + 1 )) $(( nodenumber + nodenumberlonelynode ))`
 allnodeids="$allnodeids_without_lonely $lonelynodeids"
@@ -1045,9 +1045,9 @@ Optional
         set new cloudsource for upgrade process
     TESTHEAD='' | 1  (default='')
         use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)
-    raidvolumenumber (default=1)
+    raidvolumenumber (default=0)
         The number of disks to join into the software RAID for each node.
-        Default value of 1 means just one system disk and no RAID.
+        Mimimal number to setup RAID is 2.
     cephvolumenumber  (default=1)
         the number of ceph volumes that will be created per node
         note: proposal step does contain a ceph proposal only in SUSE Cloud 4, in
