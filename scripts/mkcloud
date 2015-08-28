@@ -151,6 +151,7 @@ function show_environment()
     echo "-------------------------------"
     echo " cloudsource: $cloudsource"
     echo "    TESTHEAD: $TESTHEAD"
+    echo "    scenario: $scenario"
     echo "  nodenumber: $nodenumber"
     echo "     cloudpv: $cloudpv"
     echo " UPDATEREPOS: $UPDATEREPOS"
@@ -215,6 +216,7 @@ function sshrun()
         export shell=$shell ;
         export keep_existing_hostname=$keep_existing_hostname ;
         export cct_tests=$cct_tests ;
+        export scenario=$scenario ;
 
         export nova_shared_instance_storage=$nova_shared_instance_storage ;
 
@@ -231,6 +233,7 @@ EOF
     env|grep -e ^debug_ -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
 
     $scp $qa_crowbarsetup $mkcconf root@$adminip:
+    [[ $need_scenario = 1 ]] && $scp $scenariofile root@$adminip:
     ssh $sshopts root@$adminip "echo `hostname` > cloud ; . qa_crowbarsetup.sh ; $@"
     return $?
 }
@@ -919,6 +922,12 @@ function cct()
     return $?
 }
 
+function batch()
+{
+    onadmin batch $scenario
+    return $?
+}
+
 function show_steps()
 {
     cat <<EOSTEPS
@@ -949,6 +958,7 @@ Steps:
     setupnodes:     create the nodes and let crowbar discover them
     instnodes:      allocate and install compute nodes
     proposal:       create and apply proposals for default setup
+    batch:          build proposals from exported crowbar_batch YAML file
     setuplonelynodes: boot a number (defined by nodenumberlonelynodes) of non-crowbar registered nodes in the admin network
     crowbar_register: register a number (defined by nodenumberlonelynodes) of non-crowbar nodes with crowbar (setuplonelynodes needs to have run before)
     testsetup:      start a VM in the cloud
@@ -1234,6 +1244,16 @@ function sanity_checks()
     if [[ $want_sles12 = 1 ]] && [[ $want_ceph = 1 ]] && [[ $nodenumber -lt 3 ]] ; then
         complain 113 "Please increase number of nodes for this setup, minimal nodenumber=3"
     fi
+
+    if [[ " ${steplist[*]} " == *" batch "* ]] ; then
+        need_scenario=1
+        if [[ -n $scenario ]] ; then
+            scenariofile="${mkcloud_dir}/scenarios/cloud$(getcloudver)/${scenario}.yaml"
+            [[ ! -f $scenariofile ]] && complain 115 "Scenario file not found at $scenariofile"
+        else
+            complain 114 "Please set a scenario file for crowbar_batch with scenario=foo"
+        fi
+    fi
 }
 
 
@@ -1249,7 +1269,7 @@ allcmds="$step_aliases all all_noreboot instonly plain \
     rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd \
     cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients \
     setuplonelynodes crowbar_register createadminsnapshot \
-    restoreadminfromsnapshot cct steps"
+    restoreadminfromsnapshot cct steps batch"
 wantedcmds=$@
 
 function expand_steps()

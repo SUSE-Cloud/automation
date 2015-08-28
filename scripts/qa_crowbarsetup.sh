@@ -3301,6 +3301,16 @@ function onadmin_run_cct()
     return 0
 }
 
+function onadmin_batch()
+{
+    if iscloudver 5plus; then
+        crowbar_batch build ${scenario}.yaml
+        return $?
+    else
+        complain 116 "crowbar_batch is only supported with cloudversions 5plus"
+    fi
+}
+
 # deactivate proposals and forget cloud nodes
 # can be useful for faster testing cycles
 function onadmin_teardown()
