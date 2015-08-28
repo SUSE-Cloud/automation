@@ -3304,7 +3304,7 @@ function onadmin_run_cct()
 function onadmin_batch()
 {
     if iscloudver 5plus; then
-        crowbar_batch build ${scenario}.yaml
+        crowbar_batch build ${scenario}
         return $?
     else
         complain 116 "crowbar_batch is only supported with cloudversions 5plus"
