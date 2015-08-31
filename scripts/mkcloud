@@ -1109,6 +1109,10 @@ Optional
         rally server address
     cct_tests='test1+test2' (default='features')
         Defines which cct_tests should be run while the cct step.
+    scenario='scenario.yaml' (default='')
+        Defines which scenario file should be used. Only works with cloud5 or newer.
+        Currently only the step 'batch' uses such a file.
+        Scenario files have to placed in \${mkcloud_dir}/scenarios/cloud\$(getcloudver).
 EOUSAGE
     onadmin_help
     exit 1
@@ -1248,7 +1252,7 @@ function sanity_checks()
     if [[ " ${steplist[*]} " == *" batch "* ]] ; then
         need_scenario=1
         if [[ -n $scenario ]] ; then
-            scenariofile="${mkcloud_dir}/scenarios/cloud$(getcloudver)/${scenario}.yaml"
+            scenariofile="${mkcloud_dir}/scenarios/cloud$(getcloudver)/${scenario}"
             [[ ! -f $scenariofile ]] && complain 115 "Scenario file not found at $scenariofile"
         else
             complain 114 "Please set a scenario file for crowbar_batch with scenario=foo"
