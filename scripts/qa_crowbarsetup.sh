@@ -2539,7 +2539,8 @@ function adapt_dns_for_docker()
 function oncontroller_testsetup()
 {
     . .openrc
-
+    # 28 is the overhead of an ICMP(ping) packet
+    [[ $want_mtu_size ]] && iscloudver 5plus && safely ping -M do -c 1 -s $(( want_mtu_size - 28 )) $adminip
     export LC_ALL=C
     if [[ -n $deployswift ]] ; then
         ensure_packages_installed python-swiftclient
