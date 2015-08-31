@@ -219,6 +219,7 @@ export debug_qa_crowbarsetup=1
 export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
 export debug=0
 export want_neutronsles12=1
+export want_mtu_size=9000
 export rally_server=backup.cloudadm.qa.suse.de
 
 case $cloudsource in
@@ -316,9 +317,6 @@ if [[ $github_pr ]] ; then
 
     $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha
     
-    
-    #special config for PR testing as of: XXX trello card
-    [[ $cloudsource = develcloud6 ]] &amp;&amp; export want_mtu_size=8900
 fi
 
 echo "########################################################################"
