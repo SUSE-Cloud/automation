@@ -493,7 +493,10 @@ function addcloud6maintupdates()
 
 function addcloud6testupdates()
 {
-    add_mount "SUSE-Cloud-6-Updates" 'you.suse.de:/you/http/download/x86_64/update/SUSE-CLOUD/5/' "$tftpboot_repos_dir/SUSE-Cloud-6-Updates/" "cloudtup"
+    echo "FIXME: setup Cloud 6 test channels once available"
+    #add_mount "SUSE-Cloud-6-Updates-test" \
+    #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/6:/x86_64/update/' \
+    #    "$tftpboot_repos_dir/SUSE-Cloud-6-Updates-test/" "cloudtup"
     #TBD
     #add_mount "SUSE-Cloud-6-SLES11-SP4-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
 }
