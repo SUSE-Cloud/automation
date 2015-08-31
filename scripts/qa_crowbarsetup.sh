@@ -1240,7 +1240,7 @@ EOF
     if [[ $want_mtu_size ]]; then
         echo "Setting MTU to custom value of: $want_mtu_size"
         local lnet
-        for lnet in storage nova_fixed os_sdn ; do
+        for lnet in admin storage os_sdn ; do
             /opt/dell/bin/json-edit -a attributes.network.networks.$lnet.mtu -r -v $want_mtu_size $netfile
         done
     fi
