@@ -1006,6 +1006,7 @@ function onadmin_set_source_variables()
             CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6/images/iso
             [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-6-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         susecloud6)
@@ -2536,6 +2537,16 @@ function oncontroller_testsetup()
     . .openrc
 
     export LC_ALL=C
+
+    # prepare test image with the -test packages containing functional tests
+    if iscloudver 6plus; then
+        local mount_dir="/tmp/Cloud-Testing"
+        rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
+        zypper -n ar --refresh -f "$mount_dir" cloud-test
+
+        ensure_packages_installed python-novaclient-test
+    fi
+
     if [[ -n $deployswift ]] ; then
         ensure_packages_installed python-swiftclient
         swift stat
@@ -2757,7 +2768,7 @@ function oncontroller()
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
         export libvirt_type=\"$libvirt_type\" ;
-        export cloud=$cloud ; . ./qa_crowbarsetup.sh ; $@"
+        export cloud=$cloud ; . ./qa_crowbarsetup.sh ; onadmin_set_source_variables; $@"
     return $?
 }
 
