@@ -20,8 +20,8 @@ fi
 : ${cinder_netapp_storage_protocol:=iscsi}
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
-: ${clouddata:=$(dig -t A +short clouddata.cloud.suse.de)}
-: ${distsuse:=$(dig -t A +short dist.suse.de)}
+: ${clouddata:=clouddata.cloud.suse.de}
+: ${distsuse:=dist.suse.de}
 
 : ${arch:=$(uname -m)}
 
@@ -318,7 +318,7 @@ function add_nfs_mount()
         return
     fi
 
-    echo "$nfs $dir nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
+    echo "$nfs $dir nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock,x-systemd.requires=dnsmasq.service  0 0" >> /etc/fstab
     safely mount "$dir"
 }
 
