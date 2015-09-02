@@ -1240,7 +1240,7 @@ EOF
     if [[ $want_mtu_size ]]; then
         echo "Setting MTU to custom value of: $want_mtu_size"
         local lnet
-        for lnet in storage nova_fixed os_sdn ; do
+        for lnet in admin storage os_sdn ; do
             /opt/dell/bin/json-edit -a attributes.network.networks.$lnet.mtu -r -v $want_mtu_size $netfile
         done
     fi
@@ -2539,7 +2539,8 @@ function adapt_dns_for_docker()
 function oncontroller_testsetup()
 {
     . .openrc
-
+    # 28 is the overhead of an ICMP(ping) packet
+    [[ $want_mtu_size ]] && iscloudver 5plus && safely ping -M do -c 1 -s $(( want_mtu_size - 28 )) $adminip
     export LC_ALL=C
     if [[ -n $deployswift ]] ; then
         ensure_packages_installed python-swiftclient
