@@ -22,6 +22,7 @@ fi
 : ${cinder_netapp_password:=''}
 : ${clouddata:=$(dig -t A +short clouddata.cloud.suse.de)}
 : ${distsuse:=$(dig -t A +short dist.suse.de)}
+: ${want_raidtype:="raid1"}
 
 : ${arch:=$(uname -m)}
 
@@ -85,6 +86,8 @@ onadmin_help()
         if there is a SLE12 node, deploy neutron-network role into the SLE12 node
     want_mtu_size=<size>|"jumbo" (default='')
         Option to set variable MTU size or select Jumbo Frames for Admin and Storage nodes. 1500 is used if not set.
+    want_raidtype (default='raid1')
+        The type of RAID to create.
 EOUSAGE
 }
 
@@ -1399,6 +1402,27 @@ function set_node_role_and_platform()
     rm -f $t
 }
 
+# set the RAID configuration for a node before allocating
+function set_node_raid()
+{
+    node="$1"
+    raid_type="$2"
+    disks_count="$3"
+    local t=$(mktemp).json
+    knife node show -F json "$node" > $t
+
+    # to find out available disks, we need to look at the nodes directly
+    raid_disks=`ssh $node lsblk -n -d | cut -d' ' -f 1 | head -n $disks_count`
+    raid_disks=`printf "\"/dev/%s\"," $raid_disks`
+    raid_disks="[ ${raid_disks%,} ]"
+
+    json-edit $t -a normal.crowbar_wall.raid_type -v "$raid_type"
+    json-edit $t -a normal.crowbar_wall.raid_disks --raw -v "$raid_disks"
+    knife node from file $t
+    rm -f $t
+}
+
+
 # Reboot the nodes with ipmi
 function reboot_nodes_via_ipmi()
 {
@@ -1464,6 +1488,13 @@ function onadmin_allocate()
 
     echo "Setting first node to controller..."
     set_node_role_and_platform ${controllernodes[0]} "controller" $controller_os
+
+    # setup RAID for all nodes
+    if [[ $raidvolumenumber -gt 1 ]] ; then
+        for n in `get_all_discovered_nodes` ; do
+            set_node_raid $n $want_raidtype $raidvolumenumber
+        done
+    fi
 
     if [ -n "$want_sles12" ] && iscloudver 5 ; then
 

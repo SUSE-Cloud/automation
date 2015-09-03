@@ -24,6 +24,7 @@
       <target dev='$target_dev' bus='$target_bus'/>
       <boot order='$bootorder'/>
     </disk>
+$raidvolume
 $cephvolume
 $drbdvolume
     <interface type='network'>

@@ -123,6 +123,7 @@ class TestLibvirtComputeConfig(unittest.TestCase):
             ["cloud",
              "nodecounter",
              "macaddress",
+             "raidvolumenumber",
              "cephvolumenumber",
              "drbdserial",
              "computenodememory",
@@ -134,6 +135,7 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         args.cloud = "cloud"
         args.nodecounter = "1"
         args.macaddress = "52:54:01:77:77:01"
+        args.raidvolumenumber = 0
         args.cephvolumenumber = "1"
         args.computenodememory = "2097152"
         args.controllernodememory = "5242880"
@@ -148,6 +150,42 @@ class TestLibvirtComputeConfig(unittest.TestCase):
 
         should_config = libvirt_setup.readfile(
             "{0}/cloud-node1.xml".format(FIXTURE_DIR))
+        is_config = libvirt_setup.compute_config(args, cpu_flags)
+        self.assertEqual(is_config, should_config)
+
+    # add extra disk for raid and 2 volumes for ceph
+    def test_compute_config_with_raid(self):
+        args = arg_parse(
+            ["cloud",
+             "nodecounter",
+             "macaddress",
+             "raidvolumenumber",
+             "cephvolumenumber",
+             "drbdserial",
+             "computenodememory",
+             "controllernodememory",
+             "libvirttype",
+             "vcpus",
+             "emulator",
+             "vdiskdir"])
+        args.cloud = "cloud"
+        args.nodecounter = "1"
+        args.macaddress = "52:54:01:77:77:01"
+        args.raidvolumenumber = 2
+        args.cephvolumenumber = "2"
+        args.computenodememory = "2097152"
+        args.controllernodememory = "5242880"
+        args.libvirttype = "kvm"
+        args.vcpus = "1"
+        args.emulator = "/usr/bin/qemu-system-x86_64"
+        args.vdiskdir = "/dev/cloud"
+        args.drbdserial = ""
+        args.bootorder = "3"
+        cpu_flags = libvirt_setup.readfile(
+            "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
+
+        should_config = libvirt_setup.readfile(
+            "{0}/cloud-node1-raid.xml".format(FIXTURE_DIR))
         is_config = libvirt_setup.compute_config(args, cpu_flags)
         self.assertEqual(is_config, should_config)
 

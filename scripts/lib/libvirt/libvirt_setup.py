@@ -106,6 +106,25 @@ def compute_config(args, cpu_flags=cpuflags()):
     else:
         nodememory = args.controllernodememory
 
+    raidvolume = ""
+    for i in range(1, args.raidvolumenumber):
+        raid_template = string.Template(readfile(
+            "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
+        raid_values = {
+            'volume_serial': "{0}-node{1}-raid{2}".format(
+                args.cloud,
+                args.nodecounter,
+                i),
+            'source_dev': "{0}/{1}.node{2}-raid{3}".format(
+                args.vdiskdir,
+                args.cloud,
+                args.nodecounter,
+                i),
+            'target_dev': targetdevprefix + ''.join(alldevices.next()),
+            'target_bus': targetbus
+        }
+        raidvolume += "\n" + raid_template.substitute(raid_values)
+
     cephvolume = ""
     if args.cephvolumenumber and args.cephvolumenumber > 0:
         for i in range(1, int(args.cephvolumenumber) + 1):
@@ -147,6 +166,7 @@ def compute_config(args, cpu_flags=cpuflags()):
         cpuflags=cpu_flags,
         emulator=args.emulator,
         vdisk_dir=args.vdiskdir,
+        raidvolume=raidvolume,
         cephvolume=cephvolume,
         drbdvolume=drbdvolume,
         macaddress=args.macaddress,
