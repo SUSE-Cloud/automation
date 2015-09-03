@@ -2661,7 +2661,11 @@ function oncontroller_testsetup()
     if [ -n "$want_docker" ] ; then
         image_name="cirros"
         ssh_user="cirros"
-        openstack image create --public --container-format docker --disk-format raw --property hypervisor_type=docker --copy-from http://$clouddata/images/docker/cirros.tar $image_name | tee glance.out
+        if openstack image list | grep -q "[[:space:]]${image_name}[[:space:]]" ; then
+            openstack image show $image_name | tee glance.out
+        else
+            openstack image create --public --container-format docker --disk-format raw --property hypervisor_type=docker --copy-from http://$clouddata/images/docker/cirros.tar $image_name | tee glance.out
+        fi
         adapt_dns_for_docker
     fi
 
