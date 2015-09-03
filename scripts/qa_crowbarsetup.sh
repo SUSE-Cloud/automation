@@ -2577,7 +2577,7 @@ function oncontroller_testsetup()
 
     # prepare test image with the -test packages containing functional tests
     if iscloudver 6plus; then
-        local mount_dir="/tmp/Cloud-Testing"
+        local mount_dir="/var/lib/Cloud-Testing"
         rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
         zypper -n ar --refresh -f "$mount_dir" cloud-test
 
