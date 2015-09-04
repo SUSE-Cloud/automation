@@ -2805,7 +2805,8 @@ function oncontroller()
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
         export libvirt_type=\"$libvirt_type\" ;
-        export cloud=$cloud ; . ./qa_crowbarsetup.sh ; onadmin_set_source_variables; $@"
+        export cloud=$cloud ; export TESTHEAD=$TESTHEAD ;
+        . ./qa_crowbarsetup.sh ; onadmin_set_source_variables; $@"
     return $?
 }
 
