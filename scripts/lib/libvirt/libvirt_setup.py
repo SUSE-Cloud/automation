@@ -248,7 +248,7 @@ def net_start(args):
 def vm_start(args):
     conn = libvirt_connect()
     vmpath = args.vmpath
-    vmname = xml_get_value(args.vmpath, "name")
+    vmname = xml_get_value(vmpath, "name")
     # cleanup old domain
     try:
         print("cleaning up {0}".format(vmname))
