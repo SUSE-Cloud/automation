@@ -326,13 +326,10 @@ function onhost_create_cloud_lvm()
         _lvcreate $cloud.node$i $hdd_size $cloudvg $next_pv_device
     done
     if [ $raidvolumenumber -gt 1 ] ; then
-        for i in $allnodeids ; do
-            for n in $(seq 1 $(($raidvolumenumber-1))) ; do
-                onhost_get_next_pv_device
-                hdd_size=${computenode_hdd_size}
-                test "$i" = "1" && hdd_size=${controller_hdd_size}
-                _lvcreate $cloud.node$i-raid$n $hdd_size $cloudvg $next_pv_device
-            done
+        for n in $(seq 1 $(($raidvolumenumber-1))) ; do
+            onhost_get_next_pv_device
+            hdd_size=${controller_hdd_size}
+            _lvcreate $cloud.node1-raid$n $hdd_size $cloudvg $next_pv_device
         done
     fi
 
@@ -1046,7 +1043,7 @@ Optional
     TESTHEAD='' | 1  (default='')
         use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)
     raidvolumenumber (default=0)
-        The number of disks to join into the software RAID for each node.
+        The number of disks to join into the software RAID for the controller node.
         Mimimal number to setup RAID is 2.
     cephvolumenumber  (default=1)
         the number of ceph volumes that will be created per node

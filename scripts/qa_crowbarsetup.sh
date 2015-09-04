@@ -1490,11 +1490,9 @@ function onadmin_allocate()
     echo "Setting first node to controller..."
     set_node_role_and_platform ${controllernodes[0]} "controller" $controller_os
 
-    # setup RAID for all nodes
+    # setup RAID for controller node
     if [[ $raidvolumenumber -gt 1 ]] ; then
-        for n in `get_all_discovered_nodes` ; do
-            set_node_raid $n $want_raidtype $raidvolumenumber
-        done
+        set_node_raid ${controllernodes[0]} $want_raidtype $raidvolumenumber
     fi
 
     if [ -n "$want_sles12" ] && iscloudver 5 ; then
