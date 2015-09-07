@@ -101,15 +101,15 @@ def compute_config(args, cpu_flags=cpuflags()):
         nicmodel = "e1000"
         targetdevprefix = "sd"
         targetbus = "ide"
-    raidvolumenumber = args.raidvolumenumber
+    controller_raid_volumes = args.controller_raid_volumes
     if args.nodecounter != "1":
-        raidvolumenumber = 0
+        controller_raid_volumes = 0
         nodememory = args.computenodememory
     else:
         nodememory = args.controllernodememory
 
     raidvolume = ""
-    for i in range(1, raidvolumenumber):
+    for i in range(1, controller_raid_volumes):
         raid_template = string.Template(readfile(
             "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
         raid_values = {

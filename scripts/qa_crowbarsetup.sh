@@ -1491,8 +1491,8 @@ function onadmin_allocate()
     set_node_role_and_platform ${controllernodes[0]} "controller" $controller_os
 
     # setup RAID for controller node
-    if [[ $raidvolumenumber -gt 1 ]] ; then
-        set_node_raid ${controllernodes[0]} $want_raidtype $raidvolumenumber
+    if [[ $controller_raid_volumes -gt 1 ]] ; then
+        set_node_raid ${controllernodes[0]} $want_raidtype $controller_raid_volumes
     fi
 
     if [ -n "$want_sles12" ] && iscloudver 5 ; then
