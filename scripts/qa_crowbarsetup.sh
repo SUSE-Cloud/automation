@@ -2628,6 +2628,8 @@ function oncontroller_testsetup()
             SLE11SP3-x86_64-cfntools | tee glance.out
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
         crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
+        # test if is cnftools image prepared for tempest
+        wait_for 300 5 'glance image-show $imageid | grep active &>/dev/null' "prepare cnftools image"
         pushd /var/lib/openstack-tempest-test
         echo 1 > /proc/sys/kernel/sysrq
         ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
