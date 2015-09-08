@@ -6,7 +6,7 @@
 results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl on bwiedemann@trollolo.cloud.suse.de every 15 minutes</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>300</daysToKeep>
-    <numToKeep>1000</numToKeep>
+    <numToKeep>2000</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
@@ -189,8 +189,9 @@ Default: -t -s.</description>
         </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.24">
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
       <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
@@ -219,7 +220,7 @@ export debug_qa_crowbarsetup=1
 export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
 export debug=0
 export want_neutronsles12=1
-export want_mtu_size=9000
+export want_mtu_size=8900
 export rally_server=backup.cloudadm.qa.suse.de
 
 case $cloudsource in
@@ -326,6 +327,7 @@ echo "########################################################################"
 MKCLOUDTARGET=$mkcloudtarget
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
 
+
 if [ $WITHCROWBARREGISTER == "true" ] ; then
   export nodenumberlonelynode=1
   MKCLOUDTARGET="$MKCLOUDTARGET setuplonelynodes crowbar_register"
@@ -420,14 +422,14 @@ ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-submit-project -
       <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
     </hudson.tasks.ArtifactArchiver>
-    <hudson.tasks.Mailer plugin="mailer@1.11">
+    <hudson.tasks.Mailer plugin="mailer@1.15">
       <recipients/>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.14.1">
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.15">
       <strategy class="hudson.plugins.build_timeout.impl.NoActivityTimeOutStrategy">
         <timeoutSecondsString>3600</timeoutSecondsString>
       </strategy>
@@ -435,7 +437,7 @@ ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-submit-project -
         <hudson.plugins.build__timeout.operations.FailOperation/>
       </operationList>
     </hudson.plugins.build__timeout.BuildTimeoutWrapper>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.6.2"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.7.1"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.3">
       <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"}/${ENV,var="github_pr"} ${ENV,var="hacloud"})</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
