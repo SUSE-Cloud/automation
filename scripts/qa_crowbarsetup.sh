@@ -57,6 +57,15 @@ export want_ipmi=${want_ipmi:-false}
 
 export ZYPP_LOCK_TIMEOUT=120
 
+function horizon_barclamp()
+{
+    if iscloudver 6plus; then
+        echo "horizon"
+    else
+        echo "nova_dashboard"
+    fi
+}
+
 function complain() # {{{
 {
     local ex=$1; shift
@@ -1788,7 +1797,7 @@ function enable_ssl_generic()
             $p "$a['ssl']['enabled']" true
             $p "$a['novnc']['ssl']['enabled']" true
         ;;
-        nova_dashboard)
+        horizon|nova_dashboard)
             $p "$a['apache']['ssl']" true
             return
         ;;
@@ -1915,7 +1924,7 @@ function custom_configuration()
     ###       So, only edit the proposal file, and NOT the proposal itself
 
     case "$proposal" in
-        keystone|glance|neutron|cinder|swift|nova|nova_dashboard)
+        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard)
             if [[ $want_all_ssl = 1 ]] || eval [[ \$want_${proposal}_ssl = 1 ]] ; then
                 enable_ssl_generic $proposal
             fi
@@ -2027,9 +2036,9 @@ function custom_configuration()
                 proposal_set_value nova default "['attributes']['nova']['use_shared_instance_storage']" "true"
             fi
         ;;
-        nova_dashboard)
+        horizon|nova_dashboard)
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value nova_dashboard default "['deployment']['nova_dashboard']['elements']['nova_dashboard-server']" "['cluster:$clusternameservices']"
+                proposal_set_value $proposal default "['deployment']['$proposal']['elements']['$proposal-server']" "['cluster:$clusternameservices']"
             fi
         ;;
         heat)
@@ -2456,10 +2465,9 @@ function onadmin_proposal()
 
     prepare_proposals
 
-    local proposals="pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat manila trove tempest"
 
     local proposal
-    for proposal in $proposals ; do
+    for proposal in pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove tempest; do
         deploy_single_proposal $proposal
     done
 
@@ -2526,10 +2534,11 @@ function get_novacontroller()
 
 function get_horizon()
 {
-    local element=`crowbar nova_dashboard proposal show default | \
+    local horizon=`horizon_barclamp`
+    local element=`crowbar $horizon proposal show default | \
         rubyjsonparse "
-                    puts j['deployment']['nova_dashboard']\
-                        ['elements']['nova_dashboard-server']"`
+                    puts j['deployment']['$horizon']\
+                        ['elements']['$horizon-server']"`
     horizonserver=`resolve_element_to_hostname "$element"`
     horizonservice=`resolve_element_to_hostname "$element" service`
 }
@@ -3230,7 +3239,7 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
     waitnodes nodes
 
     # reenable and apply the openstack propsals
-    for barclamp in pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat trove tempest ; do
+    for barclamp in pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat trove tempest; do
         applied_proposals=$(crowbar "$barclamp" proposal list )
         if test "$applied_proposals" == "No current proposals"; then
             continue
@@ -3385,7 +3394,7 @@ function onadmin_teardown()
 
     # undo propsal create+commit
     local service
-    for service in nova_dashboard nova glance ceph swift keystone database ; do
+    for service in nova glance ceph swift keystone database `horizon_barclamp`; do
         crowbar "$service" proposal delete default
         crowbar "$service" delete default
     done
