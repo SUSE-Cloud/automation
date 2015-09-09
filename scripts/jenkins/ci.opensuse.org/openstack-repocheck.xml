@@ -98,6 +98,8 @@
         <string>Cloud:OpenStack:Juno:Staging</string>
         <string>Cloud:OpenStack:Kilo</string>
         <string>Cloud:OpenStack:Kilo:Staging</string>
+        <string>Cloud:OpenStack:Liberty</string>
+        <string>Cloud:OpenStack:Liberty:Staging</string>
         <string>Cloud:OpenStack:Master</string>
         <string>Cloud:Tools</string>
       </values>
@@ -117,7 +119,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>!(       ["Cloud:OpenStack:Master"].contains(project) &amp;&amp; ["SLE_11_SP3"].contains(repository) ||        ["Cloud:OpenStack:Factory"].contains(project) &amp;&amp; ["SLE_11_SP3", "SLE_12"].contains(repository) || ["Cloud:OpenStack:Havana", "Cloud:OpenStack:Havana:Staging"].contains(project) &amp;&amp; ["SLE_12", "openSUSE_13.2", "openSUSE_Factory"].contains(repository) ||        ["Cloud:OpenStack:Icehouse", "Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp; ["SLE_12", "openSUSE_13.2", "openSUSE_Factory"].contains(repository) ||      ["Cloud:OpenStack:Juno", "Cloud:OpenStack:Juno:Staging"].contains(project) &amp;&amp; ["openSUSE_Factory"].contains(repository)  ||      ["Cloud:OpenStack:Kilo", "Cloud:OpenStack:Kilo:Staging"].contains(project) &amp;&amp; ["openSUSE_Factory", "SLE_11_SP3"].contains(repository) )</combinationFilter>
+  <combinationFilter>!(       ["Cloud:OpenStack:Master"].contains(project) &amp;&amp; ["SLE_11_SP3"].contains(repository) ||        ["Cloud:OpenStack:Factory"].contains(project) &amp;&amp; ["SLE_11_SP3", "SLE_12"].contains(repository) || ["Cloud:OpenStack:Havana", "Cloud:OpenStack:Havana:Staging"].contains(project) &amp;&amp; ["SLE_12", "openSUSE_13.2", "openSUSE_Factory"].contains(repository) ||        ["Cloud:OpenStack:Icehouse", "Cloud:OpenStack:Icehouse:Staging"].contains(project) &amp;&amp; ["SLE_12", "openSUSE_13.2", "openSUSE_Factory"].contains(repository) ||      ["Cloud:OpenStack:Juno", "Cloud:OpenStack:Juno:Staging"].contains(project) &amp;&amp; ["openSUSE_Factory"].contains(repository)  ||      ["Cloud:OpenStack:Kilo", "Cloud:OpenStack:Kilo:Staging"].contains(project) ||      ["Cloud:OpenStack:Liberty", "Cloud:OpenStack:Liberty:Staging"].contains(project) &amp;&amp; ["openSUSE_Factory", "SLE_11_SP3"].contains(repository) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=OBS/${project}
