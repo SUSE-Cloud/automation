@@ -28,8 +28,8 @@ fi
 
 # global variables that are set within this script
 novacontroller=
-novadashboardserver=
-novadashboardservice=
+horizonserver=
+horizonservice=
 clusternodesdrbd=
 clusternodesdata=
 clusternodesnetwork=
@@ -2393,8 +2393,8 @@ function prepare_proposals()
 # for now.
 function set_dashboard_alias()
 {
-    get_novadashboard
-    set_node_alias `echo "$novadashboardserver" | cut -d . -f 1` dashboard controller
+    get_horizon
+    set_node_alias `echo "$horizonserver" | cut -d . -f 1` dashboard controller
 }
 
 function deploy_single_proposal()
@@ -2524,14 +2524,14 @@ function get_novacontroller()
     novacontroller=`resolve_element_to_hostname "$element"`
 }
 
-function get_novadashboard()
+function get_horizon()
 {
     local element=`crowbar nova_dashboard proposal show default | \
         rubyjsonparse "
                     puts j['deployment']['nova_dashboard']\
                         ['elements']['nova_dashboard-server']"`
-    novadashboardserver=`resolve_element_to_hostname "$element"`
-    novadashboardservice=`resolve_element_to_hostname "$element" service`
+    horizonserver=`resolve_element_to_hostname "$element"`
+    horizonservice=`resolve_element_to_hostname "$element" service`
 }
 
 function get_ceph_nodes()
@@ -2851,12 +2851,12 @@ function onadmin_testsetup()
     fi
     echo "openstack nova controller node:   $novacontroller"
 
-    get_novadashboard
-    echo "openstack nova dashboard server:  $novadashboardserver"
-    echo "openstack nova dashboard service: $novadashboardservice"
-    curl -L -m 40 -s -S -k http://$novadashboardservice | \
+    get_horizon
+    echo "openstack horizon server:  $horizonserver"
+    echo "openstack horizon service: $horizonservice"
+    curl -L -m 40 -s -S -k http://$horizonservice | \
         grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
-    || complain 101 "simple horizon dashboard test failed"
+    || complain 101 "simple horizon test failed"
 
     wantcephtestsuite=0
     if [[ -n "$deployceph" ]]; then
