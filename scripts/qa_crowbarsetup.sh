@@ -2402,13 +2402,7 @@ function deploy_single_proposal()
     # proposal filter
     case "$proposal" in
         pacemaker)
-            if [[ $hacloud = 1 ]] ; then
-                cluster_node_assignment
-            else
-                # no cluster for non-HA, but get compute nodes
-                nodescompute=`get_all_discovered_nodes`
-                continue
-            fi
+            [[ $hacloud = 1 ]] || continue
             ;;
         ceph)
             [[ -n "$deployceph" ]] || continue
@@ -2455,6 +2449,13 @@ function onadmin_proposal()
     prepare_proposals
 
     local proposals="pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova nova_dashboard ceilometer heat manila trove tempest"
+
+    if [[ $hacloud = 1 ]] ; then
+        cluster_node_assignment
+    else
+        # no cluster for non-HA, but get compute nodes
+        nodescompute=`get_all_discovered_nodes`
+    fi
 
     local proposal
     for proposal in $proposals ; do
