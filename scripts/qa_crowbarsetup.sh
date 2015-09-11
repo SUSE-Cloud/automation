@@ -2778,7 +2778,7 @@ function oncontroller_testsetup()
         nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
         volumeattachret=$?
         device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
-        wait_for 9 5 "nova volume-show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
+        wait_for 29 5 "nova volume-show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
         ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
         rand=$RANDOM
         ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
