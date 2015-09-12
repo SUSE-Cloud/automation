@@ -2292,6 +2292,11 @@ function set_proposalvars()
     if iscloudver 5 && [ -z "$want_sles12" ] ; then
         deployceph=
     fi
+    # C4: swift isn't possible with Cloud5 and SLES12 nodes
+    if iscloudver 5 && [[ $deployswift ]] && [[ -n "$want_sles12" ]] ; then
+        complain 88 "swift does not work with SLES12 nodes in Cloud5 - use want_swift=0"
+    fi
+
     if iscloudver 6plus ; then
         want_sles12=1
     fi
