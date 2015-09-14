@@ -376,7 +376,7 @@ function getcloudver()
 }
 
 # return if cloudsource is referring a certain SUSE Cloud version
-# input1: version - 4plus refers to version 4 or later ; only a number refers to one exact version
+# input1: version - 6plus refers to version 6 or later ; only a number refers to one exact version
 function iscloudver()
 {
     [[ -n "$cloudsource" ]] || return 1
@@ -1328,11 +1328,9 @@ EOF
         complain 89 "Crowbar \".crowbar-installed-ok\" marker missing"
     fi
 
-    if iscloudver 4plus; then
-        ensure_packages_installed crowbar-barclamp-tempest
-        # Force restart of crowbar
-        service crowbar stop
-    fi
+    ensure_packages_installed crowbar-barclamp-tempest
+    # Force restart of crowbar
+    service crowbar stop
 
     service crowbar status || service crowbar start
     [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
@@ -1962,9 +1960,7 @@ function custom_configuration()
         ;;
         keystone)
             # set a custom region name
-            if iscloudver 4plus ; then
-                proposal_set_value keystone default "['attributes']['keystone']['api']['region']" "'CustomRegion'"
-            fi
+            proposal_set_value keystone default "['attributes']['keystone']['api']['region']" "'CustomRegion'"
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value keystone default "['deployment']['keystone']['elements']['keystone-server']" "['cluster:$clusternameservices']"
             fi
@@ -2053,9 +2049,7 @@ function custom_configuration()
         ;;
         neutron)
             [[ "$networkingplugin" = linuxbridge ]] && networkingmode=vlan
-            if iscloudver 4plus; then
-                proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
-            fi
+            proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
 
             if iscloudver 5plus; then
                 if [ "$networkingplugin" = "openvswitch" ] ; then
@@ -2307,8 +2301,7 @@ function set_proposalvars()
     ### do NOT set/change deployceph or deployswift below this line!
 
     # Tempest
-    wanttempest=
-    iscloudver 4plus && wanttempest=1
+    wanttempest=1
     if [[ $want_tempest == 0 ]] ; then
         wanttempest=
     fi
@@ -2870,7 +2863,7 @@ function onadmin_testsetup()
         echo "ceph mons:" $cephmons
         echo "ceph osds:" $cephosds
         echo "ceph radosgw:" $cephradosgws
-        if iscloudver 4plus && [ -n "$cephradosgws" ] ; then
+        if [ -n "$cephradosgws" ] ; then
             wantcephtestsuite=1
             wantradosgwtest=1
         fi
