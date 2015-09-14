@@ -1317,13 +1317,13 @@ function expand_steps()
                         runcmds="$runcmds setupnodes instnodes proposal"
                     ;;
                     all)
-                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` cct testsetup rebootcloud"
+                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` testsetup cct rebootcloud"
                     ;;
                     all_noreboot)
-                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps _compute` cct testsetup"
+                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps _compute` testsetup cct"
                     ;;
                     _testupdate|testupdate)
-                        runcmds="$runcmds addupdaterepo runupdate cct testsetup"
+                        runcmds="$runcmds addupdaterepo runupdate testsetup cct"
                     ;;
                     plain)
                         runcmds="$runcmds `expand_steps instonly` proposal"
