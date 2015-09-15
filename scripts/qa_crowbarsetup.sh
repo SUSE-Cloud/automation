@@ -2454,7 +2454,7 @@ function onadmin_proposal()
         cluster_node_assignment
     else
         # no cluster for non-HA, but get compute nodes
-        nodescompute=`get_all_discovered_nodes`
+        unclustered_nodes=`get_all_discovered_nodes`
     fi
 
     local proposal
