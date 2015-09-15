@@ -1,0 +1,131 @@
+---
+proposals:
+- barclamp: database
+  attributes:
+  deployment:
+    elements:
+      database-server:
+      - @@controller@@
+- barclamp: rabbitmq
+  attributes:
+  deployment:
+    elements:
+      rabbitmq-server:
+      - @@controller@@
+- barclamp: keystone
+  attributes:
+  deployment:
+    elements:
+      keystone-server:
+      - @@controller@@
+- barclamp: swift
+  attributes:
+    zones: 1
+    keystone_delay_auth_decision: true
+    allow_versions: true
+  deployment:
+    elements:
+      swift-dispersion:
+      - @@controller@@
+      swift-proxy:
+      - @@controller@@
+      swift-ring-compute:
+      - @@controller@@
+      swift-storage:
+      - @@compute-kvm@@
+- barclamp: glance
+  attributes:
+  deployment:
+    elements:
+      glance-server:
+      - @@controller@@
+- barclamp: manila
+  attributes:
+  deployment:
+    elements:
+      manila-server:
+      - @@controller@@
+      manila-share:
+      - @@compute-kvm@@
+      - @@controller@@
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: local
+      backend_name: default
+      raw:
+        volume_name: cinder-volumes
+        cinder_raw_method: first
+      local:
+        volume_name: cinder-volumes
+        file_name: "/var/lib/cinder/volume.raw"
+        file_size: 2000
+  deployment:
+    elements:
+      cinder-controller:
+      - @@controller@@
+      cinder-volume:
+      - @@compute-kvm@@
+      - @@controller@@
+- barclamp: neutron
+  attributes:
+    ml2_type_drivers:
+    - gre
+    - vxlan
+    - vlan
+  deployment:
+    elements:
+      neutron-server:
+      - @@controller@@
+      neutron-network:
+      - @@controller@@
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+  deployment:
+    elements:
+      nova-multi-controller:
+      - @@controller@@
+      nova-multi-compute-hyperv: []
+      nova-multi-compute-kvm:
+      - @@compute-kvm@@
+      nova-multi-compute-qemu: []
+      nova-multi-compute-xen: []
+- barclamp: horizon
+  attributes:
+  deployment:
+    elements:
+      horizon-server:
+      - @@controller@@
+- barclamp: heat
+  attributes:
+  deployment:
+    elements:
+      heat-server:
+      - @@controller@@
+- barclamp: ceilometer
+  attributes:
+  deployment:
+    elements:
+      ceilometer-agent:
+      - @@compute-kvm@@
+      ceilometer-agent-hyperv: []
+      ceilometer-cagent:
+      - @@controller@@
+      ceilometer-server:
+      - @@controller@@
+      ceilometer-swift-proxy-middleware:
+      - @@controller@@
+- barclamp: trove
+  attributes:
+  deployment:
+    elements:
+      trove-server:
+      - @@controller@@
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - @@controller@@
