@@ -2409,8 +2409,8 @@ function deploy_single_proposal()
             ;;
         manila)
             if ! iscloudver 6plus; then
-                # manila barclamp only works with SLE12
-                if ! iscloudver 5plus || [ -z "$want_sles12" ]; then
+                # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
+                if ! [[ "$cloudsource" == "develcloud5" ]] || [ -z "$want_sles12" ]; then
                     continue
                 fi
             fi
