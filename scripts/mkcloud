@@ -271,7 +271,7 @@ function cleanup()
     # accidental booting and freeing space
     if [ -d $vdisk_dir ]; then
         find -L $vdisk_dir -name "$cloud.*" -type b | \
-            safely xargs --no-run-if-empty lvremove --force
+            xargs --no-run-if-empty lvremove --force || complain 104 "lvremove failure"
     fi
 
     if [ -n "$wipe" ] ; then
