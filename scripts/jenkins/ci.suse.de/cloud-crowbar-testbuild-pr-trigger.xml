@@ -140,7 +140,7 @@ for repo in ${crowbar_repos[@]}; do
             github_pr_sha=${github_pr_opts[1]}
 
             # set status to pending
-            $ghs -r crowbar/$repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha
+            $ghs -r crowbar/$repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha -m "Build of crowbar-testbuild-pr queued (not started yet)"
         done
     done
 done</command>

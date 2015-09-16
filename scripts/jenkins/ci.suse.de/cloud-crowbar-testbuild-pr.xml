@@ -66,7 +66,7 @@ function crowbargating_trap()
 
 # this job is part of the "pending" state (as it is a prerequisite of the openstack-mkcloud job)
 # so we report pending now
-$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha
+$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha -m "Build of testpackage started"
 
 
 # the status of the build is set via crowbar-testbuild.py (hopefully)

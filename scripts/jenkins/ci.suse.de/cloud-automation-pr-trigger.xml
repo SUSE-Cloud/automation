@@ -87,13 +87,13 @@ for repo in ${cloud_repos[@]}; do
             #echo eval `$ghs -a get-pr-config -p $github_pr_sha` # not yet implemented
             ${automationrepo}/scripts/jenkins/jenkins-job-trigger \
                 openstack-mkcloud -p mode=standard \
-                label=openstack-mkcloud-SLE12 \
+                label=openstack-mkcloud \
                 github_pr=${repo}:${github_pr} \
                 mkcloudtarget=${mkcloudtarget} \
                 cloudsource="${cloudsource}" \
                 nodenumber=${nodenumber} \
                 networkingplugin=${networkingplugin}
-            $ghs -r $repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha
+            $ghs -r $repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha -m "Build of openstack-mkcloud queued for this PR (not started yet)"
         fi
     done
 done
