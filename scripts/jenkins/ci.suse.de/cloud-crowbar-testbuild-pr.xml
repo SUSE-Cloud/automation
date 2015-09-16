@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>crowbar_repo</name>
+          <description/>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>crowbar_github_pr</name>
+          <description/>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>openstack-trackupstream</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># THIS JOB JUST BUILD ONE CROWBAR PR AND HANDS IT OVER TO MKCLOUD (IMPLICITLY VIA THE crowbar-testbuild.py)
+# you can call it with a crowbar repo and a PR "&lt;pr_id&gt;:&lt;sha1&gt;:&lt;branch_name&gt;" as parameter and for this single
+# pr the crowbar-testbuild.py will be run no matter what its github status is
+#
+# The corresponding trigger job will (by default) only trigger builds for "unseen" PRs
+#  (unseen PR = no status reported from github-status on last commit of this PR)
+
+set -x
+
+export automationrepo=~/github.com/SUSE-Cloud/automation
+
+if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+  mkdir -p ${automationrepo}/scripts/jenkins
+  curl -o ${automationrepo}/scripts/jenkins/update_automation https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation
+  chmod a+x ${automationrepo}/scripts/jenkins/update_automation
+fi
+# fetch the latest automation updates
+${automationrepo}/scripts/jenkins/update_automation
+
+ghs=${automationrepo}/scripts/github-status/github-status.rb
+
+github_opts=(${crowbar_github_pr//:/ })
+github_pr_id=${github_opts[0]}
+github_pr_sha=${github_opts[1]}
+github_pr_branch=${github_opts[2]}
+
+function crowbargating_trap()
+{
+    $ghs -a set-status -s "failure" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha
+}
+
+# this job is part of the "pending" state (as it is a prerequisite of the openstack-mkcloud job)
+# so we report pending now
+$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha
+
+
+# the status of the build is set via crowbar-testbuild.py (hopefully)
+# as lots of failures happened lately, a trap was added to catch exceptions (all that we saw were worth an error report to the PR)
+trap "crowbargating_trap" ERR
+
+${automationrepo}/scripts/crowbar-testbuild.py $crowbar_repo $crowbar_github_pr
+
+$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha -m "Build of testpackage succeeded; openstack-mkcloud build pending"
+
+trap "-" ERR</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.3">
+      <template>#${BUILD_NUMBER} / ${ENV,var="crowbar_repo"} / ${ENV,var="crowbar_github_pr"}</template>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>
