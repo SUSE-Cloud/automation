@@ -96,7 +96,7 @@ def add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec):
     sh.sed('-i', '-e', 's,Url:.*,%define _default_patch_fuzz 2,',
            '-e', 's,%patch[0-36-9].*,,', spec)
     Command('/usr/lib/build/spec_add_patch')(spec, 'prtest.patch')
-    iosc('vc', '-m', " added PR test patch from %s#%s (%s)" % (
+    iosc('vc', '-m', "added PR test patch from %s#%s (%s)" % (
         repo, pr_id, head_sha1))
 
 
