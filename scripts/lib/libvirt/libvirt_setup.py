@@ -256,13 +256,12 @@ def vm_start(args):
         print("cleaning up {0}".format(vmname))
         dom = conn.lookupByName(vmname)
         domain_cleanup(dom)
-    except libvirt.libvirtError as e:
+    except libvirt.libvirtError:
         print("no domain for {0} active".format(vmname))
 
     xml = readfile(vmpath)
     print("defining VM from {0}".format(vmpath))
     conn.defineXML(xml)
-    if "dom" not in locals():
-        dom = conn.lookupByName(vmname)
+    dom = conn.lookupByName(vmname)
     print("booting {0} VM".format(vmname))
     dom.create()
