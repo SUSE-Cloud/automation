@@ -81,7 +81,12 @@ for repo in ${cloud_repos[@]}; do
         if [ "$github_pr_branch" = "master" ]; then
             # default config / may be overridden by tags from PR message
             mkcloudtarget=all_noreboot
-            cloudsource=develcloud5
+            # cct has cloud version related branches so default to latest version
+            if [ "$repo" = "SUSE-Cloud/cct" ]; then
+                cloudsource=develcloud6
+            else
+                cloudsource=develcloud5
+            fi
             nodenumber=2
             networkingplugin=openvswitch
             #echo eval `$ghs -a get-pr-config -p $github_pr_sha` # not yet implemented
