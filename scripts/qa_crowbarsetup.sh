@@ -3393,7 +3393,7 @@ function onadmin_teardown()
 
     # undo propsal create+commit
     local service
-    for service in nova glance ceph swift keystone database `horizon_barclamp`; do
+    for service in `horizon_barclamp` nova glance ceph swift keystone database; do
         crowbar "$service" proposal delete default
         crowbar "$service" delete default
     done
