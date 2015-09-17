@@ -50,7 +50,7 @@ debianinstall:
 	sudo apt-get -y install libxml-libxml-perl libjson-xs-perl python-libvirt
 
 suseinstall:
-	sudo zypper install perl-JSON-XS perl-libxml-perl libvirt-python
+	sudo zypper install perl-JSON-XS perl-libxml-perl python-pip libvirt-python
 
 genericinstall:
 	sudo pip install bashate flake8 flake8-import-order
