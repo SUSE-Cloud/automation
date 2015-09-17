@@ -762,7 +762,7 @@ function testsetup()
             source rally/bin/activate
             source $tmpdir/.openrc
             deployment=\$(rally deployment create --fromenv --name=\"$title\" | awk '/Using deployment:/{print \$3}')
-            rally verify start \"$type\" --tempest-log=$tmpdir/tempest.subunit.log --deployment=\$deployment
+            rally verify import --set-name=\"$type\" --file=$tmpdir/tempest.subunit.log --deployment=\$deployment
             rm -fr $tmpdir
         "
     fi
