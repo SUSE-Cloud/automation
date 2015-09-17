@@ -27,7 +27,7 @@ forcerebuild: trigger unseen, pending and failed PRs</description>
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>openstack-trackupstream</assignedNode>
+  <assignedNode>cloud-trigger</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -43,6 +43,8 @@ forcerebuild: trigger unseen, pending and failed PRs</description>
       <command>## THIS IS A TRIGGER JOB ONLY - NO WORKER CODE IN HERE - DO NOT DARE TO ADD SOME
 ## TRIGGER JOBS ARE MOVED TO A DEDICATED TRIGGER NODE
 ## THIS JOB IS ABOUT PRs FOR THE AUTOMATION AND CCT REPO
+[[ $NODE_NAME != 'cloud-trigger' ]] &amp;&amp; exit 99
+##
 
 set -x
 
@@ -81,7 +83,7 @@ for repo in ${cloud_repos[@]}; do
         if [ "$github_pr_branch" = "master" ]; then
             # default config / may be overridden by tags from PR message
             mkcloudtarget=all_noreboot
-            cloudsource=develcloud5
+            cloudsource=develcloud6
             nodenumber=2
             networkingplugin=openvswitch
             #echo eval `$ghs -a get-pr-config -p $github_pr_sha` # not yet implemented
