@@ -2589,7 +2589,8 @@ function oncontroller_testsetup()
     if iscloudver 6plus; then
         local mount_dir="/var/lib/Cloud-Testing"
         rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
-        zypper -n ar --refresh -f "$mount_dir" cloud-test
+        zypper -n ar --refresh -c -G -f "$mount_dir" cloud-test
+        zypper_refresh
 
         ensure_packages_installed python-novaclient-test
     fi
