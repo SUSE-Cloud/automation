@@ -37,9 +37,21 @@ CLOUDSRC = {
     'master':                'develcloud6'
 }
 
+MKCLOUD_HA_PARAMETERS = (
+    'nodenumber=4', 'hacloud=1',
+    'networkingplugin=vxlan',
+    'clusterconfig="data+services+network=2"')
+
+
+MKCLOUD_CEPH_PARAMETERS = (
+    'nodenumber=3', 'want_ceph=1',
+    'networkingplugin=linuxbridge')
+
 JOB_PARAMETERS = {
-    'barclamp-ceph': ('nodenumber=3', 'networkingplugin=linuxbridge'),
-    'barclamp-pacemaker': ('nodenumber=3', 'hacloud=1')
+    'crowbar-ha': MKCLOUD_HA_PARAMETERS,
+    'crowbar-ceph': MKCLOUD_CEPH_PARAMETERS,
+    'barclamp-ceph': MKCLOUD_CEPH_PARAMETERS,
+    'barclamp-pacemaker': MKCLOUD_HA_PARAMETERS
 }
 
 htdocs_dir = '/srv/www/htdocs/mkcloud'
