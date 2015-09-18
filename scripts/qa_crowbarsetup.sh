@@ -3095,6 +3095,8 @@ function reboot_controller_clusters()
     local cluster
     local machine
 
+    # for HA clusters, we have to reboot each node in the cluster one-by-one to
+    # avoid confusing pacemaker
     for cluster in data network services; do
         local clusternodes_var=$(echo clusternodes${cluster})
         for machine in ${!clusternodes_var}; do
