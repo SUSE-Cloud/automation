@@ -2097,7 +2097,7 @@ function custom_configuration()
             fi
 
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['cluster:$clusternamenetwork']"
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-server']" "['cluster:$clusternameservices']"
                 # neutron-network role is only available since Cloud5+Updates
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['cluster:$clusternamenetwork']" || \
                     proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['cluster:$clusternamenetwork']"
