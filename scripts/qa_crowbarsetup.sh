@@ -3070,6 +3070,42 @@ function onneutron_wait_for_neutron()
     fi
 }
 
+function power_cycle_and_wait()
+{
+    local machine=$1
+
+    ssh $machine "reboot"
+
+    # "crowbar machines list" returns FQDNs but "crowbar node_state status"
+    # only hostnames. Get hostname part of FQDN
+    m_hostname=$(echo $machine | cut -d '.' -f 1)
+    wait_for 400 1 'crowbar node_state status | grep -q -P "$m_hostname\s*Power"' \
+        "node $m_hostname to power cycle"
+}
+
+function complain_if_problem_on_reboot()
+{
+    if crowbar node_state status | grep ^d | grep -i "problem$"; then
+        complain 17 "Some nodes rebooted with state Problem."
+    fi
+}
+
+function reboot_controller_clusters()
+{
+    local cluster
+    local machine
+
+    for cluster in data network services; do
+        local clusternodes_var=$(echo clusternodes${cluster})
+        for machine in ${!clusternodes_var}; do
+            power_cycle_and_wait $machine
+            m_hostname=$(echo $machine | cut -d '.' -f 1)
+            wait_for 400 5 "crowbar node_state status | grep $m_hostname | grep -qiE \"ready$|problem$\"" "node $m_hostname to be online"
+        done
+        complain_if_problem_on_reboot
+    done
+}
+
 # reboot all cloud nodes (controller+compute+storage)
 # wait for nodes to go down and come up again
 function onadmin_rebootcloud()
@@ -3077,22 +3113,22 @@ function onadmin_rebootcloud()
     pre_hook $FUNCNAME
     get_novacontroller
 
-    local cmachines=$(get_all_discovered_nodes)
-    local m
-    for m in $cmachines ; do
-        ssh $m "reboot"
-        # "crowbar machines list" returns FQDNs but "crowbar node_state status"
-        # only hostnames. Get hostname part of FQDN
-        m_hostname=$(echo $m| cut -d '.' -f 1)
-        wait_for 400 1 'crowbar node_state status | grep -q -P "$m_hostname\s*Power"' \
-            "node $m_hostname to power off"
+    local machine
+
+    if [[ $hacloud = 1 ]] ; then
+        cluster_node_assignment
+        reboot_controller_clusters
+    else
+        unclustered_nodes=`get_all_discovered_nodes`
+    fi
+
+    for machine in $unclustered_nodes; do
+        power_cycle_and_wait $machine
     done
 
     wait_for 400 5 "! crowbar node_state status | grep ^d | grep -vqiE \"ready$|problem$\"" "nodes are back online"
 
-    if crowbar node_state status | grep ^d | grep -i "problem$"; then
-        complain 17 "Some nodes rebooted with state Problem."
-    fi
+    complain_if_problem_on_reboot
 
     onadmin_waitcloud
     onneutron_wait_for_neutron
