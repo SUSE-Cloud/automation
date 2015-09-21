@@ -498,24 +498,24 @@ function addcloud5pool()
 
 function addcloud6maintupdates()
 {
-    add_mount "SUSE-Cloud-6-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-6-Updates/' "$tftpboot_repos_dir/SUSE-Cloud-6-Updates/" "cloudmaintup"
+    add_mount "SUSE-OpenStack-Cloud-6-Updates" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Updates/' "$tftpboot_repos12_dir/SUSE-OpenStack-Cloud-6-Updates/" "cloudmaintup"
     #TBD
-    #add_mount "SUSE-Cloud-6-SLES11-SP4-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
+    #add_mount "SUSE-OpenStack-Cloud-6-SLES11-SP4-Updates" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
 }
 
 function addcloud6testupdates()
 {
     echo "FIXME: setup Cloud 6 test channels once available"
-    #add_mount "SUSE-Cloud-6-Updates-test" \
+    #add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
     #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/6:/x86_64/update/' \
-    #    "$tftpboot_repos_dir/SUSE-Cloud-6-Updates-test/" "cloudtup"
+    #    "$tftpboot_repos12_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
     #TBD
-    #add_mount "SUSE-Cloud-6-SLES11-SP4-Updates" $clouddata':/srv/nfs/repos/SUSE-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
+    #add_mount "SUSE-OpenStack-Cloud-6-SLES11-SP4-Updates" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
 }
 
 function addcloud6pool()
 {
-    add_mount "SUSE-Cloud-6-Pool" $clouddata':/srv/nfs/repos/SUSE-Cloud-6-Pool/' "$tftpboot_repos_dir/SUSE-Cloud-6-Pool/" "cloudpool"
+    add_mount "SUSE-OpenStack-Cloud-6-Pool" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Pool/' "$tftpboot_repos12_dir/SUSE-OpenStack-Cloud-6-Pool/" "cloudpool"
 }
 
 function addcloudrubygemrepo()
@@ -1032,7 +1032,7 @@ function onadmin_set_source_variables()
         susecloud6)
             CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP1:/Update:/Products:/Cloud6/images/iso/
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-6-official"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
         GM4|GM4+up)
             CLOUDSLE11DISTPATH=/install/SLE-11-SP3-Cloud-4-GM/
