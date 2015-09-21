@@ -2893,6 +2893,9 @@ function onadmin_testsetup()
             safely git clone https://gitlab.suse.de/ceph/qa-automation.git
             safely pushd qa-automation
         fi
+        if iscloudver 6plus; then
+            git checkout storage2
+        fi
 
         # write configuration files that we need
         cat > setup.cfg <<EOH
@@ -2910,7 +2913,7 @@ EOH
 
         set -- $yaml_mons
         first_mon_node=$1
-        ceph_version=$(ssh $first_mon_node "rpm -q --qf %{version} ceph")
+        ceph_version=$(ssh $first_mon_node "rpm -q --qf %{version} ceph | sed 's/+.*//g'")
 
         sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
         sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
