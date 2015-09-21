@@ -380,6 +380,9 @@ function onhost_deploy_image()
     local disk=${3:-$admin_node_disk}
 
     case $dist in
+    SLE12SP1)
+        image=SLES12-SP1.qcow2
+        ;;
     SLE12)
         image=SLES12.qcow2
         ;;
@@ -442,6 +445,7 @@ function prepare()
 {
     local image="SLE11"
     iscloudver 6plus && image="SLE12"
+    iscloudver 6plus && [ -n "$want_sles12sp1" ] && image="SLE12SP1"
 
     if ! [ -e ~/.ssh/id_dsa ]; then
         echo "Creating key for controlling our VMs..."
@@ -585,7 +589,9 @@ function setuplonelynodes()
         local lonely_disk
         lonely_disk="$vdisk_dir/${cloud}.node$i"
 
-        if [ -n "$want_sles12" ] ; then
+        if [ -n "$want_sles12sp1" ] ; then
+            onhost_deploy_image "lonely" "SLE12SP1" $lonely_disk
+        elif [ -n "$want_sles12" ] ; then
             onhost_deploy_image "lonely" "SLE12" $lonely_disk
         else
             onhost_deploy_image "lonely" "SLE11" $lonely_disk
@@ -1105,6 +1111,8 @@ Optional
         /root/.ssh/authorized_keys file and to provisioner barclamp
     want_sles12=1 (default 0)
         setup SLE12 compute nodes
+    want_sles12sp1=1 (default 0)
+        setup SLE12 SP1 admin server and nodes
     want_dvr=1 (default='')
         if DVR support should be turned on by neutron barclamp. Only works with openvswitch and vxlan.
     want_docker=1 (default='')
@@ -1258,6 +1266,10 @@ function sanity_checks()
         see bnc#928384 and CVE-2012-3411"
 
     if [[ $want_sles12 = 1 ]] && [[ $want_ceph = 1 ]] && [[ $nodenumber -lt 3 ]] ; then
+        complain 113 "Please increase number of nodes for this setup, minimal nodenumber=3"
+    fi
+
+    if [[ $want_sles12sp1 = 1 ]] && [[ $want_ceph = 1 ]] && [[ $nodenumber -lt 3 ]] ; then
         complain 113 "Please increase number of nodes for this setup, minimal nodenumber=3"
     fi
 
