@@ -3101,8 +3101,11 @@ function reboot_controller_clusters()
     for cluster in data network services; do
         local clusternodes_var=$(echo clusternodes${cluster})
         for machine in ${!clusternodes_var}; do
-            power_cycle_and_wait $machine
             m_hostname=$(echo $machine | cut -d '.' -f 1)
+            wait_for 400 5 \
+                "ssh $m_hostname 'if \`which drbdadm &> /dev/null\`; then drbd-overview; ! drbdadm dstate all | grep -v UpToDate/UpToDate | grep -q .; fi'" \
+                "drbd devices to be consistent on node $m_hostname"
+            power_cycle_and_wait $machine
             wait_for 400 5 "crowbar node_state status | grep $m_hostname | grep -qiE \"ready$|problem$\"" "node $m_hostname to be online"
         done
         complain_if_problem_on_reboot
