@@ -837,7 +837,9 @@ function onadmin_prepare_sles12sp1_repos()
 
 function onadmin_prepare_sles12plus_cloud_repos()
 {
-    onadmin_prepare_sles12plus_cloud_repo
+    if iscloudver 5; then
+        onadmin_prepare_sles12_cloud_compute_repo
+    fi
     onadmin_create_sles12plus_repos
 }
 
@@ -897,18 +899,10 @@ function onadmin_prepare_sles12sp1_repo()
     fi
 }
 
-function onadmin_prepare_sles12plus_cloud_repo()
+function onadmin_prepare_sles12_cloud_compute_repo()
 {
-    local sles12_compute_mount
-    if iscloudver 6plus; then
-        if [ -n "$want_sles12sp1" ] ; then
-            sles12_compute_mount="$tftpboot_repos12sp1_dir/Cloud"
-        else
-            sles12_compute_mount="$tftpboot_repos12_dir/Cloud"
-        fi
-    else
-        sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
-    fi
+    local sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
+
     if [ -n "$localreposdir_target" ]; then
         echo "FIXME: SLE12-Cloud-Compute not available from clouddata yet." >&2
         echo "Will manually download and rsync." >&2
@@ -953,6 +947,13 @@ function download_and_mount_sles()
 function onadmin_prepare_cloud_repos()
 {
     local targetdir="$tftpboot_repos_dir/Cloud/"
+    if iscloudver 6plus; then
+        if [ -n "$want_sles12sp1" ] ; then
+            targetdir="$tftpboot_repos12sp1_dir/Cloud"
+        else
+            targetdir="$tftpboot_repos12_dir/Cloud"
+        fi
+    fi
     mkdir -p ${targetdir}
 
     if [ -n "${localreposdir_target}" ]; then
