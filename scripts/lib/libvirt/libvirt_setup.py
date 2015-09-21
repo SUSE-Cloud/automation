@@ -87,7 +87,9 @@ def net_config(args):
     return get_config(values, fin)
 
 
-def compute_config(args, cpu_flags=cpuflags()):
+def compute_config(args, cpu_flags=cpuflags(), machine=None):
+    if not machine:
+        machine = "pc-0.14"
     fin = "{0}/compute-node.xml".format(TEMPLATE_DIR)
     libvirt_type = args.libvirttype
     alldevices = it.chain(it.chain(string.lowercase[1:]),
@@ -165,6 +167,7 @@ def compute_config(args, cpu_flags=cpuflags()):
         nodecounter=args.nodecounter,
         nodememory=nodememory,
         vcpus=args.vcpus,
+        machine=machine,
         cpuflags=cpu_flags,
         emulator=args.emulator,
         vdisk_dir=args.vdiskdir,
