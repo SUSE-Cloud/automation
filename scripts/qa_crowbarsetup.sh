@@ -1598,6 +1598,27 @@ function onadmin_waitcloud()
     done
 }
 
+function onadmin_post_allocate()
+{
+    pre_hook $FUNCNAME
+
+    if [[ $hacloud = 1 ]] ; then
+        # create glance user with fixed uid/gid so they can work on the same
+        # NFS share
+        cluster_node_assignment
+
+        local clusternodes_var=$(echo clusternodes${clusternameservices})
+        local node
+
+        for node in ${!clusternodes_var}; do
+            ssh $node "getent group glance >/dev/null ||\
+                groupadd -r glance -g 450"
+            ssh $node "getent passwd glance >/dev/null || \
+                useradd -r -g glance -u 450 -d /var/lib/glance -s /sbin/nologin -c \"OpenStack glance Daemon\" glance"
+        done
+    fi
+}
+
 function mac_to_nodename()
 {
     local mac=$1

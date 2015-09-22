@@ -733,6 +733,8 @@ function instnodes()
 
     echo "Waiting for the installation of the nodes ..."
     onadmin waitcloud
+    onadmin post_allocate
+
     return $?
 }
 
