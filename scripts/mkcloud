@@ -103,7 +103,7 @@ needcvol=1
 : ${cephvolume_hdd_size:=21}
 : ${controller_ceph_hdd_size:=25}
 if [ -n "$hacloud" ]; then
-    : ${drbd_hdd_size:=50}
+    : ${drbd_hdd_size:=15}
 else
     : ${drbd_hdd_size:=0}
 fi
@@ -1072,7 +1072,7 @@ Optional
         Set the memory in KB assigned to compute nodes
     compute_node_memory (default 2097152)
         Set the memory in KB assigned to compute nodes
-    drbd_hdd_size  (default 0, or 50 if hacloud is set)
+    drbd_hdd_size  (default 0, or 15 if hacloud is set)
         Set the size in GB of the DRBD data disks attached to the
         nodes in the cluster hosting the database and rabbitmq.
     drbd_database_size (default 5)
