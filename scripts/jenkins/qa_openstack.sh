@@ -325,6 +325,9 @@ if [ -e /etc/tempest/tempest.conf ]; then
         verbose=""
     fi
 
+    # install packages with tempest tests available as plugin
+    $zypper in openstack-manila-test
+
     pushd /var/lib/openstack-tempest-test/
     # check that test listing works - otherwise we run 0 tests and everything seems to be fine
     # because run_tempest.sh doesn't catch the error
