@@ -107,8 +107,8 @@ if [ -n "$hacloud" ]; then
 else
     : ${drbd_hdd_size:=0}
 fi
-: ${drbd_database_size:=20}
-: ${drbd_rabbitmq_size:=20}
+: ${drbd_database_size:=5}
+: ${drbd_rabbitmq_size:=5}
 # pvlist is filled below
 pvlist=
 next_pv_device=
@@ -1075,11 +1075,11 @@ Optional
     drbd_hdd_size  (default 0, or 50 if hacloud is set)
         Set the size in GB of the DRBD data disks attached to the
         nodes in the cluster hosting the database and rabbitmq.
-    drbd_database_size (default 20)
+    drbd_database_size (default 5)
         Set the size in GB of the DRBD LV to request the database barclamp
         to set up within the DRBD data disks attached to the nodes in the
         cluster hosting the database.
-    drbd_rabbitmq_size (default 20)
+    drbd_rabbitmq_size (default 5)
         Set the size in GB of the DRBD LV to request the rabbitmq barclamp
         to set up within the DRBD data disks attached to the nodes in the
         cluster hosting RabbitMQ.
