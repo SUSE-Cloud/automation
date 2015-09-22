@@ -1553,7 +1553,7 @@ EOF
 
 function sshtest()
 {
-    timeout 10 ssh -o NumberOfPasswordPrompts=0 -o StrictHostKeyChecking=no "$@"
+    timeout 10 ssh -o NumberOfPasswordPrompts=0 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
 }
 
 function ssh_password()
