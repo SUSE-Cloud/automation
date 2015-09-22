@@ -3053,8 +3053,11 @@ function onadmin_runupdate()
 
 function get_neutron_server_node()
 {
-    NEUTRON_SERVER=$(crowbar neutron proposal show default| rubyjsonparse "
-    puts j['deployment']['neutron']['elements']['neutron-server'][0];")
+    local element=$(crowbar neutron proposal show default | \
+        rubyjsonparse "
+                    puts j['deployment']['neutron']\
+                        ['elements']['neutron-server'][0];")
+    NEUTRON_SERVER=`resolve_element_to_hostname "$element"`
 }
 
 function onneutron_wait_for_neutron()
