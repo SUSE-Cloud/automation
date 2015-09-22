@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import os
 
 import libvirt_setup
 
@@ -34,7 +35,12 @@ def main():
 
     args = parser.parse_args()
 
-    print(libvirt_setup.compute_config(args))
+    # to workaround bnc#946020+bnc#946068 we use the 2.0 machine type
+    # if it is available
+    machine = "pc-i440fx-2.0"
+    if os.system("qemu-kvm -machine \? | grep -q "+machine) != 0:
+        machine = None
+    print(libvirt_setup.compute_config(args, libvirt_setup.cpuflags(), machine))
 
 if __name__ == "__main__":
     main()
