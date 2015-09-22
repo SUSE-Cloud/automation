@@ -1248,15 +1248,6 @@ function sanity_checks()
             ;;
     esac
 
-    # allow cloud instances to get responses from dnsmasq
-    # by preventing libvirt to tell it to bind only to the bridge interface
-    # see also PR #290
-    grep -q -- --bind-dynamic /usr/lib*/libvirt.so.0 \
-        && complain 111 "please do: sed -i.orig -e 's/--bind-dynamic/--bindnotthere/g' /usr/lib*/libvirt.so.0 ; rclibvirtd restart
-        This is needed for VMs to have DNS, but might have a security impact
-        if the machine has a global public IP
-        see bnc#928384 and CVE-2012-3411"
-
     if [[ $want_sles12 = 1 ]] && [[ $want_ceph = 1 ]] && [[ $nodenumber -lt 3 ]] ; then
         complain 113 "Please increase number of nodes for this setup, minimal nodenumber=3"
     fi

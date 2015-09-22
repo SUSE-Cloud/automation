@@ -8,6 +8,20 @@ function libvirt_modprobe_kvm()
     modprobe kvm-intel
 }
 
+# return true if the patch was not yet applied
+function workaround_bsc928384()
+{
+    # Allow cloud instances to get responses from dnsmasq
+    # by preventing libvirt to tell it to bind only to the bridge interface
+    # but bind to the IP-address instead.
+    # This is patching a part of libvirt that was added for CVE-2012-3411
+    # This change was needed after PR #290
+    # For further details see https://bugzilla.suse.com/show_bug.cgi?id=928384
+    grep -q -- --bind-dynamic /usr/lib*/libvirt.so.0 \
+        && sed -i.orig -e 's/--bind-dynamic/--bindnotthere/g' /usr/lib*/libvirt.so.0
+    return $?
+}
+
 # Returns success if the config was changed
 function libvirt_configure_libvirtd()
 {
@@ -19,6 +33,7 @@ function libvirt_configure_libvirtd()
     confset /etc/libvirt/libvirtd.conf listen_tcp 1            && changed=y
     confset /etc/libvirt/libvirtd.conf listen_addr '"0.0.0.0"' && changed=y
     confset /etc/libvirt/libvirtd.conf auth_tcp '"none"'       && changed=y
+    workaround_bsc928384 && changed=y
 
     [ -n "$changed" ]
 }
