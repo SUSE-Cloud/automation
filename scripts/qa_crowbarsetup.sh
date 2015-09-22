@@ -2791,8 +2791,10 @@ function oncontroller_testsetup()
         ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
         rand=$RANDOM
         ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
-        nova volume-detach "$instanceid" "$volumeid" ; sleep 10
-        nova volume-attach "$instanceid" "$volumeid" /dev/vdb ; sleep 10
+        nova volume-detach "$instanceid" "$volumeid"
+        wait_for 29 5 "nova volume-show $volumeid | grep 'status.*available'" "volume to become available after detach" "volumeattachret=55"
+        nova volume-attach "$instanceid" "$volumeid" /dev/vdb
+        wait_for 29 5 "nova volume-show $volumeid | grep 'status.*in-use'" "volume to become reattached" "volumeattachret=56"
         ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
         ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
         volumeresult="$volumecreateret & $volumeattachret"
