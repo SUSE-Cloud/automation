@@ -331,10 +331,13 @@ if [ -e /etc/tempest/tempest.conf ]; then
     if ! [ -d ".testrepository" ]; then
         testr init
     fi
-    testr list-tests >/dev/null
+
+    # FIXME(toabctl): Enable Manila tempest tests
+    # exclude manila tests for now (special image needed for running the tests)
+    testr list-tests | grep -v "^manila_tempest_tests" > tests_to_run
 
     test -x "$(type -p tempest-cleanup)" && tempest-cleanup --init-saved-state
-    ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
+    ./run_tempest.sh -N -t -s $verbose -- load-list tests_to_run 2>&1 | tee console.log
     [ ${PIPESTATUS[0]} == 0 ] || exit 4
     popd
 fi
