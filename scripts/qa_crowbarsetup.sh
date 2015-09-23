@@ -1630,10 +1630,7 @@ function onadmin_allocate()
     echo "Allocating nodes..."
     local m
     for m in `get_all_discovered_nodes` ; do
-        while knife node show -a state $m | grep discovered; do # workaround bnc#773041
-            crowbar machines allocate "$m"
-            sleep 10
-        done
+        crowbar machines allocate $m
         local i=$(echo $m | sed "s/.*-0\?\([^-\.]*\)\..*/\1/g")
         cat >> .ssh/config <<EOF
 Host node$i
