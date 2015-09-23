@@ -265,6 +265,8 @@ function wait_for()
     local waitfor=${4:-'unknown process'}
     local error_cmd=${5:-'exit 11'}
 
+    local original_xstatus=${-//[^x]/}
+    set +x
     echo "Waiting for: $waitfor"
     local n=$timecount
     while test $n -gt 0 && ! eval $condition
@@ -275,6 +277,7 @@ function wait_for()
     done
     echo
 
+    [[ $original_xstatus ]] && set -x
     if [ $n = 0 ] ; then
         echo "Error: Waiting for '$waitfor' timed out."
         echo "This check was used: $condition"
