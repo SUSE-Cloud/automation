@@ -43,6 +43,8 @@ export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
 export want_sles12
 [[ "$want_sles12" = 0 ]] && want_sles12=
+export want_sles12sp1
+[[ "$want_sles12sp1" = 0 ]] && want_sles12sp1=
 export nodes=
 export cinder_backend
 export cinder_netapp_storage_protocol
@@ -434,6 +436,11 @@ function export_tftpboot_repos_dir()
             tftpboot_repos12_dir=/srv/tftpboot/repos
         fi
     fi
+
+    if iscloudver 6plus; then
+        tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
+        tftpboot_repos12sp1_dir=/srv/tftpboot/suse-12.1/repos
+    fi
 }
 
 function addsp3testupdates()
@@ -451,6 +458,13 @@ function addsles12testupdates()
     add_mount "SLES12-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
         "$tftpboot_repos12_dir/SLES12-Updates-test/"
+}
+
+function addsles12sp1testupdates()
+{
+    add_mount "SLES12-SP1-Updates-test" \
+        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/' \
+        "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/"
 }
 
 function addcloud4maintupdates()
@@ -525,7 +539,11 @@ function addcloudrubygemrepo()
             zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
             ;;
         develcloud6|susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
-            zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12/Devel:Cloud:Shared:Rubygem.repo
+            if [ -n "$want_sles12sp1" ]; then
+                zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12_SP1/Devel:Cloud:Shared:Rubygem.repo
+            else
+                zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12/Devel:Cloud:Shared:Rubygem.repo
+            fi
             ;;
     esac
 }
@@ -556,6 +574,21 @@ function add_ha12_repo()
         # zypper addrepo on the admin node.
         add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
             "$tftpboot_repos12_dir/$repo"
+    done
+}
+
+function add_ha12sp1_repo()
+{
+    # TODO: add Updates-Test repo
+    local repo
+    for repo in SLE12-SP1-HA-{Pool,Updates}; do
+        if [ "$hacloud" == "2" -a "$repo" == "SLE12-SP1-HA-Updates-test" ] ; then
+            continue
+        fi
+        # Note no zypper alias parameter here since we don't want to
+        # zypper addrepo on the admin node.
+        add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+            "$tftpboot_repos12sp1_dir/$repo"
     done
 }
 
@@ -610,9 +643,12 @@ function get_crowbar_node()
     get_all_nodes | grep -v "^d" | head -n 1
 }
 
-function get_sles12_node()
+function get_sles12plus_node()
 {
-    knife search node "target_platform:suse-12.0" -a name | grep ^name: | cut -d : -f 2 | sort | tail -n 1 | sed 's/\s//g'
+    local target="suse-12.0"
+    [ -n "$want_sles12sp1" ] && target="suse-12.1"
+
+    knife search node "target_platform:$target" -a name | grep ^name: | cut -d : -f 2 | sort | tail -n 1 | sed 's/\s//g'
 }
 
 function get_docker_nodes()
@@ -790,14 +826,25 @@ function rsync_iso()
 function onadmin_prepare_sles12_repos()
 {
     onadmin_prepare_sles12_repo
-    onadmin_prepare_sles12_cloud_repo
-
     onadmin_prepare_sles12_other_repos
-    onadmin_create_sles12_repos
+}
+
+function onadmin_prepare_sles12sp1_repos()
+{
+    onadmin_prepare_sles12sp1_repo
+    onadmin_prepare_sles12sp1_other_repos
+}
+
+function onadmin_prepare_sles12plus_cloud_repos()
+{
+    if iscloudver 5; then
+        onadmin_prepare_sles12_cloud_compute_repo
+    fi
+    onadmin_create_sles12plus_repos
 }
 
 # create empty repository when there is none yet
-function onadmin_create_sles12_repos()
+function onadmin_create_sles12plus_repos()
 {
     ensure_packages_installed createrepo
 
@@ -814,10 +861,16 @@ function onadmin_create_sles12_repos()
         )
     fi
 
+    if [ -n "$want_sles12sp1" ] ; then
+        local targetdir="$tftpboot_repos12sp1_dir"
+    else
+        local targetdir="$tftpboot_repos12_dir"
+    fi
+
     for repo in ${sles12optionalrepolist[@]}; do
-        if [ ! -e "$tftpboot_repos12_dir/$repo/repodata/" ] ; then
-            mkdir -p "$tftpboot_repos12_dir/$repo"
-            safely createrepo "$tftpboot_repos12_dir/$repo"
+        if [ ! -e "$targetdir/$repo/repodata/" ] ; then
+            mkdir -p "$targetdir/$repo"
+            safely createrepo "$targetdir/$repo"
         fi
     done
 }
@@ -834,14 +887,22 @@ function onadmin_prepare_sles12_repo()
     fi
 }
 
-function onadmin_prepare_sles12_cloud_repo()
+function onadmin_prepare_sles12sp1_repo()
 {
-    local sles12_compute_mount
-    if iscloudver 6plus; then
-        sles12_compute_mount="$tftpboot_repos12_dir/Cloud"
-    else
-        sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
+    local sles12sp1_mount="$tftpboot_suse12sp1_dir/install"
+    add_mount "SLE-12-SP1-Server-LATEST/sle-12-x86_64" \
+        "$clouddata:/srv/nfs/suse-12.1/install" \
+        "$sles12sp1_mount"
+
+    if [ ! -d "$sles12sp1_mount/media.1" ] ; then
+        complain 34 "We do not have SLES12 SP1 install media - giving up"
     fi
+}
+
+function onadmin_prepare_sles12_cloud_compute_repo()
+{
+    local sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
+
     if [ -n "$localreposdir_target" ]; then
         echo "FIXME: SLE12-Cloud-Compute not available from clouddata yet." >&2
         echo "Will manually download and rsync." >&2
@@ -857,6 +918,14 @@ function onadmin_prepare_sles12_other_repos()
     for repo in SLES12-{Pool,Updates}; do
         add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
             "$tftpboot_repos12_dir/$repo"
+    done
+}
+
+function onadmin_prepare_sles12sp1_other_repos()
+{
+    for repo in SLES12-SP1-{Pool,Updates}; do
+        add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
+            "$tftpboot_repos12sp1_dir/$repo"
     done
 }
 
@@ -878,6 +947,13 @@ function download_and_mount_sles()
 function onadmin_prepare_cloud_repos()
 {
     local targetdir="$tftpboot_repos_dir/Cloud/"
+    if iscloudver 6plus; then
+        if [ -n "$want_sles12sp1" ] ; then
+            targetdir="$tftpboot_repos12sp1_dir/Cloud"
+        else
+            targetdir="$tftpboot_repos12_dir/Cloud"
+        fi
+    fi
     mkdir -p ${targetdir}
 
     if [ -n "${localreposdir_target}" ]; then
@@ -934,6 +1010,7 @@ function onadmin_prepare_cloud_repos()
                 ;;
             develcloud6)
                 addsles12testupdates
+                [ -n "$want_sles12sp1" ] && addsles12sp1testupdates
                 ;;
             susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
                 addcloud6testupdates
@@ -967,9 +1044,13 @@ function onadmin_prepare_cloud_repos()
 function onadmin_add_cloud_repo()
 {
     if iscloudver 6plus; then
-      local targetdir="$tftpboot_repos12_dir/Cloud/"
+        if [ -n "$want_sles12sp1" ] ; then
+            local targetdir="$tftpboot_repos12sp1_dir/Cloud/"
+        else
+            local targetdir="$tftpboot_repos12_dir/Cloud/"
+        fi
     else
-      local targetdir="$tftpboot_repos_dir/Cloud/"
+        local targetdir="$tftpboot_repos_dir/Cloud/"
     fi
 
     zypper rr Cloud
@@ -1001,7 +1082,11 @@ function do_set_repos_skip_checks()
 function onadmin_set_source_variables()
 {
     if iscloudver 6plus; then
-        suseversion=12.0
+        if [ -n "$want_sles12sp1" ] ; then
+            suseversion=12.1
+        else
+            suseversion=12.0
+        fi
     else
         suseversion=11.3
     fi
@@ -1071,6 +1156,12 @@ function onadmin_set_source_variables()
             slesrepolist="SLES12-Pool SLES12-Updates"
             slesversion=12
             slesdist=SLE_12
+            slesmilestone=GM
+        ;;
+        12.1)
+            slesrepolist="SLES12-SP1-Pool SLES12-SP1-Updates"
+            slesversion=12-SP1
+            slesdist=SLE_12_SP1
             slesmilestone=GM
         ;;
     esac
@@ -1157,11 +1248,16 @@ EOF
 
     if iscloudver 6plus ; then
         onadmin_prepare_sles12_repos
+        if [ -n "$want_sles12sp1" ] ; then
+            onadmin_prepare_sles12sp1_repos
+        fi
+        onadmin_prepare_sles12plus_cloud_repos
     else
         onadmin_prepare_sles_repos
 
         if iscloudver 5plus ; then
             onadmin_prepare_sles12_repos
+            onadmin_prepare_sles12plus_cloud_repos
         fi
     fi
 
@@ -1169,7 +1265,11 @@ EOF
         if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 3plus ; then
             add_ha_repo
         elif iscloudver 6plus; then
-            add_ha12_repo
+            if [ -n "$want_sles12sp1" ] ; then
+                add_ha12sp1_repo
+            else
+                add_ha12_repo
+            fi
         else
             complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
         fi
@@ -1496,6 +1596,7 @@ function onadmin_allocate()
     controller_os="suse-11.3"
     if iscloudver 6plus; then
         controller_os="suse-12.0"
+        [ -n "$want_sles12sp1" ] && controller_os="suse-12.1"
     fi
 
     echo "Setting first node to controller..."
@@ -1519,6 +1620,14 @@ function onadmin_allocate()
 
         echo "Setting last node to SLE12 compute..."
         set_node_role_and_platform ${nodes[1]} "compute" "suse-12.0"
+    fi
+
+    if [ -n "$deployceph" ] && iscloudver 6 ; then
+        local nodes=(
+            $(get_all_discovered_nodes | tail -n 2)
+        )
+        echo "Setting second last node to SLE12 Storage..."
+        set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
     fi
 
     if [ -n "$wanthyperv" ] ; then
@@ -1627,7 +1736,9 @@ function onadmin_crowbar_register()
     # call crowbar_register on the lonely node
     local inject
     local zyppercmd
-    if [ -n "$want_sles12" ] ; then
+    if [ -n "$want_sles12sp1" ] ; then
+        image="suse-12.1"
+    elif [ -n "$want_sles12" ] ; then
         image="suse-12.0"
     else
         image="suse-11.3"
@@ -1915,7 +2026,7 @@ function custom_configuration()
         sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/" $pfile
     fi
 
-    local sles12node=`get_sles12_node`
+    local sles12plusnode=`get_sles12plus_node`
 
     ### NOTE: ONLY USE proposal_{set,modify}_value functions below this line
     ###       The edited proposal will be read and imported at the end
@@ -2023,9 +2134,9 @@ function custom_configuration()
             fi
 
             if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
-                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-docker']" "['$sles12node']"
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-docker']" "['$sles12plusnode']"
                 # do not assign another compute role to this node
-                proposal_modify_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "['$sles12node']" "-="
+                proposal_modify_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "['$sles12plusnode']" "-="
             fi
 
             if [[ $nova_shared_instance_storage = 1 ]] ; then
@@ -2093,7 +2204,7 @@ function custom_configuration()
 
             # assign neutron-network role to one of SLE12 nodes
             if [ -n "$want_sles12" ] && [ -z "$hacloud" ] && [ -n "$want_neutronsles12" ] && iscloudver 5plus ; then
-                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sles12node']"
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sles12plusnode']"
             fi
 
             if [[ $hacloud = 1 ]] ; then
@@ -2212,7 +2323,6 @@ function custom_configuration()
                 fi
             fi
 
-
             if iscloudver 5plus ; then
                 if [ -d "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/" ]; then
                     repos="$autoyast['repos']['suse-12.0']"
@@ -2220,6 +2330,16 @@ function custom_configuration()
                     proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']" "{}"
                     proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']['url']" \
                         "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/'"
+                fi
+            fi
+
+            if iscloudver 6plus ; then
+                if [ -d "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" ]; then
+                    repos="$autoyast['repos']['suse-12.1']"
+                    proposal_set_value provisioner default "$repos" "{}"
+                    proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']" "{}"
+                    proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']['url']" \
+                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/'"
                 fi
             fi
 
@@ -3018,6 +3138,7 @@ function onadmin_addupdaterepo()
 
     local UPR=$tftpboot_repos_dir/Cloud-PTF
     iscloudver 6plus && UPR=$tftpboot_repos12_dir/PTF
+    iscloudver 6plus && [ -n "$want_sles12sp1" ] && UPR=$tftpboot_repos12sp1_dir/PTF
 
     mkdir -p $UPR
 
