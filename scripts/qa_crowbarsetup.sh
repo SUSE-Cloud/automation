@@ -1795,6 +1795,23 @@ function onadmin_crowbar_register()
 }
 
 
+function onadmin_get_proposalstatus()
+{
+    local proposal=$1
+    local proposaltype=$2
+    crowbar $proposal proposal show $proposaltype | \
+        rubyjsonparse "puts j['deployment']['$proposal']['crowbar-status']"
+}
+
+function onadmin_get_machinesstatus()
+{
+    local onenode
+    for onenode in `get_all_discovered_nodes` ; do
+        echo -n "$onenode "
+        crowbar machines show $onenode state
+    done
+}
+
 function waitnodes()
 {
     local n=800
