@@ -268,6 +268,8 @@ function wait_for()
     local original_xstatus=${-//[^x]/}
     set +x
     echo "Waiting for: $waitfor"
+    echo "  until this condition is true: $condition"
+    echo "  waiting $timecount cycles of $timesleep seconds = $(( $timecount * $timesleep )) seconds"
     local n=$timecount
     while test $n -gt 0 && ! eval $condition
     do
