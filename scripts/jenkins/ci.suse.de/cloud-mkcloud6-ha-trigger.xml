@@ -51,7 +51,6 @@ also trigger on publish of iso</description>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>cloudsource=develcloud6
 nodenumber=4
-want_sles12=
 mkcloudtarget=plain testsetup
 hacloud=1
 networkingmode=vxlan</properties>
