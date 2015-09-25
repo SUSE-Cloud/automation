@@ -671,6 +671,10 @@ function get_docker_nodes()
 
 function cluster_node_assignment()
 {
+    if [ -n "$clusternodesdata" ] ; then
+        # exit if node assignment is already done
+        return 0
+    fi
 
     local nodesavailable
     nodesavailable=`get_all_discovered_nodes`
