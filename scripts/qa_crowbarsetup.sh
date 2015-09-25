@@ -265,7 +265,11 @@ function wait_for()
     local waitfor=${4:-'unknown process'}
     local error_cmd=${5:-'exit 11'}
 
+    local original_xstatus=${-//[^x]/}
+    set +x
     echo "Waiting for: $waitfor"
+    echo "  until this condition is true: $condition"
+    echo "  waiting $timecount cycles of $timesleep seconds = $(( $timecount * $timesleep )) seconds"
     local n=$timecount
     while test $n -gt 0 && ! eval $condition
     do
@@ -275,6 +279,7 @@ function wait_for()
     done
     echo
 
+    [[ $original_xstatus ]] && set -x
     if [ $n = 0 ] ; then
         echo "Error: Waiting for '$waitfor' timed out."
         echo "This check was used: $condition"
@@ -1420,15 +1425,7 @@ function do_installcrowbar()
 EOF
         service smb restart
     fi
-    local n=300
-    while [ $n -gt 0 ] && [ ! -e /tmp/chef-ready ] ; do
-        n=$(expr $n - 1)
-        sleep 5;
-        echo -n .
-    done
-    if [ $n = 0 ] ; then
-        complain 83 "timed out waiting for chef-ready"
-    fi
+    wait_for 300 5 '[ -e /tmp/chef-ready ]' "waiting for chef-ready"
     rpm -Va crowbar\*
 
     # Make sure install finished correctly
@@ -1574,14 +1571,8 @@ function onadmin_allocate()
         curl http://$clouddata/git/automation/scripts/qa1_nodes_reboot | bash
     fi
 
-    echo "Waiting for nodes to come up..."
-    while test $(get_all_discovered_nodes | wc -l) -lt 1 ; do
-        sleep 10
-    done
-    echo "Found one node"
-    while test $(get_all_discovered_nodes | wc -l) -lt $nodenumber ; do
-        sleep 10
-    done
+    wait_for 50 10 'test $(get_all_discovered_nodes | wc -l) -ge 1' "first node to be discovered"
+    wait_for 100 10 '[[ $(get_all_discovered_nodes | wc -l) -ge $nodenumber ]]' "all nodes to be discovered"
     local n
     for n in `get_all_discovered_nodes` ; do
         wait_for 100 2 "knife node show -a state $n | grep discovered" \
@@ -1639,10 +1630,7 @@ function onadmin_allocate()
     echo "Allocating nodes..."
     local m
     for m in `get_all_discovered_nodes` ; do
-        while knife node show -a state $m | grep discovered; do # workaround bnc#773041
-            crowbar machines allocate "$m"
-            sleep 10
-        done
+        crowbar machines allocate $m
         local i=$(echo $m | sed "s/.*-0\?\([^-\.]*\)\..*/\1/g")
         cat >> .ssh/config <<EOF
 Host node$i
@@ -1790,59 +1778,49 @@ function onadmin_crowbar_register()
 }
 
 
+function onadmin_get_proposalstatus()
+{
+    local proposal=$1
+    local proposaltype=$2
+    crowbar $proposal proposal show $proposaltype | \
+        rubyjsonparse "puts j['deployment']['$proposal']['crowbar-status']"
+}
+
+function onadmin_get_machinesstatus()
+{
+    local onenode
+    for onenode in `get_all_discovered_nodes` ; do
+        echo -n "$onenode "
+        crowbar machines show $onenode state
+    done
+}
+
 function waitnodes()
 {
-    local n=800
     local mode=$1
     local proposal=$2
     local proposaltype=${3:-default}
     case "$mode" in
         nodes)
-            echo -n "Waiting for nodes to get ready: "
-            local i
-            for i in `get_all_discovered_nodes` ; do
-                local machinestatus=''
-                while test $n -gt 0 && ! test "x$machinestatus" = "xready" ; do
-                    machinestatus=`crowbar machines show $i state`
-                    if test "x$machinestatus" = "xfailed" -o "x$machinestatus" = "xnil" ; then
-                        complain 39 "machine status is failed. Exiting"
-                    fi
-                    sleep 5
-                    n=$((n-1))
-                    echo -n "."
-                done
-                n=500
-                while test $n -gt 0 && \
-                    ! netcat -w 3 -z $i 22 && \
-                    ! netcat -w 3 -z $i 3389
-                do
-                    sleep 1
-                    n=$(($n - 1))
-                    echo -n "."
-                done
-                echo "node $i ready"
+            local allnodesnumber=`get_all_discovered_nodes | wc -l`
+            wait_for 800 5 "[[ \`onadmin_get_machinesstatus | grep ' ready$' | wc -l\` -ge $allnodesnumber ]]" "nodes to get ready"
+
+            local onenode
+            for onenode in `get_all_discovered_nodes` ; do
+                wait_for 500 1 "netcat -w 3 -z $onenode 22 || netcat -w 3 -z $onenode 3389" "node $onenode to be acessible"
+                echo "node $onenode ready"
             done
             ;;
         proposal)
             echo -n "Waiting for proposal $proposal($proposaltype) to get successful: "
             local proposalstatus=''
-            while test $n -gt 0 && ! test "x$proposalstatus" = "xsuccess" ; do
-                proposalstatus=$(
-                    crowbar $proposal proposal show $proposaltype | \
-                    rubyjsonparse "
-                        puts j['deployment']['$proposal']['crowbar-status']"
-                )
-                if test "x$proposalstatus" = "xfailed" ; then
-                    tail -n 90 \
-                        /opt/dell/crowbar_framework/log/d*.log \
-                        /var/log/crowbar/chef-client/d*.log
-                    complain 40 "proposal $proposal failed. Exiting."
-                fi
-                sleep 5
-                n=$((n-1))
-                echo -n "."
-            done
-            echo
+            wait_for 800 1 "proposalstatus=\`onadmin_get_proposalstatus $proposal $proposaltype\` ; [[ \$proposalstatus =~ success|failed ]]" "proposal to be successful"
+            if [[ $proposalstatus = failed ]] ; then
+                tail -n 90 \
+                    /opt/dell/crowbar_framework/log/d*.log \
+                    /var/log/crowbar/chef-client/d*.log
+                complain 40 "proposal $proposal failed. Exiting."
+            fi
             echo "proposal $proposal successful"
             ;;
         *)
@@ -2854,43 +2832,13 @@ function oncontroller_testsetup()
     fi
     addfloatingip "$instanceid"
     vmip=$floatingip
-    n=1000 ; while test $n -gt 0 && ! ping -q -c 1 -w 1 $vmip >/dev/null ; do
-        n=$(expr $n - 1)
-        echo -n .
-        set +x
-    done
-    set -x
-    if [ $n = 0 ] ; then
-        complain 94 "testvm boot or net failed"
-    fi
-    echo -n "Waiting for the VM to come up: "
-    n=500 ; while test $n -gt 0 && ! netcat -z $vmip 22 ; do
-        sleep 1
-        n=$(($n - 1))
-        echo -n "."
-        set +x
-    done
-    set -x
-    if [ $n = 0 ] ; then
-        complain 96 "VM not accessible in reasonable time, exiting."
-    fi
+    wait_for 1000 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm booted and ping returned"
+    wait_for 500  1 "netcat -z $vmip 22" "ssh daemon on testvm is accessible"
 
     local ssh_target="$ssh_user@$vmip"
 
-    set +x
-    echo "Waiting for the SSH keys to be copied over"
-    i=0
-    MAX_RETRIES=40
-    while timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target "echo cloud" 2> /dev/null; [ $? != 0 ]
-    do
-        sleep 5  # wait before retry
-        if [ $i -gt $MAX_RETRIES ] ; then
-            complain 97 "VM not accessible via SSH, something could be wrong with SSH keys"
-        fi
-        i=$((i+1))
-        echo -n "."
-    done
-    set -x
+    wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
+
     if ! ssh $ssh_target curl $clouddata/test ; then
         complain 95 could not reach internet
     fi
