@@ -99,6 +99,14 @@ onadmin_help()
         Option to set variable MTU size or select Jumbo Frames for Admin and Storage nodes. 1500 is used if not set.
     want_raidtype (default='raid1')
         The type of RAID to create.
+    want_node_aliases=list of aliases to assign to nodes
+        Takes all provided aliases and assign them to available nodes successively.
+        Note that this doesn't take care about node assignment itself.
+        Examples:
+            want_node_aliases='controller=1:ceph=2:compute=1'
+              assigns the aliases to 4 nodes as controller, ceph1, ceph2, compute
+            want_node_aliases='data=1:services=2:storage=2'
+              assigns the aliases to 5 nodes as data, service1, service2, storage1, storage2
 EOUSAGE
 }
 
@@ -663,6 +671,7 @@ function get_docker_nodes()
 
 function cluster_node_assignment()
 {
+
     local nodesavailable
     nodesavailable=`get_all_discovered_nodes`
 
@@ -2499,7 +2508,7 @@ function prepare_proposals()
 function set_dashboard_alias()
 {
     get_horizon
-    set_node_alias `echo "$horizonserver" | cut -d . -f 1` dashboard controller
+    set_node_alias_and_role `echo "$horizonserver" | cut -d . -f 1` dashboard controller
 }
 
 function deploy_single_proposal()
@@ -2575,10 +2584,17 @@ function set_node_alias()
 {
     local node_name=$1
     local node_alias=$2
-    local intended_role=$3
     if [[ "${node_name}" != "${node_alias}" ]]; then
         crowbar machines rename ${node_name} ${node_alias}
     fi
+}
+
+function set_node_alias_and_role()
+{
+    local node_name=$1
+    local node_alias=$2
+    local intended_role=$3
+    set_node_alias $node_name $node_alias
     iscloudver 5plus && crowbar machines role $node_name $intended_role || :
 }
 
@@ -3490,6 +3506,87 @@ function onadmin_run_cct()
     fi
 
     return 0
+}
+
+# Set the aliases for nodes.
+# This is usually needed before batch step, so batch can refer
+# to node aliases in the scenario file.
+function onadmin_setup_aliases()
+{
+    local nodesavailable=`get_all_discovered_nodes`
+    local i
+
+    if [ -n "$want_node_aliases" ] ; then
+        # aliases provided explicitely, assign them successively to the nodes
+        # example: want_node_aliases=controller=1,swift=2,kvm=2
+
+        for aliases in ${want_node_aliases//,/ } ; do
+
+            # split off the number => group
+            node_alias=${aliases%=*}
+            # split off the group => number
+            number=${aliases#*=}
+
+            i=1
+            for node in `printf  "%s\n" $nodesavailable | head -n$number`; do
+                if [[ $i -gt 1 ]]; then
+                    node_alias="$node_alias$i"
+                fi
+                set_node_alias $node $node_alias
+                nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $node`
+                i=$((i+1))
+            done
+        done
+    else
+        # try to setup aliases automatically
+        if [[ $hacloud = 1 ]] ; then
+            # 1. HA
+            # use the logic from cluster_node_assignment and assign
+            #      dataN, serviceN, networkN aliases
+            # for nodes in clusternodesdata etc.
+
+            cluster_node_assignment
+
+            local i
+            for clustername in data network services ; do
+                eval "cluster=\$clusternodes$clustername"
+                i=1
+                for node in $cluster ; do
+                    set_node_alias $node "$clustername$i"
+                    i=$((i+1))
+                done
+            done
+            i=1
+            for node in $unclustered_nodes ; do
+                set_node_alias $node "compute$i"
+                i=$((i+1))
+            done
+        else
+            # 2. non-HA
+            # 1st node is controller by default (intended role is set by onadmin_allocate)
+            local controller=`get_all_discovered_nodes  | head -n1`
+            set_node_alias $controller "controller"
+            nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $controller`
+
+            i=1
+            # storage nodes (cephN or swiftN) will exist based on deployceph/deployswift value
+            if [ -n "$deployceph" ] || [ -n "$deployswift" ] ; then
+                for node in `get_all_discovered_nodes | grep -v $controller | head -n2` ; do
+                    set_node_alias $node "storage$i"
+                    nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $node`
+                    i=$((i+1))
+                done
+            fi
+
+            # Use computeN for the rest.
+            i=1
+            for node in $nodesavailable; do
+                set_node_alias $node "compute$i"
+                i=$((i+1))
+            done
+        fi
+    fi
+    return $?
 }
 
 function onadmin_batch()
