@@ -950,6 +950,9 @@ function onadmin_prepare_cloud_repos()
     if iscloudver 6plus; then
         if [ -n "$want_sles12sp1" ] ; then
             targetdir="$tftpboot_repos12sp1_dir/Cloud"
+            # make repochecker happy for now - TODO: drop
+            mkdir -p $targetdir /srv/tftpboot/suse-12.0/repos/Cloud/
+            mount --bind $targetdir /srv/tftpboot/suse-12.0/repos/Cloud/
         else
             targetdir="$tftpboot_repos12_dir/Cloud"
         fi
