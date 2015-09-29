@@ -1311,7 +1311,12 @@ EOF
 
     cd /tmp
 
-    local netfile="/opt/dell/chef/data_bags/crowbar/bc-template-network.json"
+    if iscloudver 6plus && [[ ! $cloudsource =~ ^M[1-5]$ ]]; then
+        local netfile="/opt/dell/chef/data_bags/crowbar/template-network.json"
+    else
+        local netfile="/opt/dell/chef/data_bags/crowbar/bc-template-network.json"
+    fi
+
     local netfilepatch=`basename $netfile`.patch
     [ -e ~/$netfilepatch ] && patch -p1 $netfile < ~/$netfilepatch
 
