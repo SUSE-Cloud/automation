@@ -466,6 +466,9 @@ function addsp3testupdates()
     add_mount "SLES11-SP3-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
+    [ -n "$hacloud" ] && add_mount "SLE11-HAE-SP3-Updates-test" \
+        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/' \
+        "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/"
 }
 
 function addsles12testupdates()
@@ -473,6 +476,9 @@ function addsles12testupdates()
     add_mount "SLES12-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
         "$tftpboot_repos12_dir/SLES12-Updates-test/"
+    [ -n "$hacloud" ] && add_mount "SLE12-HA-Updates-test" \
+        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/' \
+        "$tftpboot_repos12_dir/SLE12-HA-Updates-test/"
 }
 
 function addsles12sp1testupdates()
@@ -480,6 +486,9 @@ function addsles12sp1testupdates()
     add_mount "SLES12-SP1-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/"
+    [ -n "$hacloud" ] && add_mount "SLE12-SP1-HA-Updates-test" \
+        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
+        "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
 }
 
 function addcloud4maintupdates()
@@ -566,10 +575,7 @@ function addcloudrubygemrepo()
 function add_ha_repo()
 {
     local repo
-    for repo in SLE11-HAE-SP3-{Pool,Updates,Updates-test}; do
-        if [ "$hacloud" == "2" -a "$repo" == "SLE11-HAE-SP3-Updates-test" ] ; then
-            continue
-        fi
+    for repo in SLE11-HAE-SP3-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
         add_mount "$repo/sle-11-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
@@ -579,12 +585,8 @@ function add_ha_repo()
 
 function add_ha12_repo()
 {
-    # TODO: add Updates-Test repo
     local repo
     for repo in SLE12-HA-{Pool,Updates}; do
-        if [ "$hacloud" == "2" -a "$repo" == "SLE12-HA-Updates-test" ] ; then
-            continue
-        fi
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
         add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
@@ -594,12 +596,8 @@ function add_ha12_repo()
 
 function add_ha12sp1_repo()
 {
-    # TODO: add Updates-Test repo
     local repo
     for repo in SLE12-SP1-HA-{Pool,Updates}; do
-        if [ "$hacloud" == "2" -a "$repo" == "SLE12-SP1-HA-Updates-test" ] ; then
-            continue
-        fi
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
         add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
@@ -2322,6 +2320,12 @@ function custom_configuration()
                     "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/'"
             fi
 
+            if [ -d "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/" ]; then
+                proposal_set_value provisioner default "$repos['SLE11-HAE-SP3-Updates-test']" "{}"
+                proposal_set_value provisioner default "$repos['SLE11-HAE-SP3-Updates-test']['url']" \
+                    "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/'"
+            fi
+
             if [ -d "$tftpboot_repos_dir/SUSE-Cloud-4-Updates-test/" ]; then
                 proposal_set_value provisioner default "$repos['SUSE-Cloud-4-Updates-test']" "{}"
                 proposal_set_value provisioner default "$repos['SUSE-Cloud-4-Updates-test']['url']" \
@@ -2344,6 +2348,12 @@ function custom_configuration()
                         "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/'"
                 fi
 
+                if [ -d "$tftpboot_repos12_dir/SLE12-HA-Updates-test/" ]; then
+                    proposal_set_value provisioner default "$repos['SLE12-HA-Updates-test']" "{}"
+                    proposal_set_value provisioner default "$repos['SLE12-HA-Updates-test']['url']" \
+                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/'"
+                fi
+
                 if [ -d "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/" ]; then
                     proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']" "{}"
                     proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']['url']" \
@@ -2359,6 +2369,12 @@ function custom_configuration()
                     proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']" "{}"
                     proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']['url']" \
                         "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/'"
+                fi
+
+                if [ -d "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/" ]; then
+                    proposal_set_value provisioner default "$repos['SLE12-SP1-HA-Updates-test']" "{}"
+                    proposal_set_value provisioner default "$repos['SLE12-SP1-HA-Updates-test']['url']" \
+                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/'"
                 fi
             fi
 
