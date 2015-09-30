@@ -997,6 +997,23 @@ function onadmin_prepare_cloud_repos()
         complain 35 "We do not have cloud install media in ${targetdir} - giving up"
     fi
 
+    case "$cloudsource" in
+        GM4+up)
+            addcloud4maintupdates
+            ;;
+        GM5)
+            addcloud5pool
+            ;;
+        GM5+up)
+            addcloud5pool
+            addcloud5maintupdates
+            ;;
+        susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
+            addcloud6pool
+            addcloud6maintupdates
+            ;;
+    esac
+
     if [ -n "$TESTHEAD" ] ; then
         case "$cloudsource" in
             GM4)
@@ -1004,19 +1021,15 @@ function onadmin_prepare_cloud_repos()
                 ;;
             GM4+up)
                 addsp3testupdates
-                addcloud4maintupdates
                 addcloud4testupdates
                 ;;
             GM5)
-                addcloud5pool
                 addsp3testupdates
                 addsles12testupdates
                 ;;
             GM5+up)
-                addcloud5pool
                 addsp3testupdates
                 addsles12testupdates
-                addcloud5maintupdates
                 addcloud5testupdates
                 ;;
             develcloud4)
@@ -1027,32 +1040,14 @@ function onadmin_prepare_cloud_repos()
                 addsles12testupdates
                 ;;
             develcloud6)
-                #addsles12testupdates
+                addsles12testupdates
                 [ -n "$want_sles12sp1" ] && addsles12sp1testupdates
                 ;;
             susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
                 addcloud6testupdates
-                addcloud6pool
                 ;;
             *)
                 complain 26 "no TESTHEAD repos defined for cloudsource=$cloudsource"
-                ;;
-        esac
-    else
-        case "$cloudsource" in
-            GM4+up)
-                addcloud4maintupdates
-                ;;
-            GM5)
-                addcloud5pool
-                ;;
-            GM5+up)
-                addcloud5pool
-                addcloud5maintupdates
-                ;;
-            susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
-                addcloud6maintupdates
-                addcloud6pool
                 ;;
         esac
     fi
