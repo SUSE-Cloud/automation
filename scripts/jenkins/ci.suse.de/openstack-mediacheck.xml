@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project plugin="matrix-project@1.4.1">
+<matrix-project plugin="matrix-project@1.6">
   <actions/>
   <description>Checks if all dependencies of Cloud media are satisfied.</description>
   <logRotator class="hudson.tasks.LogRotator">
@@ -23,8 +23,12 @@
       <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.24">
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.0">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
       <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
@@ -46,6 +50,7 @@
         <string>Devel:Cloud:5</string>
         <string>Devel:Cloud:5/SLE_12</string>
         <string>Devel:Cloud:6/SLE_12</string>
+        <string>Devel:Cloud:6/SLE_12_SP1</string>
         <string>Devel:Cloud:Shared:11-SP3:Update</string>
         <string>SUSE:SLE-11-SP3:Update:Cloud5:Test</string>
       </values>
@@ -64,7 +69,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>(["Devel:Cloud:4", "Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12"].contains(project) || subproject == ":")</combinationFilter>
+  <combinationFilter>(["Devel:Cloud:4", "Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12", "Devel:Cloud:6/SLE_12_SP1" ].contains(project) || subproject == ":")</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># temporary, similar to update_automation (not that advanced)
