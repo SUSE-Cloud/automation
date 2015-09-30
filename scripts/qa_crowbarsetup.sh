@@ -107,6 +107,8 @@ onadmin_help()
               assigns the aliases to 4 nodes as controller, ceph1, ceph2, compute
             want_node_aliases='data=1:services=2:storage=2'
               assigns the aliases to 5 nodes as data, service1, service2, storage1, storage2
+    want_test_updates='' | 1  (default='')
+        add test update repositories
 EOUSAGE
 }
 
@@ -1017,7 +1019,7 @@ function onadmin_prepare_cloud_repos()
             ;;
     esac
 
-    if [ -n "$TESTHEAD" ] ; then
+    if [ -n "$want_test_updates" ] ; then
         case "$cloudsource" in
             GM4)
                 addsp3testupdates
@@ -1056,7 +1058,7 @@ function onadmin_prepare_cloud_repos()
                 [ -n "$want_sles12sp1" ] && addsles12sp1testupdates
                 ;;
             *)
-                complain 26 "no TESTHEAD repos defined for cloudsource=$cloudsource"
+                complain 26 "no test update repos defined for cloudsource=$cloudsource"
                 ;;
         esac
     fi
