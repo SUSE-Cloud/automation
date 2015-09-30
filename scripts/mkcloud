@@ -264,7 +264,7 @@ function cleanup()
     # 1. remove leftover partition mappings that are still open for this cloud
     local vol
     dmsetup ls | awk "/^$cloudvg-${cloud}\./ {print \$1}" | while read vol ; do
-        kpartx -d /dev/mapper/$vol
+        kpartx -dsv /dev/mapper/$vol
     done
 
     # 2. remove all previous volumes for that cloud; this helps preventing
@@ -399,7 +399,7 @@ function onhost_deploy_image()
         http://clouddata.cloud.suse.de/images/$image
 
     echo "Cloning $role node vdisk from $image ..."
-    safely qemu-img convert -p $image $disk
+    safely qemu-img convert -t none -p $image $disk
     popd
 
     # only resize if we have a 2nd partition with a rootfs
@@ -412,7 +412,7 @@ function onhost_deploy_image()
         safely fsck -y -f $bdev
         safely resize2fs $bdev
         sleep 1 # time for dev to become unused
-        safely kpartx -dv $disk
+        safely kpartx -dsv $disk
     fi
 }
 
