@@ -1832,10 +1832,6 @@ function waitnodes()
             complain 72 "waitnodes was called with wrong parameters"
             ;;
     esac
-
-    if [ $n == 0 ] ; then
-        complain 74 "Waiting timed out. Exiting."
-    fi
 }
 
 function get_proposal_filename()
