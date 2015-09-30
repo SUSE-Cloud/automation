@@ -479,6 +479,19 @@ function addsles12testupdates()
     [ -n "$hacloud" ] && add_mount "SLE12-HA-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/' \
         "$tftpboot_repos12_dir/SLE12-HA-Updates-test/"
+    if [ -n "$deployceph" ]; then
+        if iscloudver 5; then
+            add_mount "SUSE-Enterprise-Storage-1.0-Updates-test" \
+                $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
+                "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/"
+        elif iscloudver 6plus; then
+            echo "FIXME: setup Storage 2 test channels once available"
+            # TODO not there yet
+            #add_mount "SUSE-Enterprise-Storage-2-Updates-test" \
+            #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/' \
+            #    "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-2-Updates-test/"
+        fi
+    fi
 }
 
 function addsles12sp1testupdates()
@@ -2358,6 +2371,18 @@ function custom_configuration()
                     proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']" "{}"
                     proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']['url']" \
                         "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/'"
+                fi
+
+                if [ -d "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/" ]; then
+                    proposal_set_value provisioner default "$repos['SUSE-Enterprise-Storage-1.0-Updates-test']" "{}"
+                    proposal_set_value provisioner default "$repos['SUSE-Enterprise-Storage-1.0-Updates-test']['url']" \
+                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/'"
+                fi
+
+                if [ -d "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-2-Updates-test/" ]; then
+                    proposal_set_value provisioner default "$repos['SUSE-Enterprise-Storage-2-Updates-test']" "{}"
+                    proposal_set_value provisioner default "$repos['SUSE-Enterprise-Storage-2-Updates-test']['url']" \
+                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/'"
                 fi
             fi
 
