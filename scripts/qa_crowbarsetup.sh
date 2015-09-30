@@ -1008,7 +1008,10 @@ function onadmin_prepare_cloud_repos()
             addcloud5pool
             addcloud5maintupdates
             ;;
-        susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
+        GM6)
+            addcloud6pool
+            ;;
+        GM6+up)
             addcloud6pool
             addcloud6maintupdates
             ;;
@@ -1032,6 +1035,15 @@ function onadmin_prepare_cloud_repos()
                 addsles12testupdates
                 addcloud5testupdates
                 ;;
+            GM6)
+                addsles12testupdates
+                [ -n "$want_sles12sp1" ] && addsles12sp1testupdates
+                ;;
+            GM6+up)
+                addsles12testupdates
+                [ -n "$want_sles12sp1" ] && addsles12sp1testupdates
+                addcloud6testupdates
+                ;;
             develcloud4)
                 addsp3testupdates
                 ;;
@@ -1039,12 +1051,9 @@ function onadmin_prepare_cloud_repos()
                 addsp3testupdates
                 addsles12testupdates
                 ;;
-            develcloud6)
+            develcloud6|susecloud6|M?|Beta*|RC*|GMC*)
                 addsles12testupdates
                 [ -n "$want_sles12sp1" ] && addsles12sp1testupdates
-                ;;
-            susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
-                addcloud6testupdates
                 ;;
             *)
                 complain 26 "no TESTHEAD repos defined for cloudsource=$cloudsource"
