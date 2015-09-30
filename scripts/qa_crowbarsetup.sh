@@ -2313,43 +2313,38 @@ function custom_configuration()
 
             if iscloudver 5plus ; then
                 repos="$autoyast['repos']['suse-11.3']"
+                proposal_set_value provisioner default "$repos" "{}"
             fi
 
             if [ -d "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" ]; then
-                proposal_set_value provisioner default "$repos" "{}"
                 proposal_set_value provisioner default "$repos['SLES11-SP3-Updates-test']" "{}"
                 proposal_set_value provisioner default "$repos['SLES11-SP3-Updates-test']['url']" \
                     "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/'"
             fi
 
             if [ -d "$tftpboot_repos_dir/SUSE-Cloud-4-Updates-test/" ]; then
-                proposal_set_value provisioner default "$repos" "{}"
                 proposal_set_value provisioner default "$repos['SUSE-Cloud-4-Updates-test']" "{}"
                 proposal_set_value provisioner default "$repos['SUSE-Cloud-4-Updates-test']['url']" \
                     "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/'"
             fi
 
             if [ -d "$tftpboot_repos_dir/SUSE-Cloud-5-Updates-test/" ]; then
-                proposal_set_value provisioner default "$repos" "{}"
                 proposal_set_value provisioner default "$repos['SUSE-Cloud-5-Updates-test']" "{}"
                 proposal_set_value provisioner default "$repos['SUSE-Cloud-5-Updates-test']['url']" \
                     "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/'"
             fi
 
             if iscloudver 5plus ; then
+                repos="$autoyast['repos']['suse-12.0']"
+                proposal_set_value provisioner default "$repos" "{}"
+
                 if [ -d "$tftpboot_repos12_dir/SLES12-Updates-test/" ]; then
-                    repos="$autoyast['repos']['suse-12.0']"
-                    proposal_set_value provisioner default "$repos" "{}"
                     proposal_set_value provisioner default "$repos['SLES12-Updates-test']" "{}"
                     proposal_set_value provisioner default "$repos['SLES12-Updates-test']['url']" \
                         "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/'"
                 fi
-            fi
 
-            if iscloudver 5plus ; then
                 if [ -d "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/" ]; then
-                    repos="$autoyast['repos']['suse-12.0']"
-                    proposal_set_value provisioner default "$repos" "{}"
                     proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']" "{}"
                     proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']['url']" \
                         "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/'"
@@ -2357,9 +2352,10 @@ function custom_configuration()
             fi
 
             if iscloudver 6plus ; then
+                repos="$autoyast['repos']['suse-12.1']"
+                proposal_set_value provisioner default "$repos" "{}"
+
                 if [ -d "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" ]; then
-                    repos="$autoyast['repos']['suse-12.1']"
-                    proposal_set_value provisioner default "$repos" "{}"
                     proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']" "{}"
                     proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']['url']" \
                         "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/'"
