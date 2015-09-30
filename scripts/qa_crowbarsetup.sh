@@ -550,18 +550,14 @@ function addcloud5pool()
 function addcloud6maintupdates()
 {
     add_mount "SUSE-OpenStack-Cloud-6-Updates" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Updates/' "$tftpboot_repos12_dir/SUSE-OpenStack-Cloud-6-Updates/" "cloudmaintup"
-    #TBD
-    #add_mount "SUSE-OpenStack-Cloud-6-SLES11-SP4-Updates" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
 }
 
 function addcloud6testupdates()
 {
     echo "FIXME: setup Cloud 6 test channels once available"
     #add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
-    #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/6:/x86_64/update/' \
-    #    "$tftpboot_repos12_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
-    #TBD
-    #add_mount "SUSE-OpenStack-Cloud-6-SLES11-SP4-Updates" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-SLES11-SP3-Updates/' "$tftpboot_repos12_dir/SLES-11-SP4-Updates/"
+    #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
+    #    "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
 }
 
 function addcloud6pool()
@@ -2400,6 +2396,12 @@ function custom_configuration()
                     proposal_set_value provisioner default "$repos['SLE12-SP1-HA-Updates-test']" "{}"
                     proposal_set_value provisioner default "$repos['SLE12-SP1-HA-Updates-test']['url']" \
                         "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/'"
+                fi
+
+                if [ -d "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" ]; then
+                    proposal_set_value provisioner default "$repos['SUSE-OpenStack-Cloud-6-Updates-test']" "{}"
+                    proposal_set_value provisioner default "$repos['SUSE-OpenStack-Cloud-6-Updates-test']['url']" \
+                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/'"
                 fi
             fi
 
