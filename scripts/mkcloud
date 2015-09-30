@@ -937,6 +937,13 @@ function cct()
     return $?
 }
 
+function setup_aliases()
+{
+    onadmin setup_aliases
+    return $?
+}
+
+
 function batch()
 {
     onadmin batch $scenario
@@ -973,6 +980,7 @@ Steps:
     setupnodes:     create the nodes and let crowbar discover them
     instnodes:      allocate and install compute nodes
     proposal:       create and apply proposals for default setup
+    setup_aliases:  set aliases for the nodes (usually needed for batch step)
     batch:          build proposals from exported crowbar_batch YAML file
     setuplonelynodes: boot a number (defined by nodenumberlonelynodes) of non-crowbar registered nodes in the admin network
     crowbar_register: register a number (defined by nodenumberlonelynodes) of non-crowbar nodes with crowbar (setuplonelynodes needs to have run before)
@@ -1288,7 +1296,7 @@ allcmds="$step_aliases all all_noreboot instonly plain \
     rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd \
     cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients \
     setuplonelynodes crowbar_register createadminsnapshot \
-    restoreadminfromsnapshot cct steps batch"
+    restoreadminfromsnapshot cct steps batch setup_aliases"
 wantedcmds=$@
 
 function expand_steps()
