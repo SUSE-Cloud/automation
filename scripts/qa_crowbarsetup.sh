@@ -1014,7 +1014,7 @@ function onadmin_prepare_cloud_repos()
                 addsles12testupdates
                 ;;
             develcloud6)
-                addsles12testupdates
+                #addsles12testupdates
                 [ -n "$want_sles12sp1" ] && addsles12sp1testupdates
                 ;;
             susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
