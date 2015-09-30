@@ -475,7 +475,7 @@ function addsles12testupdates()
 {
     add_mount "SLES12-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
-        "$tftpboot_repos12_dir/SLES12-Updates-test/"
+        "$tftpboot_repos12_dir/SLES12-Updates-test/" "sles12gatup"
     [ -n "$hacloud" ] && add_mount "SLE12-HA-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/' \
         "$tftpboot_repos12_dir/SLE12-HA-Updates-test/"
@@ -485,7 +485,7 @@ function addsles12sp1testupdates()
 {
     add_mount "SLES12-SP1-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/' \
-        "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/"
+        "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     [ -n "$hacloud" ] && add_mount "SLE12-SP1-HA-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
