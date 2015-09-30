@@ -23,6 +23,15 @@ proposals:
     zones: 1
     keystone_delay_auth_decision: true
     allow_versions: true
+    middlewares:
+      crossdomain:
+        enabled: true
+      formpost:
+        enabled: true
+      staticweb:
+        enabled: true
+      tempurl:
+        enabled: true
   deployment:
     elements:
       swift-dispersion:
