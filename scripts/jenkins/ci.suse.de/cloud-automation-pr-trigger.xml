@@ -4,6 +4,9 @@
   <description>Triggers (only triggers) mkcloud gating builds for pull requests to the github repos SUSE-Cloud/automation and SUSE-Cloud/cct</description>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.0">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.ChoiceParameterDefinition>
@@ -81,7 +84,7 @@ for repo in ${cloud_repos[@]}; do
         if [ "$github_pr_branch" = "master" ]; then
             # default config / may be overridden by tags from PR message
             mkcloudtarget=all_noreboot
-            cloudsource=develcloud5
+            cloudsource=develcloud6
             nodenumber=2
             networkingplugin=openvswitch
             #echo eval `$ghs -a get-pr-config -p $github_pr_sha` # not yet implemented
