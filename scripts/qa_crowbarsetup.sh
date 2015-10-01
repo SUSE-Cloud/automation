@@ -1292,9 +1292,8 @@ EOF
         elif iscloudver 6plus; then
             if [ -n "$want_sles12sp1" ] ; then
                 add_ha12sp1_repo
-            else
-                add_ha12_repo
             fi
+            add_ha12_repo
         else
             complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
         fi
