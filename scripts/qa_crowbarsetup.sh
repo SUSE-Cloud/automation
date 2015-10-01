@@ -968,6 +968,10 @@ function onadmin_prepare_cloud_repos()
     if iscloudver 6plus; then
         if [ -n "$want_sles12sp1" ] ; then
             targetdir="$tftpboot_repos12sp1_dir/Cloud"
+            # Workaround SES2 madness: TODO drop:
+            for i in Cloud SUSE-OpenStack-Cloud-6-Pool SUSE-OpenStack-Cloud-6-Updates; do \
+                ln -s "$tftpboot_repos12sp1_dir/$i" "$tftpboot_repos12_dir/$i"
+            done
         else
             targetdir="$tftpboot_repos12_dir/Cloud"
         fi
