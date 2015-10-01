@@ -474,9 +474,15 @@ function addsp3testupdates()
 
 function addsles12testupdates()
 {
-    add_mount "SLES12-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
-        "$tftpboot_repos12_dir/SLES12-Updates-test/" "sles12gatup"
+    if iscloudver 5; then
+        add_mount "SLES12-Updates-test" \
+            $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
+            "$tftpboot_repos12_dir/SLES12-Updates-test/"
+    else
+        add_mount "SLES12-Updates-test" \
+            $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
+            "$tftpboot_repos12_dir/SLES12-Updates-test/" "sles12gatup"
+    fi
     [ -n "$hacloud" ] && add_mount "SLE12-HA-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/' \
         "$tftpboot_repos12_dir/SLE12-HA-Updates-test/"
