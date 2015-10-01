@@ -52,6 +52,7 @@ export cinder_netapp_login
 export cinder_netapp_password
 export localreposdir_target
 export want_ipmi=${want_ipmi:-false}
+[ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
 [ "$libvirt_type" = hyperv ] && export wanthyperv=1
 [ "$libvirt_type" = xen ] && export wantxenpv=1 # xenhvm is broken anyway
 
@@ -107,7 +108,7 @@ onadmin_help()
               assigns the aliases to 4 nodes as controller, ceph1, ceph2, compute
             want_node_aliases='data=1:services=2:storage=2'
               assigns the aliases to 5 nodes as data, service1, service2, storage1, storage2
-    want_test_updates='' | 1  (default='')
+    want_test_updates=0 | 1  (default=1 if TESTHEAD is set, 0 otherwise)
         add test update repositories
 EOUSAGE
 }
@@ -1026,7 +1027,7 @@ function onadmin_prepare_cloud_repos()
             ;;
     esac
 
-    if [ -n "$want_test_updates" ] ; then
+    if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
         case "$cloudsource" in
             GM4)
                 addsp3testupdates
