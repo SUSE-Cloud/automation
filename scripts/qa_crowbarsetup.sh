@@ -1718,7 +1718,7 @@ function check_node_resolvconf()
 function wait_node_ready()
 {
     local node=$1
-    wait_for 200 10 \
+    wait_for 300 10 \
         "netcat -w 3 -z $node 3389 || sshtest $node rpm -q yast2-core" \
         "node $node" "check_node_resolvconf $node; exit 12"
     echo "node $node ready"
