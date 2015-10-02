@@ -182,7 +182,13 @@ ghc=GHClientHandler.new(repository: options[:repository], branch: options[:branc
 
 def require_parameter(param, message)
   if param.to_s.empty?
-    raise message
+    abort message
+  end
+end
+
+def prevent_parameter(param, message)
+  unless param.to_s.empty?
+    abort message
   end
 end
 
@@ -216,6 +222,7 @@ case options[:action]
     puts ghc.get_pr_latest_sha(options[:pr])
   when 'set-status'
     valid_status = [:success, :failure, :error, :pending]
+    prevent_parameter(options[:pr], 'PullRequest ID should not be specified')
     require_parameter((valid_status & [options[:status]]).join(''),
                       "Unsupported status #{options[:status].to_s}.")
     require_parameter(options[:sha], 'Commit SHA1 sum undefined.')

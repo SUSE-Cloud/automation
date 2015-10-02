@@ -73,7 +73,7 @@ $ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $githu
 # as lots of failures happened lately, a trap was added to catch exceptions (all that we saw were worth an error report to the PR)
 trap "crowbargating_trap" ERR
 
-${automationrepo}/scripts/crowbar-testbuild.py $crowbar_repo $crowbar_github_pr
+${automationrepo}/scripts/crowbar-testbuild.py crowbar/$crowbar_repo $crowbar_github_pr
 
 $ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha -m "Build of testpackage succeeded; openstack-mkcloud build pending"
 
