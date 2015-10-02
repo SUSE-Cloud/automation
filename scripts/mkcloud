@@ -152,6 +152,7 @@ function show_environment()
     echo "-------------------------------"
     echo " cloudsource: $cloudsource"
     echo "    TESTHEAD: $TESTHEAD"
+    echo " want_test_updates: $want_test_updates"
     echo "    scenario: $scenario"
     echo "  nodenumber: $nodenumber"
     echo "     cloudpv: $cloudpv"
@@ -1059,7 +1060,7 @@ Optional
     upgrade_cloudsource='' (default='')
         set new cloudsource for upgrade process
     TESTHEAD='' | 1  (default='')
-        use Media from Devel:Cloud:Staging and add test update repositories (except for GM* targets)
+        use Media from Devel:Cloud:Staging (except for GM* targets)
     controller_raid_volumes (default=0)
         The number of disks to join into the software RAID for the controller node.
         Mimimal number to setup RAID is 2.
