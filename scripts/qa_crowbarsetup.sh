@@ -673,7 +673,7 @@ function get_crowbar_node()
 function get_sles12plus_node()
 {
     local target="suse-12.0"
-    [ iscloudver 6plus ] && target="suse-12.1"
+    iscloudver 6plus && target="suse-12.1"
 
     knife search node "target_platform:$target" -a name | grep ^name: | cut -d : -f 2 | sort | tail -n 1 | sed 's/\s//g'
 }
