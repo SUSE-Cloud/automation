@@ -71,7 +71,10 @@ also trigger on publish of iso</description>
               <properties>mode=basetest
 cloudsource=develcloud6
 nodenumber=2
-mkcloudtarget=all_noreboot</properties>
+mkcloudtarget=all_batch_noreboot
+scenario=cloud6-2nodes-default.yml
+want_node_aliases=controller=1,compute-kvm=1
+want_sles12sp1=1</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
