@@ -95,7 +95,7 @@ sub osc_build()
   my $OSC_BUILD_DIST = $ENV{OSC_BUILD_DIST};
   unless($OSC_BUILD_DIST) {
     my $prj = `cat .osc/_project`;
-    $OSC_BUILD_DIST = "SLE_12";
+    $OSC_BUILD_DIST = "SLE_12_SP1";
     $OSC_BUILD_DIST = "SLE_11_SP3" if ($prj =~ /Devel:Cloud:[1-5]/);
   }
 
