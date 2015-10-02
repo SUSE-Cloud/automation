@@ -49,10 +49,10 @@
         <string>Devel:Cloud:4</string>
         <string>Devel:Cloud:5</string>
         <string>Devel:Cloud:5/SLE_12</string>
-        <string>Devel:Cloud:6/SLE_12</string>
         <string>Devel:Cloud:6/SLE_12_SP1</string>
         <string>Devel:Cloud:Shared:11-SP3:Update</string>
         <string>SUSE:SLE-11-SP3:Update:Cloud5:Test</string>
+        <string>SUSE:SLE-12-SP1:Update:Products:Cloud6/SLE_12_SP1</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.TextAxis>
@@ -69,7 +69,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>(["Devel:Cloud:4", "Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12", "Devel:Cloud:6/SLE_12_SP1" ].contains(project) || subproject == ":")</combinationFilter>
+  <combinationFilter>(["Devel:Cloud:4", "Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12_SP1" ].contains(project) || subproject == ":")</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command># temporary, similar to update_automation (not that advanced)
