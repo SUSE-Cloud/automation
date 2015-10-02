@@ -2992,9 +2992,13 @@ function onadmin_testsetup()
         echo "ceph mons:" $cephmons
         echo "ceph osds:" $cephosds
         echo "ceph radosgw:" $cephradosgws
-        if [ -n "$cephradosgws" ] ; then
-            wantcephtestsuite=1
-            wantradosgwtest=1
+        # cephtestsuite is broken right now
+        # see http://bugzilla.suse.com/show_bug.cgi?id=948522
+        if ! iscloudver 6plus; then
+            if [ -n "$cephradosgws" ] ; then
+                wantcephtestsuite=1
+                wantradosgwtest=1
+            fi
         fi
     fi
 
