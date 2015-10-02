@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project plugin="matrix-project@1.4.1">
+<matrix-project plugin="matrix-project@1.6">
   <actions/>
   <description/>
   <logRotator class="hudson.tasks.LogRotator">
@@ -10,9 +10,6 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.14">
-      <optOut>false</optOut>
-    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
     <hudson.security.AuthorizationMatrixProperty>
       <permission>hudson.scm.SCM.Tag:aspiers</permission>
       <permission>hudson.scm.SCM.Tag:jdsn</permission>
@@ -67,6 +64,12 @@
       <permission>hudson.model.Run.Update:mjura</permission>
       <permission>hudson.model.Run.Update:bmwiedemann</permission>
     </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.0">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.15">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.4">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
       <maxConcurrentTotal>0</maxConcurrentTotal>
@@ -87,7 +90,7 @@
     <hudson.triggers.TimerTrigger>
       <spec>H 4 * * *</spec>
     </hudson.triggers.TimerTrigger>
-    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.37">
+    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.40">
       <spec>H/20 * * * *</spec>
       <entries>
         <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
@@ -114,6 +117,7 @@
       <values>
         <string>SLE_11_SP3-64-minimal</string>
         <string>SLE_12-64-minimal</string>
+        <string>SLE_12_SP1-64-minimal</string>
         <string>openSUSE-13.1-64-minimal</string>
         <string>openSUSE-13.2-64-minimal</string>
       </values>
@@ -135,7 +139,7 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>slave=="cloud-cleanvm"  &amp;&amp; ( ( openstack_version=="master"   &amp;&amp; (image=="openSUSE-13.2-64-minimal" || image=="SLE_12-64-minimal")) || ( openstack_version=="icehouse" &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) || ( openstack_version=="havana"   &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) || ( openstack_version=="juno"   &amp;&amp; (image=="openSUSE-13.2-64-minimal" || image=="SLE_11_SP3-64-minimal")) || ( openstack_version=="kilo"   &amp;&amp; (image=="openSUSE-13.2-64-minimal" || image=="SLE_12-64-minimal")) || ( openstack_version=="liberty"   &amp;&amp; (image=="openSUSE-13.2-64-minimal" || image=="SLE_12-64-minimal")))</combinationFilter>
+  <combinationFilter>slave=="cloud-cleanvm"  &amp;&amp; ( ( openstack_version=="master"   &amp;&amp; (image=="openSUSE-13.2-64-minimal" || image=="SLE_12-64-minimal")) || ( openstack_version=="icehouse" &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) || ( openstack_version=="havana"   &amp;&amp; (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal")) || ( openstack_version=="juno"   &amp;&amp; (image=="openSUSE-13.2-64-minimal" || image=="SLE_11_SP3-64-minimal")) || ( openstack_version=="kilo"   &amp;&amp; (image=="openSUSE-13.2-64-minimal" || image=="SLE_12-64-minimal")) || ( openstack_version=="liberty"   &amp;&amp; (image=="SLE_12_SP1-64-minimal" || image=="SLE_12-64-minimal" || image=="openSUSE-13.2-64-minimal")))</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>[ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation &amp;&amp; chmod a+x ~/bin/update_automation
@@ -194,7 +198,7 @@ fi</command>
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.6"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.7.2"/>
   </buildWrappers>
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
     <runSequentially>true</runSequentially>
