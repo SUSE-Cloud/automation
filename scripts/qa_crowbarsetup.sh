@@ -968,6 +968,10 @@ function onadmin_prepare_cloud_repos()
     if iscloudver 6plus; then
         if [ -n "$want_sles12sp1" ] ; then
             targetdir="$tftpboot_repos12sp1_dir/Cloud"
+            # Workaround SES2 madness: TODO drop:
+            for i in Cloud SUSE-OpenStack-Cloud-6-Pool SUSE-OpenStack-Cloud-6-Updates; do \
+                ln -s "$tftpboot_repos12sp1_dir/$i" "$tftpboot_repos12_dir/$i"
+            done
         else
             targetdir="$tftpboot_repos12_dir/Cloud"
         fi
@@ -1288,9 +1292,8 @@ EOF
         elif iscloudver 6plus; then
             if [ -n "$want_sles12sp1" ] ; then
                 add_ha12sp1_repo
-            else
-                add_ha12_repo
             fi
+            add_ha12_repo
         else
             complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
         fi
@@ -1714,7 +1717,7 @@ function check_node_resolvconf()
 function wait_node_ready()
 {
     local node=$1
-    wait_for 200 10 \
+    wait_for 300 10 \
         "netcat -w 3 -z $node 3389 || sshtest $node rpm -q yast2-core" \
         "node $node" "check_node_resolvconf $node; exit 12"
     echo "node $node ready"

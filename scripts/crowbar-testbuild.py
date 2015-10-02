@@ -136,9 +136,9 @@ def trigger_testbuild(repo, github_opts):
             iosc('co', IBS_MAPPING[pr_branch], pkg, '-c')
             os.chdir(pkg)
             add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec)
-            repository = 'SLE_12' if pr_branch == 'master' else 'SLE_11_SP3'
             iosc('build', '--root', buildroot, '--noverify', '--noservice',
-                 repository, 'x86_64', spec, _out=sys.stdout)
+                 'SLE_12_SP1' if pr_branch == 'master' else 'SLE_11_SP3',
+                 'x86_64', spec, _out=sys.stdout)
         except:
             build_failed = True
             print("Build failed: " + str(sys.exc_info()[0]))
