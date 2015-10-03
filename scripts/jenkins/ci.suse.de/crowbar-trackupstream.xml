@@ -28,6 +28,9 @@
       <permission>hudson.model.Run.Update:cloud</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.0">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
@@ -48,12 +51,15 @@
     <hudson.matrix.TextAxis>
       <name>component</name>
       <values>
+        <string>suse-cloud-upgrade</string>
         <string>crowbar</string>
         <string>crowbar-core</string>
         <string>crowbar-openstack</string>
         <string>crowbar-ceph</string>
         <string>crowbar-ha</string>
         <string>crowbar-hyperv</string>
+        <string>openstack-dashboard-theme-SUSE</string>
+        <string>release-notes-suse-openstack-cloud</string>
         <string>crowbar-barclamp-bios</string>
         <string>crowbar-barclamp-ceilometer</string>
         <string>crowbar-barclamp-ceph</string>
@@ -88,8 +94,6 @@
         <string>crowbar-barclamp-tempest</string>
         <string>crowbar-barclamp-trove</string>
         <string>crowbar-barclamp-updater</string>
-        <string>openstack-dashboard-theme-SUSE</string>
-        <string>suse-cloud-upgrade</string>
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
@@ -107,7 +111,7 @@
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>!(       ( ["Devel:Cloud:4:Staging"].contains(project)  &amp;&amp;       ["crowbar-barclamp-manila"].contains(component)     )   ||      (       ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project)  &amp;&amp;       ["openstack-dashboard-theme-SUSE", "crowbar-core", "crowbar-openstack", "crowbar-ha", "crowbar-hyperv", "crowbar-ceph"].contains(component)      )   ||     (        ( ! ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project) ) &amp;&amp;       component.startsWith('crowbar-barclamp-')     ) )</combinationFilter>
+  <combinationFilter>!(       ( ["Devel:Cloud:4:Staging"].contains(project)  &amp;&amp;       ["crowbar-barclamp-manila"].contains(component)     )   ||      (       ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project)  &amp;&amp;       ["openstack-dashboard-theme-SUSE", "crowbar-core", "crowbar-openstack", "crowbar-ha", "crowbar-hyperv", "crowbar-ceph", "release-notes-suse-openstack-cloud"].contains(component)      )   ||     (        ( ! ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project) ) &amp;&amp;       component.startsWith('crowbar-barclamp-')     ) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}
@@ -127,8 +131,8 @@ update_automation track-upstream-and-package.pl
 OBS_TYPE=${PROJECTSOURCE%%/*}
 OBS_PROJECT=${PROJECTSOURCE##*/}
 
-# default is SLE_12
-BUILD_DIST=SLE_12
+BUILD_DIST=SLE_12_SP1
+OSC_BUILD_ARCH=x86_64
 
 case $project in
   Devel:Cloud:[45]*)
@@ -140,11 +144,9 @@ esac
 case $OBS_TYPE in
   OBS) OSCAPI="https://api.opensuse.org"
        OSC_BUILD_DIST=$BUILD_DIST
-       OSC_BUILD_ARCH=x86_64
        ;;
   IBS) OSCAPI="https://api.suse.de"
        OSC_BUILD_DIST=$BUILD_DIST
-       OSC_BUILD_ARCH=x86_64
        ;;
   *)   echo "This jenkins instance only interacts with OBS or IBS."
        exit 1
