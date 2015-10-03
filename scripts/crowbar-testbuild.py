@@ -39,7 +39,7 @@ CLOUDSRC = {
 
 MKCLOUD_HA_PARAMETERS = (
     'nodenumber=4', 'hacloud=1',
-    'networkingplugin=vxlan',
+    'networkingmode=vxlan',
     'clusterconfig="data+services+network=2"')
 
 
