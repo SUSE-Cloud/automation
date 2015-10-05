@@ -111,16 +111,23 @@ def add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec):
         repo, pr_id, head_sha1))
 
 
+def prep_webroot(ptfdir):
+    webroot = os.path.join(htdocs_dir, ptfdir)
+    sh.rm('-rf', webroot)
+    sh.mkdir('-p', webroot)
+    return webroot
+
+
 def trigger_testbuild(repo, github_opts):
     pr_id, head_sha1, pr_branch = github_opts.split(':')
 
     olddir = os.getcwd()
+    ptfdir = repo + ':' + github_opts
+    webroot = prep_webroot(ptfdir)
     workdir = tempfile.mkdtemp()
     build_failed = False
-    try:
-        ptfdir = repo + ':' + github_opts
-        webroot = os.path.join(htdocs_dir, ptfdir)
 
+    try:
         if "crowbar" in repo:
             pkg = repo
         else:
@@ -128,8 +135,6 @@ def trigger_testbuild(repo, github_opts):
 
         spec = pkg + '.spec'
 
-        sh.rm('-rf', webroot)
-        sh.mkdir('-p', webroot)
         try:
             os.chdir(workdir)
             buildroot = os.path.join(os.getcwd(), 'BUILD')
