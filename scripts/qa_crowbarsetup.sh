@@ -622,12 +622,14 @@ function add_ha12sp1_repo()
 function add_suse_storage_repo()
 {
         local repo
-        for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
-            # Note no zypper alias parameter here since we don't want
-            # to zypper addrepo on the admin node.
-            add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
-                "$tftpboot_repos12_dir/$repo"
-        done
+        if iscloudver 5; then
+            for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
+                # Note no zypper alias parameter here since we don't want
+                # to zypper addrepo on the admin node.
+                add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+                    "$tftpboot_repos12_dir/$repo"
+            done
+        fi
         if iscloudver 6plus; then
             for repo in SUSE-Enterprise-Storage-2-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
