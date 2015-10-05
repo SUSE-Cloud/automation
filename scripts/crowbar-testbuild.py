@@ -61,15 +61,14 @@ iosc = functools.partial(
     Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
 
 
-def ghs_set_status(repo, pr_id, head_sha1, status):
+def ghs_set_status(repo, head_sha1, status):
     ghs = Command(
         os.path.abspath(
             os.path.join(os.path.dirname(sys.argv[0]),
                          'github-status/github-status.rb')))
 
     ghs('-r', 'crowbar/' + repo,
-        '-p', pr_id, '-c', head_sha1, '-a', 'set-status',
-        '-s', status)
+        '-c', head_sha1, '-a', 'set-status', '-s', status)
 
 
 def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
@@ -111,25 +110,26 @@ def add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec):
         repo, pr_id, head_sha1))
 
 
+def prep_webroot(ptfdir):
+    webroot = os.path.join(htdocs_dir, ptfdir)
+    sh.rm('-rf', webroot)
+    sh.mkdir('-p', webroot)
+    return webroot
+
+
 def trigger_testbuild(repo, github_opts):
     pr_id, head_sha1, pr_branch = github_opts.split(':')
 
     olddir = os.getcwd()
+    ptfdir = repo + ':' + github_opts
+    webroot = prep_webroot(ptfdir)
     workdir = tempfile.mkdtemp()
     build_failed = False
+
     try:
-        ptfdir = repo + ':' + github_opts
-        webroot = os.path.join(htdocs_dir, ptfdir)
-
-        if "crowbar" in repo:
-            pkg = repo
-        else:
-            pkg = "crowbar-" + repo
-
+        pkg = repo if repo.startswith("crowbar") else "crowbar-" + repo
         spec = pkg + '.spec'
 
-        sh.rm('-rf', webroot)
-        sh.mkdir('-p', webroot)
         try:
             os.chdir(workdir)
             buildroot = os.path.join(os.getcwd(), 'BUILD')
@@ -159,16 +159,23 @@ def trigger_testbuild(repo, github_opts):
             repo, github_opts, CLOUDSRC[pr_branch], ptfdir)
 
     ghs_set_status(
-        repo, pr_id, head_sha1,
+        repo, head_sha1,
         'failure' if build_failed else'pending')
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Test a crowbar/ PR')
-    parser.add_argument("repo", help='github ORG/REPO')
-    parser.add_argument('pr', help='github PR <PRID>:<SHA1>:<BRANCH>')
+def main():
+    parser = argparse.ArgumentParser(
+        description='Build a testpackage for a crowbar/ Pull Request')
+    parser.add_argument('repo', metavar='REPO',
+                        help='github repo in the crowbar organization')
+    parser.add_argument('pr', metavar='PRID:SHA1:BRANCH',
+                        help='github PR id, SHA1 head of PR, and '
+                             'destination branch of PR')
 
     args = parser.parse_args()
 
     trigger_testbuild(args.repo, args.pr)
-    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
