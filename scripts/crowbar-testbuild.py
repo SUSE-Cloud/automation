@@ -128,11 +128,7 @@ def trigger_testbuild(repo, github_opts):
     build_failed = False
 
     try:
-        if "crowbar" in repo:
-            pkg = repo
-        else:
-            pkg = "crowbar-" + repo
-
+        pkg = repo if repo.startswith("crowbar") else "crowbar-" + repo
         spec = pkg + '.spec'
 
         try:
