@@ -1649,10 +1649,12 @@ function onadmin_allocate()
 
     if [ -n "$deployceph" ] && iscloudver 6 ; then
         local nodes=(
-            $(get_all_discovered_nodes | tail -n 2)
+            $(get_all_discovered_nodes | head -n 3)
         )
-        echo "Setting second last node to SLE12 Storage..."
-        set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
+        for n in $(seq 1 2); do
+            echo "Setting node $(($n+1)) to SLE12 Storage..."
+            set_node_role_and_platform ${nodes[$n]} "storage" "suse-12.0"
+        done
     fi
 
     if [ -n "$wanthyperv" ] ; then
