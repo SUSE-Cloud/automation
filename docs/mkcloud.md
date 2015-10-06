@@ -133,7 +133,7 @@ To be able to deploy a complete Cloud with `mkcloud` and without network access,
 you need a couple of repositories locally synced.
 The repositories are `SUSE-Cloud-SLE-11-SP3-deps` and `SUSE-Cloud-5-devel`. Depending on your
 env variables, other repositories maybe needed.
-The repositories can be synced with a tool called `sync-repos` (which is a SUSE internal tool).
+The repositories can be synced with a tool called [`sync-repos`](https://github.com/SUSE/cloud/blob/master/dev-setup/sync-repos) (which is a SUSE internal tool).
 
 Here's an example script you can execute to create a full cloud:
 
