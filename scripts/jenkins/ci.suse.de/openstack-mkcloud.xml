@@ -239,9 +239,6 @@ case $cloudsource in
         ;;
     develcloud6)
         echo "FIXME: Not setting want_ldap=1 until hybrid backend is ported to Kilo"
-        # avoid bnc#945778
-        # this is fixed already I think (dirk - 2015-09-30)
-        # export UPDATEREPOS+=+http://clouddata.cloud.suse.de/repos/PTF/develcloud6/
         ;;
     *)
         [[ $nodenumber == 2 ]] &amp;&amp; export want_ldap=1
