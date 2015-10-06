@@ -622,12 +622,14 @@ function add_ha12sp1_repo()
 function add_suse_storage_repo()
 {
         local repo
-        for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
-            # Note no zypper alias parameter here since we don't want
-            # to zypper addrepo on the admin node.
-            add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
-                "$tftpboot_repos12_dir/$repo"
-        done
+        if iscloudver 5; then
+            for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
+                # Note no zypper alias parameter here since we don't want
+                # to zypper addrepo on the admin node.
+                add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+                    "$tftpboot_repos12_dir/$repo"
+            done
+        fi
         if iscloudver 6plus; then
             for repo in SUSE-Enterprise-Storage-2-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
@@ -1649,10 +1651,12 @@ function onadmin_allocate()
 
     if [ -n "$deployceph" ] && iscloudver 6 ; then
         local nodes=(
-            $(get_all_discovered_nodes | tail -n 2)
+            $(get_all_discovered_nodes | head -n 3)
         )
-        echo "Setting second last node to SLE12 Storage..."
-        set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
+        for n in $(seq 1 2); do
+            echo "Setting node $(($n+1)) to SLE12 Storage..."
+            set_node_role_and_platform ${nodes[$n]} "storage" "suse-12.0"
+        done
     fi
 
     if [ -n "$wanthyperv" ] ; then
