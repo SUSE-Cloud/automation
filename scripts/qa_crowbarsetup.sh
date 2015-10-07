@@ -2973,6 +2973,8 @@ function oncontroller_testsetup()
 
     # do volume tests for non-docker scenario only
     if [ -z "$want_docker" ] ; then
+        # Workaround SLE12SP1 regression
+        iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
         nova volume-list | grep -q available || nova volume-create 1
         wait_for 9 5 "nova volume-list | grep available" "volume to become available" "volumecreateret=1"
         volumeid=`nova volume-list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
