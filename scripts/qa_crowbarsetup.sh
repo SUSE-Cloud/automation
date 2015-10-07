@@ -1354,41 +1354,19 @@ EOF
         # production cloud has a /22 network
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.252.0 $netfile
     fi
-
-    local qa_network_json
     if [[ $cloud = qa1 ]] ; then
         # QA clouds have too few IP addrs, so smaller subnets are used
-        if iscloudver 6plus; then
-            qa_network_json="dual_sc6_private_vm_network"
-        else
-            qa_network_json="dual_private_vm_network"
-        fi
-        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/$qa_network_json
+        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/dual_private_vm_network
     fi
     if [[ $cloud = qa2 ]] ; then
         # QA clouds have too few IP addrs, so smaller subnets are used
-        if iscloudver 6plus; then
-            qa_network_json="cloud2_sc6_dual_private_vm_network"
-        else
-            qa_network_json="cloud2_dual_private_vm_network"
-        fi
-        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/$qa_network_json
+        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/cloud2_dual_private_vm_network
     fi
     if [[ $cloud = qa3 ]] ; then
-        if iscloudver 6plus; then
-            qa_network_json="cloud3_sc6_dual_private_vm_network"
-        else
-            qa_network_json="cloud3_dual_private_vm_network"
-        fi
-        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/$qa_network_json
+        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/cloud3_dual_private_vm_network
     fi
     if [[ $cloud = qa4 ]] ; then
-        if iscloudver 6plus; then
-            qa_network_json="cloud4_sc6_dual_private_vm_network"
-        else
-            qa_network_json="cloud4_dual_private_vm_network"
-        fi
-        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/$qa_network_json
+        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/cloud4_dual_private_vm_network
     fi
     if [[ $cloud = p2 ]] ; then
         /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.252.0 $netfile
