@@ -581,7 +581,7 @@ function setuplonelynodes()
     for i in $lonelynodeids; do
         local mac
         local i2=$( printf %02x $i )
-        mac="52:54:$i2:88:77:$i2"
+        mac="52:54:77:88:77:$i2"
         local lonely_node
         lonely_node=$cloud-node$i
         ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $mac 0 "$cephvolume" "$drbdvolume" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "1" > /tmp/$cloud-node$i.xml
@@ -697,7 +697,7 @@ function setupnodes()
     setuppublicnet
     for i in $allnodeids_without_lonely ; do
         i2=$( printf %02x $i )
-        macaddress="52:54:$i2:77:77:$i2"
+        macaddress="52:54:77:77:77:$i2"
 
         # transport drdb volume information to admin node (needed for proposal of data cluster)
         drbd_serial=""
