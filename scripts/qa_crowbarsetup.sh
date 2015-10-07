@@ -1418,6 +1418,14 @@ EOF
     # setup_base_images.rb is for SUSE Cloud 1.0 and update_nodes.rb is for 2.0
     sed -i -e 's/\(rootpw_hash.*\)""/\1"$2y$10$u5mQA7\/8YjHdutDPEMPtBeh\/w8Bq0wEGbxleUT4dO48dxgwyPD8D."/' /opt/dell/chef/cookbooks/provisioner/recipes/setup_base_images.rb /opt/dell/chef/cookbooks/provisioner/recipes/update_nodes.rb
 
+    if [[ $hacloud = 1 ]] ; then
+        f=/opt/dell/chef/cookbooks/nfs-server/templates/default/exports.erb
+        mkdir -p /var/lib/glance/images
+        if ! grep -q /var/lib/glance/images $f; then
+            echo "/var/lib/glance/images     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
+        fi
+    fi
+
     # exit code of the sed don't matter, so just:
     return 0
 }
@@ -1723,6 +1731,27 @@ function onadmin_waitcloud()
     for node in `get_all_discovered_nodes` ; do
         wait_node_ready $node
     done
+}
+
+function onadmin_post_allocate()
+{
+    pre_hook $FUNCNAME
+
+    if [[ $hacloud = 1 ]] ; then
+        # create glance user with fixed uid/gid so they can work on the same
+        # NFS share
+        cluster_node_assignment
+
+        local clusternodes_var=$(echo clusternodes${clusternameservices})
+        local node
+
+        for node in ${!clusternodes_var}; do
+            ssh $node "getent group glance >/dev/null ||\
+                groupadd -r glance -g 450"
+            ssh $node "getent passwd glance >/dev/null || \
+                useradd -r -g glance -u 450 -d /var/lib/glance -s /sbin/nologin -c \"OpenStack glance Daemon\" glance"
+        done
+    fi
 }
 
 function mac_to_nodename()
@@ -2052,6 +2081,19 @@ function custom_configuration()
     esac
 
     case "$proposal" in
+        nfs_client)
+            local adminfqdn=`get_crowbar_node`
+            proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']" "{}"
+            proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['nfs_server']" "'$adminfqdn'"
+            proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['export']" "'/var/lib/glance/images'"
+            proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['mount_path']" "'/var/lib/glance/images'"
+            proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['mount_options']" "['']"
+
+            local clusternodes_var=$(echo clusternodes${clusternameservices})
+            local nodes=`printf "\"%s\"," ${!clusternodes_var}`
+            nodes="[ ${nodes%,} ]"
+            proposal_set_value nfs_client $proposaltype "['deployment']['nfs_client']['elements']['nfs-client']" "$nodes"
+        ;;
         pacemaker)
             # multiple matches possible, so separate if's, to allow to configure mapped clusters
             if [[ $proposaltypemapped =~ .*data.* ]] ; then
@@ -2576,6 +2618,9 @@ function deploy_single_proposal()
 
     # proposal filter
     case "$proposal" in
+        nfs_client)
+            [[ $hacloud = 1 ]] || continue
+            ;;
         pacemaker)
             [[ $hacloud = 1 ]] || continue
             ;;
@@ -2603,6 +2648,11 @@ function deploy_single_proposal()
 
     # create proposal
     case "$proposal" in
+        nfs_client)
+            if [[ -n "$clusternodesservices" ]]; then
+                do_one_proposal "$proposal" "services_cluster"
+            fi
+            ;;
         pacemaker)
             local clustermapped
             for clustermapped in ${clusterconfig//:/ } ; do
@@ -2623,7 +2673,6 @@ function onadmin_proposal()
 
     prepare_proposals
 
-
     if [[ $hacloud = 1 ]] ; then
         cluster_node_assignment
     else
@@ -2632,7 +2681,7 @@ function onadmin_proposal()
     fi
 
     local proposal
-    for proposal in pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove tempest; do
+    for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove tempest; do
         deploy_single_proposal $proposal
     done
 
@@ -3431,7 +3480,7 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
     waitnodes nodes
 
     # reenable and apply the openstack propsals
-    for barclamp in pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat trove tempest; do
+    for barclamp in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat trove tempest; do
         applied_proposals=$(crowbar "$barclamp" proposal list )
         if test "$applied_proposals" == "No current proposals"; then
             continue
