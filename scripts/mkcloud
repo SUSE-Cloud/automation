@@ -400,7 +400,7 @@ function onhost_deploy_image()
         http://clouddata.cloud.suse.de/images/$image
 
     echo "Cloning $role node vdisk from $image ..."
-    safely qemu-img convert -t none -O raw -p $image $disk
+    safely qemu-img convert -t none -O raw -S 0 -p $image $disk
     popd
 
     # only resize if we have a 2nd partition with a rootfs
