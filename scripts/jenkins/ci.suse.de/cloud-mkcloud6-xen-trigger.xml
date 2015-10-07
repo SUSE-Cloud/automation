@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>trigger daily runs with xen</description>
+  <description>trigger daily runs with xen </description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
@@ -17,6 +17,9 @@
       <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.0">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
@@ -47,14 +50,14 @@
   <concurrentBuild>false</concurrentBuild>
   <builders/>
   <publishers>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.28">
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.29">
       <configs>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>mkcloudtarget=all_noreboot
 libvirt_type=xen
-cloudsource=develcloud5</properties>
+cloudsource=develcloud6</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
