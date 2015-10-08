@@ -50,6 +50,7 @@ function libvirt_start_daemon()
 function libvirt_net_start()
 {
     virsh net-start $cloud-admin
+    echo 1 > /proc/sys/net/ipv4/conf/$cloudbr/forwarding
     for dev in $cloudbr-nic $cloudbr ; do
         ip link set mtu 9000 dev $dev
     done
