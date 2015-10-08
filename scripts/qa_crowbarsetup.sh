@@ -3601,10 +3601,11 @@ function onadmin_run_cct()
         git clone https://github.com/SUSE-Cloud/cct.git $checkout_branch
         cd cct
         bundle install
+        local log_path="${artifacts_dir:=log}/cct.log"
         local IFS
         IFS='+'
         for test in $cct_tests; do
-            bundle exec rake $test
+            bundle exec rake $test cct_log_path=$log_path
             ret=$?
             if [[ $ret -gt 0 ]]; then
                 popd
