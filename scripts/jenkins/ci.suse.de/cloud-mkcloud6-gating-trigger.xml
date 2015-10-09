@@ -69,8 +69,14 @@ also trigger on publish of iso</description>
     <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.29">
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-          <configs class="empty-list"/>
-          <projects>cloud-mkcloud6-trigger</projects>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>cloudsource=develcloud6
+nodenumber=2
+mkcloudtarget=all_noreboot</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>openstack-mkcloud</projects>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
           <block>
@@ -103,7 +109,7 @@ also trigger on publish of iso</description>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>cloudsource=develcloud6
-nodenumber=3
+nodenumber=4
 networkingplugin=linuxbridge
 mkcloudtarget=all_noreboot</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
@@ -142,7 +148,10 @@ mkcloudtarget=all_noreboot</properties>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>do a submit</properties>
+              <properties>project=Devel:Cloud:6
+subproject=Staging
+packagefilter=crowbar python openstack patterns suse-cloud-upgrade
+starttime=1999955453</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-submit-project</projects>
