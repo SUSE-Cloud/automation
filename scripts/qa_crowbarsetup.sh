@@ -1295,7 +1295,7 @@ EOF
         add_suse_storage_repo
     fi
 
-    ensure_packages_installed rsync netcat
+    ensure_packages_installed rsync netcat git-core
 
     # setup cloud repos for tftpboot and zypper
     onadmin_prepare_cloud_repos
@@ -3078,7 +3078,6 @@ function onadmin_testsetup()
 
     cephret=0
     if [ -n "$deployceph" -a "$wantcephtestsuite" == 1 ] ; then
-        ensure_packages_installed git-core
 
         if test -d qa-automation; then
             pushd qa-automation
