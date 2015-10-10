@@ -67,6 +67,15 @@ function horizon_barclamp()
     fi
 }
 
+function nova_role_prefix()
+{
+    if ! iscloudver 6plus || iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]]; then
+        echo "nova-multi"
+    else
+        echo "nova"
+    fi
+}
+
 function complain() # {{{
 {
     local ex=$1; shift
@@ -682,7 +691,7 @@ function get_sles12plus_node()
 
 function get_docker_nodes()
 {
-    knife search node "roles:nova-multi-compute-docker" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'
+    knife search node "roles:`nova_role_prefix`-compute-docker" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'
 }
 
 function cluster_node_assignment()
@@ -2171,25 +2180,26 @@ function custom_configuration()
             proposal_set_value ceph default "['attributes']['ceph']['disk_mode']" "'all'"
         ;;
         nova)
+            local role_prefix=`nova_role_prefix`
             # custom nova config of libvirt
             proposal_set_value nova default "['attributes']['nova']['libvirt_type']" "'$libvirt_type'"
             proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
-            [[ "$libvirt_type" = xen ]] && sed -i -e "s/nova-multi-compute-$libvirt_type/nova-multi-compute-xxx/g; s/nova-multi-compute-kvm/nova-multi-compute-$libvirt_type/g; s/nova-multi-compute-xxx/nova-multi-compute-kvm/g" $pfile
+            [[ "$libvirt_type" = xen ]] && sed -i -e "s/${role_prefix}-compute-$libvirt_type/${role_prefix}-compute-xxx/g; s/${role_prefix}-compute-kvm/${role_prefix}-compute-$libvirt_type/g; s/${role_prefix}-compute-xxx/${role_prefix}-compute-kvm/g" $pfile
 
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-controller']" "['cluster:$clusternameservices']"
+                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-controller']" "['cluster:$clusternameservices']"
 
                 # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
                 local novanodes
                 novanodes=`printf "\"%s\"," $unclustered_nodes`
                 novanodes="[ ${novanodes%,} ]"
-                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "$novanodes"
+                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes"
             fi
 
             if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
-                proposal_set_value nova default "['deployment']['nova']['elements']['nova-multi-compute-docker']" "['$sles12plusnode']"
+                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-docker']" "['$sles12plusnode']"
                 # do not assign another compute role to this node
-                proposal_modify_value nova default "['deployment']['nova']['elements']['nova-multi-compute-${libvirt_type}']" "['$sles12plusnode']" "-="
+                proposal_modify_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "['$sles12plusnode']" "-="
             fi
 
             if [[ $nova_shared_instance_storage = 1 ]] ; then
@@ -2746,10 +2756,11 @@ function resolve_element_to_hostname()
 
 function get_novacontroller()
 {
+    local role_prefix=`nova_role_prefix`
     local element=`crowbar nova proposal show default | \
         rubyjsonparse "
                     puts j['deployment']['nova']\
-                        ['elements']['nova-multi-controller']"`
+                        ['elements']['$role_prefix-controller']"`
     novacontroller=`resolve_element_to_hostname "$element"`
 }
 

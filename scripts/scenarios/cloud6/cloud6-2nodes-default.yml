@@ -94,13 +94,13 @@ proposals:
     use_migration: true
   deployment:
     elements:
-      nova-multi-controller:
+      nova-controller:
       - @@controller@@
-      nova-multi-compute-hyperv: []
-      nova-multi-compute-kvm:
+      nova-compute-hyperv: []
+      nova-compute-kvm:
       - @@compute-kvm@@
-      nova-multi-compute-qemu: []
-      nova-multi-compute-xen: []
+      nova-compute-qemu: []
+      nova-compute-xen: []
 - barclamp: horizon
   attributes:
   deployment:
