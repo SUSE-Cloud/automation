@@ -190,11 +190,6 @@ Default: -t -s.</description>
           <triggerIfResult>allCases</triggerIfResult>
           <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
         </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>want_sles12sp1</name>
-          <description>Set to 1 if sle12sp1 nodes should be installed</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -240,7 +235,7 @@ case $cloudsource in
     GM4|GM4+up|GM5|GM5+up)
         echo "Not setting want_ldap=1"
         ;;
-    develcloud6)
+    develcloud6|susecloud6)
         echo "FIXME: Not setting want_ldap=1 until hybrid backend is ported to Kilo"
         ;;
     *)
@@ -396,16 +391,6 @@ fi
 
 
 case "$cloudsource" in
-  develcloud2.0)
-    project=Devel:Cloud:2.0
-    subproject=Staging
-    packagefilter="crowbar python openstack"
-  ;;
-  develcloud3)
-    project=Devel:Cloud:3
-    subproject=Staging
-    packagefilter="crowbar python openstack suse-cloud-upgrade"
-  ;;
   develcloud4)
     project=Devel:Cloud:4
     subproject=Staging
