@@ -1306,7 +1306,10 @@ EOF
     # we have potentially new update repos, patch again
     zypper_patch
 
+    # avoid kernel update
+    zypper al kernel-default
     zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
+    zypper rl kernel-default
 
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
         zypper --no-gpg-checks -n in -l -t pattern cloud_admin
