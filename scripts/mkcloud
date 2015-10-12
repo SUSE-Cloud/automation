@@ -606,7 +606,7 @@ function crowbar_register()
 {
     for i in $lonelynodeids; do
         local i2=$( printf %02x $i )
-        local mac="52:54:$i2:88:77:$i2"
+        local mac="52:54:77:88:77:$i2"
         sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register"
     done
 }
