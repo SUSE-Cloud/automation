@@ -274,6 +274,7 @@ function cleanup()
         find -L $vdisk_dir -name "$cloud.*" -type b | \
             xargs --no-run-if-empty lvremove --force || complain 104 "lvremove failure"
     fi
+    rm -f /etc/lvm/archive/*
 
     if [ -n "$wipe" ] ; then
         vgchange -an $cloudvg
