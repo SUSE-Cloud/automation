@@ -412,6 +412,7 @@ function onhost_deploy_image()
         local bdev=/dev/mapper/$part2
         safely fsck -y -f $bdev
         safely resize2fs $bdev
+        time udevadm settle
         sleep 1 # time for dev to become unused
         safely kpartx -dsv $disk
     fi
