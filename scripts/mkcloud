@@ -576,14 +576,17 @@ function confset()
     return 0
 }
 
+function macfunc()
+{
+    printf "52:54:77:77:77:%02x" $1
+}
+
 # bring up lonely_node(s) in the admin network
 function setuplonelynodes()
 {
     local i
     for i in $lonelynodeids; do
-        local mac
-        local i2=$( printf %02x $i )
-        mac="52:54:77:88:77:$i2"
+        local mac=$(macfunc $i)
         local lonely_node
         lonely_node=$cloud-node$i
         ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $mac 0 "$cephvolume" "$drbdvolume" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "1" > /tmp/$cloud-node$i.xml
@@ -607,8 +610,7 @@ function setuplonelynodes()
 function crowbar_register()
 {
     for i in $lonelynodeids; do
-        local i2=$( printf %02x $i )
-        local mac="52:54:77:88:77:$i2"
+        local mac=$(macfunc $i)
         sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register"
     done
 }
@@ -698,8 +700,7 @@ function setupnodes()
 {
     setuppublicnet
     for i in $allnodeids_without_lonely ; do
-        i2=$( printf %02x $i )
-        macaddress="52:54:77:77:77:$i2"
+        local macaddress=$(macfunc $i)
 
         # transport drdb volume information to admin node (needed for proposal of data cluster)
         drbd_serial=""
