@@ -1795,7 +1795,11 @@ function onadmin_crowbar_register()
     if iscloudver 6plus; then
         image="suse-12.1"
     else
-        image="suse-11.3"
+        if [ -n "$want_sles12" ] ; then
+            image="suse-12.0"
+        else
+            image="suse-11.3"
+        fi
         # install SuSEfirewall2 as it is called in crowbar_register
         #FIXME in barclamp-provisioner
         zyppercmd="zypper -n install SuSEfirewall2 &&"
