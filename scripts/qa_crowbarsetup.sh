@@ -1158,15 +1158,15 @@ function onadmin_set_source_variables()
             CLOUDSLE12DISTISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
-        M?|Beta*|RC*|GMC*|GM6|GM6+up)
+        M?|GMC*|GM6|GM6+up)
             cs=$cloudsource
             [[ $cs =~ GM6 ]] && cs=GM
-            CLOUDSLE12DISTPATH=/install/SLE-12-Cloud6-$cs/
+            CLOUDSLE12DISTPATH=/install/SLE-12-SP1-Cloud6-$cs/
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|susecloud5|GM4|GM5"
+            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|susecloud5|GM4|GM5|Mx|GM6"
         ;;
     esac
 
