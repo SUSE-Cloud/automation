@@ -3596,18 +3596,22 @@ function onadmin_run_cct()
         # - install cct dependencies
         ensure_packages_installed git-core gcc make ruby2.1-devel
 
-        local checkout_branch
+        local checkout_branch=master
         # checkout branches if needed, otherwise use master
         case "$cloudsource" in
             develcloud5|GM5|GM5+up)
-                checkout_branch="-b cloud5"
+                checkout_branch=cloud5
                 ;;
         esac
-        # - default checkout location for mkcloud based setups:
-        mkdir -p /root/github.com/SUSE-Cloud
-        pushd /root/github.com/SUSE-Cloud/
-        git clone https://github.com/SUSE-Cloud/cct.git $checkout_branch
+
+        # prepare CCT checkout
+        local ghdir=/root/github.com/SUSE-Cloud
+        mkdir -p $ghdir
+        pushd $ghdir
+        git clone https://github.com/SUSE-Cloud/cct.git -b $checkout_branch
         cd cct
+
+        # run cct
         bundle install
         local IFS
         IFS='+'
