@@ -451,8 +451,9 @@ function export_tftpboot_repos_dir()
     if iscloudver 5plus; then
         tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
 
-        if iscloudver 6plus || [[ ! $cloudsource =~ ^M[1-4]+$ ]]; then
-            tftpboot_repos_dir=$tftpboot_suse_dir/repos
+        if iscloudver 6plus || [[ ! $cloudsource =~ ^M[1-6]+$ ]]; then
+            tftpboot_suse12_dir=/srv/tftpboot/suse-12.0/x86_64
+            tftpboot_repos_dir=$tftpboot_suse_dir/x86_64/repos
             tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
         else
             # Cloud 5 M1 to M4 use the old-style paths
@@ -461,8 +462,14 @@ function export_tftpboot_repos_dir()
     fi
 
     if iscloudver 6plus; then
-        tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos12sp1_dir=/srv/tftpboot/suse-12.1/repos
+        if [[ ! $cloudsource =~ ^M[1-6]+$ ]]; then
+            tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1/x86_64
+            tftpboot_repos12sp1_dir=/srv/tftpboot/suse-12.1/x86_64/repos
+        else
+            # Multiple architecture support only after Cloud 6 M6
+            tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1/
+            tftpboot_repos12sp1_dir=/srv/tftpboot/suse-12.1/repos
+        fi
     fi
 }
 
