@@ -3590,6 +3590,7 @@ function onadmin_qa_test()
 
 function onadmin_run_cct()
 {
+    local ret=0
     if iscloudver 5plus && [[ -n $cct_tests ]]; then
         addcloudrubygemrepo
         # - install cct dependencies
@@ -3613,15 +3614,12 @@ function onadmin_run_cct()
         for test in $cct_tests; do
             bundle exec rake $test
             ret=$?
-            if [[ $ret -gt 0 ]]; then
-                popd
-                return $ret
-            fi
+            [[ $ret != 0 ]] && break
         done
         popd
     fi
 
-    return 0
+    return $ret
 }
 
 # Set the aliases for nodes.
