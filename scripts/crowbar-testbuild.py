@@ -44,7 +44,7 @@ MKCLOUD_HA_PARAMETERS = (
 
 
 MKCLOUD_CEPH_PARAMETERS = (
-    'nodenumber=3', 'want_ceph=1',
+    'nodenumber=4', 'want_ceph=1',
     'networkingplugin=linuxbridge')
 
 JOB_PARAMETERS = {
