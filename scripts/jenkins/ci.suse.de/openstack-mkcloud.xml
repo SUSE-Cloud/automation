@@ -319,6 +319,8 @@ if [[ $github_pr ]] ; then
         echo "we merge to always test what will end up in master"
         git merge master -m temp-merge-commit
         popd
+    elif [[ "$github_pr_repo" = "SUSE-Cloud/cct" ]]; then
+        export want_cct_pr=$github_pr_id
     fi
 
     $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha
