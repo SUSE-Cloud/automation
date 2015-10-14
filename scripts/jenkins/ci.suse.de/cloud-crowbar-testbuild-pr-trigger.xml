@@ -4,6 +4,9 @@
   <description>Triggers (only triggers) mkcloud gating builds for pull requests to the github crowbar repos</description>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.ChoiceParameterDefinition>
@@ -25,9 +28,6 @@ forcerebuild: trigger unseen, pending and failed PRs</description>
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.0">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-trigger</assignedNode>

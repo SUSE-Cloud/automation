@@ -4,7 +4,7 @@
   <description>Triggers (only triggers) mkcloud gating builds for pull requests to the github repos SUSE-Cloud/automation and SUSE-Cloud/cct</description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.0">
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
     <hudson.model.ParametersDefinitionProperty>

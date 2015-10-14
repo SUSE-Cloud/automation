@@ -21,7 +21,7 @@ Only packages that built successfully are submitted.&#13;
       <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.0">
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
     <hudson.model.ParametersDefinitionProperty>
