@@ -269,11 +269,10 @@ if [ ! -z "$UPDATEREPOS" ] ; then
 fi
 
 
-
+# automation bootstrapping
 if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
-  mkdir -p ${automationrepo}/scripts/jenkins
-  curl -o ${automationrepo}/scripts/jenkins/update_automation https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation
-  chmod a+x ${automationrepo}/scripts/jenkins/update_automation
+  rm -rf ${automationrepo}
+  curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
 fi
 # fetch the latest automation updates
 ${automationrepo}/scripts/jenkins/update_automation #NO PARAMETERS HERE ANY MORE!!!
