@@ -3,7 +3,6 @@
   <actions/>
   <description>This job submits packages from the "staging" subproject of an [IO]BS project to the main project.&#13;
 Only packages that built successfully are submitted.&#13;
-&lt;br /&gt;&lt;br /&gt;&#13;
 &#13;
 </description>
   <keepDependencies>false</keepDependencies>
