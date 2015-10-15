@@ -2341,7 +2341,6 @@ function custom_configuration()
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
             fi
 
-            proposal_set_value provisioner default "['attributes']['provisioner']['use_serial_console']" "true"
             proposal_set_value provisioner default "['attributes']['provisioner']['suse']" "{}"
             proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']" "{}"
             proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']['repos']" "{}"
