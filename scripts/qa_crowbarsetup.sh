@@ -3590,38 +3590,49 @@ function onadmin_qa_test()
 
 function onadmin_run_cct()
 {
+    local ret=0
     if iscloudver 5plus && [[ -n $cct_tests ]]; then
         addcloudrubygemrepo
         # - install cct dependencies
         ensure_packages_installed git-core gcc make ruby2.1-devel
 
-        local checkout_branch
+        local checkout_branch=master
         # checkout branches if needed, otherwise use master
         case "$cloudsource" in
             develcloud5|GM5|GM5+up)
-                checkout_branch="-b cloud5"
+                checkout_branch=cloud5
                 ;;
         esac
-        # - default checkout location for mkcloud based setups:
-        mkdir -p /root/github.com/SUSE-Cloud
-        pushd /root/github.com/SUSE-Cloud/
-        git clone https://github.com/SUSE-Cloud/cct.git $checkout_branch
+
+        # prepare CCT checkout
+        local ghdir=/root/github.com/SUSE-Cloud
+        mkdir -p $ghdir
+        pushd $ghdir
+        git clone https://github.com/SUSE-Cloud/cct.git -b $checkout_branch
         cd cct
+        if [[ $want_cct_pr ]] ; then
+            git config --get-all remote.origin.fetch | grep -q pull || \
+                git config --add remote.origin.fetch "+refs/pull/*/head:refs/remotes/origin/pr/*"
+            safely git fetch origin
+            # checkout the PR
+            safely git checkout -t origin/pr/$want_cct_pr
+            # merge the PR to always test what will end up in $checkout_branch
+            safely git merge $checkout_branch -m temp-merge-commit
+        fi
+
+        # run cct
         bundle install
         local IFS
         IFS='+'
         for test in $cct_tests; do
             bundle exec rake $test
             ret=$?
-            if [[ $ret -gt 0 ]]; then
-                popd
-                return $ret
-            fi
+            [[ $ret != 0 ]] && break
         done
         popd
     fi
 
-    return 0
+    return $ret
 }
 
 # Set the aliases for nodes.
