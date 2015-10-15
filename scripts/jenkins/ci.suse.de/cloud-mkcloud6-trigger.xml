@@ -25,7 +25,7 @@ also trigger on publish of iso</description>
       <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.0">
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -44,25 +44,6 @@ also trigger on publish of iso</description>
       <spec>H 19 */2 * *
 </spec>
     </hudson.triggers.TimerTrigger>
-    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.40">
-      <spec>H/5 * * * *</spec>
-      <entries>
-        <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-          <url>http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/Devel:/Cloud:/6:/Staging/images/iso/?regexp=x86_64</url>
-          <proxyActivated>false</proxyActivated>
-          <checkStatus>false</checkStatus>
-          <statusCode>200</statusCode>
-          <timeout>300</timeout>
-          <checkETag>false</checkETag>
-          <checkLastModificationDate>false</checkLastModificationDate>
-          <inspectingContent>true</inspectingContent>
-          <contentTypes>
-            <org.jenkinsci.plugins.urltrigger.content.SimpleContentType/>
-          </contentTypes>
-        </org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-      </entries>
-      <labelRestriction>false</labelRestriction>
-    </org.jenkinsci.plugins.urltrigger.URLTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
@@ -71,8 +52,7 @@ also trigger on publish of iso</description>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>mode=basetest
-cloudsource=develcloud6
+              <properties>cloudsource=develcloud6
 nodenumber=2
 mkcloudtarget=all_batch_noreboot
 scenario=cloud6-2nodes-default.yml
