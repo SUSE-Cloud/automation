@@ -123,7 +123,7 @@ COMPONENT=$component
 # zypper in osc obs-service-tar_scm obs-service-github_tarballs obs-service-recompress obs-service-git_tarballs obs-service-set_version obs-service-refresh_patches
 [ -z "$PROJECTSOURCE" ] &amp;&amp; ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
 
-
+export automationrepo=~/github.com/SUSE-Cloud/automation
 # automation bootstrapping
 if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
   rm -rf ${automationrepo}
