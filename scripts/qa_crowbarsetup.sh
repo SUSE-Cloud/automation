@@ -244,7 +244,7 @@ setcloudnetvars()
 }
 
 # run hook code before the actual script does its function
-# example usage: export pre_onadmin_installcrowbar=$(base64 -w 0 <<EOF
+# example usage: export pre_do_installcrowbar=$(base64 -w 0 <<EOF
 # echo foo
 # EOF
 # )
