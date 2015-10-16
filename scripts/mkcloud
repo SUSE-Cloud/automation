@@ -1063,7 +1063,7 @@ Optional
     admin_node_memory (default 2097152)
         Set the memory in KB assigned to admin node
     controller_node_memory (default 5242880)
-        Set the memory in KB assigned to compute nodes
+        Set the memory in KB assigned to controller nodes
     compute_node_memory (default 2097152)
         Set the memory in KB assigned to compute nodes
     drbd_hdd_size  (default 0, or 15 if hacloud is set)
