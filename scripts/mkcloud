@@ -398,7 +398,7 @@ function onhost_deploy_image()
 
     pushd /tmp
     safely wget --progress=dot:mega -N \
-        http://clouddata.cloud.suse.de/images/$image
+        http://$clouddata/images/$image
 
     echo "Cloning $role node vdisk from $image ..."
     safely qemu-img convert -t none -O raw -S 0 -p $image $disk
