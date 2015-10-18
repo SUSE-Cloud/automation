@@ -3602,6 +3602,9 @@ function onadmin_run_cct()
             develcloud5|GM5|GM5+up)
                 checkout_branch=cloud5
                 ;;
+            develcloud6)
+                cct_tests+="+features:functional"
+                ;;
         esac
 
         # prepare CCT checkout
