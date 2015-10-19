@@ -113,6 +113,11 @@ class GHClientHandler
       get_own_pull_requests('open', ['', 'pending', 'error', 'failure']))
   end
 
+  def show_open_pull_requests
+    print_pr_sha_info(
+      get_own_pull_requests('open', ['', 'pending', 'error', 'failure', 'success']))
+  end
+
 end
 
 ACTIONS = %w(
@@ -193,6 +198,8 @@ def prevent_parameter(param, message)
 end
 
 case options[:action]
+  when 'list-open-prs'
+    ghc.show_open_pull_requests
   when 'list-unseen-prs'
     ghc.show_unseen_pull_requests
   when 'list-rebuild-prs'
