@@ -1141,6 +1141,12 @@ function onadmin_set_source_variables()
             CLOUDSLE12TESTISO="CLOUD-6-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
+        libertycloud6)
+            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6:/Liberty/images/iso
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-6-TESTING-$arch*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
+        ;;
         susecloud6)
             CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP1:/Update:/Products:/Cloud6/images/iso/
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
