@@ -295,7 +295,7 @@ if [[ $github_pr ]] ; then
     zypper -n install "rubygem(netrc)" "rubygem(octokit)"
 
     if ! $ghs -r $github_pr_repo -a is-latest-sha -p $github_pr_id -c $github_pr_sha ; then
-        $ghs -a set-status -s "error" -t $BUILD_URL -r $github_pr_repo -c $github_pr_sha -m "Latest SHA1 from PR does not match this SHA1"
+        $ghs -a set-status -s "error" -t $BUILD_URL -r $github_pr_repo -c $github_pr_sha -m "SHA1 mismatch, newer commit exists"
         exit 1
     fi
 

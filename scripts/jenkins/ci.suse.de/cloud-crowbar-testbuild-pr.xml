@@ -46,7 +46,6 @@
 set -x
 
 export automationrepo=~/github.com/SUSE-Cloud/automation
-
 # automation bootstrapping
 if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
   rm -rf ${automationrepo}
@@ -69,7 +68,7 @@ function crowbargating_trap()
 
 # this job is part of the "pending" state (as it is a prerequisite of the openstack-mkcloud job)
 # so we report pending now
-$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha -m "Build of testpackage started"
+$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha -m "Started build of testpackage"
 
 
 # the status of the build is set via crowbar-testbuild.py (hopefully)
@@ -78,7 +77,7 @@ trap "crowbargating_trap" ERR
 
 ${automationrepo}/scripts/crowbar-testbuild.py $crowbar_repo $crowbar_github_pr
 
-$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha -m "Build of testpackage succeeded; openstack-mkcloud build pending"
+$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha -m "Queued mkcloud build; testpackage succeeded"
 
 trap "-" ERR</command>
     </hudson.tasks.Shell>
