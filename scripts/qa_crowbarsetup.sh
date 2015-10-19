@@ -1906,6 +1906,7 @@ function onadmin_crowbar_register()
     inject="
             set -x
             rm -f /tmp/crowbar_register_done;
+            zypper -n in wget screen
             wget http://$adminip:8091/$image/crowbar_register &&
             chmod a+x crowbar_register &&
             $zyppercmd
