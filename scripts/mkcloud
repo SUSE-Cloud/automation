@@ -274,6 +274,7 @@ function cleanup()
         find -L $vdisk_dir -name "$cloud.*" -type b | \
             xargs --no-run-if-empty lvremove --force || complain 104 "lvremove failure"
     fi
+    rm -f /etc/lvm/archive/*
 
     if [ -n "$wipe" ] ; then
         vgchange -an $cloudvg
@@ -397,7 +398,7 @@ function onhost_deploy_image()
 
     pushd /tmp
     safely wget --progress=dot:mega -N \
-        http://clouddata.cloud.suse.de/images/$image
+        http://$clouddata/images/$image
 
     echo "Cloning $role node vdisk from $image ..."
     safely qemu-img convert -t none -O raw -S 0 -p $image $disk
@@ -481,36 +482,6 @@ function setupadmin()
     libvirt_setupadmin
 
     wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
-
-    if [ -z "$NOSETUPPORTFORWARDING" ] ; then
-        nodehostips=$(seq -s ' ' 81 $((80 + $nodenumber)))
-        cat > /etc/init.d/boot.mkcloud <<EOS
-#!/bin/bash
-
-iptables -t nat -F PREROUTING
-for i in 22 80 443 3000 4000 4040 ; do
-    iptables -I FORWARD -p tcp --dport \$i -j ACCEPT
-    for host in 10 $nodehostips ; do
-        offset=80
-        [ "\$host" = 10 ] && offset=10
-        iptables -t nat -I PREROUTING -p tcp --dport \$((\$i + \$host - \$offset + 1100)) -j DNAT --to-destination $net_admin.\$host:\$i
-    done
-done
-iptables -t nat -I PREROUTING -p tcp --dport 6080 -j DNAT --to-destination $net_public.2
-echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
-EOS
-        if ! grep -q "boot.mkcloud" /etc/init.d/boot.local ; then
-            cat >> /etc/init.d/boot.local <<EOS
-
-# --v--v--  Automatically added by mkcloud on `date`
-/etc/init.d/boot.mkcloud
-# --^--^--  End of automatically added section from mkcloud
-EOS
-        fi
-    fi
-    chmod +x /etc/init.d/boot.mkcloud
-    /etc/init.d/boot.mkcloud
-
     wait_for_crowbar_ssh
 
     echo "waiting some more for sshd+named to start"
@@ -575,14 +546,17 @@ function confset()
     return 0
 }
 
+function macfunc()
+{
+    printf "52:54:77:77:77:%02x" $1
+}
+
 # bring up lonely_node(s) in the admin network
 function setuplonelynodes()
 {
     local i
     for i in $lonelynodeids; do
-        local mac
-        local i2=$( printf %02x $i )
-        mac="52:54:77:88:77:$i2"
+        local mac=$(macfunc $i)
         local lonely_node
         lonely_node=$cloud-node$i
         ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $mac 0 "$cephvolume" "$drbdvolume" $compute_node_memory $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir "1" > /tmp/$cloud-node$i.xml
@@ -606,8 +580,7 @@ function setuplonelynodes()
 function crowbar_register()
 {
     for i in $lonelynodeids; do
-        local i2=$( printf %02x $i )
-        local mac="52:54:77:88:77:$i2"
+        local mac=$(macfunc $i)
         sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register"
     done
 }
@@ -697,8 +670,7 @@ function setupnodes()
 {
     setuppublicnet
     for i in $allnodeids_without_lonely ; do
-        i2=$( printf %02x $i )
-        macaddress="52:54:77:77:77:$i2"
+        local macaddress=$(macfunc $i)
 
         # transport drdb volume information to admin node (needed for proposal of data cluster)
         drbd_serial=""
@@ -1091,7 +1063,7 @@ Optional
     admin_node_memory (default 2097152)
         Set the memory in KB assigned to admin node
     controller_node_memory (default 5242880)
-        Set the memory in KB assigned to compute nodes
+        Set the memory in KB assigned to controller nodes
     compute_node_memory (default 2097152)
         Set the memory in KB assigned to compute nodes
     drbd_hdd_size  (default 0, or 15 if hacloud is set)

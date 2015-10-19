@@ -50,9 +50,39 @@ function libvirt_start_daemon()
 function libvirt_net_start()
 {
     virsh net-start $cloud-admin
+    echo 1 > /proc/sys/net/ipv4/conf/$cloudbr/forwarding
     for dev in $cloudbr-nic $cloudbr ; do
         ip link set mtu 9000 dev $dev
     done
+
+    if [ -z "$NOSETUPPORTFORWARDING" ] ; then
+        nodehostips=$(seq -s ' ' 81 $((80 + $nodenumber)))
+        cat > /etc/init.d/boot.mkcloud <<EOS
+#!/bin/bash
+
+iptables -t nat -F PREROUTING
+for i in 22 80 443 3000 4000 4040 ; do
+    iptables -I FORWARD -p tcp --dport \$i -j ACCEPT
+    for host in 10 $nodehostips ; do
+        offset=80
+        [ "\$host" = 10 ] && offset=10
+        iptables -t nat -I PREROUTING -p tcp --dport \$((\$i + \$host - \$offset + 1100)) -j DNAT --to-destination $net_admin.\$host:\$i
+    done
+done
+iptables -t nat -I PREROUTING -p tcp --dport 6080 -j DNAT --to-destination $net_public.2
+echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
+EOS
+        if ! grep -q "boot.mkcloud" /etc/init.d/boot.local ; then
+            cat >> /etc/init.d/boot.local <<EOS
+
+# --v--v--  Automatically added by mkcloud on `date`
+/etc/init.d/boot.mkcloud
+# --^--^--  End of automatically added section from mkcloud
+EOS
+        fi
+    fi
+    chmod +x /etc/init.d/boot.mkcloud
+    /etc/init.d/boot.mkcloud
 }
 
 function libvirt_setupadmin()
