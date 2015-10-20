@@ -141,7 +141,7 @@ def trigger_testbuild(repo, github_opts):
                  'x86_64', spec, _out=sys.stdout)
         except:
             build_failed = True
-            print("Build failed: " + str(sys.exc_info()[0]))
+            print("Build failed: " + str(sys.exc_info()[1]))
             raise
         else:
             sh.cp('-p', sh.glob(
