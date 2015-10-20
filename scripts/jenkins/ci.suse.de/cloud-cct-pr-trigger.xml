@@ -13,12 +13,14 @@
           <name>mode</name>
           <description>normal: trigger unseen PRs
 rebuild: trigger unseend and pending PRs
-forcerebuild: trigger unseen, pending and failed PRs</description>
+forcerebuild: trigger unseen, pending and failed PRs
+forceall: trigger rebuild for all open PRs</description>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
               <string>normal</string>
               <string>rebuild</string>
               <string>forcerebuild</string>
+              <string>forceall</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -68,6 +70,8 @@ case $mode in
   ;;
   forcerebuild) action=list-forcerebuild-prs
   ;;
+  forceall) action=list-open-prs
+  ;;
 esac
 
 ghs=${automationrepo}/scripts/github-status/github-status.rb
@@ -97,7 +101,7 @@ for repo in ${cloud_repos[@]}; do
                 cloudsource="${cloudsource}" \
                 nodenumber=${nodenumber} \
                 networkingplugin=${networkingplugin}
-            $ghs -r $repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha -m "Build of openstack-mkcloud queued for this PR (not started yet)"
+            $ghs -r $repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha -m "Queued build of cct PR"
         fi
     done
 done
