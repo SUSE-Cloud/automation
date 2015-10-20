@@ -2180,6 +2180,11 @@ function custom_configuration()
                 proposal_set_value glance default "['deployment']['glance']['elements']['glance-server']" "['cluster:$clusternameservices']"
             fi
         ;;
+        manila)
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value glance default "['deployment']['manila']['elements']['manila-server']" "['cluster:$clusternameservices']"
+            fi
+        ;;
         ceph)
             proposal_set_value ceph default "['attributes']['ceph']['disk_mode']" "'all'"
         ;;
