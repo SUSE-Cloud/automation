@@ -2908,10 +2908,18 @@ function oncontroller_testsetup()
             "prepare cnftools image"
         pushd /var/lib/openstack-tempest-test
         echo 1 > /proc/sys/kernel/sysrq
+        if iscloudver 5plus; then
+            /usr/bin/tempest-cleanup --init-saved-state || :
+        fi
         ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
         tempestret=${PIPESTATUS[0]}
         testr last --subunit | subunit-1to2 > tempest.subunit.log
-        /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
+
+        if iscloudver 5plus; then
+            /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
+        else
+            /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
+        fi
         popd
     fi
     nova list
