@@ -3200,7 +3200,7 @@ EOF
     fi
 
     # prepare docker image at docker compute nodes
-    if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
+    if iscloudver 5 && [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
         for n in `get_docker_nodes` ; do
             ssh $n docker pull cirros
         done
