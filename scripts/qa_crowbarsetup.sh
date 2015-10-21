@@ -2878,21 +2878,39 @@ function oncontroller_testsetup()
     # Run Tempest Smoketests if configured to do so
     tempestret=0
     if [ "$wanttempest" = "1" ]; then
+        local image_name="SLE11SP3-x86_64-cfntools"
+
         # Upload a Heat-enabled image
-        openstack image list | grep -q SLE11SP3-x86_64-cfntools || openstack image create \
-            --public --disk-format qcow2 --container-format bare --property hypervisor_type=kvm \
-            --copy-from http://$clouddata/images/SLES11-SP3-x86_64-cfntools.qcow2 \
-            SLE11SP3-x86_64-cfntools | tee glance.out
+        if openstack image list | grep -q $image_name; then
+            openstack image show $image_name | tee glance.out
+        else
+            curl -s \
+                http://$clouddata/images/${image_name}.qcow2 | \
+                openstack image create \
+                    --public --disk-format qcow2 --container-format bare \
+                    --property hypervisor_type=kvm \
+                    $image_name | tee glance.out
+        fi
         imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
         crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
         # test if is cnftools image prepared for tempest
-        wait_for 300 5 'glance image-show $imageid | grep active &>/dev/null' "prepare cnftools image"
+        wait_for 300 5 \
+            'openstack image show $imageid | grep active &>/dev/null' \
+            "prepare cnftools image"
         pushd /var/lib/openstack-tempest-test
         echo 1 > /proc/sys/kernel/sysrq
+        if iscloudver 5plus; then
+            /usr/bin/tempest-cleanup --init-saved-state || :
+        fi
         ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
         tempestret=${PIPESTATUS[0]}
         testr last --subunit | subunit-1to2 > tempest.subunit.log
-        /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
+
+        if iscloudver 5plus; then
+            /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
+        else
+            /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
+        fi
         popd
     fi
     nova list
