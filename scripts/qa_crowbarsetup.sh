@@ -2611,9 +2611,6 @@ function prepare_proposals()
     iscloudver 6plus && ptfchannel="PTF"
     for machine in $cmachines; do
         ssh $machine "zypper mr -p 90 $ptfchannel"
-        # Temporary workaround for http://bugzilla.suse.com/show_bug.cgi?id=947537
-        # FIXME: remove
-        ssh $machine "echo 0 > /proc/sys/kernel/printk"
     done
 
 }
