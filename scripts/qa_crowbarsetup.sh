@@ -987,13 +987,7 @@ function download_and_mount_sles()
 function onadmin_prepare_cloud_repos()
 {
     local targetdir="$tftpboot_repos_dir/Cloud/"
-    if iscloudver 6plus; then
-        targetdir="$tftpboot_repos12sp1_dir/Cloud"
-        # Workaround SES2 madness: TODO drop:
-        for i in Cloud SUSE-OpenStack-Cloud-6-Pool SUSE-OpenStack-Cloud-6-Updates; do \
-            ln -s "$tftpboot_repos12sp1_dir/$i" "$tftpboot_repos12_dir/$i"
-        done
-    fi
+    iscloudver 6plus && targetdir="$tftpboot_repos12sp1_dir/Cloud"
     mkdir -p ${targetdir}
 
     if [ -n "${localreposdir_target}" ]; then
