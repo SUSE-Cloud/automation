@@ -69,7 +69,7 @@ function horizon_barclamp()
 
 function nova_role_prefix()
 {
-    if ! iscloudver 6plus || iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]]; then
+    if ! iscloudver 6plus || ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]] ) ; then
         echo "nova-multi"
     else
         echo "nova"
