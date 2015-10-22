@@ -2878,7 +2878,7 @@ function oncontroller_testsetup()
     # Run Tempest Smoketests if configured to do so
     tempestret=0
     if [ "$wanttempest" = "1" ]; then
-        local image_name="SLE11SP3-x86_64-cfntools"
+        local image_name="SLES11-SP3-x86_64-cfntools"
 
         # Upload a Heat-enabled image
         if openstack image list | grep -q $image_name; then
