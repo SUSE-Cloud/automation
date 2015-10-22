@@ -24,6 +24,7 @@ for my $num ($startnum..$endnum) {
         'Latest (SHA1 from PR does not match) this SHA1',
         '(SHA1 mismatch), newer commit exists',
         'crowbar\.(\w\d+)\.cloud\.suse\.de',
+        'Error: (crowbar self-test) failed',
         'mk(?:phys)?cloud (ret=\d+)',
     ) {
         if(m/$regexp/) {$descr.="$1 "}
