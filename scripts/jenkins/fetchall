@@ -1,6 +1,8 @@
 #!/bin/sh
 ./japi fetch-all cloud openstack crowbar > /dev/null
-git add ci.suse.de/*.xml
+allxml=ci.suse.de/*.xml
+./scrubxml $allxml
+git add $allxml
 git commit -q -m "jenkins checkin $(date '+%Y-%m-%d %H:%M')" > /dev/null
 
 export SSH_AUTH_SOCK ; for s in `/bin/ls /tmp/ssh-*/*` ; do SSH_AUTH_SOCK="$s" ; ssh-add -l > /dev/null 2>&1 && break ; done
