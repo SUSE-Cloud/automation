@@ -2930,9 +2930,16 @@ function oncontroller_testsetup()
             openstack image create --public --disk-format vhd --container-format bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd $image_name | tee glance.out
             rm /tmp/SP3.vhd ; umount /mnt
         elif [[ -n "$wantxenpv" ]] ; then
-            openstack image create --public --disk-format qcow2 --container-format bare --property hypervisor_type=xen --property vm_mode=xen --copy-from http://$clouddata/images/jeos-64-pv.qcow2 $image_name | tee glance.out
+            curl -s \
+                http://$clouddata/images/jeos-64-pv.qcow2 | \
+                openstack image create --public --disk-format qcow2 \
+                --container-format bare --property hypervisor_type=xen \
+                --property vm_mode=xen  $image_name | tee glance.out
         else
-            openstack image create --public --property vm_mode=hvm --disk-format qcow2 --container-format bare --copy-from http://$clouddata/images/SP3-64up.qcow2 $image_name | tee glance.out
+            curl -s \
+                http://$clouddata/images/SP3-64up.qcow2 | \
+                openstack image create --public --property vm_mode=hvm \
+                --disk-format qcow2 --container-format bare $image_name | tee glance.out
         fi
     fi
 
@@ -2948,7 +2955,11 @@ function oncontroller_testsetup()
         if openstack image list | grep -q "[[:space:]]${image_name}[[:space:]]" ; then
             openstack image show $image_name | tee glance.out
         else
-            openstack image create --public --container-format docker --disk-format raw --property hypervisor_type=docker --copy-from http://$clouddata/images/docker/cirros.tar $image_name | tee glance.out
+            curl -s \
+                http://$clouddata/images/docker/cirros.tar | \
+            openstack image create --public --container-format docker \
+                --disk-format raw --property hypervisor_type=docker  \
+                $image_name | tee glance.out
         fi
         adapt_dns_for_docker
     fi
