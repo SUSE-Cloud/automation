@@ -1524,11 +1524,49 @@ EOF
     update_one_proposal provisioner default
     update_one_proposal dns default
 
+    activate_provisioner_repositories
+
     if ! validate_data_bags; then
         complain 68 "Validation error in default data bags. Aborting."
     fi
 }
 
+function activate_one_provisioner_repository()
+{
+    local platform=$1
+    local repo=$2
+    local ret=$(curl --digest -u crowbar:crowbar -X POST -d "platform=$platform" -d "repo=$repo" http://$adminip/utils/repositories/activate)
+    # Temporary commenting out until crowbar-core package is ready
+    # after merging https://github.com/crowbar/crowbar-core/pull/18
+    #[[ $ret =~ "error" ]] && complain 96 "$ret"
+}
+
+function activate_provisioner_repositories()
+{
+    if iscloudver 6plus; then
+        activate_one_provisioner_repository "suse-12.1" "SLES12-SP1-Pool"
+        activate_one_provisioner_repository "suse-12.1" "SLES12-SP1-Updates"
+        case "$cloudsource" in
+            GM6)
+                activate_one_provisioner_repository "suse-12.1" "SUSE-Openstack-Cloud-6-Pool"
+                ;;
+            GM6+up)
+                activate_one_provisioner_repository "suse-12.1" "SUSE-Openstack-Cloud-6-Pool"
+                activate_one_provisioner_repository "suse-12.1" "SUSE-Openstack-Cloud-6-Updates"
+                ;;
+        esac
+
+        if [ "$hacloud" == 1 ] ; then
+            activate_one_provisioner_repository "suse-12.1" "SLE12-SP1-HA-Pool"
+            activate_one_provisioner_repository "suse-12.1" "SLE12-SP1-HA-Updates"
+        fi
+
+        if [ -n "$deployceph" ] ; then
+            activate_one_provisioner_repository "suse-12.0" "SUSE-Enterprise-Storage-2-Pool"
+            activate_one_provisioner_repository "suse-12.0" "SUSE-Enterprise-Storage-2-Updates"
+        fi
+    fi
+}
 
 function onadmin_installcrowbarfromgit()
 {
