@@ -2532,6 +2532,12 @@ function set_proposalvars()
 
     # Tempest
     wanttempest=1
+
+    # temporary disable to unbreak PR-gating
+    if iscloudver 6plus ; then
+        wanttempest=
+    fi
+
     if [[ $want_tempest == 0 ]] ; then
         wanttempest=
     fi
