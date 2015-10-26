@@ -112,6 +112,11 @@ minimum 2=controller+compute</description>
           <defaultValue>2</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>want_tempest</name>
+          <description>can be used for force off(0) or on(1)</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>tempestoptions</name>
           <description>Additional options to pass to the "run_tempest.sh -N " step.
 Use just "-t" for a full tempest run.
@@ -421,6 +426,7 @@ ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-submit-project -
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
     <hudson.tasks.Mailer plugin="mailer@1.11">
       <recipients/>
