@@ -3707,7 +3707,7 @@ function onadmin_run_cct()
 function onadmin_setup_aliases()
 {
     local nodesavailable=`get_all_discovered_nodes`
-    local i
+    local i=1
 
     if [ -n "$want_node_aliases" ] ; then
         # aliases provided explicitely, assign them successively to the nodes
@@ -3722,10 +3722,11 @@ function onadmin_setup_aliases()
 
             i=1
             for node in `printf  "%s\n" $nodesavailable | head -n$number`; do
-                if [[ $i -gt 1 ]]; then
-                    node_alias="$node_alias$i"
+                this_node_alias="$node_alias"
+                if [[ $number -gt 1 ]]; then
+                    this_node_alias="$node_alias$i"
                 fi
-                set_node_alias $node $node_alias
+                set_node_alias $node $this_node_alias
                 nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $node`
                 i=$((i+1))
             done
@@ -3740,7 +3741,6 @@ function onadmin_setup_aliases()
 
             cluster_node_assignment
 
-            local i
             for clustername in data network services ; do
                 eval "cluster=\$clusternodes$clustername"
                 i=1
