@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # Copyright (c) 2015 SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,7 +17,6 @@
 
 import argparse
 import os
-import os.path
 import re
 import sys
 
@@ -96,13 +96,6 @@ class Key(object):
             os.remove(self.key())
             os.remove(self.pub_key())
 
-    def __del__(self):
-        """Remove the key."""
-        # Because of the way Python works, there is not guarantee that
-        # this method is always called.  For this case it doesn't
-        # matter, because the old key will be reused.
-        self.clean_key()
-
 
 class SSH(object):
     """Simplify SSH connections to a remote machine."""
@@ -154,6 +147,9 @@ class SSH(object):
                          '~/.ssh/authorized_keys')
         self._connect = None
 
+        # Remove locally generated keys
+        self.key.clean_key()
+
     def connect(self):
         """Create an SSH connection to the remote host."""
         if not self._copy_id:
@@ -171,12 +167,6 @@ class SSH(object):
             self.connect()
         if self._connect:
             return getattr(self._connect, name)
-
-    def __del__(self):
-        """Clean remote key."""
-        # In Python __del__ is not always called.  Do not relay on it
-        # for cleaning stuff.
-        self.clean_key()
 
 
 class ISCSI(object):
@@ -441,9 +431,15 @@ if __name__ == '__main__':
             node = SSH(args.host, 'root', 'linux')
             path = '/tmp/%s-iscsi.loop' % args.id \
                    if args.device.startswith('/dev/loop') else None
-            target = Target(node, args.device, path, args.id)
-            target.deploy()
+            try:
+                target = Target(node, args.device, path, args.id)
+                target.deploy()
+            finally:
+                node.clean_key()
         elif args.service == 'initiator':
             node = SSH(args.host, 'root', 'linux')
-            initiator = Initiator(node, args.target_host, args.id)
-            initiator.deploy()
+            try:
+                initiator = Initiator(node, args.target_host, args.id)
+                initiator.deploy()
+            finally:
+                node.clean_key()
