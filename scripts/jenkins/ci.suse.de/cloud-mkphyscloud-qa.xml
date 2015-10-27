@@ -98,6 +98,16 @@ Default: openvswitch</description>
           <description/>
           <defaultValue>true</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>runner_url</name>
+          <description>The runner must be qa_crowbarsetup.sh file</description>
+          <defaultValue>https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>commands</name>
+          <description>All the steps that needs to be completed to have cloud installed</description>
+          <defaultValue>prepareinstallcrowbar installcrowbar allocate waitcloud proposal testsetup run_cct</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -138,15 +148,28 @@ sleep 100 # time for the admin VM to boot
 env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
 scp mkcloud.config root@$admin:
 ret=0
-ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL; export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ;
-export cloudsource=$cloudsource ; export libvirt_type=$libvirt_type ; export nodenumber=$nodenumber ; export hacloud=$hacloud; export clusterconfig=$clusterconfig; "'
- 
-  wget --no-check-certificate -Oqa_crowbarsetup.sh "https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh"
 
-  [ $WITHREBOOT == "true" ] &amp;&amp; export rebootsteps="rebootcloud"
-  [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
-  timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar installcrowbar allocate waitcloud proposal testsetup run_cct $rebootsteps"
+ssh root@$admin "
+export cloud=$cloud ; 
+export UPDATEREPOS=$UPDATEREPOS ; 
+export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;  
+export TESTHEAD=$TESTHEAD ;
+export cloudsource=$cloudsource ; 
+export libvirt_type=$libvirt_type ; 
+export nodenumber=$nodenumber ; 
+export hacloud=$hacloud ; 
+export clusterconfig=$clusterconfig ; 
+export runner_url=$runner_url ; 
+export commands="$commands" "'
+ 
+wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
+
+
+[ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
+
+timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
 ' || ret=$?
+
 echo "mkphyscloud ret=$ret"
 exit $ret
 </command>
