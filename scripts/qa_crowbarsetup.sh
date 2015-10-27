@@ -1376,10 +1376,7 @@ EOF
 
     cd /tmp
 
-    local netfile="/opt/dell/chef/data_bags/crowbar/bc-template-network.json"
-    if [ -e "/opt/dell/chef/data_bags/crowbar/template-network.json" ] ; then
-        netfile="/opt/dell/chef/data_bags/crowbar/template-network.json"
-    fi
+    local netfile="/etc/crowbar/network.json"
 
     local netfilepatch=`basename $netfile`.patch
     [ -e ~/$netfilepatch ] && patch -p1 $netfile < ~/$netfilepatch
@@ -1430,8 +1427,6 @@ EOF
             /opt/dell/bin/json-edit -a attributes.network.networks.$lnet.mtu -r -v $want_mtu_size $netfile
         done
     fi
-
-    cp -a $netfile /etc/crowbar/network.json # new place since 2013-07-18
 
     # to allow integration into external DNS:
     local f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
