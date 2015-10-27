@@ -1633,20 +1633,22 @@ function reboot_nodes_via_ipmi()
     do_one_proposal ipmi default
     local nodelist=$(seq 1 $nodenumber)
     local i
-    local bmc_start=$(
+    local bmc_values=($(
         crowbar network proposal show default | \
         rubyjsonparse "
             networks = j['attributes']['network']['networks']
             puts networks['bmc']['ranges']['host']['start']
+            puts networks['bmc']['router']
         "
-    )
-    IFS=. read ip1 ip2 ip3 ip4 <<< "$bmc_start"
+    ))
+    test -n "${bmc_values[1]}" || bmc_values[1]="0.0.0.0"
+    IFS=. read ip1 ip2 ip3 ip4 <<< "${bmc_values[0]}"
     local bmc_net="$ip1.$ip2.$ip3"
     for i in $nodelist ; do
         local pw
         for pw in 'cr0wBar!' $extraipmipw ; do
             local ip=$bmc_net.$(($ip4 + $i))
-            (ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "$bmc_net.1"
+            (ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "${bmc_values[1]}"
             ipmitool -H $ip -U root -P $pw power on
             ipmitool -H $ip -U root -P $pw power reset) &
         done
