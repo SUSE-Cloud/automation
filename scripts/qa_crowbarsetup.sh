@@ -196,12 +196,12 @@ setcloudnetvars()
         ;;
         qa4)
             nodenumber=7
-            net=${netp}.33
+            net=${netp}.66
             net_public=$net
-            vlan_public=12
-            #vlan_admin=615
-            vlan_fixed=621
-            vlan_storage=622
+            vlan_public=715
+            #vlan_admin=714
+            vlan_fixed=717
+            vlan_storage=716
             want_ipmi=true
         ;;
         p2)
@@ -1354,41 +1354,10 @@ EOF
         # production cloud has a /22 network
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.252.0 $netfile
     fi
-
-    local qa_network_json
-    if [[ $cloud = qa1 ]] ; then
+    if [[ $cloud =~ qa ]] ; then
         # QA clouds have too few IP addrs, so smaller subnets are used
-        if iscloudver 6plus; then
-            qa_network_json="dual_sc6_private_vm_network"
-        else
-            qa_network_json="dual_private_vm_network"
-        fi
-        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/$qa_network_json
-    fi
-    if [[ $cloud = qa2 ]] ; then
-        # QA clouds have too few IP addrs, so smaller subnets are used
-        if iscloudver 6plus; then
-            qa_network_json="cloud2_sc6_dual_private_vm_network"
-        else
-            qa_network_json="cloud2_dual_private_vm_network"
-        fi
-        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/$qa_network_json
-    fi
-    if [[ $cloud = qa3 ]] ; then
-        if iscloudver 6plus; then
-            qa_network_json="cloud3_sc6_dual_private_vm_network"
-        else
-            qa_network_json="cloud3_dual_private_vm_network"
-        fi
-        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/$qa_network_json
-    fi
-    if [[ $cloud = qa4 ]] ; then
-        if iscloudver 6plus; then
-            qa_network_json="cloud4_sc6_dual_private_vm_network"
-        else
-            qa_network_json="cloud4_dual_private_vm_network"
-        fi
-        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/$qa_network_json
+        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/${cloud}_dual
+        sed -i 's/bc-template-network/template-network/' $netfile
     fi
     if [[ $cloud = p2 ]] ; then
         /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.252.0 $netfile
