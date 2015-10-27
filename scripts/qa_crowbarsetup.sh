@@ -1105,7 +1105,7 @@ function onadmin_add_cloud_repo()
 function do_set_repos_skip_checks()
 {
     # We don't use the proper pool/updates repos when using a devel build
-    if iscloudver 6plus && [[ $cloudsource =~ develcloud ]]; then
+    if iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]]; then
         export REPOS_SKIP_CHECKS+=" SUSE-OpenStack-Cloud-SLE11-$(getcloudver)-Pool SUSE-OpenStack-Cloud-SLE11-$(getcloudver)-Updates"
     elif iscloudver 5plus && [[ $cloudsource =~ (develcloud|GM5$|GM6$) ]]; then
         export REPOS_SKIP_CHECKS+=" SUSE-Cloud-$(getcloudver)-Pool SUSE-Cloud-$(getcloudver)-Updates"
