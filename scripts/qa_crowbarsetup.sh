@@ -196,12 +196,12 @@ setcloudnetvars()
         ;;
         qa4)
             nodenumber=7
-            net=${netp}.33
+            net=${netp}.66
             net_public=$net
-            vlan_public=12
-            #vlan_admin=615
-            vlan_fixed=621
-            vlan_storage=622
+            vlan_public=715
+            #vlan_admin=714
+            vlan_fixed=717
+            vlan_storage=716
             want_ipmi=true
         ;;
         p2)
