@@ -1,0 +1,223 @@
+---
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: ipmi_barclamp
+      sbd:
+        nodes:
+          @@controller1@@:
+            devices:
+            - ''
+          @@controller2@@:
+            devices:
+            - ''
+          @@controller3@@:
+            devices:
+            - ''
+      per_node:
+        nodes:
+          @@controller1@@:
+            params: ''
+          @@controller2@@:
+            params: ''
+          @@controller3@@:
+            params: ''
+    drbd:
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      hawk-server:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+- barclamp: database
+  attributes:
+    ha:
+      storage:
+        shared:
+          device: 10.162.26.129:/var/ha-database
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      database-server:
+      - cluster:services
+- barclamp: rabbitmq
+  attributes:
+    ha:
+      storage:
+        shared:
+          device: 10.162.26.129:/var/ha-rabbitmq
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:services
+- barclamp: keystone
+  attributes:
+    ssl:
+      insecure: true
+    api:
+      protocol: https
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+- barclamp: swift
+  attributes:
+    ssl:
+      enabled: true
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      swift-dispersion:
+      - "@@controller1@@"
+      swift-proxy:
+      - cluster:services
+      swift-ring-compute:
+      - "@@controller1@@"
+      swift-storage:
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
+- barclamp: glance
+  attributes:
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+    default_store: swift
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+- barclamp: manila
+  attributes:
+  deployment:
+    elements:
+      manila-server:
+      - cluster:services
+      manila-share:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: local
+      backend_name: file
+      local:
+        volume_name: cinder-volumes
+        file_name: "/var/lib/cinder/volume.raw"
+        file_size: 2000
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+- barclamp: neutron
+  attributes:
+    use_l2pop: false
+    ml2_mechanism_drivers:
+    - linuxbridge
+    ml2_type_drivers:
+    - vlan
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
+    ssl:
+      generate_certs: true
+      insecure: true
+    api:
+      protocol: https
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:services
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    vnc_keymap: de-de
+    kvm:
+      ksm_enabled: true
+    ssl:
+      enabled: true
+      generate_certs: true
+      insecure: true
+    novnc:
+      ssl:
+        enabled: true
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
+      nova-compute-qemu: []
+      nova-compute-xen:
+      - "@@compute-xen1@@"
+      - "@@compute-xen2@@"
+- barclamp: horizon
+  attributes:
+    apache:
+      ssl: true
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+- barclamp: heat
+  attributes:
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+- barclamp: ceilometer
+  attributes:
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@compute-kvm1@@"
+      - "@@compute-xen1@@"
+      - "@@compute-kvm2@@"
+      - "@@compute-xen2@@"
+      ceilometer-agent-hyperv: []
+      ceilometer-cagent:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+- barclamp: trove
+  attributes:
+    volume_support: true
+  deployment:
+    elements:
+      trove-server:
+      - cluster:services
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - "@@controller1@@"
