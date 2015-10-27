@@ -172,11 +172,24 @@ class SSH(object):
 class ISCSI(object):
     """Class for basic iSCSI management."""
 
+    START = 'start'
+    STOP = 'stop'
+    RESTART = 'restart'
+
     def __init__(self, ssh):
         self.ssh = ssh
 
-    def service(self, service, status):
-        self.ssh.chkconfig(service, 'on' if status else 'off')
+    def service(self, service, action):
+        if action == ISCSI.START:
+            self.ssh.systemctl('enable', '%s.service' % service)
+            self.ssh.systemctl('start', '%s.service' % service)
+        elif action == ISCSI.STOP:
+            self.ssh.systemctl('stop', '%s.service' % service)
+            self.ssh.systemctl('disable', '%s.service' % service)
+        elif action == ISCSI.RESTART:
+            self.ssh.systemctl('restart', '%s.service' % service)
+        else:
+            raise Exception('Service action not recognized.')
 
     def zypper(self, package):
         self.ssh.zypper('--non-interactive', 'install',
@@ -222,7 +235,7 @@ class ISCSI(object):
 class Target(ISCSI):
     """Define and manage an iSCSI target node."""
 
-    def __init__(self, ssh, device, path, iqn_id, size=1):
+    def __init__(self, ssh, device, path, iqn_id, size=1, reuse=False):
         super(Target, self).__init__(ssh)
 
         self.device = device
@@ -230,6 +243,7 @@ class Target(ISCSI):
         self.iqn_id = iqn_id
         # `size` is expressed in mega (M)
         self.size = size
+        self.reuse = reuse
 
     def find_loop(self, loop):
         """Find an attached loop devide."""
@@ -252,7 +266,9 @@ class Target(ISCSI):
     def create_loop(self, loop, path, size):
         """Create a new loopback device."""
         is_in = self.find_loop(loop)
-        if is_in:
+        if is_in and self.reuse:
+            return
+        elif is_in:
             raise Exception('loop device already installed: %s / %s' %
                             is_in)
 
@@ -268,41 +284,52 @@ class Target(ISCSI):
 
     def deploy(self):
         """Deploy, configure and launch iSCSI target."""
-        self.zypper('iscsitarget')
+        print 'Installing lio-utils ...'
+        self.zypper('lio-utils')
+        self.service('target', ISCSI.START)
 
         if self.device.startswith('/dev/loop'):
             if self.path:
+                print 'Creating loopback ...'
                 self.create_loop(self.device, self.path, self.size)
             else:
                 raise Exception('Please, provide a path for a loop device')
 
-        # Default configuration uses incoming autentication
-        lines = (
-            'IncomingUser user passwd',
-            'Target iqn.2015-01.qa.cloud.suse.de:%s' % self.iqn_id,
-            '"\tLun 0 Path=%s"' % self.device,
-        )
-        self.append_cfg('/etc/ietd.conf', lines)
+        # Detecting IP
+        print 'Looking for host IP ...'
+        ip = str(self.ssh.ip('a', 's', 'eth0'))
+        ip = re.findall(r'inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/\d+', ip)
+        if ip:
+            ip = ip[0]
+        else:
+            raise Exception('IP address not found')
 
-        # Persist and start the service
-        self.service('iscsitarget', True)
-        self.ssh.rciscsitarget('restart')
+        iqn = 'iqn.2015-01.qa.cloud.suse.de:%s' % self.iqn_id
 
-        # Remove the restart of iSCSI target service, so we can add it
-        # again at the end.
-        lines = ('rciscsitarget restart',)
-        self.remove_cfg('/etc/rc.d/boot.local', lines)
+        print 'Registering target for %s ...' % iqn
+        self.ssh.tcm_node('--block', 'iblock_0/id01', '/dev/loop0')
+        self.ssh.lio_node('--addlun', iqn, '1', '0', 'iscsi_port',
+                          'iblock_0/id01')
+        self.ssh.lio_node('--addnp', iqn, '1', '%s:3260' % ip)
+        self.ssh.lio_node('--disableauth', iqn, '1')
+        self.ssh.lio_node('--enabletpg', iqn, '1')
+
+        # Persist configuration
+        print 'Persisting configuration ...'
+        self.ssh.tcm_dump('--b=OVERWRITE')
 
         # Add in /etc/rc.d/boot.local
-        lines = (
-            'losetup %s %s' % (self.device, self.path),
-            'rciscsitarget restart',
-        )
-        self.append_cfg('/etc/rc.d/boot.local', lines)
+        if self.device.startswith('/dev/loop'):
+            print 'Adding loopback to boot.local ...'
+            lines = (
+                'losetup %s %s' % (self.device, self.path),
+            )
+            self.append_cfg('/etc/rc.d/boot.local', lines)
 
         # Check if the device is exported
-        result = str(self.ssh.cat('/proc/net/iet/volume'))
-        if 'iqn.2015-01.qa.cloud.suse.de:%s' % self.iqn_id not in result:
+        print 'Checking that the target is exported ...'
+        result = str(self.ssh.lio_node('--listtargetnames'))
+        if iqn not in result:
             raise Exception('Unable to deploy the iSCSI target')
 
 
@@ -314,36 +341,57 @@ class Initiator(ISCSI):
     # iSCSI scenario, with a single target point and multiple
     # initiators.
 
-    def __init__(self, ssh, target_host, iqn_id):
+    def __init__(self, ssh, target_ssh, iqn_id):
         """Initialize the Initiator instance with an ip and a mount point."""
         super(Initiator, self).__init__(ssh)
-        self.target_host = target_host
+        self.target_ssh = target_ssh
         self.iqn_id = iqn_id
         self.name = None
 
     def deploy(self):
         """Deploy, configure and persist an iSCSI initiator."""
+        print 'Installing open-iscsi ...'
         self.zypper('open-iscsi')
 
         # Default configuration only takes care of autentication
+        print 'Configuring open-iscsi for automatic startup ...'
         lines = (
             'node.startup = automatic',
-            'node.session.auth.authmethod = CHAP',
-            'node.session.auth.username = user',
-            'node.session.auth.password = passwd',
-            'discovery.sendtargets.auth.authmethod = CHAP',
-            'discovery.sendtargets.auth.username = user',
-            'discovery.sendtargets.auth.password = passwd',
         )
         self.append_cfg('/etc/iscsid.conf', lines)
 
         # Persist and start the service
-        self.service('open-iscsi', True)
-        self.ssh.sh('rcopen-iscsi', 'restart')
+        print 'Reloading the configuration ...'
+        self.service('iscsid', ISCSI.START)
+        self.service('iscsid', ISCSI.RESTART)
+
+        iqn = 'iqn.2015-01.qa.cloud.suse.de:%s' % self.iqn_id
+
+        # Get the initiator name for the ACL
+        print 'Detecting initiator name ...'
+        initiator = str(self.ssh.cat('/etc/iscsi/initiatorname.iscsi'))
+        initiator = re.findall(r'InitiatorName=(iqn.*)', initiator)
+        if initiator:
+            initiator = initiator[0]
+        else:
+            raise Exception('Initiator name not found')
+
+        # Add the initiator name in the target ACL
+        print 'Adding initiator name [%s] in target ACL ...' % initiator
+        try:
+            self.target_ssh.lio_node('--dellunacl', iqn, '1',
+                                     initiator, '0')
+        except:
+            pass
+        finally:
+            self.target_ssh.lio_node('--addlunacl', iqn, '1',
+                                     initiator, '0', '0')
+            self.target_ssh.tcm_dump('--b=OVERWRITE')
 
         # Discovery and login
+        print 'Initiator discovery and login ...'
         discovered = self.ssh.iscsiadm('-m', 'discovery', '--type=st',
-                                       '--portal=%s' % self.target_host)
+                                       '--portal=%s' % self.target_ssh.host)
         for name in discovered.split('\n'):
             _, name = name.split()
             if self.iqn_id in name:
@@ -372,11 +420,11 @@ def test():
     target = Target(admin)
     target.deploy()
 
-    initiator1 = Initiator(node1, '192.168.124.10')
+    initiator1 = Initiator(node1, admin)
     initiator1.deploy()
     assert '/dev/sda' in node1.lsscsi(), 'iSCSI device not found in node1'
 
-    initiator2 = Initiator(node2, '192.168.124.10')
+    initiator2 = Initiator(node2, admin)
     initiator2.deploy()
     assert '/dev/sda' in node2.lsscsi(), 'iSCSI device not found in node2'
 
@@ -405,6 +453,8 @@ if __name__ == '__main__':
                         'target')
     parser.add_argument('-d', '--device', default='/dev/loop0',
                         help='Device for the target (/dev/loop0)')
+    parser.add_argument('-r', '--reuse', action='store_true', default=False,
+                        help='If the loop device is there, reuse it')
     parser.add_argument('--id', default='id01',
                         help='Suffix ID for the iSCSI name')
     parser.add_argument('--test', action='store_true', default=False,
@@ -432,14 +482,16 @@ if __name__ == '__main__':
             path = '/tmp/%s-iscsi.loop' % args.id \
                    if args.device.startswith('/dev/loop') else None
             try:
-                target = Target(node, args.device, path, args.id)
+                target = Target(node, args.device, path, args.id,
+                                reuse=args.reuse)
                 target.deploy()
             finally:
                 node.clean_key()
         elif args.service == 'initiator':
             node = SSH(args.host, 'root', 'linux')
+            node_target = SSH(args.target_host, 'root', 'linux')
             try:
-                initiator = Initiator(node, args.target_host, args.id)
+                initiator = Initiator(node, node_target, args.id)
                 initiator.deploy()
             finally:
                 node.clean_key()
