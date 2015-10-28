@@ -2897,6 +2897,18 @@ function adapt_dns_for_docker()
     neutron subnet-update --dns-nameserver "$dns_server" fixed
 }
 
+function glance_image_exists()
+{
+    openstack image list | grep -q "[[:space:]]$1[[:space:]]"
+    return $?
+}
+
+function glance_image_get_id()
+{
+    local image_id=$(openstack image list | grep "[[:space:]]$1[[:space:]]" | awk '{ print $2 }')
+    echo $image_id
+}
+
 # code run on controller/dashboard node to do basic tests of deployed cloud
 # uploads an image, create flavor, boots a VM, assigns a floating IP, ssh to VM, attach/detach volume
 function oncontroller_testsetup()
@@ -2960,9 +2972,7 @@ function oncontroller_testsetup()
         local image_name="SLES11-SP3-x86_64-cfntools"
 
         # Upload a Heat-enabled image
-        if openstack image list | grep -q $image_name; then
-            openstack image show $image_name | tee glance.out
-        else
+        if ! glance_image_exists $image_name; then
             curl -s \
                 http://$clouddata/images/${image_name}.qcow2 | \
                 openstack image create \
@@ -2970,7 +2980,7 @@ function oncontroller_testsetup()
                     --property hypervisor_type=kvm \
                     $image_name | tee glance.out
         fi
-        imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
+        imageid=$(glance_image_get_id $image_name)
         crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
         # test if is cnftools image prepared for tempest
         wait_for 300 5 \
@@ -2998,9 +3008,7 @@ function oncontroller_testsetup()
     local image_name="SP3-64"
     local ssh_user="root"
 
-    if openstack image list | grep -q $image_name ; then
-        openstack image show $image_name | tee glance.out
-    else
+    if ! glance_image_exists $image_name ; then
         # SP3-64 image not found, so uploading it
         if [[ -n "$wanthyperv" ]] ; then
             mount $clouddata:/srv/nfs/ /mnt/
@@ -3031,9 +3039,7 @@ function oncontroller_testsetup()
     if [ -n "$want_docker" ] ; then
         image_name="cirros"
         ssh_user="cirros"
-        if openstack image list | grep -q "[[:space:]]${image_name}[[:space:]]" ; then
-            openstack image show $image_name | tee glance.out
-        else
+        if ! glance_image_exists $image_name ; then
             curl -s \
                 http://$clouddata/images/docker/cirros.tar | \
             openstack image create --public --container-format docker \
@@ -3044,8 +3050,8 @@ function oncontroller_testsetup()
     fi
 
     # wait for image to finish uploading
-    imageid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" glance.out`
-    if [ "x$imageid" == "x" ]; then
+    imageid=$(glance_image_get_id $image_name)
+    if ! [[ $imageid ]]; then
         complain 37 "Image ID for $image_name not found"
     fi
 
