@@ -311,10 +311,6 @@ function _lvcreate()
 # are likely to use different PVs to optimize concurrent IO throughput
 function onhost_create_cloud_lvm()
 {
-    if [ -n "$needcvol" ] ; then
-        safely pvcreate "$cloudpv"
-        safely vgcreate "$cloudvg" "$cloudpv"
-    fi
     safely vgchange -ay $cloudvg # for later boots
 
     local hdd_size
@@ -441,6 +437,11 @@ function setuphost()
             libvirt kvm lvm2 curl wget bridge-utils \
             dnsmasq netcat-openbsd ebtables libvirt-python
         [ "$?" == 0 -o "$?" == 4 ] || complain 10 "setuphost failed to install required packages"
+    fi
+
+    if [ -n "$needcvol" ] ; then
+        safely pvcreate "$cloudpv"
+        safely vgcreate "$cloudvg" "$cloudpv"
     fi
 }
 
