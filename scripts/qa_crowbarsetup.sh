@@ -147,9 +147,7 @@ setcloudnetvars()
         d1)
             nodenumber=5
             net=$netp.178
-            net_storage=$netp.179
             net_public=$netp.177
-            net_fixed=$netp.176
             vlan_storage=568
             vlan_public=567
             vlan_fixed=566
@@ -158,9 +156,7 @@ setcloudnetvars()
         d2)
             nodenumber=2
             net=$netp.186
-            net_storage=$netp.187
             net_public=$netp.185
-            net_fixed=$netp.184
             vlan_storage=581
             vlan_public=580
             vlan_fixed=569
@@ -216,7 +212,6 @@ setcloudnetvars()
         ;;
         p2)
             net=$netp.171
-            net_storage=$netp.172
             net_public=$netp.164
             net_fixed=44.0.0
             vlan_storage=563
@@ -226,9 +221,7 @@ setcloudnetvars()
         ;;
         p)
             net=$netp.169
-            net_storage=$netp.170
             net_public=$netp.168
-            net_fixed=$netp.160
             vlan_storage=565
             vlan_public=564
             vlan_fixed=563
@@ -239,9 +232,7 @@ setcloudnetvars()
         ;;
         cumulus)
             net=$netp.189
-            net_storage=$netp.187
             net_public=$netp.190
-            net_fixed=$netp.188
             vlan_storage=577
             vlan_public=579
             vlan_fixed=578
