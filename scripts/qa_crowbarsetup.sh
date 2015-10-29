@@ -111,9 +111,9 @@ onadmin_help()
         Takes all provided aliases and assign them to available nodes successively.
         Note that this doesn't take care about node assignment itself.
         Examples:
-            want_node_aliases='controller=1:ceph=2:compute=1'
+            want_node_aliases='controller=1,ceph=2,compute=1'
               assigns the aliases to 4 nodes as controller, ceph1, ceph2, compute
-            want_node_aliases='data=1:services=2:storage=2'
+            want_node_aliases='data=1,services=2,storage=2'
               assigns the aliases to 5 nodes as data, service1, service2, storage1, storage2
     want_test_updates=0 | 1  (default=1 if TESTHEAD is set, 0 otherwise)
         add test update repositories
