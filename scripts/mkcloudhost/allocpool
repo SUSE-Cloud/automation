@@ -43,5 +43,5 @@ foreach my $d (@dirs) {
 }
 if(!$found) {die "all dirs (@dirs) are currently in use"}
 print "using testdir=$ENV{testdir}\n";
-exec("/root/mkcloude", @ARGV);
+exec(@ARGV);
 die "exec failed: $!";
