@@ -1120,8 +1120,9 @@ function do_set_repos_skip_checks()
 function create_repos_yml_for_platform()
 {
     local platform=$1
-    local tftpboot_dir=$2
-    shift; shift
+    local arch=$2
+    local tftpboot_dir=$3
+    shift; shift; shift
     local platform_created
     local repo
     local repo_name
@@ -1133,11 +1134,12 @@ function create_repos_yml_for_platform()
         if [ -d "$tftpboot_dir/$repo_name" ]; then
             if [ -z "$platform_created" ]; then
                 echo "$platform:"
+                echo "  $arch:"
                 platform_created=1
             fi
 
-            echo "  $repo_name:"
-            echo "    url: '$repo_url'"
+            echo "    $repo_name:"
+            echo "      url: '$repo_url'"
         fi
     done
 }
@@ -1149,13 +1151,13 @@ function create_repos_yml()
 
     echo --- > $tmp_yml
 
-    create_repos_yml_for_platform "suse-12.0" "$tftpboot_repos12_dir" \
+    create_repos_yml_for_platform "suse-12.0" "x86_64" "$tftpboot_repos12_dir" \
         SLES12-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/ \
         SLE12-HA-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/ \
         SUSE-Enterprise-Storage-2-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/ \
         >> $tmp_yml
 
-    create_repos_yml_for_platform "suse-12.1" "$tftpboot_repos12sp1_dir" \
+    create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
         SLES12-SP1-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
         SLE12-SP1-HA-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/ \
         SUSE-OpenStack-Cloud-6-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/ \
@@ -2383,16 +2385,10 @@ function custom_configuration()
                 local autoyast="['attributes']['provisioner']['suse']['autoyast']"
                 local repos="$autoyast['repos']"
 
-            if iscloudver 5plus ; then
-                repos="$autoyast['repos']['suse-11.3']"
-                proposal_set_value provisioner default "$repos" "{}"
-                if iscloudver 6plus; then
-                    if ! iscloudver 6 || [[ ! $cloudsource =~ ^M[1-6]+$ ]]; then
-                        repos="$repos['x86_64']"
-                        proposal_set_value provisioner default "$repos" "{}"
-                    fi
+                if iscloudver 5plus ; then
+                    repos="$autoyast['repos']['suse-11.3']"
+                    proposal_set_value provisioner default "$repos" "{}"
                 fi
-            fi
 
                 if [ -d "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" ]; then
                     proposal_set_value provisioner default "$repos['SLES11-SP3-Updates-test']" "{}"
@@ -2418,15 +2414,9 @@ function custom_configuration()
                         "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/'"
                 fi
 
-            if iscloudver 5plus ; then
-                repos="$autoyast['repos']['suse-12.0']"
-                proposal_set_value provisioner default "$repos" "{}"
-                if iscloudver 6plus; then
-                    if ! iscloudver 6 || [[ ! $cloudsource =~ ^M[1-6]+$ ]]; then
-                        repos="$repos['x86_64']"
-                        proposal_set_value provisioner default "$repos" "{}"
-                    fi
-                fi
+                if iscloudver 5plus ; then
+                    repos="$autoyast['repos']['suse-12.0']"
+                    proposal_set_value provisioner default "$repos" "{}"
 
                     if [ -d "$tftpboot_repos12_dir/SLES12-Updates-test/" ]; then
                         proposal_set_value provisioner default "$repos['SLES12-Updates-test']" "{}"
@@ -2459,15 +2449,9 @@ function custom_configuration()
                     fi
                 fi
 
-            if iscloudver 6plus ; then
-                repos="$autoyast['repos']['suse-12.1']"
-                proposal_set_value provisioner default "$repos" "{}"
-                if iscloudver 6plus; then
-                    if ! iscloudver 6 || [[ ! $cloudsource =~ ^M[1-6]+$ ]]; then
-                        repos="$repos['x86_64']"
-                        proposal_set_value provisioner default "$repos" "{}"
-                    fi
-                fi
+                if iscloudver 6plus ; then
+                    repos="$autoyast['repos']['suse-12.1']"
+                    proposal_set_value provisioner default "$repos" "{}"
 
                     if [ -d "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" ]; then
                         proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']" "{}"
