@@ -62,6 +62,7 @@ proposals:
 - barclamp: keystone
   attributes:
     ssl:
+      generate_certs: true
       insecure: true
     api:
       protocol: https
