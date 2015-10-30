@@ -68,3 +68,11 @@ jenkins/jenkinsnotify.pl syntax OK
 jenkins/openstack-unittest-testconfig.pl syntax OK
 jenkins/track-upstream-and-package.pl syntax OK
 ```
+
+# jenkins jobs
+There are manually maintained jobs and some jobs are now using
+[jenkins-job-builder](http://docs.openstack.org/infra/jenkins-job-builder/)
+which defines jobs in yaml format.
+To update jobs which land on ci.opensuse.org, run:
+
+   jenkins-jobs --ignore-cache update scripts/jenkins/jobs-obs/
