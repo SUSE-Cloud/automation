@@ -1801,6 +1801,11 @@ function wait_node_ready()
 {
     local node=$1
     wait_for 300 10 \
+        "crowbar machines show $node state | grep -q '^ready$'" \
+        "node $node to transition to ready" "exit 12"
+    echo "node $node transitioned to \"ready\""
+
+    wait_for 3 10 \
         "netcat -w 3 -z $node 3389 || sshtest $node rpm -q yast2-core" \
         "node $node" "check_node_resolvconf $node; exit 12"
     echo "node $node ready"
