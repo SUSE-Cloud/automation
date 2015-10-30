@@ -458,21 +458,25 @@ function export_tftpboot_repos_dir()
     tftpboot_repos_dir=/srv/tftpboot/repos
     tftpboot_suse_dir=/srv/tftpboot/suse-11.3
 
-    if iscloudver 5plus; then
+    if iscloudver 5; then
+        tftpboot_repos_dir=$tftpboot_suse_dir/repos
         tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
-
-        if iscloudver 6plus || [[ ! $cloudsource =~ ^M[1-4]+$ ]]; then
-            tftpboot_repos_dir=$tftpboot_suse_dir/repos
-            tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
-        else
-            # Cloud 5 M1 to M4 use the old-style paths
-            tftpboot_repos12_dir=/srv/tftpboot/repos
-        fi
+        tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
     fi
 
     if iscloudver 6plus; then
-        tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos12sp1_dir=/srv/tftpboot/suse-12.1/repos
+        if iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]]; then
+            tftpboot_suse_dir=/srv/tftpboot/suse-11.3
+            tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
+            tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
+        else
+            tftpboot_suse_dir=/srv/tftpboot/suse-11.3/x86_64
+            tftpboot_suse12_dir=/srv/tftpboot/suse-12.0/x86_64
+            tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1/x86_64
+        fi
+        tftpboot_repos_dir=$tftpboot_suse_dir/repos
+        tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
+        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/repos
     fi
 }
 
@@ -1126,8 +1130,9 @@ function do_set_repos_skip_checks()
 function create_repos_yml_for_platform()
 {
     local platform=$1
-    local tftpboot_dir=$2
-    shift; shift
+    local arch=$2
+    local tftpboot_dir=$3
+    shift; shift; shift
     local platform_created
     local repo
     local repo_name
@@ -1139,11 +1144,12 @@ function create_repos_yml_for_platform()
         if [ -d "$tftpboot_dir/$repo_name" ]; then
             if [ -z "$platform_created" ]; then
                 echo "$platform:"
+                echo "  $arch:"
                 platform_created=1
             fi
 
-            echo "  $repo_name:"
-            echo "    url: '$repo_url'"
+            echo "    $repo_name:"
+            echo "      url: '$repo_url'"
         fi
     done
 }
@@ -1155,13 +1161,13 @@ function create_repos_yml()
 
     echo --- > $tmp_yml
 
-    create_repos_yml_for_platform "suse-12.0" "$tftpboot_repos12_dir" \
+    create_repos_yml_for_platform "suse-12.0" "x86_64" "$tftpboot_repos12_dir" \
         SLES12-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/ \
         SLE12-HA-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/ \
         SUSE-Enterprise-Storage-2-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/ \
         >> $tmp_yml
 
-    create_repos_yml_for_platform "suse-12.1" "$tftpboot_repos12sp1_dir" \
+    create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
         SLES12-SP1-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
         SLE12-SP1-HA-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/ \
         SUSE-OpenStack-Cloud-6-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/ \
