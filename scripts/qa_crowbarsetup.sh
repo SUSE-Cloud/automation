@@ -1527,10 +1527,6 @@ EOF
         complain 85 "crowbar 2nd self-test failed"
     fi
 
-    if ! (rcxinetd status && rcdhcpd status) ; then
-        complain 67 "provisioner failed to configure all needed services!" \
-            "Please fix manually."
-    fi
     if [ -n "$ntpserver" ] ; then
         local pfile=`get_proposal_filename ntp default`
         crowbar ntp proposal show default |
