@@ -115,6 +115,16 @@ onadmin_help()
               assigns the aliases to 4 nodes as controller, ceph1, ceph2, compute
             want_node_aliases='data=1,services=2,storage=2'
               assigns the aliases to 5 nodes as data, service1, service2, storage1, storage2
+    want_node_os=list of OSs to assign to nodes
+        Takes all provided OS values and assign them to available nodes successively.
+        Example:
+            want_node_os=suse-12.1=3,suse-12.0=3,hyperv-6.3=1
+              assigns SLES12SP1 to first 3 nodes, SLES12 to next 3 nodes, HyperV to last one
+    want_node_roles=list of intended roles to assign to nodes
+        Takes all provided intended role values and assign them to available nodes successively.
+        Possible role values: controller, compute, storage, network.
+        Example:
+            want_node_roles=controller=1,compute=2,storage=3
     want_test_updates=0 | 1  (default=1 if TESTHEAD is set, 0 otherwise)
         add test update repositories
 EOUSAGE
@@ -1559,20 +1569,36 @@ function onadmin_installcrowbar()
     do_installcrowbar ""
 }
 
-# set a node's role and platform
-# must be run after discovery and before allocation
-function set_node_role_and_platform()
+# Set a node's attribute (see 2nd argument)
+# Must be run after discovery and makes sense mostly before allocation
+function set_node_attribute()
 {
-    node="$1"
-    role="$2"
-    platform="$3"
+    local node="$1"
+    local attr="$2"
+    local value="$3"
     local t=$(mktemp).json
     knife node show -F json "$node" > $t
-    json-edit $t -a normal.crowbar_wall.intended_role -v "$role"
-    json-edit $t -a normal.target_platform -v "$platform"
+    json-edit $t -a "normal.$attr" -v "$value"
     knife node from file $t
     rm -f $t
 }
+
+function set_node_role()
+{
+    set_node_attribute "$1" "crowbar_wall.intended_role" "$2"
+}
+
+function set_node_platform()
+{
+    set_node_attribute "$1" "target_platform" "$2"
+}
+
+function set_node_role_and_platform()
+{
+    set_node_role "$1" "$2"
+    set_node_platform "$1" "$3"
+}
+
 
 # set the RAID configuration for a node before allocating
 function set_node_raid()
@@ -1660,35 +1686,67 @@ function onadmin_allocate()
         set_node_raid ${controllernodes[0]} $want_raidtype $controller_raid_volumes
     fi
 
-    if [ -n "$want_sles12" ] && iscloudver 5 ; then
+    if [ -n "$want_node_os" ] ; then
+        # OS for nodes provided explicitely: assign them successively to the nodes
+        # example: want_node_os=suse-12.0=3,suse-12.1=4,hyperv-6.3=1
 
-        local nodes=(
-            $(get_all_discovered_nodes | tail -n 2)
-        )
+        local nodesavailable=`get_all_discovered_nodes`
 
-        if [ -n "$deployceph" ] ; then
-            echo "Setting second last node to SLE12 Storage..."
-            set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
-        fi
-
-        echo "Setting last node to SLE12 compute..."
-        set_node_role_and_platform ${nodes[1]} "compute" "suse-12.0"
-    fi
-
-    if [ -n "$deployceph" ] && iscloudver 6 ; then
-        local nodes=(
-            $(get_all_discovered_nodes | head -n 3)
-        )
-        for n in $(seq 1 2); do
-            echo "Setting node $(($n+1)) to SLE12 Storage..."
-            set_node_role_and_platform ${nodes[$n]} "storage" "suse-12.0"
+        for systems in ${want_node_os//,/ } ; do
+            local node_os=${systems%=*}
+            local number=${systems#*=}
+            local i=1
+            for node in `printf  "%s\n" $nodesavailable | head -n$number`; do
+                set_node_platform $node $node_os
+                nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $node`
+                i=$((i+1))
+            done
         done
+    else
+        if [ -n "$want_sles12" ] && iscloudver 5 ; then
+
+            local nodes=(
+                $(get_all_discovered_nodes | tail -n 2)
+            )
+            if [ -n "$deployceph" ] ; then
+                echo "Setting second last node to SLE12 Storage..."
+                set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
+            fi
+            echo "Setting last node to SLE12 compute..."
+            set_node_role_and_platform ${nodes[1]} "compute" "suse-12.0"
+        fi
+        if [ -n "$deployceph" ] && iscloudver 6 ; then
+            local nodes=(
+                $(get_all_discovered_nodes | head -n 3)
+            )
+            for n in $(seq 1 2); do
+                echo "Setting node $(($n+1)) to SLE12 Storage..."
+                set_node_role_and_platform ${nodes[$n]} "storage" "suse-12.0"
+            done
+        fi
+        if [ -n "$wanthyperv" ] ; then
+            echo "Setting last node to Hyper-V compute..."
+            local computenode=$(get_all_discovered_nodes | tail -n 1)
+            set_node_role_and_platform $computenode "compute" "hyperv-6.3"
+        fi
     fi
 
-    if [ -n "$wanthyperv" ] ; then
-        echo "Setting last node to Hyper-V compute..."
-        local computenode=$(get_all_discovered_nodes | tail -n 1)
-        set_node_role_and_platform $computenode "compute" "hyperv-6.3"
+    if [ -n "$want_node_roles" ] ; then
+        # roles for nodes provided explicitely: assign them successively to the nodes
+        # example: want_node_roles=controller=1,storage=2,compute=2
+
+        local nodesavailable=`get_all_discovered_nodes`
+
+        for roles in ${want_node_roles//,/ } ; do
+            local role=${roles%=*}
+            local number=${roles#*=}
+            local i=1
+            for node in `printf  "%s\n" $nodesavailable | head -n$number`; do
+                set_node_role $node $role
+                nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $node`
+                i=$((i+1))
+            done
+        done
     fi
 
     echo "Allocating nodes..."
@@ -3694,7 +3752,7 @@ function onadmin_run_cct()
 function onadmin_setup_aliases()
 {
     local nodesavailable=`get_all_discovered_nodes`
-    local i
+    local i=1
 
     if [ -n "$want_node_aliases" ] ; then
         # aliases provided explicitely, assign them successively to the nodes
@@ -3709,10 +3767,11 @@ function onadmin_setup_aliases()
 
             i=1
             for node in `printf  "%s\n" $nodesavailable | head -n$number`; do
-                if [[ $i -gt 1 ]]; then
-                    node_alias="$node_alias$i"
+                this_node_alias="$node_alias"
+                if [[ $number -gt 1 ]]; then
+                    this_node_alias="$node_alias$i"
                 fi
-                set_node_alias $node $node_alias
+                set_node_alias $node $this_node_alias
                 nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $node`
                 i=$((i+1))
             done
@@ -3727,7 +3786,6 @@ function onadmin_setup_aliases()
 
             cluster_node_assignment
 
-            local i
             for clustername in data network services ; do
                 eval "cluster=\$clusternodes$clustername"
                 i=1
