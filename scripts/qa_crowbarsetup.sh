@@ -3841,7 +3841,7 @@ function onadmin_setup_aliases()
 function onadmin_batch()
 {
     if iscloudver 5plus; then
-        crowbar_batch --timeout 1200 build ${scenario}
+        crowbar_batch --timeout 2400 build ${scenario}
         return $?
     else
         complain 116 "crowbar_batch is only supported with cloudversions 5plus"
