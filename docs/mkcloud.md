@@ -67,6 +67,14 @@ To use mkcloud the following additional steps are needed:
     $ sudo service SuSEfirewall2 off
     ```
 
+* Prepare the system with an initial mkcloud run which installs a few required
+  packages and sets up the lvm volume.
+
+  ```
+  $ sudo /path/to/mkcloud setuphost
+  ```
+
+
 # Configuration
 
 ## mkcloud
@@ -109,7 +117,7 @@ Furthermore your git clone will not be littered with files that are created in y
 ## Example usage
 
 ```
-$ sudo env cloudpv=/dev/loop0 cloudsource=susecloud4 /path/to/mkcloud plain
+$ sudo env cloudpv=/dev/loop0 cloudsource=susecloud6 /path/to/mkcloud plain
 ```
 
 This will create a cloud with an admin node (crowbar) and 2 nodes (1 for
@@ -126,6 +134,9 @@ If you want to test `crowbar_register` for 1 non-crowbar node within an already 
 ```
 sudo env nodenumberlonelynode=1 /path/to/mkcloud setuplonelynodes crowbar_register
 ```
+
+A basic working mkcloud environment could look like [this](basic-mkcloud-config.sh).
+
 
 ## Using with local repositories
 
