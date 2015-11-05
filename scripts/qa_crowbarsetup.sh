@@ -1879,7 +1879,9 @@ function onadmin_crowbar_register()
     local inject
     local zyppercmd
 
-    if iscloudver 6plus; then
+    if  iscloudver 6plus && ! ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]] ) ; then
+        image="suse-12.1/x86_64/"
+    elif iscloudver 6; then
         image="suse-12.1"
     else
         if [ -n "$want_sles12" ] ; then
