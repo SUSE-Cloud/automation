@@ -39,7 +39,7 @@ clusternameservices="services"
 clusternamenetwork="network"
 wanthyperv=
 crowbar_api=http://localhost:3000
-crowbar_install_log=/root/screenlog.0
+crowbar_install_log=/var/log/crowbar/install.log
 
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
@@ -1483,28 +1483,84 @@ EOF
     return 0
 }
 
-# run the crowbar install script
-# and do some sanity checks on the result
-function do_installcrowbar()
+function crowbar_install_status()
+{
+    curl -s $crowbar_api/installer/status.json | python -mjson.tool
+}
+
+function do_installcrowbar_cloud6plus()
+{
+    service crowbar status || service crowbar stop
+    service crowbar start
+
+    wait_for 30 10 "curl -s $crowbar_api/installer | grep -q '/installer/install'" "crowbar installer to be available"
+
+    if crowbar_install_status | grep -q '"success": *true' ; then
+        echo "Crowbar is already installed. The current crowbar install status is:"
+        crowbar_install_status
+        return 0
+    fi
+
+    # call api to start asyncronous install job
+    curl -s -X POST $crowbar_api/installer/install || complain 39 "crowbar is not running"
+
+    wait_for 60 10 "crowbar_install_status | grep -q '\"success\": *true'" "crowbar to get installed" "tail -n 500 $crowbar_install_log"
+}
+
+
+function do_installcrowbar_legacy()
 {
     local instparams="$1 --verbose"
-    pre_hook $FUNCNAME
     local instcmd
     if [ -e /tmp/install-chef-suse.sh ]; then
         instcmd="/tmp/install-chef-suse.sh $instparams"
     else
         instcmd="/opt/dell/bin/install-chef-suse.sh $instparams"
     fi
-    do_set_repos_skip_checks
+    # screenlog is verbose in legacy mode
+    crowbar_install_log=/root/screenlog.0
 
     cd /root # we expect the screenlog.0 file here
     echo "Command to install chef: $instcmd"
     intercept "install-chef-suse.sh"
 
     rm -f /tmp/chef-ready
-    rpm -Va crowbar\*
     # run in screen to not lose session in the middle when network is reconfigured:
     screen -d -m -L /bin/bash -c "$instcmd ; touch /tmp/chef-ready"
+
+    wait_for 300 5 '[ -e /tmp/chef-ready ]' "waiting for chef-ready"
+    rpm -Va crowbar\*
+
+    # Make sure install finished correctly
+    if ! [ -e /opt/dell/crowbar_framework/.crowbar-installed-ok ]; then
+        tail -n 90 /root/screenlog.0
+        complain 89 "Crowbar \".crowbar-installed-ok\" marker missing"
+    fi
+
+    # Force restart of crowbar
+    service crowbar stop
+    service crowbar status || service crowbar start
+}
+
+
+function do_installcrowbar()
+{
+    intercept "crowbar-installation"
+    pre_hook $FUNCNAME
+    do_set_repos_skip_checks
+
+    rpm -Va crowbar\*
+    if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-7]$ ]]) ; then
+        do_installcrowbar_cloud6plus
+    else
+        do_installcrowbar_legacy $@
+    fi
+    rpm -Va crowbar\*
+
+    ## common code - installer agnostic
+
+    [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
+    ensure_packages_installed crowbar-barclamp-tempest
 
     if [ -n "$wanthyperv" ] ; then
         # prepare Hyper-V 2012 R2 PXE-boot env and export it via Samba:
@@ -1523,21 +1579,6 @@ function do_installcrowbar()
 EOF
         service smb restart
     fi
-    wait_for 300 5 '[ -e /tmp/chef-ready ]' "waiting for chef-ready"
-    rpm -Va crowbar\*
-
-    # Make sure install finished correctly
-    if ! [ -e /opt/dell/crowbar_framework/.crowbar-installed-ok ]; then
-        tail -n 90 /root/screenlog.0
-        complain 89 "Crowbar \".crowbar-installed-ok\" marker missing"
-    fi
-
-    ensure_packages_installed crowbar-barclamp-tempest
-    # Force restart of crowbar
-    service crowbar stop
-
-    service crowbar status || service crowbar start
-    [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
     sleep 20
     if ! curl -m 59 -s $crowbar_api  > /dev/null || \
