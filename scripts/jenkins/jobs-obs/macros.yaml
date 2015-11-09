@@ -1,0 +1,8 @@
+- builder:
+    name: update-automation
+    builders:
+      - shell: |
+          #!/bin/bash
+          [ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation && chmod a+x ~/bin/update_automation
+          # fetch the latest automation updates
+          update_automation

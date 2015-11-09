@@ -1,0 +1,84 @@
+- job:
+    name: 'openstack-cleanvm'
+    project-type: matrix
+    axes:
+      - axis:
+          type: user-defined
+          name: image
+          values:
+            - SLE_11_SP3-64-minimal
+            - SLE_12-64-minimal
+            - SLE_12_SP1-64-minimal
+            - openSUSE-13.2-64-minimal
+      - axis:
+          type: user-defined
+          name: openstack_version
+          values:
+            - icehouse
+            - juno
+            - kilo
+            - liberty
+            - master
+      - axis:
+          type: slave
+          name: slave
+          values:
+            - cloud-cleanvm
+    execution-strategy:
+      combination-filter: |
+        (
+        slave=="cloud-cleanvm"
+        && ( openstack_version=="icehouse" && (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal"))
+        || ( openstack_version=="juno" && (image=="openSUSE-13.2-64-minimal" || image=="SLE_11_SP3-64-minimal"))
+        || ( openstack_version=="kilo" && (image=="openSUSE-13.2-64-minimal" || image=="SLE_12-64-minimal"))
+        || ( openstack_version=="liberty" && (image=="SLE_12_SP1-64-minimal" || image=="SLE_12-64-minimal" || image=="openSUSE-13.2-64-minimal"))
+        || ( openstack_version=="master" && (image=="openSUSE-13.2-64-minimal" || image=="SLE_12-64-minimal"))
+        )
+      sequential: true
+    builders:
+      - update-automation
+      - shell: |
+          #!/bin/bash
+          sudo /usr/local/sbin/freshvm cleanvm $image
+          sleep 100
+          cloudsource=openstack$openstack_version
+          oshead=1
+          set -u
+          set +e
+          scp ~/github.com/SUSE-Cloud/automation/scripts/jenkins/qa_openstack.sh root@cleanvm:
+          ssh root@cleanvm "export cloudsource=$cloudsource; export OSHEAD=$oshead; export NONINTERACTIVE=1; bash -x ~/qa_openstack.sh"
+          ret=$?
+          if [ "$ret" != 0 ] ; then
+            virsh shutdown cleanvm
+            # wait for clean shutdown
+            n=20 ; while [[ $n > 0 ]] && virsh list |grep cleanvm.*running ; do sleep 2 ; n=$(($n-1)) ; done
+            virsh destroy cleanvm
+            # cleanup old images
+            find /mnt/cleanvmbackup -mtime +5 -type f | xargs --no-run-if-empty rm
+            # backup /dev/vg0/cleanvm disk image
+            file=/mnt/cleanvmbackup/${BUILD_NUMBER}-${openstack_version}-${image}.raw.gz
+            time gzip -c1 /dev/vg0/cleanvm > $file
+            du $file
+            exit 1
+          fi
+          set -eu
+          # mappings for submit job trigger
+          OSversion=`echo $openstack_version | perl -ne 'print ucfirst($_)'`
+          case $OSversion in
+            Grizzly|Havana|Icehouse|Juno|Kilo|Liberty)
+            project=Cloud:OpenStack:$OSversion
+            subproject=Staging
+            ;;
+            Master)
+            project=Cloud:OpenStack:Master
+            subproject=-
+            ;;
+            *) echo "No valid project defined."
+            exit 1
+          esac
+
+          # trigger submit job
+          if [ "$subproject" != "-" ] ; then
+            export jenkinsscheme=http
+            ~/github.com/SUSE-Cloud/automation/scripts/jenkins/jenkins-job-trigger cloud-submit-project -p project=$project subproject=$subproject
+          fi
