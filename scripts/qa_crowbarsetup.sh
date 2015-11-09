@@ -3752,10 +3752,11 @@ function onadmin_run_cct()
 
         # run cct
         bundle install
+        local log_path="${artifacts_dir:=log}/cct.log"
         local IFS
         IFS='+'
         for test in $cct_tests; do
-            bundle exec rake $test
+            bundle exec rake $test cct_log_path=$log_path
             ret=$?
             [[ $ret != 0 ]] && break
         done
