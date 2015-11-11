@@ -25,7 +25,7 @@ also trigger on publish of iso</description>
       <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.0">
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -73,7 +73,10 @@ also trigger on publish of iso</description>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>cloudsource=develcloud6
 nodenumber=2
-mkcloudtarget=all_noreboot</properties>
+mkcloudtarget=all_batch_noreboot
+scenario=cloud6-2nodes-default.yml
+want_node_aliases=controller=1,compute-kvm=1
+</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
