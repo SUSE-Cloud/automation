@@ -1444,6 +1444,12 @@ EOF
         done
     fi
 
+    # Reduce exterior MTU when using OpenvSwitch networking
+    if [[ "$networkingplugin" = "openvswitch" ]]; then
+        echo "Setting 1450-byte MTU for public interface"
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.mtu -r -v 1450 $netfile
+    fi
+
     # to allow integration into external DNS:
     local f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
     grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
