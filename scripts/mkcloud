@@ -400,19 +400,7 @@ function onhost_deploy_image()
     safely qemu-img convert -t none -O raw -S 0 -p $image $disk
     popd
 
-    # only resize if we have a 2nd partition with a rootfs
-    if fdisk -l $disk | grep -q "2 *\* *.*83 *Linux" ; then
-        # make a bigger partition 2
-        echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $disk
-        part2=$(kpartx -asv $disk|perl -ne 'm/add map (\S+2) / && print $1')
-        test -n "$part2" || complain 31 "failed to find partition #2"
-        local bdev=/dev/mapper/$part2
-        safely fsck -y -f $bdev
-        safely resize2fs $bdev
-        time udevadm settle
-        sleep 1 # time for dev to become unused
-        safely kpartx -dsv $disk
-    fi
+    resize_partition $disk
 }
 
 function onhost_add_etchosts_entries()
