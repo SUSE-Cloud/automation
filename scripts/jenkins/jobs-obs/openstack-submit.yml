@@ -1,0 +1,59 @@
+- job:
+    name: 'openstack-submit'
+    node: cloud-trackupstream
+
+    parameters:
+      - string:
+          name: openstack_project
+          default: None
+          description: name of the main project that should be updated with packages from its staging project
+
+    builders:
+      - shell: |
+          #!/bin/bash
+          case $openstack_project in
+            Master)
+              echo "Master project, skip job, do not fail (e.g. for Master project)"
+              exit 0
+              ;;
+          esac
+
+          OSC="osc -A https://api.opensuse.org"
+          COS="Cloud:OpenStack:$openstack_project"
+          COSS="$COS:Staging"
+          export BS_CHECKOUT=/home/jenkins/OBS_CHECKOUT/$COSS
+          submitcmd="echo no submit for project=$COS"
+          OSCBUILDDIST=SLE_11_SP3
+
+          case $COS in
+            Cloud:OpenStack:[GHIJ]*)
+              submitcmd="$OSC copypac -K -e"
+              OSCBUILDDIST=SLE_11_SP3
+            ;;
+            Cloud:OpenStack:[KL]*)
+              submitcmd="$OSC copypac -K -e"
+              OSCBUILDDIST=SLE_12
+            ;;
+            *) echo "Please add support for the project: $project"
+              exit 1
+            ;;
+          esac
+
+          # first ls, then loop in order to catch failing 'osc ls' calls
+          components=`$OSC ls $COSS 2>/dev/null`
+
+          for COMPONENT in $components
+          do
+          cd $BS_CHECKOUT || exit 1
+          if [ ! -d $COMPONENT ]; then
+              osc co $COMPONENT || exit 1
+          fi
+          cd $COMPONENT || exit 1
+
+          grep -q "<linkinfo" .osc/_files || exit 2
+
+          if $OSC rdiff $COS $COMPONENT $COSS | grep .  &&  $OSC api /build/$COSS/$OSCBUILDDIST/x86_64/$COMPONENT/_status | grep -q 'code="succeeded"'
+          then
+              $E $submitcmd $COSS $COMPONENT $COS
+          fi
+          done
