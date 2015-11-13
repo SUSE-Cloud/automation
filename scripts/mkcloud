@@ -584,8 +584,10 @@ function prepareinstcrowbar()
 function scp_install_chef_suse_override()
 {
     if [ -e "$install_chef_suse_override" ]; then
+        ssh root@$adminip "mv /opt/dell/bin/install-chef-suse.sh{,.orig}"
         $scp -p "$install_chef_suse_override" \
-            root@$adminip:/tmp/install-chef-suse.sh
+            root@$adminip:/opt/dell/bin/install-chef-suse.sh
+        ssh root@$adminip "chmod +x /opt/dell/bin/install-chef-suse.sh"
     fi
 }
 
