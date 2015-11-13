@@ -61,24 +61,9 @@
             du $file
             exit 1
           fi
-          set -eu
-          # mappings for submit job trigger
-          OSversion=`echo $openstack_version | perl -ne 'print ucfirst($_)'`
-          case $OSversion in
-            Grizzly|Havana|Icehouse|Juno|Kilo|Liberty)
-            project=Cloud:OpenStack:$OSversion
-            subproject=Staging
-            ;;
-            Master)
-            project=Cloud:OpenStack:Master
-            subproject=-
-            ;;
-            *) echo "No valid project defined."
-            exit 1
-          esac
 
-          # trigger submit job
-          if [ "$subproject" != "-" ] ; then
-            export jenkinsscheme=http
-            ~/github.com/SUSE-Cloud/automation/scripts/jenkins/jenkins-job-trigger cloud-submit-project -p project=$project subproject=$subproject
-          fi
+          exit $ret
+      - trigger-builds:
+        - project: openstack-submit
+          condition: SUCCESS
+          current-parameters: true
