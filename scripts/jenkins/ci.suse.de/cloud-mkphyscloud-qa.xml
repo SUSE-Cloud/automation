@@ -17,7 +17,7 @@
       <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.1">
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
     <hudson.model.ParametersDefinitionProperty>
@@ -110,7 +110,7 @@ Default: openvswitch</description>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
@@ -160,7 +160,7 @@ export nodenumber=$nodenumber ;
 export hacloud=$hacloud ; 
 export clusterconfig=$clusterconfig ; 
 export runner_url=$runner_url ; 
-export commands="$commands" "'
+export commands=\"$commands\" "'
  
 wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
 
@@ -184,15 +184,15 @@ exit $ret
       <defaultExcludes>true</defaultExcludes>
       <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
-    <hudson.tasks.Mailer plugin="mailer@1.11">
+    <hudson.tasks.Mailer plugin="mailer@">
       <recipients>vmoravec@suse.com</recipients>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.7.2"/>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.3">
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
       <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"} ${ENV,var="hacloud"})</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
   </buildWrappers>

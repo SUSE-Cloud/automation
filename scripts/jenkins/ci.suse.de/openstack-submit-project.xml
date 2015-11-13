@@ -20,7 +20,7 @@ Only packages that built successfully are submitted.&#13;
       <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.1">
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
     <hudson.model.ParametersDefinitionProperty>
@@ -47,7 +47,7 @@ Only packages that built successfully are submitted.&#13;
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
@@ -140,8 +140,8 @@ done</command>
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.7.2"/>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.3">
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
       <template>submit ${ENV,var="project"}</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
   </buildWrappers>

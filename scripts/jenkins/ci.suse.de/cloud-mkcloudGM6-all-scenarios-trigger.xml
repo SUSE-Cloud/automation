@@ -24,10 +24,10 @@ of Cloud 6 from SUSE Namespace with all variants</description>
       <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.13.0">
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
@@ -39,7 +39,7 @@ of Cloud 6 from SUSE Namespace with all variants</description>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
-    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@0.40">
+    <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@">
       <spec>H/10 * * * * </spec>
       <entries>
         <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
@@ -59,7 +59,7 @@ of Cloud 6 from SUSE Namespace with all variants</description>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.29">
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@">
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
@@ -96,7 +96,7 @@ want_test_updates=1</properties>
         </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.29">
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@">
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
@@ -134,7 +134,7 @@ want_test_updates=1</properties>
         </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.29">
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@">
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>

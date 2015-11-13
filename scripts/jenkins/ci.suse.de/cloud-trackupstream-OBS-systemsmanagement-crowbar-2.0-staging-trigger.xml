@@ -37,7 +37,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders/>
   <publishers>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.25">
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@">
       <configs>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
