@@ -665,7 +665,7 @@ function add_suse_storage_repo()
             done
         fi
         if iscloudver 6plus; then
-            for repo in SUSE-Enterprise-Storage-2-{Pool,Updates}; do
+            for repo in SUSE-Enterprise-Storage-2.1-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
                 add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
