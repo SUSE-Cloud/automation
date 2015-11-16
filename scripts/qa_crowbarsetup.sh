@@ -3018,6 +3018,7 @@ function oncontroller_testsetup()
     openstack image list
 
     local image_name="SP3-64"
+    local flavor="m1.smaller"
     local ssh_user="root"
 
     if ! glance_image_exists $image_name ; then
@@ -3050,6 +3051,7 @@ function oncontroller_testsetup()
 
     if [ -n "$want_docker" ] ; then
         image_name="cirros"
+        flavor="m1.tiny"
         ssh_user="cirros"
         if ! glance_image_exists $image_name ; then
             curl -s \
@@ -3089,7 +3091,7 @@ function oncontroller_testsetup()
     nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
     nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
     nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
-    nova boot --poll --image $image_name --flavor m1.smaller --key_name testkey testvm | tee boot.out
+    nova boot --poll --image $image_name --flavor $flavor --key_name testkey testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
