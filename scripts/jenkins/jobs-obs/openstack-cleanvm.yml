@@ -67,3 +67,5 @@
         - project: openstack-submit
           condition: SUCCESS
           current-parameters: true
+          predefined-parameters:
+            openstack_project=${openstack_project}
