@@ -1,6 +1,6 @@
 #!/bin/sh -x
 n=$(basename $testdir)
-. /root/runtestn $n
+. ${automationrepo:-/root/github.com/SUSE-Cloud/automation}/scripts/mkcloudhost/runtestn $n
 echo env=$testdir n=$n admin=$net_admin disk=$CVOL params="$@"
 echo access from outside via http://crowbar$cloud.cloud.suse.de/ and http://dashboard$cloud.cloud.suse.de/
 exec "$@"
