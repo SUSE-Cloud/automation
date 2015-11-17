@@ -76,7 +76,7 @@ if ($jtype =~ /^-p$/) {
 }
 
 my $triggerurl=$jurl."/job/".$job;
-my @curlargs=();
+my @curlargs=('--silent', '--show-error');
 push @curlargs, ("-H", "Content-Length: 0");
 
 if ($jobtype eq 'normal') {
