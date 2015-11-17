@@ -153,7 +153,7 @@ mkcloudtarget=all_noreboot</properties>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>project=Devel:Cloud:6
 subproject=Staging
-packagefilter=crowbar python openstack patterns suse-cloud-upgrade
+packagefilter=crowbar python openstack patterns release-notes-suse-openstack-cloud suse-cloud-upgrade
 starttime=1999955453</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
