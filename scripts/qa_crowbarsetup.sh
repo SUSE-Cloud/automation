@@ -1471,6 +1471,10 @@ EOF
         if ! grep -q /var/lib/glance/images $f; then
             echo "/var/lib/glance/images     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
         fi
+        mkdir -p /srv/nfs/{database,rabbitmq}
+        if ! grep -q /srv/nfs $f; then
+            echo "/srv/nfs     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
+        fi
     fi
 
     # exit code of the sed don't matter, so just:
