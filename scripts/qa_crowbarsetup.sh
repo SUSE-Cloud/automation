@@ -20,8 +20,8 @@ fi
 : ${cinder_netapp_storage_protocol:=iscsi}
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
-: ${clouddata:=$(dig -t A +short clouddata.cloud.suse.de)}
-: ${distsuse:=$(dig -t A +short dist.suse.de)}
+: ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
+: ${distsuse:=$(dig -t A +short dist.nue.suse.com)}
 : ${want_raidtype:="raid1"}
 
 : ${arch:=$(uname -m)}
