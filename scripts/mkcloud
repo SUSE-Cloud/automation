@@ -427,6 +427,7 @@ function setuphost()
         [ "$?" == 0 -o "$?" == 4 ] || complain 10 "setuphost failed to install required packages"
     fi
 
+    sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
     if [ -n "$needcvol" ] ; then
         safely pvcreate "$cloudpv"
         safely vgcreate "$cloudvg" "$cloudpv"
