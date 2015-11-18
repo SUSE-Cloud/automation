@@ -1,0 +1,114 @@
+- job:
+    name: 'openstack-repocheck'
+    project-type: matrix
+    node: cloud-trackupstream
+
+    triggers:
+      - timed: '@hourly'
+
+    logrotate:
+      numToKeep: 10
+      daysToKeep: -1
+
+    axes:
+      - axis:
+          type: user-defined
+          name: project
+          values:
+            - Cloud:OpenStack:Icehouse
+            - Cloud:OpenStack:Icehouse:Staging
+            - Cloud:OpenStack:Juno
+            - Cloud:OpenStack:Juno:Staging
+            - Cloud:OpenStack:Kilo
+            - Cloud:OpenStack:Kilo:Staging
+            - Cloud:OpenStack:Liberty
+            - Cloud:OpenStack:Liberty:Staging
+            - Cloud:OpenStack:Master
+            - Cloud:Tools
+      - axis:
+          type: user-defined
+          name: repository
+          values:
+            - SLE_11_SP3
+            - SLE_12
+            - openSUSE_13.2
+      - axis:
+          type: slave
+          name: nodes
+          values:
+            - cloud-trackupstream
+    execution-strategy:
+      combination-filter: |
+       !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_11_SP3"].contains(repository) ||
+         ["Cloud:OpenStack:Factory"].contains(project) && ["SLE_11_SP3", "SLE_12", "SLE_12_SP1"].contains(repository) ||
+         ["Cloud:OpenStack:Icehouse", "Cloud:OpenStack:Icehouse:Staging"].contains(project) && ["SLE_12", "SLE_12_SP1", "openSUSE_13.2", "openSUSE_Factory"].contains(repository) ||
+         ["Cloud:OpenStack:Juno", "Cloud:OpenStack:Juno:Staging"].contains(project) && ["openSUSE_Factory"].contains(repository)  ||
+         ["Cloud:OpenStack:Kilo", "Cloud:OpenStack:Kilo:Staging"].contains(project) && ["openSUSE_Factory", "SLE_11_SP3"].contains(repository)  ||
+         ["Cloud:OpenStack:Liberty", "Cloud:OpenStack:Liberty:Staging"].contains(project) && ["openSUSE_Factory", "SLE_11_SP3"].contains(repository)
+       )
+      sequential: true
+    builders:
+      - update-automation
+      - shell: |
+          PROJECTSOURCE=OBS/${project}
+
+          # needs .oscrc with user,pass,trusted_prj
+          # zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools/SLE_11_SP2/openSUSE:Tools.repo
+          # zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools:/Unstable/SLE_11_SP2/openSUSE:Tools:Unstable.repo
+          # zypper in osc obs-service-tar_scm obs-service-github_tarballs obs-service-recompress obs-service-git_tarballs obs-service-set_version
+          [ -z "$PROJECTSOURCE" ] && ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
+
+
+          DIST_NAME=$(echo $repository|cut -d "_" -f 1)
+          DIST_VERSION=$(echo $repository|cut -d "_" -f 2-)
+
+
+          OBS_TYPE=${PROJECTSOURCE%%/*}
+          OBS_PROJECT=${PROJECTSOURCE##*/}
+
+          case $OBS_TYPE in
+            OBS) OSCAPI="https://api.opensuse.org"
+                OSC_BUILD_ARCH=x86_64
+                case $OBS_PROJECT in
+                    *)
+                        OSC_BUILD_DIST=SLE_11_SP3
+                        ;;
+                esac
+                ;;
+            *)   echo "This jenkins instance only interacts with OBS."
+                exit 1
+                ;;
+          esac
+
+          fetch_primary_xml()
+          {
+              local repo=$1
+              disturl=$2
+              local host="http://download.opensuse.org/repositories/"
+              test -n "$3" && host=$3
+              mkdir -p tmp/repo
+              rm -rf tmp/repo/repomd.xml tmp/repo/primary.xml.gz
+              curl -fs $host/$repo/$disturl/repodata/repomd.xml > tmp/repo/repomd.xml
+              primary=$(grep "location.*primary.xml" tmp/repo/repomd.xml | cut -d'"' -f2)
+              curl -Lfs $host/$repo/$disturl/$primary > tmp/repo/primary.xml.gz
+              test -s tmp/repo/primary.xml.gz || { echo "failed to download primary.xml!"; rm -f tmp/repo/primary.xml.gz; exit 1; }
+              rm -f tmp/repo/repomd.xml
+          }
+
+          ARCH=x86_64
+
+          slashed_project=$(echo $project | sed -e 's,:,:\/,g')
+          non_staging_project=${slashed_project%%:/Staging}
+
+          EXTRA_NOCHECK=""
+
+          if [ "$slashed_project" != "$non_staging_project" ]; then
+            EXTRA_NOCHECK="tmp/repo/nonstaging_primary.xml.gz"
+            fetch_primary_xml $non_staging_project $repository
+            mv tmp/repo/primary.xml.gz $EXTRA_NOCHECK
+          fi
+
+          fetch_primary_xml $slashed_project $repository
+
+          test -e ~/repo || { echo "~/repo needs to have a copy of pre-generated .solv files from internal media" ; exit 55; }
+          installcheck $ARCH --withobsoletes --exclude "-kmp-" tmp/repo/primary.xml.gz  --nocheck $EXTRA_NOCHECK ~/repo/${repository}-${ARCH}.solv
