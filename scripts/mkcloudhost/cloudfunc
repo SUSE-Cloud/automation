@@ -19,3 +19,14 @@ function vcloudpublicnet()
     echo -n 10.162.$((vcloudbase-1+n))
 }
 
+function routedcloudpublicnet()
+{
+    local n=$1
+    local offset=8
+    local cloudspernode=32
+    local mkch_id=$(hostname | perl -pe 's/mkch(.)/ord($1)-ord("a")/e')
+    local base2=$(($mkch_id * $cloudspernode))
+    local base1=$(($offset + $base2/256))
+    base2=$(($base2 % 256))
+    echo -n 44.$base1.$(($base2+$n-1))
+}

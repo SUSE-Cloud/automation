@@ -1,0 +1,16 @@
+n=$1
+shift
+. /root/cloud.d/cloudfunc
+
+if [ "$n" -lt 1 -o "$n" -gt 32 ] ; then
+  echo "$n is out of range [1..32]"
+  exit 1
+fi
+
+export net_admin=$(cloudadminnet $n)
+export net_public=$(routedcloudpublicnet $n)
+export adminnetmask=255.255.255.0
+export virtualcloud=$vcloudname$n
+export cloud=$virtualcloud
+export NOSETUPPORTFORWARDING=1
+
