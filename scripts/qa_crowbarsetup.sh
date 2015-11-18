@@ -3663,12 +3663,11 @@ function oncontroller_testsetup()
     nova list
     openstack image list
 
-    local image_name="SP3-64"
+    local image_name="jeos"
     local flavor="m1.smaller"
     local ssh_user="root"
 
     if ! glance_image_exists $image_name ; then
-        # SP3-64 image not found, so uploading it
         if [[ -n "$wanthyperv" ]] ; then
             mount $clouddata:/srv/nfs/ /mnt/
             zypper -n in virt-utils
@@ -3683,7 +3682,7 @@ function oncontroller_testsetup()
                 --property vm_mode=xen  $image_name | tee glance.out
         else
             curl -s \
-                http://$clouddata/images/SP3-64up.qcow2 | \
+                http://$clouddata/images/$(uname -m)/SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.$(uname -m)-GM.qcow2 | \
                 openstack image create --public --property hypervisor_type=kvm \
                 --disk-format qcow2 --container-format bare $image_name | tee glance.out
         fi
