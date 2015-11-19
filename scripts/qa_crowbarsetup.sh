@@ -38,6 +38,8 @@ clusternamedata="data"
 clusternameservices="services"
 clusternamenetwork="network"
 wanthyperv=
+crowbar_api=http://localhost:3000
+crowbar_install_log=/root/screenlog.0
 
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
@@ -1538,16 +1540,16 @@ EOF
     [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
     sleep 20
-    if ! curl -m 59 -s http://localhost:3000 > /dev/null || \
-        ! curl -m 59 -s --digest --user crowbar:crowbar localhost:3000 | \
+    if ! curl -m 59 -s $crowbar_api  > /dev/null || \
+        ! curl -m 59 -s --digest --user crowbar:crowbar $crowbar_api  | \
         grep -q /nodes/crowbar
     then
-        tail -n 90 /root/screenlog.0
+        tail -n 90 $crowbar_install_log
         complain 84 "crowbar self-test failed"
     fi
 
     if ! get_all_nodes | grep -q crowbar.$cloudfqdn ; then
-        tail -n 90 /root/screenlog.0
+        tail -n 90 $crowbar_install_log
         complain 85 "crowbar 2nd self-test failed"
     fi
 
@@ -1782,7 +1784,7 @@ EOF
     done
 
     # check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
-    curl -m 9 -s --digest --user crowbar:crowbar http://localhost:3000 | \
+    curl -m 9 -s --digest --user crowbar:crowbar $crowbar_api | \
         tee /root/crowbartest.out
     if grep -q "Exception caught" /root/crowbartest.out; then
         complain 27 "simple crowbar test failed"

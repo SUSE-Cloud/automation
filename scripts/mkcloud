@@ -587,8 +587,10 @@ function prepareinstcrowbar()
 function scp_install_chef_suse_override()
 {
     if [ -e "$install_chef_suse_override" ]; then
+        ssh root@$adminip "mv /opt/dell/bin/install-chef-suse.sh{,.orig}"
         $scp -p "$install_chef_suse_override" \
-            root@$adminip:/tmp/install-chef-suse.sh
+            root@$adminip:/opt/dell/bin/install-chef-suse.sh
+        ssh root@$adminip "chmod +x /opt/dell/bin/install-chef-suse.sh"
     fi
 }
 
@@ -597,7 +599,7 @@ function instcrowbar()
     scp_install_chef_suse_override
     onadmin installcrowbar
     local ret=$?
-    $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
+    $scp root@$adminip:$crowbar_install_log "$artifacts_dir/"
     return $ret
 }
 
@@ -607,7 +609,7 @@ function instcrowbarfromgit()
     safely rsync -av --exclude ".git" --exclude ".ci-tracking" ./crowbar root@$adminip:/root/
     onadmin installcrowbarfromgit
     local ret=$?
-    $scp root@$adminip:screenlog.0 "$artifacts_dir/screenlog.0.install-suse-cloud"
+    $scp root@$adminip:$crowbar_install_log "$artifacts_dir/"
     return $ret
 }
 
