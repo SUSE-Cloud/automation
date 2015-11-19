@@ -348,7 +348,14 @@ if [ -e mkcloud.pid ] ; then
     kill -KILL -`mkcloud.pid` ||: # make sure that the previous mkcloud (and subprocesses) are dead
 fi
 starttime=`date +%s`
-perl -e "alarm 4*60*60 ; exec '${automationrepo}/scripts/mkcloudhost/allocpool bash -x ${automationrepo}/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
+
+mkcloudwrapper="${automationrepo}/scripts/mkcloudhost/allocpool ${automationrepo}/scripts/mkcloudhost/mkcloude"
+#FIXME - drop next 3 lines once the change in allocpool is merged
+if grep -q "exec.*mkcloude" ${automationrepo}/scripts/mkcloudhost/allocpool ; then
+    mkcloudwrapper=${automationrepo}/scripts/mkcloudhost/allocpool
+fi
+
+perl -e "alarm 4*60*60 ; exec '${mkcloudwrapper} bash -x ${automationrepo}/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
 ret=${PIPESTATUS[0]}
 if [[ $ret != 0 ]] ; then
     [[ $github_pr_sha ]] &amp;&amp; mkcloudgating_trap
