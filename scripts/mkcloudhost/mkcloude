@@ -7,5 +7,5 @@ else
     . $ar/scripts/mkcloudhost/runtestn $n
 fi
 echo env=$testdir n=$n admin=$net_admin disk=$CVOL params="$@"
-echo access from outside via http://crowbar$cloud.cloud.suse.de/ and http://dashboard$cloud.cloud.suse.de/
+echo access from outside via http://crowbar.$cloud.cloud.suse.de/ and http://dashboard.$cloud.cloud.suse.de/
 exec "$@"
