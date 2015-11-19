@@ -133,7 +133,6 @@ proposals:
       - "@@controller3@@"
 - barclamp: neutron
   attributes:
-    use_l2pop: false
     ml2_mechanism_drivers:
     - linuxbridge
     ml2_type_drivers:
