@@ -1,4 +1,5 @@
 . /root/cloud.d/cloudrc.host
+cloudspernode=32
 
 # note, cloudadminnet must be in the same /23 as cloudpublicnet
 function cloudadminnet()
@@ -30,7 +31,6 @@ function routedcloudpublicnet()
 {
     local n=$1
     local offset=8
-    local cloudspernode=32
     local mkch_id=$(mkch_id)
     local base2=$(($mkch_id * $cloudspernode))
     local base1=$(($offset + $base2/256))

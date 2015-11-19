@@ -1,0 +1,16 @@
+#! /bin/sh
+#
+# written in 2015 by Bernhard M. Wiedemann <bmwiedemann@suse.de>
+
+iptables -t nat -F PREROUTING
+echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
+. /root/cloud.d/cloudfunc
+
+for n in $(seq 1 $cloudspernode) ; do
+    # map vN.cloud crowbar IPs
+    iptables -t nat -I PREROUTING -d $(routedcloudpublicnet $n).10 -j DNAT --to-destination $(cloudadminnet $n).10
+done
+for x in D I ; do
+    iptables -$x FORWARD -d 192.168.0.0/16 -j ACCEPT
+done
+
