@@ -54,8 +54,8 @@ JOB_PARAMETERS = {
     'barclamp-pacemaker': MKCLOUD_HA_PARAMETERS
 }
 
-htdocs_dir = '/srv/www/htdocs/mkcloud'
-htdocs_url = 'http://tu-sle12.j.cloud.suse.de/mkcloud/'
+htdocs_dir = '/srv/mkcloud'
+htdocs_url = 'http://clouddata.cloud.suse.de/mkcloud/'
 
 iosc = functools.partial(
     Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
