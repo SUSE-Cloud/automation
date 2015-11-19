@@ -195,6 +195,23 @@ Default: -t -s.</description>
           <triggerIfResult>allCases</triggerIfResult>
           <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
         </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_node_aliases</name>
+          <description>List of aliases to assign to nodes. Takes all provided aliases and assign them to available nodes successively.
+
+        Examples:
+            want_node_aliases='controller=1,ceph=2,compute=1'
+              assigns the aliases to 4 nodes as controller, ceph1, ceph2, compute
+            want_node_aliases='data=1,services=2,storage=2'
+              assigns the aliases to 5 nodes as data, service1, service2, storage1, storage2</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>scenario</name>
+          <description>Defines which scenario file should be used. Only works with cloud5 or newer.
+Currently only the 'batch' step uses such a file.</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
