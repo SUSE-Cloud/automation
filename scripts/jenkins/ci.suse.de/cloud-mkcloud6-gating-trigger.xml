@@ -73,7 +73,7 @@ also trigger on publish of iso</description>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>cloudsource=develcloud6
 nodenumber=2
-mkcloudtarget=all_batch_noreboot
+mkcloudtarget=all_batch
 scenario=cloud6-2nodes-default.yml
 want_node_aliases=controller=1,compute-kvm=1
 </properties>
@@ -114,7 +114,7 @@ want_node_aliases=controller=1,compute-kvm=1
               <properties>cloudsource=develcloud6
 nodenumber=4
 networkingplugin=linuxbridge
-mkcloudtarget=all_noreboot</properties>
+mkcloudtarget=all</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
