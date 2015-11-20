@@ -523,12 +523,6 @@ function addsles12testupdates()
             add_mount "SUSE-Enterprise-Storage-1.0-Updates-test" \
                 $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
                 "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/"
-        elif iscloudver 6plus; then
-            echo "FIXME: setup Storage 2 test channels once available"
-            # TODO not there yet
-            #add_mount "SUSE-Enterprise-Storage-2-Updates-test" \
-            #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/' \
-            #    "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-2-Updates-test/"
         fi
     fi
 }
@@ -541,6 +535,12 @@ function addsles12sp1testupdates()
     [ -n "$hacloud" ] && add_mount "SLE12-SP1-HA-Updates-test" \
         $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
+    echo "FIXME: setup Storage 2.1 test channels once available"
+    # TODO not there yet
+    #[ -n "$deployceph" ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
+    #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/' \
+    #    "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
+
 }
 
 function addcloud4maintupdates()
@@ -665,11 +665,11 @@ function add_suse_storage_repo()
             done
         fi
         if iscloudver 6plus; then
-            for repo in SUSE-Enterprise-Storage-2-{Pool,Updates}; do
+            for repo in SUSE-Enterprise-Storage-2.1-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
                 add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
-                    "$tftpboot_repos12_dir/$repo"
+                    "$tftpboot_repos12sp1_dir/$repo"
             done
         fi
 }
@@ -1175,13 +1175,13 @@ function create_repos_yml()
     create_repos_yml_for_platform "suse-12.0" "x86_64" "$tftpboot_repos12_dir" \
         SLES12-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/ \
         SLE12-HA-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/ \
-        SUSE-Enterprise-Storage-2-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/ \
         >> $tmp_yml
 
     create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
         SLES12-SP1-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
         SLE12-SP1-HA-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/ \
         SUSE-OpenStack-Cloud-6-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/ \
+        SUSE-Enterprise-Storage-2.1-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/ \
         >> $tmp_yml
 
     mv $tmp_yml $repos_yml
@@ -1743,8 +1743,8 @@ function onadmin_allocate()
                 $(get_all_discovered_nodes | head -n 3)
             )
             for n in $(seq 1 2); do
-                echo "Setting node $(($n+1)) to SLE12 Storage..."
-                set_node_role_and_platform ${nodes[$n]} "storage" "suse-12.0"
+                echo "Setting node $(($n+1)) to SLE12 SP1 Storage..."
+                set_node_role_and_platform ${nodes[$n]} "storage" "suse-12.1"
             done
         fi
         if [ -n "$wanthyperv" ] ; then
