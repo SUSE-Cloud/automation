@@ -2522,28 +2522,28 @@ function custom_configuration()
                             "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/'"
                     fi
                 fi
+            fi
 
-                if iscloudver 6plus ; then
-                    repos="$autoyast['repos']['suse-12.1']"
-                    proposal_set_value provisioner default "$repos" "{}"
+            if iscloudver 6plus ; then
+                repos="$autoyast['repos']['suse-12.1']"
+                proposal_set_value provisioner default "$repos" "{}"
 
-                    if [ -d "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" ]; then
-                        proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']" "{}"
-                        proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']['url']" \
-                            "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/'"
-                    fi
+                if [ -d "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" ]; then
+                    proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']" "{}"
+                    proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']['url']" \
+                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/'"
+                fi
 
-                    if [ -d "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/" ]; then
-                        proposal_set_value provisioner default "$repos['SLE12-SP1-HA-Updates-test']" "{}"
-                        proposal_set_value provisioner default "$repos['SLE12-SP1-HA-Updates-test']['url']" \
-                            "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/'"
-                    fi
+                if [ -d "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/" ]; then
+                    proposal_set_value provisioner default "$repos['SLE12-SP1-HA-Updates-test']" "{}"
+                    proposal_set_value provisioner default "$repos['SLE12-SP1-HA-Updates-test']['url']" \
+                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/'"
+                fi
 
-                    if [ -d "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" ]; then
-                        proposal_set_value provisioner default "$repos['SUSE-OpenStack-Cloud-6-Updates-test']" "{}"
-                        proposal_set_value provisioner default "$repos['SUSE-OpenStack-Cloud-6-Updates-test']['url']" \
-                            "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/'"
-                    fi
+                if [ -d "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" ]; then
+                    proposal_set_value provisioner default "$repos['SUSE-OpenStack-Cloud-6-Updates-test']" "{}"
+                    proposal_set_value provisioner default "$repos['SUSE-OpenStack-Cloud-6-Updates-test']['url']" \
+                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/'"
                 fi
             fi
 
