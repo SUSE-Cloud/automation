@@ -57,3 +57,7 @@
               $E $submitcmd $COSS $COMPONENT $COS
           fi
           done
+
+    wrappers:
+      - build-name:
+          name: '#${BUILD_NUMBER} / C:O:${ENV,var="openstack_project"}'
