@@ -1,0 +1,84 @@
+- job:
+    name: 'cloud-mediacheck'
+    project-type: matrix
+    node: cloud-trackupstream
+
+    triggers:
+      - timed: '@hourly'
+
+    logrotate:
+      numToKeep: 24
+      daysToKeep: -1
+
+    axes:
+      - axis:
+          type: user-defined
+          name: project
+          values:
+            - Devel:Cloud:4
+            - Devel:Cloud:5
+            - Devel:Cloud:5/SLE_12
+            - Devel:Cloud:6/SLE_12_SP1
+            - Devel:Cloud:Shared:11-SP3:Update
+            - SUSE:SLE-11-SP3:Update:Cloud5:Test
+            - SUSE:SLE-12-SP1:Update:Products:Cloud6/SLE_12_SP1
+      - axis:
+          type: user-defined
+          name: subproject
+          values:
+            - ':'
+            - ':Staging'
+      - axis:
+          type: slave
+          name: nodes
+          values:
+            - cloud-trackupstream-sle12
+    execution-strategy:
+      combination-filter: |
+       (["Devel:Cloud:4", "Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12_SP1" ].contains(project) || subproject == ":")
+    builders:
+      - shell: |
+          # temporary, similar to update_automation (not that advanced)
+          d=/root/github.com/SUSE/cloud/
+          if [ ! -e  $d ] ; then
+            mkdir -p /root/github.com/SUSE
+            git clone git@github.com:SUSE/cloud.git $d
+          fi
+          pushd $d
+          git pull
+          popd
+          rm -rf cloud/
+          mkdir -p cloud
+          rsync -av $d/scripts ./cloud/
+
+          # Cleanup isos from old builds
+          rm -f scripts/release-mgmt/*Media1.iso
+
+          # options
+          export RPM_DEPCHECK=1
+          export SRCRPM_DEPCHECK=0
+
+          if [[ "$project" == "Devel:Cloud:Shared:11-SP3:Update" ]]; then
+              export RPM_DEPCHECK_MEDIADEPS=" "
+              export SRCRPM_DEPCHECK_MEDIADEPS=" "
+              export INSTALLCHECK_EXTRA_OPTS="--exclude pattern:"
+          fi
+
+          OBS_PROJECT=$project
+          stage=$subproject
+          [[ $stage == ":" ]] && stage=
+
+
+          if [ -n "$stage" ]; then
+              if [ "${OBS_PROJECT##*\/}" != "${OBS_PROJECT}" ]; then
+                  OBS_PROJECT=${OBS_PROJECT%%\/*}$stage/${OBS_PROJECT##*\/}
+              else
+                  OBS_PROJECT=${OBS_PROJECT%%\/*}$stage    
+              fi
+          fi
+
+          OBS_TYPE=IBS OBS_PROJECT=$OBS_PROJECT make -C cloud/scripts/release-mgmt/ mediacheck
+          RETVAL=$?
+
+          # Cleanup
+          rm -r cloud/scripts/release-mgmt/*.iso
