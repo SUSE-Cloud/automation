@@ -1389,6 +1389,8 @@ EOF
 
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
         safely zypper --no-gpg-checks -n in -l -t pattern cloud_admin
+        # make sure to use packages from PTF repo (needs zypper dup)
+        safely zypper -n dup --from cloud-ptf
     fi
 
     cd /tmp
