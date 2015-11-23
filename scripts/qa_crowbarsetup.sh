@@ -21,7 +21,8 @@ fi
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
 : ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
-: ${distsuse:=$(dig -t A +short dist.nue.suse.com)}
+: ${distsuse:=dist.nue.suse.com}
+distsuseip=$(dig -t A +short $distsuse)
 : ${want_raidtype:="raid1"}
 
 : ${arch:=$(uname -m)}
@@ -497,10 +498,10 @@ function addsp3testupdates()
         $clouddata':/srv/nfs/repos/SLES11-SP3-Updates/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates/" "sp3up"
     add_mount "SLES11-SP3-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
     [ -n "$hacloud" ] && add_mount "SLE11-HAE-SP3-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/"
 }
 
@@ -508,20 +509,20 @@ function addsles12testupdates()
 {
     if iscloudver 5; then
         add_mount "SLES12-Updates-test" \
-            $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
+            $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
             "$tftpboot_repos12_dir/SLES12-Updates-test/"
     else
         add_mount "SLES12-Updates-test" \
-            $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
+            $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
             "$tftpboot_repos12_dir/SLES12-Updates-test/" "sles12gatup"
     fi
     [ -n "$hacloud" ] && add_mount "SLE12-HA-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/' \
         "$tftpboot_repos12_dir/SLE12-HA-Updates-test/"
     if [ -n "$deployceph" ]; then
         if iscloudver 5; then
             add_mount "SUSE-Enterprise-Storage-1.0-Updates-test" \
-                $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
+                $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
                 "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/"
         fi
     fi
@@ -530,15 +531,15 @@ function addsles12testupdates()
 function addsles12sp1testupdates()
 {
     add_mount "SLES12-SP1-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     [ -n "$hacloud" ] && add_mount "SLE12-SP1-HA-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     echo "FIXME: setup Storage 2.1 test channels once available"
     # TODO not there yet
     #[ -n "$deployceph" ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-    #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/' \
+    #    $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/' \
     #    "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
 
 }
@@ -553,7 +554,7 @@ function addcloud4maintupdates()
 function addcloud4testupdates()
 {
     add_mount "SUSE-Cloud-4-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/' \
         "$tftpboot_repos_dir/SUSE-Cloud-4-Updates-test/" "cloudtup"
 }
 
@@ -571,10 +572,10 @@ function addcloud5maintupdates()
 function addcloud5testupdates()
 {
     add_mount "SUSE-Cloud-5-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/' \
         "$tftpboot_repos_dir/SUSE-Cloud-5-Updates-test/" "cloudtup"
     add_mount "SUSE-Cloud-5-SLE-12-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update' \
         "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/"
 }
 
@@ -595,7 +596,7 @@ function addcloud6testupdates()
 {
     echo "FIXME: setup Cloud 6 test channels once available"
     #add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
-    #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
+    #    $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
     #    "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
 }
 
