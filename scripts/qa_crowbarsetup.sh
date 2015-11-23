@@ -1346,7 +1346,9 @@ EOF
     onadmin_set_source_variables
 
     if iscloudver 6plus ; then
-        onadmin_prepare_sles12_repos
+        if [[ $cloudsource =~ ^M[1-7]$ ]]; then
+            onadmin_prepare_sles12_repos
+        fi
         onadmin_prepare_sles12sp1_repos
         onadmin_prepare_sles12plus_cloud_repos
     else
