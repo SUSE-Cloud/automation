@@ -71,7 +71,7 @@ function horizon_barclamp()
 
 function nova_role_prefix()
 {
-    if ! iscloudver 6plus || ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]] ) ; then
+    if ! iscloudver 6plus || ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]] ) ; then
         echo "nova-multi"
     else
         echo "nova"
@@ -476,7 +476,7 @@ function export_tftpboot_repos_dir()
     fi
 
     if iscloudver 6plus; then
-        if iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]]; then
+        if iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]]; then
             tftpboot_suse_dir=/srv/tftpboot/suse-11.3
             tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
             tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
@@ -611,7 +611,7 @@ function addcloudrubygemrepo()
             zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
             ;;
         develcloud6|susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
-            if iscloudver 6plus || [[ ! $cloudsource =~ ^M[1-5]+$ ]]; then
+            if iscloudver 6plus || [[ ! $cloudsource =~ ^M[1-5]$ ]]; then
                 zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12_SP1/Devel:Cloud:Shared:Rubygem.repo
             else
                 zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12/Devel:Cloud:Shared:Rubygem.repo
@@ -1130,7 +1130,7 @@ function onadmin_add_cloud_repo()
 function do_set_repos_skip_checks()
 {
     # We don't use the proper pool/updates repos when using a devel build
-    if iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]]; then
+    if iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]]; then
         export REPOS_SKIP_CHECKS+=" SUSE-OpenStack-Cloud-SLE11-$(getcloudver)-Pool SUSE-OpenStack-Cloud-SLE11-$(getcloudver)-Updates"
     elif iscloudver 5plus && [[ $cloudsource =~ (develcloud|GM5$|GM6$) ]]; then
         export REPOS_SKIP_CHECKS+=" SUSE-Cloud-$(getcloudver)-Pool SUSE-Cloud-$(getcloudver)-Updates"
@@ -1463,7 +1463,7 @@ EOF
     # setup_base_images.rb is for SUSE Cloud 1.0 and update_nodes.rb is for 2.0
     sed -i -e 's/\(rootpw_hash.*\)""/\1"$2y$10$u5mQA7\/8YjHdutDPEMPtBeh\/w8Bq0wEGbxleUT4dO48dxgwyPD8D."/' /opt/dell/chef/cookbooks/provisioner/recipes/setup_base_images.rb /opt/dell/chef/cookbooks/provisioner/recipes/update_nodes.rb
 
-    if  iscloudver 6plus && ! ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]] ) ; then
+    if  iscloudver 6plus && ! ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]] ) ; then
         create_repos_yml
     fi
 
@@ -1896,7 +1896,7 @@ function onadmin_crowbar_register()
     local inject
     local zyppercmd
 
-    if  iscloudver 6plus && ! ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]] ) ; then
+    if  iscloudver 6plus && ! ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]] ) ; then
         image="suse-12.1/x86_64/"
     elif iscloudver 6; then
         image="suse-12.1"
@@ -2353,7 +2353,7 @@ function custom_configuration()
                     fi
                 elif [ "$networkingplugin" = "linuxbridge" ] ; then
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
-                    if iscloudver 5 || ( iscloudver 6 && [[ $cloudsource =~ ^M[1-7]+$ ]] ); then
+                    if iscloudver 5 || ( iscloudver 6 && [[ $cloudsource =~ ^M[1-7]$ ]] ); then
                         proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "false"
                     fi
                 else
@@ -2453,7 +2453,7 @@ function custom_configuration()
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
             fi
 
-            if ! iscloudver 6plus || ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]+$ ]] ) ; then
+            if ! iscloudver 6plus || ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]] ) ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['suse']" "{}"
                 proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']" "{}"
                 proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']['repos']" "{}"
