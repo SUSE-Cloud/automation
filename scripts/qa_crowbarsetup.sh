@@ -1388,15 +1388,7 @@ EOF
     zypper rl kernel-default
 
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
-        zypper --no-gpg-checks -n in -l -t pattern cloud_admin
-        local ret=$?
-
-        if [ $ret = 0 ] ; then
-            echo "The cloud admin successfully installed."
-            echo ".... continuing"
-        else
-            complain 86 "zypper returned with exit code $? when installing cloud admin"
-        fi
+        safely zypper --no-gpg-checks -n in -l -t pattern cloud_admin
     fi
 
     cd /tmp
