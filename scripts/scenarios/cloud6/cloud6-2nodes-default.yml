@@ -120,7 +120,7 @@ proposals:
       ceilometer-agent:
       - @@compute-kvm@@
       ceilometer-agent-hyperv: []
-      ceilometer-cagent:
+      ceilometer-polling:
       - @@controller@@
       ceilometer-server:
       - @@controller@@

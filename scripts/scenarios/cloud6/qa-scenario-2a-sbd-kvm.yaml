@@ -259,7 +259,7 @@ proposals:
       ceilometer-agent:
       - "@@computekvm@@"
       ceilometer-agent-hyperv: []
-      ceilometer-cagent:
+      ceilometer-polling:
       - cluster:services
       ceilometer-polling:
       - cluster:services
