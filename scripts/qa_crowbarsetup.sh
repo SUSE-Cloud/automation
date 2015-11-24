@@ -1529,13 +1529,14 @@ function do_installcrowbar_legacy()
     screen -d -m -L /bin/bash -c "$instcmd ; touch /tmp/chef-ready"
 
     wait_for 300 5 '[ -e /tmp/chef-ready ]' "waiting for chef-ready"
-    rpm -Va crowbar\*
 
     # Make sure install finished correctly
     if ! [ -e /opt/dell/crowbar_framework/.crowbar-installed-ok ]; then
         tail -n 90 /root/screenlog.0
         complain 89 "Crowbar \".crowbar-installed-ok\" marker missing"
     fi
+
+    ensure_packages_installed crowbar-barclamp-tempest
 
     # Force restart of crowbar
     service crowbar stop
@@ -1558,9 +1559,7 @@ function do_installcrowbar()
     rpm -Va crowbar\*
 
     ## common code - installer agnostic
-
     [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
-    ensure_packages_installed crowbar-barclamp-tempest
 
     if [ -n "$wanthyperv" ] ; then
         # prepare Hyper-V 2012 R2 PXE-boot env and export it via Samba:
