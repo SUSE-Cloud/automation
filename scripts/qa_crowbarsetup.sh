@@ -21,7 +21,8 @@ fi
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
 : ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
-: ${distsuse:=$(dig -t A +short dist.nue.suse.com)}
+: ${distsuse:=dist.nue.suse.com}
+distsuseip=$(dig -t A +short $distsuse)
 : ${want_raidtype:="raid1"}
 
 : ${arch:=$(uname -m)}
@@ -497,10 +498,10 @@ function addsp3testupdates()
         $clouddata':/srv/nfs/repos/SLES11-SP3-Updates/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates/" "sp3up"
     add_mount "SLES11-SP3-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
     [ -n "$hacloud" ] && add_mount "SLE11-HAE-SP3-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/"
 }
 
@@ -508,20 +509,20 @@ function addsles12testupdates()
 {
     if iscloudver 5; then
         add_mount "SLES12-Updates-test" \
-            $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
+            $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
             "$tftpboot_repos12_dir/SLES12-Updates-test/"
     else
         add_mount "SLES12-Updates-test" \
-            $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
+            $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
             "$tftpboot_repos12_dir/SLES12-Updates-test/" "sles12gatup"
     fi
     [ -n "$hacloud" ] && add_mount "SLE12-HA-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/' \
         "$tftpboot_repos12_dir/SLE12-HA-Updates-test/"
     if [ -n "$deployceph" ]; then
         if iscloudver 5; then
             add_mount "SUSE-Enterprise-Storage-1.0-Updates-test" \
-                $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
+                $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
                 "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/"
         fi
     fi
@@ -530,15 +531,15 @@ function addsles12testupdates()
 function addsles12sp1testupdates()
 {
     add_mount "SLES12-SP1-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     [ -n "$hacloud" ] && add_mount "SLE12-SP1-HA-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     echo "FIXME: setup Storage 2.1 test channels once available"
     # TODO not there yet
     #[ -n "$deployceph" ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-    #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/' \
+    #    $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/' \
     #    "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
 
 }
@@ -553,7 +554,7 @@ function addcloud4maintupdates()
 function addcloud4testupdates()
 {
     add_mount "SUSE-Cloud-4-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/' \
         "$tftpboot_repos_dir/SUSE-Cloud-4-Updates-test/" "cloudtup"
 }
 
@@ -571,10 +572,10 @@ function addcloud5maintupdates()
 function addcloud5testupdates()
 {
     add_mount "SUSE-Cloud-5-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/' \
         "$tftpboot_repos_dir/SUSE-Cloud-5-Updates-test/" "cloudtup"
     add_mount "SUSE-Cloud-5-SLE-12-Updates-test" \
-        $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update' \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update' \
         "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/"
 }
 
@@ -595,7 +596,7 @@ function addcloud6testupdates()
 {
     echo "FIXME: setup Cloud 6 test channels once available"
     #add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
-    #    $distsuse':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
+    #    $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
     #    "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
 }
 
@@ -1173,15 +1174,15 @@ function create_repos_yml()
     echo --- > $tmp_yml
 
     create_repos_yml_for_platform "suse-12.0" "x86_64" "$tftpboot_repos12_dir" \
-        SLES12-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/ \
-        SLE12-HA-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/ \
+        SLES12-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/ \
+        SLE12-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/ \
         >> $tmp_yml
 
     create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
-        SLES12-SP1-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
-        SLE12-SP1-HA-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/ \
-        SUSE-OpenStack-Cloud-6-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/ \
-        SUSE-Enterprise-Storage-2.1-Updates-test=http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/ \
+        SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
+        SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/ \
+        SUSE-OpenStack-Cloud-6-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/ \
+        SUSE-Enterprise-Storage-2.1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/ \
         >> $tmp_yml
 
     mv $tmp_yml $repos_yml
@@ -2198,6 +2199,19 @@ function cinder_netapp_proposal_configuration()
     fi
 }
 
+function provisioner_add_repo()
+{
+    local repos=$1
+    local repodir=$2
+    local repo=$3
+    local url=$4
+    if [ -d "$repodir/$repo/" ]; then
+        proposal_set_value provisioner default "$repos['$repo']" "{}"
+        proposal_set_value provisioner default "$repos['$repo']['url']" \
+            "'$url'"
+    fi
+}
+
 # configure one crowbar barclamp proposal using global vars as source
 #   does not include proposal create or commit
 # input1: name of the barclamp to change
@@ -2507,86 +2521,41 @@ function custom_configuration()
                     proposal_set_value provisioner default "$repos" "{}"
                 fi
 
-                if [ -d "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" ]; then
-                    proposal_set_value provisioner default "$repos['SLES11-SP3-Updates-test']" "{}"
-                    proposal_set_value provisioner default "$repos['SLES11-SP3-Updates-test']['url']" \
-                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/'"
-                fi
-
-                if [ -d "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/" ]; then
-                    proposal_set_value provisioner default "$repos['SLE11-HAE-SP3-Updates-test']" "{}"
-                    proposal_set_value provisioner default "$repos['SLE11-HAE-SP3-Updates-test']['url']" \
-                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/'"
-                fi
-
-                if [ -d "$tftpboot_repos_dir/SUSE-Cloud-4-Updates-test/" ]; then
-                    proposal_set_value provisioner default "$repos['SUSE-Cloud-4-Updates-test']" "{}"
-                    proposal_set_value provisioner default "$repos['SUSE-Cloud-4-Updates-test']['url']" \
-                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/'"
-                fi
-
-                if [ -d "$tftpboot_repos_dir/SUSE-Cloud-5-Updates-test/" ]; then
-                    proposal_set_value provisioner default "$repos['SUSE-Cloud-5-Updates-test']" "{}"
-                    proposal_set_value provisioner default "$repos['SUSE-Cloud-5-Updates-test']['url']" \
-                        "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/'"
-                fi
+                provisioner_add_repo $repos "$tftpboot_repos_dir" "SLES11-SP3-Updates-test" \
+                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/"
+                provisioner_add_repo $repos "$tftpboot_repos_dir" "SLE11-HAE-SP3-Updates-test" \
+                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/"
+                provisioner_add_repo $repos "$tftpboot_repos_dir" "SUSE-Cloud-4-Updates-test" \
+                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/"
+                provisioner_add_repo $repos "$tftpboot_repos_dir" "SUSE-Cloud-5-Updates-test" \
+                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/"
 
                 if iscloudver 5plus ; then
                     repos="$autoyast['repos']['suse-12.0']"
                     proposal_set_value provisioner default "$repos" "{}"
 
-                    if [ -d "$tftpboot_repos12_dir/SLES12-Updates-test/" ]; then
-                        proposal_set_value provisioner default "$repos['SLES12-Updates-test']" "{}"
-                        proposal_set_value provisioner default "$repos['SLES12-Updates-test']['url']" \
-                            "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/'"
-                    fi
-
-                    if [ -d "$tftpboot_repos12_dir/SLE12-HA-Updates-test/" ]; then
-                        proposal_set_value provisioner default "$repos['SLE12-HA-Updates-test']" "{}"
-                        proposal_set_value provisioner default "$repos['SLE12-HA-Updates-test']['url']" \
-                            "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/'"
-                    fi
-
-                    if [ -d "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/" ]; then
-                        proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']" "{}"
-                        proposal_set_value provisioner default "$repos['SLES12-Cloud-Compute-5-Updates-test']['url']" \
-                            "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/'"
-                    fi
-
-                    if [ -d "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/" ]; then
-                        proposal_set_value provisioner default "$repos['SUSE-Enterprise-Storage-1.0-Updates-test']" "{}"
-                        proposal_set_value provisioner default "$repos['SUSE-Enterprise-Storage-1.0-Updates-test']['url']" \
-                            "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/'"
-                    fi
-
-                    if [ -d "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-2-Updates-test/" ]; then
-                        proposal_set_value provisioner default "$repos['SUSE-Enterprise-Storage-2-Updates-test']" "{}"
-                        proposal_set_value provisioner default "$repos['SUSE-Enterprise-Storage-2-Updates-test']['url']" \
-                            "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/'"
-                    fi
+                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLES12-Updates-test" \
+                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/"
+                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLE12-HA-Updates-test" \
+                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/"
+                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLE-12-Cloud-Compute5-Updates-test" \
+                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/"
+                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-1.0-Updates-test" \
+                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/"
+                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-2-Updates-test" \
+                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/"
                 fi
 
                 if iscloudver 6plus ; then
                     repos="$autoyast['repos']['suse-12.1']"
                     proposal_set_value provisioner default "$repos" "{}"
 
-                    if [ -d "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" ]; then
-                        proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']" "{}"
-                        proposal_set_value provisioner default "$repos['SLES12-SP1-Updates-test']['url']" \
-                            "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/'"
-                    fi
-
-                    if [ -d "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/" ]; then
-                        proposal_set_value provisioner default "$repos['SLE12-SP1-HA-Updates-test']" "{}"
-                        proposal_set_value provisioner default "$repos['SLE12-SP1-HA-Updates-test']['url']" \
-                            "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/'"
-                    fi
-
-                    if [ -d "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" ]; then
-                        proposal_set_value provisioner default "$repos['SUSE-OpenStack-Cloud-6-Updates-test']" "{}"
-                        proposal_set_value provisioner default "$repos['SUSE-OpenStack-Cloud-6-Updates-test']['url']" \
-                            "'http://dist.suse.de/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/'"
-                    fi
+                    provisioner_add_repo $repos "$tftpboot_repos12sp1_dir" "SLES12-SP1-Updates-test" \
+                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/"
+                    provisioner_add_repo $repos "$tftpboot_repos12sp1_dir" "SLE12-SP1-HA-Updates-test" \
+                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
+                    provisioner_add_repo $repos "$tftpboot_repos12sp1_dir" "SUSE-OpenStack-Cloud-6-Updates-test" \
+                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/"
                 fi
             fi
 
