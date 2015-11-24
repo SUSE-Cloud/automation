@@ -1493,7 +1493,7 @@ function do_installcrowbar_cloud6plus()
     service crowbar status || service crowbar stop
     service crowbar start
 
-    wait_for 30 10 "curl -s $crowbar_api/installer | grep -q '/installer/install'" "crowbar installer to be available"
+    wait_for 30 10 "curl -s $crowbar_api/installer | grep -q '/installer/start'" "crowbar installer to be available"
 
     if crowbar_install_status | grep -q '"success": *true' ; then
         echo "Crowbar is already installed. The current crowbar install status is:"
