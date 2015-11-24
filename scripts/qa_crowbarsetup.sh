@@ -1502,7 +1502,7 @@ function do_installcrowbar_cloud6plus()
     fi
 
     # call api to start asyncronous install job
-    curl -s -X POST $crowbar_api/installer/install || complain 39 "crowbar is not running"
+    curl -s -X POST $crowbar_api/installer/start || complain 39 "crowbar is not running"
 
     wait_for 60 10 "crowbar_install_status | grep -q '\"success\": *true'" "crowbar to get installed" "tail -n 500 $crowbar_install_log"
 }
