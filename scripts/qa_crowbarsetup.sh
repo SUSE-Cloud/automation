@@ -44,6 +44,7 @@ crowbar_install_log=/var/log/crowbar/install.log
 
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
+export defcore_url=${defcore_url:-}
 export want_sles12
 [[ "$want_sles12" = 0 ]] && want_sles12=
 export nodes=
@@ -3036,6 +3037,11 @@ function oncontroller_testsetup()
         echo 1 > /proc/sys/kernel/sysrq
         if iscloudver 5plus; then
             /usr/bin/tempest-cleanup --init-saved-state || :
+        fi
+        if [[ "$defcore_url" ]]; then
+           wget --no-check-certificate -Odefcore.txt "$defcore_url"
+           # this will overwrite the default temperstoptions
+           $tempestoptions="-- --load-list defcore.txt"
         fi
         ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
         tempestret=${PIPESTATUS[0]}
