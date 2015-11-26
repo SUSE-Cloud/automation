@@ -3198,6 +3198,7 @@ function oncontroller_testsetup()
 
 function oncontroller()
 {
+    cd /root
     scp qa_crowbarsetup.sh $mkcconf $novacontroller:
     ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ; export wanttempest=$wanttempest ;
         export tempestoptions=\"$tempestoptions\" ; export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
