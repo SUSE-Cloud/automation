@@ -671,6 +671,9 @@ function setupnodes()
         if [ $drbd_hdd_size != 0 ]; then
             if [ $i -le 2 ] ; then
                 drbd_serial="$cloud-node$i-drbd"
+                # libvirt does not accept anything other than [:alnum:]_-
+                # for serial strings:
+                drbd_serial=${drbd_serial//[^A-Za-z0-9-_]/_}
                 drbdnode_mac_vol="${drbdnode_mac_vol}+${macaddress}#${drbd_serial}"
                 drbdnode_mac_vol="${drbdnode_mac_vol#+}"
             fi

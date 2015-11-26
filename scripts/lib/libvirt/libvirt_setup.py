@@ -3,6 +3,7 @@ from __future__ import print_function
 import glob
 import itertools as it
 import os
+import re
 import string
 import subprocess
 import xml.etree.ElementTree as ET
@@ -111,12 +112,14 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         nodememory = args.controllernodememory
 
     raidvolume = ""
+    # a valid serial is defined in libvirt-1.2.18/src/qemu/qemu_command.c:
+    serialcloud = re.sub("[^A-Za-z0-9-_]", "_", args.cloud)
     for i in range(1, controller_raid_volumes):
         raid_template = string.Template(readfile(
             "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
         raid_values = {
             'volume_serial': "{0}-node{1}-raid{2}".format(
-                args.cloud,
+                serialcloud,
                 args.nodecounter,
                 i),
             'source_dev': "{0}/{1}.node{2}-raid{3}".format(
@@ -136,7 +139,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
                 "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
             ceph_values = dict(
                 volume_serial="{0}-node{1}-ceph{2}".format(
-                    args.cloud,
+                    serialcloud,
                     args.nodecounter,
                     i),
                 source_dev="{0}/{1}.node{2}-ceph{3}".format(
