@@ -5,12 +5,15 @@ import itertools as it
 import os
 import string
 import subprocess
+import re
 import xml.etree.ElementTree as ET
 
 import libvirt
 
 
 TEMPLATE_DIR = "{0}/templates".format(os.path.dirname(__file__))
+
+QEMU_SERIAL_PARAM_ACCEPTED_CHARS = "A-Za-z0-9-_"
 
 
 def libvirt_connect():
@@ -111,17 +114,19 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         nodememory = args.controllernodememory
 
     raidvolume = ""
+    serialcloud = re.sub("[^%s]" % (QEMU_SERIAL_PARAM_ACCEPTED_CHARS),
+                            "_", args.cloud)
     for i in range(1, controller_raid_volumes):
         raid_template = string.Template(readfile(
             "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
         raid_values = {
             'volume_serial': "{0}-node{1}-raid{2}".format(
-                args.cloud,
+                serialcloud,
                 args.nodecounter,
                 i),
             'source_dev': "{0}/{1}.node{2}-raid{3}".format(
                 args.vdiskdir,
-                args.cloud,
+                serial_cloud,
                 args.nodecounter,
                 i),
             'target_dev': targetdevprefix + ''.join(alldevices.next()),
@@ -136,7 +141,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
                 "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
             ceph_values = dict(
                 volume_serial="{0}-node{1}-ceph{2}".format(
-                    args.cloud,
+                    serialcloud,
                     args.nodecounter,
                     i),
                 source_dev="{0}/{1}.node{2}-ceph{3}".format(
