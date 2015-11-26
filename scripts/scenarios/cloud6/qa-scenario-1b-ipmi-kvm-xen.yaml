@@ -200,7 +200,7 @@ proposals:
       - "@@compute-kvm2@@"
       - "@@compute-xen2@@"
       ceilometer-agent-hyperv: []
-      ceilometer-cagent:
+      ceilometer-polling:
       - cluster:services
       ceilometer-server:
       - cluster:services

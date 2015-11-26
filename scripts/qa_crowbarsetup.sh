@@ -41,6 +41,7 @@ clusternamenetwork="network"
 wanthyperv=
 crowbar_api=http://localhost:3000
 crowbar_install_log=/var/log/crowbar/install.log
+ceilometerservice="ceilometer-cagent"
 
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
@@ -2238,6 +2239,9 @@ function custom_configuration()
     local proposaltype=${2:-default}
     local proposaltypemapped=$proposaltype
     proposaltype=${proposaltype%%+*}
+    if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-7]$ ]]); then
+        ceilometerservice="ceilometer-polling"
+    fi
 
     # prepare the proposal file to be edited, it will be read once at the end
     # So, ONLY edit the $pfile  -  DO NOT call "crowbar $x proposal .*" command
@@ -2397,7 +2401,7 @@ function custom_configuration()
         ceilometer)
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-server']" "['cluster:$clusternameservices']"
-                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-cagent']" "['cluster:$clusternameservices']"
+                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['$ceilometerservice']" "['cluster:$clusternameservices']"
                 # disabling mongodb, because if in one cluster mode the requirements of drbd and mongodb ha conflict:
                 #   drbd can only use 2 nodes max. <> mongodb ha requires 3 nodes min.
                 # this should be adapted when NFS mode is supported for data cluster
