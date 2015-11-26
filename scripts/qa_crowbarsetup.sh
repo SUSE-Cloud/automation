@@ -1658,6 +1658,11 @@ function set_node_attribute()
     rm -f $t
 }
 
+function set_node_fs()
+{
+    set_node_attribute "$1" "crowbar_wall.default_fs" "$2"
+}
+
 function set_node_role()
 {
     set_node_attribute "$1" "crowbar_wall.intended_role" "$2"
@@ -1828,6 +1833,13 @@ function onadmin_allocate()
                 nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $node`
                 i=$((i+1))
             done
+        done
+    fi
+
+    # set BTRFS for all nodes when docker is wanted (docker likes btrfs)
+    if [ -n "$want_docker" ] ; then
+        for node in `get_all_discovered_nodes` ; do
+            set_node_fs $node "btrfs"
         done
     fi
 
