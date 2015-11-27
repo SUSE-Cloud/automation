@@ -3173,20 +3173,20 @@ function oncontroller_testsetup()
     if [ -z "$want_docker" ] ; then
         # Workaround SLE12SP1 regression
         iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
-        nova volume-list | grep -q available || nova volume-create 1
-        wait_for 9 5 "nova volume-list | grep available" "volume to become available" "volumecreateret=1"
-        volumeid=`nova volume-list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
+        cinder list | grep -q available || cinder create 1
+        wait_for 9 5 "cinder list | grep available" "volume to become available" "volumecreateret=1"
+        volumeid=`cinder list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
         nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
         volumeattachret=$?
         device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
-        wait_for 29 5 "nova volume-show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
+        wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
         ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
         rand=$RANDOM
         ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
         nova volume-detach "$instanceid" "$volumeid"
-        wait_for 29 5 "nova volume-show $volumeid | grep 'status.*available'" "volume to become available after detach" "volumeattachret=55"
+        wait_for 29 5 "cinder show $volumeid | grep 'status.*available'" "volume to become available after detach" "volumeattachret=55"
         nova volume-attach "$instanceid" "$volumeid" /dev/vdb
-        wait_for 29 5 "nova volume-show $volumeid | grep 'status.*in-use'" "volume to become reattached" "volumeattachret=56"
+        wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become reattached" "volumeattachret=56"
         ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
         ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
         volumeresult="$volumecreateret & $volumeattachret"
