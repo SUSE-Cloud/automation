@@ -517,9 +517,6 @@ function addsles12testupdates()
             $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
             "$tftpboot_repos12_dir/SLES12-Updates-test/" "sles12gatup"
     fi
-    [ -n "$hacloud" ] && add_mount "SLE12-HA-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/' \
-        "$tftpboot_repos12_dir/SLE12-HA-Updates-test/"
     if [ -n "$deployceph" ]; then
         if iscloudver 5; then
             add_mount "SUSE-Enterprise-Storage-1.0-Updates-test" \
@@ -630,17 +627,6 @@ function add_ha_repo()
         # zypper addrepo on the admin node.
         add_mount "$repo/sle-11-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
             "$tftpboot_repos_dir/$repo"
-    done
-}
-
-function add_ha12_repo()
-{
-    local repo
-    for repo in SLE12-HA-{Pool,Updates}; do
-        # Note no zypper alias parameter here since we don't want to
-        # zypper addrepo on the admin node.
-        add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
-            "$tftpboot_repos12_dir/$repo"
     done
 }
 
@@ -1185,7 +1171,6 @@ function create_repos_yml()
 
     create_repos_yml_for_platform "suse-12.0" "x86_64" "$tftpboot_repos12_dir" \
         SLES12-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/ \
-        SLE12-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/ \
         SUSE-Enterprise-Storage-2-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/ \
         >> $tmp_yml
 
@@ -1376,7 +1361,6 @@ EOF
         if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 3plus ; then
             add_ha_repo
         elif iscloudver 6plus; then
-            add_ha12_repo
             add_ha12sp1_repo
         else
             complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
@@ -2568,8 +2552,6 @@ function custom_configuration()
 
                     provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLES12-Updates-test" \
                         "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/"
-                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLE12-HA-Updates-test" \
-                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12:/x86_64/update/"
                     provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLE-12-Cloud-Compute5-Updates-test" \
                         "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/"
                     provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-1.0-Updates-test" \
