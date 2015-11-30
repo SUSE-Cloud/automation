@@ -1,0 +1,49 @@
+- job:
+    name: 'openstack-devstack-new'
+    project-type: matrix
+    triggers:
+      - timed: 'H 5 * * *'
+    axes:
+      - axis:
+          type: user-defined
+          name: image
+          values:
+            - openSUSE-13.2-64-minimal
+            - SLE_12-64-minimal
+      - axis:
+          type: slave
+          name: slave
+          values:
+            - cloud-cleanvm
+    execution-strategy:
+      combination-filter: |
+        slave == "cloud-cleanvm"
+      sequential: true
+    builders:
+      - update-automation
+      - shell: |
+          sudo /usr/local/sbin/freshvm cleanvm $image
+          sleep 100
+
+          set -u
+          set +ex
+
+          scp ~/github.com/SUSE-Cloud/automation/scripts/jenkins/qa_devstack.sh root@cleanvm:
+          ssh root@cleanvm "bash -x ~/qa_devstack.sh"
+          ret=$?
+          if [ "$ret" != 0 ] ; then
+              virsh shutdown cleanvm
+              # wait for clean shutdown
+              n=20 ; while [[ $n > 0 ]] && virsh list |grep cleanvm.*running ; do sleep 2 ; n=$(($n-1)) ; done
+              virsh destroy cleanvm
+              # cleanup old images
+              find /mnt/cleanvmbackup -mtime +5 -type f | xargs --no-run-if-empty rm
+              # backup /dev/vg0/cleanvm disk image
+              file=/mnt/cleanvmbackup/${BUILD_NUMBER}-${openstack_version}-${image}.raw.gz
+              time gzip -c1 /dev/vg0/cleanvm > $file
+              du $file
+              exit 1
+          fi
+
+    wrappers:
+      - timestamps
