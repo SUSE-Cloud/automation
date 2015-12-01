@@ -47,6 +47,9 @@
     <memballoon model='virtio'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
     </memballoon>
+    <rng model='virtio'>
+      <backend model='random'>/dev/random</backend>
+    </rng>
     $local_repository_mount
   </devices>
 </domain>
