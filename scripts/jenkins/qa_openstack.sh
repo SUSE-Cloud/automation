@@ -202,9 +202,9 @@ test "$(lvs | wc -l)" -gt 1 || exit 1
 ssh_user="root"
 mirror=http://149.44.161.38/images # ci1-opensuse
 
-cirros_base_url="http://download.cirros-cloud.net/0.3.3/"
+cirros_base_url="http://download.cirros-cloud.net/0.3.4/"
 cirros_base_url="$mirror"
-cirros_base_name="cirros-0.3.3-x86_64"
+cirros_base_name="cirros-0.3.4-x86_64"
 
 # since glanceclient Liberty, --is-public is gone and --visibility should be used
 if glance help image-create|grep -q visibility; then
