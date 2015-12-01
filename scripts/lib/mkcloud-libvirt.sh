@@ -85,13 +85,20 @@ EOS
     /etc/init.d/boot.mkcloud
 }
 
+function libvirt_prepare()
+{
+    # libvirt
+    libvirt_modprobe_kvm
+    libvirt_start_daemon
+
+    # network
+    ${mkcloud_lib_dir}/libvirt/net-config $cloud $cloudbr $admingw $adminnetmask $cloudfqdn $adminip $forwardmode > /tmp/$cloud-admin.net.xml
+    ${mkcloud_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
+    libvirt_net_start
+}
+
 function libvirt_setupadmin()
 {
     ${mkcloud_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $emulator $admin_node_disk "$localreposdir_src" "$localreposdir_target" > /tmp/$cloud-admin.xml
-    ${mkcloud_lib_dir}/libvirt/net-config $cloud $cloudbr $admingw $adminnetmask $cloudfqdn $adminip $forwardmode > /tmp/$cloud-admin.net.xml
-    libvirt_modprobe_kvm
-    libvirt_start_daemon
-    ${mkcloud_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
-    libvirt_net_start
     ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
 }
