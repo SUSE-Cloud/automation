@@ -3033,14 +3033,22 @@ function oncontroller_testsetup()
         pushd /var/lib/openstack-tempest-test
         echo 1 > /proc/sys/kernel/sysrq
         if iscloudver 5plus; then
-            /usr/bin/tempest-cleanup --init-saved-state || :
+            if tempest help cleanup; then
+                tempest cleanup --init-saved-state
+            else
+                /usr/bin/tempest-cleanup --init-saved-state || :
+            fi
         fi
         ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
         tempestret=${PIPESTATUS[0]}
         testr last --subunit | subunit-1to2 > tempest.subunit.log
 
         if iscloudver 5plus; then
-            /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
+            if tempest help cleanup; then
+                tempest cleanup --delete-tempest-conf-objects
+            else
+                /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
+            fi
         else
             /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
         fi
