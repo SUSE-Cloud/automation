@@ -439,9 +439,6 @@ function setuphost()
 
 function prepare()
 {
-    local image="SLE11"
-    iscloudver 6plus && image="SLE12SP1"
-
     if ! [ -e ~/.ssh/id_dsa ]; then
         echo "Creating key for controlling our VMs..."
         ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
@@ -449,9 +446,16 @@ function prepare()
 
     onhost_enable_ksm
     onhost_create_cloud_lvm
-    onhost_deploy_image "admin" $image "$admin_node_disk"
     onhost_add_etchosts_entries
     libvirt_prepare
+    onhost_prepareadmin
+}
+
+function onhost_prepareadmin()
+{
+    local image="SLE11"
+    iscloudver 6plus && image="SLE12SP1"
+    onhost_deploy_image "admin" $image "$admin_node_disk"
 }
 
 function ssh_password()
