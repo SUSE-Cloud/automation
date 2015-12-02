@@ -1,5 +1,5 @@
 - job:
-    name: 'openstack-devstack-new'
+    name: 'openstack-devstack'
     project-type: matrix
     triggers:
       - timed: 'H 5 * * *'
