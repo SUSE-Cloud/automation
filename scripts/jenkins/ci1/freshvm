@@ -20,16 +20,15 @@ if ! [ -f $p/$flavor.img -o -f $p/$flavor.qcow2 ]; then
 fi
 
 virsh destroy $n
-if [ "$n" = "cleanvm" ] ; then
+if [[ -e /dev/vg0/$n-data ]] ; then
     dd if=/dev/zero of=/dev/vg0/$n-data count=16
-    if [ -e $p/$flavor.qcow2 ] ; then
-        time qemu-img convert $p/$flavor.qcow2 /dev/vg0/$n
-    else
-        time dd if=$p/$flavor.img of=/dev/vg0/$n bs=64k
-    fi
-else
-    gzip -cd $p/$n.img.gz > /dev/vg0/$n
 fi
+if [ -e $p/$flavor.qcow2 ] ; then
+    qemu-img create -f qcow2 -o backing_file=$p/$flavor.qcow2 /dev/vg0/$n
+else
+    exit 3
+fi
+
 setfacl -m jenkins:r "/dev/vg0/$n"
 virsh start "$n"
 
