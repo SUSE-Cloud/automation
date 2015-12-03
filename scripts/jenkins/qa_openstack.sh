@@ -333,8 +333,16 @@ if [ -e /etc/tempest/tempest.conf ]; then
     fi
     testr list-tests >/dev/null
 
-    test -x "$(type -p tempest-cleanup)" && tempest-cleanup --init-saved-state
+    if tempest help cleanup; then
+        tempest cleanup --init-saved-state
+    else
+        test -x "$(type -p tempest-cleanup)" && tempest-cleanup --init-saved-state
+    fi
     ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
-    [ ${PIPESTATUS[0]} == 0 ] || exit 4
+    ret=${PIPESTATUS[0]}
+    if tempest help cleanup; then
+        tempest cleanup
+    fi
+    [ $ret == 0 ] || exit 4
     popd
 fi
