@@ -603,18 +603,15 @@ function addcloud6pool()
     add_mount "SUSE-OpenStack-Cloud-6-Pool" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Pool/' "$tftpboot_repos12_dir/SUSE-OpenStack-Cloud-6-Pool/" "cloudpool"
 }
 
-function addcloudrubygemrepo()
+function addcctdepsrepo()
 {
     case "$cloudsource" in
         develcloud5|GM5|GM5+up)
             zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
             ;;
         develcloud6|susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
-            if iscloudver 6plus || [[ ! $cloudsource =~ ^M[1-5]$ ]]; then
-                zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12_SP1/Devel:Cloud:Shared:Rubygem.repo
-            else
-                zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12/Devel:Cloud:Shared:Rubygem.repo
-            fi
+            zypper ar -f http://download.suse.de/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
+            zypper ar -f http://download.suse.de/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
             ;;
     esac
 }
@@ -3774,8 +3771,8 @@ function onadmin_run_cct()
 {
     local ret=0
     if iscloudver 5plus && [[ -n $cct_tests ]]; then
-        addcloudrubygemrepo
         # - install cct dependencies
+        addcctdepsrepo
         ensure_packages_installed git-core gcc make ruby2.1-devel
 
         local checkout_branch=master
