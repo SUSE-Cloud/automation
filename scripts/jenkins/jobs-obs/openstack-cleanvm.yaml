@@ -6,10 +6,11 @@
           type: user-defined
           name: image
           values:
-            - SLE_11_SP3-64-minimal
-            - SLE_12-64-minimal
-            - SLE_12_SP1-64-minimal
-            - openSUSE-13.2-64-minimal
+            - SLE_11_SP3
+            - SLE_12
+            - SLE_12_SP1
+            - openSUSE-13.2
+            - openSUSE-Leap-42.1
       - axis:
           type: user-defined
           name: openstack_project
@@ -28,11 +29,11 @@
       combination-filter: |
         (
         slave=="cloud-cleanvm"
-        && ( openstack_project=="Icehouse" && (image=="openSUSE-13.1-64-minimal" || image=="SLE_11_SP3-64-minimal"))
-        || ( openstack_project=="Juno" && (image=="openSUSE-13.2-64-minimal" || image=="SLE_11_SP3-64-minimal"))
-        || ( openstack_project=="Kilo" && (image=="openSUSE-13.2-64-minimal" || image=="SLE_12-64-minimal"))
-        || ( openstack_project=="Liberty" && (image=="SLE_12_SP1-64-minimal" || image=="SLE_12-64-minimal" || image=="openSUSE-13.2-64-minimal"))
-        || ( openstack_project=="Master" && (image=="openSUSE-13.2-64-minimal" || image=="SLE_12-64-minimal"))
+        && ( openstack_project=="Icehouse" && (image=="openSUSE-13.1" || image=="SLE_11_SP3"))
+        || ( openstack_project=="Juno" && (image=="openSUSE-13.2" || image=="SLE_11_SP3"))
+        || ( openstack_project=="Kilo" && (image=="openSUSE-13.2" || image=="SLE_12"))
+        || ( openstack_project=="Liberty" && (image=="SLE_12_SP1" || image=="SLE_12" || image=="openSUSE-Leap-42.1"))
+        || ( openstack_project=="Master" && (image=="openSUSE-Leap-42.1" || image=="SLE_12_SP1" || image=="SLE_12"))
         )
       sequential: true
     builders:
