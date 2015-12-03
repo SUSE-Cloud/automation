@@ -2969,7 +2969,7 @@ function oncontroller_testsetup()
         zypper -n ar --refresh -c -G -f "$mount_dir" cloud-test
         zypper_refresh
 
-        ensure_packages_installed python-novaclient-test
+        ensure_packages_installed python-novaclient-test python-manilaclient-test
     fi
 
     if [[ -n $deployswift ]] ; then
