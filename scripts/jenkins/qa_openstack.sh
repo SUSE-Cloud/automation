@@ -50,6 +50,9 @@ if [ -f "/etc/os-release" ]; then
         "SLES")
             REPO="SLE_12"
         ;;
+        "openSUSE Leap")
+            REPO="openSUSE_Leap_${VERSION}"
+        ;;
         "openSUSE")
             REPO="openSUSE_${VERSION}"
         ;;
