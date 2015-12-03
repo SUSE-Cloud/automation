@@ -100,8 +100,8 @@ class Key(object):
 class SSH(object):
     """Simplify SSH connections to a remote machine."""
 
-    def __init__(self, host, user, password, key=None):
-        if not key:
+    def __init__(self, host, user, password, new_key=True, key=None):
+        if new_key and not key:
             key = Key(name='.%s_iscsi_fake_id_dsa' % host)
 
         self.host = host
@@ -115,7 +115,7 @@ class SSH(object):
     def ssh_copy_id(self):
         """Copy a fake key (key without passphrase) into a node."""
         # If the ID is already there, do nothing
-        if self._copy_id:
+        if not self.key or self._copy_id:
             return
 
         def _interact(char, stdin):
@@ -135,7 +135,7 @@ class SSH(object):
 
     def clean_key(self):
         """Remove key from the remote server."""
-        if not self._connect:
+        if not self._connect or not self.key:
             return
 
         key = "'%s'" % open(self.key.pub_key()).read().strip()
@@ -155,10 +155,14 @@ class SSH(object):
         if not self._copy_id:
             self.ssh_copy_id()
 
-        self._connect = sh.ssh.bake('-i', self.key.key(),
-                                    '-o', 'StrictHostKeyChecking=no',
-                                    '-o', 'UserKnownHostsFile=/dev/null',
-                                    '%s@%s' % (self.user, self.host))
+        params = ['-o', 'StrictHostKeyChecking=no',
+                  '-o', 'UserKnownHostsFile=/dev/null',
+                  '%s@%s' % (self.user, self.host)]
+        if self.key:
+            params = ['-i', self.key.key()] + params
+
+        self._connect = sh.ssh.bake(*params)
+
         return self._connect
 
     def __getattr__(self, name):
@@ -443,9 +447,12 @@ def test():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Help iSCSI deployment.')
+    parser.add_argument('-n', '--no-key', dest='new_key',
+                        action='store_false', default=True,
+                        help='Do not create temporal ssh key for connections')
     parser.add_argument('-s', '--service', choices=['target', 'initiator'],
                         default=None,
-                        help='type of service deployment')
+                        help='Type of service deployment')
     parser.add_argument('-o', '--host', default=None,
                         help='Host address for the machine to configure')
     parser.add_argument('-t', '--target_host', default=None,
@@ -478,7 +485,7 @@ if __name__ == '__main__':
             parser.error(msg)
 
         if args.service == 'target':
-            node = SSH(args.host, 'root', 'linux')
+            node = SSH(args.host, 'root', 'linux', new_key=args.new_key)
             path = '/tmp/%s-iscsi.loop' % args.id \
                    if args.device.startswith('/dev/loop') else None
             try:
@@ -488,8 +495,9 @@ if __name__ == '__main__':
             finally:
                 node.clean_key()
         elif args.service == 'initiator':
-            node = SSH(args.host, 'root', 'linux')
-            node_target = SSH(args.target_host, 'root', 'linux')
+            node = SSH(args.host, 'root', 'linux', new_key=args.new_key)
+            node_target = SSH(args.target_host, 'root', 'linux',
+                              new_key=args.new_key)
             try:
                 initiator = Initiator(node, node_target, args.id)
                 initiator.deploy()
