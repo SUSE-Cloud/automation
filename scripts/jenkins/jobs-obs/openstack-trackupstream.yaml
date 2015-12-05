@@ -82,8 +82,7 @@
         ! ( [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging"].contains(project) &&
             [ "openstack-neutron-lbaas", "openstack-neutron-fwaas",
               "openstack-neutron-vpnaas", "openstack-tuskar",
-              "openstack-tuskar_ui", "python-oslo.messaging",
-              "python-oslosphinx", "python-oslo.rootwrap",
+              "openstack-tuskar_ui",
               "python-openstackclient", "python-keystonemiddleware",
               "python-tuskarclient", "python-troveclient",
               "tripleo-image-elements", "tripleo-heat-templates",
