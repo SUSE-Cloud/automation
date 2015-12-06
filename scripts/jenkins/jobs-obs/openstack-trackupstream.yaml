@@ -80,22 +80,40 @@
     execution-strategy:
       combination-filter: |
         ! ( [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging"].contains(project) &&
-            [ "openstack-neutron-lbaas", "openstack-neutron-fwaas",
-              "openstack-neutron-vpnaas", "openstack-tuskar",
+            [ "python-barbicanclient",
+              "python-ceilometerclient",
+              "python-cinderclient",
+              "python-designateclient",
+              "python-glanceclient",
+              "python-heatclient",
+              "python-heat-cfntools",
+              "python-ironicclient",
+              "python-keystoneclient",
+              "python-keystonemiddleware",
+              "python-manilaclient",
+              "python-neutronclient",
+              "python-novaclient",
+              "python-openstackclient",
+              "python-saharaclient",
+              "python-swiftclient",
+              "python-troveclient",
+              "python-tuskarclient",
+              "python-zaqarclient",
+              "python-keystonemiddleware",
+              "tripleo-image-elements",
+              "tripleo-heat-templates",
+              "diskimage-builder",
+              "openstack-tuskar",
               "openstack-tuskar_ui",
-              "python-openstackclient", "python-keystonemiddleware",
-              "python-tuskarclient", "python-troveclient",
-              "tripleo-image-elements", "tripleo-heat-templates",
-              "diskimage-builder", "openstack-zaqar",
-              "python-ironicclient", "python-zaqarclient",
-              "python-barbicanclient", "python-os-apply-config",
+              "openstack-zaqar",
+              "python-os-apply-config",
               "python-os-cloud-config",
               "python-os-collect-config"].contains(component) ||
-         ["Cloud:OpenStack:Juno:Staging"].contains(project) &&
-            ["openstack-horizon-plugin-manila-ui"].contains(component) ||
-         [ "Cloud:OpenStack:Kilo:Staging",
-           "Cloud:OpenStack:Juno:Staging"].contains(project) &&
-           [ "openstack-ec2-api" ].contains(component) )
+            [ "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging"].contains(project) &&
+            [ "openstack-neutron-lbaas",
+              "openstack-neutron-fwaas",
+              "openstack-neutron-vpnaas",
+              "openstack-ec2-api"].contains(component) )
       sequential: true
     builders:
       - update-automation
