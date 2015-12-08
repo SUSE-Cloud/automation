@@ -21,31 +21,32 @@
             - openstack-ceilometer
             - openstack-cinder
             - openstack-dashboard
-            - openstack-horizon-plugin-manila-ui
             - openstack-designate
+            - openstack-ec2-api
             - openstack-glance
             - openstack-heat
             - openstack-heat-templates
+            - openstack-horizon-plugin-manila-ui
             - openstack-ironic
-            - openstack-trove
             - openstack-keystone
             - openstack-manila
-            - openstack-nova
-            - openstack-ec2-api
-            - openstack-nova-docker
             - openstack-neutron
-            - openstack-neutron-lbaas
             - openstack-neutron-fwaas
+            - openstack-neutron-lbaas
             - openstack-neutron-vpnaas
+            - openstack-nova
+            - openstack-nova-docker
             - openstack-quickstart
             - openstack-resource-agents
             - openstack-sahara
             - openstack-swift
             - openstack-tempest
+            - openstack-trove
             - openstack-tuskar
             - openstack-tuskar_ui
             - openstack-utils
             - openstack-zaqar
+            - python-barbicanclient
             - python-ceilometerclient
             - python-cinderclient
             - python-designateclient
@@ -55,20 +56,19 @@
             - python-ironicclient
             - python-keystoneclient
             - python-keystonemiddleware
-            - python-novaclient
             - python-manilaclient
+            - python-neutronclient
+            - python-novaclient
+            - python-openstackclient
+            - python-saharaclient
+            - python-swiftclient
+            - python-troveclient
+            - python-tuskarclient
+            - python-zaqarclient
+            - python-swift3
             - python-os-apply-config
             - python-os-cloud-config
             - python-os-collect-config
-            - python-openstackclient
-            - python-neutronclient
-            - python-saharaclient
-            - python-swift3
-            - python-swiftclient
-            - python-tuskarclient
-            - python-troveclient
-            - python-zaqarclient
-            - python-barbicanclient
             - tripleo-image-elements
             - tripleo-heat-templates
             - diskimage-builder
@@ -80,23 +80,40 @@
     execution-strategy:
       combination-filter: |
         ! ( [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging"].contains(project) &&
-            [ "openstack-neutron-lbaas", "openstack-neutron-fwaas",
-              "openstack-neutron-vpnaas", "openstack-tuskar",
-              "openstack-tuskar_ui", "python-oslo.messaging",
-              "python-oslosphinx", "python-oslo.rootwrap",
-              "python-openstackclient", "python-keystonemiddleware",
-              "python-tuskarclient", "python-troveclient",
-              "tripleo-image-elements", "tripleo-heat-templates",
-              "diskimage-builder", "openstack-zaqar",
-              "python-ironicclient", "python-zaqarclient",
-              "python-barbicanclient", "python-os-apply-config",
+            [ "python-barbicanclient",
+              "python-ceilometerclient",
+              "python-cinderclient",
+              "python-designateclient",
+              "python-glanceclient",
+              "python-heatclient",
+              "python-heat-cfntools",
+              "python-ironicclient",
+              "python-keystoneclient",
+              "python-keystonemiddleware",
+              "python-manilaclient",
+              "python-neutronclient",
+              "python-novaclient",
+              "python-openstackclient",
+              "python-saharaclient",
+              "python-swiftclient",
+              "python-troveclient",
+              "python-tuskarclient",
+              "python-zaqarclient",
+              "python-keystonemiddleware",
+              "tripleo-image-elements",
+              "tripleo-heat-templates",
+              "diskimage-builder",
+              "openstack-tuskar",
+              "openstack-tuskar_ui",
+              "openstack-zaqar",
+              "python-os-apply-config",
               "python-os-cloud-config",
               "python-os-collect-config"].contains(component) ||
-         ["Cloud:OpenStack:Juno:Staging"].contains(project) &&
-            ["openstack-horizon-plugin-manila-ui"].contains(component) ||
-         [ "Cloud:OpenStack:Kilo:Staging",
-           "Cloud:OpenStack:Juno:Staging"].contains(project) &&
-           [ "openstack-ec2-api" ].contains(component) )
+            [ "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging"].contains(project) &&
+            [ "openstack-neutron-lbaas",
+              "openstack-neutron-fwaas",
+              "openstack-neutron-vpnaas",
+              "openstack-ec2-api"].contains(component) )
       sequential: true
     builders:
       - update-automation
