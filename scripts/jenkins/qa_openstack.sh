@@ -115,13 +115,23 @@ if [ -n "$OSHEAD" ]; then
     # use high prio so that packages will be preferred from here over Devel:Cloud
     $zypper mr --priority 42 cloudhead
 fi
+
 if [ $VERSION = 11 ] ; then
     $zypper rr CloudProduct || true
     $zypper rr SUSE_SLE-11-SP2_Update_Products_Test || true
     if [ "$REPO" = SLE_11_SP3 ] ; then
         $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SLES11-SP3-Pool/sle-11-x86_64/' SP3Pool
     fi
+fi
 
+if [ "$VERSION" = "12" ] ; then
+    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12/x86_64/product/' SLES12-Pool
+    $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12/x86_64/update/' SLES12-Updates
+fi
+
+if [ "$VERSION" = "12.1" ] ; then
+    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
+    $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
 fi
 
 # install maintenance updates
