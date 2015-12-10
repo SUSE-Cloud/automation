@@ -14,6 +14,7 @@ if [[ $debug_qa_crowbarsetup = 1 ]] ; then
 fi
 
 # defaults
+: ${admin_crowbar_dev_dir:=/opt/crowbar}
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
 : ${cinder_backend:=''}
@@ -1713,6 +1714,29 @@ EOF
     fi
 }
 
+function onadmin_install_crowbar_dev_deps()
+{
+    zypper ar -f http://dist.suse.de/install/SLP/SLE-12-SP1-SDK-LATEST/x86_64/DVD1/ sle12-sp1-sdk
+    ensure_packages_installed gcc ruby2.1-devel sqlite3-devel libxml2-devel
+    mkdir -p $admin_crowbar_dev_dir/crowbar_framework/db $admin_crowbar_dev_dir/barclamps
+    ln -sf /opt/dell/crowbar_framework/db/production.sqlite3 $admin_crowbar_dev_dir/crowbar_framework/db/development.sqlite3
+}
+
+function onadmin_crowbar_dev_install()
+{
+    local components=$(find $admin_crowbar_dev_dir/barclamps -mindepth 1 -maxdepth 1 -type d)
+
+    pushd $admin_crowbar_dev_dir/crowbar_framework >/dev/null
+    ensure_packages_installed ruby2.1-rubygem-bundler
+    bundle install
+    CROWBAR_DIR=$admin_crowbar_dev_dir RAILS_ENV=development $admin_crowbar_dev_dir/bin/barclamp_install.rb $components
+    popd >/dev/null
+}
+
+function onadmin_crowbar_dev_server()
+{
+    $admin_crowbar_dev_dir/crowbar_framework/bin/rails s -b 0.0.0.0 -p 5000
+}
 
 function onadmin_installcrowbarfromgit()
 {
