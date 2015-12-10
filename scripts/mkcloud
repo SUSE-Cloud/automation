@@ -139,6 +139,7 @@ fi
 pidfile=mkcloud.pid
 
 trap 'error_exit $? "error caught by trap"' TERM
+exec 3<&0
 exec </dev/null
 
 function is_suse()
@@ -664,12 +665,12 @@ function crowbar_dev_update()
 
 function crowbar_dev_guard()
 {
-    export GUARD_SYNC_HOST=$adminip
-    export GUARD_TREE_TARGET=$admin_crowbar_dev_dir
-    export GUARD_SCRIPT_TARGET=$admin_crowbar_dev_dir/bin
-
     pushd $host_crowbar_dev_dir/crowbar >/dev/null
-    bundle exec guard --no-notify
+    if [[ "$wantedcmds" == "crowbar_dev_guard" ]]; then
+        GUARD_SYNC_HOST=$adminip GUARD_TREE_TARGET=$admin_crowbar_dev_dir GUARD_SCRIPT_TARGET=$admin_crowbar_dev_dir/bin bundle exec guard --no-notify <&3
+    else
+        GUARD_SYNC_HOST=$adminip GUARD_TREE_TARGET=$admin_crowbar_dev_dir GUARD_SCRIPT_TARGET=$admin_crowbar_dev_dir/bin bundle exec guard --no-notify
+    fi
 }
 
 function crowbar_dev_install()
