@@ -450,6 +450,7 @@ function prepare()
     onhost_create_cloud_lvm
     onhost_deploy_image "admin" $image "$admin_node_disk"
     onhost_add_etchosts_entries
+    libvirt_prepare
 }
 
 function ssh_password()
