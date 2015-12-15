@@ -42,6 +42,10 @@ MKCLOUD_HA_PARAMETERS = (
     'networkingmode=vxlan',
     'clusterconfig="data+services+network=2"')
 
+MKCLOUD_HYPERV_PARAMETERS = (
+    'networkingplugin=linuxbridge',
+    'libvirt_type=hyperv',
+    'networkingmode=vlan')
 
 MKCLOUD_CEPH_PARAMETERS = (
     'nodenumber=4', 'want_ceph=1',
@@ -49,8 +53,10 @@ MKCLOUD_CEPH_PARAMETERS = (
 
 JOB_PARAMETERS = {
     'crowbar-ha': MKCLOUD_HA_PARAMETERS,
+    'crowbar-hyperv': MKCLOUD_HYPERV_PARAMETERS,
     'crowbar-ceph': MKCLOUD_CEPH_PARAMETERS,
     'barclamp-ceph': MKCLOUD_CEPH_PARAMETERS,
+    'barclamp-hyperv': MKCLOUD_HYPERV_PARAMETERS,
     'barclamp-pacemaker': MKCLOUD_HA_PARAMETERS
 }
 
