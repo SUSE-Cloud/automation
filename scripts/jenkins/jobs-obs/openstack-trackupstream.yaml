@@ -10,7 +10,6 @@
           type: user-defined
           name: project
           values:
-            - Cloud:OpenStack:Juno:Staging
             - Cloud:OpenStack:Kilo:Staging
             - Cloud:OpenStack:Liberty:Staging
             - Cloud:OpenStack:Master
