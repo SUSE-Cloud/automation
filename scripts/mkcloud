@@ -851,11 +851,10 @@ function qa_test()
 
 function crowbarbackup()
 {
-    onadmin crowbarbackup
-    local ret=$?
-    safely $scp root@$adminip:/tmp/backup-crowbar.tar.gz .
-    [ -d "$artifacts_dir" ] && mv backup-crowbar.tar.gz "$artifacts_dir/"
-    return $ret
+    safely onadmin crowbarbackup
+    local btargetdir=${artifacts_dir:-.}
+    mkdir -p "$btargetdir"
+    safely $scp root@$adminip:/tmp/backup-crowbar.tar.gz "$btargetdir"
 }
 
 function crowbarrestore()
@@ -865,39 +864,19 @@ function crowbarrestore()
     if [ ! -e "$btarball" ] ; then
         complain 56 "No crowbar backup tarball found."
     fi
-    $scp "$btarball" root@$adminip:/tmp/
-    onadmin crowbarpurge && onadmin crowbarrestore
-    return $?
+    safely $scp "$btarball" root@$adminip:/tmp/
+    safely onadmin crowbarpurge && safely onadmin crowbarrestore
 }
 
-function prepare_cloudupgrade()
+function cloudupgrade()
 {
-    onadmin prepare_cloudupgrade
-    return $?
-}
-
-function cloudupgrade_1st()
-{
-    onadmin cloudupgrade_1st
-    return $?
-}
-
-function cloudupgrade_2nd()
-{
-    onadmin cloudupgrade_2nd
-    return $?
-}
-
-function cloudupgrade_clients()
-{
-    onadmin cloudupgrade_clients
-    return $?
-}
-
-function cloudupgrade_reboot_and_redeploy_clients()
-{
-    onadmin cloudupgrade_reboot_and_redeploy_clients
-    return $?
+    # upgrade workflow
+    # split into steps to be able to call them via eg. 'mkcloud onadmin_prepare_cloudupgrade'
+    safely onadmin prepare_cloudupgrade
+    safely onadmin cloudupgrade_1st
+    safely onadmin cloudupgrade_2nd
+    safely onadmin cloudupgrade_clients
+    safely onadmin cloudupgrade_reboot_and_redeploy_clients
 }
 
 function cct()
@@ -1265,8 +1244,7 @@ allcmds="$step_aliases all all_noreboot all_batch all_batch_noreboot instonly \
     setupcompute instnodes instcompute proposal testsetup rebootcrowbar \
     rebootcloud addupdaterepo runupdate testupdate \
     crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help \
-    rebootneutron prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd \
-    cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients \
+    rebootneutron cloudupgrade \
     setuplonelynodes crowbar_register createadminsnapshot \
     restoreadminfromsnapshot cct steps batch setup_aliases onadmin"
 wantedcmds=$@
@@ -1321,7 +1299,7 @@ function expand_steps()
                         runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar setupnodes instnodes"
                     ;;
                     _upgrade)
-                        runcmds="$runcmds prepare_cloudupgrade cloudupgrade_1st cloudupgrade_2nd cloudupgrade_clients cloudupgrade_reboot_and_redeploy_clients"
+                        runcmds="$runcmds cloudupgrade"
                     ;;
                     plain_with_upgrade)
                         runcmds="$runcmds `expand_steps plain` addupdaterepo runupdate `expand_steps _upgrade`"
