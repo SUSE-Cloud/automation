@@ -31,6 +31,7 @@
           values:
             - SLE_11_SP3
             - SLE_12
+            - SLE_12_SP1
             - openSUSE_13.2
             - openSUSE_Leap_42.1
       - axis:
@@ -40,11 +41,11 @@
             - cloud-trackupstream
     execution-strategy:
       combination-filter: |
-       !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_11_SP3"].contains(repository) ||
+       !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_11_SP3", "SLE_12", "openSUSE_13.2"].contains(repository) ||
          ["Cloud:OpenStack:Factory"].contains(project) && ["SLE_11_SP3", "SLE_12", "SLE_12_SP1", "openSUSE_Leap_42.1"].contains(repository) ||
          ["Cloud:OpenStack:Icehouse", "Cloud:OpenStack:Icehouse:Staging"].contains(project) && ["SLE_12", "SLE_12_SP1", "openSUSE_13.2", "openSUSE_Leap_42.1"].contains(repository) ||
-         ["Cloud:OpenStack:Juno", "Cloud:OpenStack:Juno:Staging"].contains(project) && ["openSUSE_Leap_42.1"].contains(repository)  ||
-         ["Cloud:OpenStack:Kilo", "Cloud:OpenStack:Kilo:Staging"].contains(project) && ["openSUSE_Leap_42.1", "SLE_11_SP3"].contains(repository)  ||
+         ["Cloud:OpenStack:Juno", "Cloud:OpenStack:Juno:Staging"].contains(project) && ["SLE_12_SP1", "openSUSE_Leap_42.1"].contains(repository)  ||
+         ["Cloud:OpenStack:Kilo", "Cloud:OpenStack:Kilo:Staging"].contains(project) && ["SLE_12_SP1", "openSUSE_Leap_42.1", "SLE_11_SP3"].contains(repository)  ||
          ["Cloud:OpenStack:Liberty", "Cloud:OpenStack:Liberty:Staging"].contains(project) && ["openSUSE_Factory", "SLE_11_SP3"].contains(repository)
        )
       sequential: true

@@ -9,7 +9,6 @@
             - SLE_11_SP3
             - SLE_12
             - SLE_12_SP1
-            - openSUSE-13.2
             - openSUSE-Leap-42.1
       - axis:
           type: user-defined
@@ -30,10 +29,10 @@
         (
         slave=="cloud-cleanvm"
         && ( openstack_project=="Icehouse" && (image=="openSUSE-13.1" || image=="SLE_11_SP3"))
-        || ( openstack_project=="Juno" && (image=="openSUSE-13.2" || image=="SLE_11_SP3"))
-        || ( openstack_project=="Kilo" && (image=="openSUSE-13.2" || image=="SLE_12"))
+        || ( openstack_project=="Juno" && (image=="SLE_11_SP3"))
+        || ( openstack_project=="Kilo" && (image=="SLE_12"))
         || ( openstack_project=="Liberty" && (image=="SLE_12_SP1" || image=="SLE_12" || image=="openSUSE-Leap-42.1"))
-        || ( openstack_project=="Master" && (image=="openSUSE-Leap-42.1" || image=="SLE_12_SP1" || image=="SLE_12"))
+        || ( openstack_project=="Master" && (image=="openSUSE-Leap-42.1" || image=="SLE_12_SP1"))
         )
       sequential: true
     builders:
