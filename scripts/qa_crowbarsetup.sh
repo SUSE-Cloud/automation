@@ -1115,6 +1115,14 @@ function onadmin_add_cloud_repo()
       cat "$targetdir/isoversion" > /etc/cloudversion
     fi
 
+    # Just document the list of extra repos
+    if [[ -n "$UPDATEREPOS" ]]; then
+        local repo
+        for repo in ${UPDATEREPOS//+/ } ; do
+            echo "+ with extra repo from $repo" >> /etc/cloudversion
+        done
+    fi
+
     echo -n "This cloud was installed on `cat ~/cloud` from: " | \
         cat - /etc/cloudversion >> /etc/motd
     echo $cloudsource > /etc/cloudsource
