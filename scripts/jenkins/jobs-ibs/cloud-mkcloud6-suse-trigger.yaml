@@ -7,7 +7,7 @@
           cron: 'H/5 * * * *'
           polling-node: cloud-trigger
           urls:
-            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/ibs/SUSE:/SLE-12-SP1:/Update:/Products:/Cloud6/images/iso/?regexp=x86_64'
+            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/SUSE:/SLE-12-SP1:/Update:/Products:/Cloud6/images/iso/?regexp=x86_64'
               check-content:
                 - simple: true
 
