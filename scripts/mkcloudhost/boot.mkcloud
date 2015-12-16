@@ -12,6 +12,6 @@ for n in $(seq 1 $cloudspernode) ; do
 done
 for x in D I ; do
     iptables -$x FORWARD -d 192.168.0.0/16 -j ACCEPT
-    iptables -t nat -$x POSTROUTING -s 44.0.0.0/8 -j MASQUERADE
+    iptables -t nat -$x POSTROUTING -s 10.164.0.0/15 -j MASQUERADE
 done
 
