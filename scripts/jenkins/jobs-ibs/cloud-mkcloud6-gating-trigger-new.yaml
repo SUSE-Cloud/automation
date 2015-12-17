@@ -1,0 +1,54 @@
+- job:
+    name: 'cloud-mkcloud6-gating-trigger-new'
+    project-type: multijob
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H 19 */2 * *'
+      - pollurl:
+          cron: 'H/5 * * * *'
+          polling-node: cloud-trigger
+          urls:
+            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/Devel:/Cloud:/6:/Staging/images/iso/?regexp=x86_64'
+              check-content:
+                - simple: true
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - shell: |
+          echo starttime=$(date +%s) > build_start_time
+
+      - multijob:
+          name: 'Standard Gate Checks (non-HA/OVS+Linuxbridge)'
+          condition: SUCCESSFUL
+          projects:
+            - name: openstack-mkcloud
+              node-label: cloud-trigger
+              predefined-parameters: |
+                cloudsource=develcloud6
+                nodenumber=2
+                mkcloudtarget=all_batch
+                scenario=cloud6-2nodes-default.yml
+                want_node_aliases=controller=1,compute-kvm=1
+            - name: openstack-mkcloud
+              node-label: cloud-trigger
+              predefined-parameters: |
+                cloudsource=develcloud6
+                nodenumber=4
+                networkingplugin=linuxbridge
+                mkcloudtarget=all
+
+    publishers:
+      - trigger-parameterized-builds:
+        - project:
+          - openstack-submit-project
+          condition: SUCCESS
+          property-file: build_start_time
+          fail-on-missing: True
+          predefined-parameters: |
+            project=Devel:Cloud:6
+            subproject=Staging
+            packagefilter=crowbar python openstack patterns release-notes-suse-openstack-cloud suse-cloud-upgrade
