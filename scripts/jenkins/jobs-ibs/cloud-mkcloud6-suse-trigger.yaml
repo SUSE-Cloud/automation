@@ -35,7 +35,7 @@
             cloudsource=susecloud6
             TESTHEAD=
             want_test_updates=1
-            nodenumber=3
+            nodenumber=4
             want_ceph=1
             networkingplugin=linuxbridge
             mkcloudtarget=all
