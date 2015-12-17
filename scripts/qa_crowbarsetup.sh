@@ -2958,6 +2958,19 @@ function glance_image_get_id()
     echo $image_id
 }
 
+function oncontroller_tempest_cleanup()
+{
+    if iscloudver 5plus; then
+        if tempest help cleanup; then
+            tempest cleanup --delete-tempest-conf-objects
+        else
+            /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
+        fi
+    else
+        /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
+    fi
+}
+
 function oncontroller_tempest_legacy()
 {
     local image_name="SLES11-SP3-x86_64-cfntools"
@@ -2990,15 +3003,7 @@ function oncontroller_tempest_legacy()
     local tempestret=${PIPESTATUS[0]}
     testr last --subunit | subunit-1to2 > tempest.subunit.log
 
-    if iscloudver 5plus; then
-        if tempest help cleanup; then
-            tempest cleanup --delete-tempest-conf-objects
-        else
-            /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
-        fi
-    else
-        /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
-    fi
+    oncontroller_tempest_cleanup
     popd
     return $tempestret
 }
