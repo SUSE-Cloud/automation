@@ -2963,6 +2963,51 @@ function glance_image_get_id()
     echo $image_id
 }
 
+function oncontroller_tempest_legacy()
+{
+    local image_name="SLES11-SP3-x86_64-cfntools"
+
+    # Upload a Heat-enabled image
+    if ! glance_image_exists $image_name; then
+        curl -s \
+            http://$clouddata/images/${image_name}.qcow2 | \
+            openstack image create \
+                --public --disk-format qcow2 --container-format bare \
+                --property hypervisor_type=kvm \
+                $image_name | tee glance.out
+    fi
+    local imageid=$(glance_image_get_id $image_name)
+    crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
+    # test if is cnftools image prepared for tempest
+    wait_for 300 5 \
+        'openstack image show $imageid | grep active &>/dev/null' \
+        "prepare cnftools image"
+    pushd /var/lib/openstack-tempest-test
+    echo 1 > /proc/sys/kernel/sysrq
+    if iscloudver 5plus; then
+        if tempest help cleanup; then
+            tempest cleanup --init-saved-state
+        else
+            /usr/bin/tempest-cleanup --init-saved-state || :
+        fi
+    fi
+    ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
+    local tempestret=${PIPESTATUS[0]}
+    testr last --subunit | subunit-1to2 > tempest.subunit.log
+
+    if iscloudver 5plus; then
+        if tempest help cleanup; then
+            tempest cleanup --delete-tempest-conf-objects
+        else
+            /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
+        fi
+    else
+        /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
+    fi
+    popd
+    return $tempestret
+}
+
 # code run on controller/dashboard node to do basic tests of deployed cloud
 # uploads an image, create flavor, boots a VM, assigns a floating IP, ssh to VM, attach/detach volume
 function oncontroller_testsetup()
@@ -3023,47 +3068,11 @@ function oncontroller_testsetup()
     # Run Tempest Smoketests if configured to do so
     tempestret=0
     if [ "$wanttempest" = "1" ]; then
-        local image_name="SLES11-SP3-x86_64-cfntools"
-
-        # Upload a Heat-enabled image
-        if ! glance_image_exists $image_name; then
-            curl -s \
-                http://$clouddata/images/${image_name}.qcow2 | \
-                openstack image create \
-                    --public --disk-format qcow2 --container-format bare \
-                    --property hypervisor_type=kvm \
-                    $image_name | tee glance.out
-        fi
-        imageid=$(glance_image_get_id $image_name)
-        crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
-        # test if is cnftools image prepared for tempest
-        wait_for 300 5 \
-            'openstack image show $imageid | grep active &>/dev/null' \
-            "prepare cnftools image"
-        pushd /var/lib/openstack-tempest-test
-        echo 1 > /proc/sys/kernel/sysrq
-        if iscloudver 5plus; then
-            if tempest help cleanup; then
-                tempest cleanup --init-saved-state
-            else
-                /usr/bin/tempest-cleanup --init-saved-state || :
-            fi
-        fi
-        ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
-        tempestret=${PIPESTATUS[0]}
-        testr last --subunit | subunit-1to2 > tempest.subunit.log
-
-        if iscloudver 5plus; then
-            if tempest help cleanup; then
-                tempest cleanup --delete-tempest-conf-objects
-            else
-                /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
-            fi
-        else
-            /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
-        fi
-        popd
+        oncontroller_tempest_legacy
+        tempestret=$?
     fi
+
+
     nova list
     openstack image list
 
