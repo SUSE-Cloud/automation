@@ -411,6 +411,7 @@ function onhost_add_etchosts_entries()
 function onhost_enable_ksm
 {
     # enable kernel-samepage-merging to save RAM
+    echo 0 > /sys/kernel/mm/ksm/merge_across_nodes
     echo 1 > /sys/kernel/mm/ksm/run
     echo 1000 > /sys/kernel/mm/ksm/pages_to_scan
     # huge pages can not be shared or swapped, so do not use them
