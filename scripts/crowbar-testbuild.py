@@ -95,7 +95,7 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
 
     print(jenkins(
         'openstack-mkcloud',
-        '-p', 'mode=standard',
+        '-p',
         "github_pr=crowbar/%s:%s" % (repo, github_opts),
         "cloudsource=" + cloudsource,
         'UPDATEREPOS=' + htdocs_url + ptfdir,
