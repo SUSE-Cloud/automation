@@ -2666,9 +2666,10 @@ function set_proposalvars()
 
     # Tempest
     wanttempest=1
-    if [[ $want_tempest == 0 ]] ; then
-        wanttempest=
-    fi
+    case $want_tempest in
+        0) wanttempest= ;;
+        *) wanttempest=$want_tempest ;;
+    esac
 
     # Cinder
     if [[ ! $cinder_backend ]] ; then
@@ -3008,6 +3009,24 @@ function oncontroller_tempest_legacy()
     return $tempestret
 }
 
+function oncontroller_tempest()
+{
+    local tmode=${1:-smoke}
+    safely cd /var/lib/openstack-tempest-test
+    safely testr init
+    local datestr=$(date +%Y-%m-%d_%H%M%S)
+    local tlogfile=tempest_${mode}_${datestr}.log
+    local tempetoptions=$tmode
+    case $tmode in
+        smoke) tempetoptions="-N -t -s" ;;
+        full)  tempetoptions="-N -t"    ;;
+    esac
+    ./run_tempest.sh $tempestoptions 2>&1 | tee $tlogfile
+    local tempestret=${PIPESTATUS[0]}
+    oncontroller_tempest_cleanup
+    return $tempestret
+}
+
 # code run on controller/dashboard node to do basic tests of deployed cloud
 # uploads an image, create flavor, boots a VM, assigns a floating IP, ssh to VM, attach/detach volume
 function oncontroller_testsetup()
@@ -3067,10 +3086,32 @@ function oncontroller_testsetup()
 
     # Run Tempest Smoketests if configured to do so
     tempestret=0
-    if [ "$wanttempest" = "1" ]; then
-        oncontroller_tempest_legacy
-        tempestret=$?
-    fi
+    case $wanttempest in
+        0|'') echo "Tempest will be skipped." ;;
+        1)
+            oncontroller_tempest_legacy
+            tempestret=$?
+        ;;
+        tempestsmoke)
+            oncontroller_tempest smoke
+            tempestret=$?
+        ;;
+        tempestfull)
+            oncontroller_tempest full
+            tempestret=$?
+        ;;
+        tempestall)
+            oncontroller_tempest smoke
+            tempestret=$?
+            if [[ $tempestret != 0 ]] ; then
+                echo "WARNING: smoketest failed, tempest full run will NOT be run!"
+            else
+                oncontroller_tempest full
+                tempestret=$?
+            fi
+        ;;
+        *) complain 11 "Tempest mode $wanttempest is not implemented" ;;
+    esac
 
 
     nova list
@@ -3406,9 +3447,8 @@ EOF
         test $cephret -eq 0 || ret=104
     fi
 
-    if [ "$wanttempest" = "1" ]; then
-        scp $novacontroller:/var/lib/openstack-tempest-test/tempest.log .
-        scp $novacontroller:/var/lib/openstack-tempest-test/tempest.subunit.log .
+    if [[ $wanttempest ]] ; then
+        scp $novacontroller:/var/lib/openstack-tempest-test/tempest*.log .
         scp $novacontroller:.openrc .
     fi
     exit $ret
