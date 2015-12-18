@@ -38,6 +38,7 @@
               predefined-parameters: |
                 cloudsource=develcloud6
                 nodenumber=4
+                want_ldap=1
                 networkingplugin=linuxbridge
                 mkcloudtarget=all
 
