@@ -49,6 +49,7 @@ if [ -f "/etc/os-release" ]; then
     case "$DIST_NAME" in
         "SLES")
             REPO="SLE_12"
+            [ "$VERSION" = "12.1" ] && REPO="SLE_12_SP1"
         ;;
         "openSUSE Leap")
             REPO="openSUSE_Leap_${VERSION}"
