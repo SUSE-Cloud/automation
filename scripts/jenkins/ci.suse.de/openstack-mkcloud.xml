@@ -254,11 +254,8 @@ case $cloudsource in
     GM4|GM4+up|GM5|GM5+up)
         echo "Not setting want_ldap=1"
         ;;
-    M*|develcloud6|susecloud6)
-        echo "FIXME: Not setting want_ldap=1 until hybrid backend is ported to Kilo"
-        ;;
     *)
-        [[ $nodenumber == 2 ]] &amp;&amp; export want_ldap=1
+        [[ $nodenumber == 2 &amp;&amp; -z "$scenario" ]] &amp;&amp; export want_ldap=1
         ;;
 esac
    
