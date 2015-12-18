@@ -15,8 +15,7 @@ proposals:
 - barclamp: keystone
   attributes:
     api:
-      region:
-        - 'CustomRegion'
+      region: 'CustomRegion'
   deployment:
     elements:
       keystone-server:
