@@ -2322,8 +2322,13 @@ function custom_configuration()
             fi
             if [[ $want_ldap ]] ; then
                 local p="proposal_set_value keystone default"
-                $p "['attributes']['keystone']['identity']['driver']" "'keystone.identity.backends.hybrid.Identity'"
-                $p "['attributes']['keystone']['assignment']['driver']" "'keystone.assignment.backends.hybrid.Assignment'"
+                if iscloudver 6plus; then
+                    $p "['attributes']['keystone']['identity']['driver']" "'hybrid'"
+                    $p "['attributes']['keystone']['assignment']['driver']" "'hybrid'"
+                else
+                    $p "['attributes']['keystone']['identity']['driver']" "'keystone.identity.backends.hybrid.Identity'"
+                    $p "['attributes']['keystone']['assignment']['driver']" "'keystone.assignment.backends.hybrid.Assignment'"
+                fi
                 local l="['attributes']['keystone']['ldap']"
                 $p "$l['url']" "'ldap://ldap.suse.de'"
                 $p "$l['suffix']" "'dc=suse,dc=de'"
