@@ -2671,9 +2671,10 @@ function set_proposalvars()
 
     # Tempest
     wanttempest=1
-    if [[ $want_tempest == 0 ]] ; then
-        wanttempest=
-    fi
+    case $want_tempest in
+        0) wanttempest= ;;
+        *) wanttempest=$want_tempest ;;
+    esac
 
     # Cinder
     if [[ ! $cinder_backend ]] ; then
@@ -2963,6 +2964,74 @@ function glance_image_get_id()
     echo $image_id
 }
 
+function oncontroller_tempest_cleanup()
+{
+    if iscloudver 5plus; then
+        if tempest help cleanup; then
+            tempest cleanup --delete-tempest-conf-objects
+        else
+            /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
+        fi
+    else
+        /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
+    fi
+}
+
+function oncontroller_tempest_legacy()
+{
+    local image_name="SLES11-SP3-x86_64-cfntools"
+
+    # Upload a Heat-enabled image
+    if ! glance_image_exists $image_name; then
+        curl -s \
+            http://$clouddata/images/${image_name}.qcow2 | \
+            openstack image create \
+                --public --disk-format qcow2 --container-format bare \
+                --property hypervisor_type=kvm \
+                $image_name | tee glance.out
+    fi
+    local imageid=$(glance_image_get_id $image_name)
+    crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
+    # test if is cnftools image prepared for tempest
+    wait_for 300 5 \
+        'openstack image show $imageid | grep active &>/dev/null' \
+        "prepare cnftools image"
+    pushd /var/lib/openstack-tempest-test
+    echo 1 > /proc/sys/kernel/sysrq
+    if iscloudver 5plus; then
+        if tempest help cleanup; then
+            tempest cleanup --init-saved-state
+        else
+            /usr/bin/tempest-cleanup --init-saved-state || :
+        fi
+    fi
+    ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
+    local tempestret=${PIPESTATUS[0]}
+    testr last --subunit | subunit-1to2 > tempest.subunit.log
+
+    oncontroller_tempest_cleanup
+    popd
+    return $tempestret
+}
+
+function oncontroller_tempest()
+{
+    local tmode=${1:-smoke}
+    safely cd /var/lib/openstack-tempest-test
+    safely testr init
+    local datestr=$(date +%Y-%m-%d_%H%M%S)
+    local tlogfile=tempest_${mode}_${datestr}.log
+    local tempetoptions=$tmode
+    case $tmode in
+        smoke) tempetoptions="-N -t -s" ;;
+        full)  tempetoptions="-N -t"    ;;
+    esac
+    ./run_tempest.sh $tempestoptions 2>&1 | tee $tlogfile
+    local tempestret=${PIPESTATUS[0]}
+    oncontroller_tempest_cleanup
+    return $tempestret
+}
+
 # code run on controller/dashboard node to do basic tests of deployed cloud
 # uploads an image, create flavor, boots a VM, assigns a floating IP, ssh to VM, attach/detach volume
 function oncontroller_testsetup()
@@ -3022,48 +3091,34 @@ function oncontroller_testsetup()
 
     # Run Tempest Smoketests if configured to do so
     tempestret=0
-    if [ "$wanttempest" = "1" ]; then
-        local image_name="SLES11-SP3-x86_64-cfntools"
-
-        # Upload a Heat-enabled image
-        if ! glance_image_exists $image_name; then
-            curl -s \
-                http://$clouddata/images/${image_name}.qcow2 | \
-                openstack image create \
-                    --public --disk-format qcow2 --container-format bare \
-                    --property hypervisor_type=kvm \
-                    $image_name | tee glance.out
-        fi
-        imageid=$(glance_image_get_id $image_name)
-        crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
-        # test if is cnftools image prepared for tempest
-        wait_for 300 5 \
-            'openstack image show $imageid | grep active &>/dev/null' \
-            "prepare cnftools image"
-        pushd /var/lib/openstack-tempest-test
-        echo 1 > /proc/sys/kernel/sysrq
-        if iscloudver 5plus; then
-            if tempest help cleanup; then
-                tempest cleanup --init-saved-state
+    case $wanttempest in
+        0|'') echo "Tempest will be skipped." ;;
+        1)
+            oncontroller_tempest_legacy
+            tempestret=$?
+        ;;
+        tempestsmoke)
+            oncontroller_tempest smoke
+            tempestret=$?
+        ;;
+        tempestfull)
+            oncontroller_tempest full
+            tempestret=$?
+        ;;
+        tempestall)
+            oncontroller_tempest smoke
+            tempestret=$?
+            if [[ $tempestret != 0 ]] ; then
+                echo "WARNING: smoketest failed, tempest full run will NOT be run!"
             else
-                /usr/bin/tempest-cleanup --init-saved-state || :
+                oncontroller_tempest full
+                tempestret=$?
             fi
-        fi
-        ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
-        tempestret=${PIPESTATUS[0]}
-        testr last --subunit | subunit-1to2 > tempest.subunit.log
+        ;;
+        *) complain 11 "Tempest mode $wanttempest is not implemented" ;;
+    esac
 
-        if iscloudver 5plus; then
-            if tempest help cleanup; then
-                tempest cleanup --delete-tempest-conf-objects
-            else
-                /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
-            fi
-        else
-            /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
-        fi
-        popd
-    fi
+
     nova list
     openstack image list
 
@@ -3397,9 +3452,8 @@ EOF
         test $cephret -eq 0 || ret=104
     fi
 
-    if [ "$wanttempest" = "1" ]; then
-        scp $novacontroller:/var/lib/openstack-tempest-test/tempest.log .
-        scp $novacontroller:/var/lib/openstack-tempest-test/tempest.subunit.log .
+    if [[ $wanttempest ]] ; then
+        scp $novacontroller:/var/lib/openstack-tempest-test/tempest*.log .
         scp $novacontroller:.openrc .
     fi
     exit $ret
