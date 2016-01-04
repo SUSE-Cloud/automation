@@ -4,6 +4,12 @@ scripts/jenkins/*.cred
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+scripts/lib/libvirt/admin-configc
+scripts/lib/libvirt/cleanupc
+scripts/lib/libvirt/compute-configc
+scripts/lib/libvirt/net-configc
+scripts/lib/libvirt/net-startc
+scripts/lib/libvirt/vm-startc
 
 roundup/
 
