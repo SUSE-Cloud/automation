@@ -249,6 +249,14 @@ function onadmin()
     sshrun onadmin_$cmd "$@"
 }
 
+function onhost()
+{
+    # functions can have parameters, so pass on all except $1
+    local cmd=$1
+    shift
+    onhost_$cmd "$@"
+}
+
 function cleanup()
 {
     # cleanup leftover from last run
@@ -1254,7 +1262,7 @@ allcmds="$step_aliases all all_noreboot all_batch all_batch_noreboot instonly \
     crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help \
     rebootneutron cloudupgrade \
     setuplonelynodes crowbar_register createadminsnapshot \
-    restoreadminfromsnapshot cct steps batch setup_aliases onadmin"
+    restoreadminfromsnapshot cct steps batch setup_aliases onadmin onhost"
 wantedcmds=$@
 
 function expand_steps()
