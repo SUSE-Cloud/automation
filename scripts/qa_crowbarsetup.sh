@@ -429,10 +429,6 @@ function iscloudver()
     return $?
 }
 
-function keystone()
-{
-    command keystone --insecure "$@"
-}
 function heat()
 {
     command heat --insecure "$@"
@@ -3139,7 +3135,7 @@ function oncontroller_testsetup()
     done
 
     if [[ $want_ldap ]] ; then
-        keystone user-get bwiedemann | grep -q 82608 || complain 103 "LDAP not working"
+        openstack user show bwiedemann | grep -q 82608 || complain 103 "LDAP not working"
     fi
 
     # wait for nova-manage to be successful
