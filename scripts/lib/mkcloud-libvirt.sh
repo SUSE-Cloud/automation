@@ -81,8 +81,10 @@ EOS
 EOS
         fi
     fi
-    chmod +x /etc/init.d/boot.mkcloud
-    /etc/init.d/boot.mkcloud
+    if [ -e "/etc/init.d/boot.mkcloud" ]; then
+        chmod +x /etc/init.d/boot.mkcloud
+        /etc/init.d/boot.mkcloud
+    fi
 }
 
 function libvirt_prepare()
