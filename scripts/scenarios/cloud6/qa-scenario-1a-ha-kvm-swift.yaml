@@ -1,0 +1,566 @@
+---
+proposals:
+- barclamp: crowbar
+  attributes:
+    instances:
+      ganglia: []
+      nagios: []
+      provisioner:
+      - "/var/lib/crowbar/config/provisioner.json"
+      network:
+      - "/var/lib/crowbar/config/network.json"
+      dns:
+      - "/var/lib/crowbar/config/dns.json"
+    realm: SUSE OpenStack Cloud Admin Server
+    users:
+      machine-install:
+        password: 815dd8c5edb01a4e98cadd428741e6aa44f9c356ff668e73c2db31e805b8361a5e1b5bb3996302f2833969b49e1e8c23e8938826f6999fd648ab6f7d48f46b0d
+  deployment:
+    elements:
+      crowbar:
+      - crowbar.qa4.cloud.suse.de
+- barclamp: deployer
+  attributes:
+  deployment:
+    elements:
+      deployer-client:
+      - crowbar.qa4.cloud.suse.de
+      - "@@service1@@"
+      - "@@controller3@@"
+      - "@@controller1@@"
+      - "@@compute1@@"
+      - "@@controller2@@"
+      - "@@compute2@@"
+- barclamp: provisioner
+  attributes:
+  deployment:
+    elements:
+      provisioner-server:
+      - crowbar.qa4.cloud.suse.de
+      provisioner-base:
+      - crowbar.qa4.cloud.suse.de
+      - "@@service1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      - "@@controller1@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+      provisioner-bootdisk-finder:
+      - crowbar.qa4.cloud.suse.de
+      - "@@controller2@@"
+      - "@@controller3@@"
+      - "@@controller1@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+      - "@@service1@@"
+- barclamp: ipmi
+  attributes:
+    bmc_enable: true
+  deployment:
+    elements:
+      ipmi-discover:
+      - crowbar.qa4.cloud.suse.de
+      - "@@service1@@"
+      - "@@controller3@@"
+      - "@@controller1@@"
+      - "@@compute1@@"
+      - "@@controller2@@"
+      - "@@compute2@@"
+      ipmi-configure:
+      - crowbar.qa4.cloud.suse.de
+      - "@@service1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      - "@@controller1@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+      bmc-nat-router:
+      - crowbar.qa4.cloud.suse.de
+      bmc-nat-client:
+      - "@@service1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      - "@@controller1@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+- barclamp: network
+  wipe_attributes:
+    - interface_map
+  attributes:
+    mode: dual
+    teaming:
+      mode: 5
+    conduit_map:
+    - pattern: team/.*/^crowbar$
+      conduit_list:
+        intf2:
+          if_list:
+          - 1g1
+        intf1:
+          if_list:
+          - 1g1
+        intf0:
+          if_list:
+          - 1g1
+    - pattern: dual/.*/^crowbar$
+      conduit_list:
+        intf2:
+          if_list:
+          - 1g1
+        intf1:
+          if_list:
+          - 1g1
+        intf0:
+          if_list:
+          - 1g1
+    - pattern: team/.*/.*
+      conduit_list:
+        intf2:
+          if_list:
+          - 1g1
+          - 1g2
+          team_mode: 5
+        intf1:
+          if_list:
+          - 1g1
+          - 1g2
+          team_mode: 5
+        intf0:
+          if_list:
+          - 1g1
+          - 1g2
+          team_mode: 5
+    - pattern: dual/.*/.*
+      conduit_list:
+        intf2:
+          if_list:
+          - 1g1
+        intf1:
+          if_list:
+          - 1g2
+        intf0:
+          if_list:
+          - 1g1
+    - pattern: single/.*/.*
+      conduit_list:
+        intf2:
+          if_list:
+          - 1g1
+        intf1:
+          if_list:
+          - 1g1
+        intf0:
+          if_list:
+          - 1g1
+    - pattern: ".*/.*/.*"
+      conduit_list:
+        intf2:
+          if_list:
+          - 1g1
+        intf1:
+          if_list:
+          - 1g1
+        intf0:
+          if_list:
+          - 1g1
+    - pattern: mode/1g_adpt_count/role
+      conduit_list:
+        intf2:
+          if_list:
+          - 1g1
+        intf1:
+          if_list:
+          - 1g1
+        intf0:
+          if_list:
+          - 1g1
+    networks:
+      storage:
+        vlan: 716
+      public:
+        vlan: 715
+        subnet: 10.162.67.0
+        broadcast: 10.162.67.255
+        router: 10.162.67.1
+        ranges:
+          dhcp:
+            start: 10.162.67.1
+            end: 10.162.67.50
+          host:
+            start: 10.162.67.51
+            end: 10.162.67.100
+      nova_fixed:
+        vlan: 717
+        subnet: 44.0.0.0
+        netmask: 255.255.0.0
+        broadcast: 44.0.255.255
+        router: 44.0.0.1
+        ranges:
+          router:
+            start: 44.0.0.1
+            end: 44.0.0.10
+          dhcp:
+            start: 44.0.0.11
+            end: 44.0.255.250
+      nova_floating:
+        vlan: 715
+        subnet: 10.162.67.0
+        netmask: 255.255.255.0
+        broadcast: 10.162.67.255
+        ranges:
+          host:
+            start: 10.162.67.101
+            end: 10.162.67.200
+      bmc:
+        router: 10.162.65.254
+        vlan: 711
+        use_vlan: true
+        subnet: 10.162.65.0
+        broadcast: 10.162.65.255
+        ranges:
+          host:
+            start: 10.162.65.49
+            end: 10.162.65.89
+      bmc_vlan:
+        router: 10.162.65.254
+        vlan: 711
+        subnet: 10.162.65.0
+        broadcast: 10.162.65.255
+        ranges:
+          host:
+            start: 10.162.65.149
+            end: 10.162.65.199
+      os_sdn:
+        vlan: 716
+      admin:
+        vlan: 714
+        subnet: 10.162.66.0
+        netmask: 255.255.255.128
+        broadcast: 10.162.66.127
+        router: 10.162.66.1
+        ranges:
+          admin:
+            start: 10.162.66.10
+            end: 10.162.66.22
+          dhcp:
+            start: 10.162.66.30
+            end: 10.162.66.49
+          host:
+            start: 10.162.66.50
+            end: 10.162.66.69
+          switch:
+            start: 10.162.66.23
+            end: 10.162.66.29
+  deployment:
+    elements:
+      switch_config:
+      - crowbar.qa4.cloud.suse.de
+      network:
+      - crowbar.qa4.cloud.suse.de
+      - "@@service1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      - "@@controller1@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+- barclamp: dns
+  attributes:
+    domain: qa4.cloud.suse.de
+    forwarders:
+    - 10.162.66.1
+    records:
+      multi-dns:
+        ips:
+        - 10.11.12.13
+  deployment:
+    elements:
+      dns-server:
+      - crowbar.qa4.cloud.suse.de
+      dns-client:
+      - crowbar.qa4.cloud.suse.de
+      - "@@service1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      - "@@controller1@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+- barclamp: logging
+  attributes:
+  deployment:
+    elements:
+      logging-server:
+      - crowbar.qa4.cloud.suse.de
+      logging-client:
+      - "@@service1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      - "@@controller1@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+- barclamp: ntp
+  attributes:
+  deployment:
+    elements:
+      ntp-server:
+      - crowbar.qa4.cloud.suse.de
+      ntp-client:
+      - "@@service1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      - "@@controller1@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+- barclamp: pacemaker
+  name: proposal_1
+  attributes:
+    stonith:
+      mode: ipmi_barclamp
+      per_node:
+        nodes:
+          d00-25-90-e4-1c-ae.qa4.cloud.suse.de:
+            params: ''
+          d00-25-90-e4-22-52.qa4.cloud.suse.de:
+            params: ''
+          d00-25-90-e4-24-c4.qa4.cloud.suse.de:
+            params: ''
+    drbd:
+      shared_secret: AABPXS6ALOah
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      hawk-server:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+- barclamp: database
+  attributes:
+    ha:
+      storage:
+        shared:
+          device: 10.162.66.1:/srv/nfs/cloud4-ha-database
+          fstype: nfs
+  deployment:
+    elements:
+      database-server:
+      - cluster:proposal_1
+- barclamp: rabbitmq
+  attributes:
+    password: M9keDDJKI6oY
+    ha:
+      storage:
+        shared:
+          device: 10.162.66.1:/srv/nfs/cloud4-ha-rabbitmq
+          fstype: nfs
+    trove:
+      password: LUC8L70Yg4xZ
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:proposal_1
+- barclamp: keystone
+  attributes:
+    database_instance: default
+    rabbitmq_instance: default
+    db:
+      password: nNgna2X6tOUS
+    ssl:
+      generate_certs: true
+      insecure: true
+    api:
+      protocol: https
+    service:
+      token: ypTjVkNz9jmQ
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:proposal_1
+- barclamp: swift
+  attributes:
+    dispersion:
+      service_password: xpxwvPin7hnQ
+    ssl:
+      enabled: true
+      generate_certs: true
+      insecure: true
+    cluster_hash: 181d283256
+    keystone_instance: default
+    service_password: FLxkjG1BoDqw
+  deployment:
+    elements:
+      swift-dispersion:
+      - "@@service1@@"
+      swift-proxy:
+      - "@@service1@@"
+      swift-ring-compute:
+      - "@@service1@@"
+      swift-storage:
+      - "@@service1@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+- barclamp: glance
+  attributes:
+    service_password: 6RaUtUaIfpo5
+    db:
+      password: aTCEioqyUFFq
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+    default_store: swift
+    keystone_instance: default
+    database_instance: default
+    rabbitmq_instance: default
+  deployment:
+    elements:
+      glance-server:
+      - "@@service1@@"
+- barclamp: cinder
+  attributes:
+    rabbitmq_instance: default
+    keystone_instance: default
+    glance_instance: default
+    database_instance: default
+    service_password: Uj69LzOFfibi
+    volumes:
+    - backend_driver: raw
+      backend_name: default
+      raw:
+        volume_name: cinder-volumes
+        cinder_raw_method: all
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+    db:
+      password: 8Brnd6eS16tq
+  deployment:
+    elements:
+      cinder-controller:
+      - "@@service1@@"
+      cinder-volume:
+      - "@@controller1@@"
+- barclamp: neutron
+  attributes:
+    service_password: AswBzAIhLJ8O
+    rabbitmq_instance: default
+    keystone_instance: default
+    use_l2pop: false
+    ml2_mechanism_drivers:
+    - linuxbridge
+    ml2_type_drivers:
+    - vlan
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
+    database_instance: default
+    db:
+      password: 3wEmX9b6UXxH
+    ssl:
+      generate_certs: true
+      insecure: true
+    api:
+      protocol: https
+  deployment:
+    elements:
+      neutron-server:
+      - "@@service1@@"
+      neutron-network:
+      - "@@service1@@"
+- barclamp: nova
+  attributes:
+    service_password: lkaq4NfujCal
+    neutron_metadata_proxy_shared_secret: y14sS0ia7UXC
+    database_instance: default
+    rabbitmq_instance: default
+    keystone_instance: default
+    glance_instance: default
+    cinder_instance: default
+    neutron_instance: default
+    itxt_instance: ''
+    use_shared_instance_storage: true
+    use_migration: true
+    vnc_keymap: de-de
+    db:
+      password: ED4P3YCaBrbO
+    kvm:
+      ksm_enabled: true
+    ssl:
+      enabled: true
+      generate_certs: true
+      insecure: true
+    novnc:
+      ssl:
+        enabled: true
+  deployment:
+    elements:
+      nova-controller:
+      - "@@service1@@"
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - "@@compute2@@"
+      - "@@compute1@@"
+      nova-compute-qemu: []
+      nova-compute-xen: []
+- barclamp: horizon
+  attributes:
+    nova_instance: default
+    keystone_instance: default
+    database_instance: default
+    db:
+      password: LfJhWYPncax5
+    apache:
+      ssl: true
+  deployment:
+    elements:
+      horizon-server:
+      - "@@controller1@@"
+- barclamp: heat
+  attributes:
+    rabbitmq_instance: default
+    database_instance: default
+    stack_domain_admin_password: EUS7Iwdn7uZb
+    keystone_instance: default
+    service_password: BCE7KAm32uAf
+    auth_encryption_key: 8xIkFAy9pPmHgJFKf6W2oQ3ASO1ZuiFgv9NK
+    db:
+      password: 1U1b3kfQoQc2
+  deployment:
+    elements:
+      heat-server:
+      - "@@controller1@@"
+- barclamp: ceilometer
+  attributes:
+    metering_secret: p6MNq5Pdkslm
+    rabbitmq_instance: default
+    database_instance: default
+    keystone_instance: default
+    service_password: Z2lziexntukB
+    db:
+      password: zOGR8MA41nmZ
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@compute1@@"
+      ceilometer-agent-hyperv: []
+      ceilometer-cagent:
+      - "@@service1@@"
+      ceilometer-server:
+      - "@@service1@@"
+      ceilometer-swift-proxy-middleware:
+      - "@@service1@@"
+- barclamp: tempest
+  attributes:
+    tempest_adm_password: PHcPLLbPWI0o
+    tempest_adm_username: tempest-adm-5v9sQHTjHLJ5
+    tempest_user_password: tfTMezGfTWQe
+    tempest_user_username: tempest-user-zDt8fOTlm81A
+    tempest_user_tenant: tempest-tenant-ZKf2FG8EqBkj
+    nova_instance: default
+  deployment:
+    elements:
+      tempest:
+      - "@@service1@@"
