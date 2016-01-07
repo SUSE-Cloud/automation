@@ -474,18 +474,18 @@ function export_tftpboot_repos_dir()
     fi
 
     if iscloudver 6plus; then
+        tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
         if iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]]; then
             tftpboot_suse_dir=/srv/tftpboot/suse-11.3
             tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
-            tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
+            tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/repos
         else
             tftpboot_suse_dir=/srv/tftpboot/suse-11.3/x86_64
             tftpboot_suse12_dir=/srv/tftpboot/suse-12.0/x86_64
-            tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1/x86_64
+            tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
         fi
         tftpboot_repos_dir=$tftpboot_suse_dir/repos
         tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
-        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/repos
     fi
 }
 
@@ -944,14 +944,16 @@ function onadmin_prepare_sles12_repo()
 
 function onadmin_prepare_sles12sp1_repo()
 {
-    local sles12sp1_mount="$tftpboot_suse12sp1_dir/install"
-    add_mount "SLE-12-SP1-Server-LATEST/sle-12-x86_64" \
-        "$clouddata:/srv/nfs/suse-12.1/install" \
-        "$sles12sp1_mount"
+    for arch in x86_64 s390x; do
+        local sles12sp1_mount="$tftpboot_suse12sp1_dir/$arch/install"
+        add_mount "SLE-12-SP1-Server-LATEST/sle-12-$arch" \
+            "$clouddata:/srv/nfs/suse-12.1/$arch/install" \
+            "$sles12sp1_mount"
 
-    if [ ! -d "$sles12sp1_mount/media.1" ] ; then
-        complain 34 "We do not have SLES12 SP1 install media - giving up"
-    fi
+        if [ ! -d "$sles12sp1_mount/media.1" ] ; then
+            complain 34 "We do not have SLES12 SP1 install media - giving up"
+        fi
+    done
 }
 
 function onadmin_prepare_sles12_cloud_compute_repo()
