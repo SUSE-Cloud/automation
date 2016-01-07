@@ -2965,7 +2965,7 @@ function oncontroller_tempest_cleanup()
     fi
 }
 
-function oncontroller_tempest_legacy()
+function oncontroller_run_tempest()
 {
     local image_name="SLES11-SP3-x86_64-cfntools"
 
@@ -3062,7 +3062,7 @@ function oncontroller_testsetup()
     # Run Tempest Smoketests if configured to do so
     tempestret=0
     if [ "$wanttempest" = "1" ]; then
-        oncontroller_tempest_legacy
+        oncontroller_run_tempest
         tempestret=$?
     fi
 
