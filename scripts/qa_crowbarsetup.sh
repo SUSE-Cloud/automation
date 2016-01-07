@@ -2955,7 +2955,7 @@ function glance_image_get_id()
 function oncontroller_tempest_cleanup()
 {
     if iscloudver 5plus; then
-        if tempest help cleanup; then
+        if tempest help cleanup &>/dev/null; then
             tempest cleanup --delete-tempest-conf-objects
         else
             /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
