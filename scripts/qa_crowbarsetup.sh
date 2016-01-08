@@ -708,6 +708,13 @@ function get_docker_nodes()
     knife search node "roles:`nova_role_prefix`-compute-docker" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'
 }
 
+function remove_node_from_list()
+{
+    local onenode="$1"
+    local list="$@"
+    printf "%s\n" $list | grep -iv "$onenode"
+}
+
 function cluster_node_assignment()
 {
     if [ -n "$clusternodesdata" ] ; then
@@ -1756,7 +1763,7 @@ function onadmin_allocate()
             local i=1
             for node in `printf  "%s\n" $nodesavailable | head -n$number`; do
                 set_node_platform $node $node_os
-                nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $node`
+                nodesavailable=`remove_node_from_list "$node" "$nodesavailable"`
                 i=$((i+1))
             done
         done
