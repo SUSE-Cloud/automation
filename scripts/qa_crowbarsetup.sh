@@ -735,6 +735,7 @@ function cluster_node_assignment()
         # find and remove drbd nodes from nodesavailable
         for node in $nodesavailable ; do
             if crowbar machines show "$node" | grep "\"macaddress\"" | grep -qi $mac ; then
+                nodesavailable=`remove_node_from_list "$node" "$nodesavailable"`
                 clusternodesdrbd="$clusternodesdrbd $node"
 
                 # assign drbd volume via knife
