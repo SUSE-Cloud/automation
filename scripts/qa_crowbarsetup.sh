@@ -722,8 +722,7 @@ function cluster_node_assignment()
         return 0
     fi
 
-    local nodesavailable
-    nodesavailable=`get_all_discovered_nodes`
+    local nodesavailable=`get_all_discovered_nodes`
 
     # the nodes that contain drbd volumes are defined via drbdnode_mac_vol
     for dmachine in ${drbdnode_mac_vol//+/ } ; do
