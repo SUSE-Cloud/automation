@@ -56,3 +56,12 @@ it_parses_dhcpd_leases() {
     results=`. ./qa_crowbarsetup.sh ; ! onadmin_get_ip_from_dhcp 52:54:03:88:77:07 test/data/dhcpd.leases`
     test "$results" = ""
 }
+
+it_breaks_line_in_wait_for() {
+    results=`. ./qa_crowbarsetup.sh ; wait_for 75 0 false "being true" "exit 0" | grep "^\."`
+    [[ "$results" = "..........................................................................." ]]
+    results=`. ./qa_crowbarsetup.sh ; wait_for 151 0 false "being true" "exit 0" | grep "^\."`
+    [[ "$results" = "...........................................................................
+...........................................................................
+." ]]
+}
