@@ -1051,6 +1051,11 @@ function onadmin_prepare_cloud_repos()
     esac
 
     if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
+        if iscloudver 6plus; then
+            echo "NOT ENABLING TEST UPDATES SINCE TEST UPDATES ARE BROKEN (2016-01-11)"
+            echo "**** remove me when fixed"
+            return
+        fi
         case "$cloudsource" in
             GM4)
                 addsp3testupdates
