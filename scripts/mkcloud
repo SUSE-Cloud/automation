@@ -99,7 +99,7 @@ needcvol=1
 # hdd size defaults (unless defined otherwise)
 : ${adminnode_hdd_size:=15}
 : ${controller_hdd_size:=20}
-: ${computenode_hdd_size:=15}
+: ${computenode_hdd_size:=20}
 : ${cephvolume_hdd_size:=21}
 : ${controller_ceph_hdd_size:=25}
 if [ -n "$hacloud" ]; then
