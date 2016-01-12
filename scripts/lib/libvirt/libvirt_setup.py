@@ -105,7 +105,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         targetdevprefix = "sd"
         targetbus = "ide"
     controller_raid_volumes = args.controller_raid_volumes
-    if args.nodecounter != "1":
+    if args.nodecounter > args.numcontrollers:
         controller_raid_volumes = 0
         nodememory = args.computenodememory
     else:
