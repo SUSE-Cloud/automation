@@ -53,14 +53,7 @@ export cinder_netapp_login
 export cinder_netapp_password
 export localreposdir_target
 export want_ipmi=${want_ipmi:-false}
-if [ -z "$want_test_updates" -a -n "$TESTHEAD" ] ; then
-    if iscloudver 6plus; then
-        echo "NOT ENABLING TEST UPDATES SINCE TEST UPDATES ARE BROKEN (2016-01-11)"
-        echo "**** remove me when fixed"
-    else
-        export want_test_updates=1
-    fi
-fi
+[ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
 [ "$libvirt_type" = hyperv ] && export wanthyperv=1
 [ "$libvirt_type" = xen ] && export wantxenpv=1 # xenhvm is broken anyway
 
@@ -1058,6 +1051,11 @@ function onadmin_prepare_cloud_repos()
     esac
 
     if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
+        if iscloudver 6plus; then
+            echo "NOT ENABLING TEST UPDATES SINCE TEST UPDATES ARE BROKEN (2016-01-11)"
+            echo "**** remove me when fixed"
+            return
+        fi
         case "$cloudsource" in
             GM4)
                 addsp3testupdates
