@@ -709,6 +709,13 @@ function get_docker_nodes()
     knife search node "roles:`nova_role_prefix`-compute-docker" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'
 }
 
+function remove_node_from_list()
+{
+    local onenode="$1"
+    local list="$@"
+    printf "%s\n" $list | grep -iv "$onenode"
+}
+
 function cluster_node_assignment()
 {
     if [ -n "$clusternodesdata" ] ; then
@@ -716,8 +723,8 @@ function cluster_node_assignment()
         return 0
     fi
 
-    local nodesavailable
-    nodesavailable=`get_all_discovered_nodes`
+    local nodesavailable=`get_all_discovered_nodes`
+    local dmachine
 
     # the nodes that contain drbd volumes are defined via drbdnode_mac_vol
     for dmachine in ${drbdnode_mac_vol//+/ } ; do
@@ -729,6 +736,7 @@ function cluster_node_assignment()
         # find and remove drbd nodes from nodesavailable
         for node in $nodesavailable ; do
             if crowbar machines show "$node" | grep "\"macaddress\"" | grep -qi $mac ; then
+                nodesavailable=`remove_node_from_list "$node" "$nodesavailable"`
                 clusternodesdrbd="$clusternodesdrbd $node"
 
                 # assign drbd volume via knife
@@ -1766,7 +1774,7 @@ function onadmin_allocate()
             local i=1
             for node in `printf  "%s\n" $nodesavailable | head -n$number`; do
                 set_node_platform $node $node_os
-                nodesavailable=`printf "%s\n" $nodesavailable | grep -iv $node`
+                nodesavailable=`remove_node_from_list "$node" "$nodesavailable"`
                 i=$((i+1))
             done
         done
