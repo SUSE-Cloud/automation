@@ -153,6 +153,7 @@ proposals:
   attributes:
     apache:
       ssl: true
+      generate_certs: true
   deployment:
     elements:
       horizon-server:
