@@ -191,10 +191,6 @@ proposals:
       ceilometer-swift-proxy-middleware: []
 
 - barclamp: trove
-  attributes:
-    swift_instance: ''
-    volume_support: true
-
   deployment:
     elements:
       trove-server:
