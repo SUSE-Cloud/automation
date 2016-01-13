@@ -2419,6 +2419,13 @@ function custom_configuration()
             fi
         ;;
         neutron)
+            ssh `get_all_discovered_nodes | grep '77-77-01'` "
+            wget http://tarballs.openstack.org/networking-hyperv/networking-hyperv-stable-liberty.tar.gz
+            tar -xvf networking-hyperv-stable-liberty.tar.gz
+            cd networking-hyperv-2015.1.1.dev38
+            python setup.py install
+            "
+
             [[ "$networkingplugin" = linuxbridge ]] && networkingmode=vlan
             proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
 
