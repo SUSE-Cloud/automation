@@ -513,6 +513,7 @@ proposals:
     db:
       password: LfJhWYPncax5
     apache:
+      generate_certs: true
       ssl: true
   deployment:
     elements:
