@@ -297,8 +297,8 @@ function wait_for()
     do
         echo -n .
         sleep $timesleep
-        [[ $(($n % 75)) != 0 ]] || echo
         n=$(($n - 1))
+        [[ $(( ($timecount - $n) % 75)) != 0 ]] || echo
     done
     echo
 
