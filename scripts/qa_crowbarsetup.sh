@@ -1879,6 +1879,13 @@ function check_node_resolvconf()
     ssh_password $1 'grep "^nameserver" /etc/resolv.conf || echo fail'
 }
 
+function onadmin_wait_tftpd()
+{
+    wait_for 300 2 \
+        "timeout -k 2 2 tftp $adminip 69 -c get /discovery/x86_64/bios/pxelinux.cfg/default /tmp/default"
+    echo "Crowbar tftp server ready"
+}
+
 function wait_node_ready()
 {
     local node=$1
