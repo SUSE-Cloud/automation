@@ -1,29 +1,27 @@
 #!/usr/bin/env python
-
 import argparse
 
 import libvirt_setup
 
 
 def main():
-
     parser = argparse.ArgumentParser(description="Create Admin Node Config.")
-    parser.add_argument("cloud", type=str, help="Name of the Cloud")
-    parser.add_argument("adminnodememory", type=str,
+    parser.add_argument("cloud", help="Name of the Cloud")
+    parser.add_argument("adminnodememory", type=int,
                         help="Amount of Memory (kB)")
-    parser.add_argument("adminvcpus", type=str, help="Number of VCPUs")
-    parser.add_argument("emulator", type=str,
+    parser.add_argument("adminvcpus", type=int, help="Number of VCPUs")
+    parser.add_argument("emulator",
                         help="Emulator (e.g. /usr/bin/qemu-system-x86_64)")
-    parser.add_argument("adminnodedisk", type=str,
+    parser.add_argument("adminnodedisk",
                         help="Admin Node Disk (/path/to/adminnodedisk)")
-    parser.add_argument("localreposrc", type=str,
+    parser.add_argument("localreposrc",
                         help="Local Repository Directory Source")
-    parser.add_argument("localrepotgt", type=str,
+    parser.add_argument("localrepotgt",
                         help="Local Repository Directory Target")
-
     args = parser.parse_args()
 
     print(libvirt_setup.admin_config(args))
+
 
 if __name__ == "__main__":
     main()
