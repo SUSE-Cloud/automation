@@ -1743,8 +1743,6 @@ function onadmin_allocate()
         wait_for 100 2 "knife node show -a state $n | grep discovered" \
             "node to enter discovered state"
     done
-    echo "Sleeping 50 more seconds..."
-    sleep 50
     local controllernodes=(
             $(get_all_discovered_nodes | head -n 2)
         )
