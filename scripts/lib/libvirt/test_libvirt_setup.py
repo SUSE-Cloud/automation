@@ -6,8 +6,8 @@ import unittest
 
 import libvirt_setup
 
-FIXTURE_DIR = "{0}/fixtures".format(os.path.dirname(__file__))
-TEMPLATE_DIR = "{0}/templates".format(os.path.dirname(__file__))
+FIXTURE_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
+TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 
 
 # helper method to create argparse object
@@ -187,6 +187,7 @@ class TestLibvirtComputeConfig(unittest.TestCase):
             "{0}/cloud-node1-raid.xml".format(FIXTURE_DIR))
         is_config = libvirt_setup.compute_config(args, cpu_flags)
         self.assertEqual(is_config, should_config)
+
 
 if __name__ == '__main__':
     unittest.main()
