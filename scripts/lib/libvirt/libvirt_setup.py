@@ -10,8 +10,7 @@ import xml.etree.ElementTree as ET
 
 import libvirt
 
-
-TEMPLATE_DIR = "{0}/templates".format(os.path.dirname(__file__))
+TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 
 
 def libvirt_connect():
