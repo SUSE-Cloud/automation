@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import argparse
 import os
 import tempfile
@@ -101,8 +100,8 @@ class TestLibvirtAdminConfig(unittest.TestCase):
              "adminnodedisk",
              "localrepositorymount"])
         args.cloud = "cloud"
-        args.adminnodememory = "2097152"
-        args.adminvcpus = "1"
+        args.adminnodememory = 2097152
+        args.adminvcpus = 1
         args.emulator = "/usr/bin/qemu-system-x86_64"
         args.adminnodedisk = "/dev/cloud/cloud.admin"
         args.localreposrc = ""
@@ -133,18 +132,18 @@ class TestLibvirtComputeConfig(unittest.TestCase):
              "emulator",
              "vdiskdir"])
         args.cloud = "cloud"
-        args.nodecounter = "1"
+        args.nodecounter = 1
         args.macaddress = "52:54:01:77:77:01"
         args.controller_raid_volumes = 0
-        args.cephvolumenumber = "1"
-        args.computenodememory = "2097152"
-        args.controllernodememory = "5242880"
+        args.cephvolumenumber = 1
+        args.computenodememory = 2097152
+        args.controllernodememory = 5242880
         args.libvirttype = "kvm"
-        args.vcpus = "1"
+        args.vcpus = 1
         args.emulator = "/usr/bin/qemu-system-x86_64"
         args.vdiskdir = "/dev/cloud"
         args.drbdserial = ""
-        args.bootorder = "3"
+        args.bootorder = 3
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
@@ -169,18 +168,18 @@ class TestLibvirtComputeConfig(unittest.TestCase):
              "emulator",
              "vdiskdir"])
         args.cloud = "cloud"
-        args.nodecounter = "1"
+        args.nodecounter = 1
         args.macaddress = "52:54:01:77:77:01"
         args.controller_raid_volumes = 2
-        args.cephvolumenumber = "2"
-        args.computenodememory = "2097152"
-        args.controllernodememory = "5242880"
+        args.cephvolumenumber = 2
+        args.computenodememory = 2097152
+        args.controllernodememory = 5242880
         args.libvirttype = "kvm"
-        args.vcpus = "1"
+        args.vcpus = 1
         args.emulator = "/usr/bin/qemu-system-x86_64"
         args.vdiskdir = "/dev/cloud"
         args.drbdserial = ""
-        args.bootorder = "3"
+        args.bootorder = 3
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
