@@ -675,6 +675,8 @@ function restartcloud()
 # bring up VMs that will take cloud controller/compute/storage roles
 function setupnodes()
 {
+    onadmin wait_tftpd || return $?
+
     setuppublicnet
     for i in $allnodeids_without_lonely ; do
         local macaddress=$(macfunc $i)
