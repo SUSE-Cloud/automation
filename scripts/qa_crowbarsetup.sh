@@ -432,10 +432,6 @@ function iscloudver()
     return $?
 }
 
-function heat()
-{
-    command heat --insecure "$@"
-}
 function openstack()
 {
     command openstack --insecure "$@"
