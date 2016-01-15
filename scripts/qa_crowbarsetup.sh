@@ -2124,6 +2124,9 @@ function enable_ssl_generic()
         ;;
         horizon|nova_dashboard)
             $p "$a['apache']['ssl']" true
+            if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-8]$ ]]); then
+                $p "$a['apache']['generate_certs']" true
+            fi
             return
         ;;
         *)
