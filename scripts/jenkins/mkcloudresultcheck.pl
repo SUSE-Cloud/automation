@@ -40,7 +40,7 @@ for my $num ($startnum..$endnum) {
         if(m/Error: Committing the crowbar '\w+' proposal for '(\w+)' failed/) {$descr.="/$1"}
     }
     $descr ||= "unknown cause";
-    if(m{^github_pr=([a-z-]+/[a-z-]+):(\d+)}m) {
+    if(m{^github_pr=([a-z-]+/[a-z-]+):(\d+)}mi) {
         $descr.=" https://github.com/$1/pull/$2 "
     }
     print "$build $descr\n";
