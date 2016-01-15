@@ -35,6 +35,7 @@ proposals:
       - "@@controller1@@"
       - "@@controller2@@"
       - "@@controller3@@"
+
 - barclamp: database
   attributes:
     ha:
@@ -47,6 +48,7 @@ proposals:
     elements:
       database-server:
       - cluster:services
+
 - barclamp: rabbitmq
   attributes:
     ha:
@@ -59,6 +61,7 @@ proposals:
     elements:
       rabbitmq-server:
       - cluster:services
+
 - barclamp: keystone
   attributes:
     ssl:
@@ -70,6 +73,7 @@ proposals:
     elements:
       keystone-server:
       - cluster:services
+
 - barclamp: glance
   attributes:
     api:
@@ -81,6 +85,7 @@ proposals:
     elements:
       glance-server:
       - cluster:services
+
 - barclamp: cinder
   attributes:
     volumes:
@@ -103,6 +108,7 @@ proposals:
       - "@@controller3@@"
       - "@@controller1@@"
       - "@@controller2@@"
+
 - barclamp: neutron
   attributes:
     ml2_mechanism_drivers:
@@ -122,6 +128,7 @@ proposals:
       - cluster:services
       neutron-network:
       - cluster:services
+
 - barclamp: nova
   attributes:
     itxt_instance: ''
@@ -149,6 +156,7 @@ proposals:
       nova-compute-docker:
       - "@@docker1@@"
       - "@@docker2@@"
+
 - barclamp: horizon
   attributes:
     apache:
@@ -158,12 +166,14 @@ proposals:
     elements:
       horizon-server:
       - cluster:services
+
 - barclamp: heat
   attributes:
   deployment:
     elements:
       heat-server:
       - cluster:services
+
 - barclamp: ceilometer
   attributes:
   deployment:
@@ -179,14 +189,13 @@ proposals:
       ceilometer-server:
       - cluster:services
       ceilometer-swift-proxy-middleware: []
+
 - barclamp: trove
-  attributes:
-    swift_instance: ''
-    volume_support: true
   deployment:
     elements:
       trove-server:
       - cluster:services
+
 - barclamp: tempest
   attributes:
   deployment:

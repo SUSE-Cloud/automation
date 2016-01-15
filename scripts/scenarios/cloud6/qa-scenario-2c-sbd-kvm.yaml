@@ -29,6 +29,7 @@ proposals:
       hawk-server:
       - @@controller1@@
       - @@controller2@@
+
 - barclamp: database
   attributes:
     ha:
@@ -40,6 +41,7 @@ proposals:
     elements:
       database-server:
       - cluster:services
+
 - barclamp: rabbitmq
   attributes:
     ha:
@@ -51,6 +53,7 @@ proposals:
     elements:
       rabbitmq-server:
       - cluster:services
+
 - barclamp: keystone
   attributes:
     ssl:
@@ -64,6 +67,7 @@ proposals:
     elements:
       keystone-server:
       - cluster:services
+
 - barclamp: ceph
   attributes:
     disk_mode: first
@@ -88,6 +92,7 @@ proposals:
       - @@ceph3@@
       ceph-radosgw:
       - @@ceph1@@
+
 - barclamp: glance
   attributes:
     api:
@@ -100,6 +105,7 @@ proposals:
     elements:
       glance-server:
       - cluster:services
+
 - barclamp: manila
   attributes:
   deployment:
@@ -109,6 +115,7 @@ proposals:
       manila-share:
       - @@controller1@@
       - @@controller2@@
+
 - barclamp: cinder
   attributes:
     volumes:
@@ -133,6 +140,7 @@ proposals:
       cinder-volume:
       - @@controller1@@
       - @@controller2@@
+
 - barclamp: neutron
   attributes:
     ml2_mechanism_drivers:
@@ -147,6 +155,7 @@ proposals:
       - cluster:services
       neutron-network:
       - cluster:services
+
 - barclamp: nova
   attributes:
     itxt_instance: ''
@@ -171,6 +180,7 @@ proposals:
       - @@compute2@@
       nova-compute-qemu: []
       nova-compute-xen: []
+
 - barclamp: horizon
   attributes:
     apache:
@@ -180,12 +190,14 @@ proposals:
     elements:
       horizon-server:
       - cluster:services
+
 - barclamp: heat
   attributes:
   deployment:
     elements:
       heat-server:
       - cluster:services
+
 - barclamp: ceilometer
   attributes:
   deployment:
@@ -199,14 +211,13 @@ proposals:
       ceilometer-server:
       - cluster:services
       ceilometer-swift-proxy-middleware: []
+
 - barclamp: trove
-  attributes:
-    swift_instance: ''
-    volume_support: true
   deployment:
     elements:
       trove-server:
-      - @@controller1@@
+      - cluster:services
+
 - barclamp: tempest
   attributes:
   deployment:

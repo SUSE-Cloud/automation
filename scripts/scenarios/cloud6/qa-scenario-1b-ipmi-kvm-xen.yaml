@@ -35,6 +35,7 @@ proposals:
       - "@@controller1@@"
       - "@@controller2@@"
       - "@@controller3@@"
+
 - barclamp: database
   attributes:
     ha:
@@ -47,6 +48,7 @@ proposals:
     elements:
       database-server:
       - cluster:services
+
 - barclamp: rabbitmq
   attributes:
     ha:
@@ -59,6 +61,7 @@ proposals:
     elements:
       rabbitmq-server:
       - cluster:services
+
 - barclamp: keystone
   attributes:
     ssl:
@@ -70,6 +73,7 @@ proposals:
     elements:
       keystone-server:
       - cluster:services
+
 - barclamp: swift
   attributes:
     ssl:
@@ -87,6 +91,7 @@ proposals:
       swift-storage:
       - "@@compute-kvm1@@"
       - "@@compute-kvm2@@"
+
 - barclamp: glance
   attributes:
     api:
@@ -99,6 +104,7 @@ proposals:
     elements:
       glance-server:
       - cluster:services
+
 - barclamp: manila
   attributes:
   deployment:
@@ -109,6 +115,7 @@ proposals:
       - "@@controller1@@"
       - "@@controller2@@"
       - "@@controller3@@"
+
 - barclamp: cinder
   attributes:
     volumes:
@@ -131,6 +138,7 @@ proposals:
       - "@@controller1@@"
       - "@@controller2@@"
       - "@@controller3@@"
+
 - barclamp: neutron
   attributes:
     ml2_mechanism_drivers:
@@ -150,6 +158,7 @@ proposals:
       - cluster:services
       neutron-network:
       - cluster:services
+
 - barclamp: nova
   attributes:
     itxt_instance: ''
@@ -176,6 +185,7 @@ proposals:
       nova-compute-xen:
       - "@@compute-xen1@@"
       - "@@compute-xen2@@"
+
 - barclamp: horizon
   attributes:
     apache:
@@ -185,12 +195,14 @@ proposals:
     elements:
       horizon-server:
       - cluster:services
+
 - barclamp: heat
   attributes:
   deployment:
     elements:
       heat-server:
       - cluster:services
+
 - barclamp: ceilometer
   attributes:
   deployment:
@@ -209,6 +221,7 @@ proposals:
       - "@@controller1@@"
       - "@@controller2@@"
       - "@@controller3@@"
+
 - barclamp: trove
   attributes:
     volume_support: true
@@ -216,6 +229,7 @@ proposals:
     elements:
       trove-server:
       - cluster:services
+
 - barclamp: tempest
   attributes:
   deployment:
