@@ -80,8 +80,8 @@ export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 allnodeids_without_lonely=`seq 1 $((nodenumber-nodenumberphys))`
 lonelynodeids=`seq $(( nodenumber + 1 )) $(( nodenumber + nodenumberlonelynode ))`
 allnodeids="$allnodeids_without_lonely $lonelynodeids"
-: ${vcpus:=1}
-: ${adminvcpus:=$vcpus}
+: ${vcpus:=2}
+: ${adminvcpus:=1}
 cpuflags=''
 working_dir_orig=`pwd`
 : ${artifacts_dir:=$working_dir_orig/.artifacts}
@@ -99,7 +99,7 @@ needcvol=1
 # hdd size defaults (unless defined otherwise)
 : ${adminnode_hdd_size:=15}
 : ${controller_hdd_size:=20}
-: ${computenode_hdd_size:=15}
+: ${computenode_hdd_size:=20}
 : ${cephvolume_hdd_size:=21}
 : ${controller_ceph_hdd_size:=25}
 if [ -n "$hacloud" ]; then
