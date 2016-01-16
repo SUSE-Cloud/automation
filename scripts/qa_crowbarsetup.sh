@@ -440,6 +440,7 @@ export NEUTRONCLIENT_INSECURE=true
 export NOVACLIENT_INSECURE=true
 export SWIFTCLIENT_INSECURE=true
 export CINDERCLIENT_INSECURE=true
+export MANILACLIENT_INSECURE=true
 export TROVECLIENT_INSECURE=true
 
 function resize_partition()
