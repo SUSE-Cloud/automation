@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+
+import argparse
+
+import libvirt_setup
+
+
+def main():
+
+    parser = argparse.ArgumentParser(description="Cleanup one node via libvirt.")
+    parser.add_argument("nodename", type=str, help="Name of the Node")
+
+    args = parser.parse_args()
+
+    libvirt_setup.domain_cleanup(args.nodename)
+
+if __name__ == "__main__":
+    main()

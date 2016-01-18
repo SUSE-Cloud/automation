@@ -235,7 +235,6 @@ def domain_cleanup(dom):
         pass
 
 
-
 def xml_get_value(path, attrib):
     tree = ET.parse(path)
     return tree.find(attrib).text
