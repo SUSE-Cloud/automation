@@ -3019,8 +3019,8 @@ function get_ceph_nodes()
 
 function get_manila_service_instance_details()
 {
-    manila_service_vm_uuid=`oncontroller "source .openrc; openstack server show manila-service -f value -c id"`
-    manila_service_vm_ip=`oncontroller "source .openrc; openstack server show manila-service -f value -c addresses|grep -oP '(?<=\bmanila-service=)[^;]+'"`
+    manila_service_vm_uuid=`oncontroller "source .openrc; openstack --os-project-name manila-service server show manila-service -f value -c id"`
+    manila_service_vm_ip=`oncontroller "source .openrc; openstack --os-project-name manila-service server show manila-service -f value -c addresses|grep -oP '(?<=\bmanila-service=)[^;]+'"`
 }
 
 function addfloatingip()
