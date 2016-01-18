@@ -1133,8 +1133,24 @@ function onadmin_add_cloud_repo()
         done
     fi
 
-    echo -n "This cloud was installed on `cat ~/cloud` from: " | \
-        cat - /etc/cloudversion >> /etc/motd
+    (
+    echo "This cloud was installed on `cat ~/cloud` from: `cat /etc/cloudversion`"
+    echo
+    if [[ $JENKINS_BUILD_URL ]] ; then
+        echo "Installed via Jenkins"
+        echo "  created by the job:    $JENKINS_BUILD_URL"
+        echo "  on the Jenkins worker: $JENKINS_NODE_NAME"
+        echo "  using executor number: $JENKINS_EXECUTOR_NUMBER"
+        echo "  using workspace path:  $JENKINS_WORKSPACE"
+        echo
+    fi
+    if [[ $clouddescription ]] ; then
+        echo "Cloud Description (set by the deployer):"
+        echo "$clouddescription"
+        echo
+    fi
+    ) >> /etc/motd
+
     echo $cloudsource > /etc/cloudsource
 }
 
