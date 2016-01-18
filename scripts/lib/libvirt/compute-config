@@ -29,6 +29,8 @@ def main():
     parser.add_argument("vdiskdir",
                         help="Virtual Disk Directory (e.g /dev/cloud)")
     parser.add_argument("bootorder", type=int, help="Boot Order (e.g. 2)")
+    parser.add_argument("numcontrollers", type=int, default=1,
+                        help="Number of controller nodes")
     args = parser.parse_args()
 
     # to workaround bnc#946020+bnc#946068 we use the 2.0 machine type

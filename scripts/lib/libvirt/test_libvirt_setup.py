@@ -130,7 +130,8 @@ class TestLibvirtComputeConfig(unittest.TestCase):
              "libvirttype",
              "vcpus",
              "emulator",
-             "vdiskdir"])
+             "vdiskdir",
+             "numcontrollers"])
         args.cloud = "cloud"
         args.nodecounter = 1
         args.macaddress = "52:54:01:77:77:01"
@@ -144,6 +145,7 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         args.vdiskdir = "/dev/cloud"
         args.drbdserial = ""
         args.bootorder = 3
+        args.numcontrollers = 1
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
@@ -166,7 +168,8 @@ class TestLibvirtComputeConfig(unittest.TestCase):
              "libvirttype",
              "vcpus",
              "emulator",
-             "vdiskdir"])
+             "vdiskdir",
+             "numcontrollers"])
         args.cloud = "cloud"
         args.nodecounter = 1
         args.macaddress = "52:54:01:77:77:01"
@@ -180,6 +183,7 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         args.vdiskdir = "/dev/cloud"
         args.drbdserial = ""
         args.bootorder = 3
+        args.numcontrollers = 1
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
