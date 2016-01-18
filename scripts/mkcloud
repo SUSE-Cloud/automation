@@ -291,6 +291,15 @@ function cleanup()
     return 0
 }
 
+
+function onhost_cleanup_admin_node()
+{
+    # this function is meant to only clean the admin node
+    # in order to deploy a new one, while keeping all cloud nodes
+
+    ${mkcloud_lib_dir}/libvirt/cleanup_one_node ${cloud}-admin
+}
+
 function onhost_get_next_pv_device()
 {
     if [ -z "$pvlist" ] ; then
