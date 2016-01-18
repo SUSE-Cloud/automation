@@ -68,7 +68,7 @@
                           failed=1
                       fi
                       # still pending builds?
-                      if [[ $r =~ (blocked$|scheduled$|dispatching$|building$|signing$|finished$|outdated$) ]]; then
+                      if [[ $r =~ (blocked$|scheduled$|dispatching$|building$|signing$|finished$|unknown|outdated$) ]]; then
                           pending=1
                       fi
                   done
