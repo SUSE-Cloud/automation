@@ -3160,7 +3160,8 @@ function oncontroller_testsetup()
     [[ $want_mtu_size ]] && iscloudver 5plus && safely ping -M do -c 1 -s $(( want_mtu_size - 28 )) $adminip
     export LC_ALL=C
 
-    if iscloudver 6plus; then
+    if iscloudver 6plus && \
+        ! openstack catalog show manila 2>&1 | grep -q "service manila not found"; then
         manila type-create default false || complain 79 "manila type-create failed"
     fi
 
