@@ -10,14 +10,14 @@ def main():
 
     parser = argparse.ArgumentParser(description="Create Compute Node Config.")
     parser.add_argument("cloud", type=str, help="Name of the Cloud")
-    parser.add_argument("nodecounter", type=str,
+    parser.add_argument("nodecounter", type=int,
                         help="Node Counter \
                         (when this script is called within a loop, this \
                         is usually an incremented number)")
     parser.add_argument("macaddress", type=str, help="MAC Address")
     parser.add_argument("controller_raid_volumes", type=int,
                         help="Number of disks for RAID on controller node")
-    parser.add_argument("cephvolumenumber", type=str, help="Number of Ceph Volumes")
+    parser.add_argument("cephvolumenumber", type=int, help="Number of Ceph Volumes")
     parser.add_argument("drbdserial", type=str, help="DRBD Volume Serial")
     parser.add_argument("computenodememory", type=str,
                         help="Compute Node Memory (kB)")
@@ -32,6 +32,8 @@ def main():
                         help="Virtual Disk Directory (e.g /dev/cloud)")
     parser.add_argument("bootorder", type=str,
                         help="Boot Order (e.g. 2)")
+    parser.add_argument("numcontrollers", type=int, default=1,
+                        help="Number of controller nodes")
 
     args = parser.parse_args()
 

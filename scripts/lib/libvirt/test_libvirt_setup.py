@@ -7,16 +7,18 @@ import unittest
 
 import libvirt_setup
 
-FIXTURE_DIR = "{0}/fixtures".format(os.path.dirname(__file__))
-TEMPLATE_DIR = "{0}/templates".format(os.path.dirname(__file__))
+FIXTURE_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
+TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 
 
 # helper method to create argparse object
 def arg_parse(args):
     parser = argparse.ArgumentParser("ArgParser")
-    for key in args:
-        parser.add_argument(key, type=str)
-    return parser.parse_args(args)
+    for arg in args:
+        key, argtype, value = arg
+        parser.add_argument(key, type=argtype)
+    values = [arg[2] for arg in args]
+    return parser.parse_args(values)
 
 
 class TestLibvirtHelpers(unittest.TestCase):
@@ -69,20 +71,13 @@ class TestLibvirtNetConfig(unittest.TestCase):
 
     def test_net_config(self):
         args = arg_parse(
-            ["cloud",
-             "cloudbr",
-             "admingw",
-             "adminnetmask",
-             "cloudfqdn",
-             "adminip",
-             "forwardmode"])
-        args.cloud = "cloud"
-        args.cloudbr = "cloudbr"
-        args.admingw = "192.168.124.1"
-        args.adminnetmask = "255.255.248.0"
-        args.cloudfqdn = "unittest.suse.de"
-        args.adminip = "192.168.124.10"
-        args.forwardmode = "nat"
+            [("cloud", str, "cloud"),
+             ("cloudbr", str, "cloudbr"),
+             ("admingw", str, "192.168.124.1"),
+             ("adminnetmask", str, "255.255.248.0"),
+             ("cloudfqdn", str, "unittest.suse.de"),
+             ("adminip", str, "192.168.124.10"),
+             ("forwardmode", str, "nat")])
 
         should_config = libvirt_setup.readfile(
             "{0}/cloud-admin.net.xml".format(FIXTURE_DIR))
@@ -94,19 +89,13 @@ class TestLibvirtAdminConfig(unittest.TestCase):
 
     def test_admin_config(self):
         args = arg_parse(
-            ["cloud",
-             "adminnodememory",
-             "adminvcpus",
-             "emulator",
-             "adminnodedisk",
-             "localrepositorymount"])
-        args.cloud = "cloud"
-        args.adminnodememory = "2097152"
-        args.adminvcpus = "1"
-        args.emulator = "/usr/bin/qemu-system-x86_64"
-        args.adminnodedisk = "/dev/cloud/cloud.admin"
-        args.localreposrc = ""
-        args.localrepotgt = ""
+            [("cloud", str, "cloud"),
+             ("adminnodememory", str, "2097152"),
+             ("adminvcpus", str, "1"),
+             ("emulator", str, "/usr/bin/qemu-system-x86_64"),
+             ("adminnodedisk", str, "/dev/cloud/cloud.admin"),
+             ("localreposrc", str, ""),
+             ("localreposgt", str, "")])
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
@@ -120,31 +109,20 @@ class TestLibvirtComputeConfig(unittest.TestCase):
 
     def test_compute_config(self):
         args = arg_parse(
-            ["cloud",
-             "nodecounter",
-             "macaddress",
-             "controller_raid_volumes",
-             "cephvolumenumber",
-             "drbdserial",
-             "computenodememory",
-             "controllernodememory",
-             "libvirttype",
-             "vcpus",
-             "emulator",
-             "vdiskdir"])
-        args.cloud = "cloud"
-        args.nodecounter = "1"
-        args.macaddress = "52:54:01:77:77:01"
-        args.controller_raid_volumes = 0
-        args.cephvolumenumber = "1"
-        args.computenodememory = "2097152"
-        args.controllernodememory = "5242880"
-        args.libvirttype = "kvm"
-        args.vcpus = "1"
-        args.emulator = "/usr/bin/qemu-system-x86_64"
-        args.vdiskdir = "/dev/cloud"
-        args.drbdserial = ""
-        args.bootorder = "3"
+            [("cloud", str, "cloud"),
+             ("nodecounter", int, "1"),
+             ("macaddress", str, "52:54:01:77:77:01"),
+             ("controller_raid_volumes", int, "0"),
+             ("cephvolumenumber", str, "1"),
+             ("drbdserial", str, ""),
+             ("computenodememory", str, "2097152"),
+             ("controllernodememory", str, "5242880"),
+             ("libvirttype", str, "kvm"),
+             ("vcpus", str, "1"),
+             ("emulator", str, "/usr/bin/qemu-system-x86_64"),
+             ("vdiskdir", str, "/dev/cloud"),
+             ("bootorder", str, "3"),
+             ("numcontrollers", int, "1")])
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
@@ -156,31 +134,20 @@ class TestLibvirtComputeConfig(unittest.TestCase):
     # add extra disk for raid and 2 volumes for ceph
     def test_compute_config_with_raid(self):
         args = arg_parse(
-            ["cloud",
-             "nodecounter",
-             "macaddress",
-             "controller_raid_volumes",
-             "cephvolumenumber",
-             "drbdserial",
-             "computenodememory",
-             "controllernodememory",
-             "libvirttype",
-             "vcpus",
-             "emulator",
-             "vdiskdir"])
-        args.cloud = "cloud"
-        args.nodecounter = "1"
-        args.macaddress = "52:54:01:77:77:01"
-        args.controller_raid_volumes = 2
-        args.cephvolumenumber = "2"
-        args.computenodememory = "2097152"
-        args.controllernodememory = "5242880"
-        args.libvirttype = "kvm"
-        args.vcpus = "1"
-        args.emulator = "/usr/bin/qemu-system-x86_64"
-        args.vdiskdir = "/dev/cloud"
-        args.drbdserial = ""
-        args.bootorder = "3"
+            [("cloud", str, "cloud"),
+             ("nodecounter", int, "1"),
+             ("macaddress", str, "52:54:01:77:77:01"),
+             ("controller_raid_volumes", int, "2"),
+             ("cephvolumenumber", str, "2"),
+             ("drbdserial", str, ""),
+             ("computenodememory", str, "2097152"),
+             ("controllernodememory", str, "5242880"),
+             ("libvirttype", str, "kvm"),
+             ("vcpus", str, "1"),
+             ("emulator", str, "/usr/bin/qemu-system-x86_64"),
+             ("vdiskdir", str, "/dev/cloud"),
+             ("bootorder", str, "3"),
+             ("numcontrollers", int, "1")])
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
