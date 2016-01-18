@@ -188,25 +188,11 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
 
 def cleanup(args):
     conn = libvirt_connect()
-    devnull = open(os.devnull, "w")
     domains = [i for i in conn.listAllDomains()
                if i.name().startswith(args.cloud+"-")]
 
     for dom in domains:
         domain_cleanup(dom)
-        machine = "{0}-{1}".format("qemu", dom.name())
-        try:
-            machine_status = subprocess.call(
-                ["machinectl", "status", machine],
-                stdout=devnull, stderr=subprocess.STDOUT)
-            if machine_status == 0:
-                # workaround bnc#916518
-                print("Working around bnc#916518 by \
-                      'machinectl terminate {0}'".format(machine))
-                subprocess.call(["machinectl", "terminate", machine])
-        except OSError:
-            # no machinectl available
-            pass
 
     networks = [i for i in conn.listAllNetworks()
                 if i.name() == "{0}-admin".format(args.cloud)]
@@ -232,6 +218,22 @@ def domain_cleanup(dom):
 
     print("undefining {0}".format(dom.name()))
     dom.undefine()
+
+    devnull = open(os.devnull, "w")
+    machine = "{0}-{1}".format("qemu", dom.name())
+    try:
+        machine_status = subprocess.call(
+            ["machinectl", "status", machine],
+            stdout=devnull, stderr=subprocess.STDOUT)
+        if machine_status == 0:
+            # workaround bnc#916518
+            print("Working around bnc#916518 by \
+                  'machinectl terminate {0}'".format(machine))
+            subprocess.call(["machinectl", "terminate", machine])
+    except OSError:
+        # no machinectl available
+        pass
+
 
 
 def xml_get_value(path, attrib):
