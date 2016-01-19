@@ -1,15 +1,12 @@
 #!/usr/bin/env python
-
 import argparse
 
 import libvirt_setup
 
 
 def main():
-
     parser = argparse.ArgumentParser(description="Start a Virtual Network")
-    parser.add_argument("netpath", type=str, help="Path to the network XML")
-
+    parser.add_argument("netpath", help="Path to the network XML")
     args = parser.parse_args()
 
     libvirt_setup.net_start(args)

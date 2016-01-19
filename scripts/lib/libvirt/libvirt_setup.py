@@ -10,8 +10,7 @@ import xml.etree.ElementTree as ET
 
 import libvirt
 
-
-TEMPLATE_DIR = "{0}/templates".format(os.path.dirname(__file__))
+TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 
 
 def libvirt_connect():
@@ -105,7 +104,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         targetdevprefix = "sd"
         targetbus = "ide"
     controller_raid_volumes = args.controller_raid_volumes
-    if args.nodecounter != "1":
+    if args.nodecounter > args.numcontrollers:
         controller_raid_volumes = 0
         nodememory = args.computenodememory
     else:
@@ -134,7 +133,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
 
     cephvolume = ""
     if args.cephvolumenumber and args.cephvolumenumber > 0:
-        for i in range(1, int(args.cephvolumenumber) + 1):
+        for i in range(1, args.cephvolumenumber+1):
             ceph_template = string.Template(readfile(
                 "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
             ceph_values = dict(
