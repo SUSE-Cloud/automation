@@ -3145,10 +3145,12 @@ function oncontroller_manila_generic_driver_setup()
         --name $neutron_net $neutron_net 192.168.180.0/24
     fixed_net_id=`neutron net-show fixed -f value -c id`
     manila_service_net_id=`neutron net-show $neutron_net -f value -c id`
-    nova boot --flavor 100 --image manila-service-image \
+    nova boot --poll --flavor 100 --image manila-service-image \
         --security-groups $sec_group,default \
         --nic net-id=$fixed_net_id \
         --nic net-id=$manila_service_net_id manila-service
+
+    [ $? != 0 ] && complain 43 "nova boot for manila failed"
 }
 
 # code run on controller/dashboard node to do basic tests of deployed cloud
