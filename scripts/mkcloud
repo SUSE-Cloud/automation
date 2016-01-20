@@ -737,14 +737,11 @@ function setupnodes()
 # and wait for nodes to reach the ready state
 function instnodes()
 {
-    onadmin allocate ||\
-        return $?
+    safely onadmin allocate
 
     echo "Waiting for the installation of the nodes ..."
-    onadmin waitcloud
-    onadmin post_allocate
-
-    return $?
+    safely onadmin waitcloud
+    safely onadmin post_allocate
 }
 
 
