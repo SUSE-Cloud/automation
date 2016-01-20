@@ -4071,7 +4071,18 @@ function onadmin_setup_aliases()
 function onadmin_batch()
 {
     if iscloudver 5plus; then
-        crowbar_batch --timeout 2400 build ${scenario}
+        if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-8]$ ]]); then
+            crowbar_batch --exclude manila --timeout 2400 build ${scenario}
+            if grep -q "barclamp: manila" ${scenario}; then
+                get_novacontroller
+                oncontroller oncontroller_manila_generic_driver_setup
+                get_manila_service_instance_details
+                sed -i "s/##manila_instance_name_or_id##/$manila_service_vm_uuid/g;s/##service_net_name_or_ip##/$manila_service_vm_ip/g" ${scenario}
+                crowbar_batch --include manila --timeout 2400 build ${scenario}
+            fi
+        else
+            crowbar_batch --timeout 2400 build ${scenario}
+        fi
         return $?
     else
         complain 116 "crowbar_batch is only supported with cloudversions 5plus"
