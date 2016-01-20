@@ -2890,8 +2890,8 @@ function deploy_single_proposal()
     # create proposal
     case "$proposal" in
         nfs_client)
-            if [[ -n "$clusternodesservices" ]]; then
-                do_one_proposal "$proposal" "services_cluster"
+            if [[ $hacloud = 1 ]] ; then
+                do_one_proposal "$proposal" "$clusternameservices"
             fi
             ;;
         pacemaker)
