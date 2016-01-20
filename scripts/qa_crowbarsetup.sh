@@ -428,6 +428,14 @@ function iscloudver()
         operator="-ge"
     fi
     local ver=`getcloudver` || exit 11
+    if [[ $v =~ M[0-9]+$ ]] ; then
+        local milestone=${v#*M}
+        v=${v%M*}
+        if [[ "$ver" -eq "$v" ]] && [[ $cloudsource =~ ^M[0-9]+$ ]] ; then
+            [ "${cloudsource#*M}" $operator "$milestone" ]
+            return $?
+        fi
+    fi
     [ "$ver" $operator "$v" ]
     return $?
 }
