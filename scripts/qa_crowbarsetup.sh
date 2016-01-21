@@ -427,6 +427,10 @@ function iscloudver()
         v=${v%%plus}
         operator="-ge"
     fi
+    if [[ $v =~ minus ]] ; then
+        v=${v%%minus}
+        operator="-le"
+    fi
     local ver=`getcloudver` || exit 11
     if [[ $v =~ M[0-9]+$ ]] ; then
         local milestone=${v#*M}
