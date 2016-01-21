@@ -3031,6 +3031,8 @@ function get_manila_service_instance_details()
 {
     manila_service_vm_uuid=`oncontroller "source .openrc; openstack --os-project-name manila-service server show manila-service -f value -c id"`
     manila_service_vm_ip=`oncontroller "source .openrc; openstack --os-project-name manila-service server show manila-service -f value -c addresses|grep -oP '(?<=\bmanila-service=)[^;]+'"`
+    test -n "$manila_service_vm_uuid" || complain 91 "uuid from manila-service instance not available"
+    test -n "$manila_service_vm_ip" || complain 92 "ip addr from manila-service instance not available"
 }
 
 function addfloatingip()
