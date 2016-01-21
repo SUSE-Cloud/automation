@@ -3905,10 +3905,11 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
 function onadmin_crowbarbackup()
 {
     pre_hook $FUNCNAME
-    rm -f /tmp/backup-crowbar.tar.gz
+    local btarballname=backup-crowbar
+    local btarball=${btarballname}.tar.gz
+    rm -f /tmp/$btarball
     AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
-        bash -x /usr/sbin/crowbar-backup backup /tmp/backup-crowbar.tar.gz ||\
-        complain 21 "crowbar-backup backup failed"
+        safely bash -x /usr/sbin/crowbar-backup backup /tmp/$btarball
 }
 
 function onadmin_crowbarpurge()
@@ -3951,14 +3952,14 @@ function onadmin_is_crowbar_api_available()
 function onadmin_crowbarrestore()
 {
     pre_hook $FUNCNAME
-    # Need to install the addon again, as we removed it
+    local btarballname=backup-crowbar
+    local btarball=${btarballname}.tar.gz
     zypper --non-interactive in --auto-agree-with-licenses -t pattern cloud_admin
 
     do_set_repos_skip_checks
 
     AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
-        bash -x /usr/sbin/crowbar-backup restore /tmp/backup-crowbar.tar.gz ||\
-        complain 20 "crowbar-backup restore failed"
+        safely bash -x /usr/sbin/crowbar-backup restore /tmp/$btarball
 }
 
 function onadmin_qa_test()
