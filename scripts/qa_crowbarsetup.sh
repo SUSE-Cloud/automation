@@ -1000,6 +1000,10 @@ function onadmin_prepare_sles12sp1_other_repos()
     for repo in SLES12-SP1-{Pool,Updates}; do
         add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
+        if [[ $want_s390 ]] ; then
+            add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
+                "$tftpboot_suse12sp1_dir/s390x/repos/$repo"
+        fi
     done
 }
 
@@ -1037,6 +1041,9 @@ function onadmin_prepare_cloud_repos()
     else
         if iscloudver 6plus; then
             rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$targetdir"
+            if [[ $want_s390 ]] ; then
+                rsync_iso "$CLOUDSLE12DISTPATH" "${CLOUDSLE12DISTISO/x86_64/s390x}" "${targetdir/x86_64/s390x}"
+            fi
         else
             rsync_iso "$CLOUDSLE11DISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
         fi
