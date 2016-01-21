@@ -1,0 +1,199 @@
+---
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          @@controller1@@:
+            devices:
+            - "/dev/sda"
+          @@controller2@@:
+            devices:
+            - "/dev/sda"
+      per_node:
+        nodes:
+          @@controller1@@:
+            params: ''
+          @@controller2@@:
+            params: ''
+    drbd:
+      enabled: true
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - @@controller1@@
+      - @@controller2@@
+      hawk-server:
+      - @@controller1@@
+      - @@controller2@@
+
+- barclamp: database
+  attributes:
+    ha:
+      storage:
+        mode: drbd
+        drbd:
+          size: 5
+  deployment:
+    elements:
+      database-server:
+      - cluster:services
+
+- barclamp: rabbitmq
+  attributes:
+    ha:
+      storage:
+        mode: drbd
+        drbd:
+          size: 5
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:services
+
+- barclamp: keystone
+  attributes:
+    signing:
+      token_format: UUID
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+
+- barclamp: ceph
+  attributes:
+    disk_mode: first
+  deployment:
+    elements:
+      ceph-calamari: []
+      ceph-mon:
+      - @@ceph1@@
+      - @@ceph2@@
+      - @@ceph3@@
+      ceph-osd:
+      - @@ceph1@@
+      - @@ceph2@@
+      - @@ceph3@@
+      ceph-radosgw:
+      - @@ceph1@@
+
+- barclamp: glance
+  attributes:
+    default_store: rbd
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+
+- barclamp: manila
+  attributes:
+    shares:
+    - backend_driver: generic
+      backend_name: backend1
+      generic:
+        service_instance_user: root
+        service_instance_name_or_id: ##manila_instance_name_or_id##
+        service_net_name_or_ip: ##service_net_name_or_ip##
+        tenant_net_name_or_ip: fixed
+        service_instance_password: linux
+        share_volume_fstype: ext3
+  deployment:
+    elements:
+      manila-server:
+      - cluster:services
+      manila-share:
+      - @@controller1@@
+      - @@controller2@@
+
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: rbd
+      backend_name: rbd
+      rbd:
+        use_crowbar: true
+        config_file: "/etc/ceph/ceph.conf"
+        admin_keyring: "/etc/ceph/ceph.client.admin.keyring"
+        pool: volumes
+        user: cinder
+        secret_uuid: ''
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - @@controller1@@
+      - @@controller2@@
+
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - linuxbridge
+    ml2_type_drivers:
+    - vlan
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:services
+
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    vnc_keymap: de
+    kvm:
+      ksm_enabled: true
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - @@compute1@@
+      - @@compute2@@
+      nova-compute-qemu: []
+      nova-compute-xen: []
+
+- barclamp: horizon
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+
+- barclamp: heat
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+
+- barclamp: ceilometer
+  deployment:
+    elements:
+      ceilometer-agent:
+      - @@compute1@@
+      - @@compute2@@
+      ceilometer-agent-hyperv: []
+      ceilometer-polling:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware: []
+
+- barclamp: trove
+  deployment:
+    elements:
+      trove-server:
+      - cluster:services
+
+- barclamp: tempest
+  deployment:
+    elements:
+      tempest:
+      - @@controller1@@
