@@ -141,6 +141,9 @@ proposals:
         host: vcs.qa.suse.de
         user: "@@vcenter_user@@"
         password: "@@vcenter_password@@"
+        cluster_name: []
+        insecure: true
+        ca_file: ""
     api:
       protocol: https
     ssl:
