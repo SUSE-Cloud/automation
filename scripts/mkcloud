@@ -906,8 +906,13 @@ function crowbarrestore()
     if [ ! -e "$btarball" ] ; then
         complain 56 "No crowbar backup tarball found."
     fi
+    if iscloudver 5minus ; then
+        safely onadmin crowbarpurge
+    else
+        onhost_reset_admin
+    fi
     safely $scp "$btarball" root@$adminip:/tmp/
-    safely onadmin crowbarpurge && safely onadmin crowbarrestore
+    safely onadmin crowbarrestore
 }
 
 
