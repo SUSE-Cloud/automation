@@ -910,6 +910,16 @@ function crowbarrestore()
     safely onadmin crowbarpurge && safely onadmin crowbarrestore
 }
 
+
+function onhost_reset_admin()
+{
+    # deploy and setup a fresh admin node
+    safely onhost_cleanup_admin_node
+    safely onhost_prepareadmin
+    safely setupadmin
+    safely prepareinstcrowbar
+}
+
 function cloudupgrade()
 {
     # upgrade workflow
