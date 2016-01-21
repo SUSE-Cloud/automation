@@ -185,6 +185,15 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
     return get_config(values, fin)
 
 
+def cleanup_one_node(args):
+    conn = libvirt_connect()
+    try:
+        domain = conn.lookupByName(args.nodename)
+        domain_cleanup(domain)
+    except libvirt.libvirtError:
+        print("no domain found with the name {0}".format(args.nodename))
+
+
 def cleanup(args):
     conn = libvirt_connect()
     domains = [i for i in conn.listAllDomains()

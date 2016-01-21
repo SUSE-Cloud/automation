@@ -12,7 +12,7 @@ def main():
 
     args = parser.parse_args()
 
-    libvirt_setup.domain_cleanup(args.nodename)
+    libvirt_setup.cleanup_one_node(args)
 
 if __name__ == "__main__":
     main()
