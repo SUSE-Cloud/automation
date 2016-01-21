@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import argparse
 import os
 import tempfile
 import unittest
@@ -10,12 +9,9 @@ FIXTURE_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 
 
-# helper method to create argparse object
-def arg_parse(args):
-    parser = argparse.ArgumentParser("ArgParser")
-    for key in args:
-        parser.add_argument(key, type=str)
-    return parser.parse_args(args)
+# helper class to pass arguments
+class Arguments(object):
+    pass
 
 
 class TestLibvirtHelpers(unittest.TestCase):
@@ -67,14 +63,7 @@ class TestLibvirtHelpers(unittest.TestCase):
 class TestLibvirtNetConfig(unittest.TestCase):
 
     def test_net_config(self):
-        args = arg_parse(
-            ["cloud",
-             "cloudbr",
-             "admingw",
-             "adminnetmask",
-             "cloudfqdn",
-             "adminip",
-             "forwardmode"])
+        args = Arguments()
         args.cloud = "cloud"
         args.cloudbr = "cloudbr"
         args.admingw = "192.168.124.1"
@@ -92,13 +81,7 @@ class TestLibvirtNetConfig(unittest.TestCase):
 class TestLibvirtAdminConfig(unittest.TestCase):
 
     def test_admin_config(self):
-        args = arg_parse(
-            ["cloud",
-             "adminnodememory",
-             "adminvcpus",
-             "emulator",
-             "adminnodedisk",
-             "localrepositorymount"])
+        args = Arguments()
         args.cloud = "cloud"
         args.adminnodememory = 2097152
         args.adminvcpus = 1
@@ -118,20 +101,7 @@ class TestLibvirtAdminConfig(unittest.TestCase):
 class TestLibvirtComputeConfig(unittest.TestCase):
 
     def test_compute_config(self):
-        args = arg_parse(
-            ["cloud",
-             "nodecounter",
-             "macaddress",
-             "controller_raid_volumes",
-             "cephvolumenumber",
-             "drbdserial",
-             "computenodememory",
-             "controllernodememory",
-             "libvirttype",
-             "vcpus",
-             "emulator",
-             "vdiskdir",
-             "numcontrollers"])
+        args = Arguments()
         args.cloud = "cloud"
         args.nodecounter = 1
         args.macaddress = "52:54:01:77:77:01"
@@ -156,20 +126,7 @@ class TestLibvirtComputeConfig(unittest.TestCase):
 
     # add extra disk for raid and 2 volumes for ceph
     def test_compute_config_with_raid(self):
-        args = arg_parse(
-            ["cloud",
-             "nodecounter",
-             "macaddress",
-             "controller_raid_volumes",
-             "cephvolumenumber",
-             "drbdserial",
-             "computenodememory",
-             "controllernodememory",
-             "libvirttype",
-             "vcpus",
-             "emulator",
-             "vdiskdir",
-             "numcontrollers"])
+        args = Arguments()
         args.cloud = "cloud"
         args.nodecounter = 1
         args.macaddress = "52:54:01:77:77:01"
