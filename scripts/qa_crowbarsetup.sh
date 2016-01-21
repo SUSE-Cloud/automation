@@ -74,7 +74,7 @@ function horizon_barclamp()
 
 function nova_role_prefix()
 {
-    if ! iscloudver 6plus || ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]] ) ; then
+    if ! iscloudver 6M7plus ; then
         echo "nova-multi"
     else
         echo "nova"
@@ -428,6 +428,14 @@ function iscloudver()
         operator="-ge"
     fi
     local ver=`getcloudver` || exit 11
+    if [[ $v =~ M[0-9]+$ ]] ; then
+        local milestone=${v#*M}
+        v=${v%M*}
+        if [[ "$ver" -eq "$v" ]] && [[ $cloudsource =~ ^M[0-9]+$ ]] ; then
+            [ "${cloudsource#*M}" $operator "$milestone" ]
+            return $?
+        fi
+    fi
     [ "$ver" $operator "$v" ]
     return $?
 }
@@ -476,7 +484,7 @@ function export_tftpboot_repos_dir()
 
     if iscloudver 6plus; then
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        if iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]]; then
+        if ! iscloudver 6M7plus ; then
             tftpboot_suse_dir=/srv/tftpboot/suse-11.3
             tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
             tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/repos
@@ -1517,7 +1525,7 @@ EOF
     # setup_base_images.rb is for SUSE Cloud 1.0 and update_nodes.rb is for 2.0
     sed -i -e 's/\(rootpw_hash.*\)""/\1"$2y$10$u5mQA7\/8YjHdutDPEMPtBeh\/w8Bq0wEGbxleUT4dO48dxgwyPD8D."/' /opt/dell/chef/cookbooks/provisioner/recipes/setup_base_images.rb /opt/dell/chef/cookbooks/provisioner/recipes/update_nodes.rb
 
-    if  iscloudver 6plus && ! ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]] ) ; then
+    if  iscloudver 6M7plus ; then
         create_repos_yml
     fi
 
@@ -1605,7 +1613,7 @@ function do_installcrowbar()
     do_set_repos_skip_checks
 
     rpm -Va crowbar\*
-    if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-7]$ ]]) ; then
+    if iscloudver 6M8plus ; then
         do_installcrowbar_cloud6plus
     else
         do_installcrowbar_legacy $@
@@ -2022,7 +2030,7 @@ function onadmin_crowbar_register()
     local inject
     local zyppercmd
 
-    if  iscloudver 6plus && ! ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]] ) ; then
+    if  iscloudver 6M7plus ; then
         image="suse-12.1/x86_64/"
     elif iscloudver 6; then
         image="suse-12.1"
@@ -2185,7 +2193,7 @@ function enable_ssl_generic()
         ;;
         horizon|nova_dashboard)
             $p "$a['apache']['ssl']" true
-            if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-8]$ ]]); then
+            if iscloudver 6M9plus ; then
                 $p "$a['apache']['generate_certs']" true
             fi
             return
@@ -2430,7 +2438,7 @@ function custom_configuration()
                 proposal_set_value manila default "['deployment']['manila']['elements']['manila-server']" "['cluster:$clusternameservices']"
             fi
 
-            if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-8]$ ]]); then
+            if iscloudver 6M9plus ; then
                 # new generic driver options since M9
                 if crowbar manila proposal show default|grep service_instance_name_or_id ; then
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['backend_driver']" "'generic'"
@@ -2486,7 +2494,7 @@ function custom_configuration()
         ;;
         ceilometer)
             local ceilometerservice="ceilometer-cagent"
-            if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-7]$ ]]); then
+            if iscloudver 6M8plus ; then
                 ceilometerservice="ceilometer-polling"
             fi
             if [[ $hacloud = 1 ]] ; then
@@ -2518,7 +2526,7 @@ function custom_configuration()
                     fi
                 elif [ "$networkingplugin" = "linuxbridge" ] ; then
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
-                    if iscloudver 5 || ( iscloudver 6 && [[ $cloudsource =~ ^M[1-7]$ ]] ); then
+                    if iscloudver 5plus && ! iscloudver 6M8plus ; then
                         proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "false"
                     fi
                 else
@@ -2618,7 +2626,7 @@ function custom_configuration()
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
             fi
 
-            if ! iscloudver 6plus || ( iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]] ) ; then
+            if ! iscloudver 6M7plus ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['suse']" "{}"
                 proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']" "{}"
                 proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']['repos']" "{}"
@@ -2870,7 +2878,7 @@ function deploy_single_proposal()
                     continue
                 fi
             fi
-            if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-8]$ ]]); then
+            if iscloudver 6M9plus ; then
                 get_novacontroller
                 oncontroller oncontroller_manila_generic_driver_setup
                 get_manila_service_instance_details
