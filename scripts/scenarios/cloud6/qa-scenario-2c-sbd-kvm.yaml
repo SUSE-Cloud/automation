@@ -60,7 +60,8 @@ proposals:
       generate_certs: true
       insecure: true
     api:
-      protocol: https
+      # FIXME: disabled due to issues in trove (https://bugs.launchpad.net/trove/+bug/1535895) and radosgw (https://bugzilla.suse.com/show_bug.cgi?id=962672)
+      #protocol: https
     signing:
       token_format: UUID
   deployment:
@@ -174,12 +175,14 @@ proposals:
     kvm:
       ksm_enabled: true
     ssl:
-      enabled: true
+      # FIXME: disabled due to issues in trove (https://bugs.launchpad.net/trove/+bug/1535895) and radosgw (https://bugzilla.suse.com/show_bug.cgi?id=962672)
+      #enabled: true
       generate_certs: true
       insecure: true
     novnc:
       ssl:
-        enabled: true
+        # FIXME: see comment above
+        #enabled: true
   deployment:
     elements:
       nova-controller:

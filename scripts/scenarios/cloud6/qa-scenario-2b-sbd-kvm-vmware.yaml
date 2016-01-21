@@ -240,14 +240,15 @@ proposals:
       - cluster:services
       ceilometer-swift-proxy-middleware: []
 
-- barclamp: trove
-  attributes:
-    swift_instance: ''
-    volume_support: true
-  deployment:
-    elements:
-      trove-server:
-        - cluster:services
+# FIXME: disabled due to issues in trove with insecure SSL (https://bugs.launchpad.net/trove/+bug/1535895)
+#- barclamp: trove
+#  attributes:
+#    swift_instance: ''
+#    volume_support: true
+#  deployment:
+#    elements:
+#      trove-server:
+#        - cluster:services
 
 - barclamp: tempest
   attributes:
