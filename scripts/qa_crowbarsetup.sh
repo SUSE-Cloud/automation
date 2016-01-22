@@ -3126,7 +3126,7 @@ function oncontroller_run_tempest()
 
 function oncontroller_manila_generic_driver_setup()
 {
-    local service_image_url=http://clouddata.cloud.suse.de/images/other/manila-service-image.qcow2
+    local service_image_url=http://$clouddata/images/other/manila-service-image.qcow2
     local service_image_name=manila-service-image.qcow2
     local sec_group="manila-service"
     local neutron_net=$sec_group
