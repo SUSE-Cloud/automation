@@ -1,0 +1,260 @@
+---
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          "@@controller1@@":
+            devices:
+            - "@@sbd_device_services@@"
+          "@@controller2@@":
+            devices:
+            - "@@sbd_device_services@@"
+      per_node:
+        nodes:
+          "@@controller1@@":
+            params: ''
+          "@@controller2@@":
+            params: ''
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      hawk-server:
+      - "@@controller1@@"
+      - "@@controller2@@"
+
+- barclamp: pacemaker
+  name: data
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          "@@data1@@":
+            devices:
+            - "@@sbd_device_data@@"
+          "@@data2@@":
+            devices:
+            - "@@sbd_device_data@@"
+      per_node:
+        nodes:
+          "@@data1@@":
+            params: ''
+          "@@data2@@":
+            params: ''
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@data1@@"
+      - "@@data2@@"
+      hawk-server:
+      - "@@data1@@"
+      - "@@data2@@"
+
+- barclamp: pacemaker
+  name: network
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          "@@network1@@":
+            devices:
+            - "@@sbd_device_network@@"
+          "@@network2@@":
+            devices:
+            - "@@sbd_device_network@@"
+      per_node:
+        nodes:
+          "@@network1@@":
+            params: ''
+          "@@network2@@":
+            params: ''
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@network1@@"
+      - "@@network2@@"
+      hawk-server:
+      - "@@network1@@"
+      - "@@network2@@"
+
+- barclamp: database
+  attributes:
+    ha:
+      storage:
+        shared:
+          device: 10.162.26.129:/var/qa2/ha-database
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      database-server:
+      - cluster:data
+
+- barclamp: rabbitmq
+  attributes:
+    ha:
+      storage:
+        shared:
+          device: 10.162.26.129:/var/qa2/ha-rabbitmq
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:data
+
+- barclamp: keystone
+  attributes:
+    signing:
+      token_format: UUID
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+
+- barclamp: swift
+  attributes:
+    keystone_delay_auth_decision: true
+    allow_versions: true
+  deployment:
+    elements:
+      swift-dispersion:
+      - "@@controller1@@"
+      swift-proxy:
+      - cluster:services
+      swift-ring-compute:
+      - "@@controller1@@"
+      swift-storage:
+      - "@@controller2@@"
+      - "@@computekvm@@"
+
+- barclamp: glance
+  attributes:
+    default_store: swift
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+
+- barclamp: manila
+  attributes:
+    shares:
+    - backend_driver: generic
+      backend_name: backend1
+      generic:
+        service_instance_user: root
+        service_instance_name_or_id: ##manila_instance_name_or_id##
+        service_net_name_or_ip: ##service_net_name_or_ip##
+        tenant_net_name_or_ip: fixed
+        service_instance_password: linux
+        share_volume_fstype: ext3
+  deployment:
+    elements:
+      manila-server:
+      - cluster:services
+      manila-share:
+      - "@@data1@@"
+      - "@@data2@@"
+
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: local
+      backend_name: default
+      raw:
+        volume_name: cinder-volumes
+        cinder_raw_method: first
+      local:
+        volume_name: cinder-volumes
+        file_name: "/var/lib/cinder/volume.raw"
+        file_size: 2000
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - "@@data1@@"
+      - "@@data2@@"
+
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - linuxbridge
+    ml2_type_drivers:
+    - vlan
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:network
+      neutron-network:
+      - cluster:network
+
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    vnc_keymap: de
+    kvm:
+      ksm_enabled: true
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - "@@computekvm@@"
+      nova-compute-qemu: []
+      nova-compute-xen: []
+
+- barclamp: horizon
+  attributes:
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+
+- barclamp: heat
+  attributes:
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+
+- barclamp: ceilometer
+  attributes:
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@computekvm@@"
+      ceilometer-agent-hyperv: []
+      ceilometer-polling:
+      - cluster:services
+      ceilometer-polling:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware: []
+
+- barclamp: trove
+  attributes:
+    volume_support: true
+  deployment:
+    elements:
+      trove-server:
+        - cluster:services
+
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - "@@controller1@@"
