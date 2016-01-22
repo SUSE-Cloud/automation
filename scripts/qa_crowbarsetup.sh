@@ -42,6 +42,7 @@ clusternameservices="services"
 clusternamenetwork="network"
 wanthyperv=
 crowbar_api=http://localhost:3000
+crowbar_api_installer_path=/installer/installer
 crowbar_install_log=/var/log/crowbar/install.log
 
 export nodenumber=${nodenumber:-2}
@@ -1553,7 +1554,7 @@ EOF
 
 function crowbar_install_status()
 {
-    curl -s $crowbar_api/installer/status.json | python -mjson.tool
+    curl -s $crowbar_api$crowbar_api_installer_path/status.json | python -mjson.tool
 }
 
 function do_installcrowbar_cloud6plus()
@@ -1561,7 +1562,13 @@ function do_installcrowbar_cloud6plus()
     service crowbar status || service crowbar stop
     service crowbar start
 
-    wait_for 30 10 "curl -s $crowbar_api/installer | grep -q '/installer/start'" "crowbar installer to be available"
+    wait_for 30 10 "[[ \`curl -s -o /dev/null -w '%{http_code}' $crowbar_api/installer \` = 200 ]]" "crowbar installer to be available"
+
+    # temporarily support old-new and final installer paths
+    if [[ `curl -s -o /dev/null -w "%{http_code}" $crowbar_api$crowbar_api_installer_path` = "404"  ]] ; then
+        crowbar_api_installer_path=/installer
+    fi
+
 
     if crowbar_install_status | grep -q '"success": *true' ; then
         echo "Crowbar is already installed. The current crowbar install status is:"
@@ -1570,7 +1577,7 @@ function do_installcrowbar_cloud6plus()
     fi
 
     # call api to start asyncronous install job
-    curl -s -X POST $crowbar_api/installer/start || complain 39 "crowbar is not running"
+    curl -s -X POST $crowbar_api$crowbar_api_installer_path/start || complain 39 "crowbar is not running"
 
     wait_for 60 10 "crowbar_install_status | grep -q '\"success\": *true'" "crowbar to get installed" "tail -n 500 $crowbar_install_log"
 }
