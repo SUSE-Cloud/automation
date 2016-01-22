@@ -89,8 +89,10 @@ function complain() # {{{
 } # }}}
 
 safely () {
-    if ! "$@"; then
-        complain 30 "$* failed! Aborting."
+    if "$@"; then
+        true
+    else
+        complain 30 "$* failed! (safelyret=$?) Aborting."
     fi
 }
 
