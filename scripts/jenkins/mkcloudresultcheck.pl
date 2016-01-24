@@ -26,6 +26,7 @@ for my $num ($startnum..$endnum) {
         'crowbar\.(\w\d+)\.cloud\.suse\.de',
         'Error: (crowbar self-test) failed',
         'mk(?:phys)?cloud (ret=\d+)',
+        '\((safelyret=12)\) Aborting',
     ) {
         if(m/$regexp/) {$descr.="$1 "}
     }
