@@ -931,6 +931,14 @@ function onhost_reset_admin()
     safely prepareinstcrowbar
 }
 
+function crowbarupgrade_5plus()
+{
+    onadmin prepare_crowbar_upgrade
+    crowbarbackup
+    export cloudsource=$upgrade_cloudsource
+    crowbarrestore
+}
+
 function cloudupgrade()
 {
     # upgrade workflow
