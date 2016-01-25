@@ -579,8 +579,8 @@ function setuplonelynodes()
         local mac=$(macfunc $i)
         local lonely_node
         lonely_node=$cloud-node$i
-        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $mac 0\
-            "$cephvolume" "$drbdvolume" $compute_node_memory\
+        safely ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $mac 0\
+            "$cephvolumenumber" "$drbdvolume" $compute_node_memory\
             $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir\
             1 1 > /tmp/$cloud-node$i.xml
 
