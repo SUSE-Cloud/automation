@@ -3168,7 +3168,7 @@ function oncontroller_manila_generic_driver_setup()
         --name $neutron_net $neutron_net 192.168.180.0/24
     fixed_net_id=`neutron net-show fixed -f value -c id`
     manila_service_net_id=`neutron net-show $neutron_net -f value -c id`
-    nova boot --poll --flavor 100 --image manila-service-image \
+    timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
         --security-groups $sec_group,default \
         --nic net-id=$fixed_net_id \
         --nic net-id=$manila_service_net_id manila-service
@@ -3323,7 +3323,7 @@ function oncontroller_testsetup()
     nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
     nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
     nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
-    nova boot --poll --image $image_name --flavor $flavor --key_name testkey testvm | tee boot.out
+    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key_name testkey testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
