@@ -3275,7 +3275,7 @@ function oncontroller_testsetup()
         else
             curl -s \
                 http://$clouddata/images/SP3-64up.qcow2 | \
-                openstack image create --public --property vm_mode=hvm \
+                openstack image create --public --property hypervisor_type=kvm \
                 --disk-format qcow2 --container-format bare $image_name | tee glance.out
         fi
     fi
