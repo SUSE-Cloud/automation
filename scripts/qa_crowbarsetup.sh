@@ -3124,6 +3124,11 @@ function oncontroller_run_tempest()
     fi
     ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
     local tempestret=${PIPESTATUS[0]}
+    # tempest returns 0 also if no tests were executed - so use "testr last"
+    # to verify that some tests were executed
+    if [ "$tempestret" -eq 0 ]; then
+        testr last || complain 96 "Tempest run succeeded but something is wrong"
+    fi
     testr last --subunit | subunit-1to2 > tempest.subunit.log
 
     oncontroller_tempest_cleanup
