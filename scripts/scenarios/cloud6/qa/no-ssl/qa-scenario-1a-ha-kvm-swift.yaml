@@ -361,21 +361,14 @@ proposals:
   attributes:
     database_instance: default
     rabbitmq_instance: default
-    db:
-      password: nNgna2X6tOUS
-    service:
-      token: ypTjVkNz9jmQ
   deployment:
     elements:
       keystone-server:
       - cluster:proposal_1
 - barclamp: swift
   attributes:
-    dispersion:
-      service_password: xpxwvPin7hnQ
     cluster_hash: 181d283256
     keystone_instance: default
-    service_password: FLxkjG1BoDqw
   deployment:
     elements:
       swift-dispersion:
@@ -390,9 +383,6 @@ proposals:
       - "@@compute2@@"
 - barclamp: glance
   attributes:
-    service_password: 6RaUtUaIfpo5
-    db:
-      password: aTCEioqyUFFq
     default_store: swift
     keystone_instance: default
     database_instance: default
@@ -407,15 +397,12 @@ proposals:
     keystone_instance: default
     glance_instance: default
     database_instance: default
-    service_password: Uj69LzOFfibi
     volumes:
     - backend_driver: raw
       backend_name: default
       raw:
         volume_name: cinder-volumes
         cinder_raw_method: all
-    db:
-      password: 8Brnd6eS16tq
   deployment:
     elements:
       cinder-controller:
@@ -424,7 +411,6 @@ proposals:
       - "@@controller1@@"
 - barclamp: neutron
   attributes:
-    service_password: AswBzAIhLJ8O
     rabbitmq_instance: default
     keystone_instance: default
     use_l2pop: false
@@ -435,8 +421,6 @@ proposals:
     ml2_type_drivers_default_provider_network: vlan
     ml2_type_drivers_default_tenant_network: vlan
     database_instance: default
-    db:
-      password: 3wEmX9b6UXxH
   deployment:
     elements:
       neutron-server:
@@ -445,8 +429,6 @@ proposals:
       - "@@service1@@"
 - barclamp: nova
   attributes:
-    service_password: lkaq4NfujCal
-    neutron_metadata_proxy_shared_secret: y14sS0ia7UXC
     database_instance: default
     rabbitmq_instance: default
     keystone_instance: default
@@ -457,8 +439,6 @@ proposals:
     use_shared_instance_storage: true
     use_migration: true
     vnc_keymap: de-de
-    db:
-      password: ED4P3YCaBrbO
     kvm:
       ksm_enabled: true
   deployment:
@@ -476,8 +456,6 @@ proposals:
     nova_instance: default
     keystone_instance: default
     database_instance: default
-    db:
-      password: LfJhWYPncax5
   deployment:
     elements:
       horizon-server:
@@ -486,25 +464,16 @@ proposals:
   attributes:
     rabbitmq_instance: default
     database_instance: default
-    stack_domain_admin_password: EUS7Iwdn7uZb
     keystone_instance: default
-    service_password: BCE7KAm32uAf
-    auth_encryption_key: 8xIkFAy9pPmHgJFKf6W2oQ3ASO1ZuiFgv9NK
-    db:
-      password: 1U1b3kfQoQc2
   deployment:
     elements:
       heat-server:
       - "@@controller1@@"
 - barclamp: ceilometer
   attributes:
-    metering_secret: p6MNq5Pdkslm
     rabbitmq_instance: default
     database_instance: default
     keystone_instance: default
-    service_password: Z2lziexntukB
-    db:
-      password: zOGR8MA41nmZ
   deployment:
     elements:
       ceilometer-agent:
@@ -518,11 +487,6 @@ proposals:
       - "@@service1@@"
 - barclamp: tempest
   attributes:
-    tempest_adm_password: PHcPLLbPWI0o
-    tempest_adm_username: tempest-adm-5v9sQHTjHLJ5
-    tempest_user_password: tfTMezGfTWQe
-    tempest_user_username: tempest-user-zDt8fOTlm81A
-    tempest_user_tenant: tempest-tenant-ZKf2FG8EqBkj
     nova_instance: default
   deployment:
     elements:
