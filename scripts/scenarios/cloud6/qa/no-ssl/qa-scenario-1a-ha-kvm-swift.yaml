@@ -113,7 +113,6 @@ proposals:
   attributes:
     rabbitmq_instance: default
     keystone_instance: default
-    use_l2pop: false
     ml2_mechanism_drivers:
     - linuxbridge
     ml2_type_drivers:
