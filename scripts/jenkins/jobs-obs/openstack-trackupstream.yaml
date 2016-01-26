@@ -30,6 +30,7 @@
             - openstack-ironic
             - openstack-keystone
             - openstack-manila
+            - openstack-networking-hyperv
             - openstack-neutron
             - openstack-neutron-fwaas
             - openstack-neutron-lbaas
@@ -110,7 +111,8 @@
               "python-os-cloud-config",
               "python-os-collect-config"].contains(component) ||
             [ "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging"].contains(project) &&
-            [ "openstack-neutron-lbaas",
+            [ "openstack-networking-hyperv",
+              "openstack-neutron-lbaas",
               "openstack-neutron-fwaas",
               "openstack-neutron-vpnaas",
               "openstack-ec2-api"].contains(component) )
