@@ -3942,6 +3942,12 @@ function onadmin_crowbarpurge()
     killall epmd ||: # need to kill again after uninstall
 }
 
+function onadmin_is_crowbar_api_available()
+{
+    local http_code=`curl -s -o /dev/null -w "%{http_code}" $crowbar_api`
+    [[ $http_code =~ 2.. || $http_code =~ 3.. ]]
+}
+
 function onadmin_crowbarrestore()
 {
     pre_hook $FUNCNAME
