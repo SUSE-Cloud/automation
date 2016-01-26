@@ -2452,6 +2452,7 @@ function custom_configuration()
             fi
 
             if iscloudver 6M9plus ; then
+                proposal_set_value manila default "['attributes']['manila']['default_share_type']" "'default'"
                 # new generic driver options since M9
                 if crowbar manila proposal show default|grep service_instance_name_or_id ; then
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['backend_driver']" "'generic'"
