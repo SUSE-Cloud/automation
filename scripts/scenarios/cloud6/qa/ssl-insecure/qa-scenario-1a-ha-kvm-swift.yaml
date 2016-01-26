@@ -1,20 +1,30 @@
 ---
 proposals:
 - barclamp: pacemaker
-  name: proposal_1
+  name: services
   attributes:
     stonith:
       mode: ipmi_barclamp
+      sbd:
+        nodes:
+          @@controller1@@:
+            devices:
+            - ''
+          @@controller2@@:
+            devices:
+            - ''
+          @@controller3@@:
+            devices:
+            - ''
       per_node:
         nodes:
-          d00-25-90-e4-1c-ae.qa4.cloud.suse.de:
+          @@controller1@@:
             params: ''
-          d00-25-90-e4-22-52.qa4.cloud.suse.de:
+          @@controller2@@:
             params: ''
-          d00-25-90-e4-24-c4.qa4.cloud.suse.de:
+          @@controller3@@:
             params: ''
     drbd:
-      shared_secret: AABPXS6ALOah
   deployment:
     elements:
       pacemaker-cluster-member:
@@ -35,7 +45,7 @@ proposals:
   deployment:
     elements:
       database-server:
-      - cluster:proposal_1
+      - cluster:services
 - barclamp: rabbitmq
   attributes:
     ha:
@@ -46,7 +56,7 @@ proposals:
   deployment:
     elements:
       rabbitmq-server:
-      - cluster:proposal_1
+      - cluster:services
 - barclamp: keystone
   attributes:
     database_instance: default
@@ -59,7 +69,7 @@ proposals:
   deployment:
     elements:
       keystone-server:
-      - cluster:proposal_1
+      - cluster:services
 - barclamp: swift
   attributes:
     ssl:
