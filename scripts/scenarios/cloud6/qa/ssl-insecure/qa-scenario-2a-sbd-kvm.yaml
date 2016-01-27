@@ -215,6 +215,7 @@ proposals:
       insecure: true
     api:
       protocol: https
+    use_lbaas: false
   deployment:
     elements:
       neutron-server:
@@ -245,6 +246,12 @@ proposals:
       - "@@computekvm@@"
       nova-compute-qemu: []
       nova-compute-xen: []
+
+# Because neutron and nova are deployed on different clusters, we need
+# to commit neutron proposal again after nova to pick up the nova authentication
+- barclamp: neutron
+  attributes:
+    use_lbaas: true
 
 - barclamp: horizon
   attributes:
