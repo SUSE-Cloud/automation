@@ -3159,7 +3159,7 @@ function oncontroller_manila_generic_driver_setup()
     openstack role add --project manila-service --user admin admin
     export OS_TENANT_NAME='manila-service'
     openstack image create --file $service_image_name \
-        --disk-format qcow2 manila-service-image
+        --disk-format qcow2 manila-service-image --public
     nova flavor-create manila-service-image-flavor 100 256 0 1
 
     nova secgroup-create $sec_group "$sec_group description"
