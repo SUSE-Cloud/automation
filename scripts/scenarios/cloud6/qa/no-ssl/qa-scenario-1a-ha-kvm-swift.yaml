@@ -59,21 +59,12 @@ proposals:
       - cluster:services
 - barclamp: keystone
   attributes:
-    ssl:
-      generate_certs: true
-      insecure: true
-    api:
-      protocol: https
   deployment:
     elements:
       keystone-server:
       - cluster:services
 - barclamp: swift
   attributes:
-    ssl:
-      enabled: true
-      generate_certs: true
-      insecure: true
     cluster_hash: 181d283256
   deployment:
     elements:
@@ -89,11 +80,6 @@ proposals:
       - "@@compute2@@"
 - barclamp: glance
   attributes:
-    api:
-      protocol: https
-    ssl:
-      generate_certs: true
-      insecure: true
     default_store: swift
   deployment:
     elements:
@@ -107,11 +93,6 @@ proposals:
       raw:
         volume_name: cinder-volumes
         cinder_raw_method: all
-    api:
-      protocol: https
-    ssl:
-      generate_certs: true
-      insecure: true
   deployment:
     elements:
       cinder-controller:
@@ -126,11 +107,6 @@ proposals:
     - vlan
     ml2_type_drivers_default_provider_network: vlan
     ml2_type_drivers_default_tenant_network: vlan
-    ssl:
-      generate_certs: true
-      insecure: true
-    api:
-      protocol: https
   deployment:
     elements:
       neutron-server:
@@ -145,13 +121,6 @@ proposals:
     vnc_keymap: de-de
     kvm:
       ksm_enabled: true
-    ssl:
-      enabled: true
-      generate_certs: true
-      insecure: true
-    novnc:
-      ssl:
-        enabled: true
   deployment:
     elements:
       nova-controller:
@@ -164,9 +133,6 @@ proposals:
       nova-compute-xen: []
 - barclamp: horizon
   attributes:
-    apache:
-      generate_certs: true
-      ssl: true
   deployment:
     elements:
       horizon-server:
