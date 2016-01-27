@@ -59,8 +59,6 @@ proposals:
       - cluster:services
 - barclamp: keystone
   attributes:
-    database_instance: default
-    rabbitmq_instance: default
     ssl:
       generate_certs: true
       insecure: true
@@ -77,7 +75,6 @@ proposals:
       generate_certs: true
       insecure: true
     cluster_hash: 181d283256
-    keystone_instance: default
   deployment:
     elements:
       swift-dispersion:
@@ -98,19 +95,12 @@ proposals:
       generate_certs: true
       insecure: true
     default_store: swift
-    keystone_instance: default
-    database_instance: default
-    rabbitmq_instance: default
   deployment:
     elements:
       glance-server:
       - "@@service1@@"
 - barclamp: cinder
   attributes:
-    rabbitmq_instance: default
-    keystone_instance: default
-    glance_instance: default
-    database_instance: default
     volumes:
     - backend_driver: raw
       backend_name: default
@@ -130,15 +120,12 @@ proposals:
       - "@@controller1@@"
 - barclamp: neutron
   attributes:
-    rabbitmq_instance: default
-    keystone_instance: default
     ml2_mechanism_drivers:
     - linuxbridge
     ml2_type_drivers:
     - vlan
     ml2_type_drivers_default_provider_network: vlan
     ml2_type_drivers_default_tenant_network: vlan
-    database_instance: default
     ssl:
       generate_certs: true
       insecure: true
@@ -152,12 +139,6 @@ proposals:
       - "@@service1@@"
 - barclamp: nova
   attributes:
-    database_instance: default
-    rabbitmq_instance: default
-    keystone_instance: default
-    glance_instance: default
-    cinder_instance: default
-    neutron_instance: default
     itxt_instance: ''
     use_shared_instance_storage: true
     use_migration: true
@@ -183,9 +164,6 @@ proposals:
       nova-compute-xen: []
 - barclamp: horizon
   attributes:
-    nova_instance: default
-    keystone_instance: default
-    database_instance: default
     apache:
       generate_certs: true
       ssl: true
@@ -195,18 +173,12 @@ proposals:
       - "@@controller1@@"
 - barclamp: heat
   attributes:
-    rabbitmq_instance: default
-    database_instance: default
-    keystone_instance: default
   deployment:
     elements:
       heat-server:
       - "@@controller1@@"
 - barclamp: ceilometer
   attributes:
-    rabbitmq_instance: default
-    database_instance: default
-    keystone_instance: default
   deployment:
     elements:
       ceilometer-agent:
@@ -220,7 +192,6 @@ proposals:
       - "@@service1@@"
 - barclamp: tempest
   attributes:
-    nova_instance: default
   deployment:
     elements:
       tempest:
