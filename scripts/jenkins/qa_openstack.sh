@@ -139,6 +139,9 @@ fi
 # run twice, first installs zypper update, then the rest
 $zypper -n patch --skip-interactive || $zypper -n patch --skip-interactive
 
+# make sure that genisoimage is installed
+$zypper in --no-recommends genisoimage
+
 # grizzly or master does not want dlp
 $zypper rr dlp || true
 
