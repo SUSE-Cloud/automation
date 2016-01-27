@@ -3905,15 +3905,31 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
 function onadmin_crowbarbackup()
 {
     pre_hook $FUNCNAME
-    rm -f /tmp/backup-crowbar.tar.gz
-    AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
-        bash -x /usr/sbin/crowbar-backup backup /tmp/backup-crowbar.tar.gz ||\
-        complain 21 "crowbar-backup backup failed"
+    local btarballname=backup-crowbar
+    local btarball=${btarballname}.tar.gz
+    rm -f /tmp/$btarball
+
+    if iscloudver 6plus ; then
+        safely crowbarctl backup create $btarballname
+        pushd /tmp
+        # temporary workaround, as crowbarctl does not support to lookup by name yet
+        local bid=`crowbarctl backup  list --plain | grep ${btarballname} | cut -d" " -f1`
+        safely crowbarctl backup download $bid
+        popd
+        [[ -e /tmp/$btarball ]] || complain 12 "Backup tarball not created: /tmp/$btarball"
+    else
+        AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
+            safely bash -x /usr/sbin/crowbar-backup backup /tmp/$btarball
+    fi
 }
 
 function onadmin_crowbarpurge()
 {
     pre_hook $FUNCNAME
+    if iscloudver 6plus ; then
+        complain 3 "crowbarpurge is not implemented for Cloud 6+ (maybe not needed)"
+    fi
+
     # Purge files to pretend we start from a clean state
     cp -a /var/lib/crowbar/cache/etc/resolv.conf /etc/resolv.conf
 
@@ -3942,17 +3958,32 @@ function onadmin_crowbarpurge()
     killall epmd ||: # need to kill again after uninstall
 }
 
+function onadmin_is_crowbar_api_available()
+{
+    local http_code=`curl -s -o /dev/null -w "%{http_code}" $crowbar_api`
+    [[ $http_code =~ 2.. || $http_code =~ 3.. ]]
+}
+
 function onadmin_crowbarrestore()
 {
     pre_hook $FUNCNAME
-    # Need to install the addon again, as we removed it
+    local btarballname=backup-crowbar
+    local btarball=${btarballname}.tar.gz
     zypper --non-interactive in --auto-agree-with-licenses -t pattern cloud_admin
 
-    do_set_repos_skip_checks
+    if iscloudver 6plus ; then
+        systemctl start crowbar.service
+        wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
+        crowbarctl backup upload /tmp/$btarball
+        # crowbarctl backup restore $btarballname
+        # temporary workaround
+        curl -X POST $crowbar_api/utils/backups/${btarballname}/restore
+    else
+        do_set_repos_skip_checks
 
-    AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
-        bash -x /usr/sbin/crowbar-backup restore /tmp/backup-crowbar.tar.gz ||\
-        complain 20 "crowbar-backup restore failed"
+        AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
+            safely bash -x /usr/sbin/crowbar-backup restore /tmp/$btarball
+    fi
 }
 
 function onadmin_qa_test()
