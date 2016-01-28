@@ -2969,6 +2969,7 @@ function set_node_alias()
     local node_alias=$2
     if [[ "${node_name}" != "${node_alias}" ]]; then
         crowbar machines rename ${node_name} ${node_alias}
+        sleep 1
     fi
 }
 
