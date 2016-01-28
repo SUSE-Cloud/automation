@@ -3367,6 +3367,7 @@ function oncontroller_testsetup()
     local volumecreateret=0
     local volumeattachret=0
     local volumeresult=""
+    local portresult=0
 
     # do volume tests for non-docker scenario only
     if [ -z "$want_docker" ] ; then
@@ -3399,11 +3400,21 @@ function oncontroller_testsetup()
     nova stop "$instanceid"
     wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
+    # check that no port is in binding_failed state
+    for p in $(neutron port-list -f csv -c id --quote none | grep -v id); do
+        if neutron port-show $p -f value | grep -qx binding_failed; then
+            echo "binding for port $p failed.."
+            portresult=1
+        fi
+    done
+
     echo "RadosGW Tests: $radosgwret"
     echo "Tempest: $tempestret"
     echo "Volume in VM: $volumeresult"
+    echo "Ports in binding_failed: $portresult"
 
-    test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 -a $radosgwret = 0 || exit 102
+    test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 \
+        -a $radosgwret = 0 -a $portresult = 0 || exit 102
 }
 
 
