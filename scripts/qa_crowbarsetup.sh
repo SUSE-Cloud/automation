@@ -1790,6 +1790,9 @@ function reboot_nodes_via_ipmi()
         local pw
         for pw in 'cr0wBar!' $extraipmipw ; do
             local ip=$bmc_net.$(($ip4 + $i))
+            ping -c 3 $ip > /dev/null || {
+                echo "error: BMC $ip is not reachable!"
+            }
             (ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "${bmc_values[1]}"
             sleep $((5 + RANDOM % 5))
             if ipmitool -H $ip -U root -P $pw power status | grep -q "is off"; then
