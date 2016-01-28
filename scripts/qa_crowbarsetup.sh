@@ -1791,12 +1791,13 @@ function reboot_nodes_via_ipmi()
         for pw in 'cr0wBar!' $extraipmipw ; do
             local ip=$bmc_net.$(($ip4 + $i))
             (ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "${bmc_values[1]}"
-            sleep 5
+            sleep $((5 + RANDOM % 5))
             if ipmitool -H $ip -U root -P $pw power status | grep -q "is off"; then
                 ipmitool -H $ip -U root -P $pw power on
-                sleep 10
+                sleep $((10 + RANDOM % 15))
             fi
             ipmitool -H $ip -U root -P $pw power reset) &
+            sleep $((5 + RANDOM % 5))
         done
     done
     wait
