@@ -1917,6 +1917,7 @@ function onadmin_allocate()
     local m
     for m in `get_all_discovered_nodes` ; do
         crowbar machines allocate $m
+        sleep 1
         local i=$(echo $m | sed "s/.*-0\?\([^-\.]*\)\..*/\1/g")
         cat >> .ssh/config <<EOF
 Host node$i
