@@ -109,27 +109,6 @@ proposals:
       glance-server:
       - cluster:services
 
-- barclamp: manila
-  attributes:
-    shares:
-    - backend_driver: generic
-      backend_name: backend1
-      generic:
-        service_instance_user: root
-        service_instance_name_or_id: ##manila_instance_name_or_id##
-        service_net_name_or_ip: ##service_net_name_or_ip##
-        tenant_net_name_or_ip: fixed
-        service_instance_password: linux
-        share_volume_fstype: ext3
-  deployment:
-    elements:
-      manila-server:
-      - cluster:services
-      manila-share:
-      - "@@controller1@@"
-      - "@@controller2@@"
-      - "@@controller3@@"
-
 # vcenter credentials must be replaced by some real values
 - barclamp: cinder
   attributes:
@@ -239,6 +218,27 @@ proposals:
       ceilometer-server:
       - cluster:services
       ceilometer-swift-proxy-middleware: []
+
+- barclamp: manila
+  attributes:
+    shares:
+    - backend_driver: generic
+      backend_name: backend1
+      generic:
+        service_instance_user: root
+        service_instance_name_or_id: ##manila_instance_name_or_id##
+        service_net_name_or_ip: ##service_net_name_or_ip##
+        tenant_net_name_or_ip: fixed
+        service_instance_password: linux
+        share_volume_fstype: ext3
+  deployment:
+    elements:
+      manila-server:
+      - cluster:services
+      manila-share:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
 
 # FIXME: disabled due to issues in trove with insecure SSL (https://bugs.launchpad.net/trove/+bug/1535895)
 #- barclamp: trove
