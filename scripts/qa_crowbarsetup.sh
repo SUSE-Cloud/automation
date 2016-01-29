@@ -153,7 +153,7 @@ setcloudnetvars()
     net=${net_admin:-192.168.124}
     case "$cloud" in
         d1)
-            nodenumber=5
+            nodenumbertotal=5
             net=$netp.178
             net_public=$netp.177
             vlan_storage=568
@@ -162,7 +162,7 @@ setcloudnetvars()
             want_ipmi=true
         ;;
         d2)
-            nodenumber=2
+            nodenumbertotal=2
             net=$netp.186
             net_public=$netp.185
             vlan_storage=581
@@ -171,7 +171,7 @@ setcloudnetvars()
             want_ipmi=true
         ;;
         d3)
-            nodenumber=3
+            nodenumbertotal=3
             net=$netp.189
             net_public=$netp.188
             vlan_storage=586
@@ -180,7 +180,7 @@ setcloudnetvars()
             want_ipmi=true
         ;;
         qa1)
-            nodenumber=6
+            nodenumbertotal=6
             net=${netp}.26
             net_public=$net
             vlan_public=300
@@ -189,7 +189,7 @@ setcloudnetvars()
             want_ipmi=false
         ;;
         qa2)
-            nodenumber=7
+            nodenumbertotal=7
             net=${netp}.24
             net_public=$net
             vlan_public=12
@@ -199,7 +199,7 @@ setcloudnetvars()
             want_ipmi=true
         ;;
         qa3)
-            nodenumber=8
+            nodenumbertotal=8
             net=${netp}.25
             net_public=$net
             vlan_public=12
@@ -210,6 +210,7 @@ setcloudnetvars()
         ;;
         qa4)
             nodenumber=7
+            nodenumbertotal=8
             net=${netp}.66
             net_public=$net
             vlan_public=715
@@ -249,6 +250,7 @@ setcloudnetvars()
                     true # defaults are fine (and overridable)
         ;;
     esac
+    test -n "$nodenumbertotal" && nodenumber=${nodenumber:-$nodenumbertotal}
     # default networks in crowbar:
     vlan_storage=${vlan_storage:-200}
     vlan_public=${vlan_public:-300}
@@ -1773,8 +1775,6 @@ function set_node_raid()
 function reboot_nodes_via_ipmi()
 {
     do_one_proposal ipmi default
-    local nodelist=$(seq 1 $nodenumber)
-    local i
     local bmc_values=($(
         crowbar network proposal show default | \
         rubyjsonparse "
@@ -1786,20 +1786,28 @@ function reboot_nodes_via_ipmi()
     test -n "${bmc_values[1]}" || bmc_values[1]="0.0.0.0"
     IFS=. read ip1 ip2 ip3 ip4 <<< "${bmc_values[0]}"
     local bmc_net="$ip1.$ip2.$ip3"
-    for i in $nodelist ; do
+    local i
+    for i in $(seq 1 $nodenumbertotal); do
         local pw
         for pw in 'cr0wBar!' $extraipmipw ; do
             local ip=$bmc_net.$(($ip4 + $i))
-            ping -c 3 $ip > /dev/null || {
-                echo "error: BMC $ip is not reachable!"
-            }
-            (ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "${bmc_values[1]}"
-            sleep $((5 + RANDOM % 5))
-            if ipmitool -H $ip -U root -P $pw power status | grep -q "is off"; then
-                ipmitool -H $ip -U root -P $pw power on
-                sleep $((10 + RANDOM % 15))
+            if [ $i -gt $nodenumber ]; then
+                # power off extra nodes
+                ipmitool -H $ip -U root -P $pw power off &
+            else
+                ping -c 3 $ip > /dev/null || {
+                    echo "error: BMC $ip is not reachable!"
+                }
+                (
+                ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "${bmc_values[1]}"
+                sleep $((5 + RANDOM % 5))
+
+                if ipmitool -H $ip -U root -P $pw power status | grep -q "is off"; then
+                    ipmitool -H $ip -U root -P $pw power on
+                    sleep $((10 + RANDOM % 15))
+                fi
+                ipmitool -H $ip -U root -P $pw power reset) &
             fi
-            ipmitool -H $ip -U root -P $pw power reset) &
             sleep $((5 + RANDOM % 5))
         done
     done
