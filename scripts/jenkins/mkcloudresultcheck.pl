@@ -27,7 +27,7 @@ for my $num ($startnum..$endnum) {
         'Error: (crowbar self-test) failed',
 	'(Automatic merge failed)',
         'mk(?:phys)?cloud (ret=\d+)',
-        '\((safelyret=12)\) Aborting',
+        '\((safelyret=\d+)\) Aborting',
     ) {
         if(m/$regexp/) {$descr.="$1 "}
     }
