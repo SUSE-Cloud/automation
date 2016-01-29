@@ -1818,8 +1818,14 @@ function onadmin_allocate()
     wait_for 100 10 '[[ $(get_all_discovered_nodes | wc -l) -ge $nodenumber ]]' "all nodes to be discovered"
     local n
     for n in `get_all_discovered_nodes` ; do
-        wait_for 100 2 "knife node show -a state $n | grep discovered" \
+        wait_for 100 2 "knife node show -a state $n | grep -q discovered" \
             "node to enter discovered state"
+        # provisioner is the last transition discovered role, so we're
+        # kludging here and wait for the discovered transition to be really
+        # finished.
+        wait_for 100 5 \
+            "get_proposal_role_elements provisioner provisioner-base | grep -q $n" \
+            "node to be in provisioner proposal"
     done
     local controllernodes=(
             $(get_all_discovered_nodes | head -n 2)
@@ -3657,6 +3663,16 @@ function onadmin_runupdate()
     pre_hook $FUNCNAME
 
     zypper_patch
+}
+
+function get_proposal_role_elements()
+{
+    local proposal=$1
+    local role=$2
+    local element=$(crowbar $proposal proposal show default | \
+        rubyjsonparse "
+            puts j['deployment']['$proposal']['elements']['$role'];")
+    echo $element
 }
 
 function get_neutron_server_node()
