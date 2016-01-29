@@ -3207,7 +3207,8 @@ function oncontroller_testsetup()
     export LC_ALL=C
 
     if iscloudver 6plus && \
-        ! openstack catalog show manila 2>&1 | grep -q "service manila not found"; then
+        ! openstack catalog show manila 2>&1 | grep -q "service manila not found" && \
+        ! manila type-list 2>&1 | grep -q " default "; then
         manila type-create default false || complain 79 "manila type-create failed"
     fi
 
