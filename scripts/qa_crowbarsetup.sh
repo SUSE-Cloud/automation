@@ -1568,7 +1568,7 @@ function jsonice()
 
 function crowbar_install_status()
 {
-    curl -s $crowbar_api$crowbar_api_installer_path/status.json | python -mjson.tool
+    curl -s $crowbar_api$crowbar_api_installer_path/status.json | jsonice
 }
 
 function do_installcrowbar_cloud6plus()
