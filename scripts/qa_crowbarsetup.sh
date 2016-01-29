@@ -1559,6 +1559,13 @@ EOF
     return 0
 }
 
+function jsonice()
+{
+    # create indented json output
+    # while taking care for empty strings (eg. replies from curl)
+    (echo -n '{}'; cat -) | sed -e 's/^{}\s*{/{/' | safely python -mjson.tool
+}
+
 function crowbar_install_status()
 {
     curl -s $crowbar_api$crowbar_api_installer_path/status.json | python -mjson.tool
