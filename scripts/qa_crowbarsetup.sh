@@ -3994,9 +3994,7 @@ function onadmin_crowbarrestore()
         systemctl start crowbar.service
         wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
         crowbarctl backup upload /tmp/$btarball
-        # crowbarctl backup restore $btarballname
-        # temporary workaround
-        curl -X POST $crowbar_api/utils/backups/${btarballname}/restore
+        crowbarctl backup restore $btarballname --yes
     else
         do_set_repos_skip_checks
 
