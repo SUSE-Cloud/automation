@@ -3404,13 +3404,15 @@ function oncontroller_testsetup()
     nova stop "$instanceid"
     wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
-    # check that no port is in binding_failed state
-    for p in $(neutron port-list -f csv -c id --quote none | grep -v id); do
-        if neutron port-show $p -f value | grep -qx binding_failed; then
-            echo "binding for port $p failed.."
-            portresult=1
-        fi
-    done
+    if iscloudver 6plus ; then
+        # check that no port is in binding_failed state
+        for p in $(neutron port-list -f csv -c id --quote none | grep -v id); do
+            if neutron port-show $p -f value | grep -qx binding_failed; then
+                echo "binding for port $p failed.."
+                portresult=1
+            fi
+        done
+    fi
 
     echo "RadosGW Tests: $radosgwret"
     echo "Tempest: $tempestret"
