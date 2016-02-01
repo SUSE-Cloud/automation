@@ -89,7 +89,7 @@ proposals:
     ha:
       storage:
         shared:
-          device: 10.162.26.129:/var/qa2/ha-database
+          device: ##shared_nfs_for_database##
           fstype: nfs
           options: nfsvers=3
   deployment:
@@ -102,7 +102,7 @@ proposals:
     ha:
       storage:
         shared:
-          device: 10.162.26.129:/var/qa2/ha-rabbitmq
+          device: ##shared_nfs_for_rabbitmq##
           fstype: nfs
           options: nfsvers=3
   deployment:
