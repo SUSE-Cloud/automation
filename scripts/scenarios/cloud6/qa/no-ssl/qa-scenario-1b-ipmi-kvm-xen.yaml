@@ -71,10 +71,9 @@ proposals:
 - barclamp: swift
   deployment:
     elements:
-      swift-dispersion:
-      - "@@controller1@@"
+      swift-dispersion: []
       swift-proxy:
-      - cluster:services
+      - "@@controller1@@"
       swift-ring-compute:
       - "@@controller1@@"
       swift-storage:
