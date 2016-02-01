@@ -2665,6 +2665,10 @@ function custom_configuration()
                 tempestnodes="[ '$novacontroller' ]"
                 proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "$tempestnodes"
             fi
+            # manila options
+            if iscloudver 6M10plus ; then
+                proposal_set_value tempest default "['attributes']['tempest']['manila']['image_password']" "'linux'"
+            fi
         ;;
         provisioner)
             if [[ $keep_existing_hostname = 1 ]] ; then
