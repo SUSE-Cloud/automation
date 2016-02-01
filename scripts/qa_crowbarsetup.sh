@@ -33,6 +33,7 @@ horizonserver=
 horizonservice=
 manila_service_vm_uuid=
 manila_service_vm_ip=
+manila_tenant_vm_ip=
 clusternodesdrbd=
 clusternodesdata=
 clusternodesnetwork=
@@ -2493,7 +2494,7 @@ function custom_configuration()
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['share_volume_fstype']" "'ext3'"
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['service_instance_name_or_id']" "'$manila_service_vm_uuid'"
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['service_net_name_or_ip']" "'$manila_service_vm_ip'"
-                    proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['tenant_net_name_or_ip']" "'fixed'"
+                    proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['tenant_net_name_or_ip']" "'$manila_tenant_vm_ip'"
                 fi
             fi
         ;;
@@ -2664,6 +2665,10 @@ function custom_configuration()
                 # the same nova controller we use for other stuff.
                 tempestnodes="[ '$novacontroller' ]"
                 proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "$tempestnodes"
+            fi
+            # manila options
+            if iscloudver 6M10plus ; then
+                proposal_set_value tempest default "['attributes']['tempest']['manila']['image_password']" "'linux'"
             fi
         ;;
         provisioner)
@@ -3076,8 +3081,10 @@ function get_manila_service_instance_details()
 {
     manila_service_vm_uuid=`oncontroller "source .openrc; openstack --os-project-name manila-service server show manila-service -f value -c id"`
     manila_service_vm_ip=`oncontroller "source .openrc; openstack --os-project-name manila-service server show manila-service -f value -c addresses|grep -oP '(?<=\bmanila-service=)[^;]+'"`
+    manila_tenant_vm_ip=`oncontroller "source .openrc; openstack --os-project-name manila-service ip floating list -f csv --quote none -c IP -c 'Instance ID'|grep $manila_service_vm_uuid|cut -d ',' -f 1"`
     test -n "$manila_service_vm_uuid" || complain 91 "uuid from manila-service instance not available"
     test -n "$manila_service_vm_ip" || complain 92 "ip addr from manila-service instance not available"
+    test -n "$manila_tenant_vm_ip" || complain 93 "floating ip addr from manila-service instance not available"
 }
 
 function addfloatingip()
@@ -3211,6 +3218,13 @@ function oncontroller_manila_generic_driver_setup()
         --nic net-id=$manila_service_net_id manila-service
 
     [ $? != 0 ] && complain 43 "nova boot for manila failed"
+
+    # manila tempest tests use the floating IP to export the shares. So create
+    # a floating IP for the manila instance and add it to the VM
+    manila_tenant_vm_ip=`openstack ip floating create floating -f value -c ip`
+    openstack ip floating add $manila_tenant_vm_ip manila-service
+
+    [ $? != 0 ] && complain 44 "adding a floating ip to the manila service VM failed"
 }
 
 # code run on controller/dashboard node to do basic tests of deployed cloud
