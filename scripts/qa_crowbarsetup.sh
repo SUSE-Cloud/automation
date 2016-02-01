@@ -3238,7 +3238,7 @@ function oncontroller_testsetup()
 
     if iscloudver 6plus && \
         ! openstack catalog show manila 2>&1 | grep -q "service manila not found" && \
-        ! manila type-list | grep -q "default" ; then
+        ! manila type-list | grep -q "[[:space:]]default[[:space:]]" ; then
         manila type-create default false || complain 79 "manila type-create failed"
     fi
 
