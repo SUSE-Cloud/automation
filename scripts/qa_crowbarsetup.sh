@@ -1533,10 +1533,6 @@ EOF
     local f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
     grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
 
-    # set default password to 'linux'
-    # setup_base_images.rb is for SUSE Cloud 1.0 and update_nodes.rb is for 2.0
-    sed -i -e 's/\(rootpw_hash.*\)""/\1"$2y$10$u5mQA7\/8YjHdutDPEMPtBeh\/w8Bq0wEGbxleUT4dO48dxgwyPD8D."/' /opt/dell/chef/cookbooks/provisioner/recipes/setup_base_images.rb /opt/dell/chef/cookbooks/provisioner/recipes/update_nodes.rb
-
     if  iscloudver 6M7plus ; then
         create_repos_yml
     fi
@@ -2672,6 +2668,9 @@ function custom_configuration()
             fi
         ;;
         provisioner)
+            # set default password to 'linux'
+            proposal_set_value provisioner default "['attributes']['provisioner']['root_password_hash']" '"$2y$10$u5mQA7\/8YjHdutDPEMPtBeh\/w8Bq0wEGbxleUT4dO48dxgwyPD8D."'
+
             if [[ $keep_existing_hostname = 1 ]] ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
             fi
