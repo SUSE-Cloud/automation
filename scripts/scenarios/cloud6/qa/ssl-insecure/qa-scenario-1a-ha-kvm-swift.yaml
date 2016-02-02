@@ -40,8 +40,9 @@ proposals:
     ha:
       storage:
         shared:
-          device: 10.162.66.1:/srv/nfs/cloud4-ha-database
+          device: ##shared_nfs_for_database##
           fstype: nfs
+          options: nfsvers=3
   deployment:
     elements:
       database-server:
@@ -51,8 +52,9 @@ proposals:
     ha:
       storage:
         shared:
-          device: 10.162.66.1:/srv/nfs/cloud4-ha-rabbitmq
+          device: ##shared_nfs_for_rabbitmq##
           fstype: nfs
+          options: nfsvers=3
   deployment:
     elements:
       rabbitmq-server:
@@ -77,16 +79,14 @@ proposals:
     cluster_hash: 181d283256
   deployment:
     elements:
-      swift-dispersion:
-      - "@@service1@@"
+      swift-dispersion: []
       swift-proxy:
-      - "@@service1@@"
+      - cluster:services
       swift-ring-compute:
-      - "@@service1@@"
+      - "@@controller1@@"
       swift-storage:
-      - "@@service1@@"
-      - "@@compute1@@"
-      - "@@compute2@@"
+      - "@@storage-swift1@@"
+      - "@@storage-swift2@@"
 - barclamp: glance
   attributes:
     api:
@@ -98,7 +98,7 @@ proposals:
   deployment:
     elements:
       glance-server:
-      - "@@service1@@"
+      - cluster:services
 - barclamp: cinder
   attributes:
     volumes:
@@ -115,7 +115,7 @@ proposals:
   deployment:
     elements:
       cinder-controller:
-      - "@@service1@@"
+      - cluster:services
       cinder-volume:
       - "@@controller1@@"
 - barclamp: neutron
@@ -134,9 +134,9 @@ proposals:
   deployment:
     elements:
       neutron-server:
-      - "@@service1@@"
+      - cluster:services
       neutron-network:
-      - "@@service1@@"
+      - cluster:services
 - barclamp: nova
   attributes:
     itxt_instance: ''
@@ -155,11 +155,11 @@ proposals:
   deployment:
     elements:
       nova-controller:
-      - "@@service1@@"
+      - cluster:services
       nova-compute-hyperv: []
       nova-compute-kvm:
-      - "@@compute2@@"
-      - "@@compute1@@"
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
       nova-compute-qemu: []
       nova-compute-xen: []
 - barclamp: horizon
@@ -182,17 +182,18 @@ proposals:
   deployment:
     elements:
       ceilometer-agent:
-      - "@@compute1@@"
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
       ceilometer-agent-hyperv: []
       ceilometer-cagent:
-      - "@@service1@@"
+      - cluster:services
       ceilometer-server:
-      - "@@service1@@"
+      - cluster:services
       ceilometer-swift-proxy-middleware:
-      - "@@service1@@"
+      - cluster:services
 - barclamp: tempest
   attributes:
   deployment:
     elements:
       tempest:
-      - "@@service1@@"
+      - cluster:services
