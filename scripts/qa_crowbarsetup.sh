@@ -2669,7 +2669,7 @@ function custom_configuration()
         ;;
         provisioner)
             # set default password to 'linux'
-            proposal_set_value provisioner default "['attributes']['provisioner']['root_password_hash']" '"$2y$10$u5mQA7\/8YjHdutDPEMPtBeh\/w8Bq0wEGbxleUT4dO48dxgwyPD8D."'
+            proposal_set_value provisioner default "['attributes']['provisioner']['root_password_hash']" "\"$(openssl passwd -1 linux)\""
 
             if [[ $keep_existing_hostname = 1 ]] ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
