@@ -185,7 +185,7 @@ proposals:
       - "@@compute-kvm1@@"
       - "@@compute-kvm2@@"
       ceilometer-agent-hyperv: []
-      ceilometer-cagent:
+      ceilometer-polling:
       - cluster:services
       ceilometer-server:
       - cluster:services
