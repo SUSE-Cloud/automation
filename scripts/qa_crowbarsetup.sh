@@ -34,7 +34,6 @@ novacontroller=
 horizonserver=
 horizonservice=
 manila_service_vm_uuid=
-manila_service_vm_ip=
 manila_tenant_vm_ip=
 clusternodesdrbd=
 clusternodesdata=
@@ -1344,29 +1343,6 @@ function onadmin_repocleanup()
     zypper mr -d sp3sdk
 }
 
-# manila-share service (in combination with the generic driver) needs to
-# access (via ssh) the service-instance (which is a nova instance) to
-# configure the shares (i.e. export a nfs share)
-function crowbar_create_network_manila()
-{
-    local netfile="$1"
-    local net=192.168.180
-    local je=/opt/dell/bin/json-edit
-
-    $je -a attributes.network.networks.manila.add_bridge --raw -v "false" $netfile
-    $je -a attributes.network.networks.manila.add_ovs_bridge --raw -v "false" $netfile
-    $je -a attributes.network.networks.manila.bridge_name -v br-manila $netfile
-    $je -a attributes.network.networks.manila.broadcast -v $net.255 $netfile
-    $je -a attributes.network.networks.manila.conduit -v intf1 $netfile
-    $je -a attributes.network.networks.manila.netmask -v 255.255.255.0 $netfile
-    $je -a attributes.network.networks.manila.ranges.dhcp.start -v $net.20 $netfile
-    $je -a attributes.network.networks.manila.ranges.dhcp.end -v $net.60 $netfile
-    $je -a attributes.network.networks.manila.router -v $net.1 $netfile
-    $je -a attributes.network.networks.manila.router_pref --raw -v "20" $netfile
-    $je -a attributes.network.networks.manila.subnet -v $net.0 $netfile
-    $je -a attributes.network.networks.manila.use_vlan --raw -v "true" $netfile
-    $je -a attributes.network.networks.manila.vlan --raw -v "501" $netfile
-}
 
 # setup network/DNS, add repos and install crowbar packages
 function onadmin_prepareinstallcrowbar()
@@ -1492,11 +1468,6 @@ EOF
         -e "s/ 500/ $vlan_fixed/g" \
         -e "s/ [47]00/ $vlan_sdn/g" \
         $netfile
-
-    # extra network to test manila with the generic driver
-    if iscloudver 6plus; then
-        crowbar_create_network_manila $netfile
-    fi
 
     if [[ $cloud = p || $cloud = p2 ]] ; then
         # production cloud has a /22 network
@@ -2008,16 +1979,6 @@ function onadmin_post_allocate()
 {
     pre_hook $FUNCNAME
 
-    # for testing the Manila generic driver, the nodes with the m-shr service
-    # and the manila-service VM need an IP from the same subnet. So add all
-    # current nodes to the subnet
-    if iscloudver 6plus; then
-        cmachines=$(get_all_discovered_nodes)
-        for machine in $cmachines; do
-            crowbar network allocate_ip default $machine manila dhcp
-        done
-    fi
-
     if [[ $hacloud = 1 ]] ; then
         # create glance user with fixed uid/gid so they can work on the same
         # NFS share
@@ -2492,7 +2453,7 @@ function custom_configuration()
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['service_instance_password']" "'linux'"
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['share_volume_fstype']" "'ext3'"
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['service_instance_name_or_id']" "'$manila_service_vm_uuid'"
-                    proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['service_net_name_or_ip']" "'$manila_service_vm_ip'"
+                    proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['service_net_name_or_ip']" "'$manila_tenant_vm_ip'"
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['tenant_net_name_or_ip']" "'$manila_tenant_vm_ip'"
                 fi
             fi
@@ -3082,10 +3043,8 @@ function get_ceph_nodes()
 function get_manila_service_instance_details()
 {
     manila_service_vm_uuid=`oncontroller "source .openrc; openstack --os-project-name manila-service server show manila-service -f value -c id"`
-    manila_service_vm_ip=`oncontroller "source .openrc; openstack --os-project-name manila-service server show manila-service -f value -c addresses|grep -oP '(?<=\bmanila-service=)[^;]+'"`
     manila_tenant_vm_ip=`oncontroller "source .openrc; openstack --os-project-name manila-service ip floating list -f csv --quote none -c IP -c 'Instance ID'|grep $manila_service_vm_uuid|cut -d ',' -f 1"`
     test -n "$manila_service_vm_uuid" || complain 91 "uuid from manila-service instance not available"
-    test -n "$manila_service_vm_ip" || complain 92 "ip addr from manila-service instance not available"
     test -n "$manila_tenant_vm_ip" || complain 93 "floating ip addr from manila-service instance not available"
 }
 
@@ -3207,17 +3166,10 @@ function oncontroller_manila_generic_driver_setup()
     nova secgroup-add-rule $sec_group tcp 111 111 0.0.0.0/0
     nova secgroup-add-rule $sec_group udp 111 111 0.0.0.0/0
 
-    neutron net-create --tenant-id $manila_service_tenant_id \
-        --provider:network_type vlan --provider:physical_network physnet1 \
-        --provider:segmentation_id 501 $neutron_net
-    neutron subnet-create --allocation-pool start=192.168.180.150,end=192.168.180.200 \
-        --name $neutron_net $neutron_net 192.168.180.0/24
     fixed_net_id=`neutron net-show fixed -f value -c id`
-    manila_service_net_id=`neutron net-show $neutron_net -f value -c id`
     timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
         --security-groups $sec_group,default \
-        --nic net-id=$fixed_net_id \
-        --nic net-id=$manila_service_net_id manila-service
+        --nic net-id=$fixed_net_id manila-service
 
     [ $? != 0 ] && complain 43 "nova boot for manila failed"
 
@@ -4208,7 +4160,7 @@ function onadmin_batch()
                 get_novacontroller
                 oncontroller oncontroller_manila_generic_driver_setup
                 get_manila_service_instance_details
-                sed -i "s/##manila_instance_name_or_id##/$manila_service_vm_uuid/g;s/##service_net_name_or_ip##/$manila_service_vm_ip/g" ${scenario}
+                sed -i "s/##manila_instance_name_or_id##/$manila_service_vm_uuid/g;s/##service_net_name_or_ip##/$manila_tenant_vm_ip/g" ${scenario}
                 crowbar_batch --include manila --timeout 2400 build ${scenario}
             fi
         else
