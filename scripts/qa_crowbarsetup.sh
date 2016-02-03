@@ -3455,7 +3455,8 @@ function onadmin_testsetup()
 {
     pre_hook $FUNCNAME
 
-    if [ "$want_multidnstest" = 1 ] && iscloudver 5plus; then
+    local numdnsservers=$(crowbar dns proposal show default | rubyjsonparse "puts j['deployment']['dns']['elements']['dns-server'].length")
+    if [ "$want_multidnstest" = 1 ] && [ "$numdnsservers" -gt 1 ] && iscloudver 5plus; then
         cmachines=$(get_all_nodes)
         for machine in $cmachines; do
             knife node show $machine -a node.target_platform | grep -q suse- || continue
