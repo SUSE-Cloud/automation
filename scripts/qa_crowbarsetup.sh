@@ -24,6 +24,8 @@ fi
 : ${distsuse:=dist.nue.suse.com}
 distsuseip=$(dig -t A +short $distsuse)
 : ${want_raidtype:="raid1"}
+: ${want_multidnstest:=1}
+[ $libvirt_type = hyperv ] && want_multidnstest=0
 
 : ${arch:=$(uname -m)}
 
@@ -2423,6 +2425,7 @@ function custom_configuration()
             fi
         ;;
         dns)
+            [ "$want_multidnstest" = 1 ] || return 0
             local cmachines=$(get_all_nodes | head -n 3)
             local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
             proposal_set_value dns default "['attributes']['dns']['records']" "{}"
@@ -3486,7 +3489,7 @@ function onadmin_testsetup()
 {
     pre_hook $FUNCNAME
 
-    if iscloudver 5plus; then
+    if [ "$want_multidnstest" = 1 ] && iscloudver 5plus; then
         cmachines=$(get_all_nodes)
         for machine in $cmachines; do
             knife node show $machine -a node.target_platform | grep -q suse- || continue
