@@ -1,0 +1,8 @@
+[jenkins]
+user=USERNAME
+password=APITOKEN
+url=https://ci.suse.de/
+#url=https://ci.opensuse.org/
+
+# to be used as
+#jenkins-jobs --conf jenkins/jenkins_jobs.ini update jenkins/jobs-ibs/cloud-mkcloud6-job-hyperv.yaml
