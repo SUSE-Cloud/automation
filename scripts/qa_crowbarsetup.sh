@@ -3993,6 +3993,9 @@ function onadmin_crowbarbackup()
         safely crowbarctl backup download $bid
         popd
         [[ -e /tmp/$btarball ]] || complain 12 "Backup tarball not created: /tmp/$btarball"
+    elif iscloudver 5 ; then
+        # using the API, due to missing crowbarctl integration
+        safely curl -s --digest -u crowbar:crowbar $crowbar_api/installer/upgrade/file > /tmp/$btarball
     else
         AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
             safely bash -x /usr/sbin/crowbar-backup backup /tmp/$btarball
