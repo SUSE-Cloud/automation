@@ -25,7 +25,6 @@ fi
 distsuseip=$(dig -t A +short $distsuse)
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
-[ $libvirt_type = hyperv ] && want_multidnstest=0
 
 : ${arch:=$(uname -m)}
 
@@ -451,6 +450,12 @@ function iscloudver()
     return $?
 }
 
+function issusenode
+{
+    local machine=$1
+    knife node show $machine -a node.target_platform | grep -q suse-
+}
+
 function openstack()
 {
     command openstack --insecure "$@"
@@ -700,6 +705,14 @@ function get_disk_id_by_serial_and_libvirt_type()
 function get_all_nodes()
 {
     crowbar machines list | LC_ALL=C sort
+}
+
+function get_all_suse_nodes()
+{
+    for m in $(get_all_nodes) ; do
+        issusenode "$m" || continue
+        echo "$m"
+    done
 }
 
 function get_all_discovered_nodes()
@@ -2387,7 +2400,7 @@ function custom_configuration()
         ;;
         dns)
             [ "$want_multidnstest" = 1 ] || return 0
-            local cmachines=$(get_all_nodes | head -n 3)
+            local cmachines=$(get_all_suse_nodes | head -n 3)
             local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
             proposal_set_value dns default "['attributes']['dns']['records']" "{}"
             proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
@@ -3455,10 +3468,11 @@ function onadmin_testsetup()
 {
     pre_hook $FUNCNAME
 
-    if [ "$want_multidnstest" = 1 ] && iscloudver 5plus; then
+    local numdnsservers=$(crowbar dns proposal show default | rubyjsonparse "puts j['deployment']['dns']['elements']['dns-server'].length")
+    if [ "$want_multidnstest" = 1 ] && [ "$numdnsservers" -gt 1 ] && iscloudver 5plus; then
         cmachines=$(get_all_nodes)
         for machine in $cmachines; do
-            knife node show $machine -a node.target_platform | grep -q suse- || continue
+            issusenode $machine || continue
             ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13' ||\
                 complain 13 "Multi DNS server test failed!"
         done
