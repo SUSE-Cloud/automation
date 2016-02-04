@@ -3138,8 +3138,21 @@ function oncontroller_run_tempest()
 
 function oncontroller_manila_generic_driver_setup()
 {
-    local service_image_url=http://$clouddata/images/other/manila-service-image.qcow2
-    local service_image_name=manila-service-image.qcow2
+    if [[ -n "$wantxenpv" ]] ; then
+        local service_image_url=http://$clouddata/images/other/manila-service-image-xen.raw
+        local service_image_name=manila-service-image-xen.raw
+        local service_image_params="--disk-format raw --property hypervisor_type=xen --property vm_mode=xen"
+
+    elif [[ -n "$wanthyperv" ]] ; then
+        local service_image_url=http://$clouddata/images/other/manila-service-image.vhd
+        local service_image_name=manila-service-image.vhd
+        local service_image_params="--disk-format vhd --property hypervisor_type=hyperv"
+    else
+        local service_image_url=http://$clouddata/images/other/manila-service-image.qcow2
+        local service_image_name=manila-service-image.qcow2
+        local service_image_params="--disk-format qcow2 --property hypervisor_type=kvm"
+    fi
+
     local sec_group="manila-service"
     local neutron_net=$sec_group
 
@@ -3151,7 +3164,8 @@ function oncontroller_manila_generic_driver_setup()
     openstack role add --project manila-service --user admin admin
     export OS_TENANT_NAME='manila-service'
     openstack image create --file $service_image_name \
-        --disk-format qcow2 manila-service-image --public
+        $service_image_params --container-format bare --public \
+        manila-service-image
     nova flavor-create manila-service-image-flavor 100 256 0 1
 
     nova secgroup-create $sec_group "$sec_group description"
