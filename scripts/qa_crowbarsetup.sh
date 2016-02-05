@@ -43,6 +43,7 @@ clusternameservices="services"
 clusternamenetwork="network"
 wanthyperv=
 crowbar_api=http://localhost:3000
+curl_crowbar_auth="--digest --user crowbar:crowbar"
 crowbar_api_installer_path=/installer/installer
 crowbar_install_log=/var/log/crowbar/install.log
 
@@ -1548,7 +1549,7 @@ function jsonice()
 
 function crowbar_install_status()
 {
-    curl -s $crowbar_api$crowbar_api_installer_path/status.json | jsonice
+    curl -s $curl_crowbar_auth $crowbar_api$crowbar_api_installer_path/status.json | jsonice
 }
 
 function do_installcrowbar_cloud6plus()
@@ -1560,10 +1561,10 @@ function do_installcrowbar_cloud6plus()
         service crowbar start
     fi
 
-    wait_for 30 10 "[[ \`curl -s -o /dev/null -w '%{http_code}' $crowbar_api/installer \` = 200 ]]" "crowbar installer to be available"
+    wait_for 30 10 "[[ \`curl -s -o /dev/null -w '%{http_code}' $curl_crowbar_auth $crowbar_api/installer \` = 200 ]]" "crowbar installer to be available"
 
     # temporarily support old-new and final installer paths
-    if [[ `curl -s -o /dev/null -w "%{http_code}" $crowbar_api$crowbar_api_installer_path` = "404"  ]] ; then
+    if [[ `curl -s -o /dev/null -w "%{http_code}" $curl_crowbar_auth $crowbar_api$crowbar_api_installer_path` = "404"  ]] ; then
         crowbar_api_installer_path=/installer
     fi
 
@@ -1575,7 +1576,7 @@ function do_installcrowbar_cloud6plus()
     fi
 
     # call api to start asyncronous install job
-    curl -s -X POST $crowbar_api$crowbar_api_installer_path/start || complain 39 "crowbar is not running"
+    curl -s -X POST $curl_crowbar_auth $crowbar_api$crowbar_api_installer_path/start || complain 39 "crowbar is not running"
 
     wait_for 60 10 "crowbar_install_status | grep -q '\"success\": *true'" "crowbar to get installed" "tail -n 500 $crowbar_install_log"
 }
@@ -1654,7 +1655,7 @@ EOF
 
     sleep 20
     if ! curl -m 59 -s $crowbar_api  > /dev/null || \
-        ! curl -m 59 -s --digest --user crowbar:crowbar $crowbar_api  | \
+        ! curl -m 59 -s $curl_crowbar_auth $crowbar_api  | \
         grep -q /nodes/crowbar
     then
         tail -n 90 $crowbar_install_log
@@ -1932,7 +1933,7 @@ EOF
     done
 
     # check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
-    curl -m 9 -s --digest --user crowbar:crowbar $crowbar_api | \
+    curl -m 9 -s $curl_crowbar_auth $crowbar_api | \
         tee /root/crowbartest.out
     if grep -q "Exception caught" /root/crowbartest.out; then
         complain 27 "simple crowbar test failed"
@@ -4008,7 +4009,7 @@ function onadmin_crowbarpurge()
 
 function onadmin_is_crowbar_api_available()
 {
-    local http_code=`curl -s -o /dev/null -w "%{http_code}" $crowbar_api`
+    local http_code=`curl -s -o /dev/null -w "%{http_code}" $curl_crowbar_auth $crowbar_api`
     [[ $http_code =~ 2.. || $http_code =~ 3.. ]]
 }
 
