@@ -42,7 +42,6 @@ clusternamedata="data"
 clusternameservices="services"
 clusternamenetwork="network"
 wanthyperv=
-crowbar_api=http://localhost:3000
 curl_crowbar_auth="--digest --user crowbar:crowbar"
 crowbar_api_installer_path=/installer/installer
 crowbar_install_log=/var/log/crowbar/install.log
@@ -4242,5 +4241,7 @@ function onadmin_runlist()
 
 ruby=/usr/bin/ruby
 iscloudver 5plus && ruby=/usr/bin/ruby.ruby2.1
+crowbar_api=http://localhost:3000
+iscloudver 6M10plus && crowbar_api=http://localhost
 export_tftpboot_repos_dir
 set_proposalvars
