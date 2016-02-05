@@ -1489,7 +1489,9 @@ EOF
     if [[ $cloud =~ qa ]] ; then
         # QA clouds have too few IP addrs, so smaller subnets are used
         wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/${cloud}_dual
-        sed -i 's/bc-template-network/template-network/' $netfile
+        if iscloudver 6plus; then
+            sed -i 's/bc-template-network/template-network/' $netfile
+        fi
     fi
     if [[ $cloud = p2 ]] ; then
         /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.252.0 $netfile
