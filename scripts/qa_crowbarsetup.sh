@@ -1553,8 +1553,12 @@ function crowbar_install_status()
 
 function do_installcrowbar_cloud6plus()
 {
-    service crowbar status || service crowbar stop
-    service crowbar start
+    if iscloudver 6M10plus ; then
+        service apache2 start
+    else
+        service crowbar status || service crowbar stop
+        service crowbar start
+    fi
 
     wait_for 30 10 "[[ \`curl -s -o /dev/null -w '%{http_code}' $crowbar_api/installer \` = 200 ]]" "crowbar installer to be available"
 
@@ -4016,8 +4020,13 @@ function onadmin_crowbarrestore()
     zypper --non-interactive in --auto-agree-with-licenses -t pattern cloud_admin
 
     if iscloudver 6plus ; then
-        systemctl start crowbar.service
-        wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
+        if iscloudver 6M10plus ; then
+            systemctl start apache2.service
+            wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar app to start"
+        else
+            systemctl start crowbar.service
+            wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
+        fi
         crowbarctl backup upload /tmp/$btarball
         crowbarctl backup restore $btarballname --yes
     else
