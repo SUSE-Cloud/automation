@@ -41,6 +41,8 @@
           osc co ${OBS_TEST_PROJECT}
           cp ${TEMP_DIR}/rpm-packaging-0.0.1.tar.bz2 ${OBS_TEST_PROJECT}/rpm-packaging-openstack
           pushd ${OBS_TEST_PROJECT}/rpm-packaging-openstack
+          osc detachbranch
+          osc up
           bash -x pre_checkin.sh
           # download source files (needed for i.e. version updates or newly added .spec files)
           osc service localrun download_files
