@@ -43,7 +43,7 @@
           pushd ${OBS_TEST_PROJECT}/rpm-packaging-openstack
           bash -x pre_checkin.sh
           # download source files (needed for i.e. version updates or newly added .spec files)
-          osc service run download_files
+          osc service localrun download_files
           osc addremove
           osc status
           osc commit -m "rpm-packaging CI (${ZUUL_CHANGES})"
