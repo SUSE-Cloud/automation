@@ -217,7 +217,7 @@ ssh_user="root"
 mirror=http://149.44.161.38/images # ci1-opensuse
 
 cirros_base_url="http://download.cirros-cloud.net/0.3.4/"
-cirros_base_url="$mirror"
+# cirros_base_url="$mirror"
 cirros_base_name="cirros-0.3.4-x86_64"
 
 # since glanceclient Liberty, --is-public is gone and --visibility should be used
