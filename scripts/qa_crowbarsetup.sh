@@ -4033,6 +4033,13 @@ function onadmin_crowbarrestore()
         # per call (auth + actual request) which fails when running crowbarctl directly on the admin node
         safely crowbarctl backup upload /tmp/$btarball --anonymous
         safely crowbarctl backup restore $btarballname --anonymous --yes
+        # first wait until the restore process is no longer running
+        wait_for 360 10 "crowbar_restore_status | grep -q '\"restoring\": *false'" "crowbar to be restored"
+        # then check the actual status
+        if ! crowbar_restore_status | grep -q '"success": *true' ; then
+            crowbar_restore_status
+            complain 37 "Crowbar restore from backup failed."
+        fi
     else
         do_set_repos_skip_checks
 
