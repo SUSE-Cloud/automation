@@ -21,4 +21,4 @@
             nodenumber=4
             networkingmode=vxlan
             hacloud=1
-            mkcloudtarget=plain testsetup
+            mkcloudtarget=all_noreboot
