@@ -2857,10 +2857,9 @@ function prepare_proposals()
         update_one_proposal dns default
     fi
 
-    cmachines=$(get_all_nodes)
     local ptfchannel="SLE-Cloud-PTF"
     iscloudver 6plus && ptfchannel="PTF"
-    for machine in $cmachines; do
+    for machine in $(get_all_nodes); do
         ssh $machine "zypper mr -p 90 $ptfchannel"
     done
 
@@ -3470,9 +3469,7 @@ function onadmin_testsetup()
 
     local numdnsservers=$(crowbar dns proposal show default | rubyjsonparse "puts j['deployment']['dns']['elements']['dns-server'].length")
     if [ "$want_multidnstest" = 1 ] && [ "$numdnsservers" -gt 1 ] && iscloudver 5plus; then
-        cmachines=$(get_all_nodes)
-        for machine in $cmachines; do
-            issusenode $machine || continue
+        for machine in $(get_all_suse_nodes); do
             ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13' ||\
                 complain 13 "Multi DNS server test failed!"
         done
