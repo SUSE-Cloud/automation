@@ -1,0 +1,24 @@
+- job:
+    name: 'cloud-mkcloud6-job-ha-compute'
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H 21 * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud6
+            nodenumber=4
+            mkcloudtarget=all_batch
+            scenario=cloud6-4nodes-compute-ha.yml
+            want_node_aliases=controller=2,compute=2

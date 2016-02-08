@@ -1,0 +1,199 @@
+---
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: libvirt
+      libvirt:
+        hypervisor_ip: ##hypervisor_ip##
+      sbd:
+        nodes:
+          @@controller1@@:
+            devices:
+            - ''
+          @@controller2@@:
+            devices:
+            - ''
+      per_node:
+        nodes:
+          @@controller1@@:
+            params: ''
+          @@controller2@@:
+            params: ''
+    drbd:
+      enabled: true
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - @@controller1@@
+      - @@controller2@@
+      hawk-server:
+      - @@controller1@@
+      - @@controller2@@
+      pacemaker-remote:
+      - @@compute1@@
+      - @@compute2@@
+- barclamp: database
+  attributes:
+    ha:
+      storage:
+        mode: drbd
+        drbd:
+          size: 5
+  deployment:
+    elements:
+      database-server:
+      - cluster:services
+- barclamp: rabbitmq
+  attributes:
+    ha:
+      storage:
+        mode: drbd
+        drbd:
+          size: 5
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:services
+- barclamp: keystone
+  attributes:
+    api:
+      region: 'CustomRegion'
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+- barclamp: swift
+  attributes:
+    zones: 1
+    keystone_delay_auth_decision: true
+    allow_versions: true
+    middlewares:
+      crossdomain:
+        enabled: true
+      formpost:
+        enabled: true
+      staticweb:
+        enabled: true
+      tempurl:
+        enabled: true
+  deployment:
+    elements:
+      swift-dispersion:
+      - @@controller1@@
+      swift-proxy:
+      - cluster:services
+      swift-ring-compute:
+      - @@controller1@@
+      swift-storage:
+      - @@controller1@@
+      - @@controller2@@
+- barclamp: glance
+  attributes:
+    default_store: swift
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: local
+      backend_name: default
+      local:
+        volume_name: cinder-volumes
+        file_name: "/var/lib/cinder/volume.raw"
+        file_size: 2000
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - @@controller1@@
+      - @@controller2@@
+- barclamp: neutron
+  attributes:
+    ml2_type_drivers:
+    - gre
+    - vxlan
+    - vlan
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:services
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    kvm:
+      ksm_enabled: true
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - remotes:services
+      nova-compute-qemu: []
+      nova-compute-xen: []
+- barclamp: horizon
+  attributes:
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+- barclamp: heat
+  attributes:
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+- barclamp: ceilometer
+  attributes:
+  deployment:
+    elements:
+      ceilometer-agent:
+      - @@compute1@@
+      - @@compute2@@
+      ceilometer-agent-hyperv: []
+      ceilometer-polling:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware:
+      - @@controller1@@
+      - @@controller2@@
+- barclamp: manila
+  attributes:
+    shares:
+    - backend_driver: generic
+      backend_name: backend1
+      generic:
+        service_instance_user: root
+        service_instance_name_or_id: ##manila_instance_name_or_id##
+        service_net_name_or_ip: ##service_net_name_or_ip##
+        tenant_net_name_or_ip: ##tenant_net_name_or_ip##
+        service_instance_password: linux
+        share_volume_fstype: ext3
+  deployment:
+    elements:
+      manila-server:
+      - cluster:services
+      manila-share:
+      - @@controller1@@
+      - @@controller2@@
+- barclamp: trove
+  attributes:
+  deployment:
+    elements:
+      trove-server:
+      - @@controller1@@
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - @@controller1@@
