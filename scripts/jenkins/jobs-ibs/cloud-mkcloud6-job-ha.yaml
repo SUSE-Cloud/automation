@@ -1,0 +1,24 @@
+- job:
+    name: 'cloud-mkcloud6-job-ha'
+    node: cloud-trigger
+
+    triggers:
+      - timed: '11 2 * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud6
+            nodenumber=4
+            networkingmode=vxlan
+            hacloud=1
+            mkcloudtarget=plain testsetup
