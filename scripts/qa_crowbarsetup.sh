@@ -1558,6 +1558,11 @@ function crowbar_install_status()
     crowbar_any_status $crowbar_api_installer_path/status
 }
 
+function crowbar_restore_status()
+{
+    crowbar_any_status /utils/backups/restore_status
+}
+
 function do_installcrowbar_cloud6plus()
 {
     service crowbar status || service crowbar stop
