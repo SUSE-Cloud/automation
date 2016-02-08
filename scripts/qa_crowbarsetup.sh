@@ -1547,9 +1547,15 @@ function jsonice()
     (echo -n '{}'; cat -) | sed -e 's/^{}\s*{/{/' | safely python -mjson.tool
 }
 
+function crowbar_any_status()
+{
+    local api_path=$1
+    curl -s ${crowbar_api}${api_path}.json | jsonice
+}
+
 function crowbar_install_status()
 {
-    curl -s $crowbar_api$crowbar_api_installer_path/status.json | jsonice
+    crowbar_any_status $crowbar_api_installer_path/status
 }
 
 function do_installcrowbar_cloud6plus()
