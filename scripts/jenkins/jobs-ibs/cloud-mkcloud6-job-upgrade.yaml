@@ -1,0 +1,23 @@
+- job:
+    name: 'cloud-mkcloud6-job-upgrade'
+    node: cloud-trigger
+
+    triggers:
+      - timed: '32 22 * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud5
+            upgrade_cloudsource=develcloud5
+            nodenumber=2
+            mkcloudtarget=plain_with_upgrade testsetup rebootcloud
