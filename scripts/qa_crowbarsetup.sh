@@ -2899,7 +2899,7 @@ function deploy_single_proposal()
             ;;
         manila)
             # manila-service can not be deployed currently with docker
-            [[ -n "$want_docker" ]] || continue
+            [[ -n "$want_docker" ]] && continue
             if ! iscloudver 6plus; then
                 # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
                 if ! [[ "$cloudsource" == "develcloud5" ]] || [ -z "$want_sles12" ]; then
