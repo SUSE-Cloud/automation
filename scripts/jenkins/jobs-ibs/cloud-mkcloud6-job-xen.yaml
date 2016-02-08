@@ -18,5 +18,6 @@
           predefined-parameters: |
             TESTHEAD=1
             cloudsource=develcloud6
+            nodenumber=2
             libvirt_type=xen
             mkcloudtarget=all
