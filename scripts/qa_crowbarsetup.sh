@@ -4182,6 +4182,7 @@ function onadmin_setup_aliases()
 function onadmin_batch()
 {
     if iscloudver 5plus; then
+        sed -i "s/##hypervisor_ip##/$admingw/g" ${scenario}
         if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-8]$ ]]); then
             crowbar_batch --exclude manila --timeout 2400 build ${scenario}
             if grep -q "barclamp: manila" ${scenario}; then
