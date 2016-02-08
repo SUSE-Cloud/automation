@@ -453,6 +453,7 @@ function iscloudver()
 function issusenode
 {
     local machine=$1
+    [[ $machine =~ ^crowbar\. ]] && return 0
     knife node show $machine -a node.target_platform | grep -q suse-
 }
 
