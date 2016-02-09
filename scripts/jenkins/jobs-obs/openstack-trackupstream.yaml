@@ -30,7 +30,6 @@
             - openstack-ironic
             - openstack-keystone
             - openstack-manila
-            - openstack-networking-hyperv
             - openstack-neutron
             - openstack-neutron-fwaas
             - openstack-neutron-lbaas
@@ -59,6 +58,8 @@
             - python-keystonemiddleware
             - python-manilaclient
             - python-neutronclient
+            - python-networking-cisco
+            - python-networking-hyperv
             - python-novaclient
             - python-openstackclient
             - python-saharaclient
@@ -111,11 +112,12 @@
               "python-os-cloud-config",
               "python-os-collect-config"].contains(component) ||
             [ "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging"].contains(project) &&
-            [ "openstack-networking-hyperv",
-              "openstack-neutron-lbaas",
+            [ "openstack-neutron-lbaas",
               "openstack-neutron-fwaas",
               "openstack-neutron-vpnaas",
-              "openstack-ec2-api"].contains(component) )
+              "openstack-ec2-api",
+              "python-networking-cisco",
+              "python-networking-hyperv"].contains(component) )
       sequential: true
     builders:
       - update-automation
