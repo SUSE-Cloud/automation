@@ -225,8 +225,6 @@ proposals:
       ceilometer-agent-hyperv: []
       ceilometer-polling:
       - cluster:services
-      ceilometer-polling:
-      - cluster:services
       ceilometer-server:
       - cluster:services
       ceilometer-swift-proxy-middleware: []
