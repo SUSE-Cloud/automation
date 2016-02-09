@@ -36,6 +36,23 @@ proposals:
       - "@@controller2@@"
       - "@@controller3@@"
 
+- barclamp: nfs_client
+  name: glance
+  attributes:
+    exports:
+      images:
+        nfs_server: 10.162.26.129
+        export: ##shared_nfs_for_glance##
+        mount_path: "/images"
+        mount_options:
+        - nfsvers=3
+  deployment:
+    elements:
+      nfs-client:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+
 - barclamp: database
   attributes:
     ha:
@@ -69,6 +86,8 @@ proposals:
       - cluster:services
 
 - barclamp: glance
+  attributes:
+    filesystem_store_datadir: "/images"
   deployment:
     elements:
       glance-server:
