@@ -4188,7 +4188,10 @@ function onadmin_batch()
                 get_novacontroller
                 oncontroller oncontroller_manila_generic_driver_setup
                 get_manila_service_instance_details
-                sed -i "s/##manila_instance_name_or_id##/$manila_service_vm_uuid/g;s/##service_net_name_or_ip##/$manila_tenant_vm_ip/g" ${scenario}
+                sed -i "s/##manila_instance_name_or_id##/$manila_service_vm_uuid/g; \
+                        s/##service_net_name_or_ip##/$manila_tenant_vm_ip/g; \
+                        s/##tenant_net_name_or_ip##/$manila_tenant_vm_ip/g" \
+                        ${scenario}
                 crowbar_batch --include manila --timeout 2400 build ${scenario}
             fi
         else

@@ -221,16 +221,17 @@ proposals:
 
 - barclamp: manila
   attributes:
+    default_share_type: default
     shares:
     - backend_driver: generic
       backend_name: backend1
       generic:
         service_instance_user: root
-        service_instance_name_or_id: ##manila_instance_name_or_id##
-        service_net_name_or_ip: ##service_net_name_or_ip##
-        tenant_net_name_or_ip: fixed
         service_instance_password: linux
         share_volume_fstype: ext3
+        service_instance_name_or_id: ##manila_instance_name_or_id##
+        service_net_name_or_ip: ##service_net_name_or_ip##
+        tenant_net_name_or_ip: ##tenant_net_name_or_ip##
   deployment:
     elements:
       manila-server:
