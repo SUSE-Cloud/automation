@@ -209,7 +209,6 @@ proposals:
 
 - barclamp: trove
   attributes:
-    swift_instance: ''
     volume_support: true
   deployment:
     elements:
