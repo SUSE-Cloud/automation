@@ -126,7 +126,7 @@ proposals:
   attributes:
     itxt_instance: ''
     use_migration: true
-    vnc_keymap: de-de
+    vnc_keymap: de
     kvm:
       ksm_enabled: true
   deployment:

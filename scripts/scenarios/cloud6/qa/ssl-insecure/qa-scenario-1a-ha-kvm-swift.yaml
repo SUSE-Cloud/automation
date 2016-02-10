@@ -142,7 +142,7 @@ proposals:
     itxt_instance: ''
     use_shared_instance_storage: true
     use_migration: true
-    vnc_keymap: de-de
+    vnc_keymap: de
     kvm:
       ksm_enabled: true
     ssl:
