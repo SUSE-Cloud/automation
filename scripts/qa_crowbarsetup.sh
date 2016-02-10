@@ -4029,8 +4029,10 @@ function onadmin_crowbarrestore()
     if iscloudver 6plus ; then
         systemctl start crowbar.service
         wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
-        crowbarctl backup upload /tmp/$btarball
-        crowbarctl backup restore $btarballname --yes
+        # crowbarctl needs --anonymous to workaround a crowbarctl issue which leads to two api requsts
+        # per call (auth + actual request) which fails when running crowbarctl directly on the admin node
+        safely crowbarctl backup upload /tmp/$btarball --anonymous
+        safely crowbarctl backup restore $btarballname --anonymous --yes
     else
         do_set_repos_skip_checks
 
