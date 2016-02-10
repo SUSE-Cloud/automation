@@ -3181,7 +3181,7 @@ function oncontroller_manila_generic_driver_setup()
     openstack image create --file $service_image_name \
         $service_image_params --container-format bare --public \
         manila-service-image
-    nova flavor-create manila-service-image-flavor 100 256 0 1
+    nova flavor-create manila-service-image-flavor 100 512 0 1
 
     nova secgroup-create $sec_group "$sec_group description"
     nova secgroup-add-rule $sec_group icmp -1 -1 0.0.0.0/0
