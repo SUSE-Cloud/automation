@@ -2478,7 +2478,7 @@ function custom_configuration()
         nova)
             local role_prefix=`nova_role_prefix`
             # custom nova config of libvirt
-            proposal_set_value nova default "['attributes']['nova']['libvirt_type']" "'$libvirt_type'"
+            [[ $libvirt_type = hyperv ]] || proposal_set_value nova default "['attributes']['nova']['libvirt_type']" "'$libvirt_type'"
             proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
             [[ "$libvirt_type" = xen ]] && sed -i -e "s/${role_prefix}-compute-$libvirt_type/${role_prefix}-compute-xxx/g; s/${role_prefix}-compute-kvm/${role_prefix}-compute-$libvirt_type/g; s/${role_prefix}-compute-xxx/${role_prefix}-compute-kvm/g" $pfile
 
