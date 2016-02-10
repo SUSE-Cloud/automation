@@ -4063,7 +4063,12 @@ function onadmin_run_cct()
                 checkout_branch=cloud5
                 ;;
             develcloud6)
-                cct_tests+="+features:functional"
+                # Add functional tests if the proposal is deployed
+                # and the functional test scenario is implemented in cct.
+                for test in "nova" "manila"; do
+                    safely crowbarctl proposal list $test &> /dev/null && \
+                        cct_tests+="+test:func:${test}client"
+                done
                 ;;
         esac
 
