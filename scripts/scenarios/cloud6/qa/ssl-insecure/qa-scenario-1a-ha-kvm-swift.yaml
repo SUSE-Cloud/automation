@@ -170,13 +170,13 @@ proposals:
   deployment:
     elements:
       horizon-server:
-      - "@@controller1@@"
+      - cluster:services
 - barclamp: heat
   attributes:
   deployment:
     elements:
       heat-server:
-      - "@@controller1@@"
+      - cluster:services
 - barclamp: ceilometer
   attributes:
   deployment:
@@ -190,7 +190,9 @@ proposals:
       ceilometer-server:
       - cluster:services
       ceilometer-swift-proxy-middleware:
-      - cluster:services
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
 - barclamp: tempest
   attributes:
   deployment:

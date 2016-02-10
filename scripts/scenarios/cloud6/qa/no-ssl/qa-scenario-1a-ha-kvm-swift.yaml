@@ -135,13 +135,13 @@ proposals:
   deployment:
     elements:
       horizon-server:
-      - "@@controller1@@"
+      - cluster:services
 - barclamp: heat
   attributes:
   deployment:
     elements:
       heat-server:
-      - "@@controller1@@"
+      - cluster:services
 - barclamp: ceilometer
   attributes:
   deployment:
