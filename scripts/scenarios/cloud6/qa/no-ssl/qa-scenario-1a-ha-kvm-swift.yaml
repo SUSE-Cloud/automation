@@ -163,4 +163,4 @@ proposals:
   deployment:
     elements:
       tempest:
-      - cluster:services
+      - "@@controller1@@"
