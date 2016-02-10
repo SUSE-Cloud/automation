@@ -19,6 +19,7 @@
             TESTHEAD=1
             cloudsource=develcloud6
             nodenumber=4
+            hacloud=1
             mkcloudtarget=all_batch
             scenario=cloud6-4nodes-compute-ha.yml
             want_node_aliases=controller=2,compute=2
