@@ -4066,8 +4066,9 @@ function onadmin_run_cct()
                 # Add functional tests if the proposal is deployed
                 # and the functional test scenario is implemented in cct.
                 for test in "nova" "manila"; do
-                    safely crowbarctl proposal list $test &> /dev/null && \
+                    if crowbarctl proposal list $test &> /dev/null; then
                         cct_tests+="+test:func:${test}client"
+                    fi
                 done
                 ;;
         esac
