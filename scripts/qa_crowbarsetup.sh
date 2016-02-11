@@ -3208,6 +3208,11 @@ function oncontroller_manila_generic_driver_setup()
     openstack ip floating add $manila_tenant_vm_ip manila-service
 
     [ $? != 0 ] && complain 44 "adding a floating ip to the manila service VM failed"
+
+    # check that the service VM is pingable. otherwise manila tempest tests will fail later
+    wait_for 300 1 "nc -z $manila_tenant_vm_ip 22" \
+        "manila service VM booted and ssh port open" \
+        "echo \"ERROR: manila service VM not listening on ssh port. manila tests will fail!\""
 }
 
 # code run on controller/dashboard node to do basic tests of deployed cloud
