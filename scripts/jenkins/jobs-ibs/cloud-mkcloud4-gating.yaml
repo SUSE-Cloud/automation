@@ -1,14 +1,14 @@
 - job:
-    name: 'cloud-mkcloud5-gating-trigger'
+    name: 'cloud-mkcloud4-gating'
     node: cloud-trigger
 
     triggers:
-      - timed: 'H 19 */2 * *'
+      - timed: 'H 6 */2 * *'
       - pollurl:
-          cron: 'H/5 * * * *'
+          cron: 'H/2 * * * *'
           polling-node: cloud-trigger
           urls:
-            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/Devel:/Cloud:/5:/Staging/images/iso/?regexp=x86_64'
+            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/Devel:/Cloud:/4:/Staging/images/iso/?regexp=x86_64'
               check-content:
                 - simple: true
 
@@ -24,15 +24,16 @@
           condition: SUCCESS
           block: true
           predefined-parameters: |
-            cloudsource=develcloud5
+            cloudsource=develcloud4
+            TESTHEAD=1
             nodenumber=2
             mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
         - project: openstack-mkcloud
           condition: SUCCESS
           block: true
           predefined-parameters: |
-            cloudsource=develcloud5
-            want_sles12=1
+            cloudsource=develcloud4
+            TESTHEAD=1
             nodenumber=3
             networkingplugin=linuxbridge
 
@@ -44,6 +45,6 @@
           property-file: build_start_time
           fail-on-missing: True
           predefined-parameters: |
-            project=Devel:Cloud:5
+            project=Devel:Cloud:4
             subproject=Staging
             packagefilter=crowbar python openstack patterns release-notes-suse-openstack-cloud suse-cloud-upgrade

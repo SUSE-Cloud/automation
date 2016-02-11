@@ -1,5 +1,5 @@
 - job:
-    name: 'cloud-mkcloud6-gating-trigger'
+    name: 'cloud-mkcloud6-gating'
     project-type: multijob
     node: cloud-trigger
 

@@ -1,5 +1,5 @@
 - job:
-    name: 'cloud-mkcloud6-suse-trigger'
+    name: 'cloud-mkcloud6-suse'
     node: cloud-trigger
 
     triggers:
