@@ -284,6 +284,10 @@ function cleanup()
         kpartx -dsv /dev/mapper/$vol
     done
 
+    # workaround host grabbing guest devices
+    for vol in postgresql rabbitmq ; do
+        dmsetup remove drbd-$vol
+    done
     # 2. remove all previous volumes for that cloud; this helps preventing
     # accidental booting and freeing space
     if [ -d $vdisk_dir ]; then
