@@ -1747,6 +1747,7 @@ function set_node_raid()
     local t=$(mktemp).json
     knife node show -F json "$node" > $t
 
+    wait_for 10 5 "host $node &> /dev/null" "$node to be resolvable in DNS"
     # to find out available disks, we need to look at the nodes directly
     raid_disks=`ssh $node lsblk -n -d | cut -d' ' -f 1 | head -n $disks_count`
     raid_disks=`printf "\"/dev/%s\"," $raid_disks`
