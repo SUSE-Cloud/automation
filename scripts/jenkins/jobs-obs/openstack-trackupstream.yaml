@@ -18,12 +18,14 @@
           type: user-defined
           name: component
           values:
+            - openstack-aodh
             - openstack-ceilometer
             - openstack-cinder
             - openstack-dashboard
             - openstack-designate
             - openstack-ec2-api
             - openstack-glance
+            - openstack-gnocchi
             - openstack-heat
             - openstack-heat-templates
             - openstack-horizon-plugin-manila-ui
@@ -46,11 +48,13 @@
             - openstack-tuskar_ui
             - openstack-utils
             - openstack-zaqar
+            - python-aodhclient
             - python-barbicanclient
             - python-ceilometerclient
             - python-cinderclient
             - python-designateclient
             - python-glanceclient
+            - python-gnocchiclient
             - python-heatclient
             - python-heat-cfntools
             - python-ironicclient
@@ -81,7 +85,7 @@
             - cloud-trackupstream
     execution-strategy:
       combination-filter: |
-        ! ( [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging"].contains(project) &&
+        ! ( [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
             [ "python-barbicanclient",
               "python-ceilometerclient",
               "python-cinderclient",
@@ -110,14 +114,18 @@
               "openstack-zaqar",
               "python-os-apply-config",
               "python-os-cloud-config",
-              "python-os-collect-config"].contains(component) ||
-            [ "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging"].contains(project) &&
-            [ "openstack-neutron-lbaas",
+              "python-os-collect-config" ].contains(component) ||
+            [ "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
+            [ "openstack-aodh",
+              "openstack-gnocchi",
+              "openstack-neutron-lbaas",
               "openstack-neutron-fwaas",
               "openstack-neutron-vpnaas",
               "openstack-ec2-api",
+              "python-aodhclient",
+              "python-gnocchiclient"
               "python-networking-cisco",
-              "python-networking-hyperv"].contains(component) )
+              "python-networking-hyperv" ].contains(component) )
       sequential: true
     builders:
       - update-automation
