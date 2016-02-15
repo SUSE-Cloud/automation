@@ -1549,9 +1549,20 @@ function jsonice()
     (echo -n '{}'; cat -) | sed -e 's/^{}\s*{/{/' | safely python -mjson.tool
 }
 
+function crowbar_any_status()
+{
+    local api_path=$1
+    curl -s ${crowbar_api}${api_path}.json | jsonice
+}
+
 function crowbar_install_status()
 {
-    curl -s $crowbar_api$crowbar_api_installer_path/status.json | jsonice
+    crowbar_any_status $crowbar_api_installer_path/status
+}
+
+function crowbar_restore_status()
+{
+    crowbar_any_status /utils/backups/restore_status
 }
 
 function do_installcrowbar_cloud6plus()
@@ -4025,8 +4036,17 @@ function onadmin_crowbarrestore()
     if iscloudver 6plus ; then
         systemctl start crowbar.service
         wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
-        crowbarctl backup upload /tmp/$btarball
-        crowbarctl backup restore $btarballname --yes
+        # crowbarctl needs --anonymous to workaround a crowbarctl issue which leads to two api requsts
+        # per call (auth + actual request) which fails when running crowbarctl directly on the admin node
+        safely crowbarctl backup upload /tmp/$btarball --anonymous
+        safely crowbarctl backup restore $btarballname --anonymous --yes
+        # first wait until the restore process is no longer running
+        wait_for 360 10 "crowbar_restore_status | grep -q '\"restoring\": *false'" "crowbar to be restored"
+        # then check the actual status
+        if ! crowbar_restore_status | grep -q '"success": *true' ; then
+            crowbar_restore_status
+            complain 37 "Crowbar restore from backup failed."
+        fi
     else
         do_set_repos_skip_checks
 
