@@ -931,15 +931,25 @@ function onhost_reset_admin()
     safely prepareinstcrowbar
 }
 
+function crowbarupgrade_5plus()
+{
+    onadmin prepare_crowbar_upgrade
+    crowbarbackup
+    export cloudsource=$upgrade_cloudsource
+    crowbarrestore
+}
+
 function cloudupgrade()
 {
-    # upgrade workflow
-    # split into steps to be able to call them via eg. 'mkcloud onadmin_prepare_cloudupgrade'
-    safely onadmin prepare_cloudupgrade
-    safely onadmin cloudupgrade_1st
-    safely onadmin cloudupgrade_2nd
-    safely onadmin cloudupgrade_clients
-    safely onadmin cloudupgrade_reboot_and_redeploy_clients
+    if iscloudver 5plus ; then
+        crowbarupgrade_5plus
+    else
+        onadmin runlist prepare_cloudupgrade \
+                        cloudupgrade_1st \
+                        cloudupgrade_2nd \
+                        cloudupgrade_clients \
+                        cloudupgrade_reboot_and_redeploy_clients
+    fi
 }
 
 function cct()
