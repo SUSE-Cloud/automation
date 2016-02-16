@@ -86,11 +86,13 @@
     execution-strategy:
       combination-filter: |
         ! ( [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
-            [ "python-barbicanclient",
+            [ "python-aodhclient",
+              "python-barbicanclient",
               "python-ceilometerclient",
               "python-cinderclient",
               "python-designateclient",
               "python-glanceclient",
+              "python-gnocchiclient",
               "python-heatclient",
               "python-heat-cfntools",
               "python-ironicclient",
@@ -122,8 +124,6 @@
               "openstack-neutron-fwaas",
               "openstack-neutron-vpnaas",
               "openstack-ec2-api",
-              "python-aodhclient",
-              "python-gnocchiclient",
               "python-networking-cisco",
               "python-networking-hyperv" ].contains(component) )
       sequential: true
