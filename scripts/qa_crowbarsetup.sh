@@ -1944,7 +1944,7 @@ EOF
     done
 
     # check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
-    curl -m 9 -s --digest --user crowbar:crowbar $crowbar_api | \
+    curl -m 9 -s $crowbar_api_digest $crowbar_api | \
         tee /root/crowbartest.out
     if grep -q "Exception caught" /root/crowbartest.out; then
         complain 27 "simple crowbar test failed"
@@ -3972,11 +3972,10 @@ function onadmin_prepare_crowbar_upgrade()
         complain 11 "This upgrade path is only supported for Cloud 5+"
     else
         # using the API, due to missing crowbar cli integration
-        local digest="--digest -u crowbar:crowbar"
         # move nodes to upgrade mode
-        safely curl -s -X POST $digest $crowbar_api/installer/upgrade/prepare
+        safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare
         # stopping services
-        safely curl -s -X POST $digest $crowbar_api/installer/upgrade/services
+        safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/services
     fi
 }
 
@@ -3997,7 +3996,7 @@ function onadmin_crowbarbackup()
         [[ -e /tmp/$btarball ]] || complain 12 "Backup tarball not created: /tmp/$btarball"
     elif iscloudver 5 ; then
         # using the API, due to missing crowbarctl integration
-        safely curl -s --digest -u crowbar:crowbar $crowbar_api/installer/upgrade/file > /tmp/$btarball
+        safely curl -s $crowbar_api_digest $crowbar_api/installer/upgrade/file > /tmp/$btarball
     else
         AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
             safely bash -x /usr/sbin/crowbar-backup backup /tmp/$btarball
