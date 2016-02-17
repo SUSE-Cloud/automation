@@ -44,6 +44,7 @@ clusternamenetwork="network"
 wanthyperv=
 crowbar_api=http://localhost:3000
 crowbar_api_installer_path=/installer/installer
+crowbar_api_digest="--digest -u crowbar:crowbar"
 crowbar_install_log=/var/log/crowbar/install.log
 
 export nodenumber=${nodenumber:-2}
@@ -4040,8 +4041,9 @@ function onadmin_crowbarpurge()
 
 function onadmin_is_crowbar_api_available()
 {
-    local http_code=`curl -s -o /dev/null -w "%{http_code}" $crowbar_api`
-    [[ $http_code =~ 2.. || $http_code =~ 3.. ]]
+    local http_code
+    http_code=`curl $crowbar_api_digest -s -o /dev/null -w '%{http_code}' $crowbar_api`
+    [[ $http_code =~ [23].. ]]
 }
 
 function onadmin_crowbarrestore()
