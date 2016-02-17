@@ -1663,14 +1663,7 @@ EOF
         service smb restart
     fi
 
-    sleep 20
-    if ! curl -m 59 -s $crowbar_api  > /dev/null || \
-        ! curl -m 59 -s --digest --user crowbar:crowbar $crowbar_api  | \
-        grep -q /nodes/crowbar
-    then
-        tail -n 90 $crowbar_install_log
-        complain 84 "crowbar self-test failed"
-    fi
+    wait_for 30 5 "onadmin_is_crowbar_api_available" "crowbar service to start" "tail -n 90 $crowbar_install_log ; exit 11"
 
     if ! get_all_nodes | grep -q crowbar.$cloudfqdn ; then
         tail -n 90 $crowbar_install_log
