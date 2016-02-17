@@ -3970,8 +3970,6 @@ function onadmin_prepare_crowbar_upgrade()
         # using the API, due to missing crowbar cli integration
         # move nodes to upgrade mode
         safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare
-        # stopping services
-        safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/services
     fi
 }
 
