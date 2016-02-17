@@ -4042,6 +4042,7 @@ function onadmin_is_crowbar_api_available()
 function onadmin_crowbarrestore()
 {
     pre_hook $FUNCNAME
+    local restoremode=$1
     local btarballname=backup-crowbar
     local btarball=${btarballname}.tar.gz
     zypper --non-interactive in --auto-agree-with-licenses -t pattern cloud_admin
@@ -4049,10 +4050,24 @@ function onadmin_crowbarrestore()
     if iscloudver 6plus ; then
         systemctl start crowbar.service
         wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
-        # crowbarctl needs --anonymous to workaround a crowbarctl issue which leads to two api requsts
-        # per call (auth + actual request) which fails when running crowbarctl directly on the admin node
-        safely crowbarctl backup upload /tmp/$btarball --anonymous
-        safely crowbarctl backup restore $btarballname --anonymous --yes
+        case $restoremode in
+            with_upgrade)
+                # restore after upgrade has different workflow (missing APIs) than
+                #   a restore from a backup of the same cloud release
+                local http_code=`curl -X POST -F "file=@/tmp/$btarball" -s -o upgrade-start.txt -w '%{http_code}' $crowbar_api/installer/upgrade/start`
+                if ! [[ $http_code =~ [23].. ]] ; then
+                    cat upgrade-start.txt
+                    complain 36 "Could not start crowbar restore with upgrade workflow"
+                fi
+            ;;
+            *)
+                # crowbarctl needs --anonymous to workaround a crowbarctl issue which leads to two api requests
+                # per call (auth + actual request) which fails when running crowbarctl directly on the admin node
+                safely crowbarctl backup upload /tmp/$btarball --anonymous
+                safely crowbarctl backup restore $btarballname --anonymous --yes
+            ;;
+        esac
+
         # first wait until the restore process is no longer running
         wait_for 360 10 "crowbar_restore_status | grep -q '\"restoring\": *false'" "crowbar to be restored"
         # then check the actual status
