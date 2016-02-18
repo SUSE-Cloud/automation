@@ -58,7 +58,7 @@
           sleep 5
 
           # wait for build results (osc wait is buggy - https://github.com/openSUSE/osc/issues/180 )
-          timeout 1h bash -c -- '
+          timeout 4h bash -c -- '
               while true; do
                   unset pending
                   unset failed
