@@ -3201,6 +3201,7 @@ function oncontroller_manila_generic_driver_setup()
     nova secgroup-add-rule $sec_group icmp -1 -1 0.0.0.0/0
     nova secgroup-add-rule $sec_group tcp 22 22 0.0.0.0/0
     nova secgroup-add-rule $sec_group tcp 2049 2049 0.0.0.0/0
+    nova secgroup-add-rule $sec_group tcp 20000 65535 0.0.0.0/0
     nova secgroup-add-rule $sec_group udp 2049 2049 0.0.0.0/0
     nova secgroup-add-rule $sec_group udp 445 445 0.0.0.0/0
     nova secgroup-add-rule $sec_group tcp 445 445 0.0.0.0/0
