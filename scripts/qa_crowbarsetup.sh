@@ -44,6 +44,7 @@ clusternamenetwork="network"
 wanthyperv=
 crowbar_api=http://localhost:3000
 crowbar_api_installer_path=/installer/installer
+crowbar_api_digest="--digest -u crowbar:crowbar"
 crowbar_install_log=/var/log/crowbar/install.log
 
 export nodenumber=${nodenumber:-2}
@@ -1662,14 +1663,7 @@ EOF
         service smb restart
     fi
 
-    sleep 20
-    if ! curl -m 59 -s $crowbar_api  > /dev/null || \
-        ! curl -m 59 -s --digest --user crowbar:crowbar $crowbar_api  | \
-        grep -q /nodes/crowbar
-    then
-        tail -n 90 $crowbar_install_log
-        complain 84 "crowbar self-test failed"
-    fi
+    wait_for 30 5 "onadmin_is_crowbar_api_available" "crowbar service to start" "tail -n 90 $crowbar_install_log ; exit 11"
 
     if ! get_all_nodes | grep -q crowbar.$cloudfqdn ; then
         tail -n 90 $crowbar_install_log
@@ -1943,7 +1937,7 @@ EOF
     done
 
     # check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
-    curl -m 9 -s --digest --user crowbar:crowbar $crowbar_api | \
+    curl -m 9 -s $crowbar_api_digest $crowbar_api | \
         tee /root/crowbartest.out
     if grep -q "Exception caught" /root/crowbartest.out; then
         complain 27 "simple crowbar test failed"
@@ -3971,11 +3965,10 @@ function onadmin_prepare_crowbar_upgrade()
         complain 11 "This upgrade path is only supported for Cloud 5+"
     else
         # using the API, due to missing crowbar cli integration
-        local digest="--digest -u crowbar:crowbar"
         # move nodes to upgrade mode
-        safely curl -s -X POST $digest $crowbar_api/installer/upgrade/prepare
+        safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare
         # stopping services
-        safely curl -s -X POST $digest $crowbar_api/installer/upgrade/services
+        safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/services
     fi
 }
 
@@ -3996,7 +3989,7 @@ function onadmin_crowbarbackup()
         [[ -e /tmp/$btarball ]] || complain 12 "Backup tarball not created: /tmp/$btarball"
     elif iscloudver 5 ; then
         # using the API, due to missing crowbarctl integration
-        safely curl -s --digest -u crowbar:crowbar $crowbar_api/installer/upgrade/file > /tmp/$btarball
+        safely curl -s $crowbar_api_digest $crowbar_api/installer/upgrade/file > /tmp/$btarball
     else
         AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
             safely bash -x /usr/sbin/crowbar-backup backup /tmp/$btarball
@@ -4040,8 +4033,9 @@ function onadmin_crowbarpurge()
 
 function onadmin_is_crowbar_api_available()
 {
-    local http_code=`curl -s -o /dev/null -w "%{http_code}" $crowbar_api`
-    [[ $http_code =~ 2.. || $http_code =~ 3.. ]]
+    local http_code
+    http_code=`curl $crowbar_api_digest -s -o /dev/null -w '%{http_code}' $crowbar_api`
+    [[ $http_code =~ [23].. ]]
 }
 
 function onadmin_crowbarrestore()
