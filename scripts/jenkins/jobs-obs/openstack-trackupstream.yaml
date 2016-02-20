@@ -36,8 +36,10 @@
             - openstack-neutron-fwaas
             - openstack-neutron-lbaas
             - openstack-neutron-vpnaas
+            - openstack-neutron-zvm-agent
             - openstack-nova
             - openstack-nova-docker
+            - openstack-nova-virt-zvm
             - openstack-quickstart
             - openstack-resource-agents
             - openstack-sahara
@@ -123,6 +125,8 @@
               "openstack-neutron-lbaas",
               "openstack-neutron-fwaas",
               "openstack-neutron-vpnaas",
+              "openstack-neutron-zvm-agent",
+              "openstack-nova-virt-zvm",
               "openstack-ec2-api",
               "python-networking-cisco",
               "python-networking-hyperv" ].contains(component) )
