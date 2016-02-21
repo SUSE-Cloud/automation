@@ -3328,6 +3328,8 @@ function oncontroller_testsetup()
     if iscloudver 6plus || [[ $cloudsource =~ develcloud ]]; then
         su - glance -s /bin/sh -c "/usr/bin/glance-scrubber" \
             || complain 113 "Glance scrubber doesn't work properly"
+        grep -v glance_store /var/log/glance/scrubber.log | grep ERROR \
+            && complain 114 "Unexpected errors in glance-scrubber logs"
     fi
 
     if [ -n "$want_docker" ] ; then
