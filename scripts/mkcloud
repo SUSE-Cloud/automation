@@ -353,10 +353,15 @@ function onhost_create_cloud_lvm()
         _lvcreate $cloud.node$i $hdd_size $cloudvg $next_pv_device
     done
     if [ $controller_raid_volumes -gt 1 ] ; then
+        # total wipeout of the disks used for RAID, to prevent bsc#966685
+        volume="/dev/$cloudvg/$cloud.node1"
+        dd if=/dev/zero of=$volume bs=1M count=$(($controller_hdd_size * 1024))
         for n in $(seq 1 $(($controller_raid_volumes-1))) ; do
             onhost_get_next_pv_device
             hdd_size=${controller_hdd_size}
             _lvcreate $cloud.node1-raid$n $hdd_size $cloudvg $next_pv_device
+            volume="/dev/$cloudvg/$cloud.node1-raid$n"
+            dd if=/dev/zero of=$volume bs=1M count=$(($hdd_size * 1024))
         done
     fi
 
