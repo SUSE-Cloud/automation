@@ -12,8 +12,7 @@
           values:
             - Cloud:OpenStack:Kilo:Staging
             - Cloud:OpenStack:Liberty:Staging
-              # Temporarily disabled until we have more time
-              # - Cloud:OpenStack:Master
+            - Cloud:OpenStack:Master
       - axis:
           type: user-defined
           name: component
