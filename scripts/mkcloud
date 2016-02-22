@@ -291,8 +291,10 @@ function cleanup()
     # 2. remove all previous volumes for that cloud; this helps preventing
     # accidental booting and freeing space
     if [ -d $vdisk_dir ]; then
-        find -L $vdisk_dir -name "$cloud.*" -type b | \
-            xargs --no-run-if-empty lvremove --force || complain 104 "lvremove failure"
+        for dev in $(find -L $vdisk_dir -name "$cloud.*" -type b) ; do
+            wipefs --all --force "$dev"
+            lvremove --force "$dev" || complain 104 "lvremove failure"
+        done
     fi
     rm -f /etc/lvm/archive/*
 
