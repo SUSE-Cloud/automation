@@ -168,6 +168,7 @@ proposals:
       - @@controller2@@
 - barclamp: manila
   attributes:
+    default_share_type: default
     shares:
     - backend_driver: generic
       backend_name: backend1
