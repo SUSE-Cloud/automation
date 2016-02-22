@@ -332,8 +332,8 @@ function _lvcreate()
 
     # first: create on the PV device (spread IO)
     # fallback: create in VG (if PVs with different size exist)
-    lvcreate -n $lv_name -L ${lv_size}G $lv_vg $lv_pv || \
-        safely lvcreate -n $lv_name -L ${lv_size}G $lv_vg
+    lvcreate -n $lv_name --wipesignatures y --yes -L ${lv_size}G $lv_vg $lv_pv || \
+        safely lvcreate -n $lv_name --wipesignatures y --yes -L ${lv_size}G $lv_vg
 }
 
 # spread block devices over a LVM's PVs so that different VMs
