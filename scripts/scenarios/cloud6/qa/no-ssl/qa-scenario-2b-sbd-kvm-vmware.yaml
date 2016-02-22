@@ -98,8 +98,14 @@ proposals:
 - barclamp: cinder
   attributes:
     volumes:
+    - backend_driver: local
+      backend_name: default
+      local:
+        volume_name: cinder-volumes
+        file_name: "/var/lib/cinder/volume.raw"
+        file_size: 2000
     - backend_driver: vmware
-      backend_name: vmware-backend
+      backend_name: vmware
       vmware:
         volume_folder: cinder-vmw-volume
         host: vcs.qa.suse.de
