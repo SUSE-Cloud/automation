@@ -148,9 +148,6 @@ proposals:
     volumes:
     - backend_driver: local
       backend_name: default
-      raw:
-        volume_name: cinder-volumes
-        cinder_raw_method: first
       local:
         volume_name: cinder-volumes
         file_name: "/var/lib/cinder/volume.raw"
