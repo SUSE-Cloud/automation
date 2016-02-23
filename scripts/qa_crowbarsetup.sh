@@ -2656,6 +2656,8 @@ function custom_configuration()
         provisioner)
             # set default password to 'linux'
             proposal_set_value provisioner default "['attributes']['provisioner']['root_password_hash']" "\"$(openssl passwd -1 linux)\""
+            # set discovery root password too
+            iscloudver 6M12plus && proposal_set_value provisioner default "['attributes']['provisioner']['discovery']['append']" "\"DISCOVERY_ROOT_PASSWORD=linux\""
 
             if [[ $keep_existing_hostname = 1 ]] ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
