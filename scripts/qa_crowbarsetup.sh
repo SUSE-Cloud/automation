@@ -4064,6 +4064,8 @@ function onadmin_crowbarrestore()
             crowbar_restore_status
             complain 37 "Crowbar restore from backup failed."
         fi
+        # wait for chef-client run to be completed
+        flock -w 120 /var/chef/cache/chef-client-running.pid true
     else
         do_set_repos_skip_checks
 
