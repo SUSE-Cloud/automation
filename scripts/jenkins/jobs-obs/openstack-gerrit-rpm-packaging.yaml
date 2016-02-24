@@ -63,6 +63,10 @@
                   unset pending
                   unset failed
                   res=`osc results --csv -w -r SLE_12`
+                  if [ $? -ne 0 ]; then
+                      sleep 5
+                      continue
+                  fi
                   echo ">>: ${res}"
                   for r in $res; do
                       # some failures?
