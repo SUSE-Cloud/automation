@@ -34,6 +34,10 @@
               submitcmd="$OSC copypac -K -e"
               OSCBUILDDIST=SLE_12
             ;;
+            Cloud:OpenStack:[MN]*)
+              submitcmd="$OSC copypac -K -e"
+              OSCBUILDDIST=SLE_12_SP1
+            ;;
             *) echo "Please add support for the project: $project"
               exit 1
             ;;
