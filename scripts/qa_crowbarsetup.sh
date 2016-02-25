@@ -4069,7 +4069,7 @@ function onadmin_crowbarrestore()
         esac
 
         # first wait until the restore process is no longer running
-        wait_for 360 10 "crowbar_restore_status | grep -q '\"restoring\": *false'" "crowbar to be restored"
+        wait_for 360 10 "crowbar_restore_status | grep -q '\"restoring\": *false'" "crowbar to be restored" "crowbar_restore_status ; complain 11 'crowbar restore failed'"
         # then check the actual status
         if ! crowbar_restore_status | grep -q '"success": *true' ; then
             crowbar_restore_status
