@@ -1589,7 +1589,7 @@ function do_installcrowbar_cloud6plus()
     curl -s -X POST $crowbar_api$crowbar_api_installer_path/start || complain 39 "crowbar is not running"
 
     wait_for 9 2 "crowbar_install_status | grep -q '\"installing\": *true'" "crowbar to start installing" "tail -n 500 $crowbar_install_log ; complain 88 'crowbar did not start to install'"
-    wait_for 60 10 "crowbar_install_status | grep -q '\"installing\": *false'" "crowbar to get installed" "tail -n 500 $crowbar_install_log ; complain 89 'crowbar install failed'"
+    wait_for 60 10 "crowbar_install_status | grep -q '\"installing\": *false'" "crowbar to finish installing" "tail -n 500 $crowbar_install_log ; complain 89 'crowbar installation failed'"
     if ! crowbar_install_status | grep -q '\"success\": *true' ; then
         tail -n 500 $crowbar_install_log
         crowbar_install_status
