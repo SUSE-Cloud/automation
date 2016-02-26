@@ -68,6 +68,8 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
+    trove:
+      enabled: true
     ha:
       storage:
         shared:

@@ -2411,6 +2411,9 @@ function custom_configuration()
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
                 proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamedata']"
             fi
+            if iscloudver 5plus; then
+                proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
+            fi
         ;;
         dns)
             [ "$want_multidnstest" = 1 ] || return 0
