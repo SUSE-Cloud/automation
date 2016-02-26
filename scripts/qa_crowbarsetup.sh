@@ -3996,6 +3996,7 @@ function onadmin_prepare_crowbar_upgrade()
 function onadmin_crowbarbackup()
 {
     pre_hook $FUNCNAME
+    local backupmode=$1
     local btarballname=backup-crowbar
     local btarball=${btarballname}.tar.gz
     rm -f /tmp/$btarball
@@ -4008,7 +4009,7 @@ function onadmin_crowbarbackup()
         safely crowbarctl backup download $bid
         popd
         [[ -e /tmp/$btarball ]] || complain 12 "Backup tarball not created: /tmp/$btarball"
-    elif iscloudver 5 && isupgradecloudver 6 ; then
+    elif iscloudver 5 && [[ $backupmode = "with_upgrade" ]] ; then
         # using the API, due to missing crowbarctl integration
         safely curl -s $crowbar_api_digest $crowbar_api/installer/upgrade/file > /tmp/$btarball
     else

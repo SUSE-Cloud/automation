@@ -904,7 +904,7 @@ function qa_test()
 
 function crowbarbackup()
 {
-    safely onadmin crowbarbackup
+    safely onadmin crowbarbackup "$@"
     local btargetdir=${artifacts_dir:-.}
     mkdir -p "$btargetdir"
     safely $scp root@$adminip:/tmp/backup-crowbar.tar.gz "$btargetdir"
@@ -939,7 +939,7 @@ function onhost_reset_admin()
 function crowbarupgrade_5plus()
 {
     onadmin prepare_crowbar_upgrade
-    crowbarbackup
+    crowbarbackup "with_upgrade"
     export cloudsource=$upgrade_cloudsource
     crowbarrestore "with_upgrade"
 }
