@@ -1590,6 +1590,7 @@ function do_installcrowbar_cloud6plus()
 
     wait_for 60 10 "crowbar_install_status | grep -q '\"installing\": *false'" "crowbar to get installed" "tail -n 500 $crowbar_install_log ; complain 89 'crowbar install failed'"
     if ! crowbar_install_status | grep -q '\"success\": *true' ; then
+        tail -n 500 $crowbar_install_log
         crowbar_install_status
         complain 90 "Crowbar installation failed"
     fi
