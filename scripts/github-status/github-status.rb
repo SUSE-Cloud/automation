@@ -147,6 +147,10 @@ optparse = OptionParser.new do |opts|
     options[:repository] = repo
   end
 
+  opts.on('-x', '--context context-string', 'Github Status Context String') do |ctx|
+    options[:context] = ctx
+  end
+
   opts.on('-c', '--sha SHA1SUM', 'Github Commit SHA1 Sum') do |sha|
     options[:sha] = sha
   end
@@ -183,7 +187,7 @@ end
 
 optparse.parse!
 
-ghc=GHClientHandler.new(repository: options[:repository], branch: options[:branch])
+ghc=GHClientHandler.new(repository: options[:repository], branch: options[:branch], context: options[:context])
 
 def require_parameter(param, message)
   if param.to_s.empty?
