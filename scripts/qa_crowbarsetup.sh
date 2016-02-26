@@ -451,6 +451,12 @@ function iscloudver()
     return $?
 }
 
+function isupgradecloudver()
+{
+    local cloudsource=upgrade_cloudsource
+    iscloudver "$@"
+}
+
 function issusenode
 {
     local machine=$1
@@ -4002,7 +4008,7 @@ function onadmin_crowbarbackup()
         safely crowbarctl backup download $bid
         popd
         [[ -e /tmp/$btarball ]] || complain 12 "Backup tarball not created: /tmp/$btarball"
-    elif iscloudver 5 ; then
+    elif iscloudver 5 && isupgradecloudver 6 ; then
         # using the API, due to missing crowbarctl integration
         safely curl -s $crowbar_api_digest $crowbar_api/installer/upgrade/file > /tmp/$btarball
     else
