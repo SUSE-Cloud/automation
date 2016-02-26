@@ -923,7 +923,7 @@ function crowbarrestore()
         onhost_reset_admin
     fi
     safely $scp "$btarball" root@$adminip:/tmp/
-    safely onadmin crowbarrestore
+    safely onadmin crowbarrestore "$@"
 }
 
 
@@ -941,7 +941,7 @@ function crowbarupgrade_5plus()
     onadmin prepare_crowbar_upgrade
     crowbarbackup
     export cloudsource=$upgrade_cloudsource
-    crowbarrestore
+    crowbarrestore "with_upgrade"
 }
 
 function cloudupgrade()
