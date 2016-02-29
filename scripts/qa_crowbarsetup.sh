@@ -2245,6 +2245,19 @@ function enable_ssl_generic()
     $p "$a['ssl']['insecure']" true
 }
 
+function enable_debug_generic()
+{
+    local service=$1
+    echo "Enabling DEBUG for $service"
+    local p="proposal_set_value $service default"
+    local a="['attributes']['$service']"
+    case $service in
+        *)
+            $p "$a['debug']['enabled']" true
+        ;;
+    esac
+}
+
 function hacloud_configure_cluster_members()
 {
     local clustername=$1
@@ -2376,6 +2389,13 @@ function custom_configuration()
         keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard)
             if [[ $want_all_ssl = 1 ]] || eval [[ \$want_${proposal}_ssl = 1 ]] ; then
                 enable_ssl_generic $proposal
+            fi
+    esac
+
+    case "$proposal" in
+        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard)
+            if [[ $want_all_debug = 1 ]] || eval [[ \$want_${proposal}_debug = 1 ]] ; then
+                enable_debug_generic $proposal
             fi
         ;;
     esac
