@@ -62,7 +62,7 @@
               while true; do
                   unset pending
                   unset failed
-                  res=`osc results --csv -w -r SLE_12`
+                  res=`osc results --csv -w -r SLE_12_SP1`
                   if [ $? -ne 0 ]; then
                       sleep 5
                       continue
