@@ -29,6 +29,7 @@
               node-label: cloud-trigger
               predefined-parameters: |
                 cloudsource=develcloud{version}
+                TESTHEAD=1
                 nodenumber=2
                 mkcloudtarget=all_batch
                 scenario=cloud{version}-2nodes-default.yml
@@ -36,11 +37,18 @@
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
+                TESTHEAD=1
                 cloudsource=develcloud{version}
                 nodenumber=4
                 want_ldap=1
                 networkingplugin=linuxbridge
                 mkcloudtarget=all
+      - multijob:
+          name: 'Extra Gate Checks (HA)'
+          condition: SUCCESSFUL
+          projects:
+            - name: cloud-mkcloud6-job-ha
+              node-label: cloud-trigger
 
     publishers:
       - trigger-parameterized-builds:
