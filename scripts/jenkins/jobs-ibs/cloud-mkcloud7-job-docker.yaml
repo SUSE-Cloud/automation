@@ -1,0 +1,24 @@
+- job:
+    name: 'cloud-mkcloud7-job-docker'
+    node: cloud-trigger
+    disbaled: true
+
+    triggers:
+      - timed: 'H H * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud7
+            nodenumber=2
+            want_docker=1
+            mkcloudtarget=all

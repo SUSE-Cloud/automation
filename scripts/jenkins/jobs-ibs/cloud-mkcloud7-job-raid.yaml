@@ -1,0 +1,25 @@
+- job:
+    name: 'cloud-mkcloud7-job-raid'
+    node: cloud-trigger
+    disbaled: true
+
+    triggers:
+      - timed: 'H 20 * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud7
+            nodenumber=2
+            controller_raid_volumes=2
+            want_raidtype=raid1
+            mkcloudtarget=all

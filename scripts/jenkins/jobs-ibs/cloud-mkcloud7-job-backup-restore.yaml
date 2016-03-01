@@ -1,0 +1,23 @@
+- job:
+    name: 'cloud-mkcloud7-job-backup-restore'
+    node: cloud-trigger
+    disbaled: true
+
+    triggers:
+      - timed: 'H 22 * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud7
+            nodenumber=2
+            mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
