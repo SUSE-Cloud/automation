@@ -29,6 +29,7 @@ function h_setup_base_repos {
         # /etc/os-release has SLES as $NAME, but we need SLE for repositories
         if [[ $DIST_NAME == "SLES" ]]; then
             DIST_NAME="SLE"
+            DIST_VERSION=${VERSION}
         fi
 
         # /etc/os-release has a date and string combination for Tumbleweed
