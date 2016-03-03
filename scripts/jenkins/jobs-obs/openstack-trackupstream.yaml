@@ -150,8 +150,10 @@
             OBS) OSCAPI="https://api.opensuse.org"
                 OSC_BUILD_ARCH=x86_64
                 case $OBS_PROJECT in
-                    Cloud:OpenStack:Master|Cloud:OpenStack:Liberty*|Cloud:OpenStack:Kilo*)
-                            # FIXME(toabctl): Switch to SLE12SP1 for Liberty when SP1 release is ready
+                    Cloud:OpenStack:Master|Cloud:OpenStack:Mitaka*|Cloud:OpenStack:Liberty*)
+                        OSC_BUILD_DIST=SLE_12_SP1
+                        ;;
+                    Cloud:OpenStack:Kilo*)
                         OSC_BUILD_DIST=SLE_12
                         ;;
                     *)
