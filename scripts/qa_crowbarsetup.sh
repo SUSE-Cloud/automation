@@ -416,8 +416,10 @@ function getcloudver()
         echo -n 4
     elif [[ $cloudsource =~ ^.*(cloud|GM)5(\+up)?$ ]] ; then
         echo -n 5
-    elif [[ $cloudsource =~ ^(.+6|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM6?(\+up)?)$ ]] ; then
+    elif [[ $cloudsource =~ ^.*(cloud|GM)6(\+up)?$ ]] ; then
         echo -n 6
+    elif [[ $cloudsource =~ ^(.+7|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM7?(\+up)?)$ ]] ; then
+        echo -n 7
     else
         complain 11 "unknown cloudsource version"
     fi
@@ -638,7 +640,7 @@ function addcctdepsrepo()
         develcloud5|GM5|GM5+up)
             zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
             ;;
-        develcloud6|susecloud6|M?|Beta*|RC*|GMC*|GM6|GM6+up)
+        develcloud6|develcloud7|susecloud7|M?|Beta*|RC*|GMC*|GM6|GM6+up)
             zypper ar -f http://download.suse.de/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
             zypper ar -f http://download.suse.de/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
             ;;
@@ -1140,7 +1142,7 @@ function onadmin_prepare_cloud_repos()
                 addsp3testupdates
                 addsles12testupdates
                 ;;
-            develcloud6|susecloud6|M?|Beta*|RC*|GMC*)
+            develcloud6|develcloud7|susecloud7|M?|Beta*|RC*|GMC*)
                 addsles12sp1testupdates
                 ;;
             *)
@@ -1291,10 +1293,17 @@ function onadmin_set_source_variables()
             CLOUDSLE12TESTISO="CLOUD-6-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
-        susecloud6)
-            CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP1:/Update:/Products:/Cloud6/images/iso/
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
+        develcloud7)
+            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7/images/iso
+            [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7:/Staging/images/iso
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
+        ;;
+        susecloud7)
+            CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/Cloud7/images/iso/
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
         GM4|GM4+up)
             CLOUDSLE11DISTPATH=/install/SLE-11-SP3-Cloud-4-GM/
@@ -1316,7 +1325,7 @@ function onadmin_set_source_variables()
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|susecloud5|GM4|GM5|Mx|GM6"
+            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|develcloud7|susecloud7|GM4|GM5|Mx|GM6"
         ;;
     esac
 
@@ -4158,7 +4167,7 @@ function onadmin_run_cct()
             develcloud5|GM5|GM5+up)
                 checkout_branch=cloud5
                 ;;
-            develcloud6)
+            develcloud6|develcloud7)
                 # Add functional tests if the proposal is deployed
                 # and the functional test scenario is implemented in cct.
                 for test in "nova" "manila"; do
