@@ -23,7 +23,8 @@ function h_setup_base_repos {
     if [[ -r /etc/os-release ]]; then
         . /etc/os-release
 
-        DIST_NAME=${NAME}
+        # openSUSE Leap has a space in it's name
+        DIST_NAME=${NAME// /_}
         DIST_VERSION=${VERSION_ID}
 
         # /etc/os-release has SLES as $NAME, but we need SLE for repositories
@@ -37,6 +38,11 @@ function h_setup_base_repos {
         if [[ $VERSION == *"Tumbleweed"* ]]; then
             DIST_VERSION="Tumbleweed"
         fi
+    fi
+
+    if [[ $DIST_NAME == "openSUSE_Leap" ]]; then
+        $zypper ar -f http://download.opensuse.org/distribution/leap/${DIST_VERSION}/repo/oss/ Base || true
+        $zypper ar -f http://download.opensuse.org/update/leap/${DIST_VERSION}/oss/openSUSE:Leap:${DIST_VERSION}:Update.repo || true
     fi
 
     if [[ $DIST_NAME == "openSUSE" ]]; then
