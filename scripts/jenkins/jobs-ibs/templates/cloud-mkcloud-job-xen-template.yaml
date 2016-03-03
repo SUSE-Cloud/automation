@@ -1,10 +1,9 @@
-- job:
-    name: 'cloud-mkcloud7-job-dvr'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-xen'
     node: cloud-trigger
-    disbaled: true
 
     triggers:
-      - timed: 'H 20 * * *'
+      - timed: 'H 6 * * *'
 
     logrotate:
       numToKeep: 7
@@ -18,9 +17,7 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud7
-            nodenumber=3
-            networkingplugin=openvswitch
-            networkingmode=vlan
-            want_dvr=1
+            cloudsource=develcloud{version}
+            nodenumber=2
+            libvirt_type=xen
             mkcloudtarget=all

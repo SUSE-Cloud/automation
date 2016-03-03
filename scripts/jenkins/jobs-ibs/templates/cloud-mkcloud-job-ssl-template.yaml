@@ -1,7 +1,6 @@
-- job:
-    name: 'cloud-mkcloud7-job-ssl'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-ssl'
     node: cloud-trigger
-    disbaled: true
 
     triggers:
       - timed: '29 1 * * *'
@@ -18,7 +17,7 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud7
+            cloudsource=develcloud{version}
             nodenumber=2
             want_all_ssl=1
             mkcloudtarget=all

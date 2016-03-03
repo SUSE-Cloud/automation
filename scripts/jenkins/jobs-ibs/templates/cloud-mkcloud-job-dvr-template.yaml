@@ -1,9 +1,9 @@
-- job:
-    name: 'cloud-mkcloud6-job-backup-restore'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-dvr'
     node: cloud-trigger
 
     triggers:
-      - timed: 'H 22 * * *'
+      - timed: 'H 20 * * *'
 
     logrotate:
       numToKeep: 7
@@ -17,6 +17,9 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud6
-            nodenumber=2
-            mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
+            cloudsource=develcloud{version}
+            nodenumber=3
+            networkingplugin=openvswitch
+            networkingmode=vlan
+            want_dvr=1
+            mkcloudtarget=all

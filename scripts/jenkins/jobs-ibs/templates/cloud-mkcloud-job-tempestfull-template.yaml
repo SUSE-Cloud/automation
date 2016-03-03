@@ -1,10 +1,9 @@
-- job:
-    name: 'cloud-mkcloud7-job-upgrade'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-tempestfull'
     node: cloud-trigger
-    disbaled: true
 
     triggers:
-      - timed: '32 22 * * *'
+      - timed: 'H 3 * * *'
 
     logrotate:
       numToKeep: 7
@@ -18,7 +17,7 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud5
-            upgrade_cloudsource=develcloud7
+            cloudsource=develcloud{version}
             nodenumber=2
-            mkcloudtarget=plain_with_upgrade testsetup rebootcloud
+            tempestoptions=-t
+            mkcloudtarget=all_noreboot

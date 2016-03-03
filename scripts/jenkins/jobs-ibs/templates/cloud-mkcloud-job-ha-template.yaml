@@ -1,9 +1,9 @@
-- job:
-    name: 'cloud-mkcloud6-job-ssl'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-ha'
     node: cloud-trigger
 
     triggers:
-      - timed: '29 1 * * *'
+      - timed: '11 2 * * *'
 
     logrotate:
       numToKeep: 7
@@ -17,7 +17,8 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud6
-            nodenumber=2
-            want_all_ssl=1
-            mkcloudtarget=all
+            cloudsource=develcloud{version}
+            nodenumber=4
+            networkingmode=vxlan
+            hacloud=1
+            mkcloudtarget=all_noreboot

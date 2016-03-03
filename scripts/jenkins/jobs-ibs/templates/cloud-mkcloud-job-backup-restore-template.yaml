@@ -1,10 +1,9 @@
-- job:
-    name: 'cloud-mkcloud7-job-docker'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-backup-restore'
     node: cloud-trigger
-    disbaled: true
 
     triggers:
-      - timed: 'H H * * *'
+      - timed: 'H 22 * * *'
 
     logrotate:
       numToKeep: 7
@@ -18,7 +17,6 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud7
+            cloudsource=develcloud{version}
             nodenumber=2
-            want_docker=1
-            mkcloudtarget=all
+            mkcloudtarget=plain crowbarbackup crowbarrestore testsetup

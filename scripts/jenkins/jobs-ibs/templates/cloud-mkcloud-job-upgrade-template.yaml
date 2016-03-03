@@ -1,9 +1,9 @@
-- job:
-    name: 'cloud-mkcloud6-job-raid'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-upgrade'
     node: cloud-trigger
 
     triggers:
-      - timed: 'H 20 * * *'
+      - timed: '32 22 * * *'
 
     logrotate:
       numToKeep: 7
@@ -17,8 +17,7 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud6
+            cloudsource=develcloud{previous_version}
+            upgrade_cloudsource=develcloud{version}
             nodenumber=2
-            controller_raid_volumes=2
-            want_raidtype=raid1
-            mkcloudtarget=all
+            mkcloudtarget=plain_with_upgrade testsetup rebootcloud

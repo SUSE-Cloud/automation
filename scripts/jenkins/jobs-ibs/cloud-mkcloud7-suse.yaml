@@ -1,7 +1,6 @@
 - job:
     name: 'cloud-mkcloud7-suse'
     node: cloud-trigger
-    disbaled: true
 
     triggers:
       - pollurl:
@@ -27,7 +26,7 @@
             want_test_updates=1
             nodenumber=2
             mkcloudtarget=all_batch
-            scenario=cloud6-2nodes-default.yml
+            scenario=cloud7-2nodes-default.yml
             want_node_aliases=controller=1,compute-kvm=1
         - project: openstack-mkcloud
           condition: SUCCESS
