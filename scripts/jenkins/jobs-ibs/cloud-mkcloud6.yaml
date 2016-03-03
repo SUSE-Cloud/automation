@@ -1,0 +1,6 @@
+- project:
+    name: cloud-mkcloud6
+    version: 6
+    previous_version: 5
+    jobs:
+        - 'cloud-mkcloud{version}-job-docker'

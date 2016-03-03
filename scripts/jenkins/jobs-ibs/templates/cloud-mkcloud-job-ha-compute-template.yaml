@@ -1,9 +1,9 @@
-- job:
-    name: 'cloud-mkcloud6-job-ha'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-ha-compute'
     node: cloud-trigger
 
     triggers:
-      - timed: '11 2 * * *'
+      - timed: 'H 21 * * *'
 
     logrotate:
       numToKeep: 7
@@ -17,8 +17,9 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud6
+            cloudsource=develcloud{version}
             nodenumber=4
-            networkingmode=vxlan
             hacloud=1
-            mkcloudtarget=all_noreboot
+            mkcloudtarget=all_batch
+            scenario=cloud{version}-4nodes-compute-ha.yml
+            want_node_aliases=controller=2,compute=2

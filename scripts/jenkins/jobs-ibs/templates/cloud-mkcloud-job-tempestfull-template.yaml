@@ -1,9 +1,9 @@
-- job:
-    name: 'cloud-mkcloud6-job-ha-compute'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-tempestfull'
     node: cloud-trigger
 
     triggers:
-      - timed: 'H 21 * * *'
+      - timed: 'H 3 * * *'
 
     logrotate:
       numToKeep: 7
@@ -17,9 +17,7 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud6
-            nodenumber=4
-            hacloud=1
-            mkcloudtarget=all_batch
-            scenario=cloud6-4nodes-compute-ha.yml
-            want_node_aliases=controller=2,compute=2
+            cloudsource=develcloud{version}
+            nodenumber=2
+            tempestoptions=-t
+            mkcloudtarget=all_noreboot

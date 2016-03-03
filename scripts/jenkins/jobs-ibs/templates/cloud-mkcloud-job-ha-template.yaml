@@ -1,9 +1,9 @@
-- job:
-    name: 'cloud-mkcloud6-job-hyperv'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-ha'
     node: cloud-trigger
 
     triggers:
-      - timed: 'H H * * *'
+      - timed: '11 2 * * *'
 
     logrotate:
       numToKeep: 7
@@ -17,9 +17,8 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud6
-            nodenumber=3
-            networkingplugin=openvswitch
-            networkingmode=vlan
-            libvirt_type=hyperv
-            mkcloudtarget=all
+            cloudsource=develcloud{version}
+            nodenumber=4
+            networkingmode=vxlan
+            hacloud=1
+            mkcloudtarget=all_noreboot

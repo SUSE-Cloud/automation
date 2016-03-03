@@ -1,9 +1,9 @@
-- job:
-    name: 'cloud-mkcloud6-job-upgrade'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-ssl'
     node: cloud-trigger
 
     triggers:
-      - timed: '32 22 * * *'
+      - timed: '29 1 * * *'
 
     logrotate:
       numToKeep: 7
@@ -17,7 +17,7 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud5
-            upgrade_cloudsource=develcloud6
+            cloudsource=develcloud{version}
             nodenumber=2
-            mkcloudtarget=plain_with_upgrade testsetup rebootcloud
+            want_all_ssl=1
+            mkcloudtarget=all

@@ -1,9 +1,9 @@
-- job:
-    name: 'cloud-mkcloud6-job-dvr'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-crowbar_register'
     node: cloud-trigger
 
     triggers:
-      - timed: 'H 20 * * *'
+      - timed: 'H 23 * * *'
 
     logrotate:
       numToKeep: 7
@@ -17,9 +17,7 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud6
-            nodenumber=3
-            networkingplugin=openvswitch
-            networkingmode=vlan
-            want_dvr=1
-            mkcloudtarget=all
+            cloudsource=develcloud{version}
+            nodenumber=2
+            WITHCROWBARREGISTER=true
+            mkcloudtarget=instonly

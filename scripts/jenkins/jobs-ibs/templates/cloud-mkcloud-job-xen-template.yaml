@@ -1,9 +1,9 @@
-- job:
-    name: 'cloud-mkcloud6-job-ssl'
+- job-template:
+    name: 'cloud-mkcloud{version}-job-xen'
     node: cloud-trigger
 
     triggers:
-      - timed: '29 1 * * *'
+      - timed: 'H 6 * * *'
 
     logrotate:
       numToKeep: 7
@@ -17,7 +17,7 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud6
+            cloudsource=develcloud{version}
             nodenumber=2
-            want_all_ssl=1
+            libvirt_type=xen
             mkcloudtarget=all

@@ -1,0 +1,154 @@
+---
+proposals:
+- barclamp: database
+  attributes:
+  deployment:
+    elements:
+      database-server:
+      - @@controller@@
+- barclamp: rabbitmq
+  attributes:
+  deployment:
+    elements:
+      rabbitmq-server:
+      - @@controller@@
+- barclamp: keystone
+  attributes:
+    api:
+      region: 'CustomRegion'
+  deployment:
+    elements:
+      keystone-server:
+      - @@controller@@
+- barclamp: swift
+  attributes:
+    zones: 1
+    keystone_delay_auth_decision: true
+    allow_versions: true
+    middlewares:
+      crossdomain:
+        enabled: true
+      formpost:
+        enabled: true
+      staticweb:
+        enabled: true
+      tempurl:
+        enabled: true
+  deployment:
+    elements:
+      swift-dispersion:
+      - @@controller@@
+      swift-proxy:
+      - @@controller@@
+      swift-ring-compute:
+      - @@controller@@
+      swift-storage:
+      - @@compute-kvm@@
+- barclamp: glance
+  attributes:
+  deployment:
+    elements:
+      glance-server:
+      - @@controller@@
+- barclamp: manila
+  attributes:
+    default_share_type: default
+    shares:
+    - backend_driver: generic
+      backend_name: backend1
+      generic:
+        service_instance_user: root
+        service_instance_password: linux
+        share_volume_fstype: ext3
+        path_to_private_key: ""
+        service_instance_name_or_id: ##manila_instance_name_or_id##
+        service_net_name_or_ip: ##service_net_name_or_ip##
+        tenant_net_name_or_ip: ##tenant_net_name_or_ip##
+  deployment:
+    elements:
+      manila-server:
+      - @@controller@@
+      manila-share:
+      - @@compute-kvm@@
+      - @@controller@@
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: local
+      backend_name: default
+      raw:
+        volume_name: cinder-volumes
+        cinder_raw_method: first
+      local:
+        volume_name: cinder-volumes
+        file_name: "/var/lib/cinder/volume.raw"
+        file_size: 2000
+  deployment:
+    elements:
+      cinder-controller:
+      - @@controller@@
+      cinder-volume:
+      - @@compute-kvm@@
+      - @@controller@@
+- barclamp: neutron
+  attributes:
+    ml2_type_drivers:
+    - gre
+    - vxlan
+    - vlan
+  deployment:
+    elements:
+      neutron-server:
+      - @@controller@@
+      neutron-network:
+      - @@controller@@
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+  deployment:
+    elements:
+      nova-controller:
+      - @@controller@@
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - @@compute-kvm@@
+      nova-compute-qemu: []
+      nova-compute-xen: []
+- barclamp: horizon
+  attributes:
+  deployment:
+    elements:
+      horizon-server:
+      - @@controller@@
+- barclamp: heat
+  attributes:
+  deployment:
+    elements:
+      heat-server:
+      - @@controller@@
+- barclamp: ceilometer
+  attributes:
+  deployment:
+    elements:
+      ceilometer-agent:
+      - @@compute-kvm@@
+      ceilometer-agent-hyperv: []
+      ceilometer-polling:
+      - @@controller@@
+      ceilometer-server:
+      - @@controller@@
+      ceilometer-swift-proxy-middleware:
+      - @@controller@@
+- barclamp: trove
+  attributes:
+  deployment:
+    elements:
+      trove-server:
+      - @@controller@@
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - @@controller@@
