@@ -28,13 +28,15 @@ from sh import Command
 IBS_MAPPING = {
     'release/stoney/master': 'Devel:Cloud:4:Staging',
     'release/tex/master':    'Devel:Cloud:5:Staging',
-    'master':                'Devel:Cloud:6:Staging'
+    'stable/3.0':            'Devel:Cloud:6:Staging',
+    'master':                'Devel:Cloud:7:Staging'
 }
 
 CLOUDSRC = {
     'release/stoney/master': 'develcloud4',
     'release/tex/master':    'develcloud5',
-    'master':                'develcloud6'
+    'stable/3.0':            'develcloud6',
+    'master':                'develcloud7'
 }
 
 MKCLOUD_HA_PARAMETERS = (
