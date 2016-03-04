@@ -90,7 +90,7 @@ function h_setup_extra_disk {
 }
 
 function h_setup_devstack {
-    $zypper in git-core
+    $zypper in git-core which
     # git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
     git clone https://github.com/dirkmueller/devstack.git $DEVSTACK_DIR
 
