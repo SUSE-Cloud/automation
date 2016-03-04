@@ -70,7 +70,9 @@ function h_setup_base_repos {
 function h_setup_extra_repos {
     # NOTE(toabctl): This is currently needed for i.e. haproxy package (and I guess for other packages/OS-versions too)
     # This package is not available in openSUSE 13.1 but needs to be installed for lbaas tempest tests
-    $zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${DIST_NAME}_${DIST_VERSION}/Cloud:OpenStack:Master.repo || true
+
+    # NOTE(toabctl): On Cloud:OpenStack:Master, for SLE12SP1 it must be 12_SP1 (not 12-SP1 which is used in the smt-internal path). It's crazy...
+    $zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${DIST_NAME}_${DIST_VERSION//-/_}/Cloud:OpenStack:Master.repo || true
 }
 
 function h_setup_screen {
