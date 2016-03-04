@@ -32,6 +32,13 @@ IBS_MAPPING = {
     'master':                'Devel:Cloud:7:Staging'
 }
 
+REPO_MAPPING = {
+    'release/stoney/master': 'SLE_11_SP3',
+    'release/tex/master':    'SLE_11_SP3',
+    'stable/3.0':            'SLE_12_SP1',
+    'master':                'SLE_12_SP2'
+}
+
 CLOUDSRC = {
     'release/stoney/master': 'develcloud4',
     'release/tex/master':    'develcloud5',
@@ -145,8 +152,7 @@ def trigger_testbuild(repo, github_opts):
             os.chdir(pkg)
             add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec)
             iosc('build', '--root', buildroot, '--noverify', '--noservice',
-                 'SLE_12_SP1' if pr_branch == 'master' else 'SLE_11_SP3',
-                 'x86_64', spec, _out=sys.stdout)
+                 REPO_MAPPING[pr_branch], 'x86_64', spec, _out=sys.stdout)
         except:
             build_failed = True
             print("Build failed: " + str(sys.exc_info()[1]))
