@@ -1360,6 +1360,7 @@ function onadmin_prepareinstallcrowbar()
 {
     pre_hook $FUNCNAME
     [[ $forcephysicaladmin ]] || lsmod | grep -q ^virtio_blk || complain 25 "this script should be run in the crowbar admin VM"
+    [[ $want_ssl_keys ]] && rsync -a "$want_ssl_keys/" /root/cloud-keys/
     onadmin_repocleanup
     [[ $want_rootpw = linux ]] || echo -e "$want_rootpw\n$want_rootpw" | passwd
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
@@ -3012,6 +3013,11 @@ function onadmin_proposal()
         unclustered_nodes=`get_all_discovered_nodes`
     fi
 
+    if [[ $want_ssl_keys ]] ; then
+        for m in $(get_all_suse_nodes) ; do
+            rsync -a /root/cloud-keys/ $m:/etc/cloud-keys/
+        done
+    fi
     local proposal
     for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove tempest; do
         deploy_single_proposal $proposal
