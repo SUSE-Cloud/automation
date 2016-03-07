@@ -510,17 +510,7 @@ function export_tftpboot_repos_dir()
 
     if iscloudver 6plus; then
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        if ! iscloudver 6M7plus ; then
-            tftpboot_suse_dir=/srv/tftpboot/suse-11.3
-            tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
-            tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/repos
-        else
-            tftpboot_suse_dir=/srv/tftpboot/suse-11.3/x86_64
-            tftpboot_suse12_dir=/srv/tftpboot/suse-12.0/x86_64
-            tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
-        fi
-        tftpboot_repos_dir=$tftpboot_suse_dir/repos
-        tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
+        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
     fi
 }
 
@@ -2078,10 +2068,8 @@ function onadmin_crowbar_register()
     local inject
     local zyppercmd
 
-    if  iscloudver 6M7plus ; then
+    if  iscloudver 6plus ; then
         image="suse-12.1/x86_64/"
-    elif iscloudver 6; then
-        image="suse-12.1"
     else
         if [ -n "$want_sles12" ] ; then
             image="suse-12.0"
