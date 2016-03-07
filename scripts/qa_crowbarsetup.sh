@@ -1166,9 +1166,9 @@ function onadmin_add_cloud_repo()
     safely zypper ar -f ${targetdir} Cloud
 
     if [ -n "${localreposdir_target}" ]; then
-      echo $CLOUDLOCALREPOS > /etc/cloudversion
+        echo $CLOUDLOCALREPOS > /etc/cloudversion
     else
-      cat "$targetdir/isoversion" > /etc/cloudversion
+        cat "$targetdir/isoversion" > /etc/cloudversion
     fi
 
     # Just document the list of extra repos
