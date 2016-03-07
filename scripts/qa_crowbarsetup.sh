@@ -176,7 +176,7 @@ setcloudnetvars()
     net=${net_admin:-192.168.124}
     case "$cloud" in
         p1)
-            nodenumbertotal=5
+            nodenumbertotal=4
             net=$netp.178
             net_public=$netp.177
             vlan_storage=568
