@@ -618,7 +618,7 @@ function addcloud5pool()
 
 function addcloud6maintupdates()
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Updates" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Updates/' "$tftpboot_repos12_dir/SUSE-OpenStack-Cloud-6-Updates/" "cloudmaintup"
+    add_mount "SUSE-OpenStack-Cloud-6-Updates" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Updates/' "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates/" "cloudmaintup"
 }
 
 function addcloud6testupdates()
@@ -631,7 +631,7 @@ function addcloud6testupdates()
 
 function addcloud6pool()
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Pool" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Pool/' "$tftpboot_repos12_dir/SUSE-OpenStack-Cloud-6-Pool/" "cloudpool"
+    add_mount "SUSE-OpenStack-Cloud-6-Pool" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Pool/' "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Pool/" "cloudpool"
 }
 
 function addcctdepsrepo()
