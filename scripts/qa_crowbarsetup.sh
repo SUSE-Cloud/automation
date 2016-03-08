@@ -1116,12 +1116,10 @@ function onadmin_prepare_cloud_repos()
                 addcloud5testupdates
                 ;;
             GM6)
-                addsles12testupdates
-                [ -n "$want_sles12sp1" ] && addsles12sp1testupdates
+                addsles12sp1testupdates
                 ;;
             GM6+up)
-                addsles12testupdates
-                [ -n "$want_sles12sp1" ] && addsles12sp1testupdates
+                addsles12sp1testupdates
                 addcloud6testupdates
                 ;;
             develcloud4)
