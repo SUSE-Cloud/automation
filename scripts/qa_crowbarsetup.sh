@@ -613,10 +613,9 @@ function addcloud6maintupdates()
 
 function addcloud6testupdates()
 {
-    echo "FIXME: setup Cloud 6 test channels once available"
-    #add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
-    #    $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
-    #    "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
+    add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
+        "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
 }
 
 function addcloud6pool()
