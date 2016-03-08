@@ -529,21 +529,13 @@ function addsp3testupdates()
 
 function addsles12testupdates()
 {
-    if iscloudver 5; then
-        add_mount "SLES12-Updates-test" \
-            $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
-            "$tftpboot_repos12_dir/SLES12-Updates-test/"
-    else
-        add_mount "SLES12-Updates-test" \
-            $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
-            "$tftpboot_repos12_dir/SLES12-Updates-test/" "sles12gatup"
-    fi
+    add_mount "SLES12-Updates-test" \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
+        "$tftpboot_repos12_dir/SLES12-Updates-test/"
     if [ -n "$deployceph" ]; then
-        if iscloudver 5; then
-            add_mount "SUSE-Enterprise-Storage-1.0-Updates-test" \
-                $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
-                "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/"
-        fi
+        add_mount "SUSE-Enterprise-Storage-1.0-Updates-test" \
+            $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
+            "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/"
     fi
 }
 
