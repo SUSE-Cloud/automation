@@ -3112,8 +3112,8 @@ function get_ceph_nodes()
 
 function get_manila_service_instance_details()
 {
-    manila_service_vm_uuid=`oncontroller "source .openrc; openstack --os-project-name manila-service server show manila-service -f value -c id"`
-    manila_tenant_vm_ip=`oncontroller "source .openrc; openstack --os-project-name manila-service ip floating list -f csv --quote none -c IP -c 'Instance ID'|grep $manila_service_vm_uuid|cut -d ',' -f 1"`
+    manila_service_vm_uuid=`oncontroller "openstack --os-project-name manila-service server show manila-service -f value -c id"`
+    manila_tenant_vm_ip=`oncontroller "openstack --os-project-name manila-service ip floating list -f csv --quote none -c IP -c 'Instance ID'|grep $manila_service_vm_uuid|cut -d ',' -f 1"`
     test -n "$manila_service_vm_uuid" || complain 91 "uuid from manila-service instance not available"
     test -n "$manila_tenant_vm_ip" || complain 93 "floating ip addr from manila-service instance not available"
 }
