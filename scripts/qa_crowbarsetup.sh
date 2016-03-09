@@ -3513,7 +3513,7 @@ function oncontroller()
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
         export libvirt_type=\"$libvirt_type\" ;
         export cloud=$cloud ; export TESTHEAD=$TESTHEAD ;
-        . ./qa_crowbarsetup.sh ; onadmin_set_source_variables; $@"
+        . ./qa_crowbarsetup.sh ;  source .openrc; onadmin_set_source_variables; $@"
     return $?
 }
 
