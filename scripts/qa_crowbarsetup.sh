@@ -510,17 +510,7 @@ function export_tftpboot_repos_dir()
 
     if iscloudver 6plus; then
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        if ! iscloudver 6M7plus ; then
-            tftpboot_suse_dir=/srv/tftpboot/suse-11.3
-            tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
-            tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/repos
-        else
-            tftpboot_suse_dir=/srv/tftpboot/suse-11.3/x86_64
-            tftpboot_suse12_dir=/srv/tftpboot/suse-12.0/x86_64
-            tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
-        fi
-        tftpboot_repos_dir=$tftpboot_suse_dir/repos
-        tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
+        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
     fi
 }
 
@@ -539,21 +529,13 @@ function addsp3testupdates()
 
 function addsles12testupdates()
 {
-    if iscloudver 5; then
-        add_mount "SLES12-Updates-test" \
-            $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
-            "$tftpboot_repos12_dir/SLES12-Updates-test/"
-    else
-        add_mount "SLES12-Updates-test" \
-            $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
-            "$tftpboot_repos12_dir/SLES12-Updates-test/" "sles12gatup"
-    fi
+    add_mount "SLES12-Updates-test" \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
+        "$tftpboot_repos12_dir/SLES12-Updates-test/"
     if [ -n "$deployceph" ]; then
-        if iscloudver 5; then
-            add_mount "SUSE-Enterprise-Storage-1.0-Updates-test" \
-                $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
-                "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/"
-        fi
+        add_mount "SUSE-Enterprise-Storage-1.0-Updates-test" \
+            $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
+            "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/"
     fi
 }
 
@@ -618,20 +600,19 @@ function addcloud5pool()
 
 function addcloud6maintupdates()
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Updates" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Updates/' "$tftpboot_repos12_dir/SUSE-OpenStack-Cloud-6-Updates/" "cloudmaintup"
+    add_mount "SUSE-OpenStack-Cloud-6-Updates" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Updates/' "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates/" "cloudmaintup"
 }
 
 function addcloud6testupdates()
 {
-    echo "FIXME: setup Cloud 6 test channels once available"
-    #add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
-    #    $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
-    #    "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
+    add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
+        "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
 }
 
 function addcloud6pool()
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Pool" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Pool/' "$tftpboot_repos12_dir/SUSE-OpenStack-Cloud-6-Pool/" "cloudpool"
+    add_mount "SUSE-OpenStack-Cloud-6-Pool" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Pool/' "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Pool/" "cloudpool"
 }
 
 function addcctdepsrepo()
@@ -1127,12 +1108,10 @@ function onadmin_prepare_cloud_repos()
                 addcloud5testupdates
                 ;;
             GM6)
-                addsles12testupdates
-                [ -n "$want_sles12sp1" ] && addsles12sp1testupdates
+                addsles12sp1testupdates
                 ;;
             GM6+up)
-                addsles12testupdates
-                [ -n "$want_sles12sp1" ] && addsles12sp1testupdates
+                addsles12sp1testupdates
                 addcloud6testupdates
                 ;;
             develcloud4)
@@ -2078,10 +2057,8 @@ function onadmin_crowbar_register()
     local inject
     local zyppercmd
 
-    if  iscloudver 6M7plus ; then
+    if  iscloudver 6plus ; then
         image="suse-12.1/x86_64/"
-    elif iscloudver 6; then
-        image="suse-12.1"
     else
         if [ -n "$want_sles12" ] ; then
             image="suse-12.0"
