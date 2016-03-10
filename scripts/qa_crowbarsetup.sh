@@ -23,6 +23,7 @@ fi
 : ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
 : ${distsuse:=dist.nue.suse.com}
 distsuseip=$(dig -t A +short $distsuse)
+: ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
 
@@ -1359,6 +1360,7 @@ function onadmin_prepareinstallcrowbar()
     pre_hook $FUNCNAME
     [[ $forcephysicaladmin ]] || lsmod | grep -q ^virtio_blk || complain 25 "this script should be run in the crowbar admin VM"
     onadmin_repocleanup
+    [[ $want_rootpw = linux ]] || echo -e "$want_rootpw\n$want_rootpw" | passwd
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
     # We want to use static networking which needs a static resolv.conf .
     # The SUSE sysconfig/ifup scripts drop DNS-servers received from DHCP
@@ -2676,10 +2678,10 @@ function custom_configuration()
             fi
         ;;
         provisioner)
-            # set default password to 'linux'
-            proposal_set_value provisioner default "['attributes']['provisioner']['root_password_hash']" "\"$(openssl passwd -1 linux)\""
+            # set default password
+            proposal_set_value provisioner default "['attributes']['provisioner']['root_password_hash']" "\"$(openssl passwd -1 $want_rootpw)\""
             # set discovery root password too
-            iscloudver 6M12plus && proposal_set_value provisioner default "['attributes']['provisioner']['discovery']['append']" "\"DISCOVERY_ROOT_PASSWORD=linux\""
+            iscloudver 6M12plus && proposal_set_value provisioner default "['attributes']['provisioner']['discovery']['append']" "\"DISCOVERY_ROOT_PASSWORD=$want_rootpw\""
 
             if [[ $keep_existing_hostname = 1 ]] ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
