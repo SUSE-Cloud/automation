@@ -1398,15 +1398,29 @@ EOF
         longdistance=true
     fi
 
-    if [ -n "${localreposdir_target}" ]; then
-        # Delete all repos except PTF repo, because this step could
-        # be called after the addupdaterepo step.
-        zypper lr -e - | sed -n '/^name=/ {s///; /ptf/! p}' | \
-            xargs -r zypper rr
-        mount_localreposdir_target
-    fi
-
     onadmin_set_source_variables
+
+    # Delete all repos except PTF repo, because this step could
+    # be called after the addupdaterepo step.
+    zypper lr -e - | sed -n '/^name=/ {s///; /ptf/! p}' | \
+        xargs -r zypper rr
+
+    # restore needed repos depending on localreposdir_target
+    if [ -n "${localreposdir_target}" ]; then
+        mount_localreposdir_target
+    else
+        # restore repos from $clouddata
+        case `getcloudver` in
+            4|5)
+                zypper ar http://${clouddata}/repos/SLES11-SP3-Pool/ sles11sp3
+                zypper ar http://${clouddata}/repos/SLES11-SP3-Updates/ sles11sp3up
+            ;;
+            6|7)
+                zypper ar http://${clouddata}/repos/SLES12-SP1-Pool/ sles12sp1
+                zypper ar http://${clouddata}/repos/SLES12-SP1-Updates/ sles12sp1up
+            ;;
+        esac
+    fi
 
     if iscloudver 6plus ; then
         if [[ $cloudsource =~ ^M[1-7]$ ]]; then
