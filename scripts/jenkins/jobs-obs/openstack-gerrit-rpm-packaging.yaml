@@ -12,6 +12,35 @@
 
           # set vars
           OBS_BASE_SRC_PROJECT="Cloud:OpenStack:Upstream"
+          TEMP_DIR="/tmp/rpm-packaging-${ZUUL_COMMIT}"
+
+          # cleanup and preparation
+          rm -rf ${TEMP_DIR}
+          mkdir -p ${TEMP_DIR}
+          (cd ${TEMP_DIR}; osc co -e ${OBS_BASE_SRC_PROJECT})
+          (cd ${TEMP_DIR}/${OBS_BASE_SRC_PROJECT}; ls -al; osc up)
+
+          # try a local build
+          for spec in openstack/**/*.spec.j2; do
+              echo "##############################################################"
+              echo "SPEC TEMPLATE: ${spec}"
+              echo "##############################################################"
+              pypi_name=`basename $spec|sed -e 's/.spec.j2$//'`
+              (cd ${TEMP_DIR}/${OBS_BASE_SRC_PROJECT}; osc mkpac python-${pypi_name} || :)
+              renderspec -o ${TEMP_DIR}/${OBS_BASE_SRC_PROJECT}/python-${pypi_name}/python-${pypi_name}.spec openstack/$pypi_name/$pypi_name.spec.j2
+              (cd ${TEMP_DIR}/${OBS_BASE_SRC_PROJECT}/python-${pypi_name}; MYOUTDIR=. bash /usr/lib/obs/service/download_files)
+              (cd ${TEMP_DIR}/${OBS_BASE_SRC_PROJECT}/python-${pypi_name}; osc diff)
+              (cd ${TEMP_DIR}/${OBS_BASE_SRC_PROJECT}/python-${pypi_name}; osc build --noverify SLE_12_SP1)
+          done
+
+      - shell: |
+          #!/bin/bash -e
+          rpm -qa|grep '\(renderspec\|pymod2pkg\)'
+
+          set -x
+
+          # set vars
+          OBS_BASE_SRC_PROJECT="Cloud:OpenStack:Upstream"
           OBS_BASE_TARGET_PROJECT="home:suse-cloud-ci:rpm-packaging-openstack"
           OBS_TEST_PROJECT="${OBS_BASE_TARGET_PROJECT}-${ZUUL_COMMIT}"
           TEMP_DIR="/tmp/rpm-packaging-${ZUUL_COMMIT}"
