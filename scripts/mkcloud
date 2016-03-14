@@ -948,6 +948,9 @@ function cloudupgrade()
 {
     if iscloudver 5plus ; then
         crowbarupgrade_5plus
+        onadmin crowbar_nodeupgrade
+        # reapply all barclamps
+        onadmin proposal
     else
         onadmin runlist prepare_cloudupgrade \
                         cloudupgrade_1st \

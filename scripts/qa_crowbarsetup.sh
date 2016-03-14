@@ -1562,6 +1562,11 @@ function crowbar_restore_status()
     crowbar_any_status /utils/backups/restore_status
 }
 
+function crowbar_nodeupgrade_status()
+{
+    crowbar_any_status /installer/upgrade/nodes_status
+}
+
 function do_installcrowbar_cloud6plus()
 {
     service crowbar status || service crowbar stop
@@ -4109,6 +4114,17 @@ function onadmin_crowbarrestore()
 
         AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
             safely bash -x /usr/sbin/crowbar-backup restore /tmp/$btarball
+    fi
+}
+
+function onadmin_crowbar_nodeupgrade()
+{
+    # FIXME: change path to "*.json" when crowbar supports it:
+    curl --silent -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/nodes
+    wait_for 360 10 "crowbar_nodeupgrade_status | grep -q '\"left\": *0'" "crowbar to finish the nodeupgrade"
+    if ! crowbar_nodeupgrade_status | grep -q '"failed": *0' ; then
+        crowbar_nodeupgrade_status
+        complain 38 "Crowbar nodeupgrade failed."
     fi
 }
 
