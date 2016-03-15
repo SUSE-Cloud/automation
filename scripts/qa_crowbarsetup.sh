@@ -262,6 +262,7 @@ setcloudnetvars()
     net_fixed=${net_fixed:-192.168.123}
     net_public=${net_public:-192.168.122}
     net_storage=${net_storage:-192.168.125}
+    net_sdn=${net_sdn:-192.168.130}
     : ${admingw:=$net.1}
     : ${adminip:=$net.10}
 }
@@ -1485,6 +1486,7 @@ EOF
 
     sed -i.netbak -e 's/"conduit": "bmc",$/& "router": "192.168.124.1",/' \
         -e "s/192.168.124/$net/g" \
+        -e "s/192.168.130/$net_sdn/g" \
         -e "s/192.168.125/$net_storage/g" \
         -e "s/192.168.123/$net_fixed/g" \
         -e "s/192.168.122/$net_public/g" \
