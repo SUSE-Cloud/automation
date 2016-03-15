@@ -23,6 +23,7 @@ fi
 : ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
 : ${distsuse:=dist.nue.suse.com}
 distsuseip=$(dig -t A +short $distsuse)
+: ${susedownload:=download.nue.suse.com}
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
@@ -620,11 +621,11 @@ function addcctdepsrepo()
 {
     case "$cloudsource" in
         develcloud5|GM5|GM5+up)
-            zypper ar -f http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
+            zypper ar -f http://$susedownload/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
             ;;
         develcloud6|develcloud7|susecloud7|M?|Beta*|RC*|GMC*|GM6|GM6+up)
-            zypper ar -f http://download.suse.de/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
-            zypper ar -f http://download.suse.de/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
+            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
+            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
             ;;
     esac
 }
@@ -1250,7 +1251,6 @@ function onadmin_set_source_variables()
         suseversion=11.3
     fi
 
-    : ${susedownload:=download.nue.suse.com}
     case "$cloudsource" in
         develcloud4)
             CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/4/images/iso
@@ -2474,7 +2474,7 @@ function custom_configuration()
                 $p "$l['tls_cacertdir']" "'/etc/ssl/certs'"
                 $p "$l['tls_req_cert']" "'allow'" # FIXME: this allows MitM
                 # to be secure, set to 'demand' and run on keystone node:
-                #zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_11_SP3/SUSE:CA.repo
+                #zypper ar --refresh http://$susedownload/ibs/SUSE:/CA/SLE_11_SP3/SUSE:CA.repo
                 #zypper -n --gpg-auto-import-keys in ca-certificates-suse
             fi
             if [[ $want_keystone_v3 ]] ; then
@@ -3504,14 +3504,14 @@ function oncontroller()
 function install_suse_ca()
 {
     # trust build key - workaround https://bugzilla.opensuse.org/show_bug.cgi?id=935020
-    wget -O build.suse.de.key.pgp http://download.suse.de/ibs/SUSE:/CA/SLE_12/repodata/repomd.xml.key
+    wget -O build.suse.de.key.pgp http://$susedownload/ibs/SUSE:/CA/SLE_12/repodata/repomd.xml.key
     safely sha1sum -c <<EOF
 ee896d59206e451d563fcecef72608546bf10ad6  build.suse.de.key.pgp
 EOF
     rpm --import build.suse.de.key.pgp
 
     onadmin_set_source_variables # for $slesdist
-    zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/$slesdist/SUSE:CA.repo
+    zypper ar --refresh http://$susedownload/ibs/SUSE:/CA/$slesdist/SUSE:CA.repo
     safely zypper -n in ca-certificates-suse
 }
 
@@ -3611,10 +3611,10 @@ EOH
         ensure_packages_installed python-PyYAML python-setuptools
 
         if iscloudver 6plus; then
-            rpm -Uvh http://download.suse.de/ibs/SUSE:/SLE-12:/GA/standard/noarch/python-nose-1.3.0-8.4.noarch.rpm
+            rpm -Uvh http://$susedownload/ibs/SUSE:/SLE-12:/GA/standard/noarch/python-nose-1.3.0-8.4.noarch.rpm
         else
             if ! rpm -q python-nose &> /dev/null; then
-                zypper ar http://download.suse.de/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
+                zypper ar http://$susedownload/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
                 ensure_packages_installed python-nose
                 zypper rr Devel_Cloud_Shared_11-SP3_Update
             fi
