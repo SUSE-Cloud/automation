@@ -204,6 +204,8 @@ function sshrun()
         export cloud=$virtualcloud ;
         # hostname of NFS server with repos and images:
         export clouddata=$clouddata ;
+        export distsuse=$distsuse ;
+        export susedownload=$susedownload ;
         export cloudfqdn=$cloudfqdn ;
         export cloudsource=$cloudsource ;
         export upgrade_cloudsource=$upgrade_cloudsource ;
