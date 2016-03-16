@@ -1,0 +1,58 @@
+---
+proposals:
+- barclamp: keystone
+  attributes:
+    ssl:
+      generate_certs: false
+      insecure: false
+      certfile: "/etc/cloud-keys/combined.crt"
+      keyfile: "/etc/cloud-keys/server.key"
+    api:
+      protocol: https
+- barclamp: glance
+  attributes:
+    ssl:
+      generate_certs: false
+      insecure: false
+      certfile: "/etc/cloud-keys/combined.crt"
+      keyfile: "/etc/cloud-keys/server.key"
+    api:
+      protocol: https
+- barclamp: cinder
+  attributes:
+    ssl:
+      generate_certs: false
+      insecure: false
+      certfile: "/etc/cloud-keys/combined.crt"
+      keyfile: "/etc/cloud-keys/server.key"
+    api:
+      protocol: https
+- barclamp: neutron
+  attributes:
+    ssl:
+      generate_certs: false
+      insecure: false
+      certfile: "/etc/cloud-keys/combined.crt"
+      keyfile: "/etc/cloud-keys/server.key"
+    api:
+      protocol: https
+- barclamp: nova
+  attributes:
+    ssl:
+      enabled: true
+      generate_certs: false
+      insecure: false
+      certfile: "/etc/cloud-keys/combined.crt"
+      keyfile: "/etc/cloud-keys/server.key"
+    novnc:
+      ssl:
+        enabled: true
+- barclamp: horizon
+  attributes:
+    apache:
+      ssl: true
+      generate_certs: false
+      ssl_crt_file: "/etc/cloud-keys/cloud.suse.de.crt"
+      ssl_key_file: "/etc/cloud-keys/server.key"
+      ssl_crt_chain_file: "/etc/cloud-keys/SUSE_CA_suse.com.chain.crt"
+
