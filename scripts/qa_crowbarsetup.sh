@@ -4110,7 +4110,7 @@ function onadmin_crowbarrestore()
             with_upgrade)
                 # restore after upgrade has different workflow (missing APIs) than
                 #   a restore from a backup of the same cloud release
-                local http_code=`curl -X POST -F "file=@/tmp/$btarball" -s -o upgrade-start.txt -w '%{http_code}' $crowbar_api/installer/upgrade/start`
+                local http_code=`curl -X POST -F "file=@/tmp/$btarball" -s -o upgrade-start.txt -w '%{http_code}' $crowbar_api/installer/upgrade/start.json`
                 if ! [[ $http_code =~ [23].. ]] ; then
                     cat upgrade-start.txt
                     complain 36 "Could not start crowbar restore with upgrade workflow"
