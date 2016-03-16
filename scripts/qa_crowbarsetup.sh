@@ -2262,7 +2262,7 @@ function enable_debug_generic()
     local a="['attributes']['$service']"
     case $service in
         *)
-            $p "$a['debug']['enabled']" true
+            $p "$a['debug']" true
         ;;
     esac
 }
