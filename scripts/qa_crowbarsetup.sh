@@ -4013,13 +4013,17 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
 
 function onadmin_prepare_crowbar_upgrade()
 {
-    if iscloudver 4minus ; then
-        complain 11 "This upgrade path is only supported for Cloud 5+"
-    else
-        # using the API, due to missing crowbar cli integration
-        # move nodes to upgrade mode
-        safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare
-    fi
+    case $(getcloudver) in
+        4minus)
+            complain 11 "This upgrade path is only supported for Cloud 5+"
+            ;;
+        5)
+            # using the API, due to missing crowbar cli integration
+            # move nodes to upgrade mode
+            safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare
+            ;;
+        # by default we skip this route as it doesn't exist for that cloud version
+    esac
 }
 
 function onadmin_crowbarbackup()
