@@ -91,7 +91,7 @@ start_time=`date`
 needcvol=1
 : ${vdisk_dir:=/dev/$cloudvg}
 : ${admin_node_disk:=$vdisk_dir/$cloud.admin}
-: ${admin_node_memory:=2097152}
+: ${admin_node_memory:=4194304}
 : ${controller_node_memory:=6291456}
 : ${compute_node_memory:=2621440}
 : ${hyperv_node_memory:=3000000}
@@ -1117,7 +1117,7 @@ Optional
         set the number of CPU cores per compute node
     adminvcpus=1    (default $vcpus)
         set the number of CPU cores for admin node
-    admin_node_memory (default 2097152)
+    admin_node_memory (default 4194304)
         Set the memory in KB assigned to admin node
     controller_node_memory (default 5242880)
         Set the memory in KB assigned to controller nodes
