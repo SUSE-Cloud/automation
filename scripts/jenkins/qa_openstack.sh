@@ -157,6 +157,9 @@ $zypper -n rm --force 'python-cheetah < 2.4'
 # deinstall cloud-init and dependencies
 $zypper -n rm --force -u cloud-init
 
+# install some basics (which is i.e. not installed in the SLE12SP1 JeOS
+$zypper -n in wget
+
 # Everything below here is fatal
 set -e
 
