@@ -12,6 +12,7 @@
           values:
             - Cloud:OpenStack:Kilo:Staging
             - Cloud:OpenStack:Liberty:Staging
+            - Cloud:OpenStack:Mitaka:Staging
             - Cloud:OpenStack:Master
       - axis:
           type: user-defined
@@ -86,7 +87,7 @@
             - cloud-trackupstream
     execution-strategy:
       combination-filter: |
-        ! ( [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
+        ! ( [ "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
             [ "python-aodhclient",
               "python-barbicanclient",
               "python-ceilometerclient",
