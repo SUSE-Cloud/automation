@@ -4184,16 +4184,18 @@ function onadmin_run_cct()
             develcloud5|GM5|GM5+up)
                 checkout_branch=cloud5
                 ;;
-            develcloud6|develcloud7)
-                # Add functional tests if the proposal is deployed
-                # and the functional test scenario is implemented in cct.
-                for test in "nova" "manila"; do
-                    if crowbarctl proposal list $test &> /dev/null; then
-                        cct_tests+="+test:func:${test}client"
-                    fi
-                done
+            develcloud6|GM6|GM6+up)
+                checkout_branch=cloud6
                 ;;
         esac
+
+        if iscloudver 6plus; then
+            for test in "nova" "manila"; do
+                if crowbarctl proposal list $test &> /dev/null; then
+                    cct_tests+="+test:func:${test}client"
+                fi
+            done
+        fi
 
         # prepare CCT checkout
         local ghdir=/root/github.com/SUSE-Cloud
