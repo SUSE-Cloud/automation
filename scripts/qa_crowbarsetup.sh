@@ -3484,10 +3484,10 @@ function oncontroller_testsetup()
     fi
 
     # cleanup so that we can run testvm without leaking volumes, IPs etc
-    nova remove-floating-ip "$instanceid" "$floatingip"
-    nova floating-ip-delete "$floatingip"
-    nova stop "$instanceid"
-    wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
+    #nova remove-floating-ip "$instanceid" "$floatingip"
+    #nova floating-ip-delete "$floatingip"
+    #nova stop "$instanceid"
+    #wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
     if iscloudver 6plus ; then
         # check that no port is in binding_failed state
