@@ -1,0 +1,112 @@
+- job:
+    name: 'openstack-submit-project'
+    node: openstack-trackupstream
+
+    parameters:
+      - string:
+          name: project
+          default: None
+          description: name of the main project that should be updated with packages from its staging project
+      - string:
+          name: subproject
+          default: None
+          description: Name of the subproject that acts as staging project.
+      - string:
+          name: packagefilter
+          default: None
+          description: space separated strings to filter the packages by their names (from the beginning)
+      - string:
+          name: starttime
+          default: None
+          description: UNIX timestamp of when succeeding test was started to avoid copying broken versions
+    wrappers:
+      - build-name:
+          name: 'submit ${ENV,var="project"}'
+
+    builders:
+      - shell: |
+          # DEBUG MODE with E=echo
+          # NORMAL MODE with E=
+          E=
+
+          if [ -z "$starttime" ] ; then
+              echo "FATAL: calling script needs to specify starttime"
+              exit 1
+          fi
+
+          case $subproject in
+          None) echo "No valid 'subproject' provided - defaults for safety reasons to 'None'"
+                exit 1
+          ;;
+          "-")  echo "Subproject set to '-': skip job, do not fail (eg. for Master project)"
+                exit 0
+          ;;
+          esac
+
+          export BS=IBS
+          case $BS in
+          OBS)
+              OSC="osc -A https://api.opensuse.org"
+          ;;
+          IBS)
+              OSC="osc -A https://api.suse.de"
+          ;;
+          esac
+
+
+          COS=$project
+          ECOS=""
+          COSS=$COS:$subproject
+          export BS_CHECKOUT=/home/jenkins/${BS}_CHECKOUT/$COSS
+          submitcmd="$OSC copypac -K -e"
+          OSCBUILDDIST=SLE_12_SP1
+
+          case $project in
+          Devel:Cloud:4)
+              OSCBUILDDIST=SLE_11_SP3
+          ;;
+          Devel:Cloud:5)
+              OSCBUILDDIST=SLE_11_SP3
+          ;;
+          Devel:Cloud:6)
+          ;;
+          Devel:Cloud:7)
+              OSCBUILDDIST=SLE_12_SP2
+              ECOS=systemsmanagement:crowbar:4.0
+          ;;
+          *) echo "Please add support for the project: $project"
+              exit 1
+          esac
+
+
+          for COMPONENT in `$OSC ls $COSS 2>/dev/null | grep -E "^(${packagefilter// /|})" | grep -v "^_product."` ; do
+          cd $BS_CHECKOUT || exit 1
+          if [ ! -d $COMPONENT ] ; then
+              $OSC co -o $COMPONENT $COSS $COMPONENT
+          fi
+          cd $COMPONENT || exit 1
+
+          grep -q "<linkinfo" .osc/_files || exit 2
+
+          # avoid copying untested versions
+          lastchange=$($OSC api "source/$COSS/$COMPONENT/_history" | perl -ne 'if(m/<time>(\d+)</) {print $1; exit 0}')
+          if [[ $lastchange > $starttime ]] ; then
+              echo "skipping $COMPONENT because of a change after test started"
+              continue
+          fi
+
+          #  if $OSC rdiff $COS $COMPONENT $COSS | grep .  &&  $OSC api /build/$COSS/$OSCBUILDDIST/x86_64/$COMPONENT/_status | grep -E 'code="succeeded"|package="_product"'
+          if $OSC rdiff $COS $COMPONENT $COSS | grep .  && ( [ "$COMPONENT" = "_product" ] || $OSC r $COSS $COMPONENT -r $OSCBUILDDIST -a x86_64 | grep 'succeeded' )
+          then
+              # NOTE(saschpe): the "|| :" is a work-around for an osc bug (should be fixed, but Adrian needs to release a new osc)
+              # No need to put this in git.
+              [[ "$COMPONENT" =~ -doc$ ]] || {
+                  $E $submitcmd $COSS $COMPONENT $COS || :
+
+                  if [[ "$COMPONENT" =~ "crow" ]];  then
+                      [ -n "$ECOS" ] && $E $submitcmd $COSS $COMPONENT -t https://api.opensuse.org/ $ECOS || :
+                  fi
+              }
+          fi
+          done
+
