@@ -3232,11 +3232,13 @@ function oncontroller_manila_generic_driver_setup()
     local sec_group="manila-service"
     local neutron_net=$sec_group
 
-    local ret=$(wget --progress=dot:mega -nc -O $service_image_name "$service_image_url" 2>&1 >/dev/null)
-    if [[ $ret =~ "already there; not retrieving" ]]; then
+    local ret=$(wget -nc -O $service_image_name "$service_image_url" 2>&1 >/dev/null)
+    if [[ $ret =~ "already there; not retrieving" ]] || [[ $ret =~ "200 OK" ]]; then
         echo $ret
     elif [[ $ret =~ "Not Found" ]]; then
-        complain 73 "manila image not found"
+        complain 73 "manila image not found: $ret"
+    else
+        complain 74 "failed to retrieve manila image: $ret"
     fi
 
     . .openrc
