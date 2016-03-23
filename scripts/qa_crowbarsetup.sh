@@ -3232,8 +3232,12 @@ function oncontroller_manila_generic_driver_setup()
     local sec_group="manila-service"
     local neutron_net=$sec_group
 
-    wget --progress=dot:mega -nc -O $service_image_name \
-        "$service_image_url" || complain 73 "manila image not found"
+    local ret=$(wget --progress=dot:mega -nc -O $service_image_name "$service_image_url" 2>&1 >/dev/null)
+    if [[ $ret =~ "already there; not retrieving" ]]; then
+        echo $ret
+    elif [[ $ret =~ "Not Found" ]]; then
+        complain 73 "manila image not found"
+    fi
 
     . .openrc
     manila_service_tenant_id=`openstack project create manila-service -f value -c id`
