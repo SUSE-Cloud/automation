@@ -139,6 +139,8 @@ onadmin_help()
             want_node_roles=controller=1,compute=2,storage=3
     want_test_updates=0 | 1  (default=1 if TESTHEAD is set, 0 otherwise)
         add test update repositories
+    want_sbd=1 (default 0)
+        Setup SBD over iSCSI for cluster nodes, with iSCSI target on admin node. Only usable for HA configuration.
 EOUSAGE
 }
 
@@ -2043,6 +2045,23 @@ function onadmin_post_allocate()
             ssh $node "getent passwd glance >/dev/null || \
                 useradd -r -g glance -u 450 -d /var/lib/glance -s /sbin/nologin -c \"OpenStack glance Daemon\" glance"
         done
+
+        if iscloudver 6plus && [[ $want_sbd = 1 ]] ; then
+            zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/$slesdist/ --non-interactive install python-sh
+            chmod +x iscsictl.py
+            ./iscsictl.py --service target --host $(hostname) --no-key
+
+            local cluster
+            local clustername
+            for clustername in data network services ; do
+                eval "cluster=\$clusternodes$clustername"
+                for node in $cluster ; do
+                    ./iscsictl.py --service initiator --target_host $(hostname) --host $node --no-key
+                    sbd_device=$(ssh $node echo '/dev/disk/by-id/scsi-$(lsscsi -i |grep LIO|head -n 1| tr -s " " |cut -d " " -f7)')
+                    ssh $node "zypper --non-interactive install sbd; sbd -d $sbd_device create"
+                done
+            done
+        fi
     fi
 }
 
@@ -2294,6 +2313,16 @@ function hacloud_configure_cluster_members()
                 "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']['params']" "''"
         done
     fi
+
+    if [[ $want_sbd = 1 ]] ; then
+        for node in $@; do
+            sbd_device=$(ssh $node echo '/dev/disk/by-id/scsi-$(lsscsi -i |grep LIO|head -n 1| tr -s " " |cut -d " " -f7)')
+            proposal_set_value pacemaker "$clustername" \
+                "['attributes']['pacemaker']['stonith']['sbd']['nodes']['$node']" "{}"
+            proposal_set_value pacemaker "$clustername" \
+                "['attributes']['pacemaker']['stonith']['sbd']['nodes']['$node']['devices']" "['$sbd_device']"
+        done
+    fi
 }
 
 function hacloud_configure_cluster_defaults()
@@ -2312,10 +2341,17 @@ function hacloud_configure_cluster_defaults()
         hacloud_configure_cluster_members $clustername "$cnodes"
     fi
 
-    proposal_set_value pacemaker "$clustername" \
-        "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
-    proposal_set_value pacemaker "$clustername" \
-        "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$admingw'"
+    if [[ $want_sbd = 1 ]] ; then
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['mode']" "'sbd'"
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['sbd']['watchdog_module']" "'softdog'"
+    else
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$admingw'"
+    fi
     proposal_modify_value pacemaker "$clustername" \
         "['description']" "'Clustername: $clustername, type: $clustertype ; '" "+="
 }
@@ -2877,6 +2913,7 @@ function update_one_proposal()
     date
     # hook for changing proposals:
     custom_configuration $proposal $proposaltypemapped
+
     crowbar "$proposal" proposal commit $proposaltype
     local ret=$?
     echo "Commit exit code: $ret"

@@ -43,6 +43,7 @@ fi
 # for local variables.
 : ${mkcloud_dir:=$(dirname $(readlink -e $0))}
 : ${qa_crowbarsetup:=${mkcloud_dir}/qa_crowbarsetup.sh}
+: ${iscsictl:=${mkcloud_dir}/iscsictl.py}
 mkcloud_lib_dir=${mkcloud_dir}/lib
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
@@ -245,7 +246,7 @@ function sshrun()
 EOF
     env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
 
-    $scp $qa_crowbarsetup $mkcconf root@$adminip:
+    $scp $qa_crowbarsetup $mkcconf $iscsictl root@$adminip:
     [[ $need_scenario = 1 ]] && $scp $scenariofile root@$adminip:
     ssh $sshopts root@$adminip "echo `hostname` > cloud ; . qa_crowbarsetup.sh ; $@"
     return $?
