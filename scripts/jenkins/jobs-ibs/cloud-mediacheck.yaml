@@ -21,6 +21,7 @@
             - Devel:Cloud:6/SLE_12_SP1
             - Devel:Cloud:6:Appliances/SLE_12_SP1
             - Devel:Cloud:7/SLE_12_SP1
+            - Devel:Cloud:7:Mitaka/SLE_12_SP1
             - Devel:Cloud:Shared:11-SP3:Update
             - SUSE:SLE-11-SP3:Update:Cloud5:Test
             - SUSE:SLE-12-SP1:Update:Products:Cloud6/SLE_12_SP1
