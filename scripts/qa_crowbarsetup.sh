@@ -4013,19 +4013,7 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
     sleep 60
     waitnodes nodes
 
-    # reenable and apply the openstack propsals
-    for barclamp in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat trove tempest; do
-        applied_proposals=$(crowbar "$barclamp" proposal list )
-        if test "$applied_proposals" == "No current proposals"; then
-            continue
-        fi
-
-        for proposal in $applied_proposals; do
-            echo "Commiting proposal $proposal of barclamp ${barclamp}..."
-            crowbar "$barclamp" proposal commit "$proposal" ||\
-                complain 30 "committing barclamp-$barclamp failed"
-        done
-    done
+    onadmin_reapply_openstack_proposals
 
     # Install new features
     if iscloudver 5; then
@@ -4038,6 +4026,22 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
     fi
 
     # TODO: restart any suspended instance?
+}
+
+function onadmin_reapply_openstack_proposals()
+{
+    for barclamp in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat trove tempest; do
+        applied_proposals=$(crowbar "$barclamp" proposal list )
+        if test "$applied_proposals" == "No current proposals"; then
+            continue
+        fi
+
+        for proposal in $applied_proposals; do
+            echo "Commiting proposal $proposal of barclamp ${barclamp}..."
+            crowbar "$barclamp" proposal commit "$proposal" ||\
+                complain 30 "committing barclamp-$barclamp failed"
+        done
+    done
 }
 
 function onadmin_prepare_crowbar_upgrade()
