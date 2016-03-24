@@ -3242,45 +3242,59 @@ function oncontroller_manila_generic_driver_setup()
     fi
 
     . .openrc
-    manila_service_tenant_id=`openstack project create manila-service -f value -c id`
-    openstack role add --project manila-service --user admin admin
-    export OS_TENANT_NAME='manila-service'
-    openstack image create --file $service_image_name \
-        $service_image_params --container-format bare --public \
-        manila-service-image
-    nova flavor-create manila-service-image-flavor 100 512 0 1
 
-    nova secgroup-create $sec_group "$sec_group description"
-    nova secgroup-add-rule $sec_group icmp -1 -1 0.0.0.0/0
-    nova secgroup-add-rule $sec_group tcp 22 22 0.0.0.0/0
-    nova secgroup-add-rule $sec_group tcp 2049 2049 0.0.0.0/0
-    nova secgroup-add-rule $sec_group tcp 20000 65535 0.0.0.0/0
-    nova secgroup-add-rule $sec_group udp 2049 2049 0.0.0.0/0
-    nova secgroup-add-rule $sec_group udp 445 445 0.0.0.0/0
-    nova secgroup-add-rule $sec_group tcp 445 445 0.0.0.0/0
-    nova secgroup-add-rule $sec_group tcp 137 139 0.0.0.0/0
-    nova secgroup-add-rule $sec_group udp 137 139 0.0.0.0/0
-    nova secgroup-add-rule $sec_group tcp 111 111 0.0.0.0/0
-    nova secgroup-add-rule $sec_group udp 111 111 0.0.0.0/0
+    if ! openstack project show manila-service; then
+        manila_service_tenant_id=`openstack project create manila-service -f value -c id`
+        openstack role add --project manila-service --user admin admin
+        export OS_TENANT_NAME='manila-service'
+    fi
 
-    fixed_net_id=`neutron net-show fixed -f value -c id`
-    timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
-        --security-groups $sec_group,default \
-        --nic net-id=$fixed_net_id manila-service
+    # using list subcommand because show requires an ID
+    if ! openstack image list --f value -c Name | grep -q "^manila-service-image$"; then
+        openstack image create --file $service_image_name \
+            $service_image_params --container-format bare --public \
+            manila-service-image
+    fi
 
-    [ $? != 0 ] && complain 43 "nova boot for manila failed"
+    if ! nova flavor-show manila-service-image-flavor; then
+        nova flavor-create manila-service-image-flavor 100 512 0 1
+    fi
 
-    # manila tempest tests use the floating IP to export the shares. So create
-    # a floating IP for the manila instance and add it to the VM
-    manila_tenant_vm_ip=`openstack ip floating create floating -f value -c ip`
-    openstack ip floating add $manila_tenant_vm_ip manila-service
+    if ! nova secgroup-list-rules manila-service; then
+        nova secgroup-create $sec_group "$sec_group description"
+        nova secgroup-add-rule $sec_group icmp -1 -1 0.0.0.0/0
+        nova secgroup-add-rule $sec_group tcp 22 22 0.0.0.0/0
+        nova secgroup-add-rule $sec_group tcp 2049 2049 0.0.0.0/0
+        nova secgroup-add-rule $sec_group tcp 20000 65535 0.0.0.0/0
+        nova secgroup-add-rule $sec_group udp 2049 2049 0.0.0.0/0
+        nova secgroup-add-rule $sec_group udp 445 445 0.0.0.0/0
+        nova secgroup-add-rule $sec_group tcp 445 445 0.0.0.0/0
+        nova secgroup-add-rule $sec_group tcp 137 139 0.0.0.0/0
+        nova secgroup-add-rule $sec_group udp 137 139 0.0.0.0/0
+        nova secgroup-add-rule $sec_group tcp 111 111 0.0.0.0/0
+        nova secgroup-add-rule $sec_group udp 111 111 0.0.0.0/0
+    fi
 
-    [ $? != 0 ] && complain 44 "adding a floating ip to the manila service VM failed"
+    if [ "`openstack server show --f value -c status manila-service`" != ACTIVE ]; then
+        fixed_net_id=`neutron net-show fixed -f value -c id`
+        timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
+            --security-groups $sec_group,default \
+            --nic net-id=$fixed_net_id manila-service
 
-    # check that the service VM is pingable. otherwise manila tempest tests will fail later
-    wait_for 300 1 "nc -z $manila_tenant_vm_ip 22" \
-        "manila service VM booted and ssh port open" \
-        "echo \"ERROR: manila service VM not listening on ssh port. manila tests will fail!\""
+        [ $? != 0 ] && complain 43 "nova boot for manila failed"
+
+        # manila tempest tests use the floating IP to export the shares. So create
+        # a floating IP for the manila instance and add it to the VM
+        manila_tenant_vm_ip=`openstack ip floating create floating -f value -c ip`
+        openstack ip floating add $manila_tenant_vm_ip manila-service
+
+        [ $? != 0 ] && complain 44 "adding a floating ip to the manila service VM failed"
+
+        # check that the service VM is pingable. otherwise manila tempest tests will fail later
+        wait_for 300 1 "nc -z $manila_tenant_vm_ip 22" \
+            "manila service VM booted and ssh port open" \
+            "echo \"ERROR: manila service VM not listening on ssh port. manila tests will fail!\""
+    fi
 }
 
 # code run on controller/dashboard node to do basic tests of deployed cloud
