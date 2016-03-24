@@ -19,6 +19,7 @@
             - Devel:Cloud:5
             - Devel:Cloud:5/SLE_12
             - Devel:Cloud:6/SLE_12_SP1
+            - Devel:Cloud:6:Appliances/SLE_12_SP1
             - Devel:Cloud:7/SLE_12_SP1
             - Devel:Cloud:Shared:11-SP3:Update
             - SUSE:SLE-11-SP3:Update:Cloud5:Test
@@ -59,7 +60,7 @@
           export RPM_DEPCHECK=1
           export SRCRPM_DEPCHECK=0
 
-          if [[ "$project" == "Devel:Cloud:Shared:11-SP3:Update" ]]; then
+          if [[ "$project" == "Devel:Cloud:Shared:11-SP3:Update" || "$project" =~ Devel:Cloud:.*:Appliances ]]; then
               export RPM_DEPCHECK_MEDIADEPS=" "
               export SRCRPM_DEPCHECK_MEDIADEPS=" "
               export INSTALLCHECK_EXTRA_OPTS="--exclude pattern:"
