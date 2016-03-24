@@ -28,6 +28,14 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
 
+### want_${proposal} variables:
+# policy: empty or !=0 means its =1
+# defaults are evaluated in deploy_single_proposal()
+#
+# the following variables have different defaults
+: ${want_dvr:=0}
+: ${want_docker:=0}
+
 : ${arch:=$(uname -m)}
 
 # global variables that are set within this script
@@ -1944,7 +1952,7 @@ function onadmin_allocate()
     fi
 
     # set BTRFS for all nodes when docker is wanted (docker likes btrfs)
-    if [ -n "$want_docker" ] ; then
+    if [[ $want_docker = 1 ]] ; then
         for node in `get_all_discovered_nodes` ; do
             set_node_fs $node "btrfs"
         done
@@ -2546,7 +2554,7 @@ function custom_configuration()
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes"
             fi
 
-            if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
+            if [ -n "$want_sles12" ] && [[ $want_docker = 1 ]] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-docker']" "['$sles12plusnode']"
                 # do not assign another compute role to this node
                 proposal_modify_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "['$sles12plusnode']" "-="
@@ -2592,7 +2600,7 @@ function custom_configuration()
                 if [ "$networkingplugin" = "openvswitch" ] ; then
                     if [[ "$networkingmode" = vxlan ]] || iscloudver 6plus; then
                         proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vxlan','vlan']"
-                        if [[ -n "$want_dvr" ]]; then
+                        if [[ $want_dvr = 1 ]] ; then
                             proposal_set_value neutron default "['attributes']['neutron']['use_dvr']" "true"
                         fi
                     else
@@ -2942,6 +2950,16 @@ function deploy_single_proposal()
 {
     local proposal=$1
 
+    # skip proposals if they are explicitly disabled via
+    #   export want_$proposal=0
+    if eval "[[ \$want_${proposal} = 0 ]]" ; then
+        echo "Proposal SKIP: proposal '$proposal' will not be deployed because \$want_${proposal} was set to 0"
+        return
+    else
+        # set the default to allow other code to query its value
+        eval "want_${proposal}=1"
+    fi
+
     # proposal filter
     case "$proposal" in
         nfs_client)
@@ -2955,7 +2973,7 @@ function deploy_single_proposal()
             ;;
         manila)
             # manila-service can not be deployed currently with docker
-            [[ -n "$want_docker" ]] && continue
+            [[ $want_docker = 1 ]] && continue
             if ! iscloudver 6plus; then
                 # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
                 if ! [[ "$cloudsource" == "develcloud5" ]] || [ -z "$want_sles12" ]; then
@@ -3391,7 +3409,7 @@ function oncontroller_testsetup()
             && complain 114 "Unexpected errors in glance-scrubber logs"
     fi
 
-    if [ -n "$want_docker" ] ; then
+    if [[ $want_docker = 1 ]] ; then
         image_name="cirros"
         flavor="m1.tiny"
         ssh_user="cirros"
@@ -3463,7 +3481,7 @@ function oncontroller_testsetup()
     local portresult=0
 
     # do volume tests for non-docker scenario only
-    if [ -z "$want_docker" ] ; then
+    if [[ $want_docker = 0 ]] ; then
         # Workaround SLE12SP1 regression
         iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
         cinder list | grep -q available || cinder create 1
@@ -3683,7 +3701,7 @@ EOF
     fi
 
     # prepare docker image at docker compute nodes
-    if iscloudver 5 && [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
+    if iscloudver 5 && [ -n "$want_sles12" ] && [[ $want_docker = 1 ]] ; then
         for n in `get_docker_nodes` ; do
             ssh $n docker pull cirros
         done
