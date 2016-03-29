@@ -79,7 +79,7 @@ function horizon_barclamp()
 
 function nova_role_prefix()
 {
-    if ! iscloudver 6M7plus ; then
+    if ! iscloudver 6plus ; then
         echo "nova-multi"
     else
         echo "nova"
@@ -1186,9 +1186,7 @@ function onadmin_add_cloud_repo()
 function do_set_repos_skip_checks()
 {
     # We don't use the proper pool/updates repos when using a devel build
-    if iscloudver 6 && [[ $cloudsource =~ ^M[1-6]$ ]]; then
-        export REPOS_SKIP_CHECKS+=" SUSE-OpenStack-Cloud-SLE11-$(getcloudver)-Pool SUSE-OpenStack-Cloud-SLE11-$(getcloudver)-Updates"
-    elif iscloudver 5plus && [[ $cloudsource =~ (develcloud|GM5$|GM6$) ]]; then
+    if iscloudver 5plus && [[ $cloudsource =~ (develcloud|GM5$|GM6$) ]]; then
         export REPOS_SKIP_CHECKS+=" SUSE-Cloud-$(getcloudver)-Pool SUSE-Cloud-$(getcloudver)-Updates"
     fi
 }
@@ -1536,7 +1534,7 @@ EOF
     local f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
     grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
 
-    if  iscloudver 6M7plus ; then
+    if iscloudver 6plus ; then
         create_repos_yml
     fi
 
@@ -1659,7 +1657,7 @@ function do_installcrowbar()
     do_set_repos_skip_checks
 
     rpm -Va crowbar\*
-    if iscloudver 6M8plus ; then
+    if iscloudver 6plus ; then
         do_installcrowbar_cloud6plus
     else
         do_installcrowbar_legacy $@
@@ -2242,7 +2240,7 @@ function enable_ssl_generic()
         ;;
         horizon|nova_dashboard)
             $p "$a['apache']['ssl']" true
-            if iscloudver 6M9plus ; then
+            if iscloudver 6plus ; then
                 $p "$a['apache']['generate_certs']" true
             fi
             return
@@ -2511,7 +2509,7 @@ function custom_configuration()
                 proposal_set_value manila default "['deployment']['manila']['elements']['manila-server']" "['cluster:$clusternameservices']"
             fi
 
-            if iscloudver 6M9plus ; then
+            if iscloudver 6plus ; then
                 proposal_set_value manila default "['attributes']['manila']['default_share_type']" "'default'"
                 # new generic driver options since M9
                 if crowbar manila proposal show default|grep service_instance_name_or_id ; then
@@ -2568,7 +2566,7 @@ function custom_configuration()
         ;;
         ceilometer)
             local ceilometerservice="ceilometer-cagent"
-            if iscloudver 6M8plus ; then
+            if iscloudver 6plus ; then
                 ceilometerservice="ceilometer-polling"
             fi
             if [[ $hacloud = 1 ]] ; then
@@ -2600,7 +2598,7 @@ function custom_configuration()
                     fi
                 elif [ "$networkingplugin" = "linuxbridge" ] ; then
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
-                    if iscloudver 5plus && ! iscloudver 6M8plus ; then
+                    if iscloudver 5plus && ! iscloudver 6plus ; then
                         proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "false"
                     fi
                 else
@@ -2695,7 +2693,7 @@ function custom_configuration()
                 proposal_set_value tempest default "['deployment']['tempest']['elements']['tempest']" "$tempestnodes"
             fi
             # manila options
-            if iscloudver 6M10plus ; then
+            if iscloudver 6plus ; then
                 proposal_set_value tempest default "['attributes']['tempest']['manila']['image_password']" "'linux'"
             fi
         ;;
@@ -2703,13 +2701,13 @@ function custom_configuration()
             # set default password
             proposal_set_value provisioner default "['attributes']['provisioner']['root_password_hash']" "\"$(openssl passwd -1 $want_rootpw)\""
             # set discovery root password too
-            iscloudver 6M12plus && proposal_set_value provisioner default "['attributes']['provisioner']['discovery']['append']" "\"DISCOVERY_ROOT_PASSWORD=$want_rootpw\""
+            iscloudver 6plus && proposal_set_value provisioner default "['attributes']['provisioner']['discovery']['append']" "\"DISCOVERY_ROOT_PASSWORD=$want_rootpw\""
 
             if [[ $keep_existing_hostname = 1 ]] ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
             fi
 
-            if ! iscloudver 6M7plus ; then
+            if ! iscloudver 6plus ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['suse']" "{}"
                 proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']" "{}"
                 proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']['repos']" "{}"
@@ -2962,7 +2960,7 @@ function deploy_single_proposal()
                     continue
                 fi
             fi
-            if iscloudver 6M9plus ; then
+            if iscloudver 6plus ; then
                 get_novacontroller
                 safely oncontroller oncontroller_manila_generic_driver_setup
                 get_manila_service_instance_details
