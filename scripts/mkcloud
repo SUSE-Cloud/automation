@@ -243,7 +243,7 @@ function sshrun()
         export JENKINS_EXECUTOR_NUMBER=$EXECUTOR_NUMBER;
         export JENKINS_WORKSPACE=$WORKSPACE;
 EOF
-    env|grep -e ^debug_ -e ^pre_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
+    env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
 
     $scp $qa_crowbarsetup $mkcconf root@$adminip:
     [[ $need_scenario = 1 ]] && $scp $scenariofile root@$adminip:
