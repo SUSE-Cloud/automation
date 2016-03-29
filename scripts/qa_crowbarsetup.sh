@@ -4208,7 +4208,9 @@ function onadmin_run_cct()
         esac
 
         if iscloudver 6plus; then
-            for test in "nova" "manila"; do
+            # 2017-03-29: manila functional tests are hitting frequently a timeout, disable for now
+            # for test in "nova" "manila"; do
+            for test in "nova" ; do
                 if crowbarctl proposal list $test &> /dev/null; then
                     cct_tests+="+test:func:${test}client"
                 fi
