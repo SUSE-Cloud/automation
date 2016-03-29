@@ -49,7 +49,7 @@ crowbar_api_installer_path=/installer/installer
 crowbar_api_digest="--digest -u crowbar:crowbar"
 crowbar_install_log=/var/log/crowbar/install.log
 
-export nodenumber=${nodenumber:-2}
+export nodenumber
 export tempestoptions=${tempestoptions:--t -s}
 export want_sles12
 [[ "$want_sles12" = 0 ]] && want_sles12=
@@ -213,8 +213,7 @@ setcloudnetvars()
             want_ipmi=true
         ;;
         qa4)
-            nodenumber=7
-            nodenumbertotal=8
+            nodenumbertotal=7
             net=${netp}.66
             net_public=$net
             vlan_public=715
@@ -241,7 +240,8 @@ setcloudnetvars()
             want_ipmi=true
         ;;
         virtual)
-                    true # defaults are fine (and overridable)
+            nodenumber=2
+            true # defaults are fine (and overridable)
         ;;
         cumulus)
             net=$netp.189
@@ -251,7 +251,8 @@ setcloudnetvars()
             vlan_fixed=578
         ;;
         *)
-                    true # defaults are fine (and overridable)
+            nodenumber=2
+            true # defaults are fine (and overridable)
         ;;
     esac
     test -n "$nodenumbertotal" && nodenumber=${nodenumber:-$nodenumbertotal}
