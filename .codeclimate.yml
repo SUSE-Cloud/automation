@@ -1,0 +1,20 @@
+---
+engines:
+  shellcheck:
+    enabled: true
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - ruby
+      - javascript
+      - python
+  fixme:
+    enabled: false
+  radon:
+    enabled: true
+ratings:
+  paths:
+  - "**.py"
+  - "**.rb"
+exclude_paths: []
