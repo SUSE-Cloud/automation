@@ -1,0 +1,177 @@
+- job:
+    name: 'cloud-mkphyscloud-qa-scenario-0a'
+    node: cloud-mkphyscloud-gate-qa
+    description: |
+      <b>This job is managed by JJB! Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-ibs/'>git</a></b>
+
+      This job will deploy cloud 5 on the qa2.cloud and upgrade it to cloud 6:
+        - 7 nodes
+        - swift
+        - nova (kvm)
+
+      It will wipe all QA2 machines.
+
+    wrappers:
+      - mkphyscloud-qa-common-wrappers
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    parameters:
+      - string:
+          name: cloudsource
+          default: GM5+up
+      - string:
+          name: hw_number
+          default: "2"
+          description: Name of the QA cloud server (we have 2,3,4)
+      - string:
+          name: nodenumber
+          default: "7"
+          description: Number of nodes to use. Depends on hw_number
+      - string:
+          name: want_ipmi
+          default: "true"
+      - string:
+          name: runner_url
+          default: https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh
+          description: The runner must be qa_crowbarsetup.sh file
+      - string:
+          name: commands
+          default: prepareinstallcrowbar installcrowbar allocate waitcloud setup_aliases batch
+          description: All the steps that needs to be completed to have cloud installed
+      - string:
+          name: scenario_url
+          #FIXME: why is this vmoravec?
+          default: https://raw.githubusercontent.com/vmoravec/automation/cloud5-upgrade-scenario/scripts/scenarios/cloud5/qa/no-ssl/qa-scenario-0a-kvm-swift.yaml
+          description: Location of scenario yaml file
+      - string:
+          name: upgrade_cloudsource
+          default: GM6+up
+          description: Set new cloudsource for upgrade process
+      - text:
+          name: UPDATEREPOS
+          default:
+          description: Update repositories (one URL per line)
+      - bool:
+          name: UPDATEBEFOREINSTALL
+          default: false
+          description: add update repos before crowbar install
+
+    builders:
+      - shell: |
+          #!/bin/bash
+          admin=crowbar$hw_number
+          cloud=qa$hw_number
+
+          export artifacts_dir=$WORKSPACE/.artifacts
+          rm -rf $artifacts_dir
+          mkdir -p $artifacts_dir
+          touch $artifacts_dir/.ignore
+
+          freshadminvm $admin
+          sleep 100 # time for the admin VM to boot
+
+          # rest of code runs on admin node:
+          env | grep -e networking -e libvirt -e cloud > mkcloud.config
+          scp mkcloud.config root@$admin:
+          ret=0
+
+          if [ ! -z "$UPDATEREPOS" ] ; then
+            # testing update only makes sense with GMx and without TESTHEAD
+            unset TESTHEAD
+            export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
+          fi
+
+          ssh root@$admin "
+          export cloud=$cloud ;
+          export artifacts_dir=$artifacts_dir;
+          export TESTHEAD=$TESTHEAD ;
+          export UPDATEREPOS=$UPDATEREPOS ;
+          export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
+          export cloudsource=$cloudsource ;
+          export nodenumber=$nodenumber ;
+          export runner_url=$runner_url ;
+          export scenario_url=$scenario_url ;
+          export want_node_aliases=controller=1,compute-kvm=3,storage-cinder=1,storage-swift=2 ;
+          export scenario=\"/root/scenario.yml\" ;
+          export commands=\"$commands\" "'
+
+          [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
+
+          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
+
+          wget --no-check-certificate -Oscenario.yml "$scenario_url"
+
+          # Fix for missing nscd in our admin node images
+          zypper --non-interactive install nscd;
+          rcnscd start;
+
+          # Install cloud 5 first
+          timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands";
+
+          # Prepare cloud 5 for upgrade
+          timeout --signal=ALRM 30m  bash -x -c ". qa_crowbarsetup.sh ; onadmin_prepare_crowbar_upgrade; safely onadmin_crowbarbackup \"with_upgrade\" ";
+
+          ' || ret=$?
+
+          scp root@$admin:/tmp/backup-crowbar.tar.gz "$artifacts_dir";
+
+          # Now shutdown the old crowbar VM and spawn new VM for upgraded cloud
+
+          ssh root@localhost "
+          hostname -f;
+          virsh list --all;
+          echo $admin;
+          virsh destroy $admin;
+          freshadminvm_cloud6 $admin qcow2;
+          sleep 100 # time for the admin VM to boot
+          "
+          scp "$artifacts_dir"/backup-crowbar.tar.gz root@$admin:/tmp;
+
+          ssh root@$admin "
+          export cloud=$cloud ;
+          export artifacts_dir=$artifacts_dir;
+          export TESTHEAD=$TESTHEAD ;
+          export UPDATEREPOS=$UPDATEREPOS ;
+          export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
+          export upgrade_cloudsource=$upgrade_cloudsource ;
+          export cloudsource=$upgrade_cloudsource ;
+          export runner_url=$runner_url ;
+          export nodenumber=$nodenumber "'
+
+          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url";
+
+          # Install cloud 6 admin node
+          timeout --signal=ALRM 60m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar installcrowbar"
+
+          # Restore admin node
+          timeout --signal=ALRM 60m bash -x -c ". qa_crowbarsetup.sh ; onadmin_crowbarrestore \"with_upgrade\" "
+
+          # Upgrade the nodes OS
+          timeout --signal=ALRM 90m  bash -x -c ". qa_crowbarsetup.sh ; onadmin_crowbar_nodeupgrade"
+
+          # Reapply barclamps
+          timeout --signal=ALRM 90m  bash -x -c ". qa_crowbarsetup.sh ; onadmin_reapply_openstack_proposals"
+
+          ' || ret=$?
+
+          if [ $ret != 0 ] ; then
+            ssh $sshopts root@$admin '
+            set -x
+            for node in $(crowbar machines list | grep ^d) ; do
+            (
+            echo "Collecting supportconfig from $node"
+            timeout 400 ssh $node supportconfig | wc
+            timeout 300 scp $node:/var/log/\*tbz /var/log/
+            )&
+            done
+            timeout 500 supportconfig | wc &
+            wait
+            '
+
+            scp root@$admin:/var/log/*tbz $artifacts_dir/
+          fi >&2
+
+          exit $ret
