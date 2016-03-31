@@ -1124,7 +1124,7 @@ function onadmin_prepare_cloud_repos()
                 addsp3testupdates
                 addsles12testupdates
                 ;;
-            develcloud6|develcloud7|susecloud7|M?|Beta*|RC*|GMC*)
+            develcloud6|develcloud7|mitakacloud7|susecloud7|M?|Beta*|RC*|GMC*)
                 addsles12sp1testupdates
                 ;;
             *)
