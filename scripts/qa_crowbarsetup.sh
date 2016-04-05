@@ -4168,8 +4168,11 @@ function onadmin_crowbarrestore()
 
 function onadmin_crowbar_nodeupgrade()
 {
-    # FIXME: change path to "*.json" when crowbar supports it:
-    curl --silent -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/nodes
+    local endpoint
+    for endpoint in services backup nodes; do
+        # FIXME: change paths to "*.json" when crowbar supports it:
+        safely curl --silent -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/$endpoint
+    done
     wait_for 360 10 "crowbar_nodeupgrade_status | grep -q '\"left\": *0'" "crowbar to finish the nodeupgrade"
     if ! crowbar_nodeupgrade_status | grep -q '"failed": *0' ; then
         crowbar_nodeupgrade_status
