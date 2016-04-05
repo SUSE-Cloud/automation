@@ -167,9 +167,26 @@ set -e
 $zypper -n install -t pattern cloud_controller cloud_compute cloud_network
 $zypper -n install --force openstack-quickstart openstack-tempest-test
 
-# test -e /tmp/openstack-quickstart-demosetup && mv /tmp/openstack-quickstart-demosetup /usr/sbin/openstack-quickstart-demosetup
-# test -e /tmp/keystone_data.sh && mv /tmp/keystone_data.sh /usr/lib/devstack/keystone_data.sh
-# test -e /tmp/functions.sh && mv /tmp/functions.sh /usr/lib/openstack-quickstart/functions.sh
+# for debugging, use some files if available after installing
+# the openstack-quickstart package
+if [ -n "$QUICKSTART_DEBUG" ]; then
+    test -e /tmp/openstack-quickstart-demosetup && \
+        cp /tmp/openstack-quickstart-demosetup \
+            /usr/sbin/openstack-quickstart-demosetup && \
+        echo "WARN: using /tmp/openstack-quickstart-demosetup"
+    test -e /tmp/keystone_data.sh && \
+        cp /tmp/keystone_data.sh /usr/lib/devstack/keystone_data.sh && \
+        echo "WARN: using /tmp/keystone_data.sh"
+    test -e /tmp/functions.sh && \
+        cp /tmp/functions.sh /usr/lib/openstack-quickstart/functions.sh && \
+        echo "WARN: using /tmp/functions.sh"
+    test -e /tmp/bash.openstackrc && \
+        cp /tmp/bash.openstackrc /etc/bash.openstackrc && \
+        echo "WARN: using /tmp/bash.openstackrc"
+    test -e /tmp/openstack-loopback-lvm && \
+        cp /tmp/openstack-loopback-lvm /usr/sbin/openstack-loopback-lvm && \
+        echo "WARN: using /tmp/openstack-loopback-lvm"
+fi
 
 crudini=crudini
 test -z "$(type -p crudini 2>/dev/null)" && crudini="openstack-config"
