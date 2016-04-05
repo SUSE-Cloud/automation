@@ -139,6 +139,10 @@ onadmin_help()
             want_node_roles=controller=1,compute=2,storage=3
     want_test_updates=0 | 1  (default=1 if TESTHEAD is set, 0 otherwise)
         add test update repositories
+    skip_proposal_$proposal
+        if set with a known proposal name, this proposal is skipped.
+        Example:
+            export skip_proposal_trove=1
 EOUSAGE
 }
 
@@ -2944,6 +2948,11 @@ function set_dashboard_alias()
 function deploy_single_proposal()
 {
     local proposal=$1
+
+    # skip a proposal
+    if [ -n "skip_proposal_$proposal" ]; then
+        continue
+    fi
 
     # proposal filter
     case "$proposal" in
