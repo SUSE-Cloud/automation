@@ -15,16 +15,28 @@ ARCH=$(uname -i)
 
 ifconfig | grep inet
 
-# setup optional extra disk
-dev=/dev/vdb
-if ! test -e $dev && file -s /dev/sdb|grep -q "ext3 filesystem data" ; then
-    dev=/dev/sdb
+# setup optional extra disk for cinder-volumes
+dev_cinder=/dev/vdb
+if ! test -e $dev_cinder && file -s /dev/sdb|grep -q "ext3 filesystem data" ; then
+    dev_cinder=/dev/sdb
 fi
-if [ -e $dev ]; then
-    dd if=/dev/zero of=$dev bs=512 count=1
-    pvcreate -f $dev
-    vgcreate -f cinder-volumes $dev
+if [ -e $dev_cinder ]; then
+    # CINDER_VOLUMES_DEV is evaulated by openstack-loopback-lvm
+    # from openstack-quickstart to create the VG
+    export CINDER_VOLUMES_DEV=$dev_cinder
 fi
+
+# setup optional extra disk for manila-shares
+dev_manila=/dev/vdc
+if ! test -e $dev_manila && file -s /dev/sdc|grep -q "ext3 filesystem data" ; then
+    dev_manila=/dev/sdc
+fi
+if [ -e $dev_manila ]; then
+    # MANILA_SHARES_DEV is evaluated by openstack-loopback-lvm
+    # from openstack-quickstart to create the VG
+    export MANILA_SHARES_DEV=$dev_manila
+fi
+
 mount -o remount,noatime,barrier=0 /
 
 
