@@ -72,7 +72,16 @@ jenkins/track-upstream-and-package.pl syntax OK
 # jenkins jobs
 There are manually maintained jobs and some jobs are now using
 [jenkins-job-builder](http://docs.openstack.org/infra/jenkins-job-builder/)
-which defines jobs in yaml format.
-To update jobs which land on ci.opensuse.org, run:
+which defines jobs in yaml format. New jobs should always be defined
+in yaml format.
+To update jobs on ci.opensuse.org, run:
 
-   jenkins-jobs --ignore-cache update scripts/jenkins/jobs-obs/
+    jenkins-jobs --ignore-cache update scripts/jenkins/jobs-obs/
+
+To update jobs on the SUSE internal CI, run:
+
+    jenkins-jobs --ignore-cache update \
+        scripts/jenkins/jobs-ibs/:scripts/jenkins/jobs-ibs/templates/
+
+Both commands need a valid `/etc/jenkins_jobs/jenkins_jobs.ini` configuration.
+See [`/scripts/jenkins/jenkins_jobs.ini.sample`](scripts/jenkins/jenkins_jobs.ini.sample)

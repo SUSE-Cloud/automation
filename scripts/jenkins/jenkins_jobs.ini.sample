@@ -5,4 +5,6 @@ url=https://ci.suse.de/
 #url=https://ci.opensuse.org/
 
 # to be used as
-#jenkins-jobs --conf jenkins/jenkins_jobs.ini update jenkins/jobs-ibs/cloud-mkcloud6-job-hyperv.yaml
+#jenkins-jobs --conf jenkins/jenkins_jobs.ini update \
+#    scripts/jenkins/jobs-ibs/:scripts/jenkins/jobs-ibs/templates/ \
+#    cloud-mkcloud6-job-hyperv.yaml
