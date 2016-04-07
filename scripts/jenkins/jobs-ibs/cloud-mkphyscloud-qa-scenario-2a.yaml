@@ -1,0 +1,235 @@
+- job:
+    name: 'cloud-mkphyscloud-qa-scenario-2a'
+    node: cloud-mkphyscloud-gate-qa
+    description: |
+      <b>This job is managed by JJB! Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-ibs/'>git</a></b>
+
+      This job will redeploy the qa2.cloud with scenario-2b:
+        - total 8 nodes including admin node
+        - database: default, postgresql
+        - pacemaker: 3 clusters with 2 nodes (SBD)
+        - keystone UUID
+        - swift (allow public container, enable object versioning)
+        - glance (storage swift)
+        - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 KVM
+        - cinder: Local file
+        - neutron: linuxbridge
+        - everything with SSL.
+
+      Warning: It will wipe all machines!
+
+    wrappers:
+      - mkphyscloud-qa-common-wrappers
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    parameters:
+      - string:
+          name: cloudsource
+          default: develcloud6
+      - string:
+          name: TESTHEAD
+          default: "1"
+          description: if non-empty, test latest version from Devel:Cloud Stagin
+      - string:
+          name: cct_tests
+          default: features:base
+          description: Run cct
+      - string:
+          name: want_ceph
+          default:
+          description: Install ceph barclamp
+      - string:
+          name: hw_number
+          default: "2"
+          description: Name of the QA cloud server (we have 2,3,4)
+      - string:
+          name: hacloud
+          default: "1"
+          description: By default we do not want HA configured and installed
+      - string:
+          name: clusterconfig
+          default: services=2,data=2,network=2
+          description: HA configuration for clusters. Make sense only if hacloud=1
+      - string:
+          name: nodenumber
+          default: "7"
+          description: Number of nodes to use. Depends on hw_number
+      - string:
+          name: want_ipmi
+          default: "true"
+      - string:
+          name: runner_url
+          default: https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh
+          description: The runner must be qa_crowbarsetup.sh file
+      - string:
+          name: commands
+          default: prepareinstallcrowbar installcrowbar allocate setup_aliases waitcloud
+          description: All the steps that needs to be completed to have cloud installed
+      - string:
+          name: scenario_url
+          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud6/qa/no-ssl/qa-scenario-2a-sbd-kvm.yaml
+          description: Location of scenario yaml file
+      - string:
+          name: wanttempest
+          default: "1"
+          description: Run tempest smoke tests
+
+    builders:
+      - shell: |
+          #!/bin/bash
+          admin=crowbar$hw_number
+          cloud=qa$hw_number
+          tempestoptions="-t -s"
+
+          if [ ! -z "$UPDATEREPOS" ] ; then
+            # testing update only makes sense with GMx and without TESTHEAD
+            unset TESTHEAD
+            export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
+          fi
+
+          export artifacts_dir=$WORKSPACE/.artifacts
+          rm -rf $artifacts_dir
+          mkdir -p $artifacts_dir
+          touch $artifacts_dir/.ignore
+
+          freshadminvm_cloud6 $admin qcow2
+          sleep 100 # time for the admin VM to boot
+
+          # wipe out shared NFS that should be used by this deployment
+
+          ssh root@10.162.26.129 "/var/qa-scripts/wipe_nfs_shares.sh qa$hw_number"
+
+          # rest of code runs on admin node:
+          env | grep -e networking -e libvirt -e cloud > mkcloud.config
+          scp mkcloud.config root@$admin:
+          ret=0
+
+          ssh root@$admin "
+          export cloud=$cloud ;
+          export UPDATEREPOS=$UPDATEREPOS ;
+          export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
+          export TESTHEAD=$TESTHEAD ;
+          export cloudsource=$cloudsource ;
+          export nodenumber=$nodenumber ;
+          export hacloud=$hacloud ;
+          export clusterconfig=$clusterconfig ;
+          export runner_url=$runner_url ;
+          export scenario_url=$scenario_url ;
+          export want_node_aliases=controller=2,data=2,network=2,computekvm=1 ;
+          export want_node_roles=controller=2,storage=2,network=2,compute=1 ;
+          export scenario=\"scenario.yml\" ;
+          export wanttempest=$wanttempest;
+          export tempestoptions=\"$tempestoptions\"
+          export commands=\"$commands\" "'
+
+          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
+          wget --no-check-certificate -Oscenario.yml "$scenario_url"
+
+          sed -i -e "s,##shared_nfs_for_database##,10.162.26.129:/var/$cloud/ha-database," scenario.yml
+          sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.26.129:/var/$cloud/ha-rabbitmq," scenario.yml
+
+          [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
+
+          # first install the nodes and wait until the cloud is ready for further configuration steps
+          timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
+          ' || ret=$?
+
+          echo "mkphyscloud ret=$ret (before scenario and configuration)"
+
+          if [ "$ret" = "0" ]; then
+            # ----- Prepare the SBD setup:
+
+            cat > /tmp/sbd_prepare_$admin <<EOSCRIPT
+              # preparation of iSCSI
+              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP1/ --non-interactive install python-sh
+
+              wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
+
+              chmod +x iscsictl.py
+
+              ./iscsictl.py --service target --host \$(hostname) --no-key
+              ./iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
+              ./iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
+              ./iscsictl.py --service initiator --target_host \$(hostname) --host data1 --no-key
+              ./iscsictl.py --service initiator --target_host \$(hostname) --host data2 --no-key
+              ./iscsictl.py --service initiator --target_host \$(hostname) --host network1 --no-key
+              ./iscsictl.py --service initiator --target_host \$(hostname) --host network2 --no-key
+
+              # preparation of SBD for services nodes
+              SBD_DEV_SERVICES=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
+              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_SERVICES create"
+              ssh controller2 "zypper --non-interactive install sbd"
+              # take scenario yaml file and replace placeholders
+              sed -i "s|@@sbd_device_services@@|\${SBD_DEV_SERVICES}|g" scenario.yml
+
+              # preparation of SBD for data nodes
+              SBD_DEV_DATA=\$(ssh data1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
+              ssh data1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_DATA create"
+              ssh data2 "zypper --non-interactive install sbd"
+              # take scenario yaml file and replace placeholders
+              sed -i "s|@@sbd_device_data@@|\${SBD_DEV_DATA}|g" scenario.yml
+
+              # preparation of SBD for network nodes
+              SBD_DEV_NETWORK=\$(ssh network1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
+              ssh network1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_NETWORK create"
+              ssh network2 "zypper --non-interactive install sbd"
+              # take scenario yaml file and replace placeholders
+              sed -i "s|@@sbd_device_network@@|\${SBD_DEV_NETWORK}|g" scenario.yml
+
+              # watchdog configuration
+              ssh controller1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
+              ssh controller2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
+
+              ssh data1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
+              ssh data2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
+
+              ssh network1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
+              ssh network2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
+
+              # ----- End of SBD
+            EOSCRIPT
+
+            chmod +x /tmp/sbd_prepare_$admin
+
+            scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
+
+            ssh root@$admin  "
+            export cloud=$cloud ;
+            export TESTHEAD=$TESTHEAD ;
+            export cloudsource=$cloudsource ;
+            export nodenumber=$nodenumber ;
+            export hacloud=$hacloud ;
+            export clusterconfig=$clusterconfig ;
+            export want_ceph=1 ;
+            export cephvolumenumber=0;
+            export cct_tests=$cct_tests;
+            export wanttempest=$wanttempest;
+            export tempestoptions=\"$tempestoptions\";
+            export scenario=scenario.yml "'
+
+            ./sbd_prepare
+
+            timeout --signal=ALRM 60m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist batch testsetup;"
+            ' || ret=$?
+
+            if [ $ret != 0 ] ; then
+              ssh root@$admin '
+              set -x
+              for node in $(crowbar machines list | grep ^d) ; do
+                (
+                echo "Collecting supportconfig from $node"
+                timeout 400 ssh $node supportconfig | wc
+                timeout 300 scp $node:/var/log/\*tbz /var/log/
+                )&
+              done
+              timeout 500 supportconfig | wc &
+              wait
+              '
+
+              scp root@$admin:/var/log/*tbz $artifacts_dir/
+            fi >&2
+          fi
+          exit $ret

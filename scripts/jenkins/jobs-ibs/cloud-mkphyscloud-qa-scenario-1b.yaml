@@ -1,0 +1,162 @@
+- job:
+    name: 'cloud-mkphyscloud-qa-scenario-1b'
+    node: cloud-mkphyscloud-gate-qa
+    description: |
+      <b>This job is managed by JJB! Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-ibs/'>git</a></b>
+
+      This job will redeploy the qa2.cloud with scenario-1b:
+         - 7 nodes
+         - HA with IPMI (3 controllers
+         - shared device for DB and rabbit
+         - swift
+         - 2 kvm and 2 xen compute nodes
+         - eveyrthing with SSL.
+
+      It will wipe all QA2 machines!
+
+    wrappers:
+      - mkphyscloud-qa-common-wrappers
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    parameters:
+      - string:
+          name: cloudsource
+          default: susecloud6
+      - string:
+          name: TESTHEAD
+          default: "1"
+          description: if non-empty, test latest version from Devel:Cloud Stagin
+      - string:
+          name: cct_tests
+          default: features:base
+          description: Run cct
+      - string:
+          name: want_ceph
+          default:
+          description: Install ceph barclamp
+      - string:
+          name: hw_number
+          default: 2
+          description: Name of the QA cloud server (we have 2,3,4)
+      - string:
+          name: hacloud
+          default: "1"
+          description: By default we do not want HA configured and installed
+      - string:
+          name: clusterconfig
+          default: services=3
+          description: HA configuration for clusters. Make sense only if hacloud=1
+      - string:
+          name: nodenumber
+          default: "7"
+          description: Number of nodes to use. Depends on hw_number
+      - string:
+          name: want_ipmi
+          default: "true"
+      - string:
+          name: runner_url
+          default: https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh
+          description: The runner must be qa_crowbarsetup.sh file
+      - string:
+          name: commands
+          default: prepareinstallcrowbar installcrowbar allocate waitcloud setup_aliases batch testsetup
+          description: All the steps that needs to be completed to have cloud installed
+      - string:
+          name: scenario_url
+          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud6/qa/no-ssl/qa-scenario-1b-ipmi-kvm-xen.yaml
+          description: Location of scenario yaml file
+      - text:
+          name: UPDATEREPOS
+          default:
+          description: Update repositories (one URL per line)
+      - bool:
+          name: UPDATEBEFOREINSTALL
+          default: false
+          description: add update repos before crowbar install
+      - bool:
+          name: WITHREBOOT
+          default: false
+      - string:
+          name: wanttempest
+          default: "1"
+
+    builders:
+      - shell: |
+          #!/bin/bash
+          export admin=crowbar$hw_number;
+          export cloud=qa$hw_number;
+          export tempestoptions="-t -s"
+
+          if [ ! -z "$UPDATEREPOS" ] ; then
+            # testing update only makes sense with GMx and without TESTHEAD
+            unset TESTHEAD
+            export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
+          fi
+
+          export artifacts_dir=$WORKSPACE/.artifacts
+          rm -rf $artifacts_dir
+          mkdir -p $artifacts_dir
+          touch $artifacts_dir/.ignore
+          cd /home/jenkins
+          freshadminvm_cloud6 $admin qcow2
+          sleep 100 # time for the admin VM to boot
+
+          # wipe out shared NFS that should be used by this deployment
+          ssh root@10.162.26.129 "/var/qa-scripts/wipe_nfs_shares.sh qa$hw_number"
+
+          # rest of code runs on admin node:
+          env | grep -e networking -e libvirt -e cloud > mkcloud.config
+          scp mkcloud.config root@$admin:
+          ret=0
+
+          ssh root@$admin "
+          export cloud=$cloud ;
+          export UPDATEREPOS=$UPDATEREPOS ;
+          export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
+          export TESTHEAD=$TESTHEAD ;
+          export cloudsource=$cloudsource ;
+          export nodenumber=$nodenumber ;
+          export hacloud=$hacloud ;
+          export clusterconfig=$clusterconfig ;
+          export runner_url=$runner_url ;
+          export scenario_url=$scenario_url ;
+          export cct_tests=$cct_tests ;
+          export wanttempest=$wanttempest;
+          export tempestoptions=\"$tempestoptions\";
+          export want_node_aliases=controller=3,compute-kvm=2,compute-xen=2 ;
+          export scenario=\"/root/scenario.yml\" ;
+          export commands=\"$commands\" "'
+
+          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
+          wget --no-check-certificate -Oscenario.yml "$scenario_url"
+
+          sed -i -e "s,##shared_nfs_for_database##,10.162.26.129:/var/$cloud/ha-database," scenario.yml
+          sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.26.129:/var/$cloud/ha-rabbitmq," scenario.yml
+
+          [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
+
+          timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands;"
+          ' || ret=$?
+
+
+          if [ $ret != 0 ] ; then
+            ssh $sshopts root@$admin '
+            set -x
+            for node in $(crowbar machines list | grep ^d) ; do
+              (
+              echo "Collecting supportconfig from $node"
+              timeout 400 ssh $node supportconfig | wc
+              timeout 300 scp $node:/var/log/\*tbz /var/log/
+              )&
+            done
+            timeout 500 supportconfig | wc &
+            wait
+            '
+
+            scp root@$admin:/var/log/*tbz $artifacts_dir/
+          fi >&2
+
+          exit $ret
