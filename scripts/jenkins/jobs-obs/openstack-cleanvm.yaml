@@ -14,7 +14,6 @@
           type: user-defined
           name: openstack_project
           values:
-            - Icehouse
             - Juno
             - Kilo
             - Liberty
@@ -29,8 +28,7 @@
       combination-filter: |
         (
         slave=="cloud-cleanvm"
-        && ( openstack_project=="Icehouse" && (image=="openSUSE-13.1" || image=="SLE_11_SP3"))
-        || ( openstack_project=="Juno" && (image=="SLE_11_SP3"))
+        && ( openstack_project=="Juno" && (image=="SLE_11_SP3"))
         || ( openstack_project=="Kilo" && (image=="SLE_12"))
         || ( openstack_project=="Liberty" && (image=="SLE_12_SP1" || image=="SLE_12" || image=="openSUSE-Leap-42.1"))
         || ( openstack_project=="Mitaka" && (image=="SLE_12_SP1" || image=="openSUSE-Leap-42.1"))
