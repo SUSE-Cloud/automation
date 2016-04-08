@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-test: bashate perlcheck rubycheck pythoncheck rounduptest flake8 python_unittest
+test: bashate perlcheck rubycheck pythoncheck rounduptest flake8 python_unittest jjb_test
 
 bashate:
 	cd scripts && \
@@ -41,6 +41,11 @@ flake8:
 
 python_unittest:
 	python -m unittest discover -v -s scripts/lib/libvirt/
+
+jjb_test:
+	sudo pip install jenkins-job-builder
+	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-ibs:scripts/jenkins/jobs-ibs/templates/ cloud* openstack*
+	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-obs cloud* openstack*
 
 # for travis-CI:
 install: debianinstall genericinstall

@@ -39,7 +39,7 @@
           description: Install ceph barclamp
       - string:
           name: hw_number
-          default: 2
+          default: "2"
           description: Name of the QA cloud server (we have 2,3,4)
       - string:
           name: hacloud
