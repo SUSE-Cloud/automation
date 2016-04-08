@@ -4051,7 +4051,7 @@ function onadmin_prepare_crowbar_upgrade()
     else
         # using the API, due to missing crowbar cli integration
         # move nodes to upgrade mode
-        safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare
+        safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare.json
     fi
 }
 
@@ -4170,8 +4170,7 @@ function onadmin_crowbar_nodeupgrade()
 {
     local endpoint
     for endpoint in services backup nodes; do
-        # FIXME: change paths to "*.json" when crowbar supports it:
-        safely curl --silent -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/$endpoint
+        safely curl --silent -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/$endpoint.json
     done
     wait_for 360 10 "crowbar_nodeupgrade_status | grep -q '\"left\": *0'" "crowbar to finish the nodeupgrade"
     if ! crowbar_nodeupgrade_status | grep -q '"failed": *0' ; then
