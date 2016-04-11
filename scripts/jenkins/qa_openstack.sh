@@ -168,6 +168,11 @@ $zypper -n rm --force 'python-cheetah < 2.4'
 
 # deinstall cloud-init and dependencies
 $zypper -n rm --force -u cloud-init
+# wickedd disagrees with cloud-init on the machine's host name in some cases
+# (see <https://bugzilla.opensuse.org/show_bug.cgi?id=974661>). Since
+# openstack-quickstart will restart wickedd later, let's do this now so we use
+# what wickedd considers the correct host name as soon as possible:
+systemctl restart wickedd
 
 # install some basics (which is i.e. not installed in the SLE12SP1 JeOS
 $zypper -n in wget
