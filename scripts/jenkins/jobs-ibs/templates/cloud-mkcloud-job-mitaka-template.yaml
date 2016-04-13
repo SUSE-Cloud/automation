@@ -1,0 +1,22 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-mitaka'
+    node: cloud-trigger
+
+    triggers:
+      - timed: H 19 * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=mitakacloud{version}
+            nodenumber=2
+            mkcloudtarget=all
