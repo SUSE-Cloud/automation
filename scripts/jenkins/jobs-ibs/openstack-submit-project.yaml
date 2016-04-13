@@ -69,6 +69,7 @@
               OSCBUILDDIST=SLE_11_SP3
           ;;
           Devel:Cloud:6)
+              ECOS=systemsmanagement:crowbar:3.0
           ;;
           Devel:Cloud:7)
               OSCBUILDDIST=SLE_12_SP2
