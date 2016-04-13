@@ -203,6 +203,9 @@ if [ -n "$QUICKSTART_DEBUG" ]; then
     test -e /tmp/openstack-loopback-lvm && \
         cp /tmp/openstack-loopback-lvm /usr/sbin/openstack-loopback-lvm && \
         echo "WARN: using /tmp/openstack-loopback-lvm"
+    test -e /tmp/rcopenstackquickstartrc && \
+        cp /tmp/rcopenstackquickstartrc /etc/rcopenstackquickstartrc && \
+        echo "WARN: using /tmp/rcopenstackquickstartrc"
 fi
 
 crudini=crudini
