@@ -3,7 +3,14 @@
     node: cloud-trigger
 
     triggers:
-      - timed: H 19 * * *'
+      - timed: 'H H */2 * *'
+      - pollurl:
+          cron: 'H/5 * * * *'
+          polling-node: cloud-trigger
+          urls:
+            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/Devel:/Cloud:/{version}:/Mitaka/images/iso/?regexp=x86_64'
+              check-content:
+                - simple: true
 
     logrotate:
       numToKeep: 7
