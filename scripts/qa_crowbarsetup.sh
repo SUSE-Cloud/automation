@@ -1964,14 +1964,8 @@ Host node$i
 EOF
     done
 
-    # check for error 500 in app/models/node_object.rb:635:in `sort_ifs'#012
-    curl -m 9 -s $crowbar_api_digest $crowbar_api | \
-        tee /root/crowbartest.out
-    if grep -q "Exception caught" /root/crowbartest.out; then
+    onadmin_is_crowbar_api_available || \
         complain 27 "simple crowbar test failed"
-    fi
-
-    rm -f /root/crowbartest.out
 }
 
 function sshtest()
@@ -4118,7 +4112,7 @@ function onadmin_crowbarpurge()
 function onadmin_is_crowbar_api_available()
 {
     local http_code
-    http_code=`curl $crowbar_api_digest -s -o /dev/null -w '%{http_code}' $crowbar_api`
+    http_code=`curl $crowbar_api_digest -s -o /dev/null -w '%{http_code}' ${crowbar_api}/nodes.json`
     [[ $http_code =~ [23].. ]]
 }
 
