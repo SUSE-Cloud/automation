@@ -525,7 +525,7 @@ function addsp3testupdates()
     add_mount "SLES11-SP3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
-    [ -n "$hacloud" ] && add_mount "SLE11-HAE-SP3-Updates-test" \
+    [[ $hacloud = 1 ]] && add_mount "SLE11-HAE-SP3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/"
 }
@@ -547,7 +547,7 @@ function addsles12sp1testupdates()
     add_mount "SLES12-SP1-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
-    [ -n "$hacloud" ] && add_mount "SLE12-SP1-HA-Updates-test" \
+    [[ $hacloud = 1 ]] && add_mount "SLE12-SP1-HA-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     echo "FIXME: setup Storage 2.1 test channels once available"
@@ -1442,7 +1442,7 @@ EOF
         fi
     fi
 
-    if [ -n "$hacloud" ]; then
+    if [[ $hacloud = 1 ]] ; then
         if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 3plus ; then
             add_ha_repo
         elif iscloudver 6plus; then
@@ -3273,8 +3273,14 @@ function oncontroller_manila_generic_driver_setup()
     fi
 
     if [ "`openstack server show --f value -c status manila-service`" != ACTIVE ]; then
+        # Removed --poll argument until a proper fix is in place.
+        # https://trello.com/c/m9a3MQYS/173-c6-nova-boot-for-manila-failed
+        local extra_args="--poll"
+        if [[ $hacloud = 1 ]] ; then
+            extra_args=""
+        fi
         fixed_net_id=`neutron net-show fixed -f value -c id`
-        timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
+        timeout 10m nova boot ${extra_args} --flavor 100 --image manila-service-image \
             --security-groups $sec_group,default \
             --nic net-id=$fixed_net_id manila-service
 
@@ -3446,7 +3452,16 @@ function oncontroller_testsetup()
     nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
     nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
     nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
-    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key_name testkey testvm | tee boot.out
+    # Removed --poll argument until a proper fix is in place.
+    # https://trello.com/c/m9a3MQYS/173-c6-nova-boot-for-manila-failed
+    local extra_args="--poll"
+    if [[ $hacloud = 1 ]] ; then
+        extra_args=""
+    fi
+    timeout 10m nova boot ${extra_args} \
+        --image $image_name \
+        --flavor $flavor \
+        --key_name testkey testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
