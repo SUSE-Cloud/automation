@@ -3,5 +3,5 @@
     name: mkphyscloud-qa-common-wrappers
     wrappers:
       - build-name:
-          name: #${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="mkcloudtarget"} ${ENV,var="hacloud"})
+          name: '#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="mkcloudtarget"} ${ENV,var="hacloud"})'
       - timestamps
