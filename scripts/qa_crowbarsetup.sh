@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # based on https://github.com/SUSE/cloud/wiki/SUSE-Cloud-Installation-Manual
 
 test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
