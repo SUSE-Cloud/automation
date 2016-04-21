@@ -29,9 +29,11 @@
             - openstack-heat
             - openstack-heat-templates
             - openstack-horizon-plugin-manila-ui
+            - openstack-horizon-plugin-magnum-ui
             - openstack-ironic
             - openstack-keystone
             - openstack-manila
+            - openstack-magnum
             - openstack-neutron
             - openstack-neutron-fwaas
             - openstack-neutron-lbaas
@@ -60,8 +62,10 @@
             - python-heatclient
             - python-heat-cfntools
             - python-ironicclient
+            - python-k8sclient
             - python-keystoneclient
             - python-keystonemiddleware
+            - python-magnumclient
             - python-manilaclient
             - python-neutronclient
             - python-networking-cisco
@@ -98,8 +102,10 @@
               "python-heatclient",
               "python-heat-cfntools",
               "python-ironicclient",
+              "python-k8sclient",
               "python-keystoneclient",
               "python-keystonemiddleware",
+              "python-magnumclient",
               "python-manilaclient",
               "python-neutronclient",
               "python-novaclient",
@@ -129,7 +135,10 @@
               "openstack-nova-virt-zvm",
               "openstack-ec2-api",
               "python-networking-cisco",
-              "python-networking-hyperv" ].contains(component) )
+              "python-networking-hyperv" ].contains(component) ||
+            [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
+            [ "openstack-magnum",
+              "openstack-horizon-plugin-magnum-ui" ].contains(component) )
       sequential: true
     builders:
       - update-automation
