@@ -1594,12 +1594,6 @@ function do_installcrowbar_cloud6plus()
 
     wait_for 30 10 "[[ \`curl -s -o /dev/null -w '%{http_code}' $crowbar_api/installer \` = 200 ]]" "crowbar installer to be available"
 
-    # temporarily support old-new and final installer paths
-    if [[ `curl -s -o /dev/null -w "%{http_code}" $crowbar_api$crowbar_api_installer_path` = "404"  ]] ; then
-        crowbar_api_installer_path=/installer
-    fi
-
-
     if crowbar_install_status | grep -q '"success": *true' ; then
         echo "Crowbar is already installed. The current crowbar install status is:"
         crowbar_install_status
