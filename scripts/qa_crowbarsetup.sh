@@ -527,7 +527,7 @@ function addsp3testupdates()
     add_mount "SLES11-SP3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
-    [ -n "$hacloud" ] && add_mount "SLE11-HAE-SP3-Updates-test" \
+    [[ $hacloud ]] && add_mount "SLE11-HAE-SP3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/"
 }
@@ -549,7 +549,7 @@ function addsles12sp1testupdates()
     add_mount "SLES12-SP1-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
-    [ -n "$hacloud" ] && add_mount "SLE12-SP1-HA-Updates-test" \
+    [[ $hacloud ]] && add_mount "SLE12-SP1-HA-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     echo "FIXME: setup Storage 2.1 test channels once available"
@@ -1445,7 +1445,7 @@ EOF
         fi
     fi
 
-    if [ -n "$hacloud" ]; then
+    if [[ $hacloud ]]; then
         if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 3plus ; then
             add_ha_repo
         elif iscloudver 6plus; then
@@ -2656,7 +2656,7 @@ function custom_configuration()
             fi
 
             # assign neutron-network role to one of SLE12 nodes
-            if [ -n "$want_sles12" ] && [ -z "$hacloud" ] && [ -n "$want_neutronsles12" ] && iscloudver 5plus ; then
+            if [[ $want_sles12 && ! $hacloud && $want_neutronsles12 ]] && iscloudver 5plus ; then
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sles12plusnode']"
             fi
 
