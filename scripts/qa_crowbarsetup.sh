@@ -4112,7 +4112,9 @@ function onadmin_crowbarpurge()
 function onadmin_is_crowbar_api_available()
 {
     local http_code
-    http_code=`curl $crowbar_api_digest -s -o /dev/null -w '%{http_code}' ${crowbar_api}/nodes.json`
+    local api_path="$crowbar_api_installer_path/status.json"
+    iscloudver 5minus && api_path=
+    http_code=`curl $crowbar_api_digest -s -o /dev/null -w '%{http_code}' ${crowbar_api}$api_path`
     [[ $http_code =~ [23].. ]]
 }
 
