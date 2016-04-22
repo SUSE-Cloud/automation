@@ -624,7 +624,7 @@ function addcctdepsrepo()
         develcloud5|GM5|GM5+up)
             zypper ar -f http://$susedownload/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
             ;;
-        develcloud6|develcloud7|susecloud7|M?|Beta*|RC*|GMC*|GM6|GM6+up)
+        develcloud6|develcloud7|mitakacloud7|susecloud7|M?|Beta*|RC*|GMC*|GM6|GM6+up)
             zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
             zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
             ;;
@@ -3310,7 +3310,7 @@ function oncontroller_testsetup()
     fi
 
     # prepare test image with the -test packages containing functional tests
-    if iscloudver 6plus && [[ $cloudsource =~ develcloud ]]; then
+    if iscloudver 6plus && [[ $cloudsource =~ (devel|mitaka)cloud ]]; then
         local mount_dir="/var/lib/Cloud-Testing"
         rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
         zypper -n ar --refresh -c -G -f "$mount_dir" cloud-test
@@ -3395,7 +3395,7 @@ function oncontroller_testsetup()
     fi
 
     #test for Glance scrubber service, added after bnc#930739
-    if iscloudver 6plus || [[ $cloudsource =~ develcloud ]]; then
+    if iscloudver 6plus || [[ $cloudsource =~ (devel|mitaka)cloud ]]; then
         configargs="--config-dir /etc/glance"
         iscloudver 6plus && configargs=""
         su - glance -s /bin/sh -c "/usr/bin/glance-scrubber $configargs" \
