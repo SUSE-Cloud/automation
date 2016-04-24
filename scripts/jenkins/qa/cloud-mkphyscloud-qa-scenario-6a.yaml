@@ -1,16 +1,19 @@
 - job:
-    name: 'cloud-mkphyscloud-qa-scenario-1a'
+    name: cloud-mkphyscloud-qa-scenario-6a
     node: cloud-mkphyscloud-gate-qa
     description: |
-      <b>This job is managed by JJB! Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-ibs/'>git</a></b>
+      <b>This job is managed by JJB! Changes must be done in
+      <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/qa/'>git</a>
+      </b>
 
-      This job will redeploy the qa2.cloud with scenario-1a:
+      This job will redeploy scenario-6a:
         - 7 nodes
-        - HA with IPMI (3 controllers
-        - shared device for DB and rabbit
-        - swift
+        - HA with ipm (3 nodes)
+        - Sharerd storage on a NFS server (uses qa-provided nfs shares)
+        - 2 kvm compute nodes
+        - 2 docker compute nodes
 
-      It will wipe all QA2 machines!
+      It will wipe all machines!
 
     wrappers:
       - mkphyscloud-qa-common-wrappers
@@ -21,31 +24,50 @@
 
     parameters:
       - string:
+          name: hw_number
+          default: "2"
+          description: Mandatory, name of the QA cloud server as integer
+
+      - string:
+          name: tempest
+          default: smoke
+          description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
+
+      - string:
+          name: cct
+          default: features:base
+          description: Optional, specify cct tests to run
+
+      - string:
+          name: ssl_type
+          default: no-ssl
+          description: "Mandatory, set the SSL configuration for the cloud, available options: no-ssl, ssl-insecure, ssl"
+
+      - string:
+          name: cloud_version
+          default: "7"
+          description: Mandatory, version of the cloud to be installed as integer
+
+      - string:
+          name: scenario_url
+          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-6a.yaml
+          description: Location of scenario yaml file
+
+      # Parameters for qa_crowbarsetup.sh
+      - string:
           name: cloudsource
-          default: develcloud6
+          default: develcloud$cloud_version
       - string:
           name: TESTHEAD
           default: "1"
           description: if non-empty, test latest version from Devel:Cloud Stagin
-      - string:
-          name: cct_tests
-          default: features:base
-          description: Run cct
-      - string:
-          name: want_ceph
-          default:
-          description: Install ceph barclamp
-      - string:
-          name: hw_number
-          default: "2"
-          description: Name of the QA cloud server (we have 2,3,4)
       - string:
           name: hacloud
           default: "1"
           description: By default we do not want HA configured and installed
       - string:
           name: clusterconfig
-          default: services=3
+          default: services=2
           description: HA configuration for clusters. Make sense only if hacloud=1
       - string:
           name: nodenumber
@@ -56,31 +78,12 @@
           default: "true"
       - string:
           name: runner_url
-          default: https://raw.github.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh
+          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh
           description: The runner must be qa_crowbarsetup.sh file
       - string:
           name: commands
           default: prepareinstallcrowbar installcrowbar allocate waitcloud setup_aliases batch
           description: All the steps that needs to be completed to have cloud installed
-      - string:
-          name: scenario_url
-          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud6/qa/no-ssl/qa-scenario-1a-ha-kvm-swift.yaml
-          description: Location of scenario yaml file
-      - text:
-          name: UPDATEREPOS
-          default:
-          description: Update repositories (one URL per line)
-      - bool:
-          name: UPDATEBEFOREINSTALL
-          default: false
-          description: add update repos before crowbar install
-      - bool:
-          name: WITHREBOOT
-          default: false
-      - string:
-          name: tempest
-          description: "Specifies what tempest test(s) to run, e.g. smoke or smoke|full or smoke|defcore"
-          default: "smoke"
 
     builders:
       - shell: |
@@ -98,7 +101,6 @@
           rm -rf $artifacts_dir
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
-
           freshadminvm_cloud6 $admin qcow2
           sleep 100 # time for the admin VM to boot
 
@@ -111,7 +113,7 @@
           ret=0
 
           ssh root@$admin "
-          export cloud=$cloud ;
+          export c;loud=$cloud ;
           export UPDATEREPOS=$UPDATEREPOS ;
           export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
           export TESTHEAD=$TESTHEAD ;
@@ -119,11 +121,12 @@
           export nodenumber=$nodenumber ;
           export hacloud=$hacloud ;
           export clusterconfig=$clusterconfig ;
+          export want_docker=1 ;
           export runner_url=$runner_url ;
           export scenario_url=$scenario_url ;
-          export cct_tests=$cct_tests ;
-          export want_node_aliases=controller=3,compute-kvm=2,storage-swift=2 ;
-          export scenario=\"/root/scenario.yml\" ;
+          export want_node_aliases=controller=3,kvm=2,docker=2
+          export want_node_roles=controller=3,compute=4
+          export scenario=/root/scenario.yml;
           export commands=\"$commands\" "'
 
           wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
@@ -131,15 +134,15 @@
 
           sed -i -e "s,##shared_nfs_for_database##,10.162.26.129:/var/$cloud/ha-database," scenario.yml
           sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.26.129:/var/$cloud/ha-rabbitmq," scenario.yml
+          sed -i -e "s,##shared_nfs_for_glance##,var/$cloud/ha-glance," scenario.yml
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
           timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
           ' || ret=$?
 
-
           if [ $ret != 0 ] ; then
-            ssh $sshopts root@$admin '
+            ssh root@$admin '
             set -x
             for node in $(crowbar machines list | grep ^d) ; do
               (
@@ -155,7 +158,9 @@
             scp root@$admin:/var/log/*tbz $artifacts_dir/
           fi >&2
 
+          echo "mkphyscloud ret=$ret"
           exit $ret
+
       - trigger-builds:
           - project: cloud-mkphyscloud-qa-tests-trigger
             condition: SUCCESS
@@ -163,6 +168,7 @@
             predefined-parameters: |
               hw_number=$hw_number
               tempest=$tempest
-              scenario_name=1a
+              cct_tests=$cct
+              scenario_name=6a
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER

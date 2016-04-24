@@ -1,0 +1,120 @@
+---
+proposals:
+- barclamp: database
+  deployment:
+    elements:
+      database-server:
+      - "@@controller@@"
+
+- barclamp: rabbitmq
+  deployment:
+    elements:
+      rabbitmq-server:
+      - "@@controller@@"
+
+- barclamp: keystone
+  deployment:
+    elements:
+      keystone-server:
+      - "@@controller@@"
+
+- barclamp: swift
+  deployment:
+    elements:
+      swift-proxy:
+      - "@@controller@@"
+      swift-ring-compute:
+      - "@@controller@@"
+      swift-storage:
+      - "@@storage-swift1@@"
+      - "@@storage-swift2@@"
+
+- barclamp: glance
+  attributes:
+    default_store: swift
+  deployment:
+    elements:
+      glance-server:
+      - "@@controller@@"
+
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: raw
+      backend_name: default
+      raw:
+        volume_name: cinder-volumes
+        cinder_raw_method: all
+  deployment:
+    elements:
+      cinder-controller:
+      - "@@controller@@"
+      cinder-volume:
+      - "@@storage-cinder@@"
+
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - openvswitch
+    use_l2pop: false
+    ml2_type_drivers:
+    - vlan
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
+  deployment:
+    elements:
+      neutron-server:
+      - "@@controller@@"
+      neutron-network:
+      - "@@controller@@"
+
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    vnc_keymap: en-us
+    kvm:
+      ksm_enabled: true
+  deployment:
+    elements:
+      nova-multi-controller:
+      - "@@controller@@"
+      nova-multi-compute-kvm:
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
+      - "@@compute-kvm3@@"
+
+- barclamp: nova_dashboard
+  attributes:
+  deployment:
+    elements:
+      nova_dashboard-server:
+      - "@@controller@@"
+
+- barclamp: heat
+  attributes:
+  deployment:
+    elements:
+      heat-server:
+      - "@@controller@@"
+
+- barclamp: ceilometer
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
+      - "@@compute-kvm3@@"
+      ceilometer-cagent:
+      - "@@controller@@"
+      ceilometer-agent-hyperv: []
+      ceilometer-server:
+      - "@@controller@@"
+      ceilometer-swift-proxy-middleware:
+      - "@@controller@@"
+
+- barclamp: tempest
+  deployment:
+    elements:
+      tempest:
+      - "@@controller@@"
