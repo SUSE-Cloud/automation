@@ -540,22 +540,74 @@ function setupadmin()
     fi
 }
 
+function wait_for_node_shutdown()
+{
+    wait_for 150 1 "virsh domstate $1 | grep shut.off" "$1 node to shut down"
+}
+
+function remove_snapshot_volume()
+{
+    if $(lvs "$1.snap" > /dev/null 2>&1) ; then
+        safely lvremove -f "$1.snap"
+    fi
+}
+
+function merge_snapshot_volume()
+{
+    if $(lvs "$1.snap" > /dev/null 2>&1) ; then
+        safely lvconvert --merge "$1.snap"
+    fi
+}
+
+function create_snapshot_volume()
+{
+    safely lvcreate -l100%ORIGIN -s -n "$1.snap" "$1"
+}
+
 function createadminsnapshot()
 {
     virsh shutdown $cloud-admin
-    wait_for 150 1 "virsh domstate $cloud-admin|grep shut.off" 'admin node to shut down'
-    lvremove -f $admin_node_disk.snap
-    safely lvcreate -l100%ORIGIN -s -n $cloud.admin.snap $admin_node_disk
+    wait_for_node_shutdown $cloud-admin
+    remove_snapshot_volume $admin_node_disk
+    create_snapshot_volume $admin_node_disk
     virsh start $cloud-admin
     wait_for_crowbar_ssh
 }
 
 function restoreadminfromsnapshot()
 {
-    safely test -b $admin_node_disk.snap
     virsh destroy $cloud-admin
-    safely lvconvert --merge $admin_node_disk.snap
+    merge_snapshot_volume $admin_node_disk
     createadminsnapshot
+}
+
+function createcloudsnapshot()
+{
+    shutdowncloud
+    wait_for_node_shutdown $cloud-admin
+    for i in $allnodeids ; do
+        wait_for_node_shutdown $cloud-node$i
+    done
+    for d in $(lvs | grep $cloudvg | grep snap | awk '{print $1}') ; do
+        remove_snapshot_volume "${cloudvg}/${d%.snap}"
+    done
+    for d in $(lvs | grep $cloudvg | awk '{print $1}') ; do
+        create_snapshot_volume "${cloudvg}/${d}"
+    done
+    restartcloud
+    wait_for_crowbar_ssh
+}
+
+function restorecloudfromsnapshot()
+{
+    virsh destroy $cloud-admin
+    for i in $allnodeids ; do
+        virsh destroy $cloud-node$i
+    done
+    for d in $(lvs | grep $cloudvg | grep snap | awk '{print $1}') ; do
+        merge_snapshot_volume "${cloudvg}/${d%.snap}"
+    done
+    createcloudsnapshot
 }
 
 # Returns success if a change was made
@@ -1031,6 +1083,10 @@ Steps:
     restartcloud:   start a pre-existing cloud again after host reboot
     createadminsnapshot: create snapshot of admin node disk
     restoreadminfromsnapshot: restore admin node disk from snapshot
+    createcloudsnapshot:
+                    create a snapshot of all nodes
+    restorecloudfromsnapshot:
+                    restore all nodes from snapshot
     qa_test:        run the qa test suite
     help:           usage of steps and environment variables
     steps:          usage of steps only
@@ -1335,7 +1391,8 @@ allcmds="$step_aliases all all_noreboot all_batch all_batch_noreboot instonly \
     crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help \
     rebootneutron cloudupgrade \
     setuplonelynodes crowbar_register createadminsnapshot \
-    restoreadminfromsnapshot cct steps batch setup_aliases onadmin onhost"
+    restoreadminfromsnapshot createcloudsnapshot restorecloudfromsnapshot \
+    cct steps batch setup_aliases onadmin onhost"
 wantedcmds=$@
 
 function expand_steps()
