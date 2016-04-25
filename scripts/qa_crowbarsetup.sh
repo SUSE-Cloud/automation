@@ -3243,8 +3243,8 @@ function oncontroller_manila_generic_driver_setup()
     if ! openstack project show manila-service; then
         manila_service_tenant_id=`openstack project create manila-service -f value -c id`
         openstack role add --project manila-service --user admin admin
-        export OS_TENANT_NAME='manila-service'
     fi
+    export OS_TENANT_NAME='manila-service'
 
     # using list subcommand because show requires an ID
     if ! openstack image list --f value -c Name | grep -q "^manila-service-image$"; then
@@ -3272,7 +3272,16 @@ function oncontroller_manila_generic_driver_setup()
         nova secgroup-add-rule $sec_group udp 111 111 0.0.0.0/0
     fi
 
-    if [ "`openstack server show --f value -c status manila-service`" != ACTIVE ]; then
+    service_vm_status="`openstack server show --f value -c status manila-service`"
+    if [ "$service_vm_status" = "ACTIVE" ] || [ "$service_vm_status" = "SHUTOFF" ] ; then
+        if [ "$service_vm_status" = "SHUTOFF" ]; then
+            # We're upgrading. Restart existing instance as it was shutdown during
+            # the upgrade
+            timeout 10m nova start manila-service
+        fi
+        manila_service_vm_uuid=`openstack --os-project-name manila-service server show manila-service -f value -c id`
+        manila_tenant_vm_ip=`openstack --os-project-name manila-service ip floating list -f csv --quote none -c IP -c 'Instance ID'|grep $manila_service_vm_uuid|cut -d ',' -f 1`
+    else
         fixed_net_id=`neutron net-show fixed -f value -c id`
         timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
             --security-groups $sec_group,default \
@@ -3286,12 +3295,11 @@ function oncontroller_manila_generic_driver_setup()
         openstack ip floating add $manila_tenant_vm_ip manila-service
 
         [ $? != 0 ] && complain 44 "adding a floating ip to the manila service VM failed"
-
-        # check that the service VM is pingable. otherwise manila tempest tests will fail later
-        wait_for 300 1 "nc -z $manila_tenant_vm_ip 22" \
-            "manila service VM booted and ssh port open" \
-            "echo \"ERROR: manila service VM not listening on ssh port. manila tests will fail!\""
     fi
+    # check that the service VM is pingable. otherwise manila tempest tests will fail later
+    wait_for 300 1 "nc -z $manila_tenant_vm_ip 22" \
+        "manila service VM booted and ssh port open" \
+        "echo \"ERROR: manila service VM not listening on ssh port. manila tests will fail!\""
 }
 
 # code run on controller/dashboard node to do basic tests of deployed cloud
