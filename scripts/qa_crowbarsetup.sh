@@ -4197,6 +4197,12 @@ function onadmin_qa_test()
     return $ret
 }
 
+# Run cct tests
+# By default all tests specified in $cct_tests will be run + all functional tests
+# $cct_tests           -> mandatory, typical value is features:base
+# $cct_git_url         -> optional, cct git repo url, default is https://github.com/SUSE-Cloud/cct.git
+# $cct_checkout_branch -> optional, pick git branch to be tested, default is master
+# $cct_skip_func_tests -> optional, functional tests will be skipped if value is 1, default is 0
 function onadmin_run_cct()
 {
     local ret=0
@@ -4206,17 +4212,24 @@ function onadmin_run_cct()
         ensure_packages_installed git-core gcc make ruby2.1-devel
 
         local checkout_branch=master
-        # checkout branches if needed, otherwise use master
-        case "$cloudsource" in
-            develcloud5|GM5|GM5+up)
-                checkout_branch=cloud5
-                ;;
-            develcloud6|GM6|GM6+up)
-                checkout_branch=cloud6
-                ;;
-        esac
+        local git_url=${cct_git_url:-https://github.com/SUSE-Cloud/cct.git}
+        local skip_func_tests=${cct_skip_func_tests:-0}
 
-        if iscloudver 6plus; then
+        if [ -n "$cct_checkout_branch" ] ; then
+            checkout_branch=$cct_checkout_branch
+        else
+            # checkout branches if needed, otherwise use master
+            case "$cloudsource" in
+                develcloud5|GM5|GM5+up)
+                    checkout_branch=cloud5
+                    ;;
+                develcloud6|GM6|GM6+up)
+                    checkout_branch=cloud6
+                    ;;
+            esac
+        fi
+
+        if iscloudver 6plus && [ "$skip_func_tests" == 0 ]; then
             # 2017-03-29: manila functional tests are hitting frequently a timeout, disable for now
             # for test in "nova" "manila"; do
             for test in "nova" ; do
@@ -4230,7 +4243,7 @@ function onadmin_run_cct()
         local ghdir=/root/github.com/SUSE-Cloud
         mkdir -p $ghdir
         pushd $ghdir
-        git clone https://github.com/SUSE-Cloud/cct.git -b $checkout_branch
+        git clone $git_url -b $checkout_branch
         cd cct
         if [[ $want_cct_pr ]] ; then
             git config --get-all remote.origin.fetch | grep -q pull || \
