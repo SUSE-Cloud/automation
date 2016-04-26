@@ -2238,6 +2238,11 @@ function enable_ssl_generic()
             fi
             return
         ;;
+        heat)
+            if [[ ! $(iscloudver 7plus) ]] ; then
+                return
+            fi
+        ;;&
         *)
             $p "$a['api']['protocol']" "'https'"
         ;;
@@ -2387,7 +2392,7 @@ function custom_configuration()
     ###       So, only edit the proposal file, and NOT the proposal itself
 
     case "$proposal" in
-        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard)
+        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard|heat)
             if [[ $want_all_ssl = 1 ]] || eval [[ \$want_${proposal}_ssl = 1 ]] ; then
                 enable_ssl_generic $proposal
             fi
