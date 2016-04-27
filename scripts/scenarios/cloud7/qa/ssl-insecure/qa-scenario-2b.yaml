@@ -1,0 +1,262 @@
+---
+# Placeholders for node devices must be replaced by some real values
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          "@@controller1@@":
+            devices:
+            - "@@sbd_device@@"
+          "@@controller2@@":
+            devices:
+            - "@@sbd_device@@"
+          "@@controller3@@":
+            devices:
+            - "@@sbd_device@@"
+      per_node:
+        nodes:
+          "@@controller1@@":
+            params: ''
+          "@@controller2@@":
+            params: ''
+          "@@controller3@@":
+            params: ''
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      hawk-server:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+
+- barclamp: database
+  attributes:
+    ha:
+      storage:
+        shared:
+          device: 10.162.26.129:/var/qa2/ha-database
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      database-server:
+      - cluster:services
+
+- barclamp: rabbitmq
+  attributes:
+    trove:
+      enabled: true
+    ha:
+      storage:
+        shared:
+          device: 10.162.26.129:/var/qa2/ha-rabbitmq
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:services
+
+- barclamp: keystone
+  attributes:
+    ssl:
+      generate_certs: true
+      insecure: true
+    api:
+      protocol: https
+    signing:
+      token_format: UUID
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+
+- barclamp: swift
+  keystone_delay_auth_decision: true
+  allow_versions: true
+  attributes:
+    ssl:
+      enabled: true
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      swift-dispersion:
+      - "@@controller1@@"
+      swift-proxy:
+      - cluster:services
+      swift-ring-compute:
+      - "@@controller1@@"
+      swift-storage:
+      - "@@computekvm1@@"
+      - "@@computekvm2@@"
+
+- barclamp: glance
+  attributes:
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+    default_store: swift
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+
+# vcenter credentials must be replaced by some real values
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: vmware
+      backend_name: vmware-backend
+      vmware:
+        volume_folder: cinder-vmw-volume
+        host: vcs.qa.suse.de
+        user: "@@vcenter_user@@"
+        password: "@@vcenter_password@@"
+        cluster_name: []
+        insecure: true
+        ca_file: ""
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - openvswitch
+    ml2_type_drivers:
+    - vlan
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:services
+
+# vcenter credentials must be replaced by some real values
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    vnc_keymap: de
+    kvm:
+      ksm_enabled: true
+    ssl:
+      enabled: true
+      generate_certs: true
+      insecure: true
+    novnc:
+      ssl:
+        enabled: true
+    vcenter:
+      clusters:
+      - QA
+      host: vcs.qa.suse.de
+      user: "@@vcenter_user@@"
+      password: "@@vcenter_password@@"
+
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - "@@computekvm1@@"
+      - "@@computekvm2@@"
+      nova-compute-qemu: []
+      nova-compute-xen: []
+      nova-compute-vmware:
+      - "@@computevmw@@"
+
+- barclamp: horizon
+  attributes:
+    apache:
+      ssl: true
+      generate_certs: true
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+
+- barclamp: heat
+  attributes:
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+
+- barclamp: ceilometer
+  attributes:
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@computekvm1@@"
+      - "@@computekvm2@@"
+      - "@@computevmw@@"
+      ceilometer-agent-hyperv: []
+      ceilometer-polling:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware: []
+
+- barclamp: manila
+  attributes:
+    default_share_type: default
+    shares:
+    - backend_driver: generic
+      backend_name: backend1
+      generic:
+        service_instance_user: root
+        service_instance_password: linux
+        share_volume_fstype: ext3
+        path_to_private_key: ""
+        service_instance_name_or_id: ##manila_instance_name_or_id##
+        service_net_name_or_ip: ##service_net_name_or_ip##
+        tenant_net_name_or_ip: ##tenant_net_name_or_ip##
+  deployment:
+    elements:
+      manila-server:
+      - cluster:services
+      manila-share:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+
+# FIXME: disabled due to issues in trove with insecure SSL (https://bugs.launchpad.net/trove/+bug/1535895)
+#- barclamp: trove
+#  attributes:
+#    swift_instance: ''
+#    volume_support: true
+#  deployment:
+#    elements:
+#      trove-server:
+#        - cluster:services
+
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - "@@controller1@@"

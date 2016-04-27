@@ -1,0 +1,175 @@
+---
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: ipmi_barclamp
+      sbd:
+        nodes:
+          @@controller1@@:
+            devices:
+            - ''
+          @@controller2@@:
+            devices:
+            - ''
+          @@controller3@@:
+            devices:
+            - ''
+      per_node:
+        nodes:
+          @@controller1@@:
+            params: ''
+          @@controller2@@:
+            params: ''
+          @@controller3@@:
+            params: ''
+    drbd:
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      hawk-server:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+
+proposals:
+- barclamp: nfs_client
+  name: glance
+  attributes:
+    exports:
+      images:
+        nfs_server: 10.162.26.129
+        export: ##shared_nfs_for_glance##
+        mount_path: "/images"
+        mount_options:
+        - nfsvers=3
+  deployment:
+    elements:
+      nfs-client:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+
+- barclamp: database
+  attributes:
+    ha:
+      storage:
+        shared:
+          device: ##shared_nfs_for_database##
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      database-server:
+      - cluster:services
+
+- barclamp: rabbitmq
+  attributes:
+    ha:
+      storage:
+        shared:
+          device: ##shared_nfs_for_rabbitmq##
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:services
+
+- barclamp: keystone
+  attributes:
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+- barclamp: glance
+  attributes:
+    filesystem_store_datadir: "/images"
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: raw
+      backend_name: default
+      raw:
+        volume_name: cinder-volumes
+        cinder_raw_method: all
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - openvswitch
+    ml2_type_drivers:
+    - vlan
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:services
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    vnc_keymap: de
+    kvm:
+      ksm_enabled: true
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv:
+      - "@@compute-hyperv1@@"
+      - "@@compute-hyperv2@@"
+      nova-compute-kvm:
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
+      nova-compute-qemu: []
+      nova-compute-xen: []
+- barclamp: horizon
+  attributes:
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+- barclamp: heat
+  attributes:
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+- barclamp: ceilometer
+  attributes:
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
+      ceilometer-agent-hyperv:
+      - "@@compute-hyperv1@@"
+      - "@@compute-hyperv2@@"
+      ceilometer-polling:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - "@@controller1@@"

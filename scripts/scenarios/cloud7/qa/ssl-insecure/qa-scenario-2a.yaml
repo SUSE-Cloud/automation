@@ -1,0 +1,304 @@
+---
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          "@@controller1@@":
+            devices:
+            - "@@sbd_device_services@@"
+          "@@controller2@@":
+            devices:
+            - "@@sbd_device_services@@"
+      per_node:
+        nodes:
+          "@@controller1@@":
+            params: ''
+          "@@controller2@@":
+            params: ''
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      hawk-server:
+      - "@@controller1@@"
+      - "@@controller2@@"
+
+- barclamp: pacemaker
+  name: data
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          "@@data1@@":
+            devices:
+            - "@@sbd_device_data@@"
+          "@@data2@@":
+            devices:
+            - "@@sbd_device_data@@"
+      per_node:
+        nodes:
+          "@@data1@@":
+            params: ''
+          "@@data2@@":
+            params: ''
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@data1@@"
+      - "@@data2@@"
+      hawk-server:
+      - "@@data1@@"
+      - "@@data2@@"
+
+- barclamp: pacemaker
+  name: network
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          "@@network1@@":
+            devices:
+            - "@@sbd_device_network@@"
+          "@@network2@@":
+            devices:
+            - "@@sbd_device_network@@"
+      per_node:
+        nodes:
+          "@@network1@@":
+            params: ''
+          "@@network2@@":
+            params: ''
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@network1@@"
+      - "@@network2@@"
+      hawk-server:
+      - "@@network1@@"
+      - "@@network2@@"
+
+- barclamp: database
+  attributes:
+    ha:
+      storage:
+        shared:
+          device: ##shared_nfs_for_database##
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      database-server:
+      - cluster:data
+
+- barclamp: rabbitmq
+  attributes:
+    trove:
+      enabled: true
+    ha:
+      storage:
+        shared:
+          device: ##shared_nfs_for_rabbitmq##
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:data
+
+- barclamp: keystone
+  attributes:
+    ssl:
+      generate_certs: true
+      insecure: true
+    api:
+      protocol: https
+    signing:
+      token_format: UUID
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+
+- barclamp: swift
+  attributes:
+    keystone_delay_auth_decision: true
+    allow_versions: true
+    ssl:
+      enabled: true
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      swift-dispersion:
+      - "@@controller1@@"
+      swift-proxy:
+      - cluster:services
+      swift-ring-compute:
+      - "@@controller1@@"
+      swift-storage:
+      - "@@controller2@@"
+      - "@@computekvm@@"
+
+- barclamp: glance
+  attributes:
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+    default_store: swift
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: local
+      backend_name: default
+      raw:
+        volume_name: cinder-volumes
+        cinder_raw_method: first
+      local:
+        volume_name: cinder-volumes
+        file_name: "/var/lib/cinder/volume.raw"
+        file_size: 2000
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - "@@data1@@"
+      - "@@data2@@"
+
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - linuxbridge
+    ml2_type_drivers:
+    - vlan
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
+    ssl:
+      generate_certs: true
+      insecure: true
+    api:
+      protocol: https
+    use_lbaas: false
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:network
+      neutron-network:
+      - cluster:network
+
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    vnc_keymap: de
+    kvm:
+      ksm_enabled: true
+    ssl:
+      enabled: true
+      generate_certs: true
+      insecure: true
+    novnc:
+      ssl:
+        enabled: true
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - "@@computekvm@@"
+      nova-compute-qemu: []
+      nova-compute-xen: []
+
+# Because neutron and nova are deployed on different clusters, we need
+# to commit neutron proposal again after nova to pick up the nova authentication
+- barclamp: neutron
+  attributes:
+    use_lbaas: true
+
+- barclamp: horizon
+  attributes:
+    apache:
+      ssl: true
+      generate_certs: true
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+
+- barclamp: heat
+  attributes:
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+
+- barclamp: ceilometer
+  attributes:
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@computekvm@@"
+      ceilometer-agent-hyperv: []
+      ceilometer-polling:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware: []
+
+- barclamp: manila
+  attributes:
+    default_share_type: default
+    shares:
+    - backend_driver: generic
+      backend_name: backend1
+      generic:
+        service_instance_user: root
+        service_instance_password: linux
+        share_volume_fstype: ext3
+        path_to_private_key: ""
+        service_instance_name_or_id: ##manila_instance_name_or_id##
+        service_net_name_or_ip: ##service_net_name_or_ip##
+        tenant_net_name_or_ip: ##tenant_net_name_or_ip##
+  deployment:
+    elements:
+      manila-server:
+      - cluster:services
+      manila-share:
+      - "@@data1@@"
+      - "@@data2@@"
+
+# FIXME: disabled due to issues in trove with insecure SSL (https://bugs.launchpad.net/trove/+bug/1535895)
+#- barclamp: trove
+#  attributes:
+#    volume_support: true
+#  deployment:
+#    elements:
+#      trove-server:
+#        - cluster:services
+
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - "@@controller1@@"

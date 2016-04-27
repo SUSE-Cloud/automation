@@ -1,0 +1,7 @@
+---
+- wrapper:
+    name: mkphyscloud-qa-common-wrappers
+    wrappers:
+      - build-name:
+          name: '#${BUILD_NUMBER}: ${ENV,var="cloudsource"}'
+      - timestamps
