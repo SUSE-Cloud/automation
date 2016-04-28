@@ -2936,21 +2936,21 @@ function deploy_single_proposal()
     # proposal filter
     case "$proposal" in
         nfs_client)
-            [[ $hacloud = 1 ]] || continue
+            [[ $hacloud = 1 ]] || return
             ;;
         pacemaker)
-            [[ $hacloud = 1 ]] || continue
+            [[ $hacloud = 1 ]] || return
             ;;
         ceph)
-            [[ -n "$deployceph" ]] || continue
+            [[ -n "$deployceph" ]] || return
             ;;
         manila)
             # manila-service can not be deployed currently with docker
-            [[ -n "$want_docker" ]] && continue
+            [[ -n "$want_docker" ]] && return
             if ! iscloudver 6plus; then
                 # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
                 if ! [[ "$cloudsource" == "develcloud5" ]] || [ -z "$want_sles12" ]; then
-                    continue
+                    return
                 fi
             fi
             if iscloudver 6plus ; then
@@ -2960,22 +2960,20 @@ function deploy_single_proposal()
             fi
             ;;
         swift)
-            [[ -n "$deployswift" ]] || continue
+            [[ -n "$deployswift" ]] || return
             ;;
         trove)
-            iscloudver 5plus || continue
+            iscloudver 5plus || return
             ;;
         tempest)
-            [[ -n "$wanttempest" ]] || continue
+            [[ -n "$wanttempest" ]] || return
             ;;
     esac
 
     # create proposal
     case "$proposal" in
         nfs_client)
-            if [[ $hacloud = 1 ]] ; then
-                do_one_proposal "$proposal" "$clusternameservices"
-            fi
+            do_one_proposal "$proposal" "$clusternameservices"
             ;;
         pacemaker)
             local clustermapped
