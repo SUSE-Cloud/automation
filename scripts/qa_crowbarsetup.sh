@@ -3803,7 +3803,7 @@ function power_cycle_and_wait()
 {
     local machine=$1
 
-    ssh $machine "reboot"
+    crowbar machines reboot "${machine}"
 
     # "crowbar machines list" returns FQDNs but "crowbar node_state status"
     # only hostnames. Get hostname part of FQDN
@@ -3894,7 +3894,7 @@ function onadmin_rebootneutron()
     get_neutron_server_node
     echo "Rebooting neutron server: $NEUTRON_SERVER ..."
 
-    ssh $NEUTRON_SERVER "reboot"
+    crowbar machines reboot "${NEUTRON_SERVER}"
     wait_for 100 1 " ! netcat -z $NEUTRON_SERVER 22 >/dev/null" "node $NEUTRON_SERVER to go down"
     wait_for 200 3 "netcat -z $NEUTRON_SERVER 22 >/dev/null" "node $NEUTRON_SERVER to be back online"
 
