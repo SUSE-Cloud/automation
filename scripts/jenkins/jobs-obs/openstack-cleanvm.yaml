@@ -1,6 +1,14 @@
 - job:
     name: 'openstack-cleanvm'
     project-type: matrix
+
+    triggers:
+      - timed: 'H 4 * * *'
+
+    logrotate:
+      numToKeep: 30
+      daysToKeep: -1
+
     axes:
       - axis:
           type: user-defined
