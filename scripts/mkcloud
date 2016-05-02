@@ -113,6 +113,12 @@ else
 fi
 : ${drbd_database_size:=5}
 : ${drbd_rabbitmq_size:=5}
+# magnum sets up two nodes using docker/kubernetes on compute node
+# each node requiring 2GB of RAM and 20GB of harddisk for the images
+if [ -n "$want_magnum" ]; then
+    : ${compute_node_memory:=6621440}
+    : ${computenode_hdd_size:=60}
+fi
 # pvlist is filled below
 pvlist=
 next_pv_device=
@@ -1270,6 +1276,8 @@ Optional
         Only possible with SLE12 node.
     want_all_debug=1 (default='')
         Enable debug level logging in barclamp proposals for all proposals.
+    want_magnum=1 (default='')
+        Increase RAM and HDD size on compute node for container image deployment by magnum.
     install_chef_suse_override='path/to/script'
         Optional path to an alternate version of install-chef-suse.sh on the mkcloud hostto use
         instead of the one from the packages.  This will be scp'd to the admin node before use.

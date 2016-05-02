@@ -30,6 +30,7 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
+: ${want_magnum:=''}
 
 : ${arch:=$(uname -m)}
 
@@ -3083,7 +3084,7 @@ function deploy_single_proposal()
             ;;
         magnum)
             if iscloudver 6plus ; then
-                safely oncontroller_magnum_service_setup
+                safely oncontroller oncontroller_magnum_service_setup
             fi
             ;;
         manila)
@@ -3454,7 +3455,6 @@ function oncontroller_magnum_service_setup ()
     #TODO: Replace this Fedora image with a suitable SLES image when available
     local service_image_name=fedora-23-atomic-7.qcow2
     local service_image_url=https://fedorapeople.org/groups/magnum/$service_image_name
-    local service_image_params="--disk-format qcow2 --os-distro fedora-atomic"
 
     local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
     if [[ $ret =~ "200 OK" ]]; then
@@ -3470,7 +3470,7 @@ function oncontroller_magnum_service_setup ()
     # using list subcommand because show requires an ID
     if ! openstack image list --f value -c Name | grep -q "^magnum-service-image$"; then
         openstack image create --file $service_image_name \
-            $service_image_params --container-format bare --public \
+            --disk-format qcow2 --container-format bare --public \
             magnum-service-image
     fi
 }
