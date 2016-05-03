@@ -2,6 +2,20 @@
     name: 'cloud-cct-pr-trigger'
     node: cloud-trigger
 
+    parameters:
+      - choice:
+          name: mode
+          choices:
+            - normal
+            - rebuild
+            - forcerebuild
+            - forceall
+          description: |
+              normal: trigger unseen PRs
+              rebuild: trigger unseend and pending PRs
+              forcerebuild: trigger unseen, pending and failed PRs
+              forceall: trigger rebuild for all open PRs
+
     triggers:
       - timed: 'H/30 * * * *'
 
