@@ -3206,6 +3206,12 @@ function oncontroller_run_tempest()
 {
     local image_name="SLES11-SP3-x86_64-cfntools"
 
+    # make sure /etc/alternatives/testr is set correctly
+    # otherwise it could point e.g. to /usr/bin/testr-2.6
+    # on a system (with /usr/bin/testr-2.7) where it doesn't exist
+    # same goes for subunit-2to1
+    testr -h || update-alternatives --auto testr && update-alternatives --auto subunit-2to1
+
     # Upload a Heat-enabled image
     if ! glance_image_exists $image_name; then
         curl -s \
