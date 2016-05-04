@@ -74,6 +74,17 @@ There are manually maintained jobs and some jobs are now using
 [jenkins-job-builder](http://docs.openstack.org/infra/jenkins-job-builder/)
 which defines jobs in yaml format. New jobs should always be defined
 in yaml format.
+
+A fast guide to setup jenkins job builder :
+
+* Install SUSE CA certificate package as described in http://ca.suse.de/gettingstarted/
+* Install jenkins-job-builder:
+```
+zypper in python-jenkins-job-builder
+```
+* Get the APIKEY from the CI web UI (Profile / Configure / Show API Key)
+* Create jenkins_jobs.ini as described below
+
 To update jobs on ci.opensuse.org, run:
 
     jenkins-jobs --ignore-cache update scripts/jenkins/jobs-obs/
@@ -85,3 +96,6 @@ To update jobs on the SUSE internal CI, run:
 
 Both commands need a valid `/etc/jenkins_jobs/jenkins_jobs.ini` configuration.
 See [`/scripts/jenkins/jenkins_jobs.ini.sample`](scripts/jenkins/jenkins_jobs.ini.sample)
+
+If you are using a local configuration file, use `--conf` parameter to
+reference the local INI.
