@@ -1,0 +1,88 @@
+---
+proposals:
+- barclamp: database
+  attributes:
+  deployment:
+    elements:
+      database-server:
+      - d52-54-77-77-77-01.v2.cloud.suse.de
+- barclamp: rabbitmq
+  deployment:
+    elements:
+      rabbitmq-server:
+      - d52-54-77-77-77-01.v2.cloud.suse.de
+- barclamp: keystone
+  deployment:
+    elements:
+      keystone-server:
+      - d52-54-77-77-77-01.v2.cloud.suse.de
+- barclamp: glance
+  deployment:
+    elements:
+      glance-server:
+      - d52-54-77-77-77-01.v2.cloud.suse.de
+- barclamp: cinder
+  deployment:
+    elements:
+      cinder-controller:
+      - d52-54-77-77-77-01.v2.cloud.suse.de
+      cinder-volume:
+      - d52-54-77-77-77-01.v2.cloud.suse.de
+- barclamp: neutron
+  attributes:
+    debug: true
+    ml2_mechanism_drivers:
+    - linuxbridge
+    ml2_type_drivers:
+    - vlan
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
+    num_vlans: 10
+    database_instance: default
+    zvm:
+      zvm_xcat_server: 10.161.147.3
+      zvm_xcat_username: admin
+      zvm_xcat_password: admin
+      xcat_mgt_ip: ''
+      xcat_mgt_mask: ''
+  deployment:
+    elements:
+      neutron-server:
+      - d52-54-77-77-77-01.v2.cloud.suse.de
+      neutron-network:
+      - d52-54-77-77-77-01.v2.cloud.suse.de
+- barclamp: nova
+  attributes:
+    zvm:
+      zvm_xcat_server: 10.161.147.3
+      zvm_xcat_username: admin
+      zvm_xcat_password: admin
+      zvm_diskpool: FBA:SCLD
+      zvm_diskpool_type: FBA
+      zvm_scsi_pool: "none"
+      zvm_host: pczvm63
+      zvm_user_profile: osdflt
+      zvm_xcat_master: xcat
+      zvm_xcat_ssh_key: ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAwi7sOZbAHaIGIrLhiem1M7tPbop7jqGxI2ukurWz1Os3YY8qfh6ElL81VbFU+xflx86DYkTqnZfskSdRf1DuyqWqX4QV8lweU9KazOcMR1YGQVc9kZMntsEUw+bMauQPoAjrdm4QN+xUhu9GAop+e3VdfOzBHnR9jrwN37IAvCCz0hRXGjdrUEmOzP0Kw+evo6yhzf12H7+7zKTa/4UljFghkX1Nv6saB7/HIfLz1/dT+aWvGutzVhUfgK3wu0G5VTYzR7nL04jItYM9DYPrgxsgvY+X5nzd8vx5Al4ivxorSxspdGXx/e+fivYyu1vFYKJyN4VTVGW5Bkv5iObiXQ==
+        root@xcat.yourcompany.com
+  deployment:
+    elements:
+      nova-controller:
+      - d52-54-77-77-77-01.v2.cloud.suse.de
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - d52-54-77-77-77-02.v2.cloud.suse.de
+      nova-compute-qemu: []
+      nova-compute-xen: []
+      nova-compute-zvm:
+      - d52-54-77-77-77-03.v2.cloud.suse.de
+- barclamp: horizon
+  deployment:
+    elements:
+      horizon-server:
+      - d52-54-77-77-77-01.v2.cloud.suse.de
+- barclamp: tempest
+  deployment:
+    elements:
+      tempest:
+      - d52-54-77-77-77-01.v2.cloud.suse.de
