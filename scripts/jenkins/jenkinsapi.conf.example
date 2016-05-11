@@ -1,0 +1,5 @@
+{
+  "jenkins_url": "https://ci.suse.de",
+  "jenkins_user": "username",
+  "jenkins_api_token": "abc123"
+}
