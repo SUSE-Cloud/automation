@@ -16,7 +16,7 @@ bashate:
 
 perlcheck:
 	cd scripts && \
-	for f in `find -name \*.pl` jenkins/{apicheck,grep,japi,jenkins-job-trigger}; \
+	for f in `find -name \*.pl` jenkins/{apicheck,grep,japi}; \
 	do \
 	    perl -wc $$f || exit 2; \
 	done
@@ -28,7 +28,7 @@ rubycheck:
 	done
 
 pythoncheck:
-	for f in `find -name \*.py` scripts/lib/libvirt/{admin-config,cleanup,compute-config,net-config,net-start,vm-start} ; \
+	for f in `find -name \*.py` scripts/lib/libvirt/{admin-config,cleanup,compute-config,net-config,net-start,vm-start} scripts/jenkins/jenkins-job-trigger; \
         do \
 	    python -m py_compile $$f || exit 22; \
 	done
