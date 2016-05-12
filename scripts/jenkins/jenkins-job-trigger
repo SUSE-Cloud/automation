@@ -1,96 +1,71 @@
-#!/usr/bin/perl -w
+#!/usr/bin/python
+
+# Copyright (c) 2016 SUSE LINUX GmbH, Nuernberg, Germany.
 #
-# Trigger jenkins jobs via http api
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 #
-# 2013, J. Daniel Schmidt <jdsn@suse.de>
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-sub usage()
-{
-  return "Usage: $0 <jobname> [<switch> [<key=value> ...] ]
-  Examples:
-    normal job:    $0 myjobname
-    parameterized: $0 myjobname -p var1=foo var2=bar var3=baz
-    matrix:        $0 myjobname -m var1=foo var2=bar var3=baz
+# Triggers a jenkins job via the API
+# Needed for job chains that are not possible to implement natively
 
-  Example config file:
-cat > jenkinsapi.cred <<EOCONF
-\$USER='myusername';
-\$APIKEY='987zyx654wvu';
-\$SCHEME='https';
-\$JURL='ci.opensuse.org';
-\$CRUMB='.crumb:123abc456def';
-EOCONF
-
-Create the Crumb string:
- curl --user <myusername>:<mypassword> 'https://ci.opensuse.org/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)'
-";
-}
+import jenkins
+import json
+import os
+import sys
 
 
-use strict;
+def usage():
+    print("Error: No job name defined as first parameter.\n" +
+              "Add parameters as needed:\n" +
+              "  jenkins-job-trigger <job_name> [ para1=val1 [ para2=val2 ]... ]")
+    sys.exit(1)
 
-my $USER;
-my $PASSWORD; # obsolete but we keep the variable
-my $APIKEY;
-my $SCHEME="https";
-my $JURL="ci.opensuse.org";
-my $CRUMB;
-my $METHOD='POST';
+def jenkins_build_job(job_name, job_args=[]):
+    if not job_name:
+        usage()
 
-# read the api credentials from files
-eval `cat /etc/jenkinsapi.cred ./jenkinsapi.cred 2>/dev/null`;
+    config_files = ('/etc/jenkinsapi.conf', './jenkinsapi.conf')
+    config = dict()
+    job_parameters = dict()
 
-if ( ! $APIKEY ) {
-  print STDERR "You have not defined your APIKEY variable in the config.\n";
-  print STDERR "Login in jenkins and find your api key.";
-  print STDERR "Please add this api key to your jenkinsapi.cred file:\n";
-  print STDERR ' $APIKEY="987zyx654wvu"';
-}
+    for config_file in config_files:
+        if not os.path.exists(config_file):
+            continue
+        with open(config_file, 'r') as f:
+            config.update(json.load(f))
 
-if ( ! $CRUMB ) {
-  print STDERR "You have not defined your CRUMB variable in the config.\n";
-  print STDERR "Please create your own crumb:\n";
-  print STDERR " curl --user <myusername>:<mypassword> 'https://ci.opensuse.org/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)'";
-  print STDERR "And then add it to your jenkinsapi.cred file:\n";
-  print STDERR ' $CRUMB=".crumb:123abc456def"';
-}
+    if not config:
+        print('Error: No config file could be loaded. Please create either of: %s' %
+              ', '.join(config_files))
+        sys.exit(1)
 
-$METHOD ||= 'POST';
-$SCHEME ||= 'https';
-if ($JURL =~ /river\.suse\.de/)
-{
-  $SCHEME='http';
-}
+    for param in job_args:
+        # backwards compatibility, ignore -p and -m
+        if param in ('-p', '-m'):
+            continue
+        p_key, _, p_val = param.partition('=')
+        job_parameters[p_key.strip(' ')] = p_val.strip(' ')
 
-my $up='';
-$up="${USER}:${APIKEY}\@" if (defined $USER && $USER ne '' && defined $APIKEY && $APIKEY ne '');
-my $jurl="$SCHEME://${up}${JURL}";
-my $job=shift || die usage();
+    server = jenkins.Jenkins(config['jenkins_url'],
+                             username=config['jenkins_user'],
+                             password=config['jenkins_api_token'])
+    server.build_job(job_name, job_parameters)
 
-my $jobtype='normal';
-my $jtype=shift || '';
-if ($jtype =~ /^-p$/) {
-  $jobtype='parameter';
-} elsif ($jtype =~ /^-m$/) {
-  $jobtype='matrix';
-}
-
-my $triggerurl=$jurl."/job/".$job;
-my @curlargs=('--silent', '--show-error');
-push @curlargs, ("-H", "Content-Length: 0");
-
-if ($jobtype eq 'normal') {
-  $triggerurl .= "/build";
-} elsif ($jobtype eq 'parameter') {
-  $triggerurl .= "/buildWithParameters?".join('&', @ARGV);
-} elsif ($jobtype eq 'matrix') {
-  $triggerurl .= "/".join(',', @ARGV)."/build";
-}
-
-$triggerurl =~ s/ /+/g;
-push @curlargs, ("-X", $METHOD);
-push @curlargs, ("-H", $CRUMB) if ($CRUMB);
-my @cmd=("curl", @curlargs, $triggerurl);
-
-print join(' ', @cmd) if ( $ENV{debug} );
-exec(@cmd) || die $!;
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        usage()
+    args = list()
+    if len(sys.argv) > 2:
+        args.extend(sys.argv[2:])
+    jenkins_build_job(sys.argv[1], args)
