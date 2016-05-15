@@ -19,11 +19,19 @@
 import argparse
 import functools
 import os
+import re
 import sys
 import tempfile
 
 import sh
 from sh import Command
+
+try:
+    import jenkins
+except ImportError:
+    print("Please install 'python-jenkins' from pypi")
+    sys.exit(1)
+
 
 IBS_MAPPING = {
     'release/stoney/master': 'Devel:Cloud:4:Staging',
@@ -46,19 +54,24 @@ CLOUDSRC = {
     'master':                'develcloud7'
 }
 
-MKCLOUD_HA_PARAMETERS = (
-    'nodenumber=4', 'hacloud=1',
-    'networkingmode=vxlan',
-    'clusterconfig="data+services+network=2"')
+MKCLOUD_HA_PARAMETERS = {
+    'nodenumber': '4',
+    'hacloud' :'1',
+    'networkingmode': 'vxlan',
+    'clusterconfig': '"data+services+network=2"'
+}
 
-MKCLOUD_HYPERV_PARAMETERS = (
-    'networkingplugin=linuxbridge',
-    'libvirt_type=hyperv',
-    'networkingmode=vlan')
+MKCLOUD_HYPERV_PARAMETERS = {
+    'networkingplugin': 'linuxbridge',
+    'libvirt_type': 'hyperv',
+    'networkingmode' :'vlan'
+}
 
-MKCLOUD_CEPH_PARAMETERS = (
-    'nodenumber=4', 'want_ceph=1',
-    'networkingplugin=linuxbridge')
+MKCLOUD_CEPH_PARAMETERS = {
+    'nodenumber': '4',
+    'want_ceph': '1',
+    'networkingplugin': 'linuxbridge'
+    }
 
 JOB_PARAMETERS = {
     'crowbar-ha': MKCLOUD_HA_PARAMETERS,
@@ -85,32 +98,45 @@ def ghs_set_status(repo, head_sha1, status):
     ghs('-r', 'crowbar/' + repo,
         '-c', head_sha1, '-a', 'set-status', '-s', status)
 
+def _jenkins_read_api_credentials(cred_path):
+    """file format for credentials is from jenkins-job-trigger perl script:
+"""
+    data = {}
+    with open(cred_path, "r") as f:
+        for line in f:
+            m = re.match(r'\$(.*)="(.*)";', line)
+            if m:
+                key, val = m.group(1, 2)
+                data[key] = val
+    if 'SCHEME' not in data.keys():
+        data['SCHEME'] = 'https'
+    return data
 
 def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
     print("triggering jenkins job with " + htdocs_url + ptfdir)
+    creds = _jenkins_read_api_credentials('/etc/jenkinsapi.cred')
+    server = jenkins.Jenkins('%s://%s' % (creds['SCHEME'], creds['JURL']),
+                             username=creds['USER'], password=creds['APIKEY'])
 
     jenkins = Command(
         os.path.abspath(
             os.path.join(os.path.dirname(sys.argv[0]),
                          'jenkins/jenkins-job-trigger')))
 
-    job_parameters = (
-        'nodenumber=2', 'networkingplugin=openvswitch')
+    job_parameters = {
+        'nodenumber': '2',
+        'networkingplugin': 'openvswitch'
+    }
 
     if repo in JOB_PARAMETERS:
         job_parameters = JOB_PARAMETERS[repo]
 
-    job_parameters += ('all_noreboot',)
+    job_parameters['cloudsource'] = cloudsource
+    job_parameters['UPDATEREPOS'] = "%s%s" % (htdocs_url, ptfdir)
+    job_parameters['github_pr'] = "crowbar/%s:%s" % (repo, github_opts)
+    job_parameters['mkcloudtarget'] = "all_noreboot"
 
-    print(jenkins(
-        'openstack-mkcloud',
-        '-p',
-        "github_pr=crowbar/%s:%s" % (repo, github_opts),
-        "cloudsource=" + cloudsource,
-        'UPDATEREPOS=' + htdocs_url + ptfdir,
-        'mkcloudtarget=all_noreboot',
-        *job_parameters))
-
+    server.build_job('openstack-mkcloud', **job_parameters)
 
 def add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec):
     sh.curl(
