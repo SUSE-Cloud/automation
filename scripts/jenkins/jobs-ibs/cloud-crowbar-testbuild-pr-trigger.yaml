@@ -1,0 +1,133 @@
+- job:
+    name: 'cloud-crowbar-testbuild-pr-trigger'
+    node: cloud-trigger
+
+    parameters:
+      - choice:
+          name: mode
+          choices:
+            - normal
+            - rebuild
+            - forcerebuild
+            - forceall
+          description: |
+              normal: trigger unseen PRs
+              rebuild: trigger unseend and pending PRs
+              forcerebuild: trigger unseen, pending and failed PRs
+              forceall: trigger rebuild for all open PRs
+
+    triggers:
+      - timed: 'H/30 * * * *'
+
+    builders:
+      - shell: |
+          ## THIS IS A TRIGGER JOB ONLY - NO WORKER CODE IN HERE - DO NOT DARE TO ADD SOME
+          ## TRIGGER JOBS ARE MOVED TO A DEDICATED TRIGGER NODE
+          ## THIS JOB IS ABOUT PRs FOR THE CCT REPO
+          [[ $NODE_NAME != 'cloud-trigger' ]] && exit 99
+          ##
+
+          set -x
+
+          export automationrepo=~/github.com/SUSE-Cloud/automation
+
+          # automation bootstrapping
+          if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+          rm -rf ${automationrepo}
+          curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
+          fi
+          # fetch the latest automation updates
+          ${automationrepo}/scripts/jenkins/update_automation
+
+          ghs=${automationrepo}/scripts/github-status/github-status.rb
+
+          action=list-unseen-prs
+          case $mode in
+          rebuild) action=list-rebuild-prs
+          ;;
+          forcerebuild) action=list-forcerebuild-prs
+          ;;
+          forceall) action=list-open-prs
+          ;;
+          esac
+
+
+          # PR testing for crowbar repos
+          declare -a crowbar_repos=(
+              crowbar
+              crowbar-ceph
+              crowbar-core
+              crowbar-ha
+              crowbar-hyperv
+              crowbar-openstack
+              barclamp-ceilometer
+              barclamp-ceph
+              barclamp-cinder
+              barclamp-cisco-ucs
+              barclamp-crowbar
+              barclamp-database
+              barclamp-dell_raid
+              barclamp-deployer
+              barclamp-dns
+              barclamp-ganglia
+              barclamp-glance
+              barclamp-heat
+              barclamp-ipmi
+              barclamp-keystone
+              barclamp-logging
+              barclamp-manila
+              barclamp-network
+              barclamp-neutron
+              barclamp-nfs_client
+              barclamp-nova
+              barclamp-nova_dashboard
+              barclamp-ntp
+              barclamp-openstack
+              barclamp-pacemaker
+              barclamp-provisioner
+              barclamp-rabbitmq
+              barclamp-raid
+              barclamp-suse-manager-client
+              barclamp-swift
+              barclamp-tempest
+              barclamp-trove
+              barclamp-updater
+          )
+
+          declare -a master_branches_old=(
+              release/tex/master
+              release/stoney/master
+          )
+
+          declare -a master_branches=(
+              master
+              stable/3.0
+          )
+
+          for repo in ${crowbar_repos[@]}; do
+              declare -a branches=()
+              case $repo in
+                  crowbar)
+                      branches=( "${master_branches_old[@]}" "${master_branches[@]}" )
+                      ;;
+                  crowbar-*)
+                      branches=${master_branches[@]}
+                      ;;
+                  barclamp-*)
+                      branches=${master_branches_old[@]}
+                      ;;
+              esac
+
+              for branch in ${branches[@]} ; do
+                  for github_pr in $(timeout 4m $ghs -r crowbar/$repo -a $action -b $branch) ; do
+                      github_pr_opts=(${github_pr//:/ })
+                      github_pr_sha=${github_pr_opts[1]}
+
+                      # set status to pending (do it first to prevent race condition with github status)
+                      $ghs -r crowbar/$repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha -m "Queued build of crowbar-testbuild-pr"
+                      # trigger testbuild job
+                      ${automationrepo}/scripts/jenkins/jenkins-job-trigger \
+                          cloud-crowbar-testbuild-pr -p crowbar_repo=$repo crowbar_github_pr=$github_pr
+                  done
+              done
+          done
