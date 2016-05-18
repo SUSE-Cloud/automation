@@ -666,7 +666,7 @@ function add_suse_storage_repo()
                     "$tftpboot_repos12_dir/$repo"
             done
         fi
-        if iscloudver 6plus; then
+        if iscloudver 6; then
             if [[ $cloudsource =~ ^M[1-7]$ ]]; then
                 for repo in SUSE-Enterprise-Storage-2-{Pool,Updates}; do
                     # Note no zypper alias parameter here since we don't want
@@ -682,6 +682,14 @@ function add_suse_storage_repo()
                         "$tftpboot_repos12sp1_dir/$repo"
                 done
             fi
+        fi
+        if iscloudver 7plus; then
+            for repo in SUSE-Enterprise-Storage-3-{Pool,Updates}; do
+                # Note no zypper alias parameter here since we don't want
+                # to zypper addrepo on the admin node.
+                add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+                    "$tftpboot_repos12sp1_dir/$repo"
+            done
         fi
 }
 
@@ -1233,12 +1241,23 @@ function create_repos_yml()
         SUSE-Enterprise-Storage-2-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/ \
         >> $tmp_yml
 
-    create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
-        SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
-        SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/ \
-        SUSE-OpenStack-Cloud-6-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/ \
-        SUSE-Enterprise-Storage-2.1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/ \
-        >> $tmp_yml
+    if iscloudver 6; then
+        create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
+	    SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
+	    SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/ \
+	    SUSE-OpenStack-Cloud-6-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/ \
+	    SUSE-Enterprise-Storage-2.1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/ \
+	    >> $tmp_yml
+    fi
+
+    if iscloudver 7plus; then
+        create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
+            SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
+            SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/ \
+            SUSE-OpenStack-Cloud-6-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/ \
+            SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/ \
+            >> $tmp_yml
+    fi
 
     mv $tmp_yml $repos_yml
 }
