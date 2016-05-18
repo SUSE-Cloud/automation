@@ -87,8 +87,18 @@
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
 
+          ssh root@localhost "
+            hostname -f;
+            virsh list --all;
+            # Turn of the cloud6 admin VM if it is running
+            virsh destroy crowbar$hw_number.sles12sp1
+          "
+
           freshadminvm $admin
-          sleep 100 # time for the admin VM to boot
+
+          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
+          source qa_crowbarsetup.sh
+          wait_for 10 5 "nc -z $admin 22" 'admin node to start ssh daemon'
 
           # rest of code runs on admin node:
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
@@ -133,18 +143,21 @@
 
           ' || ret=$?
 
+          # Backup the crowbar upgrade assets
           scp root@$admin:/tmp/backup-crowbar.tar.gz "$artifacts_dir";
 
           # Now shutdown the old crowbar VM and spawn new VM for upgraded cloud
-
           ssh root@localhost "
-          hostname -f;
-          virsh list --all;
-          echo $admin;
-          virsh destroy $admin;
-          freshadminvm_cloud6 $admin qcow2;
-          sleep 100 # time for the admin VM to boot
+            hostname -f;
+            virsh list --all;
+            virsh destroy $admin;
           "
+
+          freshadminvm_cloud6 $admin qcow2
+
+          wait_for 10 10 "nc -z $admin 22" 'admin node to start ssh daemon'
+
+          # Copy the upgrade assets back to admin node VM
           scp "$artifacts_dir"/backup-crowbar.tar.gz root@$admin:/tmp;
 
           ssh root@$admin "
@@ -160,17 +173,32 @@
 
           wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url";
 
+          result=0
+
           # Install cloud 6 admin node
-          timeout --signal=ALRM 60m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar installcrowbar"
+          timeout --signal=ALRM 60m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar installcrowbar" || result=$?
 
-          # Restore admin node
-          timeout --signal=ALRM 60m bash -x -c ". qa_crowbarsetup.sh ; onadmin_crowbarrestore \"with_upgrade\" "
+          if [ $result == 0 ]; then
+            # Restore admin node
+              timeout --signal=ALRM 60m bash -x -c ". qa_crowbarsetup.sh ; onadmin_crowbarrestore \"with_upgrade\" " || result=$?
+          fi
 
-          # Upgrade the nodes OS
-          timeout --signal=ALRM 90m  bash -x -c ". qa_crowbarsetup.sh ; onadmin_crowbar_nodeupgrade"
+          if [ $result == 0 ]; then
+            # Upgrade the nodes OS
+            timeout --signal=ALRM 90m  bash -x -c ". qa_crowbarsetup.sh ; onadmin_crowbar_nodeupgrade" || result=$?
+          fi
 
-          # Reapply barclamps
-          timeout --signal=ALRM 90m  bash -x -c ". qa_crowbarsetup.sh ; onadmin_reapply_openstack_proposals"
+          if [ $result == 0 ]; then
+            # Make sure the nodes are in ready state
+            timeout --signal=ALRM 10m  bash -x -c ". qa_crowbarsetup.sh ; onadmin_waitcloud" || result=$?
+          fi
+
+          if [ $result == 0 ]; then
+            # Reapply barclamps
+            timeout --signal=ALRM 90m  bash -x -c ". qa_crowbarsetup.sh ; onadmin_reapply_openstack_proposals" || result=$?
+          fi
+
+          exit $result
 
           ' || ret=$?
 
