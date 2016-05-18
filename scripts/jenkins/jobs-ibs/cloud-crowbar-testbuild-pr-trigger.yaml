@@ -19,6 +19,10 @@
     triggers:
       - timed: 'H/30 * * * *'
 
+    logrotate:
+      numToKeep: 48
+      daysToKeep: -1
+
     builders:
       - shell: |
           ## THIS IS A TRIGGER JOB ONLY - NO WORKER CODE IN HERE - DO NOT DARE TO ADD SOME
