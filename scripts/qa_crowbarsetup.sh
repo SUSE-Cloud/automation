@@ -3478,10 +3478,11 @@ function oncontroller_testsetup()
     fi
 
     # wait for nova-manage to be successful
-    for n in $(seq 1 200) ;  do
-        test "$(nova-manage service list  | fgrep -cv -- \:\-\))" -lt 2 && break
-        sleep 1
-    done
+    if iscloudver 7plus; then
+        wait_for 200 1 "test \"$(nova service list  | fgrep -cv -- \ up\ )\" -lt 5" "Nova services to be up and running"
+    else
+        wait_for 200 1 "test \"$(nova-manage service list  | fgrep -cv -- \:\-\))\" -lt 2" "Nova services to be up and running"
+    fi
 
     nova flavor-delete m1.smaller || :
     nova flavor-create m1.smaller 11 512 8 1
