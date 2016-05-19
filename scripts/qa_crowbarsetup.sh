@@ -2809,6 +2809,14 @@ function custom_configuration()
                     provisioner_add_repo $repos "$tftpboot_repos12sp1_dir" "SUSE-OpenStack-Cloud-6-Updates-test" \
                         "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/"
                 fi
+
+                if iscloudver 7plus ; then
+                    repos="$autoyast['repos']['suse-12.1']"
+                    proposal_set_value provisioner default "$repos" "{}"
+
+                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-3-Updates-test" \
+                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/"
+                fi
             fi
 
         ;;
