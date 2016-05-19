@@ -44,6 +44,8 @@ fi
 : ${mkcloud_dir:=$(dirname $(readlink -e $0))}
 : ${qa_crowbarsetup:=${mkcloud_dir}/qa_crowbarsetup.sh}
 : ${iscsictl:=${mkcloud_dir}/iscsictl.py}
+: ${host_crowbar_dev_dir:=~/mkcloud_crowbar}
+: ${admin_crowbar_dev_dir:=/opt/crowbar}
 mkcloud_lib_dir=${mkcloud_dir}/lib
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
@@ -137,6 +139,7 @@ fi
 pidfile=mkcloud.pid
 
 trap 'error_exit $? "error caught by trap"' TERM
+exec 3<&0
 exec </dev/null
 
 function is_suse()
@@ -244,7 +247,7 @@ function sshrun()
         export JENKINS_EXECUTOR_NUMBER=$EXECUTOR_NUMBER;
         export JENKINS_WORKSPACE=$WORKSPACE;
 EOF
-    env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
+    env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig -e ^admin_crowbar_dev_dir | sort >> $mkcconf
 
     $scp $qa_crowbarsetup $mkcconf $iscsictl root@$adminip:
     [[ $need_scenario = 1 ]] && $scp $scenariofile root@$adminip:
@@ -640,9 +643,52 @@ function scp_install_chef_suse_override()
     fi
 }
 
+function crowbar_dev_init()
+{
+    mkdir -p $host_crowbar_dev_dir
+    pushd $host_crowbar_dev_dir >/dev/null
+    git clone git@github.com:crowbar/crowbar.git
+    pushd $host_crowbar_dev_dir/crowbar >/dev/null
+    ensure_packages_installed ruby2.1-rubygem-bundler ruby2.1-rubygem-rake
+    bundle install
+    rake crowbar:init
+    popd >/dev/null && popd >/dev/null
+}
+
+function crowbar_dev_update()
+{
+    [[ ! -d $host_crowbar_dev_dir ]] && complain 101 "Please run crowbar_dev_init step before."
+    pushd $host_crowbar_dev_dir/crowbar >/dev/null
+    rake crowbar:update
+    popd >/dev/null
+}
+
+function crowbar_dev_guard()
+{
+    pushd $host_crowbar_dev_dir/crowbar >/dev/null
+    if [[ "$wantedcmds" == "crowbar_dev_guard" ]]; then
+        GUARD_SYNC_HOST=$adminip GUARD_TREE_TARGET=$admin_crowbar_dev_dir GUARD_SCRIPT_TARGET=$admin_crowbar_dev_dir/bin bundle exec guard --no-notify <&3
+    else
+        GUARD_SYNC_HOST=$adminip GUARD_TREE_TARGET=$admin_crowbar_dev_dir GUARD_SCRIPT_TARGET=$admin_crowbar_dev_dir/bin bundle exec guard --no-notify
+    fi
+}
+
+function crowbar_dev_install()
+{
+    onadmin crowbar_dev_install
+}
+
+function crowbar_dev_server()
+{
+    onadmin crowbar_dev_server
+}
+
 function instcrowbar()
 {
     scp_install_chef_suse_override
+    if [ -n "$crowbar_dev" ]; then
+        onadmin install_crowbar_dev_deps
+    fi
     onadmin installcrowbar
     local ret=$?
     $scp root@$adminip:$crowbar_install_log "$artifacts_dir/"
@@ -1007,6 +1053,8 @@ These steps are expanding to the following steps:
         -> $(expand_steps plain_with_upgrade)
     instonly
         -> $(expand_steps instonly)
+    setup_crowbar_development
+        -> $(expand_steps setup_crowbar_development)
 
 Steps:
     cleanup:        kill all running VMs, zero out boot sectors of all LVM volumes
@@ -1034,6 +1082,20 @@ Steps:
     qa_test:        run the qa test suite
     help:           usage of steps and environment variables
     steps:          usage of steps only
+
+Crowbar Development Steps:
+    crowbar_dev_init: Setup the development environment on the host, Fork and Clone the repos to (default='~/mkcloud_crowbar/crowbar/barclamps')
+                    ~/mkcloud_crowbar is overridable by 'export host_crowbar_dev_dir=some_other_dir'
+                    IMPORTANT: as this needs access to GitHub you have to create a ~/.netrc which looks like:
+
+                    machine api.github.com
+                        login <username>
+                        password <apitoken>
+    crowbar_dev_update: Pull the latest changes to your crowbar git clones
+    crowbar_dev_guard: (one-shot|foreground) Synchronize the git clones to the admin node (keep this always in a separate shell the foreground)
+    crowbar_dev_install: Install the barclamps (this has to be done at least once, or when you changed e.g. the navigation)
+    crowbar_dev_server: (foreground) Run the Rails development app which will be accessible on $admin_ip:5000
+
 
 EOSTEPS
 }
@@ -1181,6 +1243,14 @@ Optional
         Defines which scenario file should be used. Only works with cloud5 or newer.
         Currently only the step 'batch' uses such a file.
         Scenario files have to placed in \${mkcloud_dir}/scenarios/cloud\$(getcloudver).
+
+Crowbar Development Options:
+    crowbar_dev=1 (default='')
+        Install dependencies for a Crowbar Development app on the Admin node
+    admin_crowbar_dev_dir=/opt/crowbar (default='/opt/crowbar')
+        Choose which folder to use for the development setup.
+    host_crowbar_dev_dir=~/some_dir (default='~/mkcloud_crowbar')
+        Choose the directory from where you will work on Crowbar (git clones)
 EOUSAGE
     onadmin_help
     exit 1
@@ -1328,14 +1398,16 @@ function sanity_checks()
 step_aliases="_new_admin _compute _upgrade _testupdate"
 
 allcmds="$step_aliases all all_noreboot all_batch all_batch_noreboot instonly \
-    plain plain_with_upgrade cleanup setuphost prepare setupadmin \
-    prepareinstcrowbar instcrowbar instcrowbarfromgit setupnodes \
+    plain plain_with_upgrade setup_crowbar_development cleanup setuphost prepare \
+    setupadmin prepareinstcrowbar instcrowbar instcrowbarfromgit setupnodes \
     setupcompute instnodes instcompute proposal testsetup rebootcrowbar \
     rebootcloud addupdaterepo runupdate testupdate \
     crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help \
     rebootneutron cloudupgrade \
     setuplonelynodes crowbar_register createadminsnapshot \
-    restoreadminfromsnapshot cct steps batch setup_aliases onadmin onhost"
+    restoreadminfromsnapshot cct steps batch setup_aliases onadmin onhost
+    crowbar_dev_init crowbar_dev_update crowbar_dev_guard \
+    crowbar_dev_install crowbar_dev_server"
 wantedcmds=$@
 
 function expand_steps()
@@ -1392,6 +1464,9 @@ function expand_steps()
                     ;;
                     plain_with_upgrade)
                         runcmds="$runcmds `expand_steps plain` addupdaterepo runupdate `expand_steps _upgrade`"
+                    ;;
+                    setup_crowbar_development)
+                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar instcrowbar crowbar_dev_init crowbar_dev_update crowbar_dev_guard crowbar_dev_install"
                     ;;
                     *)
                         runcmds="$runcmds $cmd"

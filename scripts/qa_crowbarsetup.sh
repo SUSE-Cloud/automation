@@ -14,6 +14,7 @@ if [[ $debug_qa_crowbarsetup = 1 ]] ; then
 fi
 
 # defaults
+: ${admin_crowbar_dev_dir:=/opt/crowbar}
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
 : ${cinder_backend:=''}
@@ -1713,6 +1714,30 @@ EOF
     fi
 }
 
+function onadmin_install_crowbar_dev_deps()
+{
+    addcctdepsrepo
+    ensure_packages_installed ruby2.1-rubygem-bundler ruby2.1-devel libxml2-devel gcc make libxslt-devel sqlite3-devel
+    mkdir -p $admin_crowbar_dev_dir/crowbar_framework/db $admin_crowbar_dev_dir/barclamps
+    ln -sf /opt/dell/crowbar_framework/db/production.sqlite3 $admin_crowbar_dev_dir/crowbar_framework/db/development.sqlite3
+}
+
+function onadmin_crowbar_dev_install()
+{
+    onadmin_install_crowbar_dev_deps
+    local components=$(find $admin_crowbar_dev_dir/barclamps -mindepth 1 -maxdepth 1 -type d)
+
+    pushd $admin_crowbar_dev_dir/crowbar_framework >/dev/null
+    bundle config build.nokogiri --use-system-libraries
+    bundle install
+    CROWBAR_DIR=$admin_crowbar_dev_dir RAILS_ENV=development $admin_crowbar_dev_dir/bin/barclamp_install.rb $components
+    popd >/dev/null
+}
+
+function onadmin_crowbar_dev_server()
+{
+    $admin_crowbar_dev_dir/crowbar_framework/bin/rails s -b 0.0.0.0 -p 5000
+}
 
 function onadmin_installcrowbarfromgit()
 {
