@@ -554,9 +554,9 @@ function addsles12sp1testupdates()
         "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     echo "FIXME: setup Storage 2.1 test channels once available"
     # TODO not there yet
-    #[ -n "$deployceph" ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-    #    $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/' \
-    #    "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
+    [ -n "$deployceph" -a iscloudver 7plus ] && add_mount "SUSE-Enterprise-Storage-3-Updates-test" \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/' \
+        "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-3-Updates-test/"
 
 }
 
