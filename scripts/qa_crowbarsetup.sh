@@ -1923,7 +1923,7 @@ function onadmin_allocate()
             echo "Setting last node to SLE12 compute..."
             set_node_role_and_platform ${nodes[1]} "compute" "suse-12.0"
         fi
-        if [ -n "$deployceph" ] && iscloudver 6 ; then
+        if [ -n "$deployceph" ] && iscloudver 6plus ; then
             local nodes=(
                 $(get_all_discovered_nodes | head -n 3)
             )
