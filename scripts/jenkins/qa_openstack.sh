@@ -62,6 +62,7 @@ if [ -f "/etc/os-release" ]; then
         "SLES")
             REPO="SLE_12"
             [ "$VERSION" = "12.1" ] && REPO="SLE_12_SP1"
+            [ "$VERSION" = "12.2" ] && REPO="SLE_12_SP2"
         ;;
         "openSUSE Leap")
             REPO="openSUSE_Leap_${VERSION}"
@@ -148,7 +149,8 @@ if [ "$VERSION" = "12" ] ; then
     $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12/x86_64/update/' SLES12-Updates
 fi
 
-if [ "$VERSION" = "12.1" ] ; then
+### FIX SP2 setup
+if [ "$VERSION" = "12.1" ] || [ "$VERSION" = "12.2" ]; then
     $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
     $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
 fi
