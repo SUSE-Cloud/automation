@@ -62,7 +62,7 @@ setcloudnetvars $virtualcloud
 : ${adminnetmask:=255.255.248.0}
 # the default nodenumber of compute nodes
 nodenumbercomputedefault=2
-[ -n "$hacloud" ] && nodenumbercomputedefault=1
+[[ $hacloud ]] && nodenumbercomputedefault=1
 : ${nodenumber:=$nodenumbercomputedefault}
 : ${nodenumbercompute:=$nodenumbercomputedefault}
 # expect to have this many physical machines attached via $mkch_physcloudif
@@ -105,7 +105,7 @@ needcvol=1
 : ${computenode_hdd_size:=20}
 : ${cephvolume_hdd_size:=21}
 : ${controller_ceph_hdd_size:=25}
-if [ -n "$hacloud" ]; then
+if [[ $hacloud ]]; then
     : ${drbd_hdd_size:=15}
 else
     : ${drbd_hdd_size:=0}
@@ -1257,7 +1257,7 @@ function sanity_checks()
     fi
 
     # checking clusterconfig
-    if [ -n "$hacloud" -a -z "$clusterconfig" ] ; then
+    if [[ $hacloud && ! $clusterconfig ]] ; then
         echo "Examples for clusterconfig:"
         echo '3 clusters: clusterconfig="data=2:network=3:services=3"'
         echo '2 clusters: clusterconfig="services+data=2:network=3"'
