@@ -638,6 +638,44 @@ function macfunc()
     printf "52:54:77:77:77:%02x" $1
 }
 
+function get_admin_node_dist()
+{
+    # echo the name of the current dist for the admin node
+    local dist=
+    case $(getcloudver) in
+        7)  dist=SLE12SP1
+            [[ $want_sles12sp2 ]] && dist=SLE12SP2
+            ;;
+        6)  dist=SLE12SP1 ;;
+        5)  dist=SLE11    ;;
+        *)  dist=SLE11    ;;
+    esac
+    echo "$dist"
+}
+
+function get_lonely_node_dist()
+{
+    local dist=$(get_admin_node_dist)
+    iscloudver 5 && [[ $want_sles12 ]] && dist=SLE12
+    echo $dist
+}
+
+function dist_to_image_name()
+{
+    # get the name of the image to deploy the admin node
+    local dist=$1
+    case $dist in
+        SLE12SP2) image=SLES12-SP2.qcow2 ;;
+        SLE12SP1) image=SLES12-SP1.qcow2 ;;
+        SLE12)    image=SLES12.qcow2     ;;
+        SLE11)    image=SP3-64up.qcow2   ;;
+        *)
+            complain 71 "No admin node image defined for this distribution: $dist"
+        ;;
+    esac
+    echo "$image"
+}
+
 # bring up lonely_node(s) in the admin network
 function setuplonelynodes()
 {
