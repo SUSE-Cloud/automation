@@ -409,25 +409,9 @@ EOF
 
 function onhost_deploy_image()
 {
-    local image
     local role=$1
-    local dist=${2:-SLE11}
-    local disk=${3:-$admin_node_disk}
-
-    case $dist in
-    SLE12SP1)
-        image=SLES12-SP1.qcow2
-        ;;
-    SLE12)
-        image=SLES12.qcow2
-        ;;
-    SLE11)
-        image=SP3-64up.qcow2
-        ;;
-    *)
-        complain 71 "onhost_deploy_image has not enough information about how to deploy. (distribution: $dist)"
-        ;;
-    esac
+    local image=$(dist_to_image_name $2)
+    local disk=$3
 
     pushd /tmp
     safely wget --progress=dot:mega -N \
@@ -491,9 +475,7 @@ function prepare()
 
 function onhost_prepareadmin()
 {
-    local image="SLE11"
-    iscloudver 6plus && image="SLE12SP1"
-    onhost_deploy_image "admin" $image "$admin_node_disk"
+    onhost_deploy_image "admin" $(get_admin_node_dist) "$admin_node_disk"
 }
 
 function ssh_password()
@@ -692,14 +674,7 @@ function setuplonelynodes()
         local lonely_disk
         lonely_disk="$vdisk_dir/${cloud}.node$i"
 
-        if iscloudver 6plus ; then
-            onhost_deploy_image "lonely" "SLE12SP1" $lonely_disk
-        elif [ -n "$want_sles12" ] ; then
-            onhost_deploy_image "lonely" "SLE12" $lonely_disk
-        else
-            onhost_deploy_image "lonely" "SLE11" $lonely_disk
-        fi
-
+        onhost_deploy_image "lonely" $(get_lonely_node_dist) $lonely_disk
         ${mkcloud_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
     done
 }
