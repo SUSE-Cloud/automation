@@ -3149,12 +3149,25 @@ function get_ceph_nodes()
     fi
 }
 
+function manila_service_instance_get_uuid()
+{
+    local vm_uuid=`openstack --os-project-name manila-service server show manila-service -f value -c id`
+    test -n "$vm_uuid" || complain 91 "uuid from manila-service instance not available"
+    echo $vm_uuid
+}
+
+function manila_service_instance_get_floating_ip()
+{
+    local vm_uuid=`manila_service_instance_get_uuid`
+    local vm_floating_ip=`openstack --os-project-name manila-service server show $vm_uuid -f value -c addresses | awk '{print $2}'`
+    test -n "$vm_floating_ip" || complain 93 "floating ip addr from manila-service instance not available"
+    echo $vm_floating_ip
+}
+
 function get_manila_service_instance_details()
 {
-    manila_service_vm_uuid=`oncontroller "openstack --os-project-name manila-service server show manila-service -f value -c id"`
-    manila_tenant_vm_ip=`oncontroller "openstack --os-project-name manila-service server show $manila_service_vm_uuid -f value -c addresses | awk '{print $2}'"`
-    test -n "$manila_service_vm_uuid" || complain 91 "uuid from manila-service instance not available"
-    test -n "$manila_tenant_vm_ip" || complain 93 "floating ip addr from manila-service instance not available"
+    manila_service_vm_uuid=`oncontroller "manila_service_instance_get_uuid"`
+    manila_tenant_vm_ip=`oncontroller "manila_service_instance_get_floating_ip"`
 }
 
 function addfloatingip()
@@ -3315,8 +3328,8 @@ function oncontroller_manila_generic_driver_setup()
             # the upgrade
             timeout 10m nova start manila-service
         fi
-        manila_service_vm_uuid=`openstack --os-project-name manila-service server show manila-service -f value -c id`
-        manila_tenant_vm_ip=`openstack --os-project-name manila-service server show $manila_service_vm_uuid -f value -c addresses | awk '{print $2}'`
+        manila_service_vm_uuid=`manila_service_instance_get_uuid`
+        manila_tenant_vm_ip=`manila_service_instance_get_floating_ip`
     else
         fixed_net_id=`neutron net-show fixed -f value -c id`
         timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
