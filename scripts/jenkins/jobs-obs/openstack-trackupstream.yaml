@@ -28,6 +28,7 @@
             - openstack-gnocchi
             - openstack-heat
             - openstack-heat-templates
+            - openstack-horizon-plugin-ironic-ui
             - openstack-horizon-plugin-manila-ui
             - openstack-horizon-plugin-magnum-ui
             - openstack-ironic
@@ -138,7 +139,9 @@
               "python-networking-hyperv" ].contains(component) ||
             [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
             [ "openstack-magnum",
-              "openstack-horizon-plugin-magnum-ui" ].contains(component) )
+              "openstack-horizon-plugin-ironic-ui",
+              "openstack-horizon-plugin-magnum-ui",
+            ].contains(component) )
       sequential: true
     builders:
       - update-automation
