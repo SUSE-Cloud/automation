@@ -19,6 +19,7 @@
           name: component
           values:
             - openstack-aodh
+            - openstack-barbican
             - openstack-ceilometer
             - openstack-cinder
             - openstack-dashboard
@@ -139,6 +140,7 @@
               "python-networking-hyperv" ].contains(component) ||
             [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
             [ "openstack-magnum",
+              "openstack-barbican",
               "openstack-horizon-plugin-ironic-ui",
               "openstack-horizon-plugin-magnum-ui",
             ].contains(component) )
