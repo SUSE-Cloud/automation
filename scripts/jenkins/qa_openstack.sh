@@ -224,6 +224,7 @@ fi
 sed -i -e "s/with_tempest=no/with_tempest=yes/" /etc/openstackquickstartrc
 sed -i -e "s/with_horizon=no/with_horizon=yes/" /etc/openstackquickstartrc
 sed -i -e "s/with_magnum=no/with_magnum=yes/" /etc/openstackquickstartrc
+sed -i -e "s/with_barbican=no/with_barbican=yes/" /etc/openstackquickstartrc
 sed -i -e "s/node_is_compute=.*/node_is_compute=yes/" /etc/openstackquickstartrc
 sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
 unset http_proxy
