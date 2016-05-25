@@ -1,0 +1,34 @@
+- job:
+    name: 'openstack-rpm-packaging-update'
+    node: cloud-trackupstream
+    description: |
+      Job to update periodically Cloud:OpenStack:Upstream with data from the OpenStack rpm-packaging project.
+      <b>This job is managed by JJB!</b>
+      Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-obs/'>git</a>
+
+    triggers:
+      - timed: 'H */4 * * *'
+
+    builders:
+      - shell: |
+          #!/bin/bash
+          export OSCAPI="https://api.opensuse.org"
+          export JHOME="/home/jenkins"
+          export OBS_PROJECT="Cloud:OpenStack:Upstream"
+          export COMPONENT="rpm-packaging-openstack"
+          export OBS_CHECKOUT=$JHOME/OBS_CHECKOUT/$OBS_PROJECT
+
+          mkdir -p "$OBS_CHECKOUT"
+          cd "$OBS_CHECKOUT"
+
+          rm -rf "$COMPONENT"
+          osc -A $OSCAPI co -c "$OBS_PROJECT" "$COMPONENT"
+          cd "$COMPONENT"
+
+          # now do the actual work
+          set -e -x
+          osc service dr
+          bash -x pre_checkin.sh
+          osc service dr
+          osc addremove
+          osc commit -m "Automatically updated rpm-packaging-openstack via Jenkins"
