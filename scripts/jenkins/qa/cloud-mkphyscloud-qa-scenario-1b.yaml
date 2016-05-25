@@ -115,7 +115,7 @@
           sleep 100 # time for the admin VM to boot
 
           # wipe out shared NFS that should be used by this deployment
-          ssh root@10.162.26.129 "/var/qa-scripts/wipe_nfs_shares.sh qa$hw_number"
+          ssh root@localhost "wipe_nfs_shares qa$hw_number"
 
           # rest of code runs on admin node:
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
@@ -124,6 +124,7 @@
 
           ssh root@$admin "
           export cloud=$cloud ;
+          export hw_number=$hw_number ;
           export UPDATEREPOS=$UPDATEREPOS ;
           export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
           export TESTHEAD=$TESTHEAD ;
@@ -142,8 +143,8 @@
           wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
           wget --no-check-certificate -Oscenario.yml "$scenario_url"
 
-          sed -i -e "s,##shared_nfs_for_database##,10.162.26.129:/var/$cloud/ha-database," scenario.yml
-          sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.26.129:/var/$cloud/ha-rabbitmq," scenario.yml
+          sed -i -e "s,##shared_nfs_for_database##,10.162.31.220:/var/$cloud/ha-database," scenario.yml
+          sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.31.220:/var/$cloud/ha-rabbitmq," scenario.yml
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
