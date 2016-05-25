@@ -552,8 +552,9 @@ function addsles12sp1testupdates()
     [ -n "$hacloud" ] && add_mount "SLE12-SP1-HA-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
-    echo "FIXME: setup Storage 2.1 test channels once available"
-    # TODO not there yet
+    [ -n "$deployceph" -a iscloudver 6 ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/' \
+        "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
     [ -n "$deployceph" -a iscloudver 7plus ] && add_mount "SUSE-Enterprise-Storage-3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-3-Updates-test/"
@@ -1236,11 +1237,6 @@ function create_repos_yml()
 
     echo --- > $tmp_yml
 
-    create_repos_yml_for_platform "suse-12.0" "x86_64" "$tftpboot_repos12_dir" \
-        SLES12-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/ \
-        SUSE-Enterprise-Storage-2-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/ \
-        >> $tmp_yml
-
     if iscloudver 6; then
         create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
             SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
@@ -1250,7 +1246,7 @@ function create_repos_yml()
             >> $tmp_yml
     fi
 
-    if iscloudver 7plus; then
+    if iscloudver 7; then
         create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
             SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
             SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/ \
@@ -1927,11 +1923,7 @@ function onadmin_allocate()
             local nodes=(
                 $(get_all_discovered_nodes | head -n 3)
             )
-            if [[ $cloudsource =~ ^M[1-7]$ ]]; then
-                storage_os="suse-12.0"
-            else
-                storage_os="suse-12.1"
-            fi
+            storage_os="suse-12.1"
             for n in $(seq 1 2); do
                 echo "Setting node $(($n+1)) to Storage..."
                 set_node_role_and_platform ${nodes[$n]} "storage" ${storage_os}
