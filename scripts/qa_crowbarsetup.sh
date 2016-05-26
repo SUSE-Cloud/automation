@@ -507,6 +507,9 @@ function export_tftpboot_repos_dir()
     if iscloudver 7plus; then
         tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
         tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/x86_64/repos
+        # We need SP1 repositories for ceph nodes
+        tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
+        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
     elif iscloudver 6plus; then
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
         tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
@@ -978,7 +981,13 @@ function onadmin_create_sles12plus_repos()
 
     local sles12optionalrepolist
     local targetdir
-    if iscloudver 6plus; then
+    if iscloudver 7plus; then
+        sles12optionalrepolist=(
+            SUSE-OpenStack-Cloud-7-Pool
+            SUSE-OpenStack-Cloud-7-Updates
+        )
+        targetdir="$tftpboot_repos12sp2_dir"
+    elif iscloudver 6; then
         sles12optionalrepolist=(
             SUSE-OpenStack-Cloud-6-Pool
             SUSE-OpenStack-Cloud-6-Updates
