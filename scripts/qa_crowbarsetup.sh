@@ -2789,26 +2789,6 @@ function custom_configuration()
                     provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-2-Updates-test" \
                         "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/"
                 fi
-
-                if iscloudver 6plus ; then
-                    repos="$autoyast['repos']['suse-12.1']"
-                    proposal_set_value provisioner default "$repos" "{}"
-
-                    provisioner_add_repo $repos "$tftpboot_repos12sp1_dir" "SLES12-SP1-Updates-test" \
-                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/"
-                    provisioner_add_repo $repos "$tftpboot_repos12sp1_dir" "SLE12-SP1-HA-Updates-test" \
-                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
-                    provisioner_add_repo $repos "$tftpboot_repos12sp1_dir" "SUSE-OpenStack-Cloud-6-Updates-test" \
-                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/"
-                fi
-
-                if iscloudver 7plus ; then
-                    repos="$autoyast['repos']['suse-12.1']"
-                    proposal_set_value provisioner default "$repos" "{}"
-
-                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-3-Updates-test" \
-                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/"
-                fi
             fi
 
         ;;
