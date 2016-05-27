@@ -8,6 +8,8 @@ proposals:
       - @@controller@@
 - barclamp: rabbitmq
   attributes:
+    trove:
+      enabled: true
   deployment:
     elements:
       rabbitmq-server:
