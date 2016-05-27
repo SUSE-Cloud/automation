@@ -409,25 +409,9 @@ EOF
 
 function onhost_deploy_image()
 {
-    local image
+    local image=`get_admin_node_image_name`
     local role=$1
-    local dist=${2:-SLE11}
-    local disk=${3:-$admin_node_disk}
-
-    case $dist in
-    SLE12SP1)
-        image=SLES12-SP1.qcow2
-        ;;
-    SLE12)
-        image=SLES12.qcow2
-        ;;
-    SLE11)
-        image=SP3-64up.qcow2
-        ;;
-    *)
-        complain 71 "onhost_deploy_image has not enough information about how to deploy. (distribution: $dist)"
-        ;;
-    esac
+    local disk=${2:-$admin_node_disk}
 
     pushd /tmp
     safely wget --progress=dot:mega -N \
@@ -491,9 +475,7 @@ function prepare()
 
 function onhost_prepareadmin()
 {
-    local image="SLE11"
-    iscloudver 6plus && image="SLE12SP1"
-    onhost_deploy_image "admin" $image "$admin_node_disk"
+    onhost_deploy_image "admin" "$admin_node_disk"
 }
 
 function ssh_password()
@@ -638,6 +620,36 @@ function macfunc()
     printf "52:54:77:77:77:%02x" $1
 }
 
+function get_admin_node_dist()
+{
+    # echo the name of the current dist for the admin node
+    local dist=SLE11
+    if iscloudver 7plus; then
+        dist=SLE12SP2
+    elif iscloudver 6plus ; then
+        dist=SLE12SP1
+    elif iscloudver 5plus && [[ $want_sles12 ]] ; then
+        dist=SLE12
+    fi
+    echo "$dist"
+}
+
+function get_admin_node_image_name()
+{
+    # get the name of the image to deploy the admin node
+    local dist=`get_admin_node_dist`
+    case $dist in
+        SLE12SP2) image=SLES12-SP2.qcow2 ;;
+        SLE12SP1) image=SLES12-SP1.qcow2 ;;
+        SLE12)    image=SLES12.qcow2     ;;
+        SLE11)    image=SP3-64up.qcow2   ;;
+        *)
+            complain 71 "No admin node image defined for this distribution: $dist"
+        ;;
+    esac
+    echo "$image"
+}
+
 # bring up lonely_node(s) in the admin network
 function setuplonelynodes()
 {
@@ -654,14 +666,7 @@ function setuplonelynodes()
         local lonely_disk
         lonely_disk="$vdisk_dir/${cloud}.node$i"
 
-        if iscloudver 6plus ; then
-            onhost_deploy_image "lonely" "SLE12SP1" $lonely_disk
-        elif [ -n "$want_sles12" ] ; then
-            onhost_deploy_image "lonely" "SLE12" $lonely_disk
-        else
-            onhost_deploy_image "lonely" "SLE11" $lonely_disk
-        fi
-
+        onhost_deploy_image "lonely" $lonely_disk
         ${mkcloud_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
     done
 }
