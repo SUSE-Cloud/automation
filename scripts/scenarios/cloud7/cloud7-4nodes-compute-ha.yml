@@ -47,6 +47,8 @@ proposals:
       - cluster:services
 - barclamp: rabbitmq
   attributes:
+    trove:
+      enabled: true
     ha:
       storage:
         mode: drbd
