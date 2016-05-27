@@ -4413,7 +4413,7 @@ function onadmin_batch()
     if iscloudver 5plus; then
         sed -i "s/##hypervisor_ip##/$admingw/g" ${scenario}
         if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-8]$ ]]); then
-            crowbar_batch --exclude manila --timeout 2400 build ${scenario}
+            safely crowbar batch --exclude manila --timeout 2400 build ${scenario}
             if grep -q "barclamp: manila" ${scenario}; then
                 get_novacontroller
                 safely oncontroller oncontroller_manila_generic_driver_setup
@@ -4422,14 +4422,14 @@ function onadmin_batch()
                         s/##service_net_name_or_ip##/$manila_tenant_vm_ip/g; \
                         s/##tenant_net_name_or_ip##/$manila_tenant_vm_ip/g" \
                         ${scenario}
-                crowbar_batch --include manila --timeout 2400 build ${scenario}
+                safely crowbar batch --include manila --timeout 2400 build ${scenario}
             fi
         else
-            crowbar_batch --timeout 2400 build ${scenario}
+            safely crowbar batch --timeout 2400 build ${scenario}
         fi
         return $?
     else
-        complain 116 "crowbar_batch is only supported with cloudversions 5plus"
+        complain 116 "crowbar batch is only supported with cloudversions 5plus"
     fi
 }
 
