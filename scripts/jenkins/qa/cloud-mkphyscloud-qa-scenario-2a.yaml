@@ -224,6 +224,7 @@
             export cephvolumenumber=0;
             export scenario=scenario.yml "'
 
+            source qa_crowbarsetup.sh
             ./sbd_prepare
 
             timeout --signal=ALRM 60m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist batch;"
