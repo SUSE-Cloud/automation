@@ -21,6 +21,7 @@ fi
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
 : ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
+: ${cct_skip_func_tests:-0}
 : ${distsuse:=dist.nue.suse.com}
 distsuseip=$(dig -t A +short $distsuse)
 : ${susedownload:=download.nue.suse.com}
@@ -3366,7 +3367,7 @@ function oncontroller_testsetup()
     fi
 
     # prepare test image with the -test packages containing functional tests
-    if iscloudver 6plus && [[ $cloudsource =~ (devel|mitaka)cloud ]]; then
+    if iscloudver 6plus && [[ $cloudsource =~ (devel|mitaka)cloud ]] && [ "$cct_skip_func_tests" == 0 ]; then
         local mount_dir="/var/lib/Cloud-Testing"
         rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
         zypper -n ar --refresh -c -G -f "$mount_dir" cloud-test
@@ -4268,7 +4269,6 @@ function onadmin_run_cct()
 
         local checkout_branch=master
         local git_url=${cct_git_url:-https://github.com/SUSE-Cloud/cct.git}
-        local skip_func_tests=${cct_skip_func_tests:-0}
 
         if [ -n "$cct_checkout_branch" ] ; then
             checkout_branch=$cct_checkout_branch
@@ -4284,7 +4284,7 @@ function onadmin_run_cct()
             esac
         fi
 
-        if iscloudver 6plus && [ "$skip_func_tests" == 0 ]; then
+        if iscloudver 6plus && [[ $cloudsource =~ (devel|mitaka)cloud ]] && [ "$cct_skip_func_tests" == 0 ]; then
             # 2017-03-29: manila functional tests are hitting frequently a timeout, disable for now
             # for test in "nova" "manila"; do
             for test in "nova" ; do
