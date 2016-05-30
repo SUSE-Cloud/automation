@@ -246,7 +246,6 @@ export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift sto
 export debug=0
 export want_neutronsles12=1
 export want_mtu_size=8900
-export rally_server=backup.cloudadm.qa.suse.de
 # to not fail when two concurrent zypper runs happen:
 export ZYPP_LOCK_TIMEOUT=120
 
