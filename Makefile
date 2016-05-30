@@ -43,8 +43,8 @@ python_unittest:
 	python -m unittest discover -v -s scripts/lib/libvirt/
 
 jjb_test:
-	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-ibs:scripts/jenkins/jobs-ibs/templates/ cloud* openstack*
-	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-obs cloud* openstack*
+	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-ibs:scripts/jenkins/jobs-ibs/templates/ cloud* openstack* > /dev/null
+	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-obs cloud* openstack* > /dev/null
 
 # for travis-CI:
 install: debianinstall genericinstall
