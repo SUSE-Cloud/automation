@@ -43,9 +43,8 @@ python_unittest:
 	python -m unittest discover -v -s scripts/lib/libvirt/
 
 jjb_test:
-	sudo pip install jenkins-job-builder
-	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-ibs:scripts/jenkins/jobs-ibs/templates/ cloud* openstack*
-	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-obs cloud* openstack*
+	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-ibs:scripts/jenkins/jobs-ibs/templates/ cloud* openstack* > /dev/null
+	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-obs cloud* openstack* > /dev/null
 
 # for travis-CI:
 install: debianinstall genericinstall
@@ -58,7 +57,7 @@ suseinstall:
 	sudo zypper install perl-JSON-XS perl-libxml-perl python-pip libvirt-python
 
 genericinstall:
-	sudo pip install bashate flake8 flake8-import-order
+	sudo pip install bashate flake8 flake8-import-order jenkins-job-builder
 	git clone https://github.com/SUSE-Cloud/roundup && \
 	cd roundup && \
 	./configure && \
