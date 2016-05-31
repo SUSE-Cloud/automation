@@ -2615,6 +2615,9 @@ function custom_configuration()
             local ceilometerservice="ceilometer-cagent"
             if iscloudver 6plus ; then
                 ceilometerservice="ceilometer-central"
+                if [[ "$cloudsource" == "GM6" ]] ; then
+                    ceilometerservice="ceilometer-polling"
+                fi
             fi
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-server']" "['cluster:$clusternameservices']"
