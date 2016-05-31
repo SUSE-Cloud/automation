@@ -163,7 +163,7 @@ proposals:
       ceilometer-agent-hyperv:
       - "@@compute-hyperv1@@"
       - "@@compute-hyperv2@@"
-      ceilometer-polling:
+      ceilometer-central:
       - cluster:services
       ceilometer-server:
       - cluster:services
