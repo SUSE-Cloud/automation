@@ -1461,7 +1461,7 @@ EOF
     fi
 
     if [[ $hacloud ]]; then
-        if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 3plus ; then
+        if [ "$slesdist" = "SLE_11_SP3" ] ; then
             add_ha_repo
         elif iscloudver 6plus; then
             add_ha12sp1_repo
@@ -2690,20 +2690,14 @@ function custom_configuration()
         ;;
         swift)
             [[ "$nodenumber" -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
-            if iscloudver 3plus ; then
-                proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
-                proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
-                iscloudver 3 || proposal_set_value swift default "['attributes']['swift']['middlewares']['crossdomain']['enabled']" "true"
-                proposal_set_value swift default "['attributes']['swift']['middlewares']['formpost']['enabled']" "true"
-                proposal_set_value swift default "['attributes']['swift']['middlewares']['staticweb']['enabled']" "true"
-                proposal_set_value swift default "['attributes']['swift']['middlewares']['tempurl']['enabled']" "true"
-            fi
+            proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
+            proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
+            proposal_set_value swift default "['attributes']['swift']['middlewares']['crossdomain']['enabled']" "true"
+            proposal_set_value swift default "['attributes']['swift']['middlewares']['formpost']['enabled']" "true"
+            proposal_set_value swift default "['attributes']['swift']['middlewares']['staticweb']['enabled']" "true"
+            proposal_set_value swift default "['attributes']['swift']['middlewares']['tempurl']['enabled']" "true"
         ;;
         cinder)
-            if iscloudver 4 ; then
-                proposal_set_value cinder default "['attributes']['cinder']['enable_v2_api']" "true"
-            fi
-
             proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['${cinder_backend}']" "j['attributes']['cinder']['volume_defaults']['${cinder_backend}']"
             proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['backend_driver']" "'${cinder_backend}'"
             case "$cinder_backend" in
@@ -4074,9 +4068,6 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
         update_one_proposal dns default
         ensure_packages_installed crowbar-barclamp-trove
         do_one_proposal trove default
-    elif iscloudver 4; then
-        ensure_packages_installed crowbar-barclamp-tempest
-        do_one_proposal tempest default
     fi
 
     # TODO: restart any suspended instance?
@@ -4100,13 +4091,9 @@ function onadmin_reapply_openstack_proposals()
 
 function onadmin_prepare_crowbar_upgrade()
 {
-    if iscloudver 4minus ; then
-        complain 11 "This upgrade path is only supported for Cloud 5+"
-    else
-        # using the API, due to missing crowbar cli integration
-        # move nodes to upgrade mode
-        safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare.json
-    fi
+    # using the API, due to missing crowbar cli integration
+    # move nodes to upgrade mode
+    safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare.json
 }
 
 function onadmin_crowbarbackup()
