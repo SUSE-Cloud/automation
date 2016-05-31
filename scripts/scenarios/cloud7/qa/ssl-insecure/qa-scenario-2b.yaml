@@ -215,7 +215,7 @@ proposals:
       - "@@computekvm2@@"
       - "@@computevmw@@"
       ceilometer-agent-hyperv: []
-      ceilometer-polling:
+      ceilometer-central:
       - cluster:services
       ceilometer-server:
       - cluster:services
