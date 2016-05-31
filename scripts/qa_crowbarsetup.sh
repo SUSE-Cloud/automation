@@ -1524,7 +1524,7 @@ EOF
     fi
     if [[ $cloud =~ qa ]] ; then
         # QA clouds have too few IP addrs, so smaller subnets are used
-        wget -O$netfile http://info.cloudadm.qa.suse.de/net-json/${cloud}_dual
+        wget -O$netfile http://gate.cloud2adm.qa.suse.de/network.json/${cloud}_dual
         if iscloudver 6plus; then
             sed -i 's/bc-template-network/template-network/' $netfile
         fi
