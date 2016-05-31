@@ -11,6 +11,7 @@ fi
 # this needs to be after mkcloud.config got sourced
 if [[ $debug_qa_crowbarsetup = 1 ]] ; then
     set -x
+    PS4='+($(basename ${BASH_SOURCE}):${LINENO}) ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 fi
 
 # defaults
