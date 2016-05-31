@@ -504,18 +504,19 @@ function resize_partition()
 
 function export_tftpboot_repos_dir()
 {
-    tftpboot_repos_dir=/srv/tftpboot/repos
-    tftpboot_suse_dir=/srv/tftpboot/suse-11.3
-
-    if iscloudver 5; then
+    if iscloudver 7plus; then
+        tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
+        tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/x86_64/repos
+    elif iscloudver 6plus; then
+        tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
+        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
+    elif iscloudver 5plus; then
         tftpboot_repos_dir=$tftpboot_suse_dir/repos
         tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
         tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
-    fi
-
-    if iscloudver 6plus; then
-        tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
+    else
+        tftpboot_repos_dir=/srv/tftpboot/repos
+        tftpboot_suse_dir=/srv/tftpboot/suse-11.3
     fi
 }
 
@@ -559,6 +560,17 @@ function addsles12sp1testupdates()
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-3-Updates-test/"
 
+}
+
+function addsles12sp2testupdates()
+{
+    echo "Enable SLES12SP2 Test Updates once available"
+    # add_mount "SLES12-SP2-Updates-test" \
+    #     $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/x86_64/update/' \
+    #     "$tftpboot_repos12sp2_dir/SLES12-SP2-Updates-test/" "sles12sp2tup"
+    # [[ $hacloud ]] && add_mount "SLE12-SP2-HA-Updates-test" \
+    #     $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/' \
+    #     "$tftpboot_repos12sp2_dir/SLE12-SP2-HA-Updates-test/"
 }
 
 function addcloud4maintupdates()
@@ -627,9 +639,13 @@ function addcctdepsrepo()
         develcloud5|GM5|GM5+up)
             zypper ar -f http://$susedownload/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
             ;;
-        develcloud6|develcloud7|mitakacloud7|susecloud7|M?|Beta*|RC*|GMC*|GM6|GM6+up)
+        develcloud6|GM6|GM6+up)
             zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
             zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
+            ;;
+        develcloud7|mitakacloud7|susecloud7|M?|Beta*|RC*|GMC*)
+            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
+            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
             ;;
     esac
 }
@@ -653,6 +669,17 @@ function add_ha12sp1_repo()
         # zypper addrepo on the admin node.
         add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
+    done
+}
+
+function add_ha12sp2_repo()
+{
+    local repo
+    for repo in SLE12-SP2-HA-{Pool,Updates}; do
+        # Note no zypper alias parameter here since we don't want to
+        # zypper addrepo on the admin node.
+        add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+            "$tftpboot_repos12sp2_dir/$repo"
     done
 }
 
@@ -939,6 +966,12 @@ function onadmin_prepare_sles12sp1_repos()
     onadmin_prepare_sles12sp1_other_repos
 }
 
+function onadmin_prepare_sles12sp2_repos()
+{
+    onadmin_prepare_sles12sp2_repo
+    onadmin_prepare_sles12sp2_other_repos
+}
+
 function onadmin_prepare_sles12plus_cloud_repos()
 {
     if iscloudver 5; then
@@ -1002,6 +1035,20 @@ function onadmin_prepare_sles12sp1_repo()
     done
 }
 
+function onadmin_prepare_sles12sp2_repo()
+{
+    for arch in x86_64 s390x; do
+        local sles12sp2_mount="$tftpboot_suse12sp2_dir/$arch/install"
+        add_mount "SLE-12-SP2-Server-LATEST/sle-12-$arch" \
+            "$clouddata:/srv/nfs/suse-12.2/$arch/install" \
+            "$sles12sp2_mount"
+
+        if [ ! -d "$sles12sp2_mount/media.1" ] ; then
+            complain 34 "We do not have SLES12 SP2 install media - giving up"
+        fi
+    done
+}
+
 function onadmin_prepare_sles12_cloud_compute_repo()
 {
     local sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
@@ -1036,6 +1083,18 @@ function onadmin_prepare_sles12sp1_other_repos()
     done
 }
 
+function onadmin_prepare_sles12sp2_other_repos()
+{
+    for repo in SLES12-SP2-{Pool,Updates}; do
+        add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
+            "$tftpboot_repos12sp2_dir/$repo"
+        if [[ $want_s390 ]] ; then
+            add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
+                "$tftpboot_suse12sp2_dir/s390x/repos/$repo"
+        fi
+    done
+}
+
 function download_and_mount_sles()
 {
     local iso_dir="$1"
@@ -1053,8 +1112,14 @@ function download_and_mount_sles()
 
 function onadmin_prepare_cloud_repos()
 {
-    local targetdir="$tftpboot_repos_dir/Cloud/"
-    iscloudver 6plus && targetdir="$tftpboot_repos12sp1_dir/Cloud"
+    local targetdir=
+    if iscloudver 7plus; then
+        targetdir="$tftpboot_repos12sp2_dir/Cloud"
+    elif iscloudver 6plus ; then
+        targetdir="$tftpboot_repos12sp1_dir/Cloud"
+    else
+        targetdir="$tftpboot_repos_dir/Cloud/"
+    fi
     mkdir -p ${targetdir}
 
     if [ -n "${localreposdir_target}" ]; then
@@ -1135,8 +1200,11 @@ function onadmin_prepare_cloud_repos()
                 addsp3testupdates
                 addsles12testupdates
                 ;;
-            develcloud6|develcloud7|mitakacloud7|susecloud7|M?|Beta*|RC*|GMC*)
+            develcloud6)
                 addsles12sp1testupdates
+                ;;
+            develcloud7|mitakacloud7|susecloud7|M?|Beta*|RC*|GMC*)
+                addsles12sp2testupdates
                 ;;
             *)
                 complain 26 "no test update repos defined for cloudsource=$cloudsource"
@@ -1148,8 +1216,10 @@ function onadmin_prepare_cloud_repos()
 
 function onadmin_add_cloud_repo()
 {
-    local targetdir
-    if iscloudver 6plus; then
+    local targetdir=
+    if iscloudver 7plus; then
+        targetdir="$tftpboot_repos12sp2_dir/Cloud/"
+    elif iscloudver 6plus; then
         targetdir="$tftpboot_repos12sp1_dir/Cloud/"
     else
         targetdir="$tftpboot_repos_dir/Cloud/"
@@ -1261,7 +1331,9 @@ function create_repos_yml()
 
 function onadmin_set_source_variables()
 {
-    if iscloudver 6plus; then
+    if iscloudver 7plus; then
+        suseversion=12.2
+    elif iscloudver 6plus; then
         suseversion=12.1
     else
         suseversion=11.3
@@ -1344,6 +1416,12 @@ function onadmin_set_source_variables()
             slesrepolist="SLES12-SP1-Pool SLES12-SP1-Updates"
             slesversion=12-SP1
             slesdist=SLE_12_SP1
+            slesmilestone=GM
+        ;;
+        12.2)
+            slesrepolist="SLES12-SP2-Pool SLES12-SP2-Updates"
+            slesversion=12-SP2
+            slesdist=SLE_12_SP2
             slesmilestone=GM
         ;;
     esac
@@ -1438,17 +1516,23 @@ EOF
                 zypper ar http://${clouddata}/repos/SLES11-SP3-Pool/ sles11sp3
                 zypper ar http://${clouddata}/repos/SLES11-SP3-Updates/ sles11sp3up
             ;;
-            6|7)
+            6)
                 zypper ar http://${clouddata}/repos/SLES12-SP1-Pool/ sles12sp1
                 zypper ar http://${clouddata}/repos/SLES12-SP1-Updates/ sles12sp1up
+            ;;
+            7)
+                zypper ar http://${clouddata}/repos/SLES12-SP2-Pool/ sles12sp2
+                zypper ar http://${clouddata}/repos/SLES12-SP2-Updates/ sles12sp2up
             ;;
         esac
     fi
 
-    if iscloudver 6plus ; then
-        if [[ $cloudsource =~ ^M[1-7]$ ]]; then
-            onadmin_prepare_sles12_repos
-        fi
+
+    if iscloudver 7plus; then
+        onadmin_prepare_sles12sp1_repos
+        onadmin_prepare_sles12sp2_repos
+        onadmin_prepare_sles12plus_cloud_repos
+    elif iscloudver 6plus; then
         onadmin_prepare_sles12sp1_repos
         onadmin_prepare_sles12plus_cloud_repos
     else
@@ -1463,6 +1547,8 @@ EOF
     if [[ $hacloud ]]; then
         if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 3plus ; then
             add_ha_repo
+        elif iscloudver 7plus; then
+            add_ha12sp2_repo
         elif iscloudver 6plus; then
             add_ha12sp1_repo
         else
@@ -3786,9 +3872,14 @@ function onadmin_addupdaterepo()
 {
     pre_hook $FUNCNAME
 
-    local UPR=$tftpboot_repos_dir/Cloud-PTF
-    iscloudver 6plus && UPR=$tftpboot_repos12sp1_dir/PTF
-
+    local UPR=
+    if iscloudver 7plus; then
+        UPR=$tftpboot_repos12sp2_dir/PTF
+    elif iscloudver 6plus ; then
+        UPR=$tftpboot_repos12sp1_dir/PTF
+    else
+        UPR=$tftpboot_repos_dir/Cloud-PTF
+    fi
     mkdir -p $UPR
 
     if [[ -n "$UPDATEREPOS" ]]; then
