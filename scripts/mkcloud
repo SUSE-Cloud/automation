@@ -18,6 +18,7 @@
 
 if [[ $debug_mkcloud = 1 ]] ; then
     set -x
+    PS4='+($(basename ${BASH_SOURCE}):${LINENO}) ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 fi
 
 if [ -n "$CVOL" ] ; then
