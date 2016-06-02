@@ -1587,6 +1587,12 @@ EOF
     # setup cloud repos for tftpboot and zypper
     onadmin_prepare_cloud_repos
     onadmin_add_cloud_repo
+    # FIXME: ugly hack - we need to prepare also SP1 Cloud repositories
+    # to correctly install SP1 nodes on SP2-enabled Cloud7
+    if iscloudver 7 && [[ $want_sles12sp2 ]] ; then
+        want_sles12sp2= onadmin_prepare_cloud_repos
+        want_sles12sp2= onadmin_add_cloud_repo
+    fi
 
     zypper_refresh
 
@@ -4103,6 +4109,12 @@ function onadmin_prepare_cloudupgrade()
     # recreate the SUSE-Cloud Repo with the latest iso
     onadmin_prepare_cloud_repos
     onadmin_add_cloud_repo
+    # FIXME: ugly hack - we need to prepare also SP1 Cloud repositories
+    # to correctly install SP1 nodes on SP2-enabled Cloud7
+    if iscloudver 7 && [[ $want_sles12sp2 ]] ; then
+        want_sles12sp2= onadmin_prepare_cloud_repos
+        want_sles12sp2= onadmin_add_cloud_repo
+    fi
 
     # Applying the updater barclamp (in onadmin_cloudupgrade_clients) triggers
     # a chef-client run on the admin node (even it the barclamp is not applied
