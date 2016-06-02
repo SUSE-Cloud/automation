@@ -32,3 +32,12 @@
           osc service dr
           osc addremove
           osc commit -m "Automatically updated rpm-packaging-openstack via Jenkins"
+
+          # also create links for new packages
+          echo "creating missing links ..."
+          for x in *-SLE_12_SP1.spec; do
+              pkgname=${x//-SLE_12_SP1.spec/}
+              if ! osc ls Cloud:OpenStack:Upstream $pkgname &>/dev/null; then
+                  osc linkpac Cloud:OpenStack:Upstream rpm-packaging-openstack Cloud:OpenStack:Upstream $pkgname
+              fi
+          done
