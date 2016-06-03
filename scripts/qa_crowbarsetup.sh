@@ -3478,7 +3478,7 @@ function oncontroller_testsetup()
     fi
 
     # prepare test image with the -test packages containing functional tests
-    if iscloudver 6plus && [[ $cloudsource =~ (devel|mitaka)cloud ]]; then
+    if iscloudver 6plus && [[ $cloudsource =~ (devel|mitaka|suse)cloud ]]; then
         local mount_dir="/var/lib/Cloud-Testing"
         rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
         zypper -n ar --refresh -c -G -f "$mount_dir" cloud-test
