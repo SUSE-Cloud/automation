@@ -28,7 +28,9 @@
             - openstack-glance
             - openstack-gnocchi
             - openstack-heat
+            - openstack-heat-gbp
             - openstack-heat-templates
+            - openstack-horizon-plugin-gbp-ui
             - openstack-horizon-plugin-ironic-ui
             - openstack-horizon-plugin-manila-ui
             - openstack-horizon-plugin-magnum-ui
@@ -38,6 +40,7 @@
             - openstack-magnum
             - openstack-neutron
             - openstack-neutron-fwaas
+            - openstack-neutron-gbp
             - openstack-neutron-lbaas
             - openstack-neutron-vpnaas
             - openstack-neutron-zvm-agent
@@ -130,6 +133,9 @@
             [ "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
             [ "openstack-aodh",
               "openstack-gnocchi",
+              "openstack-heat-gbp",
+              "openstack-horizon-plugin-gbp-ui",
+              "openstack-neutron-gbp",
               "openstack-neutron-lbaas",
               "openstack-neutron-fwaas",
               "openstack-neutron-vpnaas",
