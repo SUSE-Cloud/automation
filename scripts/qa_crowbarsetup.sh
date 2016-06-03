@@ -2662,6 +2662,10 @@ function custom_configuration()
         ceph)
             proposal_set_value ceph default "['attributes']['ceph']['disk_mode']" "'all'"
         ;;
+        magnum)
+            proposal_set_value magnum default "['attributes']['magnum']['trustee']['domain_name']" "'magnum'"
+            proposal_set_value magnum default "['attributes']['magnum']['trustee']['domain_admin_name']" "'magnum_domain_admin'"
+            ;;
         nova)
             local role_prefix=`nova_role_prefix`
             # custom nova config of libvirt
@@ -3083,7 +3087,8 @@ function deploy_single_proposal()
             [[ -n "$deployceph" ]] || return
             ;;
         magnum)
-            if iscloudver 6plus ; then
+            [[ -n "$want_magnum" ]] || return
+            if iscloudver 7plus ; then
                 safely oncontroller oncontroller_magnum_service_setup
             fi
             ;;
@@ -3452,23 +3457,22 @@ function oncontroller_manila_generic_driver_setup()
 
 function oncontroller_magnum_service_setup ()
 {
-    #TODO: Replace this Fedora image with a suitable SLES image when available
-    local service_image_name=fedora-23-atomic-7.qcow2
-    local service_image_url=https://fedorapeople.org/groups/magnum/$service_image_name
+    # (mmnelemane): Replace this Fedora image with a suitable SLES image when available
+    local service_image_name=magnum-service-image.qcow2
+    local service_image_url=http://clouddata.cloud.suse.de/images/other/$service_image_name
 
-    local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
-    if [[ $ret =~ "200 OK" ]]; then
-        echo $ret
-    elif [[ $ret =~ "Not Found" ]]; then
-        complain 73 "magnum image not found: $ret"
-    else
-        complain 74 "failed to retrieve magnum image: $ret"
-    fi
-
-    . ~/.openrc
-
-    # using list subcommand because show requires an ID
     if ! openstack image list --f value -c Name | grep -q "^magnum-service-image$"; then
+        local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
+        if [[ $ret =~ "200 OK" ]]; then
+            echo $ret
+        elif [[ $ret =~ "Not Found" ]]; then
+            complain 73 "magnum image not found: $ret"
+        else
+            complain 74 "failed to retrieve magnum image: $ret"
+        fi
+
+        . ~/.openrc
+
         openstack image create --file $service_image_name \
             --disk-format qcow2 --container-format bare --public \
             magnum-service-image

@@ -117,7 +117,7 @@ fi
 # each node requiring 2GB of RAM and 20GB of harddisk for the images
 if [ -n "$want_magnum" ]; then
     : ${compute_node_memory:=6621440}
-    : ${computenode_hdd_size:=60}
+    : ${computenode_hdd_size:=80}
 fi
 # pvlist is filled below
 pvlist=
