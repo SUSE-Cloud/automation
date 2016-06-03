@@ -394,7 +394,7 @@ function onhost_create_cloud_lvm()
 Error: your lvm.conf is not filtering out mkcloud LVs.
 Please fix by adding the following regular expressions
 to the filter value in the devices { } block within your
-/etc/lvm/lvm.conf file:
+/etc/lvm/lvm.conf file (Be sure to place them before "a/.*/"):
 
     "r|/dev/mapper/$cloudvg-|", "r|/dev/$cloudvg/|", "r|/dev/disk/by-id/|"
 
