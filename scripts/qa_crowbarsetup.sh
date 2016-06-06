@@ -699,21 +699,12 @@ function add_suse_storage_repo()
             done
         fi
         if iscloudver 6; then
-            if [[ $cloudsource =~ ^M[1-7]$ ]]; then
-                for repo in SUSE-Enterprise-Storage-2-{Pool,Updates}; do
-                    # Note no zypper alias parameter here since we don't want
-                    # to zypper addrepo on the admin node.
-                    add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
-                        "$tftpboot_repos12_dir/$repo"
-                done
-            else
-                for repo in SUSE-Enterprise-Storage-2.1-{Pool,Updates}; do
-                    # Note no zypper alias parameter here since we don't want
-                    # to zypper addrepo on the admin node.
-                    add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
-                        "$tftpboot_repos12sp1_dir/$repo"
-                done
-            fi
+            for repo in SUSE-Enterprise-Storage-2.1-{Pool,Updates}; do
+                # Note no zypper alias parameter here since we don't want
+                # to zypper addrepo on the admin node.
+                add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+                    "$tftpboot_repos12sp1_dir/$repo"
+            done
         fi
         if iscloudver 7plus; then
             for repo in SUSE-Enterprise-Storage-3-{Pool,Updates}; do
@@ -2904,8 +2895,6 @@ function custom_configuration()
                         "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/"
                     provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-1.0-Updates-test" \
                         "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/"
-                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-2-Updates-test" \
-                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2:/x86_64/update/"
                 fi
             fi
 
@@ -4541,7 +4530,7 @@ function onadmin_batch()
 
     if iscloudver 5plus; then
         sed -i "s/##hypervisor_ip##/$admingw/g" ${scenario}
-        if iscloudver 7plus || (iscloudver 6 && ! [[ $cloudsource =~ ^M[1-8]$ ]]); then
+        if iscloudver 6plus; then
             safely crowbar batch --exclude manila --timeout 2400 build ${scenario}
             if grep -q "barclamp: manila" ${scenario}; then
                 get_novacontroller
