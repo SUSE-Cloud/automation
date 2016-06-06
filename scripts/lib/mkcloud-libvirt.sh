@@ -61,7 +61,7 @@ function libvirt_net_start()
 #!/bin/bash
 
 iptables -t nat -F PREROUTING
-for i in 22 80 443 3000 4000 4040 ; do
+for i in 22 80 443 3000 4000 4040 5000; do
     iptables -I FORWARD -p tcp --dport \$i -j ACCEPT
     for host in 10 $nodehostips ; do
         offset=80
