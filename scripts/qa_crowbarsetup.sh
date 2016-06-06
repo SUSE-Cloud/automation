@@ -1269,16 +1269,14 @@ function create_repos_yml_for_platform()
     for repo in $*; do
         repo_name=${repo%%=*}
         repo_url=${repo##*=}
-        if [ -d "$tftpboot_dir/$repo_name" ]; then
-            if [ -z "$platform_created" ]; then
-                echo "$platform:"
-                echo "  $arch:"
-                platform_created=1
-            fi
-
-            echo "    $repo_name:"
-            echo "      url: '$repo_url'"
+        if [ -z "$platform_created" ]; then
+            echo "$platform:"
+            echo "  $arch:"
+            platform_created=1
         fi
+
+        echo "    $repo_name:"
+        echo "      url: '$repo_url'"
     done
 }
 
