@@ -1,0 +1,64 @@
+- job:
+    name: cloud-mkphyscloud-qa-test-tempest-smoke-job
+    node: cloud-mkphyscloud-gate-qa
+    description: |
+      Runs tempest smoke tests
+      Useful only for cloud that was built by mkcloud.
+      Mandatory parameter: hw_number
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    wrappers:
+      - build-name:
+          name: '#${BUILD_NUMBER} - ${scenario_name} - qa$hw_number - smoke'
+      - timestamps
+
+    concurrent: true
+
+    parameters:
+      - string:
+          name: hw_number
+          default: "2"
+          description: Mandatory, number of the QA cloud server
+
+      - string:
+          name: scenario_name
+          description: Optional; scenario name which typically is an integer with a single letter
+
+      - string:
+          name: scenario_job_name
+          description: Optional; name of the scenario jenkins job that is used to trigger this job
+
+      - string:
+          name: scenario_build_number
+          description: Optional; scenario build number that triggered this job
+
+      - bool:
+          name: testsetup
+          default: true
+          description: Run tempest with testsetup() in qa_crowbarsetup.sh script
+
+    builders:
+      - shell: |
+          #!/bin/bash
+          admin=crowbar$hw_number;
+          cloud=qa$hw_number;
+
+          ssh root@$admin "
+            export tempestoptions=\"-t -s\";
+            export cloud=$cloud;
+            export testsetup=$testsetup;
+          " '
+            hostname -f;
+            source mkcloud.config;
+            source qa_crowbarsetup.sh;
+
+            if [ "$testsetup" == true ] ; then
+               onadmin_testsetup;
+            else
+               get_novacontroller;
+               oncontroller oncontroller_run_tempest;
+            fi
+          '
