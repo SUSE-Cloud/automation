@@ -3598,7 +3598,7 @@ function oncontroller_testsetup()
 
     # wait for nova-manage to be successful
     if iscloudver 7plus; then
-        wait_for 200 1 "test \"$(nova service list  | fgrep -cv -- \ up\ )\" -lt 5" "Nova services to be up and running"
+        wait_for 200 1 "test \"$(nova service-list  | fgrep -cv -- \ up\ )\" -lt 5" "Nova services to be up and running"
     else
         wait_for 200 1 "test \"$(nova-manage service list  | fgrep -cv -- \:\-\))\" -lt 2" "Nova services to be up and running"
     fi
