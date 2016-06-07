@@ -1,7 +1,7 @@
 #!/bin/bash
 # based on https://github.com/SUSE/cloud/wiki/SUSE-Cloud-Installation-Manual
 
-test $(uname -m) = x86_64 || echo "ERROR: need 64bit"
+[[ $(uname -m) =~ ^(aarch64|x86_64)$ ]] || { echo "ERROR: need 64bit" ; exit 1 ; }
 
 mkcconf=mkcloud.config
 if [ -z "$testfunc" ] && [ -e $mkcconf ]; then
