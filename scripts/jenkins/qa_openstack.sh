@@ -168,8 +168,10 @@ $zypper --gpg-auto-import-keys -n ref
 # deinstall some leftover crap from the cleanvm
 $zypper -n rm --force 'python-cheetah < 2.4'
 
-# deinstall cloud-init and dependencies
+# deinstall cloud-init and dependencies (but keep cloud-final systemd unit around)
+cp /usr/lib/systemd/system/cloud-final.service /tmp
 $zypper -n rm --force -u cloud-init
+cp /tmp/cloud-final.service /usr/lib/systemd/system/cloud-final.service
 # wickedd needs to be configured properly to avoid overriding
 # the hostname (see <https://bugzilla.opensuse.org/show_bug.cgi?id=974661>).
 sed -i -e "s/DHCLIENT_SET_HOSTNAME=\"yes\"/DHCLIENT_SET_HOSTNAME=\"no\"/" /etc/sysconfig/network/dhcp
@@ -353,7 +355,7 @@ outputs:
     value: { get_attr: [ my_floating_ip, floating_ip_address ] }
 EOF
 
-heat stack-create -f $PWD/testvm.stack teststack
+heat stack-create -f $(readlink -e $PWD/testvm.stack) teststack
 
 sleep 60
 . /etc/openstackquickstartrc
