@@ -148,6 +148,12 @@ proposals:
     elements:
       trove-server:
       - @@controller@@
+- barclamp: magnum
+  attributes:
+  deployment:
+    elements:
+      magnum-server:
+      - @@controller@@
 - barclamp: tempest
   attributes:
   deployment:
