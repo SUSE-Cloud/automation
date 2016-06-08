@@ -1,11 +1,13 @@
 function libvirt_modprobe_kvm()
 {
-    modprobe kvm-amd
-    if [ ! -e /etc/modprobe.d/80-kvm-intel.conf ] ; then
-        echo "options kvm-intel nested=1" > /etc/modprobe.d/80-kvm-intel.conf
-        rmmod kvm-intel
+    if [[ $(uname -m) = x86_64 ]]; then
+        modprobe kvm-amd
+        if [ ! -e /etc/modprobe.d/80-kvm-intel.conf ] ; then
+            echo "options kvm-intel nested=1" > /etc/modprobe.d/80-kvm-intel.conf
+            rmmod kvm-intel
+        fi
+        modprobe kvm-intel
     fi
-    modprobe kvm-intel
 }
 
 # return true if the patch was not yet applied
