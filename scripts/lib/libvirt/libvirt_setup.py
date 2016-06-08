@@ -227,21 +227,6 @@ def domain_cleanup(dom):
     print("undefining {0}".format(dom.name()))
     dom.undefine()
 
-    devnull = open(os.devnull, "w")
-    machine = "{0}-{1}".format("qemu", dom.name())
-    try:
-        machine_status = subprocess.call(
-            ["machinectl", "status", machine],
-            stdout=devnull, stderr=subprocess.STDOUT)
-        if machine_status == 0:
-            # workaround bnc#916518
-            print("Working around bnc#916518 by \
-                  'machinectl terminate {0}'".format(machine))
-            subprocess.call(["machinectl", "terminate", machine])
-    except OSError:
-        # no machinectl available
-        pass
-
 
 def xml_get_value(path, attrib):
     tree = ET.parse(path)
