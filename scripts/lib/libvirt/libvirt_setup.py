@@ -5,7 +5,6 @@ import itertools as it
 import os
 import re
 import string
-import subprocess
 import xml.etree.ElementTree as ET
 
 import libvirt
@@ -30,13 +29,17 @@ def remove_files(files):
 
 
 def cpuflags():
-    cpu_flags = readfile("{0}/cpu-default.xml".format(TEMPLATE_DIR))
-    if (subprocess.call(["grep", "-q", "flags.* npt", "/proc/cpuinfo"]) == 0):
-        cpu_flags = ""
-    if (subprocess.call(["grep", "-q", "vendor_id.*GenuineIntel",
-                        "/proc/cpuinfo"]) == 0):
-        cpu_flags = readfile("{0}/cpu-intel.xml".format(TEMPLATE_DIR))
-    return cpu_flags
+    cpu_template = "cpu-default.xml"
+    cpu_info = readfile("/proc/cpuinfo")
+    if re.search("^CPU architecture.* 8", cpu_info, re.MULTILINE):
+        cpu_template = "cpu-arm64.xml"
+    if re.search("^vendor_id.*GenuineIntel", cpu_info, re.MULTILINE):
+        cpu_template = "cpu-intel.xml"
+
+    if re.search("flags.* npt", cpu_info):
+        return ""
+
+    return readfile(os.path.join(TEMPLATE_DIR, cpu_template))
 
 
 def hypervisor_has_virtio(libvirt_type):
@@ -225,7 +228,7 @@ def domain_cleanup(dom):
         dom.destroy()
 
     print("undefining {0}".format(dom.name()))
-    dom.undefine()
+    dom.undefineFlags(flags=libvirt.VIR_DOMAIN_UNDEFINE_NVRAM)
 
 
 def xml_get_value(path, attrib):
