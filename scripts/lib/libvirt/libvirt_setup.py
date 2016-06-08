@@ -52,8 +52,6 @@ def get_config(values, fin):
 
 
 def admin_config(args, cpu_flags=cpuflags()):
-    fin = "{0}/admin-node.xml".format(TEMPLATE_DIR)
-
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
     if args.localreposrc and args.localrepotgt:
@@ -72,12 +70,11 @@ def admin_config(args, cpu_flags=cpuflags()):
         admin_node_disk=args.adminnodedisk,
         local_repository_mount=localrepomount)
 
-    return get_config(values, fin)
+    return get_config(values, os.path.join(TEMPLATE_DIR, "admin-node.xml"))
 
 
 def net_config(args):
     cloud = args.cloud
-    fin = "{0}/admin-net.xml".format(TEMPLATE_DIR)
     values = dict(
         cloud=cloud,
         cloudbr=args.cloudbr,
@@ -87,7 +84,7 @@ def net_config(args):
         adminip=args.adminip,
         forwardmode=args.forwardmode)
 
-    return get_config(values, fin)
+    return get_config(values, os.path.join(TEMPLATE_DIR, "admin-net.xml"))
 
 
 def compute_config(args, cpu_flags=cpuflags(), machine=None):
@@ -185,7 +182,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         target_bus=targetbus,
         bootorder=args.bootorder)
 
-    return get_config(values, fin)
+    return get_config(values, os.path.join(TEMPLATE_DIR, "compute-node.xml"))
 
 
 def cleanup_one_node(args):
