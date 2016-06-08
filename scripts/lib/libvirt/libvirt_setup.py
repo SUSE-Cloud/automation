@@ -51,6 +51,17 @@ def get_config(values, fin):
     return template.substitute(values)
 
 
+def get_machine_arch():
+    return os.uname()[4]
+
+
+def get_default_machine():
+    if 'aarch64' in get_machine_arch():
+        return "virt"
+    else:
+        return "pc-0.14"
+
+
 def admin_config(args, cpu_flags=cpuflags()):
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
@@ -67,6 +78,8 @@ def admin_config(args, cpu_flags=cpuflags()):
         adminvcpus=args.adminvcpus,
         cpuflags=cpu_flags,
         emulator=args.emulator,
+        march=get_machine_arch(),
+        machine=get_default_machine(),
         admin_node_disk=args.adminnodedisk,
         local_repository_mount=localrepomount)
 
@@ -89,8 +102,8 @@ def net_config(args):
 
 def compute_config(args, cpu_flags=cpuflags(), machine=None):
     if not machine:
-        machine = "pc-0.14"
-    fin = "{0}/compute-node.xml".format(TEMPLATE_DIR)
+        machine = get_default_machine()
+
     libvirt_type = args.libvirttype
     alldevices = it.chain(it.chain(string.lowercase[1:]),
                           it.product(string.lowercase, string.lowercase))
@@ -169,6 +182,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         nodecounter=args.nodecounter,
         nodememory=nodememory,
         vcpus=args.vcpus,
+        march=get_machine_arch(),
         machine=machine,
         cpuflags=cpu_flags,
         emulator=args.emulator,
