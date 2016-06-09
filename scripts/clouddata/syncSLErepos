@@ -19,6 +19,7 @@ rsync="$E rsync $DRY --bwlimit 10000 --delete-after -avH --no-owner --no-group -
 
 buildncc=/mnt/euklid/mirror/SuSE/build-ncc.suse.de/
 buildsuse=/mnt/euklid/mirror/SuSE/build.suse.de/
+ibsmaint=/mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/
 
 # SLE11 SP3
 echo ================== Updating SLE 11 SP3
@@ -26,8 +27,8 @@ $rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-
 $rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-HAE/11-SP3-POOL/ /srv/nfs/repos/SLE11-HAE-SP3-Pool/
 $rsync $buildncc/SUSE/Updates/SLE-SERVER/11-SP3/x86_64/update/ /srv/nfs/repos/SLES11-SP3-Updates/
 $rsync $buildncc/SUSE/Updates/SLE-HAE/11-SP3/x86_64/update/ /srv/nfs/repos/SLE11-HAE-SP3-Updates/
-$rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-SERVER\:/11-SP3\:/x86_64/update/ /srv/nfs/repos/SLES11-SP3-Updates-test/
-$rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-HAE\:/11-SP3\:/x86_64/update/ /srv/nfs/repos/SLE11-HAE-SP3-Updates-test/
+$rsync $ibsmaint/SLE-SERVER\:/11-SP3\:/x86_64/update/ /srv/nfs/repos/SLES11-SP3-Updates-test/
+$rsync $ibsmaint/SLE-HAE\:/11-SP3\:/x86_64/update/ /srv/nfs/repos/SLE11-HAE-SP3-Updates-test/
 /usr/local/bin/miniuprepo /srv/nfs/repos/SLES11-SP3-Updates/
 
 
@@ -75,8 +76,8 @@ for servicepack in 0 1 2; do
         $rsync $buildsuse/SUSE/Updates/SLE-SERVER/$version/$arch/update/ /srv/nfs/repos/$arch/SLES$repo_version-Updates/
         [ "$arch" == x86_64 ] && /usr/local/bin/miniuprepo /srv/nfs/repos/$arch/SLES$repo_version-Updates/
         # SLES test updates
-        if test -d /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-SERVER\:/$version\:/$arch/update/ ; then
-            $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-SERVER\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLES$repo_version-Updates-test/
+        if test -d $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ ; then
+            $rsync $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLES$repo_version-Updates-test/
         fi
 
         # HA is only for > SP1, and not for ARM
@@ -90,8 +91,8 @@ for servicepack in 0 1 2; do
             # HA updates
             $rsync $buildsuse/SUSE/Updates/SLE-HA/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates/
             # HA test updates
-            if test -d /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-HA\:/$version\:/$arch/update/ ; then
-                $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-HA\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates-test/
+            if test -d $ibsmaint/SLE-HA\:/$version\:/$arch/update/ ; then
+                $rsync $ibsmaint/SLE-HA\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates-test/
             fi
         fi
     done
@@ -119,8 +120,8 @@ for version in 1.0 2.1 3; do
         $rsync $buildsuse/SUSE/Updates/Storage/$version/x86_64/update/ $r/SUSE-Enterprise-Storage-$version-Updates
     fi
 
-    if test -d /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/Storage\:/$version\:/x86_64/update/; then
-        $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/Storage\:/$version\:/x86_64/update/ $r/SUSE-Enterprise-Storage-$version-Updates-Test
+    if test -d $ibsmaint/Storage\:/$version\:/x86_64/update/; then
+        $rsync $ibsmaint/Storage\:/$version\:/x86_64/update/ $r/SUSE-Enterprise-Storage-$version-Updates-Test
     fi
 done
 
@@ -153,8 +154,8 @@ for version in 4 5; do
 
     $rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SUSE-CLOUD/$version-POOL/ /srv/nfs/repos/SUSE-Cloud-$version-Pool/
     $rsync $buildncc/SUSE/Updates/SUSE-CLOUD/$version/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-$version-Updates/
-    if test -d /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/Cloud\:/$version\:/$arch/update/; then
-        $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Cloud-$version-Updates-test/
+    if test -d $ibsmaint/Cloud\:/$version\:/$arch/update/; then
+        $rsync $ibsmaint/Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Cloud-$version-Updates-test/
     fi
 done
 
@@ -167,7 +168,7 @@ mount_and_rsync "/mnt/dist/ibs/Devel:/Cloud:/5/images/iso/SUSE-SLE12-CLOUD-5-COM
 mount_and_rsync "/mnt/dist/ibs/Devel:/Cloud:/5:/Staging/images/iso/SUSE-SLE12-CLOUD-5-COMPUTE-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-5-SLE-12-devel-staging
 $rsync $buildsuse/SUSE/Products/12-Cloud-Compute/5/x86_64/product/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Pool/
 $rsync $buildsuse/SUSE/Updates/12-Cloud-Compute/5/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/
-$rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/12-Cloud-Compute\:/5\:/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates-test/
+$rsync $ibsmaint/12-Cloud-Compute\:/5\:/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates-test/
 
 for version in 6 7; do
     # fetch latest code from version in development (not just latest beta)
@@ -199,8 +200,8 @@ for version in 6 7; do
             $rsync $buildsuse/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates/
         fi
 
-        if test -d /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/OpenStack-Cloud\:/$version\:/$arch/update/; then
-            $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
+        if test -d $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/; then
+            $rsync $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
         fi
     done
 done
