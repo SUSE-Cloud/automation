@@ -1090,7 +1090,7 @@ function onadmin_prepare_sles12_other_repos()
 function onadmin_prepare_sles12sp1_other_repos()
 {
     for repo in SLES12-SP1-{Pool,Updates}; do
-        add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
+        add_mount "$repo/sle-12-$(uname -m)" "$clouddata:/srv/nfs/repos/$(uname -m)/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
@@ -1102,7 +1102,7 @@ function onadmin_prepare_sles12sp1_other_repos()
 function onadmin_prepare_sles12sp2_other_repos()
 {
     for repo in SLES12-SP2-{Pool,Updates}; do
-        add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
+        add_mount "$repo/sle-12-$(uname -m)" "$clouddata:/srv/nfs/repos/$(uname -m)/$repo" \
             "$tftpboot_repos12sp2_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
