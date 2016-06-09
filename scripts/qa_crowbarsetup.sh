@@ -1486,11 +1486,11 @@ function onadmin_setup_local_zypper_repositories()
             ;;
             7)
                 if [[ $want_sles12sp2 ]] ; then
-                    zypper ar http://${clouddata}/repos/SLES12-SP2-Pool/ sles12sp2
-                    zypper ar http://${clouddata}/repos/SLES12-SP2-Updates/ sles12sp2up
+                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP2-Pool/ sles12sp2
+                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP2-Updates/ sles12sp2up
                 else
-                    zypper ar http://${clouddata}/repos/SLES12-SP1-Pool/ sles12sp1
-                    zypper ar http://${clouddata}/repos/SLES12-SP1-Updates/ sles12sp1up
+                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP1-Pool/ sles12sp1
+                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP1-Updates/ sles12sp1up
                 fi
             ;;
         esac
