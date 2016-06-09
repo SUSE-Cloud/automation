@@ -170,6 +170,9 @@ $rsync $buildsuse/SUSE/Products/12-Cloud-Compute/5/x86_64/product/ /srv/nfs/repo
 $rsync $buildsuse/SUSE/Updates/12-Cloud-Compute/5/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/
 $rsync $ibsmaint/12-Cloud-Compute\:/5\:/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates-test/
 
+# mirror aarch64 SP1 builds
+$rsync /mnt/dist/ibs/Devel:/ARM:/SLE-12-SP1:/Update/images/repo/SLE-12-SP1-Server-POOL-aarch64-*-Media1/ /srv/nfs/repos/aarch64/SLES12-SP1-Pool
+
 for version in 6 7; do
     # fetch latest code from version in development (not just latest beta)
     sync_from_ibs=
