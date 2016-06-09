@@ -56,7 +56,7 @@ for servicepack in 0 1 2; do
         install_subdir="/$arch"
         # no subdir for /install for SP0
         [ $servicepack -eq 0 ] && install_subdir=
-        
+
         echo ================== Updating SLE 12 SP$servicepack for $arch
 
         if test -d /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ ; then
@@ -129,8 +129,7 @@ done
 # Cloud
 ##############
 
-function mount_and_rsync()
-{
+function mount_and_rsync {
     local from=$1
     local to=$2
     local oneiso=`ls $from | tail -1`
@@ -206,7 +205,7 @@ for version in 6 7; do
         if test -d /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/OpenStack-Cloud\:/$version\:/$arch/update/; then
             $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/${repo_subdir}SUSE-OpenStack-Cloud-$version-Updates-test/
         fi
-   done
+    done
 done
 
 ~/bin/syncgitrepos
