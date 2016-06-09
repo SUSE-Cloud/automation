@@ -1,0 +1,158 @@
+#!/bin/bash
+r=/srv/nfs/repos/
+
+# disable/debug rsync with E=echo
+E=echo
+E=
+
+# disable/debug {u,}mount with M=echo
+M=echo
+M=
+
+# debug/test rsync with DRY=--dry-run
+DRY=--dry-run
+DRY=
+
+rsync="$E rsync $DRY --bwlimit 10000 --delete-after -avH --no-owner --no-group --exclude=*src.rpm "
+
+# http://download.suse.de/ibs/Devel:/Cloud:/4/images/*qcow2 -> images/SLES11-SP3-x86_64-cfntools.qcow2
+
+for i in 11-SP3-POOL ; do
+   echo "Processing $i..."
+   $rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/$i/ /srv/nfs/repos/$i/
+done
+
+for i in 11-SP3 ; do
+   echo "Processing $i..."
+   $rsync /mnt/euklid/mirror/SuSE/build-ncc.suse.de/SUSE/Updates/SLE-SERVER/$i/x86_64/update/ /srv/nfs/repos/$i/
+done
+
+# SLE12 GA
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/SLE-SERVER/12/x86_64/product/ /srv/nfs/repos/12-POOL/
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/SLE-SERVER/12/x86_64/update/   /srv/nfs/repos/12/
+#$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/SLE-SDK/12/x86_64/product/    /srv/nfs/repos/12-SDK/
+#$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/SLE-SDK/12/x86_64/update/      /srv/nfs/repos/12-SDK-Updates/
+
+# SLE12 SP1
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/   /srv/nfs/repos/SLES12-SP1-Updates/
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/SLE-SERVER/12-SP1/s390x/update/   /srv/nfs/repos/s390x/SLES12-SP1-Updates/
+
+# Sync latest SP1 state
+# $rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/ /srv/nfs/repos/SLES12-SP1-Pool/
+# $rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/SLE-HA/12-SP1/x86_64/product/ /srv/nfs/repos/SLE12-SP1-HA-Pool/
+$rsync --link-dest /srv/nfs/suse-12.1/x86_64/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-12-SP1\:/GA/images/repo/SLE-12-SP1-Server-POOL-x86_64-Build*-Media1/ /srv/nfs/repos/SLES12-SP1-Pool/
+$rsync --link-dest /srv/nfs/suse-12.1/s390x/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-12-SP1\:/GA/images/repo/SLE-12-SP1-Server-POOL-s390x-Build*-Media1/ /srv/nfs/repos/s390x/SLES12-SP1-Pool/
+$rsync /mnt/dist/ibs/SUSE\:/SLE-12-SP1\:/GA/images/repo/SLE-12-SP1-HA-POOL-x86_64-Build*-Media1/ /srv/nfs/repos/SLE12-SP1-HA-Pool/
+
+
+## SLE12 SP2
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/ /srv/nfs/repos/SLES12-SP2-Pool/
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/SLE-HA/12-SP2/x86_64/product/ /srv/nfs/repos/SLE12-SP2-HA-Pool/
+$rsync --link-dest /srv/nfs/suse-12.2/x86_64/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-12-SP2\:/GA/images/repo/SLE-12-SP2-Server-POOL-x86_64-Build*-Media1/ /srv/nfs/repos/SLES12-SP2-Pool/
+$rsync --link-dest /srv/nfs/suse-12.2/s390x/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-12-SP2\:/GA/images/repo/SLE-12-SP2-Server-POOL-s390x-Build*-Media1/ /srv/nfs/repos/s390x/SLES12-SP2-Pool/
+$rsync /mnt/dist/ibs/SUSE\:/SLE-12-SP2\:/GA/images/repo/SLE-12-SP2-HA-POOL-x86_64-Build*-Media1/ /srv/nfs/repos/SLE12-SP2-HA-Pool/
+# Updates
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/   /srv/nfs/repos/SLES12-SP2-Updates/
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/SLE-SERVER/12-SP2/s390x/update/   /srv/nfs/repos/s390x/SLES12-SP2-Updates/
+
+
+####
+# FIXME: this is chaos, please cleanup to something like this:
+#
+# for spversion in "" "-SP1" "-SP2" ; do
+#     $rsync $source       /dest/SLE${spversion}-Server-POOL-x86_64/something
+#     $rsync $updatesource /dest/SLE${spversion}-Server-POOL-x86_64/updates
+# done
+###
+# greetings: jdsn, rsalevsky
+########
+
+
+/usr/local/bin/miniuprepo /srv/nfs/repos/SLES11-SP3-Updates/
+/usr/local/bin/miniuprepo /srv/nfs/repos/SLES12-GA-Updates/
+/usr/local/bin/miniuprepo /srv/nfs/repos/SLES12-SP1-Updates/
+/usr/local/bin/miniuprepo /srv/nfs/repos/SLES12-SP2-Updates/
+$rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-SERVER\:/11-SP3\:/x86_64/update/ /srv/nfs/repos/SLES11-SP3-Updates-test/
+$rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-SERVER\:/12\:/x86_64/update/ /srv/nfs/repos/SLES12-GA-Updates-test/
+$rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-SERVER\:/12-SP1\:/x86_64/update/ /srv/nfs/repos/SLES12-SP1-Updates-test/
+## TODO
+$rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/OpenStack-Cloud\:/6\:/x86_64/update/ /srv/nfs/repos/SUSE-OpenStack-Cloud-6-Updates-test/
+
+function mount_and_rsync()
+{
+    local from=$1
+    local to=$2
+    local oneiso=`ls $from | tail -1`
+    if [ -e "$oneiso" ] ; then
+        $M mount -o loop,ro "$oneiso" /mnt/cloud
+        [ $? == 0 ] && $rsync /mnt/cloud/ /srv/nfs/repos/$to/
+        $M umount /mnt/cloud
+    fi
+}
+
+
+mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/4/images/iso/*4*Media1.iso" SUSE-Cloud-4-devel
+mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/4\:/Staging/images/iso/SUSE-CLOUD-4-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-4-devel-staging
+
+mount_and_rsync "/mnt/dist/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud4:/Test/images/iso/*Media1.iso" SUSE-Cloud-4-official
+mount_and_rsync "/mnt/dist/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud5:/Test/images/iso/*Media1.iso" SUSE-Cloud-5-official
+
+mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/5/images/iso/SUSE-CLOUD-5-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-5-devel
+mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/5\:/Staging/images/iso/SUSE-CLOUD-5-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-5-devel-staging
+
+mount_and_rsync "/mnt/dist/ibs/Devel:/Cloud:/5/images/iso/SUSE-SLE12-CLOUD-5-COMPUTE-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-5-SLE-12-devel
+
+mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/6/images/iso/SUSE-OPENSTACK-CLOUD-6-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-OpenStack-Cloud-6-devel
+mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/6\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-6-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-OpenStack-Cloud-6-devel-staging
+
+mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/6/images/iso/SUSE-OPENSTACK-CLOUD-6-s390x-Build[0-9][0-9][0-9][0-9]-Media1.iso" s390x/SUSE-OpenStack-Cloud-6-devel
+mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/6\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-6-s390x-Build[0-9][0-9][0-9][0-9]-Media1.iso" s390x/SUSE-OpenStack-Cloud-6-devel-staging
+
+for arch in aarch64 s390x; do
+    mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/7/images/iso/SUSE-OPENSTACK-CLOUD-7-${arch}-Build[0-9][0-9][0-9][0-9]-Media1.iso" $arch/SUSE-OpenStack-Cloud-7-devel
+    mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/7\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-7-${arch}-Build[0-9][0-9][0-9][0-9]-Media1.iso" $arch/SUSE-OpenStack-Cloud-7-devel-staging
+done
+
+
+mount_and_rsync "/mnt/dist/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/images/iso/SUSE-CLOUD-*11-SP3-DEPS-x86_64-Build[0-9][0-9][0-9][0-9]-Media.iso" SUSE-Cloud-SLE-11-SP3-deps
+
+# SLE ISO
+$rsync /mnt/dist/install/SLP/SLE-12-Server-GM/x86_64/DVD1/ /srv/nfs/suse-12.0/install/
+for arch in x86_64 aarch64 s390x; do
+    $rsync /mnt/dist/install/SLP/SLE-12-SP1-Server-LATEST/$arch/DVD1/ /srv/nfs/suse-12.1/$arch/install/
+    $rsync /mnt/dist/install/SLP/SLE-12-SP2-Server-LATEST/$arch/DVD1/ /srv/nfs/suse-12.2/$arch/install/
+done
+
+# HA
+#$rsync /mnt/dist/install/SLP/SLE-11-SP3-HA-GM/x86_64/CD1/ /srv/nfs/repos/SLE-11-SP3-HA-GM/
+#$rsync /mnt/dist/install/SLP/SLE-12-SP1-HA-LATEST/x86_64/CD1/ /srv/nfs/repos/SLE-12-SP1-HA-GM/
+$rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-HAE/11-SP3-POOL/ /srv/nfs/repos/SLE11-HAE-SP3-Pool/
+$rsync /mnt/euklid/mirror/SuSE/build-ncc.suse.de/SUSE/Updates/SLE-HAE/11-SP3/x86_64/update/ /srv/nfs/repos/SLE11-HAE-SP3-Updates/
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/SLE-HA/12-SP1/x86_64/update/ /srv/nfs/repos/SLE12-SP1-HA-Updates/
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/SLE-HA/12-SP2/x86_64/update/ /srv/nfs/repos/SLE12-SP2-HA-Updates/
+
+# Cloud
+$rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SUSE-CLOUD/4-POOL/ /srv/nfs/repos/SUSE-Cloud-4-Pool/
+$rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SUSE-CLOUD/5-POOL/ /srv/nfs/repos/SUSE-Cloud-5-Pool/
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/OpenStack-Cloud/6/x86_64/product/ /srv/nfs/repos/SUSE-OpenStack-Cloud-6-Pool/
+
+$rsync /mnt/euklid/mirror/SuSE/build-ncc.suse.de/SUSE/Updates/SUSE-CLOUD/4/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-4-Updates/
+$rsync /mnt/euklid/mirror/SuSE/build-ncc.suse.de/SUSE/Updates/SUSE-CLOUD/5/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-Updates/
+
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/12-Cloud-Compute/5/x86_64/product/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Pool/
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/12-Cloud-Compute/5/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/
+
+
+# Storage:
+#mount_and_rsync "/mnt/dist/install/SUSE-Storage-1.0-M2/*1.0*Media1.iso" SUSE-Storage-1.0-official
+mount_and_rsync "/mnt/dist/ibs/Devel\:/Storage\:/1.0/images/iso/*1.0*Media1.iso" SUSE-Enterprise-Storage-1.0-devel
+$rsync /mnt/dist/ibs/SUSE:/SLE-12:/Update:/Products:/Cloud5/images/repo/SUSE-Enterprise-Storage-1.0-POOL-x86_64-Build*-Media1/ $r/SUSE-Enterprise-Storage-1.0-Pool
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/Storage/1.0/x86_64/update/ $r/SUSE-Enterprise-Storage-1.0-Updates
+
+$rsync /mnt/dist/ibs/SUSE:/SLE-12-SP1:/Update:/Products:/SES2.1/images/repo/SUSE-Enterprise-Storage-2.1-POOL-x86_64-Build*-Media1/ $r/SUSE-Enterprise-Storage-2.1-Pool
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/Storage/2.1/x86_64/update/ $r/SUSE-Enterprise-Storage-2.1-Updates
+
+$rsync /mnt/dist/ibs/SUSE:/SLE-12-SP1:/Update:/Products:/SES3/images/repo/SUSE-Enterprise-Storage-3-POOL-x86_64-Build*-Media1/ $r/SUSE-Enterprise-Storage-3-Pool
+$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/Storage/3/x86_64/update/ $r/SUSE-Enterprise-Storage-3-Updates
+
+~/bin/syncgitrepos
