@@ -516,13 +516,13 @@ function export_tftpboot_repos_dir()
         tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
     elif iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
         tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
-        tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/x86_64/repos
+        tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/$(uname -m)/repos
         # We need SP1 repositories for ceph nodes
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
+        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$(uname -m)/repos
     elif iscloudver 6plus; then
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
+        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$(uname -m)/repos
     fi
 }
 
@@ -554,16 +554,16 @@ function addsles12testupdates()
 function addsles12sp1testupdates()
 {
     add_mount "SLES12-SP1-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/' \
+        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/$(uname -m)/update/" \
         "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     [[ $hacloud ]] && add_mount "SLE12-SP1-HA-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
+        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/$(uname -m)/update/" \
         "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     [ -n "$deployceph" -a iscloudver 6 ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/' \
+        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$(uname -m)/update/" \
         "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
     [ -n "$deployceph" -a iscloudver 7plus ] && add_mount "SUSE-Enterprise-Storage-3-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/' \
+        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/$(uname -m)/update/" \
         "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-3-Updates-test/"
 
 }
@@ -1126,18 +1126,18 @@ function onadmin_prepare_cloud_repos()
     if [ -n "${localreposdir_target}" ]; then
         if iscloudver 6plus; then
             add_bind_mount \
-                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-12-x86_64/" \
+                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-12-$(uname -m)/" \
                 "${targetdir}"
         else
             add_bind_mount \
-                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" \
+                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-$(uname -m)/" \
                 "${targetdir}"
         fi
     else
         if iscloudver 6plus; then
             rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$targetdir"
             if [[ $want_s390 ]] ; then
-                rsync_iso "$CLOUDSLE12DISTPATH" "${CLOUDSLE12DISTISO/x86_64/s390x}" "${targetdir/x86_64/s390x}"
+                rsync_iso "$CLOUDSLE12DISTPATH" "${CLOUDSLE12DISTISO/$(uname -m)/s390x}" "${targetdir/$(uname -m)/s390x}"
             fi
         else
             rsync_iso "$CLOUDSLE11DISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
