@@ -1038,6 +1038,12 @@ function cct()
     return $?
 }
 
+function devsetup()
+{
+    onadmin devsetup
+    return $?
+}
+
 function setup_aliases()
 {
     onadmin setup_aliases
@@ -1103,6 +1109,7 @@ Steps:
                     create a snapshot of all nodes
     restorecloudfromsnapshot:
                     restore all nodes from snapshot
+    devsetup:       installs the crowbar development environment in /opt/crowbar
     qa_test:        run the qa test suite
     help:           usage of steps and environment variables
     steps:          usage of steps only
@@ -1408,7 +1415,7 @@ allcmds="$step_aliases all all_noreboot all_batch all_batch_noreboot instonly \
     rebootneutron cloudupgrade \
     setuplonelynodes crowbar_register createadminsnapshot \
     restoreadminfromsnapshot createcloudsnapshot restorecloudfromsnapshot \
-    cct steps batch setup_aliases onadmin onhost"
+    cct steps batch setup_aliases onadmin onhost devsetup"
 wantedcmds=$@
 
 function expand_steps()

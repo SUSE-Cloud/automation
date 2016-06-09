@@ -4454,6 +4454,41 @@ function onadmin_run_cct()
     return $ret
 }
 
+function onadmin_devsetup()
+{
+    # install dev setup dependencies
+    add_sdk_repo
+    ensure_packages_installed git gcc ruby2.1-devel sqlite3-devel libxml2-devel
+
+    # create development folders
+    mkdir -p /opt/crowbar/crowbar_framework/db /opt/crowbar/barclamps
+
+    # copy existing database
+    ln -sf /opt/dell/crowbar_framework/db/production.sqlite3 /opt/crowbar/crowbar_framework/db/development.sqlite3
+
+    # clone git repos
+    local crowbar_git_dir=/opt/crowbar/git/crowbar
+    git clone https://github.com/crowbar/crowbar.git $crowbar_git_dir
+    for component in core openstack ceph ha; do
+        git clone https://github.com/crowbar/crowbar-$component.git $crowbar_git_dir/barclamps/$component
+    done
+
+    # install development gems and generate dir tree
+    pushd $crowbar_git_dir
+    bundle install
+    GUARD_SYNC_HOST=localhost bundle exec guard
+    popd
+
+    # install crowbar gems
+    pushd /opt/crowbar/crowbar_framework
+    bundle install
+    popd
+
+    # install barclamps
+    local components=$(find /opt/crowbar/barclamps -mindepth 1 -maxdepth 1 -type d)
+    CROWBAR_DIR=/opt/crowbar RAILS_ENV=development /opt/crowbar/bin/barclamp_install.rb $components
+}
+
 # Set the aliases for nodes.
 # This is usually needed before batch step, so batch can refer
 # to node aliases in the scenario file.
