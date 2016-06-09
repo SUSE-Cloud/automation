@@ -17,12 +17,15 @@ rsync="$E rsync $DRY --bwlimit 10000 --delete-after -avH --no-owner --no-group -
 
 # http://download.suse.de/ibs/Devel:/Cloud:/4/images/*qcow2 -> images/SLES11-SP3-x86_64-cfntools.qcow2
 
+buildncc=/mnt/euklid/mirror/SuSE/build-ncc.suse.de/
+buildsuse=/mnt/euklid/mirror/SuSE/build.suse.de/
+
 # SLE11 SP3
 echo ================== Updating SLE 11 SP3
 $rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP3-POOL/ /srv/nfs/repos/SLES11-SP3-Pool/
 $rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-HAE/11-SP3-POOL/ /srv/nfs/repos/SLE11-HAE-SP3-Pool/
-$rsync /mnt/euklid/mirror/SuSE/build-ncc.suse.de/SUSE/Updates/SLE-SERVER/11-SP3/x86_64/update/ /srv/nfs/repos/SLES11-SP3-Updates/
-$rsync /mnt/euklid/mirror/SuSE/build-ncc.suse.de/SUSE/Updates/SLE-HAE/11-SP3/x86_64/update/ /srv/nfs/repos/SLE11-HAE-SP3-Updates/
+$rsync $buildncc/SUSE/Updates/SLE-SERVER/11-SP3/x86_64/update/ /srv/nfs/repos/SLES11-SP3-Updates/
+$rsync $buildncc/SUSE/Updates/SLE-HAE/11-SP3/x86_64/update/ /srv/nfs/repos/SLE11-HAE-SP3-Updates/
 $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-SERVER\:/11-SP3\:/x86_64/update/ /srv/nfs/repos/SLES11-SP3-Updates-test/
 $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-HAE\:/11-SP3\:/x86_64/update/ /srv/nfs/repos/SLE11-HAE-SP3-Updates-test/
 /usr/local/bin/miniuprepo /srv/nfs/repos/SLES11-SP3-Updates/
@@ -50,9 +53,6 @@ for servicepack in 0 1 2; do
         # only x86_64 for SP0
         [ "$arch" != x86_64 -a $servicepack -eq 0 ] && continue
         [ "$arch" = "aarch64" -a $servicepack -eq 1 ] && continue
-        repo_subdir=
-        # put non x86_64 arches in subdir
-        [ "$arch" != x86_64 ] && repo_subdir="/$arch"
         install_subdir="/$arch"
         # no subdir for /install for SP0
         [ $servicepack -eq 0 ] && install_subdir=
@@ -67,31 +67,31 @@ for servicepack in 0 1 2; do
 
         # SLES pool
         if [ -z "$sync_from_ibs" ]; then
-            $rsync --link-dest /srv/nfs/suse-${chef_version}${install_subdir}/install/suse/ /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/SLE-SERVER/$version/$arch/product/ /srv/nfs/repos$repo_subdir/SLES$repo_version-Pool/
+            $rsync --link-dest /srv/nfs/suse-${chef_version}${install_subdir}/install/suse/ $buildsuse/SUSE/Products/SLE-SERVER/$version/$arch/product/ /srv/nfs/repos/$arch/SLES$repo_version-Pool/
         else
-            $rsync --link-dest /srv/nfs/suse-${chef_version}${install_subdir}/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-Server-POOL-$arch-Build*-Media1/ /srv/nfs/repos$repo_subdir/SLES$repo_version-Pool/
+            $rsync --link-dest /srv/nfs/suse-${chef_version}${install_subdir}/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-Server-POOL-$arch-Build*-Media1/ /srv/nfs/repos/$arch/SLES$repo_version-Pool/
         fi
         # SLES updates
-        $rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/SLE-SERVER/$version/$arch/update/ /srv/nfs/repos$repo_subdir/SLES$repo_version-Updates/
-        [ "$arch" == x86_64 ] && /usr/local/bin/miniuprepo /srv/nfs/repos$repo_subdir/SLES$repo_version-Updates/
+        $rsync $buildsuse/SUSE/Updates/SLE-SERVER/$version/$arch/update/ /srv/nfs/repos/$arch/SLES$repo_version-Updates/
+        [ "$arch" == x86_64 ] && /usr/local/bin/miniuprepo /srv/nfs/repos/$arch/SLES$repo_version-Updates/
         # SLES test updates
         if test -d /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-SERVER\:/$version\:/$arch/update/ ; then
-            $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-SERVER\:/$version\:/$arch/update/ /srv/nfs/repos$repo_subdir/SLES$repo_version-Updates-test/
+            $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-SERVER\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLES$repo_version-Updates-test/
         fi
 
         # HA is only for > SP1, and not for ARM
         if [ $servicepack -gt 0 -a "$arch" != aarch64 ]; then
             # HA pool
             if [ -z "$sync_from_ibs" ]; then
-                $rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/SLE-HA/$version/$arch/product/ /srv/nfs/repos$repo_subdir/SLE$repo_version-HA-Pool/
+                $rsync $buildsuse/SUSE/Products/SLE-HA/$version/$arch/product/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Pool/
             else
-                $rsync /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-HA-POOL-$arch-Build*-Media1/ /srv/nfs/repos$repo_subdir/SLE$repo_version-HA-Pool/
+                $rsync /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-HA-POOL-$arch-Build*-Media1/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Pool/
             fi
             # HA updates
-            $rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/SLE-HA/$version/$arch/update/ /srv/nfs/repos$repo_subdir/SLE$repo_version-HA-Updates/
+            $rsync $buildsuse/SUSE/Updates/SLE-HA/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates/
             # HA test updates
             if test -d /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-HA\:/$version\:/$arch/update/ ; then
-                $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-HA\:/$version\:/$arch/update/ /srv/nfs/repos$repo_subdir/SLE$repo_version-HA-Updates-test/
+                $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/SLE-HA\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates-test/
             fi
         fi
     done
@@ -110,13 +110,13 @@ for version in 1.0 2.1 3; do
     echo ================== Updating Storage $version
 
     if [ -z "$sync_from_ibs" ]; then
-        $rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/Storage/$version/x86_64/product/ $r/SUSE-Enterprise-Storage-$version-Pool
+        $rsync $buildsuse/SUSE/Products/Storage/$version/x86_64/product/ $r/SUSE-Enterprise-Storage-$version-Pool
     else
         $rsync /mnt/dist/ibs/SUSE:/SLE-12-SP1:/Update:/Products:/SES$version/images/repo/SUSE-Enterprise-Storage-$version-POOL-x86_64-Build*-Media1/ $r/SUSE-Enterprise-Storage-$version-Pool
     fi
 
-    if test -d /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/Storage/$version/x86_64/update/; then
-        $rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/Storage/$version/x86_64/update/ $r/SUSE-Enterprise-Storage-$version-Updates
+    if test -d $buildsuse/SUSE/Updates/Storage/$version/x86_64/update/; then
+        $rsync $buildsuse/SUSE/Updates/Storage/$version/x86_64/update/ $r/SUSE-Enterprise-Storage-$version-Updates
     fi
 
     if test -d /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/Storage\:/$version\:/x86_64/update/; then
@@ -152,9 +152,9 @@ for version in 4 5; do
     mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-CLOUD-$version-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-$version-devel-staging
 
     $rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SUSE-CLOUD/$version-POOL/ /srv/nfs/repos/SUSE-Cloud-$version-Pool/
-    $rsync /mnt/euklid/mirror/SuSE/build-ncc.suse.de/SUSE/Updates/SUSE-CLOUD/$version/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-$version-Updates/
+    $rsync $buildncc/SUSE/Updates/SUSE-CLOUD/$version/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-$version-Updates/
     if test -d /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/Cloud\:/$version\:/$arch/update/; then
-        $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/Cloud\:/$version\:/$arch/update/ /srv/nfs/repos$repo_subdir/SUSE-Cloud-$version-Updates-test/
+        $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Cloud-$version-Updates-test/
     fi
 done
 
@@ -165,8 +165,8 @@ echo ================== Updating Cloud 5 for SLE12
 $rsync /mnt/dist/install/SLP/SLE-12-Module-Public-Cloud-GM/x86_64/CD1/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-official
 mount_and_rsync "/mnt/dist/ibs/Devel:/Cloud:/5/images/iso/SUSE-SLE12-CLOUD-5-COMPUTE-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-5-SLE-12-devel
 mount_and_rsync "/mnt/dist/ibs/Devel:/Cloud:/5:/Staging/images/iso/SUSE-SLE12-CLOUD-5-COMPUTE-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-5-SLE-12-devel-staging
-$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/12-Cloud-Compute/5/x86_64/product/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Pool/
-$rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/12-Cloud-Compute/5/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/
+$rsync $buildsuse/SUSE/Products/12-Cloud-Compute/5/x86_64/product/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Pool/
+$rsync $buildsuse/SUSE/Updates/12-Cloud-Compute/5/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/
 $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/12-Cloud-Compute\:/5\:/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates-test/
 
 for version in 6 7; do
@@ -179,31 +179,28 @@ for version in 6 7; do
     for arch in x86_64 s390x aarch64; do
         # no ARM for Cloud <= 6
         [ "$arch" == aarch64 -a $version -le 6 ] && continue
-        repo_subdir=
-        # put non x86_64 arches in subdir
-        [ "$arch" != x86_64 ] && repo_subdir="$arch/"
 
         echo ================== Updating Cloud $version for $arch
 
         if [ -z "$sync_from_ibs" ]; then
-            $rsync /mnt/dist/install/SLP/SLE-12-SP$servicepack-Cloud$version-GM/$arch/DVD1/ /srv/nfs/repos/${repo_subdir}SUSE-OpenStack-Cloud-$version-official
+            $rsync /mnt/dist/install/SLP/SLE-12-SP$servicepack-Cloud$version-GM/$arch/DVD1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
         else
-            mount_and_rsync "/mnt/dist/ibs/SUSE:/SLE-12-SP$servicepack:/Update:/Products:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Build[0-9][0-9][0-9][0-9]-Media1.iso" ${repo_subdir}SUSE-OpenStack-Cloud-$version-official
+            mount_and_rsync "/mnt/dist/ibs/SUSE:/SLE-12-SP$servicepack:/Update:/Products:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Build[0-9][0-9][0-9][0-9]-Media1.iso" $arch/SUSE-OpenStack-Cloud-$version-official
         fi
 
-        mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Build[0-9][0-9][0-9][0-9]-Media1.iso" ${repo_subdir}SUSE-OpenStack-Cloud-$version-devel
-        mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Build[0-9][0-9][0-9][0-9]-Media1.iso" ${repo_subdir}SUSE-OpenStack-Cloud-$version-devel-staging
+        mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Build[0-9][0-9][0-9][0-9]-Media1.iso" $arch/SUSE-OpenStack-Cloud-$version-devel
+        mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Build[0-9][0-9][0-9][0-9]-Media1.iso" $arch/SUSE-OpenStack-Cloud-$version-devel-staging
 
-        if test -d /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ ; then
-            $rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ /srv/nfs/repos/${repo_subdir}SUSE-OpenStack-Cloud-$version-Pool/
+        if test -d $buildsuse/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ ; then
+            $rsync $buildsuse/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Pool/
         fi
 
-        if test -d /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ ; then
-            $rsync /mnt/euklid/mirror/SuSE/build.suse.de/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ /srv/nfs/repos/${repo_subdir}SUSE-OpenStack-Cloud-$version-Updates/
+        if test -d $buildsuse/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ ; then
+            $rsync $buildsuse/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates/
         fi
 
         if test -d /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/OpenStack-Cloud\:/$version\:/$arch/update/; then
-            $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/${repo_subdir}SUSE-OpenStack-Cloud-$version-Updates-test/
+            $rsync /mnt/dist/ibs/SUSE\:/Maintenance\:/Test\:/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
         fi
     done
 done
