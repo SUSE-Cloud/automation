@@ -199,6 +199,15 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
     return get_config(values, os.path.join(TEMPLATE_DIR, "compute-node.xml"))
 
 
+def domain_cleanup(dom):
+    if dom.isActive():
+        print("destroying {0}".format(dom.name()))
+        dom.destroy()
+
+    print("undefining {0}".format(dom.name()))
+    dom.undefineFlags(flags=libvirt.VIR_DOMAIN_UNDEFINE_NVRAM)
+
+
 def cleanup_one_node(args):
     conn = libvirt_connect()
     try:
@@ -216,30 +225,18 @@ def cleanup(args):
     for dom in domains:
         domain_cleanup(dom)
 
-    networks = [i for i in conn.listAllNetworks()
-                if i.name() == "{0}-admin".format(args.cloud)]
-    for network in networks:
-        if network.isActive():
-            print("destroying {0}".format(network.name()))
-            network.destroy()
-
-        print("undefining {0}".format(network.name()))
-        network.undefine()
+    for network in conn.listAllNetworks():
+        if network.name() == args.cloud + "-admin":
+            print("Cleaning up network {0}".format(network.name()))
+            if network.isActive():
+                network.destroy()
+            network.undefine()
 
     remove_files("/tmp/{0}-*.xml".format(args.cloud))
     remove_files("/var/run/libvirt/qemu/{0}-*.xml".format(args.cloud))
     remove_files("/var/lib/libvirt/network/{0}-*.xml".format(args.cloud))
     remove_files("/etc/sysconfig/network/ifcfg-{0}.{1}".format(
         args.cloudbr, args.vlan_public))
-
-
-def domain_cleanup(dom):
-    if dom.isActive():
-        print("destroying {0}".format(dom.name()))
-        dom.destroy()
-
-    print("undefining {0}".format(dom.name()))
-    dom.undefineFlags(flags=libvirt.VIR_DOMAIN_UNDEFINE_NVRAM)
 
 
 def xml_get_value(path, attrib):
