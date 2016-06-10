@@ -104,25 +104,23 @@ done
 ##############
 
 for version in 1.0 2.1 3; do
-    # fetch latest code from version in development (not just latest beta)
-    sync_from_ibs=
-    [ "$version" == "3" ] && sync_from_ibs=1
 
-    echo ================== Updating Storage $version
+    for arch in x86_64 aarch64; do
+        [ "$arch" != x86_64 -a $version = 1.0 ] && continue
+        [ "$arch" != x86_64 -a $version = 2.1 ] && continue
 
-    if [ -z "$sync_from_ibs" ]; then
-        $rsync $buildsuse/SUSE/Products/Storage/$version/x86_64/product/ $r/SUSE-Enterprise-Storage-$version-Pool
-    else
-        $rsync /mnt/dist/ibs/SUSE:/SLE-12-SP1:/Update:/Products:/SES$version/images/repo/SUSE-Enterprise-Storage-$version-POOL-x86_64-Build*-Media1/ $r/SUSE-Enterprise-Storage-$version-Pool
-    fi
+        echo ================== Updating Storage $version
 
-    if test -d $buildsuse/SUSE/Updates/Storage/$version/x86_64/update/; then
-        $rsync $buildsuse/SUSE/Updates/Storage/$version/x86_64/update/ $r/SUSE-Enterprise-Storage-$version-Updates
-    fi
+        $rsync $buildsuse/SUSE/Products/Storage/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Pool
 
-    if test -d $ibsmaint/Storage\:/$version\:/x86_64/update/; then
-        $rsync $ibsmaint/Storage\:/$version\:/x86_64/update/ $r/SUSE-Enterprise-Storage-$version-Updates-Test
-    fi
+        if test -d $buildsuse/SUSE/Updates/Storage/$version/$arch/update/; then
+            $rsync $buildsuse/SUSE/Updates/Storage/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates
+        fi
+
+        if test -d $ibsmaint/Storage\:/$version\:/$arch/update/; then
+            $rsync $ibsmaint/Storage\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates-Test
+        fi
+    done
 done
 
 
