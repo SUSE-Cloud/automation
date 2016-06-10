@@ -1038,7 +1038,7 @@ function onadmin_prepare_sles12_repo()
 
 function onadmin_prepare_sles12sp1_repo()
 {
-    for arch in x86_64 s390x; do
+    for arch in aarch64 x86_64 s390x; do
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$arch/install"
         add_mount "SLE-12-SP1-Server-LATEST/sle-12-$arch" \
             "$clouddata:/srv/nfs/suse-12.1/$arch/install" \
@@ -1052,7 +1052,7 @@ function onadmin_prepare_sles12sp1_repo()
 
 function onadmin_prepare_sles12sp2_repo()
 {
-    for arch in x86_64 s390x; do
+    for arch in aarch64 x86_64 s390x; do
         local sles12sp2_mount="$tftpboot_suse12sp2_dir/$arch/install"
         add_mount "SLE-12-SP2-Server-LATEST/sle-12-$arch" \
             "$clouddata:/srv/nfs/suse-12.2/$arch/install" \
