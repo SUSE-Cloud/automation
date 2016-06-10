@@ -932,9 +932,10 @@ function onadmin_prepare_sles_repos()
                 "$tftpboot_repos_dir/$repo"
         done
 
-        # just as a fallback if nfs did not work
+        # fallback: download the image and mount it if NFS mount didn't work
         if [ ! -e "$targetdir_install/media.1/" ]; then
-            download_and_mount_sles "$tftpboot_suse_dir" "$targetdir_install"
+            local iso_file=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
+            rsync_iso "install/SLES-$slesversion-$slesmilestone/$iso_file" $iso_file $targetdir_install
         fi
     fi
 
@@ -1108,21 +1109,6 @@ function onadmin_prepare_sles12sp2_other_repos()
                 "$tftpboot_suse12sp2_dir/s390x/repos/$repo"
         fi
     done
-}
-
-function download_and_mount_sles()
-{
-    local iso_dir="$1"
-    local mountpoint="$2"
-
-    local iso_file=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
-    local iso_path=$iso_dir/$iso_file
-
-    local url="http://$susedownload/install/SLES-$slesversion-$slesmilestone/$iso_file"
-    wget --progress=dot:mega -nc -O$iso_path "$url" \
-        || complain 72 "iso not found"
-    echo "$iso_path $mountpoint iso9660 loop,ro" >> /etc/fstab
-    safely mount "$mountpoint"
 }
 
 function onadmin_prepare_cloud_repos()
