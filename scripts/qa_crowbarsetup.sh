@@ -963,21 +963,15 @@ function rsync_iso()
     )
 }
 
-function onadmin_prepare_sles12_repos()
-{
-    onadmin_prepare_sles12_repo
-    onadmin_prepare_sles12_other_repos
-}
-
 function onadmin_prepare_sles12sp1_repos()
 {
-    onadmin_prepare_sles12sp1_repo
+    onadmin_prepare_sles12sp1_installmedia
     onadmin_prepare_sles12sp1_other_repos
 }
 
 function onadmin_prepare_sles12sp2_repos()
 {
-    onadmin_prepare_sles12sp2_repo
+    onadmin_prepare_sles12sp2_installmedia
     onadmin_prepare_sles12sp2_other_repos
 }
 
@@ -1025,7 +1019,7 @@ function onadmin_create_sles12plus_repos()
     done
 }
 
-function onadmin_prepare_sles12_repo()
+function onadmin_prepare_sles12_installmedia()
 {
     local sles12_mount="$tftpboot_suse12_dir/install"
     add_mount "SLE-12-Server-LATEST/sle-12-x86_64" \
@@ -1037,7 +1031,7 @@ function onadmin_prepare_sles12_repo()
     fi
 }
 
-function onadmin_prepare_sles12sp1_repo()
+function onadmin_prepare_sles12sp1_installmedia()
 {
     for arch in aarch64 x86_64 s390x; do
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$arch/install"
@@ -1051,7 +1045,7 @@ function onadmin_prepare_sles12sp1_repo()
     done
 }
 
-function onadmin_prepare_sles12sp2_repo()
+function onadmin_prepare_sles12sp2_installmedia()
 {
     for arch in aarch64 x86_64 s390x; do
         local sles12sp2_mount="$tftpboot_suse12sp2_dir/$arch/install"
@@ -1546,17 +1540,19 @@ EOF
     onadmin_setup_local_zypper_repositories
 
     if iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
+        # Still needed for SUSE Storage :(
         onadmin_prepare_sles12sp1_repos
         onadmin_prepare_sles12sp2_repos
         onadmin_prepare_sles12plus_cloud_repos
-    elif iscloudver 6plus; then
+    elif iscloudver 6plus ; then
         onadmin_prepare_sles12sp1_repos
         onadmin_prepare_sles12plus_cloud_repos
     else
         onadmin_prepare_sles_repos
 
         if iscloudver 5plus ; then
-            onadmin_prepare_sles12_repos
+            onadmin_prepare_sles12_installmedia
+            onadmin_prepare_sles12_other_repos
             onadmin_prepare_sles12plus_cloud_repos
         fi
     fi
