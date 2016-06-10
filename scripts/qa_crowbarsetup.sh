@@ -1474,12 +1474,8 @@ function onadmin_setup_local_zypper_repositories()
                 zypper ar http://${clouddata}/repos/SLES11-SP3-Pool/ sles11sp3
                 zypper ar http://${clouddata}/repos/SLES11-SP3-Updates/ sles11sp3up
             ;;
-            6)
-                zypper ar http://${clouddata}/repos/SLES12-SP1-Pool/ sles12sp1
-                zypper ar http://${clouddata}/repos/SLES12-SP1-Updates/ sles12sp1up
-            ;;
-            7)
-                if [[ $want_sles12sp2 ]] ; then
+            6|7)
+                if iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
                     zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP2-Pool/ sles12sp2
                     zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP2-Updates/ sles12sp2up
                 else
