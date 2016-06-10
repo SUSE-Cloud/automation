@@ -1,0 +1,86 @@
+- job:
+    name: cloud-mkphyscloud-qa-test-cct-job
+    node: cloud-mkphyscloud-gate-qa
+    description: |
+      Runs cct tests
+      Useful only for cloud that was built by mkcloud.
+      Mandatory parameter: hw_number
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    wrappers:
+      - build-name:
+          name: '#${BUILD_NUMBER} - ${scenario_name} - cloud${hw_number} - ${cct_tests}'
+      - timestamps
+
+    concurrent: true
+
+    parameters:
+      - string:
+          name: hw_number
+          default: "2"
+          description: Mandatory, number of the QA cloud server
+
+      - string:
+          name: cct_tests
+          default: features:base
+          description: List of tests separated by plus sign, e.g. features:base+feature:scale:cirros
+
+      - string:
+          name: cct_git_url
+          default: https://github.com/SUSE-Cloud/cct.git
+          description: Git repo url for cct
+
+      - string:
+          name: cct_checkout_branch
+          default: master
+          description: Git repo branch name
+
+      - string:
+          name: cct_skip_func_tests
+          default: "1"
+          description: |
+            qa_crowbarsetup.sh runs all functional tests by default. Set to 0 if you want to run those tests
+
+      - string:
+          name: scenario_name
+          description: Optional; scenario name which typically is an integer with a single letter
+
+      - string:
+          name: scenario_job_name
+          description: Optional; name of the scenario jenkins job that is used to trigger this job
+
+      - string:
+          name: scenario_build_number
+          description: Optional; scenario build number that triggered this job
+
+
+    builders:
+      - shell: |
+          #!/bin/bash
+          admin=crowbar$hw_number;
+          cloud=qa$hw_number;
+          cct_path="/root/github.com/SUSE-Cloud/cct";
+          artifacts_dir=$WORKSPACE/.artifacts
+
+          rm -rf $artifacts_dir
+          mkdir -p $artifacts_dir
+          result=0
+
+          ssh root@$admin "
+            export cloud=$cloud;
+            export cct_tests=$cct_tests;
+            export cct_git_url=$cct_git_url;
+            export cct_checkout_branch=$cct_checkout_branch;
+            export cct_skip_func_tests=$cct_skip_func_tests;
+          " '
+            hostname -f;
+            timeout --signal=ALRM 90m bash -x -c "source qa_crowbarsetup.sh; onadmin_run_cct"
+
+          '|| result=$?
+
+          scp root@$admin:$cct_path/log/cct.log $artifacts_dir/
+
+          exit $result;

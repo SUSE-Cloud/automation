@@ -1,0 +1,109 @@
+- job:
+    name: cloud-mkphyscloud-qa-tests-trigger
+    node: cloud-mkphyscloud-gate-qa
+    description: |
+      Running this job makes sense only if you have installed your cloud with mkcloud, otherwise it will be failing as it depends on files that are created by qa_crowbarsetup.sh .
+      Its goal is triggering tests.
+
+      Has 1 mandatory attribute:
+      * hw_number -> number of the QA hardware
+
+      Has multiple optional attributes:
+      * tempest -> tempest test type(s);combinations of smoke, full and defcore, e.g. smoke|full; smoke is run always as first, then defcore and eventually full testsuite
+      * cct -> test name, e.g. features:base
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    wrappers:
+      - build-name:
+          name: '#${BUILD_NUMBER}: ${ENV,var="scenario_name"} - ${ENV,var="hw_number"}'
+      - timestamps
+
+    concurrent: true
+
+    parameters:
+      - string:
+          name: hw_number
+          default: "2"
+          description: Mandatory, name of the QA cloud server as integer
+
+      - string:
+          name: tempest
+          description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore|full
+
+      - string:
+          name: cct_tests
+          description: Optional; triggers cct tests. If the value is left empty, no cct tests will be run. The tests must be separated by + sign, e.g. feature:admin+feature:controller
+
+      - string:
+          name: scenario_name
+          description: Optional; scenario name which typically is an integer with a single letter
+
+      - string:
+          name: scenario_job_name
+          description: Optional; name of the scenario jenkins job that is used to trigger this job
+
+      - string:
+          name: scenario_build_number
+          description: Optional; scenario build number that triggered this job
+
+    builders:
+      - conditional-step:
+          condition-kind: regex-match
+          regex: ${ENV,var="tempest"}
+          label: smoke
+          steps:
+            - trigger-builds:
+                - project: cloud-mkphyscloud-qa-test-tempest-smoke-job
+                  condition: ALWAYS
+                  block: true
+                  block-thresholds:
+                    build-step-failure-threshold: FAILURE
+                    failure-threshold: FAILURE
+                    unstable-threshold: FAILURE
+                  predefined-parameters: |
+                    hw_number=$hw_number
+                    testsetup=true
+                    scenario_name=$scenario_name
+                    scenario_job_name=$scenario_job_name
+                    scenario_build_number=$scenario_build_number
+
+      - conditional-step:
+          condition-kind: regex-match
+          regex: ${ENV,var="tempest"}
+          label: defcore
+          steps:
+            - trigger-builds:
+                - project: cloud-mkphyscloud-qa-test-tempest-defcore-job
+                  condition: ALWAYS
+                  block: true
+                  block-thresholds:
+                    build-step-failure-threshold: FAILURE
+                    failure-threshold: FAILURE
+                    unstable-threshold: FAILURE
+                  predefined-parameters: |
+                    hw_number=$hw_number
+                    scenario_name=$scenario_name
+                    scenario_job_name=$scenario_job_name
+                    scenario_build_number=$scenario_build_number
+
+      - conditional-step:
+          condition-kind: regex-match
+          regex: ${ENV,var="tempest"}
+          label: full
+          steps:
+            - trigger-builds:
+                - project: cloud-mkphyscloud-qa-test-tempest-full-job
+                  condition: ALWAYS
+                  block: true
+                  block-thresholds:
+                    build-step-failure-threshold: never
+                    failure-threshold: never
+                    unstable-threshold: never
+                  predefined-parameters: |
+                    hw_number=$hw_number
+                    scenario_name=$scenario_name
+                    scenario_job_name=$scenario_job_name
+                    scenario_build_number=$scenario_build_number
