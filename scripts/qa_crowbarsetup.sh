@@ -978,14 +978,10 @@ function onadmin_prepare_sles12sp2_repos()
 function onadmin_prepare_sles12plus_cloud_repos()
 {
     if iscloudver 5; then
-        onadmin_prepare_sles12_cloud_compute_repo
+        rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$tftpboot_repos12_dir/SLE12-Cloud-Compute"
     fi
-    onadmin_create_sles12plus_repos
-}
 
-# create empty repository when there is none yet
-function onadmin_create_sles12plus_repos()
-{
+    #  create empty repository when there is none yet
     ensure_packages_installed createrepo
 
     local sles12optionalrepolist
@@ -1057,20 +1053,6 @@ function onadmin_prepare_sles12sp2_installmedia()
             complain 34 "We do not have SLES12 SP2 install media - giving up"
         fi
     done
-}
-
-function onadmin_prepare_sles12_cloud_compute_repo()
-{
-    local sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
-
-    if [ -n "$localreposdir_target" ]; then
-        echo "FIXME: SLE12-Cloud-Compute not available from clouddata yet." >&2
-        echo "Will manually download and rsync." >&2
-        # add_mount "SLE12-Cloud-Compute" \
-        #     "$clouddata:/srv/nfs/repos/SLE12-Cloud-Compute" \
-        #     "$targetdir_install"
-    fi
-    rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$sles12_compute_mount"
 }
 
 function onadmin_prepare_sles12_other_repos()
