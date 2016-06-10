@@ -901,7 +901,7 @@ function cluster_node_assignment()
     echo "............................................................"
 }
 
-function onadmin_prepare_sles_repos()
+function onadmin_prepare_sles11sp3_repos()
 {
     local targetdir_install="$tftpboot_suse_dir/install"
 
@@ -924,7 +924,7 @@ function onadmin_prepare_sles_repos()
         fi
 
         local repo
-        for repo in $slesrepolist ; do
+        for repo in SLES11-SP3-Pool SLES11-SP3-Updates ; do
             local zypprepo=""
             [ "$WITHSLEUPDATES" != "" ] && zypprepo="$repo"
             add_mount "$zypprepo" \
@@ -1409,19 +1409,16 @@ function onadmin_set_source_variables()
 
     case "$suseversion" in
         11.3)
-            slesrepolist="SLES11-SP3-Pool SLES11-SP3-Updates"
             slesversion=11-SP3
             slesdist=SLE_11_SP3
             slesmilestone=GM
         ;;
         12.1)
-            slesrepolist="SLES12-SP1-Pool SLES12-SP1-Updates"
             slesversion=12-SP1
             slesdist=SLE_12_SP1
             slesmilestone=GM
         ;;
         12.2)
-            slesrepolist="SLES12-SP2-Pool SLES12-SP2-Updates"
             slesversion=12-SP2
             slesdist=SLE_12_SP2
             slesmilestone=GM
@@ -1544,7 +1541,7 @@ EOF
         onadmin_prepare_sles12sp1_repos
         onadmin_prepare_sles12plus_cloud_repos
     else
-        onadmin_prepare_sles_repos
+        onadmin_prepare_sles11sp3_repos
 
         if iscloudver 5plus ; then
             onadmin_prepare_sles12_installmedia
