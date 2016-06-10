@@ -1570,6 +1570,11 @@ EOF
     zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
     zypper rl kernel-default
 
+    # Workaround chef-solr crashes
+    if [ "$(uname -m)" = "aarch64" ]; then
+        ensure_packages_installed java-1_7_0-openjdk java-1_7_0-openjdk-headless
+    fi
+
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
         safely zypper --no-gpg-checks -n in -l -t pattern cloud_admin
         # make sure to use packages from PTF repo (needs zypper dup)
@@ -1652,8 +1657,6 @@ EOF
             echo "/srv/nfs     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
         fi
     fi
-
-    # exit code of the sed don't matter, so just:
     return 0
 }
 
