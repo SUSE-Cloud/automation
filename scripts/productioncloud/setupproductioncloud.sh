@@ -12,6 +12,13 @@ export nodenumber=4
 export cephvolumenumber=1
 export want_rootpw=securepassword
 export want_tempest=0
+# avoid crashing controller node from ovs+gre (bnc#970720)
+# or use ethtool... gso off
+export networkingmode=vxlan
+# workaround OpteronG3 (bnc#872677) and general SVM nested virt bugs (bnc#946701/946068)
+export UPDATEREPOS=http://download.suse.de/ibs/home:/bmwiedemann:/branches:/Devel:/Virt:/SLE-12-SP1/SUSE_SLE-12-SP1_Update_standard/+http://download.suse.de/ibs/home:/markoschandras:/network_sle12_sp1/SLE_12_SP1/x86_64/
+# allow VMs to be reachable while controller node is down
+export want_dvr=1
 # add CA
 export pre_prepare_proposals=$(base64 -w 0 <<'EOF'
 for m in $(get_all_suse_nodes) ; do ssh $m "
@@ -22,7 +29,7 @@ EOF
 )
 
 ( . qa_crowbarsetup.sh ;
-onadmin_runlist prepareinstallcrowbar installcrowbar allocate proposal testsetup
+onadmin_runlist addupdaterepo prepareinstallcrowbar installcrowbar allocate proposal testsetup
 
 # give read-permissions to the users that will need it
 get_novacontroller
