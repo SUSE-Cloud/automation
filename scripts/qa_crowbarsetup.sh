@@ -639,17 +639,28 @@ function addcloud6pool()
 
 function addcctdepsrepo()
 {
+    if [[ "$cloudsource" == @(develcloud5|GM5|GM5+up) ]]; then
+        zypper ar -f http://$susedownload/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
+    else
+        add_sdk_repo
+    fi
+}
+
+function add_sdk_repo()
+{
     case "$cloudsource" in
-        develcloud5|GM5|GM5+up)
-            zypper ar -f http://$susedownload/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
-            ;;
         develcloud6|GM6|GM6+up)
             zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
             zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
             ;;
         develcloud7|mitakacloud7|susecloud7|M?|Beta*|RC*|GMC*)
-            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
-            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
+            if [[ $want_sles12sp2 ]] ; then
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
+            else
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
+            fi
             ;;
     esac
 }
@@ -4441,6 +4452,41 @@ function onadmin_run_cct()
     fi
 
     return $ret
+}
+
+function onadmin_devsetup()
+{
+    # install dev setup dependencies
+    add_sdk_repo
+    ensure_packages_installed git gcc ruby2.1-devel sqlite3-devel libxml2-devel
+
+    # create development folders
+    mkdir -p /opt/crowbar/crowbar_framework/db /opt/crowbar/barclamps
+
+    # copy existing database
+    ln -sf /opt/dell/crowbar_framework/db/production.sqlite3 /opt/crowbar/crowbar_framework/db/development.sqlite3
+
+    # clone git repos
+    local crowbar_git_dir=/opt/crowbar/git/crowbar
+    git clone https://github.com/crowbar/crowbar.git $crowbar_git_dir
+    for component in core openstack ceph ha; do
+        git clone https://github.com/crowbar/crowbar-$component.git $crowbar_git_dir/barclamps/$component
+    done
+
+    # install development gems and generate dir tree
+    pushd $crowbar_git_dir
+    bundle install
+    GUARD_SYNC_HOST=localhost bundle exec guard
+    popd
+
+    # install crowbar gems
+    pushd /opt/crowbar/crowbar_framework
+    bundle install
+    popd
+
+    # install barclamps
+    local components=$(find /opt/crowbar/barclamps -mindepth 1 -maxdepth 1 -type d)
+    CROWBAR_DIR=/opt/crowbar RAILS_ENV=development /opt/crowbar/bin/barclamp_install.rb $components
 }
 
 # Set the aliases for nodes.
