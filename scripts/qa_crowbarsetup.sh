@@ -3,6 +3,8 @@
 
 [[ $(uname -m) =~ ^(aarch64|x86_64)$ ]] || { echo "ERROR: need 64bit" ; exit 1 ; }
 
+shopt -s extglob
+
 mkcconf=mkcloud.config
 if [ -z "$testfunc" ] && [ -e $mkcconf ]; then
     source $mkcconf
