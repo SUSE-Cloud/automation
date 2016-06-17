@@ -185,7 +185,7 @@ function setcloudnetvars
     export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
     if [ -z "$cloud" ] ; then
         complain 101 "Parameter missing that defines the cloud name" \
-            "Possible values: [d1, d2, p, virtual]" \
+            "Possible values: [p1, d2, p, virtual]" \
             "Example: $0 d2"
     fi
 
@@ -193,10 +193,11 @@ function setcloudnetvars
     netp=10.162
     net=${net_admin:-192.168.124}
     case "$cloud" in
-        d1)
+        p1)
             nodenumbertotal=5
             net=$netp.178
-            net_public=$netp.177
+            net_public=$netp.160
+            net_fixed=44.11.0
             vlan_storage=568
             vlan_sdn=$vlan_storage
             vlan_public=567

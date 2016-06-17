@@ -1407,7 +1407,7 @@ EOF
         -e "s/ [47]00/ $vlan_sdn/g" \
         $netfile
 
-    if [[ $cloud = p || $cloud = p2 ]] ; then
+    if [[ $cloud =~ p ]] ; then
         # production cloud has a /22 network
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.252.0 $netfile
     fi
@@ -1417,6 +1417,19 @@ EOF
         if iscloudver 6plus; then
             sed -i 's/bc-template-network/template-network/' $netfile
         fi
+    fi
+    if [[ $cloud = p1 ]] ; then
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.11.63.254 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.broadcast -v 44.11.63.255 $netfile
+        # floating net is the 2nd half of public net:
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.254.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v $netp.162.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.start -v $netp.162.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v $netp.163.253 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.broadcast -v $netp.163.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.252.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.broadcast -v $netp.163.255 $netfile
     fi
     if [[ $cloud = p2 ]] ; then
         /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.252.0 $netfile
