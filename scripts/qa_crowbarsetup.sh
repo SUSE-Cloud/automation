@@ -3926,7 +3926,7 @@ function onadmin_addupdaterepo()
                 --no-parent \
                 --no-clobber \
                 --accept x86_64.rpm,noarch.rpm \
-                ${repo%/}/
+                $repo
         done
         onadmin_setup_local_zypper_repositories
         ensure_packages_installed createrepo
