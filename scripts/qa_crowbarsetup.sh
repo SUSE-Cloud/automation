@@ -3702,6 +3702,30 @@ function oncontroller_magnum_service_setup ()
     fi
 }
 
+function oncontroller_setupproduction()
+{
+    # increase quotas
+    openstack project show -f shell openstack > openstackprojectdata.sh
+    local tenantid=$( . openstackprojectdata.sh ; echo $id )
+    nova quota-update --instances 400 --key-pairs 400 --server-groups 400 --ram 120000 --cores 500 --floating-ips 200 $tenantid
+    neutron quota-update --floatingip 200 --security-group 400 --port 400 --network 200 --router 100 --vip 100 --pool 100
+    # import images
+    for img in SLES12.qcow2 SLES12-SP1.qcow2 SLES12-SP2.qcow2 cirros-0.3.4-x86_64-disk.img other/openSUSE-Leap-42.1.qcow2 Fedora-x86_64-20-20131211.1-sda.qcow2 ; do
+        local bimg=$(basename $img)
+        local image_name=${bimg//.qcow2}
+        curl -s \
+            http://$clouddata/images/$img | \
+            openstack image create --public --property hypervisor_type=kvm \
+            --disk-format qcow2 --container-format bare $image_name
+    done
+}
+
+function onadmin_setupproduction()
+{
+    get_novacontroller
+    oncontroller oncontroller_setupproduction
+}
+
 # code run on controller/dashboard node to do basic tests of deployed cloud
 # uploads an image, create flavor, boots a VM, assigns a floating IP, ssh to VM, attach/detach volume
 function oncontroller_testsetup()

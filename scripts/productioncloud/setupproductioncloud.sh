@@ -29,7 +29,7 @@ EOF
 )
 
 ( . qa_crowbarsetup.sh ;
-onadmin_runlist addupdaterepo prepareinstallcrowbar installcrowbar allocate proposal testsetup
+onadmin_runlist addupdaterepo prepareinstallcrowbar installcrowbar allocate proposal setupproduction testsetup
 
 # give read-permissions to the users that will need it
 get_novacontroller
@@ -38,8 +38,11 @@ for u in {keystone,glance,cinder,neutron,nova} ; do
     setfacl -m u:$u:r /etc/cloud-keys/*.key
     done
     '
+echo TODO set public name to dashboard.p1.cloud.suse.de
 
 # on admin node to enable real certs:
 wget https://raw.githubusercontent.com/SUSE-Cloud/automation/production/scripts/productioncloud/batch-ssl.yaml
 crowbar batch build batch-ssl.yaml
+wget https://raw.githubusercontent.com/SUSE-Cloud/automation/production/scripts/productioncloud/batch-ssh-keys.yaml
+crowbar batch build batch-ssh-keys.yaml
 )
