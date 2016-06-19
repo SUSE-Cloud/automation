@@ -28,6 +28,11 @@ done
 EOF
 )
 
+export pre_do_installcrowbar=$(base64 -w 0 <<EOF
+( cd /opt/dell/ ; ln -s barclamps/core/updates ; curl https://github.com/crowbar/crowbar-core/compare/master...SUSE-Cloud:p1cloud.patch | patch -p1 )
+EOF
+)
+
 ( . qa_crowbarsetup.sh ;
 onadmin_runlist addupdaterepo prepareinstallcrowbar installcrowbar allocate proposal setupproduction testsetup
 
