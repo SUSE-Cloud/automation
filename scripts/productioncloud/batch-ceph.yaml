@@ -1,0 +1,22 @@
+---
+proposals:
+- barclamp: ceph
+  attributes:
+    config:
+      replicas_number: 2
+    keystone_instance: default
+    calamari:
+      email: bwiedemann+p1cloud@suse.de
+  deployment:
+    elements:
+      ceph-calamari: []
+      ceph-mon:
+      - "@@dashboard@@"
+      - de8-9a-8f-bd-a1-bc.p1.cloud.suse.de
+      - de8-9a-8f-bd-a4-06.p1.cloud.suse.de
+      ceph-osd:
+      - de8-9a-8f-bd-a1-bc.p1.cloud.suse.de
+      - de8-9a-8f-bd-a4-06.p1.cloud.suse.de
+      - de8-9a-8f-bd-a4-8c.p1.cloud.suse.de
+      ceph-radosgw:
+      - "@@dashboard@@"

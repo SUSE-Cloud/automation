@@ -50,4 +50,6 @@ wget https://raw.githubusercontent.com/SUSE-Cloud/automation/production/scripts/
 crowbar batch build batch-ssl.yaml
 wget https://raw.githubusercontent.com/SUSE-Cloud/automation/production/scripts/productioncloud/batch-ssh-keys.yaml
 crowbar batch build batch-ssh-keys.yaml
+wget https://raw.githubusercontent.com/SUSE-Cloud/automation/production/scripts/productioncloud/batch-ceph.yaml
+crowbar batch build batch-ceph.yaml
 )
