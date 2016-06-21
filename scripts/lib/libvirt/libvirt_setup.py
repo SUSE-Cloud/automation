@@ -129,7 +129,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
     for i in range(1, controller_raid_volumes):
         raid_template = string.Template(readfile(
             "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
-        raid_values = {
+        raidvolume += "\n" + raid_template.substitute({
             'volume_serial': "{0}-node{1}-raid{2}".format(
                 serialcloud,
                 args.nodecounter,
@@ -141,41 +141,38 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
                 i),
             'target_dev': targetdevprefix + ''.join(alldevices.next()),
             'target_bus': targetbus
-        }
-        raidvolume += "\n" + raid_template.substitute(raid_values)
+        })
 
     cephvolume = ""
     if args.cephvolumenumber and args.cephvolumenumber > 0:
         for i in range(1, args.cephvolumenumber+1):
             ceph_template = string.Template(readfile(
                 "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
-            ceph_values = dict(
-                volume_serial="{0}-node{1}-ceph{2}".format(
+            cephvolume += "\n" + ceph_template.substitute({
+                'volume_serial': "{0}-node{1}-ceph{2}".format(
                     serialcloud,
                     args.nodecounter,
                     i),
-                source_dev="{0}/{1}.node{2}-ceph{3}".format(
+                'source_dev': "{0}/{1}.node{2}-ceph{3}".format(
                     args.vdiskdir,
                     args.cloud,
                     args.nodecounter,
                     i),
-                target_dev=targetdevprefix + ''.join(alldevices.next()),
-                target_bus=targetbus)
-            cephvolume += "\n" + ceph_template.substitute(ceph_values)
+                'target_dev': targetdevprefix + ''.join(alldevices.next()),
+                'target_bus': targetbus})
 
     drbdvolume = ""
     if args.drbdserial:
         drbd_template = string.Template(readfile(
             "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
-        drbd_values = dict(
-            volume_serial=args.drbdserial,
-            source_dev="{0}/{1}.node{2}-drbd".format(
+        drbdvolume = drbd_template.substitute({
+            'volume_serial': args.drbdserial,
+            'source_dev': "{0}/{1}.node{2}-drbd".format(
                 args.vdiskdir,
                 args.cloud,
                 args.nodecounter),
-            target_dev=targetdevprefix + ''.join(alldevices.next()),
-            target_bus=targetbus)
-        drbdvolume = drbd_template.substitute(drbd_values)
+            'target_dev': targetdevprefix + ''.join(alldevices.next()),
+            'target_bus': targetbus})
 
     values = dict(
         cloud=args.cloud,
