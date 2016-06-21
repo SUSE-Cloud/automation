@@ -3709,6 +3709,12 @@ function oncontroller_setupproduction()
     local tenantid=$( . openstackprojectdata.sh ; echo $id )
     nova quota-update --instances 400 --key-pairs 400 --server-groups 400 --ram 120000 --cores 500 --floating-ips 200 $tenantid
     neutron quota-update --floatingip 200 --security-group 400 --port 400 --network 200 --router 100 --vip 100 --pool 100
+    openstack project create ses
+    openstack project show -f shell ses > sesprojectdata.sh
+    tenantid=$( . sesprojectdata.sh ; echo $id )
+    openstack user create --project $tenantid --email jschmid.suse.de ses-jenkins
+    nova quota-update --instances 50 --key-pairs 50 --server-groups 50 --ram 50000 --cores 60 --floating-ips 50 $tenantid
+    neutron quota-update --tenant-id $tenantid --floatingip 50 --security-group 50 --port 50 --network 50 --router 50 --vip 50 --pool 50
     # import images
     for img in SLES12.qcow2 SLES12-SP1.qcow2 SLES12-SP2.qcow2 cirros-0.3.4-x86_64-disk.img other/openSUSE-Leap-42.1.qcow2 Fedora-x86_64-20-20131211.1-sda.qcow2 ; do
         local bimg=$(basename $img)
