@@ -26,16 +26,17 @@
       <driver name='qemu' type='raw' cache='unsafe'/>
       <source dev='/dev/cloud/cloud.node1'/>
       <target dev='vda' bus='virtio'/>
+      <address type='pci' slot='0x0a'/>
       <boot order='3'/>
     </disk>
 
 
-<disk type='block' device='disk'>
-  <serial>cloud-node1-ceph1</serial>
-  <driver name='qemu' type='raw' cache='unsafe'/>
-  <source dev='/dev/cloud/cloud.node1-ceph1'/>
-  <target dev='vdb' bus='virtio'/>
-</disk>
+    <disk type='block' device='disk'>
+      <serial>cloud-node1-ceph1</serial>
+      <driver name='qemu' type='raw' cache='unsafe'/>
+      <source dev='/dev/cloud/cloud.node1-ceph1'/>
+      <target dev='vdb' bus='virtio'/>
+    </disk>
 
 
     <interface type='network'>
