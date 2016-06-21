@@ -539,7 +539,7 @@ function export_tftpboot_repos_dir()
         tftpboot_repos_dir=$tftpboot_suse_dir/repos
         tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
         tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
-    elif iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
+    elif iscloudver 7plus ; then
         tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
         tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/$arch/repos
         # We need SP1 repositories for ceph nodes
@@ -688,13 +688,8 @@ function add_sdk_repo()
             zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
             ;;
         develcloud7|susecloud7|M?|Beta*|RC*|GMC*)
-            if [[ $want_sles12sp2 ]] ; then
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/$arch/product/ SDK-SP2
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/$arch/update/ SDK-SP2-Update
-            else
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
-            fi
+            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
+            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
             ;;
     esac
 }
@@ -1028,8 +1023,7 @@ function onadmin_prepare_sles12plus_cloud_repos()
             SUSE-OpenStack-Cloud-7-Pool
             SUSE-OpenStack-Cloud-7-Updates
         )
-        targetdir="$tftpboot_repos12sp1_dir"
-        [[ $want_sles12sp2 ]] && targetdir="$tftpboot_repos12sp2_dir"
+        targetdir="$tftpboot_repos12sp2_dir"
     elif iscloudver 6; then
         sles12optionalrepolist=(
             SUSE-OpenStack-Cloud-6-Pool
@@ -1128,10 +1122,13 @@ function onadmin_prepare_sles12sp2_other_repos()
 
 function onadmin_prepare_cloud_repos()
 {
+    # inidicate that we want to setup SP1 repos although we have Cloud7
+    local sp1_for_cloud7=$1
+
     local targetdir=
-    if iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
+    if iscloudver 7plus && [ -z "$sp1_for_cloud7" ]; then
         targetdir="$tftpboot_repos12sp2_dir/Cloud"
-    elif iscloudver 6plus ; then
+    elif iscloudver 6plus; then
         targetdir="$tftpboot_repos12sp1_dir/Cloud"
     else
         targetdir="$tftpboot_repos_dir/Cloud/"
@@ -1230,7 +1227,7 @@ function onadmin_prepare_cloud_repos()
 function onadmin_add_cloud_repo()
 {
     local targetdir=
-    if iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
+    if iscloudver 7plus; then
         targetdir="$tftpboot_repos12sp2_dir/Cloud/"
     elif iscloudver 6plus; then
         targetdir="$tftpboot_repos12sp1_dir/Cloud/"
@@ -1361,39 +1358,20 @@ function create_repos_yml()
         for devel_repo in ${want_devel_repos//,/ }; do
             case "$devel_repo" in
                 storage)
-                    additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/3.0/SLE12_SP1/"
+                    # FIXME: enable when switching from SES 3 to SES 4
+                    # additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/4.0/SLE12_SP2/"
                     ;;
                 virt)
-                    additional_repos+=" Devel-Virt=http://$distsuse/ibs/Devel:/Virt:/SLE-12-SP1/SUSE_SLE-12-SP1_Update_standard/"
+                    additional_repos+=" Devel-Virt=http://$distsuse/ibs/Devel:/Virt:/SLE-12-SP2/SUSE_SLE-12-SP2_GA_standard/"
                     ;;
                 *)
                     complain 72 "do not know how to translate one of the requested devel repos: $want_devel_repos"
                     ;;
             esac
         done
-        create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
+        create_repos_yml_for_platform "suse-12.2" "x86_64" "$tftpboot_repos12sp2_dir" \
             $additional_repos \
             >> $tmp_yml
-
-        if [[ $want_sles12sp2 ]]; then
-            for devel_repo in ${want_devel_repos//,/ }; do
-                case "$devel_repo" in
-                    storage)
-                        # FIXME: enable when switching from SES 3 to SES 4
-                        # additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/4.0/SLE12_SP2/"
-                        ;;
-                    virt)
-                        additional_repos+=" Devel-Virt=http://$distsuse/ibs/Devel:/Virt:/SLE-12-SP2/SUSE_SLE-12-SP2_GA_standard/"
-                        ;;
-                    *)
-                        complain 72 "do not know how to translate one of the requested devel repos: $want_devel_repos"
-                        ;;
-                esac
-            done
-            create_repos_yml_for_platform "suse-12.2" "x86_64" "$tftpboot_repos12sp2_dir" \
-                $additional_repos \
-                >> $tmp_yml
-        fi
     fi
 
     mv $tmp_yml $repos_yml
@@ -1402,7 +1380,7 @@ function create_repos_yml()
 
 function onadmin_set_source_variables()
 {
-    if iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
+    if iscloudver 7plus; then
         suseversion=12.2
     elif iscloudver 6plus; then
         suseversion=12.1
@@ -1535,14 +1513,13 @@ function onadmin_setup_local_zypper_repositories()
                 zypper ar http://${clouddata}/repos/SLES11-SP3-Pool/ sles11sp3
                 zypper ar http://${clouddata}/repos/SLES11-SP3-Updates/ sles11sp3up
             ;;
-            6|7)
-                if iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
-                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP2-Pool/ sles12sp2
-                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP2-Updates/ sles12sp2up
-                else
-                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP1-Pool/ sles12sp1
-                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP1-Updates/ sles12sp1up
-                fi
+            6)
+                zypper ar http://${clouddata}/repos/SLES12-SP1-Pool/ sles12sp1
+                zypper ar http://${clouddata}/repos/SLES12-SP1-Updates/ sles12sp1up
+            ;;
+            7)
+                zypper ar http://${clouddata}/repos/SLES12-SP2-Pool/ sles12sp2
+                zypper ar http://${clouddata}/repos/SLES12-SP2-Updates/ sles12sp2up
             ;;
         esac
     fi
@@ -1596,7 +1573,7 @@ EOF
     onadmin_set_source_variables
     onadmin_setup_local_zypper_repositories
 
-    if iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
+    if iscloudver 7plus; then
         # Still needed for SUSE Storage :(
         onadmin_prepare_sles12sp1_repos
         onadmin_prepare_sles12sp2_repos
@@ -1617,7 +1594,7 @@ EOF
     if [[ $hacloud = 1 ]]; then
         if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 4plus ; then
             add_ha_repo
-        elif iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
+        elif iscloudver 7plus; then
             add_ha12sp2_repo
         elif iscloudver 6plus; then
             add_ha12sp1_repo
@@ -1637,9 +1614,8 @@ EOF
     onadmin_add_cloud_repo
     # FIXME: ugly hack - we need to prepare also SP1 Cloud repositories
     # to correctly install SP1 nodes on SP2-enabled Cloud7
-    if iscloudver 7 && [[ $want_sles12sp2 ]] ; then
-        want_sles12sp2= onadmin_prepare_cloud_repos
-        want_sles12sp2= onadmin_add_cloud_repo
+    if iscloudver 7; then
+        onadmin_prepare_cloud_repos "sp1"
     fi
 
     zypper_refresh
@@ -4035,7 +4011,7 @@ function onadmin_addupdaterepo()
     pre_hook $FUNCNAME
 
     local UPR=
-    if iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
+    if iscloudver 7plus; then
         UPR=$tftpboot_repos12sp2_dir/PTF
     elif iscloudver 6plus ; then
         UPR=$tftpboot_repos12sp1_dir/PTF
@@ -4250,9 +4226,8 @@ function onadmin_prepare_cloudupgrade()
     onadmin_add_cloud_repo
     # FIXME: ugly hack - we need to prepare also SP1 Cloud repositories
     # to correctly install SP1 nodes on SP2-enabled Cloud7
-    if iscloudver 7 && [[ $want_sles12sp2 ]] ; then
-        want_sles12sp2= onadmin_prepare_cloud_repos
-        want_sles12sp2= onadmin_add_cloud_repo
+    if iscloudver 7; then
+        onadmin_prepare_cloud_repos "sp1"
     fi
 
     # Applying the updater barclamp (in onadmin_cloudupgrade_clients) triggers
