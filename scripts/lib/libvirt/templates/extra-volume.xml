@@ -3,4 +3,5 @@
       <driver name='qemu' type='raw' cache='unsafe'/>
       <source dev='$source_dev'/>
       <target dev='$target_dev' bus='$target_bus'/>
+      <address type='pci' slot='$target_slot'/>
     </disk>

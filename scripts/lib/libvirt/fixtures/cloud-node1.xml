@@ -36,6 +36,7 @@
       <driver name='qemu' type='raw' cache='unsafe'/>
       <source dev='/dev/cloud/cloud.node1-ceph1'/>
       <target dev='vdb' bus='virtio'/>
+      <address type='pci' slot='0x11'/>
     </disk>
 
 

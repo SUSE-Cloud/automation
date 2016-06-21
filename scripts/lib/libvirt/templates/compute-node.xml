@@ -22,6 +22,7 @@
       <driver name='qemu' type='raw' cache='unsafe'/>
       <source dev='$vdisk_dir/$cloud.node$nodecounter'/>
       <target dev='$target_dev' bus='$target_bus'/>
+      <address type='pci' slot='0x0a'/>
       <boot order='$bootorder'/>
     </disk>
 $raidvolume
