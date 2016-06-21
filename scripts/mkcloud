@@ -464,9 +464,9 @@ function setuphost()
 
 function prepare()
 {
-    if ! [ -e ~/.ssh/id_dsa ]; then
+    if ! [ -e ~/.ssh/id_rsa ]; then
         echo "Creating key for controlling our VMs..."
-        ssh-keygen -t dsa -f ~/.ssh/id_dsa -N ""
+        ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
     fi
 
     onhost_enable_ksm
@@ -507,13 +507,15 @@ function setupadmin()
 
     wait_for 20 2 "nc -z $adminip 22" 'sshd to start'
     echo "Injecting public key into admin node..."
-    local keyfile=~/.ssh/id_dsa.pub
-    local pubkey=`cut -d" " -f2 $keyfile`
-    ssh_password $adminip "
-        mkdir -p ~/.ssh;
-        grep -q $pubkey ~/.ssh/authorized_keys 2>/dev/null ||
-            echo ssh-dss $pubkey injected-key-from-host >> ~/.ssh/authorized_keys
-    "
+    local keyfile
+    for keyfile in ~/.ssh/*.pub ; do
+        local pubkey=`cat $keyfile`
+        ssh_password $adminip "
+            mkdir -p ~/.ssh;
+            grep -q '$pubkey' ~/.ssh/authorized_keys 2>/dev/null ||
+                echo '$pubkey injected-from-host' >> ~/.ssh/authorized_keys
+        "
+    done
     if [[ -n $user_keyfile ]]; then
         cat $user_keyfile | ssh $adminip "cat >> ~/.ssh/authorized_keys"
     fi
