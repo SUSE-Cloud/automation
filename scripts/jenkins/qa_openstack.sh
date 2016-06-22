@@ -357,6 +357,10 @@ EOF
 heat stack-create -f $PWD/testvm.stack teststack
 
 sleep 60
+
+# Check basic Barbican API functionality
+openstack secret list
+
 . /etc/openstackquickstartrc
 
 FLOATING_IP=$(eval echo $(heat output-show teststack server_floating_ip))
