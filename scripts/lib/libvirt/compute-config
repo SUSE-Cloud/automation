@@ -24,8 +24,8 @@ def main():
                         help="Controller Node Memory (kB)")
     parser.add_argument("libvirttype", help="Libvirt Type (e.g. kvm)")
     parser.add_argument("vcpus", type=int, help="Number of VCPUs")
-    parser.add_argument("emulator",
-                        help="Emulator (e.g. /usr/bin/qemu-system-x86_64)")
+    parser.add_argument("emulator", help="QEMU to use",
+                        default="/usr/bin/qemu-system-%s" % os.uname()[4])
     parser.add_argument("vdiskdir",
                         help="Virtual Disk Directory (e.g /dev/cloud)")
     parser.add_argument("bootorder", type=int, help="Boot Order (e.g. 2)")
@@ -36,7 +36,8 @@ def main():
     # to workaround bnc#946020+bnc#946068 we use the 2.0 machine type
     # if it is available
     machine = "pc-i440fx-2.0"
-    if os.system("qemu-kvm -machine \? | grep -q "+machine) != 0:
+    if os.system("%(emulator)s -machine \? | grep -q %(machine)s" % ({
+                     'emulator': args.emulator, 'machine': machine})) != 0:
         machine = None
     print(libvirt_setup.compute_config(args, libvirt_setup.cpuflags(),
                                        machine))

@@ -516,13 +516,13 @@ function export_tftpboot_repos_dir()
         tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
     elif iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
         tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
-        tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/x86_64/repos
+        tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/$(uname -m)/repos
         # We need SP1 repositories for ceph nodes
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
+        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$(uname -m)/repos
     elif iscloudver 6plus; then
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/x86_64/repos
+        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$(uname -m)/repos
     fi
 }
 
@@ -554,16 +554,16 @@ function addsles12testupdates()
 function addsles12sp1testupdates()
 {
     add_mount "SLES12-SP1-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/' \
+        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/$(uname -m)/update/" \
         "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     [[ $hacloud ]] && add_mount "SLE12-SP1-HA-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/' \
+        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/$(uname -m)/update/" \
         "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     [ -n "$deployceph" -a iscloudver 6 ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/' \
+        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$(uname -m)/update/" \
         "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
     [ -n "$deployceph" -a iscloudver 7plus ] && add_mount "SUSE-Enterprise-Storage-3-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/' \
+        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/$(uname -m)/update/" \
         "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-3-Updates-test/"
 
 }
@@ -901,7 +901,7 @@ function cluster_node_assignment()
     echo "............................................................"
 }
 
-function onadmin_prepare_sles_repos()
+function onadmin_prepare_sles11sp3_repos()
 {
     local targetdir_install="$tftpboot_suse_dir/install"
 
@@ -924,7 +924,7 @@ function onadmin_prepare_sles_repos()
         fi
 
         local repo
-        for repo in $slesrepolist ; do
+        for repo in SLES11-SP3-Pool SLES11-SP3-Updates ; do
             local zypprepo=""
             [ "$WITHSLEUPDATES" != "" ] && zypprepo="$repo"
             add_mount "$zypprepo" \
@@ -932,9 +932,10 @@ function onadmin_prepare_sles_repos()
                 "$tftpboot_repos_dir/$repo"
         done
 
-        # just as a fallback if nfs did not work
+        # fallback: download the image and mount it if NFS mount didn't work
         if [ ! -e "$targetdir_install/media.1/" ]; then
-            download_and_mount_sles "$tftpboot_suse_dir" "$targetdir_install"
+            local iso_file=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
+            rsync_iso "install/SLES-$slesversion-$slesmilestone/$iso_file" $iso_file $targetdir_install
         fi
     fi
 
@@ -962,35 +963,25 @@ function rsync_iso()
     )
 }
 
-function onadmin_prepare_sles12_repos()
-{
-    onadmin_prepare_sles12_repo
-    onadmin_prepare_sles12_other_repos
-}
-
 function onadmin_prepare_sles12sp1_repos()
 {
-    onadmin_prepare_sles12sp1_repo
+    onadmin_prepare_sles12sp1_installmedia
     onadmin_prepare_sles12sp1_other_repos
 }
 
 function onadmin_prepare_sles12sp2_repos()
 {
-    onadmin_prepare_sles12sp2_repo
+    onadmin_prepare_sles12sp2_installmedia
     onadmin_prepare_sles12sp2_other_repos
 }
 
 function onadmin_prepare_sles12plus_cloud_repos()
 {
     if iscloudver 5; then
-        onadmin_prepare_sles12_cloud_compute_repo
+        rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$tftpboot_repos12_dir/SLE12-Cloud-Compute"
     fi
-    onadmin_create_sles12plus_repos
-}
 
-# create empty repository when there is none yet
-function onadmin_create_sles12plus_repos()
-{
+    #  create empty repository when there is none yet
     ensure_packages_installed createrepo
 
     local sles12optionalrepolist
@@ -1024,7 +1015,7 @@ function onadmin_create_sles12plus_repos()
     done
 }
 
-function onadmin_prepare_sles12_repo()
+function onadmin_prepare_sles12_installmedia()
 {
     local sles12_mount="$tftpboot_suse12_dir/install"
     add_mount "SLE-12-Server-LATEST/sle-12-x86_64" \
@@ -1036,9 +1027,9 @@ function onadmin_prepare_sles12_repo()
     fi
 }
 
-function onadmin_prepare_sles12sp1_repo()
+function onadmin_prepare_sles12sp1_installmedia()
 {
-    for arch in x86_64 s390x; do
+    for arch in aarch64 x86_64 s390x; do
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$arch/install"
         add_mount "SLE-12-SP1-Server-LATEST/sle-12-$arch" \
             "$clouddata:/srv/nfs/suse-12.1/$arch/install" \
@@ -1050,9 +1041,9 @@ function onadmin_prepare_sles12sp1_repo()
     done
 }
 
-function onadmin_prepare_sles12sp2_repo()
+function onadmin_prepare_sles12sp2_installmedia()
 {
-    for arch in x86_64 s390x; do
+    for arch in aarch64 x86_64 s390x; do
         local sles12sp2_mount="$tftpboot_suse12sp2_dir/$arch/install"
         add_mount "SLE-12-SP2-Server-LATEST/sle-12-$arch" \
             "$clouddata:/srv/nfs/suse-12.2/$arch/install" \
@@ -1062,20 +1053,6 @@ function onadmin_prepare_sles12sp2_repo()
             complain 34 "We do not have SLES12 SP2 install media - giving up"
         fi
     done
-}
-
-function onadmin_prepare_sles12_cloud_compute_repo()
-{
-    local sles12_compute_mount="$tftpboot_repos12_dir/SLE12-Cloud-Compute"
-
-    if [ -n "$localreposdir_target" ]; then
-        echo "FIXME: SLE12-Cloud-Compute not available from clouddata yet." >&2
-        echo "Will manually download and rsync." >&2
-        # add_mount "SLE12-Cloud-Compute" \
-        #     "$clouddata:/srv/nfs/repos/SLE12-Cloud-Compute" \
-        #     "$targetdir_install"
-    fi
-    rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$sles12_compute_mount"
 }
 
 function onadmin_prepare_sles12_other_repos()
@@ -1089,7 +1066,7 @@ function onadmin_prepare_sles12_other_repos()
 function onadmin_prepare_sles12sp1_other_repos()
 {
     for repo in SLES12-SP1-{Pool,Updates}; do
-        add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
+        add_mount "$repo/sle-12-$(uname -m)" "$clouddata:/srv/nfs/repos/$(uname -m)/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
@@ -1101,28 +1078,13 @@ function onadmin_prepare_sles12sp1_other_repos()
 function onadmin_prepare_sles12sp2_other_repos()
 {
     for repo in SLES12-SP2-{Pool,Updates}; do
-        add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
+        add_mount "$repo/sle-12-$(uname -m)" "$clouddata:/srv/nfs/repos/$(uname -m)/$repo" \
             "$tftpboot_repos12sp2_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
                 "$tftpboot_suse12sp2_dir/s390x/repos/$repo"
         fi
     done
-}
-
-function download_and_mount_sles()
-{
-    local iso_dir="$1"
-    local mountpoint="$2"
-
-    local iso_file=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
-    local iso_path=$iso_dir/$iso_file
-
-    local url="http://$susedownload/install/SLES-$slesversion-$slesmilestone/$iso_file"
-    wget --progress=dot:mega -nc -O$iso_path "$url" \
-        || complain 72 "iso not found"
-    echo "$iso_path $mountpoint iso9660 loop,ro" >> /etc/fstab
-    safely mount "$mountpoint"
 }
 
 function onadmin_prepare_cloud_repos()
@@ -1140,18 +1102,18 @@ function onadmin_prepare_cloud_repos()
     if [ -n "${localreposdir_target}" ]; then
         if iscloudver 6plus; then
             add_bind_mount \
-                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-12-x86_64/" \
+                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-12-$(uname -m)/" \
                 "${targetdir}"
         else
             add_bind_mount \
-                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-x86_64/" \
+                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-$(uname -m)/" \
                 "${targetdir}"
         fi
     else
         if iscloudver 6plus; then
             rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$targetdir"
             if [[ $want_s390 ]] ; then
-                rsync_iso "$CLOUDSLE12DISTPATH" "${CLOUDSLE12DISTISO/x86_64/s390x}" "${targetdir/x86_64/s390x}"
+                rsync_iso "$CLOUDSLE12DISTPATH" "${CLOUDSLE12DISTISO/$(uname -m)/s390x}" "${targetdir/$(uname -m)/s390x}"
             fi
         else
             rsync_iso "$CLOUDSLE11DISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
@@ -1429,19 +1391,16 @@ function onadmin_set_source_variables()
 
     case "$suseversion" in
         11.3)
-            slesrepolist="SLES11-SP3-Pool SLES11-SP3-Updates"
             slesversion=11-SP3
             slesdist=SLE_11_SP3
             slesmilestone=GM
         ;;
         12.1)
-            slesrepolist="SLES12-SP1-Pool SLES12-SP1-Updates"
             slesversion=12-SP1
             slesdist=SLE_12_SP1
             slesmilestone=GM
         ;;
         12.2)
-            slesrepolist="SLES12-SP2-Pool SLES12-SP2-Updates"
             slesversion=12-SP2
             slesdist=SLE_12_SP2
             slesmilestone=GM
@@ -1494,17 +1453,13 @@ function onadmin_setup_local_zypper_repositories()
                 zypper ar http://${clouddata}/repos/SLES11-SP3-Pool/ sles11sp3
                 zypper ar http://${clouddata}/repos/SLES11-SP3-Updates/ sles11sp3up
             ;;
-            6)
-                zypper ar http://${clouddata}/repos/SLES12-SP1-Pool/ sles12sp1
-                zypper ar http://${clouddata}/repos/SLES12-SP1-Updates/ sles12sp1up
-            ;;
-            7)
-                if [[ $want_sles12sp2 ]] ; then
-                    zypper ar http://${clouddata}/repos/SLES12-SP2-Pool/ sles12sp2
-                    zypper ar http://${clouddata}/repos/SLES12-SP2-Updates/ sles12sp2up
+            6|7)
+                if iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
+                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP2-Pool/ sles12sp2
+                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP2-Updates/ sles12sp2up
                 else
-                    zypper ar http://${clouddata}/repos/SLES12-SP1-Pool/ sles12sp1
-                    zypper ar http://${clouddata}/repos/SLES12-SP1-Updates/ sles12sp1up
+                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP1-Pool/ sles12sp1
+                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP1-Updates/ sles12sp1up
                 fi
             ;;
         esac
@@ -1560,17 +1515,19 @@ EOF
     onadmin_setup_local_zypper_repositories
 
     if iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
+        # Still needed for SUSE Storage :(
         onadmin_prepare_sles12sp1_repos
         onadmin_prepare_sles12sp2_repos
         onadmin_prepare_sles12plus_cloud_repos
-    elif iscloudver 6plus; then
+    elif iscloudver 6plus ; then
         onadmin_prepare_sles12sp1_repos
         onadmin_prepare_sles12plus_cloud_repos
     else
-        onadmin_prepare_sles_repos
+        onadmin_prepare_sles11sp3_repos
 
         if iscloudver 5plus ; then
-            onadmin_prepare_sles12_repos
+            onadmin_prepare_sles12_installmedia
+            onadmin_prepare_sles12_other_repos
             onadmin_prepare_sles12plus_cloud_repos
         fi
     fi
@@ -1612,6 +1569,11 @@ EOF
     zypper al kernel-default
     zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
     zypper rl kernel-default
+
+    # Workaround chef-solr crashes
+    if [ "$(uname -m)" = "aarch64" ]; then
+        ensure_packages_installed java-1_7_0-openjdk java-1_7_0-openjdk-headless
+    fi
 
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
         safely zypper --no-gpg-checks -n in -l -t pattern cloud_admin
@@ -1695,8 +1657,6 @@ EOF
             echo "/srv/nfs     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
         fi
     fi
-
-    # exit code of the sed don't matter, so just:
     return 0
 }
 

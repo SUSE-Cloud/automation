@@ -5,7 +5,6 @@ import itertools as it
 import os
 import re
 import string
-import subprocess
 import xml.etree.ElementTree as ET
 
 import libvirt
@@ -30,13 +29,17 @@ def remove_files(files):
 
 
 def cpuflags():
-    cpu_flags = readfile("{0}/cpu-default.xml".format(TEMPLATE_DIR))
-    if (subprocess.call(["grep", "-q", "flags.* npt", "/proc/cpuinfo"]) == 0):
-        cpu_flags = ""
-    if (subprocess.call(["grep", "-q", "vendor_id.*GenuineIntel",
-                        "/proc/cpuinfo"]) == 0):
-        cpu_flags = readfile("{0}/cpu-intel.xml".format(TEMPLATE_DIR))
-    return cpu_flags
+    cpu_template = "cpu-default.xml"
+    cpu_info = readfile("/proc/cpuinfo")
+    if re.search("^CPU architecture.* 8", cpu_info, re.MULTILINE):
+        cpu_template = "cpu-arm64.xml"
+    if re.search("^vendor_id.*GenuineIntel", cpu_info, re.MULTILINE):
+        cpu_template = "cpu-intel.xml"
+
+    if re.search("flags.* npt", cpu_info):
+        return ""
+
+    return readfile(os.path.join(TEMPLATE_DIR, cpu_template))
 
 
 def hypervisor_has_virtio(libvirt_type):
@@ -48,9 +51,18 @@ def get_config(values, fin):
     return template.substitute(values)
 
 
-def admin_config(args, cpu_flags=cpuflags()):
-    fin = "{0}/admin-node.xml".format(TEMPLATE_DIR)
+def get_machine_arch():
+    return os.uname()[4]
 
+
+def get_default_machine():
+    if 'aarch64' in get_machine_arch():
+        return "virt"
+    else:
+        return "pc-0.14"
+
+
+def admin_config(args, cpu_flags=cpuflags()):
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
     if args.localreposrc and args.localrepotgt:
@@ -66,15 +78,16 @@ def admin_config(args, cpu_flags=cpuflags()):
         adminvcpus=args.adminvcpus,
         cpuflags=cpu_flags,
         emulator=args.emulator,
+        march=get_machine_arch(),
+        machine=get_default_machine(),
         admin_node_disk=args.adminnodedisk,
         local_repository_mount=localrepomount)
 
-    return get_config(values, fin)
+    return get_config(values, os.path.join(TEMPLATE_DIR, "admin-node.xml"))
 
 
 def net_config(args):
     cloud = args.cloud
-    fin = "{0}/admin-net.xml".format(TEMPLATE_DIR)
     values = dict(
         cloud=cloud,
         cloudbr=args.cloudbr,
@@ -84,13 +97,13 @@ def net_config(args):
         adminip=args.adminip,
         forwardmode=args.forwardmode)
 
-    return get_config(values, fin)
+    return get_config(values, os.path.join(TEMPLATE_DIR, "admin-net.xml"))
 
 
 def compute_config(args, cpu_flags=cpuflags(), machine=None):
     if not machine:
-        machine = "pc-0.14"
-    fin = "{0}/compute-node.xml".format(TEMPLATE_DIR)
+        machine = get_default_machine()
+
     libvirt_type = args.libvirttype
     alldevices = it.chain(it.chain(string.lowercase[1:]),
                           it.product(string.lowercase, string.lowercase))
@@ -169,6 +182,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         nodecounter=args.nodecounter,
         nodememory=nodememory,
         vcpus=args.vcpus,
+        march=get_machine_arch(),
         machine=machine,
         cpuflags=cpu_flags,
         emulator=args.emulator,
@@ -182,7 +196,16 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         target_bus=targetbus,
         bootorder=args.bootorder)
 
-    return get_config(values, fin)
+    return get_config(values, os.path.join(TEMPLATE_DIR, "compute-node.xml"))
+
+
+def domain_cleanup(dom):
+    if dom.isActive():
+        print("destroying {0}".format(dom.name()))
+        dom.destroy()
+
+    print("undefining {0}".format(dom.name()))
+    dom.undefineFlags(flags=libvirt.VIR_DOMAIN_UNDEFINE_NVRAM)
 
 
 def cleanup_one_node(args):
@@ -202,30 +225,18 @@ def cleanup(args):
     for dom in domains:
         domain_cleanup(dom)
 
-    networks = [i for i in conn.listAllNetworks()
-                if i.name() == "{0}-admin".format(args.cloud)]
-    for network in networks:
-        if network.isActive():
-            print("destroying {0}".format(network.name()))
-            network.destroy()
-
-        print("undefining {0}".format(network.name()))
-        network.undefine()
+    for network in conn.listAllNetworks():
+        if network.name() == args.cloud + "-admin":
+            print("Cleaning up network {0}".format(network.name()))
+            if network.isActive():
+                network.destroy()
+            network.undefine()
 
     remove_files("/tmp/{0}-*.xml".format(args.cloud))
     remove_files("/var/run/libvirt/qemu/{0}-*.xml".format(args.cloud))
     remove_files("/var/lib/libvirt/network/{0}-*.xml".format(args.cloud))
     remove_files("/etc/sysconfig/network/ifcfg-{0}.{1}".format(
         args.cloudbr, args.vlan_public))
-
-
-def domain_cleanup(dom):
-    if dom.isActive():
-        print("destroying {0}".format(dom.name()))
-        dom.destroy()
-
-    print("undefining {0}".format(dom.name()))
-    dom.undefine()
 
 
 def xml_get_value(path, attrib):
