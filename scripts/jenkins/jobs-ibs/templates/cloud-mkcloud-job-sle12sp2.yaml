@@ -1,0 +1,23 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-sle12sp2'
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H 6 * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{version}
+            nodenumber=2
+            want_sles12sp2=1
+            mkcloudtarget=all
