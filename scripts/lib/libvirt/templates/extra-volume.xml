@@ -1,6 +1,7 @@
-<disk type='block' device='disk'>
-  <serial>$volume_serial</serial>
-  <driver name='qemu' type='raw' cache='unsafe'/>
-  <source dev='$source_dev'/>
-  <target dev='$target_dev' bus='$target_bus'/>
-</disk>
+    <disk type='block' device='disk'>
+      <serial>$volume_serial</serial>
+      <driver name='qemu' type='raw' cache='unsafe'/>
+      <source dev='$source_dev'/>
+      <target dev='$target_dev' bus='$target_bus'/>
+      <address type='pci' slot='$target_slot'/>
+    </disk>

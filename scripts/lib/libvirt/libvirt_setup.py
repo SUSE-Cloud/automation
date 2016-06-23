@@ -100,6 +100,10 @@ def net_config(args):
     return get_config(values, os.path.join(TEMPLATE_DIR, "admin-net.xml"))
 
 
+def merge_dicts(d1, d2):
+    return dict(it.chain(d1.items(), d2.items()))
+
+
 def compute_config(args, cpu_flags=cpuflags(), machine=None):
     if not machine:
         machine = get_default_machine()
@@ -108,14 +112,18 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
     alldevices = it.chain(it.chain(string.lowercase[1:]),
                           it.product(string.lowercase, string.lowercase))
 
+    configopts = {
+        'nicmodel': 'e1000',
+        'emulator': args.emulator,
+        'vdisk_dir': args.vdiskdir,
+    }
     if hypervisor_has_virtio(libvirt_type):
-        nicmodel = "virtio"
         targetdevprefix = "vd"
-        targetbus = "virtio"
+        configopts['nicmodel'] = 'virtio'
+        configopts['target_bus'] = 'virtio'
     else:
-        nicmodel = "e1000"
         targetdevprefix = "sd"
-        targetbus = "ide"
+        configopts['target_bus'] = 'ide'
     controller_raid_volumes = args.controller_raid_volumes
     if args.nodecounter > args.numcontrollers:
         controller_raid_volumes = 0
@@ -127,9 +135,9 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
     # a valid serial is defined in libvirt-1.2.18/src/qemu/qemu_command.c:
     serialcloud = re.sub("[^A-Za-z0-9-_]", "_", args.cloud)
     for i in range(1, controller_raid_volumes):
-        raid_template = string.Template(readfile(
-            "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
-        raid_values = {
+        raid_template = string.Template(
+            readfile(os.path.join(TEMPLATE_DIR, "extra-volume.xml")))
+        raidvolume += "\n" + raid_template.substitute(merge_dicts({
             'volume_serial': "{0}-node{1}-raid{2}".format(
                 serialcloud,
                 args.nodecounter,
@@ -140,42 +148,41 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
                 args.nodecounter,
                 i),
             'target_dev': targetdevprefix + ''.join(alldevices.next()),
-            'target_bus': targetbus
-        }
-        raidvolume += "\n" + raid_template.substitute(raid_values)
+            'target_slot': '0x2{0}'.format(i),
+        }, configopts))
 
     cephvolume = ""
     if args.cephvolumenumber and args.cephvolumenumber > 0:
         for i in range(1, args.cephvolumenumber+1):
-            ceph_template = string.Template(readfile(
-                "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
-            ceph_values = dict(
-                volume_serial="{0}-node{1}-ceph{2}".format(
+            ceph_template = string.Template(
+                readfile(os.path.join(TEMPLATE_DIR, "extra-volume.xml")))
+            cephvolume += "\n" + ceph_template.substitute(merge_dicts({
+                'volume_serial': "{0}-node{1}-ceph{2}".format(
                     serialcloud,
                     args.nodecounter,
                     i),
-                source_dev="{0}/{1}.node{2}-ceph{3}".format(
+                'source_dev': "{0}/{1}.node{2}-ceph{3}".format(
                     args.vdiskdir,
                     args.cloud,
                     args.nodecounter,
                     i),
-                target_dev=targetdevprefix + ''.join(alldevices.next()),
-                target_bus=targetbus)
-            cephvolume += "\n" + ceph_template.substitute(ceph_values)
+                'target_dev': targetdevprefix + ''.join(alldevices.next()),
+                'target_slot': '0x1{0}'.format(i),
+            }, configopts))
 
     drbdvolume = ""
     if args.drbdserial:
-        drbd_template = string.Template(readfile(
-            "{0}/extra-volume.xml".format(TEMPLATE_DIR)))
-        drbd_values = dict(
-            volume_serial=args.drbdserial,
-            source_dev="{0}/{1}.node{2}-drbd".format(
+        drbd_template = string.Template(
+            readfile(os.path.join(TEMPLATE_DIR, "extra-volume.xml")))
+        drbdvolume = drbd_template.substitute(merge_dicts({
+            'volume_serial': args.drbdserial,
+            'source_dev': "{0}/{1}.node{2}-drbd".format(
                 args.vdiskdir,
                 args.cloud,
                 args.nodecounter),
-            target_dev=targetdevprefix + ''.join(alldevices.next()),
-            target_bus=targetbus)
-        drbdvolume = drbd_template.substitute(drbd_values)
+            'target_dev': targetdevprefix + ''.join(alldevices.next()),
+            'target_slot': '0x30'},
+            configopts))
 
     values = dict(
         cloud=args.cloud,
@@ -185,18 +192,15 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         march=get_machine_arch(),
         machine=machine,
         cpuflags=cpu_flags,
-        emulator=args.emulator,
-        vdisk_dir=args.vdiskdir,
         raidvolume=raidvolume,
         cephvolume=cephvolume,
         drbdvolume=drbdvolume,
         macaddress=args.macaddress,
-        nicmodel=nicmodel,
         target_dev=targetdevprefix + 'a',
-        target_bus=targetbus,
         bootorder=args.bootorder)
 
-    return get_config(values, os.path.join(TEMPLATE_DIR, "compute-node.xml"))
+    return get_config(merge_dicts(values, configopts),
+                      os.path.join(TEMPLATE_DIR, "compute-node.xml"))
 
 
 def domain_cleanup(dom):

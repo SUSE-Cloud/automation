@@ -22,6 +22,7 @@
       <driver name='qemu' type='raw' cache='unsafe'/>
       <source dev='$vdisk_dir/$cloud.node$nodecounter'/>
       <target dev='$target_dev' bus='$target_bus'/>
+      <address type='pci' slot='0x0a'/>
       <boot order='$bootorder'/>
     </disk>
 $raidvolume
@@ -32,7 +33,7 @@ $drbdvolume
       <target dev='$cloud-$nodecounter'/>
       <source network='$cloud-admin'/>
       <model type='$nicmodel'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+      <address type='pci' slot='0x03'/>
       <boot order='2'/>
     </interface>
     <serial type='pty'>
@@ -45,7 +46,7 @@ $drbdvolume
     <graphics type='vnc' port='-1' autoport='yes'/>
     <video>
       <model type='cirrus' vram='9216' heads='1'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
+      <address type='pci' slot='0x02'/>
     </video>
   </devices>
 </domain>
