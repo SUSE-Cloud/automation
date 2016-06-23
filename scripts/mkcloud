@@ -497,6 +497,11 @@ function wait_for_crowbar_ssh()
     wait_for 150 1 "nc -z $adminip 22" 'admin node to start ssh daemon'
 }
 
+function wait_for_crowbar_ntpd()
+{
+    wait_for 200 10 "ntpdate -d $adminip" "admin node ntpd service"
+}
+
 # bring up the VM for crowbar
 function setupadmin()
 {
@@ -770,6 +775,7 @@ function restartcloud()
     libvirt_net_start
     virsh start $cloud-admin
     setuppublicnet
+    wait_for_crowbar_ntpd
     for i in $allnodeids ; do
         virsh start $cloud-node$i
     done
