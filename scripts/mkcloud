@@ -582,7 +582,6 @@ function createcloudsnapshot()
         create_snapshot_volume "${cloudvg}/${d}"
     done
     restartcloud
-    wait_for_crowbar_ssh
 }
 
 function restorecloudfromsnapshot()
@@ -773,6 +772,7 @@ function restartcloud()
     for i in $allnodeids ; do
         virsh start $cloud-node$i
     done
+    wait_for_crowbar_ssh
 }
 
 # bring up VMs that will take cloud controller/compute/storage roles
