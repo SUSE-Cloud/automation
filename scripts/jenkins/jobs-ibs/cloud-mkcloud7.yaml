@@ -11,7 +11,6 @@
         - 'cloud-mkcloud{version}-job-ha-compute'
         - 'cloud-mkcloud{version}-job-ha'
         - 'cloud-mkcloud{version}-job-hyperv'
-        - 'cloud-mkcloud{version}-job-mitaka'
         - 'cloud-mkcloud{version}-job-raid'
         - 'cloud-mkcloud{version}-job-ssl'
         - 'cloud-mkcloud{version}-job-tempestfull'
