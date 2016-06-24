@@ -4381,9 +4381,8 @@ function onadmin_run_cct()
         fi
 
         if iscloudver 6plus && [ "$skip_func_tests" == 0 ]; then
-            # 2017-03-29: manila functional tests are hitting frequently a timeout, disable for now
-            # for test in "nova" "manila"; do
-            for test in "nova" ; do
+            # 2016-03-29: manila functional tests are hitting frequently a timeout, disable for now
+            for test in "nova-disabled" "manila-disabled" ; do
                 if crowbarctl proposal list $test &> /dev/null; then
                     cct_tests+="+test:func:${test}client"
                 fi
