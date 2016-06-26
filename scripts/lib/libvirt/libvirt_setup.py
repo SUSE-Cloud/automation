@@ -148,7 +148,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
                 args.nodecounter,
                 i),
             'target_dev': targetdevprefix + ''.join(alldevices.next()),
-            'target_slot': '0x2{0}'.format(i),
+            'target_slot': '0x1{0}'.format(hex(i+9)[2:]),
         }, configopts))
 
     cephvolume = ""
@@ -181,7 +181,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
                 args.cloud,
                 args.nodecounter),
             'target_dev': targetdevprefix + ''.join(alldevices.next()),
-            'target_slot': '0x30'},
+            'target_slot': '0x1f'},
             configopts))
 
     values = dict(
