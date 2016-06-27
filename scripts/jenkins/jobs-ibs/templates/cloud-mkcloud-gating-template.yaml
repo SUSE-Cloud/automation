@@ -40,7 +40,6 @@
                 TESTHEAD=1
                 cloudsource=develcloud{version}
                 nodenumber=4
-                want_ldap=1
                 networkingplugin=linuxbridge
                 mkcloudtarget=all
       - multijob:
