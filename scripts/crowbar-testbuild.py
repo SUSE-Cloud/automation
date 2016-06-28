@@ -107,7 +107,9 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
         '-p',
         "github_pr=crowbar/%s:%s" % (repo, github_opts),
         "cloudsource=" + cloudsource,
-        'UPDATEREPOS=' + htdocs_url + ptfdir,
+        # trailing slash required
+        # to prevent wget from traversing all test-updates
+        'UPDATEREPOS=' + htdocs_url + ptfdir + "/",
         'mkcloudtarget=all_noreboot',
         *job_parameters))
 
