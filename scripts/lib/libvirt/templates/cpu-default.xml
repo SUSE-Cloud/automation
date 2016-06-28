@@ -12,5 +12,4 @@
   <feature policy='require' name='cx16'/>
   <feature policy='require' name='3dnowprefetch'/>
   <feature policy='require' name='cmp_legacy'/>
-  <feature policy='require' name='monitor'/>
 </cpu>
