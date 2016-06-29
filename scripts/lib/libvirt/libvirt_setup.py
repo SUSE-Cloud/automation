@@ -209,7 +209,13 @@ def domain_cleanup(dom):
         dom.destroy()
 
     print("undefining {0}".format(dom.name()))
-    dom.undefineFlags(flags=libvirt.VIR_DOMAIN_UNDEFINE_NVRAM)
+    try:
+        dom.undefineFlags(flags=libvirt.VIR_DOMAIN_UNDEFINE_NVRAM)
+    except:
+        try:
+            dom.undefine()
+        except:
+            print("failed to undefine {0}".format(dom.name()))
 
 
 def cleanup_one_node(args):
