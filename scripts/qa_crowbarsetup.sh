@@ -264,7 +264,7 @@ setcloudnetvars()
     vlan_storage=${vlan_storage:-200}
     vlan_public=${vlan_public:-300}
     vlan_fixed=${vlan_fixed:-500}
-    vlan_sdn=${vlan_sdn:-$vlan_storage}
+    vlan_sdn=${vlan_sdn:-400}
     net_fixed=${net_fixed:-192.168.123}
     net_public=${net_public:-192.168.122}
     net_storage=${net_storage:-192.168.125}
