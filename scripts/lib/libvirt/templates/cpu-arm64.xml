@@ -1,1 +1,4 @@
-<cpu mode='host-passthrough'/>
+  <features>
+  <gic version='host'/>
+  </features>
+  <cpu mode='host-passthrough'/>

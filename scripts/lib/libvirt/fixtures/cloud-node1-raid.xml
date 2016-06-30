@@ -12,9 +12,9 @@
     <pae/>
   </features>
   <cpu mode='custom' match='exact'>
-  <model fallback='allow'>core2duo</model>
-  <feature policy='require' name='vmx'/>
-</cpu>
+    <model fallback='allow'>core2duo</model>
+    <feature policy='require' name='vmx'/>
+  </cpu>
 
   <clock offset='utc'/>
   <on_poweroff>preserve</on_poweroff>

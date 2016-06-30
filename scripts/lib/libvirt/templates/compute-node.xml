@@ -6,12 +6,7 @@
   <os>
     <type arch='$march' machine='$machine'>hvm</type>
   </os>
-  <features>
-    <acpi/>
-    <apic/>
-    <pae/>
-  </features>
-  $cpuflags
+$cpuflags
   <clock offset='utc'/>
   <on_poweroff>preserve</on_poweroff>
   <on_reboot>restart</on_reboot>
