@@ -166,6 +166,7 @@ setcloudnetvars()
             net=$netp.178
             net_public=$netp.177
             vlan_storage=568
+            vlan_sdn=$vlan_storage
             vlan_public=567
             vlan_fixed=566
             want_ipmi=true
@@ -175,6 +176,7 @@ setcloudnetvars()
             net=$netp.186
             net_public=$netp.185
             vlan_storage=581
+            vlan_sdn=$vlan_storage
             vlan_public=580
             vlan_fixed=569
             want_ipmi=true
@@ -184,6 +186,7 @@ setcloudnetvars()
             net=$netp.189
             net_public=$netp.188
             vlan_storage=586
+            vlan_sdn=$vlan_storage
             vlan_public=588
             vlan_fixed=589
             want_ipmi=true
@@ -205,6 +208,7 @@ setcloudnetvars()
             #vlan_admin=610
             vlan_fixed=611
             vlan_storage=612
+            vlan_sdn=$vlan_storage
             want_ipmi=true
         ;;
         qa3)
@@ -215,6 +219,7 @@ setcloudnetvars()
             #vlan_admin=615
             vlan_fixed=615
             vlan_storage=616
+            vlan_sdn=$vlan_storage
             want_ipmi=true
         ;;
         qa4)
@@ -226,6 +231,7 @@ setcloudnetvars()
             #vlan_admin=714
             vlan_fixed=717
             vlan_storage=716
+            vlan_sdn=$vlan_storage
             want_ipmi=true
         ;;
         p2)
@@ -233,6 +239,7 @@ setcloudnetvars()
             net_public=$netp.164
             net_fixed=44.0.0
             vlan_storage=563
+            vlan_sdn=$vlan_storage
             vlan_public=564
             vlan_fixed=565
             want_ipmi=true
@@ -241,6 +248,7 @@ setcloudnetvars()
             net=$netp.169
             net_public=$netp.168
             vlan_storage=565
+            vlan_sdn=$vlan_storage
             vlan_public=564
             vlan_fixed=563
             want_ipmi=true
