@@ -5,6 +5,8 @@
   <vcpu>$adminvcpus</vcpu>
   <os>
     <type arch='$march' machine='$machine'>hvm</type>
+$osloader
+    <nvram>/var/lib/libvirt/$cloud-admin_VARS.fd</nvram>
     <boot dev='hd'/>
   </os>
 $cpuflags

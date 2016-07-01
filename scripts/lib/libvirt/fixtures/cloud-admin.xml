@@ -5,6 +5,8 @@
   <vcpu>1</vcpu>
   <os>
     <type arch='x86_64' machine='pc-0.14'>hvm</type>
+
+    <nvram>/var/lib/libvirt/cloud-admin_VARS.fd</nvram>
     <boot dev='hd'/>
   </os>
   <features>

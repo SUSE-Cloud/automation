@@ -5,6 +5,8 @@
   <vcpu>$vcpus</vcpu>
   <os>
     <type arch='$march' machine='$machine'>hvm</type>
+$osloader
+    <nvram>/var/lib/libvirt/$cloud-node_VARS.fd</nvram>
   </os>
 $cpuflags
   <clock offset='utc'/>
