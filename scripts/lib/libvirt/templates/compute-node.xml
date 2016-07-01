@@ -5,13 +5,10 @@
   <vcpu>$vcpus</vcpu>
   <os>
     <type arch='$march' machine='$machine'>hvm</type>
+$osloader
+    <nvram>/var/lib/libvirt/$cloud-node_VARS.fd</nvram>
   </os>
-  <features>
-    <acpi/>
-    <apic/>
-    <pae/>
-  </features>
-  $cpuflags
+$cpuflags
   <clock offset='utc'/>
   <on_poweroff>preserve</on_poweroff>
   <on_reboot>restart</on_reboot>
@@ -43,10 +40,6 @@ $drbdvolume
       <target type='serial' port='0'/>
     </console>
     <input type='mouse' bus='ps2'/>
-    <graphics type='vnc' port='-1' autoport='yes'/>
-    <video>
-      <model type='cirrus' vram='9216' heads='1'/>
-      <address type='pci' slot='0x02'/>
-    </video>
+$videodevices
   </devices>
 </domain>

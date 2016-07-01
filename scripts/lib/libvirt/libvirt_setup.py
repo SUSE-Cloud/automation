@@ -55,6 +55,22 @@ def get_machine_arch():
     return os.uname()[4]
 
 
+def get_os_loader():
+    path = '/usr/share/qemu/aavmf-aarch64-code.bin'
+    if 'aarch64' in get_machine_arch():
+        return """
+  <loader readonly='yes' type='pflash'>%s</loader>
+""" % path
+    return ""
+
+
+def get_video_devices():
+    if 'aarch64' in get_machine_arch():
+        return ''
+
+    return readfile(os.path.join(TEMPLATE_DIR, 'video-default.xml'))
+
+
 def get_default_machine():
     if 'aarch64' in get_machine_arch():
         return "virt"
@@ -78,9 +94,11 @@ def admin_config(args, cpu_flags=cpuflags()):
         adminvcpus=args.adminvcpus,
         cpuflags=cpu_flags,
         emulator=args.emulator,
+        osloader=get_os_loader(),
         march=get_machine_arch(),
         machine=get_default_machine(),
         admin_node_disk=args.adminnodedisk,
+        videodevices=get_video_devices(),
         local_repository_mount=localrepomount)
 
     return get_config(values, os.path.join(TEMPLATE_DIR, "admin-node.xml"))
@@ -191,11 +209,13 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         vcpus=args.vcpus,
         march=get_machine_arch(),
         machine=machine,
+        osloader=get_os_loader(),
         cpuflags=cpu_flags,
         raidvolume=raidvolume,
         cephvolume=cephvolume,
         drbdvolume=drbdvolume,
         macaddress=args.macaddress,
+        videodevices=get_video_devices(),
         target_dev=targetdevprefix + 'a',
         bootorder=args.bootorder)
 
