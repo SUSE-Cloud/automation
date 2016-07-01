@@ -29,14 +29,14 @@
       <driver name='qemu' type='raw' cache='unsafe'/>
       <source dev='/dev/cloud/cloud.admin'/>
       <target dev='vda' bus='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+      <address type='pci' slot='0x04'/>
     </disk>
     <interface type='network'>
       <mac address='52:54:00:77:77:70'/>
       <target dev='cloud-a'/>
       <source network='cloud-admin'/>
       <model type='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+      <address type='pci' slot='0x03'/>
     </interface>
     <serial type='pty'>
       <target port='0'/>
@@ -48,11 +48,12 @@
     <graphics type='vnc' port='-1' autoport='yes'/>
     <video>
       <model type='cirrus' vram='9216' heads='1'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
+      <address type='pci' slot='0x02'/>
     </video>
+
     <memballoon model='virtio'>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
+      <address type='pci' slot='0x05'/>
     </memballoon>
-    
+
   </devices>
 </domain>

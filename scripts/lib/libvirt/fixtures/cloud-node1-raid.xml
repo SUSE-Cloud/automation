@@ -78,5 +78,6 @@
       <model type='cirrus' vram='9216' heads='1'/>
       <address type='pci' slot='0x02'/>
     </video>
+
   </devices>
 </domain>
