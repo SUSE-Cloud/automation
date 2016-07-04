@@ -118,7 +118,7 @@ onadmin_help()
     cat <<EOUSAGE
     want_neutronsles12=1 (default 0)
         if there is a SLE12 node, deploy neutron-network role into the SLE12 node
-    want_mtu_size=<size>|"jumbo" (default='')
+    want_mtu_size=<size> (default='')
         Option to set variable MTU size or select Jumbo Frames for Admin and Storage nodes. 1500 is used if not set.
     want_raidtype (default='raid1')
         The type of RAID to create.
@@ -1631,8 +1631,8 @@ EOF
         /opt/dell/bin/json-edit -a attributes.network.mode -v dual $netfile
         /opt/dell/bin/json-edit -a attributes.network.teaming.mode -r -v 5 $netfile
     fi
-    # Setup network attributes for jumbo frames
-    if [[ $want_mtu_size ]]; then
+    # Setup network attributes for custom MTU
+    if [[ $want_mtu_size -gt 1500 ]]; then
         echo "Setting MTU to custom value of: $want_mtu_size"
         local lnet
         for lnet in admin storage os_sdn ; do
@@ -3911,6 +3911,10 @@ function onadmin_runupdate()
     onadmin_repocleanup
 
     pre_hook $FUNCNAME
+
+    # We need to set the correct MTU here since we haven't done any
+    # proper network configuration yet.
+    [[ -n $host_mtu ]] && ip link set mtu $host_mtu dev eth0
 
     zypper_patch
 }

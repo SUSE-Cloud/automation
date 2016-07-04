@@ -128,6 +128,8 @@ scp="scp $sshopts"
 : ${install_chef_suse_override:=./install-chef-suse.sh}
 : ${cct_tests:="features:base"}
 
+[[ -z ${want_mtu_size} ]] && want_mtu_size=1500
+
 emulator=/usr/bin/qemu-system-$(uname -m)
 if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
     # on SLE11, qemu-kvm is preferred, since qemu-system-x86_64 is
@@ -199,6 +201,11 @@ function error_exit()
     exit $exitcode
 } >&2
 
+function determine_host_mtu()
+{
+    host_mtu=$(LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1)
+}
+
 function sshrun()
 {
     cat > $mkcconf <<EOF
@@ -226,6 +233,7 @@ function sshrun()
         export keep_existing_hostname=$keep_existing_hostname ;
         export cct_tests=$cct_tests ;
         export scenario=$scenario ;
+        export host_mtu=$host_mtu ;
 
         export nova_shared_instance_storage=$nova_shared_instance_storage ;
 
@@ -505,6 +513,8 @@ function wait_for_crowbar_ntpd()
 # bring up the VM for crowbar
 function setupadmin()
 {
+    local ofs=$IFS nfs=$'\n' mss
+
     libvirt_setupadmin
 
     wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
@@ -526,9 +536,18 @@ function setupadmin()
     fi
     echo "you can now proceed with installing crowbar"
     # prevent jumbo frames from going out
-    if [[ $want_mtu_size ]] ; then
-        iptables -D FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1500 2>/dev/null
-        iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1500
+    if [[ $want_mtu_size -gt 1500 ]] || [[ $host_mtu -lt 1500 ]]; then
+        # we subtract 40 to account for the IP + TCP headers.
+        let mss=host_mtu-40
+        # Remove all previous TCPMSS rules
+        IFS=$nfs
+        for x in $(iptables -S FORWARD | grep -o --color=never FORWARD.*TCPMSS.*); do
+            IFS=$ofs
+            iptables -D ${x} 2>/dev/null
+            IFS=$nfs
+        done
+        IFS=$ofs
+        iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss $mss
     fi
 }
 
@@ -1499,6 +1518,8 @@ steplist=`expand_steps $wantedcmds`
 [[ "$steplist" =~ "steps" ]] && steps
 
 sanity_checks
+
+determine_host_mtu
 
 echo "You choose to run these mkcloud steps:"
 echo "  $steplist"
