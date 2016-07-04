@@ -107,7 +107,7 @@ Will notify the github PR with mkcloud test results</description>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>nodenumber</name>
-          <description>number of nodes excl. admin-node 
+          <description>number of nodes excl. admin-node
 minimum 2=controller+compute</description>
           <defaultValue>2</defaultValue>
         </hudson.model.StringParameterDefinition>
@@ -253,11 +253,18 @@ case $cloudsource in
     GM4|GM4+up|GM5|GM5+up)
         echo "Not setting want_ldap=1"
         ;;
+    develcloud6)
+        echo "Setting want_ldap=0 for upgrade jobs until hybrid backend is ported to Mitaka"
+        [[ $mkcloudtarget =~ upgrade ]] &amp;&amp; export want_ldap=0
+        ;;
+    M*|develcloud7|susecloud7)
+        echo "Not setting want_ldap=1 until hybrid backend is ported to Mitaka"
+        ;;
     *)
         [[ $nodenumber == 2 &amp;&amp; -z "$scenario" ]] &amp;&amp; export want_ldap=1
         ;;
 esac
-   
+
 
 if [[ $cinder_backend = " " ]] ; then
   cinder_backend=""
@@ -270,7 +277,6 @@ if [[ $hacloud == 1 ]] ; then
   if [[ $nodenumber &lt; 4 ]] ; then
     export nodenumber=4
   fi
-  
   # for now disable ceph deployment in HA mode explicitly
   # it would need 5 nodes (2 for the cluster + 3 nodes for compute and ceph)
   export want_ceph=0
@@ -341,7 +347,7 @@ if [[ $github_pr ]] ; then
     fi
 
     $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha
-    
+
 fi
 
 echo "########################################################################"
