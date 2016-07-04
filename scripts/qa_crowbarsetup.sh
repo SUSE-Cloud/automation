@@ -1155,9 +1155,6 @@ function onadmin_prepare_cloud_repos()
 
     if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
         case "$cloudsource" in
-            GM4)
-                addsp3testupdates
-                ;;
             GM4+up)
                 addsp3testupdates
                 addcloud4testupdates
@@ -1365,7 +1362,7 @@ function onadmin_set_source_variables()
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
-        GM4|GM4+up)
+        GM4+up)
             CLOUDSLE11DISTPATH=/install/SLE-11-SP3-Cloud-4-GM/
             CLOUDSLE11DISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
@@ -1385,7 +1382,7 @@ function onadmin_set_source_variables()
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|develcloud7|susecloud7|GM4|GM5|Mx|GM6"
+            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|develcloud7|susecloud7|GM4+up|GM5|Mx|GM6"
         ;;
     esac
 
