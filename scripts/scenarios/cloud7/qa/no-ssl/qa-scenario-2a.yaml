@@ -1,4 +1,5 @@
 ---
+# 2a - 8 nodes, HA (SBD 3x2), KVM x 1
 proposals:
 - barclamp: pacemaker
   name: services

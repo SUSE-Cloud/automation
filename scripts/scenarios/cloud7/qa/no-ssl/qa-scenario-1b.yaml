@@ -1,4 +1,5 @@
 ---
+#1b - 8 nodes: HA (IPMI 1 x 3), KVM x 2, Xen x 2
 proposals:
 - barclamp: pacemaker
   name: services

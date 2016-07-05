@@ -1,4 +1,5 @@
 ---
+# 2c - 8 nodes: HA 1 x 2 SBD, KVM x 2, ESXi x 2
 proposals:
 - barclamp: pacemaker
   name: services
