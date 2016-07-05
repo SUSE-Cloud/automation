@@ -360,10 +360,12 @@ heat stack-create -f $PWD/testvm.stack teststack
 
 sleep 60
 
-# Check basic Barbican API functionality
-openstack secret list
-
 . /etc/openstackquickstartrc
+
+if [ "$with_barbican" = "yes" ] ; then
+    # Check basic Barbican API functionality
+    openstack secret list
+fi
 
 FLOATING_IP=$(eval echo $(heat output-show teststack server_floating_ip))
 echo "FLOATING IP: $FLOATING_IP"
