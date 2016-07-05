@@ -1,5 +1,6 @@
 ---
 # Placeholders for node devices must be replaced by some real values
+# 2b - 8 nodes, HA (SBD 1 x 3), KVM x 2, ESXi x 1
 proposals:
 - barclamp: pacemaker
   name: services

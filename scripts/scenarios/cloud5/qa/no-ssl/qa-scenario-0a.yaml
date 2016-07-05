@@ -1,4 +1,5 @@
 ---
+# 0 - default: no HA, noSSL, no Ceph
 proposals:
 - barclamp: database
   deployment:

@@ -1,4 +1,5 @@
 ---
+# 6a - 8 nodes: HA IMPI 1 x 3, KVM x 2, Docker x 2
 proposals:
 - barclamp: pacemaker
   name: services

@@ -1,4 +1,5 @@
 ---
+# 3a - 6 nodes: KVM x 2, Hyper-V x 2
 proposals:
 - barclamp: pacemaker
   name: services
