@@ -27,7 +27,10 @@
           tar --exclude-vcs -cvjf ${TEMP_DIR}/rpm-packaging-0.0.1.tar.bz2 --transform 's,^,rpm-packaging-0.0.1/,' .
 
           # branch and checkout OBS project
-          osc branch ${OBS_BASE_SRC_PROJECT} "rpm-packaging-openstack" ${OBS_TEST_PROJECT} || :
+          osc branch --add-repositories-block=local \
+              --add-repositories-rebuild=local \
+              ${OBS_BASE_SRC_PROJECT} \
+              "rpm-packaging-openstack" ${OBS_TEST_PROJECT} || :
           sleep 2
 
           # create package links (needed if a new .spec.j2 was added)
