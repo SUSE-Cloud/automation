@@ -6,7 +6,7 @@
   <os>
     <type arch='$march' machine='$machine'>hvm</type>
 $osloader
-    <nvram>/var/lib/libvirt/$cloud-node_VARS.fd</nvram>
+    <nvram>/var/lib/libvirt/$cloud-node${nodecounter}_VARS.fd</nvram>
   </os>
 $cpuflags
   <clock offset='utc'/>
