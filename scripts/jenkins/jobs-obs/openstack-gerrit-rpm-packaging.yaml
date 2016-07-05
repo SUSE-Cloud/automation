@@ -65,6 +65,7 @@
               while true; do
                   unset pending
                   unset failed
+                  unset kickscheduler
                   res=`osc results --csv -w -r SLE_12_SP1`
                   if [ $? -ne 0 ]; then
                       sleep 5
@@ -80,11 +81,22 @@
                       if [[ $r =~ (blocked$|scheduled$|dispatching$|building$|signing$|finished$|unknown|outdated$) ]]; then
                           pending=1
                       fi
+                      # scheduler stuck?
+                      if [[ $r =~ (finished$|unknown|outdated$) ]]; then
+                          kickscheduler=1
+                      fi
                   done
                   if [ -n "$pending" ]; then
                       sleep $((RANDOM%50+30))
                       continue
                   fi
+
+                  if [ -n "$kickscheduler" ]; then
+                      echo "# $(date)" | osc meta prjconf -F - ${OBS_TEST_PROJECT}
+                      sleep $((RANDOM%60+30))
+                      continue
+                  fi
+
                   if [ -n "$failed" ]; then
                       exit 1
                   else
