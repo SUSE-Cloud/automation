@@ -70,7 +70,7 @@
                       sleep 5
                       continue
                   fi
-                  echo ">>: ${res}"
+                  echo "... $(date)"
                   for r in $res; do
                       # some failures?
                       if [[ $r =~ (failed$|unresolvable$|broken$) ]]; then
@@ -81,7 +81,6 @@
                           pending=1
                       fi
                   done
-                  echo ">>: pending: $pending ; failed: $failed"
                   if [ -n "$pending" ]; then
                       sleep $((RANDOM%50+30))
                       continue
