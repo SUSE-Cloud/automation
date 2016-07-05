@@ -2718,7 +2718,11 @@ function custom_configuration()
             fi
         ;;
         neutron)
-            [[ "$networkingplugin" = linuxbridge ]] && networkingmode=vlan
+            if iscloudver 7plus; then
+                [[ "$networkingplugin" = linuxbridge && "$networkingmode" = gre ]] && networkingmode=vlan
+            else
+                [[ "$networkingplugin" = linuxbridge ]] && networkingmode=vlan
+            fi
             proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
 
             if iscloudver 5plus; then
@@ -2732,7 +2736,11 @@ function custom_configuration()
                         proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vlan']"
                     fi
                 elif [ "$networkingplugin" = "linuxbridge" ] ; then
-                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
+                    if iscloudver 7plus; then
+                        proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vxlan','vlan']"
+                    else
+                        proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
+                    fi
                     if iscloudver 5plus && ! iscloudver 6plus ; then
                         proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "false"
                     fi
