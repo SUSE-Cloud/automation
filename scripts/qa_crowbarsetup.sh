@@ -1583,6 +1583,11 @@ EOF
         zypper mr -e cloud-ptf && safely zypper -n dup --from cloud-ptf
     fi
 
+    # Workaround broken sleshammer
+    if [ "$(uname -m)" = "aarch64" ]; then
+        rpm -Uvh http://clouddata.cloud.suse.de/suse-12.1/aarch64/PTF/sleshammer-aarch64.rpm
+    fi
+
     cd /tmp
 
     local netfile="/etc/crowbar/network.json"
