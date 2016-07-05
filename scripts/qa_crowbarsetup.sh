@@ -1155,9 +1155,6 @@ function onadmin_prepare_cloud_repos()
 
     if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
         case "$cloudsource" in
-            GM4)
-                addsp3testupdates
-                ;;
             GM4+up)
                 addsp3testupdates
                 addcloud4testupdates
@@ -1365,7 +1362,7 @@ function onadmin_set_source_variables()
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
-        GM4|GM4+up)
+        GM4+up)
             CLOUDSLE11DISTPATH=/install/SLE-11-SP3-Cloud-4-GM/
             CLOUDSLE11DISTISO="S*-CLOUD*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-4-official"
@@ -1385,7 +1382,7 @@ function onadmin_set_source_variables()
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|develcloud7|susecloud7|GM4|GM5|Mx|GM6"
+            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|develcloud7|susecloud7|GM4+up|GM5|Mx|GM6"
         ;;
     esac
 
@@ -1535,7 +1532,7 @@ EOF
     fi
 
     if [[ $hacloud ]]; then
-        if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 3plus ; then
+        if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 4plus ; then
             add_ha_repo
         elif iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
             add_ha12sp2_repo
@@ -2788,14 +2785,12 @@ function custom_configuration()
         ;;
         swift)
             [[ "$nodenumber" -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
-            if iscloudver 3plus ; then
-                proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
-                proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
-                iscloudver 3 || proposal_set_value swift default "['attributes']['swift']['middlewares']['crossdomain']['enabled']" "true"
-                proposal_set_value swift default "['attributes']['swift']['middlewares']['formpost']['enabled']" "true"
-                proposal_set_value swift default "['attributes']['swift']['middlewares']['staticweb']['enabled']" "true"
-                proposal_set_value swift default "['attributes']['swift']['middlewares']['tempurl']['enabled']" "true"
-            fi
+            proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
+            proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
+            proposal_set_value swift default "['attributes']['swift']['middlewares']['crossdomain']['enabled']" "true"
+            proposal_set_value swift default "['attributes']['swift']['middlewares']['formpost']['enabled']" "true"
+            proposal_set_value swift default "['attributes']['swift']['middlewares']['staticweb']['enabled']" "true"
+            proposal_set_value swift default "['attributes']['swift']['middlewares']['tempurl']['enabled']" "true"
         ;;
         cinder)
             if iscloudver 4 ; then
@@ -4212,7 +4207,7 @@ function onadmin_reapply_openstack_proposals()
 
 function onadmin_prepare_crowbar_upgrade()
 {
-    if iscloudver 4minus ; then
+    if iscloudver 4; then
         complain 11 "This upgrade path is only supported for Cloud 5+"
     else
         # using the API, due to missing crowbar cli integration
