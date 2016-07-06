@@ -30,6 +30,7 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
+: ${want_magnum:=''}
 
 : ${arch:=$(uname -m)}
 
@@ -2661,6 +2662,10 @@ function custom_configuration()
         ceph)
             proposal_set_value ceph default "['attributes']['ceph']['disk_mode']" "'all'"
         ;;
+        magnum)
+            proposal_set_value magnum default "['attributes']['magnum']['trustee']['domain_name']" "'magnum'"
+            proposal_set_value magnum default "['attributes']['magnum']['trustee']['domain_admin_name']" "'magnum_domain_admin'"
+            ;;
         nova)
             local role_prefix=`nova_role_prefix`
             # custom nova config of libvirt
@@ -3081,6 +3086,12 @@ function deploy_single_proposal()
         ceph)
             [[ -n "$deployceph" ]] || return
             ;;
+        magnum)
+            [[ -n "$want_magnum" ]] || return
+            if iscloudver 7plus ; then
+                safely oncontroller oncontroller_magnum_service_setup
+            fi
+            ;;
         manila)
             # manila-service can not be deployed currently with docker
             [[ -n "$want_docker" ]] && return
@@ -3145,7 +3156,7 @@ function onadmin_proposal()
         done
     fi
     local proposal
-    for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove tempest; do
+    for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove magnum tempest; do
         deploy_single_proposal $proposal
     done
 
@@ -3442,6 +3453,30 @@ function oncontroller_manila_generic_driver_setup()
     wait_for 300 1 "nc -z $manila_tenant_vm_ip 22" \
         "manila service VM booted and ssh port open" \
         "echo \"ERROR: manila service VM not listening on ssh port. manila tests will fail!\""
+}
+
+function oncontroller_magnum_service_setup ()
+{
+    # (mmnelemane): Replace this Fedora image with a suitable SLES image when available
+    local service_image_name=magnum-service-image.qcow2
+    local service_image_url=http://clouddata.cloud.suse.de/images/other/$service_image_name
+
+    if ! openstack image list --f value -c Name | grep -q "^magnum-service-image$"; then
+        local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
+        if [[ $ret =~ "200 OK" ]]; then
+            echo $ret
+        elif [[ $ret =~ "Not Found" ]]; then
+            complain 73 "magnum image not found: $ret"
+        else
+            complain 74 "failed to retrieve magnum image: $ret"
+        fi
+
+        . ~/.openrc
+
+        openstack image create --file $service_image_name \
+            --disk-format qcow2 --container-format bare --public \
+            magnum-service-image
+    fi
 }
 
 # code run on controller/dashboard node to do basic tests of deployed cloud
