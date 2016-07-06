@@ -100,7 +100,6 @@
 
           declare -a master_branches_old=(
               release/tex/master
-              release/stoney/master
           )
 
           declare -a master_branches=(

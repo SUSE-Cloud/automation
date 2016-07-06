@@ -15,7 +15,6 @@
           type: user-defined
           name: project
           values:
-            - Devel:Cloud:4
             - Devel:Cloud:5
             - Devel:Cloud:5/SLE_12
             - Devel:Cloud:6/SLE_12_SP1
@@ -38,7 +37,7 @@
             - cloud-trackupstream-sle12
     execution-strategy:
       combination-filter: |
-        (["Devel:Cloud:4", "Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12_SP1", "Devel:Cloud:7/SLE_12_SP1" ].contains(project) || subproject == ":")
+        (["Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12_SP1", "Devel:Cloud:7/SLE_12_SP1" ].contains(project) || subproject == ":")
     builders:
       - shell: |
           # temporary, similar to update_automation (not that advanced)
