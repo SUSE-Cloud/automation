@@ -27,7 +27,10 @@
           tar --exclude-vcs -cvjf ${TEMP_DIR}/rpm-packaging-0.0.1.tar.bz2 --transform 's,^,rpm-packaging-0.0.1/,' .
 
           # branch and checkout OBS project
-          osc branch ${OBS_BASE_SRC_PROJECT} "rpm-packaging-openstack" ${OBS_TEST_PROJECT} || :
+          osc branch --add-repositories-block=local \
+              --add-repositories-rebuild=local \
+              ${OBS_BASE_SRC_PROJECT} \
+              "rpm-packaging-openstack" ${OBS_TEST_PROJECT} || :
           sleep 2
 
           # create package links (needed if a new .spec.j2 was added)
@@ -58,16 +61,17 @@
           sleep 5
 
           # wait for build results (osc wait is buggy - https://github.com/openSUSE/osc/issues/180 )
-          timeout 4h bash -c -- '
+          timeout 6h bash -c -- '
               while true; do
                   unset pending
                   unset failed
+                  unset kickscheduler
                   res=`osc results --csv -w -r SLE_12_SP1`
                   if [ $? -ne 0 ]; then
                       sleep 5
                       continue
                   fi
-                  echo ">>: ${res}"
+                  echo "... $(date): "
                   for r in $res; do
                       # some failures?
                       if [[ $r =~ (failed$|unresolvable$|broken$) ]]; then
@@ -77,13 +81,26 @@
                       if [[ $r =~ (blocked$|scheduled$|dispatching$|building$|signing$|finished$|unknown|outdated$) ]]; then
                           pending=1
                       fi
+                      # scheduler stuck?
+                      if [[ $r =~ (finished$|unknown|outdated$) ]]; then
+                          kickscheduler=1
+                      fi
                   done
-                  echo ">>: pending: $pending ; failed: $failed"
                   if [ -n "$pending" ]; then
-                      sleep 5
+                      sleep $((RANDOM%50+30))
+                      echo ""
                       continue
                   fi
+
+                  if [ -n "$kickscheduler" ]; then
+                      echo "# $(date)" | osc meta prjconf -F - ${OBS_TEST_PROJECT}
+                      sleep $((RANDOM%60+30))
+                      echo "kicking scheduler"
+                      continue
+                  fi
+
                   if [ -n "$failed" ]; then
+                      echo "Build failed :-("
                       exit 1
                   else
                       break
