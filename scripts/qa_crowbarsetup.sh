@@ -753,7 +753,11 @@ function get_disk_id_by_serial_and_libvirt_type()
 
 function get_all_nodes()
 {
-    crowbar machines list | LC_ALL=C sort
+    if iscloudver 6plus; then
+        safely crowbarctl node list --no-meta --plain| LC_ALL=C sort
+    else
+        safely crowbar machines list | LC_ALL=C sort
+    fi
 }
 
 function get_all_suse_nodes()
@@ -3007,7 +3011,13 @@ function update_one_proposal()
     # hook for changing proposals:
     custom_configuration $proposal $proposaltypemapped
 
-    crowbar "$proposal" proposal commit $proposaltype
+
+    if iscloudver 6plus; then
+        safely crowbarctl proposal commit $proposal $proposaltype
+    else
+        safely crowbar $proposal proposal commit $proposaltype
+    fi
+
     local ret=$?
     echo "Commit exit code: $ret"
     if [ "$ret" = "0" ]; then
@@ -3168,7 +3178,11 @@ function set_node_alias()
     local node_name=$1
     local node_alias=$2
     if [[ "${node_name}" != "${node_alias}" ]]; then
-        crowbar machines rename ${node_name} ${node_alias}
+        if iscloudver 6plus; then
+            safely crowbarctl node rename $node_name $node_alias
+        else
+            safely crowbar machines rename $node_name $node_alias
+        fi
     fi
 }
 
@@ -4628,8 +4642,12 @@ function onadmin_teardown()
     done
 
     local node
-    for node in $(get_all_discovered_nodes) ; do
-        crowbar machines delete $node
+    for node in $(get_all_discovered_nodes); do
+        if iscloudver 6plus; then
+            safely crowbarctl node delete $node
+        else
+            safely crowbar machines delete $node
+        fi
     done
 }
 
