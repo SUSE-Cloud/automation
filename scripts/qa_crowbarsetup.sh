@@ -754,7 +754,7 @@ function get_disk_id_by_serial_and_libvirt_type()
 function get_all_nodes()
 {
     if iscloudver 6plus; then
-        safely crowbarctl node list --no-meta --plain| LC_ALL=C sort
+        safely crowbarctl node list --no-meta --plain | LC_ALL=C sort
     else
         safely crowbar machines list | LC_ALL=C sort
     fi
