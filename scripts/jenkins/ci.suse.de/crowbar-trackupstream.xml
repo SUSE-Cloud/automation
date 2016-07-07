@@ -105,13 +105,15 @@
     <hudson.matrix.TextAxis>
       <name>project</name>
       <values>
-        <string>Devel:Cloud:4:Staging</string>
         <string>Devel:Cloud:5:Staging</string>
         <string>Devel:Cloud:6:Staging</string>
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>!(       ( ["Devel:Cloud:4:Staging"].contains(project)  &amp;&amp;       ["crowbar-barclamp-manila"].contains(component)     )   ||      (       ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project)  &amp;&amp;       ["openstack-dashboard-theme-SUSE", "crowbar-core", "crowbar-openstack", "crowbar-ha", "crowbar-hyperv", "crowbar-ceph", "release-notes-suse-openstack-cloud"].contains(component)      )   ||     (        ( ! ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project) ) &amp;&amp;       component.startsWith('crowbar-barclamp-')     ) )</combinationFilter>
+  <combinationFilter>!(
+      (["Devel:Cloud:5:Staging"].contains(project)  &amp;&amp; ["openstack-dashboard-theme-SUSE", "crowbar-core", "crowbar-openstack", "crowbar-ha", "crowbar-hyperv", "crowbar-ceph", "release-notes-suse-openstack-cloud"].contains(component)      )   ||
+      (( ! ["Devel:Cloud:5:Staging"].contains(project) ) &amp;&amp; component.startsWith('crowbar-barclamp-')))
+  </combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}

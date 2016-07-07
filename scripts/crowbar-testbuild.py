@@ -26,21 +26,18 @@ import sh
 from sh import Command
 
 IBS_MAPPING = {
-    'release/stoney/master': 'Devel:Cloud:4:Staging',
     'release/tex/master':    'Devel:Cloud:5:Staging',
     'stable/3.0':            'Devel:Cloud:6:Staging',
     'master':                'Devel:Cloud:7:Staging'
 }
 
 REPO_MAPPING = {
-    'release/stoney/master': 'SLE_11_SP3',
     'release/tex/master':    'SLE_11_SP3',
     'stable/3.0':            'SLE_12_SP1',
     'master':                'SLE_12_SP2'
 }
 
 CLOUDSRC = {
-    'release/stoney/master': 'develcloud4',
     'release/tex/master':    'develcloud5',
     'stable/3.0':            'develcloud6',
     'master':                'develcloud7'
