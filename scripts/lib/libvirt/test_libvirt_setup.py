@@ -124,6 +124,29 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         is_config = libvirt_setup.compute_config(args, cpu_flags)
         self.assertEqual(is_config, should_config)
 
+    def test_xen_compute_config(self):
+        args = Arguments()
+        args.cloud = "cloud"
+        args.nodecounter = 1
+        args.macaddress = "52:54:01:77:77:01"
+        args.controller_raid_volumes = 0
+        args.cephvolumenumber = 1
+        args.computenodememory = 2097152
+        args.controllernodememory = 5242880
+        args.libvirttype = "xen"
+        args.vcpus = 1
+        args.emulator = "/usr/bin/qemu-system-x86_64"
+        args.vdiskdir = "/dev/cloud"
+        args.drbdserial = ""
+        args.bootorder = 3
+        args.numcontrollers = 1
+        cpu_flags = libvirt_setup.readfile(
+            "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
+        should_config = libvirt_setup.readfile(
+            "{0}/cloud-node1-xen.xml".format(FIXTURE_DIR))
+        is_config = libvirt_setup.compute_config(args, cpu_flags)
+        self.assertEqual(is_config, should_config)
+
     # add extra disk for raid and 2 volumes for ceph
     def test_compute_config_with_raid(self):
         args = Arguments()
