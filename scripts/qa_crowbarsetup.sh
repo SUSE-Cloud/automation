@@ -3011,13 +3011,7 @@ function update_one_proposal()
     # hook for changing proposals:
     custom_configuration $proposal $proposaltypemapped
 
-
-    if iscloudver 6plus; then
-        safely crowbarctl proposal commit $proposal $proposaltype
-    else
-        safely crowbar $proposal proposal commit $proposaltype
-    fi
-
+    crowbar "$proposal" proposal commit $proposaltype
     local ret=$?
     echo "Commit exit code: $ret"
     if [ "$ret" = "0" ]; then
