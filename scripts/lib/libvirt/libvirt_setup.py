@@ -139,9 +139,12 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         targetdevprefix = "vd"
         configopts['nicmodel'] = 'virtio'
         configopts['target_bus'] = 'virtio'
+        target_address = "<address type='pci' slot='{0}'/>"
     else:
         targetdevprefix = "sd"
         configopts['target_bus'] = 'ide'
+        target_address = ""
+
     controller_raid_volumes = args.controller_raid_volumes
     if args.nodecounter > args.numcontrollers:
         controller_raid_volumes = 0
@@ -166,7 +169,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
                 args.nodecounter,
                 i),
             'target_dev': targetdevprefix + ''.join(alldevices.next()),
-            'target_slot': '0x1{0}'.format(hex(i+9)[2:]),
+            'target_address': target_address.format('0x1' + hex(i+9)[2:]),
         }, configopts))
 
     cephvolume = ""
@@ -185,7 +188,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
                     args.nodecounter,
                     i),
                 'target_dev': targetdevprefix + ''.join(alldevices.next()),
-                'target_slot': '0x1{0}'.format(i),
+                'target_address': target_address.format('0x1' + str(i)),
             }, configopts))
 
     drbdvolume = ""
@@ -199,7 +202,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
                 args.cloud,
                 args.nodecounter),
             'target_dev': targetdevprefix + ''.join(alldevices.next()),
-            'target_slot': '0x1f'},
+            'target_address': target_address.format('0x1f')},
             configopts))
 
     values = dict(
@@ -217,6 +220,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         macaddress=args.macaddress,
         videodevices=get_video_devices(),
         target_dev=targetdevprefix + 'a',
+        target_address=target_address.format('0x0a'),
         bootorder=args.bootorder)
 
     return get_config(merge_dicts(values, configopts),
