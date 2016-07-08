@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-devel-storage'
+    name: 'cloud-mkcloud{version}-job-devel-storage-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -22,3 +22,4 @@
             want_ceph=1
             want_devel_repos=storage
             mkcloudtarget=all
+            label={label}

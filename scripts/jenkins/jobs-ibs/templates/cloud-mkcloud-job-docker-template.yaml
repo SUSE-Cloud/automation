@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-docker'
+    name: 'cloud-mkcloud{version}-job-docker-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -21,3 +21,4 @@
             nodenumber=2
             want_docker=1
             mkcloudtarget=all
+            label={label}

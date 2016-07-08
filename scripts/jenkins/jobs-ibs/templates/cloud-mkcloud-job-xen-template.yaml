@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-xen'
+    name: 'cloud-mkcloud{version}-job-xen-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -21,3 +21,4 @@
             nodenumber=2
             libvirt_type=xen
             mkcloudtarget=all
+            label={label}
