@@ -31,6 +31,7 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
 : ${want_magnum:=''}
+: ${want_barbican:=''}
 
 : ${arch:=$(uname -m)}
 
@@ -3081,6 +3082,13 @@ function deploy_single_proposal()
 
     # proposal filter
     case "$proposal" in
+        barbican)
+            [[ -n "$want_barbican" ]] || return
+            if ! iscloudver 7plus; then
+                echo "Barbican is SOC 7+ only. Skipping"
+                return
+            fi
+            ;;
         nfs_client)
             [[ $hacloud = 1 ]] || return
             ;;
@@ -3160,7 +3168,7 @@ function onadmin_proposal()
         done
     fi
     local proposal
-    for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove magnum tempest; do
+    for proposal in nfs_client pacemaker database rabbitmq keystone barbican swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove magnum tempest; do
         deploy_single_proposal $proposal
     done
 
