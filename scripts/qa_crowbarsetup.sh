@@ -145,6 +145,11 @@ onadmin_help()
         add test update repositories
     want_sbd=1 (default 0)
         Setup SBD over iSCSI for cluster nodes, with iSCSI target on admin node. Only usable for HA configuration.
+    want_devel_repos=list of Devel Projects to use for other products
+        Adds Devel Projects for other products on deployed nodes
+        Example:
+            want_devel_repos=storage,virt
+        Valid values: ha, storage, virt
 EOUSAGE
 }
 
@@ -1274,16 +1279,14 @@ function create_repos_yml_for_platform()
     for repo in $*; do
         repo_name=${repo%%=*}
         repo_url=${repo##*=}
-        if [ -d "$tftpboot_dir/$repo_name" ]; then
-            if [ -z "$platform_created" ]; then
-                echo "$platform:"
-                echo "  $arch:"
-                platform_created=1
-            fi
-
-            echo "    $repo_name:"
-            echo "      url: '$repo_url'"
+        if [ -z "$platform_created" ]; then
+            echo "$platform:"
+            echo "  $arch:"
+            platform_created=1
         fi
+
+        echo "    $repo_name:"
+        echo "      url: '$repo_url'"
     done
 }
 
@@ -1291,31 +1294,99 @@ function create_repos_yml()
 {
     local repos_yml="/etc/crowbar/repos.yml"
     local tmp_yml=$(mktemp).yml
+    local additional_repos=
 
     echo --- > $tmp_yml
 
     if iscloudver 6; then
+        additional_repos=
+        if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
+            additional_repos+=" SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/"
+            additional_repos+=" SUSE-OpenStack-Cloud-6-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/"
+            [ $hacloud == 1 ] && additional_repos+=" SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
+            [ -n "$deployceph" ] && additional_repos+=" SUSE-Enterprise-Storage-2.1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/"
+        fi
+        for devel_repo in ${want_devel_repos//,/ }; do
+            case "$devel_repo" in
+                ha)
+                    # TODO: no devel repo for HA yet
+                    ;;
+                storage)
+                    additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/2.1/SLE12_SP1/"
+                    ;;
+                virt)
+                    additional_repos+=" Devel-Virt=http://$distsuse/ibs/Devel:/Virt:/SLE-12-SP1/SUSE_SLE-12-SP1_Update_standard/"
+                    ;;
+                *)
+                    complain 72 "do not know how to translate one of the requested devel repos: $want_devel_repos"
+                    ;;
+            esac
+        done
         create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
-            SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
-            SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/ \
-            SUSE-OpenStack-Cloud-6-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/ \
-            SUSE-Enterprise-Storage-2.1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/ \
+            $additional_repos \
             >> $tmp_yml
     fi
 
     if iscloudver 7; then
+        additional_repos=
+        if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
+            additional_repos+=" SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/"
+            # FIXME: enable when Cloud 7 test updates are available
+            # additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/"
+            [ $hacloud == 1 ] && additional_repos+=" SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
+            [ -n "$deployceph" ] && additional_repos+=" SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/"
+        fi
+        for devel_repo in ${want_devel_repos//,/ }; do
+            case "$devel_repo" in
+                ha)
+                    # TODO: no devel repo for HA yet
+                    ;;
+                storage)
+                    additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/3.0/SLE12_SP1/"
+                    ;;
+                virt)
+                    additional_repos+=" Devel-Virt=http://$distsuse/ibs/Devel:/Virt:/SLE-12-SP1/SUSE_SLE-12-SP1_Update_standard/"
+                    ;;
+                *)
+                    complain 72 "do not know how to translate one of the requested devel repos: $want_devel_repos"
+                    ;;
+            esac
+        done
         create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
-            SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/ \
-            SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/ \
-            SUSE-OpenStack-Cloud-7-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/ \
-            SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/ \
+            $additional_repos \
             >> $tmp_yml
-        [[ $want_sles12sp2 ]] && create_repos_yml_for_platform "suse-12.2" "x86_64" "$tftpboot_repos12sp2_dir" \
-            SLES12-SP2-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/x86_64/update/ \
-            SLE12-SP2-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/ \
-            SUSE-OpenStack-Cloud-7-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/ \
-            SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/ \
-            >> $tmp_yml
+
+        if [[ $want_sles12sp2 ]]; then
+            additional_repos=
+            if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
+                additional_repos+=" SLES12-SP2-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/x86_64/update/"
+                # FIXME: enable when Cloud 7 test updates are available
+                # additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/"
+                [ $hacloud == 1 ] && additional_repos+=" SLE12-SP2-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/"
+                # FIXME: enable when switching from SES 3 to SES 4
+                # [ -n "$deployceph" ] && additional_repos+=" SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/4:/x86_64/update/"
+            fi
+            for devel_repo in ${want_devel_repos//,/ }; do
+                case "$devel_repo" in
+                    ha)
+                        # TODO: no devel repo for HA yet
+                        ;;
+                    storage)
+                        # FIXME: enable when switching from SES 3 to SES 4
+                        # additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/4.0/SLE12_SP2/"
+                        ;;
+                    virt)
+                        additional_repos+=" Devel-Virt=http://$distsuse/ibs/Devel:/Virt:/SLE-12-SP2/SUSE_SLE-12-SP2_GA_standard/"
+                        ;;
+                    *)
+                        complain 72 "do not know how to translate one of the requested devel repos: $want_devel_repos"
+                        ;;
+                esac
+            done
+            create_repos_yml_for_platform "suse-12.2" "x86_64" "$tftpboot_repos12sp2_dir" \
+                $additional_repos \
+                >> $tmp_yml
+        fi
     fi
 
     mv $tmp_yml $repos_yml

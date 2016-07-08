@@ -1,0 +1,24 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-devel-storage'
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H H */2 * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{version}
+            nodenumber=3
+            want_ceph=1
+            want_devel_repos=storage
+            mkcloudtarget=all
