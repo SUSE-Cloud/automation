@@ -3467,7 +3467,7 @@ function oncontroller_magnum_service_setup ()
 {
     # (mmnelemane): Replace this Fedora image with a suitable SLES image when available
     local service_image_name=magnum-service-image.qcow2
-    local service_image_url=http://clouddata.cloud.suse.de/images/other/$service_image_name
+    local service_image_url=http://clouddata.cloud.suse.de/images/$(uname -m)/other/$service_image_name
 
     if ! openstack image list --f value -c Name | grep -q "^magnum-service-image$"; then
         local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
