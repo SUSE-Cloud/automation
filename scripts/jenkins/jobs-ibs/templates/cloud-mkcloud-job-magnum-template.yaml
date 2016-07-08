@@ -1,0 +1,23 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-magnum'
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H H * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{version}
+            nodenumber=2
+            want_magnum=1
+            mkcloudtarget=all
