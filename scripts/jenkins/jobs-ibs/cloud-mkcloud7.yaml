@@ -26,3 +26,11 @@
         - 'cloud-mkcloud{version}-job-tempestfull-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
+- project:
+    name: cloud-mkcloud7-aarch64
+    version: 7
+    previous_version: 6
+    arch: aarch64
+    label: openstack-mkcloud-SLE12-{arch}
+    jobs:
+        - 'cloud-mkcloud{version}-job-docker-{arch}'
