@@ -1,20 +1,22 @@
 - project:
-    name: cloud-mkcloud7
+    name: cloud-mkcloud7-x86_64
     version: 7
     previous_version: 6
+    arch: x86_64
+    label: openstack-mkcloud-SLE12-x86_64
     jobs:
         - 'cloud-mkcloud{version}-gating'
-        - 'cloud-mkcloud{version}-job-backup-restore'
-        - 'cloud-mkcloud{version}-job-crowbar_register'
-        - 'cloud-mkcloud{version}-job-docker'
-        - 'cloud-mkcloud{version}-job-dvr'
-        - 'cloud-mkcloud{version}-job-ha'
-        - 'cloud-mkcloud{version}-job-ha-compute'
-        - 'cloud-mkcloud{version}-job-hyperv'
-        - 'cloud-mkcloud{version}-job-magnum'
-        - 'cloud-mkcloud{version}-job-raid'
-        - 'cloud-mkcloud{version}-job-sle12sp2'
-        - 'cloud-mkcloud{version}-job-ssl'
-        - 'cloud-mkcloud{version}-job-tempestfull'
-        - 'cloud-mkcloud{version}-job-upgrade'
-        - 'cloud-mkcloud{version}-job-xen'
+        - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
+        - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
+        - 'cloud-mkcloud{version}-job-docker-{arch}'
+        - 'cloud-mkcloud{version}-job-dvr-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
+        - 'cloud-mkcloud{version}-job-hyperv-{arch}'
+        - 'cloud-mkcloud{version}-job-magnum-{arch}'
+        - 'cloud-mkcloud{version}-job-raid-{arch}'
+        - 'cloud-mkcloud{version}-job-sle12sp2-{arch}'
+        - 'cloud-mkcloud{version}-job-ssl-{arch}'
+        - 'cloud-mkcloud{version}-job-tempestfull-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-{arch}'
+        - 'cloud-mkcloud{version}-job-xen-{arch}'

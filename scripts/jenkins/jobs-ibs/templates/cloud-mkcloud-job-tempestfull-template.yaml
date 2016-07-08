@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-tempestfull'
+    name: 'cloud-mkcloud{version}-job-tempestfull-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -21,3 +21,4 @@
             nodenumber=2
             tempestoptions=-t
             mkcloudtarget=all_noreboot
+            label={label}

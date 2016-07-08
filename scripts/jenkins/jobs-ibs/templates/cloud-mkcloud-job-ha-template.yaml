@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-ha'
+    name: 'cloud-mkcloud{version}-job-ha-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -22,3 +22,4 @@
             networkingmode=vxlan
             hacloud=1
             mkcloudtarget=all_noreboot
+            label={label}

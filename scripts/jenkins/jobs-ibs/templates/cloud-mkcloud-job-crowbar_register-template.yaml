@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-crowbar_register'
+    name: 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -21,3 +21,4 @@
             nodenumber=2
             WITHCROWBARREGISTER=true
             mkcloudtarget=instonly
+            label={label}

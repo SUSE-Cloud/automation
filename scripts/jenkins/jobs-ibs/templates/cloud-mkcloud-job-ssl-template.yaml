@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-ssl'
+    name: 'cloud-mkcloud{version}-job-ssl-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -21,3 +21,4 @@
             nodenumber=2
             want_all_ssl=1
             mkcloudtarget=all
+            label={label}
