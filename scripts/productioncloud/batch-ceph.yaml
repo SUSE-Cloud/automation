@@ -12,10 +12,10 @@ proposals:
       ceph-calamari: []
       ceph-mon:
       - "@@dashboard@@"
-      - de8-9a-8f-bd-a1-bc.p1.cloud.suse.de
-      - de8-9a-8f-bd-a4-06.p1.cloud.suse.de
+      - de8-9a-8f-bd-a4-8c.p1.cloud.suse.de
+      - d04-7d-7b-61-76-2e.p1.cloud.suse.de
       ceph-osd:
-      - de8-9a-8f-bd-a1-bc.p1.cloud.suse.de
+      - d04-7d-7b-61-76-2e.p1.cloud.suse.de
       - de8-9a-8f-bd-a4-06.p1.cloud.suse.de
       - de8-9a-8f-bd-a4-8c.p1.cloud.suse.de
       ceph-radosgw:

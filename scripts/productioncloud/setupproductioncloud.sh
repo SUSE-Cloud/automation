@@ -10,6 +10,9 @@ export TESTHEAD=1
 export cloud=p1
 export nodenumber=4
 export cephvolumenumber=1
+# 2nd node only has 32GB RAM, making it more suitable for controller
+export want_node_roles=compute=1,controller=1,compute=2
+export want_node_aliases=n1=1,dashboard=1,n2=1,n3=1
 export want_rootpw=securepassword
 export want_tempest=0
 # avoid crashing controller node from ovs+gre (bnc#970720)
@@ -34,7 +37,7 @@ EOF
 )
 
 ( . qa_crowbarsetup.sh ;
-onadmin_runlist addupdaterepo prepareinstallcrowbar installcrowbar allocate proposal setupproduction testsetup
+onadmin_runlist addupdaterepo prepareinstallcrowbar installcrowbar allocate setup_aliases proposal setupproduction testsetup
 
 # give read-permissions to the users that will need it
 get_novacontroller
