@@ -3481,9 +3481,11 @@ function oncontroller_magnum_service_setup ()
 
         . ~/.openrc
 
+        # TODO(toabctl): when replacing the Fedora image, also replace the
+        # os-distro property
         openstack image create --file $service_image_name \
             --disk-format qcow2 --container-format bare --public \
-            magnum-service-image
+            --property os_distro=fedora-atomic magnum-service-image
     fi
 }
 
