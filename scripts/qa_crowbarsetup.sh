@@ -2030,12 +2030,14 @@ function onadmin_allocate()
     for n in `get_all_discovered_nodes` ; do
         wait_for 100 2 "knife node show -a state $n | grep -q discovered" \
             "node to enter discovered state"
-        # provisioner is the last transition discovered role, so we're
-        # kludging here and wait for the discovered transition to be really
-        # finished.
-        wait_for 100 5 \
-            "get_proposal_role_elements provisioner provisioner-base | grep -q $n" \
-            "node to be in provisioner proposal"
+        if iscloudver 6minus; then
+            # provisioner is the last transition discovered role, so we're
+            # kludging here and wait for the discovered transition to be really
+            # finished.
+            wait_for 100 5 \
+                "get_proposal_role_elements provisioner provisioner-base | grep -q $n" \
+                "node to be in provisioner proposal"
+        fi
     done
     local controllernodes=(
             $(get_all_discovered_nodes | head -n 2)
