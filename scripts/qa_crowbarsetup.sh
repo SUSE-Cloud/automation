@@ -3901,6 +3901,15 @@ function oncontroller_testsetup()
 
     nova flavor-delete m1.smaller || :
     nova flavor-create m1.smaller 11 512 8 1
+    nova flavor-create m2.medium 12 6144 20 2
+    nova flavor-create m1.tiniest 13 128 8 1
+    nova flavor-create --ephemeral 20 d2.tiny    21  512 20 1
+    nova flavor-create --ephemeral 20 d2.small   22 2048 20 1
+    nova flavor-create --ephemeral 40 d4.smaller 23 1024 40 2
+    nova flavor-create --ephemeral 80 d8.smaller 24 1024 80 2
+    nova flavor-create --ephemeral 20 c8.smaller 32 1024 20 8
+    nova flavor-create --ephemeral 20 c8.small   33 2048 20 8
+    nova flavor-create --ephemeral 20 c8.medium  34 4096 20 8
     nova delete testvm  || :
     nova keypair-add --pub-key /root/.ssh/id_rsa.pub testkey
     nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
