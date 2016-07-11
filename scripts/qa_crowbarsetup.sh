@@ -2770,6 +2770,10 @@ function custom_configuration()
             if [[ $nova_shared_instance_storage = 1 ]] ; then
                 proposal_set_value nova default "['attributes']['nova']['use_shared_instance_storage']" "true"
             fi
+            # set some custom vendordata for the metadata server
+            if iscloudver 7plus ; then
+                proposal_set_value nova default "['attributes']['nova']['metadata']['vendordata']['json']" "'{\"custom-key\": \"custom-value\"}'"
+            fi
         ;;
         horizon|nova_dashboard)
             if [[ $hacloud = 1 ]] ; then
@@ -3746,6 +3750,8 @@ function oncontroller_testsetup()
     if ! ssh $ssh_target curl $clouddata/test ; then
         complain 95 could not reach internet
     fi
+
+    wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target curl -s http://169.254.169.254/openstack/latest/vendor_data.json|grep -q custom-key" "Custom vendordata not accessable from VM"
 
     local volumecreateret=0
     local volumeattachret=0
