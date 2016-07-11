@@ -616,6 +616,26 @@ function createcloudsnapshot()
 
 function restorecloudfromsnapshot()
 {
+    local can_restore=1
+    lvs -o lv_name ${cloudvg} | grep "${cloud}.admin.snap" || {
+        echo "Missing snapshot for ${cloud}.admin"
+        can_restore=
+    }
+    for i in $allnodeids; do
+        if [[ ! ${can_restore} ]]; then
+            break
+        fi
+        lvs -o lv_name ${cloudvg} | grep "${cloud}.node$i.snap" || {
+            echo "Missing snapshot for ${cloud}.node$i"
+            can_restore=
+        }
+    done
+
+    if [[ ! ${can_restore} ]]; then
+        complain 88 "Cannot restore cloud, missing snapshot(s)"
+        return
+    fi
+
     virsh destroy $cloud-admin
     for i in $allnodeids ; do
         virsh destroy $cloud-node$i
