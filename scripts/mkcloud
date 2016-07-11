@@ -605,10 +605,10 @@ function createcloudsnapshot()
     for i in $allnodeids ; do
         wait_for_node_shutdown $cloud-node$i
     done
-    for d in $(lvs ${cloudvg} | grep "${cloud}\..*snap" | awk '{print $1}') ; do
+    for d in $(lvs -o lv_name ${cloudvg} | grep "${cloud}\..*snap") ; do
         remove_snapshot_volume "${cloudvg}/${d%.snap}"
     done
-    for d in $(lvs ${cloudvg} | grep ${cloud}\. | awk '{print $1}') ; do
+    for d in $(lvs -o lv_name ${cloudvg} | grep ${cloud}\.) ; do
         create_snapshot_volume "${cloudvg}/${d}"
     done
     restartcloud
@@ -620,7 +620,7 @@ function restorecloudfromsnapshot()
     for i in $allnodeids ; do
         virsh destroy $cloud-node$i
     done
-    for d in $(lvs ${cloudvg} | grep "${cloud}\..*snap" | awk '{print $1}') ; do
+    for d in $(lvs -o lv_name ${cloudvg} | grep "${cloud}\..*snap") ; do
         merge_snapshot_volume "${cloudvg}/${d%.snap}"
     done
     createcloudsnapshot
