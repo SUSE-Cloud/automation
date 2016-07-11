@@ -1,7 +1,7 @@
 #!/bin/bash
 # based on https://github.com/SUSE/cloud/wiki/SUSE-Cloud-Installation-Manual
 
-[[ $(uname -m) =~ ^(aarch64|x86_64)$ ]] || { echo "ERROR: need 64bit" ; exit 1 ; }
+# This has only been tested on aarch64, x86_64 and s390x so far
 
 shopt -s extglob
 
