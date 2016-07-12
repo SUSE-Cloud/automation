@@ -467,6 +467,7 @@ function setuphost()
             osloader=qemu-uefi-aarch64
             ipxe=qemu-ipxe
         }
+        [[ $(uname -m) = s390x ]] && kvmpkg=qemu-s390
         zypper --non-interactive in --no-recommends \
             libvirt $kvmpkg $osloader $ipxe lvm2 curl wget bridge-utils \
             dnsmasq netcat-openbsd ebtables libvirt-python
