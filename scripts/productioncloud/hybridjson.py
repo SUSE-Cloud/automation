@@ -77,15 +77,19 @@ class Assignment(sql_assign.Assignment):
             res = super(Assignment, self)._get_metadata(
                 user_id, tenant_id, domain_id, group_id, session)
         except exception.MetadataNotFound:
+            LOG.warning('xxhybrid MetadataNotFound: user=%(user)s', {'user': user_id})
             if self.default_project_id == tenant_id and is_ldap:
+                LOG.warning('xxhybrid MetadataNotFound eq')
                 return {
                     'roles': [
                         {'id': role_id} for role_id in self.default_roles
                     ]
                 }
             else:
+                LOG.warning('xxhybrid MetadataNotFound raise')
                 raise
         else:
+            LOG.warning('xxhybrid else: user=%(user)s', {'user': user_id})
             if is_ldap:
                 roles = res.get('roles', [])
                 res['roles'] = roles + [
