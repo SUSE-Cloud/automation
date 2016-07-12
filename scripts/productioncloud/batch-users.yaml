@@ -4,6 +4,8 @@ proposals:
   attributes:
     admin:
       password: securepassword
+    default:
+      tenant: suse
 - barclamp: crowbar
   attributes:
     users:
