@@ -13,18 +13,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_config import cfg
 from keystone import config
+from keystone import exception
 from keystone.assignment.backends import sql as sql_assign
 from keystone.assignment.role_backends import sql as sql_role
-from keystone.common import sql
 from keystone.common import manager
-from keystone import exception
+from keystone.common import sql
 from keystone.i18n import _
 from keystone.identity.backends import ldap as ldap_backend
 
-from oslo_utils import importutils
+from oslo_config import cfg
+
 from oslo_log import log
+
 import yaml
 
 LOG = log.getLogger(__name__)
@@ -55,7 +56,7 @@ class Assignment(sql_assign.Assignment):
     def __init__(self, *args, **kwargs):
         super(Assignment, self).__init__(*args, **kwargs)
         self.ldap_user = ldap_backend.UserApi(CONF)
-	with open('/etc/keystone/user-project-map.json', 'r') as f:
+        with open('/etc/keystone/user-project-map.json', 'r') as f:
             self.userprojectmap = yaml.load(f)
         self.resource_driver = manager.load_driver(
             'keystone.resource', self.default_resource_driver())
@@ -77,7 +78,8 @@ class Assignment(sql_assign.Assignment):
             res = super(Assignment, self)._get_metadata(
                 user_id, tenant_id, domain_id, group_id, session)
         except exception.MetadataNotFound:
-            LOG.warning('xxhybrid MetadataNotFound: user=%(user)s', {'user': user_id})
+            LOG.warning('xxhybrid MetadataNotFound: user=%(user)s',
+                        {'user': user_id})
             if self.default_project_id == tenant_id and is_ldap:
                 LOG.warning('xxhybrid MetadataNotFound eq')
                 return {
@@ -140,8 +142,8 @@ class Assignment(sql_assign.Assignment):
         # This will be really slow for setups with lots of users, but there
         # is not other way to achieve it currently
         for user in ldap_users:
-            # Skip LDAP User if it already as an assignemt, else add the default
-            # assignment
+            # Skip LDAP User if it already as an assignemt,
+            # else add the default assignment
             if any(a for a in role_assignments if
                    ('user_id'in a and a['user_id'] == user['id'])):
                 continue
