@@ -1,0 +1,11 @@
+---
+proposals:
+- barclamp: keystone
+  attributes:
+    admin:
+      password: securepassword
+- barclamp: crowbar
+  attributes:
+    users:
+      crowbar:
+        password: securepassword
