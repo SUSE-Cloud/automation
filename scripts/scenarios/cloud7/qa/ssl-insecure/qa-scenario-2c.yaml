@@ -166,6 +166,9 @@ proposals:
       ssl:
         # FIXME: see comment above
         #enabled: true
+    metadata:
+      vendordata:
+        json: '{"custom-key": "custom-value"}'
   deployment:
     elements:
       nova-controller:
