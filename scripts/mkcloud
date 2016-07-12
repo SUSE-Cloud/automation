@@ -461,12 +461,14 @@ function setuphost()
         export ZYPP_LOCK_TIMEOUT=60
         kvmpkg=kvm
         osloader=
+        ipxe=
         [[ $(uname -m) = aarch64 ]] && {
             kvmpkg=qemu-arm
             osloader=qemu-uefi-aarch64
+            ipxe=qemu-ipxe
         }
         zypper --non-interactive in --no-recommends \
-            libvirt $kvmpkg $osloader lvm2 curl wget bridge-utils \
+            libvirt $kvmpkg $osloader $ipxe lvm2 curl wget bridge-utils \
             dnsmasq netcat-openbsd ebtables libvirt-python
         [ "$?" == 0 -o "$?" == 4 ] || complain 10 "setuphost failed to install required packages"
     fi
