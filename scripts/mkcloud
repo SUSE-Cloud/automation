@@ -460,9 +460,13 @@ function setuphost()
     if is_suse ; then
         export ZYPP_LOCK_TIMEOUT=60
         kvmpkg=kvm
-        [[ $(uname -m) = aarch64 ]] && kvmpkg=qemu-arm
+        osloader=
+        [[ $(uname -m) = aarch64 ]] && {
+            kvmpkg=qemu-arm
+            osloader=qemu-uefi-aarch64
+        }
         zypper --non-interactive in --no-recommends \
-            libvirt $kvmpkg lvm2 curl wget bridge-utils \
+            libvirt $kvmpkg $osloader lvm2 curl wget bridge-utils \
             dnsmasq netcat-openbsd ebtables libvirt-python
         [ "$?" == 0 -o "$?" == 4 ] || complain 10 "setuphost failed to install required packages"
     fi
