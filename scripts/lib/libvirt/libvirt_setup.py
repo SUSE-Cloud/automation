@@ -74,6 +74,8 @@ def get_video_devices():
 def get_default_machine():
     if 'aarch64' in get_machine_arch():
         return "virt"
+    elif 's390x' in get_machine_arch():
+        return "s390-ccw-virtio"
     else:
         return "pc-0.14"
 
