@@ -3719,6 +3719,8 @@ function oncontroller_setupproduction()
     openstack project create demo
     openstack user create --password demo --email ashish.sodhi@suse.com --project demo demo
     openstack role add --project demo --user demo Member
+    openstack user create --project openstack --email thardeck@suse.de cloudfoundry
+    openstack role add --project openstack --user cloudfoundry Member
 
     # import images
     for img in SLES12.qcow2 SLES12-SP1.qcow2 SLES12-SP2.qcow2 cirros-0.3.4-x86_64-disk.img other/openSUSE-Leap-42.1.qcow2 Fedora-x86_64-20-20131211.1-sda.qcow2 ; do
