@@ -195,11 +195,15 @@ class Assignment(sql_assign.Assignment):
         # We only want to apply 'default_project' to users from LDAP, so
         # check if this is an LDAP User first
         try:
-            self.ldap_user.get(user_id)
+            user = self.ldap_user.get(user_id)
+            username = user['name']
         except exception.UserNotFound:
             # Not an LDAP User
             pass
         else:
-            project_ids.append(self.default_project_id)
+            if username in self.userprojectmap:
+                project_ids.extend(self.userprojectmap[username].keys())
+            else:
+                project_ids.append(self.default_project_id)
 
         return project_ids
