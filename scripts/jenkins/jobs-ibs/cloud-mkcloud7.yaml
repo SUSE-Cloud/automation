@@ -1,11 +1,17 @@
 - project:
+    name: cloud-mkcloud7-gating
+    version: 7
+    previous_version: 6
+    label: cloud-trigger
+    jobs:
+        - 'cloud-mkcloud{version}-gating'
+- project:
     name: cloud-mkcloud7-x86_64
     version: 7
     previous_version: 6
     arch: x86_64
     label: openstack-mkcloud-SLE12-x86_64
     jobs:
-        - 'cloud-mkcloud{version}-gating'
         - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
         - 'cloud-mkcloud{version}-job-docker-{arch}'
