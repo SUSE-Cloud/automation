@@ -1380,7 +1380,7 @@ function create_repos_yml()
 
 function onadmin_set_source_variables()
 {
-    if iscloudver 7plus; then
+    if iscloudver 7plus && [ -z "$want_sles12sp1_admin" ]; then
         suseversion=12.2
     elif iscloudver 6plus; then
         suseversion=12.1
@@ -1518,8 +1518,13 @@ function onadmin_setup_local_zypper_repositories()
                 zypper ar http://${clouddata}/repos/SLES12-SP1-Updates/ sles12sp1up
             ;;
             7)
-                zypper ar http://${clouddata}/repos/SLES12-SP2-Pool/ sles12sp2
-                zypper ar http://${clouddata}/repos/SLES12-SP2-Updates/ sles12sp2up
+                if [ "$want_sles12sp1_admin" == 1 ]; then
+                    zypper ar http://${clouddata}/repos/SLES12-SP1-Pool/ sles12sp1
+                    zypper ar http://${clouddata}/repos/SLES12-SP1-Updates/ sles12sp1up
+                else
+                    zypper ar http://${clouddata}/repos/SLES12-SP2-Pool/ sles12sp2
+                    zypper ar http://${clouddata}/repos/SLES12-SP2-Updates/ sles12sp2up
+                fi
             ;;
         esac
     fi
