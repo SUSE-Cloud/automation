@@ -67,17 +67,17 @@ class Assignment(sql_assign.Assignment):
             projectids = {}
             for projectname in self.userprojectmap[user]:
                 try:
-                    projectid=projectidcache[projectname]
+                    projectid = projectidcache[projectname]
                 except:
                     # cache miss - need to fetch from DB
                     try:
                         project = self.resource_driver.get_project_by_name(
-                            projectname,CONF.identity.default_domain_id)
-                        projectid=project['id']
-                        projectidcache[projectname]=project['id']
+                            projectname, CONF.identity.default_domain_id)
+                        projectid = project['id']
+                        projectidcache[projectname] = project['id']
                     except:
                         pass
-                projectids[projectid]=1
+                projectids[projectid] = 1
             self.userprojectmap[user] = projectids
 
     def _get_metadata(self, user_id=None, tenant_id=None,
@@ -94,14 +94,16 @@ class Assignment(sql_assign.Assignment):
         else:
             is_ldap = True
 
+        LOG.warning('_get_metadata for user=%(user)s',
+                    {'user': user_id})
         try:
             res = super(Assignment, self)._get_metadata(
                 user_id, tenant_id, domain_id, group_id, session)
         except exception.MetadataNotFound:
             LOG.debug('MetadataNotFound for user=%(user)s %(t)s'
-                        ' - falling back to JSON data',
-                        {'user': user_id, 't': tenant_id})
-            if is_ldap and (self.default_project_id == tenant_id or tenant_id in self.userprojectmap[username]):
+                      ' - falling back to JSON data',
+                      {'user': user_id, 't': tenant_id})
+            if is_ldap and tenant_id in self.userprojectmap[username]:
                 return {
                     'roles': [
                         {'id': role_id} for role_id in self.default_roles
@@ -159,7 +161,8 @@ class Assignment(sql_assign.Assignment):
         else:
             ldap_users = self.ldap_user.get_all_filtered(None)
 
-        LOG.warning('xxhybrid list_role_assignments: user=%(user)s', user_id)
+        LOG.warning('xxhybrid list_role_assignments: user=%(user)s',
+                    {'user': user_id})
         # This will be really slow for setups with lots of users, but there
         # is not other way to achieve it currently
         for user in ldap_users:
@@ -178,6 +181,8 @@ class Assignment(sql_assign.Assignment):
         return role_assignments
 
     def list_project_ids_for_user(self, user_id, group_ids, hints):
+        LOG.warning('xxhybrid list_project_ids_for_user: user=%(user)s',
+                    {'user': user_id})
         project_ids = super(Assignment, self).list_project_ids_for_user(
             user_id, group_ids, hints)
 
