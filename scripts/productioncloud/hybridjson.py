@@ -56,10 +56,29 @@ class Assignment(sql_assign.Assignment):
     def __init__(self, *args, **kwargs):
         super(Assignment, self).__init__(*args, **kwargs)
         self.ldap_user = ldap_backend.UserApi(CONF)
-        with open('/etc/keystone/user-project-map.json', 'r') as f:
-            self.userprojectmap = yaml.load(f)
+
         self.resource_driver = manager.load_driver(
             'keystone.resource', self.default_resource_driver())
+
+        with open('/etc/keystone/user-project-map.json', 'r') as f:
+            self.userprojectmap = yaml.load(f)
+        projectidcache = {}
+        for user in self.userprojectmap:
+            projectids = {}
+            for projectname in self.userprojectmap[user]:
+                try:
+                    projectid=projectidcache[projectname]
+                except:
+                    # cache miss - need to fetch from DB
+                    try:
+                        project = self.resource_driver.get_project_by_name(
+                            projectname,CONF.identity.default_domain_id)
+                        projectid=project['id']
+                        projectidcache[projectname]=project['id']
+                    except:
+                        pass
+                projectids[projectid]=1
+            self.userprojectmap[user] = projectids
 
     def _get_metadata(self, user_id=None, tenant_id=None,
                       domain_id=None, group_id=None, session=None):
@@ -67,10 +86,11 @@ class Assignment(sql_assign.Assignment):
         # check if this is an LDAP User first
         is_ldap = False
         try:
-            self.ldap_user.get(user_id)
+            user = self.ldap_user.get(user_id)
+            username = user['name']
         except exception.UserNotFound:
             # Not an LDAP User
-            pass
+            username = ""
         else:
             is_ldap = True
 
@@ -78,20 +98,19 @@ class Assignment(sql_assign.Assignment):
             res = super(Assignment, self)._get_metadata(
                 user_id, tenant_id, domain_id, group_id, session)
         except exception.MetadataNotFound:
-            LOG.warning('xxhybrid MetadataNotFound: user=%(user)s',
-                        {'user': user_id})
-            if self.default_project_id == tenant_id and is_ldap:
-                LOG.warning('xxhybrid MetadataNotFound eq')
+            LOG.debug('MetadataNotFound for user=%(user)s %(t)s'
+                        ' - falling back to JSON data',
+                        {'user': user_id, 't': tenant_id})
+            if is_ldap and (self.default_project_id == tenant_id or tenant_id in self.userprojectmap[username]):
                 return {
                     'roles': [
                         {'id': role_id} for role_id in self.default_roles
                     ]
                 }
             else:
-                LOG.warning('xxhybrid MetadataNotFound raise')
                 raise
         else:
-            LOG.warning('xxhybrid else: user=%(user)s', {'user': user_id})
+            LOG.debug('found user=%(user)s in DB', {'user': user_id})
             if is_ldap:
                 roles = res.get('roles', [])
                 res['roles'] = roles + [
@@ -139,6 +158,8 @@ class Assignment(sql_assign.Assignment):
             ldap_users = [self.ldap_user.get_filtered(user_id)]
         else:
             ldap_users = self.ldap_user.get_all_filtered(None)
+
+        LOG.warning('xxhybrid list_role_assignments: user=%(user)s', user_id)
         # This will be really slow for setups with lots of users, but there
         # is not other way to achieve it currently
         for user in ldap_users:
