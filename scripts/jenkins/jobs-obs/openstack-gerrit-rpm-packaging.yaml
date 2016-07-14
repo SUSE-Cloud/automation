@@ -78,24 +78,25 @@
                           failed=1
                       fi
                       # still pending builds?
-                      if [[ $r =~ (blocked$|scheduled$|dispatching$|building$|signing$|finished$|unknown|outdated$) ]]; then
+                      if [[ $r =~ (blocked$|scheduled$|dispatching$|building$|signing$) ]]; then
                           pending=1
                       fi
                       # scheduler stuck?
-                      if [[ $r =~ (finished$|unknown|outdated$) ]]; then
+                      if [[ $r =~ (finished$|unknown$|outdated$) ]]; then
                           kickscheduler=1
                       fi
                   done
-                  if [ -n "$pending" ]; then
-                      sleep $((RANDOM%50+30))
-                      echo ""
-                      continue
-                  fi
 
                   if [ -n "$kickscheduler" ]; then
                       echo "# $(date)" | osc meta prjconf -F - ${OBS_TEST_PROJECT}
                       sleep $((RANDOM%60+30))
                       echo "kicking scheduler"
+                      continue
+                  fi
+
+                  if [ -n "$pending" ]; then
+                      sleep $((RANDOM%50+30))
+                      echo ""
                       continue
                   fi
 
