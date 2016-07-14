@@ -44,7 +44,7 @@ python_unittest:
 
 jjb_test:
 	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-ibs:scripts/jenkins/jobs-ibs/templates/ cloud* openstack* > /dev/null
-	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-obs cloud* openstack* > /dev/null
+	jenkins-jobs --ignore-cache test scripts/jenkins/jobs-obs:scripts/jenkins/jobs-obs/templates/ cloud* openstack* > /dev/null
 
 # for travis-CI:
 install: debianinstall genericinstall

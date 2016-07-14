@@ -19,12 +19,18 @@ pipelines:
 projects:
   - name: openstack/rpm-packaging
     rpm-packaging:
-      - openstack-gerrit-rpm-packaging
+      - openstack-upstream-gerrit-rpm-packaging-Master
+      - openstack-upstream-gerrit-rpm-packaging-Mitaka
 
 jobs:
-  - name: openstack-gerrit-rpm-packaging
+  - name: openstack-upstream-gerrit-rpm-packaging-Master
     voting: false
     branch: master
-    failure-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-{build.build_set.commit}
-    success-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-{build.build_set.commit}
+    failure-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-Master-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-Master-{build.build_set.commit}
 
+  - name: openstack-upstream-gerrit-rpm-packaging-Mitaka
+    voting: false
+    branch: stable/mitaka
+    failure-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-Mitaka-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-Mitaka-{build.build_set.commit}
