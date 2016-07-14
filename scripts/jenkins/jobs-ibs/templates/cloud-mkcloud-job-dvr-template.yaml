@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-dvr'
+    name: 'cloud-mkcloud{version}-job-dvr-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -23,3 +23,4 @@
             networkingmode=vlan
             want_dvr=1
             mkcloudtarget=all
+            label={label}

@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-ha-compute'
+    name: 'cloud-mkcloud{version}-job-ha-compute-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -23,3 +23,4 @@
             mkcloudtarget=all_batch
             scenario=cloud{version}-4nodes-compute-ha.yml
             want_node_aliases=controller=2,compute=2
+            label={label}

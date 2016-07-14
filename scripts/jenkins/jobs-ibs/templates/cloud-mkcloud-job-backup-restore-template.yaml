@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-backup-restore'
+    name: 'cloud-mkcloud{version}-job-backup-restore-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -20,3 +20,4 @@
             cloudsource=develcloud{version}
             nodenumber=2
             mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
+            label={label}

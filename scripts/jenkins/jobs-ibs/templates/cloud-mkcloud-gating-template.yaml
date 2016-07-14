@@ -46,7 +46,7 @@
           name: 'Extra Gate Checks (HA)'
           condition: SUCCESSFUL
           projects:
-            - name: cloud-mkcloud{version}-job-ha
+            - name: cloud-mkcloud{version}-job-ha-x86_64
               node-label: cloud-trigger
 
     publishers:

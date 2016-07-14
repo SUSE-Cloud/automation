@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-magnum'
+    name: 'cloud-mkcloud{version}-job-magnum-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -21,3 +21,4 @@
             nodenumber=2
             want_magnum=1
             mkcloudtarget=all
+            label={label}

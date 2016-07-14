@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-upgrade'
+    name: 'cloud-mkcloud{version}-job-upgrade-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -21,3 +21,4 @@
             upgrade_cloudsource=develcloud{version}
             nodenumber=2
             mkcloudtarget=plain_with_upgrade testsetup rebootcloud
+            label={label}

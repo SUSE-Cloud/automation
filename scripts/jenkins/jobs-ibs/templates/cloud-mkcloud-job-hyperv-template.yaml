@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-hyperv'
+    name: 'cloud-mkcloud{version}-job-hyperv-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -23,3 +23,4 @@
             networkingmode=vlan
             libvirt_type=hyperv
             mkcloudtarget=all
+            label={label}
