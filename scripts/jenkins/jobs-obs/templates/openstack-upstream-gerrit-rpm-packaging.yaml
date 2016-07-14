@@ -33,13 +33,6 @@
               "rpm-packaging-openstack" ${{OBS_TEST_PROJECT}} || :
           sleep 2
 
-          # create package links (needed if a new .spec.j2 was added)
-          for spec_template in `find -name '*.spec.j2'`; do
-              spec_basename=`basename $spec_template|sed 's/.spec.j2$//'`
-              osc linkpac ${{OBS_TEST_PROJECT}} "rpm-packaging-openstack" ${{OBS_TEST_PROJECT}} python-${{spec_basename}} || :
-          done
-          sleep 2
-
           # checkout branched project, add updated stuff and commit
           osc co ${{OBS_TEST_PROJECT}}
           cp ${{TEMP_DIR}}/rpm-packaging-0.0.1.tar.bz2 ${{OBS_TEST_PROJECT}}/rpm-packaging-openstack
@@ -52,6 +45,15 @@
           osc addremove
           osc status
           osc commit -m "rpm-packaging CI (${{ZUUL_CHANGES}})"
+
+          # also create links for new packages
+          echo "creating missing links ..."
+          for x in *-SLE_12_SP1.spec; do
+              pkgname=${{x//-SLE_12_SP1.spec/}}
+              if ! osc ls ${{OBS_TEST_PROJECT}}  $pkgname &>/dev/null; then
+                  osc linkpac ${{OBS_TEST_PROJECT}} rpm-packaging-openstack ${{OBS_TEST_PROJECT}} $pkgname
+              fi
+          done
 
           popd
           pushd ${{OBS_TEST_PROJECT}}
