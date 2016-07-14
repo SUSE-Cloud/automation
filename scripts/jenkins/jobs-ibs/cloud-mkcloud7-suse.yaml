@@ -1,5 +1,5 @@
 - job:
-    name: 'cloud-mkcloud7-suse'
+    name: 'cloud-mkcloud7-suse-x86_64'
     project-type: multijob
     node: cloud-trigger
 
@@ -31,6 +31,7 @@
                 mkcloudtarget=all_batch
                 scenario=cloud7-2nodes-default.yml
                 want_node_aliases=controller=1,compute-kvm=1
+                label=openstack-mkcloud-SLE12-x86_64
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
@@ -41,6 +42,7 @@
                 want_ceph=1
                 networkingplugin=linuxbridge
                 mkcloudtarget=all
+                label=openstack-mkcloud-SLE12-x86_64
       - multijob:
           name: 'Extra Gate Checks (HA)'
           condition: SUCCESSFUL
@@ -54,3 +56,4 @@
                 networkingmode=vxlan
                 hacloud=1
                 mkcloudtarget=all_noreboot
+                label=openstack-mkcloud-SLE12-x86_64
