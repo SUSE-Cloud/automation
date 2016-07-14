@@ -24,6 +24,7 @@ projects:
 jobs:
   - name: openstack-gerrit-rpm-packaging
     voting: false
+    branch: master
     failure-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-{build.build_set.commit}
 
