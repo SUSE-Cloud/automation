@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-sle12sp2'
+    name: 'cloud-mkcloud{version}-job-sle12sp2-{arch}'
     project-type: multijob
     node: cloud-trigger
 
@@ -25,6 +25,7 @@
                 mkcloudtarget=all_batch
                 scenario=cloud{version}-2nodes-default.yml
                 want_node_aliases=controller=1,compute-kvm=1
+                label={label}
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
@@ -34,6 +35,7 @@
                 want_sles12sp2=1
                 networkingplugin=linuxbridge
                 mkcloudtarget=all
+                label={label}
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
@@ -44,3 +46,4 @@
                 networkingmode=vxlan
                 hacloud=1
                 mkcloudtarget=all_noreboot
+                label={label}
