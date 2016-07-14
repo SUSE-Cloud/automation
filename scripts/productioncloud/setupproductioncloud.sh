@@ -45,11 +45,6 @@ oncontroller '
 for u in {keystone,glance,cinder,neutron,nova} ; do
     setfacl -m u:$u:r /etc/cloud-keys/*.key
     done
-
-for prj in $(curl https://w3.suse.de/~bwiedemann/cloud/projects.txt) ; do
-    openstack --insecure project create $prj
-done
-cd /etc/keystone; wget -N https://w3.suse.de/~bwiedemann/cloud/user-project-map.json
     '
 echo TODO set public name to dashboard.p1.cloud.suse.de
 
