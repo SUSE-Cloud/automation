@@ -1,6 +1,6 @@
-- job:
-    name: 'openstack-gerrit-rpm-packaging'
-    description: "<b>This job is managed by JJB! Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-obs/'>git</a></b>"
+- job-template:
+    name: 'openstack-upstream-gerrit-rpm-packaging-{release}'
+    description: "<b>This job is managed by JJB! Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-obs/templates/'>git</a></b>"
     node: openstack-rpm-packaging
     builders:
       - gerrit-git-prep
@@ -11,39 +11,39 @@
           set -x
 
           # set vars
-          OBS_BASE_SRC_PROJECT="Cloud:OpenStack:Upstream"
-          OBS_BASE_TARGET_PROJECT="home:suse-cloud-ci:rpm-packaging-openstack"
-          OBS_TEST_PROJECT="${OBS_BASE_TARGET_PROJECT}-${ZUUL_COMMIT}"
-          TEMP_DIR="/tmp/rpm-packaging-${ZUUL_COMMIT}"
+          OBS_BASE_SRC_PROJECT="Cloud:OpenStack:Upstream:{release}"
+          OBS_BASE_TARGET_PROJECT="home:suse-cloud-ci:rpm-packaging-openstack-{release}"
+          OBS_TEST_PROJECT="${{OBS_BASE_TARGET_PROJECT}}-${{ZUUL_COMMIT}}"
+          TEMP_DIR="/tmp/rpm-packaging-${{ZUUL_COMMIT}}"
 
           # cleanup
-          rm -rf ${OBS_TEST_PROJECT}
-          rm -rf ${TEMP_DIR}
-          osc rdelete -r -m "rpm-packaging CI cleanup" ${OBS_TEST_PROJECT} || :
+          rm -rf ${{OBS_TEST_PROJECT}}
+          rm -rf ${{TEMP_DIR}}
+          osc rdelete -r -m "rpm-packaging CI cleanup" ${{OBS_TEST_PROJECT}} || :
           sleep 3
 
           # recreate the rpm-packaging tarball (as done by the tar_scm source service)
-          mkdir ${TEMP_DIR}
-          tar --exclude-vcs -cvjf ${TEMP_DIR}/rpm-packaging-0.0.1.tar.bz2 --transform 's,^,rpm-packaging-0.0.1/,' .
+          mkdir ${{TEMP_DIR}}
+          tar --exclude-vcs -cvjf ${{TEMP_DIR}}/rpm-packaging-0.0.1.tar.bz2 --transform 's,^,rpm-packaging-0.0.1/,' .
 
           # branch and checkout OBS project
           osc branch --add-repositories-block=local \
               --add-repositories-rebuild=local \
-              ${OBS_BASE_SRC_PROJECT} \
-              "rpm-packaging-openstack" ${OBS_TEST_PROJECT} || :
+              ${{OBS_BASE_SRC_PROJECT}} \
+              "rpm-packaging-openstack" ${{OBS_TEST_PROJECT}} || :
           sleep 2
 
           # create package links (needed if a new .spec.j2 was added)
           for spec_template in `find -name '*.spec.j2'`; do
               spec_basename=`basename $spec_template|sed 's/.spec.j2$//'`
-              osc linkpac ${OBS_TEST_PROJECT} "rpm-packaging-openstack" ${OBS_TEST_PROJECT} python-${spec_basename} || :
+              osc linkpac ${{OBS_TEST_PROJECT}} "rpm-packaging-openstack" ${{OBS_TEST_PROJECT}} python-${{spec_basename}} || :
           done
           sleep 2
 
           # checkout branched project, add updated stuff and commit
-          osc co ${OBS_TEST_PROJECT}
-          cp ${TEMP_DIR}/rpm-packaging-0.0.1.tar.bz2 ${OBS_TEST_PROJECT}/rpm-packaging-openstack
-          pushd ${OBS_TEST_PROJECT}/rpm-packaging-openstack
+          osc co ${{OBS_TEST_PROJECT}}
+          cp ${{TEMP_DIR}}/rpm-packaging-0.0.1.tar.bz2 ${{OBS_TEST_PROJECT}}/rpm-packaging-openstack
+          pushd ${{OBS_TEST_PROJECT}}/rpm-packaging-openstack
           osc detachbranch
           osc up
           bash -x pre_checkin.sh
@@ -51,12 +51,12 @@
           osc service localrun download_files
           osc addremove
           osc status
-          osc commit -m "rpm-packaging CI (${ZUUL_CHANGES})"
+          osc commit -m "rpm-packaging CI (${{ZUUL_CHANGES}})"
 
           popd
-          pushd ${OBS_TEST_PROJECT}
+          pushd ${{OBS_TEST_PROJECT}}
           echo "#################################"
-          echo "https://build.opensuse.org/project/show/${OBS_TEST_PROJECT}"
+          echo "https://build.opensuse.org/project/show/${{OBS_TEST_PROJECT}}"
           echo "#################################"
           sleep 5
 
@@ -88,7 +88,7 @@
                   done
 
                   if [ -n "$kickscheduler" ]; then
-                      echo "# $(date)" | osc meta prjconf -F - ${OBS_TEST_PROJECT}
+                      echo "# $(date)" | osc meta prjconf -F - ${{OBS_TEST_PROJECT}}
                       sleep $((RANDOM%60+30))
                       echo "kicking scheduler"
                       continue
