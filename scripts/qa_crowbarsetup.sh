@@ -3705,14 +3705,13 @@ function oncontroller_magnum_service_setup ()
 function oncontroller_setupproduction()
 {
     # increase quotas
-    openstack project show -f shell openstack > openstackprojectdata.sh
-    local tenantid=$( . openstackprojectdata.sh ; echo $id )
+    (cd /usr/local/bin ; wget https://raw.githubusercontent.com/SUSE-Cloud/cloud-tools/master/openstack/{getinstanceuser,getprojectid} ; chmod a+x *)
+    local tenantid=$(getprojectid openstack)
     nova quota-update --instances 400 --key-pairs 400 --server-groups 400 --ram 120000 --cores 500 --floating-ips 200 $tenantid
     neutron quota-update --floatingip 200 --security-group 400 --port 400 --network 200 --router 100 --vip 100 --pool 100
     # extra users
     openstack project create ses
-    openstack project show -f shell ses > sesprojectdata.sh
-    tenantid=$( . sesprojectdata.sh ; echo $id )
+    tenantid=$(getprojectid ses)
     openstack user create --project $tenantid --email jschmid.suse.de ses-jenkins
     nova quota-update --instances 50 --key-pairs 50 --server-groups 50 --ram 50000 --cores 60 --floating-ips 50 $tenantid
     neutron quota-update --tenant-id $tenantid --floatingip 50 --security-group 50 --port 50 --network 50 --router 50 --vip 50 --pool 50
