@@ -103,7 +103,8 @@ class Assignment(sql_assign.Assignment):
             LOG.debug('MetadataNotFound for user=%(user)s %(t)s'
                       ' - falling back to JSON data',
                       {'user': user_id, 't': tenant_id})
-            if is_ldap and tenant_id in self.userprojectmap[username]:
+            if is_ldap and (self.default_project_id == tenant_id or
+                            tenant_id in self.userprojectmap[username]):
                 return {
                     'roles': [
                         {'id': role_id} for role_id in self.default_roles
