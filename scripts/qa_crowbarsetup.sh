@@ -2202,6 +2202,9 @@ function onadmin_post_allocate()
     pre_hook $FUNCNAME
 
     if [[ $hacloud = 1 ]] ; then
+
+        onadmin_set_source_variables
+
         # create glance user with fixed uid/gid so they can work on the same
         # NFS share
         cluster_node_assignment
