@@ -1,10 +1,10 @@
-- job:
-    name: 'openstack-rpm-packaging-update'
+- job-template:
+    name: 'openstack-upstream-rpm-packaging-update-{release}'
     node: cloud-trackupstream
     description: |
-      Job to update periodically Cloud:OpenStack:Upstream with data from the OpenStack rpm-packaging project.
+      Job to update periodically Cloud:OpenStack:Upstream:{release} with data from the OpenStack rpm-packaging project.
       <b>This job is managed by JJB!</b>
-      Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-obs/'>git</a>
+      Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-obs/templates/'>git</a>
 
     triggers:
       - timed: 'H */4 * * *'
@@ -14,7 +14,7 @@
           #!/bin/bash
           export OSCAPI="https://api.opensuse.org"
           export JHOME="/home/jenkins"
-          export OBS_PROJECT="Cloud:OpenStack:Upstream"
+          export OBS_PROJECT="Cloud:OpenStack:Upstream:{release}"
           export COMPONENT="rpm-packaging-openstack"
           export OBS_CHECKOUT=$JHOME/OBS_CHECKOUT/$OBS_PROJECT
 
@@ -36,8 +36,8 @@
           # also create links for new packages
           echo "creating missing links ..."
           for x in *-SLE_12_SP1.spec; do
-              pkgname=${x//-SLE_12_SP1.spec/}
-              if ! osc ls Cloud:OpenStack:Upstream $pkgname &>/dev/null; then
-                  osc linkpac Cloud:OpenStack:Upstream rpm-packaging-openstack Cloud:OpenStack:Upstream $pkgname
+              pkgname=${{x//-SLE_12_SP1.spec/}}
+              if ! osc ls $OBS_PROJECT $pkgname &>/dev/null; then
+                  osc linkpac $OBS_PROJECT rpm-packaging-openstack $OBS_PROJECT $pkgname
               fi
           done
