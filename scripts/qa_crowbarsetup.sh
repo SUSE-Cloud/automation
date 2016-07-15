@@ -3720,6 +3720,7 @@ function oncontroller_setupproduction()
     tenantid=$(getprojectid openstack)
     nova quota-update --instances 400 --key-pairs 400 --server-groups 400 --ram 120000 --cores 500 --floating-ips 200 $tenantid
     neutron quota-update --floatingip 200 --security-group 400 --port 400 --network 200 --router 100 --vip 100 --pool 100
+    nova quota-update --os-tenant-id $(getproject cloudfoundry) --ram 55000
     # extra users
     openstack user create --project ses --email jschmid.suse.de ses-jenkins
     openstack role add --project ses --user ses-jenkins Member
