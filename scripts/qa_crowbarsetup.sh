@@ -2436,7 +2436,7 @@ function enable_ssl_generic()
             return
         ;;
         heat)
-            if [[ ! $(iscloudver 7plus) ]] ; then
+            if ! iscloudver 7plus ; then
                 return
             fi
             $p "$a['api']['protocol']" "'https'"
