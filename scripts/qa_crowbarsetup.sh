@@ -4598,13 +4598,13 @@ function onadmin_devsetup()
 
     # install development gems and generate dir tree
     pushd $crowbar_git_dir
-    bundle install
+    bundle install --path /opt/crowbar
     GUARD_SYNC_HOST=localhost bundle exec guard
     popd
 
     # install crowbar gems
     pushd /opt/crowbar/crowbar_framework
-    bundle install
+    bundle install --path /opt/crowbar
     popd
 
     # install barclamps
