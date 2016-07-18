@@ -87,7 +87,8 @@ zypper in python-jenkins-job-builder
 
 To update jobs on ci.opensuse.org, run:
 
-    jenkins-jobs --ignore-cache update scripts/jenkins/jobs-obs/
+    jenkins-jobs --ignore-cache update \
+        scripts/jenkins/jobs-obs/:scripts/jenkins/jobs-obs/templates/
 
 To update jobs on the SUSE internal CI, run:
 
