@@ -37,9 +37,7 @@ $cpuflags
     </console>
     <input type='mouse' bus='ps2'/>
 $videodevices
-    <memballoon model='virtio'>
-      <address type='pci' slot='0x05'/>
-    </memballoon>
+$memballoon
 $local_repository_mount
   </devices>
 </domain>

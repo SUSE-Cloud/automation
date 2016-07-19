@@ -91,6 +91,15 @@ def get_console_type():
     return 'serial'
 
 
+def get_memballoon_type():
+    if 's390x' in get_machine_arch():
+        return '<memballoon model="none"/>'
+
+    return """    <memballoon model='virtio'>
+      <address type='pci' slot='0x05'/>
+    </memballoon>"""
+
+
 def admin_config(args, cpu_flags=cpuflags()):
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
@@ -111,6 +120,7 @@ def admin_config(args, cpu_flags=cpuflags()):
         osloader=get_os_loader(),
         march=get_machine_arch(),
         machine=get_default_machine(),
+        memballoon=get_memballoon_type(),
         admin_node_disk=args.adminnodedisk,
         videodevices=get_video_devices(),
         local_repository_mount=localrepomount)
