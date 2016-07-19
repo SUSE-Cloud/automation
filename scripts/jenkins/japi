@@ -64,6 +64,7 @@ sub usage()
     fetch-all <prefix> : fetch all jobs that match one of the <prefix>es
     push-all  <prefix> : push all jobs that match one of the <prefix>es
     reformat  <file>   : reformat the XML after manual changes
+    getdescription <build> : get description of a build
     setdescription <build> <description> : set description of a build
     getbuilds <jobname> : get build numbers
 
@@ -255,6 +256,14 @@ sub urlencode($)
   return $x;
 }
 
+sub getdescription
+{
+  my $build=shift; # e.g. "openstack-mkcloud/3668"
+  my $xmlstr=curl("${jurlbase}/job/${build}/api/xml");
+  my $xml = $parser->parse_string($xmlstr);
+  print xml_get_elements($xml,"/freeStyleBuild/description");
+}
+
 sub setdescription
 {
   my $build=shift; # e.g. "openstack-mkcloud/3668"
@@ -282,7 +291,7 @@ sub getcrumb
 
 my $cmd=shift || die usage();
 my %handlefunc=();
-foreach my $func (qw(reformat setdescription getbuilds getcrumb)) {
+foreach my $func (qw(reformat getdescription setdescription getbuilds getcrumb)) {
   $handlefunc{$func} = eval "\\&$func";
 }
 foreach my $c (qw(fetch fetch-all push push-all)) {
