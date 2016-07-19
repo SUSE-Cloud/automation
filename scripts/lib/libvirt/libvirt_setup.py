@@ -85,6 +85,12 @@ def get_default_machine():
         return "pc-0.14"
 
 
+def get_console_type():
+    if 's390x' in get_machine_arch():
+        return 'sclp'
+    return 'serial'
+
+
 def admin_config(args, cpu_flags=cpuflags()):
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
@@ -97,6 +103,7 @@ def admin_config(args, cpu_flags=cpuflags()):
 
     values = dict(
         cloud=args.cloud,
+        consoletype=get_console_type(),
         admin_node_memory=args.adminnodememory,
         adminvcpus=args.adminvcpus,
         cpuflags=cpu_flags,
@@ -225,6 +232,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         machine=machine,
         osloader=get_os_loader(),
         cpuflags=cpu_flags,
+        consoletype=get_console_type(),
         raidvolume=raidvolume,
         cephvolume=cephvolume,
         drbdvolume=drbdvolume,
