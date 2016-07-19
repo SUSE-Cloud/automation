@@ -109,6 +109,26 @@ def get_serial_device():
     </serial>"""
 
 
+def get_mainnic_address():
+    mainnicaddress = "<address type='pci' slot='0x03'/>"
+
+    if 's390x' in get_machine_arch():
+        mainnicaddress = \
+            "<address type='ccw' cssid='0xfe' ssid='0x0' devno='0x1'/>"
+
+    return mainnicaddress
+
+
+def get_maindisk_address():
+    maindiskaddress = "<address type='pci' slot='0x04'/>"
+
+    if 's390x' in get_machine_arch():
+        maindiskaddress =  \
+            "<address type='ccw' cssid='0xfe' ssid='0x0' devno='0x2'/>"
+
+    return maindiskaddress
+
+
 def admin_config(args, cpu_flags=cpuflags()):
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
@@ -130,6 +150,8 @@ def admin_config(args, cpu_flags=cpuflags()):
         march=get_machine_arch(),
         machine=get_default_machine(),
         memballoon=get_memballoon_type(),
+        maindiskaddress=get_maindisk_address(),
+        mainnicaddress=get_mainnic_address(),
         admin_node_disk=args.adminnodedisk,
         videodevices=get_video_devices(),
         serialdevice=get_serial_device(),
@@ -169,6 +191,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         'emulator': args.emulator,
         'vdisk_dir': args.vdiskdir,
     }
+
     if hypervisor_has_virtio(libvirt_type):
         targetdevprefix = "vd"
         configopts['nicmodel'] = 'virtio'
@@ -257,6 +280,8 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         cephvolume=cephvolume,
         drbdvolume=drbdvolume,
         macaddress=args.macaddress,
+        maindiskaddress=get_maindisk_address(),
+        mainnicaddress=get_mainnic_address(),
         videodevices=get_video_devices(),
         target_dev=targetdevprefix + 'a',
         serialdevice=get_serial_device(),

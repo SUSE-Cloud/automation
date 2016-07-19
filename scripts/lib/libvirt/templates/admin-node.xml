@@ -20,14 +20,14 @@ $cpuflags
       <driver name='qemu' type='raw' cache='unsafe'/>
       <source dev='$admin_node_disk'/>
       <target dev='vda' bus='virtio'/>
-      <address type='pci' slot='0x04'/>
+      $maindiskaddress
     </disk>
     <interface type='network'>
       <mac address='52:54:00:77:77:70'/>
       <target dev='$cloud-a'/>
       <source network='$cloud-admin'/>
       <model type='virtio'/>
-      <address type='pci' slot='0x03'/>
+      $mainnicaddress
     </interface>
 $serialdevice
     <console type='pty'>

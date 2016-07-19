@@ -30,7 +30,7 @@ $drbdvolume
       <target dev='$cloud-$nodecounter'/>
       <source network='$cloud-admin'/>
       <model type='$nicmodel'/>
-      <address type='pci' slot='0x03'/>
+      $mainnicaddress
       <boot order='2'/>
     </interface>
 $serialdevice
