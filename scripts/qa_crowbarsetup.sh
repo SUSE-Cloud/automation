@@ -1305,7 +1305,7 @@ function create_repos_yml()
         if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
             additional_repos+=" SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/"
             additional_repos+=" SUSE-OpenStack-Cloud-6-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/"
-            [ $hacloud == 1 ] && additional_repos+=" SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
+            [[ $hacloud == 1 ]] && additional_repos+=" SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
             [ -n "$deployceph" ] && additional_repos+=" SUSE-Enterprise-Storage-2.1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/"
         fi
         for devel_repo in ${want_devel_repos//,/ }; do
@@ -1335,7 +1335,7 @@ function create_repos_yml()
             additional_repos+=" SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/"
             # FIXME: enable when Cloud 7 test updates are available
             # additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/"
-            [ $hacloud == 1 ] && additional_repos+=" SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
+            [[ $hacloud == 1 ]] && additional_repos+=" SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
             [ -n "$deployceph" ] && additional_repos+=" SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/"
         fi
         for devel_repo in ${want_devel_repos//,/ }; do
@@ -1364,7 +1364,7 @@ function create_repos_yml()
                 additional_repos+=" SLES12-SP2-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/x86_64/update/"
                 # FIXME: enable when Cloud 7 test updates are available
                 # additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/"
-                [ $hacloud == 1 ] && additional_repos+=" SLE12-SP2-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/"
+                [[ $hacloud == 1 ]] && additional_repos+=" SLE12-SP2-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/"
                 # FIXME: enable when switching from SES 3 to SES 4
                 # [ -n "$deployceph" ] && additional_repos+=" SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/4:/x86_64/update/"
             fi
