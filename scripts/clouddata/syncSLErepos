@@ -139,7 +139,7 @@ function mount_and_rsync {
     fi
 }
 
-for version in 4 5; do
+for version in 5; do
     echo ================== Updating Cloud $version
 
     if test -d /mnt/dist/install/SLP/SUSE-Cloud-$version-GM/; then
