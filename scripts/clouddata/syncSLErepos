@@ -63,7 +63,7 @@ for servicepack in 0 1 2; do
         if test -d /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ ; then
             $rsync /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ /srv/nfs/suse-${chef_version}${install_subdir}/install/
         else
-            $rsync /mnt/dist/install/SLP/SLE-$version-Server-LATEST/$arch/DVD1/ /srv/nfs/suse-${chef_version}${install_subdir}/install/
+            $rsync /mnt/dist/install/SLP/SLE-$version-Server-TEST/$arch/DVD1/ /srv/nfs/suse-${chef_version}${install_subdir}/install/
         fi
 
         # SLES pool
