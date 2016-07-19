@@ -35,6 +35,8 @@ def cpuflags():
         cpu_template = "cpu-arm64.xml"
     if re.search("^vendor_id.*GenuineIntel", cpu_info, re.MULTILINE):
         cpu_template = "cpu-intel.xml"
+    if re.search("^vendor_id.*IBM/S390", cpu_info, re.MULTILINE):
+        cpu_template = "cpu-s390x.xml"
 
     if re.search("flags.* npt", cpu_info):
         return ""
