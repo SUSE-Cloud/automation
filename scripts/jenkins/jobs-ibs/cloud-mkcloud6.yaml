@@ -10,6 +10,7 @@
     previous_version: 5
     arch: x86_64
     label: openstack-mkcloud-SLE12-x86_64
+    sles12sp2: 0
     jobs:
         - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
