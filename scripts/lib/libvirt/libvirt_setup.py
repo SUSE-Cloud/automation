@@ -68,6 +68,9 @@ def get_video_devices():
     if 'aarch64' in get_machine_arch():
         return ''
 
+    if 's390x' in get_machine_arch():
+        return ''
+
     return readfile(os.path.join(TEMPLATE_DIR, 'video-default.xml'))
 
 
@@ -141,7 +144,11 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         targetdevprefix = "vd"
         configopts['nicmodel'] = 'virtio'
         configopts['target_bus'] = 'virtio'
-        target_address = "<address type='pci' slot='{0}'/>"
+        if 's390x' in get_machine_arch():
+            target_address = \
+                "<address type='ccw' cssid='0xfe' ssid='0x0' devno='{0}'/>"
+        else:
+            target_address = "<address type='pci' slot='{0}'/>"
     else:
         targetdevprefix = "sd"
         configopts['target_bus'] = 'ide'
