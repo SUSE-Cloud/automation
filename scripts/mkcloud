@@ -314,7 +314,7 @@ function cleanup()
     fi
     rm -f /etc/lvm/archive/*
 
-    if [ -n "$wipe" ] ; then
+    if [[ $wipe = 1 ]] ; then
         vgchange -an $cloudvg
         dd if=/dev/zero of=$cloudpv count=1000
     fi
@@ -1346,6 +1346,7 @@ EOUSAGE
 # libvirt_type
 # localreposdir_src
 # localreposdir_target
+# wipe
 
 }
 
