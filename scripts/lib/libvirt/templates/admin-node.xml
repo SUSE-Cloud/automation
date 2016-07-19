@@ -29,9 +29,7 @@ $cpuflags
       <model type='virtio'/>
       <address type='pci' slot='0x03'/>
     </interface>
-    <serial type='pty'>
-      <target port='0'/>
-    </serial>
+$serialdevice
     <console type='pty'>
       <target type='$consoletype' port='0'/>
     </console>

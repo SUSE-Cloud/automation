@@ -100,6 +100,15 @@ def get_memballoon_type():
     </memballoon>"""
 
 
+def get_serial_device():
+    if 's390x' in get_machine_arch():
+        return ''
+
+    return """    <serial type='pty'>
+      <target port='0'/>
+    </serial>"""
+
+
 def admin_config(args, cpu_flags=cpuflags()):
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
@@ -123,6 +132,7 @@ def admin_config(args, cpu_flags=cpuflags()):
         memballoon=get_memballoon_type(),
         admin_node_disk=args.adminnodedisk,
         videodevices=get_video_devices(),
+        serialdevice=get_serial_device(),
         local_repository_mount=localrepomount)
 
     return get_config(values, os.path.join(TEMPLATE_DIR, "admin-node.xml"))
@@ -249,6 +259,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         macaddress=args.macaddress,
         videodevices=get_video_devices(),
         target_dev=targetdevprefix + 'a',
+        serialdevice=get_serial_device(),
         target_address=target_address.format('0x0a'),
         bootorder=args.bootorder)
 
