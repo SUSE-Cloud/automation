@@ -4485,8 +4485,13 @@ function onadmin_crowbarrestore()
 function onadmin_crowbar_nodeupgrade()
 {
     local endpoint
+    local http_code
     for endpoint in services backup nodes; do
-        safely curl --silent -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/$endpoint.json
+        http_code=`curl -X POST -s -o crowbar-node-upgrade.txt -w '%{http_code}' $crowbar_api_digest $crowbar_api/installer/upgrade/$endpoint.json`
+        if ! [[ $http_code =~ [23].. ]] ; then
+            cat crowbar-node-upgrade.txt
+            complain 36 "Request to $crowbar_api/installer/upgrade/$endpoint.json returned $http_code"
+        fi
     done
     wait_for 360 10 "crowbar_nodeupgrade_status | grep -q '\"left\": *0'" "crowbar to finish the nodeupgrade"
     if ! crowbar_nodeupgrade_status | grep -q '"failed": *0' ; then
