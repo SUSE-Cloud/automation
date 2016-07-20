@@ -520,6 +520,16 @@ function resize_partition()
     fi
 }
 
+function isrepoworking()
+{
+    local repo=$1
+    curl -s http://$clouddata/repos/disabled | egrep -q "^$repo" && {
+        echo "WARNING: The repo $repo is marked as broken"
+        return 1
+    }
+    return 0
+}
+
 function export_tftpboot_repos_dir()
 {
     tftpboot_repos_dir=/srv/tftpboot/repos
@@ -568,24 +578,26 @@ function addsles12testupdates()
 
 function addsles12sp1testupdates()
 {
-    echo "2016-07-20: NOT ENABLING TEST UPDATES BECAUSE BEING BROKEN DUE TO"
-    echo "https://build.suse.de/project/show/SUSE:Maintenance:2912"
-    echo ""
-    return
-
-    add_mount "SLES12-SP1-Updates-test" \
-        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/$(uname -m)/update/" \
-        "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
-    [[ $hacloud ]] && add_mount "SLE12-SP1-HA-Updates-test" \
-        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/$(uname -m)/update/" \
-        "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
-    [ -n "$deployceph" -a iscloudver 6 ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$(uname -m)/update/" \
-        "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
-    [ -n "$deployceph" -a iscloudver 7plus ] && add_mount "SUSE-Enterprise-Storage-3-Updates-test" \
-        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/$(uname -m)/update/" \
-        "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-3-Updates-test/"
-
+    if isrepoworking SLES12-SP1-Updates-test ; then
+        add_mount "SLES12-SP1-Updates-test" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/$(uname -m)/update/" \
+            "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
+    fi
+    if isrepoworking SLE12-SP1-HA-Updates-test ; then
+        [[ $hacloud == 1 ]] && add_mount "SLE12-SP1-HA-Updates-test" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/$(uname -m)/update/" \
+            "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
+    fi
+    if isrepoworking SUSE-Enterprise-Storage-2.1-Updates-test ; then
+        [ -n "$deployceph" -a iscloudver 6 ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$(uname -m)/update/" \
+            "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
+    fi
+    if isrepoworking SUSE-Enterprise-Storage-3-Updates-test ; then
+        [ -n "$deployceph" -a iscloudver 7plus ] && add_mount "SUSE-Enterprise-Storage-3-Updates-test" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/$(uname -m)/update/" \
+            "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-3-Updates-test/"
+    fi
 }
 
 function addsles12sp2testupdates()
