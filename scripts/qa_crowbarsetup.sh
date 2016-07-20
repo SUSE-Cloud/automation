@@ -568,6 +568,11 @@ function addsles12testupdates()
 
 function addsles12sp1testupdates()
 {
+    echo "2016-07-20: NOT ENABLING TEST UPDATES BECAUSE BEING BROKEN DUE TO"
+    echo "https://build.suse.de/project/show/SUSE:Maintenance:2912"
+    echo ""
+    return
+
     add_mount "SLES12-SP1-Updates-test" \
         $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/$(uname -m)/update/" \
         "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
