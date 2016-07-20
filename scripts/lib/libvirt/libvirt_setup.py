@@ -35,6 +35,8 @@ def cpuflags():
         cpu_template = "cpu-arm64.xml"
     if re.search("^vendor_id.*GenuineIntel", cpu_info, re.MULTILINE):
         cpu_template = "cpu-intel.xml"
+    if re.search("^vendor_id.*IBM/S390", cpu_info, re.MULTILINE):
+        cpu_template = "cpu-s390x.xml"
 
     if re.search("flags.* npt", cpu_info):
         return ""
@@ -68,6 +70,9 @@ def get_video_devices():
     if 'aarch64' in get_machine_arch():
         return ''
 
+    if 's390x' in get_machine_arch():
+        return ''
+
     return readfile(os.path.join(TEMPLATE_DIR, 'video-default.xml'))
 
 
@@ -78,6 +83,50 @@ def get_default_machine():
         return "s390-ccw-virtio"
     else:
         return "pc-0.14"
+
+
+def get_console_type():
+    if 's390x' in get_machine_arch():
+        return 'sclp'
+    return 'serial'
+
+
+def get_memballoon_type():
+    if 's390x' in get_machine_arch():
+        return '<memballoon model="none"/>'
+
+    return """    <memballoon model='virtio'>
+      <address type='pci' slot='0x05'/>
+    </memballoon>"""
+
+
+def get_serial_device():
+    if 's390x' in get_machine_arch():
+        return ''
+
+    return """    <serial type='pty'>
+      <target port='0'/>
+    </serial>"""
+
+
+def get_mainnic_address():
+    mainnicaddress = "<address type='pci' slot='0x03'/>"
+
+    if 's390x' in get_machine_arch():
+        mainnicaddress = \
+            "<address type='ccw' cssid='0xfe' ssid='0x0' devno='0x1'/>"
+
+    return mainnicaddress
+
+
+def get_maindisk_address():
+    maindiskaddress = "<address type='pci' slot='0x04'/>"
+
+    if 's390x' in get_machine_arch():
+        maindiskaddress =  \
+            "<address type='ccw' cssid='0xfe' ssid='0x0' devno='0x2'/>"
+
+    return maindiskaddress
 
 
 def admin_config(args, cpu_flags=cpuflags()):
@@ -92,6 +141,7 @@ def admin_config(args, cpu_flags=cpuflags()):
 
     values = dict(
         cloud=args.cloud,
+        consoletype=get_console_type(),
         admin_node_memory=args.adminnodememory,
         adminvcpus=args.adminvcpus,
         cpuflags=cpu_flags,
@@ -99,8 +149,12 @@ def admin_config(args, cpu_flags=cpuflags()):
         osloader=get_os_loader(),
         march=get_machine_arch(),
         machine=get_default_machine(),
+        memballoon=get_memballoon_type(),
+        maindiskaddress=get_maindisk_address(),
+        mainnicaddress=get_mainnic_address(),
         admin_node_disk=args.adminnodedisk,
         videodevices=get_video_devices(),
+        serialdevice=get_serial_device(),
         local_repository_mount=localrepomount)
 
     return get_config(values, os.path.join(TEMPLATE_DIR, "admin-node.xml"))
@@ -137,11 +191,16 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         'emulator': args.emulator,
         'vdisk_dir': args.vdiskdir,
     }
+
     if hypervisor_has_virtio(libvirt_type):
         targetdevprefix = "vd"
         configopts['nicmodel'] = 'virtio'
         configopts['target_bus'] = 'virtio'
-        target_address = "<address type='pci' slot='{0}'/>"
+        if 's390x' in get_machine_arch():
+            target_address = \
+                "<address type='ccw' cssid='0xfe' ssid='0x0' devno='{0}'/>"
+        else:
+            target_address = "<address type='pci' slot='{0}'/>"
     else:
         targetdevprefix = "sd"
         configopts['target_bus'] = 'ide'
@@ -216,12 +275,16 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         machine=machine,
         osloader=get_os_loader(),
         cpuflags=cpu_flags,
+        consoletype=get_console_type(),
         raidvolume=raidvolume,
         cephvolume=cephvolume,
         drbdvolume=drbdvolume,
         macaddress=args.macaddress,
+        maindiskaddress=get_maindisk_address(),
+        mainnicaddress=get_mainnic_address(),
         videodevices=get_video_devices(),
         target_dev=targetdevprefix + 'a',
+        serialdevice=get_serial_device(),
         target_address=target_address.format('0x0a'),
         bootorder=args.bootorder)
 
