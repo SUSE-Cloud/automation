@@ -559,7 +559,7 @@ function addsp3testupdates()
     add_mount "SLES11-SP3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
-    [[ $hacloud ]] && add_mount "SLE11-HAE-SP3-Updates-test" \
+    [[ $hacloud = 1 ]] && add_mount "SLE11-HAE-SP3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/"
 }
@@ -584,7 +584,7 @@ function addsles12sp1testupdates()
             "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     fi
     if isrepoworking SLE12-SP1-HA-Updates-test ; then
-        [[ $hacloud == 1 ]] && add_mount "SLE12-SP1-HA-Updates-test" \
+        [[ $hacloud = 1 ]] && add_mount "SLE12-SP1-HA-Updates-test" \
             $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/$(uname -m)/update/" \
             "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     fi
@@ -606,7 +606,7 @@ function addsles12sp2testupdates()
     # add_mount "SLES12-SP2-Updates-test" \
     #     $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/x86_64/update/' \
     #     "$tftpboot_repos12sp2_dir/SLES12-SP2-Updates-test/" "sles12sp2tup"
-    # [[ $hacloud ]] && add_mount "SLE12-SP2-HA-Updates-test" \
+    # [[ $hacloud = 1 ]] && add_mount "SLE12-SP2-HA-Updates-test" \
     #     $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/' \
     #     "$tftpboot_repos12sp2_dir/SLE12-SP2-HA-Updates-test/"
 }
@@ -1612,7 +1612,7 @@ EOF
         fi
     fi
 
-    if [[ $hacloud ]]; then
+    if [[ $hacloud = 1 ]]; then
         if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 4plus ; then
             add_ha_repo
         elif iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
