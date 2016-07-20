@@ -1154,8 +1154,8 @@ Steps:
     proposal:       create and apply proposals for default setup
     setup_aliases:  set aliases for the nodes (usually needed for batch step)
     batch:          build proposals from exported crowbar_batch YAML file
-    setuplonelynodes: boot a number (defined by nodenumberlonelynodes) of non-crowbar registered nodes in the admin network
-    crowbar_register: register a number (defined by nodenumberlonelynodes) of non-crowbar nodes with crowbar (setuplonelynodes needs to have run before)
+    setuplonelynodes: boot a number (defined by nodenumberlonelynode) of non-crowbar registered nodes in the admin network
+    crowbar_register: register a number (defined by nodenumberlonelynode) of non-crowbar nodes with crowbar (setuplonelynodes needs to have run before)
     testsetup:      start a VM in the cloud
     addupdaterepo:  addupdate repos defined in UPDATEREPOS= (URLs separated by '+')
     runupdate:      run zypper up on the crowbar node
