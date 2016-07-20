@@ -477,6 +477,11 @@ function setuphost()
             libvirt $kvmpkg $osloader $ipxe lvm2 curl wget bridge-utils \
             dnsmasq netcat-openbsd ebtables libvirt-python
         [ "$?" == 0 -o "$?" == 4 ] || complain 10 "setuphost failed to install required packages"
+
+        # enable KVM
+        [[ $(uname -m) = s390x ]] && {
+            echo 1 > /proc/sys/vm/allocate_pgste
+        }
     fi
 
     sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
