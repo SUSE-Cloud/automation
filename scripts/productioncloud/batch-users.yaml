@@ -2,6 +2,7 @@
 proposals:
 - barclamp: keystone
   attributes:
+    token_expiration: 86400
     admin:
       password: securepassword
     default:
@@ -11,3 +12,6 @@ proposals:
     users:
       crowbar:
         password: securepassword
+- barclamp: horizon
+  attributes:
+    session_timeout: 1000
