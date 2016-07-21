@@ -3,7 +3,12 @@
 host=$1
 pool_vm=$2
 delay=$3
-message="Did you free VM ${pool_vm} on mkch${host}.cloud.suse.de ?"
+message="
+Did you free VM ${pool_vm} on mkch${host}.cloud.suse.de ?
+
+to free the pool again call:
+
+$(dirname $0)/mkcloud_free_pool ${host} ${pool_vm}"
 
 if ! [[ $(which xmessage) ]]; then
   echo "please install xmessage"
