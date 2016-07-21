@@ -356,7 +356,7 @@ outputs:
     value: { get_attr: [ my_floating_ip, floating_ip_address ] }
 EOF
 
-heat stack-create -f $PWD/testvm.stack teststack
+heat stack-create -f $(readlink -e $PWD/testvm.stack) teststack
 
 sleep 60
 

@@ -1,0 +1,247 @@
+heat_template_version: 2015-10-15
+
+description: |
+  This template builds the OpenStack cleanvm virtual machines for various cloud
+  sources (including a TESTHEAD flag) and images.
+
+  Usage examples:
+
+    # Build from Cloud:OpenStack:Mitaka:Staging on SLE12 SP1
+    heat stack-create -f openstack-cleanvm.yaml -P key_name=myuser -P TESTHEAD=1 myuser-cleanvm
+
+    # Build from Cloud:OpenStack:Mitaka on SLE12 SP1
+    heat stack-create -f openstack-cleanvm.yaml -P key_name=myuser myuser-cleanvm
+
+    # Build from Cloud:OpenStack:Liberty on SLE12 SP1
+    heat stack-create -f openstack-cleanvm.yaml \
+      -P key_name=myuser \
+      -P cloudsource=openstackliberty \
+      myuser-cleanvm
+
+    # Build from Cloud:OpenStack:Mitaka on openSUSE Leap 42.1
+    heat stack-create -f openstack-cleanvm.yaml \
+      -P key_name=myuser \
+      -P image=openSUSE-Leap-42.1 \
+      myuser-cleanvm
+
+    # Build from Cloud:OpenStack:Mitaka on openSUSE Leap 42.1 and use a
+    # openstack-quickstart fork
+    heat stack-create -f openstack-cleanvm.yaml \
+      -P key_name=myuser \
+      -P image=openSUSE-Leap-42.1 \
+      -P quickstart_repo=https://github.com/myuser/openstack-quickstart.git \
+      -P quickstart_branch=my-quickstart-feature
+      myuser-cleanvm
+
+    # Build from Cloud:OpenStack:Mitaka on openSUSE Leap 42.1 and use a
+    # fork of SUSE-cloud/automation
+    heat stack-create -f openstack-cleanvm.yaml \
+      -P key_name=myuser \
+      -P image=openSUSE-Leap-42.1 \
+      -P automation_repo=https://github.com/myuser/automation.git \
+      -P automation_branch=my-automation-feature \
+      myuser-cleanvm
+
+
+parameters:
+  TESTHEAD:
+    type: string
+    default: '1'
+    description: >
+      Test packages from the staging repository (defaults to `1`, since this
+      job normally gates the transition from staging to non-staging.
+  automation_branch:
+    default: master
+    type: string
+    description: An alternate branch to use for the automation repository
+  automation_repo:
+    default: https://github.com/suse-cloud/automation.git
+    type: string
+    description: The repository URL to clone the automation repository from
+  cloudsource:
+    type: string
+    default: openstackmitaka
+    description: The Cloud source to use.
+  floating_network:
+    type: string
+    default: floating
+    description: The network to draw floating IPs from.
+  image:
+    type: string
+    default: SLES12-SP1
+    description: >
+      The Glance image to use for the cleanvm machine. Use `SLES12-SP1`,
+      `SLES12-SP2` or `openSUSE-Leap-42.1` for now.
+  flavor:
+    type: string
+    default: m1.large
+    description: The Nova flavor to use for the cleanvm machine
+  key_name:
+    type: string
+    description: The SSH key to copy into the cleanvm machine's authorized_keys
+  quickstart_repo:
+    default: ''
+    type: string
+    description: >
+      The URL of an openstack-quickstart fork to use instead of the
+      openstack-quickstart package
+  quickstart_branch:
+    default: master
+    type: string
+    description: >
+      A branch to use for the openstack-quickstart fork (only effective if
+      quickstart_repo is specified)
+
+
+resources:
+
+  network:
+    type: OS::Neutron::Net
+    properties:
+      name:
+        list_join:
+          - '_'
+          - - 'heat'
+            - { get_param: 'OS::stack_name' }
+
+
+  subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      cidr: 10.0.0.1/24
+      name:
+        list_join:
+          - '_'
+          - - 'heat'
+            - { get_param: 'OS::stack_name' }
+      network:
+        get_resource: network
+
+  cleanvm:
+    type: OS::Nova::Server
+    properties:
+      name: cleanvm
+      config_drive: true
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_param: key_name }
+      networks:
+        - port: { get_resource: port }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          params:
+            _cloudsource: { get_param: cloudsource }
+            _TESTHEAD: { get_param: TESTHEAD }
+            _automation_repo: { get_param: automation_repo }
+            _automation_branch: { get_param: automation_branch }
+            _quickstart_repo: { get_param: quickstart_repo }
+            _quickstart_branch: { get_param: quickstart_branch }
+          template: |
+            #!/bin/sh -x
+            exec >> /root/cleanvm.log 2>&1
+            export TESTHEAD=_TESTHEAD
+            export cloudsource=_cloudsource
+            export automation_repo=_automation_repo
+            export automation_branch=_automation_branch
+            export quickstart_repo=_quickstart_repo
+            export quickstart_branch=_quickstart_branch
+
+            . /etc/os-release; # retrieve VERSION_ID
+
+            zypper='zypper --non-interactive'
+
+            case "$VERSION_ID" in
+              "12.2")
+                $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
+                $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
+               ;;
+              "12.1")
+                $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
+                $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
+               ;;
+              "12")
+                $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12/x86_64/product/' SLES12-Pool
+                $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12/x86_64/update/' SLES12-Updates
+               ;;
+              *)
+               ;;
+            esac
+
+            zypper --non-interactive install git-core
+
+            # override openstack-quickstart if an alternate repo was specified
+            if [ -n "$quickstart_repo" ]; then
+              export QUICKSTART_DEBUG=1
+              git clone $quickstart_repo  --branch $quickstart_branch /root/openstack-quickstart
+              install -p -m 755 /root/openstack-quickstart/scripts/keystone_data.sh /tmp
+              install -p -m 755 /root/openstack-quickstart/lib/functions.sh /tmp
+              install -p -m 644 /root/openstack-quickstart/etc/bash.openstackrc /tmp
+              install -p -m 755 /root/openstack-quickstart/scripts/openstack-loopback-lvm /tmp
+              install -p -m 755 /root/openstack-quickstart/scripts/openstack-quickstart-demosetup /tmp
+              install -p -m 600 /root/openstack-quickstart/etc/openstackquickstartrc /tmp
+            fi
+
+            git clone $automation_repo --branch $automation_branch /root/automation
+
+            sh -x /root/automation/scripts/jenkins/qa_openstack.sh &&
+            touch /root/cleanvm_finished
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network:
+          get_param: floating_network
+
+
+  router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_resource: router }
+      subnet: { get_resource: subnet }
+
+
+  floatingip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      port_id: { get_resource: port }
+      floating_network:
+        get_param: floating_network
+
+
+  allow_inbound:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: "Allow inbound SSH and HTTP traffic"
+      name:
+        list_join:
+          - '_'
+          - - 'heat'
+            - { get_param: 'OS::stack_name' }
+      rules:
+        - direction: ingress
+          remote_ip_prefix: 0.0.0.0/0
+          protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: icmp
+
+
+  port:
+    type: OS::Neutron::Port
+    properties:
+      network:
+        get_resource: network
+      security_groups:                # NEW
+        - get_resource: allow_inbound # NEW
+
+
+outputs:
+  floating_ip:
+    value:
+      get_attr:
+        - floatingip
+        - floating_ip_address
+
