@@ -684,16 +684,16 @@ function add_sdk_repo()
 {
     case "$cloudsource" in
         develcloud6|GM6|GM6+up)
-            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
-            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
+            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$(uname -m)/product/ SDK-SP1
+            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$(uname -m)/update/ SDK-SP1-Update
             ;;
         develcloud7|susecloud7|M?|Beta*|RC*|GMC*)
             if [[ $want_sles12sp2 ]] ; then
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/$(uname -m)/product/ SDK-SP2
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/$(uname -m)/update/ SDK-SP2-Update
             else
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$(uname -m)/product/ SDK-SP1
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$(uname -m)/update/ SDK-SP1-Update
             fi
             ;;
     esac
@@ -4050,7 +4050,7 @@ function onadmin_addupdaterepo()
                 --no-check-certificate \
                 --no-parent \
                 --no-clobber \
-                --accept x86_64.rpm,noarch.rpm \
+                --accept $(uname -m).rpm,noarch.rpm \
                 $repo
         done
         onadmin_setup_local_zypper_repositories
