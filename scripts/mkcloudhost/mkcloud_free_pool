@@ -1,0 +1,14 @@
+#!/bin/bash
+
+host=$1
+pool_vm=$2
+
+if [[ -z $1 ]] || [[ -z $2 ]]
+then
+  echo "usage ./mkcloud_free_pool mkcloudhost pool_vm"
+  echo "  example: ./mkcloud_free_pool e 1"
+  exit 1
+fi
+
+echo "freeing VM ${pool_vm} on mkch${host}.cloud.suse.de"
+ssh root@mkch${host}.cloud.suse.de "mv /root/pool/${pool_vm}.${USER} /root/pool/${pool_vm}"

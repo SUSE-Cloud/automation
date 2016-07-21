@@ -1,0 +1,72 @@
+#!/bin/bash
+
+host=$1
+pool_vm=$2
+hours=$3
+minutes=$4
+message="Did you free VM ${pool_vm} on mkch${host}.cloud.suse.de ?"
+
+if ! [[ $(which xmessage) ]]; then
+  echo "please install xmessage"
+  exit 1
+fi
+
+if [[ -z $1 ]] || [[ -z $2 ]] || [[ -z $3 ]]
+then
+  echo "usage ./mkcloud_reserve_pool mkcloudhost pool_vm reminder_hours reminder_minutes"
+  echo "  example: ./mkcloud_reserve_pool mkche 1 16 00"
+  exit 1
+fi
+
+echo "reserving VM ${pool_vm} on mkch${host}.cloud.suse.de"
+ssh root@mkch${host}.cloud.suse.de "mv /root/pool/${pool_vm} /root/pool/${pool_vm}.${USER}"
+
+case "$hours" in
+     [0-1][0-9] | 2[0-3] ) ;;
+     [0-9] ) hours="0$hours" ;;
+     * ) echo "'$hours' : Not a valid hour ( 0 - 23 )" 1>&2
+         exit 1 ;;
+esac
+
+case "$4" in
+     [0-9] | [0-5][0-9] ) minutes="$4"
+                          shift 2 ;;
+     * ) shift 1
+         minutes="" ;;
+esac
+
+if test -z "$minutes"
+then echo "Enter minutes (random input or timeout after 10 seconds set minutes to 0): "
+     read -t 10 minutes
+     case "$minutes" in
+          [0-9] | [0-5][0-9] ) ;;
+          * ) minutes="0" ;;
+     esac
+fi
+
+case "$minutes" in
+     [0-5][0-9] ) ;;
+     [0-9] ) minutes="0$minutes" ;;
+     * ) echo "'$minutes' : Not a valid minute ( 0 - 59 )" 1>&2
+         exit 1 ;;
+esac
+
+alarm_time="$hours$minutes"
+
+echo "At $hours:$minutes you get the xmessage $message"
+
+set_alarm()
+{ while true
+  do current_time=$( date +%H%M )
+     if test "$current_time" -ge "$alarm_time"
+     then break
+     fi
+     sleep 30
+  done
+  xmessage -nearmouse -timeout 18000 "$hours:$minutes $message"
+  exit 0
+}
+
+# this makes sure to keep it running even if the terminal is closed
+# will attach to init process
+set_alarm &
