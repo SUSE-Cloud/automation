@@ -136,7 +136,7 @@ scp="scp $sshopts"
 
 [[ -z ${want_mtu_size} ]] && want_mtu_size=1500
 
-emulator=/usr/bin/qemu-system-$(uname -m)
+emulator=/usr/bin/qemu-system-$arch
 if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
     # on SLE11, qemu-kvm is preferred, since qemu-system-x86_64 is
     # some rotten old stuff without KVM support
@@ -430,7 +430,7 @@ function onhost_deploy_image()
 
     pushd /tmp
     safely wget --progress=dot:mega -N \
-        http://$clouddata/images/$(uname -m)/$image
+        http://$clouddata/images/$arch/$image
 
     echo "Cloning $role node vdisk from $image ..."
     safely qemu-img convert -t none -O raw -S 0 -p $image $disk
@@ -467,19 +467,19 @@ function setuphost()
         kvmpkg=kvm
         osloader=
         ipxe=
-        [[ $(uname -m) = aarch64 ]] && {
+        [[ $arch = aarch64 ]] && {
             kvmpkg=qemu-arm
             osloader=qemu-uefi-aarch64
             ipxe=qemu-ipxe
         }
-        [[ $(uname -m) = s390x ]] && kvmpkg=qemu-s390
+        [[ $arch = s390x ]] && kvmpkg=qemu-s390
         zypper --non-interactive in --no-recommends \
             libvirt $kvmpkg $osloader $ipxe lvm2 curl wget bridge-utils \
             dnsmasq netcat-openbsd ebtables libvirt-python
         [ "$?" == 0 -o "$?" == 4 ] || complain 10 "setuphost failed to install required packages"
 
         # enable KVM
-        [[ $(uname -m) = s390x ]] && {
+        [[ $arch = s390x ]] && {
             echo 1 > /proc/sys/vm/allocate_pgste
         }
     fi
