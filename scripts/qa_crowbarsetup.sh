@@ -4436,6 +4436,20 @@ function onadmin_is_crowbar_api_available()
     [[ $http_code =~ [23].. ]]
 }
 
+function crowbar_upgrade_api()
+{
+    local method=$1
+    local endpoint=$2
+    local curlopts=${3:-''}
+    local outfile=crowbar-upgrade-api-${endpoint}.txt
+    local apiurl=$crowbar_api/installer/upgrade/$endpoint.json
+    local http_code=`curl -X $method $curlopts -s -o ${outfile} -w '%{http_code}' $crowbar_api_digest $apiurl`
+    if ! [[ $http_code =~ [23].. ]] ; then
+        cat $outfile
+        complain 36 "Request to $apiurl returned http code: $http_code"
+    fi
+}
+
 function onadmin_crowbarrestore()
 {
     pre_hook $FUNCNAME
@@ -4451,11 +4465,7 @@ function onadmin_crowbarrestore()
             with_upgrade)
                 # restore after upgrade has different workflow (missing APIs) than
                 #   a restore from a backup of the same cloud release
-                local http_code=`curl -X POST -F "file=@/tmp/$btarball" -s -o upgrade-start.txt -w '%{http_code}' $crowbar_api/installer/upgrade/start.json`
-                if ! [[ $http_code =~ [23].. ]] ; then
-                    cat upgrade-start.txt
-                    complain 36 "Could not start crowbar restore with upgrade workflow"
-                fi
+                crowbar_upgrade_api POST start "-F file=@/tmp/$btarball"
             ;;
             *)
                 # crowbarctl needs --anonymous to workaround a crowbarctl issue which leads to two api requests
@@ -4485,11 +4495,7 @@ function onadmin_crowbar_nodeupgrade()
     local endpoint
     local http_code
     for endpoint in services backup nodes; do
-        http_code=`curl -X POST -s -o crowbar-node-upgrade.txt -w '%{http_code}' $crowbar_api_digest $crowbar_api/installer/upgrade/$endpoint.json`
-        if ! [[ $http_code =~ [23].. ]] ; then
-            cat crowbar-node-upgrade.txt
-            complain 36 "Request to $crowbar_api/installer/upgrade/$endpoint.json returned $http_code"
-        fi
+        crowbar_upgrade_api POST $endpoint
     done
     wait_for 360 10 "crowbar_nodeupgrade_status | grep -q '\"left\": *0'" "crowbar to finish the nodeupgrade"
     if ! crowbar_nodeupgrade_status | grep -q '"failed": *0' ; then
