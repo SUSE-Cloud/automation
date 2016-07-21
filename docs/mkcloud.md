@@ -20,6 +20,14 @@ or testing purposes.
   $ sudo service libvirtd start  # to start the daemon
   ```
 
+  If you are using `libvirtd >= 1.3.0` then you should also start the
+  `virtlogd` service.
+
+  ```
+  $ sudo service virtlogd status # to check the status
+  $ sudo service virtlogd start  # to start the daemon
+  ```
+
   It's recommended to configure libvirtd to start on boot.
 
   * For systems running systemd:
