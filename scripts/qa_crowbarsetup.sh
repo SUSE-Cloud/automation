@@ -2781,8 +2781,12 @@ function custom_configuration()
 
             if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-docker']" "['$sles12plusnode']"
-                # do not assign another compute role to this node
-                proposal_modify_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "['$sles12plusnode']" "-="
+
+                local computetype
+                for computetype in "xen" "qemu" "lxc" "${libvirt_type}"; do
+                    # do not assign another compute role to this node
+                    proposal_modify_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${computetype}']" "['$sles12plusnode']" "-="
+                done
             fi
 
             if [[ $nova_shared_instance_storage = 1 ]] ; then
