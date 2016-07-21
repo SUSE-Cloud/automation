@@ -1663,7 +1663,7 @@ EOF
 
     # Workaround broken sleshammer
     if [ "$(uname -m)" = "aarch64" ]; then
-        rpm -Uvh http://clouddata.cloud.suse.de/suse-12.1/aarch64/PTF/sleshammer-aarch64.rpm
+        rpm -Uvh --force http://clouddata.cloud.suse.de/suse-12.1/aarch64/PTF/sleshammer-aarch64.rpm
     fi
 
     cd /tmp
