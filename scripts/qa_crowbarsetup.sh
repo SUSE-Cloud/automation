@@ -520,6 +520,16 @@ function resize_partition()
     fi
 }
 
+function isrepoworking()
+{
+    local repo=$1
+    curl -s http://$clouddata/repos/disabled | egrep -q "^$repo" && {
+        echo "WARNING: The repo $repo is marked as broken"
+        return 1
+    }
+    return 0
+}
+
 function export_tftpboot_repos_dir()
 {
     tftpboot_repos_dir=/srv/tftpboot/repos
@@ -549,7 +559,7 @@ function addsp3testupdates()
     add_mount "SLES11-SP3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
-    [[ $hacloud ]] && add_mount "SLE11-HAE-SP3-Updates-test" \
+    [[ $hacloud = 1 ]] && add_mount "SLE11-HAE-SP3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/"
 }
@@ -568,24 +578,26 @@ function addsles12testupdates()
 
 function addsles12sp1testupdates()
 {
-    echo "2016-07-20: NOT ENABLING TEST UPDATES BECAUSE BEING BROKEN DUE TO"
-    echo "https://build.suse.de/project/show/SUSE:Maintenance:2912"
-    echo ""
-    return
-
-    add_mount "SLES12-SP1-Updates-test" \
-        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/$(uname -m)/update/" \
-        "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
-    [[ $hacloud ]] && add_mount "SLE12-SP1-HA-Updates-test" \
-        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/$(uname -m)/update/" \
-        "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
-    [ -n "$deployceph" -a iscloudver 6 ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$(uname -m)/update/" \
-        "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
-    [ -n "$deployceph" -a iscloudver 7plus ] && add_mount "SUSE-Enterprise-Storage-3-Updates-test" \
-        $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/$(uname -m)/update/" \
-        "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-3-Updates-test/"
-
+    if isrepoworking SLES12-SP1-Updates-test ; then
+        add_mount "SLES12-SP1-Updates-test" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/$(uname -m)/update/" \
+            "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
+    fi
+    if isrepoworking SLE12-SP1-HA-Updates-test ; then
+        [[ $hacloud = 1 ]] && add_mount "SLE12-SP1-HA-Updates-test" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/$(uname -m)/update/" \
+            "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
+    fi
+    if isrepoworking SUSE-Enterprise-Storage-2.1-Updates-test ; then
+        [ -n "$deployceph" -a iscloudver 6 ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$(uname -m)/update/" \
+            "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
+    fi
+    if isrepoworking SUSE-Enterprise-Storage-3-Updates-test ; then
+        [ -n "$deployceph" -a iscloudver 7plus ] && add_mount "SUSE-Enterprise-Storage-3-Updates-test" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/$(uname -m)/update/" \
+            "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-3-Updates-test/"
+    fi
 }
 
 function addsles12sp2testupdates()
@@ -594,7 +606,7 @@ function addsles12sp2testupdates()
     # add_mount "SLES12-SP2-Updates-test" \
     #     $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/x86_64/update/' \
     #     "$tftpboot_repos12sp2_dir/SLES12-SP2-Updates-test/" "sles12sp2tup"
-    # [[ $hacloud ]] && add_mount "SLE12-SP2-HA-Updates-test" \
+    # [[ $hacloud = 1 ]] && add_mount "SLE12-SP2-HA-Updates-test" \
     #     $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/' \
     #     "$tftpboot_repos12sp2_dir/SLE12-SP2-HA-Updates-test/"
 }
@@ -1305,19 +1317,28 @@ function create_repos_yml()
 
     echo --- > $tmp_yml
 
+    # Clone test updates from admin node
+    ### FIXME: point to provisioner urls from admin node rather than direct links
+    grep -q SLES12-SP1-Updates-test /etc/fstab && \
+        additional_repos+=" SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/"
+    grep -q SLES12-SP2-Updates-test /etc/fstab && \
+        additional_repos+=" SLES12-SP2-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/x86_64/update/"
+    grep -q SUSE-OpenStack-Cloud-6-Updates-test /etc/fstab && \
+        additional_repos+=" SUSE-OpenStack-Cloud-6-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/"
+    grep -q SUSE-OpenStack-Cloud-7-Updates-test /etc/fstab && \
+        additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/"
+    grep -q SLE12-SP1-HA-Updates-test /etc/fstab && \
+        additional_repos+=" SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
+    grep -q SLE12-SP2-HA-Updates-test /etc/fstab && \
+        additional_repos+=" SLE12-SP2-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/"
+    grep -q SUSE-Enterprise-Storage-2.1-Updates-test /etc/fstab && \
+        additional_repos+=" SUSE-Enterprise-Storage-2.1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/"
+    grep -q SUSE-Enterprise-Storage-3-Updates-test /etc/fstab && \
+        additional_repos+=" SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/"
+
     if iscloudver 6; then
-        additional_repos=
-        if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
-            additional_repos+=" SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/"
-            additional_repos+=" SUSE-OpenStack-Cloud-6-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/"
-            [[ $hacloud == 1 ]] && additional_repos+=" SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
-            [ -n "$deployceph" ] && additional_repos+=" SUSE-Enterprise-Storage-2.1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/"
-        fi
         for devel_repo in ${want_devel_repos//,/ }; do
             case "$devel_repo" in
-                ha)
-                    # TODO: no devel repo for HA yet
-                    ;;
                 storage)
                     additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/2.1/SLE12_SP1/"
                     ;;
@@ -1335,19 +1356,8 @@ function create_repos_yml()
     fi
 
     if iscloudver 7; then
-        additional_repos=
-        if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
-            additional_repos+=" SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/"
-            # FIXME: enable when Cloud 7 test updates are available
-            # additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/"
-            [[ $hacloud == 1 ]] && additional_repos+=" SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
-            [ -n "$deployceph" ] && additional_repos+=" SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/"
-        fi
         for devel_repo in ${want_devel_repos//,/ }; do
             case "$devel_repo" in
-                ha)
-                    # TODO: no devel repo for HA yet
-                    ;;
                 storage)
                     additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/3.0/SLE12_SP1/"
                     ;;
@@ -1364,20 +1374,8 @@ function create_repos_yml()
             >> $tmp_yml
 
         if [[ $want_sles12sp2 ]]; then
-            additional_repos=
-            if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
-                additional_repos+=" SLES12-SP2-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/x86_64/update/"
-                # FIXME: enable when Cloud 7 test updates are available
-                # additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/"
-                [[ $hacloud == 1 ]] && additional_repos+=" SLE12-SP2-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/"
-                # FIXME: enable when switching from SES 3 to SES 4
-                # [ -n "$deployceph" ] && additional_repos+=" SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/4:/x86_64/update/"
-            fi
             for devel_repo in ${want_devel_repos//,/ }; do
                 case "$devel_repo" in
-                    ha)
-                        # TODO: no devel repo for HA yet
-                        ;;
                     storage)
                         # FIXME: enable when switching from SES 3 to SES 4
                         # additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/4.0/SLE12_SP2/"
@@ -1614,7 +1612,7 @@ EOF
         fi
     fi
 
-    if [[ $hacloud ]]; then
+    if [[ $hacloud = 1 ]]; then
         if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 4plus ; then
             add_ha_repo
         elif iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
