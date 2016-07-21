@@ -3746,7 +3746,9 @@ function oncontroller_testsetup()
     nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
     nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
     nova secgroup-add-rule default udp 1 65535 0.0.0.0/0
-    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey testvm | tee boot.out
+    local nic=
+    iscloudver 7plus && nic="--nic net-name=fixed"
+    timeout 10m nova boot --poll --image $image_name --flavor $flavor $nic --key-name testkey testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
