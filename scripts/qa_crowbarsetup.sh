@@ -4594,7 +4594,7 @@ function onadmin_devsetup()
 {
     # install dev setup dependencies
     add_sdk_repo
-    ensure_packages_installed git gcc ruby2.1-devel sqlite3-devel libxml2-devel
+    ensure_packages_installed git gcc ruby2.1-devel sqlite3-devel libxml2-devel libopenssl-devel
 
     # create development folders
     mkdir -p /opt/crowbar/crowbar_framework/db /opt/crowbar/barclamps
@@ -4611,13 +4611,13 @@ function onadmin_devsetup()
 
     # install development gems and generate dir tree
     pushd $crowbar_git_dir
-    bundle install
+    bundle install --path /opt/crowbar
     GUARD_SYNC_HOST=localhost bundle exec guard
     popd
 
     # install crowbar gems
     pushd /opt/crowbar/crowbar_framework
-    bundle install
+    bundle install --path /opt/crowbar
     popd
 
     # install barclamps
