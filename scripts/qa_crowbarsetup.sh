@@ -1066,10 +1066,11 @@ function onadmin_prepare_sles12_installmedia()
 
 function onadmin_prepare_sles12sp1_installmedia()
 {
-    for arch in aarch64 x86_64 s390x; do
-        local sles12sp1_mount="$tftpboot_suse12sp1_dir/$arch/install"
-        add_mount "SLE-12-SP1-Server-LATEST/sle-12-$arch" \
-            "$clouddata:/srv/nfs/suse-12.1/$arch/install" \
+    local a
+    for a in aarch64 x86_64 s390x; do
+        local sles12sp1_mount="$tftpboot_suse12sp1_dir/$a/install"
+        add_mount "SLE-12-SP1-Server-LATEST/sle-12-$a" \
+            "$clouddata:/srv/nfs/suse-12.1/$a/install" \
             "$sles12sp1_mount"
 
         if [ ! -d "$sles12sp1_mount/media.1" ] ; then
@@ -1080,10 +1081,11 @@ function onadmin_prepare_sles12sp1_installmedia()
 
 function onadmin_prepare_sles12sp2_installmedia()
 {
-    for arch in aarch64 x86_64 s390x; do
-        local sles12sp2_mount="$tftpboot_suse12sp2_dir/$arch/install"
-        add_mount "SLE-12-SP2-Server-LATEST/sle-12-$arch" \
-            "$clouddata:/srv/nfs/suse-12.2/$arch/install" \
+    local a
+    for a in aarch64 x86_64 s390x; do
+        local sles12sp2_mount="$tftpboot_suse12sp2_dir/$a/install"
+        add_mount "SLE-12-SP2-Server-LATEST/sle-12-$a" \
+            "$clouddata:/srv/nfs/suse-12.2/$a/install" \
             "$sles12sp2_mount"
 
         if [ ! -d "$sles12sp2_mount/media.1" ] ; then
