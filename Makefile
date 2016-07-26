@@ -57,7 +57,7 @@ suseinstall:
 	sudo zypper install perl-JSON-XS perl-libxml-perl python-pip libvirt-python
 
 genericinstall:
-	sudo pip install bashate flake8 flake8-import-order jenkins-job-builder
+	sudo pip install bashate 'flake8<3.0.0' flake8-import-order jenkins-job-builder
 	git clone https://github.com/SUSE-Cloud/roundup && \
 	cd roundup && \
 	./configure && \
