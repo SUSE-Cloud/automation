@@ -541,13 +541,13 @@ function export_tftpboot_repos_dir()
         tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
     elif iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
         tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
-        tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/$(uname -m)/repos
+        tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/$arch/repos
         # We need SP1 repositories for ceph nodes
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$(uname -m)/repos
+        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$arch/repos
     elif iscloudver 6plus; then
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$(uname -m)/repos
+        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$arch/repos
     fi
 }
 
@@ -580,22 +580,22 @@ function addsles12sp1testupdates()
 {
     if isrepoworking SLES12-SP1-Updates-test ; then
         add_mount "SLES12-SP1-Updates-test" \
-            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/$(uname -m)/update/" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/$arch/update/" \
             "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     fi
     if isrepoworking SLE12-SP1-HA-Updates-test ; then
         [[ $hacloud = 1 ]] && add_mount "SLE12-SP1-HA-Updates-test" \
-            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/$(uname -m)/update/" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/$arch/update/" \
             "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     fi
     if isrepoworking SUSE-Enterprise-Storage-2.1-Updates-test ; then
         [ -n "$deployceph" -a iscloudver 6 ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$(uname -m)/update/" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$arch/update/" \
             "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
     fi
     if isrepoworking SUSE-Enterprise-Storage-3-Updates-test ; then
         [ -n "$deployceph" -a iscloudver 7plus ] && add_mount "SUSE-Enterprise-Storage-3-Updates-test" \
-            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/$(uname -m)/update/" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/$arch/update/" \
             "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-3-Updates-test/"
     fi
 }
@@ -684,16 +684,16 @@ function add_sdk_repo()
 {
     case "$cloudsource" in
         develcloud6|GM6|GM6+up)
-            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
-            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
+            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
+            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
             ;;
         develcloud7|susecloud7|M?|Beta*|RC*|GMC*)
             if [[ $want_sles12sp2 ]] ; then
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/$arch/product/ SDK-SP2
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/$arch/update/ SDK-SP2-Update
             else
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/x86_64/product/ SDK-SP1
-                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/ SDK-SP1-Update
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
+                zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
             fi
             ;;
     esac
@@ -1103,7 +1103,7 @@ function onadmin_prepare_sles12_other_repos()
 function onadmin_prepare_sles12sp1_other_repos()
 {
     for repo in SLES12-SP1-{Pool,Updates}; do
-        add_mount "$repo/sle-12-$(uname -m)" "$clouddata:/srv/nfs/repos/$(uname -m)/$repo" \
+        add_mount "$repo/sle-12-$arch" "$clouddata:/srv/nfs/repos/$arch/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
@@ -1115,7 +1115,7 @@ function onadmin_prepare_sles12sp1_other_repos()
 function onadmin_prepare_sles12sp2_other_repos()
 {
     for repo in SLES12-SP2-{Pool,Updates}; do
-        add_mount "$repo/sle-12-$(uname -m)" "$clouddata:/srv/nfs/repos/$(uname -m)/$repo" \
+        add_mount "$repo/sle-12-$arch" "$clouddata:/srv/nfs/repos/$arch/$repo" \
             "$tftpboot_repos12sp2_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
@@ -1139,18 +1139,18 @@ function onadmin_prepare_cloud_repos()
     if [ -n "${localreposdir_target}" ]; then
         if iscloudver 6plus; then
             add_bind_mount \
-                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-12-$(uname -m)/" \
+                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-12-$arch/" \
                 "${targetdir}"
         else
             add_bind_mount \
-                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-$(uname -m)/" \
+                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-$arch/" \
                 "${targetdir}"
         fi
     else
         if iscloudver 6plus; then
             rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$targetdir"
             if [[ $want_s390 ]] ; then
-                rsync_iso "$CLOUDSLE12DISTPATH" "${CLOUDSLE12DISTISO/$(uname -m)/s390x}" "${targetdir/$(uname -m)/s390x}"
+                rsync_iso "$CLOUDSLE12DISTPATH" "${CLOUDSLE12DISTISO/$arch/s390x}" "${targetdir/$arch/s390x}"
             fi
         else
             rsync_iso "$CLOUDSLE11DISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
@@ -1535,11 +1535,11 @@ function onadmin_setup_local_zypper_repositories()
             ;;
             6|7)
                 if iscloudver 7plus && [[ $want_sles12sp2 ]] ; then
-                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP2-Pool/ sles12sp2
-                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP2-Updates/ sles12sp2up
+                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP2-Pool/ sles12sp2
+                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP2-Updates/ sles12sp2up
                 else
-                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP1-Pool/ sles12sp1
-                    zypper ar http://${clouddata}/repos/$(uname -m)/SLES12-SP1-Updates/ sles12sp1up
+                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP1-Pool/ sles12sp1
+                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP1-Updates/ sles12sp1up
                 fi
             ;;
         esac
@@ -1651,7 +1651,7 @@ EOF
     zypper rl kernel-default
 
     # Workaround chef-solr crashes
-    if [ "$(uname -m)" = "aarch64" ]; then
+    if [ "$arch" = "aarch64" ]; then
         ensure_packages_installed java-1_7_0-openjdk java-1_7_0-openjdk-headless
     fi
 
@@ -1662,7 +1662,7 @@ EOF
     fi
 
     # Workaround broken sleshammer
-    if [ "$(uname -m)" = "aarch64" ]; then
+    if [ "$arch" = "aarch64" ]; then
         rpm -Uvh --force http://clouddata.cloud.suse.de/suse-12.1/aarch64/PTF/sleshammer-aarch64.rpm
     fi
 
@@ -2028,7 +2028,7 @@ function onadmin_allocate()
         curl http://$clouddata/git/automation/scripts/qa1_nodes_reboot | bash
     fi
 
-    wait_for 50 10 'test $(get_all_discovered_nodes | wc -l) -ge 1' "first node to be discovered"
+    [[ $nodenumber -gt 0 ]] && wait_for 50 10 'test $(get_all_discovered_nodes | wc -l) -ge 1' "first node to be discovered"
     wait_for 100 10 '[[ $(get_all_discovered_nodes | wc -l) -ge $nodenumber ]]' "all nodes to be discovered"
     local n
     for n in `get_all_discovered_nodes` ; do
@@ -2279,10 +2279,10 @@ function onadmin_crowbar_register()
     local inject
     local zyppercmd
 
-    if iscloudver 6plus ; then
-        image="suse-12.1/x86_64/"
-    elif iscloudver 7plus && [[ $want_sles12sp2 ]]; then
-        image="suse-12.2/x86_64/"
+    if iscloudver 7plus && [[ $want_sles12sp2 ]]; then
+        image="suse-12.2/$arch/"
+    elif iscloudver 6plus ; then
+        image="suse-12.1/$arch/"
     else
         if [ -n "$want_sles12" ] ; then
             image="suse-12.0"
@@ -3574,7 +3574,7 @@ function oncontroller_magnum_service_setup ()
 {
     # (mmnelemane): Replace this Fedora image with a suitable SLES image when available
     local service_image_name=magnum-service-image.qcow2
-    local service_image_url=http://clouddata.cloud.suse.de/images/$(uname -m)/other/$service_image_name
+    local service_image_url=http://clouddata.cloud.suse.de/images/$arch/other/$service_image_name
 
     if ! openstack image list --f value -c Name | grep -q "^magnum-service-image$"; then
         local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
@@ -3689,7 +3689,7 @@ function oncontroller_testsetup()
                 --property vm_mode=xen  $image_name | tee glance.out
         else
             curl -s \
-                http://$clouddata/images/$(uname -m)/SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.$(uname -m)-GM.qcow2 | \
+                http://$clouddata/images/$arch/SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.$arch-GM.qcow2 | \
                 openstack image create --public --property hypervisor_type=kvm \
                 --disk-format qcow2 --container-format bare $image_name | tee glance.out
         fi
@@ -4050,7 +4050,7 @@ function onadmin_addupdaterepo()
                 --no-check-certificate \
                 --no-parent \
                 --no-clobber \
-                --accept x86_64.rpm,noarch.rpm \
+                --accept $arch.rpm,noarch.rpm \
                 $repo
         done
         onadmin_setup_local_zypper_repositories
