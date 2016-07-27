@@ -31,7 +31,7 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
 : ${want_magnum:=''}
-: ${want_barbican:=''}
+: ${want_barbican:=1}
 
 : ${arch:=$(uname -m)}
 
