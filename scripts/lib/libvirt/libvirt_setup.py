@@ -92,9 +92,10 @@ def get_console_type():
 
 def get_memballoon_type():
     if 's390x' in get_machine_arch():
-        return '<memballoon model="none"/>'
+        return """    <memballoon model='virtio' autodeflate='on'>
+    </memballoon>"""
 
-    return """    <memballoon model='virtio'>
+    return """    <memballoon model='virtio' autodeflate='on'>
       <address type='pci' slot='0x05'/>
     </memballoon>"""
 
