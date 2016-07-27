@@ -189,6 +189,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         'nicmodel': 'e1000',
         'emulator': args.emulator,
         'vdisk_dir': args.vdiskdir,
+        'memballoon': get_memballoon_type(),
     }
 
     if hypervisor_has_virtio(libvirt_type):
@@ -203,6 +204,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
     else:
         targetdevprefix = "sd"
         configopts['target_bus'] = 'ide'
+        configopts['memballoon'] = ''
         target_address = ""
 
     controller_raid_volumes = args.controller_raid_volumes
