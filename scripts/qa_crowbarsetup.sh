@@ -2785,7 +2785,7 @@ function custom_configuration()
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-docker']" "['$sles12plusnode']"
 
                 local computetype
-                for computetype in "xen" "qemu" "lxc" "${libvirt_type}"; do
+                for computetype in "xen" "qemu" "${libvirt_type}"; do
                     # do not assign another compute role to this node
                     proposal_modify_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${computetype}']" "['$sles12plusnode']" "-="
                 done
