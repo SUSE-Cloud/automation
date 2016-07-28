@@ -1315,6 +1315,8 @@ Optional
         Enable debug level logging in barclamp proposals for all proposals.
     want_magnum=1 (default='')
         Increase RAM and HDD size on compute node for container image deployment by magnum.
+    want_barbican=0 (default=1)
+        Deployed by default. Set to 0 to prevent barbican from being deployed.
     install_chef_suse_override='path/to/script'
         Optional path to an alternate version of install-chef-suse.sh on the mkcloud hostto use
         instead of the one from the packages.  This will be scp'd to the admin node before use.
