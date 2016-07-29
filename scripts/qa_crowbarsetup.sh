@@ -3269,7 +3269,7 @@ function onadmin_proposal()
         done
     fi
     local proposal
-    for proposal in nfs_client pacemaker database rabbitmq keystone barbican swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove magnum tempest; do
+    for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove barbican magnum tempest; do
         deploy_single_proposal $proposal
     done
 
