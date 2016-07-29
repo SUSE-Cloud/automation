@@ -250,15 +250,12 @@ export want_mtu_size=8900
 export ZYPP_LOCK_TIMEOUT=120
 
 case $cloudsource in
-    GM4|GM4+up|GM5|GM5+up)
+    GM4|GM4+up|GM5|GM5+up|develcloud7|susecloud7)
         echo "Not setting want_ldap=1"
         ;;
     develcloud6)
         echo "Setting want_ldap=0 for upgrade jobs until hybrid backend is ported to Mitaka"
         [[ $mkcloudtarget =~ upgrade ]] &amp;&amp; export want_ldap=0
-        ;;
-    M*|develcloud7|susecloud7)
-        echo "Not setting want_ldap=1 until hybrid backend is ported to Mitaka"
         ;;
     *)
         [[ $nodenumber == 2 &amp;&amp; -z "$scenario" ]] &amp;&amp; export want_ldap=1
