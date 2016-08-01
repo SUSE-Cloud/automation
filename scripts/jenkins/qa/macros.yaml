@@ -11,3 +11,4 @@
     publishers:
       - archive:
           artifacts: .artifacts/**
+          allow-empty: 'true'

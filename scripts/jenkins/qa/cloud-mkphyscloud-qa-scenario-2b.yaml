@@ -19,6 +19,8 @@
 
     wrappers:
       - mkphyscloud-qa-common-wrappers
+    publishers:
+      - mkphyscloud-qa-common-publishers
 
     logrotate:
       numToKeep: 7
