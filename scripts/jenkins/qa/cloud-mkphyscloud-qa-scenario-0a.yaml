@@ -8,6 +8,8 @@
 
     wrappers:
       - mkphyscloud-qa-common-wrappers
+    publishers:
+      - mkphyscloud-qa-common-publishers
 
     logrotate:
       numToKeep: 7
@@ -36,7 +38,7 @@
 
       - string:
           name: cloud_version
-          default: "5"
+          default: "6"
           description: Mandatory, version of the cloud to be installed as integer
 
       - string:
@@ -47,11 +49,14 @@
       # variables for qa_crowbarsetup.sh
       - string:
           name: cloudsource
-          default: GM5+up
+          default: develcloud6
       - string:
           name: upgrade_cloudsource
-          default: GM6+up
+          default: develcloud7
           description: Set new cloudsource for upgrade target
+      - string:
+          name: TESTHEAD
+          description: if non-empty, test latest version from Devel:Cloud:Staging
       - string:
           name: nodenumber
           default: "7"
@@ -71,10 +76,6 @@
           name: UPDATEREPOS
           default:
           description: Update repositories (one URL per line)
-      - bool:
-          name: UPDATEBEFOREINSTALL
-          default: false
-          description: add update repos before crowbar install
 
     builders:
       - shell: |
@@ -90,15 +91,16 @@
           ssh root@localhost "
             hostname -f;
             virsh list --all;
-            # Turn of the cloud6 admin VM if it is running
+            # Turn off the qa2 cloud admin VMs if they are running
             virsh destroy crowbar$hw_number.sles12sp1
+            virsh destroy crowbar$hw_number.sles12sp2
           "
 
-          freshadminvm $admin
+          freshadminvm $admin sles12sp1
 
-          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
+          wget --no-check-certificate -O qa_crowbarsetup.sh "$runner_url"
           source qa_crowbarsetup.sh
-          wait_for 10 5 "nc -z $admin 22" 'admin node to start ssh daemon'
+          wait_for 10 10 "nc -z $admin 22" 'admin node to start ssh daemon'
 
           # rest of code runs on admin node:
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
@@ -114,9 +116,7 @@
           ssh root@$admin "
           export cloud=$cloud ;
           export artifacts_dir=$artifacts_dir;
-          export TESTHEAD=$TESTHEAD ;
           export UPDATEREPOS=$UPDATEREPOS ;
-          export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
           export cloudsource=$cloudsource ;
           export nodenumber=$nodenumber ;
           export runner_url=$runner_url ;
@@ -125,20 +125,14 @@
           export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
 
-          [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
+          wget --no-check-certificate -O qa_crowbarsetup.sh "$runner_url"
 
-          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
+          wget --no-check-certificate -O scenario.yml "$scenario_url"
 
-          wget --no-check-certificate -Oscenario.yml "$scenario_url"
-
-          # Fix for missing nscd in our admin node images
-          zypper --non-interactive install nscd;
-          rcnscd start;
-
-          # Install cloud 5 first
+          # Install original cloud first
           timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands";
 
-          # Prepare cloud 5 for upgrade
+          # Prepare cloud for upgrade
           timeout --signal=ALRM 30m  bash -x -c ". qa_crowbarsetup.sh ; onadmin_prepare_crowbar_upgrade; safely onadmin_crowbarbackup \"with_upgrade\" ";
 
           ' || ret=$?
@@ -150,10 +144,10 @@
           ssh root@localhost "
             hostname -f;
             virsh list --all;
-            virsh destroy $admin;
+            virsh destroy $admin.sles12sp1;
           "
 
-          freshadminvm_cloud6 $admin qcow2
+          freshadminvm $admin sles12sp2
 
           wait_for 10 10 "nc -z $admin 22" 'admin node to start ssh daemon'
 
@@ -164,18 +158,16 @@
           export cloud=$cloud ;
           export artifacts_dir=$artifacts_dir;
           export TESTHEAD=$TESTHEAD ;
-          export UPDATEREPOS=$UPDATEREPOS ;
-          export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
           export upgrade_cloudsource=$upgrade_cloudsource ;
           export cloudsource=$upgrade_cloudsource ;
           export runner_url=$runner_url ;
           export nodenumber=$nodenumber "'
 
-          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url";
+          wget --no-check-certificate -O qa_crowbarsetup.sh "$runner_url";
 
           result=0
 
-          # Install cloud 6 admin node
+          # Install cloud admin node
           timeout --signal=ALRM 60m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist prepareinstallcrowbar installcrowbar" || result=$?
 
           if [ $result == 0 ]; then
