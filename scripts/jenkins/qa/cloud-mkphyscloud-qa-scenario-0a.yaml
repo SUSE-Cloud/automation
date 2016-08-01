@@ -147,7 +147,7 @@
             virsh destroy $admin.sles12sp1;
           "
 
-          freshadminvm $admin sles12sp2
+          freshadminvm $admin
 
           wait_for 10 10 "nc -z $admin 22" 'admin node to start ssh daemon'
 
