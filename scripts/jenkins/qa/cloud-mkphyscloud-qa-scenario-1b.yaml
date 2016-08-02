@@ -18,6 +18,8 @@
 
     wrappers:
       - mkphyscloud-qa-common-wrappers
+    publishers:
+      - mkphyscloud-qa-common-publishers
 
     logrotate:
       numToKeep: 7
@@ -111,7 +113,7 @@
           rm -rf $artifacts_dir
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
-          freshadminvm_cloud6 $admin qcow2
+          freshadminvm $admin
           sleep 100 # time for the admin VM to boot
 
           # wipe out shared NFS that should be used by this deployment

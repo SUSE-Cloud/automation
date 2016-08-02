@@ -14,6 +14,8 @@
       - build-name:
           name: '#${BUILD_NUMBER} - ${scenario_name} - qa$hw_number - smoke'
       - timestamps
+    publishers:
+      - mkphyscloud-qa-common-publishers
 
     concurrent: true
 

@@ -5,3 +5,10 @@
       - build-name:
           name: '#${BUILD_NUMBER}: ${ENV,var="cloudsource"}'
       - timestamps
+
+- publisher:
+    name: mkphyscloud-qa-common-publishers
+    publishers:
+      - archive:
+          artifacts: .artifacts/**
+          allow-empty: 'true'
