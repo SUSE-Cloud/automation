@@ -132,7 +132,7 @@ enable_service q-meta
 enable_service q-metering
 # vpn disabled for now. openswan required by devstack but not available in openSUSE
 # enable_service q-vpn
-enable_service q-fwaas
+# enable_service q-fwaas
 enable_service q-lbaas
 
 # for testing
