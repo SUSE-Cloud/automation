@@ -1331,9 +1331,9 @@ Optional
     scenario='scenario.yaml' (default='')
         Defines which scenario file should be used. Only works with cloud5 or newer.
         Currently only the step 'batch' uses such a file.
-        Scenario files have to placed in \${mkcloud_dir}/scenarios/cloud\$(getcloudver).
-    scenariofile='/tmp/scenario.yaml' (default=${mkcloud_dir}/scenarios/cloud\$(getcloudver))
-        Override scenariofile location. Requires $scenario to be set as well.
+    scenariofile='/tmp/scenario.yaml' (default=${mkcloud_dir}/scenarios/cloud\$(getcloudver)/\$scenario)
+        Full path to scenario file, overriding \$scenario. Required for batch
+        if \$scenario is not set.
 EOUSAGE
     onadmin_help
     exit 1
@@ -1468,12 +1468,13 @@ function sanity_checks()
 
     if [[ " ${steplist[*]} " == *" batch "* ]] ; then
         need_scenario=1
-        if [[ -n $scenario ]] ; then
-            : ${scenariofile:="${mkcloud_dir}/scenarios/cloud$(getcloudver)/${scenario}"}
-            [[ ! -f $scenariofile ]] && complain 115 "Scenario file not found at $scenariofile"
-        else
-            complain 114 "Please set a scenario file for crowbar_batch with scenario=foo"
+        if [[ -z $scenario$scenariofile ]] ; then
+            complain 114 "Please set either scenario or scenariofile for crowbar_batch"
+        elif [[ -n $scenario ]] && [[ -n $scenariofile ]] ; then
+            echo "WARNING: \$scenariofile overrides \$scenario" >&2
         fi
+        : ${scenariofile:="${mkcloud_dir}/scenarios/cloud$(getcloudver)/${scenario}"}
+        [[ ! -f $scenariofile ]] && complain 115 "Scenario file not found at $scenariofile"
     fi
 }
 
