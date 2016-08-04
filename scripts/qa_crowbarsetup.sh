@@ -2702,7 +2702,7 @@ function custom_configuration()
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value keystone default "['deployment']['keystone']['elements']['keystone-server']" "['cluster:$clusternameservices']"
             fi
-            if [[ $want_ldap ]] ; then
+            if [[ $want_ldap = 1 ]] ; then
                 local p="proposal_set_value keystone default"
                 if iscloudver 6plus; then
                     $p "['attributes']['keystone']['identity']['driver']" "'hybrid'"
