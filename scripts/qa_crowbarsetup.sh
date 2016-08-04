@@ -71,7 +71,7 @@ export cinder_netapp_login
 export cinder_netapp_password
 export localreposdir_target
 export want_ipmi=${want_ipmi:-false}
-export want_postgres=${want_postgres:-1}
+export want_postgresql=${want_postgresql:-1}
 [ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
 [ "$libvirt_type" = hyperv ] && export wanthyperv=1
 [ "$libvirt_type" = xen ] && export wantxenpv=1 # xenhvm is broken anyway
@@ -1760,13 +1760,20 @@ function install_crowbar_init()
 
     # FIXME: this is temporary until the package is doing that
     # it is currently disabled by default not to break Crowbar
-    ln -sf $apacheconfdir/crowbar-sinatra.conf.partial $apacheconfdir/crowbar.conf.partial
+    if [[ $want_postgresql = 0 ]] ; then
+        ln -sf $apacheconfdir/crowbar-rails.conf.partial $apacheconfdir/crowbar.conf.partial
+    else
+        ln -sf $apacheconfdir/crowbar-sinatra.conf.partial $apacheconfdir/crowbar.conf.partial
+    fi
     systemctl start crowbar-init
     wait_for 100 3 "onadmin_is_crowbar_init_api_available" "crowbar init service to start"
 }
 
 function onadmin_bootstrapcrowbar()
 {
+    # temporarily make it possible to not use postgres until we switched to the new upgrade process
+    # otherwise we would break the upgrade gating
+    [[ $want_postgresql = 0 ]] && return
     if iscloudver 7plus ; then
         local http_code
         install_crowbar_init
@@ -1815,10 +1822,12 @@ function crowbar_nodeupgrade_status()
 
 function do_installcrowbar_cloud6plus()
 {
-    service crowbar status || service crowbar stop
-    service crowbar start
+    if [[ $want_postgresql = 0 ]] ; then
+        service crowbar status || service crowbar stop
+        service crowbar start
 
-    wait_for 30 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
+        wait_for 30 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
+    fi
 
     if crowbar_install_status | grep -q '"success": *true' ; then
         echo "Crowbar is already installed. The current crowbar install status is:"
