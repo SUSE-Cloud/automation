@@ -1233,8 +1233,9 @@ Optional
         A string with a cluster configuration. The services for data, network and services cluster can
         be deployed in 1, 2 or 3 clusters. The configuration string looks like this:
         The string is: '<group1>:<group2>' (a ':' separated list of groups).
-        A group is:    'clustername1+clustername2=clusternodenumber
+        A group is:    'clustername1+clustername2=clusternodecount'
         The first clustername of a group defines the name of the cluster.
+        Where 'clusternodecount' is the number of nodes in the given cluster.
         Examples:
             3 clusters: clusterconfig='data=2:network=3:services=5'
             2 clusters: clusterconfig='services+data=2:network=3'
