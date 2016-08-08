@@ -10,6 +10,8 @@
 
           set -x
 
+          osc_timed="timeout 20m osc"
+
           # set vars
           OBS_BASE_SRC_PROJECT="Cloud:OpenStack:Upstream:{release}"
           OBS_BASE_TARGET_PROJECT="home:suse-cloud-ci:rpm-packaging-openstack-{release}"
@@ -19,7 +21,7 @@
           # cleanup
           rm -rf ${{OBS_TEST_PROJECT}}
           rm -rf ${{TEMP_DIR}}
-          osc rdelete -r -m "rpm-packaging CI cleanup" ${{OBS_TEST_PROJECT}} || :
+          $osc_timed rdelete -r -m "rpm-packaging CI cleanup" ${{OBS_TEST_PROJECT}} || :
           sleep 3
 
           # recreate the rpm-packaging tarball (as done by the tar_scm source service)
@@ -27,24 +29,24 @@
           tar --exclude-vcs -cvjf ${{TEMP_DIR}}/rpm-packaging-0.0.1.tar.bz2 --transform 's,^,rpm-packaging-0.0.1/,' .
 
           # branch and checkout OBS project
-          osc branch --add-repositories-block=local \
+          $osc_timed branch --add-repositories-block=local \
               --add-repositories-rebuild=local \
               ${{OBS_BASE_SRC_PROJECT}} \
               "rpm-packaging-openstack" ${{OBS_TEST_PROJECT}} || :
           sleep 2
 
           # checkout branched project, add updated stuff and commit
-          osc co ${{OBS_TEST_PROJECT}}
+          $osc_timed co ${{OBS_TEST_PROJECT}}
           cp ${{TEMP_DIR}}/rpm-packaging-0.0.1.tar.bz2 ${{OBS_TEST_PROJECT}}/rpm-packaging-openstack
           pushd ${{OBS_TEST_PROJECT}}/rpm-packaging-openstack
-          osc detachbranch
-          osc up
+          $osc_timed detachbranch
+          $osc_timed up
           bash -x pre_checkin.sh
           # download source files (needed for i.e. version updates or newly added .spec files)
-          osc service localrun download_files
-          osc addremove
-          osc status
-          osc commit -m "rpm-packaging CI (${{ZUUL_CHANGES}})"
+          $osc_timed service localrun download_files
+          $osc_timed addremove
+          $osc_timed status
+          $osc_timed commit -m "rpm-packaging CI (${{ZUUL_CHANGES}})"
 
           # also create links for new packages
           echo "creating missing links ..."
