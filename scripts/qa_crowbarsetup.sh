@@ -32,6 +32,7 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_multidnstest:=1}
 : ${want_magnum:=''}
 : ${want_barbican:=1}
+: ${want_sahara:=''}
 
 : ${arch:=$(uname -m)}
 
@@ -2634,7 +2635,7 @@ function custom_configuration()
     esac
 
     case "$proposal" in
-        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard)
+        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard|sahara)
             if [[ $want_all_debug = 1 ]] || eval [[ \$want_${proposal}_debug = 1 ]] ; then
                 enable_debug_generic $proposal
             fi
@@ -3229,6 +3230,13 @@ function deploy_single_proposal()
         tempest)
             [[ -n "$wanttempest" ]] || return
             ;;
+        sahara)
+            [[ -n "$want_sahara" ]] || return
+            if ! iscloudver 7plus; then
+                echo "Sahara is SOC 7+ only. Skipping"
+                return
+            fi
+            ;;
     esac
 
     # create proposal
@@ -3269,7 +3277,7 @@ function onadmin_proposal()
         done
     fi
     local proposal
-    for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove barbican magnum tempest; do
+    for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove barbican magnum sahara tempest; do
         deploy_single_proposal $proposal
     done
 
