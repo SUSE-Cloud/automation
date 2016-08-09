@@ -288,19 +288,19 @@ class Target(ISCSI):
 
     def deploy(self):
         """Deploy, configure and launch iSCSI target."""
-        print 'Installing lio-utils ...'
+        print("Installing lio-utils ...")
         self.zypper('lio-utils')
         self.service('target', ISCSI.START)
 
         if self.device.startswith('/dev/loop'):
             if self.path:
-                print 'Creating loopback ...'
+                print("Creating loopback ...")
                 self.create_loop(self.device, self.path, self.size)
             else:
                 raise Exception('Please, provide a path for a loop device')
 
         # Detecting IP
-        print 'Looking for host IP ...'
+        print("Looking for host IP ...")
         ip = str(self.ssh.ip('a', 's', 'eth0'))
         ip = re.findall(r'inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/\d+', ip)
         if ip:
@@ -310,7 +310,7 @@ class Target(ISCSI):
 
         iqn = 'iqn.2015-01.qa.cloud.suse.de:%s' % self.iqn_id
 
-        print 'Registering target for %s ...' % iqn
+        print("Registering target for %s ..." % iqn)
         self.ssh.tcm_node('--block', 'iblock_0/id01', '/dev/loop0')
         self.ssh.lio_node('--addlun', iqn, '1', '0', 'iscsi_port',
                           'iblock_0/id01')
@@ -319,19 +319,19 @@ class Target(ISCSI):
         self.ssh.lio_node('--enabletpg', iqn, '1')
 
         # Persist configuration
-        print 'Persisting configuration ...'
+        print("Persisting configuration ...")
         self.ssh.tcm_dump('--b=OVERWRITE')
 
         # Add in /etc/rc.d/boot.local
         if self.device.startswith('/dev/loop'):
-            print 'Adding loopback to boot.local ...'
+            print("Adding loopback to boot.local ...")
             lines = (
                 'losetup %s %s' % (self.device, self.path),
             )
             self.append_cfg('/etc/rc.d/boot.local', lines)
 
         # Check if the device is exported
-        print 'Checking that the target is exported ...'
+        print("Checking that the target is exported ...")
         result = str(self.ssh.lio_node('--listtargetnames'))
         if iqn not in result:
             raise Exception('Unable to deploy the iSCSI target')
@@ -354,25 +354,25 @@ class Initiator(ISCSI):
 
     def deploy(self):
         """Deploy, configure and persist an iSCSI initiator."""
-        print 'Installing open-iscsi ...'
+        print("Installing open-iscsi ...")
         self.zypper('open-iscsi')
 
         # Default configuration only takes care of autentication
-        print 'Configuring open-iscsi for automatic startup ...'
+        print("Configuring open-iscsi for automatic startup ...")
         lines = (
             'node.startup = automatic',
         )
         self.append_cfg('/etc/iscsid.conf', lines)
 
         # Persist and start the service
-        print 'Reloading the configuration ...'
+        print("Reloading the configuration ...")
         self.service('iscsid', ISCSI.START)
         self.service('iscsid', ISCSI.RESTART)
 
         iqn = 'iqn.2015-01.qa.cloud.suse.de:%s' % self.iqn_id
 
         # Get the initiator name for the ACL
-        print 'Detecting initiator name ...'
+        print("Detecting initiator name ...")
         initiator = str(self.ssh.cat('/etc/iscsi/initiatorname.iscsi'))
         initiator = re.findall(r'InitiatorName=(iqn.*)', initiator)
         if initiator:
@@ -381,7 +381,7 @@ class Initiator(ISCSI):
             raise Exception('Initiator name not found')
 
         # Add the initiator name in the target ACL
-        print 'Adding initiator name [%s] in target ACL ...' % initiator
+        print("Adding initiator name [%s] in target ACL ..." % initiator)
         try:
             self.target_ssh.lio_node('--dellunacl', iqn, '1',
                                      initiator, '0')
@@ -393,7 +393,7 @@ class Initiator(ISCSI):
             self.target_ssh.tcm_dump('--b=OVERWRITE')
 
         # Discovery and login
-        print 'Initiator discovery and login ...'
+        print("Initiator discovery and login ...")
         discovered = self.ssh.iscsiadm('-m', 'discovery', '--type=st',
                                        '--portal=%s' % self.target_ssh.host)
         for name in discovered.split('\n'):
