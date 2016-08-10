@@ -63,6 +63,7 @@
               crowbar-core
               crowbar-ha
               crowbar-hyperv
+              crowbar-init
               crowbar-openstack
               barclamp-ceilometer
               barclamp-ceph
