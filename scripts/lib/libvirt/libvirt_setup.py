@@ -33,13 +33,12 @@ def cpuflags():
     cpu_info = readfile("/proc/cpuinfo")
     if re.search("^CPU architecture.* 8", cpu_info, re.MULTILINE):
         cpu_template = "cpu-arm64.xml"
-    if re.search("^vendor_id.*GenuineIntel", cpu_info, re.MULTILINE):
+    elif re.search("^vendor_id.*GenuineIntel", cpu_info, re.MULTILINE):
         cpu_template = "cpu-intel.xml"
-    if re.search("^vendor_id.*IBM/S390", cpu_info, re.MULTILINE):
+    elif re.search("^vendor_id.*AuthenticAMD", cpu_info, re.MULTILINE):
+        cpu_template = "cpu-amd.xml"
+    elif re.search("^vendor_id.*IBM/S390", cpu_info, re.MULTILINE):
         cpu_template = "cpu-s390x.xml"
-
-    if re.search("flags.* npt", cpu_info):
-        return ""
 
     return readfile(os.path.join(TEMPLATE_DIR, cpu_template))
 
