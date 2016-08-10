@@ -756,7 +756,7 @@ function add_suse_storage_repo()
             for repo in SUSE-Enterprise-Storage-3-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
-                add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+                add_mount "$repo" "$clouddata:/srv/nfs/repos/$arch/$repo" \
                     "$tftpboot_repos12sp1_dir/$repo"
             done
         fi
