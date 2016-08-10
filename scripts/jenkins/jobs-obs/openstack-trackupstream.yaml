@@ -30,6 +30,7 @@
             - openstack-heat
             - openstack-heat-gbp
             - openstack-heat-templates
+            - openstack-horizon-plugin-designate-ui
             - openstack-horizon-plugin-gbp-ui
             - openstack-horizon-plugin-ironic-ui
             - openstack-horizon-plugin-manila-ui
@@ -132,6 +133,7 @@
               "python-os-collect-config" ].contains(component) ||
             [ "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
             [ "openstack-aodh",
+              "openstack-horizon-plugin-designate-ui",
               "openstack-gnocchi",
               "openstack-heat-gbp",
               "openstack-horizon-plugin-gbp-ui",
