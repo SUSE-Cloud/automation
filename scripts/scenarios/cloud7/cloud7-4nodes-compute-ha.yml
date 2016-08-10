@@ -82,8 +82,7 @@ proposals:
         enabled: true
   deployment:
     elements:
-      swift-dispersion:
-      - @@controller1@@
+      swift-dispersion: []
       swift-proxy:
       - cluster:services
       swift-ring-compute:
