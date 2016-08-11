@@ -4090,6 +4090,15 @@ function onadmin_runupdate()
     [[ -n $host_mtu ]] && ip link set mtu $host_mtu dev eth0
 
     zypper_patch
+
+    if iscloudver 6plus ; then
+        # The crowbar service might have been restarted during the zypper patch.
+        # Wait for it to answer queries again to not break any further mkcloud
+        # steps that might be executed after "runupdate".
+        if systemctl --quiet is-enabled crowbar.service; then
+            wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar service to restart"
+        fi
+    fi
 }
 
 function get_proposal_role_elements()
