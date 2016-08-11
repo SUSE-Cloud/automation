@@ -262,7 +262,7 @@ EOF
     env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
 
     $scp $qa_crowbarsetup $mkcconf $iscsictl root@$adminip:
-    [[ $need_scenario = 1 ]] && $scp $scenariofile root@$adminip:
+    [[ $need_scenario = 1 ]] && $scp $scenario_path root@$adminip:
     ssh $sshopts root@$adminip "echo `hostname` > cloud ; . qa_crowbarsetup.sh ; $@"
     return $?
 }
@@ -1334,9 +1334,8 @@ Optional
     scenario='scenario.yaml' (default='')
         Defines which scenario file should be used. Only works with cloud5 or newer.
         Currently only the step 'batch' uses such a file.
-        Scenario files have to placed in \${mkcloud_dir}/scenarios/cloud\$(getcloudver).
-    scenariofile='/tmp/scenario.yaml' (default=${mkcloud_dir}/scenarios/cloud\$(getcloudver))
-        Override scenariofile location. Requires $scenario to be set as well.
+    scenario_dir='/tmp' (default=${mkcloud_dir}/scenarios/cloud\$(getcloudver)/)
+        Full path to directory containing scenario file.
 EOUSAGE
     onadmin_help
     exit 1
@@ -1470,12 +1469,14 @@ function sanity_checks()
     fi
 
     if [[ " ${steplist[*]} " == *" batch "* ]] ; then
+        : ${scenario_dir:="${mkcloud_dir}/scenarios/cloud$(getcloudver)"}
         need_scenario=1
-        if [[ -n $scenario ]] ; then
-            : ${scenariofile:="${mkcloud_dir}/scenarios/cloud$(getcloudver)/${scenario}"}
-            [[ ! -f $scenariofile ]] && complain 115 "Scenario file not found at $scenariofile"
-        else
-            complain 114 "Please set a scenario file for crowbar_batch with scenario=foo"
+        if [[ -z $scenario ]] ; then
+            complain 114 "scenario parameter for batch step must point to a file in $scenario_dir"
+        fi
+        scenario_path="$scenario_dir/$scenario"
+        if [[ ! -f $scenario_path ]]; then
+            complain 115 "Scenario file not found at $scenario_path"
         fi
     fi
 }
