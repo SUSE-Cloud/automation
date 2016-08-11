@@ -17,6 +17,7 @@
         - 'cloud-mkcloud{version}-job-docker-{arch}'
         - 'cloud-mkcloud{version}-job-dvr-{arch}'
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-hyperv-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
