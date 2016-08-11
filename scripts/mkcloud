@@ -953,11 +953,11 @@ function testsetup()
 function testname()
 {
     local -a var_names=(ha cluster upgrade ceph cinder drbd net
-        netmode sles12 dvr docker)
+        netmode sles12 dvr docker rootfs)
     local -a var_values=("$hacloud" "$clusterconfig"
         "$upgrade_cloudsource" "$cephvolumenumber" "$cinder_backend"
         "$drbd_hdd_size" "$networkingplugin" "$networkingmode"
-        "$want_sles12" "$want_dvr" "$want_docker")
+        "$want_sles12" "$want_dvr" "$want_docker" "$want_rootfs")
 
     if [[ ${#var_names[@]} != ${#var_values[@]} ]] ; then
         complain 123 "testname error: arrays of different length, please check the code"
@@ -1325,6 +1325,9 @@ Optional
     want_docker=1 (default='')
         Deploy docker image (upload image to glance, create instance based on it etc.).
         Only possible with SLE12 node.
+    want_rootfs=btrfs (default='')
+        Deploy all discovered/pxe booted nodes with BTRFS as root filesystem. if empty,
+        an intrinsic default is chosen. Only possible with SLE12 node.
     want_all_debug=1 (default='')
         Enable debug level logging in barclamp proposals for all proposals.
     want_magnum=1 (default='')

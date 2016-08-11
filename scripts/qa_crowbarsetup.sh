@@ -2151,8 +2151,13 @@ function onadmin_allocate()
 
     # set BTRFS for all nodes when docker is wanted (docker likes btrfs)
     if [ -n "$want_docker" ] ; then
+        : ${want_rootfs:=btrfs}
+    fi
+
+    # set rootfs for all nodes when want_rootfs is set
+    if [ -n "$want_rootfs" ] ; then
         for node in `get_all_discovered_nodes` ; do
-            set_node_fs $node "btrfs"
+            set_node_fs $node "$want_rootfs"
         done
     fi
 
