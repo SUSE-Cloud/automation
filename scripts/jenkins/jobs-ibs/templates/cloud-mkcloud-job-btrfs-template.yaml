@@ -1,0 +1,28 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-btrfs-{arch}'
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H H * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{version}
+            nodenumber=5
+            want_sles12sp2=1
+            want_rootfs=btrfs
+            want_node_os=suse-12.2=3,suse-12.1=2
+            networkingmode=vxlan
+            hacloud=1
+            mkcloudtarget=all_noreboot
+            label={label}

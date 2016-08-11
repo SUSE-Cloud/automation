@@ -14,6 +14,7 @@
     sles12sp2: 0
     jobs:
         - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
+        - 'cloud-mkcloud{version}-job-btrfs-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
         - 'cloud-mkcloud{version}-job-docker-{arch}'
         - 'cloud-mkcloud{version}-job-dvr-{arch}'
