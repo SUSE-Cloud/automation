@@ -2462,6 +2462,15 @@ function enable_ssl_generic()
             fi
             $p "$a['api']['protocol']" "'https'"
         ;;
+        ceph)
+            if ! iscloudver 5plus ; then
+                return
+            fi
+            $p "$a['radosgw']['ssl']['enabled']" true
+            $p "$a['radosgw']['ssl']['generate_certs']" true
+            $p "$a['radosgw']['ssl']['insecure']" true
+            return
+        ;;
         *)
             $p "$a['api']['protocol']" "'https'"
         ;;
@@ -2628,7 +2637,7 @@ function custom_configuration()
     ###       So, only edit the proposal file, and NOT the proposal itself
 
     case "$proposal" in
-        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard|heat|manila)
+        keystone|glance|neutron|cinder|swift|ceph|nova|horizon|nova_dashboard|heat|manila)
             if [[ $want_all_ssl = 1 ]] || eval [[ \$want_${proposal}_ssl = 1 ]] ; then
                 enable_ssl_generic $proposal
             fi
