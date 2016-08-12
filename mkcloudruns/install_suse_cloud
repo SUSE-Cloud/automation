@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -o nounset
+
+commands="cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupnodes instnodes proposal testsetup cct rebootcloud $@" # all_noreboot
+currentdir=$(pwd)
+
+function deploy_upgrade_clouds() {
+
+    clouds=`seq $1 $2` # Expand the sequence.
+    suse_cloud_config=$3
+
+    # Gracefully close existing screen sessions created by the script.
+    screen -S $suse_cloud_config -X quit
+    # Create new screen sessions.
+    screen -S $suse_cloud_config -d -m -t info_$suse_cloud_config bash -c "cat message; echo \"Cloud Upgrade Step: $suse_cloud_config\"; bash"
+
+    for i in $clouds; do
+        echo "Deploying cloud number $i  -- To Rock but not to roll!!!"
+        # Run similar copies of mkcloud runs in the same screen session as tabs.
+        mkdir -p pids/$i # Create folders for automation pid's files and artifacts.
+        screen -S $suse_cloud_config -X screen -t Cloud$i bash -c "cd pids/$i; source ../../mkcloudconfig/SUSECloud.mkcloud $i; ../../mkcloudconfig/$suse_cloud_config $commands; exec bash"
+        cd $currentdir
+    done
+}
+
+# psalunke: Add a basic API call and warning's with user input
+#       so that we do not redeploy the entire thing and
+#       disrupt other's work for the same ...
+
+function usage() {
+
+    echo "Not Implemented yet!"
+}
+
+# Using deploy cloud function
+# $startnumber & $endnumber expands into a sequence and deploys `range($startnumber, $endnumber)` number of clouds.
+# $cloudscript_name is basically coming from the folder mkcloudconfig/$cloudconfig
+#deploy_upgrade_clouds $startnumber $endnumber $cloudconfig
+# Deploy SUSE Cloud 6 Scenarios
+deploy_upgrade_clouds 1 2 cloud6
+# Deploy SUSE Cloud 7 Scenarios
+deploy_upgrade_clouds 3 4 cloud7
+# Deploy Upgrade Steps
+
+# Step 1
+# Step 2
+# Step 3 ...
+# Todo
+# 1. setup auto-monitoring ...
+# 2. generate workload automatically ...

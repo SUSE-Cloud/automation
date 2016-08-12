@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Note: Please document important details for collaboration.
+# Upgrade Step: Starting point ... sholuld ideally be the first step.
+export cloudsource=develcloud6
+
+bash ../../../scripts/mkcloud "$@"

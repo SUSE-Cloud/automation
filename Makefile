@@ -6,7 +6,7 @@ bashate:
 	for f in \
 	    *.sh mkcloud mkchroot repochecker \
 	    jenkins/{update_automation,*.sh} \
-	    jenkins/ci1/*; \
+	    jenkins/ci1/* ../mkcloudruns/*/*;\
 	do \
 	    echo "checking $$f"; \
 	    bash -n $$f || exit 3; \

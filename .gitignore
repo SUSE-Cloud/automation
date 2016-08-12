@@ -15,3 +15,8 @@ roundup/
 
 .artifacts/
 mkcloud.config
+mkcloud.*
+*.log
+.artifacts
+pids/
+screenlog*

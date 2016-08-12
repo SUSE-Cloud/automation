@@ -1,0 +1,81 @@
+#!/bin/bash
+# Motivation! To have all the common configuration options to be sourced from one location
+# which should allows us to have uniform configuration for all the cluster setups.
+
+# Note: If you wish to deviate your configuration on a shared host, please create a copy
+# from the template and update the changes there. Try not to update this script unless
+# the changes are benefiting everyone. This is also applicable for non-shared hosts too.
+
+n=$1 # Allocated Cloud.
+
+export libvirt_type=kvm
+export nodenumber=5 # Number of nodes (Admin Node not counted)
+#export nodenumbercompute=2 # Set the number of compute nodes
+export TESTHEAD=1 # Use Media from Devel:Cloud:Staging and add test update repositories
+
+#export want_sles12=1 # For Cloud 5
+export want_sles12sp2=1 # For Cloud 7
+
+### Upgrade Related Configuration ###
+# export seamless_upgrade=1
+
+### Node Configuration ###
+
+### Admin Node Configuration ###
+#export admin_node_memory=4194394 # KB's (RAM)
+#export adminvcpus=1 # Default 1 vcpu
+#export adminnode_hdd_size=15 # GB
+
+### Controller Node Configuration ###
+#export controller_node_memory=6291456 # KB's (RAM)
+#export controller_hdd_size=20 # GB
+
+### Compute Node Configuration ###
+#export compute_node_memory=2621440 # KB's (RAM)
+#export comnputenode_hdd_size=20 # GB
+#export vcpus=1 # Default 1 vcpu
+# Change the number of default compute nodes.
+#export nodenumbercomputedefault=2
+
+### Enable Other Services (OpenStack related services and features)
+### Most of these services are disabled by default
+# Enable SUSE Enterprise Storage
+#export want_ceph=1 # Uncomment to enable CEPH
+#export cephvolume_hdd_size=25 # GB
+# This one is also used for extra disk for Cinder Volumes even with Ceph disabled.
+export cephvolumenumber=1
+
+# Enable magnum
+#export want_magnum=1 # Note: Changes the compute node parameters.
+#export want_docker=1 # Upload docker image ...
+
+### HA Configuration ###
+export hacloud=1
+# HA Cluster(s) Configuration
+export clusterconfig="data+services=2" #:network=2"
+# Unless you like to use mac addrs, change the node aliases.
+export want_node_aliases='controller=2,network=1,compute=2,nfsshare=1'
+
+### DRBD Configuration ###
+#export drbd_hdd_size=15 # GB
+#export drbd_database_size=5 # GB
+#export drbd_rabbitmq_size=5 # GB
+
+# DVR: It gets trickier with HA configuration.
+# Set the networking plugin for neutron.
+export networkingplugin=openvswitch
+# Set the networking mode (vlan, vxlan, gre)
+export networkingmode=gre
+export want_dvr=1
+#export host_mtu= # Set given MTU settings...
+
+export PARALLEL=yes
+export net_admin=192.168.$((50+$n*2))
+export net_public=192.168.$((51+$n*2))
+export adminnetmask=255.255.254.0
+
+# Using LVM, run `# pvs & vgs & lvs`
+export cloudvg=cloud6
+
+export virtualcloud=c$n
+export cloud=$virtualcloud
