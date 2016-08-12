@@ -20,5 +20,6 @@
             cloudsource=develcloud{version}
             nodenumber=2
             want_magnum=1
+            ostestroptions=" --regex '^magnum.tests.functional.api'"
             mkcloudtarget=all
             label={label}
