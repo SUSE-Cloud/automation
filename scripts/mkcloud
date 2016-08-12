@@ -231,6 +231,7 @@ function sshrun()
         export networkingmode=$networkingmode ;
         export nosetestparameters=${nosetestparameters} ;
         export tempestoptions='${tempestoptions}' ;
+        export ostestroptions='${ostestroptions}' ;
         export cephvolumenumber=$cephvolumenumber ;
         export controller_raid_volumes=$controller_raid_volumes ;
         export drbd_database_size=$drbd_database_size ;
@@ -1327,6 +1328,11 @@ Optional
         VLAN id for public network
     tempestoptions (default='-t -s')
         parameters passed to run_tempest.sh script
+    ostestroptions (default='')
+        If set, ostestr is installed and executed in the testsetup step.
+        This is useful when tempest just executes smoke tests but you want to
+        run extra tests on top of that (without running the full testsuite)
+        Example: export ostestroptions=" --regex '^manila_tempest_tests.tests.api'"
     rally_server (default='')
         rally server address
     cct_tests='test1+test2' (default='features')
