@@ -2788,11 +2788,18 @@ function custom_configuration()
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-controller']" "['cluster:$clusternameservices']"
 
+
                 # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
                 local novanodes
                 novanodes=`printf "\"%s\"," $unclustered_nodes`
                 novanodes="[ ${novanodes%,} ]"
-                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes"
+
+                # make sure we do not have SP1 and SP2 compute nodes
+                if [ -n "$deployceph" -a -n "want_sles12sp2" ] ; then
+                    proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "['$sles12plusnode']"
+                else
+                    proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes"
+                fi
             fi
 
             if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
