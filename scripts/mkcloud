@@ -556,7 +556,7 @@ function setupadmin()
         "
     done
     if [[ -n $user_keyfile ]]; then
-        cat $user_keyfile | ssh $adminip "cat >> ~/.ssh/authorized_keys"
+        cat $user_keyfile | sshrun "cat >> ~/.ssh/authorized_keys"
     fi
     echo "you can now proceed with installing crowbar"
     # prevent jumbo frames from going out
