@@ -1,0 +1,42 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-many_compute-{arch}'
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H H * * 6'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            ### Controller Node Configuration ###
+            controller_node_memory=31457280
+            ### Admin Node Configuration ###
+            admin_node_memory=31457280
+            adminvcpus=10
+            adminnode_hdd_size=100
+            ### Compute Node Configuration ###
+            compute_node_memory=2097152
+            vcpus=1
+            TESTHEAD=1
+            cloudsource=develcloud{version}
+            nodenumber=96
+            # HA Cluster(s) Configuration
+            clusterconfig="data+services=3:network=3"
+            want_node_aliases='controller=3,network=3,compute=90'
+            drbd_hdd_size=100
+            hacloud=1
+            networkingplugin=openvswitch
+            networkingmode=vlan
+            want_dvr=1
+            cephvolumenumber=0
+            mkcloudtarget=all
+            label={label}

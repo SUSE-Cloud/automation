@@ -45,3 +45,13 @@
     sles12sp2: 1
     jobs:
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
+
+- project:
+    name: cloud-mkcloud7-SLE12-big_machine-x86_64
+    version: 7
+    previous_version: 6
+    arch: x86_64
+    label: openstack-mkcloud-SLE12-big_machine-{arch}
+    sles12sp2: 1
+    jobs:
+        - 'cloud-mkcloud{version}-job-many_compute-{arch}'
