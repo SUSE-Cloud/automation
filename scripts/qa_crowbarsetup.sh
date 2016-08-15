@@ -54,6 +54,7 @@ crowbar_api=http://localhost:3000
 crowbar_api_installer_path=/installer/installer
 crowbar_api_digest="--digest -u crowbar:crowbar"
 crowbar_install_log=/var/log/crowbar/install.log
+crowbar_init_api=http://localhost:4567
 
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
@@ -70,6 +71,7 @@ export cinder_netapp_login
 export cinder_netapp_password
 export localreposdir_target
 export want_ipmi=${want_ipmi:-false}
+export want_postgresql=${want_postgresql:-1}
 [ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
 [ "$libvirt_type" = hyperv ] && export wanthyperv=1
 [ "$libvirt_type" = xen ] && export wantxenpv=1 # xenhvm is broken anyway
@@ -1752,6 +1754,44 @@ EOF
     return 0
 }
 
+function install_crowbar_init()
+{
+    local apacheconfdir=/etc/apache2/conf.d
+
+    # FIXME: this is temporary until the package is doing that
+    # it is currently disabled by default not to break Crowbar
+    if [[ $want_postgresql = 0 ]] ; then
+        ln -sf $apacheconfdir/crowbar-rails.conf.partial $apacheconfdir/crowbar.conf.partial
+    else
+        ln -sf $apacheconfdir/crowbar-sinatra.conf.partial $apacheconfdir/crowbar.conf.partial
+    fi
+    systemctl start crowbar-init
+    wait_for 100 3 "onadmin_is_crowbar_init_api_available" "crowbar init service to start"
+}
+
+function onadmin_bootstrapcrowbar()
+{
+    # temporarily make it possible to not use postgres until we switched to the new upgrade process
+    # otherwise we would break the upgrade gating
+    [[ $want_postgresql = 0 ]] && return
+    if iscloudver 7plus ; then
+        local http_code
+        install_crowbar_init
+        # FIXME: when https://github.com/SUSE-Cloud/automation/pull/1105 is merged
+        http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" --data "username=crowbar&password=crowbar" -o setup-database.txt -w '%{http_code}' $crowbar_init_api/database/new`
+        if ! [[ $http_code =~ [23].. ]] ; then
+            cat setup-database.txt
+            complain 36 "Could not setup PostgreSQL database"
+        fi
+        # FIXME: when https://github.com/SUSE-Cloud/automation/pull/1105 is merged
+        http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" -o initialize-crowbar.txt -w '%{http_code}' $crowbar_init_api/init`
+        if ! [[ $http_code =~ [23].. ]] ; then
+            cat initialize-crowbar.txt
+            complain 36 "Could not initialize Crowbar"
+        fi
+    fi
+}
+
 function jsonice()
 {
     # create indented json output
@@ -1782,10 +1822,12 @@ function crowbar_nodeupgrade_status()
 
 function do_installcrowbar_cloud6plus()
 {
-    service crowbar status || service crowbar stop
-    service crowbar start
+    if [[ $want_postgresql = 0 ]] ; then
+        service crowbar status || service crowbar stop
+        service crowbar start
 
-    wait_for 30 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
+        wait_for 30 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
+    fi
 
     if crowbar_install_status | grep -q '"success": *true' ; then
         echo "Crowbar is already installed. The current crowbar install status is:"
@@ -4489,6 +4531,13 @@ function onadmin_is_crowbar_api_available()
     local api_path="$crowbar_api_installer_path/status.json"
     iscloudver 5minus && api_path=
     http_code=`curl $crowbar_api_digest -s -o /dev/null -w '%{http_code}' ${crowbar_api}$api_path`
+    [[ $http_code =~ [23].. ]]
+}
+
+function onadmin_is_crowbar_init_api_available()
+{
+    local http_code
+    http_code=`curl -s -H "Accept: application/vnd.crowbar.v2.0+json" -o /dev/null -w '%{http_code}' ${crowbar_init_api}/status`
     [[ $http_code =~ [23].. ]]
 }
 
