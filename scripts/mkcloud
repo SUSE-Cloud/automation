@@ -1329,7 +1329,7 @@ Optional
         Deployed by default. Set to 0 to prevent barbican from being deployed.
     want_sahara=0 (default=0)
         Set to 1 to deploy sahara.
-    want_postgresql=0 (default=0)
+    want_postgresql=0 (default=1)
         Use PostgreSQL instead of SQLite as a Crowbar database
     install_chef_suse_override='path/to/script'
         Optional path to an alternate version of install-chef-suse.sh on the mkcloud hostto use
