@@ -1720,6 +1720,8 @@ EOF
     # to allow integration into external DNS:
     local f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
     grep -q allow-transfer $f || sed -i -e "s#options {#&\n\tallow-transfer { 10.0.0.0/8; };#" $f
+    # workaround for performance bug (bnc#770083 and general HDD IO improvement)
+    sed -i -e "s#<mount>/</mount>#$&<fstopt>data=writeback,barrier=0,noatime</fstopt>#" /opt/dell/chef/cookbooks/provisioner/templates/default/autoyast.xml.erb
 
     if iscloudver 6plus ; then
         create_repos_yml
