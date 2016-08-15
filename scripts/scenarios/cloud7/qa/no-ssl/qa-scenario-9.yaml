@@ -1,0 +1,181 @@
+---
+# 9 - 8 nodes: HA IMPI 2 node, KVM x 3, Ceph x 3
+proposals:
+- barclamp: pacemaker-test
+  name: services
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          @@controller1@@:
+            devices:
+            - "/dev/sda"
+          @@controller2@@:
+            devices:
+            - "/dev/sda"
+      per_node:
+        nodes:
+          @@controller1@@:
+            params: ''
+          @@controller2@@:
+            params: ''
+    drbd:
+      enabled: true
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - @@controller1@@
+      - @@controller2@@
+      hawk-server:
+      - @@controller1@@
+      - @@controller2@@
+
+- barclamp: database
+  attributes:
+    ha:
+      storage:
+        mode: drbd
+        drbd:
+          size: 5
+  deployment:
+    elements:
+      database-server:
+      - cluster:services
+
+- barclamp: rabbitmq
+  attributes:
+    trove:
+      enabled: true
+    ha:
+      storage:
+        mode: drbd
+        drbd:
+          size: 5
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:services
+
+- barclamp: keystone
+  attributes:
+    signing:
+      token_format: UUID
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+- barclamp: ceph
+  attributes:
+    disk_mode: first
+  deployment:
+    elements:
+      ceph-calamari: []
+      ceph-mon:
+      - @@ceph1@@
+      - @@ceph2@@
+      - @@ceph3@@
+      ceph-osd:
+      - @@ceph1@@
+      - @@ceph2@@
+      - @@ceph3@@
+      ceph-radosgw:
+      - @@ceph1@@
+- barclamp: glance
+  attributes:
+    filesystem_store_datadir: "/images"
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: local
+      backend_name: local_file
+      local:
+        volume_name: cinder-volumes
+        file_name: "/var/lib/cinder/volume.raw"
+        file_size: 2000
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - "@@controller1@@"
+      - "@@controller2@@"
+
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - openvswitch
+    ml2_type_drivers:
+    - gre
+    - vlan
+    - vxlan
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:services
+
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    vnc_keymap: de
+    kvm:
+      ksm_enabled: true
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - @@compute1@@
+      - @@compute2@@
+      - @@compute3@@
+      nova-compute-qemu: []
+      nova-compute-xen: []
+
+- barclamp: horizon
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+
+- barclamp: heat
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+
+- barclamp: ceilometer
+  deployment:
+    elements:
+      ceilometer-agent:
+      - @@compute1@@
+      - @@compute2@@
+      - @@compute3@@
+      ceilometer-agent-hyperv: []
+      ceilometer-central:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware: []
+
+- barclamp: trove
+  deployment:
+    elements:
+      trove-server:
+      - cluster:services
+
+- barclamp: tempest
+  deployment:
+    elements:
+      tempest:
+      - "@@controller1@@"
