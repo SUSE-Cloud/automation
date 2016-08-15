@@ -1089,7 +1089,7 @@ function onadmin_prepare_sles12sp2_installmedia()
     local a
     for a in aarch64 x86_64 s390x; do
         local sles12sp2_mount="$tftpboot_suse12sp2_dir/$a/install"
-        add_mount "SLE-12-SP2-Server-LATEST/sle-12-$a" \
+        add_mount "SLE-12-SP2-Server-TEST/sle-12-$a" \
             "$clouddata:/srv/nfs/suse-12.2/$a/install" \
             "$sles12sp2_mount"
 
