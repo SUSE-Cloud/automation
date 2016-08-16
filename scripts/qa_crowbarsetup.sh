@@ -1742,6 +1742,7 @@ function install_crowbar_init()
 
 function onadmin_bootstrapcrowbar()
 {
+    local migrate_db=$1
     # temporarily make it possible to not use postgres until we switched to the new upgrade process
     # otherwise we would break the upgrade gating
     [[ $want_postgresql = 0 ]] && return
@@ -1754,6 +1755,15 @@ function onadmin_bootstrapcrowbar()
             cat setup-database.txt
             complain 36 "Could not setup PostgreSQL database"
         fi
+
+        if [[ $migrate_db = 1 ]] ; then
+            http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" -o migrate-database.txt -w '%{http_code}' $crowbar_init_api/database/migrate`
+            if ! [[ $http_code =~ [23].. ]] ; then
+                cat migrate-database.txt
+                complain 36 "Could not migrate the Crowbar database"
+            fi
+        fi
+
         # FIXME: when https://github.com/SUSE-Cloud/automation/pull/1105 is merged
         http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" -o initialize-crowbar.txt -w '%{http_code}' $crowbar_init_api/init`
         if ! [[ $http_code =~ [23].. ]] ; then
@@ -4468,6 +4478,15 @@ function onadmin_prepare_crowbar_upgrade()
         # using the API, due to missing crowbar cli integration
         # move nodes to upgrade mode
         safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare.json
+    fi
+}
+
+function onadmin_upgrade_admin_server()
+{
+    if iscloudver 5minus; then
+        complain 11 "This upgrade path is only supported for Cloud 6+"
+    else
+        safely crowbarctl upgrade crowbar
     fi
 }
 
