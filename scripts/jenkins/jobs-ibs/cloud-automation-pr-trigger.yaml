@@ -20,7 +20,7 @@
       - timed: 'H/30 * * * *'
 
     logrotate:
-      numToKeep: 7
+      numToKeep: 300
       daysToKeep: -1
 
     builders:
