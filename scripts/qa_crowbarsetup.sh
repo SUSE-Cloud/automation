@@ -3749,7 +3749,7 @@ function onadmin_setupproduction()
     for m in $(get_all_suse_nodes) ; do
         ssh $m "
             zypper ar http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP1/ ca
-            zypper -n in ca-certificates-suse
+            zypper -n in ca-certificates-suse iotop
             for u in {keystone,glance,cinder,neutron,nova} ; do
                 setfacl -m u:$u:r /etc/cloud-keys/*.key
             done
