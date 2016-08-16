@@ -3753,6 +3753,7 @@ function onadmin_setupproduction()
             for u in {keystone,glance,cinder,neutron,nova} ; do
                 setfacl -m u:$u:r /etc/cloud-keys/*.key
             done
+            sed -i -e 's/splash=silent.*\"/splash=verbose rootflags=rw,data=writeback console=tty console=ttyS1,115200 vga=normal\"/' /etc/default/grub
         "
     done
     oncontroller oncontroller_setupproduction
