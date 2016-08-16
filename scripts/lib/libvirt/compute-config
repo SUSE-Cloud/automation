@@ -31,6 +31,8 @@ def main():
     parser.add_argument("bootorder", type=int, help="Boot Order (e.g. 2)")
     parser.add_argument("numcontrollers", type=int, default=1,
                         help="Number of controller nodes")
+    parser.add_argument("firmwaretype", default="bios",
+                        help="Boot firmware type for the node")
     args = parser.parse_args()
 
     print(libvirt_setup.compute_config(args, libvirt_setup.cpuflags()))

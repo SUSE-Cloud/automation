@@ -56,13 +56,14 @@ def get_machine_arch():
     return os.uname()[4]
 
 
-def get_os_loader():
-    path = '/usr/share/qemu/aavmf-aarch64-code.bin'
+def get_os_loader(firmware_type=None):
+    path = None
+    template = "<loader readonly='yes' type='pflash'>%s</loader>"
     if 'aarch64' in get_machine_arch():
-        return """
-  <loader readonly='yes' type='pflash'>%s</loader>
-""" % path
-    return ""
+        path = "/usr/share/qemu/aavmf-aarch64-code.bin"
+    elif 'x86_64' in get_machine_arch() and firmware_type == "uefi":
+        path = "/usr/share/qemu/ovmf-x86_64-ms-code.bin"
+    return template % path if path else ""
 
 
 def get_video_devices():
@@ -152,9 +153,9 @@ def admin_config(args, cpu_flags=cpuflags()):
         adminvcpus=args.adminvcpus,
         cpuflags=cpu_flags,
         emulator=args.emulator,
-        osloader=get_os_loader(),
         march=get_machine_arch(),
         machine=get_default_machine(args.emulator),
+        osloader=get_os_loader(firmware_type=args.firmwaretype),
         memballoon=get_memballoon_type(),
         maindiskaddress=get_maindisk_address(),
         mainnicaddress=get_mainnic_address(),
@@ -278,7 +279,7 @@ def compute_config(args, cpu_flags=cpuflags()):
         vcpus=args.vcpus,
         march=get_machine_arch(),
         machine=get_default_machine(args.emulator),
-        osloader=get_os_loader(),
+        osloader=get_os_loader(firmware_type=args.firmwaretype),
         cpuflags=cpu_flags,
         consoletype=get_console_type(),
         raidvolume=raidvolume,
