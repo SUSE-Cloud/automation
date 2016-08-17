@@ -21,6 +21,7 @@
             nodenumber=3
             nodenumbercompute=2
             want_magnum=1
+            want_ceph=0
             ostestroptions=" --regex '^magnum.tests.functional.api'"
             mkcloudtarget=all
             label={label}
