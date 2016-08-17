@@ -1594,7 +1594,10 @@ EOF
     hostname -f # make sure it is a FQDN
     ping -c 1 `hostname -f`
     longdistance=${longdistance:-false}
-    if [[ $(ping -q -c1 $clouddata |
+    # $clouddata is treated as a URL fragment in other places, grab only
+    # the host portion.
+    clouddata_host=$(echo $clouddata | cut -d/ -f1)
+    if [[ $(ping -q -c1 $clouddata_host |
             perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') -gt 100 ]]
     then
         longdistance=true
