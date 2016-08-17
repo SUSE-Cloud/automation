@@ -9,6 +9,7 @@ export cloudsource=GM6+up
 export TESTHEAD=1
 export cloud=p1
 export nodenumber=4
+export want_mtu_size=8900
 export cephvolumenumber=1
 # 2nd node only has 32GB RAM, making it more suitable for controller
 export want_node_roles=compute=1,controller=1,compute=2
