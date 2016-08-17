@@ -18,7 +18,8 @@
           predefined-parameters: |
             TESTHEAD=1
             cloudsource=develcloud{version}
-            nodenumber=2
+            nodenumber=3
+            nodenumbercompute=2
             want_magnum=1
             ostestroptions=" --regex '^magnum.tests.functional.api'"
             mkcloudtarget=all
