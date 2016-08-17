@@ -4328,6 +4328,30 @@ function onadmin_rebootneutron()
     onneutron_wait_for_neutron
 }
 
+# This will adapt Cloud6 admin server repositories to Clooud7 ones
+function onadmin_prepare_cloudupgrade_repos_6_to_7()
+{
+    test -z "$upgrade_cloudsource" && {
+        complain 15 "upgrade_cloudsource is not set"
+    }
+
+    export cloudsource=$upgrade_cloudsource
+
+    export_tftpboot_repos_dir
+
+    # change CLOUDSLE11DISTISO/CLOUDSLE11DISTPATH according to the new cloudsource
+    onadmin_set_source_variables
+
+    # recreate the SUSE-Cloud Repo with the latest iso
+    onadmin_prepare_cloud_repos
+    onadmin_add_cloud_repo
+
+    # change system repositories to SP2
+    zypper rr sles12sp1
+    zypper rr sles12sp1up
+    onadmin_setup_local_zypper_repositories
+}
+
 function onadmin_prepare_cloudupgrade()
 {
     # TODO: All running cloud instances should be suspended here
@@ -4357,11 +4381,6 @@ function onadmin_prepare_cloudupgrade()
     # recreate the SUSE-Cloud Repo with the latest iso
     onadmin_prepare_cloud_repos
     onadmin_add_cloud_repo
-    # FIXME: ugly hack - we need to prepare also SP1 Cloud repositories
-    # to correctly install SP1 nodes on SP2-enabled Cloud7
-    if iscloudver 7; then
-        onadmin_prepare_cloud_repos "sp1"
-    fi
 
     # Applying the updater barclamp (in onadmin_cloudupgrade_clients) triggers
     # a chef-client run on the admin node (even it the barclamp is not applied
