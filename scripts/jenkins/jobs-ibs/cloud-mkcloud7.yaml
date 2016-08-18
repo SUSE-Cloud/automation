@@ -11,7 +11,6 @@
     previous_version: 6
     arch: x86_64
     label: openstack-mkcloud-SLE12-x86_64
-    sles12sp2: 0
     jobs:
         - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
@@ -23,7 +22,6 @@
         - 'cloud-mkcloud{version}-job-hyperv-{arch}'
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
-        - 'cloud-mkcloud{version}-job-sle12sp2-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
         - 'cloud-mkcloud{version}-job-tempestfull-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-{arch}'
@@ -43,7 +41,6 @@
     previous_version: 6
     arch: s390x
     label: openstack-mkcloud-SLE12-{arch}
-    sles12sp2: 1
     jobs:
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
 
@@ -53,6 +50,5 @@
     previous_version: 6
     arch: x86_64
     label: openstack-mkcloud-SLE12-big_machine-{arch}
-    sles12sp2: 1
     jobs:
         - 'cloud-mkcloud{version}-job-many_compute-{arch}'
