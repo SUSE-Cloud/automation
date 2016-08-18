@@ -2994,6 +2994,11 @@ function custom_configuration()
             if iscloudver 6plus ; then
                 proposal_set_value tempest default "['attributes']['tempest']['manila']['image_password']" "'linux'"
             fi
+            #magnum options
+            if iscloudver 7plus ; then
+                proposal_set_value tempest default "['attributes']['tempest']['magnum']['flavor_id']" "'m1.smaller'"
+                proposal_set_value tempest default "['attributes']['tempest']['magnum']['master_flavor_id']" "'m2.smaller'"
+            fi
         ;;
         provisioner)
             # set default password
@@ -3655,6 +3660,15 @@ function oncontroller_magnum_service_setup ()
         openstack image create --file $service_image_name \
             --disk-format qcow2 --container-format bare --public \
             --property os_distro=fedora-atomic magnum-service-image
+    fi
+
+    # create magnum flavors used by tempest
+    if ! openstack flavor show m2.smaller; then
+        openstack flavor create --ram 1024 --disk 8 --vcpus 1 m2.smaller
+    fi
+
+    if ! openstack flavor show m1.smaller; then
+        openstack flavor create --ram 512 --disk 8 --vcpus 1 m1.smaller
     fi
 }
 
