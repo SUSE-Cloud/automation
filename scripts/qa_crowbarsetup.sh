@@ -1803,7 +1803,7 @@ function crowbar_nodeupgrade_status()
 
 function do_installcrowbar_cloud6plus()
 {
-    if [[ $want_postgresql = 0 ]] ; then
+    if [[ $want_postgresql = 0 ]] || iscloudver 6minus; then
         service crowbar status || service crowbar stop
         service crowbar start
 
