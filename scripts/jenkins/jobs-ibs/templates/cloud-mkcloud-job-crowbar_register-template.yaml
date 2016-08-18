@@ -18,7 +18,6 @@
           predefined-parameters: |
             TESTHEAD=1
             cloudsource=develcloud{version}
-            want_sles12sp2={sles12sp2}
             nodenumber=2
             WITHCROWBARREGISTER=true
             mkcloudtarget=instonly
