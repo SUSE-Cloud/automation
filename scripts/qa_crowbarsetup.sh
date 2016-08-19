@@ -4685,7 +4685,7 @@ function onadmin_devsetup()
 {
     # install dev setup dependencies
     add_sdk_repo
-    ensure_packages_installed git gcc ruby2.1-devel sqlite3-devel libxml2-devel libopenssl-devel postgresql-devel
+    ensure_packages_installed git make gcc ruby2.1-devel sqlite3-devel libxml2-devel libopenssl-devel postgresql-devel
 
     # create development folders
     mkdir -p /opt/crowbar/crowbar_framework/db /opt/crowbar/barclamps
