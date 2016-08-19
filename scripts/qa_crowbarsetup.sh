@@ -1129,11 +1129,8 @@ function onadmin_prepare_sles12sp2_other_repos()
 
 function onadmin_prepare_cloud_repos()
 {
-    # inidicate that we want to setup SP1 repos although we have Cloud7
-    local sp1_for_cloud7=$1
-
     local targetdir=
-    if iscloudver 7plus && [ -z "$sp1_for_cloud7" ]; then
+    if iscloudver 7plus; then
         targetdir="$tftpboot_repos12sp2_dir/Cloud"
     elif iscloudver 6plus; then
         targetdir="$tftpboot_repos12sp1_dir/Cloud"
@@ -1624,11 +1621,6 @@ EOF
     # setup cloud repos for tftpboot and zypper
     onadmin_prepare_cloud_repos
     onadmin_add_cloud_repo
-    # FIXME: ugly hack - we need to prepare also SP1 Cloud repositories
-    # to correctly install SP1 nodes on SP2-enabled Cloud7
-    if iscloudver 7; then
-        onadmin_prepare_cloud_repos "sp1"
-    fi
 
     zypper_refresh
 
