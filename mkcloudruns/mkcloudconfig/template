@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Note: Please document important details for collaboration.
+# Upgrade Step: Finishing Point ... should ideally be the final step.
+
+export cloudsource=susecloud7
+
+bash ../../../scripts/mkcloud "$@"

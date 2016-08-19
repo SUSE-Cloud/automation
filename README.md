@@ -2,6 +2,11 @@ This repository contains various scripts which SUSE uses to automate
 development, testing, and CI (continuous integration) of the various
 components of SUSE Cloud, i.e. OpenStack and Crowbar.
 
+# Developer Environments:
+
+* For using the automation repository for development, testing and training please refer
+  the mkcloudruns folder in this repository. Check the readme in there for more details.
+
 # Scripts
 
 This project has several scripts for different automated tasks, some of them are:

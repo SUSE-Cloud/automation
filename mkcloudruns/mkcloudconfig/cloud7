@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Note: Please document important details for collaboration.
+# Upgrade Step: Finishing Point ... should ideally be the final step.
+# Use this template script to create your copy and update the same in
+# install_suse_cloud script at the root of this repository. That should
+# help you to run parallel clouds and custom configuration.
+
+export cloudsource=susecloud7
+
+bash ../../../scripts/mkcloud "$@"
