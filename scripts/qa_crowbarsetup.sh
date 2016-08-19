@@ -4451,6 +4451,22 @@ function onadmin_prepare_crowbar_upgrade()
     fi
 }
 
+function onadmin_set_crowbarctl_apiversion()
+{
+    # as we moved the backup to the 2.0 api we have to specify
+    # to fall back to version 1.0 for cloud 6
+    if iscloudver 6minus ; then
+        cat > ~/.crowbarrc <<EOF
+[default]
+server = http://localhost:80
+username = crowbar
+password = crowbar
+anonymous = false
+apiversion = 1.0
+EOF
+    fi
+}
+
 function onadmin_crowbarbackup()
 {
     pre_hook $FUNCNAME
@@ -4460,6 +4476,7 @@ function onadmin_crowbarbackup()
     rm -f /tmp/$btarball
 
     if iscloudver 6plus ; then
+        onadmin_set_crowbarctl_apiversion
         safely crowbarctl backup create $btarballname
         pushd /tmp
         # temporary workaround, as crowbarctl does not support to lookup by name yet
@@ -4536,6 +4553,7 @@ function onadmin_crowbarrestore()
     zypper --non-interactive in --auto-agree-with-licenses -t pattern cloud_admin
 
     if iscloudver 6plus ; then
+        onadmin_set_crowbarctl_apiversion
         systemctl start crowbar.service
         wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
         case $restoremode in
