@@ -2102,32 +2102,33 @@ function onadmin_allocate()
             done
         done
     else
-        if [ -n "$want_sles12" ] && iscloudver 5 ; then
+        if [[ $hacloud = 1 ]] ; then
+            cluster_node_assignment
+            local nodes=($unclustered_nodes)
+        else
+            local nodes=($(get_all_discovered_nodes))
+            nodes=("${nodes[@]:1}") #remove the 1st node, it's the controller
+        fi
+        local nodes_count=${#nodes[@]}
 
-            local nodes=(
-                $(get_all_discovered_nodes | tail -n 2)
-            )
+        if [ -n "$want_sles12" ] && iscloudver 5 ; then
             if [ -n "$deployceph" ] ; then
                 echo "Setting second last node to SLE12 Storage..."
-                set_node_role_and_platform ${nodes[0]} "storage" "suse-12.0"
+                set_node_role_and_platform ${nodes[$(($nodes_count-2))]} "storage" "suse-12.0"
             fi
             echo "Setting last node to SLE12 compute..."
-            set_node_role_and_platform ${nodes[1]} "compute" "suse-12.0"
+            set_node_role_and_platform ${nodes[$(($nodes_count-1))]} "compute" "suse-12.0"
         fi
         if [ -n "$deployceph" ] && iscloudver 6plus ; then
-            local nodes=(
-                $(get_all_discovered_nodes | head -n 3)
-            )
             storage_os="suse-12.1"
-            for n in $(seq 1 2); do
-                echo "Setting node $(($n+1)) to Storage..."
+            for n in $(seq 0 1); do
+                echo "Setting node ${nodes[$n]} to Storage... "
                 set_node_role_and_platform ${nodes[$n]} "storage" ${storage_os}
             done
         fi
         if [ -n "$wanthyperv" ] ; then
             echo "Setting last node to Hyper-V compute..."
-            local computenode=$(get_all_discovered_nodes | tail -n 1)
-            set_node_role_and_platform $computenode "compute" "hyperv-6.3"
+            set_node_role_and_platform ${nodes[$(($nodes_count-1))]} "compute" "hyperv-6.3"
         fi
     fi
 
