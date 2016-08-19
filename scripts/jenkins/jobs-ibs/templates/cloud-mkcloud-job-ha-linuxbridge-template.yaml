@@ -22,6 +22,7 @@
             clusterconfig=services='data+network+services=2'
             want_ceph=0
             hacloud=1
+            want_node_os=suse-12.2=2,suse-12.1=2
             mkcloudtarget=all_noreboot
             networkingplugin=linuxbridge
             networkingmode=vxlan
