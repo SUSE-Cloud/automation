@@ -82,7 +82,7 @@
           description: The runner must be qa_crowbarsetup.sh file
       - string:
           name: commands
-          default: prepareinstallcrowbar installcrowbar allocate waitcloud setup_aliases batch
+          default: prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
           description: All the steps that needs to be completed to have cloud installed
       - text:
           name: UPDATEREPOS
