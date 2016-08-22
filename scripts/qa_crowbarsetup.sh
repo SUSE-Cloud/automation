@@ -2974,6 +2974,10 @@ function custom_configuration()
                 local cinder_volume
                 # fetch one of the compute nodes as cinder_volume
                 cinder_volume=`printf "%s\n" $unclustered_nodes | tail -n 1`
+                # make sure we do not use SP1 node for cinder
+                if [ -n "$deployceph" -a iscloudver 7plus ] ; then
+                    cinder_volume=$sles12plusnode
+                fi
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['cluster:$clusternameservices']"
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-volume']" "['$cinder_volume']"
             fi
