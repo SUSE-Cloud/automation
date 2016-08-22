@@ -3667,6 +3667,11 @@ function oncontroller_magnum_service_setup ()
     if ! openstack flavor show m1.smaller; then
         openstack flavor create --ram 512 --disk 8 --vcpus 1 m1.smaller
     fi
+
+    # default key is used by magnum tempest test
+    if ! openstack keypair show default; then
+        openstack keypair create --public-key /root/.ssh/id_rsa.pub default
+    fi
 }
 
 # code run on controller/dashboard node to do basic tests of deployed cloud
