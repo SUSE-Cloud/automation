@@ -2810,7 +2810,7 @@ function custom_configuration()
                 novanodes="[ ${novanodes%,} ]"
 
                 # make sure we do not have SP1 and SP2 compute nodes
-                if [ -n "$deployceph" -a -n "want_sles12sp2" ] ; then
+                if [ -n "$deployceph" -a iscloudver 7plus ] ; then
                     proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "['$sles12plusnode']"
                 else
                     proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes"
