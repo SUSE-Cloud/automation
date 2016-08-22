@@ -429,6 +429,7 @@ function onhost_deploy_image()
     local image=$(dist_to_image_name $2)
     local disk=$3
 
+    [[ $clouddata ]] || complain 108 "clouddata IP not set - is DNS broken?"
     pushd /tmp
     safely wget --progress=dot:mega -N \
         http://$clouddata/images/$arch/$image
