@@ -850,31 +850,26 @@ function cluster_node_assignment()
             if crowbar machines show "$node" | grep "\"macaddress\"" | grep -qi $mac ; then
                 nodesavailable=`remove_node_from_list "$node" "$nodesavailable"`
                 clusternodesdrbd="$clusternodesdrbd $node"
+                echo "Claiming disk for DRBD on node: $node"
 
                 # assign drbd volume via knife
-                local nfile
-                nfile=knife.node.${node}.json
-                knife node show ${node} -F json > $nfile
-                rubyjsonparse "
-                            j['normal']['crowbar_wall']['claimed_disks'].each do |k,v|
+                knife exec -E "
+                    nodes.find(:name => '${node}').each do |n|
+                        if n['crowbar_wall']['claimed_disks']
+                            n['crowbar_wall']['claimed_disks'].each do |k,v|
                                 next if v.is_a? Hash and v['owner'] !~ /LVM_DRBD/;
-                                j['normal']['crowbar_wall']['claimed_disks'].delete(k);
-                            end ;
-                            j['normal']['crowbar_wall']['claimed_disks']['/dev/disk/by-id/$(get_disk_id_by_serial_and_libvirt_type "$libvirt_type" "$serial")']={'owner' => 'LVM_DRBD'};
-                            puts JSON.pretty_generate(j)" < $nfile > ${nfile}.tmp
-                mv ${nfile}.tmp ${nfile}
-                knife node from file ${nfile}
+                                n['crowbar_wall']['claimed_disks'].delete(k);
+                            end
+                        else
+                            n['crowbar_wall']['claimed_disks'] = {}
+                        end
+                        n['crowbar_wall']['claimed_disks']['/dev/disk/by-id/$(get_disk_id_by_serial_and_libvirt_type "$libvirt_type" "$serial")']={'owner' => 'LVM_DRBD'};
+                        n.save
+                    end
+                "
             fi
         done
     done
-    for dnode in $clusternodesdrbd ; do
-        # run chef-client on the edited nodes to fill back the hidden data fields (like dmi data)
-        # this is a workaround, because the hidden node data can not be exported, imported or kept during editing
-        echo "not done yet" > ${dnode}.chef-client.ret
-        screen -d -m -L /bin/bash -c "ssh $dnode 'chef-client' ; echo \$? > ${dnode}.chef-client.ret"
-    done
-    wait_for 40 15 "! cat *.chef-client.ret | grep -qv '^0$'" "all chef-clients to succeed" \
-        "cat *.chef-client.ret ; complain 73 'Manually triggered chef-client run failed on at least one node.'"
 
     ### Examples for clusterconfig:
     # clusterconfig="data+services+network=2"
@@ -1943,11 +1938,13 @@ function set_node_attribute()
     local node="$1"
     local attr="$2"
     local value="$3"
-    local t=$(mktemp).json
-    knife node show -F json "$node" > $t
-    json-edit $t -a "normal.$attr" -v "$value"
-    knife node from file $t
-    rm -f $t
+
+    knife exec -E "
+        nodes.find(:name => '${node}').each do |n|
+            n.${attr} = '${value}'
+            n.save
+        end
+    "
 }
 
 function set_node_fs()
@@ -1978,8 +1975,6 @@ function set_node_raid()
     node="$1"
     raid_type="$2"
     disks_count="$3"
-    local t=$(mktemp).json
-    knife node show -F json "$node" > $t
 
     wait_for 10 5 "getent hosts $node &> /dev/null" "$node name to be resolvable"
     # to find out available disks, we need to look at the nodes directly
@@ -1988,10 +1983,13 @@ function set_node_raid()
     raid_disks=`printf "\"/dev/%s\"," $raid_disks`
     raid_disks="[ ${raid_disks%,} ]"
 
-    json-edit $t -a normal.crowbar_wall.raid_type -v "$raid_type"
-    json-edit $t -a normal.crowbar_wall.raid_disks --raw -v "$raid_disks"
-    knife node from file $t
-    rm -f $t
+    knife exec -E "
+        nodes.find(:name => '${node}').each do |n|
+            n.crowbar_wall.raid_type = '${raid_type}'
+            n.crowbar_wall.raid_disk = $raid_disks
+            n.save
+        end
+    "
 }
 
 
