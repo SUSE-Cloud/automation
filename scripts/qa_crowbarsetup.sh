@@ -2161,6 +2161,13 @@ function onadmin_allocate()
         done
     fi
 
+    # set rootfs for all nodes when want_rootfs is set
+    if [ -n "$want_rootfs" ] ; then
+        for node in `get_all_discovered_nodes` ; do
+            set_node_fs $node "$want_rootfs"
+        done
+    fi
+
     echo "Allocating nodes..."
     local m
     for m in `get_all_discovered_nodes` ; do
