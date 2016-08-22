@@ -4685,7 +4685,7 @@ function onadmin_devsetup()
 {
     # install dev setup dependencies
     add_sdk_repo
-    ensure_packages_installed git gcc ruby2.1-devel sqlite3-devel libxml2-devel libopenssl-devel postgresql-devel
+    ensure_packages_installed git make gcc ruby2.1-devel sqlite3-devel libxml2-devel libopenssl-devel postgresql-devel
 
     # create development folders
     mkdir -p /opt/crowbar/crowbar_framework/db /opt/crowbar/barclamps
@@ -4709,6 +4709,7 @@ function onadmin_devsetup()
     # install crowbar gems
     pushd /opt/crowbar/crowbar_framework
     bundle install --path /opt/crowbar
+    su -s /bin/sh - crowbar sh -c "RAILS_ENV=development bundle exec rake db:create db:migrate"
     popd
 
     # install barclamps
