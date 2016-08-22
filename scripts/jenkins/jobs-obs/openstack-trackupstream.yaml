@@ -48,6 +48,7 @@
             - openstack-nova
             - openstack-nova-docker
             - openstack-nova-virt-zvm
+            - openstack-octavia
             - openstack-quickstart
             - openstack-resource-agents
             - openstack-sahara
@@ -125,6 +126,7 @@
               "tripleo-image-elements",
               "tripleo-heat-templates",
               "diskimage-builder",
+              "openstack-octavia",
               "openstack-tuskar",
               "openstack-tuskar_ui",
               "openstack-zaqar",
