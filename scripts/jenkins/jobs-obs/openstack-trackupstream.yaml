@@ -126,7 +126,6 @@
               "tripleo-image-elements",
               "tripleo-heat-templates",
               "diskimage-builder",
-              "openstack-octavia",
               "openstack-tuskar",
               "openstack-tuskar_ui",
               "openstack-zaqar",
@@ -153,6 +152,7 @@
               "openstack-barbican",
               "openstack-horizon-plugin-ironic-ui",
               "openstack-horizon-plugin-magnum-ui",
+              "openstack-octavia",
             ].contains(component) )
       sequential: true
     builders:
