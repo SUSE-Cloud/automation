@@ -88,7 +88,7 @@
           description: The runner must be qa_crowbarsetup.sh file
       - string:
           name: commands
-          default: prepareinstallcrowbar installcrowbar allocate setup_aliases waitcloud
+          default: prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate setup_aliases waitcloud
           description: All the steps that needs to be completed to have cloud installed
       - text:
           name: UPDATEREPOS
@@ -163,7 +163,7 @@
 
             cat > /tmp/sbd_prepare_$admin <<EOSCRIPT
               # preparation of iSCSI
-              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP1/ --non-interactive install python-sh
+              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
 
               wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
 
