@@ -4629,6 +4629,23 @@ function onadmin_qa_test()
     return $ret
 }
 
+function onadmin_deploy_angular()
+{
+    if iscloudver 5minus; then
+        echo "Angular UI is only available since Cloud6"
+        return 0
+    fi
+
+    # Steps needed for deplying angular code
+    # See https://github.com/crowbar/crowbar-angular
+
+    ensure_packages_installed git-core
+
+    git clone gitlab@gitlab.suse.de:spetrone/crowbar-angular.git
+
+    # FIXME follow the updated README file until we have it packaged...
+}
+
 # Run cct tests
 # By default all tests specified in $cct_tests will be run + all functional tests
 # $cct_tests           -> mandatory, typical value is features:base
