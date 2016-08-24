@@ -2817,7 +2817,7 @@ function custom_configuration()
                 novanodes="[ ${novanodes%,} ]"
 
                 # make sure we do not have SP1 and SP2 compute nodes
-                if [ -n "$deployceph" ] && iscloudver 7plus ; then
+                if [ -n "$deployceph" ] && iscloudver 7 ; then
                     proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "['$sles12plusnode']"
                 else
                     proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes"
@@ -2982,7 +2982,7 @@ function custom_configuration()
                 # fetch one of the compute nodes as cinder_volume
                 cinder_volume=`printf "%s\n" $unclustered_nodes | tail -n 1`
                 # make sure we do not use SP1 node for cinder
-                if [ -n "$deployceph" ] && iscloudver 7plus ; then
+                if [ -n "$deployceph" ] && iscloudver 7 ; then
                     cinder_volume=$sles12plusnode
                 fi
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['cluster:$clusternameservices']"
