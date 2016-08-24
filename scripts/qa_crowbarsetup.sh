@@ -2870,6 +2870,10 @@ function custom_configuration()
                 local ceilometernodes
                 ceilometernodes=`printf "\"%s\"," $unclustered_nodes`
                 ceilometernodes="[ ${ceilometernodes%,} ]"
+                # make sure we do not use SP1 nodes for ceilometer-agent
+                if [ -n "$deployceph" ] && iscloudver 7 ; then
+                    ceilometernodes="['$sles12plusnode']"
+                fi
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-agent']" "$ceilometernodes"
             fi
         ;;
