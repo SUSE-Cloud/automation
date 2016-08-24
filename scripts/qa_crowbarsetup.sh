@@ -4504,6 +4504,13 @@ function onadmin_prepare_crowbar_upgrade()
     fi
 }
 
+function onadmin_check_admin_server_upgraded()
+{
+    if ! [ -e /var/lib/crowbar/install/admin-server-upgraded-ok ]; then
+        complain 99 "/var/lib/crowbar/install/admin-server-upgraded-ok is missing"
+    fi
+}
+
 function onadmin_upgrade_admin_server()
 {
     if iscloudver 5minus; then

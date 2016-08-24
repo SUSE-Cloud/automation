@@ -1096,8 +1096,7 @@ function crowbarupgrade_5plus()
       onadmin upgrade_admin_server
       wait_for 200 3 "! nc -z $adminip 22" 'crowbar to go down after upgrade'
       wait_for_crowbar_ssh
-      # FIXME: fail when admin-server-upgraded-ok is not present
-
+      onadmin check_admin_server_upgraded
       # use crowbar-init to bootstrap crowbar
       want_postgresql=1 onadmin bootstrapcrowbar 1
     else
