@@ -4342,6 +4342,10 @@ function onadmin_prepare_cloudupgrade_repos_6_to_7()
     # change CLOUDSLE11DISTISO/CLOUDSLE11DISTPATH according to the new cloudsource
     onadmin_set_source_variables
 
+    # prepare installation repositories for nodes
+    onadmin_prepare_sles12sp2_repos
+    onadmin_prepare_sles12plus_cloud_repos
+
     # recreate the SUSE-Cloud Repo with the latest iso
     onadmin_prepare_cloud_repos
     onadmin_add_cloud_repo
