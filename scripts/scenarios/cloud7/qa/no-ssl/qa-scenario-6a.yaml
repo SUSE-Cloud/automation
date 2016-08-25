@@ -1,0 +1,192 @@
+---
+# 6a - 7 nodes: HA IMPI 1 x 3, KVM x 4
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: ipmi_barclamp
+      sbd:
+        nodes:
+          "@@controller1@@":
+            devices:
+            - ''
+          "@@controller2@@":
+            devices:
+            - ''
+          "@@controller3@@":
+            devices:
+            - ''
+      per_node:
+        nodes:
+          "@@controller1@@":
+            params: ''
+          "@@controller2@@":
+            params: ''
+          "@@controller3@@":
+            params: ''
+    drbd:
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      hawk-server:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+
+- barclamp: nfs_client
+  name: glance
+  attributes:
+    exports:
+      images:
+        nfs_server: ##nfs_server##
+        export: ##nfs_export##
+        mount_path: "/images"
+        mount_options:
+        - nfsvers=3
+  deployment:
+    elements:
+      nfs-client:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+
+- barclamp: database
+  attributes:
+    ha:
+      storage:
+        shared:
+          device: ##shared_nfs_for_database##
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      database-server:
+      - cluster:services
+
+- barclamp: rabbitmq
+  attributes:
+    trove:
+      enabled: true
+    ha:
+      storage:
+        shared:
+          device: ##shared_nfs_for_rabbitmq##
+          fstype: nfs
+          options: nfsvers=3
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:services
+
+- barclamp: keystone
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+
+- barclamp: glance
+  attributes:
+    filesystem_store_datadir: "/images"
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: local
+      backend_name: local_file
+      local:
+        volume_name: cinder-volumes
+        file_name: "/var/lib/cinder/volume.raw"
+        file_size: 2000
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - "@@controller3@@"
+      - "@@controller1@@"
+      - "@@controller2@@"
+
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - linuxbridge
+    ml2_type_drivers:
+    - vlan
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:services
+
+- barclamp: nova
+  attributes:
+    use_migration: true
+    vnc_keymap: de
+    kvm:
+      ksm_enabled: true
+    metadata:
+      vendordata:
+        json: '{"custom-key": "custom-value"}'
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:services
+      nova-compute-kvm:
+      - "@@kvm1@@"
+      - "@@kvm2@@"
+      - "@@kvm3@@"
+      - "@@kvm4@@"
+
+- barclamp: horizon
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+
+- barclamp: heat
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+
+- barclamp: ceilometer
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@kvm2@@"
+      - "@@kvm1@@"
+      - "@@kvm3@@"
+      - "@@kvm4@@"
+      ceilometer-central:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+
+- barclamp: trove
+  deployment:
+    elements:
+      trove-server:
+      - cluster:services
+
+- barclamp: magnum
+  deployment:
+    elements:
+      magnum-server:
+      - "@@controller1@@" #TODO Cluster will be enabled when implementation done cluster - cluster:services
+
+- barclamp: tempest
+  deployment:
+    elements:
+      tempest:
+      - "@@controller1@@"
