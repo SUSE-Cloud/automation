@@ -1740,6 +1740,16 @@ function install_crowbar_init()
     wait_for 100 3 "onadmin_is_crowbar_init_api_available" "crowbar init service to start"
 }
 
+function onadmin_activate_repositories()
+{
+    if iscloudver 5minus; then
+        complain 11 "This upgrade path is only supported for Cloud 6+"
+    fi
+
+    # activate provisioner repos, so that nodes can use them
+    curl -X POST http://localhost:3000/utils/repositories/activate_all.json
+}
+
 function onadmin_bootstrapcrowbar()
 {
     local migrate_db=$1
