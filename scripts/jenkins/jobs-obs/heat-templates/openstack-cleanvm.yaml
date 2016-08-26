@@ -102,6 +102,7 @@ resources:
         list_join:
           - '_'
           - - 'heat'
+            - 'DONTUSE'
             - { get_param: 'OS::stack_name' }
 
 
@@ -113,6 +114,7 @@ resources:
         list_join:
           - '_'
           - - 'heat'
+            - 'DONTUSE'
             - { get_param: 'OS::stack_name' }
       network:
         get_resource: network
@@ -190,6 +192,12 @@ resources:
   router:
     type: OS::Neutron::Router
     properties:
+      name:
+        list_join:
+          - '_'
+          - - 'heat'
+            - 'DONTUSE'
+            - { get_param: 'OS::stack_name' }
       external_gateway_info:
         network:
           get_param: floating_network
@@ -213,11 +221,18 @@ resources:
   allow_inbound:
     type: OS::Neutron::SecurityGroup
     properties:
-      description: "Allow inbound SSH and HTTP traffic"
+      description:
+        list_join:
+          - ''
+          - - 'CREATED BY HEAT stack '
+            - { get_param: 'OS::stack_name' }
+            - '. DO NOT USE. '
+            - "Allows inbound SSH and HTTP traffic."
       name:
         list_join:
           - '_'
           - - 'heat'
+            - 'DONTUSE'
             - { get_param: 'OS::stack_name' }
       rules:
         - direction: ingress
