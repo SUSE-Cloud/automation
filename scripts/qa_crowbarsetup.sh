@@ -1752,7 +1752,7 @@ function onadmin_activate_repositories()
 
 function onadmin_bootstrapcrowbar()
 {
-    local migrate_db=$1
+    local migrate=$1
     # temporarily make it possible to not use postgres until we switched to the new upgrade process
     # otherwise we would break the upgrade gating
     [[ $want_postgresql = 0 ]] && return
@@ -1766,11 +1766,17 @@ function onadmin_bootstrapcrowbar()
             complain 36 "Could not setup PostgreSQL database"
         fi
 
-        if [[ $migrate_db = 1 ]] ; then
+        if [[ $migrate = 1 ]] ; then
             http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" -o migrate-database.txt -w '%{http_code}' $crowbar_init_api/database/migrate`
             if ! [[ $http_code =~ [23].. ]] ; then
                 cat migrate-database.txt
                 complain 36 "Could not migrate the Crowbar database"
+            fi
+
+            http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" -o migrate-schemas.txt -w '%{http_code}' $crowbar_init_api/migrate`
+            if ! [[ $http_code =~ [23].. ]] ; then
+                cat migrate-schemas.txt
+                complain 36 "Could not migrate Crowbar schemas"
             fi
         fi
 
