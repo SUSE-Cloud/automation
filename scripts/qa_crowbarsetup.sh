@@ -4513,10 +4513,12 @@ function onadmin_prepare_crowbar_upgrade()
 {
     if iscloudver 4; then
         complain 11 "This upgrade path is only supported for Cloud 5+"
-    else
+    elif iscloudver 5; then
         # using the API, due to missing crowbar cli integration
         # move nodes to upgrade mode
         safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare.json
+    else
+        safely crowbarctl upgrade prepare
     fi
 }
 
