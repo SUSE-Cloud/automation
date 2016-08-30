@@ -108,6 +108,8 @@
 
           # rest of code runs on admin node:
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
+          echo "ostestroptions= --regex '^magnum.tests.functional.api'" >> mkcloud.config
+          
           scp mkcloud.config root@$admin:
           ret=0
 
@@ -129,7 +131,6 @@
               export want_node_aliases=controller=3,kvm=4
               export want_node_roles=controller=3,compute=4
               export scenario=/root/scenario.yml;
-              export ostestroptions=" --regex '^magnum.tests.functional.api'"
               export commands="$commands"
 
               wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
