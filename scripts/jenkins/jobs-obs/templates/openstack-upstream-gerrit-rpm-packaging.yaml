@@ -12,7 +12,7 @@
           #!/bin/bash -e
           rpm -qa|grep '\(renderspec\|pymod2pkg\)'
 
-          set -x
+          set -eux
 
           osc_timed="timeout 20m osc"
 
