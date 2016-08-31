@@ -79,6 +79,7 @@ for x in D I ; do
 done
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
 EOS
+        chmod +x $boot_mkcloud
         if ! grep -q "boot.mkcloud" /etc/init.d/boot.local ; then
             cat >> /etc/init.d/boot.local <<EOS
 
@@ -89,8 +90,7 @@ EOS
         fi
     fi
 
-    if [ -e "$boot_mkcloud" ]; then
-        chmod +x $boot_mkcloud
+    if [ -x "$boot_mkcloud" ]; then
         $boot_mkcloud
     fi
 }
