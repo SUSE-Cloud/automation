@@ -74,6 +74,7 @@
                   unset pending
                   unset failed
                   unset kickscheduler
+                  unset succeeded
                   res=`osc results --csv -w -r SLE_12_SP1`
                   if [ $? -ne 0 ]; then
                       sleep 5
@@ -93,6 +94,10 @@
                       if [[ $r =~ (finished$|unknown$|outdated$) ]]; then
                           kickscheduler=1
                       fi
+                      # found something?
+                      if [[ $r =~ succeeded$ ]]; then
+                          succeeded=1
+                      fi
                   done
 
                   if [ -n "$kickscheduler" ]; then
@@ -111,7 +116,7 @@
                   if [ -n "$failed" ]; then
                       echo "Build failed :-("
                       exit 1
-                  else
+                  elif [ -n "$succeeded" ]; then
                       break
                   fi
               done
