@@ -3813,10 +3813,8 @@ function oncontroller_testsetup()
         complain 37 "Image ID for $image_name not found"
     fi
 
-    for n in $(seq 1 200) ; do
-        openstack image show $imageid | grep status.*active && break
-        sleep 5
-    done
+    wait_for 200 5 "openstack image show $imageid | grep status.*active" \
+        "$image_name image to reach active state"
 
     if [[ $want_ldap ]] ; then
         openstack user show bwiedemann | grep -q 82608 || complain 103 "LDAP not working"
