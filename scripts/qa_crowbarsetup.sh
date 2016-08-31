@@ -4645,6 +4645,10 @@ function onadmin_run_cct()
         addcctdepsrepo
         ensure_packages_installed git-core gcc make ruby2.1-devel
 
+        if [[ $cct_tests =~ ":ui:" ]]; then
+            ensure_packages_installed libqt4-devel libQtWebKit-devel xorg-x11-server xorg-x11-server-extra
+        fi
+
         local checkout_branch=master
         local git_url=${cct_git_url:-https://github.com/SUSE-Cloud/cct.git}
         local skip_func_tests=${cct_skip_func_tests:-0}
@@ -4689,7 +4693,14 @@ function onadmin_run_cct()
         fi
 
         # run cct
-        bundle install
+        if [[ $cct_tests =~ ":ui:" ]]; then
+            # Once bundler is in version >=1.10 the next line must be extended by: --with ui_tests
+            bundle install
+            cct_ui_tests=true
+        else
+            bundle install --without ui_tests
+        fi
+
         local IFS
         IFS='+'
         for test in $cct_tests; do
