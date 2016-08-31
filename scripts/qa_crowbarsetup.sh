@@ -2799,6 +2799,10 @@ function custom_configuration()
         magnum)
             proposal_set_value magnum default "['attributes']['magnum']['trustee']['domain_name']" "'magnum'"
             proposal_set_value magnum default "['attributes']['magnum']['trustee']['domain_admin_name']" "'magnum_domain_admin'"
+
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value magnum default "['deployment']['magnum']['elements']['magnum-server']" "['cluster:$clusternameservices']"
+            fi
             ;;
         nova)
             local role_prefix=`nova_role_prefix`
