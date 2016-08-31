@@ -57,9 +57,11 @@ function libvirt_net_start()
         ip link set mtu 9000 dev $dev
     done
 
+    boot_mkcloud=/etc/init.d/boot.mkcloud
+
     if [ -z "$NOSETUPPORTFORWARDING" ] ; then
         nodehostips=$(seq -s ' ' 81 $((80 + $nodenumber)))
-        cat > /etc/init.d/boot.mkcloud <<EOS
+        cat > $boot_mkcloud <<EOS
 #!/bin/bash
 
 iptables -t nat -F PREROUTING
@@ -81,14 +83,15 @@ EOS
             cat >> /etc/init.d/boot.local <<EOS
 
 # --v--v--  Automatically added by mkcloud on `date`
-/etc/init.d/boot.mkcloud
+$boot_mkcloud
 # --^--^--  End of automatically added section from mkcloud
 EOS
         fi
     fi
-    if [ -e "/etc/init.d/boot.mkcloud" ]; then
-        chmod +x /etc/init.d/boot.mkcloud
-        /etc/init.d/boot.mkcloud
+
+    if [ -e "$boot_mkcloud" ]; then
+        chmod +x $boot_mkcloud
+        $boot_mkcloud
     fi
 }
 
