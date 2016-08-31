@@ -64,7 +64,6 @@ function libvirt_net_start()
 
 iptables -t nat -F PREROUTING
 for i in 22 80 443 3000 4000 4040 5000; do
-    iptables -I FORWARD -p tcp --dport \$i -j ACCEPT
     for host in 10 $nodehostips ; do
         offset=80
         [ "\$host" = 10 ] && offset=10
@@ -72,6 +71,10 @@ for i in 22 80 443 3000 4000 4040 5000; do
     done
 done
 iptables -t nat -I PREROUTING -p tcp --dport 6080 -j DNAT --to-destination $net_public.2
+for x in D I ; do
+    iptables -\$x FORWARD -d $net_admin.0/24 -j ACCEPT
+    iptables -\$x FORWARD -d $net_public.0/24 -j ACCEPT
+done
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
 EOS
         if ! grep -q "boot.mkcloud" /etc/init.d/boot.local ; then
