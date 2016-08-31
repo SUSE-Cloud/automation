@@ -18,7 +18,7 @@
           predefined-parameters: |
             TESTHEAD=1
             cloudsource=develcloud{version}
-            nodenumber=4
+            nodenumber=5
             networkingmode=vxlan
             hacloud=1
             mkcloudtarget=all_noreboot
