@@ -63,5 +63,8 @@
       <address type='pci' slot='0x02'/>
     </video>
 
+    <memballoon model='virtio' autodeflate='on'>
+      <address type='pci' slot='0x05'/>
+    </memballoon>
   </devices>
 </domain>

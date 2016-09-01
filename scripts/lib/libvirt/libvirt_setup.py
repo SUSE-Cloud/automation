@@ -92,9 +92,10 @@ def get_console_type():
 
 def get_memballoon_type():
     if 's390x' in get_machine_arch():
-        return '<memballoon model="none"/>'
+        return """    <memballoon model='virtio' autodeflate='on'>
+    </memballoon>"""
 
-    return """    <memballoon model='virtio'>
+    return """    <memballoon model='virtio' autodeflate='on'>
       <address type='pci' slot='0x05'/>
     </memballoon>"""
 
@@ -189,6 +190,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         'nicmodel': 'e1000',
         'emulator': args.emulator,
         'vdisk_dir': args.vdiskdir,
+        'memballoon': get_memballoon_type(),
     }
 
     if hypervisor_has_virtio(libvirt_type):
@@ -203,6 +205,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
     else:
         targetdevprefix = "sd"
         configopts['target_bus'] = 'ide'
+        configopts['memballoon'] = ''
         target_address = ""
 
     controller_raid_volumes = args.controller_raid_volumes

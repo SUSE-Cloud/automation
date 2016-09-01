@@ -39,5 +39,6 @@ $serialdevice
     </console>
     <input type='mouse' bus='ps2'/>
 $videodevices
+$memballoon
   </devices>
 </domain>

@@ -63,5 +63,6 @@
       <address type='pci' slot='0x02'/>
     </video>
 
+
   </devices>
 </domain>
