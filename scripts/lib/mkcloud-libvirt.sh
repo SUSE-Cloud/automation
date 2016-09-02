@@ -60,6 +60,7 @@ function libvirt_net_start()
     boot_mkcloud=/etc/init.d/boot.mkcloud
 
     if [ -z "$NOSETUPPORTFORWARDING" ] ; then
+        # FIXME: hardcoded assumptions about admin net host range
         nodehostips=$(seq -s ' ' 81 $((80 + $nodenumber)))
         cat > $boot_mkcloud <<EOS
 #!/bin/bash
@@ -67,6 +68,7 @@ function libvirt_net_start()
 
 iptables -t nat -F PREROUTING
 for i in 22 80 443 3000 4000 4040 5000 7630; do
+    # FIXME: hardcoded assumptions about admin IP and admin net host range
     for host in 10 $nodehostips ; do
         offset=80
         [ "\$host" = 10 ] && offset=10
