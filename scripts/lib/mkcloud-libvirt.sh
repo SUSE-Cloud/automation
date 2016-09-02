@@ -81,14 +81,22 @@ iptables_unique_rule () {
     fi
 }
 
-for i in 22 80 443 3000 4000 4040 5000 7630; do
-    # FIXME: hardcoded assumptions about admin IP and admin net host range
-    for host in 10 $nodehostips ; do
+# Forward ports to admin server
+for port in 22 80 443 3000 4000 4040; do
+    iptables_unique_rule PREROUTING -t nat -p tcp \\
+        --dport \$(( $cloud_port_offset + \$port )) \\
+        -j DNAT --to-destination $adminip:\$port
+done
+
+# Forward ports to non-admin nodes
+for port in 22 80 443 5000 7630; do
+    for host in $nodehostips; do
+        # FIXME: hardcoded assumptions about admin net host range
         offset=80
-        [ "\$host" = 10 ] && offset=10
+        host_port_offset=\$(( \$host - \$offset ))
         iptables_unique_rule PREROUTING -t nat -p tcp \\
-            --dport \$(($cloud_port_offset + \$i + \$host - \$offset)) \\
-            -j DNAT --to-destination $net_admin.\$host:\$i
+            --dport \$(( $cloud_port_offset + \$port + \$host_port_offset )) \\
+            -j DNAT --to-destination $net_admin.\$host:\$port
     done
 done
 
