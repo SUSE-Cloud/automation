@@ -239,7 +239,6 @@ setcloudnetvars()
             want_ipmi=true
         ;;
         qa4)
-            nodenumber=7
             nodenumbertotal=8
             net=${netp}.66
             net_public=$net
@@ -2066,15 +2065,15 @@ function reboot_nodes_via_ipmi()
                 }
                 (
                 ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "${bmc_values[1]}"
-                sleep $((5 + RANDOM % 5))
+                sleep $((50 + RANDOM % 20))
 
                 if ipmitool -H $ip -U root -P $pw power status | grep -q "is off"; then
                     ipmitool -H $ip -U root -P $pw power on
-                    sleep $((10 + RANDOM % 15))
+                    sleep $((50 + RANDOM % 25))
                 fi
                 ipmitool -H $ip -U root -P $pw power reset) &
             fi
-            sleep $((5 + RANDOM % 5))
+            sleep $((50 + RANDOM % 20))
         done
     done
     wait
