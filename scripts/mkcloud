@@ -1546,7 +1546,7 @@ function expand_steps()
                         runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar bootstrapcrowbar instcrowbar"
                     ;;
                     _compute)
-                        runcmds="$runcmds setupnodes instnodes proposal"
+                        runcmds="$runcmds setupnodes instnodes setup_aliases proposal"
                     ;;
                     all)
                         runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` testsetup cct rebootcloud"
@@ -1567,7 +1567,7 @@ function expand_steps()
                         runcmds="$runcmds `expand_steps instonly` proposal"
                     ;;
                     instonly)
-                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar bootstrapcrowbar instcrowbar setupnodes instnodes"
+                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar bootstrapcrowbar instcrowbar setupnodes instnodes setup_aliases"
                     ;;
                     _upgrade)
                         runcmds="$runcmds cloudupgrade"
