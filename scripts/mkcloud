@@ -1537,7 +1537,7 @@ function sanity_checks()
 step_aliases="_new_admin _compute _upgrade _testupdate"
 
 allcmds="$step_aliases all all_noreboot all_batch all_batch_noreboot instonly \
-    plain plain_with_upgrade cleanup setuphost prepare setupadmin \
+    plain plain_with_upgrade cleanup setuphost prepare libvirt_prepare setupadmin \
     prepareinstcrowbar bootstrapcrowbar instcrowbar instcrowbarfromgit setupnodes \
     setupcompute instnodes instcompute proposal testsetup rebootcrowbar \
     rebootcloud addupdaterepo runupdate testupdate \
