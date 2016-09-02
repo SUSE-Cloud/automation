@@ -63,6 +63,7 @@ function libvirt_net_start()
         nodehostips=$(seq -s ' ' 81 $((80 + $nodenumber)))
         cat > $boot_mkcloud <<EOS
 #!/bin/bash
+# Auto-generated from $0 on `date`
 
 iptables -t nat -F PREROUTING
 for i in 22 80 443 3000 4000 4040 5000 7630; do
