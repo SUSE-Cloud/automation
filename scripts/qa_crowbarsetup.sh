@@ -4646,7 +4646,7 @@ function onadmin_run_cct()
         ensure_packages_installed git-core gcc make ruby2.1-devel
 
         if [[ $cct_tests =~ ":ui:" ]]; then
-            ensure_packages_installed libqt4-devel libQtWebKit-devel xorg-x11-server xorg-x11-server-extra
+            ensure_packages_installed libqt4-devel libQtWebKit-devel xorg-x11-server xorg-x11-server-extra zlib-devel
         fi
 
         local checkout_branch=master
