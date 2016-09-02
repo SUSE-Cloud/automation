@@ -1275,9 +1275,9 @@ Optional
     nodenumbercompute=1  (default $nodenumber resp. 1 in case of hacloud=1)'
         set the number of compute nodes in a HA setup, the remaining nodes
         of $nodenumber - $nodenumbercompute are used as HA cluster nodes
-    vcpus=1         (default 1)
+    vcpus=1         (default $vcpus)
         set the number of CPU cores per compute node
-    adminvcpus=1    (default $vcpus)
+    adminvcpus=1    (default $adminvcpus)
         set the number of CPU cores for admin node
     admin_node_memory (default 4194304)
         Set the memory in KB assigned to admin node

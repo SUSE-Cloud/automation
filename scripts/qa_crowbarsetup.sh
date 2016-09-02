@@ -2311,7 +2311,7 @@ function onadmin_crowbar_register()
     if iscloudver 6 ; then
         image="suse-12.1/x86_64/"
     elif iscloudver 7plus; then
-        image="suse-12.2/x86_64/"
+        image="suse-12.2/$arch/"
     else
         if [ -n "$want_sles12" ] ; then
             image="suse-12.0"
