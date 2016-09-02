@@ -66,23 +66,33 @@ function libvirt_net_start()
 #!/bin/bash
 # Auto-generated from $0 on `date`
 
-iptables -t nat -F PREROUTING
+iptables_unique_rule () {
+    # First argument must be chain
+    if iptables -C "\$@" 2>/dev/null; then
+        echo "iptables rule already exists: \$*"
+    else
+        iptables -I "\$@"
+        echo "iptables -I \$*"
+    fi
+}
+
 for i in 22 80 443 3000 4000 4040 5000 7630; do
     # FIXME: hardcoded assumptions about admin IP and admin net host range
     for host in 10 $nodehostips ; do
         offset=80
         [ "\$host" = 10 ] && offset=10
-        iptables -t nat -I PREROUTING -p tcp \\
+        iptables_unique_rule PREROUTING -t nat -p tcp \\
             --dport \$((\$i + \$host - \$offset + 1100)) \\
             -j DNAT --to-destination $net_admin.\$host:\$i
     done
 done
-iptables -t nat -I PREROUTING -p tcp --dport 6080 \\
+
+iptables_unique_rule PREROUTING -t nat -p tcp --dport 6080 \\
     -j DNAT --to-destination $net_public.2
-for x in D I ; do
-    iptables -\$x FORWARD -d $net_admin.0/24 -j ACCEPT
-    iptables -\$x FORWARD -d $net_public.0/24 -j ACCEPT
-done
+
+iptables_unique_rule FORWARD -d $net_admin.0/24 -j ACCEPT
+iptables_unique_rule FORWARD -d $net_public.0/24 -j ACCEPT
+
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
 EOS
         chmod +x $boot_mkcloud
