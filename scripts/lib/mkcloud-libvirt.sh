@@ -58,11 +58,16 @@ function libvirt_net_start()
     done
 
     boot_mkcloud=/etc/init.d/boot.mkcloud
+    boot_mkcloud_d="$boot_mkcloud.d"
+    boot_mkcloud_d_cloud="$boot_mkcloud_d/$cloud"
 
     if [ -z "$NOSETUPPORTFORWARDING" ] ; then
         # FIXME: hardcoded assumptions about admin net host range
         nodehostips=$(seq -s ' ' 81 $((80 + $nodenumber)))
-        cat > $boot_mkcloud <<EOS
+
+        : ${cloud_port_offset:=1100}
+        mkdir -p $boot_mkcloud_d
+        cat > $boot_mkcloud_d_cloud <<EOS
 #!/bin/bash
 # Auto-generated from $0 on `date`
 
@@ -82,7 +87,7 @@ for i in 22 80 443 3000 4000 4040 5000 7630; do
         offset=80
         [ "\$host" = 10 ] && offset=10
         iptables_unique_rule PREROUTING -t nat -p tcp \\
-            --dport \$((\$i + \$host - \$offset + 1100)) \\
+            --dport \$(($cloud_port_offset + \$i + \$host - \$offset)) \\
             -j DNAT --to-destination $net_admin.\$host:\$i
     done
 done
@@ -95,20 +100,32 @@ iptables_unique_rule FORWARD -d $net_public.0/24 -j ACCEPT
 
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
 EOS
-        chmod +x $boot_mkcloud
-        if ! grep -q "boot.mkcloud" /etc/init.d/boot.local ; then
+        chmod +x $boot_mkcloud_d_cloud
+        if ! grep -q "boot\.mkcloud\.d" /etc/init.d/boot.local ; then
             cat >> /etc/init.d/boot.local <<EOS
 
 # --v--v--  Automatically added by mkcloud on `date`
-$boot_mkcloud
+for f in $boot_mkcloud_d/*; do
+    if [ -x "\$f" ]; then
+        \$f
+    fi
+done
 # --^--^--  End of automatically added section from mkcloud
 EOS
         fi
     fi
 
+    # Kept for backwards compatibility and for hand-written setups
+    # on mkch*.cloud.suse.de hosts.
     if [ -x "$boot_mkcloud" ]; then
         $boot_mkcloud
     fi
+
+    for f in $boot_mkcloud_d/*; do
+        if [ -x "$f" ]; then
+            $f
+        fi
+    done
 }
 
 function libvirt_prepare()
