@@ -3688,6 +3688,15 @@ function oncontroller_magnum_service_setup ()
     fi
 }
 
+nova_services_up()
+{
+    if iscloudver 7plus; then
+        test $(nova service-list | fgrep -cv -- \ up\ ) -lt 5
+    else
+        test $(nova-manage service list  | fgrep -cv -- \:\-\)) -lt 2
+    fi
+}
+
 # code run on controller/dashboard node to do basic tests of deployed cloud
 # uploads an image, create flavor, boots a VM, assigns a floating IP, ssh to VM, attach/detach volume
 function oncontroller_testsetup()
@@ -3825,11 +3834,7 @@ function oncontroller_testsetup()
     fi
 
     # wait for nova-manage to be successful
-    if iscloudver 7plus; then
-        wait_for 200 1 "test \"$(nova service-list  | fgrep -cv -- \ up\ )\" -lt 5" "Nova services to be up and running"
-    else
-        wait_for 200 1 "test \"$(nova-manage service list  | fgrep -cv -- \:\-\))\" -lt 2" "Nova services to be up and running"
-    fi
+    wait_for 200 1 nova_services_up "Nova services to be up and running"
 
     nova flavor-delete m1.smaller || :
     nova flavor-create m1.smaller 11 512 8 1
