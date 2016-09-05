@@ -78,7 +78,7 @@
       - string:
           name: nodenumber
           default: "7"
-          description: Number of nodes to use. Depends on hw_number
+          description: Number of nodes to use; is scenario specific
       - string:
           name: want_ipmi
           default: "true"

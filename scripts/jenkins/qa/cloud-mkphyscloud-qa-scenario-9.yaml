@@ -77,7 +77,7 @@
       - string:
           name: nodenumber
           default: "7"
-          description: Number of nodes to use. Depends on hw_number
+          description: Number of nodes to use; is scenario specific
       - string:
           name: runner_url
           default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh
