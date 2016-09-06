@@ -4373,6 +4373,10 @@ function onadmin_prepare_cloudupgrade_repos_6_to_7()
     onadmin_prepare_cloud_repos
     onadmin_add_cloud_repo
 
+    # create skeleton for PTF repositories
+    # during installation, this would be done by install-suse-cloud
+    safely createrepo $tftpboot_repos12sp2_dir/PTF
+
     # change system repositories to SP2
     zypper rr sles12sp1
     zypper rr sles12sp1up
