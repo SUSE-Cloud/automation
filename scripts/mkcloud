@@ -69,7 +69,7 @@ nodenumbercomputedefault=2
 # expect to have this many physical machines attached via $mkch_physcloudif
 # these replace virtual machines, so we start less VMs
 : ${nodenumberphys:=0}
-[[ $nodenumberphys = 0 ]] || [[ -n $mkch_physcloudif ]] || complain 100 "need to set mkch_physcloudif for physical nodes"
+[[ $nodenumberphys = 0 ]] || [[ $mkch_physcloudif ]] || complain 100 "need to set mkch_physcloudif for physical nodes"
 # configuration of clusters
 : ${clusterconfig:=''}
 : ${nodenumberlonelynode:=0}
@@ -556,7 +556,7 @@ function setupadmin()
                 echo '$pubkey injected-from-host' >> ~/.ssh/authorized_keys
         "
     done
-    if [[ -n $user_keyfile ]]; then
+    if [[ $user_keyfile ]]; then
         cat $user_keyfile | sshrun "cat >> ~/.ssh/authorized_keys"
     fi
     echo "you can now proceed with installing crowbar"
@@ -827,7 +827,7 @@ function setuppublicnet()
     # workaround https://bugzilla.novell.com/show_bug.cgi?id=845496
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
     mkvlan $vlan_public $net_public.1
-    if [[ -n $mkch_physcloudif ]] ; then
+    if [[ $mkch_physcloudif ]] ; then
         brctl addif $cloudbr $mkch_physcloudif
         ip link set dev $mkch_physcloudif up
     fi

@@ -459,7 +459,7 @@ function getcloudver()
 # input1: version - 6plus refers to version 6 or later ; only a number refers to one exact version
 function iscloudver()
 {
-    [[ -n "$cloudsource" ]] || return 1
+    [[ $cloudsource ]] || return 1
     local v=$1
     local operator="="
     if [[ $v =~ plus ]] ; then
@@ -1244,7 +1244,7 @@ function onadmin_add_cloud_repo()
     fi
 
     # Just document the list of extra repos
-    if [[ -n "$UPDATEREPOS" ]]; then
+    if [[ $UPDATEREPOS ]]; then
         local repo
         for repo in ${UPDATEREPOS//+/ } ; do
             echo "+ with extra repo from $repo" >> /etc/cloudversion
@@ -2766,7 +2766,7 @@ function custom_configuration()
             fi
         ;;
         glance)
-            if [[ -n "$deployceph" ]]; then
+            if [[ $deployceph ]]; then
                 proposal_set_value glance default "['attributes']['glance']['default_store']" "'rbd'"
             fi
             if [[ $hacloud = 1 ]] ; then
@@ -2893,7 +2893,7 @@ function custom_configuration()
                 if [ "$networkingplugin" = "openvswitch" ] ; then
                     if [[ "$networkingmode" = vxlan ]] || iscloudver 6plus; then
                         proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vxlan','vlan']"
-                        if [[ -n "$want_dvr" ]]; then
+                        if [[ $want_dvr ]]; then
                             proposal_set_value neutron default "['attributes']['neutron']['use_dvr']" "true"
                         fi
                     else
@@ -3129,7 +3129,7 @@ function set_proposalvars()
         deployceph=
     fi
     # C4: swift isn't possible with Cloud5 and SLES12 nodes
-    if iscloudver 5 && [[ $deployswift ]] && [[ -n "$want_sles12" ]] ; then
+    if iscloudver 5 && [[ $deployswift ]] && [[ $want_sles12 ]] ; then
         complain 88 "swift does not work with SLES12 nodes in Cloud5 - use want_swift=0"
     fi
 
@@ -3244,7 +3244,7 @@ function deploy_single_proposal()
     # proposal filter
     case "$proposal" in
         barbican)
-            [[ -n "$want_barbican" ]] || return
+            [[ $want_barbican ]] || return
             if ! iscloudver 7plus; then
                 echo "Barbican is SOC 7+ only. Skipping"
                 return
@@ -3257,17 +3257,17 @@ function deploy_single_proposal()
             [[ $hacloud = 1 ]] || return
             ;;
         ceph)
-            [[ -n "$deployceph" ]] || return
+            [[ $deployceph ]] || return
             ;;
         magnum)
-            [[ -n "$want_magnum" ]] || return
+            [[ $want_magnum ]] || return
             if iscloudver 7plus ; then
                 safely oncontroller oncontroller_magnum_service_setup
             fi
             ;;
         manila)
             # manila-service can not be deployed currently with docker
-            [[ -n "$want_docker" ]] && return
+            [[ $want_docker ]] && return
             if ! iscloudver 6plus; then
                 # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
                 if ! [[ "$cloudsource" == "develcloud5" ]] || [ -z "$want_sles12" ]; then
@@ -3281,16 +3281,16 @@ function deploy_single_proposal()
             fi
             ;;
         swift)
-            [[ -n "$deployswift" ]] || return
+            [[ $deployswift ]] || return
             ;;
         trove)
             iscloudver 5plus || return
             ;;
         tempest)
-            [[ -n "$wanttempest" ]] || return
+            [[ $wanttempest ]] || return
             ;;
         sahara)
-            [[ -n "$want_sahara" ]] || return
+            [[ $want_sahara ]] || return
             if ! iscloudver 7plus; then
                 echo "Sahara is SOC 7+ only. Skipping"
                 return
@@ -3426,7 +3426,7 @@ function get_horizon()
 
 function get_ceph_nodes()
 {
-    if [[ -n "$deployceph" ]]; then
+    if [[ $deployceph ]]; then
         cephmons=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-mon']"`
         cephosds=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-osd']"`
         cephradosgws=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-radosgw']"`
@@ -3557,12 +3557,12 @@ function oncontroller_run_tempest()
 
 function oncontroller_manila_generic_driver_setup()
 {
-    if [[ -n "$wantxenpv" ]] ; then
+    if [[ $wantxenpv ]] ; then
         local service_image_url=http://$clouddata/images/other/manila-service-image-xen.raw
         local service_image_name=manila-service-image-xen.raw
         local service_image_params="--disk-format raw --property hypervisor_type=xen --property vm_mode=xen"
 
-    elif [[ -n "$wanthyperv" ]] ; then
+    elif [[ $wanthyperv ]] ; then
         local service_image_url=http://$clouddata/images/other/manila-service-image.vhd
         local service_image_name=manila-service-image.vhd
         local service_image_params="--disk-format vhd --property hypervisor_type=hyperv"
@@ -3722,7 +3722,7 @@ function oncontroller_testsetup()
         ensure_packages_installed python-novaclient-test python-manilaclient-test
     fi
 
-    if [[ -n $deployswift ]] ; then
+    if [[ $deployswift ]] ; then
         ensure_packages_installed python-swiftclient
         swift stat
         swift upload container1 .ssh/authorized_keys
@@ -3776,13 +3776,13 @@ function oncontroller_testsetup()
     local ssh_user="root"
 
     if ! glance_image_exists $image_name ; then
-        if [[ -n "$wanthyperv" ]] ; then
+        if [[ $wanthyperv ]] ; then
             mount $clouddata:/srv/nfs/ /mnt/
             zypper -n in virt-utils
             qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
             openstack image create --public --disk-format vhd --container-format bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd $image_name | tee glance.out
             rm /tmp/SP3.vhd ; umount /mnt
-        elif [[ -n "$wantxenpv" ]] ; then
+        elif [[ $wantxenpv ]] ; then
             curl -s \
                 http://$clouddata/images/jeos-64-pv.qcow2 | \
                 openstack image create --public --disk-format qcow2 \
@@ -3982,7 +3982,7 @@ function onadmin_testsetup()
     || complain 101 "simple horizon test failed"
 
     wantcephtestsuite=0
-    if [[ -n "$deployceph" ]]; then
+    if [[ $deployceph ]]; then
         get_ceph_nodes
         [ "$cephradosgws" = nil ] && cephradosgws=""
         echo "ceph mons:" $cephmons
@@ -4141,7 +4141,7 @@ function onadmin_addupdaterepo()
     fi
     mkdir -p $UPR
 
-    if [[ -n "$UPDATEREPOS" ]]; then
+    if [[ $UPDATEREPOS ]]; then
         local repo
         for repo in ${UPDATEREPOS//+/ } ; do
             safely wget --progress=dot:mega \
@@ -4176,7 +4176,7 @@ function onadmin_runupdate()
 
     # We need to set the correct MTU here since we haven't done any
     # proper network configuration yet.
-    [[ -n $host_mtu ]] && ip link set mtu $host_mtu dev eth0
+    [[ $host_mtu ]] && ip link set mtu $host_mtu dev eth0
 
     zypper_patch
 
@@ -4645,7 +4645,7 @@ function onadmin_qa_test()
 function onadmin_run_cct()
 {
     local ret=0
-    if iscloudver 5plus && [[ -n $cct_tests ]]; then
+    if iscloudver 5plus && [[ $cct_tests ]]; then
         # - install cct dependencies
         addcctdepsrepo
         ensure_packages_installed git-core gcc make ruby2.1-devel
