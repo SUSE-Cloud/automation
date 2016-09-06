@@ -69,7 +69,7 @@ nodenumbercomputedefault=2
 # expect to have this many physical machines attached via $mkch_physcloudif
 # these replace virtual machines, so we start less VMs
 : ${nodenumberphys:=0}
-[[ $nodenumberphys = 0 ]] || [[ -n $mkch_physcloudif ]] || complain 100 "need to set mkch_physcloudif for physical nodes"
+[[ $nodenumberphys = 0 ]] || [[ $mkch_physcloudif ]] || complain 100 "need to set mkch_physcloudif for physical nodes"
 # configuration of clusters
 : ${clusterconfig:=''}
 : ${nodenumberlonelynode:=0}
@@ -133,8 +133,7 @@ scp="scp $sshopts"
 [ -z "$localreposdir_src" ] && localreposdir_target=""
 : ${install_chef_suse_override:=./install-chef-suse.sh}
 : ${cct_tests:="features:base"}
-
-[[ -z ${want_mtu_size} ]] && want_mtu_size=1500
+: ${want_mtu_size:=1500}
 
 emulator=/usr/bin/qemu-system-$arch
 if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
@@ -556,7 +555,7 @@ function setupadmin()
                 echo '$pubkey injected-from-host' >> ~/.ssh/authorized_keys
         "
     done
-    if [[ -n $user_keyfile ]]; then
+    if [[ $user_keyfile ]]; then
         cat $user_keyfile | sshrun "cat >> ~/.ssh/authorized_keys"
     fi
     echo "you can now proceed with installing crowbar"
@@ -827,7 +826,7 @@ function setuppublicnet()
     # workaround https://bugzilla.novell.com/show_bug.cgi?id=845496
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
     mkvlan $vlan_public $net_public.1
-    if [[ -n $mkch_physcloudif ]] ; then
+    if [[ $mkch_physcloudif ]] ; then
         brctl addif $cloudbr $mkch_physcloudif
         ip link set dev $mkch_physcloudif up
     fi
@@ -1494,7 +1493,7 @@ function sanity_checks()
     if [[ " ${steplist[*]} " == *" batch "* ]] ; then
         : ${scenario_dir:="${mkcloud_dir}/scenarios/cloud$(getcloudver)"}
         need_scenario=1
-        if [[ -z $scenario ]] ; then
+        if [[ ! $scenario ]] ; then
             complain 114 "scenario parameter for batch step must point to a file in $scenario_dir"
         fi
         scenario_path="$scenario_dir/$scenario"
