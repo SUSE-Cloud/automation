@@ -2059,6 +2059,7 @@ function reboot_nodes_via_ipmi()
             if [ $i -gt $nodenumber ]; then
                 # power off extra nodes
                 ipmitool -H $ip -U root -P $pw power off &
+                wait_for 2 60 "ipmitool -H $ip -U root -P $pw power status | grep -q 'is off'" "node to power off"
             else
                 ping -c 3 $ip > /dev/null || {
                     echo "error: BMC $ip is not reachable!"
