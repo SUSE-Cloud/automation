@@ -6,6 +6,6 @@ if [[ $(hostname) =~ ^mkch.$ ]] ; then
 else
     . $ar/scripts/mkcloudhost/runtestn $n
 fi
-echo env=$testdir n=$n admin=$net_admin disk=$CVOL params="$@"
+echo env=$testdir n=$n admin=$net_admin cloudpv=$cloudpv cloudvg=$cloudvg params="$@"
 echo access from outside via http://crowbar.$cloud.cloud.suse.de/ and http://dashboard.$cloud.cloud.suse.de/
 exec "$@"

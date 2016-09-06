@@ -21,22 +21,6 @@ if [[ $debug_mkcloud = 1 ]] ; then
     PS4='+(${BASH_SOURCE##*/}:${LINENO}) ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 fi
 
-if [ -n "$CVOL" ] ; then
-    cloudpv=$CVOL
-    unset CVOL
-    echo "------------------------------------------------------------------------"
-    echo "The CVOL variable is deprecated."
-    echo "Please either set 'cloudvg' or 'cloudpv'"
-    echo " cloudvg will use an existing lvm and not destroy other volumes"
-    echo " cloudpv will use an lvm pv device exclusively and destroy all volumes"
-    echo
-    echo "Continuing in 20 seconds with fallback (cloudpv=\$CVOL):"
-    echo " cloudpv=$CVOL"
-    echo "Otherwise press Ctrl-C now!"
-    echo "------------------------------------------------------------------------"
-    sleep 20
-fi
-
 # FIXME: separate user-tweakable parameters from script local variables.
 # Currently there is no clearly defined interface point.  One of the
 # causes of this is violation of the common shell coding standard which
