@@ -1740,8 +1740,19 @@ function install_crowbar_init()
     wait_for 100 3 "onadmin_is_crowbar_init_api_available" "crowbar init service to start"
 }
 
+function onadmin_activate_repositories()
+{
+    if iscloudver 5minus; then
+        complain 11 "This upgrade path is only supported for Cloud 6+"
+    fi
+
+    # activate provisioner repos, so that nodes can use them
+    curl -X POST http://localhost:3000/utils/repositories/activate_all.json
+}
+
 function onadmin_bootstrapcrowbar()
 {
+    local migrate=$1
     # temporarily make it possible to not use postgres until we switched to the new upgrade process
     # otherwise we would break the upgrade gating
     [[ $want_postgresql = 0 ]] && return
@@ -1754,6 +1765,21 @@ function onadmin_bootstrapcrowbar()
             cat setup-database.txt
             complain 36 "Could not setup PostgreSQL database"
         fi
+
+        if [[ $migrate = 1 ]] ; then
+            http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" -o migrate-database.txt -w '%{http_code}' $crowbar_init_api/database/migrate`
+            if ! [[ $http_code =~ [23].. ]] ; then
+                cat migrate-database.txt
+                complain 36 "Could not migrate the Crowbar database"
+            fi
+
+            http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" -o migrate-schemas.txt -w '%{http_code}' $crowbar_init_api/migrate`
+            if ! [[ $http_code =~ [23].. ]] ; then
+                cat migrate-schemas.txt
+                complain 36 "Could not migrate Crowbar schemas"
+            fi
+        fi
+
         # FIXME: when https://github.com/SUSE-Cloud/automation/pull/1105 is merged
         http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" -o initialize-crowbar.txt -w '%{http_code}' $crowbar_init_api/init`
         if ! [[ $http_code =~ [23].. ]] ; then
@@ -4325,6 +4351,34 @@ function onadmin_rebootneutron()
     onneutron_wait_for_neutron
 }
 
+# This will adapt Cloud6 admin server repositories to Clooud7 ones
+function onadmin_prepare_cloudupgrade_repos_6_to_7()
+{
+    test -z "$upgrade_cloudsource" && {
+        complain 15 "upgrade_cloudsource is not set"
+    }
+
+    export cloudsource=$upgrade_cloudsource
+
+    export_tftpboot_repos_dir
+
+    # change CLOUDSLE11DISTISO/CLOUDSLE11DISTPATH according to the new cloudsource
+    onadmin_set_source_variables
+
+    # prepare installation repositories for nodes
+    onadmin_prepare_sles12sp2_repos
+    onadmin_prepare_sles12plus_cloud_repos
+
+    # recreate the SUSE-Cloud Repo with the latest iso
+    onadmin_prepare_cloud_repos
+    onadmin_add_cloud_repo
+
+    # change system repositories to SP2
+    zypper rr sles12sp1
+    zypper rr sles12sp1up
+    onadmin_setup_local_zypper_repositories
+}
+
 function onadmin_prepare_cloudupgrade()
 {
     # TODO: All running cloud instances should be suspended here
@@ -4354,11 +4408,6 @@ function onadmin_prepare_cloudupgrade()
     # recreate the SUSE-Cloud Repo with the latest iso
     onadmin_prepare_cloud_repos
     onadmin_add_cloud_repo
-    # FIXME: ugly hack - we need to prepare also SP1 Cloud repositories
-    # to correctly install SP1 nodes on SP2-enabled Cloud7
-    if iscloudver 7; then
-        onadmin_prepare_cloud_repos "sp1"
-    fi
 
     # Applying the updater barclamp (in onadmin_cloudupgrade_clients) triggers
     # a chef-client run on the admin node (even it the barclamp is not applied
@@ -4471,10 +4520,28 @@ function onadmin_prepare_crowbar_upgrade()
 {
     if iscloudver 4; then
         complain 11 "This upgrade path is only supported for Cloud 5+"
-    else
+    elif iscloudver 5; then
         # using the API, due to missing crowbar cli integration
         # move nodes to upgrade mode
         safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare.json
+    else
+        safely crowbarctl upgrade prepare
+    fi
+}
+
+function onadmin_check_admin_server_upgraded()
+{
+    if ! [ -e /var/lib/crowbar/install/admin-server-upgraded-ok ]; then
+        complain 99 "/var/lib/crowbar/install/admin-server-upgraded-ok is missing"
+    fi
+}
+
+function onadmin_upgrade_admin_server()
+{
+    if iscloudver 5minus; then
+        complain 11 "This upgrade path is only supported for Cloud 6+"
+    else
+        safely crowbarctl upgrade crowbar
     fi
 }
 
