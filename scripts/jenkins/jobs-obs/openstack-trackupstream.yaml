@@ -74,6 +74,7 @@
             - python-keystonemiddleware
             - python-magnumclient
             - python-manilaclient
+            - python-mistralclient
             - python-neutronclient
             - python-networking-cisco
             - python-networking-hyperv
@@ -114,6 +115,7 @@
               "python-keystonemiddleware",
               "python-magnumclient",
               "python-manilaclient",
+              "python-mistralclient",
               "python-neutronclient",
               "python-novaclient",
               "python-openstackclient",
