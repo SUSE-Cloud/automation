@@ -3268,11 +3268,9 @@ function deploy_single_proposal()
         manila)
             # manila-service can not be deployed currently with docker
             [[ $want_docker ]] && return
-            if ! iscloudver 6plus; then
-                # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
-                if ! [[ "$cloudsource" == "develcloud5" ]] || [ -z "$want_sles12" ]; then
-                    return
-                fi
+            # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
+            if iscloudver 5minus && ! [[ $cloudsource = develcloud5 && $want_sles12 ]]; then
+                return
             fi
             if iscloudver 6plus ; then
                 get_novacontroller
