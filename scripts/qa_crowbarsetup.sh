@@ -4373,7 +4373,7 @@ function onadmin_rebootneutron()
     onneutron_wait_for_neutron
 }
 
-# This will adapt Cloud6 admin server repositories to Clooud7 ones
+# This will adapt Cloud6 admin server repositories to Cloud7 ones
 function onadmin_prepare_cloudupgrade_repos_6_to_7()
 {
     test -z "$upgrade_cloudsource" && {
