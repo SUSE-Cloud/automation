@@ -56,6 +56,7 @@ crowbar_api_installer_path=/installer/installer
 crowbar_api_digest="--digest -u crowbar:crowbar"
 crowbar_install_log=/var/log/crowbar/install.log
 crowbar_init_api=http://localhost:4567
+crowbar_lib_dir=/var/lib/crowbar
 
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
@@ -4565,8 +4566,8 @@ function onadmin_prepare_crowbar_upgrade()
 
 function onadmin_check_admin_server_upgraded()
 {
-    if ! [ -e /var/lib/crowbar/install/admin-server-upgraded-ok ]; then
-        complain 99 "/var/lib/crowbar/install/admin-server-upgraded-ok is missing"
+    if ! [ -e $crowbar_lib_dir/install/admin-server-upgraded-ok ]; then
+        complain 99 "$crowbar_lib_dir/install/admin-server-upgraded-ok is missing"
     fi
 }
 
@@ -4612,7 +4613,7 @@ function onadmin_crowbarpurge()
     fi
 
     # Purge files to pretend we start from a clean state
-    cp -a /var/lib/crowbar/cache/etc/resolv.conf /etc/resolv.conf
+    cp -a $crowbar_lib_dir/cache/etc/resolv.conf /etc/resolv.conf
 
     for service in crowbar chef-{server,solr,expander,client} couchdb apache2 named dhcpd xinetd rabbitmq-server ; do
         [ -e /etc/init.d/$service ] && /etc/init.d/$service stop
