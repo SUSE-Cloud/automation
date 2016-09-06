@@ -201,6 +201,11 @@ Default: -t -s.</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>want_murano</name>
+          <description>Set to 1 to deploy Murano.</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>want_node_aliases</name>
           <description>List of aliases to assign to nodes. Takes all provided aliases and assign them to available nodes successively.
 
