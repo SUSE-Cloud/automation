@@ -2058,21 +2058,22 @@ function reboot_nodes_via_ipmi()
             local ip=$bmc_net.$(($ip4 + $i))
             if [ $i -gt $nodenumber ]; then
                 # power off extra nodes
-                ipmitool -H $ip -U root -P $pw power off &
+                ipmitool -H $ip -U root -P $pw power off
                 wait_for 2 60 "ipmitool -H $ip -U root -P $pw power status | grep -q 'is off'" "node to power off"
             else
                 ping -c 3 $ip > /dev/null || {
                     echo "error: BMC $ip is not reachable!"
                 }
-                (
+
                 ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "${bmc_values[1]}"
                 sleep $((50 + RANDOM % 20))
 
                 if ipmitool -H $ip -U root -P $pw power status | grep -q "is off"; then
                     ipmitool -H $ip -U root -P $pw power on
-                    sleep $((50 + RANDOM % 25))
+                else
+                    ipmitool -H $ip -U root -P $pw power cycle
                 fi
-                ipmitool -H $ip -U root -P $pw power reset) &
+
             fi
             sleep $((50 + RANDOM % 20))
         done
