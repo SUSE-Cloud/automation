@@ -807,14 +807,21 @@ function get_crowbar_node()
     get_all_nodes | grep -v "^d" | head -n 1
 }
 
-function get_sles12plus_node()
+function get_unclustered_sles12plus_nodes()
 {
     local target="suse-12.0"
     iscloudver 6 && target="suse-12.1"
     iscloudver 7plus && target="suse-12.2"
 
-    knife search node "target_platform:$target" -a name | grep ^name: | cut -d : -f 2 | sort | tail -n 1 | sed 's/\s//g'
+    sles12plusnodes=($(knife search node "target_platform:$target AND NOT crowbar_admin_node:true" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'))
+    if [[ $hacloud = 1 ]]; then
+        # This basically does an intersection of the lists in sles12plusnode and unclustered_node
+        # i.e. pick all sles12plus nodes that are not part of a cluster
+        sles12plusnodes=$(comm -1 -2 <(printf "%s\n" ${sles12plusnodes[@]}) <(printf "%s\n" $unclustered_nodes))
+    fi
+    echo $sles12plusnodes
 }
+
 
 function get_docker_nodes()
 {
@@ -2682,7 +2689,7 @@ function custom_configuration()
         sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/" $pfile
     fi
 
-    local sles12plusnode=`get_sles12plus_node`
+    local unclustered_sles12plusnodes=($(get_unclustered_sles12plus_nodes))
 
     ### NOTE: ONLY USE proposal_{set,modify}_value functions below this line
     ###       The edited proposal will be read and imported at the end
@@ -2840,27 +2847,29 @@ function custom_configuration()
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-controller']" "['cluster:$clusternameservices']"
 
-
                 # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
-                local novanodes
-                novanodes=`printf "\"%s\"," $unclustered_nodes`
-                novanodes="[ ${novanodes%,} ]"
+                local novanodes=$unclustered_nodes
 
-                # make sure we do not have SP1 and SP2 compute nodes
+                # make sure we do not pick SP1 nodes on cloud7
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
-                    proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "['$sles12plusnode']"
-                else
-                    proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes"
+                    novanodes=$unclustered_sles12plusnodes
                 fi
+
+                if [ -z $novanodes ]; then
+                    complain 105 "No suitable node(s) for ${role_prefix}-compute-${libvirt_type} found."
+                fi
+                novanodes=$(printf "\"%s\"," $novanodes)
+                novanodes="[ ${novanodes%,} ]"
+                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes"
             fi
 
             if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
-                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-docker']" "['$sles12plusnode']"
+                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-docker']" "['${unclustered_sles12plusnodes[0]}']"
 
                 local computetype
                 for computetype in "xen" "qemu" "${libvirt_type}"; do
                     # do not assign another compute role to this node
-                    proposal_modify_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${computetype}']" "['$sles12plusnode']" "-="
+                    proposal_modify_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${computetype}']" "['${unclustered_sles12plusnodes[0]}']" "-="
                 done
             fi
 
@@ -2897,13 +2906,17 @@ function custom_configuration()
                 #   drbd can only use 2 nodes max. <> mongodb ha requires 3 nodes min.
                 # this should be adapted when NFS mode is supported for data cluster
                 proposal_set_value ceilometer default "['attributes']['ceilometer']['use_mongodb']" "false"
-                local ceilometernodes
-                ceilometernodes=`printf "\"%s\"," $unclustered_nodes`
-                ceilometernodes="[ ${ceilometernodes%,} ]"
-                # make sure we do not use SP1 nodes for ceilometer-agent
+
+                local ceilometernodes=$unclustered_nodes
+                # make sure we do not pick SP1 nodes on cloud7
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
-                    ceilometernodes="['$sles12plusnode']"
+                    ceilometernodes=$unclustered_sles12plusnodes
                 fi
+                if [ -z $ceilometernodes ]; then
+                    complain 105 "No suitable node(s) for ceilometer-agent found."
+                fi
+                ceilometernodes=$(printf "\"%s\"," $ceilometernodes)
+                ceilometernodes="[ ${ceilometernodes%,} ]"
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-agent']" "$ceilometernodes"
             fi
         ;;
@@ -2954,7 +2967,7 @@ function custom_configuration()
 
             # assign neutron-network role to one of SLE12 nodes
             if [[ $want_sles12 && ! $hacloud && $want_neutronsles12 ]] && iscloudver 5plus ; then
-                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['$sles12plusnode']"
+                proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['${unclustered_sles12plusnodes[0]}']"
             fi
 
             if [[ $hacloud = 1 ]] ; then
@@ -3008,15 +3021,18 @@ function custom_configuration()
             fi
 
             if [[ $hacloud = 1 ]] ; then
-                local cinder_volume
                 # fetch one of the compute nodes as cinder_volume
-                cinder_volume=`printf "%s\n" $unclustered_nodes | tail -n 1`
-                # make sure we do not use SP1 node for cinder
+                local cinder_volume=$unclustered_nodes
+                # make sure we do not pick SP1 nodes on cloud7
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
-                    cinder_volume=$sles12plusnode
+                    cinder_volume=$unclustered_sles12plusnodes
                 fi
+                if [ -z $cinder_volume ]; then
+                    complain 105 "No suitable node(s) for ceilometer-agent found."
+                fi
+
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['cluster:$clusternameservices']"
-                proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-volume']" "['$cinder_volume']"
+                proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-volume']" "['${cinder_volume[0]}']"
             fi
         ;;
         tempest)
