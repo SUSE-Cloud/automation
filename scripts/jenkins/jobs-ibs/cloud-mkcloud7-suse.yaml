@@ -52,7 +52,7 @@
               predefined-parameters: |
                 TESTHEAD=
                 cloudsource=susecloud7
-                nodenumber=4
+                nodenumber=5
                 networkingmode=vxlan
                 hacloud=1
                 mkcloudtarget=all_noreboot
