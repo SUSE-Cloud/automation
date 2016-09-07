@@ -3338,7 +3338,7 @@ function deploy_single_proposal()
             fi
             ;;
         murano)
-            [[ -n "$want_murano" ]] || return
+            [[ $want_murano ]] || return
             if ! iscloudver 7plus; then
                 echo "Murano is SOC 7+ only. Skipping"
                 return
