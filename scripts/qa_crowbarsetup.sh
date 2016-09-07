@@ -64,7 +64,7 @@ export tempestoptions=${tempestoptions:--t -s}
 # if set, ostestr is installed and executed with the given params
 export ostestroptions=${ostestroptions:-}
 export want_sles12
-[[ "$want_sles12" = 0 ]] && want_sles12=
+[[ $want_sles12 = 0 ]] && want_sles12=
 export nodes=
 export cinder_backend
 export cinder_netapp_storage_protocol
@@ -460,7 +460,7 @@ function getcloudver()
 # input1: version - 6plus refers to version 6 or later ; only a number refers to one exact version
 function iscloudver()
 {
-    [[ -n "$cloudsource" ]] || return 1
+    [[ $cloudsource ]] || return 1
     local v=$1
     local operator="="
     if [[ $v =~ plus ]] ; then
@@ -475,7 +475,7 @@ function iscloudver()
     if [[ $v =~ M[0-9]+$ ]] ; then
         local milestone=${v#*M}
         v=${v%M*}
-        if [[ "$ver" -eq "$v" ]] && [[ $cloudsource =~ ^M[0-9]+$ ]] ; then
+        if [[ $ver -eq $v ]] && [[ $cloudsource =~ ^M[0-9]+$ ]] ; then
             [ "${cloudsource#*M}" $operator "$milestone" ]
             return $?
         fi
@@ -681,7 +681,7 @@ function addcloud6pool()
 
 function addcctdepsrepo()
 {
-    if [[ "$cloudsource" == @(develcloud5|GM5|GM5+up) ]]; then
+    if [[ $cloudsource = @(develcloud5|GM5|GM5+up) ]]; then
         zypper ar -f http://$susedownload/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
     else
         add_sdk_repo
@@ -1252,7 +1252,7 @@ function onadmin_add_cloud_repo()
     fi
 
     # Just document the list of extra repos
-    if [[ -n "$UPDATEREPOS" ]]; then
+    if [[ $UPDATEREPOS ]]; then
         local repo
         for repo in ${UPDATEREPOS//+/ } ; do
             echo "+ with extra repo from $repo" >> /etc/cloudversion
@@ -2800,7 +2800,7 @@ function custom_configuration()
             fi
         ;;
         glance)
-            if [[ -n "$deployceph" ]]; then
+            if [[ $deployceph ]]; then
                 proposal_set_value glance default "['attributes']['glance']['default_store']" "'rbd'"
             fi
             if [[ $hacloud = 1 ]] ; then
@@ -2843,7 +2843,7 @@ function custom_configuration()
             # custom nova config of libvirt
             [[ $libvirt_type = hyperv ]] || proposal_set_value nova default "['attributes']['nova']['libvirt_type']" "'$libvirt_type'"
             proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
-            [[ "$libvirt_type" = xen ]] && sed -i -e "s/${role_prefix}-compute-$libvirt_type/${role_prefix}-compute-xxx/g; s/${role_prefix}-compute-kvm/${role_prefix}-compute-$libvirt_type/g; s/${role_prefix}-compute-xxx/${role_prefix}-compute-kvm/g" $pfile
+            [[ $libvirt_type = xen ]] && sed -i -e "s/${role_prefix}-compute-$libvirt_type/${role_prefix}-compute-xxx/g; s/${role_prefix}-compute-kvm/${role_prefix}-compute-$libvirt_type/g; s/${role_prefix}-compute-xxx/${role_prefix}-compute-kvm/g" $pfile
 
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-controller']" "['cluster:$clusternameservices']"
@@ -2896,7 +2896,7 @@ function custom_configuration()
             local ceilometerservice="ceilometer-cagent"
             if iscloudver 6plus ; then
                 ceilometerservice="ceilometer-central"
-                if [[ "$cloudsource" == "GM6" ]] ; then
+                if [[ $cloudsource = GM6 ]] ; then
                     ceilometerservice="ceilometer-polling"
                 fi
             fi
@@ -2923,17 +2923,17 @@ function custom_configuration()
         ;;
         neutron)
             if iscloudver 7plus; then
-                [[ "$networkingplugin" = linuxbridge && "$networkingmode" = gre ]] && networkingmode=vlan
+                [[ $networkingplugin = linuxbridge && $networkingmode = gre ]] && networkingmode=vlan
             else
-                [[ "$networkingplugin" = linuxbridge ]] && networkingmode=vlan
+                [[ $networkingplugin = linuxbridge ]] && networkingmode=vlan
             fi
             proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
 
             if iscloudver 5plus; then
-                if [ "$networkingplugin" = "openvswitch" ] ; then
-                    if [[ "$networkingmode" = vxlan ]] || iscloudver 6plus; then
+                if [ $networkingplugin = openvswitch ] ; then
+                    if [[ $networkingmode = vxlan ]] || iscloudver 6plus; then
                         proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vxlan','vlan']"
-                        if [[ -n "$want_dvr" ]]; then
+                        if [[ $want_dvr ]]; then
                             proposal_set_value neutron default "['attributes']['neutron']['use_dvr']" "true"
                         fi
                     else
@@ -2977,7 +2977,7 @@ function custom_configuration()
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['cluster:$clusternamenetwork']" || \
                     proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-l3']" "['cluster:$clusternamenetwork']"
             fi
-            if [[ "$networkingplugin" = "vmware" ]] ; then
+            if [[ $networkingplugin = vmware ]] ; then
                 proposal_set_value neutron default "['attributes']['neutron']['vmware']['user']" "'$nsx_user'"
                 proposal_set_value neutron default "['attributes']['neutron']['vmware']['password']" "'$nsx_password'"
                 proposal_set_value neutron default "['attributes']['neutron']['vmware']['controllers']" "'$nsx_controllers'"
@@ -2986,7 +2986,7 @@ function custom_configuration()
             fi
         ;;
         swift)
-            [[ "$nodenumber" -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
+            [[ $nodenumber -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
             proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
             proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
             proposal_set_value swift default "['attributes']['swift']['middlewares']['crossdomain']['enabled']" "true"
@@ -3172,7 +3172,7 @@ function set_proposalvars()
         deployceph=
     fi
     # C4: swift isn't possible with Cloud5 and SLES12 nodes
-    if iscloudver 5 && [[ $deployswift ]] && [[ -n "$want_sles12" ]] ; then
+    if iscloudver 5 && [[ $deployswift ]] && [[ $want_sles12 ]] ; then
         complain 88 "swift does not work with SLES12 nodes in Cloud5 - use want_swift=0"
     fi
 
@@ -3287,7 +3287,7 @@ function deploy_single_proposal()
     # proposal filter
     case "$proposal" in
         barbican)
-            [[ -n "$want_barbican" ]] || return
+            [[ $want_barbican ]] || return
             if ! iscloudver 7plus; then
                 echo "Barbican is SOC 7+ only. Skipping"
                 return
@@ -3300,22 +3300,20 @@ function deploy_single_proposal()
             [[ $hacloud = 1 ]] || return
             ;;
         ceph)
-            [[ -n "$deployceph" ]] || return
+            [[ $deployceph ]] || return
             ;;
         magnum)
-            [[ -n "$want_magnum" ]] || return
+            [[ $want_magnum ]] || return
             if iscloudver 7plus ; then
                 safely oncontroller oncontroller_magnum_service_setup
             fi
             ;;
         manila)
             # manila-service can not be deployed currently with docker
-            [[ -n "$want_docker" ]] && return
-            if ! iscloudver 6plus; then
-                # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
-                if ! [[ "$cloudsource" == "develcloud5" ]] || [ -z "$want_sles12" ]; then
-                    return
-                fi
+            [[ $want_docker ]] && return
+            # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
+            if iscloudver 5minus && ! [[ $cloudsource = develcloud5 && $want_sles12 ]]; then
+                return
             fi
             if iscloudver 6plus ; then
                 get_novacontroller
@@ -3324,16 +3322,16 @@ function deploy_single_proposal()
             fi
             ;;
         swift)
-            [[ -n "$deployswift" ]] || return
+            [[ $deployswift ]] || return
             ;;
         trove)
             iscloudver 5plus || return
             ;;
         tempest)
-            [[ -n "$wanttempest" ]] || return
+            [[ $wanttempest ]] || return
             ;;
         sahara)
-            [[ -n "$want_sahara" ]] || return
+            [[ $want_sahara ]] || return
             if ! iscloudver 7plus; then
                 echo "Sahara is SOC 7+ only. Skipping"
                 return
@@ -3397,7 +3395,7 @@ function set_node_alias()
 {
     local node_name=$1
     local node_alias=$2
-    if [[ "${node_name}" != "${node_alias}" ]]; then
+    if [[ "$node_name" != "$node_alias" ]]; then
         if iscloudver 6plus; then
             safely crowbarctl node rename $node_name $node_alias
         else
@@ -3476,7 +3474,7 @@ function get_horizon()
 
 function get_ceph_nodes()
 {
-    if [[ -n "$deployceph" ]]; then
+    if [[ $deployceph ]]; then
         cephmons=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-mon']"`
         cephosds=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-osd']"`
         cephradosgws=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-radosgw']"`
@@ -3607,12 +3605,12 @@ function oncontroller_run_tempest()
 
 function oncontroller_manila_generic_driver_setup()
 {
-    if [[ -n "$wantxenpv" ]] ; then
+    if [[ $wantxenpv ]] ; then
         local service_image_url=http://$clouddata/images/other/manila-service-image-xen.raw
         local service_image_name=manila-service-image-xen.raw
         local service_image_params="--disk-format raw --property hypervisor_type=xen --property vm_mode=xen"
 
-    elif [[ -n "$wanthyperv" ]] ; then
+    elif [[ $wanthyperv ]] ; then
         local service_image_url=http://$clouddata/images/other/manila-service-image.vhd
         local service_image_name=manila-service-image.vhd
         local service_image_params="--disk-format vhd --property hypervisor_type=hyperv"
@@ -3772,7 +3770,7 @@ function oncontroller_testsetup()
         ensure_packages_installed python-novaclient-test python-manilaclient-test
     fi
 
-    if [[ -n $deployswift ]] ; then
+    if [[ $deployswift ]] ; then
         ensure_packages_installed python-swiftclient
         swift stat
         swift upload container1 .ssh/authorized_keys
@@ -3826,13 +3824,13 @@ function oncontroller_testsetup()
     local ssh_user="root"
 
     if ! glance_image_exists $image_name ; then
-        if [[ -n "$wanthyperv" ]] ; then
+        if [[ $wanthyperv ]] ; then
             mount $clouddata:/srv/nfs/ /mnt/
             zypper -n in virt-utils
             qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
             openstack image create --public --disk-format vhd --container-format bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd $image_name | tee glance.out
             rm /tmp/SP3.vhd ; umount /mnt
-        elif [[ -n "$wantxenpv" ]] ; then
+        elif [[ $wantxenpv ]] ; then
             curl -s \
                 http://$clouddata/images/jeos-64-pv.qcow2 | \
                 openstack image create --public --disk-format qcow2 \
@@ -4032,7 +4030,7 @@ function onadmin_testsetup()
     || complain 101 "simple horizon test failed"
 
     wantcephtestsuite=0
-    if [[ -n "$deployceph" ]]; then
+    if [[ $deployceph ]]; then
         get_ceph_nodes
         [ "$cephradosgws" = nil ] && cephradosgws=""
         echo "ceph mons:" $cephmons
@@ -4191,7 +4189,7 @@ function onadmin_addupdaterepo()
     fi
     mkdir -p $UPR
 
-    if [[ -n "$UPDATEREPOS" ]]; then
+    if [[ $UPDATEREPOS ]]; then
         local repo
         for repo in ${UPDATEREPOS//+/ } ; do
             safely wget --progress=dot:mega \
@@ -4226,7 +4224,7 @@ function onadmin_runupdate()
 
     # We need to set the correct MTU here since we haven't done any
     # proper network configuration yet.
-    [[ -n $host_mtu ]] && ip link set mtu $host_mtu dev eth0
+    [[ $host_mtu ]] && ip link set mtu $host_mtu dev eth0
 
     zypper_patch
 
@@ -4358,7 +4356,7 @@ function oncontroller_waitforinstance()
     safely nova list
     addfloatingip testvm
     local vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
-    [[ -z "$vmip" ]] && complain 12 "no IP found for instance"
+    [[ $vmip ]] || complain 12 "no IP found for instance"
     wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
 }
 
@@ -4740,7 +4738,7 @@ function onadmin_qa_test()
 function onadmin_run_cct()
 {
     local ret=0
-    if iscloudver 5plus && [[ -n $cct_tests ]]; then
+    if iscloudver 5plus && [[ $cct_tests ]]; then
         # - install cct dependencies
         addcctdepsrepo
         ensure_packages_installed git-core gcc make ruby2.1-devel
