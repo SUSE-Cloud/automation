@@ -1635,7 +1635,7 @@ EOF
 
     # avoid kernel update
     zypper al kernel-default
-    zypper -n dup -r Cloud -r cloudtup || zypper -n dup -r Cloud
+    zypper -n dup --no-recommends -r Cloud -r cloudtup || zypper -n dup --no-recommends -r Cloud
     zypper rl kernel-default
 
     # Workaround chef-solr crashes
@@ -2375,7 +2375,7 @@ function onadmin_crowbar_register()
             $zyppercmd
             $hostnamecmd
             zypper -n ref &&
-            zypper -n up &&
+            zypper -n up --no-recommends &&
             screen -d -m -L /bin/bash -c '
             yes | ./crowbar_register --no-gpg-checks &&
             touch /tmp/crowbar_register_done;'
@@ -4469,7 +4469,7 @@ function onadmin_cloudupgrade_2nd()
     crudini --set /etc/zypp/zypp.conf main solver.allowVendorChange true
 
     # Upgrade Admin node
-    zypper --non-interactive up -l
+    zypper --non-interactive up --no-recommends -l
     echo -n "This cloud was upgraded from : " | cat - /etc/cloudversion >> /etc/motd
 
     echo 'y' | suse-cloud-upgrade upgrade ||\
