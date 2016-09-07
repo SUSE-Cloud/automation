@@ -1502,31 +1502,31 @@ function onadmin_setup_local_zypper_repositories()
     zypper lr -e - | sed -n '/^name=/ {s///; /ptf/! p}' | \
         xargs -r zypper rr
 
+    uri_base="http://${clouddata}/repos"
     # restore needed repos depending on localreposdir_target
     if [ -n "${localreposdir_target}" ]; then
         mount_localreposdir_target
-    else
-        # restore repos from $clouddata
-        case `getcloudver` in
-            4|5)
-                zypper ar http://${clouddata}/repos/SLES11-SP3-Pool/ sles11sp3
-                zypper ar http://${clouddata}/repos/SLES11-SP3-Updates/ sles11sp3up
-            ;;
-            6)
-                zypper ar http://${clouddata}/repos/SLES12-SP1-Pool/ sles12sp1
-                zypper ar http://${clouddata}/repos/SLES12-SP1-Updates/ sles12sp1up
-            ;;
-            7)
-                if [ "$want_sles12sp1_admin" == 1 ]; then
-                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP1-Pool/ sles12sp1
-                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP1-Updates/ sles12sp1up
-                else
-                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP2-Pool/ sles12sp2
-                    zypper ar http://${clouddata}/repos/$arch/SLES12-SP2-Updates/ sles12sp2up
-                fi
-            ;;
-        esac
+        uri_base="file:///repositories"
     fi
+    case $(getcloudver) in
+        4|5)
+            zypper ar $uri_base/SLES11-SP3-Pool/ sles11sp3
+            zypper ar $uri_base/SLES11-SP3-Updates/ sles11sp3up
+        ;;
+        6)
+            zypper ar $uri_base/SLES12-SP1-Pool/ sles12sp1
+            zypper ar $uri_base/SLES12-SP1-Updates/ sles12sp1up
+        ;;
+        7)
+            if [ "$want_sles12sp1_admin" == 1 ]; then
+                zypper ar $uri_base/$arch/SLES12-SP1-Pool/ sles12sp1
+                zypper ar $uri_base/$arch/SLES12-SP1-Updates/ sles12sp1up
+            else
+                zypper ar $uri_base/$arch/SLES12-SP2-Pool/ sles12sp2
+                zypper ar $uri_base/$arch/SLES12-SP2-Updates/ sles12sp2up
+            fi
+        ;;
+    esac
 }
 
 # setup network/DNS, add repos and install crowbar packages
