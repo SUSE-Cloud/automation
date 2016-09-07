@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import re
 import tempfile
 import unittest
 
@@ -78,14 +79,36 @@ class TestLibvirtNetConfig(unittest.TestCase):
         self.assertEqual(is_config, should_config)
 
 
+def filter_vm_xml(xmlstr):
+    """filter libvirt VM instance xml to drop host-specific parts"""
+    xmlstr = re.sub("machine='[^']*'>", "machine='pc-0.14'>", xmlstr)
+    return xmlstr
+
+
+def default_test_args(args):
+    args.cloud = "cloud"
+    args.nodecounter = 1
+    args.macaddress = "52:54:01:77:77:01"
+    args.controller_raid_volumes = 0
+    args.cephvolumenumber = 1
+    args.computenodememory = 2097152
+    args.controllernodememory = 5242880
+    args.libvirttype = "kvm"
+    args.vcpus = 1
+    args.emulator = "/usr/bin/qemu-system-x86_64"
+    args.vdiskdir = "/dev/cloud"
+    args.drbdserial = ""
+    args.bootorder = 3
+    args.numcontrollers = 1
+
+
 class TestLibvirtAdminConfig(unittest.TestCase):
 
     def test_admin_config(self):
         args = Arguments()
-        args.cloud = "cloud"
+        default_test_args(args)
         args.adminnodememory = 2097152
         args.adminvcpus = 1
-        args.emulator = "/usr/bin/qemu-system-x86_64"
         args.adminnodedisk = "/dev/cloud/cloud.admin"
         args.localreposrc = ""
         args.localrepotgt = ""
@@ -94,7 +117,8 @@ class TestLibvirtAdminConfig(unittest.TestCase):
 
         should_config = libvirt_setup.readfile(
             "{0}/cloud-admin.xml".format(FIXTURE_DIR))
-        is_config = libvirt_setup.admin_config(args, cpu_flags)
+        is_config = filter_vm_xml(
+            libvirt_setup.admin_config(args, cpu_flags))
         self.assertEqual(is_config, should_config)
 
 
@@ -102,74 +126,41 @@ class TestLibvirtComputeConfig(unittest.TestCase):
 
     def test_compute_config(self):
         args = Arguments()
-        args.cloud = "cloud"
-        args.nodecounter = 1
-        args.macaddress = "52:54:01:77:77:01"
-        args.controller_raid_volumes = 0
-        args.cephvolumenumber = 1
-        args.computenodememory = 2097152
-        args.controllernodememory = 5242880
-        args.libvirttype = "kvm"
-        args.vcpus = 1
-        args.emulator = "/usr/bin/qemu-system-x86_64"
-        args.vdiskdir = "/dev/cloud"
-        args.drbdserial = ""
-        args.bootorder = 3
-        args.numcontrollers = 1
+        default_test_args(args)
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
         should_config = libvirt_setup.readfile(
             "{0}/cloud-node1.xml".format(FIXTURE_DIR))
-        is_config = libvirt_setup.compute_config(args, cpu_flags)
+        is_config = filter_vm_xml(
+            libvirt_setup.compute_config(args, cpu_flags))
         self.assertEqual(is_config, should_config)
 
     def test_xen_compute_config(self):
         args = Arguments()
-        args.cloud = "cloud"
-        args.nodecounter = 1
-        args.macaddress = "52:54:01:77:77:01"
-        args.controller_raid_volumes = 0
-        args.cephvolumenumber = 1
-        args.computenodememory = 2097152
-        args.controllernodememory = 5242880
+        default_test_args(args)
         args.libvirttype = "xen"
-        args.vcpus = 1
-        args.emulator = "/usr/bin/qemu-system-x86_64"
-        args.vdiskdir = "/dev/cloud"
-        args.drbdserial = ""
-        args.bootorder = 3
-        args.numcontrollers = 1
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
         should_config = libvirt_setup.readfile(
             "{0}/cloud-node1-xen.xml".format(FIXTURE_DIR))
-        is_config = libvirt_setup.compute_config(args, cpu_flags)
+        is_config = filter_vm_xml(
+            libvirt_setup.compute_config(args, cpu_flags))
         self.assertEqual(is_config, should_config)
 
     # add extra disk for raid and 2 volumes for ceph
     def test_compute_config_with_raid(self):
         args = Arguments()
-        args.cloud = "cloud"
-        args.nodecounter = 1
-        args.macaddress = "52:54:01:77:77:01"
+        default_test_args(args)
         args.controller_raid_volumes = 2
         args.cephvolumenumber = 2
-        args.computenodememory = 2097152
-        args.controllernodememory = 5242880
-        args.libvirttype = "kvm"
-        args.vcpus = 1
-        args.emulator = "/usr/bin/qemu-system-x86_64"
-        args.vdiskdir = "/dev/cloud"
-        args.drbdserial = ""
-        args.bootorder = 3
-        args.numcontrollers = 1
         cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
         should_config = libvirt_setup.readfile(
             "{0}/cloud-node1-raid.xml".format(FIXTURE_DIR))
-        is_config = libvirt_setup.compute_config(args, cpu_flags)
+        is_config = filter_vm_xml(
+            libvirt_setup.compute_config(args, cpu_flags))
         self.assertEqual(is_config, should_config)
 
 

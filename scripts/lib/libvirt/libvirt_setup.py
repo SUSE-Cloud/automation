@@ -75,13 +75,19 @@ def get_video_devices():
     return readfile(os.path.join(TEMPLATE_DIR, 'video-default.xml'))
 
 
-def get_default_machine():
+# to workaround bnc#946020+bnc#946068+bnc#997358 we use the 2.0 machine type
+# if it is available
+def get_default_machine(emulator):
     if 'aarch64' in get_machine_arch():
         return "virt"
     elif 's390x' in get_machine_arch():
         return "s390-ccw-virtio"
     else:
-        return "pc-0.14"
+        machine = "pc-i440fx-2.0"
+        if os.system("%(emulator)s -machine help | grep -q %(machine)s" % ({
+                         'emulator': emulator, 'machine': machine})) != 0:
+            return "pc-0.14"
+        return machine
 
 
 def get_console_type():
@@ -148,7 +154,7 @@ def admin_config(args, cpu_flags=cpuflags()):
         emulator=args.emulator,
         osloader=get_os_loader(),
         march=get_machine_arch(),
-        machine=get_default_machine(),
+        machine=get_default_machine(args.emulator),
         memballoon=get_memballoon_type(),
         maindiskaddress=get_maindisk_address(),
         mainnicaddress=get_mainnic_address(),
@@ -178,10 +184,7 @@ def merge_dicts(d1, d2):
     return dict(it.chain(d1.items(), d2.items()))
 
 
-def compute_config(args, cpu_flags=cpuflags(), machine=None):
-    if not machine:
-        machine = get_default_machine()
-
+def compute_config(args, cpu_flags=cpuflags()):
     libvirt_type = args.libvirttype
     alldevices = it.chain(it.chain(string.lowercase[1:]),
                           it.product(string.lowercase, string.lowercase))
@@ -274,7 +277,7 @@ def compute_config(args, cpu_flags=cpuflags(), machine=None):
         nodememory=nodememory,
         vcpus=args.vcpus,
         march=get_machine_arch(),
-        machine=machine,
+        machine=get_default_machine(args.emulator),
         osloader=get_os_loader(),
         cpuflags=cpu_flags,
         consoletype=get_console_type(),

@@ -33,14 +33,7 @@ def main():
                         help="Number of controller nodes")
     args = parser.parse_args()
 
-    # to workaround bnc#946020+bnc#946068 we use the 2.0 machine type
-    # if it is available
-    machine = "pc-i440fx-2.0"
-    if os.system("%(emulator)s -machine \? | grep -q %(machine)s" % ({
-                     'emulator': args.emulator, 'machine': machine})) != 0:
-        machine = None
-    print(libvirt_setup.compute_config(args, libvirt_setup.cpuflags(),
-                                       machine))
+    print(libvirt_setup.compute_config(args, libvirt_setup.cpuflags()))
 
 
 if __name__ == "__main__":
