@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import re
 import tempfile
 import unittest
 
@@ -78,6 +79,12 @@ class TestLibvirtNetConfig(unittest.TestCase):
         self.assertEqual(is_config, should_config)
 
 
+def filter_vm_xml(xmlstr):
+    """filter libvirt VM instance xml to drop host-specific parts"""
+    xmlstr = re.sub("machine='[^']*'>", "machine='pc-0.14'>", xmlstr)
+    return xmlstr
+
+
 def default_test_args(args):
     args.cloud = "cloud"
     args.nodecounter = 1
@@ -110,7 +117,8 @@ class TestLibvirtAdminConfig(unittest.TestCase):
 
         should_config = libvirt_setup.readfile(
             "{0}/cloud-admin.xml".format(FIXTURE_DIR))
-        is_config = libvirt_setup.admin_config(args, cpu_flags)
+        is_config = filter_vm_xml(
+            libvirt_setup.admin_config(args, cpu_flags))
         self.assertEqual(is_config, should_config)
 
 
@@ -124,7 +132,8 @@ class TestLibvirtComputeConfig(unittest.TestCase):
 
         should_config = libvirt_setup.readfile(
             "{0}/cloud-node1.xml".format(FIXTURE_DIR))
-        is_config = libvirt_setup.compute_config(args, cpu_flags)
+        is_config = filter_vm_xml(
+            libvirt_setup.compute_config(args, cpu_flags))
         self.assertEqual(is_config, should_config)
 
     def test_xen_compute_config(self):
@@ -135,7 +144,8 @@ class TestLibvirtComputeConfig(unittest.TestCase):
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
         should_config = libvirt_setup.readfile(
             "{0}/cloud-node1-xen.xml".format(FIXTURE_DIR))
-        is_config = libvirt_setup.compute_config(args, cpu_flags)
+        is_config = filter_vm_xml(
+            libvirt_setup.compute_config(args, cpu_flags))
         self.assertEqual(is_config, should_config)
 
     # add extra disk for raid and 2 volumes for ceph
@@ -149,7 +159,8 @@ class TestLibvirtComputeConfig(unittest.TestCase):
 
         should_config = libvirt_setup.readfile(
             "{0}/cloud-node1-raid.xml".format(FIXTURE_DIR))
-        is_config = libvirt_setup.compute_config(args, cpu_flags)
+        is_config = filter_vm_xml(
+            libvirt_setup.compute_config(args, cpu_flags))
         self.assertEqual(is_config, should_config)
 
 
