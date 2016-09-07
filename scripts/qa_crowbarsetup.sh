@@ -1763,7 +1763,7 @@ function onadmin_activate_repositories()
     fi
 
     # activate provisioner repos, so that nodes can use them
-    curl -X POST http://localhost:3000/utils/repositories/activate_all.json
+    crowbar_api_request POST $crowbar_api "/utils/repositories/activate_all.json"
 }
 
 function onadmin_bootstrapcrowbar()
@@ -1773,35 +1773,16 @@ function onadmin_bootstrapcrowbar()
     # otherwise we would break the upgrade gating
     [[ $want_postgresql = 0 ]] && return
     if iscloudver 7plus ; then
-        local http_code
         install_crowbar_init
-        # FIXME: when https://github.com/SUSE-Cloud/automation/pull/1105 is merged
-        http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" --data "username=crowbar&password=crowbar" -o setup-database.txt -w '%{http_code}' $crowbar_init_api/database/new`
-        if ! [[ $http_code =~ [23].. ]] ; then
-            cat setup-database.txt
-            complain 36 "Could not setup PostgreSQL database"
-        fi
+        safely crowbar_api_request POST $crowbar_init_api /database/new \
+            '--data username=crowbar&password=crowbar' "$crowbar_api_v2_header"
 
         if [[ $migrate = 1 ]] ; then
-            http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" -o migrate-database.txt -w '%{http_code}' $crowbar_init_api/database/migrate`
-            if ! [[ $http_code =~ [23].. ]] ; then
-                cat migrate-database.txt
-                complain 36 "Could not migrate the Crowbar database"
-            fi
-
-            http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" -o migrate-schemas.txt -w '%{http_code}' $crowbar_init_api/migrate`
-            if ! [[ $http_code =~ [23].. ]] ; then
-                cat migrate-schemas.txt
-                complain 36 "Could not migrate Crowbar schemas"
-            fi
+            safely crowbar_api_request POST $crowbar_init_api /database/migrate "" "$crowbar_api_v2_header"
+            safely crowbar_api_request POST $crowbar_init_api /migrate "" "$crowbar_api_v2_header"
         fi
 
-        # FIXME: when https://github.com/SUSE-Cloud/automation/pull/1105 is merged
-        http_code=`curl -s -X POST -H "Accept: application/vnd.crowbar.v2.0+json" -o initialize-crowbar.txt -w '%{http_code}' $crowbar_init_api/init`
-        if ! [[ $http_code =~ [23].. ]] ; then
-            cat initialize-crowbar.txt
-            complain 36 "Could not initialize Crowbar"
-        fi
+        safely crowbar_api_request POST $crowbar_init_api /init "" "$crowbar_api_v2_header"
     fi
 }
 
@@ -1849,7 +1830,7 @@ function do_installcrowbar_cloud6plus()
     fi
 
     # call api to start asyncronous install job
-    curl -s -X POST $crowbar_api$crowbar_api_installer_path/start.json || complain 39 "crowbar is not running"
+    safely crowbar_api_request POST $crowbar_api $crowbar_api_installer_path/start.json
 
     wait_for 9 2 "crowbar_install_status | grep -q '\"installing\": *true'" "crowbar to start installing" "tail -n 500 $crowbar_install_log ; complain 88 'crowbar did not start to install'"
     wait_for 180 10 "crowbar_install_status | grep -q '\"installing\": *false'" "crowbar to finish installing" "tail -n 500 $crowbar_install_log ; complain 89 'crowbar installation failed'"
@@ -4585,7 +4566,7 @@ function onadmin_prepare_crowbar_upgrade()
     elif iscloudver 5; then
         # using the API, due to missing crowbar cli integration
         # move nodes to upgrade mode
-        safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare.json
+        safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
     else
         safely crowbarctl upgrade prepare
     fi
@@ -4694,18 +4675,14 @@ function crowbar_api_request()
 
 function onadmin_is_crowbar_api_available()
 {
-    local http_code
-    local api_path="$crowbar_api_installer_path/status.json"
+    local api_path=$crowbar_api_installer_path/status.json
     iscloudver 5minus && api_path=
-    http_code=`curl $crowbar_api_digest -s -o /dev/null -w '%{http_code}' ${crowbar_api}$api_path`
-    [[ $http_code =~ [23].. ]]
+    crowbar_api_request GET $crowbar_api $api_path "$crowbar_api_digest"
 }
 
 function onadmin_is_crowbar_init_api_available()
 {
-    local http_code
-    http_code=`curl -s -H "Accept: application/vnd.crowbar.v2.0+json" -o /dev/null -w '%{http_code}' ${crowbar_init_api}/status`
-    [[ $http_code =~ [23].. ]]
+    crowbar_api_request GET $crowbar_init_api "/status" "" "$crowbar_api_v2_header"
 }
 
 function onadmin_crowbarrestore()
@@ -4723,11 +4700,7 @@ function onadmin_crowbarrestore()
             with_upgrade)
                 # restore after upgrade has different workflow (missing APIs) than
                 #   a restore from a backup of the same cloud release
-                local http_code=`curl -X POST -F "file=@/tmp/$btarball" -s -o upgrade-start.txt -w '%{http_code}' $crowbar_api/installer/upgrade/start.json`
-                if ! [[ $http_code =~ [23].. ]] ; then
-                    cat upgrade-start.txt
-                    complain 36 "Could not start crowbar restore with upgrade workflow"
-                fi
+                safely crowbar_api_request POST $crowbar_api /installer/upgrade/start.json "-F file=@/tmp/$btarball"
             ;;
             *)
                 # crowbarctl needs --anonymous to workaround a crowbarctl issue which leads to two api requests
@@ -4757,11 +4730,7 @@ function onadmin_crowbar_nodeupgrade()
     local endpoint
     local http_code
     for endpoint in services backup nodes; do
-        http_code=`curl -X POST -s -o crowbar-node-upgrade.txt -w '%{http_code}' $crowbar_api_digest $crowbar_api/installer/upgrade/$endpoint.json`
-        if ! [[ $http_code =~ [23].. ]] ; then
-            cat crowbar-node-upgrade.txt
-            complain 36 "Request to $crowbar_api/installer/upgrade/$endpoint.json returned $http_code"
-        fi
+        safely crowbar_api_request POST $crowbar_api /installer/upgrade/${endpoint}.json
     done
     wait_for 360 10 "crowbar_nodeupgrade_status | grep -q '\"left\": *0'" "crowbar to finish the nodeupgrade"
     if ! crowbar_nodeupgrade_status | grep -q '"failed": *0' ; then
