@@ -4391,6 +4391,14 @@ function onadmin_prepare_cloudupgrade_repos_6_to_7()
     onadmin_prepare_sles12sp2_repos
     onadmin_prepare_sles12plus_cloud_repos
 
+    if [[ $hacloud = 1 ]]; then
+        add_ha12sp2_repo
+    fi
+
+    if [ -n "$deployceph" ] && iscloudver 5plus; then
+        add_suse_storage_repo
+    fi
+
     # recreate the SUSE-Cloud Repo with the latest iso
     onadmin_prepare_cloud_repos
     onadmin_add_cloud_repo
