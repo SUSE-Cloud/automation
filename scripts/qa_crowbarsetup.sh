@@ -57,6 +57,7 @@ crowbar_api_digest="--digest -u crowbar:crowbar"
 crowbar_install_log=/var/log/crowbar/install.log
 crowbar_init_api=http://localhost:4567
 crowbar_lib_dir=/var/lib/crowbar
+crowbar_api_v2_header="Accept: application/vnd.crowbar.v2.0+json"
 
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
@@ -4664,6 +4665,31 @@ function onadmin_crowbarpurge()
         /srv/tftpboot/{discovery/pxelinux.cfg/*,nodes,validation.pem}
 
     killall epmd ||: # need to kill again after uninstall
+}
+
+# parameters
+#  1:  method  GET|POST
+#  2:  api     schema://hostname.tld
+#  3:  apipath /path/to/request
+#  4:  curlopts options to curl command (like -d"something")
+#  5+: headers additional headers
+function crowbar_api_request()
+{
+    local method=${1:-GET}
+    local api=${2:-$crowbar_api}
+    local api_path=${3:-/}
+    local curl_opts=${4:-}
+    shift ; shift ; shift ; shift
+    local outfile=crowbar-api-request.txt
+    rm -f $outfile
+    local http_code=`curl --max-time 300 -X $method $curl_opts "${@/#/-H}" -s -o $outfile -w '%{http_code}' $api$api_path`
+    if ! [[ $http_code =~ [23].. ]] ; then
+        cat $outfile
+        echo "Request to $api$api_path returned http code: $http_code"
+        return 1
+    else
+        return 0
+    fi
 }
 
 function onadmin_is_crowbar_api_available()
