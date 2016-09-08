@@ -4817,6 +4817,22 @@ function onadmin_devsetup()
     su -s /bin/sh - crowbar sh -c "RAILS_ENV=development bundle exec rake db:create db:migrate"
     popd
 
+    # convert psql dump to sqlite readable dump
+    local dumpfile=/tmp/crowbar_postgres_dump.sql
+    sudo -u crowbar pg_dump --data-only --inserts crowbar_production > $dumpfile
+    sed -i '/^SET/d' $dumpfile
+    sed -i '/^SELECT pg_catalog.setval/d' $dumpfile
+    sed -i '1iBEGIN;' $dumpfile
+    echo "END;" >> $dumpfile
+
+    # create sqlite development db
+    pushd /opt/crowbar/crowbar_framework
+    bundle exec rake db:migrate
+    ensure_packages_installed sqlite3
+    sqlite3 db/development.sqlite3 "delete from schema_migrations"
+    sqlite3 db/development.sqlite3 < $dumpfile
+    popd
+
     # install barclamps
     local components=$(find /opt/crowbar/barclamps -mindepth 1 -maxdepth 1 -type d)
     CROWBAR_DIR=/opt/crowbar RAILS_ENV=development /opt/crowbar/bin/barclamp_install.rb $components
