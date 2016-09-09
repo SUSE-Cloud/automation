@@ -3024,10 +3024,10 @@ function custom_configuration()
 
             if [[ $hacloud = 1 ]] ; then
                 # fetch one of the compute nodes as cinder_volume
-                local cinder_volume=$unclustered_nodes
+                local cinder_volume=($unclustered_nodes)
                 # make sure we do not pick SP1 nodes on cloud7
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
-                    cinder_volume=$unclustered_sles12plusnodes
+                    cinder_volume=($unclustered_sles12plusnodes)
                 fi
                 if [ -z $cinder_volume ]; then
                     complain 105 "No suitable node(s) for ceilometer-agent found."
