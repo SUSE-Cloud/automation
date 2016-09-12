@@ -210,6 +210,9 @@ done
 # sync admin images
 for arch in x86_64 aarch64 s390x ; do
     $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2.${arch}.qcow2 /srv/nfs/images/$arch/SLES12-SP2-untested.qcow2
+    if [ "$arch" == x86_64 ]; then
+        $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2-uefi.${arch}.qcow2 /srv/nfs/images/$arch/SLES12-SP2-uefi.qcow2
+    fi
 done
 
 ~/bin/syncgitrepos
