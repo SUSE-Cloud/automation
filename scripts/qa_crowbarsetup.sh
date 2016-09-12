@@ -1443,7 +1443,7 @@ function onadmin_set_source_variables()
             CLOUDSLE12DISTISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*1.iso"
             CLOUDLOCALREPOS="SUSE-Cloud-5-official"
         ;;
-        GMC*|GM6|GM6+up)
+        GM6|GM6+up)
             cs=$cloudsource
             [[ $cs =~ GM6 ]] && cs=GM
             CLOUDSLE12DISTPATH=/install/SLE-12-SP1-Cloud6-$cs/
