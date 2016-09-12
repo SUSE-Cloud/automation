@@ -3322,6 +3322,10 @@ function deploy_single_proposal()
             if iscloudver 5minus && ! [[ $cloudsource = develcloud5 && $want_sles12 ]]; then
                 return
             fi
+            # PM does not want to support manila on non-x86
+            if [[ $arch != "x86_64" ]]; then
+                return
+            fi
             if iscloudver 6plus ; then
                 get_novacontroller
                 safely oncontroller oncontroller_manila_generic_driver_setup
