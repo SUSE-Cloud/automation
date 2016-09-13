@@ -4412,6 +4412,8 @@ function onadmin_prepare_cloudupgrade_repos_6_to_7()
 
     # create skeleton for PTF repositories
     # during installation, this would be done by install-suse-cloud
+    mkdir -p $tftpboot_repos12sp2_dir/PTF
+    ensure_packages_installed createrepo
     safely createrepo $tftpboot_repos12sp2_dir/PTF
 
     # change system repositories to SP2
