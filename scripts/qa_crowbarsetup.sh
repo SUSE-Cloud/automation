@@ -3310,6 +3310,10 @@ function deploy_single_proposal()
             [[ $deployceph ]] || return
             ;;
         magnum)
+            # PM does not want to support magnum on s390x
+            if [[ $arch = "s390x" ]]; then
+                return
+            fi
             [[ $want_magnum ]] || return
             if iscloudver 7plus ; then
                 safely oncontroller oncontroller_magnum_service_setup
