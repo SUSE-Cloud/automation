@@ -2384,7 +2384,7 @@ function onadmin_crowbar_register()
             zypper -n ref &&
             zypper -n up --no-recommends &&
             screen -d -m -L /bin/bash -c '
-            yes | ./crowbar_register --no-gpg-checks &&
+            yes | bash -x ./crowbar_register --no-gpg-checks &&
             touch /tmp/crowbar_register_done;'
         "
 
