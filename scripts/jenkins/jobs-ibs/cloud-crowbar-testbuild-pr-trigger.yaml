@@ -37,8 +37,8 @@
 
           # automation bootstrapping
           if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
-          rm -rf ${automationrepo}
-          curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
+              rm -rf ${automationrepo}
+              curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
           fi
           # fetch the latest automation updates
           ${automationrepo}/scripts/jenkins/update_automation
@@ -47,12 +47,12 @@
 
           action=list-unseen-prs
           case $mode in
-          rebuild) action=list-rebuild-prs
-          ;;
-          forcerebuild) action=list-forcerebuild-prs
-          ;;
-          forceall) action=list-open-prs
-          ;;
+            rebuild) action=list-rebuild-prs
+            ;;
+            forcerebuild) action=list-forcerebuild-prs
+            ;;
+            forceall) action=list-open-prs
+            ;;
           esac
 
 
