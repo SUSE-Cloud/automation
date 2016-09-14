@@ -3294,6 +3294,10 @@ function deploy_single_proposal()
     # proposal filter
     case "$proposal" in
         barbican)
+            # Barbican is for magnum and PM does not want magnum to be on s390x, so..
+            if [[ $arch = "s390x" ]]; then
+                return
+            fi
             [[ $want_barbican ]] || return
             if ! iscloudver 7plus; then
                 echo "Barbican is SOC 7+ only. Skipping"
