@@ -3030,7 +3030,7 @@ function custom_configuration()
                     cinder_volume=$unclustered_sles12plusnodes
                 fi
                 if [ -z $cinder_volume ]; then
-                    complain 105 "No suitable node(s) for ceilometer-agent found."
+                    complain 105 "No suitable node(s) for cinder-volume found."
                 fi
 
                 proposal_set_value cinder default "['deployment']['cinder']['elements']['cinder-controller']" "['cluster:$clusternameservices']"
