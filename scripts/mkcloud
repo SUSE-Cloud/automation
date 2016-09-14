@@ -1095,6 +1095,21 @@ function crowbarupgrade_5plus()
     fi
 }
 
+function cloud6upgrade()
+{
+    if iscloudver 6; then
+
+        if isupgradecloudver 7; then
+            # So far, we only have implementation for admin node upgrade
+            crowbarupgrade_5plus
+        else
+            complain 42 "upgrade_cloudsource must be set for Cloud 7"
+        fi
+    else
+        complain 42 "This upgrade path is only supported for Cloud 6"
+    fi
+}
+
 function cloudupgrade()
 {
     if iscloudver 5plus ; then
@@ -1180,6 +1195,7 @@ Steps:
     addupdaterepo:  addupdate repos defined in UPDATEREPOS= (URLs separated by '+')
     runupdate:      run zypper up on the crowbar node
                     (compute nodes are automaticallyupdated via chef run)
+    cloud6upgrade:  run the non-disruptive upgrade from cloud6 to cloud7
     rebootcrowbar:  reboot the crowbar instance and wait for it being up
     rebootcloud:    reboot the cloud nodes and wait for them being up
     restartcloud:   start a pre-existing cloud again after host reboot
@@ -1515,7 +1531,7 @@ allcmds="$step_aliases all all_noreboot all_batch all_batch_noreboot instonly \
     setupcompute instnodes instcompute proposal testsetup rebootcrowbar \
     rebootcloud addupdaterepo runupdate testupdate \
     crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help \
-    rebootneutron cloudupgrade \
+    rebootneutron cloudupgrade cloud6upgrade \
     setuplonelynodes crowbar_register createadminsnapshot \
     restoreadminfromsnapshot createcloudsnapshot restorecloudfromsnapshot \
     cct steps batch setup_aliases onadmin onhost devsetup"
