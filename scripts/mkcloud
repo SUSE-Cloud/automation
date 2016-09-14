@@ -1097,7 +1097,10 @@ function crowbarupgrade_5plus()
 
 function cloudupgrade()
 {
-    if iscloudver 5plus ; then
+    if iscloudver 6plus && [[ $want_nondisruptiveupgrade ]] ; then
+        # TODO: so far, we only have implementation for admin node upgrade
+        crowbarupgrade_5plus
+    elif iscloudver 5plus ; then
         crowbarupgrade_5plus
         # upgrade and reapply all barclamps
         onadmin runlist crowbar_nodeupgrade \
