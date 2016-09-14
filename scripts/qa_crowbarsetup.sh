@@ -2384,7 +2384,7 @@ function onadmin_crowbar_register()
             zypper -n ref &&
             zypper -n up --no-recommends &&
             screen -d -m -L /bin/bash -c '
-            yes | ./crowbar_register --no-gpg-checks &&
+            yes | bash -x ./crowbar_register --no-gpg-checks &&
             touch /tmp/crowbar_register_done;'
         "
 
@@ -3294,6 +3294,10 @@ function deploy_single_proposal()
     # proposal filter
     case "$proposal" in
         barbican)
+            # Barbican is for magnum and PM does not want magnum to be on s390x, so..
+            if [[ $arch = "s390x" ]]; then
+                return
+            fi
             [[ $want_barbican ]] || return
             if ! iscloudver 7plus; then
                 echo "Barbican is SOC 7+ only. Skipping"
@@ -3310,6 +3314,10 @@ function deploy_single_proposal()
             [[ $deployceph ]] || return
             ;;
         magnum)
+            # PM does not want to support magnum on s390x
+            if [[ $arch = "s390x" ]]; then
+                return
+            fi
             [[ $want_magnum ]] || return
             if iscloudver 7plus ; then
                 safely oncontroller oncontroller_magnum_service_setup
@@ -3320,6 +3328,10 @@ function deploy_single_proposal()
             [[ $want_docker ]] && return
             # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
             if iscloudver 5minus && ! [[ $cloudsource = develcloud5 && $want_sles12 ]]; then
+                return
+            fi
+            # PM does not want to support manila on non-x86
+            if [[ $arch != "x86_64" ]]; then
                 return
             fi
             if iscloudver 6plus ; then
