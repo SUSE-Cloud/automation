@@ -487,7 +487,7 @@ function iscloudver()
 
 function isupgradecloudver()
 {
-    local cloudsource=upgrade_cloudsource
+    local cloudsource=$upgrade_cloudsource
     iscloudver "$@"
 }
 
