@@ -3735,13 +3735,15 @@ function oncontroller_setupproduction()
     openstack role add --project demo --user demo Member
 
     # import images
-    for img in SLES12.qcow2 SLES12-SP1.qcow2 SLES12-SP2.qcow2 cirros-0.3.4-x86_64-disk.img other/openSUSE-Leap-42.1.qcow2 Fedora-x86_64-20-20131211.1-sda.qcow2 ; do
+    for img in SLES12.qcow2 SLES12-SP1.qcow2 SLES12-SP2.qcow2 cirros-0.3.4-x86_64-disk.img other/openSUSE-Leap-42.1.qcow2 other/openSUSE-Leap-42.1-OpenStack.x86_64-0.0.3-Build1.2.qcow2 Fedora-x86_64-20-20131211.1-sda.qcow2 ; do
         local bimg=$(basename $img)
         local image_name=${bimg//.qcow2}
+        local params="--disk-format qcow2 --container-format bare "
+        [[ $image_name =~ -Build ]] && params+=' --min-ram 300 --min-disk 10'
         curl -s \
             http://$clouddata/images/$img | \
             openstack image create --public --property hypervisor_type=kvm \
-            --disk-format qcow2 --container-format bare $image_name
+            $params $image_name
     done
 }
 
