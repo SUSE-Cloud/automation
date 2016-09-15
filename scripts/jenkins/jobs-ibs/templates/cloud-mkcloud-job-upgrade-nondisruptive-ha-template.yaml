@@ -1,0 +1,27 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}'
+    node: cloud-trigger
+
+    triggers:
+      - timed: '32 22 * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{previous_version}
+            upgrade_cloudsource=develcloud{version}
+            nodenumber=5
+            hacloud=1
+            want_nondisruptiveupgrade=1
+            mkcloudtarget=plain_with_upgrade testsetup rebootcloud
+            label={label}
+            want_postgresql=0

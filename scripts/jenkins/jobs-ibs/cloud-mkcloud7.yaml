@@ -26,6 +26,8 @@
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
         - 'cloud-mkcloud{version}-job-tempestfull-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
 - project:
     name: cloud-mkcloud7-aarch64
