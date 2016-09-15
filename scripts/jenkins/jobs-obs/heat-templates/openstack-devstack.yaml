@@ -144,9 +144,17 @@ resources:
                ;;
             esac
 
-            # We cannot do a reverse lookup, so add transient host name to /etc/hosts
+            # We cannot do a reverse lookup, so add transient host name to
+            # /etc/hosts and export HOST_IP for devstack to use.
             export HOST_IP=$(ip addr sh eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f 1)
             echo  "${HOST_IP} $(hostname) $(hostnamectl --transient)" >> /etc/hosts
+
+            # wickedd needs to be configured properly to avoid overriding
+            # the hostname (see <https://bugzilla.opensuse.org/show_bug.cgi?id=974661>).
+            sed -i -e "s/DHCLIENT_SET_HOSTNAME=\"yes\"/DHCLIENT_SET_HOSTNAME=\"no\"/" /etc/sysconfig/network/dhcp
+            sed -i -e "s/DHCLIENT6_SET_HOSTNAME=\"yes\"/DHCLIENT6_SET_HOSTNAME=\"no\"/" /etc/sysconfig/network/dhcp
+            # This is to reapply the config to wickedd
+            ifup all
 
             zypper --non-interactive install bridge-utils git-core \
               python-devel python-pip libopenssl-devel \
