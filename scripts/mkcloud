@@ -605,6 +605,31 @@ function restoreadminfromsnapshot()
     createadminsnapshot
 }
 
+function nodes()
+{
+    local query=${1:number}
+    local type=${2:all}
+    local start_id=1
+    local end_id=$(($nodenumber + $nodenumberlonelynode))
+    case $type in
+        normal|pxe)
+            end_id=$nodenumber
+        ;;
+        lonely|preinstalled)
+            start_id=$(($nodenumber + 1))
+        ;;
+        all)
+        ;;
+    esac
+
+    case $query in
+        ids) echo `seq $start_id $end_id`
+        ;;
+        number) echo $(( 1 + $end_id - $start_id ))
+        ;;
+    esac
+}
+
 function createcloudsnapshot()
 {
     shutdowncloud
