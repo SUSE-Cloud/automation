@@ -95,6 +95,8 @@ function h_setup_devstack {
     $zypper in git-core which
     git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
 
+    export HOST_IP=$(ip addr sh eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f 1)
+
     # setup non-root user (username is "stack")
     (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)
     # configure devstack
@@ -134,9 +136,10 @@ enable_service q-metering
 # enable_service q-vpn
 # enable_service q-fwaas
 enable_service q-lbaas
-
+enable_plugin magnum https://git.openstack.org/openstack/magnum master
 # for testing
-enable_service tempest
+#enable_service tempest
+HOST_IP=$HOST_IP
 EOF
 
     chown stack:stack -R $DEVSTACK_DIR
