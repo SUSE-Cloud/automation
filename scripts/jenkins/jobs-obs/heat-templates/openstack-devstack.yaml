@@ -144,6 +144,10 @@ resources:
                ;;
             esac
 
+            # We cannot do a reverse lookup, so add transient host name to /etc/hosts
+            export HOST_IP=$(ip addr sh eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f 1)
+            echo  "${HOST_IP} $(hostname) $(hostnamectl --transient)" >> /etc/hosts
+
             zypper --non-interactive install bridge-utils git-core \
               python-devel python-pip libopenssl-devel \
               libxml2-devel libmysqlclient-devel libxslt-devel \
