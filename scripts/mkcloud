@@ -69,9 +69,6 @@ export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 : ${drbdnode_mac_vol:=''}
 : ${cephvolumenumber:=1}
 : ${controller_raid_volumes:=0}
-allnodeids_without_lonely=`seq 1 $((nodenumber-nodenumberphys))`
-lonelynodeids=`seq $(( nodenumber + 1 )) $(( nodenumber + nodenumberlonelynode ))`
-allnodeids="$allnodeids_without_lonely $lonelynodeids"
 : ${vcpus:=2}
 : ${adminvcpus:=1}
 cpuflags=''
@@ -353,7 +350,7 @@ function onhost_create_cloud_lvm()
 
     onhost_get_next_pv_device
     _lvcreate $cloud.admin $adminnode_hdd_size $cloudvg $next_pv_device
-    for i in $allnodeids ; do
+    for i in $(nodes ids all) ; do
         onhost_get_next_pv_device
         hdd_size=${computenode_hdd_size}
         test "$i" = "1" && hdd_size=${controller_hdd_size}
@@ -373,7 +370,7 @@ function onhost_create_cloud_lvm()
     fi
 
     if [ $cephvolumenumber -gt 0 ] ; then
-        for i in $allnodeids ; do
+        for i in $(nodes ids all) ; do
             for n in $(seq 1 $cephvolumenumber) ; do
                 onhost_get_next_pv_device
                 hdd_size=${cephvolume_hdd_size}
@@ -634,7 +631,7 @@ function createcloudsnapshot()
 {
     shutdowncloud
     wait_for_node_shutdown $cloud-admin
-    for i in $allnodeids ; do
+    for i in $(nodes ids all) ; do
         wait_for_node_shutdown $cloud-node$i
     done
     for d in $(lvs -o lv_name ${cloudvg} | grep "${cloud}\..*snap") ; do
@@ -653,7 +650,7 @@ function restorecloudfromsnapshot()
         echo "Missing snapshot for ${cloud}.admin"
         can_restore=
     }
-    for i in $allnodeids; do
+    for i in $(nodes ids all) ; do
         if [[ ! ${can_restore} ]]; then
             break
         fi
@@ -669,7 +666,7 @@ function restorecloudfromsnapshot()
     fi
 
     virsh destroy $cloud-admin
-    for i in $allnodeids ; do
+    for i in $(nodes ids all) ; do
         virsh destroy $cloud-node$i
     done
     for d in $(lvs -o lv_name ${cloudvg} | grep "${cloud}\..*snap") ; do
@@ -749,7 +746,7 @@ function dist_to_image_name()
 function setuplonelynodes()
 {
     local i
-    for i in $lonelynodeids; do
+    for i in $(nodes ids lonley) ; do
         local mac=$(macfunc $i)
         local lonely_node
         lonely_node=$cloud-node$i
@@ -769,7 +766,7 @@ function setuplonelynodes()
 # register lonely_node against crowbar
 function crowbar_register()
 {
-    for i in $lonelynodeids; do
+    for i in $(nodes ids lonley) ; do
         local mac=$(macfunc $i)
         sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register"
     done
@@ -849,7 +846,7 @@ function setuppublicnet()
 function shutdowncloud()
 {
     virsh shutdown $cloud-admin
-    for i in $allnodeids ; do
+    for i in $(nodes ids all) ; do
         virsh shutdown $cloud-node$i
     done
 }
@@ -860,7 +857,7 @@ function restartcloud()
     virsh start $cloud-admin
     setuppublicnet
     wait_for_crowbar_ntpd
-    for i in $allnodeids ; do
+    for i in $(nodes ids all) ; do
         virsh start $cloud-node$i
     done
     wait_for_crowbar_ssh
@@ -878,7 +875,7 @@ function setupnodes()
     fi
 
     setuppublicnet
-    for i in $allnodeids_without_lonely ; do
+    for i in $(nodes ids normal) ; do
         local macaddress=$(macfunc $i)
 
         # transport drdb volume information to admin node (needed for proposal of data cluster)
@@ -1496,7 +1493,7 @@ function sanity_checks()
     fi
 
     if [[ $wantedcmds =~ "setuplonelynodes" || $wantedcmds =~ "crowbar_register" ]] ; then
-        if [[ -z "$nodenumberlonelynode" || $nodenumberlonelynode -lt 1 ]] ; then
+        if [[ $(nodes number lonely) -lt 1 ]] ; then
             complain 80 "Please set nodenumberlonelynode."
         fi
     fi
@@ -1509,11 +1506,11 @@ function sanity_checks()
             ;;
     esac
 
-    if [[ $want_sles12 = 1 ]] && [[ $want_ceph = 1 ]] && [[ $nodenumber -lt 3 ]] ; then
+    if [[ $want_sles12 = 1 ]] && [[ $want_ceph = 1 ]] && [[ $(nodes number normal) -lt 3 ]] ; then
         complain 113 "Please increase number of nodes for this setup, minimal nodenumber=3"
     fi
 
-    if iscloudver 6plus && [[ $want_ceph = 1 ]] && [[ $nodenumber -lt 3 ]] ; then
+    if iscloudver 6plus && [[ $want_ceph = 1 ]] && [[ $(nodes number normal) -lt 3 ]] ; then
         complain 113 "Please increase number of nodes for this setup, minimal nodenumber=3"
     fi
 
