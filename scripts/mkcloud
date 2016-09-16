@@ -746,7 +746,7 @@ function dist_to_image_name()
 function setuplonelynodes()
 {
     local i
-    for i in $(nodes ids lonley) ; do
+    for i in $(nodes ids lonely) ; do
         local mac=$(macfunc $i)
         local lonely_node
         lonely_node=$cloud-node$i
@@ -766,7 +766,7 @@ function setuplonelynodes()
 # register lonely_node against crowbar
 function crowbar_register()
 {
-    for i in $(nodes ids lonley) ; do
+    for i in $(nodes ids lonely) ; do
         local mac=$(macfunc $i)
         sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register"
     done
