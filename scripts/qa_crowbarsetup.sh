@@ -4586,6 +4586,13 @@ function onadmin_prepare_crowbar_upgrade()
         # move nodes to upgrade mode
         safely curl -s -X POST $crowbar_api_digest $crowbar_api/installer/upgrade/prepare.json
     else
+        if crowbarctl upgrade prechecks --format plain | grep "false" ; then
+            complain 11 "Some necessary check before the upgrade has failed"
+        fi
+
+        if crowbarctl upgrade repocheck crowbar --format plain | grep "missing" ; then
+            complain 11 "Some repository is missing on admin server. Cannot upgrade."
+        fi
         safely crowbarctl upgrade prepare
     fi
 }
