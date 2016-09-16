@@ -1109,7 +1109,7 @@ function crowbarupgrade_5plus()
         wait_for_crowbar_ssh
         onadmin check_admin_server_upgraded
         # use crowbar-init to bootstrap crowbar
-        want_postgresql=1 onadmin bootstrapcrowbar 1
+        want_postgresql=1 onadmin bootstrapcrowbar "with_upgrade"
         onadmin activate_repositories
     else
         onadmin prepare_crowbar_upgrade
