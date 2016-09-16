@@ -3911,6 +3911,7 @@ function oncontroller_testsetup()
     nova flavor-create m1.smaller 11 512 8 1
     nova flavor-create m2.medium 12 6144 20 2
     nova flavor-create m1.tiniest 13 128 8 1
+    nova flavor-create --ephemeral 10 d1.tiny    20  512 10 1
     nova flavor-create --ephemeral 20 d2.tiny    21  512 20 1
     nova flavor-create --ephemeral 20 d2.small   22 2048 20 1
     nova flavor-create --ephemeral 40 d4.smaller 23 1024 40 2
