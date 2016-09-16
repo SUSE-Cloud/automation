@@ -34,8 +34,13 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_barbican:=1}
 : ${want_sahara:=''}
 : ${want_murano:=''}
+: ${want_s390:=''}
 
 : ${arch:=$(uname -m)}
+
+if [[ $arch = "s390x" ]] ; then
+    want_s390=1
+fi
 
 # global variables that are set within this script
 novacontroller=
