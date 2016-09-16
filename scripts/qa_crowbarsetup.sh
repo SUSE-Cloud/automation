@@ -1779,15 +1779,19 @@ function onadmin_bootstrapcrowbar()
     [[ $want_postgresql = 0 ]] && return
     if iscloudver 7plus ; then
         install_crowbar_init
-        safely crowbar_api_request POST $crowbar_init_api /database/new \
-            '--data username=crowbar&password=crowbar' "$crowbar_api_v2_header"
+        if [[ -n $upgrade_cloudsource ]] ; then
+            safely crowbarctl upgrade database new
+        else
+            safely crowbar_api_request POST $crowbar_init_api /database/new \
+                '--data username=crowbar&password=crowbar' "$crowbar_api_v2_header"
 
-        if [[ $migrate = 1 ]] ; then
-            safely crowbar_api_request POST $crowbar_init_api /database/migrate "" "$crowbar_api_v2_header"
-            safely crowbar_api_request POST $crowbar_init_api /migrate "" "$crowbar_api_v2_header"
+            if [[ $migrate = 1 ]] ; then
+                safely crowbar_api_request POST $crowbar_init_api /database/migrate "" "$crowbar_api_v2_header"
+                safely crowbar_api_request POST $crowbar_init_api /migrate "" "$crowbar_api_v2_header"
+            fi
+
+            safely crowbar_api_request POST $crowbar_init_api /init "" "$crowbar_api_v2_header"
         fi
-
-        safely crowbar_api_request POST $crowbar_init_api /init "" "$crowbar_api_v2_header"
     fi
 }
 
