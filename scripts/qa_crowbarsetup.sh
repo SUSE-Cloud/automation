@@ -731,7 +731,7 @@ function add_ha12sp2_repo()
     for repo in SLE12-SP2-HA-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+        add_mount "$repo" "$clouddata:/srv/nfs/repos/$arch/$repo" \
             "$tftpboot_repos12sp2_dir/$repo"
     done
 }
