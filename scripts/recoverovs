@@ -1,0 +1,17 @@
+#!/bin/sh -x
+# recover from bsc#998363 to get network back
+rcipmi start
+ipmitool lan print | grep IP.Addr
+for s in openstack-neutron-l3-agent openstack-neutron-openvswitch-agent openvswitch ; do
+  systemctl stop $s.service
+done
+rmmod openvswitch
+modprobe openvswitch
+systemctl restart openvswitch.service
+eval `grep IPADDR= /etc/sysconfig/network/ifcfg-br-fixed`
+ip a add $IPADDR dev br-fixed
+for i in `ip a|grep state.DOWN|perl -ne 'm/^\d+: ([0-9a-z-]*):/ && print "$1\n"'` ; do ip link set $i up ; done
+ip r add default via 10.162.178.1
+systemctl restart openstack-neutron-openvswitch-agent.service
+systemctl restart openstack-neutron-l3-agent.service
+
