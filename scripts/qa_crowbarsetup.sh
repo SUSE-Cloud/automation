@@ -3889,7 +3889,7 @@ function oncontroller_testsetup()
     wait_for 200 5 "openstack image show $imageid | grep status.*active" \
         "$image_name image to reach active state"
 
-    if [[ $want_ldap ]] ; then
+    if [[ $want_ldap = 1 ]] ; then
         openstack user show bwiedemann | grep -q 82608 || complain 103 "LDAP not working"
     fi
 

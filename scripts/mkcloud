@@ -1104,6 +1104,7 @@ function crowbarupgrade_5plus()
         onadmin prepare_cloudupgrade_repos_6_to_7
         onadmin prepare_crowbar_upgrade
         onadmin upgrade_admin_server
+        export cloudsource=$upgrade_cloudsource
         wait_for 200 3 "! nc -z $adminip 22" 'crowbar to go down after upgrade'
         wait_for_crowbar_ssh
         onadmin check_admin_server_upgraded
