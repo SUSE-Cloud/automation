@@ -3,13 +3,7 @@
   <actions/>
   <description>run https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud&#13;
 &#13;
-results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl on bwiedemann@trollolo.cloud.suse.de every 15 minutes</description>
-  <logRotator class="hudson.tasks.LogRotator">
-    <daysToKeep>300</daysToKeep>
-    <numToKeep>2000</numToKeep>
-    <artifactDaysToKeep>-1</artifactDaysToKeep>
-    <artifactNumToKeep>-1</artifactNumToKeep>
-  </logRotator>
+results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
@@ -28,6 +22,16 @@ results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scr
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
+      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
+      <repositoryName/>
+    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -85,9 +89,9 @@ results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scr
         </hudson.model.ChoiceParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>github_pr</name>
-          <description>&lt;ORG/repo&gt;:&lt;PRID&gt;:&lt;SHA1&gt;:&lt;BRANCH&gt; of PR to be tested (SHA1 must be latest commit in PR)
-SHA1 introduced to prevent accidental run of external PRs code.
-Will notify the github PR with mkcloud test results</description>
+          <description>String is a ':' separated list of these vaules: $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
+Note: SHA1 must be latest commit in PR, $context is optional (only use if multiple gating runs needed per PR)
+</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
@@ -189,7 +193,7 @@ Default: -t -s.</description>
         </hudson.model.StringParameterDefinition>
         <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@">
           <name>label</name>
-          <description>Default: openstack-mkcloud | Possible values openstack-mkcloud-SLE11|openstack-mkcloud-SLE12 to build on SLE11 resp. SLE12</description>
+          <description>Default: openstack-mkcloud | Possible values:  openstack-mkcloud-SLE11 (SLE11 host) | openstack-mkcloud-SLE12 (SLE12 host) | openstack-mkcloud-SLE12-aarch64 (SLE12 aarch64 host)</description>
           <defaultValue>openstack-mkcloud</defaultValue>
           <allNodesMatchingLabel>false</allNodesMatchingLabel>
           <triggerIfResult>allCases</triggerIfResult>
@@ -224,10 +228,17 @@ Currently only the 'batch' step uses such a file.</description>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@">
+      <weight>1</weight>
+    </hudson.plugins.heavy__job.HeavyJobProperty>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>300</daysToKeep>
+        <numToKeep>1000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>openstack-mkcloud</assignedNode>
@@ -471,7 +482,7 @@ ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-submit-project -
     </hudson.tasks.Mailer>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.15">
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@">
       <strategy class="hudson.plugins.build_timeout.impl.NoActivityTimeOutStrategy">
         <timeoutSecondsString>3600</timeoutSecondsString>
       </strategy>
@@ -482,6 +493,8 @@ ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-submit-project -
     <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
       <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"}/${ENV,var="github_pr"} ${ENV,var="hacloud"})</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
   </buildWrappers>
 </project>
