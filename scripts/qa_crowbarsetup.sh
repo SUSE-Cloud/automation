@@ -4689,7 +4689,7 @@ function onadmin_is_crowbar_api_available()
 {
     local api_path=$crowbar_api_installer_path/status.json
     iscloudver 5minus && api_path=
-    crowbar_api_request GET $crowbar_api $api_path "$crowbar_api_digest"
+    crowbar_api_request GET "$crowbar_api" "$api_path" "$crowbar_api_digest"
 }
 
 function onadmin_is_crowbar_init_api_available()
