@@ -3319,8 +3319,10 @@ function glance_image_exists
 
 function glance_image_get_id
 {
-    local image_id=$(openstack image list | grep "[[:space:]]$1[[:space:]]" | awk '{ print $2 }')
-    echo $image_id
+    local id=""
+    eval $(openstack image show -f shell "$1")
+    echo "$id"
+    [[ $id ]] # set return code
 }
 
 # test if image is fully uploaded
