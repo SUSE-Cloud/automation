@@ -3549,6 +3549,16 @@ function glance_image_get_id()
     echo $image_id
 }
 
+# test if image is fully uploaded
+function wait_image_active()
+{
+    local image="$1"
+    local purpose="$2"
+    wait_for 300 5 \
+        'openstack image show "$image" | grep active &>/dev/null' \
+        "image $image for $purpose to reach active state"
+}
+
 function oncontroller_tempest_cleanup()
 {
     if iscloudver 5plus; then
@@ -3577,10 +3587,7 @@ function oncontroller_run_tempest()
     fi
     local imageid=$(glance_image_get_id $image_name)
     crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
-    # test if is cnftools image prepared for tempest
-    wait_for 300 5 \
-        'openstack image show $imageid | grep active &>/dev/null' \
-        "prepare cnftools image"
+    wait_image_active "$image_name" tempest
     pushd /var/lib/openstack-tempest-test
     echo 1 > /proc/sys/kernel/sysrq
     if iscloudver 5plus; then
@@ -3883,9 +3890,7 @@ function oncontroller_testsetup()
     if ! [[ $imageid ]]; then
         complain 37 "Image ID for $image_name not found"
     fi
-
-    wait_for 200 5 "openstack image show $imageid | grep status.*active" \
-        "$image_name image to reach active state"
+    wait_image_active "$image_name" testsetup
 
     if [[ $want_ldap = 1 ]] ; then
         openstack user show bwiedemann | grep -q 82608 || complain 103 "LDAP not working"
