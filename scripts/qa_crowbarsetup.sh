@@ -19,6 +19,7 @@ fi
 # defaults
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
+: ${architectures:='aarch64 x86_64 s390x'}
 : ${cinder_backend:=''}
 : ${cinder_netapp_storage_protocol:=iscsi}
 : ${cinder_netapp_login:=openstack}
@@ -1078,7 +1079,7 @@ function onadmin_prepare_sles12_installmedia()
 function onadmin_prepare_sles12sp1_installmedia()
 {
     local a
-    for a in aarch64 x86_64 s390x; do
+    for a in $architectures; do
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$a/install"
         add_mount "SLE-12-SP1-Server-LATEST/sle-12-$a" \
             "$clouddata:/srv/nfs/suse-12.1/$a/install" \
@@ -1093,7 +1094,7 @@ function onadmin_prepare_sles12sp1_installmedia()
 function onadmin_prepare_sles12sp2_installmedia()
 {
     local a
-    for a in aarch64 x86_64 s390x; do
+    for a in $architectures; do
         local sles12sp2_mount="$tftpboot_suse12sp2_dir/$a/install"
         add_mount "SLE-12-SP2-Server-TEST/sle-12-$a" \
             "$clouddata:/srv/nfs/suse-12.2/$a/install" \
