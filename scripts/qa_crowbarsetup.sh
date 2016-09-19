@@ -3713,6 +3713,7 @@ function oncontroller_setupproduction()
     local tenantid
     for prj in $(curl https://w3.suse.de/~bwiedemann/cloud/projects.txt) ; do
         openstack project create $prj
+        openstack role add --project $prj --user admin admin
         tenantid=$(getprojectid $prj)
         nova quota-update --instances 50 --cores 50 --floating-ips 50 --key-pairs 50 --server-groups 50 --ram 40000 $tenantid
         neutron quota-update --tenant-id $tenantid --floatingip 50 --security-group 50 --port 50 --network 50 --router 50 --vip 50 --pool 50
