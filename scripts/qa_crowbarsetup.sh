@@ -3539,7 +3539,7 @@ function adapt_dns_for_docker()
 
 function glance_image_exists()
 {
-    openstack image list | grep -q "[[:space:]]$1[[:space:]]"
+    openstack image show "$1" &>/dev/null
     return $?
 }
 
