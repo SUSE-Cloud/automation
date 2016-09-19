@@ -20,7 +20,7 @@
             cloudsource=develcloud{version}
             nodenumber=5
             clusterconfig=services='data+network+services=2'
-            want_ceph=0
+            storage_method=swift
             hacloud=1
             mkcloudtarget=all_noreboot
             networkingplugin=linuxbridge
