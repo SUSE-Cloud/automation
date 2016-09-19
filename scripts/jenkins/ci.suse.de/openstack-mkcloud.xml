@@ -76,6 +76,18 @@ results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scr
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>storage_method</name>
+          <description>Select storage method: default (let mkcloud decide), none (enforce none)</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>default</string>
+              <string>none</string>
+              <string>swift</string>
+              <string>ceph</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>github_pr</name>
           <description>String is a ':' separated list of these vaules: $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
@@ -153,16 +165,6 @@ Use i.e. " --regex '^magnum.tests.functional.api'"</description>
           <description>boot up one lonely node in the admin network and register it with crowbar_register (image type depends on want_sles12 parameter)</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>want_swift</name>
-          <description>can be used for force off(0) or on(1)</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>want_ceph</name>
-          <description>can be used for force off(0) or on(1)</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_all_ssl</name>
           <description>set to 1 to deploy all cloud services with SSL aka HTTPS</description>
@@ -357,6 +359,30 @@ if [[ $hacloud == 1 ]] ; then
 fi
 
 
+#storage
+case "$storage_method" in
+  none)
+    want_ceph=0
+    want_swift=0
+    ;;
+  swift)
+    want_ceph=0
+    want_swift=1
+    ;;
+  ceph)
+    want_ceph=1
+    want_swift=0
+    if [[ $nodenumber &lt; 5 ]] ; then
+      export nodenumber=5
+    fi
+    cephvolumenumber=2
+    ;;
+  *)
+    unset want_ceph
+    unset want_swift
+esac
+export want_ceph
+export want_swift
 
 if [ ! -z "$UPDATEREPOS" ] ; then
   # testing update only makes sense with GM and without TESTHEAD
