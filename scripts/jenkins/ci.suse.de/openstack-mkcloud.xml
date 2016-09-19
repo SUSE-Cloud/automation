@@ -329,8 +329,8 @@ case $cloudsource in
         ;;
     develcloud6)
         if [[ $mkcloudtarget =~ upgrade ]]; then
-            echo "Setting want_ldap=0 for upgrade jobs until hybrid backend is ported to Mitaka"
-            export want_ldap=0
+            echo "Unsetting want_ldap for upgrade jobs until hybrid backend is ported to Mitaka"
+            unset want_ldap
         fi
         ;;
     M*|develcloud7|susecloud7)
