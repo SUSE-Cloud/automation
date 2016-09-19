@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>run https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud&#13;
+  <description>!!! This job is automatically pushed from GIT to ci.suse.de !!!&#13;
+REMEMBER: changes to this job will be overwritten after a few hours - make sure to create a PR for your changes&#13;
+&#13;
+This job runs https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud&#13;
 &#13;
 results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes</description>
   <keepDependencies>false</keepDependencies>
