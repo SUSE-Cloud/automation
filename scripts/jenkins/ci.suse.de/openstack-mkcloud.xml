@@ -39,17 +39,6 @@ results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scr
           <description>Can be something like "develcloud3" (uses Devel:Cloud:*, see TESTHEAD parameter for Staging), "susecloud3" (uses SUSE:*), "GM3" (uses the GM ISO)</description>
           <defaultValue>develcloud5</defaultValue>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.ChoiceParameterDefinition>
-          <name>mode</name>
-          <description>mode=basetest is for use by special triggers. Success on such a run will trigger more runs on this cloudsource.</description>
-          <choices class="java.util.Arrays$ArrayList">
-            <a class="string-array">
-              <string>standard</string>
-              <string>basetest</string>
-              <string>submit</string>
-            </a>
-          </choices>
-        </hudson.model.ChoiceParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>mkcloudtarget</name>
           <description>Set mkcloudtarget to define the mkcloud command line parameters.</description>
@@ -409,61 +398,7 @@ if [[ $github_pr_sha ]] ; then
   trap "-" ERR
 fi
 
-
-[[ $TESTHEAD ]] || exit 0
-[[ ! $hacloud  ]] || exit 0  # for now disable package submission for ha setups
-[[ $github_pr_sha ]] &amp;&amp; exit 0
-
-
-if [[ $mode == "basetest" ]] ; then
-    echo "$mode succeeded - triggering extra tests"
-    d=/root/lasttriggered
-    f=$d/$cloudsource
-    last=$(cat $f || echo 0)
-    echo "if [[ $(($last + 1800)) -gt $(date +%s) ]] ; then echo we just triggered ... skipping ; exit 0 ; fi"
-    mkdir -p $d
-    date +%s &gt; $f
-    extra=""
-    nodenumber=3
-    case $cloudsource in
-        develcloud5)
-            extra="want_sles12=1"
-            ;;
-        develcloud6)
-            nodenumber=4
-            ;;
-    esac
-    # linuxbridge+ceph:
-    ${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-mkcloud -p mode=submit cloudsource="${cloudsource}" nodenumber=$nodenumber networkingplugin=linuxbridge $extra
-fi
-
-[[ $mode == "submit" ]] || exit 0 # only submit on mode=submit
-
-
-case "$cloudsource" in
-  develcloud4)
-    project=Devel:Cloud:4
-    subproject=Staging
-    packagefilter="crowbar python openstack suse-cloud-upgrade"
-  ;;
-  develcloud5)
-    project=Devel:Cloud:5
-    subproject=Staging
-    packagefilter="crowbar python openstack suse-cloud-upgrade"
-  ;;
-  develcloud6)
-    project=Devel:Cloud:6
-    subproject=Staging
-    packagefilter="crowbar python openstack patterns suse-cloud-upgrade"
-  ;;
-  *)
-    echo "nothing to submit"
-    exit 0
-  ;;
-esac
-
-
-${automationrepo}/scripts/jenkins/jenkins-job-trigger openstack-submit-project -p project="${project}" subproject="${subproject}" packagefilter="${packagefilter}" starttime="${starttime}"</command>
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
