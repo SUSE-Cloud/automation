@@ -314,7 +314,7 @@ ${automationrepo}/scripts/jenkins/update_automation #NO PARAMETERS HERE ANY MORE
 
 function mkcloudgating_trap()
 {
-    $ghs -a set-status -s "failure" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha
+    $ghs -a set-status -s "failure" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha --context $ghs_context
 }
 
 ## mkcloud github PR gating
@@ -323,13 +323,18 @@ if [[ $github_pr ]] ; then
     github_pr_repo=${github_opts[0]}
     github_pr_id=${github_opts[1]}
     github_pr_sha=${github_opts[2]}
+    github_pr_context=${github_opts[4]}
+    ghs_context=ci.suse.de/openstack-mkcloud/gating
+    if [[ $github_pr_context ]] ; then
+      ghs_context=$ghs_context/$github_pr_context
+    fi
 
     echo "testing PR: https://github.com/$github_pr_repo/pull/$github_pr_id"
     ghs=${automationrepo}/scripts/github-status/github-status.rb
     zypper -n install "rubygem(netrc)" "rubygem(octokit)"
 
     if ! $ghs -r $github_pr_repo -a is-latest-sha -p $github_pr_id -c $github_pr_sha ; then
-        $ghs -a set-status -s "error" -t $BUILD_URL -r $github_pr_repo -c $github_pr_sha -m "SHA1 mismatch, newer commit exists"
+        $ghs -a set-status -s "error" -t $BUILD_URL -r $github_pr_repo -c $github_pr_sha -m "SHA1 mismatch, newer commit exists" --context $ghs_context
         exit 1
     fi
 
@@ -351,12 +356,14 @@ if [[ $github_pr ]] ; then
         git checkout -t $ghremote/pr/$github_pr_id
         echo "we merge to always test what will end up in master"
         git merge master -m temp-merge-commit
+        # show latest commit in log to see what's really tested
+        git --no-pager show
         popd
     elif [[ "$github_pr_repo" = "SUSE-Cloud/cct" ]]; then
         export want_cct_pr=$github_pr_id
     fi
 
-    $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha
+    $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha --context $ghs_context
 
 fi
 
@@ -394,7 +401,7 @@ fi
 
 # report mkcloud-gating status
 if [[ $github_pr_sha ]] ; then
-  $ghs -r $github_pr_repo -a set-status -s "success" -t $BUILD_URL -c $github_pr_sha
+  $ghs -r $github_pr_repo -a set-status -s "success" -t $BUILD_URL -c $github_pr_sha --context $ghs_context
   trap "-" ERR
 fi
 
