@@ -105,6 +105,11 @@ minimum 2=controller+compute</description>
           <defaultValue>2</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>nodenumbercompute</name>
+          <description>Number of compute  nodes</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>want_tempest</name>
           <description>can be used for force off(0) or on(1)</description>
           <defaultValue/>
@@ -117,8 +122,19 @@ Default: -t -s.</description>
           <defaultValue>-t -s</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>ostestroptions</name>
+          <description>If given, a extra ostestr run is executed (after the default tempest run).
+Use i.e. " --regex '^magnum.tests.functional.api'"</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>want_sles12</name>
           <description>Set to 1 if sle12 nodes should be installed</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_sles12sp2</name>
+          <description>deploy cloud7 with SP2 instead of SP1</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -189,16 +205,6 @@ Default: -t -s.</description>
           <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
         </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>want_sahara</name>
-          <description>Set to 1 to deploy Sahara.</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>want_murano</name>
-          <description>Set to 1 to deploy Murano.</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>want_node_aliases</name>
           <description>List of aliases to assign to nodes. Takes all provided aliases and assign them to available nodes successively.
 
@@ -213,6 +219,56 @@ Default: -t -s.</description>
           <name>scenario</name>
           <description>Defines which scenario file should be used. Only works with cloud5 or newer.
 Currently only the 'batch' step uses such a file.</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_docker</name>
+          <description>set to 1 to deploy with docker</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_test_updates</name>
+          <description>allow disabling of test updates</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_magnum</name>
+          <description>Deploy with Magnum</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_barbican</name>
+          <description>Deploy with Barbican</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>vcpus</name>
+          <description>number of vcpus for the compute nodes</description>
+          <defaultValue>2</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_sahara</name>
+          <description>set to 1 to deploy sahara</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_btrfs</name>
+          <description>set to 1 to deploy with btrfs</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_postgresql</name>
+          <description>set to 1 to deploy with postgresql</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_efi</name>
+          <description>Set to UEFI boot admin node</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_murano</name>
+          <description>set to 1 to deploy murano</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
