@@ -361,8 +361,11 @@ outputs:
   server_floating_ip:
     value: { get_attr: [ my_floating_ip, floating_ip_address ] }
 EOF
-
-heat stack-create -f $(readlink -e $PWD/testvm.stack) teststack
+if [ -x /usr/bin/openstack ]; then
+    openstack stack create -t $(readlink -e $PWD/testvm.stack) teststack
+else
+    heat stack-create -f $(readlink -e $PWD/testvm.stack) teststack
+fi
 
 sleep 60
 
@@ -380,11 +383,21 @@ if [ -n "$FLOATING_IP" ]; then
     ssh -o "StrictHostKeyChecking no" $ssh_user@$FLOATING_IP curl --silent www3.zq1.de/test || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
-    heat resource-show teststack
+    if [ -x /usr/bin/openstack ]; then
+        openstack stack resource show teststack
+    else
+        heat resource-show teststack
+    fi
 
     exit 1
 fi
-heat stack-delete teststack || :
+
+if [ -x /usr/bin/openstack ]; then
+    openstack stack delete teststack || :
+else
+    heat stack-delete teststack || :
+fi
+
 sleep 10
 
 for i in $(nova floating-ip-list | grep -P -o "172.31\S+"); do nova floating-ip-delete $i; done
