@@ -3879,6 +3879,25 @@ function oncontroller_testsetup()
         adapt_dns_for_docker
     fi
 
+    if [ -n "$want_s390" ] ; then
+        image_name="s390x-SLES12SP1-cloud-init"
+        flavor="m1.small"
+        ssh_user="root"
+        if ! glance_image_exists $image_name ; then
+            curl -s \
+                http://$clouddata/images/s390x/xCAT-SLES12SP1-ECKD.img | \
+            openstack image create --public --container-format bare \
+                --disk-format raw --property hypervisor_type=zvm  \
+                --property architecture=s390x \
+                --property image_file_name=0100.img \
+                --property image_type_xcat=linux  \
+                --property os_name=Linux \
+                --property os_version=sles12.1 \
+                --property provisioning_method=netboot \
+                $image_name | tee glance.out
+        fi
+    fi
+
     # wait for image to finish uploading
     imageid=$(glance_image_get_id $image_name)
     if ! [[ $imageid ]]; then

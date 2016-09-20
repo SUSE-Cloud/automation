@@ -45,7 +45,15 @@
     arch: s390x
     label: openstack-mkcloud-SLE12-{arch}
     jobs:
+        - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
+        - 'cloud-mkcloud{version}-job-btrfs-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
+        - 'cloud-mkcloud{version}-job-dvr-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
+        - 'cloud-mkcloud{version}-job-raid-{arch}'
+        - 'cloud-mkcloud{version}-job-ssl-{arch}'
+        - 'cloud-mkcloud{version}-job-tempestfull-{arch}'
 
 - project:
     name: cloud-mkcloud7-SLE12-big_machine-x86_64
