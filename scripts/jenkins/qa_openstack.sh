@@ -321,8 +321,12 @@ esac
 
 glance image-list
 imgid=$(glance image-list|grep debian-5|cut -f2 -d" ")
-mkdir -p ~/.ssh
-( umask 77 ; nova keypair-add testkey > ~/.ssh/id_rsa )
+
+if [ -f ~/.ssh/id_rsa.pub ]; then
+    nova keypair-add --pub-key ~/.ssh/id_rsa.pub testkey
+else
+    ( umask 077; mkdir -p ~/.ssh; nova keypair-add testkey > ~/.ssh/id_rsa; )
+fi
 
 function get_network_id() {
     local id
