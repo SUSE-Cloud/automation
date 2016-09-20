@@ -57,14 +57,14 @@ proposals:
       zvm_xcat_server: 10.161.147.3
       zvm_xcat_username: admin
       zvm_xcat_password: admin
-      zvm_diskpool: FBA:SCLD
-      zvm_diskpool_type: FBA
+      zvm_diskpool: CKD:SCLD
+      zvm_diskpool_type: ECKD
       zvm_scsi_pool: "none"
-      zvm_host: pczvm63
+      zvm_host: zvm63pd
       zvm_user_profile: osdflt
       zvm_xcat_master: xcat
-      zvm_xcat_ssh_key: ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAwi7sOZbAHaIGIrLhiem1M7tPbop7jqGxI2ukurWz1Os3YY8qfh6ElL81VbFU+xflx86DYkTqnZfskSdRf1DuyqWqX4QV8lweU9KazOcMR1YGQVc9kZMntsEUw+bMauQPoAjrdm4QN+xUhu9GAop+e3VdfOzBHnR9jrwN37IAvCCz0hRXGjdrUEmOzP0Kw+evo6yhzf12H7+7zKTa/4UljFghkX1Nv6saB7/HIfLz1/dT+aWvGutzVhUfgK3wu0G5VTYzR7nL04jItYM9DYPrgxsgvY+X5nzd8vx5Al4ivxorSxspdGXx/e+fivYyu1vFYKJyN4VTVGW5Bkv5iObiXQ==
-        root@xcat.yourcompany.com
+      zvm_xcat_ssh_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCrkmM/5vPQTasqtPQrW2N8EXAVAjO08sVYT56UkULcy0jRJ1YER9rmhBT34IIJGRrhfmgYe2iGd+8JC7DpehLrvEa26hkTdNXOLnkhL5IrryHF8IO8WzFkzIj86tn7R2qZkzdxBEIeBKv4CU0BMxYNozjGW7u+ProrQk7l7BKguMhMChuDnRyJqK+x0yv1c5L9xmeG0LRoglkM64Nn+ZpS9cN9pmbQk9d+675niXRbfEGdutt3jDnbyMSSTA3M9MkwI3lmzyQ6bPmhy6qYkctHT0k56AXXKCQd7GMU8t9NfE05ZyhRXDRfTAou2vBY/oMvYgJwYhHfDBaN4XIEesND
+                  root@xcat.suse.de
   deployment:
     elements:
       nova-controller:
