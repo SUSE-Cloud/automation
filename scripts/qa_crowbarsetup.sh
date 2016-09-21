@@ -239,7 +239,7 @@ setcloudnetvars()
             want_ipmi=true
         ;;
         qa4)
-            nodenumbertotal=8
+            nodenumbertotal=7
             net=${netp}.66
             net_public=$net
             vlan_public=715
