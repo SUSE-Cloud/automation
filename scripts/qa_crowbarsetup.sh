@@ -2837,6 +2837,11 @@ function custom_configuration()
                 proposal_set_value magnum default "['deployment']['magnum']['elements']['magnum-server']" "['cluster:$clusternameservices']"
             fi
             ;;
+        barbican)
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value barbican default "['deployment']['barbican']['elements']['barbican-server']" "['cluster:$clusternameservices']"
+            fi
+            ;;
         nova)
             local role_prefix=`nova_role_prefix`
             # custom nova config of libvirt
