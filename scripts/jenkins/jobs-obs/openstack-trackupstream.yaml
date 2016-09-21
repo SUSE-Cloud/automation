@@ -39,6 +39,7 @@
             - openstack-keystone
             - openstack-manila
             - openstack-magnum
+            - openstack-murano
             - openstack-neutron
             - openstack-neutron-fwaas
             - openstack-neutron-gbp
@@ -74,6 +75,7 @@
             - python-keystonemiddleware
             - python-magnumclient
             - python-manilaclient
+            - python-muranoclient
             - python-mistralclient
             - python-neutronclient
             - python-networking-cisco
@@ -116,6 +118,7 @@
               "python-magnumclient",
               "python-manilaclient",
               "python-mistralclient",
+              "python-muranoclient",
               "python-neutronclient",
               "python-novaclient",
               "python-openstackclient",
@@ -155,6 +158,7 @@
               "openstack-horizon-plugin-ironic-ui",
               "openstack-horizon-plugin-magnum-ui",
               "openstack-octavia",
+              "openstack-murano",
             ].contains(component) )
       sequential: true
     builders:
