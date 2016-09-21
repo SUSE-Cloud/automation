@@ -5,3 +5,5 @@
             release: 'Master'
         - 'openstack-upstream-rpm-packaging-update-{release}':
             release: 'Mitaka'
+        - 'openstack-upstream-rpm-packaging-update-{release}':
+            release: 'Newton'

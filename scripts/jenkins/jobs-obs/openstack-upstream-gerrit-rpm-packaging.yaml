@@ -5,3 +5,5 @@
             release: 'Master'
         - 'openstack-upstream-gerrit-rpm-packaging-{release}':
             release: 'Mitaka'
+        - 'openstack-upstream-gerrit-rpm-packaging-{release}':
+            release: 'Newton'
