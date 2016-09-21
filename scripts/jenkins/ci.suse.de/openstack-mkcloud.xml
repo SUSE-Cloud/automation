@@ -253,8 +253,8 @@ Currently only the 'batch' step uses such a file.</description>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_sahara</name>
-          <description>set to 1 to deploy sahara</description>
-          <defaultValue/>
+          <description>set to 0 to not deploy sahara</description>
+          <defaultValue>1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_btrfs</name>

@@ -1360,8 +1360,8 @@ Optional
         Increase RAM and HDD size on compute node for container image deployment by magnum.
     want_barbican=0 (default=1)
         Deployed by default. Set to 0 to prevent barbican from being deployed.
-    want_sahara=0 (default=0)
-        Set to 1 to deploy sahara.
+    want_sahara=0 (default=1)
+        Deployed by default. Set to 0 to prevent sahara from being deployed.
     want_murano=0 (default=0)
             Set to 1 to deploy murano.
     want_postgresql=0 (default=1)

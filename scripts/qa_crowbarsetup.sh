@@ -33,7 +33,7 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_multidnstest:=1}
 : ${want_magnum:=''}
 : ${want_barbican:=1}
-: ${want_sahara:=''}
+: ${want_sahara:=1}
 : ${want_murano:=''}
 : ${want_s390:=''}
 
