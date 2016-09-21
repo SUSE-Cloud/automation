@@ -2057,8 +2057,12 @@ function reboot_nodes_via_ipmi()
                 if ipmitool -H $ip -U root -P $pw power status | grep -q "is off"; then
                     ipmitool -H $ip -U root -P $pw power on
                     sleep $((10 + RANDOM % 15))
+                else
+                    ipmitool -H $ip -U root -P $pw power off
+                    wait_for 5 5 "ipmitool -H $ip -U root -P $pw power status | grep -q 'is off'" "node to power off"
+                    ipmitool -H $ip -U root -P $pw power on
                 fi
-                ipmitool -H $ip -U root -P $pw power reset) &
+                ) &
             fi
             sleep $((5 + RANDOM % 5))
         done
