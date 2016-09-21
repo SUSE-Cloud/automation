@@ -39,7 +39,7 @@
                 TESTHEAD=
                 want_test_updates=1
                 nodenumber=4
-                want_ceph=1
+                storage_method=ceph
                 networkingplugin=linuxbridge
                 mkcloudtarget=all
                 label=openstack-mkcloud-SLE12-x86_64

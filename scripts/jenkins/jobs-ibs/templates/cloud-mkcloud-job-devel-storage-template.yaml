@@ -19,7 +19,7 @@
             TESTHEAD=1
             cloudsource=develcloud{version}
             nodenumber=3
-            want_ceph=1
+            storage_method=ceph
             want_devel_repos=storage
             mkcloudtarget=all
             label={label}
