@@ -2068,6 +2068,8 @@ function reboot_nodes_via_ipmi()
                 ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "${bmc_values[1]}"
                 sleep $((50 + RANDOM % 20))
 
+                ipmitool -H $ip -U root -P $pw chassis bootdev pxe
+
                 if ipmitool -H $ip -U root -P $pw power status | grep -q "is off"; then
                     ipmitool -H $ip -U root -P $pw power on
                 else
