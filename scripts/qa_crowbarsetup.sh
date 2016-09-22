@@ -2066,6 +2066,7 @@ function reboot_nodes_via_ipmi()
                 }
 
                 ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "${bmc_values[1]}"
+                # Please do not touch this sleep. It is important for the ipmi to work on qa hardware
                 sleep $((50 + RANDOM % 20))
 
                 ipmitool -H $ip -U root -P $pw chassis bootdev pxe
@@ -2077,6 +2078,7 @@ function reboot_nodes_via_ipmi()
                 fi
 
             fi
+            # Please do not touch this sleep. It is important for the ipmi to work on qa hardware
             sleep $((50 + RANDOM % 20))
         done
     done
