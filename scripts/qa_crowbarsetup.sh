@@ -2860,7 +2860,7 @@ function custom_configuration()
                     novanodes=$unclustered_sles12plusnodes
                 fi
 
-                if [[ -z "$novanodes" ]]; then
+                if [[ ! $novanodes ]]; then
                     complain 105 "No suitable node(s) for ${role_prefix}-compute-${libvirt_type} found."
                 fi
                 novanodes=$(printf "\"%s\"," $novanodes)
@@ -2917,7 +2917,7 @@ function custom_configuration()
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
                     ceilometernodes=$unclustered_sles12plusnodes
                 fi
-                if [[ -z "$ceilometernodes" ]]; then
+                if [[ ! $ceilometernodes ]]; then
                     complain 105 "No suitable node(s) for ceilometer-agent found."
                 fi
                 ceilometernodes=$(printf "\"%s\"," $ceilometernodes)
@@ -3032,7 +3032,7 @@ function custom_configuration()
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
                     cinder_volume=$unclustered_sles12plusnodes
                 fi
-                if [[ -z "$cinder_volume" ]]; then
+                if [[ ! $cinder_volume ]]; then
                     complain 105 "No suitable node(s) for cinder-volume found."
                 fi
 
