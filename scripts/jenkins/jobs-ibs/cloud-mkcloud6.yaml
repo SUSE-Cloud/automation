@@ -11,6 +11,8 @@
     arch: x86_64
     label: openstack-mkcloud-SLE12-x86_64
     jobs:
+        - 'cloud-mkcloud{version}-job-2nodes-{arch}'
+        - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
         - 'cloud-mkcloud{version}-job-docker-{arch}'
