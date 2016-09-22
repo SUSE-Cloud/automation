@@ -1,0 +1,8 @@
+#!/bin/sh
+p=$(dirname $0)
+crowbar=root@crowbar.p1.cloud.suse.de
+rsync -a $p/../recoverovs $p/warn_bsc998363 $crowbar:sync/usr/local/sbin/
+rsync -a $p/ircnotify $crowbar:sync/usr/local/bin/
+
+ssh $crowbar 'chown -R root. sync ; for m in $(cat m) ; do rsync -a sync/ $m:/ ; done'
+

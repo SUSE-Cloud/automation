@@ -1,0 +1,12 @@
+#!/bin/sh
+message="$1"
+: ${users:=bmwiedemann2,bmwiedemann,jdsn}
+: ${name=bmwcsdbot}
+(
+sleep 1
+echo ":$name USER $name irc.suse.de irc.suse.de $name"
+echo ":$name NICK $name"
+sleep 1
+echo ":$name PRIVMSG $users $message"
+)|\
+openssl s_client -connect irc.suse.de:6697

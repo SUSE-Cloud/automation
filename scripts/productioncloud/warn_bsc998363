@@ -1,0 +1,7 @@
+#!/bin/sh
+# test for bsc#998363, notify admins on IRC and recover the node
+# use with crontab -e # 10 3-21 * * 1-5 /usr/local/sbin/warn_bsc998363
+ping -c 10 127.0.0.1 2>&1 | grep -q 'sendmsg: Invalid argument' || exit 0
+PATH="/sbin:/usr/sbin:/usr/local/sbin:/root/bin:/usr/local/bin:/usr/bin:/bin"
+ircnotify "bsc#998363 bug occurred on $(hostname) at $(date '+%F %T')"
+recoverovs
