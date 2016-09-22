@@ -2853,14 +2853,14 @@ function custom_configuration()
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-controller']" "['cluster:$clusternameservices']"
 
                 # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
-                local novanodes=$unclustered_nodes
+                local novanodes=($unclustered_nodes)
 
                 # make sure we do not pick SP1 nodes on cloud7
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
                     novanodes=$unclustered_sles12plusnodes
                 fi
 
-                if [ -z $novanodes ]; then
+                if [[ -z "$novanodes" ]]; then
                     complain 105 "No suitable node(s) for ${role_prefix}-compute-${libvirt_type} found."
                 fi
                 novanodes=$(printf "\"%s\"," $novanodes)
@@ -2912,12 +2912,12 @@ function custom_configuration()
                 # this should be adapted when NFS mode is supported for data cluster
                 proposal_set_value ceilometer default "['attributes']['ceilometer']['use_mongodb']" "false"
 
-                local ceilometernodes=$unclustered_nodes
+                local ceilometernodes=($unclustered_nodes)
                 # make sure we do not pick SP1 nodes on cloud7
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
                     ceilometernodes=$unclustered_sles12plusnodes
                 fi
-                if [ -z $ceilometernodes ]; then
+                if [[ -z "$ceilometernodes" ]]; then
                     complain 105 "No suitable node(s) for ceilometer-agent found."
                 fi
                 ceilometernodes=$(printf "\"%s\"," $ceilometernodes)
@@ -3027,12 +3027,12 @@ function custom_configuration()
 
             if [[ $hacloud = 1 ]] ; then
                 # fetch one of the compute nodes as cinder_volume
-                local cinder_volume=$unclustered_nodes
+                local cinder_volume=($unclustered_nodes)
                 # make sure we do not pick SP1 nodes on cloud7
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
                     cinder_volume=$unclustered_sles12plusnodes
                 fi
-                if [ -z $cinder_volume ]; then
+                if [[ -z "$cinder_volume" ]]; then
                     complain 105 "No suitable node(s) for cinder-volume found."
                 fi
 
