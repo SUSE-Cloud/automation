@@ -365,7 +365,14 @@ outputs:
   server_floating_ip:
     value: { get_attr: [ my_floating_ip, floating_ip_address ] }
 EOF
+
+openstack_client_ver=0
+
 if [ -x /usr/bin/openstack ]; then
+    openstack_client_ver=`openstack --version 2>&1 | cut -d" " -f2 | cut -d"." -f1`
+fi
+
+if [ "$openstack_client_ver" -ge 2 ]; then
     openstack stack create -t $(readlink -e $PWD/testvm.stack) teststack
 else
     heat stack-create -f $(readlink -e $PWD/testvm.stack) teststack
@@ -387,7 +394,7 @@ if [ -n "$FLOATING_IP" ]; then
     ssh -o "StrictHostKeyChecking no" $ssh_user@$FLOATING_IP curl --silent www3.zq1.de/test || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
-    if [ -x /usr/bin/openstack ]; then
+    if [ "$openstack_client_ver" -ge 2 ]; then
         openstack stack resource show teststack
     else
         heat resource-show teststack
@@ -396,7 +403,7 @@ else
     exit 1
 fi
 
-if [ -x /usr/bin/openstack ]; then
+if [ "$openstack_client_ver" -ge 2 ]; then
     openstack stack delete teststack || :
 else
     heat stack-delete teststack || :
