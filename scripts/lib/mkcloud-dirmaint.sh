@@ -15,13 +15,33 @@ function dirmaint_do_sanity_checks()
 
 function dirmaint_do_cleanup()
 {
-    echo "FIXME: do_cleanup"
+    killproc -p /var/run/mkcloud/dnsmasq-$cloud.pid /usr/sbin/dnsmasq
+    rm -f /var/run/mkcloud/dnsmasq-$cloud.pid /etc/dnsmasq-$cloud.conf
 }
 
 function dirmaint_do_prepare()
 {
     onhost_add_etchosts_entries
     onhost_prepareadmin
+
+    # HACK HACK HACK
+    local cloudbr=eth2
+    ip addr add $admingw/24 dev $cloudbr
+
+    # setup dnsmasq
+    mkdir -p /var/run/mkcloud
+    cat <<EOF > /etc/dnsmasq-$cloud.conf
+strict-order
+pid-file=/var/run/mkcloud/dnsmasq-$cloud.pid
+except-interface=lo
+bind-interfaces
+listen-address=$admingw
+dhcp-range=$admingw,static
+dhcp-no-override
+dhcp-host=02:00:29:77:77:70,${admingw}0
+EOF
+    startproc -p /var/run/mkcloud/dnsmasq-$cloud.pid /usr/sbin/dnsmasq \
+        --conf-file=/etc/dnsmasq-$cloud.conf
 }
 
 function dirmaint_do_onhost_deploy_image()
