@@ -42,6 +42,8 @@ dhcp-host=02:00:29:77:77:70,${admingw}0
 EOF
     startproc -p /var/run/mkcloud/dnsmasq-$cloud.pid /usr/sbin/dnsmasq \
         --conf-file=/etc/dnsmasq-$cloud.conf
+
+    onhost_setup_portforwarding
 }
 
 function dirmaint_do_onhost_deploy_image()
