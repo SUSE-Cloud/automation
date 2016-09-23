@@ -319,3 +319,23 @@ function libvirt_do_onhost_deploy_image()
         safely kpartx -dsv $disk
     fi
 }
+
+function libvirt_do_setuplonelynodes()
+{
+    local i
+    for i in $(nodes ids lonely) ; do
+        local mac=$(macfunc $i)
+        local lonely_node
+        lonely_node=$cloud-node$i
+        safely ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $mac 0\
+            "$cephvolumenumber" "$drbdvolume" $compute_node_memory\
+            $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir\
+            1 1 > /tmp/$cloud-node$i.xml
+
+        local lonely_disk
+        lonely_disk="$vdisk_dir/${cloud}.node$i"
+
+        onhost_deploy_image "lonely" $(get_lonely_node_dist) $lonely_disk
+        ${mkcloud_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
+    done
+}
