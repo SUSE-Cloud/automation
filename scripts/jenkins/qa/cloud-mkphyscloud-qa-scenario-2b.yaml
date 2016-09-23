@@ -75,8 +75,8 @@
           description: HA configuration for clusters. Make sense only if hacloud=1
       - string:
           name: nodenumber
-          default: "7"
-          description: Number of nodes to use. Depends on hw_number
+          default: "6"
+          description: Number of nodes to use; is scenario specific
       - string:
           name: want_ipmi
           default: "true"
