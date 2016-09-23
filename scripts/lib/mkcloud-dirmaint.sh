@@ -45,7 +45,7 @@ bind-interfaces
 listen-address=$admingw
 dhcp-range=$admingw,static
 dhcp-no-override
-dhcp-host=02:00:29:77:77:70,${admingw}0
+dhcp-host=$macprefix:77:77:70,${admingw}0
 EOF
     startproc -p /var/run/mkcloud/dnsmasq-$cloud.pid /usr/sbin/dnsmasq \
         --conf-file=/etc/dnsmasq-$cloud.conf

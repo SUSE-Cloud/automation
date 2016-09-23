@@ -36,6 +36,7 @@ fi
 : ${qa_crowbarsetup:=${mkcloud_dir}/qa_crowbarsetup.sh}
 : ${iscsictl:=${mkcloud_dir}/iscsictl.py}
 
+: ${macprefix:=52:54:77}
 : ${mkclouddriver:=libvirt}
 mkcloud_lib_dir=${mkcloud_dir}/lib
 # include separate bash libs
@@ -523,7 +524,7 @@ function confset()
 
 function macfunc()
 {
-    printf "52:54:77:77:77:%02x" $1
+    printf "$macprefix:77:77:%02x" $1
 }
 
 function get_admin_node_dist()
