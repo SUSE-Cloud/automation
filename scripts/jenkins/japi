@@ -23,19 +23,19 @@ my $METHOD='POST';
 # read the api credentials from files
 eval `cat /etc/jenkinsapi.cred ./jenkinsapi.cred 2>/dev/null`;
 
-if ( -z $APIKEY ) {
+if ( ! $APIKEY ) {
   print STDERR "You have not defined your APIKEY variable in the config.\n";
   print STDERR "Login in jenkins and find your api key.";
   print STDERR "Please add this api key to your jenkinsapi.cred file:\n";
   print STDERR ' $APIKEY="987zyx654wvu"';
 }
 
-if ( -z $CRUMB ) {
+if ( $ARGV[0] ne "getcrumb" && ! $CRUMB ) {
   print STDERR "You have not defined your CRUMB variable in the config.\n";
   print STDERR "Please create your own crumb:\n";
-  print STDERR " curl --user <myusername>:<mypassword> 'https://ci.opensuse.org/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)'";
+  print STDERR " $0 getcrumb\n";
   print STDERR "And then add it to your jenkinsapi.cred file:\n";
-  print STDERR ' $CRUMB=".crumb:123abc456def"';
+  print STDERR ' $CRUMB="Jenkins-Crumb:123abc456def"';
 }
 
 $METHOD |= 'POST';
@@ -88,11 +88,11 @@ cat > jenkinsapi.cred <<EOCONF
 \$APIKEY='987zyx654wvu';
 \$SCHEME='https';
 \$JURL='ci.opensuse.org';
-\$CRUMB='.crumb:123abc456def';
+\$CRUMB='Jenkins-Crumb:123abc456def';
 EOCONF
 
 Create the Crumb string:
- curl --user <myusername>:<mypassword> 'https://ci.opensuse.org/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)'
+ $0 getcrumb
 ";
 }
 
@@ -271,12 +271,18 @@ sub getbuilds
   print map {"$_\n"} xml_get_elements($xml, "/builds/number");
 }
 
+sub getcrumb
+{
+  $CRUMB||="crumb:dummy";
+  print curl(qq'${jurlbase}/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)'), "\n";
+}
+
 
 ### MAIN ###
 
 my $cmd=shift || die usage();
 my %handlefunc=();
-foreach my $func (qw(reformat setdescription getbuilds)) {
+foreach my $func (qw(reformat setdescription getbuilds getcrumb)) {
   $handlefunc{$func} = eval "\\&$func";
 }
 foreach my $c (qw(fetch fetch-all push push-all)) {
