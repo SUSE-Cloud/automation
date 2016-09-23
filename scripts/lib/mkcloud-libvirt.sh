@@ -212,6 +212,122 @@ function libvirt_do_sanity_checks()
     fi
 }
 
+function libvirt_enable_ksm
+{
+    # enable kernel-samepage-merging to save RAM
+    [[ -w /sys/kernel/mm/ksm/merge_across_nodes ]] && echo 0 > /sys/kernel/mm/ksm/merge_across_nodes
+    [[ -w /sys/kernel/mm/ksm/run ]] && echo 1 > /sys/kernel/mm/ksm/run
+    # Don't waste a complete CPU core on low-core count machines
+    local ppcpu=64
+    # aarch64 machines have high core count but low single-core performance
+    [ $(uname -m) = aarch64 ] && ppcpu=4
+    local pts=$(($(lscpu -p | grep -vc '^#')*$ppcpu))
+    [[ -w /sys/kernel/mm/ksm/pages_to_scan ]] && echo $pts > /sys/kernel/mm/ksm/pages_to_scan
+
+    # huge pages can not be shared or swapped, so do not use them
+    [[ -w /sys/kernel/mm/transparent_hugepage/enabled ]] && echo never > /sys/kernel/mm/transparent_hugepage/enabled
+}
+
+function libvirt_do_cleanup_admin_node()
+{
+    # this function is meant to only clean the admin node
+    # in order to deploy a new one, while keeping all cloud nodes
+
+    ${mkcloud_lib_dir}/libvirt/cleanup_one_node ${cloud}-admin
+}
+
+function libvirt_do_get_next_pv_device()
+{
+    if [ -z "$pvlist" ] ; then
+        pvlist=`pvs --sort -Free | awk '$2~/'$cloudvg'/{print $1}'`
+        pv_cur_device_no=0
+    fi
+    next_pv_device=`perl -e '$i=shift; $i=$i % @ARGV;  print $ARGV[$i]' $pv_cur_device_no $pvlist`
+    pv_cur_device_no=$(( $pv_cur_device_no + 1 ))
+}
+
+# create lv device wrapper
+function _lvcreate()
+{
+    lv_name=$1
+    lv_size=$2
+    lv_vg=$3
+    lv_pv=$4
+
+    # first: create on the PV device (spread IO)
+    # fallback: create in VG (if PVs with different size exist)
+    lvcreate -n $lv_name -L ${lv_size}G $lv_vg $lv_pv || \
+        safely lvcreate -n $lv_name -L ${lv_size}G $lv_vg
+}
+
+# spread block devices over a LVM's PVs so that different VMs
+# are likely to use different PVs to optimize concurrent IO throughput
+function libvirt_do_create_cloud_lvm()
+{
+    safely vgchange -ay $cloudvg # for later boots
+
+    local hdd_size
+
+    onhost_get_next_pv_device
+    _lvcreate $cloud.admin $adminnode_hdd_size $cloudvg $next_pv_device
+    for i in $(nodes ids all) ; do
+        onhost_get_next_pv_device
+        hdd_size=${computenode_hdd_size}
+        test "$i" = "1" && hdd_size=${controller_hdd_size}
+        _lvcreate $cloud.node$i $hdd_size $cloudvg $next_pv_device
+    done
+    if [ $controller_raid_volumes -gt 1 ] ; then
+        # total wipeout of the disks used for RAID, to prevent bsc#966685
+        volume="/dev/$cloudvg/$cloud.node1"
+        dd if=/dev/zero of=$volume bs=1M count=$(($controller_hdd_size * 1024))
+        for n in $(seq 1 $(($controller_raid_volumes-1))) ; do
+            onhost_get_next_pv_device
+            hdd_size=${controller_hdd_size}
+            _lvcreate $cloud.node1-raid$n $hdd_size $cloudvg $next_pv_device
+            volume="/dev/$cloudvg/$cloud.node1-raid$n"
+            dd if=/dev/zero of=$volume bs=1M count=$(($hdd_size * 1024))
+        done
+    fi
+
+    if [ $cephvolumenumber -gt 0 ] ; then
+        for i in $(nodes ids all) ; do
+            for n in $(seq 1 $cephvolumenumber) ; do
+                onhost_get_next_pv_device
+                hdd_size=${cephvolume_hdd_size}
+                test "$i" = "1" -a "$n" = "1" && hdd_size=${controller_ceph_hdd_size}
+                _lvcreate $cloud.node$i-ceph$n $hdd_size $cloudvg $next_pv_device
+            done
+        done
+    fi
+
+    # create volumes for drbd
+    if [ $drbd_hdd_size != 0 ] ; then
+        for i in `seq 1 2`; do
+            onhost_get_next_pv_device
+            _lvcreate $cloud.node$i-drbd $drbd_hdd_size $cloudvg $next_pv_device
+        done
+    fi
+
+    echo "Checking for LVs treated by LVM as valid PV devices ..."
+    if [[ $SHAREDVG != 1 ]] && lvmdiskscan | egrep "/dev/($cloudvg/|mapper/$cloudvg-)"; then
+        error=$(cat <<EOF
+Error: your lvm.conf is not filtering out mkcloud LVs.
+Please fix by adding the following regular expressions
+to the filter value in the devices { } block within your
+/etc/lvm/lvm.conf file (Be sure to place them before "a/.*/"):
+
+    "r|/dev/mapper/$cloudvg-|", "r|/dev/$cloudvg/|", "r|/dev/disk/by-id/|"
+
+The filter should also include something like "r|/dev/dm-|" or "r|/dev/dm-1[56]|", but
+the exact values depend on your local system setup and could change
+over time or have side-effects (on lvm in dm-crypt or lvm in lvm),
+so please add/modify it manually.
+EOF
+)
+        complain 94 "$error"
+    fi
+}
+
 function libvirt_do_cleanup()
 {
     # cleanup leftover from last run
@@ -248,4 +364,43 @@ function libvirt_do_cleanup()
         dd if=/dev/zero of=$cloudpv count=1000
     fi
     return 0
+}
+
+function libvirt_do_prepare()
+{
+    libvirt_enable_ksm
+    libvirt_do_create_cloud_lvm
+    onhost_add_etchosts_entries
+    libvirt_prepare
+    onhost_prepareadmin
+}
+
+function libvirt_do_onhost_deploy_image()
+{
+    local role=$1
+    local image=$(dist_to_image_name $2)
+    local disk=$3
+
+    [[ $clouddata ]] || complain 108 "clouddata IP not set - is DNS broken?"
+    pushd /tmp
+    safely wget --progress=dot:mega -N \
+        http://$clouddata/images/$arch/$image
+
+    echo "Cloning $role node vdisk from $image ..."
+    safely qemu-img convert -t none -O raw -S 0 -p $image $disk
+    popd
+
+    # only resize if we have a 2nd partition with a rootfs
+    if fdisk -l $disk | grep -q "2 *\* *.*83 *Linux" ; then
+        # make a bigger partition 2
+        echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $disk
+        local part2=$(kpartx -asv $disk|perl -ne 'm/add map (\S+2) / && print $1')
+        test -n "$part2" || complain 31 "failed to find partition #2"
+        local bdev=/dev/mapper/$part2
+        safely fsck -y -f $bdev
+        safely resize2fs $bdev
+        time udevadm settle
+        sleep 1 # time for dev to become unused
+        safely kpartx -dsv $disk
+    fi
 }
