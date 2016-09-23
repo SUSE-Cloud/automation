@@ -35,10 +35,12 @@ fi
 : ${mkcloud_dir:=$(dirname $(readlink -e $0))}
 : ${qa_crowbarsetup:=${mkcloud_dir}/qa_crowbarsetup.sh}
 : ${iscsictl:=${mkcloud_dir}/iscsictl.py}
+
+: ${mkclouddriver:=libvirt}
 mkcloud_lib_dir=${mkcloud_dir}/lib
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
-mkcloud_temporary_scripts="mkcloud-libvirt.sh"
+mkcloud_temporary_scripts="mkcloud-$mkclouddriver.sh"
 for script in $mkcloud_temporary_scripts; do
     source ${mkcloud_lib_dir}/$script
 done
@@ -208,6 +210,7 @@ function sshrun()
         export susedownload=$susedownload ;
         export cloudfqdn=$cloudfqdn ;
         export cloudsource=$cloudsource ;
+        export mkclouddriver=$mkclouddriver ;
         export upgrade_cloudsource=$upgrade_cloudsource ;
         export adminip=$adminip ;
         export hacloud=$hacloud ;
