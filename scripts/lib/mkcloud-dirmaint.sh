@@ -36,12 +36,16 @@ function dirmaint_do_onhost_deploy_image()
         http://$clouddata/images/$arch/$image
     popd
 
-    # kill the machine
-    vmcp force mkcldadm || :
+    local admuser=mkcldadm
+    # FIXME kill the machine
+    vmcp q $admuser && complain 193 "$admuser is not logged off"
+
+    vmcp force $admuser || :
+    # FIXME
     local vdev="a100"
     local ccw="0.0.$vdev"
 
-    safely vmcp link to mkcldadm 0100 as $vdev mw pass=linux
+    safely vmcp link to $admuser 0100 as $vdev mw pass=linux
 
     chccwdev -e $ccw
     wait_for 10 1 "[ -r /dev/disk/by-path/ccw-$ccw ]" "disk to show up"
@@ -60,3 +64,17 @@ function dirmaint_do_onhost_deploy_image()
     vmcp det v $vdev
 }
 
+function dirmaint_do_setupadmin()
+{
+    # FIXME
+    echo "NEED TO SETUP ADMIN PROTOTYPE"
+
+    # FIXME stop hardcoding
+    local admuser=mkcldadm
+    local cloudbr=mkcld
+
+    vmcp q $admuser && complain 192 "$admuser is not logged off"
+
+    vmcp s vswitch $cloudbr gra $admuser
+    vmcp xautolog $admuser sync || exit $?
+}

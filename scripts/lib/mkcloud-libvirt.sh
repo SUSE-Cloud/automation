@@ -157,7 +157,7 @@ function libvirt_prepare()
     libvirt_net_start
 }
 
-function libvirt_setupadmin()
+function libvirt_do_setupadmin()
 {
     ${mkcloud_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $emulator $admin_node_disk "$localreposdir_src" "$localreposdir_target" > /tmp/$cloud-admin.xml
     ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
