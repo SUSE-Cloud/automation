@@ -7,3 +7,8 @@ function dirmaint_do_setuphost()
 {
     vmcp q cplevel || complain 191 "Something is wrong with the CP link"
 }
+
+function dirmaint_do_sanity_checks()
+{
+    : Sanity is doing the same thing over and over again and seeing no difference
+}

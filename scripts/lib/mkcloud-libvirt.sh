@@ -195,3 +195,19 @@ function libvirt_do_setuphost()
         safely vgcreate "$cloudvg" "$cloudpv"
     fi
 }
+
+function libvirt_do_sanity_checks()
+{
+    vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
+    if [ -n "$needcvol" ] ; then
+        : ${cloudpv:=/dev/vdb}
+        if grep -q $cloudpv /proc/mounts ; then
+            complain 92 "The device $cloudpv seems to be used. Exiting."
+        fi
+        if [ ! -e $cloudpv ] ; then
+            complain 93 "$cloudpv does not exist." \
+                "Please set the cloud volume group to an existing device: export cloudpv=/dev/sdx" \
+                "Running 'partprobe' may help to let the device appear."
+        fi
+    fi
+}
