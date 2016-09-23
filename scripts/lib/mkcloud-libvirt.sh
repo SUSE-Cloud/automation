@@ -162,3 +162,36 @@ function libvirt_setupadmin()
     ${mkcloud_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $emulator $admin_node_disk "$localreposdir_src" "$localreposdir_target" > /tmp/$cloud-admin.xml
     ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
 }
+
+function libvirt_do_setuphost()
+{
+    if is_suse ; then
+        export ZYPP_LOCK_TIMEOUT=60
+        kvmpkg=kvm
+        osloader=
+        ipxe=
+        [[ $arch = aarch64 ]] && {
+            kvmpkg=qemu-arm
+            osloader=qemu-uefi-aarch64
+            ipxe=qemu-ipxe
+        }
+        [[ $arch = s390x ]] && kvmpkg=qemu-s390
+        zypper --non-interactive in --no-recommends \
+            libvirt $kvmpkg $osloader $ipxe lvm2 curl wget bridge-utils \
+            dnsmasq netcat-openbsd ebtables libvirt-python
+        [ "$?" == 0 -o "$?" == 4 ] || complain 10 "setuphost failed to install required packages"
+
+        # enable KVM
+        [[ $arch = s390x ]] && {
+            echo 1 > /proc/sys/vm/allocate_pgste
+        }
+    fi
+
+    sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
+    echo "net.ipv4.conf.all.rp_filter = 0" > /etc/sysctl.d/90-cloudrpfilter.conf
+    echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
+    if [ -n "$needcvol" ] ; then
+        safely pvcreate "$cloudpv"
+        safely vgcreate "$cloudvg" "$cloudpv"
+    fi
+}
