@@ -3867,6 +3867,22 @@ function oncontroller_testsetup()
         fi
     fi
 
+    if [[ $want_s390 ]] ; then
+        if ! glance_image_exists xcat-sle11-s390x ; then
+            curl -s \
+                http://$clouddata/images/xCAT-SLE11SP3.img | \
+                openstack image create --public --property hypervisor_type=zvm \
+                --disk-format raw --container-format bare \
+                --property image_type_xcat=linux \
+                --property architecture=s390x \
+                --property os_name=Linux \
+                --property os_version=suse11.3 \
+                --property provisioning_method=netboot \
+                --property image_file_name=xCAT-SLE11SP3.img \
+                xcat-sle11-s390x | tee glance.out
+        fi
+    fi
+
     #test for Glance scrubber service, added after bnc#930739
     if iscloudver 6plus || [[ $cloudsource =~ develcloud ]]; then
         configargs="--config-dir /etc/glance"
