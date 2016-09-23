@@ -271,12 +271,18 @@ sub getbuilds
   print map {"$_\n"} xml_get_elements($xml, "/builds/number");
 }
 
+sub getcrumb
+{
+  $CRUMB||="crumb:dummy";
+  print curl(qq'${jurlbase}/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)'), "\n";
+}
+
 
 ### MAIN ###
 
 my $cmd=shift || die usage();
 my %handlefunc=();
-foreach my $func (qw(reformat setdescription getbuilds)) {
+foreach my $func (qw(reformat setdescription getbuilds getcrumb)) {
   $handlefunc{$func} = eval "\\&$func";
 }
 foreach my $c (qw(fetch fetch-all push push-all)) {
