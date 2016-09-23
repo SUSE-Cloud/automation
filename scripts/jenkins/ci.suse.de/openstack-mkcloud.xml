@@ -257,8 +257,8 @@ Currently only the 'batch' step uses such a file.</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>want_btrfs</name>
-          <description>set to 1 to deploy with btrfs</description>
+          <name>want_rootfs</name>
+          <description>set to btrfs to deploy with btrfs</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
