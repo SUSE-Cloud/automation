@@ -12,3 +12,8 @@ function dirmaint_do_sanity_checks()
 {
     : Sanity is doing the same thing over and over again and seeing no difference
 }
+
+function dirmaint_do_cleanup()
+{
+    echo "FIXME: do_cleanup"
+}

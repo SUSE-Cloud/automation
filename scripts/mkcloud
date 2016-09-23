@@ -274,42 +274,8 @@ function onhost()
 
 function cleanup()
 {
-    # cleanup leftover from last run
-    ${mkcloud_lib_dir}/libvirt/cleanup $cloud $nodenumber $cloudbr $vlan_public
-
-    if ip link show ${cloudbr}.$vlan_public >/dev/null 2>&1; then
-        ip link set ${cloudbr}.$vlan_public down
-    fi
-    if ip link show ${cloudbr} >/dev/null 2>&1; then
-        ip link set ${cloudbr} down
-        ip link delete ${cloudbr} type bridge
-        ip link delete ${cloudbr}-nic
-    fi
-    # 1. remove leftover partition mappings that are still open for this cloud
-    local vol
-    dmsetup ls | awk "/^$cloudvg-${cloud}\./ {print \$1}" | while read vol ; do
-        kpartx -dsv /dev/mapper/$vol
-    done
-
-    # workaround host grabbing guest devices
-    for vol in postgresql rabbitmq ; do
-        dmsetup remove drbd-$vol
-    done
-    # 2. remove all previous volumes for that cloud; this helps preventing
-    # accidental booting and freeing space
-    if [ -d $vdisk_dir ]; then
-        find -L $vdisk_dir -name "$cloud.*" -type b | \
-            xargs --no-run-if-empty lvremove --force || complain 104 "lvremove failure"
-    fi
-    rm -f /etc/lvm/archive/*
-
-    if [[ $wipe = 1 ]] ; then
-        vgchange -an $cloudvg
-        dd if=/dev/zero of=$cloudpv count=1000
-    fi
-    return 0
+    ${mkclouddriver}_do_cleanup
 }
-
 
 function onhost_cleanup_admin_node()
 {
