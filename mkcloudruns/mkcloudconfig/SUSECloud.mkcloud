@@ -70,6 +70,7 @@ export want_dvr=1
 #export host_mtu= # Set given MTU settings...
 
 export PARALLEL=yes
+export cloud_port_offset=$((1000 + 100*$n))
 export net_admin=192.168.$((50+$n*2))
 export net_public=192.168.$((51+$n*2))
 export adminnetmask=255.255.254.0
