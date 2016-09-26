@@ -21,6 +21,7 @@ function dirmaint_do_cleanup()
         vmcp sig shut $(printf "${cloud}n%02d" $i)
     done
     vmcp sig shut ${cloud}adm
+    wait_for 60 1 "! vmcp q ${cloud}adm" "admin node ${cloud}adm to log off"
 
     killproc -p /var/run/mkcloud/dnsmasq-$cloud.pid /usr/sbin/dnsmasq
     rm -f /var/run/mkcloud/dnsmasq-$cloud.pid /etc/dnsmasq-$cloud.conf
