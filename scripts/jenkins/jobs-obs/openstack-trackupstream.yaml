@@ -13,6 +13,7 @@
             - Cloud:OpenStack:Kilo:Staging
             - Cloud:OpenStack:Liberty:Staging
             - Cloud:OpenStack:Mitaka:Staging
+            - Cloud:OpenStack:Newton:Staging
             - Cloud:OpenStack:Master
       - axis:
           type: user-defined
@@ -176,7 +177,10 @@
             OBS) OSCAPI="https://api.opensuse.org"
                 OSC_BUILD_ARCH=x86_64
                 case $OBS_PROJECT in
-                    Cloud:OpenStack:Master|Cloud:OpenStack:Mitaka*|Cloud:OpenStack:Liberty*)
+                    Cloud:OpenStack:Master|Cloud:OpenStack:Newton*)
+                        OSC_BUILD_DIST=SLE_12_SP2
+                        ;;
+                    Cloud:OpenStack:Mitaka*|Cloud:OpenStack:Liberty*)
                         OSC_BUILD_DIST=SLE_12_SP1
                         ;;
                     Cloud:OpenStack:Kilo*)
