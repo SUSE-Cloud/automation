@@ -3,9 +3,9 @@
     description: "<b>This job is managed by JJB! Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-obs/templates/'>git</a></b>"
     node: openstack-rpm-packaging
     concurrent: true
-    logrotate:
-      numToKeep: -1
-      daysToKeep: 31
+    build-discarder:
+      num-to-keep: -1
+      days-to-keep: 31
     builders:
       - gerrit-git-prep
       - shell: |

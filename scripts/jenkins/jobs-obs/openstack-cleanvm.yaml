@@ -5,9 +5,9 @@
     triggers:
       - timed: 'H 4 * * *'
 
-    logrotate:
-      numToKeep: 30
-      daysToKeep: -1
+    build-discarder:
+      num-to-keep: 30
+      days-to-keep: -1
 
     axes:
       - axis:

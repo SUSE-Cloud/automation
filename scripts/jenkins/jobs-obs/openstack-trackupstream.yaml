@@ -39,6 +39,7 @@
             - openstack-keystone
             - openstack-manila
             - openstack-magnum
+            - openstack-murano
             - openstack-neutron
             - openstack-neutron-fwaas
             - openstack-neutron-gbp
@@ -75,6 +76,7 @@
             - python-magnumclient
             - python-manilaclient
             - python-mistralclient
+            - python-muranoclient
             - python-neutronclient
             - python-networking-cisco
             - python-networking-hyperv
@@ -99,7 +101,30 @@
             - cloud-trackupstream
     execution-strategy:
       combination-filter: |
-        ! ( [ "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
+        ! ( [ "Cloud:OpenStack:Kilo:Staging"].contains(project) &&
+            [ "openstack-aodh",
+              "openstack-horizon-plugin-designate-ui",
+              "openstack-gnocchi",
+              "openstack-heat-gbp",
+              "openstack-horizon-plugin-gbp-ui",
+              "openstack-neutron-gbp",
+              "openstack-neutron-lbaas",
+              "openstack-neutron-fwaas",
+              "openstack-neutron-vpnaas",
+              "openstack-neutron-zvm-agent",
+              "openstack-nova-virt-zvm",
+              "openstack-ec2-api",
+              "python-networking-cisco",
+              "python-networking-hyperv" ].contains(component) ||
+            [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging" ].contains(project) &&
+            [ "openstack-magnum",
+              "openstack-murano",
+              "openstack-barbican",
+              "openstack-horizon-plugin-ironic-ui",
+              "openstack-horizon-plugin-magnum-ui",
+              "openstack-octavia",
+            ].contains(component) ||
+            [ "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging"].contains(project) &&
             [ "python-aodhclient",
               "python-barbicanclient",
               "python-ceilometerclient",
@@ -115,6 +140,7 @@
               "python-keystonemiddleware",
               "python-magnumclient",
               "python-manilaclient",
+              "python-muranoclient",
               "python-mistralclient",
               "python-neutronclient",
               "python-novaclient",
@@ -133,29 +159,8 @@
               "openstack-zaqar",
               "python-os-apply-config",
               "python-os-cloud-config",
-              "python-os-collect-config" ].contains(component) ||
-            [ "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
-            [ "openstack-aodh",
-              "openstack-horizon-plugin-designate-ui",
-              "openstack-gnocchi",
-              "openstack-heat-gbp",
-              "openstack-horizon-plugin-gbp-ui",
-              "openstack-neutron-gbp",
-              "openstack-neutron-lbaas",
-              "openstack-neutron-fwaas",
-              "openstack-neutron-vpnaas",
-              "openstack-neutron-zvm-agent",
-              "openstack-nova-virt-zvm",
-              "openstack-ec2-api",
-              "python-networking-cisco",
-              "python-networking-hyperv" ].contains(component) ||
-            [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Juno:Staging" ].contains(project) &&
-            [ "openstack-magnum",
-              "openstack-barbican",
-              "openstack-horizon-plugin-ironic-ui",
-              "openstack-horizon-plugin-magnum-ui",
-              "openstack-octavia",
-            ].contains(component) )
+              "python-os-collect-config" ].contains(component)
+            )
       sequential: true
     builders:
       - update-automation
