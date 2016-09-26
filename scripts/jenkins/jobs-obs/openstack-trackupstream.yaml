@@ -56,8 +56,6 @@
             - openstack-swift
             - openstack-tempest
             - openstack-trove
-            - openstack-tuskar
-            - openstack-tuskar_ui
             - openstack-utils
             - openstack-zaqar
             - python-aodhclient
@@ -85,7 +83,6 @@
             - python-saharaclient
             - python-swiftclient
             - python-troveclient
-            - python-tuskarclient
             - python-zaqarclient
             - python-swift3
             - python-os-apply-config
@@ -148,14 +145,11 @@
               "python-saharaclient",
               "python-swiftclient",
               "python-troveclient",
-              "python-tuskarclient",
               "python-zaqarclient",
               "python-keystonemiddleware",
               "tripleo-image-elements",
               "tripleo-heat-templates",
               "diskimage-builder",
-              "openstack-tuskar",
-              "openstack-tuskar_ui",
               "openstack-zaqar",
               "python-os-apply-config",
               "python-os-cloud-config",
