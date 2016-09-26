@@ -66,6 +66,9 @@ function libvirt_net_start()
         nodehostips=$(seq -s ' ' 81 $((80 + $nodenumber)))
 
         : ${cloud_port_offset:=1100}
+        mosh_start=$(( $cloud_port_offset + 60001 ))
+        mosh_end=$((   $cloud_port_offset + 60010 ))
+
         mkdir -p $boot_mkcloud_d
         cat > $boot_mkcloud_d_cloud <<EOS
 #!/bin/bash
@@ -87,6 +90,12 @@ for port in 22 80 443 3000 4000 4040; do
         --dport \$(( $cloud_port_offset + \$port )) \\
         -j DNAT --to-destination $adminip:\$port
 done
+
+# Connect to admin server with mosh (if installed) via:
+#   mosh -p $mosh_start --ssh="ssh -p $(( $cloud_port_offset + 22 ))" `hostname -f`
+iptables_unique_rule PREROUTING -t nat -p udp \\
+    --dport $mosh_start:$mosh_end \\
+    -j DNAT --to-destination $adminip
 
 # Forward ports to non-admin nodes
 for port in 22 80 443 5000 7630; do
