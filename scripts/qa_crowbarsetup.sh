@@ -1750,7 +1750,7 @@ function onadmin_activate_repositories()
     fi
 
     # activate provisioner repos, so that nodes can use them
-    crowbar_api_request POST $crowbar_api "/utils/repositories/activate_all.json"
+    safely crowbar_api_request POST $crowbar_api "/utils/repositories/activate_all.json"
 }
 
 function onadmin_bootstrapcrowbar()
