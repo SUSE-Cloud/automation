@@ -1,0 +1,26 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-2nodes-{arch}'
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H 2 * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{version}
+            nodenumber=2
+            mkcloudtarget=all_batch
+            label={label}
+            scenario=cloud{version}-2nodes-default.yml
+            want_node_aliases=controller=1,compute-kvm=1
+

@@ -1,0 +1,24 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H 2 * * *'
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{version}
+            nodenumber=4
+            networkingplugin=linuxbridge
+            mkcloudtarget=all
+            label={label}

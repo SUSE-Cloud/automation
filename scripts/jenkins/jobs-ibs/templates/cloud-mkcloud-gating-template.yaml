@@ -25,23 +25,12 @@
           name: 'Standard Gate Checks (non-HA/OVS+Linuxbridge)'
           condition: SUCCESSFUL
           projects:
-            - name: openstack-mkcloud
+            - name: cloud-mkcloud{version}-job-2nodes-x86_64
               node-label: cloud-trigger
-              predefined-parameters: |
-                cloudsource=develcloud{version}
-                TESTHEAD=1
-                nodenumber=2
-                mkcloudtarget=all_batch
-                scenario=cloud{version}-2nodes-default.yml
-                want_node_aliases=controller=1,compute-kvm=1
-            - name: openstack-mkcloud
+            
+            - name: cloud-mkcloud{version}-job-4nodes-linuxbridge-x86_64
               node-label: cloud-trigger
-              predefined-parameters: |
-                TESTHEAD=1
-                cloudsource=develcloud{version}
-                nodenumber=4
-                networkingplugin=linuxbridge
-                mkcloudtarget=all
+
             - name: cloud-mkcloud{version}-job-ha-x86_64
               node-label: cloud-trigger
 
