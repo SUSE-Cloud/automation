@@ -3,7 +3,7 @@
     node: cloud-trigger
 
     triggers:
-      - timed: '11 2 * * *'
+      - timed: 'H 2 * * *'
 
     logrotate:
       numToKeep: 7
