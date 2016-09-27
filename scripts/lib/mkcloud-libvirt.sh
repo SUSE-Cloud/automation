@@ -339,3 +339,11 @@ function libvirt_do_setuplonelynodes()
         ${mkcloud_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
     done
 }
+
+function libvirt_do_shutdowncloud()
+{
+    virsh shutdown $cloud-admin
+    for i in $(nodes ids all) ; do
+        virsh shutdown $cloud-node$i
+    done
+}

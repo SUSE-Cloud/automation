@@ -654,10 +654,7 @@ function setuppublicnet()
 
 function shutdowncloud()
 {
-    virsh shutdown $cloud-admin
-    for i in $(nodes ids all) ; do
-        virsh shutdown $cloud-node$i
-    done
+    ${mkclouddriver}_do_shutdowncloud
 }
 
 function restartcloud()

@@ -13,7 +13,7 @@ function dirmaint_do_sanity_checks()
     : Sanity is doing the same thing over and over again and seeing no difference
 }
 
-function dirmaint_do_cleanup()
+function dirmaint_do_shutdowncloud()
 {
     # FIXME stop hardcoding
     local cloud="mkcld"
@@ -22,6 +22,11 @@ function dirmaint_do_cleanup()
     done
     vmcp sig shut ${cloud}adm
     wait_for 60 1 "! vmcp q ${cloud}adm" "admin node ${cloud}adm to log off"
+}
+
+function dirmaint_do_cleanup()
+{
+    dirmaint_do_shutdowncloud
 
     killproc -p /var/run/mkcloud/dnsmasq-$cloud.pid /usr/sbin/dnsmasq
     rm -f /var/run/mkcloud/dnsmasq-$cloud.pid /etc/dnsmasq-$cloud.conf
