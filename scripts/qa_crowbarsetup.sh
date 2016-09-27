@@ -3744,7 +3744,7 @@ function oncontroller_setupproduction()
         [[ $image_name =~ -Build ]] && params+=' --min-ram 300 --min-disk 10'
         curl -s \
             http://$clouddata/images/$img | \
-            openstack image create --public --property hypervisor_type=kvm \
+            OS_TENANT_NAME=admin openstack image create --public --property hypervisor_type=kvm \
             $params $image_name
     done
 }
