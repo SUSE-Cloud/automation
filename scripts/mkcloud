@@ -36,11 +36,12 @@ fi
 : ${qa_crowbarsetup:=${mkcloud_dir}/qa_crowbarsetup.sh}
 : ${iscsictl:=${mkcloud_dir}/iscsictl.py}
 
+: ${macprefix:=52:54:77}
 : ${mkclouddriver:=libvirt}
 mkcloud_lib_dir=${mkcloud_dir}/lib
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
-mkcloud_temporary_scripts="mkcloud-$mkclouddriver.sh"
+mkcloud_temporary_scripts="mkcloud-common.sh mkcloud-$mkclouddriver.sh"
 for script in $mkcloud_temporary_scripts; do
     source ${mkcloud_lib_dir}/$script
 done
@@ -523,7 +524,7 @@ function confset()
 
 function macfunc()
 {
-    printf "52:54:77:77:77:%02x" $1
+    printf "$macprefix:77:77:%02x" $1
 }
 
 function get_admin_node_dist()
@@ -568,22 +569,7 @@ function dist_to_image_name()
 # bring up lonely_node(s) in the admin network
 function setuplonelynodes()
 {
-    local i
-    for i in $(nodes ids lonely) ; do
-        local mac=$(macfunc $i)
-        local lonely_node
-        lonely_node=$cloud-node$i
-        safely ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $mac 0\
-            "$cephvolumenumber" "$drbdvolume" $compute_node_memory\
-            $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir\
-            1 1 > /tmp/$cloud-node$i.xml
-
-        local lonely_disk
-        lonely_disk="$vdisk_dir/${cloud}.node$i"
-
-        onhost_deploy_image "lonely" $(get_lonely_node_dist) $lonely_disk
-        ${mkcloud_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
-    done
+    ${mkclouddriver}_do_setuplonelynodes
 }
 
 # register lonely_node against crowbar
@@ -668,10 +654,7 @@ function setuppublicnet()
 
 function shutdowncloud()
 {
-    virsh shutdown $cloud-admin
-    for i in $(nodes ids all) ; do
-        virsh shutdown $cloud-node$i
-    done
+    ${mkclouddriver}_do_shutdowncloud
 }
 
 function restartcloud()
