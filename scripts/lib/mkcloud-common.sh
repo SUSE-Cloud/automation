@@ -57,8 +57,11 @@ done
 iptables_unique_rule PREROUTING -t nat -p tcp --dport 6080 \\
     -j DNAT --to-destination $net_public.2
 
-iptables_unique_rule FORWARD -d $net_admin.0/24 -j ACCEPT
-iptables_unique_rule FORWARD -d $net_public.0/24 -j ACCEPT
+# need to delete+insert on top to make sure our ACCEPT comes before libvirt's REJECT
+for x in D I ; do
+    iptables -\$x FORWARD -d $net_admin.0/24 -j ACCEPT
+    iptables -\$x FORWARD -d $net_public.0/24 -j ACCEPT
+done
 
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
 EOS
