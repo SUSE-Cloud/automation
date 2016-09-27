@@ -122,7 +122,7 @@
               "openstack-horizon-plugin-magnum-ui",
               "openstack-octavia",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging"].contains(project) &&
+            [ "Cloud:OpenStack:Newton:Staging", "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging"].contains(project) &&
             [ "python-aodhclient",
               "python-barbicanclient",
               "python-ceilometerclient",
