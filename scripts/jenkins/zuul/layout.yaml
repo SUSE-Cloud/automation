@@ -21,6 +21,7 @@ projects:
     rpm-packaging:
       - openstack-upstream-gerrit-rpm-packaging-Master
       - openstack-upstream-gerrit-rpm-packaging-Mitaka
+      - openstack-upstream-gerrit-rpm-packaging-Newton
 
 jobs:
   - name: openstack-upstream-gerrit-rpm-packaging-Master
