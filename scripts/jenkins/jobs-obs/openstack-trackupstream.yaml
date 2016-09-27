@@ -13,6 +13,7 @@
             - Cloud:OpenStack:Kilo:Staging
             - Cloud:OpenStack:Liberty:Staging
             - Cloud:OpenStack:Mitaka:Staging
+            - Cloud:OpenStack:Newton:Staging
             - Cloud:OpenStack:Master
       - axis:
           type: user-defined
@@ -56,8 +57,6 @@
             - openstack-swift
             - openstack-tempest
             - openstack-trove
-            - openstack-tuskar
-            - openstack-tuskar_ui
             - openstack-utils
             - openstack-zaqar
             - python-aodhclient
@@ -85,7 +84,6 @@
             - python-saharaclient
             - python-swiftclient
             - python-troveclient
-            - python-tuskarclient
             - python-zaqarclient
             - python-swift3
             - python-os-apply-config
@@ -148,14 +146,11 @@
               "python-saharaclient",
               "python-swiftclient",
               "python-troveclient",
-              "python-tuskarclient",
               "python-zaqarclient",
               "python-keystonemiddleware",
               "tripleo-image-elements",
               "tripleo-heat-templates",
               "diskimage-builder",
-              "openstack-tuskar",
-              "openstack-tuskar_ui",
               "openstack-zaqar",
               "python-os-apply-config",
               "python-os-cloud-config",
@@ -182,7 +177,10 @@
             OBS) OSCAPI="https://api.opensuse.org"
                 OSC_BUILD_ARCH=x86_64
                 case $OBS_PROJECT in
-                    Cloud:OpenStack:Master|Cloud:OpenStack:Mitaka*|Cloud:OpenStack:Liberty*)
+                    Cloud:OpenStack:Master|Cloud:OpenStack:Newton*)
+                        OSC_BUILD_DIST=SLE_12_SP2
+                        ;;
+                    Cloud:OpenStack:Mitaka*|Cloud:OpenStack:Liberty*)
                         OSC_BUILD_DIST=SLE_12_SP1
                         ;;
                     Cloud:OpenStack:Kilo*)
