@@ -89,7 +89,7 @@ export want_postgresql=${want_postgresql:-1}
 
 export ZYPP_LOCK_TIMEOUT=120
 
-function horizon_barclamp()
+function horizon_barclamp
 {
     if iscloudver 6plus; then
         echo "horizon"
@@ -98,7 +98,7 @@ function horizon_barclamp()
     fi
 }
 
-function nova_role_prefix()
+function nova_role_prefix
 {
     if ! iscloudver 6plus ; then
         echo "nova-multi"
@@ -107,14 +107,15 @@ function nova_role_prefix()
     fi
 }
 
-function complain() # {{{
+function complain
 {
     local ex=$1; shift
     printf "Error: %s\n" "$@" >&2
     [[ $ex = - ]] || exit $ex
-} # }}}
+}
 
-safely () {
+function safely
+{
     if "$@"; then
         true
     else
@@ -122,7 +123,7 @@ safely () {
     fi
 }
 
-rubyjsonparse()
+function rubyjsonparse
 {
     $ruby -e "
         require 'rubygems'
@@ -131,7 +132,7 @@ rubyjsonparse()
         $1"
 }
 
-onadmin_help()
+function onadmin_help
 {
     cat <<EOUSAGE
     want_neutronsles12=1 (default 0)
@@ -170,7 +171,7 @@ onadmin_help()
 EOUSAGE
 }
 
-setcloudnetvars()
+function setcloudnetvars
 {
     local cloud=$1
     export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
@@ -308,7 +309,7 @@ setcloudnetvars()
 # echo foo
 # EOF
 # )
-function pre_hook()
+function pre_hook
 {
     func=$1
     pre=$(eval echo \$pre_$func | base64 -d)
@@ -317,7 +318,7 @@ function pre_hook()
     echo $func >> /root/qa_crowbarsetup.steps.log
 }
 
-function intercept()
+function intercept
 {
     if [ -n "$shell" ] ; then
         echo "Now starting bash for manual intervention..."
@@ -326,7 +327,7 @@ function intercept()
     fi
 }
 
-function wait_for()
+function wait_for
 {
     local timecount=${1:-300}
     local timesleep=${2:-1}
@@ -357,7 +358,7 @@ function wait_for()
     fi
 }
 
-function wait_for_if_running()
+function wait_for_if_running
 {
     local procname=${1}
     local timecount=${2:-300}
@@ -365,7 +366,7 @@ function wait_for_if_running()
     wait_for $timecount 5 "! pidofproc ${procname} >/dev/null" "process '${procname}' to terminate"
 }
 
-function mount_localreposdir_target()
+function mount_localreposdir_target
 {
     if [ -z "$localreposdir_target" ]; then
         return
@@ -377,7 +378,7 @@ function mount_localreposdir_target()
     mount "$localreposdir_target"
 }
 
-function add_bind_mount()
+function add_bind_mount
 {
     local src="$1"
     local dst="$2"
@@ -394,7 +395,7 @@ function add_bind_mount()
     safely mount "$dst"
 }
 
-function add_nfs_mount()
+function add_nfs_mount
 {
     local nfs="$1"
     local dir="$2"
@@ -417,7 +418,7 @@ function add_nfs_mount()
 # input2: nfssrc  - remote NFS dir to mount
 # input3: targetdir - where to mount (usually in /srv/tftpboot/repos/DIR )
 # input4(optional): zypper_alias - if set, this dir is added as a local repo for zypper
-function add_mount()
+function add_mount
 {
     local bindsrc="$1"
     local nfssrc="$2"
@@ -446,7 +447,7 @@ function add_mount()
     fi
 }
 
-function getcloudver()
+function getcloudver
 {
     if   [[ $cloudsource =~ ^.*(cloud|GM)3(\+up)?$ ]] ; then
         echo -n 3
@@ -465,7 +466,7 @@ function getcloudver()
 
 # return if cloudsource is referring a certain SUSE Cloud version
 # input1: version - 6plus refers to version 6 or later ; only a number refers to one exact version
-function iscloudver()
+function iscloudver
 {
     [[ $cloudsource ]] || return 1
     local v=$1
@@ -491,7 +492,7 @@ function iscloudver()
     return $?
 }
 
-function isupgradecloudver()
+function isupgradecloudver
 {
     local cloudsource=$upgrade_cloudsource
     iscloudver "$@"
@@ -504,7 +505,7 @@ function issusenode
     knife node show $machine -a node.target_platform | grep -q suse-
 }
 
-function openstack()
+function openstack
 {
     command openstack --insecure "$@"
 }
@@ -517,7 +518,7 @@ export manilaclient_INSECURE=true
 export MANILACLIENT_INSECURE=true
 export TROVECLIENT_INSECURE=true
 
-function isrepoworking()
+function isrepoworking
 {
     local repo=$1
     curl -s http://$clouddata/repos/disabled | egrep -q "^$repo" && {
@@ -527,7 +528,7 @@ function isrepoworking()
     return 0
 }
 
-function export_tftpboot_repos_dir()
+function export_tftpboot_repos_dir
 {
     tftpboot_repos_dir=/srv/tftpboot/repos
     tftpboot_suse_dir=/srv/tftpboot/suse-11.3
@@ -548,7 +549,7 @@ function export_tftpboot_repos_dir()
     fi
 }
 
-function addsp3testupdates()
+function addsp3testupdates
 {
     add_mount "SLES11-SP3-Updates" \
         $clouddata':/srv/nfs/repos/SLES11-SP3-Updates/' \
@@ -561,7 +562,7 @@ function addsp3testupdates()
         "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/"
 }
 
-function addsles12testupdates()
+function addsles12testupdates
 {
     add_mount "SLES12-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
@@ -573,7 +574,7 @@ function addsles12testupdates()
     fi
 }
 
-function addsles12sp1testupdates()
+function addsles12sp1testupdates
 {
     if isrepoworking SLES12-SP1-Updates-test ; then
         add_mount "SLES12-SP1-Updates-test" \
@@ -597,7 +598,7 @@ function addsles12sp1testupdates()
     fi
 }
 
-function addsles12sp2testupdates()
+function addsles12sp2testupdates
 {
     echo "Enable SLES12SP2 Test Updates once available"
     # add_mount "SLES12-SP2-Updates-test" \
@@ -608,21 +609,21 @@ function addsles12sp2testupdates()
     #     "$tftpboot_repos12sp2_dir/SLE12-SP2-HA-Updates-test/"
 }
 
-function addcloud4maintupdates()
+function addcloud4maintupdates
 {
     add_mount "SUSE-Cloud-4-Updates" \
         $clouddata':/srv/nfs/repos/SUSE-Cloud-4-Updates/' \
         "$tftpboot_repos_dir/SUSE-Cloud-4-Updates/" "cloudmaintup"
 }
 
-function addcloud4testupdates()
+function addcloud4testupdates
 {
     add_mount "SUSE-Cloud-4-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/' \
         "$tftpboot_repos_dir/SUSE-Cloud-4-Updates-test/" "cloudtup"
 }
 
-function addcloud5maintupdates()
+function addcloud5maintupdates
 {
     add_mount "SUSE-Cloud-5-Updates" \
         $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Updates/' \
@@ -633,7 +634,7 @@ function addcloud5maintupdates()
         "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates/"
 }
 
-function addcloud5testupdates()
+function addcloud5testupdates
 {
     add_mount "SUSE-Cloud-5-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/' \
@@ -643,7 +644,7 @@ function addcloud5testupdates()
         "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/"
 }
 
-function addcloud5pool()
+function addcloud5pool
 {
     add_mount "SUSE-Cloud-5-Pool" \
         $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Pool/' \
@@ -651,24 +652,24 @@ function addcloud5pool()
         "cloudpool"
 }
 
-function addcloud6maintupdates()
+function addcloud6maintupdates
 {
     add_mount "SUSE-OpenStack-Cloud-6-Updates" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Updates/' "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates/" "cloudmaintup"
 }
 
-function addcloud6testupdates()
+function addcloud6testupdates
 {
     add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
 }
 
-function addcloud6pool()
+function addcloud6pool
 {
     add_mount "SUSE-OpenStack-Cloud-6-Pool" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Pool/' "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Pool/" "cloudpool"
 }
 
-function addcctdepsrepo()
+function addcctdepsrepo
 {
     if [[ $cloudsource = @(develcloud5|GM5|GM5+up) ]]; then
         zypper ar -f http://$susedownload/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
@@ -677,7 +678,7 @@ function addcctdepsrepo()
     fi
 }
 
-function add_sdk_repo()
+function add_sdk_repo
 {
     case "$cloudsource" in
         develcloud6|GM6|GM6+up)
@@ -691,7 +692,7 @@ function add_sdk_repo()
     esac
 }
 
-function add_ha_repo()
+function add_ha_repo
 {
     local repo
     for repo in SLE11-HAE-SP3-{Pool,Updates}; do
@@ -702,7 +703,7 @@ function add_ha_repo()
     done
 }
 
-function add_ha12sp1_repo()
+function add_ha12sp1_repo
 {
     local repo
     for repo in SLE12-SP1-HA-{Pool,Updates}; do
@@ -713,7 +714,7 @@ function add_ha12sp1_repo()
     done
 }
 
-function add_ha12sp2_repo()
+function add_ha12sp2_repo
 {
     local repo
     for repo in SLE12-SP2-HA-{Pool,Updates}; do
@@ -724,7 +725,7 @@ function add_ha12sp2_repo()
     done
 }
 
-function add_suse_storage_repo()
+function add_suse_storage_repo
 {
         local repo
         if iscloudver 5; then
@@ -753,7 +754,7 @@ function add_suse_storage_repo()
         fi
 }
 
-function get_disk_id_by_serial_and_libvirt_type()
+function get_disk_id_by_serial_and_libvirt_type
 {
     # default libvirt_type is "kvm"
     local libvirt="${1:-kvm}"
@@ -766,7 +767,7 @@ function get_disk_id_by_serial_and_libvirt_type()
     echo -n "$diskid"
 }
 
-function get_all_nodes()
+function get_all_nodes
 {
     if iscloudver 6plus; then
         safely crowbarctl node list --no-meta --plain | LC_ALL=C sort
@@ -775,7 +776,7 @@ function get_all_nodes()
     fi
 }
 
-function get_all_suse_nodes()
+function get_all_suse_nodes
 {
     for m in $(get_all_nodes) ; do
         issusenode "$m" || continue
@@ -783,21 +784,21 @@ function get_all_suse_nodes()
     done
 }
 
-function get_all_discovered_nodes()
+function get_all_discovered_nodes
 {
     # names of discovered nodes start with 'd'
     # so it is excluding the crowbar node
     get_all_nodes | grep "^d"
 }
 
-function get_crowbar_node()
+function get_crowbar_node
 {
     # crowbar node may have any name, so better use grep -v
     # and make sure it is only one
     get_all_nodes | grep -v "^d" | head -n 1
 }
 
-function get_unclustered_sles12plus_nodes()
+function get_unclustered_sles12plus_nodes
 {
     local target="suse-12.0"
     iscloudver 6 && target="suse-12.1"
@@ -813,19 +814,19 @@ function get_unclustered_sles12plus_nodes()
 }
 
 
-function get_docker_nodes()
+function get_docker_nodes
 {
     knife search node "roles:`nova_role_prefix`-compute-docker" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'
 }
 
-function remove_node_from_list()
+function remove_node_from_list
 {
     local onenode="$1"
     local list="$@"
     printf "%s\n" $list | grep -iv "$onenode"
 }
 
-function cluster_node_assignment()
+function cluster_node_assignment
 {
     if [ -n "$clusternodesdata" ] ; then
         # exit if node assignment is already done
@@ -932,7 +933,7 @@ function cluster_node_assignment()
     echo "............................................................"
 }
 
-function onadmin_prepare_sles11sp3_repos()
+function onadmin_prepare_sles11sp3_repos
 {
     local targetdir_install="$tftpboot_suse_dir/install"
 
@@ -975,7 +976,7 @@ function onadmin_prepare_sles11sp3_repos()
     fi
 }
 
-function rsync_iso()
+function rsync_iso
 {
     local distpath="$1"
     local distiso="$2"
@@ -994,19 +995,19 @@ function rsync_iso()
     )
 }
 
-function onadmin_prepare_sles12sp1_repos()
+function onadmin_prepare_sles12sp1_repos
 {
     onadmin_prepare_sles12sp1_installmedia
     onadmin_prepare_sles12sp1_other_repos
 }
 
-function onadmin_prepare_sles12sp2_repos()
+function onadmin_prepare_sles12sp2_repos
 {
     onadmin_prepare_sles12sp2_installmedia
     onadmin_prepare_sles12sp2_other_repos
 }
 
-function onadmin_prepare_sles12plus_cloud_repos()
+function onadmin_prepare_sles12plus_cloud_repos
 {
     if iscloudver 5; then
         rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$tftpboot_repos12_dir/SLE12-Cloud-Compute"
@@ -1045,7 +1046,7 @@ function onadmin_prepare_sles12plus_cloud_repos()
     done
 }
 
-function onadmin_prepare_sles12_installmedia()
+function onadmin_prepare_sles12_installmedia
 {
     local sles12_mount="$tftpboot_suse12_dir/install"
     add_mount "SLE-12-Server-LATEST/sle-12-x86_64" \
@@ -1057,7 +1058,7 @@ function onadmin_prepare_sles12_installmedia()
     fi
 }
 
-function onadmin_prepare_sles12sp1_installmedia()
+function onadmin_prepare_sles12sp1_installmedia
 {
     local a
     for a in $architectures; do
@@ -1072,7 +1073,7 @@ function onadmin_prepare_sles12sp1_installmedia()
     done
 }
 
-function onadmin_prepare_sles12sp2_installmedia()
+function onadmin_prepare_sles12sp2_installmedia
 {
     local a
     for a in $architectures; do
@@ -1087,7 +1088,7 @@ function onadmin_prepare_sles12sp2_installmedia()
     done
 }
 
-function onadmin_prepare_sles12_other_repos()
+function onadmin_prepare_sles12_other_repos
 {
     for repo in SLES12-{Pool,Updates}; do
         add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
@@ -1095,7 +1096,7 @@ function onadmin_prepare_sles12_other_repos()
     done
 }
 
-function onadmin_prepare_sles12sp1_other_repos()
+function onadmin_prepare_sles12sp1_other_repos
 {
     for repo in SLES12-SP1-{Pool,Updates}; do
         add_mount "$repo/sle-12-$arch" "$clouddata:/srv/nfs/repos/$arch/$repo" \
@@ -1107,7 +1108,7 @@ function onadmin_prepare_sles12sp1_other_repos()
     done
 }
 
-function onadmin_prepare_sles12sp2_other_repos()
+function onadmin_prepare_sles12sp2_other_repos
 {
     for repo in SLES12-SP2-{Pool,Updates}; do
         add_mount "$repo/sle-12-$arch" "$clouddata:/srv/nfs/repos/$arch/$repo" \
@@ -1119,7 +1120,7 @@ function onadmin_prepare_sles12sp2_other_repos()
     done
 }
 
-function onadmin_prepare_cloud_repos()
+function onadmin_prepare_cloud_repos
 {
     local targetdir=
     if iscloudver 7plus; then
@@ -1220,7 +1221,7 @@ function onadmin_prepare_cloud_repos()
 }
 
 
-function onadmin_add_cloud_repo()
+function onadmin_add_cloud_repo
 {
     local targetdir=
     if iscloudver 7plus; then
@@ -1270,7 +1271,7 @@ function onadmin_add_cloud_repo()
 }
 
 
-function do_set_repos_skip_checks()
+function do_set_repos_skip_checks
 {
     # We don't use the proper pool/updates repos when using a devel build
     if iscloudver 5plus && [[ $cloudsource =~ (develcloud|GM5$|GM6$) ]]; then
@@ -1279,7 +1280,7 @@ function do_set_repos_skip_checks()
 }
 
 
-function create_repos_yml_for_platform()
+function create_repos_yml_for_platform
 {
     local platform=$1
     local arch=$2
@@ -1304,7 +1305,7 @@ function create_repos_yml_for_platform()
     done
 }
 
-function create_repos_yml()
+function create_repos_yml
 {
     local repos_yml="/etc/crowbar/repos.yml"
     local tmp_yml=$(mktemp).yml
@@ -1374,7 +1375,7 @@ function create_repos_yml()
 }
 
 
-function onadmin_set_source_variables()
+function onadmin_set_source_variables
 {
     if iscloudver 7plus && [ -z "$want_sles12sp1_admin" ]; then
         suseversion=12.2
@@ -1471,14 +1472,14 @@ function onadmin_set_source_variables()
 }
 
 
-function zypper_refresh()
+function zypper_refresh
 {
     # --no-gpg-checks for Devel:Cloud repo
     safely zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
 }
 
 
-function ensure_packages_installed()
+function ensure_packages_installed
 {
     local zypper_params="--non-interactive --gpg-auto-import-keys --no-gpg-checks"
     local pack
@@ -1488,7 +1489,7 @@ function ensure_packages_installed()
 }
 
 
-function onadmin_repocleanup()
+function onadmin_repocleanup
 {
     # Workaround broken admin image that has SP3 Test update channel enabled
     zypper mr -d sp3tup
@@ -1498,7 +1499,7 @@ function onadmin_repocleanup()
 
 # replace zypper repos from the image with user-specified ones
 # because clouddata might not be reachable from where this runs
-function onadmin_setup_local_zypper_repositories()
+function onadmin_setup_local_zypper_repositories
 {
     # Delete all repos except PTF repo, because this could
     # be called after the addupdaterepo step.
@@ -1533,7 +1534,7 @@ function onadmin_setup_local_zypper_repositories()
 }
 
 # setup network/DNS, add repos and install crowbar packages
-function onadmin_prepareinstallcrowbar()
+function onadmin_prepareinstallcrowbar
 {
     pre_hook $FUNCNAME
     [[ $forcephysicaladmin ]] || lsmod | grep -q ^virtio_blk || complain 25 "this script should be run in the crowbar admin VM"
@@ -1728,7 +1729,7 @@ EOF
     return 0
 }
 
-function install_crowbar_init()
+function install_crowbar_init
 {
     local apacheconfdir=/etc/apache2/conf.d
 
@@ -1743,7 +1744,7 @@ function install_crowbar_init()
     wait_for 100 3 "onadmin_is_crowbar_init_api_available" "crowbar init service to start"
 }
 
-function onadmin_activate_repositories()
+function onadmin_activate_repositories
 {
     if iscloudver 5minus; then
         complain 11 "This upgrade path is only supported for Cloud 6+"
@@ -1753,7 +1754,7 @@ function onadmin_activate_repositories()
     crowbar_api_request POST $crowbar_api "/utils/repositories/activate_all.json"
 }
 
-function onadmin_bootstrapcrowbar()
+function onadmin_bootstrapcrowbar
 {
     local upgrademode=$1
     # temporarily make it possible to not use postgres until we switched to the new upgrade process
@@ -1771,35 +1772,35 @@ function onadmin_bootstrapcrowbar()
     fi
 }
 
-function jsonice()
+function jsonice
 {
     # create indented json output
     # while taking care for empty strings (eg. replies from curl)
     (echo -n '{}'; cat -) | sed -e 's/^{}\s*{/{/' | safely python -mjson.tool
 }
 
-function crowbar_any_status()
+function crowbar_any_status
 {
     local api_path=$1
     curl -s ${crowbar_api}${api_path}.json | jsonice
 }
 
-function crowbar_install_status()
+function crowbar_install_status
 {
     crowbar_any_status $crowbar_api_installer_path/status
 }
 
-function crowbar_restore_status()
+function crowbar_restore_status
 {
     crowbar_any_status /utils/backups/restore_status
 }
 
-function crowbar_nodeupgrade_status()
+function crowbar_nodeupgrade_status
 {
     crowbar_any_status /installer/upgrade/nodes_status
 }
 
-function do_installcrowbar_cloud6plus()
+function do_installcrowbar_cloud6plus
 {
     if [[ $want_postgresql = 0 ]] || iscloudver 6minus; then
         service crowbar status || service crowbar stop
@@ -1827,7 +1828,7 @@ function do_installcrowbar_cloud6plus()
 }
 
 
-function do_installcrowbar_legacy()
+function do_installcrowbar_legacy
 {
     local instparams="$1 --verbose"
     local instcmd
@@ -1863,7 +1864,7 @@ function do_installcrowbar_legacy()
 }
 
 
-function do_installcrowbar()
+function do_installcrowbar
 {
     intercept "crowbar-installation"
     pre_hook $FUNCNAME
@@ -1925,7 +1926,7 @@ EOF
 }
 
 
-function onadmin_installcrowbarfromgit()
+function onadmin_installcrowbarfromgit
 {
     if iscloudver 5plus ; then
         # on SLE11 we dont have update-alternatives for ruby
@@ -1937,14 +1938,14 @@ function onadmin_installcrowbarfromgit()
     do_installcrowbar "--from-git"
 }
 
-function onadmin_installcrowbar()
+function onadmin_installcrowbar
 {
     do_installcrowbar ""
 }
 
 # Set a node's attribute (see 2nd argument)
 # Must be run after discovery and makes sense mostly before allocation
-function set_node_attribute()
+function set_node_attribute
 {
     local node="$1"
     local attr="$2"
@@ -1958,22 +1959,22 @@ function set_node_attribute()
     "
 }
 
-function set_node_fs()
+function set_node_fs
 {
     set_node_attribute "$1" "crowbar_wall.default_fs" "$2"
 }
 
-function set_node_role()
+function set_node_role
 {
     set_node_attribute "$1" "crowbar_wall.intended_role" "$2"
 }
 
-function set_node_platform()
+function set_node_platform
 {
     set_node_attribute "$1" "target_platform" "$2"
 }
 
-function set_node_role_and_platform()
+function set_node_role_and_platform
 {
     set_node_role "$1" "$2"
     set_node_platform "$1" "$3"
@@ -1981,7 +1982,7 @@ function set_node_role_and_platform()
 
 
 # set the RAID configuration for a node before allocating
-function set_node_raid()
+function set_node_raid
 {
     node="$1"
     raid_type="$2"
@@ -2005,7 +2006,7 @@ function set_node_raid()
 
 
 # Reboot the nodes with ipmi
-function reboot_nodes_via_ipmi()
+function reboot_nodes_via_ipmi
 {
     do_one_proposal ipmi default
     local bmc_values=($(
@@ -2053,7 +2054,7 @@ function reboot_nodes_via_ipmi()
     wait
 }
 
-function onadmin_allocate()
+function onadmin_allocate
 {
     pre_hook $FUNCNAME
 
@@ -2192,12 +2193,12 @@ EOF
         complain 27 "simple crowbar test failed"
 }
 
-function sshtest()
+function sshtest
 {
     timeout 10 ssh -o NumberOfPasswordPrompts=0 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
 }
 
-function ssh_password()
+function ssh_password
 {
     SSH_ASKPASS=/root/echolinux
     cat > $SSH_ASKPASS <<EOSSHASK
@@ -2208,19 +2209,19 @@ EOSSHASK
     DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh "$@"
 }
 
-function check_node_resolvconf()
+function check_node_resolvconf
 {
     ssh_password $1 'grep "^nameserver" /etc/resolv.conf || echo fail'
 }
 
-function onadmin_wait_tftpd()
+function onadmin_wait_tftpd
 {
     wait_for 300 2 \
         "timeout -k 2 2 tftp $adminip 69 -c get /discovery/x86_64/bios/pxelinux.cfg/default /tmp/default"
     echo "Crowbar tftp server ready"
 }
 
-function wait_node_ready()
+function wait_node_ready
 {
     local node=$1
     wait_for 300 10 \
@@ -2234,7 +2235,7 @@ function wait_node_ready()
     echo "node $node ready"
 }
 
-function onadmin_waitcloud()
+function onadmin_waitcloud
 {
     pre_hook $FUNCNAME
     local node
@@ -2243,7 +2244,7 @@ function onadmin_waitcloud()
     done
 }
 
-function onadmin_post_allocate()
+function onadmin_post_allocate
 {
     pre_hook $FUNCNAME
 
@@ -2284,13 +2285,13 @@ function onadmin_post_allocate()
     fi
 }
 
-function mac_to_nodename()
+function mac_to_nodename
 {
     local mac=$1
     echo "d${mac//:/-}.$cloudfqdn"
 }
 
-function onadmin_get_ip_from_dhcp()
+function onadmin_get_ip_from_dhcp
 {
     local mac=$1
     local leasefile=${2:-/var/lib/dhcp/db/dhcpd.leases}
@@ -2302,7 +2303,7 @@ function onadmin_get_ip_from_dhcp()
 }
 
 # register a new node with crowbar_register
-function onadmin_crowbar_register()
+function onadmin_crowbar_register
 {
     pre_hook $FUNCNAME
     wait_for 150 10 "onadmin_get_ip_from_dhcp '$lonelymac'" "node to get an IP from DHCP" "exit 78"
@@ -2381,7 +2382,7 @@ function onadmin_crowbar_register()
 }
 
 
-function onadmin_get_proposalstatus()
+function onadmin_get_proposalstatus
 {
     local proposal=$1
     local proposaltype=$2
@@ -2389,7 +2390,7 @@ function onadmin_get_proposalstatus()
         rubyjsonparse "puts j['deployment']['$proposal']['crowbar-status']"
 }
 
-function onadmin_get_machinesstatus()
+function onadmin_get_machinesstatus
 {
     local onenode
     for onenode in `get_all_discovered_nodes` ; do
@@ -2398,7 +2399,7 @@ function onadmin_get_machinesstatus()
     done
 }
 
-function waitnodes()
+function waitnodes
 {
     local mode=$1
     local proposal=$2
@@ -2432,7 +2433,7 @@ function waitnodes()
     esac
 }
 
-function get_proposal_filename()
+function get_proposal_filename
 {
     echo "/root/${1}.${2}.proposal"
 }
@@ -2440,7 +2441,7 @@ function get_proposal_filename()
 # generic function to modify values in proposals
 #   Note: strings have to be quoted like this: "'string'"
 #         "true" resp. "false" or "['one', 'two']" act as ruby values, not as string
-function proposal_modify_value()
+function proposal_modify_value
 {
     local proposal="$1"
     local proposaltype="$2"
@@ -2458,18 +2459,18 @@ function proposal_modify_value()
 }
 
 # wrapper for proposal_modify_value
-function proposal_set_value()
+function proposal_set_value
 {
     proposal_modify_value "$1" "$2" "$3" "$4" "="
 }
 
 # wrapper for proposal_modify_value
-function proposal_increment_int()
+function proposal_increment_int
 {
     proposal_modify_value "$1" "$2" "$3" "$4" "+="
 }
 
-function enable_ssl_generic()
+function enable_ssl_generic
 {
     local service=$1
     echo "Enabling SSL for $service"
@@ -2525,7 +2526,7 @@ function enable_ssl_generic()
     $p "$a['ssl']['insecure']" true
 }
 
-function enable_debug_generic()
+function enable_debug_generic
 {
     local service=$1
     echo "Enabling DEBUG for $service"
@@ -2538,7 +2539,7 @@ function enable_debug_generic()
     esac
 }
 
-function hacloud_configure_cluster_members()
+function hacloud_configure_cluster_members
 {
     local clustername=$1
     shift
@@ -2573,7 +2574,7 @@ function hacloud_configure_cluster_members()
     fi
 }
 
-function hacloud_configure_cluster_defaults()
+function hacloud_configure_cluster_defaults
 {
     local clustername=$1
     local clustertype=$2
@@ -2609,23 +2610,23 @@ function hacloud_configure_cluster_defaults()
         "['description']" "'Clustername: $clustername, type: $clustertype ; '" "+="
 }
 
-function hacloud_configure_data_cluster()
+function hacloud_configure_data_cluster
 {
     proposal_set_value pacemaker $clusternamedata "['attributes']['pacemaker']['drbd']['enabled']" true
     hacloud_configure_cluster_defaults $clusternamedata "data"
 }
 
-function hacloud_configure_network_cluster()
+function hacloud_configure_network_cluster
 {
     hacloud_configure_cluster_defaults $clusternamenetwork "network"
 }
 
-function hacloud_configure_services_cluster()
+function hacloud_configure_services_cluster
 {
     hacloud_configure_cluster_defaults $clusternameservices "services"
 }
 
-function cinder_netapp_proposal_configuration()
+function cinder_netapp_proposal_configuration
 {
     local volnumber=$1
     local storage_protocol=${2:-$cinder_netapp_storage_protocol}
@@ -2648,7 +2649,7 @@ function cinder_netapp_proposal_configuration()
     fi
 }
 
-function provisioner_add_repo()
+function provisioner_add_repo
 {
     local repos=$1
     local repodir=$2
@@ -2665,7 +2666,7 @@ function provisioner_add_repo()
 #   does not include proposal create or commit
 # input1: name of the barclamp to change
 # input2(optional): type/name of the proposal - if not given, "default" is used
-function custom_configuration()
+function custom_configuration
 {
     local proposal=$1
     local proposaltype=${2:-default}
@@ -3105,7 +3106,7 @@ function custom_configuration()
 }
 
 # set global variables to be used in and after proposal phase
-function set_proposalvars()
+function set_proposalvars
 {
     # Determine if we went through an upgrade
     if [[ -f /etc/cloudsource ]] ; then
@@ -3200,7 +3201,7 @@ function set_proposalvars()
 }
 
 # configure and commit one proposal
-function update_one_proposal()
+function update_one_proposal
 {
     local proposal=$1
     local proposaltype=${2:-default}
@@ -3230,7 +3231,7 @@ function update_one_proposal()
 }
 
 # create, configure and commit one proposal
-function do_one_proposal()
+function do_one_proposal
 {
     local proposal=$1
     local proposaltype=${2:-default}
@@ -3243,7 +3244,7 @@ function do_one_proposal()
     update_one_proposal "$proposal" "$proposaltypemapped"
 }
 
-function prepare_proposals()
+function prepare_proposals
 {
     pre_hook $FUNCNAME
     waitnodes nodes
@@ -3270,13 +3271,13 @@ function prepare_proposals()
 # of other services run on the same node.  However it might save one
 # or two people some typing during manual testing, so let's leave it
 # for now.
-function set_dashboard_alias()
+function set_dashboard_alias
 {
     get_horizon
     set_node_alias_and_role `echo "$horizonserver" | cut -d . -f 1` dashboard controller
 }
 
-function deploy_single_proposal()
+function deploy_single_proposal
 {
     local proposal=$1
 
@@ -3374,7 +3375,7 @@ function deploy_single_proposal()
 }
 
 # apply all wanted proposals on crowbar admin node
-function onadmin_proposal()
+function onadmin_proposal
 {
 
     prepare_proposals
@@ -3399,7 +3400,7 @@ function onadmin_proposal()
     set_dashboard_alias
 }
 
-function set_node_alias()
+function set_node_alias
 {
     local node_name=$1
     local node_alias=$2
@@ -3412,7 +3413,7 @@ function set_node_alias()
     fi
 }
 
-function set_node_alias_and_role()
+function set_node_alias_and_role
 {
     local node_name=$1
     local node_alias=$2
@@ -3421,7 +3422,7 @@ function set_node_alias_and_role()
     iscloudver 5plus && crowbar machines role $node_name $intended_role || :
 }
 
-function get_first_node_from_cluster()
+function get_first_node_from_cluster
 {
     local cluster=$1
     crowbar pacemaker proposal show $cluster | \
@@ -3430,7 +3431,7 @@ function get_first_node_from_cluster()
                         ['elements']['pacemaker-cluster-member'].first"
 }
 
-function get_cluster_vip_hostname()
+function get_cluster_vip_hostname
 {
     local cluster=$1
     echo "cluster-$cluster.$cloudfqdn"
@@ -3440,7 +3441,7 @@ function get_cluster_vip_hostname()
 # a cluster alias.  This function will resolve this element name to a
 # node name, or to a hostname for a VIP if the second service
 # parameter is non-empty and the element refers to a cluster.
-function resolve_element_to_hostname()
+function resolve_element_to_hostname
 {
     local name="$1" service="$2"
     name=`printf "%s\n" "$name" | head -n 1`
@@ -3459,7 +3460,7 @@ function resolve_element_to_hostname()
     esac
 }
 
-function get_novacontroller()
+function get_novacontroller
 {
     local role_prefix=`nova_role_prefix`
     local element=`crowbar nova proposal show default | \
@@ -3469,7 +3470,7 @@ function get_novacontroller()
     novacontroller=`resolve_element_to_hostname "$element"`
 }
 
-function get_horizon()
+function get_horizon
 {
     local horizon=`horizon_barclamp`
     local element=`crowbar $horizon proposal show default | \
@@ -3480,7 +3481,7 @@ function get_horizon()
     horizonservice=`resolve_element_to_hostname "$element" service`
 }
 
-function get_ceph_nodes()
+function get_ceph_nodes
 {
     if [[ $deployceph ]]; then
         cephmons=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-mon']"`
@@ -3493,14 +3494,14 @@ function get_ceph_nodes()
     fi
 }
 
-function manila_service_instance_get_uuid()
+function manila_service_instance_get_uuid
 {
     local vm_uuid=`openstack --os-project-name manila-service server show manila-service -f value -c id`
     test -n "$vm_uuid" || complain 91 "uuid from manila-service instance not available"
     echo $vm_uuid
 }
 
-function manila_service_instance_get_floating_ip()
+function manila_service_instance_get_floating_ip
 {
     local vm_uuid=`manila_service_instance_get_uuid`
     local vm_floating_ip=`openstack --os-project-name manila-service server show $vm_uuid -f value -c addresses | awk '{print $2}'`
@@ -3508,13 +3509,13 @@ function manila_service_instance_get_floating_ip()
     echo $vm_floating_ip
 }
 
-function get_manila_service_instance_details()
+function get_manila_service_instance_details
 {
     manila_service_vm_uuid=`oncontroller "manila_service_instance_get_uuid"`
     manila_tenant_vm_ip=`oncontroller "manila_service_instance_get_floating_ip"`
 }
 
-function addfloatingip()
+function addfloatingip
 {
     local instanceid=$1
     nova floating-ip-create | tee floating-ip-create.out
@@ -3524,7 +3525,7 @@ function addfloatingip()
 
 # by setting --dns-nameserver for subnet, docker instance gets this as
 # DNS info (otherwise it would use /etc/resolv.conf from its host)
-function adapt_dns_for_docker()
+function adapt_dns_for_docker
 {
     # DNS server is the first IP from the allocation pool, or the
     # second one from the network range
@@ -3535,20 +3536,20 @@ function adapt_dns_for_docker()
     neutron subnet-update --dns-nameserver "$dns_server" fixed
 }
 
-function glance_image_exists()
+function glance_image_exists
 {
     openstack image show "$1" &>/dev/null
     return $?
 }
 
-function glance_image_get_id()
+function glance_image_get_id
 {
     local image_id=$(openstack image list | grep "[[:space:]]$1[[:space:]]" | awk '{ print $2 }')
     echo $image_id
 }
 
 # test if image is fully uploaded
-function wait_image_active()
+function wait_image_active
 {
     local image="$1"
     local purpose="$2"
@@ -3557,7 +3558,7 @@ function wait_image_active()
         "image $image for $purpose to reach active state"
 }
 
-function oncontroller_tempest_cleanup()
+function oncontroller_tempest_cleanup
 {
     if iscloudver 5plus; then
         if tempest help cleanup &>/dev/null; then
@@ -3570,7 +3571,7 @@ function oncontroller_tempest_cleanup()
     fi
 }
 
-function oncontroller_run_tempest()
+function oncontroller_run_tempest
 {
     local image_name="SLES11-SP3-x86_64-cfntools"
 
@@ -3618,7 +3619,7 @@ function oncontroller_run_tempest()
     return $tempestret
 }
 
-function oncontroller_manila_generic_driver_setup()
+function oncontroller_manila_generic_driver_setup
 {
     if [[ $wantxenpv ]] ; then
         local service_image_url=http://$clouddata/images/other/manila-service-image-xen.raw
@@ -3711,7 +3712,7 @@ function oncontroller_manila_generic_driver_setup()
         "echo \"ERROR: manila service VM not listening on ssh port. manila tests will fail!\""
 }
 
-function oncontroller_magnum_service_setup ()
+function oncontroller_magnum_service_setup
 {
     # (mmnelemane): Replace this Fedora image with a suitable SLES image when available
     local service_image_name=magnum-service-image.qcow2
@@ -3751,7 +3752,7 @@ function oncontroller_magnum_service_setup ()
     fi
 }
 
-nova_services_up()
+function nova_services_up
 {
     if iscloudver 7plus; then
         test $(nova service-list | fgrep -cv -- \ up\ ) -lt 5
@@ -3762,7 +3763,7 @@ nova_services_up()
 
 # code run on controller/dashboard node to do basic tests of deployed cloud
 # uploads an image, create flavor, boots a VM, assigns a floating IP, ssh to VM, attach/detach volume
-function oncontroller_testsetup()
+function oncontroller_testsetup
 {
     . .openrc
     # 28 is the overhead of an ICMP(ping) packet
@@ -4007,7 +4008,7 @@ function oncontroller_testsetup()
 }
 
 
-function oncontroller()
+function oncontroller
 {
     cd /root
     scp qa_crowbarsetup.sh $mkcconf $novacontroller:
@@ -4022,7 +4023,7 @@ function oncontroller()
     return $?
 }
 
-function install_suse_ca()
+function install_suse_ca
 {
     # trust build key - workaround https://bugzilla.opensuse.org/show_bug.cgi?id=935020
     wget -O build.suse.de.key.pgp http://$susedownload/ibs/SUSE:/CA/SLE_12/repodata/repomd.xml.key
@@ -4036,7 +4037,7 @@ EOF
     safely zypper -n in ca-certificates-suse
 }
 
-function onadmin_testsetup()
+function onadmin_testsetup
 {
     pre_hook $FUNCNAME
 
@@ -4207,7 +4208,7 @@ EOF
     exit $ret
 }
 
-function onadmin_addupdaterepo()
+function onadmin_addupdaterepo
 {
     pre_hook $FUNCNAME
 
@@ -4248,7 +4249,7 @@ function zypper_patch
     wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
 }
 
-function onadmin_runupdate()
+function onadmin_runupdate
 {
     onadmin_repocleanup
 
@@ -4270,7 +4271,7 @@ function onadmin_runupdate()
     fi
 }
 
-function get_proposal_role_elements()
+function get_proposal_role_elements
 {
     local proposal=$1
     local role=$2
@@ -4280,7 +4281,7 @@ function get_proposal_role_elements()
     echo $element
 }
 
-function get_neutron_server_node()
+function get_neutron_server_node
 {
     local element=$(crowbar neutron proposal show default | \
         rubyjsonparse "
@@ -4289,7 +4290,7 @@ function get_neutron_server_node()
     NEUTRON_SERVER=`resolve_element_to_hostname "$element"`
 }
 
-function onneutron_wait_for_neutron()
+function onneutron_wait_for_neutron
 {
     get_neutron_server_node
 
@@ -4303,7 +4304,7 @@ function onneutron_wait_for_neutron()
     fi
 }
 
-function power_cycle_and_wait()
+function power_cycle_and_wait
 {
     local machine=$1
 
@@ -4316,14 +4317,14 @@ function power_cycle_and_wait()
         "node $m_hostname to power cycle"
 }
 
-function complain_if_problem_on_reboot()
+function complain_if_problem_on_reboot
 {
     if crowbar node_state status | grep ^d | grep -i "problem$"; then
         complain 17 "Some nodes rebooted with state Problem."
     fi
 }
 
-function reboot_controller_clusters()
+function reboot_controller_clusters
 {
     local cluster
     local machine
@@ -4346,7 +4347,7 @@ function reboot_controller_clusters()
 
 # reboot all cloud nodes (controller+compute+storage)
 # wait for nodes to go down and come up again
-function onadmin_rebootcloud()
+function onadmin_rebootcloud
 {
     pre_hook $FUNCNAME
     get_novacontroller
@@ -4380,7 +4381,7 @@ function onadmin_rebootcloud()
 # make sure that testvm is up and reachable
 # if VM was shutdown, VM is started
 # adds a floating IP to VM
-function oncontroller_waitforinstance()
+function oncontroller_waitforinstance
 {
     . .openrc
     safely nova list
@@ -4392,7 +4393,7 @@ function oncontroller_waitforinstance()
     wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
 }
 
-function onadmin_rebootneutron()
+function onadmin_rebootneutron
 {
     pre_hook $FUNCNAME
     get_neutron_server_node
@@ -4406,7 +4407,7 @@ function onadmin_rebootneutron()
 }
 
 # This will adapt Cloud6 admin server repositories to Cloud7 ones
-function onadmin_prepare_cloudupgrade_repos_6_to_7()
+function onadmin_prepare_cloudupgrade_repos_6_to_7
 {
     test -z "$upgrade_cloudsource" && {
         complain 15 "upgrade_cloudsource is not set"
@@ -4447,7 +4448,7 @@ function onadmin_prepare_cloudupgrade_repos_6_to_7()
     onadmin_setup_local_zypper_repositories
 }
 
-function onadmin_prepare_cloudupgrade()
+function onadmin_prepare_cloudupgrade
 {
     # TODO: All running cloud instances should be suspended here
 
@@ -4486,7 +4487,7 @@ function onadmin_prepare_cloudupgrade()
     ensure_packages_installed suse-cloud-upgrade
 }
 
-function onadmin_cloudupgrade_1st()
+function onadmin_cloudupgrade_1st
 {
     if iscloudver 5; then
         # Workaround registration checks
@@ -4501,7 +4502,7 @@ function onadmin_cloudupgrade_1st()
         complain $? "Upgrade failed with $?"
 }
 
-function onadmin_cloudupgrade_2nd()
+function onadmin_cloudupgrade_2nd
 {
     # Allow vender changes for packages as we might be updating an official
     # Cloud release to something form the Devel:Cloud projects. Note: For the
@@ -4528,7 +4529,7 @@ function onadmin_cloudupgrade_2nd()
     done
 }
 
-function onadmin_cloudupgrade_clients()
+function onadmin_cloudupgrade_clients
 {
     pre_hook $FUNCNAME
     # Upgrade Packages on the client nodes
@@ -4541,7 +4542,7 @@ function onadmin_cloudupgrade_clients()
     crowbar updater proposal commit default
 }
 
-function onadmin_cloudupgrade_reboot_and_redeploy_clients()
+function onadmin_cloudupgrade_reboot_and_redeploy_clients
 {
     local barclamp=""
     local proposal=""
@@ -4568,7 +4569,7 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients()
     # TODO: restart any suspended instance?
 }
 
-function onadmin_reapply_openstack_proposals()
+function onadmin_reapply_openstack_proposals
 {
     for barclamp in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat trove tempest; do
         applied_proposals=$(crowbar "$barclamp" proposal list )
@@ -4584,7 +4585,7 @@ function onadmin_reapply_openstack_proposals()
     done
 }
 
-function onadmin_prepare_crowbar_upgrade()
+function onadmin_prepare_crowbar_upgrade
 {
     if iscloudver 4; then
         complain 11 "This upgrade path is only supported for Cloud 5+"
@@ -4604,14 +4605,14 @@ function onadmin_prepare_crowbar_upgrade()
     fi
 }
 
-function onadmin_check_admin_server_upgraded()
+function onadmin_check_admin_server_upgraded
 {
     if ! [ -e $crowbar_lib_dir/install/admin-server-upgraded-ok ]; then
         complain 99 "$crowbar_lib_dir/install/admin-server-upgraded-ok is missing"
     fi
 }
 
-function onadmin_upgrade_admin_server()
+function onadmin_upgrade_admin_server
 {
     if iscloudver 5minus; then
         complain 11 "This upgrade path is only supported for Cloud 6+"
@@ -4620,7 +4621,7 @@ function onadmin_upgrade_admin_server()
     fi
 }
 
-function onadmin_crowbarbackup()
+function onadmin_crowbarbackup
 {
     pre_hook $FUNCNAME
     local backupmode=$1
@@ -4645,7 +4646,7 @@ function onadmin_crowbarbackup()
     fi
 }
 
-function onadmin_crowbarpurge()
+function onadmin_crowbarpurge
 {
     pre_hook $FUNCNAME
     if iscloudver 6plus ; then
@@ -4686,7 +4687,7 @@ function onadmin_crowbarpurge()
 #  3:  apipath /path/to/request
 #  4:  curlopts options to curl command (like -d"something")
 #  5+: headers additional headers
-function crowbar_api_request()
+function crowbar_api_request
 {
     local method=${1:-GET}
     local api=${2:-$crowbar_api}
@@ -4709,19 +4710,19 @@ function crowbar_api_request()
     fi
 }
 
-function onadmin_is_crowbar_api_available()
+function onadmin_is_crowbar_api_available
 {
     local api_path=$crowbar_api_installer_path/status.json
     iscloudver 5minus && api_path=
     crowbar_api_request GET "$crowbar_api" "$api_path" "$crowbar_api_digest"
 }
 
-function onadmin_is_crowbar_init_api_available()
+function onadmin_is_crowbar_init_api_available
 {
     crowbar_api_request GET $crowbar_init_api "/status" "" "$crowbar_api_v2_header"
 }
 
-function onadmin_crowbarrestore()
+function onadmin_crowbarrestore
 {
     pre_hook $FUNCNAME
     local restoremode=$1
@@ -4761,7 +4762,7 @@ function onadmin_crowbarrestore()
     fi
 }
 
-function onadmin_crowbar_nodeupgrade()
+function onadmin_crowbar_nodeupgrade
 {
     local endpoint
     local http_code
@@ -4775,7 +4776,7 @@ function onadmin_crowbar_nodeupgrade()
     fi
 }
 
-function onadmin_qa_test()
+function onadmin_qa_test
 {
     pre_hook $FUNCNAME
     zypper -n in -y python-{keystone,nova,glance,heat,cinder,ceilometer}client
@@ -4801,7 +4802,7 @@ function onadmin_qa_test()
 # $cct_git_url         -> optional, cct git repo url, default is https://github.com/SUSE-Cloud/cct.git
 # $cct_checkout_branch -> optional, pick git branch to be tested, default is master
 # $cct_skip_func_tests -> optional, functional tests will be skipped if value is 1, default is 0
-function onadmin_run_cct()
+function onadmin_run_cct
 {
     local ret=0
     if iscloudver 5plus && [[ $cct_tests ]]; then
@@ -4878,7 +4879,7 @@ function onadmin_run_cct()
     return $ret
 }
 
-function onadmin_devsetup()
+function onadmin_devsetup
 {
     # install dev setup dependencies
     add_sdk_repo
@@ -4917,7 +4918,7 @@ function onadmin_devsetup()
 # Set the aliases for nodes.
 # This is usually needed before batch step, so batch can refer
 # to node aliases in the scenario file.
-function onadmin_setup_aliases()
+function onadmin_setup_aliases
 {
     local nodesavailable=`get_all_discovered_nodes`
     local i=1
@@ -4995,7 +4996,7 @@ function onadmin_setup_aliases()
     return $?
 }
 
-function onadmin_batch()
+function onadmin_batch
 {
     pre_hook $FUNCNAME
 
@@ -5024,7 +5025,7 @@ function onadmin_batch()
 
 # deactivate proposals and forget cloud nodes
 # can be useful for faster testing cycles
-function onadmin_teardown()
+function onadmin_teardown
 {
     pre_hook $FUNCNAME
     #BMCs at ${netp}.178.163-6 #node 6-9
@@ -5047,7 +5048,7 @@ function onadmin_teardown()
     done
 }
 
-function onadmin_runlist()
+function onadmin_runlist
 {
     for cmd in "$@" ; do
         onadmin_$cmd || complain $? "$cmd failed with code $?"

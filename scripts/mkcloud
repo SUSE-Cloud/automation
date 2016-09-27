@@ -136,12 +136,12 @@ pidfile=mkcloud.pid
 trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
 
-function is_suse()
+function is_suse
 {
     grep -qi suse /etc/*release
 }
 
-function show_environment()
+function show_environment
 {
     end_time=`date`
     echo "Environment Details"
@@ -164,12 +164,12 @@ function show_environment()
     echo "-------------------------------"
 }
 
-function pre_exit_cleanup()
+function pre_exit_cleanup
 {
     rm $pidfile
 }
 
-function error_exit()
+function error_exit
 {
     exitcode=$1
     message=$2
@@ -195,12 +195,12 @@ function error_exit()
     exit $exitcode
 } >&2
 
-function determine_host_mtu()
+function determine_host_mtu
 {
     host_mtu=$(LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1)
 }
 
-function sshrun()
+function sshrun
 {
     cat > $mkcconf <<EOF
         export drbdnode_mac_vol=$drbdnode_mac_vol ;
@@ -257,7 +257,7 @@ EOF
     return $?
 }
 
-function onadmin()
+function onadmin
 {
     # functions can have parameters, so pass on all except $1
     local cmd=$1
@@ -265,7 +265,7 @@ function onadmin()
     sshrun onadmin_$cmd "$@"
 }
 
-function onhost()
+function onhost
 {
     # functions can have parameters, so pass on all except $1
     local cmd=$1
@@ -273,42 +273,42 @@ function onhost()
     onhost_$cmd "$@"
 }
 
-function cleanup()
+function cleanup
 {
     ${mkclouddriver}_do_cleanup
 }
 
-function onhost_cleanup_admin_node()
+function onhost_cleanup_admin_node
 {
     ${mkclouddriver}_do_cleanup_admin_node
 }
 
-function onhost_get_next_pv_device()
+function onhost_get_next_pv_device
 {
     ${mkclouddriver}_do_get_next_pv_device
 }
 
-function onhost_deploy_image()
+function onhost_deploy_image
 {
     ${mkclouddriver}_do_onhost_deploy_image "$@"
 }
 
-function onhost_add_etchosts_entries()
+function onhost_add_etchosts_entries
 {
     grep -q crowbar /etc/hosts || echo "$adminip crowbar.$cloudfqdn crowbar" >> /etc/hosts
 }
 
-function onhost_enable_ksm()
+function onhost_enable_ksm
 {
     ${mkclouddriver}_onhost_enable_ksm
 }
 
-function setuphost()
+function setuphost
 {
     ${mkclouddriver}_do_setuphost
 }
 
-function prepare()
+function prepare
 {
     if ! [ -e ~/.ssh/id_rsa ]; then
         echo "Creating key for controlling our VMs..."
@@ -318,12 +318,12 @@ function prepare()
     ${mkclouddriver}_do_prepare
 }
 
-function onhost_prepareadmin()
+function onhost_prepareadmin
 {
     onhost_deploy_image "admin" $(get_admin_node_dist) "$admin_node_disk"
 }
 
-function ssh_password()
+function ssh_password
 {
     SSH_ASKPASS=/root/echolinux
     cat > $SSH_ASKPASS <<EOSSHASK
@@ -334,18 +334,18 @@ EOSSHASK
     DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh $sshopts -oNumberOfPasswordPrompts=1 "$@"
 }
 
-function wait_for_crowbar_ssh()
+function wait_for_crowbar_ssh
 {
     wait_for 150 1 "nc -z $adminip 22" 'admin node to start ssh daemon'
 }
 
-function wait_for_crowbar_ntpd()
+function wait_for_crowbar_ntpd
 {
     wait_for 200 10 "ntpdate -d $adminip" "admin node ntpd service"
 }
 
 # bring up the VM for crowbar
-function setupadmin()
+function setupadmin
 {
     local ofs=$IFS nfs=$'\n' mss
 
@@ -385,31 +385,31 @@ function setupadmin()
     fi
 }
 
-function wait_for_node_shutdown()
+function wait_for_node_shutdown
 {
     wait_for 150 1 "virsh domstate $1 | grep shut.off" "$1 node to shut down"
 }
 
-function remove_snapshot_volume()
+function remove_snapshot_volume
 {
     if $(lvs "$1.snap" > /dev/null 2>&1) ; then
         safely lvremove -f "$1.snap"
     fi
 }
 
-function merge_snapshot_volume()
+function merge_snapshot_volume
 {
     if $(lvs "$1.snap" > /dev/null 2>&1) ; then
         safely lvconvert --merge "$1.snap"
     fi
 }
 
-function create_snapshot_volume()
+function create_snapshot_volume
 {
     safely lvcreate -l100%ORIGIN -s -n "$1.snap" "$1"
 }
 
-function createadminsnapshot()
+function createadminsnapshot
 {
     virsh shutdown $cloud-admin
     wait_for_node_shutdown $cloud-admin
@@ -419,14 +419,14 @@ function createadminsnapshot()
     wait_for_crowbar_ssh
 }
 
-function restoreadminfromsnapshot()
+function restoreadminfromsnapshot
 {
     virsh destroy $cloud-admin
     merge_snapshot_volume $admin_node_disk
     createadminsnapshot
 }
 
-function nodes()
+function nodes
 {
     local query=${1:number}
     local type=${2:all}
@@ -451,7 +451,7 @@ function nodes()
     esac
 }
 
-function createcloudsnapshot()
+function createcloudsnapshot
 {
     shutdowncloud
     wait_for_node_shutdown $cloud-admin
@@ -467,7 +467,7 @@ function createcloudsnapshot()
     restartcloud
 }
 
-function restorecloudfromsnapshot()
+function restorecloudfromsnapshot
 {
     local can_restore=1
     lvs -o lv_name ${cloudvg} | grep "${cloud}.admin.snap" || {
@@ -500,7 +500,7 @@ function restorecloudfromsnapshot()
 }
 
 # Returns success if a change was made
-function confset()
+function confset
 {
     file="$1" key="$2" value="$3"
     if grep -q "^$key *= *$value" "$file"; then
@@ -522,12 +522,12 @@ function confset()
     return 0
 }
 
-function macfunc()
+function macfunc
 {
     printf "$macprefix:77:77:%02x" $1
 }
 
-function get_admin_node_dist()
+function get_admin_node_dist
 {
     # echo the name of the current dist for the admin node
     local dist=
@@ -543,14 +543,14 @@ function get_admin_node_dist()
     echo "$dist"
 }
 
-function get_lonely_node_dist()
+function get_lonely_node_dist
 {
     local dist=$(get_admin_node_dist)
     iscloudver 5 && [[ $want_sles12 ]] && dist=SLE12
     echo $dist
 }
 
-function dist_to_image_name()
+function dist_to_image_name
 {
     # get the name of the image to deploy the admin node
     local dist=$1
@@ -567,13 +567,13 @@ function dist_to_image_name()
 }
 
 # bring up lonely_node(s) in the admin network
-function setuplonelynodes()
+function setuplonelynodes
 {
     ${mkclouddriver}_do_setuplonelynodes
 }
 
 # register lonely_node against crowbar
-function crowbar_register()
+function crowbar_register
 {
     for i in $(nodes ids lonely) ; do
         local mac=$(macfunc $i)
@@ -581,21 +581,21 @@ function crowbar_register()
     done
 }
 
-function prepareinstcrowbar()
+function prepareinstcrowbar
 {
     echo "connecting to crowbar admin server at $adminip"
     onadmin prepareinstallcrowbar
     return $?
 }
 
-function bootstrapcrowbar()
+function bootstrapcrowbar
 {
     echo "bootstrapping crowbar"
     onadmin bootstrapcrowbar
     return $?
 }
 
-function scp_install_chef_suse_override()
+function scp_install_chef_suse_override
 {
     if [ -e "$install_chef_suse_override" ]; then
         ssh root@$adminip "mv /opt/dell/bin/install-chef-suse.sh{,.orig}"
@@ -605,7 +605,7 @@ function scp_install_chef_suse_override()
     fi
 }
 
-function instcrowbar()
+function instcrowbar
 {
     scp_install_chef_suse_override
     onadmin installcrowbar
@@ -614,7 +614,7 @@ function instcrowbar()
     return $ret
 }
 
-function instcrowbarfromgit()
+function instcrowbarfromgit
 {
     scp_install_chef_suse_override
     safely rsync -av --exclude ".git" --exclude ".ci-tracking" ./crowbar root@$adminip:/root/
@@ -624,7 +624,7 @@ function instcrowbarfromgit()
     return $ret
 }
 
-function mkvlan()
+function mkvlan
 {
     local DEFVLAN=$1 ; shift
     local IP=$1 ; shift
@@ -634,14 +634,14 @@ function mkvlan()
     ethtool -K $cloudbr tx off
 }
 
-function hypervisor_has_virtio()
+function hypervisor_has_virtio
 {
     local llibvirt_type=${1:-$libvirt_type}
     [[ "$llibvirt_type" = "xen" || "$llibvirt_type" = "hyperv" ]] && return 1
     return 0
 }
 
-function setuppublicnet()
+function setuppublicnet
 {
     # workaround https://bugzilla.novell.com/show_bug.cgi?id=845496
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
@@ -652,12 +652,12 @@ function setuppublicnet()
     fi
 }
 
-function shutdowncloud()
+function shutdowncloud
 {
     ${mkclouddriver}_do_shutdowncloud
 }
 
-function restartcloud()
+function restartcloud
 {
     libvirt_net_start
     virsh start $cloud-admin
@@ -670,7 +670,7 @@ function restartcloud()
 }
 
 # bring up VMs that will take cloud controller/compute/storage roles
-function setupnodes()
+function setupnodes
 {
     onadmin wait_tftpd || return $?
 
@@ -723,7 +723,7 @@ function setupnodes()
 
 # allocate cloud nodes with an operating system
 # and wait for nodes to reach the ready state
-function instnodes()
+function instnodes
 {
     safely onadmin allocate
 
@@ -733,13 +733,13 @@ function instnodes()
 }
 
 
-function proposal()
+function proposal
 {
     onadmin proposal
     return $?
 }
 
-function testsetup()
+function testsetup
 {
     onadmin testsetup
     local ret=$?
@@ -766,7 +766,7 @@ function testsetup()
     return $ret
 }
 
-function testname()
+function testname
 {
     local -a var_names=(ha cluster upgrade ceph cinder drbd net
         netmode sles12 dvr docker rootfs)
@@ -796,7 +796,7 @@ function testname()
     echo $name
 }
 
-function testtype()
+function testtype
 {
     # If `tempestoptions` contains '-s' or '--smoke' parameter, is a
     # smoke test.  If there is '--load-list 2015.03.required.txt' is a
@@ -815,7 +815,7 @@ function testtype()
     echo $type
 }
 
-function rebootcrowbar()
+function rebootcrowbar
 {
     # reboot the crowbar instance
     #  and test if everything is up and running afterwards
@@ -828,7 +828,7 @@ function rebootcrowbar()
     return $?
 }
 
-function rebootcloud()
+function rebootcloud
 {
     # reboot compute nodes
     #  and test if everthing is up and running afterwards
@@ -836,20 +836,20 @@ function rebootcloud()
     return $?
 }
 
-function rebootcompute()
+function rebootcompute
 {
     echo "WARNING: called deprecated rebootcompute step" >&2
     rebootcloud
     return $?
 }
 
-function rebootneutron()
+function rebootneutron
 {
     onadmin rebootneutron
     return $?
 }
 
-function qa_test()
+function qa_test
 {
     local ghsc=github.com/SUSE-Cloud
     mkdir -p ~/$ghsc/
@@ -870,7 +870,7 @@ function qa_test()
     return $ret
 }
 
-function crowbarbackup()
+function crowbarbackup
 {
     safely onadmin crowbarbackup "$@"
     local btargetdir=${artifacts_dir:-.}
@@ -878,7 +878,7 @@ function crowbarbackup()
     safely $scp root@$adminip:/tmp/backup-crowbar.tar.gz "$btargetdir"
 }
 
-function crowbarrestore()
+function crowbarrestore
 {
     local btarball=backup-crowbar.tar.gz
     [ -e "$artifacts_dir/$btarball" ] && btarball="$artifacts_dir/$btarball"
@@ -894,7 +894,7 @@ function crowbarrestore()
     safely onadmin crowbarrestore "$@"
 }
 
-function onhost_reset_admin()
+function onhost_reset_admin
 {
     # deploy and setup a fresh admin node
     safely onhost_cleanup_admin_node
@@ -903,7 +903,7 @@ function onhost_reset_admin()
     safely prepareinstcrowbar
 }
 
-function crowbarupgrade_5plus()
+function crowbarupgrade_5plus
 {
     if iscloudver 6plus ; then
         onadmin prepare_cloudupgrade_repos_6_to_7
@@ -924,7 +924,7 @@ function crowbarupgrade_5plus()
     fi
 }
 
-function cloudupgrade()
+function cloudupgrade
 {
     if iscloudver 6plus && [[ $want_nondisruptiveupgrade ]] ; then
         # TODO: so far, we only have implementation for admin node upgrade
@@ -943,32 +943,32 @@ function cloudupgrade()
     fi
 }
 
-function cct()
+function cct
 {
     onadmin run_cct "$@"
     return $?
 }
 
-function devsetup()
+function devsetup
 {
     onadmin devsetup
     return $?
 }
 
-function setup_aliases()
+function setup_aliases
 {
     onadmin setup_aliases
     return $?
 }
 
 
-function batch()
+function batch
 {
     onadmin batch $scenario
     return $?
 }
 
-function show_steps()
+function show_steps
 {
     cat <<EOSTEPS
 Usage:
@@ -1034,7 +1034,7 @@ function steps() {
     exit 1
 }
 
-function usage()
+function usage
 {
     show_steps
     cat <<EOUSAGE
@@ -1223,26 +1223,26 @@ EOUSAGE
 }
 
 
-function addupdaterepo()
+function addupdaterepo
 {
     sshrun "UPDATEREPOS=$UPDATEREPOS onadmin_addupdaterepo"
     return $?
 }
 
-function runupdate()
+function runupdate
 {
     onadmin runupdate
     return $?
 }
 
-function is_concurrent_run()
+function is_concurrent_run
 {
     [ -e $pidfile ] && kill -0 `cat $pidfile` 2>/dev/null && return 0
     echo $$ > $pidfile
     return 1
 }
 
-function sanity_checks()
+function sanity_checks
 {
     if test `id -u` != 0 ; then
         complain 1 "This script needs to be run as root" \
@@ -1342,7 +1342,7 @@ allcmds="$step_aliases all all_noreboot all_batch all_batch_noreboot instonly \
     cct steps batch setup_aliases onadmin onhost devsetup"
 wantedcmds=$@
 
-function expand_steps()
+function expand_steps
 {
     # parse the commands and expand the aliases
     local runcmds=''
