@@ -54,18 +54,26 @@ source $qa_crowbarsetup
 setcloudnetvars $virtualcloud
 : ${forwardmode:=nat}
 : ${adminnetmask:=255.255.248.0}
+
+: ${nodenumberlonelynode:=0}
 # the default nodenumber of compute nodes
-nodenumbercomputedefault=2
-[[ $hacloud ]] && nodenumbercomputedefault=1
+nodenumbercomputedefault=0
+if [[ $nodenumberlonelynode < 2 ]] ; then
+    if [[ $hacloud ]] ; then
+        nodenumbercomputedefault=1
+    else
+        nodenumbercomputedefault=2
+    fi
+fi
 : ${nodenumber:=$nodenumbercomputedefault}
 : ${nodenumbercompute:=$nodenumbercomputedefault}
+
 # expect to have this many physical machines attached via $mkch_physcloudif
 # these replace virtual machines, so we start less VMs
 : ${nodenumberphys:=0}
 [[ $nodenumberphys = 0 ]] || [[ $mkch_physcloudif ]] || complain 100 "need to set mkch_physcloudif for physical nodes"
 # configuration of clusters
 : ${clusterconfig:=''}
-: ${nodenumberlonelynode:=0}
 export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 # '+'-separated list of MAC#serial_of_drbd_volume of the drbd cluster nodes
 # (used only internally to transport this information to qa_crowbarsetup):
