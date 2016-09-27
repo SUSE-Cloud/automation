@@ -4709,7 +4709,11 @@ function crowbar_api_request()
     local outfile=crowbar-api-request.txt
     rm -f $outfile
     local http_code=`curl --max-time 300 -X $method $curl_opts "${@/#/-H}" -s -o $outfile -w '%{http_code}' $api$api_path`
-    if ! [[ $http_code =~ [23].. ]] ; then
+    if [[ $http_code = 000 ]]; then
+        echo "Cannot reach $api$api_path: http code 000"
+        return 1
+    fi
+    if ! [[ $http_code =~ [23].. ]]; then
         cat $outfile
         echo "Request to $api$api_path returned http code: $http_code"
         return 1
