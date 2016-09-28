@@ -320,23 +320,46 @@ function libvirt_do_onhost_deploy_image()
     fi
 }
 
-function libvirt_do_setuplonelynodes()
+# create the libvirt configuration of a node (compute, controller, storage, lonely)
+function libvirt_onhost_create_vm_config()
 {
+    local number=$1
+    local mac=$(macfunc $number)
+        # transport drdb volume information to admin node (needed for proposal of data cluster)
+        # note: data cluster currently only supported with node 1 and 2.
+        drbd_serial=""
+        if [ $drbd_hdd_size != 0 ]; then
+            if [ $number -le 2 ] ; then
+                drbd_serial="$cloud-node$number-drbd"
+                # libvirt does not accept anything other than [:alnum:]_-
+                # for serial strings:
+                drbd_serial=${drbd_serial//[^A-Za-z0-9-_]/_}
+                drbdnode_mac_vol="${drbdnode_mac_vol}+${mac}#${drbd_serial}"
+                drbdnode_mac_vol="${drbdnode_mac_vol#+}"
+            fi
+        fi
+
+        local bootorder=1
+        if [[ " $(nodes ids lonely) " =~ " $number " ]] ; then
+            bootorder=3
+        fi
+        ${mkcloud_lib_dir}/libvirt/compute-config "$cloud" "$number"\
+            "$mac" "$controller_raid_volumes" "$cephvolumenumber"\
+            "$drbd_serial" "$compute_node_memory" "$controller_node_memory"\
+            "$libvirt_type" "$vcpus" "$emulator" "$vdisk_dir" "$bootorder"\
+            "$(get_nodenumbercontroller)" > /tmp/$cloud-node$number.xml
+}
+
+function libvirt_do_setupnodes()
+{
+    local nodetype=$1 ; shift
     local i
-    for i in $(nodes ids lonely) ; do
-        local mac=$(macfunc $i)
-        local lonely_node
-        lonely_node=$cloud-node$i
-        safely ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $mac 0\
-            "$cephvolumenumber" "$drbdvolume" $compute_node_memory\
-            $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir\
-            1 1 > /tmp/$cloud-node$i.xml
-
-        local lonely_disk
-        lonely_disk="$vdisk_dir/${cloud}.node$i"
-
-        onhost_deploy_image "lonely" $(get_lonely_node_dist) $lonely_disk
-        ${mkcloud_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
+    for i in $@ ; do
+        libvirt_onhost_create_vm_config $i
+        if [[ $nodetype = lonely ]] ; then
+            libvirt_do_onhost_deploy_image "lonely" $(get_lonely_node_dist) "$vdisk_dir/${cloud}.node$i"
+        fi
+        ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
     done
 }
 
