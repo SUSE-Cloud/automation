@@ -508,21 +508,25 @@ function restorecloudfromsnapshot
     createcloudsnapshot
 }
 
-# bring up lonely_node(s) in the admin network
-function setuplonelynodes
+function setupspecialnodesobsolete
 {
-    ${mkclouddriver}_do_setuplonelynodes
+    local msg="This function/step is obsolete. All nodes are setup in the setupnodes function. This function will be removed soon."
+    # adding nodes to an existing cloud was an accidental feature, with the current assumptions about node counting this is broken already
+    # the feature to add any kind of node at any point in time will be added with a refactoring of the node management
+
+    echo "Error: $msg"
+    # this echo will soon become a complain
+    #complain 2 "$msg"
 }
 
-# bring up ironic nodes in the ironic network
+function setuplonelynodes
+{
+    setupspecialnodesobsolete
+}
+
 function setupironicnodes
 {
-    if [[ $(nodes number ironic) -lt 1 ]] ; then
-        complain 80 "Please set nodenumberironicnode."
-        return
-    fi
-
-    ${mkclouddriver}_do_setupironicnodes
+    setupspecialnodesobsolete
 }
 
 # register lonely_node against crowbar
@@ -620,61 +624,17 @@ function restartcloud
     wait_for_crowbar_ssh
 }
 
-# bring up VMs that will take cloud controller/compute/storage roles
+# start VMs
+#  - for normal, lonely, ironic nodes
+#  - for cloud controller/compute/storage roles or test nodes (lonely, ironic)
 function setupnodes
 {
     onadmin wait_tftpd || return $?
     setuppublicnet
-    local i
-    for i in $(nodes ids normal) ; do
-        local macaddress=$(macfunc $i)
 
-        # transport drdb volume information to admin node (needed for proposal of data cluster)
-        drbd_serial=""
-        if [ $drbd_hdd_size != 0 ]; then
-            if [ $i -le 2 ] ; then
-                drbd_serial="$cloud-node$i-drbd"
-                # libvirt does not accept anything other than [:alnum:]_-
-                # for serial strings:
-                drbd_serial=${drbd_serial//[^A-Za-z0-9-_]/_}
-                drbdnode_mac_vol="${drbdnode_mac_vol}+${macaddress}#${drbd_serial}"
-                drbdnode_mac_vol="${drbdnode_mac_vol#+}"
-            fi
-        fi
-        local mac_params=""
-        for nicnumber in $(seq 1 $nics) ; do
-            mac_params+=" --macaddress $(macfunc $i $nicnumber)";
-        done
-        local ironic_params=""
-        [[ $want_ironic ]] && ironic_params="--ironicnic $ironicnic"
-
-        ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
-                        $mac_params \
-                        $ironic_params \
-                        --cephvolumenumber $cephvolumenumber \
-                        --drbdserial "$drbd_serial"\
-                        --computenodememory $compute_node_memory \
-                        --controllernodememory $controller_node_memory \
-                        --libvirttype $libvirt_type \
-                        --vcpus $vcpus \
-                        --emulator $(get_emulator) \
-                        --vdiskdir $vdisk_dir \
-                        --bootorder 3 \
-                        --numcontrollers $(get_nodenumbercontroller) \
-                        --firmwaretype "$firmware_type" \
-                        --controller-raid-volumes $controller_raid_volumes > /tmp/$cloud-node$i.xml
-
-        libvirt_vm_start /tmp/$cloud-node$i.xml
-    done
-
-    echo "========================================================"
-    echo " Note: If you interrupt mkcloud now and want to proceed"
-    echo "       later, make sure to run the following command:"
-    echo
-    echo " export drbdnode_mac_vol=\"${drbdnode_mac_vol}\""
-    echo
-    echo "========================================================"
-    sleep 10
+    ${mkclouddriver}_do_setupnodes normal $(nodes ids normal)
+    ${mkclouddriver}_do_setupnodes lonely $(nodes ids lonely)
+    ${mkclouddriver}_do_setupnodes ironic $(nodes ids ironic)
 
     # mkch_physwol can be set by the user to a space-separated list of MAC-addrs
     # of pysical nodes to wake up using WoL

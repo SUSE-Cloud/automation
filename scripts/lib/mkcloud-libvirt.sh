@@ -381,71 +381,81 @@ function libvirt_do_onhost_deploy_image()
     true
 }
 
-function libvirt_do_setuplonelynodes()
+# create the libvirt configuration of a node (compute, controller, storage, lonely)
+function libvirt_onhost_create_vm_config
 {
-    local i
-    for i in $(nodes ids lonely) ; do
-        local mac=$(macfunc $i)
-        local lonely_node
-        lonely_node=$cloud-node$i
-        safely ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
-               --macaddress $mac \
-               --cephvolumenumber "$cephvolumenumber" \
-               --drbdserial "$drbdvolume" \
-               --computenodememory $compute_node_memory\
-               --controllernodememory $controller_node_memory \
-               --libvirttype $libvirt_type \
-               --vcpus $vcpus \
-               --emulator $(get_emulator) \
-               --vdiskdir $vdisk_dir \
-               --bootorder 1 \
-               --numcontrollers 1 \
-               --firmwaretype "$firmware_type" > /tmp/$cloud-node$i.xml
+    local number=$1
 
-        local lonely_disk
-        lonely_disk="$vdisk_dir/${cloud}.node$i"
-
-        $sudo lvdisplay "$lonely_disk" || \
-            _lvcreate "${cloud}.node$i" "${lonelynode_hdd_size}" "$cloudvg"
-
-        onhost_deploy_image "lonely" $(get_lonely_node_dist) $lonely_disk
-        libvirt_vm_start /tmp/${lonely_node}.xml
+    local nicnumber fistmac nextmac mac_params
+    for nicnumber in $(seq 1 $nics) ; do
+        nextmac=$(macfunc $number $nicnumber)
+        : ${firstmac:=$nextmac}
+        mac_params+=" --macaddress $nextmac"
     done
+
+    # transport drdb volume information to admin node (needed for proposal of data cluster)
+    # note: data cluster currently only supported with node 1 and 2.
+    drbd_serial=""
+    if [ $drbd_hdd_size != 0 ]; then
+        if [ $number -le 2 ] ; then
+            drbd_serial="$cloud-node$number-drbd"
+            # libvirt does not accept anything other than [:alnum:]_-
+            # for serial strings:
+            drbd_serial=${drbd_serial//[^A-Za-z0-9-_]/_}
+            drbdnode_mac_vol="${drbdnode_mac_vol}+${firstmac}#${drbd_serial}"
+            drbdnode_mac_vol="${drbdnode_mac_vol#+}"
+        fi
+    fi
+
+    local bootorder=3
+    if [[ " $(nodes ids lonely) " =~ " $number " ]] ; then
+        bootorder=1
+    fi
+
+    safely ${scripts_lib_dir}/libvirt/compute-config "$cloud" "$number" \
+        $mac_params \
+        $ironic_params \
+        --cephvolumenumber "$cephvolumenumber" \
+        --drbdserial "$drbd_serial"\
+        --computenodememory "$compute_node_memory" \
+        --controllernodememory "$controller_node_memory" \
+        --libvirttype "$libvirt_type" \
+        --vcpus "$vcpus" \
+        --emulator "$(get_emulator)" \
+        --vdiskdir "$vdisk_dir" \
+        --bootorder "$bootorder" \
+        --numcontrollers "$(get_nodenumbercontroller)" \
+        --firmwaretype "$firmware_type" \
+        --controller-raid-volumes "$controller_raid_volumes" > /tmp/$cloud-node$number.xml
 }
 
-function libvirt_do_setupironicnodes()
+function libvirt_do_setupnodes
 {
-    local i
-    for i in $(nodes ids ironic) ; do
-        # note: for now only one 'ironic' nic is added so $nics is ignored
-        local mac_params=" --macaddress $(macfunc $i 1)"
-
-        local ironic_node
-        ironic_node=$cloud-node$i
-        safely ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
-               $mac_params \
-               --drbdserial "$drbdvolume" \
-               --computenodememory $compute_node_memory\
-               --controllernodememory $controller_node_memory \
-               --libvirttype $libvirt_type \
-               --vcpus $vcpus \
-               --emulator $(get_emulator) \
-               --vdiskdir $vdisk_dir \
-               --bootorder 1 \
-               --numcontrollers 0 \
-               --ironicnic 0 \
-               --firmwaretype "$firmware_type" > /tmp/$cloud-node$i.xml
-
-        local ironic_disk
-        ironic_disk="$vdisk_dir/${cloud}.node$i"
-
-        $sudo lvdisplay "$ironic_disk" || \
-            _lvcreate "${cloud}.node$i" "${ironicnode_hdd_size}" "$cloudvg"
-
-        libvirt_vm_start /tmp/${ironic_node}.xml
+    local nodetype=$1 ; shift
+    local nodeid root_disk
+    for nodeid in $@ ; do
+        root_disk=
+        case $nodetype in
+            lonely|ironic)
+                root_disk="$vdisk_dir/${cloud}.node$nodeid"
+                lvdisplay "$root_disk" || \
+                    _lvcreate "${cloud}.node$nodeid" "${lonelynode_hdd_size}" "$cloudvg"
+                ;;&
+            lonely)
+                libvirt_do_onhost_deploy_image "lonely" $(get_lonely_node_dist) "$root_disk"
+                ;;
+            ironic)
+                [[ $want_ironic ]] && local ironic_params="--ironicnic $ironicnic"
+                # overwrite global nics variable as ironic for now only supports one nic
+                local nics=1
+                ;;
+            *)
+                ;;
+        esac
+        libvirt_onhost_create_vm_config $nodeid
+        ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-node${nodeid}.xml
     done
 }
-
 
 function libvirt_do_shutdowncloud()
 {
