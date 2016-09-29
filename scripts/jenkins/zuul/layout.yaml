@@ -25,19 +25,19 @@ projects:
 
 jobs:
   - name: openstack-upstream-gerrit-rpm-packaging-Master
-    voting: false
+    voting: true
     branch: master
     failure-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-Master-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-Master-{build.build_set.commit}
 
   - name: openstack-upstream-gerrit-rpm-packaging-Mitaka
-    voting: false
+    voting: true
     branch: stable/mitaka
     failure-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-Mitaka-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-Mitaka-{build.build_set.commit}
 
   - name: openstack-upstream-gerrit-rpm-packaging-Newton
-    voting: false
+    voting: true
     branch: stable/newton
     failure-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-Newton-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/monitor/home:suse-cloud-ci:rpm-packaging-openstack-Newton-{build.build_set.commit}
