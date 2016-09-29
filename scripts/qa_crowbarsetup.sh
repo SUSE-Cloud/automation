@@ -31,10 +31,10 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
-: ${want_magnum:=''}
+: ${want_magnum:=0}
 : ${want_barbican:=1}
 : ${want_sahara:=1}
-: ${want_murano:=''}
+: ${want_murano:=0}
 : ${want_s390:=''}
 
 : ${arch:=$(uname -m)}
@@ -3287,7 +3287,7 @@ function deploy_single_proposal()
             if [[ $arch = "s390x" ]]; then
                 return
             fi
-            [[ $want_barbican ]] || return
+            [[ $want_barbican = 1 ]] || return
             if ! iscloudver 7plus; then
                 echo "Barbican is SOC 7+ only. Skipping"
                 return
@@ -3307,14 +3307,14 @@ function deploy_single_proposal()
             if [[ $arch = "s390x" ]]; then
                 return
             fi
-            [[ $want_magnum ]] || return
+            [[ $want_magnum = 1 ]] || return
             if iscloudver 7plus ; then
                 safely oncontroller oncontroller_magnum_service_setup
             fi
             ;;
         manila)
             # manila-service can not be deployed currently with docker
-            [[ $want_docker ]] && return
+            [[ $want_docker = 1 ]] && return
             # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
             if iscloudver 5minus && ! [[ $cloudsource = develcloud5 && $want_sles12 ]]; then
                 return
@@ -3339,14 +3339,14 @@ function deploy_single_proposal()
             [[ $wanttempest ]] || return
             ;;
         sahara)
-            [[ $want_sahara ]] || return
+            [[ $want_sahara = 1 ]] || return
             if ! iscloudver 7plus; then
                 echo "Sahara is SOC 7+ only. Skipping"
                 return
             fi
             ;;
         murano)
-            [[ $want_murano ]] || return
+            [[ $want_murano = 1 ]] || return
             if ! iscloudver 7plus; then
                 echo "Murano is SOC 7+ only. Skipping"
                 return
