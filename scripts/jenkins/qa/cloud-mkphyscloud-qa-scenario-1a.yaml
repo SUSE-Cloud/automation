@@ -38,6 +38,11 @@
           default: features:base
           description: Optional, specify cct tests to run
 
+      - bool:
+          name: horizon-tests
+          default: false
+          description: Optional, Run horizon integration tests.
+
       - string:
           name: ssl_type
           default: no-ssl
@@ -176,6 +181,7 @@
               hw_number=$hw_number
               tempest=$tempest
               cct_tests=$cct
+              horizon-tests=$horizon-tests
               scenario_name=1a
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER
