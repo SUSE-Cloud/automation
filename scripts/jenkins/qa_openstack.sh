@@ -404,7 +404,7 @@ else
 fi
 
 if [ "$openstack_client_ver" -ge 2 ]; then
-    openstack stack delete teststack || :
+    openstack stack delete --yes teststack || openstack stack delete teststack || :
 else
     heat stack-delete teststack || :
 fi
