@@ -85,7 +85,6 @@
             - python-swiftclient
             - python-troveclient
             - python-zaqarclient
-            - python-swift3
             - python-os-apply-config
             - python-os-cloud-config
             - python-os-collect-config
