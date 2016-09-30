@@ -19,6 +19,7 @@
             - SLE_12_SP1
             - SLE_12_SP2
             - openSUSE-Leap-42.1
+            - openSUSE-Leap-42.2
       - axis:
           type: user-defined
           name: openstack_project
