@@ -105,7 +105,10 @@ function _dirmaint_link_and_write_disk()
     # FIXME kill the machine
     # vmcp force $ruser || :
     # FIXME
-    local vdev="0100"
+
+    # Derive the link target from $cloudidx to avoid races when doing
+    # for multiple mkcloud runs in parallel
+    local vdev="0a${cloudidx}0"
     local ccw="0.0.$vdev"
 
     safely vmcp link to $ruser 0100 as $vdev mw pass=linux
