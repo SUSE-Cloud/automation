@@ -116,11 +116,13 @@
               "python-networking-hyperv" ].contains(component) ||
             [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging" ].contains(project) &&
             [ "openstack-magnum",
-              "openstack-murano",
               "openstack-barbican",
               "openstack-horizon-plugin-ironic-ui",
               "openstack-horizon-plugin-magnum-ui",
               "openstack-octavia",
+            ].contains(component) ||
+            [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging", "Cloud:OpenStack:Mitaka" ].contains(project) &&
+            [ "openstack-murano",
             ].contains(component) ||
             [ "Cloud:OpenStack:Newton:Staging", "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging"].contains(project) &&
             [ "python-aodhclient",
