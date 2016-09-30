@@ -347,3 +347,8 @@ function libvirt_do_shutdowncloud()
         virsh shutdown $cloud-node$i
     done
 }
+
+function libvirt_do_macfunc()
+{
+    printf "$macprefix:77:77:%02x" $1
+}

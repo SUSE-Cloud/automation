@@ -87,7 +87,7 @@ bind-interfaces
 listen-address=$admingw
 dhcp-range=$admingw,static
 dhcp-no-override
-dhcp-host=$macprefix:0$cloudidx:77:70,${admingw}0
+dhcp-host=$macprefix:0$cloudidx:77:00,${admingw}0
 EOF
     startproc -p /var/run/mkcloud/dnsmasq-$cloud.pid /usr/sbin/dnsmasq \
         --conf-file=/etc/dnsmasq-$cloud.conf
@@ -173,4 +173,9 @@ function dirmaint_do_setuplonelynodes()
 
         safely vmcp xautolog $lonely_node sync
     done
+}
+
+function dirmaint_do_macfunc()
+{
+    printf "$macprefix:0${cloudidx}:77:%02x" $1
 }

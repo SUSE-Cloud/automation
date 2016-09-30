@@ -524,7 +524,7 @@ function confset
 
 function macfunc
 {
-    printf "$macprefix:77:77:%02x" $1
+    ${mkclouddriver}_do_macfunc $1
 }
 
 function get_admin_node_dist
