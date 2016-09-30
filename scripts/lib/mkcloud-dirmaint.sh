@@ -156,6 +156,7 @@ function dirmaint_do_setupadmin()
     vmcp q $admuser && complain 192 "$admuser is not logged off"
 
     vmcp s vswitch $cloudbr gra $admuser
+    vmcp s vswitch $cloudbr gra $admuser prom
     vmcp xautolog $admuser sync || exit $?
 }
 
@@ -166,10 +167,14 @@ function dirmaint_do_setuplonelynodes()
     for i in $(nodes ids lonely) ; do
         local mac=$(macfunc $i)
         local lonely_node
+        local cloudbr=${cloud}
         lonely_node=$(printf "${cloud}n%02d" $i)
 
         # FIXME push user directory entry
         _dirmaint_link_and_write_disk $lonely_node SLES12-SP2-ECKD.qcow2
+
+        safely vmcp s vswitch $cloudbr gra $lonely_node
+        safely vmcp s vswitch $cloudbr gra $lonely_node prom
 
         safely vmcp xautolog $lonely_node sync
     done
