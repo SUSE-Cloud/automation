@@ -59,38 +59,11 @@
             - openstack-trove
             - openstack-utils
             - openstack-zaqar
-            - python-aodhclient
-            - python-barbicanclient
-            - python-ceilometerclient
-            - python-cinderclient
-            - python-designateclient
-            - python-glanceclient
-            - python-gnocchiclient
-            - python-heatclient
             - python-heat-cfntools
-            - python-ironicclient
-            - python-k8sclient
-            - python-keystoneclient
-            - python-keystonemiddleware
-            - python-magnumclient
-            - python-manilaclient
-            - python-mistralclient
-            - python-muranoclient
-            - python-neutronclient
             - python-networking-cisco
             - python-networking-hyperv
-            - python-novaclient
-            - python-openstackclient
-            - python-saharaclient
-            - python-swiftclient
-            - python-troveclient
-            - python-zaqarclient
-            - python-os-apply-config
-            - python-os-cloud-config
-            - python-os-collect-config
             - tripleo-image-elements
             - tripleo-heat-templates
-            - diskimage-builder
       - axis:
           type: slave
           name: slave
@@ -124,38 +97,10 @@
             [ "openstack-murano",
             ].contains(component) ||
             [ "Cloud:OpenStack:Newton:Staging", "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging"].contains(project) &&
-            [ "python-aodhclient",
-              "python-barbicanclient",
-              "python-ceilometerclient",
-              "python-cinderclient",
-              "python-designateclient",
-              "python-glanceclient",
-              "python-gnocchiclient",
-              "python-heatclient",
+            [
               "python-heat-cfntools",
-              "python-ironicclient",
-              "python-k8sclient",
-              "python-keystoneclient",
-              "python-keystonemiddleware",
-              "python-magnumclient",
-              "python-manilaclient",
-              "python-muranoclient",
-              "python-mistralclient",
-              "python-neutronclient",
-              "python-novaclient",
-              "python-openstackclient",
-              "python-saharaclient",
-              "python-swiftclient",
-              "python-troveclient",
-              "python-zaqarclient",
-              "python-keystonemiddleware",
-              "tripleo-image-elements",
-              "tripleo-heat-templates",
-              "diskimage-builder",
               "openstack-zaqar",
-              "python-os-apply-config",
-              "python-os-cloud-config",
-              "python-os-collect-config" ].contains(component)
+            ].contains(component)
             )
       sequential: true
     builders:
