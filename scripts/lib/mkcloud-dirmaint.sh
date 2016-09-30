@@ -10,7 +10,13 @@ function dirmaint_do_setuphost()
 
 function dirmaint_do_sanity_checks()
 {
-    : Sanity is doing the same thing over and over again and seeing no difference
+    # This assumes $cloud is named "mkcl<single-hex-digit>"
+    if [[ ${cloud} =~ ^mkcl[0-9a-f]$ ]]; then
+        cloudidx=${cloud: -1}
+    else
+        complain 93 "Invalid cloud name. " \
+            "\$cloud (currently: \"${cloud}\") needs to match \"mkcl[0-9a-f]\". Exiting."
+    fi
 }
 
 function dirmaint_do_shutdowncloud()
@@ -29,8 +35,6 @@ function dirmaint_do_cleanup()
     killproc -p /var/run/mkcloud/dnsmasq-$cloud.pid /usr/sbin/dnsmasq
     rm -f /var/run/mkcloud/dnsmasq-$cloud.pid /etc/dnsmasq-$cloud.conf
 
-    # This assumes $cloud is named "mkcl<single-hex-digit>"
-    cloudidx=${cloud: -1}
     ndev=1${cloudidx}00
     devname=$(cat /sys/bus/ccwgroup/drivers/qeth/0.0.${ndev}/if_name)
 
@@ -51,9 +55,6 @@ function dirmaint_do_prepare()
 {
     onhost_add_etchosts_entries
     onhost_prepareadmin
-
-    # This assumes $cloud is named "mkcl<single-hex-digit>"
-    cloudidx=${cloud: -1}
 
     if ! vmcp q vswitch ${cloud}; then
         # create new vswitch for cloud networks
