@@ -1,9 +1,0 @@
-- project:
-    name: 'openstack-upstream-rpm-packaging-update'
-    jobs:
-        - 'openstack-upstream-rpm-packaging-update-{release}':
-            release: 'Master'
-        - 'openstack-upstream-rpm-packaging-update-{release}':
-            release: 'Mitaka'
-        - 'openstack-upstream-rpm-packaging-update-{release}':
-            release: 'Newton'

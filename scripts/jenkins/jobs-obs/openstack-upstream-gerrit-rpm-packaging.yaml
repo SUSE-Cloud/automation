@@ -1,9 +1,0 @@
-- project:
-    name: 'openstack-upstream-gerrit-rpm-packaging'
-    jobs:
-        - 'openstack-upstream-gerrit-rpm-packaging-{release}':
-            release: 'Master'
-        - 'openstack-upstream-gerrit-rpm-packaging-{release}':
-            release: 'Mitaka'
-        - 'openstack-upstream-gerrit-rpm-packaging-{release}':
-            release: 'Newton'
