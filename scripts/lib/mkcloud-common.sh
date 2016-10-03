@@ -54,7 +54,8 @@ for port in 22 80 443 5000 7630; do
     done
 done
 
-iptables_unique_rule PREROUTING -t nat -p tcp --dport 6080 \\
+# Forward VNC port
+iptables_unique_rule PREROUTING -t nat -p tcp --dport \$(( $cloud_port_offset + 6080 )) \\
     -j DNAT --to-destination $net_public.2
 
 # need to delete+insert on top to make sure our ACCEPT comes before libvirt's REJECT
