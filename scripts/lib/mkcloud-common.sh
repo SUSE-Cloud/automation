@@ -15,6 +15,17 @@ function is_suse
     grep -qi suse /etc/*release
 }
 
+function ssh_password
+{
+    SSH_ASKPASS=/root/echolinux
+    cat > $SSH_ASKPASS <<EOSSHASK
+#!/bin/sh
+echo linux
+EOSSHASK
+    chmod +x $SSH_ASKPASS
+    DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh $sshopts -oNumberOfPasswordPrompts=1 "$@"
+}
+
 function onhost_setup_portforwarding()
 {
     boot_mkcloud=/etc/init.d/boot.mkcloud

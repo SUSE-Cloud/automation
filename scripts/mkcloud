@@ -320,17 +320,6 @@ function onhost_prepareadmin
     onhost_deploy_image "admin" $(get_admin_node_dist) "$admin_node_disk"
 }
 
-function ssh_password
-{
-    SSH_ASKPASS=/root/echolinux
-    cat > $SSH_ASKPASS <<EOSSHASK
-#!/bin/sh
-echo linux
-EOSSHASK
-    chmod +x $SSH_ASKPASS
-    DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh $sshopts -oNumberOfPasswordPrompts=1 "$@"
-}
-
 function wait_for_crowbar_ssh
 {
     wait_for 150 1 "nc -z $adminip 22" 'admin node to start ssh daemon'

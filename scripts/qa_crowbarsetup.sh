@@ -2224,17 +2224,6 @@ function sshtest
     timeout 10 ssh -o NumberOfPasswordPrompts=0 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
 }
 
-function ssh_password
-{
-    SSH_ASKPASS=/root/echolinux
-    cat > $SSH_ASKPASS <<EOSSHASK
-#!/bin/sh
-echo linux
-EOSSHASK
-    chmod +x $SSH_ASKPASS
-    DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh "$@"
-}
-
 function check_node_resolvconf
 {
     ssh_password $1 'grep "^nameserver" /etc/resolv.conf || echo fail'
