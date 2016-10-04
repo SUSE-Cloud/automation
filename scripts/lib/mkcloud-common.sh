@@ -153,3 +153,27 @@ EOS
     done
 }
 
+# Returns success if a change was made
+function confset
+{
+    local file="$1"
+    local key="$2"
+    local value="$3"
+    if grep -q "^$key *= *$value" "$file"; then
+        return 1 # already set correctly
+    fi
+
+    local new_line="$key = $value"
+    if grep -q "^$key[ =]" "$file"; then
+        # change existing value
+        sed -i "s/^$key *=.*/$new_line/" "$file"
+    elif grep -q "^# *$key[ =]" "$file"; then
+        # uncomment existing setting
+        sed -i "s/^# *$key *=.*/$new_line/" "$file"
+    else
+        # add new setting
+        echo "$new_line" >> "$file"
+    fi
+
+    return 0
+}
