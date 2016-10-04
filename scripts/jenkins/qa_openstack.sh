@@ -155,10 +155,14 @@ if [ "$VERSION" = "12" ] ; then
     $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12/x86_64/update/' SLES12-Updates
 fi
 
-### FIX SP2 setup
-if [ "$VERSION" = "12.1" ] || [ "$VERSION" = "12.2" ]; then
+if [ "$VERSION" = "12.1" ]; then
     $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
     $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
+fi
+
+if [ "$VERSION" = "12.2" ]; then
+    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/' SLE12-SP2-Pool
+    $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/' SLES12-SP2-Updates
 fi
 
 # install maintenance updates
