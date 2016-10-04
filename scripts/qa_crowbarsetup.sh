@@ -2322,7 +2322,6 @@ function onadmin_crowbar_register
 
     # call crowbar_register on the lonely node
     local inject
-    local zyppercmd
 
     if iscloudver 6 ; then
         image="suse-12.1/x86_64/"
@@ -2334,9 +2333,6 @@ function onadmin_crowbar_register
         else
             image="suse-11.3"
         fi
-        # install SuSEfirewall2 as it is called in crowbar_register
-        #FIXME in barclamp-provisioner
-        zyppercmd="zypper -n install SuSEfirewall2 &&"
     fi
 
     local adminfqdn=`get_crowbar_node`
@@ -2354,7 +2350,6 @@ function onadmin_crowbar_register
             zypper -n in wget screen
             wget http://$adminip:8091/$image/crowbar_register &&
             chmod a+x crowbar_register &&
-            $zyppercmd
             $hostnamecmd
             zypper -n ref &&
             zypper -n up --no-recommends &&
