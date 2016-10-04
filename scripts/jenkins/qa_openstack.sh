@@ -165,6 +165,17 @@ if [ "$VERSION" = "12.2" ]; then
     $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/' SLES12-SP2-Updates
 fi
 
+# openSUSE Leap versions
+if [ "$VERSION" = "42.1" ]; then
+    $zypper ar 'http://download.opensuse.org/distribution/leap/42.1/repo/oss/' Leap-42.1-oss
+    $zypper ar 'http://download.opensuse.org/update/leap/42.1/oss/' Leap-42.1-oss-update
+fi
+
+if [ "$VERSION" = "42.2" ]; then
+    $zypper ar 'http://download.opensuse.org/distribution/leap/42.2/repo/oss/' Leap-42.2-oss
+    $zypper ar 'http://download.opensuse.org/update/leap/42.2/oss/' Leap-42.2-oss-update
+fi
+
 # install maintenance updates
 # run twice, first installs zypper update, then the rest
 $zypper -n patch --skip-interactive || $zypper -n patch --skip-interactive
