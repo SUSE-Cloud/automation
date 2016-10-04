@@ -51,7 +51,8 @@
          ["Cloud:OpenStack:Kilo", "Cloud:OpenStack:Kilo:Staging"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "openSUSE_Leap_42.1", "SLE_11_SP3", "openSUSE_Leap_42.2"].contains(repository)  ||
          ["Cloud:OpenStack:Liberty", "Cloud:OpenStack:Liberty:Staging"].contains(project) && ["SLE_11_SP3", "SLE_12_SP2", "openSUSE_Leap_42.2"].contains(repository) ||
          ["Cloud:OpenStack:Mitaka", "Cloud:OpenStack:Mitaka:Staging"].contains(project) && ["openSUSE_13.2", "SLE_12", "SLE_11_SP3", "openSUSE_Leap_42.2"].contains(repository) ||
-         ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["openSUSE_13.2", "SLE_12", "SLE_12_SP1", "SLE_11_SP3", "openSUSE_Leap_42.1"].contains(repository)
+         ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["openSUSE_13.2", "SLE_12", "SLE_12_SP1", "SLE_11_SP3", "openSUSE_Leap_42.1"].contains(repository) ||
+         ["Cloud:Tools"].contains(project) && ["SLE_11_SP3", "SLE_12"].contains(repository)
        )
       sequential: true
     builders:
