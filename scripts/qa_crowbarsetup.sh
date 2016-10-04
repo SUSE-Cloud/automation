@@ -36,6 +36,7 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_sahara:=1}
 : ${want_murano:=0}
 : ${want_s390:=''}
+: ${want_horizon_integration_test:=''}
 
 : ${arch:=$(uname -m)}
 
@@ -3619,7 +3620,87 @@ function oncontroller_run_tempest
     return $tempestret
 }
 
-function oncontroller_manila_generic_driver_setup
+function oncontroller_run_integration_test()
+{
+    # Install Mozilla Firefox < 47 to work with Selenium.
+    safely zypper -n in 'MozillaFirefox<47'
+
+    # Add Devel:Languages:Python repo (no GPG checks) to install Selenium
+    local dlp="http://download.opensuse.org/repositories/devel:/languages:/python/$slesdist/"
+    zypper ar --no-gpgcheck --refresh $dlp python
+    safely zypper -n in python-selenium
+    safely zypper -n in python-nose
+    safely zypper -n in python-xvfbwrapper
+
+    source .openrc
+
+    # Disable chef before changing local configuration
+    systemctl stop chef-client.service
+
+    local locset=/srv/www/openstack-dashboard/openstack_dashboard/local/local_settings.py
+
+    # Disable local password validator in Horizon
+    echo 'HORIZON_CONFIG["password_validator"] = None' >> $locset
+    # Allows IPv6 networks (for the UI in Horizon)
+    sed -i "s/'enable_ipv6': False,/'enable_ipv6': True,/g" $locset
+
+    # Make the changes effective
+    systemctl restart apache2.service
+
+    # Create dummy `public` network
+    openstack network create public
+
+    # Remove non-expected images
+    openstack image delete cirros-0.3.4-x86_64-tempest-machine-alt
+    openstack image delete manila-service-image
+
+    pushd /srv/www/openstack-dashboard
+
+    # Configuration file
+    local cfg=openstack_dashboard/test/integration_tests/horizon.conf
+    cp -a $cfg $cfg.BACKUP
+
+    local url="http://localhost"
+    if [[ $hacloud = 1 ]]; then
+        url="http://cluster-services"
+    fi
+
+    # [dashboard]
+    crudini --set --inplace $cfg dashboard dashboard_url $url
+    crudini --set --inplace $cfg dashboard help_url $url/help/
+    # [image]
+    crudini --set --inplace $cfg image images_list "cirros-0.3.4-x86_64-tempest-kernel,cirros-0.3.4-x86_64-tempest-machine,cirros-0.3.4-x86_64-tempest-ramdisk"
+    # [identity]
+    crudini --set --inplace $cfg identity username crowbar
+    crudini --set --inplace $cfg identity password crowbar
+    crudini --set --inplace $cfg identity home_project openstack
+    crudini --set --inplace $cfg identity admin_username admin
+    crudini --set --inplace $cfg identity admin_password crowbar
+    crudini --set --inplace $cfg identity admin_home_project admin
+    # [network]
+    local cidr=$(openstack subnet show floating -f value -c cidr)
+    crudini --set --inplace $cfg network tenant_network_cidr $cidr
+    # [launch_instances]
+    crudini --set --inplace $cfg launch_instances image_name "cirros-0.3.4-x86_64-tempest-machine (24.0 MB)"
+    # [volume]
+    crudini --set --inplace $cfg volume volume_type no_type
+
+    # Configure the tests to be headless and run the tests
+    export WITH_SELENIUM=1
+    export SELENIUM_HEADLESS=1
+    export INTEGRATION_TESTS=1
+    nosetests openstack_dashboard/test/integration_tests/tests
+    local integrationret=$?
+
+    popd
+
+    # Restart chef-client
+    systemctl start chef-client.service
+
+    return $integrationret
+}
+
+function oncontroller_manila_generic_driver_setup()
 {
     if [[ $wantxenpv ]] ; then
         local service_image_url=http://$clouddata/images/other/manila-service-image-xen.raw
@@ -3831,6 +3912,13 @@ function oncontroller_testsetup
         tempestret=$?
     fi
 
+    # Run Horizon integration test if configure to do so
+    integrationret=0
+    if [ "$want_horizon_integration_test" = "1" ]; then
+        # Horizon / Dashboard is installed in the controller node
+        oncontroller_run_integration_test
+        integrationret=$?
+    fi
 
     nova list
     openstack image list
