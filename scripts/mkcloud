@@ -140,11 +140,6 @@ pidfile=mkcloud.pid
 trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
 
-function is_suse
-{
-    grep -qi suse /etc/*release
-}
-
 function show_environment
 {
     end_time=`date`

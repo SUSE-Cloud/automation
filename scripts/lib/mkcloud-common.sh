@@ -10,6 +10,11 @@ function determine_mtu
     LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1
 }
 
+function is_suse
+{
+    grep -qi suse /etc/*release
+}
+
 function onhost_setup_portforwarding()
 {
     boot_mkcloud=/etc/init.d/boot.mkcloud
