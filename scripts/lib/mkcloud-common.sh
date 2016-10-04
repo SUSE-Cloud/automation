@@ -5,6 +5,11 @@ function max
     echo $(( $1 > $2 ? $1 : $2 ))
 }
 
+function determine_mtu
+{
+    LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1
+}
+
 function onhost_setup_portforwarding()
 {
     boot_mkcloud=/etc/init.d/boot.mkcloud

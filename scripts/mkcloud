@@ -125,6 +125,7 @@ scp="scp $sshopts"
 [ -z "$localreposdir_src" ] && localreposdir_target=""
 : ${install_chef_suse_override:=./install-chef-suse.sh}
 : ${cct_tests:="features:base"}
+host_mtu=$(determine_mtu)
 : ${want_mtu_size:=1500}
 
 emulator=/usr/bin/qemu-system-$arch
@@ -198,10 +199,6 @@ function error_exit
     exit $exitcode
 } >&2
 
-function determine_host_mtu
-{
-    host_mtu=$(LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1)
-}
 
 function sshrun
 {
@@ -1427,8 +1424,6 @@ steplist=`expand_steps $wantedcmds`
 [[ "$steplist" =~ "steps" ]] && steps
 
 sanity_checks
-
-determine_host_mtu
 
 echo "You choose to run these mkcloud steps:"
 echo "  $steplist"
