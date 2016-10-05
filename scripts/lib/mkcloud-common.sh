@@ -246,4 +246,11 @@ function get_admin_node_dist
     echo "$dist"
 }
 
+function get_lonely_node_dist
+{
+    local dist=$(get_admin_node_dist)
+    iscloudver 5 && [[ $want_sles12 ]] && dist=SLE12
+    echo $dist
+}
+
 # ---- END: functions related to repos and distribution settings

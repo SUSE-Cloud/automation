@@ -457,13 +457,6 @@ function restorecloudfromsnapshot
     createcloudsnapshot
 }
 
-function get_lonely_node_dist
-{
-    local dist=$(get_admin_node_dist)
-    iscloudver 5 && [[ $want_sles12 ]] && dist=SLE12
-    echo $dist
-}
-
 function dist_to_image_name
 {
     # get the name of the image to deploy the admin node
