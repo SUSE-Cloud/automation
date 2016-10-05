@@ -191,6 +191,15 @@ function hypervisor_has_virtio
     return 0
 }
 
+function ensure_packages_installed
+{
+    local zypper_params="--non-interactive --gpg-auto-import-keys --no-gpg-checks"
+    local pack
+    for pack in "$@" ; do
+        rpm -q $pack &> /dev/null || safely zypper $zypper_params install "$pack"
+    done
+}
+
 function zypper_refresh
 {
     # --no-gpg-checks for Devel:Cloud repo
