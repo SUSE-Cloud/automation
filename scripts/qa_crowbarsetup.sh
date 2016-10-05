@@ -3306,6 +3306,7 @@ function deploy_single_proposal
             fi
             [[ $want_magnum = 1 ]] || return
             if iscloudver 7plus ; then
+                get_novacontroller
                 safely oncontroller oncontroller_magnum_service_setup
             fi
             ;;
@@ -3790,9 +3791,13 @@ function oncontroller_manila_generic_driver_setup()
 
 function oncontroller_magnum_service_setup
 {
-    # (mmnelemane): Replace this Fedora image with a suitable SLES image when available
+    # (mjura): https://bugs.launchpad.net/magnum/+bug/1622468
+    # Magnum functional tests have hardcoded swarm as coe backend, until then this will
+    # not be fixed, we are going to have our own integration tests with SLES Magnum image
     local service_image_name=magnum-service-image.qcow2
     local service_image_url=http://clouddata.cloud.suse.de/images/$arch/other/$service_image_name
+    local service_sles_image_name=SLE12SP1-JeOS-k8s-magnum.x86_64.qcow2
+    local service_sles_image_url=http://download.suse.de/ibs/Devel:/Docker:/Images:/SLE12SP1-JeOS-k8s-magnum/images/$service_sles_image_name
 
     if ! openstack image list --f value -c Name | grep -q "^magnum-service-image$"; then
         local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
@@ -3810,7 +3815,25 @@ function oncontroller_magnum_service_setup
         # os-distro property
         openstack image create --file $service_image_name \
             --disk-format qcow2 --container-format bare --public \
+            --property hw_firmware_type=uefi \
             --property os_distro=fedora-atomic magnum-service-image
+    fi
+
+    if ! openstack image list --f value -c Name | grep -q "^SLE12SP1-JeOS-k8s-magnum$"; then
+        local ret=$(wget -N --progress=dot:mega "$service_sles_image_url" 2>&1 >/dev/null)
+        if [[ $ret =~ "200 OK" ]]; then
+            echo $ret
+        elif [[ $ret =~ "Not Found" ]]; then
+            complain 73 "SLES magnum image not found: $ret"
+        else
+            complain 74 "failed to retrieve SLES magnum image: $ret"
+        fi
+
+        . ~/.openrc
+
+        openstack image create --file $service_sles_image_name \
+            --disk-format qcow2 --container-format bare --public \
+            --property os_distro=opensuse SLE12SP1-JeOS-k8s-magnum
     fi
 
     # create magnum flavors used by tempest
@@ -4070,6 +4093,37 @@ function oncontroller_testsetup
     nova floating-ip-delete "$floatingip"
     nova stop "$instanceid"
     wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
+
+    # run tests for Magnum bay deployment
+    if [ -n "$want_magnum" ]; then
+        if ! magnum baymodel-show susek8sbaymodel > /dev/null 2>&1; then
+            safely magnum baymodel-create --name susek8sbaymodel \
+                --image-id SLE12SP1-JeOS-k8s-magnum \
+                --keypair-id default \
+                --external-network-id floating \
+                --flavor-id m1.smaller \
+                --master-flavor-id m2.smaller \
+                --docker-volume-size 5 \
+                --network-driver flannel \
+                --coe kubernetes \
+                --tls-disabled
+        fi
+
+        if ! magnum bay-show susek8sbay > /dev/null 2>&1; then
+            safely magnum bay-create --name susek8sbay --baymodel susek8sbaymodel --node-count 1
+            wait_for 500 3 'magnum bay-show susek8sbay | grep -q "status.*CREATE_COMPLETE"' "Creating Magnum bay for Kubernetes" "complain 130 'Magnum bay could not be created'"
+
+            echo "Finished creating Magnum bay"
+            safely magnum bay-show susek8sbay
+            sleep 1
+
+            # cleanup Magnum deployment
+            safely magnum bay-delete susek8sbay
+            wait_for 300 3 'magnum bay-show susek8sbay > /dev/null 2>&1; [[ $? == 1 ]]' "Removing Magnum bay" "complain 131 'Magnum bay could not be removed'"
+            safely magnum baymodel-delete susek8sbaymodel;
+            wait_for 300 3 'magnum baymodel-show susek8sbaymodel > /dev/null 2>&1; [[ $? == 1 ]]' "Removing Magnum baymodel" "complain 131 'Magnum baymodel could not be removed'"
+        fi
+    fi
 
     if iscloudver 6plus ; then
         # check that no port is in binding_failed state
