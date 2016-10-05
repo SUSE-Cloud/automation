@@ -183,3 +183,24 @@ function confset
 
     return 0
 }
+
+# ---- START: functions related to repos and distribution settings
+
+function getcloudver
+{
+    if   [[ $cloudsource =~ ^.*(cloud|GM)3(\+up)?$ ]] ; then
+        echo -n 3
+    elif [[ $cloudsource =~ ^.*(cloud|GM)4(\+up)?$ ]] ; then
+        echo -n 4
+    elif [[ $cloudsource =~ ^.*(cloud|GM)5(\+up)?$ ]] ; then
+        echo -n 5
+    elif [[ $cloudsource =~ ^.*(cloud|GM)6(\+up)?$ ]] ; then
+        echo -n 6
+    elif [[ $cloudsource =~ ^(.+7|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM7?(\+up)?)$ ]] ; then
+        echo -n 7
+    else
+        complain 11 "unknown cloudsource version"
+    fi
+}
+
+# ---- END: functions related to repos and distribution settings

@@ -457,23 +457,6 @@ function add_mount
     fi
 }
 
-function getcloudver
-{
-    if   [[ $cloudsource =~ ^.*(cloud|GM)3(\+up)?$ ]] ; then
-        echo -n 3
-    elif [[ $cloudsource =~ ^.*(cloud|GM)4(\+up)?$ ]] ; then
-        echo -n 4
-    elif [[ $cloudsource =~ ^.*(cloud|GM)5(\+up)?$ ]] ; then
-        echo -n 5
-    elif [[ $cloudsource =~ ^.*(cloud|GM)6(\+up)?$ ]] ; then
-        echo -n 6
-    elif [[ $cloudsource =~ ^(.+7|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM7?(\+up)?)$ ]] ; then
-        echo -n 7
-    else
-        complain 11 "unknown cloudsource version"
-    fi
-}
-
 # return if cloudsource is referring a certain SUSE Cloud version
 # input1: version - 6plus refers to version 6 or later ; only a number refers to one exact version
 function iscloudver
