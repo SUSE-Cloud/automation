@@ -1,5 +1,6 @@
 pipelines:
   - name: rpm-packaging
+    description: This pipeline runs check jobs on new changes being proposed.
     manager: IndependentPipelineManager
     trigger:
       gerrit:
@@ -16,12 +17,26 @@ pipelines:
     success-message: Build succeeded (rpm-packaging).
     failure-message: Build failed (rpm-packaging).
 
+  - name: post-rpm-packaging
+    description: This pipeline runs jobs that operate after each change is merged.
+    manager: IndependentPipelineManager
+    source: gerrit
+    precedence: low
+    trigger:
+      gerrit:
+        - event: ref-updated
+          ref: ^(?!refs/).*$
+
 projects:
   - name: openstack/rpm-packaging
     rpm-packaging:
       - openstack-rpm-packaging-sles12-Master
       - openstack-rpm-packaging-sles12-Newton
       - openstack-rpm-packaging-sles12-Mitaka
+    post-rpm-packaging:
+      - openstack-rpm-packaging-update-Master
+      - openstack-rpm-packaging-update-Newton
+      - openstack-rpm-packaging-update-Mitaka
 
 jobs:
   - name: openstack-rpm-packaging-sles12-Master
@@ -38,3 +53,12 @@ jobs:
     branch: stable/mitaka
     failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Mitaka-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Mitaka-{build.build_set.commit}
+
+  - name: openstack-rpm-packaging-update-Master
+    branch: master
+
+  - name: openstack-rpm-packaging-update-Newton
+    branch: stable/newton
+
+  - name: openstack-rpm-packaging-update-Mitaka
+    branch: stable/mitaka

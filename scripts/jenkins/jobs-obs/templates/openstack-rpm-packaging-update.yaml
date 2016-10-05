@@ -6,9 +6,6 @@
       <b>This job is managed by JJB!</b>
       Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-obs/templates/'>git</a>
 
-    triggers:
-      - timed: 'H */4 * * *'
-
     builders:
       - shell: |
           #!/bin/bash
