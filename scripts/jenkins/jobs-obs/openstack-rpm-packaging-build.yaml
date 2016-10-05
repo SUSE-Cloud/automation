@@ -1,0 +1,9 @@
+- project:
+    name: 'openstack-rpm-packaging-build'
+    jobs:
+        - 'openstack-rpm-packaging-sles12-{release}':
+            release: 'Master'
+        - 'openstack-rpm-packaging-sles12-{release}':
+            release: 'Newton'
+        - 'openstack-rpm-packaging-sles12-{release}':
+            release: 'Mitaka'
