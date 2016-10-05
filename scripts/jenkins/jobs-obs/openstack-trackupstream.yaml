@@ -53,6 +53,7 @@
             - openstack-octavia
             - openstack-quickstart
             - openstack-resource-agents
+            - openstack-rally
             - openstack-sahara
             - openstack-swift
             - openstack-tempest
@@ -99,6 +100,7 @@
             [ "Cloud:OpenStack:Newton:Staging", "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Kilo:Staging"].contains(project) &&
             [
               "python-heat-cfntools",
+              "openstack-rally",
               "openstack-zaqar",
             ].contains(component)
             )
