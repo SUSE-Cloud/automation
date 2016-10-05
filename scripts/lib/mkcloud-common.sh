@@ -59,6 +59,12 @@ function nodes
     esac
 }
 
+: ${macprefix:=52:54:77}
+function macfunc
+{
+    ${mkclouddriver}_do_macfunc $1
+}
+
 function onhost_setup_portforwarding()
 {
     boot_mkcloud=/etc/init.d/boot.mkcloud

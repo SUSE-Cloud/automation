@@ -37,7 +37,6 @@ fi
 : ${qa_crowbarsetup:=${SCRIPTS_DIR}/qa_crowbarsetup.sh}
 : ${iscsictl:=${SCRIPTS_DIR}/iscsictl.py}
 
-: ${macprefix:=52:54:77}
 : ${mkclouddriver:=libvirt}
 scripts_lib_dir=${SCRIPTS_DIR}/lib
 mkcloud_lib_dir=$scripts_lib_dir # for backward compatibility
@@ -456,11 +455,6 @@ function restorecloudfromsnapshot
         merge_snapshot_volume "${cloudvg}/${d%.snap}"
     done
     createcloudsnapshot
-}
-
-function macfunc
-{
-    ${mkclouddriver}_do_macfunc $1
 }
 
 function get_admin_node_dist
