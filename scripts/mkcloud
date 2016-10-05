@@ -32,18 +32,20 @@ fi
 # causes of this is violation of the common shell coding standard which
 # uses uppercase for environment variables and constants, and lowercase
 # for local variables.
-: ${mkcloud_dir:=$(dirname $(readlink -e $0))}
-: ${qa_crowbarsetup:=${mkcloud_dir}/qa_crowbarsetup.sh}
-: ${iscsictl:=${mkcloud_dir}/iscsictl.py}
+: ${SCRIPTS_DIR:=$mkcloud_dir} # for backward compatibility
+: ${SCRIPTS_DIR:=$(dirname $(readlink -e $0))}
+: ${qa_crowbarsetup:=${SCRIPTS_DIR}/qa_crowbarsetup.sh}
+: ${iscsictl:=${SCRIPTS_DIR}/iscsictl.py}
 
 : ${macprefix:=52:54:77}
 : ${mkclouddriver:=libvirt}
-mkcloud_lib_dir=${mkcloud_dir}/lib
+scripts_lib_dir=${SCRIPTS_DIR}/lib
+mkcloud_lib_dir=$scripts_lib_dir # for backward compatibility
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
-mkcloud_temporary_scripts="mkcloud-common.sh mkcloud-$mkclouddriver.sh"
-for script in $mkcloud_temporary_scripts; do
-    source ${mkcloud_lib_dir}/$script
+common_scripts="mkcloud-common.sh mkcloud-$mkclouddriver.sh"
+for script in $common_scripts; do
+    source ${scripts_lib_dir}/$script
 done
 mkcconf=mkcloud.config
 rm -f $mkcconf # we dont want to source old info in the line below
