@@ -184,6 +184,13 @@ function confset
     return 0
 }
 
+function hypervisor_has_virtio
+{
+    local lt=${1:-$libvirt_type}
+    [[ " $lt " =~ " xen hyperv " ]] && return 1
+    return 0
+}
+
 # ---- START: functions related to repos and distribution settings
 
 function getcloudver
