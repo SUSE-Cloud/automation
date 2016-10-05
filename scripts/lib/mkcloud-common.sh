@@ -231,4 +231,19 @@ function iscloudver
     return $?
 }
 
+function get_admin_node_dist
+{
+    # echo the name of the current dist for the admin node
+    local dist=
+    case $(getcloudver) in
+        7)  dist=SLE12SP2
+            [[ $want_sles12sp1_admin ]] && dist=SLE12SP1
+            ;;
+        6)  dist=SLE12SP1 ;;
+        5)  dist=SLE11    ;;
+        *)  dist=SLE11    ;;
+    esac
+    echo "$dist"
+}
+
 # ---- END: functions related to repos and distribution settings
