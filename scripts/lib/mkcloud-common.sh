@@ -203,4 +203,32 @@ function getcloudver
     fi
 }
 
+# return if cloudsource is referring a certain SUSE Cloud version
+# input1: version - 6plus refers to version 6 or later ; only a number refers to one exact version
+function iscloudver
+{
+    [[ $cloudsource ]] || return 1
+    local v=$1
+    local operator="="
+    if [[ $v =~ plus ]] ; then
+        v=${v%%plus}
+        operator="-ge"
+    fi
+    if [[ $v =~ minus ]] ; then
+        v=${v%%minus}
+        operator="-le"
+    fi
+    local ver=`getcloudver` || exit 11
+    if [[ $v =~ M[0-9]+$ ]] ; then
+        local milestone=${v#*M}
+        v=${v%M*}
+        if [[ $ver -eq $v ]] && [[ $cloudsource =~ ^M[0-9]+$ ]] ; then
+            [ "${cloudsource#*M}" $operator "$milestone" ]
+            return $?
+        fi
+    fi
+    [ "$ver" $operator "$v" ]
+    return $?
+}
+
 # ---- END: functions related to repos and distribution settings
