@@ -1443,13 +1443,6 @@ function onadmin_set_source_variables
 }
 
 
-function zypper_refresh
-{
-    # --no-gpg-checks for Devel:Cloud repo
-    safely zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
-}
-
-
 function ensure_packages_installed
 {
     local zypper_params="--non-interactive --gpg-auto-import-keys --no-gpg-checks"

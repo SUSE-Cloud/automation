@@ -191,6 +191,12 @@ function hypervisor_has_virtio
     return 0
 }
 
+function zypper_refresh
+{
+    # --no-gpg-checks for Devel:Cloud repo
+    safely zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
+}
+
 # ---- START: functions related to repos and distribution settings
 
 function getcloudver
