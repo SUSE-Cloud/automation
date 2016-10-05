@@ -253,4 +253,20 @@ function get_lonely_node_dist
     echo $dist
 }
 
+function dist_to_image_name
+{
+    # get the name of the image to deploy the admin node
+    local dist=$1
+    case $dist in
+        SLE12SP2) image=SLES12-SP2 ;;
+        SLE12SP1) image=SLES12-SP1 ;;
+        SLE12)    image=SLES12     ;;
+        SLE11)    image=SP3-64up   ;;
+        *)
+            complain 71 "No admin node image defined for this distribution: $dist"
+        ;;
+    esac
+    echo "$image.qcow2"
+}
+
 # ---- END: functions related to repos and distribution settings
