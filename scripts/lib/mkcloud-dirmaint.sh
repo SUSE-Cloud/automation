@@ -10,13 +10,17 @@ function dirmaint_do_setuphost()
 
 function dirmaint_do_sanity_checks()
 {
-    : Sanity is doing the same thing over and over again and seeing no difference
+    # This assumes $cloud is named "mkcl<single-hex-digit>"
+    if [[ ${cloud} =~ ^mkcl[0-9a-f]$ ]]; then
+        cloudidx=${cloud: -1}
+    else
+        complain 93 "Invalid cloud name. " \
+            "\$cloud (currently: \"${cloud}\") needs to match \"mkcl[0-9a-f]\". Exiting."
+    fi
 }
 
 function dirmaint_do_shutdowncloud()
 {
-    # FIXME stop hardcoding
-    local cloud="mkcld"
     for i in $(nodes ids all); do
         vmcp sig shut $(printf "${cloud}n%02d" $i)
     done
@@ -30,6 +34,21 @@ function dirmaint_do_cleanup()
 
     killproc -p /var/run/mkcloud/dnsmasq-$cloud.pid /usr/sbin/dnsmasq
     rm -f /var/run/mkcloud/dnsmasq-$cloud.pid /etc/dnsmasq-$cloud.conf
+
+    ndev=1${cloudidx}00
+    devname=$(cat /sys/bus/ccwgroup/drivers/qeth/0.0.${ndev}/if_name)
+
+    # take network down for this cloud
+    ip link set $devname down
+    echo 0 > /sys/bus/ccwgroup/drivers/qeth/0.0.${ndev}/online
+    vmcp uncouple ${ndev}
+    vmcp detach nic ${ndev}
+    vmcp set nic ${ndev} macid system
+
+    # and finally delete the vswitch
+    vmcp detach vswitch ${cloud}
+
+    echo "Cleanup done"
 }
 
 function dirmaint_do_prepare()
@@ -37,9 +56,26 @@ function dirmaint_do_prepare()
     onhost_add_etchosts_entries
     onhost_prepareadmin
 
-    # HACK HACK HACK
-    local cloudbr=eth2
-    ip addr add $admingw/24 dev $cloudbr
+    if ! vmcp q vswitch ${cloud}; then
+        # create new vswitch for cloud networks
+        vmcp define vswitch ${cloud} qdio local nouplink ethernet vlan unaware
+
+        # create nic on the host, and plug it into that switch
+        ndev=1${cloudidx}00
+        vmcp set nic ${ndev} macid 0${cloudidx}7777
+        vmcp define nic ${ndev} type qdio
+        vmcp set vswitch ${cloud} grant mkcldhst
+        vmcp couple ${ndev} to system ${cloud}
+
+        # bring nic up
+        echo "0.0.1${cloudidx}00,0.0.1${cloudidx}01,0.0.1${cloudidx}02" > /sys/bus/ccwgroup/drivers/qeth/group
+        echo 1 > /sys/bus/ccwgroup/drivers/qeth/0.0.${ndev}/online
+        devname=$(cat /sys/bus/ccwgroup/drivers/qeth/0.0.${ndev}/if_name)
+
+        ip addr add $admingw/24 dev $devname
+        ip link set up dev $devname
+    fi
+
 
     # setup dnsmasq
     mkdir -p /var/run/mkcloud
@@ -51,7 +87,7 @@ bind-interfaces
 listen-address=$admingw
 dhcp-range=$admingw,static
 dhcp-no-override
-dhcp-host=$macprefix:77:77:70,${admingw}0
+dhcp-host=$macprefix:0$cloudidx:77:00,${admingw}0
 EOF
     startproc -p /var/run/mkcloud/dnsmasq-$cloud.pid /usr/sbin/dnsmasq \
         --conf-file=/etc/dnsmasq-$cloud.conf
@@ -69,7 +105,10 @@ function _dirmaint_link_and_write_disk()
     # FIXME kill the machine
     # vmcp force $ruser || :
     # FIXME
-    local vdev="a100"
+
+    # Derive the link target from $cloudidx to avoid races when doing
+    # for multiple mkcloud runs in parallel
+    local vdev="0a${cloudidx}0"
     local ccw="0.0.$vdev"
 
     safely vmcp link to $ruser 0100 as $vdev mw pass=linux
@@ -103,7 +142,7 @@ function dirmaint_do_onhost_deploy_image()
         http://$clouddata/images/$arch/$image
     popd
 
-    _dirmaint_link_and_write_disk mkcldadm $image
+    _dirmaint_link_and_write_disk ${cloud}adm $image
 }
 
 function dirmaint_do_setupadmin()
@@ -111,27 +150,37 @@ function dirmaint_do_setupadmin()
     # FIXME
     echo "NEED TO SETUP ADMIN PROTOTYPE"
 
-    # FIXME stop hardcoding
-    local admuser=mkcldadm
-    local cloudbr=mkcld
+    local admuser=${cloud}adm
+    local cloudbr=${cloud}
 
     vmcp q $admuser && complain 192 "$admuser is not logged off"
 
     vmcp s vswitch $cloudbr gra $admuser
+    vmcp s vswitch $cloudbr gra $admuser prom
     vmcp xautolog $admuser sync || exit $?
 }
 
 function dirmaint_do_setuplonelynodes()
 {
     local i
+
     for i in $(nodes ids lonely) ; do
         local mac=$(macfunc $i)
         local lonely_node
-        lonely_node=$(printf "mkcldn%02d" $i)
+        local cloudbr=${cloud}
+        lonely_node=$(printf "${cloud}n%02d" $i)
 
         # FIXME push user directory entry
         _dirmaint_link_and_write_disk $lonely_node SLES12-SP2-ECKD.qcow2
 
+        safely vmcp s vswitch $cloudbr gra $lonely_node
+        safely vmcp s vswitch $cloudbr gra $lonely_node prom
+
         safely vmcp xautolog $lonely_node sync
     done
+}
+
+function dirmaint_do_macfunc()
+{
+    printf "$macprefix:0${cloudidx}:77:%02x" $1
 }
