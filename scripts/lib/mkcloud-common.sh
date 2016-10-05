@@ -26,6 +26,11 @@ EOSSHASK
     DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh $sshopts -oNumberOfPasswordPrompts=1 "$@"
 }
 
+function sshtest
+{
+    timeout 10 ssh -o NumberOfPasswordPrompts=0 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
+}
+
 function onhost_setup_portforwarding()
 {
     boot_mkcloud=/etc/init.d/boot.mkcloud

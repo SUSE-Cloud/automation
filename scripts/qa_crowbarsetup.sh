@@ -2219,11 +2219,6 @@ EOF
         complain 27 "simple crowbar test failed"
 }
 
-function sshtest
-{
-    timeout 10 ssh -o NumberOfPasswordPrompts=0 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
-}
-
 function check_node_resolvconf
 {
     ssh_password $1 'grep "^nameserver" /etc/resolv.conf || echo fail'
