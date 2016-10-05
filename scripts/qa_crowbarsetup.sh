@@ -4115,7 +4115,6 @@ function oncontroller_testsetup
 
             echo "Finished creating Magnum bay"
             safely magnum bay-show susek8sbay
-            sleep 1
 
             # cleanup Magnum deployment
             safely magnum bay-delete susek8sbay
