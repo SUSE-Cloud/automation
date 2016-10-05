@@ -686,7 +686,7 @@ function add_sdk_repo
             zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
             zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
             ;;
-        develcloud7|susecloud7|M?|Beta*|RC*|GMC*)
+        develcloud7|newtoncloud7|susecloud7|M?|Beta*|RC*|GMC*)
             zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
             zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
             ;;
@@ -1211,7 +1211,7 @@ function onadmin_prepare_cloud_repos
             develcloud6)
                 addsles12sp1testupdates
                 ;;
-            develcloud7|susecloud7|M?|Beta*|RC*|GMC*)
+            develcloud7|newtoncloud7|susecloud7|M?|Beta*|RC*|GMC*)
                 addsles12sp2testupdates
                 ;;
             *)
@@ -1414,6 +1414,12 @@ function onadmin_set_source_variables
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
+        ;;
+        newtoncloud7)
+            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7:/Newton/images/iso
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
         susecloud7)
             CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/Cloud7/images/iso/
@@ -3876,7 +3882,7 @@ function oncontroller_testsetup
     fi
 
     # prepare test image with the -test packages containing functional tests
-    if iscloudver 6plus && [[ $cloudsource =~ (devel|suse)cloud ]]; then
+    if iscloudver 6plus && [[ $cloudsource =~ (devel|newton|suse)cloud ]]; then
         local mount_dir="/var/lib/Cloud-Testing"
         rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
         zypper -n ar --refresh -c -G -f "$mount_dir" cloud-test
@@ -3967,7 +3973,7 @@ function oncontroller_testsetup
     fi
 
     #test for Glance scrubber service, added after bnc#930739
-    if iscloudver 6plus || [[ $cloudsource =~ develcloud ]]; then
+    if iscloudver 6plus || [[ $cloudsource =~ (devel|newton)cloud ]]; then
         configargs="--config-dir /etc/glance"
         iscloudver 6plus && configargs=""
         su - glance -s /bin/sh -c "/usr/bin/glance-scrubber $configargs" \
