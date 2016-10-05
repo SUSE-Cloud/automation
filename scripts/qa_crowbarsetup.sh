@@ -1726,13 +1726,6 @@ function onadmin_bootstrapcrowbar
     fi
 }
 
-function jsonice
-{
-    # create indented json output
-    # while taking care for empty strings (eg. replies from curl)
-    (echo -n '{}'; cat -) | sed -e 's/^{}\s*{/{/' | safely python -mjson.tool
-}
-
 function crowbar_any_status
 {
     local api_path=$1
