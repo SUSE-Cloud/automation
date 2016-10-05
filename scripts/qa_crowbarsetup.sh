@@ -4095,7 +4095,7 @@ function oncontroller_testsetup
     wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
     # run tests for Magnum bay deployment
-    if [ -n "$want_magnum" ]; then
+    if [[ $want_magnum = 1 ]]; then
         if ! magnum baymodel-show susek8sbaymodel > /dev/null 2>&1; then
             safely magnum baymodel-create --name susek8sbaymodel \
                 --image-id SLE12SP1-JeOS-k8s-magnum \
@@ -4115,7 +4115,6 @@ function oncontroller_testsetup
 
             echo "Finished creating Magnum bay"
             safely magnum bay-show susek8sbay
-            sleep 1
 
             # cleanup Magnum deployment
             safely magnum bay-delete susek8sbay
