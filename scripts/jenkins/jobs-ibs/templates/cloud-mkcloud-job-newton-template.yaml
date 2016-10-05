@@ -1,0 +1,30 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-newton'
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H H */2 * *'
+      - pollurl:
+          cron: 'H/5 * * * *'
+          polling-node: cloud-trigger
+          urls:
+            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/Devel:/Cloud:/{version}:/Newton/images/iso/?regexp=x86_64'
+              check-content:
+                - simple: true
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=newtoncloud{version}
+            nodenumber=2
+            mkcloudtarget=all
+            label={label}

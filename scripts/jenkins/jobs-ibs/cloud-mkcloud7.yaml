@@ -14,6 +14,7 @@
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
+        - 'cloud-mkcloud{version}-job-newton'
         - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
         - 'cloud-mkcloud{version}-job-btrfs-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
