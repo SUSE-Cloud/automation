@@ -2226,12 +2226,6 @@ function onadmin_post_allocate
     fi
 }
 
-function mac_to_nodename
-{
-    local mac=$1
-    echo "d${mac//:/-}.$cloudfqdn"
-}
-
 function onadmin_get_ip_from_dhcp
 {
     local mac=$1

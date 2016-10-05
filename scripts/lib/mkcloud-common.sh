@@ -65,6 +65,12 @@ function macfunc
     ${mkclouddriver}_do_macfunc $1
 }
 
+function mac_to_nodename
+{
+    local mac=$1
+    echo "d${mac//:/-}.$cloudfqdn"
+}
+
 function onhost_setup_portforwarding()
 {
     boot_mkcloud=/etc/init.d/boot.mkcloud
