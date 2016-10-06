@@ -22,8 +22,15 @@ then
   exit 1
 fi
 
-echo "reserving VM ${pool_vm} on mkch${host}.cloud.suse.de"
-ssh root@mkch${host}.cloud.suse.de "mv /root/pool/${pool_vm} /root/pool/${pool_vm}.${USER}"
+blocking_user=$(ssh root@mkch${host}.cloud.suse.de "ls /root/pool" | grep -E "[0-9]\.[a-z].*")
+
+if [ -z $blocking_user ]; then
+  echo "reserving VM ${pool_vm} on mkch${host}.cloud.suse.de"
+  ssh root@mkch${host}.cloud.suse.de "mv /root/pool/${pool_vm} /root/pool/${pool_vm}.${USER}"
+else
+  echo "Too many clouds reserved for ${host}. Please contact $blocking_user to free the space."
+  exit 1
+fi
 
 if [[ ! $delay ]]
 then echo "Enter reminder delay (empty input or timeout after 10 seconds set delay to 60m): "
