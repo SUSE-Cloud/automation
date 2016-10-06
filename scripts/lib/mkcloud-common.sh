@@ -1,5 +1,10 @@
 # This file shares common code between mkcloud-${mkclouddriver}.sh files
 
+function max
+{
+    echo $(( $1 > $2 ? $1 : $2 ))
+}
+
 function onhost_setup_portforwarding()
 {
     boot_mkcloud=/etc/init.d/boot.mkcloud
@@ -93,5 +98,4 @@ EOS
         fi
     done
 }
-
 
