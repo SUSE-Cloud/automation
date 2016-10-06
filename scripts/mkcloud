@@ -84,13 +84,12 @@ needcvol=1
 : ${admin_node_disk:=$vdisk_dir/$cloud.admin}
 : ${admin_node_memory:=4194304}
 : ${controller_node_memory:=6291456}
-
 iscloudver 7plus && controller_node_memory=$(max $controller_node_memory 8388608)
 : ${compute_node_memory:=2621440}
-: ${hyperv_node_memory:=3000000}
-[[ "$libvirt_type" = "hyperv" && $compute_node_memory -lt $hyperv_node_memory ]] && compute_node_memory=$hyperv_node_memory
-: ${xen_node_memory:=4000000}
-[[ "$libvirt_type" = "xen" && $compute_node_memory -lt $xen_node_memory ]] && compute_node_memory=$xen_node_memory
+[[ "$libvirt_type" = "hyperv" ]] && \
+    compute_node_memory=$(max $compute_node_memory ${hyperv_node_memory:-3000000})
+[[ "$libvirt_type" = "xen" ]] && \
+    compute_node_memory=$(max $compute_node_memory ${xen_node_memory:-4000000})
 # hdd size defaults (unless defined otherwise)
 : ${adminnode_hdd_size:=15}
 : ${controller_hdd_size:=20}
