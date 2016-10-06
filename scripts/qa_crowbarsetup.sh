@@ -2499,12 +2499,6 @@ function enable_ssl_generic
             fi
             $p "$a['api']['protocol']" "'https'"
         ;;
-        cinder)
-            # Disabling because of bsc#988980
-            if iscloudver 7plus; then
-                return
-            fi
-        ;;
         manila)
             if ! iscloudver 7plus ; then
                 return
