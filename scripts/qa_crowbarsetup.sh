@@ -3608,6 +3608,20 @@ function oncontroller_run_tempest
     fi
     testr last --subunit | subunit-1to2 > tempest.subunit.log
 
+    if [[ $tempestoptions = "-t" ]] && [[ $tempestret != 0 ]] ; then
+        # for tempestfull runs we want less than 1% failed tests (99% pass rate)
+        grep -A9 "Ran.*tests" tempest.log | perl -e '
+            while(<>) {
+                m/Ran:? (\d+) tests in / and $total=$1;
+                m/failures=(\d+)/  and $failed=$1; # cloud5
+                m/- Failed: (\d+)/ and $failed=$1; # cloud7
+            }
+            exit 107 unless defined $failed;
+            my $failratio = $failed/$total;
+            print "Failure ratio: $failratio = $failed/$total\n";
+            exit ($failratio > 0.01)   # 0 means success'
+        tempestret=$?
+    fi
     if [ -n "$ostestroptions" ]; then
         zypper -n in python-os-testr
         ostestr $ostestroptions 2>&1 | tee ostestr.log
