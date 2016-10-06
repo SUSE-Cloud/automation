@@ -25,6 +25,7 @@ fi
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
 : ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
+: ${clouddata_base_path:="/repos"}
 : ${distsuse:=dist.nue.suse.com}
 distsuseip=$(dig -t A +short $distsuse)
 : ${susedownload:=download.nue.suse.com}
@@ -1513,7 +1514,7 @@ function onadmin_setup_local_zypper_repositories
     zypper lr -e - | sed -n '/^name=/ {s///; /ptf/! p}' | \
         xargs -r zypper rr
 
-    uri_base="http://${clouddata}/repos"
+    uri_base="http://${clouddata}${clouddata_base_path}"
     # restore needed repos depending on localreposdir_target
     if [ -n "${localreposdir_target}" ]; then
         mount_localreposdir_target
