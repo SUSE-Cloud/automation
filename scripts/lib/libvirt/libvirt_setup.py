@@ -208,7 +208,7 @@ def compute_config(args, cpu_flags=cpuflags()):
     else:
         targetdevprefix = "sd"
         configopts['target_bus'] = 'ide'
-        configopts['memballoon'] = ''
+        configopts['memballoon'] = "    <memballoon model='none' />"
         target_address = ""
 
     controller_raid_volumes = args.controller_raid_volumes
