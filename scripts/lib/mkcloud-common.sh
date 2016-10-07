@@ -15,7 +15,7 @@ function is_suse
     grep -qi suse /etc/*release
 }
 
-sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
+sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oServerAliveInterval=2"
 scp="scp $sshopts"
 ssh="ssh $sshopts"
 function ssh_password
