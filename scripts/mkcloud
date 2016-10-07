@@ -263,7 +263,8 @@ function onadmin
     # functions can have parameters, so pass on all except $1
     local cmd=$1
     shift
-    sshrun onadmin_$cmd "$@"
+    sshrun "TIMEFORMAT=\"timing for mkcloud call 'onadmin_$cmd' real=%R user=%U system=%S\" ;" \
+        time onadmin_$cmd "$@"
 }
 
 function onhost
