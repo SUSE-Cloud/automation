@@ -1793,6 +1793,12 @@ function crowbar_any_status
     curl -s ${crowbar_api}${api_path}.json | jsonice
 }
 
+function crowbar_any_status_v2
+{
+    local api_path=$1
+    curl -H "$crowbar_api_v2_header" -s ${crowbar_api}${api_path} | jsonice
+}
+
 function crowbar_install_status
 {
     crowbar_any_status $crowbar_api_installer_path/status
@@ -1800,7 +1806,11 @@ function crowbar_install_status
 
 function crowbar_restore_status
 {
-    crowbar_any_status /utils/backups/restore_status
+    if iscloudver 6minus; then
+        crowbar_any_status /utils/backups/restore_status
+    else
+        crowbar_any_status_v2 /api/crowbar/backups/restore_status
+    fi
 }
 
 function crowbar_nodeupgrade_status

@@ -904,6 +904,7 @@ function onhost_reset_admin
     safely onhost_prepareadmin
     safely setupadmin
     safely prepareinstcrowbar
+    safely bootstrapcrowbar
 }
 
 function crowbarupgrade_5plus
