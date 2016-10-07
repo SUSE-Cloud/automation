@@ -5193,7 +5193,8 @@ function onadmin_teardown
 function onadmin_runlist
 {
     for cmd in "$@" ; do
-        onadmin_$cmd || complain $? "$cmd failed with code $?"
+        local TIMEFORMAT="timing for qa_crowbarsetup function 'onadmin_$cmd' real=%R user=%U system=%S"
+        time onadmin_$cmd || complain $? "$cmd failed with code $?"
     done
 }
 
