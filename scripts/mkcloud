@@ -116,8 +116,6 @@ pvlist=
 next_pv_device=
 pv_cur_device_no=0
 : ${cloudbr:=${cloud}br}
-sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
-scp="scp $sshopts"
 #if localreposdir_src string is available, the local repositories are used for setup
 : ${localreposdir_src:=""}
 #localreposdir_target is the 9p target dir and also the mount target dir in the VM

@@ -15,6 +15,9 @@ function is_suse
     grep -qi suse /etc/*release
 }
 
+sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
+scp="scp $sshopts"
+ssh="ssh $sshopts"
 function ssh_password
 {
     SSH_ASKPASS=/root/echolinux
@@ -23,12 +26,12 @@ function ssh_password
 echo linux
 EOSSHASK
     chmod +x $SSH_ASKPASS
-    DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh $sshopts -oNumberOfPasswordPrompts=1 "$@"
+    DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid $ssh -oNumberOfPasswordPrompts=1 "$@"
 }
 
 function sshtest
 {
-    timeout 10 ssh -o NumberOfPasswordPrompts=0 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
+    timeout 10 $ssh -o NumberOfPasswordPrompts=0 "$@"
 }
 
 function onhost_setup_portforwarding()
