@@ -2061,20 +2061,21 @@ function reboot_nodes_via_ipmi
                 }
 
                 ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "${bmc_values[1]}"
-                # Please do not touch this sleep. It is important for the ipmi to work on qa hardware
+                # Sleep while the BMC is rebooting due to the gateway re-setting
                 sleep $((50 + RANDOM % 20))
 
-                ipmitool -H $ip -U root -P $pw chassis bootdev pxe
+                ipmitool -H $ip -U root -P $pw chassis bootdev pxe options=persistent
+                # Sleep while the BMC is rebooting due to the bootdev re-setting
+                sleep $((50 + RANDOM % 20))
 
                 if ipmitool -H $ip -U root -P $pw power status | grep -q "is off"; then
                     ipmitool -H $ip -U root -P $pw power on
                 else
                     ipmitool -H $ip -U root -P $pw power cycle
                 fi
-
+                # Sleep while the BMC is booting due to doing power on/cycle
+                sleep $((50 + RANDOM % 20))
             fi
-            # Please do not touch this sleep. It is important for the ipmi to work on qa hardware
-            sleep $((50 + RANDOM % 20))
         done
     done
     wait
