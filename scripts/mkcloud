@@ -255,9 +255,9 @@ function sshrun
 EOF
     env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
 
-    $scp $qa_crowbarsetup $mkcconf $iscsictl root@$adminip:
+    $scp -r $SCRIPTS_DIR $mkcconf root@$adminip:
     [[ $need_scenario = 1 ]] && $scp $scenario_path root@$adminip:
-    ssh $sshopts root@$adminip "echo `hostname` > cloud ; . qa_crowbarsetup.sh ; $@"
+    ssh $sshopts root@$adminip "echo `hostname` > cloud ; . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ; $@"
     return $?
 }
 
@@ -1266,10 +1266,9 @@ function sanity_checks
     fi
 
     # test for existence of qa_crowbarsetup.sh
-    if [ ! -e $qa_crowbarsetup ] ; then
-        complain 87 "$qa_crowbarsetup not found
-            Please define the path to it by setting qa_crowbarsetup=/path/to/file
-            or call mkcloud from your git clone."
+    if [ ! -e $SCRIPTS_DIR/qa_crowbarsetup.sh ] ; then
+        complain 87 "qa_crowbarsetup.sh not found.
+            Make sure to call mkcloud from your git clone."
     fi
 
     if [ -z "$cloudsource" ] ; then

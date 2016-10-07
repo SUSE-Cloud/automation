@@ -5,6 +5,13 @@
 
 shopt -s extglob
 
+: ${SCRIPTS_DIR:=$(dirname $(readlink -e $BASH_SOURCE))}
+scripts_lib_dir=${SCRIPTS_DIR}/lib
+common_scripts="mkcloud-common.sh"
+for script in $common_scripts; do
+    source ${scripts_lib_dir}/$script
+done
+
 mkcconf=mkcloud.config
 if [ -z "$testfunc" ] && [ -e $mkcconf ]; then
     source $mkcconf
@@ -2286,15 +2293,15 @@ function onadmin_post_allocate
 
         if iscloudver 6plus && [[ $want_sbd = 1 ]] ; then
             zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/$slesdist/ --non-interactive install python-sh
-            chmod +x iscsictl.py
-            ./iscsictl.py --service target --host $(hostname) --no-key
+            chmod +x $SCRIPTS_DIR/iscsictl.py
+            $SCRIPTS_DIR/iscsictl.py --service target --host $(hostname) --no-key
 
             local cluster
             local clustername
             for clustername in data network services ; do
                 eval "cluster=\$clusternodes$clustername"
                 for node in $cluster ; do
-                    ./iscsictl.py --service initiator --target_host $(hostname) --host $node --no-key
+                    $SCRIPTS_DIR/iscsictl.py --service initiator --target_host $(hostname) --host $node --no-key
                     sbd_device=$(ssh $node echo '/dev/disk/by-id/scsi-$(lsscsi -i |grep LIO|head -n 1| tr -s " " |cut -d " " -f7)')
                     ssh $node "zypper --non-interactive install sbd; sbd -d $sbd_device create"
                 done
@@ -4178,7 +4185,7 @@ function oncontroller_testsetup
 function oncontroller
 {
     cd /root
-    scp qa_crowbarsetup.sh $mkcconf $novacontroller:
+    scp -r $SCRIPTS_DIR $mkcconf $novacontroller:
     ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ; export wanttempest=$wanttempest ;
         export tempestoptions=\"$tempestoptions\" ; export ostestroptions=\"$ostestroptions\" ;
         export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
@@ -4186,7 +4193,7 @@ function oncontroller
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
         export libvirt_type=\"$libvirt_type\" ;
         export cloud=$cloud ; export TESTHEAD=$TESTHEAD ;
-        . ./qa_crowbarsetup.sh ;  source .openrc; onadmin_set_source_variables; $@"
+        . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ;  source .openrc; onadmin_set_source_variables; $@"
     return $?
 }
 
