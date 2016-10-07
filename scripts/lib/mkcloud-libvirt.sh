@@ -112,7 +112,9 @@ function libvirt_do_setuphost()
 
     # Start libvirtd and friends
     sudo service libvirtd status || sudo service libvirtd start
-    sudo service virtlogd status || sudo service virtlogd start
+    if [[ -e /usr/lib/systemd/system/virtlogd.service ]] ; then
+        sudo service virtlogd status || sudo service virtlogd start
+    fi
 }
 
 function libvirt_do_sanity_checks()
