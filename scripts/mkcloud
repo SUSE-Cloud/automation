@@ -264,7 +264,8 @@ function onadmin
     # functions can have parameters, so pass on all except $1
     local cmd=$1
     shift
-    sshrun onadmin_$cmd "$@"
+    sshrun "TIMEFORMAT=\"timing for mkcloud call 'onadmin_$cmd' real=%R user=%U system=%S\" ;" \
+        time onadmin_$cmd "$@"
 }
 
 function onhost
@@ -1440,7 +1441,8 @@ for cmd in `echo $steplist` ; do
     # this is currently used for the cct function
     cmd_parameters="${cmd#*+}"
     cmd=${cmd%%+*}
-    $cmd "${cmd_parameters//+/ }"
+    TIMEFORMAT="timing for mkcloud step '$cmd' real=%R user=%U system=%S"
+    time $cmd "${cmd_parameters//+/ }"
     ret=$?
     if [ $ret != 0 ] ; then
         set +x
