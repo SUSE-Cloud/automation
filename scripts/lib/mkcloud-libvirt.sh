@@ -304,7 +304,9 @@ function libvirt_do_onhost_deploy_image()
 
     [[ $clouddata ]] || complain 108 "clouddata IP not set - is DNS broken?"
     pushd /tmp
-    safely wget --progress=dot:mega -N \
+    local wgetcachemode=-N
+    [[ $want_cached_images = 1 ]] && wgetcachemode=-nc
+    safely wget --progress=dot:mega $wgetcachemode \
         http://$clouddata/images/$arch/$image
 
     echo "Cloning $role node vdisk from $image ..."
