@@ -109,6 +109,10 @@ function libvirt_do_setuphost()
         safely pvcreate "$cloudpv"
         safely vgcreate "$cloudvg" "$cloudpv"
     fi
+
+    # Start libvirtd and friends
+    sudo service libvirtd status || sudo service libvirtd start
+    sudo service virtlogd status || sudo service virtlogd start
 }
 
 function libvirt_do_sanity_checks()
