@@ -313,13 +313,13 @@ function libvirt_do_onhost_deploy_image()
     safely qemu-img convert -t none -O raw -S 0 -p $image $disk
     popd
 
-    # only resize if we have a 2nd partition with a rootfs
-    if fdisk -l $disk | grep -q "2 *\* *.*83 *Linux" ; then
-        # make a bigger partition 2
-        echo -e "d\n2\nn\np\n2\n\n\na\n2\nw" | fdisk $disk
-        local part2=$(kpartx -asv $disk|perl -ne 'm/add map (\S+2) / && print $1')
-        test -n "$part2" || complain 31 "failed to find partition #2"
-        local bdev=/dev/mapper/$part2
+    # resize the last partition only if it has id 83
+    local last_part=$(fdisk -l $disk | grep -c "^$disk")
+    if fdisk -l $disk | grep -q "$last_part *\* *.*83 *Linux" ; then
+        echo -e "d\n$last_part\nn\np\n$last_part\n\n\na\n$last_part\nw" | fdisk $disk
+        local part=$(kpartx -asv $disk|perl -ne 'm/add map (\S+'"$last_part"') / && print $1')
+        test -n "$part" || complain 31 "failed to find partition #$last_part"
+        local bdev=/dev/mapper/$part
         safely fsck -y -f $bdev
         safely resize2fs $bdev
         time udevadm settle
