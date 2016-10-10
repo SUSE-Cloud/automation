@@ -26,6 +26,7 @@ import platform
 import shutil
 import sys
 import tempfile
+import time
 
 import pymod2pkg
 
@@ -81,14 +82,21 @@ Project used: %(ZUUL_PROJECT)s
                   'projectlink': projectlink,
                   'build_repository': build_repository})
 
-    try:
-        meta = tempfile.NamedTemporaryFile(delete=False)
+    with tempfile.NamedTemporaryFile(delete=False) as meta:
         meta.write(templ)
         print('Updating meta for ', project)
         meta.close()
 
-        sh.osc('api', '-T', meta.name, '/source/%s/_meta' % project)
-    finally:
+        # work around build service bug that triggers a database deadlock
+        for fail_counter in range(1, 5):
+            try:
+                sh.osc('api', '-T', meta.name, '/source/%s/_meta' % project)
+                break
+            except sh.ErrorReturnCode_1:
+                # Sleep a bit and try again. This has not been scientifically
+                # proven to be the correct sleep factor, but it seems to work
+                time.sleep(2)
+                continue
         os.unlink(meta.name)
 
 
