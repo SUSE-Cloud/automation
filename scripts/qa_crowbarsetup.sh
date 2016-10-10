@@ -75,7 +75,7 @@ crowbar_init_api=http://localhost:4567
 crowbar_lib_dir=/var/lib/crowbar
 crowbar_api_v2_header="Accept: application/vnd.crowbar.v2.0+json"
 
-export nodenumber=${nodenumber:-2}
+export nodenumber
 export tempestoptions=${tempestoptions:--t -s}
 # useful when tempest executes just the smoke tests but
 # you want to run some extra (non-smoke) tests
@@ -287,7 +287,8 @@ function setcloudnetvars
             want_ipmi=true
         ;;
         virtual)
-                    true # defaults are fine (and overridable)
+            nodenumber=2
+            true # defaults are fine (and overridable)
         ;;
         cumulus)
             net=$netp.189
@@ -297,7 +298,8 @@ function setcloudnetvars
             vlan_fixed=578
         ;;
         *)
-                    true # defaults are fine (and overridable)
+            nodenumber=2
+            true # defaults are fine (and overridable)
         ;;
     esac
     test -n "$nodenumbertotal" && nodenumber=${nodenumber:-$nodenumbertotal}

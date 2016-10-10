@@ -1104,7 +1104,7 @@ Optional
         Set the size in GB of data disk attached in compute nodes with enabled 'cephvolumenumber'
     controller_ceph_hdd_size (default 25)
         Set the size in GB of data disk attached in controller node  with enabled 'cephvolumenumber'
-    nodenumber=2    (default 2)
+    nodenumber=2    (default 2 for virtual clouds)
         set the number of nodes to be created for the cloud (excluding admin node)
         In HA mode (hacloud=1) the nodes needed for clusters are subtracted from nodenumber; the
         remaining nodes are compute nodes.
