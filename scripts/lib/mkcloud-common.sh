@@ -44,6 +44,13 @@ function wait_for_if_running
     wait_for $timecount 5 "! pidofproc ${procname} >/dev/null" "process '${procname}' to terminate"
 }
 
+function complain
+{
+    local ex=$1; shift
+    printf "Error: %s\n" "$@" >&2
+    [[ $ex = - ]] || exit $ex
+}
+
 function determine_mtu
 {
     LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1

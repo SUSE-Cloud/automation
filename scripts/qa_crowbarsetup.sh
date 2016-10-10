@@ -117,13 +117,6 @@ function nova_role_prefix
     fi
 }
 
-function complain
-{
-    local ex=$1; shift
-    printf "Error: %s\n" "$@" >&2
-    [[ $ex = - ]] || exit $ex
-}
-
 function safely
 {
     if "$@"; then
