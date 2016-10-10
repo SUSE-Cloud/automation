@@ -337,37 +337,6 @@ function intercept
     fi
 }
 
-function wait_for
-{
-    local timecount=${1:-300}
-    local timesleep=${2:-1}
-    local condition=${3:-'/bin/true'}
-    local waitfor=${4:-'unknown process'}
-    local error_cmd=${5:-'exit 11'}
-
-    local original_xstatus=${-//[^x]/}
-    set +x
-    echo "Waiting for: $waitfor"
-    echo "  until this condition is true: $condition"
-    echo "  waiting $timecount cycles of $timesleep seconds = $(( $timecount * $timesleep )) seconds"
-    local n=$timecount
-    while test $n -gt 0 && ! eval $condition
-    do
-        echo -n .
-        sleep $timesleep
-        n=$(($n - 1))
-        [[ $(( ($timecount - $n) % 75)) != 0 ]] || echo
-    done
-    echo
-
-    [[ $original_xstatus ]] && set -x
-    if [ $n = 0 ] ; then
-        echo "Error: Waiting for '$waitfor' timed out."
-        echo "This check was used: $condition"
-        eval "$error_cmd"
-    fi
-}
-
 function wait_for_if_running
 {
     local procname=${1}
