@@ -69,6 +69,15 @@ function rubyjsonparse
         $1"
 }
 
+function intercept
+{
+    if [[ $shell ]] ; then
+        echo "Now starting bash for manual intervention..."
+        echo "When ready exit this shell to continue with $1"
+        bash
+    fi
+}
+
 function determine_mtu
 {
     LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1

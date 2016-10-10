@@ -303,15 +303,6 @@ function pre_hook
     echo $func >> /root/qa_crowbarsetup.steps.log
 }
 
-function intercept
-{
-    if [ -n "$shell" ] ; then
-        echo "Now starting bash for manual intervention..."
-        echo "When ready exit this shell to continue with $1"
-        bash
-    fi
-}
-
 function mount_localreposdir_target
 {
     if [ -z "$localreposdir_target" ]; then
