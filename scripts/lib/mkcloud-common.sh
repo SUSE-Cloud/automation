@@ -1,5 +1,15 @@
 # This file shares common code between mkcloud-${mkclouddriver}.sh files and qa_crowbarsetup.sh
 
+# defaults for generic common variables
+: ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
+: ${clouddata_base_path:="/repos"}
+: ${distsuse:=dist.nue.suse.com}
+distsuseip=$(dig -t A +short $distsuse)
+: ${susedownload:=download.nue.suse.com}
+: ${libvirt_type:=kvm}
+: ${networkingplugin:=openvswitch}
+: ${arch:=$(uname -m)}
+
 function max
 {
     echo $(( $1 > $2 ? $1 : $2 ))

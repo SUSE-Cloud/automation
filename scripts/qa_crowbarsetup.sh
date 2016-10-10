@@ -24,18 +24,11 @@ if [[ $debug_qa_crowbarsetup = 1 ]] ; then
 fi
 
 # defaults
-: ${libvirt_type:=kvm}
-: ${networkingplugin:=openvswitch}
 : ${architectures:='aarch64 x86_64 s390x'}
 : ${cinder_backend:=''}
 : ${cinder_netapp_storage_protocol:=iscsi}
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
-: ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
-: ${clouddata_base_path:="/repos"}
-: ${distsuse:=dist.nue.suse.com}
-distsuseip=$(dig -t A +short $distsuse)
-: ${susedownload:=download.nue.suse.com}
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
@@ -46,8 +39,6 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_trove:=1}
 : ${want_s390:=''}
 : ${want_horizon_integration_test:=''}
-
-: ${arch:=$(uname -m)}
 
 if [[ $arch = "s390x" ]] ; then
     want_s390=1
