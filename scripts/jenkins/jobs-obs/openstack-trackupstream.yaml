@@ -55,7 +55,6 @@
             - openstack-resource-agents
             - openstack-sahara
             - openstack-swift
-            - openstack-tempest
             - openstack-trove
             - openstack-utils
             - openstack-zaqar
