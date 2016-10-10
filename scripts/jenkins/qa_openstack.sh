@@ -377,14 +377,15 @@ outputs:
     value: { get_attr: [ my_floating_ip, floating_ip_address ] }
 EOF
 
-openstack_client_ver=0
+use_openstack_stack=1
+# older versions don't have a fully working openstackclient for Heat
+case "$cloudsource" in
+    openstackjuno|openstackliberty)
+        use_openstack_stack=
+    ;;
+esac
 
-if [ -x /usr/bin/openstack ]; then
-    openstack_client_ver=$(rpm -q --queryformat '%{VERSION}' python-openstackclient)
-    openstack_client_ver=${openstack_client_ver:0:1}
-fi
-
-if [ "$openstack_client_ver" -ge 2 ]; then
+if [[ $use_openstack_stack ]]; then
     openstack stack create -t $(readlink -e $PWD/testvm.stack) teststack
 else
     heat stack-create -f $(readlink -e $PWD/testvm.stack) teststack
@@ -406,7 +407,7 @@ if [ -n "$FLOATING_IP" ]; then
     ssh -o "StrictHostKeyChecking no" $ssh_user@$FLOATING_IP curl --silent www3.zq1.de/test || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
-    if [ "$openstack_client_ver" -ge 2 ]; then
+    if [[ $use_openstack_stack ]]; then
         openstack stack resource show teststack
     else
         heat resource-show teststack
@@ -415,7 +416,7 @@ else
     exit 1
 fi
 
-if [ "$openstack_client_ver" -ge 2 ]; then
+if [[ $use_openstack_stack ]]; then
     openstack stack delete --yes teststack || openstack stack delete teststack || :
 else
     heat stack-delete teststack || :
