@@ -62,8 +62,6 @@
             - python-heat-cfntools
             - python-networking-cisco
             - python-networking-hyperv
-            - tripleo-image-elements
-            - tripleo-heat-templates
       - axis:
           type: slave
           name: slave
