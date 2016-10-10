@@ -145,8 +145,8 @@
           wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
           wget --no-check-certificate -Oscenario.yml "$scenario_url"
 
-          sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
-          sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.24.1:/var/$cloud/ha-rabbitmq," scenario.yml
+          sed -i -e "s,##shared_nfs_for_database##,10.162.66.1:/var/$cloud/ha-database," scenario.yml
+          sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.66.1:/var/$cloud/ha-rabbitmq," scenario.yml
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
