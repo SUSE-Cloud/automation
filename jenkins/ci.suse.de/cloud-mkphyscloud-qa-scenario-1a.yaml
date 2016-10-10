@@ -1,18 +1,15 @@
 - job:
-    name: cloud-mkphyscloud-qa-scenario-1b
+    name: cloud-mkphyscloud-qa-scenario-1a
     node: cloud-mkphyscloud-gate-qa
     description: |
       <b>This job is managed by JJB! Changes must be done in
-      <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/qa/'>git</a>
+      <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'>git</a>
       </b>
-
       Scenario details:
-         - 7 nodes
-         - HA with IPMI (3 controllers
-         - shared device for DB and rabbit
-         - swift
-         - 2 kvm and 2 xen compute nodes
-         - everything with SSL.
+        - 7 nodes
+        - HA with IPMI (3 controllers
+        - shared device for DB and rabbit
+        - swift
 
       It will wipe all machines in the selected cloud!
 
@@ -41,6 +38,11 @@
           default: features:base
           description: Optional, specify cct tests to run
 
+      - bool:
+          name: horizon-tests
+          default: false
+          description: Optional, Run horizon integration tests.
+
       - string:
           name: ssl_type
           default: no-ssl
@@ -53,10 +55,10 @@
 
       - string:
           name: scenario_url
-          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-1b.yaml
+          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-1a.yaml
           description: Location of scenario yaml file
 
-      # variables for qa_crowbarsetup.sh
+      # Parameters for qa_crowbarsetup.sh
       - string:
           name: cloudsource
           default: develcloud$cloud_version
@@ -99,9 +101,8 @@
     builders:
       - shell: |
           #!/bin/bash
-          export admin=crowbar$hw_number;
-          export cloud=qa$hw_number;
-          export tempestoptions="-t -s"
+          admin=crowbar$hw_number
+          cloud=qa$hw_number
 
           if [ ! -z "$UPDATEREPOS" ] ; then
             # testing update only makes sense with GMx and without TESTHEAD
@@ -113,6 +114,7 @@
           rm -rf $artifacts_dir
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
+
           freshadminvm $admin
           sleep 100 # time for the admin VM to boot
 
@@ -136,9 +138,7 @@
           export clusterconfig=$clusterconfig ;
           export runner_url=$runner_url ;
           export scenario_url=$scenario_url ;
-          export wanttempest=$wanttempest;
-          export tempestoptions=\"$tempestoptions\";
-          export want_node_aliases=controller=3,compute-kvm=2,compute-xen=2 ;
+          export want_node_aliases=controller=3,compute-kvm=2,storage-swift=2 ;
           export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
 
@@ -150,7 +150,7 @@
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
-          timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands;"
+          timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
           ' || ret=$?
 
 
@@ -181,6 +181,7 @@
               hw_number=$hw_number
               tempest=$tempest
               cct_tests=$cct
-              scenario_name=1b
+              horizon-tests=$horizon-tests
+              scenario_name=1a
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER

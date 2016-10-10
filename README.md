@@ -93,12 +93,12 @@ zypper in python-jenkins-job-builder
 To update jobs on ci.opensuse.org, run:
 
     jenkins-jobs --ignore-cache update \
-        scripts/jenkins/jobs-obs/:scripts/jenkins/jobs-obs/templates/
+        jenkins/ci.opensuse.org/:jenkins/ci.opensuse.org/templates/
 
 To update jobs on the SUSE internal CI, run:
 
     jenkins-jobs --ignore-cache update \
-        scripts/jenkins/jobs-ibs/:scripts/jenkins/jobs-ibs/templates/
+        jenkins/ci.suse.de/:jenkins/ci.suse.de/templates/
 
 Both commands need a valid `/etc/jenkins_jobs/jenkins_jobs.ini` configuration.
 See [`/scripts/jenkins/jenkins_jobs.ini.sample`](scripts/jenkins/jenkins_jobs.ini.sample)

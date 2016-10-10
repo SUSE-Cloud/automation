@@ -1,6 +1,6 @@
 - job-template:
     name: 'openstack-rpm-packaging-sles12-{release}'
-    description: "<b>This job is managed by JJB! Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-obs/templates/'>git</a></b>"
+    description: "<b>This job is managed by JJB! Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.opensuse.org/templates/'>git</a></b>"
     node: openstack-rpm-packaging
     concurrent: true
     build-discarder:

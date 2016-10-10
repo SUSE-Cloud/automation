@@ -1,15 +1,14 @@
 - job:
-    name: cloud-mkphyscloud-qa-scenario-2c
+    name: cloud-mkphyscloud-qa-scenario-9
     node: cloud-mkphyscloud-gate-qa
     description: |
       <b>This job is managed by JJB! Changes must be done in
-      <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/qa/'>git</a>
+      <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'>git</a>
       </b>
 
-      This job will redeploy scenario-2c:
+      This job will redeploy scenario-9:
         - 7 nodes
         - HA with SBD (2 nodes)
-        - DRBD
         - ceph (3 nodes)
         - 2 kvm compute nodes
 
@@ -52,7 +51,7 @@
 
       - string:
           name: scenario_url
-          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-2c.yaml
+          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-9.yaml
           description: Location of scenario yaml file
 
       # Parameters for qa_crowbarsetup.sh
@@ -101,26 +100,26 @@
           #!/bin/bash
           admin=crowbar$hw_number
           cloud=qa$hw_number
-
+          
           if [ ! -z "$UPDATEREPOS" ] ; then
             # testing update only makes sense with GMx and without TESTHEAD
             unset TESTHEAD
             export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
           fi
-
+          
           export artifacts_dir=$WORKSPACE/.artifacts
           rm -rf $artifacts_dir
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
-
+          
           freshadminvm $admin
           sleep 100 # time for the admin VM to boot
-
+          
           # rest of code runs on admin node:
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
           scp mkcloud.config root@$admin:
           ret=0
-
+          
           ssh root@$admin "
           export cloud=$cloud ;
           export UPDATEREPOS=$UPDATEREPOS ;
@@ -136,49 +135,53 @@
           export want_node_roles=controller=2,compute=2,storage=3 ;
           export want_node_os=suse-12.2=4,suse-12.1=3 ;
           export want_ceph=1 ;
+          export want_dvr=1 ;
+          export networkingplugin=openvswitch ;
+          export networkingmode=vlan ;
           export cephvolumenumber=1 ;
           export scenario=\"scenario.yml\" ;
           export commands=\"$commands\" "'
-
+          
           wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
           wget --no-check-certificate -Oscenario.yml "$scenario_url"
-
+          
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
-
+          
           timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
           ' || ret=$?
-
+          
           echo "mkphyscloud ret=$ret (before scenario)"
-
-
+          
           if [ "$ret" = "0" ]; then
             # ----- Prepare the SBD setup:
             cat > /tmp/sbd_prepare_$admin <<EOSCRIPT
               # preparation of iSCSI
               export ZYPP_LOCK_TIMEOUT=120
-              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
-
+              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh 
               wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
               chmod +x iscsictl.py
               ./iscsictl.py --service target --host \$(hostname) --no-key
               ./iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
               ./iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
               # preparation of SBD
-              SBD_DEV=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV create"
-              ssh controller2 "zypper --non-interactive install sbd"
-              # watchdog configuration
+              SBD_DEV1=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
+              SBD_DEV2=\$(ssh controller2 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
+              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV1 create"
+              ssh controller2 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV2 create"
+               # watchdog configuration
               ssh controller1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
               ssh controller2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
               # take scenario yaml file and replace /dev/sda with the right thing:
-              sed -i "s|/dev/sda|\${SBD_DEV}|g" scenario.yml
+              sed -i "s|@@sbd_device_1@@|\${SBD_DEV1}|g" scenario.yml
+              sed -i "s|@@sbd_device_2@@|\${SBD_DEV2}|g" scenario.yml
               # ----- End of SBD
           EOSCRIPT
-
+            
             chmod +x /tmp/sbd_prepare_$admin
             scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
             ssh root@$admin './sbd_prepare
             ' || ret=$?
+          
           fi
 
           if [ "$ret" = "0" ]; then
@@ -190,12 +193,16 @@
             export hacloud=$hacloud ;
             export clusterconfig=$clusterconfig ;
             export want_ceph=1 ;
+            export want_dvr=1 ;
+            export networkingplugin=openvswitch ;
+            export networkingmode=vlan ;
             export cephvolumenumber=1;
+            export want_node_os=suse-12.2=4,suse-12.1=3 ;
             export scenario=scenario.yml "'
-
+            
             timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist batch;"
             ' || ret=$?
-
+            
             if [ $ret != 0 ] ; then
               ssh root@$admin '
               set -x
@@ -209,7 +216,7 @@
               timeout 500 supportconfig | wc &
               wait
               '
-
+              
               scp root@$admin:/var/log/*tbz $artifacts_dir/
             fi >&2
             echo "mkphyscloud ret=$ret"
@@ -224,6 +231,6 @@
               hw_number=$hw_number
               tempest=$tempest
               cct_tests=$cct
-              scenario_name=2c
+              scenario_name=9
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER

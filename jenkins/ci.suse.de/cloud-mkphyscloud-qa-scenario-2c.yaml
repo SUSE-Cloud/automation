@@ -1,23 +1,19 @@
 - job:
-    name: cloud-mkphyscloud-qa-scenario-2a
+    name: cloud-mkphyscloud-qa-scenario-2c
     node: cloud-mkphyscloud-gate-qa
     description: |
       <b>This job is managed by JJB! Changes must be done in
-      <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/qa/'>git</a>
+      <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'>git</a>
       </b>
 
-      This job will redeploy scenario-2b:
-        - total 7 nodes including admin node
-        - database: default, postgresql
-        - pacemaker: 3 clusters with 2 nodes (SBD)
-        - keystone UUID
-        - swift (allow public container, enable object versioning)
-        - glance (storage swift)
-        - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 KVM
-        - cinder: Local file
-        - neutron: linuxbridge
+      This job will redeploy scenario-2c:
+        - 7 nodes
+        - HA with SBD (2 nodes)
+        - DRBD
+        - ceph (3 nodes)
+        - 2 kvm compute nodes
 
-      Warning: It will wipe all machines!
+      It will wipe all QA2 machines!
 
     wrappers:
       - mkphyscloud-qa-common-wrappers
@@ -56,7 +52,7 @@
 
       - string:
           name: scenario_url
-          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-2a.yaml
+          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-2c.yaml
           description: Location of scenario yaml file
 
       # Parameters for qa_crowbarsetup.sh
@@ -68,20 +64,21 @@
           default: "1"
           description: if non-empty, test latest version from Devel:Cloud:Staging
       - string:
+          name: want_ceph
+          default: "1"
+          description: Install ceph barclamp
+      - string:
           name: hacloud
           default: "1"
           description: By default we do not want HA configured and installed
       - string:
           name: clusterconfig
-          default: services=2,data=2,network=2
+          default: services=2
           description: HA configuration for clusters. Make sense only if hacloud=1
       - string:
           name: nodenumber
           default: "7"
           description: Number of nodes to use; is scenario specific
-      - string:
-          name: want_ipmi
-          default: "true"
       - string:
           name: runner_url
           default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh
@@ -119,9 +116,6 @@
           freshadminvm $admin
           sleep 100 # time for the admin VM to boot
 
-          # wipe out shared NFS that should be used by this deployment
-          ssh root@localhost "wipe_nfs_shares qa$hw_number"
-
           # rest of code runs on admin node:
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
           scp mkcloud.config root@$admin:
@@ -129,7 +123,6 @@
 
           ssh root@$admin "
           export cloud=$cloud ;
-          export hw_number=$hw_number ;
           export UPDATEREPOS=$UPDATEREPOS ;
           export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
           export TESTHEAD=$TESTHEAD ;
@@ -139,83 +132,57 @@
           export clusterconfig=$clusterconfig ;
           export runner_url=$runner_url ;
           export scenario_url=$scenario_url ;
-          export want_node_aliases=controller=2,data=2,network=2,computekvm=1 ;
-          export want_node_roles=controller=2,storage=2,network=2,compute=1 ;
+          export want_node_aliases=controller=2,compute=2,ceph=3 ;
+          export want_node_roles=controller=2,compute=2,storage=3 ;
+          export want_node_os=suse-12.2=4,suse-12.1=3 ;
+          export want_ceph=1 ;
+          export cephvolumenumber=1 ;
           export scenario=\"scenario.yml\" ;
           export commands=\"$commands\" "'
 
           wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
           wget --no-check-certificate -Oscenario.yml "$scenario_url"
 
-          sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
-          sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.24.1:/var/$cloud/ha-rabbitmq," scenario.yml
-
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
-          # first install the nodes and wait until the cloud is ready for further configuration steps
           timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
           ' || ret=$?
 
-          echo "mkphyscloud ret=$ret (before scenario and configuration)"
+          echo "mkphyscloud ret=$ret (before scenario)"
 
-          if [ $ret == "0" ]; then
+
+          if [ "$ret" = "0" ]; then
             # ----- Prepare the SBD setup:
-
             cat > /tmp/sbd_prepare_$admin <<EOSCRIPT
               # preparation of iSCSI
+              export ZYPP_LOCK_TIMEOUT=120
               zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
 
               wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
-
               chmod +x iscsictl.py
-
               ./iscsictl.py --service target --host \$(hostname) --no-key
               ./iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
               ./iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host data1 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host data2 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host network1 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host network2 --no-key
-
-              # preparation of SBD for services nodes
-              SBD_DEV_SERVICES=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_SERVICES create"
+              # preparation of SBD
+              SBD_DEV=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
+              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV create"
               ssh controller2 "zypper --non-interactive install sbd"
-              # take scenario yaml file and replace placeholders
-              sed -i "s|@@sbd_device_services@@|\${SBD_DEV_SERVICES}|g" scenario.yml
-
-              # preparation of SBD for data nodes
-              SBD_DEV_DATA=\$(ssh data1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh data1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_DATA create"
-              ssh data2 "zypper --non-interactive install sbd"
-              # take scenario yaml file and replace placeholders
-              sed -i "s|@@sbd_device_data@@|\${SBD_DEV_DATA}|g" scenario.yml
-
-              # preparation of SBD for network nodes
-              SBD_DEV_NETWORK=\$(ssh network1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh network1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_NETWORK create"
-              ssh network2 "zypper --non-interactive install sbd"
-              # take scenario yaml file and replace placeholders
-              sed -i "s|@@sbd_device_network@@|\${SBD_DEV_NETWORK}|g" scenario.yml
-
               # watchdog configuration
               ssh controller1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
               ssh controller2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-
-              ssh data1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-              ssh data2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-
-              ssh network1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-              ssh network2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-
+              # take scenario yaml file and replace /dev/sda with the right thing:
+              sed -i "s|/dev/sda|\${SBD_DEV}|g" scenario.yml
               # ----- End of SBD
           EOSCRIPT
 
             chmod +x /tmp/sbd_prepare_$admin
-
             scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
+            ssh root@$admin './sbd_prepare
+            ' || ret=$?
+          fi
 
-            ssh root@$admin  "
+          if [ "$ret" = "0" ]; then
+            ssh root@$admin "
             export cloud=$cloud ;
             export TESTHEAD=$TESTHEAD ;
             export cloudsource=$cloudsource ;
@@ -223,13 +190,10 @@
             export hacloud=$hacloud ;
             export clusterconfig=$clusterconfig ;
             export want_ceph=1 ;
-            export cephvolumenumber=0;
+            export cephvolumenumber=1;
             export scenario=scenario.yml "'
 
-            source qa_crowbarsetup.sh
-            ./sbd_prepare
-
-            timeout --signal=ALRM 60m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist batch;"
+            timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist batch;"
             ' || ret=$?
 
             if [ $ret != 0 ] ; then
@@ -248,8 +212,8 @@
 
               scp root@$admin:/var/log/*tbz $artifacts_dir/
             fi >&2
+            echo "mkphyscloud ret=$ret"
           fi
-
           exit $ret
 
       - trigger-builds:
@@ -260,6 +224,6 @@
               hw_number=$hw_number
               tempest=$tempest
               cct_tests=$cct
-              scenario_name=2a
+              scenario_name=2c
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER

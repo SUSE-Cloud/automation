@@ -7,5 +7,5 @@ url=https://ci.suse.de/
 
 # to be used as
 #jenkins-jobs --conf jenkins/jenkins_jobs.ini update \
-#    scripts/jenkins/jobs-ibs/:scripts/jenkins/jobs-ibs/templates/ \
+#    jenkins/ci.suse.de/:jenkins/ci.suse.de/templates/ \
 #    cloud-mkcloud6-job-hyperv.yaml

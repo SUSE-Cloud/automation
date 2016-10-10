@@ -1,21 +1,25 @@
 - job:
-    name: cloud-mkphyscloud-qa-scenario-6a
+    name: cloud-mkphyscloud-qa-scenario-1b
     node: cloud-mkphyscloud-gate-qa
     description: |
       <b>This job is managed by JJB! Changes must be done in
-      <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/qa/'>git</a>
+      <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'>git</a>
       </b>
 
-      This job will redeploy scenario-6a:
-        - 7 nodes
-        - HA with ipmi (3 nodes)
-        - Shared storage on a NFS server (uses qa-provided nfs shares)
-        - 4 kvm compute nodes
+      Scenario details:
+         - 7 nodes
+         - HA with IPMI (3 controllers
+         - shared device for DB and rabbit
+         - swift
+         - 2 kvm and 2 xen compute nodes
+         - everything with SSL.
 
-      It will wipe all machines!
+      It will wipe all machines in the selected cloud!
 
     wrappers:
       - mkphyscloud-qa-common-wrappers
+    publishers:
+      - mkphyscloud-qa-common-publishers
 
     logrotate:
       numToKeep: 7
@@ -49,10 +53,10 @@
 
       - string:
           name: scenario_url
-          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-6a.yaml
+          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-1b.yaml
           description: Location of scenario yaml file
 
-      # Parameters for qa_crowbarsetup.sh
+      # variables for qa_crowbarsetup.sh
       - string:
           name: cloudsource
           default: develcloud$cloud_version
@@ -66,7 +70,7 @@
           description: By default we do not want HA configured and installed
       - string:
           name: clusterconfig
-          default: services=2
+          default: services=3
           description: HA configuration for clusters. Make sense only if hacloud=1
       - string:
           name: nodenumber
@@ -83,12 +87,21 @@
           name: commands
           default: prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
           description: All the steps that needs to be completed to have cloud installed
+      - text:
+          name: UPDATEREPOS
+          default:
+          description: Update repositories (one URL per line)
+      - bool:
+          name: UPDATEBEFOREINSTALL
+          default: false
+          description: add update repos before crowbar install
 
     builders:
       - shell: |
           #!/bin/bash
-          admin=crowbar$hw_number
-          cloud=qa$hw_number
+          export admin=crowbar$hw_number;
+          export cloud=qa$hw_number;
+          export tempestoptions="-t -s"
 
           if [ ! -z "$UPDATEREPOS" ] ; then
             # testing update only makes sense with GMx and without TESTHEAD
@@ -108,48 +121,41 @@
 
           # rest of code runs on admin node:
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
-          echo "ostestroptions= --regex '^magnum.tests.functional.api'" >> mkcloud.config
-          
           scp mkcloud.config root@$admin:
           ret=0
 
-          ssh root@$admin <<EOF
-              set -e
-              export cloud=$cloud ;
-              export hw_number=$hw_number ;
-              export UPDATEREPOS=$UPDATEREPOS ;
-              export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
-              export TESTHEAD=$TESTHEAD ;
-              export cloudsource=$cloudsource ;
-              export nodenumber=$nodenumber ;
-              export hacloud=$hacloud ;
-              export clusterconfig=$clusterconfig ;
-              export want_magnum=1 ;
-              export want_ceph=0
-              export runner_url=$runner_url ;
-              export scenario_url=$scenario_url ;
-              export want_node_aliases=controller=3,kvm=4
-              export want_node_roles=controller=3,compute=4
-              export scenario=/root/scenario.yml;
-              export commands="$commands"
+          ssh root@$admin "
+          export cloud=$cloud ;
+          export hw_number=$hw_number ;
+          export UPDATEREPOS=$UPDATEREPOS ;
+          export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
+          export TESTHEAD=$TESTHEAD ;
+          export cloudsource=$cloudsource ;
+          export nodenumber=$nodenumber ;
+          export hacloud=$hacloud ;
+          export clusterconfig=$clusterconfig ;
+          export runner_url=$runner_url ;
+          export scenario_url=$scenario_url ;
+          export wanttempest=$wanttempest;
+          export tempestoptions=\"$tempestoptions\";
+          export want_node_aliases=controller=3,compute-kvm=2,compute-xen=2 ;
+          export scenario=\"/root/scenario.yml\" ;
+          export commands=\"$commands\" "'
 
-              wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
-              wget --no-check-certificate -Oscenario.yml "$scenario_url"
+          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
+          wget --no-check-certificate -Oscenario.yml "$scenario_url"
 
-              sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
-              sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.24.1:/var/$cloud/ha-rabbitmq," scenario.yml
-              sed -i -e "s,##shared_nfs_for_glance##,10.162.24.1:/var/$cloud/ha-glance," scenario.yml
-              sed -i -e "s,##nfs_server##,10.162.24.1," scenario.yml
-              sed -i -e "s,##nfs_export##,/var/$cloud/ha-glance," scenario.yml
+          sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
+          sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.24.1:/var/$cloud/ha-rabbitmq," scenario.yml
 
-              [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate" ;
+          [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
-              timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
-          EOF
-          ret=$?
+          timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands;"
+          ' || ret=$?
+
 
           if [ $ret != 0 ] ; then
-            ssh root@$admin <<EOF
+            ssh $sshopts root@$admin '
             set -x
             for node in $(crowbar machines list | grep ^d) ; do
               (
@@ -160,11 +166,11 @@
             done
             timeout 500 supportconfig | wc &
             wait
-          EOF
+            '
+
             scp root@$admin:/var/log/*tbz $artifacts_dir/
           fi >&2
 
-          echo "mkphyscloud ret=$ret"
           exit $ret
 
       - trigger-builds:
@@ -175,7 +181,6 @@
               hw_number=$hw_number
               tempest=$tempest
               cct_tests=$cct
-              scenario_name=6a
+              scenario_name=1b
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER
-
