@@ -60,6 +60,15 @@ function safely
     fi
 }
 
+function rubyjsonparse
+{
+    $ruby -e "
+        require 'rubygems'
+        require 'json'
+        j=JSON.parse(STDIN.read)
+        $1"
+}
+
 function determine_mtu
 {
     LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1

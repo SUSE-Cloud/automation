@@ -117,15 +117,6 @@ function nova_role_prefix
     fi
 }
 
-function rubyjsonparse
-{
-    $ruby -e "
-        require 'rubygems'
-        require 'json'
-        j=JSON.parse(STDIN.read)
-        $1"
-}
-
 function onadmin_help
 {
     cat <<EOUSAGE
