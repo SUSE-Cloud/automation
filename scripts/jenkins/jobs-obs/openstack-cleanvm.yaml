@@ -41,7 +41,7 @@
         && ( openstack_project=="Juno" && (image=="SLE_11_SP3"))
         || ( openstack_project=="Liberty" && (image=="SLE_12_SP1" || image=="SLE_12" || image=="openSUSE-Leap-42.1"))
         || ( openstack_project=="Mitaka" && (image=="SLE_12_SP1" || image=="SLE_12_SP2" || image=="openSUSE-Leap-42.1"))
-        || ( openstack_project=="Newton" && (image=="SLE_12_SP2" || image=="openSUSE-Leap-42.2"))
+        || ( openstack_project=="Newton" && (image=="SLE_12_SP2" || image=="openSUSE-Leap-42.2" || image=="openSUSE-Leap-42.1"))
         || ( openstack_project=="Master" && (image=="openSUSE-Leap-42.1" || image=="SLE_12_SP1" || image=="SLE_12_SP2"))
         )
       sequential: true
