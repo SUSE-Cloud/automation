@@ -43,6 +43,7 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${want_barbican:=1}
 : ${want_sahara:=1}
 : ${want_murano:=0}
+: ${want_trove:=1}
 : ${want_s390:=''}
 : ${want_horizon_integration_test:=''}
 
@@ -3356,6 +3357,7 @@ function deploy_single_proposal
             ;;
         trove)
             iscloudver 5plus || return
+            [[ $want_trove = 1 ]] || return
             ;;
         tempest)
             [[ $wanttempest ]] || return

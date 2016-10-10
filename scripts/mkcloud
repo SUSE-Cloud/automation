@@ -1176,6 +1176,8 @@ Optional
         Deployed by default. Set to 0 to prevent sahara from being deployed.
     want_murano=1 (default=0)
         It's not deployed by default. Set to 1 to deploy murano.
+    want_trove=0 (default=1)
+        Deployed by default. Set to 0 to prevent trove from being deployed.
     want_postgresql=0 (default=1)
         Use PostgreSQL instead of SQLite as a Crowbar database
     want_horizon_integration_test=1 (default='')
