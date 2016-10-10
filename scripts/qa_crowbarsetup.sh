@@ -337,14 +337,6 @@ function intercept
     fi
 }
 
-function wait_for_if_running
-{
-    local procname=${1}
-    local timecount=${2:-300}
-
-    wait_for $timecount 5 "! pidofproc ${procname} >/dev/null" "process '${procname}' to terminate"
-}
-
 function mount_localreposdir_target
 {
     if [ -z "$localreposdir_target" ]; then

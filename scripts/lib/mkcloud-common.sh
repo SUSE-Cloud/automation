@@ -36,6 +36,14 @@ function wait_for
     fi
 }
 
+function wait_for_if_running
+{
+    local procname=${1}
+    local timecount=${2:-300}
+
+    wait_for $timecount 5 "! pidofproc ${procname} >/dev/null" "process '${procname}' to terminate"
+}
+
 function determine_mtu
 {
     LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1
