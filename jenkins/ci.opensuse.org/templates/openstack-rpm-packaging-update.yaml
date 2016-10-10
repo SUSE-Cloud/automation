@@ -4,7 +4,7 @@
     description: |
       Job to update periodically Cloud:OpenStack:Upstream:{release} with data from the OpenStack rpm-packaging project.
       <b>This job is managed by JJB!</b>
-      Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/jobs-obs/templates/'>git</a>
+      Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.opensuse.org/templates/'>git</a>
 
     builders:
       - shell: |

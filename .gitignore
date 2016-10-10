@@ -1,3 +1,5 @@
+jenkins/*.config.xml
+jenkins/*.cred
 scripts/jenkins/*.config.xml
 scripts/jenkins/*.cred
 

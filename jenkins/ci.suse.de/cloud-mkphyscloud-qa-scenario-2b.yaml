@@ -3,7 +3,7 @@
     node: cloud-mkphyscloud-gate-qa
     description: |
       <b>This job is managed by JJB! Changes must be done in
-      <a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/qa/'>git</a>
+      <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'>git</a>
       </b>
 
       This job will redeploy the scenario-2b:
