@@ -144,6 +144,139 @@ function mac_to_nodename
     echo "d${mac//:/-}.$cloudfqdn"
 }
 
+function setcloudnetvars
+{
+    local cloud=$1
+    export cloudfqdn=${cloudfqdn:-$cloud.cloud.suse.de}
+    if [ -z "$cloud" ] ; then
+        complain 101 "Parameter missing that defines the cloud name" \
+            "Possible values: [d1, d2, p, virtual]" \
+            "Example: $0 d2"
+    fi
+
+    # common cloud network prefix within SUSE Nuremberg:
+    netp=10.162
+    net=${net_admin:-192.168.124}
+    case "$cloud" in
+        d1)
+            nodenumbertotal=5
+            net=$netp.178
+            net_public=$netp.177
+            vlan_storage=568
+            vlan_sdn=$vlan_storage
+            vlan_public=567
+            vlan_fixed=566
+            want_ipmi=true
+        ;;
+        d2)
+            nodenumbertotal=2
+            net=$netp.186
+            net_public=$netp.185
+            vlan_storage=581
+            vlan_sdn=$vlan_storage
+            vlan_public=580
+            vlan_fixed=569
+            want_ipmi=true
+        ;;
+        d3)
+            nodenumbertotal=3
+            net=$netp.189
+            net_public=$netp.188
+            vlan_storage=586
+            vlan_sdn=$vlan_storage
+            vlan_public=588
+            vlan_fixed=589
+            want_ipmi=true
+        ;;
+        qa1)
+            nodenumbertotal=6
+            net=${netp}.26
+            net_public=$net
+            vlan_public=300
+            vlan_fixed=500
+            vlan_storage=200
+            want_ipmi=false
+        ;;
+        qa2)
+            nodenumbertotal=7
+            net=${netp}.24
+            net_public=$net
+            vlan_public=12
+            #vlan_admin=610
+            vlan_fixed=611
+            vlan_storage=612
+            vlan_sdn=$vlan_storage
+            want_ipmi=true
+        ;;
+        qa3)
+            nodenumbertotal=8
+            net=${netp}.25
+            net_public=$net
+            vlan_public=12
+            #vlan_admin=615
+            vlan_fixed=615
+            vlan_storage=616
+            vlan_sdn=$vlan_storage
+            want_ipmi=true
+        ;;
+        qa4)
+            nodenumbertotal=7
+            net=${netp}.66
+            net_public=$net
+            vlan_public=715
+            #vlan_admin=714
+            vlan_fixed=717
+            vlan_storage=716
+            vlan_sdn=$vlan_storage
+            want_ipmi=true
+        ;;
+        p2)
+            net=$netp.171
+            net_public=$netp.164
+            net_fixed=44.0.0
+            vlan_storage=563
+            vlan_sdn=$vlan_storage
+            vlan_public=564
+            vlan_fixed=565
+            want_ipmi=true
+        ;;
+p)
+            net=$netp.169
+            net_public=$netp.168
+            vlan_storage=565
+            vlan_sdn=$vlan_storage
+            vlan_public=564
+            vlan_fixed=563
+            want_ipmi=true
+        ;;
+        virtual)
+                    true # defaults are fine (and overridable)
+        ;;
+        cumulus)
+            net=$netp.189
+            net_public=$netp.190
+            vlan_storage=577
+            vlan_public=579
+            vlan_fixed=578
+        ;;
+        *)
+                    true # defaults are fine (and overridable)
+        ;;
+    esac
+    test -n "$nodenumbertotal" && nodenumber=${nodenumber:-$nodenumbertotal}
+    # default networks in crowbar:
+    vlan_storage=${vlan_storage:-200}
+    vlan_public=${vlan_public:-300}
+    vlan_fixed=${vlan_fixed:-500}
+    vlan_sdn=${vlan_sdn:-400}
+    net_fixed=${net_fixed:-192.168.123}
+    net_public=${net_public:-192.168.122}
+    net_storage=${net_storage:-192.168.125}
+    net_sdn=${net_sdn:-192.168.130}
+    : ${admingw:=$net.1}
+    : ${adminip:=$net.10}
+}
+
 function onhost_setup_portforwarding()
 {
     boot_mkcloud=/etc/init.d/boot.mkcloud
