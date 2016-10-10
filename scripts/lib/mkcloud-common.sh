@@ -51,6 +51,15 @@ function complain
     [[ $ex = - ]] || exit $ex
 }
 
+function safely
+{
+    if "$@"; then
+        true
+    else
+        complain 30 "$* failed! (safelyret=$?) Aborting."
+    fi
+}
+
 function determine_mtu
 {
     LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1

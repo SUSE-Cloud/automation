@@ -117,15 +117,6 @@ function nova_role_prefix
     fi
 }
 
-function safely
-{
-    if "$@"; then
-        true
-    else
-        complain 30 "$* failed! (safelyret=$?) Aborting."
-    fi
-}
-
 function rubyjsonparse
 {
     $ruby -e "
