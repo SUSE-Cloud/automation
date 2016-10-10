@@ -90,12 +90,6 @@ zypper="zypper --non-interactive"
 zypper rr cloudhead || :
 
 case "$cloudsource" in
-    openstackicehouse)
-        $zypper ar -G -f $cloudopenstackmirror/Icehouse/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Icehouse:/Staging/$REPO/ cloudhead
-        fi
-    ;;
     openstackjuno)
         $zypper ar -G -f $cloudopenstackmirror/Juno/$REPO/ cloud
         if test -n "$OSHEAD" ; then
