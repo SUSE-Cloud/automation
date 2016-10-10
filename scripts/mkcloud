@@ -32,18 +32,20 @@ fi
 # causes of this is violation of the common shell coding standard which
 # uses uppercase for environment variables and constants, and lowercase
 # for local variables.
-: ${mkcloud_dir:=$(dirname $(readlink -e $0))}
-: ${qa_crowbarsetup:=${mkcloud_dir}/qa_crowbarsetup.sh}
-: ${iscsictl:=${mkcloud_dir}/iscsictl.py}
+: ${SCRIPTS_DIR:=$mkcloud_dir} # for backward compatibility
+: ${SCRIPTS_DIR:=$(dirname $(readlink -e $0))}
+: ${qa_crowbarsetup:=${SCRIPTS_DIR}/qa_crowbarsetup.sh}
+: ${iscsictl:=${SCRIPTS_DIR}/iscsictl.py}
 
 : ${macprefix:=52:54:77}
 : ${mkclouddriver:=libvirt}
-mkcloud_lib_dir=${mkcloud_dir}/lib
+scripts_lib_dir=${SCRIPTS_DIR}/lib
+mkcloud_lib_dir=$scripts_lib_dir # for backward compatibility
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
-mkcloud_temporary_scripts="mkcloud-common.sh mkcloud-$mkclouddriver.sh"
-for script in $mkcloud_temporary_scripts; do
-    source ${mkcloud_lib_dir}/$script
+common_scripts="mkcloud-common.sh mkcloud-$mkclouddriver.sh"
+for script in $common_scripts; do
+    source ${scripts_lib_dir}/$script
 done
 mkcconf=mkcloud.config
 rm -f $mkcconf # we dont want to source old info in the line below
@@ -253,9 +255,9 @@ function sshrun
 EOF
     env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
 
-    $scp $qa_crowbarsetup $mkcconf $iscsictl root@$adminip:
+    $scp -r $SCRIPTS_DIR $mkcconf root@$adminip:
     [[ $need_scenario = 1 ]] && $scp $scenario_path root@$adminip:
-    ssh $sshopts root@$adminip "echo `hostname` > cloud ; . qa_crowbarsetup.sh ; $@"
+    ssh $sshopts root@$adminip "echo `hostname` > cloud ; . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ; $@"
     return $?
 }
 
@@ -1264,10 +1266,9 @@ function sanity_checks
     fi
 
     # test for existence of qa_crowbarsetup.sh
-    if [ ! -e $qa_crowbarsetup ] ; then
-        complain 87 "$qa_crowbarsetup not found
-            Please define the path to it by setting qa_crowbarsetup=/path/to/file
-            or call mkcloud from your git clone."
+    if [ ! -e $SCRIPTS_DIR/qa_crowbarsetup.sh ] ; then
+        complain 87 "qa_crowbarsetup.sh not found.
+            Make sure to call mkcloud from your git clone."
     fi
 
     if [ -z "$cloudsource" ] ; then

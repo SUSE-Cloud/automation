@@ -1,4 +1,4 @@
-# This file shares common code between mkcloud-${mkclouddriver}.sh files
+# This file shares common code between mkcloud-${mkclouddriver}.sh files and qa_crowbarsetup.sh
 
 function max
 {
