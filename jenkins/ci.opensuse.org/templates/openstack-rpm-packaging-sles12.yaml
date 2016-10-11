@@ -26,7 +26,9 @@
           rm -rf ${{OBS_TEST_PROJECT}}
           rm -rf ${{TEMP_DIR}}
           $osc_timed rdelete -r -m "rpm-packaging CI cleanup" ${{OBS_TEST_PROJECT}} || :
-          sleep 3
+          while $osc_timed api /build/${{OBS_TEST_PROJECT}} > /dev/null; do
+              sleep $((RANDOM%10+5))
+          done
 
           mkdir -p ~/.cache/download_files/file  ~/.cache/download_files/filename
           /usr/local/bin/createproject.py --linkproject ${{OBS_BASE_SRC_PROJECT}} . ${{OBS_TEST_PROJECT}}
