@@ -23,10 +23,11 @@ p_dir=${a_dir%/*}
 
 function do_wget
 {
-    wget -Omaster.tar.gz https://${a_dir}/archive/${branch}.tar.gz
-    tar xzf master.tar.gz
+    local temptar=temp$$.tar.gz
+    wget -O${temptar} https://${a_dir}/archive/${branch}.tar.gz
+    tar xzf ${temptar}
+    rm -rf $a_dir ${temptar}
     mkdir -p $p_dir
-    rm -rf $a_dir
     mv automation-$branch $a_dir
     exit 0
 }
