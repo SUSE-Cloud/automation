@@ -37,7 +37,6 @@ fi
 : ${qa_crowbarsetup:=${SCRIPTS_DIR}/qa_crowbarsetup.sh}
 : ${iscsictl:=${SCRIPTS_DIR}/iscsictl.py}
 
-: ${macprefix:=52:54:77}
 : ${mkclouddriver:=libvirt}
 scripts_lib_dir=${SCRIPTS_DIR}/lib
 mkcloud_lib_dir=$scripts_lib_dir # for backward compatibility
@@ -49,7 +48,6 @@ for script in $common_scripts; do
 done
 mkcconf=mkcloud.config
 rm -f $mkcconf # we dont want to source old info in the line below
-source $qa_crowbarsetup
 
 : ${virtualcloud:=virtual}
 : ${net_admin:=192.168.124}
@@ -116,8 +114,6 @@ pvlist=
 next_pv_device=
 pv_cur_device_no=0
 : ${cloudbr:=${cloud}br}
-sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
-scp="scp $sshopts"
 #if localreposdir_src string is available, the local repositories are used for setup
 : ${localreposdir_src:=""}
 #localreposdir_target is the 9p target dir and also the mount target dir in the VM
@@ -125,6 +121,7 @@ scp="scp $sshopts"
 [ -z "$localreposdir_src" ] && localreposdir_target=""
 : ${install_chef_suse_override:=./install-chef-suse.sh}
 : ${cct_tests:="features:base"}
+host_mtu=$(determine_mtu)
 : ${want_mtu_size:=1500}
 
 emulator=/usr/bin/qemu-system-$arch
@@ -138,11 +135,6 @@ pidfile=mkcloud.pid
 
 trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
-
-function is_suse
-{
-    grep -qi suse /etc/*release
-}
 
 function show_environment
 {
@@ -198,10 +190,6 @@ function error_exit
     exit $exitcode
 } >&2
 
-function determine_host_mtu
-{
-    host_mtu=$(LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1)
-}
 
 function sshrun
 {
@@ -328,17 +316,6 @@ function onhost_prepareadmin
     onhost_deploy_image "admin" $(get_admin_node_dist) "$admin_node_disk"
 }
 
-function ssh_password
-{
-    SSH_ASKPASS=/root/echolinux
-    cat > $SSH_ASKPASS <<EOSSHASK
-#!/bin/sh
-echo linux
-EOSSHASK
-    chmod +x $SSH_ASKPASS
-    DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid ssh $sshopts -oNumberOfPasswordPrompts=1 "$@"
-}
-
 function wait_for_crowbar_ssh
 {
     wait_for 150 1 "nc -z $adminip 22" 'admin node to start ssh daemon'
@@ -431,31 +408,6 @@ function restoreadminfromsnapshot
     createadminsnapshot
 }
 
-function nodes
-{
-    local query=${1:number}
-    local type=${2:all}
-    local start_id=1
-    local end_id=$(($nodenumber + $nodenumberlonelynode))
-    case $type in
-        normal|pxe)
-            end_id=$nodenumber
-        ;;
-        lonely|preinstalled)
-            start_id=$(($nodenumber + 1))
-        ;;
-        all)
-        ;;
-    esac
-
-    case $query in
-        ids) echo `seq $start_id $end_id`
-        ;;
-        number) echo $(( 1 + $end_id - $start_id ))
-        ;;
-    esac
-}
-
 function createcloudsnapshot
 {
     shutdowncloud
@@ -502,73 +454,6 @@ function restorecloudfromsnapshot
         merge_snapshot_volume "${cloudvg}/${d%.snap}"
     done
     createcloudsnapshot
-}
-
-# Returns success if a change was made
-function confset
-{
-    file="$1" key="$2" value="$3"
-    if grep -q "^$key *= *$value" "$file"; then
-        return 1 # already set correctly
-    fi
-
-    new_line="$key = $value"
-    if grep -q "^$key[ =]" "$file"; then
-        # change existing value
-        sed -i "s/^$key *=.*/$new_line/" "$file"
-    elif grep -q "^# *$key[ =]" "$file"; then
-        # uncomment existing setting
-        sed -i "s/^# *$key *=.*/$new_line/" "$file"
-    else
-        # add new setting
-        echo "$new_line" >> "$file"
-    fi
-
-    return 0
-}
-
-function macfunc
-{
-    ${mkclouddriver}_do_macfunc $1
-}
-
-function get_admin_node_dist
-{
-    # echo the name of the current dist for the admin node
-    local dist=
-    case $(getcloudver) in
-        7)
-            dist=SLE12SP2
-            [[ $want_sles12sp1_admin ]] && dist=SLE12SP1
-            ;;
-        6)  dist=SLE12SP1 ;;
-        5)  dist=SLE11    ;;
-        *)  dist=SLE11    ;;
-    esac
-    echo "$dist"
-}
-
-function get_lonely_node_dist
-{
-    local dist=$(get_admin_node_dist)
-    iscloudver 5 && [[ $want_sles12 ]] && dist=SLE12
-    echo $dist
-}
-
-function dist_to_image_name
-{
-    # get the name of the image to deploy the admin node
-    local dist=$1
-    case $dist in
-        SLE12SP2) image=SLES12-SP2 ;;
-        SLE12SP1) image=SLES12-SP1 ;;
-        SLE12)    image=SLES12     ;;
-        SLE11)    image=SP3-64up   ;;
-        *)
-            complain 71 "No admin node image defined for this distribution: $dist"
-        ;;
-    esac
-    echo "$image.qcow2"
 }
 
 # bring up lonely_node(s) in the admin network
@@ -637,13 +522,6 @@ function mkvlan
     vconfig add $cloudbr $DEFVLAN
     ifconfig $cloudbr.$DEFVLAN $IP/24
     ethtool -K $cloudbr tx off
-}
-
-function hypervisor_has_virtio
-{
-    local llibvirt_type=${1:-$libvirt_type}
-    [[ "$llibvirt_type" = "xen" || "$llibvirt_type" = "hyperv" ]] && return 1
-    return 0
 }
 
 function setuppublicnet
@@ -1427,8 +1305,6 @@ steplist=`expand_steps $wantedcmds`
 [[ "$steplist" =~ "steps" ]] && steps
 
 sanity_checks
-
-determine_host_mtu
 
 echo "You choose to run these mkcloud steps:"
 echo "  $steplist"

@@ -356,7 +356,7 @@ function libvirt_do_shutdowncloud()
     done
 }
 
-function libvirt_do_macfunc()
+function libvirt_do_macfunc
 {
     printf "$macprefix:77:77:%02x" $1
 }
