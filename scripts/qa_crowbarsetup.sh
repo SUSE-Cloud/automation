@@ -2692,6 +2692,12 @@ function custom_configuration
                 proposal_set_value neutron default "['attributes']['neutron']['vmware']['l3_gw_uuid']" "'$nsx_l3_gw_uuid'"
             fi
         ;;
+        sahara)
+            if iscloudver 7plus ; then
+                # we need to set the 'fake' plugin for the tempest tests
+                proposal_set_value sahara default "['attributes']['sahara']['plugins']" "'vanilla,spark,cdh,ambari,fake'"
+            fi
+        ;;
         swift)
             [[ $nodenumber -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
             proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
