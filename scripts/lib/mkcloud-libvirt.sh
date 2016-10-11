@@ -67,15 +67,15 @@ function libvirt_prepare()
     libvirt_start_daemon
 
     # network
-    ${mkcloud_lib_dir}/libvirt/net-config $cloud $cloudbr $admingw $adminnetmask $cloudfqdn $adminip $forwardmode > /tmp/$cloud-admin.net.xml
-    ${mkcloud_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
+    ${scripts_lib_dir}/libvirt/net-config $cloud $cloudbr $admingw $adminnetmask $cloudfqdn $adminip $forwardmode > /tmp/$cloud-admin.net.xml
+    ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
     libvirt_net_start
 }
 
 function libvirt_do_setupadmin()
 {
-    ${mkcloud_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $emulator $admin_node_disk "$localreposdir_src" "$localreposdir_target" > /tmp/$cloud-admin.xml
-    ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
+    ${scripts_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $emulator $admin_node_disk "$localreposdir_src" "$localreposdir_target" > /tmp/$cloud-admin.xml
+    ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
 }
 
 function libvirt_do_setuphost()
@@ -154,7 +154,7 @@ function libvirt_do_cleanup_admin_node()
     # this function is meant to only clean the admin node
     # in order to deploy a new one, while keeping all cloud nodes
 
-    ${mkcloud_lib_dir}/libvirt/cleanup_one_node ${cloud}-admin
+    ${scripts_lib_dir}/libvirt/cleanup_one_node ${cloud}-admin
 }
 
 function libvirt_do_get_next_pv_device()
@@ -252,7 +252,7 @@ EOF
 function libvirt_do_cleanup()
 {
     # cleanup leftover from last run
-    ${mkcloud_lib_dir}/libvirt/cleanup $cloud $nodenumber $cloudbr $vlan_public
+    ${scripts_lib_dir}/libvirt/cleanup $cloud $nodenumber $cloudbr $vlan_public
 
     if ip link show ${cloudbr}.$vlan_public >/dev/null 2>&1; then
         ip link set ${cloudbr}.$vlan_public down
@@ -335,7 +335,7 @@ function libvirt_do_setuplonelynodes()
         local mac=$(macfunc $i)
         local lonely_node
         lonely_node=$cloud-node$i
-        safely ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $mac 0\
+        safely ${scripts_lib_dir}/libvirt/compute-config $cloud $i $mac 0\
             "$cephvolumenumber" "$drbdvolume" $compute_node_memory\
             $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir\
             1 1 > /tmp/$cloud-node$i.xml
@@ -344,7 +344,7 @@ function libvirt_do_setuplonelynodes()
         lonely_disk="$vdisk_dir/${cloud}.node$i"
 
         onhost_deploy_image "lonely" $(get_lonely_node_dist) $lonely_disk
-        ${mkcloud_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
+        ${scripts_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
     done
 }
 
