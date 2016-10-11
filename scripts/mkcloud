@@ -1080,7 +1080,7 @@ Optional
     scenario='scenario.yaml' (default='')
         Defines which scenario file should be used. Only works with cloud5 or newer.
         Currently only the step 'batch' uses such a file.
-    scenario_dir='/tmp' (default=${mkcloud_dir}/scenarios/cloud\$(getcloudver)/)
+    scenario_dir='/tmp' (default=${SCRIPTS_DIR}/scenarios/cloud\$(getcloudver)/)
         Full path to directory containing scenario file.
 EOUSAGE
     onadmin_help
@@ -1203,7 +1203,7 @@ function sanity_checks
     fi
 
     if [[ " ${steplist[*]} " == *" batch "* ]] ; then
-        : ${scenario_dir:="${mkcloud_dir}/scenarios/cloud$(getcloudver)"}
+        : ${scenario_dir:="${SCRIPTS_DIR}/scenarios/cloud$(getcloudver)"}
         need_scenario=1
         if [[ ! $scenario ]] ; then
             complain 114 "scenario parameter for batch step must point to a file in $scenario_dir"
