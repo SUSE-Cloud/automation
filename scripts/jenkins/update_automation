@@ -14,12 +14,22 @@
 
 automation_repo="git://github.com/SUSE-Cloud/automation.git"
 
-rpm -q git-core || zypper --non-interactive in git-core
-
 pushd ~ > /dev/null
 a_dir=${automation_repo#*git://}
 a_dir=${a_dir%.git}
 p_dir=${a_dir%/*}
+
+function do_wget
+{
+    wget -Omaster.tar.gz https://${a_dir}/archive/master.tar.gz
+    tar xzf master.tar.gz
+    mkdir -p $p_dir
+    rm -rf $a_dir
+    mv automation-master $a_dir
+    exit 0
+}
+
+rpm -q git-core || zypper --non-interactive in git-core || do_wget
 
 if [ -d $a_dir ] ; then
     pushd $a_dir > /dev/null
