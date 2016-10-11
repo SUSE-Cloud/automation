@@ -10,29 +10,45 @@
 # Usage: update_automation [<scriptname>, ...]
 #
 # J. Daniel Schmidt <jdsn@suse.de>
+# Bernhard M. Wiedemann <bwiedemann suse.de>
 #
 
-automation_repo="git://github.com/SUSE-Cloud/automation.git"
+: ${automation_repo:="git://github.com/SUSE-Cloud/automation.git"}
+: ${branch:=master}
 
-rpm -q git-core || zypper --non-interactive in git-core
-
-pushd ~ > /dev/null
 a_dir=${automation_repo#*git://}
 a_dir=${a_dir%.git}
 p_dir=${a_dir%/*}
 
-if [ -d $a_dir ] ; then
-    pushd $a_dir > /dev/null
-        git clean -f
-        git checkout master
-        git fetch origin
-        git reset --hard origin/master
-    popd > /dev/null
-else
-    mkdir -p $p_dir
-    pushd $p_dir > /dev/null
-        git clone ${automation_repo}
-    popd > /dev/null
-fi
+function do_wget
+{
+    local temptar=temp$$.tar.gz
+    wget -O${temptar} https://${a_dir}/archive/${branch}.tar.gz
+    tar xzf ${temptar}
+    rm -rf $a_dir ${temptar}
+    mv automation-$branch $a_dir
+}
 
+function do_git
+{
+    rpm -q git-core || zypper --non-interactive in git-core || return 24
+
+    if [ -d $a_dir ] ; then
+        pushd $a_dir > /dev/null
+            git clean -f
+            git checkout $branch
+            git fetch origin
+            git reset --hard origin/$branch
+        popd > /dev/null
+    else
+        pushd $p_dir > /dev/null
+            git clone ${automation_repo}
+        popd > /dev/null
+        ( cd $a_dir && git checkout $branch )
+    fi
+}
+
+pushd ~ > /dev/null
+mkdir -p $p_dir
+do_git || do_wget
 popd > /dev/null
