@@ -32,22 +32,22 @@ function do_wget
 
 function do_git
 {
-rpm -q git-core || zypper --non-interactive in git-core || return 24
+    rpm -q git-core || zypper --non-interactive in git-core || return 24
 
-if [ -d $a_dir ] ; then
-    pushd $a_dir > /dev/null
-        git clean -f
-        git checkout $branch
-        git fetch origin
-        git reset --hard origin/$branch
-    popd > /dev/null
-else
-    mkdir -p $p_dir
-    pushd $p_dir > /dev/null
-        git clone ${automation_repo}
-    popd > /dev/null
-    ( cd $a_dir && git checkout $branch )
-fi
+    if [ -d $a_dir ] ; then
+        pushd $a_dir > /dev/null
+            git clean -f
+            git checkout $branch
+            git fetch origin
+            git reset --hard origin/$branch
+        popd > /dev/null
+    else
+        mkdir -p $p_dir
+        pushd $p_dir > /dev/null
+            git clone ${automation_repo}
+        popd > /dev/null
+        ( cd $a_dir && git checkout $branch )
+    fi
 }
 
 pushd ~ > /dev/null
