@@ -16,7 +16,6 @@
 : ${automation_repo:="git://github.com/SUSE-Cloud/automation.git"}
 : ${branch:=master}
 
-pushd ~ > /dev/null
 a_dir=${automation_repo#*git://}
 a_dir=${a_dir%.git}
 p_dir=${a_dir%/*}
@@ -29,10 +28,11 @@ function do_wget
     rm -rf $a_dir ${temptar}
     mkdir -p $p_dir
     mv automation-$branch $a_dir
-    exit 0
 }
 
-rpm -q git-core || zypper --non-interactive in git-core || do_wget
+function do_git
+{
+rpm -q git-core || zypper --non-interactive in git-core || return 24
 
 if [ -d $a_dir ] ; then
     pushd $a_dir > /dev/null
@@ -48,5 +48,8 @@ else
     popd > /dev/null
     ( cd $a_dir && git checkout $branch )
 fi
+}
 
+pushd ~ > /dev/null
+do_git || do_wget
 popd > /dev/null
