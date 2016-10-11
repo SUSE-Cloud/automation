@@ -1736,34 +1736,37 @@ function reboot_nodes_via_ipmi
         local pw
         for pw in 'cr0wBar!' $extraipmipw ; do
             local ip=$bmc_net.$(($ip4 + $i))
+            local ipmicmd="ipmitool -H $ip -U root -P $pw"
             if [ $i -gt $nodenumber ]; then
                 # power off extra nodes
-                ipmitool -H $ip -U root -P $pw power off
-                wait_for 2 60 "ipmitool -H $ip -U root -P $pw power status | grep -q 'is off'" "node to power off"
+                $ipmicmd power off
+                wait_for 30 2 "$ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
             else
                 ping -c 3 $ip > /dev/null || {
                     echo "error: BMC $ip is not reachable!"
                 }
 
-                ipmitool -H $ip -U root -P $pw lan set 1 defgw ipaddr "${bmc_values[1]}"
-                # Sleep while the BMC is rebooting due to the gateway re-setting
-                sleep $((50 + RANDOM % 20))
+                $ipmicmd lan set 1 defgw ipaddr "${bmc_values[1]}"
+                wait_for 30 2 \
+                    "$ipmicmd lan print | grep 'Default Gateway IP' | grep -q ${bmc_values[1]}" \
+                    "default gateway to be active in bmc"
 
-                ipmitool -H $ip -U root -P $pw chassis bootdev pxe options=persistent
-                # Sleep while the BMC is rebooting due to the bootdev re-setting
-                sleep $((50 + RANDOM % 20))
+                $ipmicmd chassis bootdev pxe options=persistent
+                wait_for 30 2 \
+                    "! timeout 2 $ipmicmd mc selftest >/dev/null" \
+                    "BMC to start rebooting" \
+                    "echo 'Warning: BMC most likely booted faster than I expected'"
+                wait_for 30 2 \
+                    "timeout 2 $ipmicmd mc selftest >/dev/null" \
+                    "BMC to be up after rebooting"
 
-                if ipmitool -H $ip -U root -P $pw power status | grep -q "is off"; then
-                    ipmitool -H $ip -U root -P $pw power on
-                else
-                    ipmitool -H $ip -U root -P $pw power cycle
-                fi
-                # Sleep while the BMC is booting due to doing power on/cycle
-                sleep $((50 + RANDOM % 20))
+                $ipmicmd power off
+                wait_for 30 2 "timeout 2 $ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
+                $ipmicmd power on
+                wait_for 30 2 "timeout 2 $ipmicmd power status | grep -q 'is on'" "node ($ip) to power on"
             fi
         done
     done
-    wait
 }
 
 function onadmin_allocate
