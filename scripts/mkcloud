@@ -39,7 +39,6 @@ fi
 
 : ${mkclouddriver:=libvirt}
 scripts_lib_dir=${SCRIPTS_DIR}/lib
-mkcloud_lib_dir=$scripts_lib_dir # for backward compatibility
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
 common_scripts="mkcloud-common.sh mkcloud-$mkclouddriver.sh"
