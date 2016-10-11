@@ -10,9 +10,11 @@
 # Usage: update_automation [<scriptname>, ...]
 #
 # J. Daniel Schmidt <jdsn@suse.de>
+# Bernhard M. Wiedemann <bwiedemann suse.de>
 #
 
-automation_repo="git://github.com/SUSE-Cloud/automation.git"
+: ${automation_repo:="git://github.com/SUSE-Cloud/automation.git"}
+: ${branch:=master}
 
 pushd ~ > /dev/null
 a_dir=${automation_repo#*git://}
@@ -21,11 +23,11 @@ p_dir=${a_dir%/*}
 
 function do_wget
 {
-    wget -Omaster.tar.gz https://${a_dir}/archive/master.tar.gz
+    wget -Omaster.tar.gz https://${a_dir}/archive/${branch}.tar.gz
     tar xzf master.tar.gz
     mkdir -p $p_dir
     rm -rf $a_dir
-    mv automation-master $a_dir
+    mv automation-$branch $a_dir
     exit 0
 }
 
@@ -34,15 +36,16 @@ rpm -q git-core || zypper --non-interactive in git-core || do_wget
 if [ -d $a_dir ] ; then
     pushd $a_dir > /dev/null
         git clean -f
-        git checkout master
+        git checkout $branch
         git fetch origin
-        git reset --hard origin/master
+        git reset --hard origin/$branch
     popd > /dev/null
 else
     mkdir -p $p_dir
     pushd $p_dir > /dev/null
         git clone ${automation_repo}
     popd > /dev/null
+    ( cd $a_dir && git checkout $branch )
 fi
 
 popd > /dev/null
