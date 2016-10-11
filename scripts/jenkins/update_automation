@@ -26,7 +26,6 @@ function do_wget
     wget -O${temptar} https://${a_dir}/archive/${branch}.tar.gz
     tar xzf ${temptar}
     rm -rf $a_dir ${temptar}
-    mkdir -p $p_dir
     mv automation-$branch $a_dir
 }
 
@@ -42,7 +41,6 @@ function do_git
             git reset --hard origin/$branch
         popd > /dev/null
     else
-        mkdir -p $p_dir
         pushd $p_dir > /dev/null
             git clone ${automation_repo}
         popd > /dev/null
@@ -51,5 +49,6 @@ function do_git
 }
 
 pushd ~ > /dev/null
+mkdir -p $p_dir
 do_git || do_wget
 popd > /dev/null
