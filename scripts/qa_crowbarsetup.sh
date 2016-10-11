@@ -3544,7 +3544,6 @@ function oncontroller_magnum_service_setup
         # os-distro property
         openstack image create --file $service_image_name \
             --disk-format qcow2 --container-format bare --public \
-            --property hw_firmware_type=uefi \
             --property os_distro=fedora-atomic magnum-service-image
     fi
 
