@@ -1740,7 +1740,7 @@ function set_node_raid
     knife exec -E "
         nodes.find(:name => '${node}').each do |n|
             n.crowbar_wall.raid_type = '${raid_type}'
-            n.crowbar_wall.raid_disk = $raid_disks
+            n.crowbar_wall.raid_disks = $raid_disks
             n.save
         end
     "
