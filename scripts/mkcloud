@@ -39,7 +39,6 @@ fi
 
 : ${mkclouddriver:=libvirt}
 scripts_lib_dir=${SCRIPTS_DIR}/lib
-mkcloud_lib_dir=$scripts_lib_dir # for backward compatibility
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
 common_scripts="mkcloud-common.sh mkcloud-$mkclouddriver.sh"
@@ -580,11 +579,11 @@ function setupnodes
             fi
         fi
 
-        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $macaddress\
+        ${scripts_lib_dir}/libvirt/compute-config $cloud $i $macaddress\
             $controller_raid_volumes $cephvolumenumber "$drbd_serial"\
             $compute_node_memory $controller_node_memory $libvirt_type $vcpus\
             $emulator $vdisk_dir 3 $nodenumbercontroller > /tmp/$cloud-node$i.xml
-        ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
+        ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
     done
 
     echo "========================================================"
