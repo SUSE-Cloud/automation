@@ -54,18 +54,26 @@ rm -f $mkcconf # we dont want to source old info in the line below
 setcloudnetvars $virtualcloud
 : ${forwardmode:=nat}
 : ${adminnetmask:=255.255.248.0}
+
+: ${nodenumberlonelynode:=0}
 # the default nodenumber of compute nodes
-nodenumbercomputedefault=2
-[[ $hacloud ]] && nodenumbercomputedefault=1
+nodenumbercomputedefault=0
+if [[ $nodenumberlonelynode < 2 ]] ; then
+    if [[ $hacloud ]] ; then
+        nodenumbercomputedefault=1
+    else
+        nodenumbercomputedefault=2
+    fi
+fi
 : ${nodenumber:=$nodenumbercomputedefault}
 : ${nodenumbercompute:=$nodenumbercomputedefault}
+
 # expect to have this many physical machines attached via $mkch_physcloudif
 # these replace virtual machines, so we start less VMs
 : ${nodenumberphys:=0}
 [[ $nodenumberphys = 0 ]] || [[ $mkch_physcloudif ]] || complain 100 "need to set mkch_physcloudif for physical nodes"
 # configuration of clusters
 : ${clusterconfig:=''}
-: ${nodenumberlonelynode:=0}
 export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 # '+'-separated list of MAC#serial_of_drbd_volume of the drbd cluster nodes
 # (used only internally to transport this information to qa_crowbarsetup):
@@ -465,10 +473,8 @@ function setuplonelynodes
 # register lonely_node against crowbar
 function crowbar_register
 {
-    for i in $(nodes ids lonely) ; do
-        local mac=$(macfunc $i)
-        sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register"
-    done
+    onadmin crowbar_register $(nodes ids lonely)
+    return $?
 }
 
 function prepareinstcrowbar
@@ -553,48 +559,25 @@ function restartcloud
 }
 
 # bring up VMs that will take cloud controller/compute/storage roles
-function setupnodes
+function get_nodenumbercontroller
 {
-    onadmin wait_tftpd || return $?
-
     local nodenumbercontroller=1
     if [[ $clusterconfig == *services* ]]; then
         nodenumbercontroller=`echo ${clusterconfig}\
             | sed -e "s/^.*services[^:]*=\([[:digit:]]\+\).*/\1/"`
     fi
+    echo $nodenumbercontroller
+}
 
+
+# start VMs (for normal and lonely nodes) that will take cloud controller/compute/storage roles
+function setupnodes
+{
+    onadmin wait_tftpd || return $?
     setuppublicnet
-    for i in $(nodes ids normal) ; do
-        local macaddress=$(macfunc $i)
 
-        # transport drdb volume information to admin node (needed for proposal of data cluster)
-        drbd_serial=""
-        if [ $drbd_hdd_size != 0 ]; then
-            if [ $i -le 2 ] ; then
-                drbd_serial="$cloud-node$i-drbd"
-                # libvirt does not accept anything other than [:alnum:]_-
-                # for serial strings:
-                drbd_serial=${drbd_serial//[^A-Za-z0-9-_]/_}
-                drbdnode_mac_vol="${drbdnode_mac_vol}+${macaddress}#${drbd_serial}"
-                drbdnode_mac_vol="${drbdnode_mac_vol#+}"
-            fi
-        fi
-
-        ${mkcloud_lib_dir}/libvirt/compute-config $cloud $i $macaddress\
-            $controller_raid_volumes $cephvolumenumber "$drbd_serial"\
-            $compute_node_memory $controller_node_memory $libvirt_type $vcpus\
-            $emulator $vdisk_dir 3 $nodenumbercontroller > /tmp/$cloud-node$i.xml
-        ${mkcloud_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
-    done
-
-    echo "========================================================"
-    echo " Note: If you interrupt mkcloud now and want to proceed"
-    echo "       later, make sure to run the following command:"
-    echo
-    echo " export drbdnode_mac_vol=\"${drbdnode_mac_vol}\""
-    echo
-    echo "========================================================"
-    sleep 10
+    ${mkclouddriver}_do_setupnodes normal $(nodes ids normal)
+    ${mkclouddriver}_do_setupnodes lonely $(nodes ids lonely)
 
     # mkch_physwol can be set by the user to a space-separated list of MAC-addrs
     # of pysical nodes to wake up using WoL
