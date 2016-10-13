@@ -563,7 +563,6 @@ function get_unclustered_sles12plus_nodes
     echo $sles12plusnodes
 }
 
-
 function get_docker_nodes
 {
     knife search node "roles:`nova_role_prefix`-compute-docker" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'
@@ -2572,12 +2571,19 @@ function custom_configuration
             fi
 
             if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
-                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-docker']" "['${unclustered_sles12plusnodes[0]}']"
+                if [[ $hacloud = 1 ]] ; then
+                    cluster_node_assignment
+                    local nodes=($unclustered_nodes)
+                else
+                    local nodes=($(get_all_discovered_nodes))
+                    nodes=("${nodes[@]:1}") #remove the 1st node, it's the controller
+                fi
+                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-docker']" "['$nodes']"
 
                 local computetype
                 for computetype in "xen" "qemu" "${libvirt_type}"; do
                     # do not assign another compute role to this node
-                    proposal_modify_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${computetype}']" "['${unclustered_sles12plusnodes[0]}']" "-="
+                    proposal_modify_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${computetype}']" "['$nodes']" "-="
                 done
             fi
 
