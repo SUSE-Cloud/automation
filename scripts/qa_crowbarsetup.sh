@@ -1910,7 +1910,7 @@ function onadmin_allocate
     fi
 
     # set BTRFS for all nodes when docker is wanted (docker likes btrfs)
-    if [ -n "$want_docker" ] ; then
+    if [ $want_docker = 1 ] ; then
         : ${want_rootfs:=btrfs}
     fi
 
@@ -2571,7 +2571,7 @@ function custom_configuration
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes"
             fi
 
-            if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
+            if [ -n "$want_sles12" ] && [ $want_docker = 1 ] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-docker']" "['${unclustered_sles12plusnodes[0]}']"
 
                 local computetype
@@ -3710,7 +3710,7 @@ function oncontroller_testsetup
             && complain 114 "Unexpected errors in glance-scrubber logs"
     fi
 
-    if [ -n "$want_docker" ] ; then
+    if [ $want_docker = 1 ] ; then
         image_name="cirros"
         flavor="m1.tiny"
         ssh_user="cirros"
@@ -3798,7 +3798,7 @@ function oncontroller_testsetup
     local portresult=0
 
     # do volume tests for non-docker scenario only
-    if [ -z "$want_docker" ] ; then
+    if [ $want_docker -ne 1 ] ; then
         # Workaround SLE12SP1 regression
         iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
         cinder list | grep -q available || cinder create 1
@@ -4049,7 +4049,7 @@ EOF
     fi
 
     # prepare docker image at docker compute nodes
-    if iscloudver 5 && [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
+    if iscloudver 5 && [ -n "$want_sles12" ] && [ $want_docker = 1 ] ; then
         for n in `get_docker_nodes` ; do
             ssh $n docker pull cirros
         done
