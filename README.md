@@ -23,6 +23,11 @@ Find out more about configuration/usage
 
 * [`/scripts/mkcloud`](docs/mkcloud.md)
 
+# License
+
+Files in this repository are licensed under the GNU LGPL 2.1 license,
+unless stated otherwise. See [the LICENSE file](LICENSE) for details.
+
 # Contributing
 
 This project uses the pull requests to process contributions,
