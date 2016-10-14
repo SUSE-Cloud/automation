@@ -4455,7 +4455,7 @@ function onadmin_reapply_openstack_proposals
     done
 }
 
-function is_precheck_passed
+function precheck_passed
 {
     precheck_output=$1
     required=false
@@ -4486,7 +4486,7 @@ function onadmin_prepare_crowbar_upgrade
         safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
     else
         precheck_output=$(crowbarctl upgrade prechecks --format plain)
-        if ! is_precheck_passed "$precheck_output"; then
+        if ! precheck_passed "$precheck_output"; then
             complain 11 "Some necessary check before the upgrade has failed"
         fi
 
