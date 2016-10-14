@@ -4637,15 +4637,24 @@ function onadmin_crowbarrestore
 
 function onadmin_crowbar_nodeupgrade
 {
-    local endpoint
-    local http_code
-    for endpoint in services backup nodes; do
-        safely crowbar_api_request POST $crowbar_api /installer/upgrade/${endpoint}.json
-    done
-    wait_for 360 10 "crowbar_nodeupgrade_status | grep -q '\"left\": *0'" "crowbar to finish the nodeupgrade"
-    if ! crowbar_nodeupgrade_status | grep -q '"failed": *0' ; then
-        crowbar_nodeupgrade_status
-        complain 38 "Crowbar nodeupgrade failed."
+    if iscloudver 6plus && [[ $want_nondisruptiveupgrade ]] ; then
+        # FIXME: crowbarctl command can time out easily
+        # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
+        # safely crowbarctl upgrade services
+        curl -s -X POST -H $crowbar_api_v2_header $crowbar_api/api/upgrade/services
+        # safely crowbarctl upgrade nodes
+        curl -s -X POST -H $crowbar_api_v2_header $crowbar_api/api/upgrade/nodes
+    else
+        local endpoint
+        local http_code
+        for endpoint in services backup nodes; do
+            safely crowbar_api_request POST $crowbar_api /installer/upgrade/${endpoint}.json
+        done
+        wait_for 360 10 "crowbar_nodeupgrade_status | grep -q '\"left\": *0'" "crowbar to finish the nodeupgrade"
+        if ! crowbar_nodeupgrade_status | grep -q '"failed": *0' ; then
+            crowbar_nodeupgrade_status
+            complain 38 "Crowbar nodeupgrade failed."
+        fi
     fi
 }
 
