@@ -132,6 +132,11 @@ proposals:
     elements:
       heat-server:
       - @@controller@@
+- barclamp: barbican
+  deployment:
+    elements:
+      barbican-controller:
+      - @@controller@@
 - barclamp: ceilometer
   attributes:
   deployment:
@@ -150,6 +155,20 @@ proposals:
   deployment:
     elements:
       trove-server:
+      - @@controller@@
+- barclamp: magnum
+  attributes:
+    cert:
+      cert_manager_type: barbican
+  deployment:
+    elements:
+      magnum-server:
+      - @@controller@@
+- barclamp: sahara
+  attributes:
+  deployment:
+    elements:
+      sahara-server:
       - @@controller@@
 - barclamp: tempest
   attributes:
