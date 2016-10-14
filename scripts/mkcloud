@@ -789,18 +789,18 @@ function onhost_reset_admin
 function crowbarupgrade_5plus
 {
     if iscloudver 6plus ; then
-        onadmin prepare_cloudupgrade_repos_6_to_7
-        onadmin prepare_crowbar_upgrade
-        onadmin upgrade_admin_server
+        safely onadmin prepare_cloudupgrade_repos_6_to_7
+        safely onadmin prepare_crowbar_upgrade
+        safely onadmin upgrade_admin_server
         export cloudsource=$upgrade_cloudsource
         wait_for 200 3 "! nc -z $adminip 22" 'crowbar to go down after upgrade'
         wait_for_crowbar_ssh
-        onadmin check_admin_server_upgraded
+        safely onadmin check_admin_server_upgraded
         # use crowbar-init to bootstrap crowbar
-        want_postgresql=1 onadmin bootstrapcrowbar "with_upgrade"
-        onadmin activate_repositories
+        safely want_postgresql=1 onadmin bootstrapcrowbar "with_upgrade"
+        safely onadmin activate_repositories
     else
-        onadmin prepare_crowbar_upgrade
+        safely onadmin prepare_crowbar_upgrade
         crowbarbackup "with_upgrade"
         export cloudsource=$upgrade_cloudsource
         crowbarrestore "with_upgrade"
