@@ -23,7 +23,6 @@
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
-        - 'cloud-mkcloud{version}-job-hyperv-{arch}'
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
@@ -67,12 +66,3 @@
     label: openstack-mkcloud-SLE12-{arch}
     jobs:
         - cloud-mkcloud7-job-simpletest-s390x
-
-- project:
-    name: cloud-mkcloud7-SLE12-big_machine-x86_64
-    version: 7
-    previous_version: 6
-    arch: x86_64
-    label: openstack-mkcloud-SLE12-big_machine-{arch}
-    jobs:
-        - 'cloud-mkcloud{version}-job-many_compute-{arch}'
