@@ -39,6 +39,12 @@
           echo "#################################"
           sleep 5
 
+          # Check if there is no change, then pretent success
+          if [ $($osc_timed ls ${{OBS_TEST_PROJECT}} | wc -l) -lt 1 ]; then
+              echo "Apparently there is no change... claiming SUCCESS"
+              exit 0
+          fi
+
           # wait for build results (osc wait is buggy - https://github.com/openSUSE/osc/issues/180 )
           timeout 6h bash -c -- '
               while true; do
