@@ -163,11 +163,11 @@
      - choice: 
          name: cinder_backend
          choices:
+           - " "
            - local
            - raw
-           - rdb
+           - rbd
            - netapp
-           - 
      - bool: 
          name: want_cindermultibackend
          default: false
