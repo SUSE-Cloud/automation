@@ -1,6 +1,7 @@
 - job:
     name: openstack-mkcloud
     node: openstack-mkcloud
+    concurrent: true
     description: |
       <!-- Managed by Jenkins Job Builder -->
       REMEMBER: changes to this job will be overwritten after a few hours - make sure to create a PR for your changes
@@ -162,11 +163,11 @@
      - choice: 
          name: cinder_backend
          choices:
+           - " "
            - local
            - raw
-           - rdb
+           - rbd
            - netapp
-           - 
      - bool: 
          name: want_cindermultibackend
          default: false
@@ -270,7 +271,7 @@
      - build-name:
          name: '#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"}/${ENV,var="github_pr"}${ENV,var="hacloud"})'
      - timeout:
-        timeout: 3600
+        timeout: 60
         timeout-var: 'BUILD_TIMEOUT'
         fail: true
         type: absolute
