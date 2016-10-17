@@ -473,7 +473,7 @@
 
         $custom_settings
 
-        perl -e "alarm 4*60*60 ; exec '${mkcloudwrapper} bash -x ${automationrepo}/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
+        perl -e "alarm 4*60*60 ; exec '${mkcloudwrapper} bash -x ${automationrepo}/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' ; print qq{$!\n} ; exit 127 " | tee $artifacts_dir/mkcloud_short_stdout.log
         ret=${PIPESTATUS[0]}
         if [[ $ret != 0 ]] ; then
             [[ $github_pr_sha ]] && mkcloudgating_trap
