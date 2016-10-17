@@ -308,9 +308,7 @@ function onhost_setup_portforwarding()
 
 iptables_unique_rule () {
     # First argument must be chain
-    if iptables -C "\$@" 2>/dev/null; then
-        echo "iptables rule already exists: \$*"
-    else
+    if ! iptables -C "\$@" 2>/dev/null; then
         iptables -I "\$@"
         echo "iptables -I \$*"
     fi
