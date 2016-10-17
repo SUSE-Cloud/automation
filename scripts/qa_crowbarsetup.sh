@@ -4464,7 +4464,9 @@ function onadmin_prepare_crowbar_upgrade
         # move nodes to upgrade mode
         safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
     else
-        if crowbarctl upgrade prechecks --format plain | grep "false" ; then
+        if ! crowbarctl upgrade prechecks --format json | rubyjsonparse \
+            'exit false if j.keys.any? { |key| j[key]["required"] && !j[key]["passed"]}'
+        then
             complain 11 "Some necessary check before the upgrade has failed"
         fi
 
