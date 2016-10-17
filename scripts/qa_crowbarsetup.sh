@@ -4455,6 +4455,27 @@ function onadmin_reapply_openstack_proposals
     done
 }
 
+function precheck_passed
+{
+    precheck_output=$1
+    required=false
+    for line in $precheck_output; do
+        if $required; then
+            if [[ $line == *"passed false"* ]]; then
+                return 1
+            fi
+            required=false
+            continue
+        fi
+
+        if [[ $line == *"required true"* ]]; then
+            required=true
+        fi
+    done
+
+    return 0
+}
+
 function onadmin_prepare_crowbar_upgrade
 {
     if iscloudver 4; then
@@ -4464,7 +4485,8 @@ function onadmin_prepare_crowbar_upgrade
         # move nodes to upgrade mode
         safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
     else
-        if crowbarctl upgrade prechecks --format plain | grep "false" ; then
+        precheck_output=$(crowbarctl upgrade prechecks --format plain)
+        if ! precheck_passed "$precheck_output"; then
             complain 11 "Some necessary check before the upgrade has failed"
         fi
 
