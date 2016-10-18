@@ -2739,7 +2739,7 @@ function custom_configuration
                 local cinder_volume=($unclustered_nodes)
                 # make sure we do not pick SP1 nodes on cloud7
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
-                    cinder_volume=$unclustered_sles12plusnodes
+                    cinder_volume=($unclustered_sles12plusnodes)
                 fi
                 if [[ ! $cinder_volume ]]; then
                     complain 105 "No suitable node(s) for cinder-volume found."
