@@ -245,6 +245,7 @@ function sshrun
 EOF
     env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
 
+    cp -a $mkcconf $artifacts_dir/
     $scp -r $SCRIPTS_DIR $mkcconf root@$adminip:
     [[ $need_scenario = 1 ]] && $scp $scenario_path root@$adminip:
     ssh $sshopts root@$adminip "echo `hostname` > cloud ; . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ; $@"
