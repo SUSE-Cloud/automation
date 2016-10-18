@@ -3513,7 +3513,13 @@ function oncontroller_manila_generic_driver_setup()
 
         # manila tempest tests use the floating IP to export the shares. So create
         # a floating IP for the manila instance and add it to the VM
-        manila_tenant_vm_ip=`openstack ip floating create floating -f value -c ip`
+        oscclient_ver=`rpm -q --queryformat '%{VERSION}' python-openstackclient`
+        if [ ${oscclient_ver:0:1} -ge 3 ]; then
+            # >= Newton
+            manila_tenant_vm_ip=`openstack ip floating create floating -f value -c floating_ip_address`
+        else
+            manila_tenant_vm_ip=`openstack ip floating create floating -f value -c ip`
+        fi
         openstack ip floating add $manila_tenant_vm_ip manila-service
 
         [ $? != 0 ] && complain 44 "adding a floating ip to the manila service VM failed"
