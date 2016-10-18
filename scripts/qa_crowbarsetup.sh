@@ -2566,9 +2566,9 @@ function custom_configuration
                 if [[ ! $novanodes ]]; then
                     complain 105 "No suitable node(s) for ${role_prefix}-compute-${libvirt_type} found."
                 fi
-                novanodes=$(printf "\"%s\"," $novanodes)
-                novanodes="[ ${novanodes%,} ]"
-                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes"
+                novanodes_json=$(printf "\"%s\"," ${novanodes[@]})
+                novanodes_json="[ ${novanodes_json%,} ]"
+                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes_json"
             fi
 
             if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
@@ -2623,9 +2623,9 @@ function custom_configuration
                 if [[ ! $ceilometernodes ]]; then
                     complain 105 "No suitable node(s) for ceilometer-agent found."
                 fi
-                ceilometernodes=$(printf "\"%s\"," $ceilometernodes)
-                ceilometernodes="[ ${ceilometernodes%,} ]"
-                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-agent']" "$ceilometernodes"
+                ceilometernodes_json=$(printf "\"%s\"," ${ceilometernodes[@]})
+                ceilometernodes_json="[ ${ceilometernodes_json%,} ]"
+                proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-agent']" "$ceilometernodes_json"
             fi
         ;;
         neutron)
