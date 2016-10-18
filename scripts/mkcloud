@@ -140,6 +140,9 @@ function show_environment
     end_time=`date`
     echo "Environment Details"
     echo "-------------------------------"
+    if $(which git >&/dev/null); then
+        echo "         git: $(git --no-pager -C $SCRIPTS_DIR show -s --oneline)"
+    fi
     echo "    hostname: `hostname -f`"
     echo "     started: $start_time"
     echo "       ended: $end_time"
