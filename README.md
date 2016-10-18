@@ -37,13 +37,13 @@ want to get a better understanding of how GitHub pull requests work.
 ## Testing your changes
 
 The syntax of the shell scripts is checked using
-[bash8](https://pypi.python.org/pypi/bash8), you can install it running.
+[bashate](https://github.com/openstack-dev/bashate), you can install it running.
 
 ```
-$ sudo pip install bash8
+$ sudo pip install bashate
 ```
 
-Once you have installed bash8 and the changes you wanted, you should check the
+Once you have installed bashate and the changes you wanted, you should check the
 syntax of the shell scripts running `make test`, here is an example output of
 a successful execution:
 
