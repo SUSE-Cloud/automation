@@ -2566,7 +2566,7 @@ function custom_configuration
                 if [[ ! $novanodes ]]; then
                     complain 105 "No suitable node(s) for ${role_prefix}-compute-${libvirt_type} found."
                 fi
-                novanodes=$(printf "\"%s\"," $novanodes)
+                novanodes=$(printf "\"%s\"," ${novanodes[@]})
                 novanodes="[ ${novanodes%,} ]"
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes"
             fi
@@ -2623,7 +2623,7 @@ function custom_configuration
                 if [[ ! $ceilometernodes ]]; then
                     complain 105 "No suitable node(s) for ceilometer-agent found."
                 fi
-                ceilometernodes=$(printf "\"%s\"," $ceilometernodes)
+                ceilometernodes=$(printf "\"%s\"," ${ceilometernodes[@]})
                 ceilometernodes="[ ${ceilometernodes%,} ]"
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-agent']" "$ceilometernodes"
             fi
