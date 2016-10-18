@@ -6,7 +6,7 @@
       - timed: 'H 22 * * *'
 
     logrotate:
-      numToKeep: 7
+      numToKeep: 21
       daysToKeep: -1
 
     builders:
@@ -17,7 +17,7 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud{version}
+            cloudsource=develcloud7
             nodenumber=0
             lonelynodenumber=2
             mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
