@@ -290,9 +290,6 @@ function export_tftpboot_repos_dir
     elif iscloudver 7plus ; then
         tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
         tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/$arch/repos
-        # We need SP1 repositories for ceph nodes
-        tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$arch/repos
     elif iscloudver 6plus; then
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
         tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$arch/repos
@@ -337,14 +334,11 @@ function addsles12sp1testupdates
             "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     fi
     if isrepoworking SUSE-Enterprise-Storage-2.1-Updates-test ; then
-        [ -n "$deployceph" -a iscloudver 6 ] && add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$arch/update/" \
-            "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
-    fi
-    if isrepoworking SUSE-Enterprise-Storage-3-Updates-test ; then
-        [ -n "$deployceph" -a iscloudver 7plus ] && add_mount "SUSE-Enterprise-Storage-3-Updates-test" \
-            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/$arch/update/" \
-            "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-3-Updates-test/"
+        if [ -n "$deployceph" ] && iscloudver 6; then
+            add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
+                      $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$arch/update/" \
+                      "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
+        fi
     fi
 }
 
@@ -357,6 +351,13 @@ function addsles12sp2testupdates
     # [[ $hacloud = 1 ]] && add_mount "SLE12-SP2-HA-Updates-test" \
     #     $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/' \
     #     "$tftpboot_repos12sp2_dir/SLE12-SP2-HA-Updates-test/"
+    if isrepoworking SUSE-Enterprise-Storage-4-Updates-test ; then
+        if [ -n "$deployceph" ] && iscloudver 7plus; then
+            add_mount "SUSE-Enterprise-Storage-4-Updates-test" \
+                      $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/4:/$arch/update/" \
+                      "$tftpboot_repos12sp2_dir/SUSE-Enterprise-Storage-4-Updates-test/"
+        fi
+    fi
 }
 
 function addcloud4maintupdates
@@ -495,11 +496,11 @@ function add_suse_storage_repo
             done
         fi
         if iscloudver 7plus; then
-            for repo in SUSE-Enterprise-Storage-3-{Pool,Updates}; do
+            for repo in SUSE-Enterprise-Storage-4-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
                 add_mount "$repo" "$clouddata:/srv/nfs/repos/$arch/$repo" \
-                    "$tftpboot_repos12sp1_dir/$repo"
+                    "$tftpboot_repos12sp2_dir/$repo"
             done
         fi
 }
@@ -1081,6 +1082,8 @@ function create_repos_yml
         additional_repos+=" SUSE-Enterprise-Storage-2.1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/"
     grep -q SUSE-Enterprise-Storage-3-Updates-test /etc/fstab && \
         additional_repos+=" SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/"
+    grep -q SUSE-Enterprise-Storage-4-Updates-test /etc/fstab && \
+        additional_repos+=" SUSE-Enterprise-Storage-4-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/4:/x86_64/update/"
 
     if iscloudver 6; then
         for devel_repo in ${want_devel_repos//,/ }; do
@@ -1105,8 +1108,7 @@ function create_repos_yml
         for devel_repo in ${want_devel_repos//,/ }; do
             case "$devel_repo" in
                 storage)
-                    # FIXME: enable when switching from SES 3 to SES 4
-                    # additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/4.0/SLE12_SP2/"
+                    additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/4.0/SLE12_SP2/"
                     ;;
                 virt)
                     additional_repos+=" Devel-Virt=http://$distsuse/ibs/Devel:/Virt:/SLE-12-SP2/SUSE_SLE-12-SP2_GA_standard/"
@@ -1324,8 +1326,6 @@ EOF
     onadmin_setup_local_zypper_repositories
 
     if iscloudver 7plus; then
-        # Still needed for SUSE Storage :(
-        onadmin_prepare_sles12sp1_repos
         onadmin_prepare_sles12sp2_repos
         onadmin_prepare_sles12plus_cloud_repos
     elif iscloudver 6plus ; then
@@ -1878,8 +1878,15 @@ function onadmin_allocate
             echo "Setting last node to SLE12 compute..."
             set_node_role_and_platform ${nodes[$(($nodes_count-1))]} "compute" "suse-12.0"
         fi
-        if [ -n "$deployceph" ] && iscloudver 6plus ; then
+        if [ -n "$deployceph" ] && iscloudver 6 ; then
             storage_os="suse-12.1"
+            for n in $(seq 0 1); do
+                echo "Setting node ${nodes[$n]} to Storage... "
+                set_node_role_and_platform ${nodes[$n]} "storage" ${storage_os}
+            done
+        fi
+        if [ -n "$deployceph" ] && iscloudver 7plus ; then
+            storage_os="suse-12.2"
             for n in $(seq 0 1); do
                 echo "Setting node ${nodes[$n]} to Storage... "
                 set_node_role_and_platform ${nodes[$n]} "storage" ${storage_os}
