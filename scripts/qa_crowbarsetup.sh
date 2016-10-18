@@ -554,11 +554,14 @@ function get_unclustered_sles12plus_nodes
     iscloudver 6 && target="suse-12.1"
     iscloudver 7plus && target="suse-12.2"
 
-    sles12plusnodes=($(knife search node "target_platform:$target AND NOT crowbar_admin_node:true" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'))
+    local sles12plusnodes=($(knife search node "target_platform:$target AND \
+        NOT crowbar_admin_node:true" -a name | grep ^name: | cut -d : -f 2 | \
+        sort | sed 's/\s//g'))
     if [[ $hacloud = 1 ]]; then
         # This basically does an intersection of the lists in sles12plusnode and unclustered_node
         # i.e. pick all sles12plus nodes that are not part of a cluster
-        sles12plusnodes=$(comm -1 -2 <(printf "%s\n" ${sles12plusnodes[@]}) <(printf "%s\n" $unclustered_nodes))
+        sles12plusnodes=$(comm -1 -2 <(printf "%s\n" ${sles12plusnodes[@]}) \
+            <(printf "%s\n" $unclustered_nodes))
     fi
     echo $sles12plusnodes
 }
@@ -3111,7 +3114,9 @@ function onadmin_proposal
         done
     fi
     local proposal
-    for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove barbican magnum sahara murano tempest; do
+    for proposal in nfs_client pacemaker database rabbitmq keystone swift \
+        ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat \
+        manila trove barbican magnum sahara murano tempest; do
         deploy_single_proposal $proposal
     done
 
