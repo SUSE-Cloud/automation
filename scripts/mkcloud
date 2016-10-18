@@ -76,6 +76,7 @@ export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 cpuflags=''
 working_dir_orig=`pwd`
 : ${artifacts_dir:=$working_dir_orig/.artifacts}
+mkdir -p $artifacts_dir
 start_time=`date`
 : ${cloudvg:=cloud}
 needcvol=1
@@ -183,7 +184,6 @@ function error_exit
             timeout 500 supportconfig | wc &
             wait
         '
-        mkdir -p $artifacts_dir
         $scp root@$adminip:/var/log/*tbz $artifacts_dir/
     fi
     pre_exit_cleanup
@@ -628,7 +628,6 @@ function testsetup
 {
     onadmin testsetup
     local ret=$?
-    mkdir -p "$artifacts_dir"
     $scp root@$adminip:tempest*.log "$artifacts_dir/"
 
     # Register the cloud in Rally and import the results
@@ -750,8 +749,7 @@ function qa_test
     onadmin qa_test
     ret=$?
 
-    mkdir -p .artifacts
-    $scp -r root@$adminip:qa_test.logs/ .artifacts/
+    $scp -r root@$adminip:qa_test.logs/ $artifacts_dir/
     return $ret
 }
 
