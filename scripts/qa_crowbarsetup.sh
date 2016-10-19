@@ -4319,6 +4319,7 @@ function onadmin_prepare_cloudupgrade_repos_6_to_7
     # change system repositories to SP2
     zypper rr sles12sp1
     zypper rr sles12sp1up
+    zypper rr sles12sp1tup
     onadmin_setup_local_zypper_repositories
 }
 
