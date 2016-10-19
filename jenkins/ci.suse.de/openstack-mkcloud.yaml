@@ -310,8 +310,8 @@
                     unset want_ldap
                 fi
                 ;;
-            M*|develcloud7|susecloud7)
-                echo "Not setting want_ldap=1 until hybrid backend is ported to Mitaka"
+            M*|develcloud7|newtoncloud7|susecloud7)
+                echo "Not setting want_ldap=1 until hybrid backend is ported to Mitaka/Newton"
                 ;;
             *)
                 [[ $nodenumber == 2 && -z "$scenario" ]] && export want_ldap=1
