@@ -288,7 +288,7 @@ cinder delete $vol_id
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
 ssh_user="root"
-mirror=http://149.44.161.38/images # ci1-opensuse
+: ${mirror:=http://149.44.161.38/images} # ci1-opensuse
 
 cirros_base_url="http://download.cirros-cloud.net/0.3.4/"
 cirros_base_url="$mirror"
