@@ -791,6 +791,7 @@ function onhost_reset_admin
 function crowbarupgrade_5plus
 {
     if iscloudver 6plus ; then
+        onadmin upgrade_prechecks
         onadmin prepare_cloudupgrade_repos_6_to_7
         onadmin prepare_crowbar_upgrade
         onadmin upgrade_admin_server
