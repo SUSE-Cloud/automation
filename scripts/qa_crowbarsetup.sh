@@ -3962,8 +3962,14 @@ function onadmin_testsetup
             safely git clone https://gitlab.suse.de/ceph/qa-automation.git
             safely pushd qa-automation
         fi
-        if iscloudver 6plus; then
+        if iscloudver 6; then
             git checkout storage2
+        fi
+
+        if iscloudver 7plus; then
+            # there is no storage4 branch and storage team uses storage3 branch
+            # for SES3 and SES4
+            git checkout storage3
         fi
 
         # write configuration files that we need
