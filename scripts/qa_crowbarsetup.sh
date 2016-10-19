@@ -4461,14 +4461,10 @@ function onadmin_reapply_openstack_proposals
 
 function onadmin_upgrade_prechecks
 {
-    if iscloudver 5minus; then
-        complain 11 "This upgrade path is only supported for Cloud 6+"
-    else
-        if ! crowbarctl upgrade prechecks --format json | rubyjsonparse \
-            'exit false if j.keys.any? { |key| j[key]["required"] && !j[key]["passed"]}'
-        then
-            complain 11 "Some necessary check before the upgrade has failed"
-        fi
+    if ! crowbarctl upgrade prechecks --format json | rubyjsonparse \
+        'exit false if j.keys.any? { |key| j[key]["required"] && !j[key]["passed"]}'
+    then
+        complain 11 "Some necessary check before the upgrade has failed"
     fi
 }
 
