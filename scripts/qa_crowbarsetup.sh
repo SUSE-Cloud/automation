@@ -65,6 +65,7 @@ crowbar_install_log=/var/log/crowbar/install.log
 crowbar_init_api=http://localhost:4567
 crowbar_lib_dir=/var/lib/crowbar
 crowbar_api_v2_header="Accept: application/vnd.crowbar.v2.0+json"
+declare -a unclustered_nodes
 
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
@@ -555,13 +556,16 @@ function get_unclustered_sles12plus_nodes
     iscloudver 6 && target="suse-12.1"
     iscloudver 7plus && target="suse-12.2"
 
-    sles12plusnodes=($(knife search node "target_platform:$target AND NOT crowbar_admin_node:true" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'))
+    local sles12plusnodes=($(knife search node "target_platform:$target AND \
+        NOT crowbar_admin_node:true" -a name | grep ^name: | cut -d : -f 2 | \
+        sort | sed 's/\s//g'))
     if [[ $hacloud = 1 ]]; then
         # This basically does an intersection of the lists in sles12plusnode and unclustered_node
         # i.e. pick all sles12plus nodes that are not part of a cluster
-        sles12plusnodes=$(comm -1 -2 <(printf "%s\n" ${sles12plusnodes[@]}) <(printf "%s\n" $unclustered_nodes))
+        sles12plusnodes=($(comm -1 -2 <(printf "%s\n" ${sles12plusnodes[@]}) \
+            <(printf "%s\n" ${unclustered_nodes[@]})))
     fi
-    echo $sles12plusnodes
+    echo ${sles12plusnodes[@]}
 }
 
 
@@ -669,7 +673,7 @@ function cluster_node_assignment
             ;;
         esac
     done
-    unclustered_nodes=$nodesavailable
+    unclustered_nodes=($nodesavailable)
 
     echo "............................................................"
     echo "The cluster node assignment (for your information):"
@@ -680,7 +684,7 @@ function cluster_node_assignment
     echo "services cluster:"
     printf "   %s\n" $clusternodesservices
     echo "other non-clustered nodes (free for compute / storage):"
-    printf "   %s\n" $unclustered_nodes
+    printf "   %s\n" ${unclustered_nodes[@]}
     echo "............................................................"
 }
 
@@ -1863,7 +1867,7 @@ function onadmin_allocate
     else
         if [[ $hacloud = 1 ]] ; then
             cluster_node_assignment
-            local nodes=($unclustered_nodes)
+            local nodes=("${unclustered_nodes[@]}")
         else
             local nodes=($(get_all_discovered_nodes))
             nodes=("${nodes[@]:1}") #remove the 1st node, it's the controller
@@ -2563,14 +2567,14 @@ function custom_configuration
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-controller']" "['cluster:$clusternameservices']"
 
                 # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
-                local novanodes=($unclustered_nodes)
+                local novanodes=("${unclustered_nodes[@]}")
 
                 # make sure we do not pick SP1 nodes on cloud7
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
-                    novanodes=$unclustered_sles12plusnodes
+                    novanodes=("${unclustered_sles12plusnodes[@]}")
                 fi
 
-                if [[ ! $novanodes ]]; then
+                if [[ ${#novanodes[@]} -eq 0 ]]; then
                     complain 105 "No suitable node(s) for ${role_prefix}-compute-${libvirt_type} found."
                 fi
                 novanodes_json=$(printf "\"%s\"," ${novanodes[@]})
@@ -2622,12 +2626,12 @@ function custom_configuration
                 # this should be adapted when NFS mode is supported for data cluster
                 proposal_set_value ceilometer default "['attributes']['ceilometer']['use_mongodb']" "false"
 
-                local ceilometernodes=($unclustered_nodes)
+                local ceilometernodes=("${unclustered_nodes[@]}")
                 # make sure we do not pick SP1 nodes on cloud7
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
-                    ceilometernodes=$unclustered_sles12plusnodes
+                    ceilometernodes=("${unclustered_sles12plusnodes[@]}")
                 fi
-                if [[ ! $ceilometernodes ]]; then
+                if [[ ${#ceilometernodes[@]} -eq 0 ]]; then
                     complain 105 "No suitable node(s) for ceilometer-agent found."
                 fi
                 ceilometernodes_json=$(printf "\"%s\"," ${ceilometernodes[@]})
@@ -2743,12 +2747,12 @@ function custom_configuration
 
             if [[ $hacloud = 1 ]] ; then
                 # fetch one of the compute nodes as cinder_volume
-                local cinder_volume=($unclustered_nodes)
+                local cinder_volume=("${unclustered_nodes[@]}")
                 # make sure we do not pick SP1 nodes on cloud7
                 if [ -n "$deployceph" ] && iscloudver 7 ; then
-                    cinder_volume=$unclustered_sles12plusnodes
+                    cinder_volume=("${unclustered_sles12plusnodes[@]}")
                 fi
-                if [[ ! $cinder_volume ]]; then
+                if [[ ${#cinder_volume[@]} -eq 0 ]]; then
                     complain 105 "No suitable node(s) for cinder-volume found."
                 fi
 
@@ -3102,14 +3106,13 @@ function deploy_single_proposal
 # apply all wanted proposals on crowbar admin node
 function onadmin_proposal
 {
-
     prepare_proposals
 
     if [[ $hacloud = 1 ]] ; then
         cluster_node_assignment
     else
         # no cluster for non-HA, but get compute nodes
-        unclustered_nodes=`get_all_discovered_nodes`
+        unclustered_nodes=(`get_all_discovered_nodes`)
     fi
 
     if [[ $want_ssl_keys ]] ; then
@@ -3118,7 +3121,9 @@ function onadmin_proposal
         done
     fi
     local proposal
-    for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat manila trove barbican magnum sahara murano tempest; do
+    for proposal in nfs_client pacemaker database rabbitmq keystone swift \
+        ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat \
+        manila trove barbican magnum sahara murano tempest; do
         deploy_single_proposal $proposal
     done
 
@@ -4241,10 +4246,10 @@ function onadmin_rebootcloud
         cluster_node_assignment
         reboot_controller_clusters
     else
-        unclustered_nodes=`get_all_discovered_nodes`
+        unclustered_nodes=(`get_all_discovered_nodes`)
     fi
 
-    for machine in $unclustered_nodes; do
+    for machine in ${unclustered_nodes[@]}; do
         power_cycle_and_wait $machine
     done
 
@@ -4852,7 +4857,7 @@ function onadmin_setup_aliases
                 done
             done
             i=1
-            for node in $unclustered_nodes ; do
+            for node in ${unclustered_nodes[@]}; do
                 set_node_alias $node "compute$i"
                 i=$((i+1))
             done
