@@ -163,19 +163,29 @@ def osc_mkpac(workdir, packagename):
         os.chdir(olddir)
 
 
-def spec_is_modified(pkgoutdir, project, pkgname):
-    specname = pkgname + ".spec"
-    cached_spec = os.path.join(pkgoutdir, '.osc', specname)
+def wc_check_modified(pkgoutdir, project, pkgname, filename):
+    cached_src = os.path.join(pkgoutdir, project, pkgname, '.osc', filename)
     cleanup = False
-    if not os.path.exists(cached_spec):
+    if not os.path.exists(cached_src):
         cleanup = True
         sh.osc('api', '/source/%s/%s/%s.spec' % (
-            project, pkgname, pkgname), _out=cached_spec)
+            project, pkgname, pkgname), _out=cached_src)
     r = sh.cmp(
-        '-s', os.path.join(pkgoutdir, specname), cached_spec, _ok_code=[0, 1])
+        '-s', os.path.join(pkgoutdir, filename), cached_src, _ok_code=[0, 1])
     if cleanup:
-        os.remove(cached_spec)
+        os.remove(cached_src)
     return r.exit_code == 1
+
+
+def spec_or_sources_modified(pkgoutdir, project, pkgname):
+    basedir = os.path.join(pkgoutdir, project, pkgname)
+    for f in sorted(os.listdir(basedir)):
+        if (f.startswith('_') or not
+                os.path.isfile(os.path.join(basedir, f))):
+            continue
+        if wc_check_modified(pkgoutdir, project, pkgname, f):
+            return True
+    return False
 
 
 def osc_detachbranch(workdir, project, pkgname):
@@ -245,7 +255,7 @@ def create_project(worktree, project, linkproject):
             spectemplate, pkgname)
 
         if pkgname in existing_pkgs:
-            if spec_is_modified(pkgoutdir, project, pkgname):
+            if spec_or_sources_modified(pkgoutdir, project, pkgname):
                 osc_detachbranch(workdir, project, pkgname)
 
                 print("Committing update to %s" % pkgname)
