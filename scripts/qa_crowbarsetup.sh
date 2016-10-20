@@ -3922,6 +3922,69 @@ EOF
     safely zypper -n in ca-certificates-suse
 }
 
+function ceph_testsuite_configure_storage3
+{
+    # this is the configuration for the tests from the storage3 branch
+    yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+    yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+    osds=""
+    for node in $yaml_osds; do
+        nodename=(vda1 vdb1 vdc1 vdd1 vde1)
+        for i in $(seq $cephvolumenumber); do
+            osds="$osds $node:${nodename[$i]}"
+        done
+    done
+
+    ./update_template $yaml_allnodes
+    ./update_template --nodes-type osd --yaml-file templates/template.yml.new $osds
+    export YAMLDATA_FILE=templates/template.yml.new
+}
+
+function ceph_testsuite_configure_storage2
+{
+    # this is the configuration for the tests from the storage2 branch
+
+    # write configuration files that we need
+    cat > setup.cfg <<EOH
+[env]
+loglevel = debug
+EOH
+    # test suite will expect node names without domain, and in the right
+    # order; since we will write them in reverse order, use a sort -r here
+    yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+    yaml_mons=`echo $cephmons | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+    yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
+    # for radosgw, we only want one node, so enforce that
+    yaml_radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
+
+    set -- $yaml_mons
+    first_mon_node=$1
+    # Because of bsc#1005884 and bsc#1005885 we need to set the
+    # ceph version number from the client.
+    # Once the bug are fixed, we need to revert the workarround.
+    # ceph_version=$(ssh $first_mon_node "rpm -q --qf %{version} ceph | sed 's/+.*//g'")
+    ceph_version=$(ssh $first_mon_node "ceph --version | cut -f3 -d' ' | sed 's/-.*//g'")
+
+    sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
+    sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
+    # client node is the same as the rados gw node, to make our life easier
+    sed -i "s/^clientnode:.*/clientnode: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
+
+    sed -i "/teuthida-4/d" yamldata/testcloud_sanity.yaml
+    for node in $yaml_allnodes; do
+        sed -i "/^allnodes:$/a - $node" yamldata/testcloud_sanity.yaml
+    done
+    for node in $yaml_mons; do
+        sed -i "/^initmons:$/a - $node" yamldata/testcloud_sanity.yaml
+    done
+    for node in $yaml_osds; do
+        nodename=(vda1 vdb1 vdc1 vdd1 vde1)
+        for i in $(seq $cephvolumenumber); do
+            sed -i "/^osds:$/a - $node:${nodename[$i]}" yamldata/testcloud_sanity.yaml
+        done
+    done
+}
+
 function onadmin_testsetup
 {
     pre_hook $FUNCNAME
@@ -3962,70 +4025,8 @@ function onadmin_testsetup
 
     cephret=0
     if [ -n "$deployceph" -a "$wantcephtestsuite" == 1 ] ; then
-        ensure_packages_installed git-core
-
-        if test -d qa-automation; then
-            pushd qa-automation
-            git reset --hard
-            git pull
-        else
-            install_suse_ca
-            safely git clone https://gitlab.suse.de/ceph/qa-automation.git
-            safely pushd qa-automation
-        fi
-        if iscloudver 6; then
-            git checkout storage2
-        fi
-
-        if iscloudver 7plus; then
-            # there is no storage4 branch and storage team uses storage3 branch
-            # for SES3 and SES4
-            git checkout storage3
-        fi
-
-        # write configuration files that we need
-        cat > setup.cfg <<EOH
-[env]
-loglevel = debug
-EOH
-
-        # test suite will expect node names without domain, and in the right
-        # order; since we will write them in reverse order, use a sort -r here
-        yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-        yaml_mons=`echo $cephmons | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-        yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-        # for radosgw, we only want one node, so enforce that
-        yaml_radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
-
-        set -- $yaml_mons
-        first_mon_node=$1
-        # Because of bsc#1005884 and bsc#1005885 we need to set the
-        # ceph version number from the client.
-        # Once the bug are fixed, we need to revert the workarround.
-        # ceph_version=$(ssh $first_mon_node "rpm -q --qf %{version} ceph | sed 's/+.*//g'")
-        ceph_version=$(ssh $first_mon_node "ceph --version | cut -f3 -d' ' | sed 's/-.*//g'")
-
-        sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
-        sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
-        # client node is the same as the rados gw node, to make our life easier
-        sed -i "s/^clientnode:.*/clientnode: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
-
-        sed -i "/teuthida-4/d" yamldata/testcloud_sanity.yaml
-        for node in $yaml_allnodes; do
-            sed -i "/^allnodes:$/a - $node" yamldata/testcloud_sanity.yaml
-        done
-        for node in $yaml_mons; do
-            sed -i "/^initmons:$/a - $node" yamldata/testcloud_sanity.yaml
-        done
-        for node in $yaml_osds; do
-            nodename=(vda1 vdb1 vdc1 vdd1 vde1)
-            for i in $(seq $cephvolumenumber); do
-                sed -i "/^osds:$/a - $node:${nodename[$i]}" yamldata/testcloud_sanity.yaml
-            done
-        done
-
         # dependency for the test suite
-        ensure_packages_installed python-PyYAML python-setuptools
+        ensure_packages_installed git-core python-PyYAML python-setuptools
 
         if iscloudver 6plus; then
             rpm -Uvh http://$susedownload/ibs/SUSE:/SLE-12:/GA/standard/noarch/python-nose-1.3.0-8.4.noarch.rpm
@@ -4037,8 +4038,30 @@ EOH
             fi
         fi
 
-        nosetests testsuites/testcloud_sanity.py
-        cephret=$?
+        if test -d qa-automation; then
+            pushd qa-automation
+            git reset --hard
+            git pull
+        else
+            install_suse_ca
+            safely git clone https://gitlab.suse.de/ceph/qa-automation.git
+            safely pushd qa-automation
+        fi
+
+        # configure and run the testsuite
+        if iscloudver 6; then
+            git checkout storage2
+            ceph_testsuite_configure_storage2
+            nosetests testsuites/testcloud_sanity.py
+            cephret=$?
+        elif iscloudver 7plus; then
+            # there is no storage4 branch and storage team uses storage3 branch
+            # for SES3 and SES4
+            git checkout storage3
+            ceph_testsuite_configure_storage3
+            nosetests testsuites/test_validate.py
+            cephret=$?
+        fi
 
         popd
     fi
