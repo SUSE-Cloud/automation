@@ -3035,7 +3035,7 @@ function deploy_single_proposal
             [[ $want_magnum = 1 ]] || return
             if iscloudver 7plus ; then
                 get_novacontroller
-                safely oncontroller oncontroller_magnum_service_setup
+                safely oncontroller magnum_service_setup
             fi
             ;;
         manila)
@@ -3051,7 +3051,7 @@ function deploy_single_proposal
             fi
             if iscloudver 6plus ; then
                 get_novacontroller
-                safely oncontroller oncontroller_manila_generic_driver_setup
+                safely oncontroller manila_generic_driver_setup
                 get_manila_service_instance_details
             fi
             ;;
@@ -3221,16 +3221,16 @@ function get_ceph_nodes
     fi
 }
 
-function manila_service_instance_get_uuid
+function oncontroller_manila_service_instance_get_uuid
 {
     local vm_uuid=`openstack --os-project-name manila-service server show manila-service -f value -c id`
     test -n "$vm_uuid" || complain 91 "uuid from manila-service instance not available"
     echo $vm_uuid
 }
 
-function manila_service_instance_get_floating_ip
+function oncontroller_manila_service_instance_get_floating_ip
 {
-    local vm_uuid=`manila_service_instance_get_uuid`
+    local vm_uuid=`oncontroller_manila_service_instance_get_uuid`
     local vm_floating_ip=`openstack --os-project-name manila-service server show $vm_uuid -f value -c addresses | awk '{print $2}'`
     test -n "$vm_floating_ip" || complain 93 "floating ip addr from manila-service instance not available"
     echo $vm_floating_ip
@@ -3510,8 +3510,8 @@ function oncontroller_manila_generic_driver_setup()
             # the upgrade
             timeout 10m nova start manila-service
         fi
-        manila_service_vm_uuid=`manila_service_instance_get_uuid`
-        manila_tenant_vm_ip=`manila_service_instance_get_floating_ip`
+        manila_service_vm_uuid=`oncontroller_manila_service_instance_get_uuid`
+        manila_tenant_vm_ip=`oncontroller_manila_service_instance_get_floating_ip`
     else
         fixed_net_id=`neutron net-show fixed -f value -c id`
         timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
@@ -3893,6 +3893,7 @@ function oncontroller_testsetup
 
 function oncontroller
 {
+    local func=$1 ; shift
     cd /root
     scp -r $SCRIPTS_DIR $mkcconf $novacontroller:
     ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ; export wanttempest=$wanttempest ;
@@ -3902,7 +3903,7 @@ function oncontroller
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
         export libvirt_type=\"$libvirt_type\" ;
         export cloud=$cloud ; export TESTHEAD=$TESTHEAD ;
-        . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ;  source .openrc; onadmin_set_source_variables; $@"
+        . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ;  source .openrc; onadmin_set_source_variables; oncontroller_${func} $@"
     return $?
 }
 
@@ -4074,7 +4075,7 @@ EOF
         done
     fi
 
-    oncontroller oncontroller_testsetup
+    oncontroller testsetup
     ret=$?
 
     echo "Tests on controller: $ret"
@@ -4260,7 +4261,7 @@ function onadmin_rebootcloud
 
     onadmin_waitcloud
     onneutron_wait_for_neutron
-    oncontroller oncontroller_waitforinstance
+    oncontroller waitforinstance
 
     local ret=$?
     echo "ret:$ret"
@@ -4915,7 +4916,7 @@ function onadmin_batch
             safely crowbar batch --exclude manila --timeout 2400 build ${scenario}
             if grep -q "barclamp: manila" ${scenario}; then
                 get_novacontroller
-                safely oncontroller oncontroller_manila_generic_driver_setup
+                safely oncontroller manila_generic_driver_setup
                 get_manila_service_instance_details
                 sed -i "s/##manila_instance_name_or_id##/$manila_service_vm_uuid/g; \
                         s/##service_net_name_or_ip##/$manila_tenant_vm_ip/g; \
