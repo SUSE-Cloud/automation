@@ -205,7 +205,12 @@ function add_nfs_mount
     fi
 
     echo "$nfs $dir nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
+    ensure_packages_installed tcpdump
+    tcpdump -s 0 -w /var/log/nfs.pcap.notbz -epni eth0 & # for debugging random NFS mount timout
+    local tcpdumppid=$!
     safely mount "$dir"
+    kill $tcpdumppid
+    rm -f /var/log/nfs.pcap.notbz
 }
 
 # mount a zypper repo either from NFS or from the host (if localreposdir_target is set)
