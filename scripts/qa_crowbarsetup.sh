@@ -3619,8 +3619,6 @@ function oncontroller_testsetup
         rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
         zypper -n ar --refresh -c -G -f "$mount_dir" cloud-test
         zypper_refresh
-
-        ensure_packages_installed python-novaclient-test python-manilaclient-test
     fi
 
     if [[ $deployswift ]] ; then
@@ -4722,6 +4720,8 @@ function onadmin_run_cct
         fi
 
         if iscloudver 6plus && [ "$skip_func_tests" == 0 ]; then
+            # install client -test packages to run functional tests
+            ensure_packages_installed python-novaclient-test python-manilaclient-test
             # 2016-03-29: manila functional tests are hitting frequently a timeout, disable for now
             for test in "nova-disabled" "manila-disabled" ; do
                 if crowbarctl proposal list $test &> /dev/null; then
