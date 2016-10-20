@@ -80,7 +80,15 @@ There are manually maintained jobs and some jobs are now using
 which defines jobs in yaml format. New jobs should always be defined
 in yaml format.
 
-A fast guide to setup jenkins job builder :
+The jenkins-job-builder jobs are deployed automatically (once per day) via the jenkins
+job cloud-update-ci.
+
+They can also be deployed manually via Makefile targets
+```
+make cisd_deploy # deploys ci.suse.de jobs
+make cioo_deploy # deploys ci.opensuse.org jobs
+```
+This requires to setup jenkins job builder locally:
 
 * Install SUSE CA certificate package as described in http://ca.suse.de/gettingstarted/
 * Install jenkins-job-builder:
@@ -90,18 +98,17 @@ zypper in python-jenkins-job-builder
 * Get the APIKEY from the CI web UI (Profile / Configure / Show API Key)
 * Create jenkins_jobs.ini as described below
 
-To update jobs on ci.opensuse.org, run:
+Both Makefile targets need a valid `jenkins_jobs` ini file.
+* `make cisd_deploy` looks for /etc/jenkins_jobs/jenkins_jobs-cisd.ini
+* `make cioo_deploy` looks for /etc/jenkins_jobs/jenkins_jobs-cioo.ini
 
-    jenkins-jobs --ignore-cache update \
-        jenkins/ci.opensuse.org/:jenkins/ci.opensuse.org/templates/
-
-To update jobs on the SUSE internal CI, run:
-
-    jenkins-jobs --ignore-cache update \
-        jenkins/ci.suse.de/:jenkins/ci.suse.de/templates/
-
-Both commands need a valid `/etc/jenkins_jobs/jenkins_jobs.ini` configuration.
 See [`/scripts/jenkins/jenkins_jobs.ini.sample`](scripts/jenkins/jenkins_jobs.ini.sample)
 
-If you are using a local configuration file, use `--conf` parameter to
-reference the local INI.
+To update a single job on ci.suse.de, run:
+```
+jenkins-jobs --ignore-cache update \
+    jenkins/ci.suse.de/:jenkins/ci.suse.de/templates/ <name-of-one-job>
+```
+
+For this you need a local ini file and add it via the `--conf` parameter to
+the above command.

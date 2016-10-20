@@ -1,0 +1,54 @@
+- job:
+    name: 'cloud-update-ci'
+    node: cloud-trigger
+
+    parameters:
+      - choice:
+          name: instance
+          choices:
+            - all
+            - ci.suse.de
+            - ci.opensuse.org
+          description: |
+              all: deploys all CI instances
+              ci.suse.de: deploys all CI jobs on ci.suse.de
+              ci.opensuse.org: deploys all CI jobs on ci.opensuse.org
+
+    triggers:
+      - timed: '0 6 * * *'
+
+    logrotate:
+      numToKeep: 300
+      daysToKeep: -1
+
+    builders:
+      - shell: |
+          ## THIS JOB ONLY UPDATES JENKINS JOBS - NO WORKER CODE IN HERE - DO NOT DARE TO ADD SOME
+          ## THUS RUNNING ON THE DEDICATED TRIGGER NODE
+          [[ $NODE_NAME != 'cloud-trigger' ]] && exit 99
+          ##
+
+          set -x
+
+          export automationrepo=~/github.com/SUSE-Cloud/automation
+
+          # automation bootstrapping
+          if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+            rm -rf ${automationrepo}
+            curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
+          fi
+          # fetch the latest automation updates
+          ${automationrepo}/scripts/jenkins/update_automation
+
+          targets=jjb_test  # secure fallback
+          case $instance in
+              all) targets="cisd_deploy cioo_deploy" ;;
+              ci.suse.de) targets=cisd_deploy ;;
+              ci.opensuse.org) targets=cioo_deploy ;;
+          esac
+
+          cd ${automationrepo}
+          make jjb_test
+          for one_target in $targets ; do
+              make $one_target
+          done
