@@ -98,6 +98,21 @@ function is_suse
     grep -qi suse /etc/*release
 }
 
+function is_onhost
+{
+    [[ $BASH_SOURCE =~ mkcloud[^/]*$ ]]
+}
+
+function is_onadmin
+{
+    [[ $BASH_SOURCE =~ qa_crowbarsetup.sh$ ]] && [[ ! $is_oncontroller ]]
+}
+
+function is_oncontroller
+{
+    [[ $BASH_SOURCE =~ qa_crowbarsetup.sh$ ]] && [[ $is_oncontroller ]]
+}
+
 sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oServerAliveInterval=2"
 scp="scp $sshopts"
 ssh="ssh $sshopts"
