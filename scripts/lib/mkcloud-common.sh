@@ -66,7 +66,10 @@ function safely
     if "$@"; then
         true
     else
-        complain 30 "$* failed! (safelyret=$?) Aborting."
+        local errmsg="$* failed! (safelyret=$?) Aborting."
+        # let error_exit collect supportconfigs if running on host
+        is_onhost && error_exit 30 "$errmsg"
+        complain 30 "$errmsg"
     fi
 }
 
