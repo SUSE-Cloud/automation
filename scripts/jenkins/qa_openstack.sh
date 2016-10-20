@@ -12,6 +12,8 @@ if ! grep -q -e vmx -e svm /proc/cpuinfo ; then
     MODE=lxc
 fi
 ARCH=$(uname -i)
+: ${repomirror:=http://download.opensuse.org}
+cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
 
 ifconfig | grep inet
 
@@ -89,43 +91,43 @@ zypper rr cloudhead || :
 
 case "$cloudsource" in
     openstackicehouse)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse/$REPO/ cloud
+        $zypper ar -G -f $cloudopenstackmirror/Icehouse/$REPO/ cloud
         if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Icehouse:/Staging/$REPO/ cloudhead
+            $zypper ar -G -f $cloudopenstackmirror/Icehouse:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstackjuno)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Juno/$REPO/ cloud
+        $zypper ar -G -f $cloudopenstackmirror/Juno/$REPO/ cloud
         if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Juno:/Staging/$REPO/ cloudhead
+            $zypper ar -G -f $cloudopenstackmirror/Juno:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstackkilo)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Kilo/$REPO/ cloud
+        $zypper ar -G -f $cloudopenstackmirror/Kilo/$REPO/ cloud
         if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Kilo:/Staging/$REPO/ cloudhead
+            $zypper ar -G -f $cloudopenstackmirror/Kilo:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstackliberty)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Liberty/$REPO/ cloud
+        $zypper ar -G -f $cloudopenstackmirror/Liberty/$REPO/ cloud
         if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Liberty:/Staging/$REPO/ cloudhead
+            $zypper ar -G -f $cloudopenstackmirror/Liberty:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstackmitaka)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Mitaka/$REPO/ cloud
+        $zypper ar -G -f $cloudopenstackmirror/Mitaka/$REPO/ cloud
         if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Mitaka:/Staging/$REPO/ cloudhead
+            $zypper ar -G -f $cloudopenstackmirror/Mitaka:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstacknewton)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Newton/$REPO/ cloud
+        $zypper ar -G -f $cloudopenstackmirror/Newton/$REPO/ cloud
         if test -n "$OSHEAD" ; then
-            $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Newton:/Staging/$REPO/ cloudhead
+            $zypper ar -G -f $cloudopenstackmirror/Newton:/Staging/$REPO/ cloudhead
         fi
     ;;
     openstackmaster)
-        $zypper ar -G -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/$REPO/ cloud || :
+        $zypper ar -G -f $cloudopenstackmirror/Master/$REPO/ cloud || :
         # no staging for master
         $zypper mr --priority 22 cloud
     ;;
@@ -167,13 +169,13 @@ fi
 
 # openSUSE Leap versions
 if [ "$VERSION" = "42.1" ]; then
-    $zypper ar 'http://download.opensuse.org/distribution/leap/42.1/repo/oss/' Leap-42.1-oss
-    $zypper ar 'http://download.opensuse.org/update/leap/42.1/oss/' Leap-42.1-oss-update
+    $zypper ar "$repomirror/distribution/leap/42.1/repo/oss/" Leap-42.1-oss
+    $zypper ar "$repomirror/update/leap/42.1/oss/" Leap-42.1-oss-update
 fi
 
 if [ "$VERSION" = "42.2" ]; then
-    $zypper ar 'http://download.opensuse.org/distribution/leap/42.2/repo/oss/' Leap-42.2-oss
-    $zypper ar 'http://download.opensuse.org/update/leap/42.2/oss/' Leap-42.2-oss-update
+    $zypper ar "$repomirror/distribution/leap/42.2/repo/oss/" Leap-42.2-oss
+    $zypper ar "$repomirror/update/leap/42.2/oss/" Leap-42.2-oss-update
 fi
 
 # install maintenance updates
