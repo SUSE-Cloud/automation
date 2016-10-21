@@ -3999,7 +3999,11 @@ EOH
 
         set -- $yaml_mons
         first_mon_node=$1
-        ceph_version=$(ssh $first_mon_node "rpm -q --qf %{version} ceph | sed 's/+.*//g'")
+        # Because of bsc#1005884 and bsc#1005885 we need to set the
+        # ceph version number from the client.
+        # Once the bug are fixed, we need to revert the workarround.
+        # ceph_version=$(ssh $first_mon_node "rpm -q --qf %{version} ceph | sed 's/+.*//g'")
+        ceph_version=$(ssh $first_mon_node "ceph --version | cut -f3 -d' ' | sed 's/-.*//g'")
 
         sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
         sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
