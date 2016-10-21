@@ -3900,6 +3900,7 @@ function oncontroller
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
         export libvirt_type=\"$libvirt_type\" ;
         export cloud=$cloud ; export TESTHEAD=$TESTHEAD ;
+        export is_oncontroller=yes ;
         . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ;  source .openrc; onadmin_set_source_variables; oncontroller_${func} $@"
     return $?
 }

@@ -66,7 +66,10 @@ function safely
     if "$@"; then
         true
     else
-        complain 30 "$* failed! (safelyret=$?) Aborting."
+        local errmsg="$* failed! (safelyret=$?) Aborting."
+        # let error_exit collect supportconfigs if running on host
+        is_onhost && error_exit 30 "$errmsg"
+        complain 30 "$errmsg"
     fi
 }
 
@@ -96,6 +99,21 @@ function determine_mtu
 function is_suse
 {
     grep -qi suse /etc/*release
+}
+
+function is_onhost
+{
+    [[ $BASH_SOURCE =~ mkcloud[^/]*$ ]]
+}
+
+function is_onadmin
+{
+    [[ $BASH_SOURCE =~ qa_crowbarsetup.sh$ ]] && [[ ! $is_oncontroller ]]
+}
+
+function is_oncontroller
+{
+    [[ $BASH_SOURCE =~ qa_crowbarsetup.sh$ ]] && [[ $is_oncontroller ]]
 }
 
 sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oServerAliveInterval=2"
