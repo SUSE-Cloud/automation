@@ -386,7 +386,8 @@ EOF
 openstack_client_ver=0
 
 if [ -x /usr/bin/openstack ]; then
-    openstack_client_ver=`openstack --version | cut -d" " -f2 | cut -d"." -f1`
+    openstack_client_ver=$(rpm -q --queryformat '%{VERSION}' python-openstackclient)
+    openstack_client_ver=${openstack_client_ver:0:1}
 fi
 
 if [ "$openstack_client_ver" -ge 2 ]; then
