@@ -36,6 +36,7 @@ fi
 : ${want_barbican:=1}
 : ${want_sahara:=1}
 : ${want_murano:=0}
+: ${want_tempest:=1}
 : ${want_trove:=1}
 : ${want_s390:=''}
 : ${want_horizon_integration_test:=''}
@@ -2906,12 +2907,6 @@ function set_proposalvars
     fi
     ### do NOT set/change deployceph or deployswift below this line!
 
-    # Tempest
-    wanttempest=1
-    if [[ $want_tempest == 0 ]] ; then
-        wanttempest=
-    fi
-
     # Cinder
     if [[ ! $cinder_backend ]] ; then
         if [[ $deployceph ]] ; then
@@ -3063,7 +3058,7 @@ function deploy_single_proposal
             [[ $want_trove = 1 ]] || return
             ;;
         tempest)
-            [[ $wanttempest ]] || return
+            [[ $want_tempest = 1 ]] || return
             ;;
         sahara)
             [[ $want_sahara = 1 ]] || return
@@ -3674,7 +3669,7 @@ function oncontroller_testsetup
 
     # Run Tempest Smoketests if configured to do so
     tempestret=0
-    if [ "$wanttempest" = "1" ]; then
+    if [[ $want_tempest = 1 ]]; then
         oncontroller_run_tempest
         tempestret=$?
     fi
@@ -3897,7 +3892,7 @@ function oncontroller
 {
     cd /root
     scp -r $SCRIPTS_DIR $mkcconf $novacontroller:
-    ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ; export wanttempest=$wanttempest ;
+    ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ;
         export tempestoptions=\"$tempestoptions\" ; export ostestroptions=\"$ostestroptions\" ;
         export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
@@ -4092,7 +4087,7 @@ EOF
         test $cephret -eq 0 || ret=104
     fi
 
-    if [ "$wanttempest" = "1" ]; then
+    if [[ $want_tempest = 1 ]]; then
         scp $novacontroller:/var/lib/openstack-tempest-test/tempest.log .
         scp $novacontroller:/var/lib/openstack-tempest-test/tempest.subunit.log .
         scp $novacontroller:.openrc .
