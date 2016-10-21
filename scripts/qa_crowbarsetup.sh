@@ -4801,9 +4801,6 @@ function onadmin_devsetup
     # create development folders
     mkdir -p /opt/crowbar/crowbar_framework/db /opt/crowbar/barclamps
 
-    # copy existing database
-    ln -sf /opt/dell/crowbar_framework/db/production.sqlite3 /opt/crowbar/crowbar_framework/db/development.sqlite3
-
     # clone git repos
     local crowbar_git_dir=/opt/crowbar/git/crowbar
     git clone https://github.com/crowbar/crowbar.git $crowbar_git_dir
@@ -4820,7 +4817,7 @@ function onadmin_devsetup
     # install crowbar gems
     pushd /opt/crowbar/crowbar_framework
     bundle install --path /opt/crowbar
-    su -s /bin/sh - crowbar sh -c "RAILS_ENV=development bundle exec rake db:create db:migrate"
+    sudo -u crowbar RAILS_ENV=development bundle exec rake db:create db:migrate
     popd
 
     # install barclamps
