@@ -76,6 +76,12 @@
               String is a ':' separated list of these vaules: $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context Note:
               SHA1 must be latest commit in PR, $context is optional  (only use if multiple gating runs needed per PR)
 
+     - string:
+         name: job_name
+         default: "-no-name-"
+         description: |
+              This name will become the build name of the job. It will appear in the list of builds (webUI, RSS feed).
+
      - text:
          name: UPDATEREPOS
          default:
