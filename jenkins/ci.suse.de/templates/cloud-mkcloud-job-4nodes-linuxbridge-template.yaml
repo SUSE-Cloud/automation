@@ -22,3 +22,4 @@
             networkingplugin=linuxbridge
             mkcloudtarget=all
             label={label}
+            job_name='cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'

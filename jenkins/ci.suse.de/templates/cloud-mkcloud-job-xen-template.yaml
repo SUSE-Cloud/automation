@@ -22,3 +22,4 @@
             libvirt_type=xen
             mkcloudtarget=all
             label={label}
+            job_name='cloud-mkcloud{version}-job-xen-{arch}'

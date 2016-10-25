@@ -25,3 +25,4 @@
             ostestroptions= --regex '^magnum.tests.functional.api'
             mkcloudtarget=all
             label={label}
+            job_name='cloud-mkcloud{version}-job-magnum-{arch}'

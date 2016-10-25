@@ -23,3 +23,4 @@
             want_raidtype=raid1
             mkcloudtarget=all
             label={label}
+            job_name='cloud-mkcloud{version}-job-raid-{arch}'

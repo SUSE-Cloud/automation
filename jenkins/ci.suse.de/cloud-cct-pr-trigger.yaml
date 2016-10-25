@@ -63,7 +63,9 @@
           for repo in ${cloud_repos[@]}; do
               for github_pr in $(timeout 4m $ghs -r $repo -a $action); do
                   github_pr_opts=(${github_pr//:/ })
+                  github_pr_id=${github_pr_opts[0]}
                   github_pr_sha=${github_pr_opts[1]}
+                  github_pr_sha_short=${github_pr_sha:0:8}
                   github_pr_branch=${github_pr_opts[2]}
 
                   case $github_pr_branch in
@@ -99,7 +101,8 @@
                       mkcloudtarget=${mkcloudtarget} \
                       cloudsource="${cloudsource}" \
                       nodenumber=${nodenumber} \
-                      networkingplugin=${networkingplugin}
+                      networkingplugin=${networkingplugin} \
+                      job_name="cct PR ${github_pr_id} ${github_pr_sha_short}"
                   $ghs -r $repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha -m "Queued build of cct PR"
               done
           done

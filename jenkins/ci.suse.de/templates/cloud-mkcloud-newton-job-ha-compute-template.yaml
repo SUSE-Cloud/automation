@@ -25,3 +25,4 @@
             want_node_aliases=controller=2,compute=2
             label={label}
             storage_method=swift
+            job_name='cloud-mkcloud{version}-newton-job-ha-compute-{arch}'

@@ -21,3 +21,4 @@
             nodenumber=2
             mkcloudtarget=instonly devsetup
             label={label}
+            job_name='cloud-mkcloud{version}-job-crowbar-devsetup-{arch}'

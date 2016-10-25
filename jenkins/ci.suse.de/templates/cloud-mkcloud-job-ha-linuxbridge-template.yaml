@@ -27,3 +27,4 @@
             networkingmode=vxlan
             want_node_aliases=controller=2,compute=2
             label={label}
+            job_name='cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
