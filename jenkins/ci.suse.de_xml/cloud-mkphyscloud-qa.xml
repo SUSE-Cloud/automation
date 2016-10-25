@@ -20,23 +20,12 @@
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
-        <hudson.model.BooleanParameterDefinition>
-          <name>WITHREBOOT</name>
-          <description>Enable reboots during the mkcloud run (incl. crowbar and compute node).</description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
-        <hudson.model.TextParameterDefinition>
-          <name>UPDATEREPOS</name>
-          <description>Update repositories (one URL per line)</description>
-          <defaultValue/>
-        </hudson.model.TextParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>UPDATEBEFOREINSTALL</name>
-          <description>add update repos before crowbar install</description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
           <description/>
@@ -108,12 +97,38 @@ Default: openvswitch</description>
           <description>All the steps that needs to be completed to have cloud installed</description>
           <defaultValue>prepareinstallcrowbar installcrowbar allocate waitcloud proposal testsetup run_cct</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_horizon_ssl</name>
+          <description>If set to 1 horizon will use https</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>WITHREBOOT</name>
+          <description>Enable reboots during the mkcloud run (incl. crowbar and compute node).</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.TextParameterDefinition>
+          <name>UPDATEREPOS</name>
+          <description>Update repositories (one URL per line)</description>
+          <defaultValue/>
+        </hudson.model.TextParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>UPDATEBEFOREINSTALL</name>
+          <description>add update repos before crowbar install</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tempestoptions</name>
+          <description/>
+          <defaultValue>-s -t</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>wanttempest</name>
+          <description/>
+          <defaultValue>1</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
@@ -127,7 +142,8 @@ Default: openvswitch</description>
     <hudson.tasks.Shell>
       <command>admin=crowbar$hw_number
 cloud=qa$hw_number
-tempestoptions="-t -s"
+tempestoptions=$tempestoptions;
+wanttempest=$wanttempest
 
 if [ ! -z "$UPDATEREPOS" ] ; then
   # testing update only makes sense with GMx and without TESTHEAD
@@ -160,6 +176,9 @@ export nodenumber=$nodenumber ;
 export hacloud=$hacloud ; 
 export clusterconfig=$clusterconfig ; 
 export runner_url=$runner_url ; 
+export cct_tests=$cct_tests ;
+export tempestoptions=\"$tempestoptions\" ;
+export wanttempest=$wanttempest;
 export commands=\"$commands\" "'
  
 wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
@@ -167,7 +186,7 @@ wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
 
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
 
-timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
+timeout --signal=ALRM 150m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands; onadmin_run_cct"
 ' || ret=$?
 
 echo "mkphyscloud ret=$ret"
@@ -185,7 +204,7 @@ exit $ret
       <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
     <hudson.tasks.Mailer plugin="mailer@">
-      <recipients>vmoravec@suse.com</recipients>
+      <recipients/>
       <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>

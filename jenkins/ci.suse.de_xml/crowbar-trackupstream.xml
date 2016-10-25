@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project plugin="matrix-project@1.4.1">
+<matrix-project plugin="matrix-project@">
   <actions/>
   <description>update OBS/IBS packages from git or tarballs via OBS _service feature</description>
-  <logRotator class="hudson.tasks.LogRotator">
-    <daysToKeep>300</daysToKeep>
-    <numToKeep>600</numToKeep>
-    <artifactDaysToKeep>-1</artifactDaysToKeep>
-    <artifactNumToKeep>-1</artifactNumToKeep>
-  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
     <hudson.security.AuthorizationMatrixProperty>
       <permission>hudson.scm.SCM.Tag:cloud</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:cloud</permission>
@@ -31,10 +33,19 @@
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
+      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
+      <repositoryName/>
+    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@">
+      <weight>1</weight>
+    </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
@@ -51,13 +62,14 @@
     <hudson.matrix.TextAxis>
       <name>component</name>
       <values>
-        <string>suse-cloud-upgrade</string>
         <string>crowbar</string>
+        <string>crowbar-ui</string>
         <string>crowbar-core</string>
         <string>crowbar-openstack</string>
         <string>crowbar-ceph</string>
         <string>crowbar-ha</string>
         <string>crowbar-hyperv</string>
+        <string>crowbar-init</string>
         <string>openstack-dashboard-theme-SUSE</string>
         <string>release-notes-suse-openstack-cloud</string>
         <string>crowbar-barclamp-bios</string>
@@ -107,13 +119,11 @@
       <values>
         <string>Devel:Cloud:5:Staging</string>
         <string>Devel:Cloud:6:Staging</string>
+        <string>Devel:Cloud:7:Staging</string>
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>!(
-      (["Devel:Cloud:5:Staging"].contains(project)  &amp;&amp; ["openstack-dashboard-theme-SUSE", "crowbar-core", "crowbar-openstack", "crowbar-ha", "crowbar-hyperv", "crowbar-ceph", "release-notes-suse-openstack-cloud"].contains(component)      )   ||
-      (( ! ["Devel:Cloud:5:Staging"].contains(project) ) &amp;&amp; component.startsWith('crowbar-barclamp-')))
-  </combinationFilter>
+  <combinationFilter>!(     ( ["Devel:Cloud:5:Staging"].contains(project)  &amp;&amp;       ["openstack-dashboard-theme-SUSE", "crowbar-core", "crowbar-openstack", "crowbar-ha", "crowbar-hyperv", "crowbar-ceph", "release-notes-suse-openstack-cloud", "crowbar-ui"].contains(component)      )   ||          ( ( ! ["Devel:Cloud:5:Staging"].contains(project) ) &amp;&amp;       component.startsWith('crowbar-barclamp-')  ||        ["suse-cloud-upgrade"].contains(component)    ) ||           ( (["Devel:Cloud:7:Staging"].contains(project) ) &amp;&amp;       ["openstack-dashboard-theme-SUSE"].contains(component)) ||           ( ["Devel:Cloud:5:Staging", "Devel:Cloud:6:Staging"].contains(project)  &amp;&amp; ["crowbar-init"].contains(component)) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}
@@ -136,12 +146,15 @@ ${automationrepo}/scripts/jenkins/update_automation
 OBS_TYPE=${PROJECTSOURCE%%/*}
 OBS_PROJECT=${PROJECTSOURCE##*/}
 
-BUILD_DIST=SLE_12_SP1
+BUILD_DIST=SLE_12_SP2
 OSC_BUILD_ARCH=x86_64
 
 case $project in
   Devel:Cloud:[45]*)
     BUILD_DIST=SLE_11_SP3
+  ;;
+  Devel:Cloud:6*)
+    BUILD_DIST=SLE_12_SP1
   ;;
 esac
 
@@ -204,6 +217,8 @@ fi
   <buildWrappers>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
       <template>#${BUILD_NUMBER}: ${ENV,var="project"}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
   </buildWrappers>
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
