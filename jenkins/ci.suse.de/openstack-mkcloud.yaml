@@ -274,7 +274,7 @@
     wrappers:
      - timestamps:
      - build-name:
-         name: '#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"}/${ENV,var="github_pr"}${ENV,var="hacloud"})'
+         name: '#${BUILD_NUMBER}: ${ENV,var="job_name"}'
      - timeout:
         timeout: 60
         type: no-activity
