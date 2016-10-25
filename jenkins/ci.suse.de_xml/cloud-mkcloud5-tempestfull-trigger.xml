@@ -58,7 +58,8 @@
 nodenumber=2
 tempestoptions=-t
 mkcloudtarget=all_noreboot
-TESTHEAD=</properties>
+TESTHEAD=
+job_name=cloud-mkcloud5-tempestfull</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>

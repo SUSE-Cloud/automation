@@ -55,7 +55,8 @@ nodenumber=3
 want_sles12=1
 networkingplugin=openvswitch
 networkingmode=vlan
-mkcloudtarget=all</properties>
+mkcloudtarget=all
+job_name=cloud-mkcloud5-neutron-sles12</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>

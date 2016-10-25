@@ -55,7 +55,8 @@
 nodenumber=3
 want_docker=1
 want_sles12=1
-mkcloudtarget=plain crowbarbackup crowbarrestore testsetup</properties>
+mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
+job_name=cloud-mkcloud5-docker</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
