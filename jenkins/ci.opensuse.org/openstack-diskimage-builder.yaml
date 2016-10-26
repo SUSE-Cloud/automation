@@ -1,0 +1,125 @@
+- job:
+    name: 'openstack-diskimage-builder'
+    project-type: matrix
+
+    triggers:
+      - timed: '@daily'
+
+    concurent: false
+
+    build-discarder:
+    num-to-keep: 10
+    days-to-keep: -1
+
+    parameters:
+      - bool:
+          name: BOOT_DIB_IMAGE
+          default: false
+          description: Boot the generated image using QEMU/KVM.
+
+    axes:
+      - axis:
+          type: user-defined
+          name: opensuse_release
+          values:
+            - 42.1
+            - 13.1
+      - axis:
+          type: user-defined
+          name: suse_element
+          values:
+              - opensuse
+              - opensuse-minimal
+      - axis:
+          type: slave
+          name: slave
+          values:
+            - cloud-cleanvm
+
+    execution-strategy:
+      # We can only use one VM at a time, so serialize all jobs
+      sequential: true
+
+    builders:
+      - shell: |
+          #!/bin/bash
+
+          cat > test-diskimage-builder.sh <<EOF
+          #!/bin/bash
+          set -e
+
+          cleanup() {
+              # Clean up in case the last job was broken
+              rm -rf diskimage-builder dib-utils
+              rm -f *.qcow2 diskimage-builder-boot.log
+          }
+
+          install_tools() {
+              zypper -n --gpg-auto-import-keys ar http://download.opensuse.org/distribution/leap/42.1/repo/oss/ Leap-42.1-oss
+              zypper -n --gpg-auto-import-keys ar http://download.opensuse.org/update/leap/42.1/oss/ Leap-42.1-oss-update
+              zypper -n --gpg-auto-import-keys --no-gpg-checks ref
+              zypper -n in -y git-core qemu-tools
+              zypper -n in -y ca-certificates-mozilla ca-certificates
+
+              zypper -n in -y which e2fsprogs || : might not exist on this distro
+              zypper -n in -y python-PyYAML python-pip python-tox || : if only pip would work..
+              # We are going to boot our image but only if we can do it on the
+              # running host
+              ${BOOT_DIB_IMAGE} && zypper in -y qemu-kvm &> /dev/null || true
+          }
+
+          trap cleanup EXIT
+
+          # Start fresh
+          cleanup
+          # Install necessary tools
+          install_tools
+
+          git clone https://github.com/openstack/diskimage-builder.git diskimage-builder
+          git clone https://github.com/openstack/dib-utils.git dib-utils
+
+          # Prefer the latest tools in PATH
+          export PATH=\$(pwd)/diskimage-builder/bin:\$(pwd)/dib-utils/bin:/usr/bin:/bin:\${PATH}
+
+          check_boot() {
+              _failed=1
+              for x in \$(seq 1 \$1); do
+                  grep -q "Welcome to openSUSE" diskimage-builder-boot.log && _failed=0 && break
+                  sleep 1
+              done
+
+              return \${_failed}
+          }
+
+          echo "Building for openSUSE(${opensuse_release}) using: ${suse_element}"
+          DIB_RELEASE=${opensuse_release} disk-image-create -o qemu-image -t qcow2 ${suse_element} vm
+          ${BOOT_DIB_IMAGE} || exit 0
+          [[ \$(uname -m) == x86_64 ]] || exit 0
+          echo "Booting the image"
+          qemu-kvm -m 1G -nographic qemu-image.qcow2 | tee -a diskimage-builder-boot.log &
+          qemu=\$!
+          # It should boot in a few minutes or so
+          booted=false
+          check_boot 600 && booted=true && echo -e "\n\n QEMU booted qemu-image.qcow2 successfully\n\n"
+          # kill it. Hopefully that's enough to not leave 'stale' QEMU
+          # processes around
+          echo -e "\nTerminating QEMU\n"
+          # FIXME: Is this enough? What if QEMU hangs for whatever
+          # reason? Shall a kill -9 be attempted?
+          kill %1
+          # Break here if QEMU did not boot
+          \${booted}
+          EOF
+
+          # Give it exec bits
+          chmod a+x test-diskimage-builder.sh
+
+          # Create the VM
+          sudo /usr/local/sbin/freshvm cleanvm openSUSE-Leap-42.1
+          sleep 100
+
+          # Copy the script
+          scp test-diskimage-builder.sh root@cleanvm:
+
+          # Run it
+          ssh root@cleanvm "bash -x ~/test-diskimage-builder.sh"
