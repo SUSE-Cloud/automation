@@ -33,7 +33,7 @@
         - 'cloud-mkcloud{version}-job-xen-{arch}'
         - 'cloud-mkcloud{version}-newton-job-2nodes-{arch}'
         - 'cloud-mkcloud{version}-newton-job-4nodes-linuxbridge-{arch}'
-        - 'cloud-mkcloud{version}-newton-job-ha-compute-{arch}'
+        - 'cloud-mkcloud{version}-newton-job-ha-{arch}'
 - project:
     name: cloud-mkcloud7-aarch64
     version: 7
