@@ -109,9 +109,16 @@ for version in 1.0 2.1 3 4; do
         [ "$arch" != x86_64 -a $version = 1.0 ] && continue
         [ "$arch" != x86_64 -a $version = 2.1 ] && continue
 
+        # sync version 4 from ibs while in development
+        [ "$version" == "4" ] && sync_from_ibs=1
+
         echo ================== Updating Storage $version
 
-        $rsync $buildsuse/SUSE/Products/Storage/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Pool
+        if [ -z "$sync_from_ibs" ]; then
+            $rsync $buildsuse/SUSE/Products/Storage/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Pool
+        else
+            $rsync /mnt/dist/ibs/SUSE\:/SLE-12-SP2\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Pool
+        fi
 
         if test -d $buildsuse/SUSE/Updates/Storage/$version/$arch/update/; then
             $rsync $buildsuse/SUSE/Updates/Storage/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates
