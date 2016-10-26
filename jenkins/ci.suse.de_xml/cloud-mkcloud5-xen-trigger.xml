@@ -56,7 +56,8 @@
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>mkcloudtarget=all_noreboot
 libvirt_type=xen
-cloudsource=develcloud5</properties>
+cloudsource=develcloud5
+job_name=cloud-mkcloud5-xen</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>

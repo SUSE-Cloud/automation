@@ -55,7 +55,8 @@ mkcloudtarget=instonly
 want_sles12=1
 storage_method=none
 WITHCROWBARREGISTER=true
-TESTHEAD=1</properties>
+TESTHEAD=1
+job_name=cloud-mkcloud5-crowbar_register</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>

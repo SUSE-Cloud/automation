@@ -22,3 +22,4 @@
             tempestoptions=-t
             mkcloudtarget=all_noreboot
             label={label}
+            job_name='cloud-mkcloud{version}-job-tempestfull-{arch}'

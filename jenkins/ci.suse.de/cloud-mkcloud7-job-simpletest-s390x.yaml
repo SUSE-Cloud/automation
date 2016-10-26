@@ -22,3 +22,4 @@
             lonelynodenumber=2
             mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
             label=openstack-mkcloud-SLE12-s390x
+            job_name=cloud-mkcloud7-job-simpletest-s390x

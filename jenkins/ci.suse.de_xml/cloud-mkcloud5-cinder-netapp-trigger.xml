@@ -55,7 +55,8 @@ nodenumber=2
 cinder_backend=netapp
 cinder_netapp_login=openstack
 cinder_netapp_password=0penStack!
-want_cindermultibackend=1</properties>
+want_cindermultibackend=1
+job_name=cloud-mkcloud5-cinder-netapp</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>

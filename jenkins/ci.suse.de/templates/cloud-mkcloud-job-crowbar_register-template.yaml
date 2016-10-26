@@ -22,3 +22,4 @@
             WITHCROWBARREGISTER=true
             mkcloudtarget=instonly
             label={label}
+            job_name='cloud-mkcloud{version}-job-crowbar_register-{arch}'

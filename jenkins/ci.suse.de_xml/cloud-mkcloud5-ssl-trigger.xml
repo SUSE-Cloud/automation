@@ -61,7 +61,8 @@
               <properties>cloudsource=develcloud5
 want_all_ssl=1
 mkcloudtarget=all_noreboot
-nodenumber=2</properties>
+nodenumber=2
+job_name=cloud-mkcloud5-ssl</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
