@@ -4029,7 +4029,7 @@ EOH
             fi
         fi
 
-        nosetests testsuites/testcloud_sanity.py
+        nosetests testsuites/depricated/testcloud_sanity.py
         cephret=$?
 
         popd
