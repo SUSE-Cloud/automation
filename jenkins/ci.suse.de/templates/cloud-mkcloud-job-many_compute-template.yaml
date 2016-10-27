@@ -40,4 +40,4 @@
             cephvolumenumber=0
             mkcloudtarget=all
             label={label}
-            job_name='cloud-mkcloud{version}-job-many_compute-{arch}'
+            job_name=cloud-mkcloud{version}-job-many_compute-{arch}

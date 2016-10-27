@@ -27,7 +27,7 @@
             cloudsource=develcloud5
             nodenumber=2
             mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
-            job_name="cloud5 gating: SLE11 openvswitch"
+            job_name=cloud5 gating: SLE11 openvswitch
         - project: openstack-mkcloud
           condition: SUCCESS
           block: true
@@ -36,7 +36,7 @@
             want_sles12=1
             nodenumber=3
             networkingplugin=linuxbridge
-            job_name="cloud5 gating: SLE12 linuxbridge"
+            job_name=cloud5 gating: SLE12 linuxbridge
 
     publishers:
       - trigger-parameterized-builds:

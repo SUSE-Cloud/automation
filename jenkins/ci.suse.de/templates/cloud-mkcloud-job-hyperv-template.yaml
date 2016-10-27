@@ -24,4 +24,4 @@
             libvirt_type=hyperv
             mkcloudtarget=all
             label={label}
-            job_name='cloud-mkcloud{version}-job-hyperv-{arch}'
+            job_name=cloud-mkcloud{version}-job-hyperv-{arch}
