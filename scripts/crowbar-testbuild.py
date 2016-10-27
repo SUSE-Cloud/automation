@@ -109,7 +109,7 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
         # to prevent wget from traversing all test-updates
         'UPDATEREPOS=' + htdocs_url + ptfdir + "/",
         'mkcloudtarget=all_noreboot',
-        "job_name='crowbar-testbuild PR %s %s %s'" % (
+        "job_name=%s PR %s %s" % (
             repo, github_opts_list[0], github_opts_list[1][:8]),
         *job_parameters))
 

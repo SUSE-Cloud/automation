@@ -23,4 +23,4 @@
             hacloud=1
             mkcloudtarget=all_noreboot
             label={label}
-            job_name='cloud-mkcloud{version}-newton-job-ha-{arch}'
+            job_name=cloud-mkcloud{version}-newton-job-ha-{arch}

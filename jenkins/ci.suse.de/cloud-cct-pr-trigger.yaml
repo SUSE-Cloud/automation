@@ -102,7 +102,7 @@
                       cloudsource="${cloudsource}" \
                       nodenumber=${nodenumber} \
                       networkingplugin=${networkingplugin} \
-                      job_name="cct PR ${github_pr_id} ${github_pr_sha_short}"
+                      job_name=cct PR ${github_pr_id} ${github_pr_sha_short}
                   $ghs -r $repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha -m "Queued build of cct PR"
               done
           done

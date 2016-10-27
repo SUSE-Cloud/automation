@@ -21,4 +21,4 @@
             nodenumber=2
             mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
             label={label}
-            job_name='cloud-mkcloud{version}-job-backup-restore-{arch}'
+            job_name=cloud-mkcloud{version}-job-backup-restore-{arch}

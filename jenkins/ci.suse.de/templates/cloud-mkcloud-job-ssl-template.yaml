@@ -22,4 +22,4 @@
             want_all_ssl=1
             mkcloudtarget=all
             label={label}
-            job_name='cloud-mkcloud{version}-job-ssl-{arch}'
+            job_name=cloud-mkcloud{version}-job-ssl-{arch}

@@ -23,6 +23,11 @@
           <description/>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>job_name</name>
+          <description>This name will become the build name of the job. It will appear in the list of builds (webUI, RSS feed).</description>
+          <defaultValue>-no-name-</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -85,7 +90,7 @@ trap "-" ERR</command>
   <publishers/>
   <buildWrappers>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
-      <template>#${BUILD_NUMBER} / ${ENV,var="crowbar_repo"} / ${ENV,var="crowbar_github_pr"}</template>
+      <template>#${BUILD_NUMBER} / ${ENV,var="job_name"}</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>

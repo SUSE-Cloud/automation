@@ -23,4 +23,4 @@
             want_devel_repos=storage
             mkcloudtarget=all
             label={label}
-            job_name='cloud-mkcloud{version}-job-devel-storage-{arch}'
+            job_name=cloud-mkcloud{version}-job-devel-storage-{arch}
