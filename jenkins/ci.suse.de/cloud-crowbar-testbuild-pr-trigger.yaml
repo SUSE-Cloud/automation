@@ -125,13 +125,15 @@
               for branch in ${branches[@]} ; do
                   for github_pr in $(timeout 4m $ghs -r crowbar/$repo -a $action -b $branch) ; do
                       github_pr_opts=(${github_pr//:/ })
+                      github_pr_id=${github_pr_opts[0]}
                       github_pr_sha=${github_pr_opts[1]}
-
+                      github_pr_sha_short=${github_pr_sha:0:8}
                       # set status to pending (do it first to prevent race condition with github status)
                       $ghs -r crowbar/$repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha -m "Queued build of crowbar-testbuild-pr"
                       # trigger testbuild job
+                      job_name="$repo testbuild PR $github_pr_id $github_pr_sha_short"
                       ${automationrepo}/scripts/jenkins/jenkins-job-trigger \
-                          cloud-crowbar-testbuild-pr -p crowbar_repo=$repo crowbar_github_pr=$github_pr
+                          cloud-crowbar-testbuild-pr -p crowbar_repo=$repo crowbar_github_pr=$github_pr job_name="$job_name"
                   done
               done
           done
