@@ -1388,11 +1388,6 @@ EOF
         zypper mr -e cloud-ptf && safely zypper -n dup --from cloud-ptf
     fi
 
-    # Workaround broken sleshammer
-    if [ "$arch" = "aarch64" ]; then
-        rpm -Uvh --force http://clouddata.cloud.suse.de/suse-12.1/aarch64/PTF/sleshammer-aarch64.rpm
-    fi
-
     cd /tmp
 
     local netfile="/etc/crowbar/network.json"
@@ -3543,7 +3538,7 @@ function oncontroller_magnum_service_setup
     # not be fixed, we are going to have our own integration tests with SLES Magnum image
     local service_image_name=magnum-service-image.qcow2
     local service_image_url=http://clouddata.cloud.suse.de/images/$arch/other/$service_image_name
-    local service_sles_image_name=SLE12SP1-JeOS-k8s-magnum.x86_64.qcow2
+    local service_sles_image_name=SLE12SP1-JeOS-k8s-magnum.$arch.qcow2
     local service_sles_image_url=http://download.suse.de/ibs/Devel:/Docker:/Images:/SLE12SP1-JeOS-k8s-magnum/images/$service_sles_image_name
 
     if ! openstack image list --f value -c Name | grep -q "^magnum-service-image$"; then
