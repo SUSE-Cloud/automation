@@ -2995,6 +2995,13 @@ function deploy_single_proposal
 {
     local proposal=$1
 
+    # generic skip for proposals
+    local want_var="want_${proposal}_proposal"
+    if [[ ${!want_var} = 0 ]] ; then
+        echo "Skipping proposal for $proposal because \$$want_var was set to 0"
+        return 0
+    fi
+
     # proposal filter
     case "$proposal" in
         barbican)
