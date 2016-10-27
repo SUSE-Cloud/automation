@@ -3093,6 +3093,15 @@ function deploy_single_proposal
 # apply all wanted proposals on crowbar admin node
 function onadmin_proposal
 {
+    local proposals
+    local default_proposals
+
+    default_proposals="
+        nfs_client pacemaker database rabbitmq keystone swift \
+        ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat \
+        manila trove barbican magnum sahara murano tempest"
+    proposals="${@:-$default_proposals}"
+
     prepare_proposals
 
     if [[ $hacloud = 1 ]] ; then
@@ -3108,9 +3117,7 @@ function onadmin_proposal
         done
     fi
     local proposal
-    for proposal in nfs_client pacemaker database rabbitmq keystone swift \
-        ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat \
-        manila trove barbican magnum sahara murano tempest; do
+    for proposal in $proposals; do
         deploy_single_proposal $proposal
     done
 
