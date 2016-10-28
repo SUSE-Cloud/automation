@@ -68,12 +68,12 @@ github_pr_branch=${github_opts[2]}
 
 function crowbargating_trap()
 {
-    $ghs -a set-status -s "failure" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha
+    $ghs -a set-status -s "failure" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "testbuild job failed"
 }
 
 # this job is part of the "pending" state (as it is a prerequisite of the openstack-mkcloud job)
 # so we report pending now
-$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha -m "Started build of testpackage"
+$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "Started testbuild job"
 
 
 # the status of the build is set via crowbar-testbuild.py (hopefully)
@@ -82,7 +82,8 @@ trap "crowbargating_trap" ERR
 
 ${automationrepo}/scripts/crowbar-testbuild.py $crowbar_repo $crowbar_github_pr
 
-$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha -m "Queued mkcloud build; testpackage succeeded"
+$ghs -a set-status -s "success" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "testbuild job succeeded"
+$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud" -m "Queued testbuild PR gating"
 
 trap "-" ERR</command>
     </hudson.tasks.Shell>

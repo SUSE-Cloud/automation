@@ -9,7 +9,7 @@ class GHClientHandler
   def initialize(config = {})
     @comment_prefix = config[:comment_prefix] || 'CI mkcloud gating '
     @repository = config[:repository] || 'SUSE-Cloud/automation'
-    @context = config[:context] || 'ci.suse.de/openstack-mkcloud/gating'
+    @context = config[:context] || 'suse/mkcloud'
     @branch = config[:branch] || ''
     @client = Octokit::Client.new(:netrc => true)
     @client.auto_paginate = true
