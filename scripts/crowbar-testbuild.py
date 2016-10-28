@@ -80,6 +80,7 @@ def ghs_set_status(repo, head_sha1, status):
                          'github-status/github-status.rb')))
 
     ghs('-r', 'crowbar/' + repo,
+        '--context', 'suse/mkcloud/testbuild',
         '-c', head_sha1, '-a', 'set-status', '-s', status)
 
 

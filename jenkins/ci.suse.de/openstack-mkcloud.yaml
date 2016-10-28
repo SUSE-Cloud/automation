@@ -399,7 +399,7 @@
             github_pr_id=${github_opts[1]}
             github_pr_sha=${github_opts[2]}
             github_pr_context=${github_opts[4]}
-            ghs_context=ci.suse.de/openstack-mkcloud/gating
+            ghs_context=suse/mkcloud
             if [[ $github_pr_context ]] ; then
               ghs_context=$ghs_context/$github_pr_context
             fi
@@ -438,7 +438,7 @@
                 export want_cct_pr=$github_pr_id
             fi
 
-            $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha --context $ghs_context
+            $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha --context $ghs_context -m "Started PR gating"
 
         fi
 
@@ -490,7 +490,7 @@
 
         # report mkcloud-gating status
         if [[ $github_pr_sha ]] ; then
-          $ghs -r $github_pr_repo -a set-status -s "success" -t $BUILD_URL -c $github_pr_sha --context $ghs_context
+          $ghs -r $github_pr_repo -a set-status -s "success" -t $BUILD_URL -c $github_pr_sha --context $ghs_context -m "PR gating succeeded"
           trap "-" ERR
         fi
 

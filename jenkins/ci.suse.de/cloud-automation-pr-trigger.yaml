@@ -84,7 +84,7 @@
                           nodenumber=${nodenumber} \
                           networkingplugin=${networkingplugin} \
                           job_name="automation PR ${github_pr_id} ${github_pr_sha_short}"
-                      $ghs -r $repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha -m "Queued build of automation PR"
+                      $ghs -r $repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud" -m "Queued automation PR gating"
                   fi
               done
           done
