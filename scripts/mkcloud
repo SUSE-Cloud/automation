@@ -123,6 +123,7 @@ pv_cur_device_no=0
 : ${cct_tests:="features:base"}
 host_mtu=$(determine_mtu)
 : ${want_mtu_size:=1500}
+: ${cachedir:=/tmp}
 iscloudver 7plus && [[ $arch == x86_64 ]] && \
     [[ -n $want_efi ]] && firmware_type="uefi"
 

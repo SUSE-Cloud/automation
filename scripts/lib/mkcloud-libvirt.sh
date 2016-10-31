@@ -308,16 +308,16 @@ function libvirt_do_onhost_deploy_image()
     [[ $clouddata ]] || complain 108 "clouddata IP not set - is DNS broken?"
     if [[ ! $want_cached_images = 1 ]] ; then
         safely rsync --compress --progress --inplace --archive --verbose \
-            rsync://$clouddata/cloud/images/$arch/$image /tmp/
+            rsync://$clouddata/cloud/images/$arch/$image $cachedir/
     else
         # In this case the image has to be supplied by other means than
         # mkcloud (e.g. manual upload). If it doesn't exist we bail.
-        [[ -f /tmp/$image ]] || complain 19 \
+        [[ -f $cachedir/$image ]] || complain 19 \
             "No image found on host and want_cached_images was set."
     fi
 
     echo "Cloning $role node vdisk from $image ..."
-    safely qemu-img convert -t none -O raw -S 0 -p /tmp/$image $disk
+    safely qemu-img convert -t none -O raw -S 0 -p $cachedir/$image $disk
 
     # resize the last partition only if it has id 83
     local last_part=$(fdisk -l $disk | grep -c "^$disk")
