@@ -237,7 +237,7 @@ function sshrun
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
 
-        export clouddescription=$clouddescription;
+        export clouddescription='$clouddescription';
         export JENKINS_BUILD_URL=$BUILD_URL;
         export JENKINS_NODE_NAME=$NODE_NAME;
         export JENKINS_EXECUTOR_NUMBER=$EXECUTOR_NUMBER;
