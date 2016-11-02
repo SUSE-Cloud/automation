@@ -41,7 +41,7 @@ fi
 scripts_lib_dir=${SCRIPTS_DIR}/lib
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
-common_scripts="mkcloud-common.sh mkcloud-$mkclouddriver.sh"
+common_scripts="mkcloud-common.sh mkcloud-$mkclouddriver.sh qa_crowbarsetup-help.sh"
 for script in $common_scripts; do
     source ${scripts_lib_dir}/$script
 done
@@ -1089,7 +1089,7 @@ Optional
     scenario_dir='/tmp' (default=${SCRIPTS_DIR}/scenarios/cloud\$(getcloudver)/)
         Full path to directory containing scenario file.
 EOUSAGE
-    onadmin_help
+    qacrowbarsetup_help
     exit 1
 
 # UNDOCUMENTED OPTIONS:
