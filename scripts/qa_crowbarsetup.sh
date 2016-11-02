@@ -12,6 +12,9 @@ for script in $common_scripts; do
     source ${scripts_lib_dir}/$script
 done
 
+# not being sourced from mkcloud is a feature
+is_onhost && complain 9 "qa_crowbarsetup.sh should not be sourced within mkcloud. Shared functions are in files in scripts/lib/: eg. mkcloud-common.sh or qa_crowbarsetup-help.sh."
+
 mkcconf=mkcloud.config
 if [ -z "$testfunc" ] && [ -e $mkcconf ]; then
     source $mkcconf
