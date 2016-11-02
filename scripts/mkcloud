@@ -123,6 +123,8 @@ pv_cur_device_no=0
 : ${cct_tests:="features:base"}
 host_mtu=$(determine_mtu)
 : ${want_mtu_size:=1500}
+iscloudver 7plus && [[ $arch == x86_64 ]] && \
+    [[ -n $want_efi ]] && firmware_type="uefi"
 
 emulator=/usr/bin/qemu-system-$arch
 if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
@@ -210,6 +212,7 @@ function sshrun
         export adminip=$adminip ;
         export hacloud=$hacloud ;
         export libvirt_type=$libvirt_type ;
+        export firmware_type=$firmware_type ;
         export networkingplugin=$networkingplugin ;
         export networkingmode=$networkingmode ;
         export nosetestparameters=${nosetestparameters} ;
@@ -586,7 +589,8 @@ function setupnodes
         ${scripts_lib_dir}/libvirt/compute-config $cloud $i $macaddress\
             $controller_raid_volumes $cephvolumenumber "$drbd_serial"\
             $compute_node_memory $controller_node_memory $libvirt_type $vcpus\
-            $emulator $vdisk_dir 3 $nodenumbercontroller > /tmp/$cloud-node$i.xml
+            $emulator $vdisk_dir 3 \
+            $nodenumbercontroller "$firmware_type" > /tmp/$cloud-node$i.xml
         ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
     done
 
@@ -1062,6 +1066,8 @@ Optional
     want_horizon_integration_test=1 (default='')
         Execute selenium integration tests for Horizon after Tempest. This test is in beta, and
         a fail will not be considered for now.
+    want_efi=1 (default=0)
+        Deploy nodes with EFI. Only available from Cloud7 and later.
     install_chef_suse_override='path/to/script'
         Optional path to an alternate version of install-chef-suse.sh on the mkcloud hostto use
         instead of the one from the packages.  This will be scp'd to the admin node before use.
@@ -1109,6 +1115,7 @@ EOUSAGE
 # computenode_hdd_size
 # cloudbr
 # libvirt_type
+# firmware_type
 # localreposdir_src
 # localreposdir_target
 # wipe

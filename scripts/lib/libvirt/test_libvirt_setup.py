@@ -100,68 +100,75 @@ def default_test_args(args):
     args.drbdserial = ""
     args.bootorder = 3
     args.numcontrollers = 1
+    args.firmwaretype = "bios"
 
 
 class TestLibvirtAdminConfig(unittest.TestCase):
 
-    def test_admin_config(self):
-        args = Arguments()
-        default_test_args(args)
-        args.adminnodememory = 2097152
-        args.adminvcpus = 1
-        args.adminnodedisk = "/dev/cloud/cloud.admin"
-        args.localreposrc = ""
-        args.localrepotgt = ""
-        cpu_flags = libvirt_setup.readfile(
+    def setUp(self):
+        self.args = Arguments()
+        self.args.cloud = "cloud"
+        self.args.adminnodememory = 2097152
+        self.args.adminvcpus = 1
+        self.args.emulator = "/usr/bin/qemu-system-x86_64"
+        self.args.adminnodedisk = "/dev/cloud/cloud.admin"
+        self.args.firmwaretype = ""
+        self.args.localreposrc = ""
+        self.args.localrepotgt = ""
+        self.cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
+    def test_admin_config(self):
         should_config = libvirt_setup.readfile(
             "{0}/cloud-admin.xml".format(FIXTURE_DIR))
-        is_config = filter_vm_xml(
-            libvirt_setup.admin_config(args, cpu_flags))
+        is_config = libvirt_setup.admin_config(self.args, self.cpu_flags)
+        self.assertEqual(is_config, should_config)
+
+    def test_admin_config_uefi(self):
+        self.args.firmwaretype = "uefi"
+        should_config = libvirt_setup.readfile(
+            "{0}/cloud-admin-uefi.xml".format(FIXTURE_DIR))
+        is_config = libvirt_setup.admin_config(self.args, self.cpu_flags)
         self.assertEqual(is_config, should_config)
 
 
 class TestLibvirtComputeConfig(unittest.TestCase):
 
-    def test_compute_config(self):
-        args = Arguments()
-        default_test_args(args)
-        cpu_flags = libvirt_setup.readfile(
+    def setUp(self):
+        self.args = Arguments()
+        default_test_args(self.args)
+        self.cpu_flags = libvirt_setup.readfile(
             "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
 
+    def _compare_configs(self, args, xml_format):
+        should_config = libvirt_setup.readfile(
+            "{0}/cloud-node1-{1}.xml".format(FIXTURE_DIR, xml_format))
+        is_config = libvirt_setup.compute_config(args, self.cpu_flags)
+        self.assertEqual(filter_vm_xml(is_config), should_config)
+
+    def test_compute_config(self):
         should_config = libvirt_setup.readfile(
             "{0}/cloud-node1.xml".format(FIXTURE_DIR))
-        is_config = filter_vm_xml(
-            libvirt_setup.compute_config(args, cpu_flags))
-        self.assertEqual(is_config, should_config)
+        is_config = libvirt_setup.compute_config(self.args, self.cpu_flags)
+        self.assertEqual(filter_vm_xml(is_config), should_config)
+
+    # add test for UEFI boot of compute node image
+    def test_uefi_compute_config(self):
+        args = self.args
+        args.firmwaretype = "uefi"
+        self._compare_configs(args, "uefi")
 
     def test_xen_compute_config(self):
-        args = Arguments()
-        default_test_args(args)
+        args = self.args
         args.libvirttype = "xen"
-        cpu_flags = libvirt_setup.readfile(
-            "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
-        should_config = libvirt_setup.readfile(
-            "{0}/cloud-node1-xen.xml".format(FIXTURE_DIR))
-        is_config = filter_vm_xml(
-            libvirt_setup.compute_config(args, cpu_flags))
-        self.assertEqual(is_config, should_config)
+        self._compare_configs(args, "xen")
 
     # add extra disk for raid and 2 volumes for ceph
     def test_compute_config_with_raid(self):
-        args = Arguments()
-        default_test_args(args)
+        args = self.args
         args.controller_raid_volumes = 2
         args.cephvolumenumber = 2
-        cpu_flags = libvirt_setup.readfile(
-            "{0}/cpu-intel.xml".format(TEMPLATE_DIR))
-
-        should_config = libvirt_setup.readfile(
-            "{0}/cloud-node1-raid.xml".format(FIXTURE_DIR))
-        is_config = filter_vm_xml(
-            libvirt_setup.compute_config(args, cpu_flags))
-        self.assertEqual(is_config, should_config)
+        self._compare_configs(args, "raid")
 
 
 if __name__ == '__main__':

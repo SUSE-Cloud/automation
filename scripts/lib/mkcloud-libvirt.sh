@@ -74,7 +74,7 @@ function libvirt_prepare()
 
 function libvirt_do_setupadmin()
 {
-    ${scripts_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $emulator $admin_node_disk "$localreposdir_src" "$localreposdir_target" > /tmp/$cloud-admin.xml
+    ${scripts_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $emulator $admin_node_disk "$localreposdir_src" "$localreposdir_target" "$firmware_type" > /tmp/$cloud-admin.xml
     ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
 }
 
