@@ -438,14 +438,17 @@ function addcctdepsrepo
 
 function add_sdk_repo
 {
+    local sdk_repo_priority
+    sdk_repo_priority=199
+
     case "$cloudsource" in
         develcloud6|GM6|GM6+up)
-            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
-            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
+            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
+            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
             ;;
         develcloud7|newtoncloud7|susecloud7|M?|Beta*|RC*|GMC*)
-            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
-            zypper ar -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
+            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
+            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
             ;;
     esac
 }
