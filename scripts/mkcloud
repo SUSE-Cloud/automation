@@ -1089,8 +1089,6 @@ Optional
     scenario_dir='/tmp' (default=${SCRIPTS_DIR}/scenarios/cloud\$(getcloudver)/)
         Full path to directory containing scenario file.
 EOUSAGE
-    # Source qa_crowbarsetup.sh, which is where onadmin_help lives
-    source ${SCRIPTS_DIR}/qa_crowbarsetup.sh
     onadmin_help
     exit 1
 
