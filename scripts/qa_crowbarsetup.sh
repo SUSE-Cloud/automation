@@ -4528,8 +4528,8 @@ function onadmin_prepare_crowbar_upgrade
 
 function onadmin_check_admin_server_upgraded
 {
-    if ! [ -e $crowbar_lib_dir/install/admin-server-upgraded-ok ]; then
-        complain 99 "$crowbar_lib_dir/install/admin-server-upgraded-ok is missing"
+    if ! [ -e $crowbar_lib_dir/upgrade/admin-server-upgraded-ok ]; then
+        complain 99 "$crowbar_lib_dir/upgrade/admin-server-upgraded-ok is missing"
     fi
 }
 
