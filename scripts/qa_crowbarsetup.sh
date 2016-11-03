@@ -2537,7 +2537,7 @@ function custom_configuration
             ;;
         barbican)
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value barbican default "['deployment']['barbican']['elements']['barbican-server']" "['cluster:$clusternameservices']"
+                proposal_set_value barbican default "['deployment']['barbican']['elements']['barbican-controller']" "['cluster:$clusternameservices']"
             fi
             ;;
         nova)
