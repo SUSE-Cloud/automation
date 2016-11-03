@@ -82,9 +82,9 @@
           name: want_ipmi
           default: "true"
       - string:
-          name: runner_url
-          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh
-          description: The runner must be qa_crowbarsetup.sh file
+          name: automation_branch
+          default: master
+          description: branch to use from the main automation repo
       - string:
           name: commands
           default: prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
@@ -121,9 +121,11 @@
           # wipe out shared NFS that should be used by this deployment
           ssh root@localhost "wipe_nfs_shares qa$hw_number"
 
+          curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash -x
+
           # rest of code runs on admin node:
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
-          scp mkcloud.config root@$admin:
+          scp -r github.com/SUSE-Cloud/automation/scripts mkcloud.config root@$admin:
           ret=0
 
           ssh root@$admin "
@@ -136,13 +138,11 @@
           export nodenumber=$nodenumber ;
           export hacloud=$hacloud ;
           export clusterconfig=$clusterconfig ;
-          export runner_url=$runner_url ;
           export scenario_url=$scenario_url ;
           export want_node_aliases=controller=3,compute-kvm=2,storage-swift=2 ;
           export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
 
-          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
           wget --no-check-certificate -Oscenario.yml "$scenario_url"
 
           sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
@@ -150,7 +150,7 @@
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
-          timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
+          timeout --signal=ALRM 240m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
           ' || ret=$?
 
 

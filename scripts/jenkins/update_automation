@@ -13,10 +13,11 @@
 # Bernhard M. Wiedemann <bwiedemann suse.de>
 #
 
-: ${automation_repo:="git://github.com/SUSE-Cloud/automation.git"}
-: ${branch:=master}
+: ${automation_repo:="github.com/SUSE-Cloud/automation.git"}
+: ${automation_branch:=master}
+branch=$automation_branch
 
-a_dir=${automation_repo#*git://}
+a_dir=$automation_repo
 a_dir=${a_dir%.git}
 p_dir=${a_dir%/*}
 
@@ -40,7 +41,7 @@ function do_git
         popd > /dev/null
     else
         pushd $p_dir > /dev/null
-            git clone ${automation_repo}
+            git clone https://${automation_repo}
         popd > /dev/null
         ( cd $a_dir && git checkout $branch )
     fi
