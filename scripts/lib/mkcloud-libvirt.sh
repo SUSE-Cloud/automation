@@ -226,6 +226,9 @@ function libvirt_do_create_cloud_lvm()
         for i in `seq 1 2`; do
             onhost_get_next_pv_device
             _lvcreate $cloud.node$i-drbd $drbd_hdd_size $cloudvg $next_pv_device
+            # clean drbd signatures
+            dd if=/dev/zero of=/dev/$cloudvg/$cloud.node$i-drbd  bs=1M count=1
+            dd if=/dev/zero of=/dev/$cloudvg/$cloud.node$i-drbd  bs=1M count=1 seek=$((($drbd_hdd_size * 1024) - 1))
         done
     fi
 
