@@ -19,6 +19,10 @@ source "https://rubygems.org"
 gem "ruby-trello"
 gem "launchy"
 gem "activemodel", "< 5.0.0"
-gem "json", "~> 1.7"
+gem "json", "~> 1.8"
+gem "netrc"
 
-gem "byebug"
+group :development do
+  gem "byebug"
+  gem "rubocop"
+end
