@@ -355,6 +355,7 @@ function setupadmin
     if [[ $user_keyfile ]]; then
         cat $user_keyfile | sshrun "cat >> ~/.ssh/authorized_keys"
     fi
+    onadmin write_cloud_info
     echo "you can now proceed with installing crowbar"
     # prevent jumbo frames from going out
     if [[ $want_mtu_size -gt 1500 ]] || [[ $host_mtu -lt 1500 ]]; then

@@ -1013,7 +1013,17 @@ function onadmin_add_cloud_repo
     fi
 
     (
-    echo "This cloud was installed on `cat ~/cloud` from: `cat /etc/cloudversion`"
+    echo -n "This cloud was installed from: "
+    cat /etc/cloudversion
+    echo
+    ) >> /etc/motd
+}
+
+function onadmin_write_cloud_info
+{
+    (
+    echo -n "This cloud was installed on: "
+    cat ~/cloud
     echo
     if [[ $JENKINS_BUILD_URL ]] ; then
         echo "Installed via Jenkins"
