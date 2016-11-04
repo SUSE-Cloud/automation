@@ -24,7 +24,6 @@ if [[ $debug_qa_crowbarsetup = 1 ]] ; then
 fi
 
 # defaults
-: ${architectures:='aarch64 x86_64 s390x'}
 : ${cinder_backend:=''}
 : ${cinder_netapp_storage_protocol:=iscsi}
 : ${cinder_netapp_login:=openstack}

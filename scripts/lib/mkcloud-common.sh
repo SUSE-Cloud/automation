@@ -9,6 +9,7 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
 : ${arch:=$(uname -m)}
+: ${architectures:='aarch64 x86_64 s390x'}
 
 function max
 {
