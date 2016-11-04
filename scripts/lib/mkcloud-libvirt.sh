@@ -341,7 +341,7 @@ function libvirt_do_setuplonelynodes()
         safely ${scripts_lib_dir}/libvirt/compute-config $cloud $i $mac 0\
             "$cephvolumenumber" "$drbdvolume" $compute_node_memory\
             $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir\
-            1 1 > /tmp/$cloud-node$i.xml
+            1 1 "$firmware_type" > /tmp/$cloud-node$i.xml
 
         local lonely_disk
         lonely_disk="$vdisk_dir/${cloud}.node$i"
