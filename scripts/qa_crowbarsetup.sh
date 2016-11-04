@@ -4525,7 +4525,7 @@ function onadmin_prepare_crowbar_upgrade
         # move nodes to upgrade mode
         safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
     else
-        if crowbarctl upgrade repocheck crowbar --format plain | grep "missing" ; then
+        if safely crowbarctl upgrade repocheck crowbar --format plain | grep "missing" ; then
             complain 11 "Some repository is missing on admin server. Cannot upgrade."
         fi
         # FIXME: crowbarctl command can time out easily
