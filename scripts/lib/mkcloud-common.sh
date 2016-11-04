@@ -103,7 +103,9 @@ function is_suse
 
 function is_onhost
 {
-    [[ $BASH_SOURCE =~ mkcloud[^/]*$ ]]
+    # match for the mkcloud script name in the BASH_SOURCE stack
+    # note: the path may differ, so only match a leading slash
+    [[ " ${BASH_SOURCE[@]} " =~ "/mkcloud " ]]
 }
 
 function is_onadmin
