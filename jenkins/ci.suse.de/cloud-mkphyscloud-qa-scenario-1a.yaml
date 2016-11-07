@@ -172,7 +172,6 @@
           export hacloud=$hacloud ;
           export clusterconfig=$clusterconfig ;
           export shared_storage_ip=$shared_storage_ip
-          export scenario_url=$scenario_url ;
           export want_node_aliases=controller=3,compute-kvm=2,storage-swift=2 ;
           export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
