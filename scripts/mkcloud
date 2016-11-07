@@ -141,6 +141,11 @@ exec </dev/null
 function show_environment
 {
     end_time=`date`
+    echo
+    echo "Crowbar /etc/motd"
+    echo "---------------------"
+    $ssh root@$adminip "cat /etc/motd"
+    echo
     echo "Environment Details"
     echo "-------------------------------"
     if $(which git >&/dev/null); then
