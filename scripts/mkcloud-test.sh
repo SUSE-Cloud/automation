@@ -6,4 +6,5 @@ it_gives_help() {
     results=`! ./mkcloud help`
     [[ "$results" =~ "Usage:" ]]
     [[ "$results" =~ "networkingplugin" ]]
+    [[ "$results" =~ "want_raidtype" ]]
 }
