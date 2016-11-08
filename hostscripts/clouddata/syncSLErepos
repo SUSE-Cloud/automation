@@ -70,7 +70,7 @@ for servicepack in 0 1 2; do
         if [ -z "$sync_from_ibs" ]; then
             $rsync --link-dest /srv/nfs/suse-${chef_version}${install_subdir}/install/suse/ $buildsuse/SUSE/Products/SLE-SERVER/$version/$arch/product/ /srv/nfs/repos/$arch/SLES$repo_version-Pool/
         else
-            $rsync --link-dest /srv/nfs/suse-${chef_version}${install_subdir}/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-Server-POOL-$arch-Build*-Media1/ /srv/nfs/repos/$arch/SLES$repo_version-Pool/
+            $rsync --link-dest /srv/nfs/suse-${chef_version}${install_subdir}/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-Server-POOL-$arch-Media1/ /srv/nfs/repos/$arch/SLES$repo_version-Pool/
         fi
         # SLES updates
         $rsync $buildsuse/SUSE/Updates/SLE-SERVER/$version/$arch/update/ /srv/nfs/repos/$arch/SLES$repo_version-Updates/
@@ -86,7 +86,7 @@ for servicepack in 0 1 2; do
             if [ -z "$sync_from_ibs" ]; then
                 $rsync $buildsuse/SUSE/Products/SLE-HA/$version/$arch/product/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Pool/
             else
-                $rsync /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-HA-POOL-$arch-Build*-Media1/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Pool/
+                $rsync /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-HA-POOL-$arch-Media1/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Pool/
             fi
             # HA updates
             $rsync $buildsuse/SUSE/Updates/SLE-HA/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates/
