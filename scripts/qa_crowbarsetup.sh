@@ -65,7 +65,7 @@ crowbar_api=http://localhost:3000
 crowbar_api_installer_path=/installer/installer
 crowbar_api_digest="--digest -u crowbar:crowbar"
 crowbar_install_log=/var/log/crowbar/install.log
-crowbar_init_api=http://localhost:4567
+crowbar_init_api=http://localhost:4567/api
 crowbar_lib_dir=/var/lib/crowbar
 crowbar_api_v2_header="Accept: application/vnd.crowbar.v2.0+json"
 declare -a unclustered_nodes
