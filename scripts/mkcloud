@@ -227,6 +227,7 @@ function sshrun
         export cct_tests=$cct_tests ;
         export scenario=$scenario ;
         export host_mtu=$host_mtu ;
+        export architectures='$architectures';
 
         export nova_shared_instance_storage=$nova_shared_instance_storage ;
 
