@@ -21,7 +21,7 @@
             upgrade_cloudsource=develcloud{version}
             nodenumber=2
             want_nondisruptiveupgrade=1
-            mkcloudtarget=plain_with_upgrade testsetup rebootcloud
+            mkcloudtarget=plain_with_upgrade
             label={label}
             want_postgresql=1
             job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-{arch}

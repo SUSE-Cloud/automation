@@ -22,7 +22,7 @@
             nodenumber=5
             hacloud=1
             want_nondisruptiveupgrade=1
-            mkcloudtarget=plain_with_upgrade testsetup rebootcloud
+            mkcloudtarget=plain_with_upgrade
             label={label}
             want_postgresql=0
             job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}
