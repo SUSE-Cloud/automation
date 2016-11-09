@@ -149,7 +149,9 @@ function show_environment
     echo "Environment Details"
     echo "-------------------------------"
     if $(which git >&/dev/null); then
-        echo "         git: $(git --no-pager -C $SCRIPTS_DIR show -s --oneline)"
+        pushd $SCRIPTS_DIR
+        echo "         git: $(git --no-pager show -s --oneline)"
+        popd
     fi
     echo "    hostname: `hostname -f`"
     echo "     started: $start_time"
