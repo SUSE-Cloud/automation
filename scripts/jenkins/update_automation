@@ -42,7 +42,7 @@ function do_git
         pushd $p_dir > /dev/null
             git clone ${automation_repo}
         popd > /dev/null
-        ( cd $a_dir && git checkout $branch )
+        ( cd $a_dir && ( git checkout $branch || git checkout -b $branch origin/$branch ))
     fi
 }
 
