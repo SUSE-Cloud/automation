@@ -1467,7 +1467,7 @@ function onadmin_bootstrapcrowbar
     # temporarily make it possible to not use postgres until we switched to the new upgrade process
     # otherwise we would break the upgrade gating
     [[ $want_postgresql = 0 ]] && return
-    if iscloudver 7plus ; then
+    if iscloudver 6plus ; then
         systemctl start crowbar-init
         wait_for 100 3 "onadmin_is_crowbar_init_api_available" "crowbar init service to start"
         if [[ $upgrademode = "with_upgrade" ]] ; then
@@ -1477,6 +1477,8 @@ function onadmin_bootstrapcrowbar
                 '--data username=crowbar&password=crowbar' "$crowbar_api_v2_header"
             safely crowbar_api_request POST $crowbar_init_api /init "" "$crowbar_api_v2_header"
         fi
+    else
+        complain 11 "Bootstrapcrowbar not supported for this version"
     fi
 }
 
