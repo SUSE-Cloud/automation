@@ -10,6 +10,7 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${networkingplugin:=openvswitch}
 : ${arch:=$(uname -m)}
 : ${architectures:='aarch64 x86_64 s390x'}
+: ${nodenumberlonelynode:=0}
 
 function max
 {

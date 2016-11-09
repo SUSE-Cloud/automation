@@ -64,7 +64,6 @@ nodenumbercomputedefault=2
 [[ $nodenumberphys = 0 ]] || [[ $mkch_physcloudif ]] || complain 100 "need to set mkch_physcloudif for physical nodes"
 # configuration of clusters
 : ${clusterconfig:=''}
-: ${nodenumberlonelynode:=0}
 export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 # '+'-separated list of MAC#serial_of_drbd_volume of the drbd cluster nodes
 # (used only internally to transport this information to qa_crowbarsetup):
