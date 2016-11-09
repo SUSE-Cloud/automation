@@ -190,7 +190,7 @@
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
-          timeout --signal=ALRM 240m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
+          timeout --signal=ALRM 240m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
           ' || ret=$?
 
           echo "mkphyscloud ret=$ret (before scenario)"
@@ -238,7 +238,7 @@
             export cephvolumenumber=2;
             export scenario=scenario.yml "'
 
-            timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist batch;"
+            timeout --signal=ALRM 240m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist batch;"
             ' || ret=$?
 
 

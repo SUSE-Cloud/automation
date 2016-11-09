@@ -31,6 +31,26 @@
           description: Mandatory, name of the QA cloud server as integer
 
       - string:
+          name: admin_os
+          default: sles12sp2
+          description: Mandatory, admin node operating system version
+
+      - string:
+          name: repo_owner
+          default: SUSE-Cloud
+          description: Mandatory, automation repo owner/organization
+
+      - string:
+          name: automation_repo
+          default: git://github.com/$repo_owner/automation.git
+          description: Mandatory, automation repo URL
+
+      - string:
+          name: branch
+          default: master
+          description: Mandatory, automation repo branch
+
+      - string:
           name: tempest
           default: smoke
           description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
@@ -51,50 +71,54 @@
           description: Mandatory, version of the cloud to be installed as integer
 
       - string:
-          name: scenario_url
-          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-2c.yaml
-          description: Location of scenario yaml file
+          name: scenario_file
+          default: qa-scenario-2c.yaml
+          description: Scenario YAML file name
 
       # Parameters for qa_crowbarsetup.sh
       - string:
           name: cloudsource
           default: develcloud$cloud_version
+
       - string:
           name: TESTHEAD
           default: "1"
           description: if non-empty, test latest version from Devel:Cloud:Staging
+
       - string:
           name: want_ceph
           default: "1"
           description: Install ceph barclamp
+
       - string:
           name: hacloud
           default: "1"
           description: By default we do not want HA configured and installed
+
       - string:
           name: clusterconfig
           default: services=2
           description: HA configuration for clusters. Make sense only if hacloud=1
+
       - string:
           name: nodenumber
           default: "7"
           description: Number of nodes to use; is scenario specific
-      - string:
-          name: runner_url
-          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh
-          description: The runner must be qa_crowbarsetup.sh file
+
       - string:
           name: commands
-          default: prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate setup_aliases waitcloud
+          default: prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases
           description: All the steps that needs to be completed to have cloud installed
+
       - text:
           name: UPDATEREPOS
           default:
           description: Update repositories (one URL per line)
+
       - bool:
           name: UPDATEBEFOREINSTALL
           default: false
-          description: add update repos before crowbar install
+          description: add update repositories before crowbar install
 
     builders:
       - shell: |
@@ -113,12 +137,25 @@
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
 
-          freshadminvm $admin
+          # destroy the old admin VM if any and spawn a clean new admin VM afterwards
+          # /usr/local/sbin/freshadminvm
+          freshadminvm $admin $admin_os
           sleep 100 # time for the admin VM to boot
 
-          # rest of code runs on admin node:
+          # clone, fetch and update the automation repo
+          # /usr/local/sbin/update_automation
+          update_automation
+
+          # put variables needed during the build process into mkcloud.config file
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
-          scp mkcloud.config root@$admin:
+
+          # copy scripts/ dir onto the admin node in /root/scripts
+          scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
+
+          # copy scenario file onto the admin node in /root/scenario.yml
+          scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
+              root@$admin:scenario.yml
+
           ret=0
 
           ssh root@$admin "
@@ -130,22 +167,17 @@
           export nodenumber=$nodenumber ;
           export hacloud=$hacloud ;
           export clusterconfig=$clusterconfig ;
-          export runner_url=$runner_url ;
-          export scenario_url=$scenario_url ;
           export want_node_aliases=controller=2,compute=2,ceph=3 ;
           export want_node_roles=controller=2,compute=2,storage=3 ;
           export want_node_os=suse-12.2=4,suse-12.1=3 ;
           export want_ceph=1 ;
           export cephvolumenumber=1 ;
-          export scenario=\"scenario.yml\" ;
+          export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
-
-          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
-          wget --no-check-certificate -Oscenario.yml "$scenario_url"
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
-          timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
+          timeout --signal=ALRM 240m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
           ' || ret=$?
 
           echo "mkphyscloud ret=$ret (before scenario)"
@@ -154,7 +186,7 @@
           if [ "$ret" = "0" ]; then
             # ----- Prepare the SBD setup:
             cat > /tmp/sbd_prepare_$admin <<EOSCRIPT
-              # preparation of iSCSI
+              # preparaton of iSCSI
               export ZYPP_LOCK_TIMEOUT=120
               zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
 
@@ -193,7 +225,7 @@
             export cephvolumenumber=1;
             export scenario=scenario.yml "'
 
-            timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist batch;"
+            timeout --signal=ALRM 240m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist batch;"
             ' || ret=$?
 
             if [ $ret != 0 ] ; then
