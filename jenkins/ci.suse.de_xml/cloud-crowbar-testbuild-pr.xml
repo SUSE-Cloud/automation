@@ -91,7 +91,7 @@ trap "-" ERR</command>
   <publishers/>
   <buildWrappers>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
-      <template>#${BUILD_NUMBER} / ${ENV,var="job_name"}</template>
+      <template>#${BUILD_NUMBER}: ${ENV,var="job_name"}</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
