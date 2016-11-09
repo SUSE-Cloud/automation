@@ -1,6 +1,7 @@
 # This file shares common code between mkcloud-${mkclouddriver}.sh files and qa_crowbarsetup.sh
 
 # defaults for generic common variables
+: ${admin_image_password:='linux'}
 : ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
 : ${clouddata_base_path:="/repos"}
 : ${distsuse:=dist.nue.suse.com}
@@ -128,7 +129,7 @@ function ssh_password
     SSH_ASKPASS=/root/echolinux
     cat > $SSH_ASKPASS <<EOSSHASK
 #!/bin/sh
-echo linux
+echo $admin_image_password
 EOSSHASK
     chmod +x $SSH_ASKPASS
     DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid $ssh -oNumberOfPasswordPrompts=1 "$@"

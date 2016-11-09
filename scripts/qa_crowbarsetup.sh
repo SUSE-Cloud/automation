@@ -438,7 +438,7 @@ function add_ha12sp1_repo
     for repo in SLE12-SP1-HA-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+        add_mount "$repo" "$clouddata_nfs:/$clouddata_nfs_dir/repos/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
     done
 }
@@ -795,7 +795,7 @@ function onadmin_prepare_sles12sp1_installmedia
     for a in $architectures; do
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$a/install"
         add_mount "SLE-12-SP1-Server-LATEST/sle-12-$a" \
-            "$clouddata:/srv/nfs/suse-12.1/$a/install" \
+            "$clouddata_nfs:/$clouddata_nfs_dir/suse-12.1/$a/install" \
             "$sles12sp1_mount"
 
         if [ ! -d "$sles12sp1_mount/media.1" ] ; then
@@ -830,7 +830,7 @@ function onadmin_prepare_sles12_other_repos
 function onadmin_prepare_sles12sp1_other_repos
 {
     for repo in SLES12-SP1-{Pool,Updates}; do
-        add_mount "$repo/sle-12-$arch" "$clouddata:/srv/nfs/repos/$arch/$repo" \
+        add_mount "$repo/sle-12-$arch" "$clouddata_nfs:/$clouddata_nfs_dir/repos/$arch/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
@@ -1139,16 +1139,16 @@ function onadmin_set_source_variables
             CLOUDLOCALREPOS="SUSE-Cloud-5-devel"
         ;;
         develcloud6)
-            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6/images/iso
+            CLOUDSLE12DISTPATH=${cloud6_iso_path:='/ibs/Devel:/Cloud:/6/images/iso'}
             [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
+            CLOUDSLE12DISTISO=${cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"}
             CLOUDSLE12TESTISO="CLOUD-6-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         develcloud7)
-            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7/images/iso
+            CLOUDSLE12DISTPATH=${cloud7_iso_path:='/ibs/Devel:/Cloud:/6/images/iso'}
             [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7:/Staging/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"
+            CLOUDSLE12DISTISO=${cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"}
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
         ;;
@@ -1246,12 +1246,12 @@ function onadmin_setup_local_zypper_repositories
             zypper ar $uri_base/SLES11-SP3-Updates/ sles11sp3up
         ;;
         6)
-            zypper ar $uri_base/SLES12-SP1-Pool/ sles12sp1
-            zypper ar $uri_base/SLES12-SP1-Updates/ sles12sp1up
+            zypper ar $uri_base/${repopath_sles12sp1}/ sles12sp1
+            zypper ar $uri_base/${repopath_sles12sp1up}/ sles12sp1up
         ;;
         7)
-            zypper ar $uri_base/$arch/SLES12-SP2-Pool/ sles12sp2
-            zypper ar $uri_base/$arch/SLES12-SP2-Updates/ sles12sp2up
+            zypper ar $uri_base/$arch/${repopath_sles12sp1}/ sles12sp2
+            zypper ar $uri_base/$arch/${repopath_sles12sp1up}/ sles12sp2up
         ;;
     esac
 }
@@ -3444,8 +3444,8 @@ function oncontroller_manila_generic_driver_setup()
         local service_image_name=manila-service-image.vhd
         local service_image_params="--disk-format vhd --property hypervisor_type=hyperv"
     else
-        local service_image_url=http://$clouddata/images/other/manila-service-image.qcow2
-        local service_image_name=manila-service-image.qcow2
+        local service_image_url=http://$clouddata/$manila_service_image_path/$manila_service_image_name_qcow
+        local service_image_name=$manila_service_image_name_qcow
         local service_image_params="--disk-format qcow2 --property hypervisor_type=kvm"
     fi
 

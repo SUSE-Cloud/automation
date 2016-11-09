@@ -48,6 +48,16 @@ done
 mkcconf=mkcloud.config
 rm -f $mkcconf # we dont want to source old info in the line below
 
+: ${architectures:='aarch64 x86_64 s390x'}
+: ${clouddata_nfs:=$clouddata}
+: ${clouddata_nfs_dir:='srv/nfs'}
+: ${repopath_sles12sp1:='repos/$arch/SLES12-SP1-Pool'}
+: ${repopath_sles12sp1up:='repos/$arch/SLES12-SP1-Updates'}
+: ${manila_service_image_path:='images/other'}
+: ${manila_service_image_name_qcow:='manila-service-image.qcow2'}
+: ${images_dir:="images/$arch"}
+: ${cloud6_iso_path:='/ibs/Devel:/Cloud:/6/images/iso'}
+: ${cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"}
 : ${virtualcloud:=virtual}
 : ${net_admin:=192.168.124}
 setcloudnetvars $virtualcloud
@@ -210,6 +220,15 @@ function sshrun
         # hostname of NFS server with repos and images:
         export clouddata=$clouddata ;
         export clouddata_base_path=$clouddata_base_path ;
+        export clouddata_nfs=$clouddata_nfs ;
+        export clouddata_nfs_dir=$clouddata_nfs_dir ;
+        export repopath_sles12sp1=$repopath_sles12sp1 ;
+        export repopath_sles12sp1up=$repopath_sles12sp1up ;
+        export manila_service_image_path=$manila_service_image_path ;
+        export manila_service_image_name_qcow=$manila_service_image_name_qcow ;
+        export cloud6_iso_path=$cloud6_iso_path ;
+        export cloud6_iso=$cloud6_iso ;
+        export architectures=$architectures ;
         export distsuse=$distsuse ;
         export susedownload=$susedownload ;
         export cloudfqdn=$cloudfqdn ;
