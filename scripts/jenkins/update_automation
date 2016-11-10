@@ -31,7 +31,7 @@ function do_git
 {
     rpm -q git-core || zypper --non-interactive in git-core || return 24
 
-    if [ -d $a_dir ] ; then
+    if [ -d $a_dir/.git ] ; then
         pushd $a_dir > /dev/null
             git clean -f
             git checkout $branch
@@ -39,10 +39,11 @@ function do_git
             git reset --hard origin/$branch
         popd > /dev/null
     else
+        rm -rf ~/$a_dir
         pushd $p_dir > /dev/null
             git clone ${automation_repo}
         popd > /dev/null
-        ( cd $a_dir && git checkout $branch )
+        ( cd $a_dir && ( git checkout $branch || git checkout -b $branch origin/$branch ))
     fi
 }
 
