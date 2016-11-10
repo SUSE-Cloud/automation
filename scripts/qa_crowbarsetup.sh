@@ -1755,6 +1755,7 @@ function reboot_nodes_via_ipmi
                 "default gateway to be active in bmc"
 
             $ipmicmd chassis bootdev pxe options=persistent
+            $ipmicmd mc reset warm
             wait_for 30 2 \
                 "! timeout 2 $ipmicmd mc selftest >/dev/null" \
                 "BMC to start rebooting" \
