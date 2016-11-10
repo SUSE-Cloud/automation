@@ -187,7 +187,7 @@ function libvirt_do_create_cloud_lvm()
 {
     safely vgchange -ay $cloudvg # for later boots
 
-    local hdd_size
+    local i n hdd_size
 
     onhost_get_next_pv_device
     _lvcreate $cloud.admin $adminnode_hdd_size $cloudvg $next_pv_device
@@ -357,6 +357,7 @@ function libvirt_do_setuplonelynodes()
 function libvirt_do_shutdowncloud()
 {
     virsh shutdown $cloud-admin
+    local i
     for i in $(nodes ids all) ; do
         virsh shutdown $cloud-node$i
     done

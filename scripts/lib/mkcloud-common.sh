@@ -394,6 +394,7 @@ EOS
         $boot_mkcloud
     fi
 
+    local f
     for f in $boot_mkcloud_d/*; do
         if [ -x "$f" ]; then
             $f

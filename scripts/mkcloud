@@ -351,7 +351,7 @@ function setupadmin
     wait_for_crowbar_ssh
 
     echo "Injecting public key into admin node..."
-    local keyfile
+    local x keyfile
     for keyfile in ~/.ssh/*.pub ; do
         local pubkey=`cat $keyfile`
         ssh_password $adminip "
@@ -426,6 +426,7 @@ function createcloudsnapshot
 {
     shutdowncloud
     wait_for_node_shutdown $cloud-admin
+    local i d
     for i in $(nodes ids all) ; do
         wait_for_node_shutdown $cloud-node$i
     done
@@ -440,7 +441,7 @@ function createcloudsnapshot
 
 function restorecloudfromsnapshot
 {
-    local can_restore=1
+    local i d can_restore=1
     lvs -o lv_name ${cloudvg} | grep "${cloud}.admin.snap" || {
         echo "Missing snapshot for ${cloud}.admin"
         can_restore=
@@ -479,6 +480,7 @@ function setuplonelynodes
 # register lonely_node against crowbar
 function crowbar_register
 {
+    local i
     for i in $(nodes ids lonely) ; do
         local mac=$(macfunc $i)
         sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register"
@@ -560,6 +562,7 @@ function restartcloud
     virsh start $cloud-admin
     setuppublicnet
     wait_for_crowbar_ntpd
+    local i
     for i in $(nodes ids all) ; do
         virsh start $cloud-node$i
     done
@@ -578,6 +581,7 @@ function setupnodes
     fi
 
     setuppublicnet
+    local i
     for i in $(nodes ids normal) ; do
         local macaddress=$(macfunc $i)
 
@@ -677,7 +681,7 @@ function testname
     fi
 
     local name="$cloudsource"
-    local i=0
+    local n i=0
     for n in ${var_names[@]} ; do
         if [[ ${var_values[$i]} ]] ; then
             name="$name/$n:${var_values[$i]}"
