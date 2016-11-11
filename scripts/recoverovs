@@ -17,3 +17,5 @@ sleep 30
 systemctl restart openstack-neutron-l3-agent.service
 rcopenstack-nova-compute restart
 
+sleep 300
+systemctl restart openstack-neutron-l3-agent.service
