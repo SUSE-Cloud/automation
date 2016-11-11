@@ -3920,7 +3920,7 @@ function ceph_testsuite_configure_storage3
     done
 
     ./update_template $yaml_allnodes
-    ./update_template --nodes-type osd --yaml-file templates/template.yml.new $osds
+    ./update_template --nodes-type osd --user root --yaml-file templates/template.yml.new $osds
     export YAMLDATA_FILE=templates/template.yml.new
 }
 
