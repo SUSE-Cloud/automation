@@ -123,7 +123,7 @@
               esac
 
               for branch in ${branches[@]} ; do
-                  for github_pr in $(timeout 4m $ghs -r crowbar/$repo -a $action -b $branch) ; do
+                  for github_pr in $(timeout 4m $ghs -r crowbar/$repo -a $action -b $branch --context "suse/mkcloud/testbuild") ; do
                       github_pr_opts=(${github_pr//:/ })
                       github_pr_id=${github_pr_opts[0]}
                       github_pr_sha=${github_pr_opts[1]}
