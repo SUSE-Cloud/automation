@@ -5,6 +5,10 @@
     triggers:
       - timed: 'H 1 * * *'
 
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 15
+
     axes:
       - axis:
           type: user-defined
