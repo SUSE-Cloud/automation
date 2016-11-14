@@ -810,6 +810,7 @@ function crowbarupgrade_5plus
         onadmin upgrade_prechecks
         onadmin prepare_crowbar_upgrade
         onadmin prepare_cloudupgrade_repos_6_to_7
+        onadmin upgrade_admin_backup
         onadmin upgrade_admin_repocheck
         onadmin upgrade_admin_server
         export cloudsource=$upgrade_cloudsource

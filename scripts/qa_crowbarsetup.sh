@@ -4511,6 +4511,16 @@ function onadmin_prepare_crowbar_upgrade
     fi
 }
 
+function onadmin_upgrade_admin_backup
+{
+    if ! safely crowbarctl upgrade backup crowbar ; then
+        complain 11 "Creating the backup of admin server database has failed."
+    fi
+    if ! ls $crowbar_lib_dir/backup/*.gz > /dev/null ; then
+        complain 11 "Crowbar backup is not present in $crowbar_lib_dir/backup."
+    fi
+}
+
 function onadmin_upgrade_admin_repocheck
 {
     if safely crowbarctl upgrade repocheck crowbar --format plain | grep "missing" ; then
