@@ -4509,10 +4509,8 @@ function onadmin_prepare_crowbar_upgrade
         if safely crowbarctl upgrade repocheck crowbar --format plain | grep "missing" ; then
             complain 11 "Some repository is missing on admin server. Cannot upgrade."
         fi
-        # FIXME: crowbarctl command can time out easily
-        # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
-        # safely crowbarctl upgrade prepare
-        safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
+        safely crowbarctl upgrade prepare
+        wait_for 200 5 "grep current_step /var/lib/crowbar/upgrade/progress.yml | grep -v upgrade_prepare" "prepare step to finish"
     fi
 }
 
