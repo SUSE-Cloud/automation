@@ -77,7 +77,7 @@
               "openstack-horizon-plugin-magnum-ui",
               "openstack-octavia",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Mitaka" ].contains(project) &&
+            [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Mitaka:Staging" ].contains(project) &&
             [
             "openstack-murano",
             "openstack-horizon-plugin-sahara-ui",
