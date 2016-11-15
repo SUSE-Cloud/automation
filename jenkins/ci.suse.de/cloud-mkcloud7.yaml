@@ -31,6 +31,7 @@
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
+        - 'cloud-mkcloud{version}-job-uefi-{arch}'
         - 'cloud-mkcloud{version}-newton-job-2nodes-{arch}'
         - 'cloud-mkcloud{version}-newton-job-4nodes-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-newton-job-ha-{arch}'
