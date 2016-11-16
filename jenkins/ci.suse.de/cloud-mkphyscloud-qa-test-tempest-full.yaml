@@ -49,9 +49,10 @@
           cloud=qa$hw_number;
 
           ssh root@$admin "
-          export tempestoptions=\"-t\";
+            export tempestoptions=\"-t\";
             export cloud=$cloud;
             export testsetup=$testsetup;
+            export TESTHEAD=$TESTHEAD;
           " '
             hostname -f;
             source mkcloud.config;

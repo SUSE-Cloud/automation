@@ -52,6 +52,7 @@
             export tempestoptions=\"--serial --no-virtual-env -- --load-list defcore.txt\";
             export cloud=$cloud;
             export testsetup=$testsetup;
+            export TESTHEAD=$TESTHEAD;
           " '
             hostname -f;
             source mkcloud.config;
