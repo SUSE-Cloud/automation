@@ -1,5 +1,5 @@
 - job:
-    name: cloud-mkphyscloud-qa-test-tempest-full-job
+    name: cloud-mkphyscloud-qa-test-tempest-full
     node: cloud-mkphyscloud-gate-qa
     description: |
       Runs tempest full on a specified QA hardware.

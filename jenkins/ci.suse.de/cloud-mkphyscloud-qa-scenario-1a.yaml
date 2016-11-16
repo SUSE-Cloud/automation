@@ -216,3 +216,4 @@
               scenario_name=1a
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER
+              TESTHEAD=$TESTHEAD

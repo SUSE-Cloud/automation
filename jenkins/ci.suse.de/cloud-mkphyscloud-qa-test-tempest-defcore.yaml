@@ -1,5 +1,5 @@
 - job:
-    name: cloud-mkphyscloud-qa-test-tempest-defcore-job
+    name: cloud-mkphyscloud-qa-test-tempest-defcore
     node: cloud-mkphyscloud-gate-qa
     description: |
       Runs tempest defcore tests on a specified QA hardware.

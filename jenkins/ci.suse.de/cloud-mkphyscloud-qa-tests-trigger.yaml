@@ -54,6 +54,10 @@
           name: scenario_build_number
           description: Optional; scenario build number that triggered this job
 
+      - string:
+          name: TESTHEAD
+          description: if non-empty, test latest version from Devel:Cloud Staging
+
     builders:
       - conditional-step:
           condition-kind: regex-match
@@ -61,7 +65,7 @@
           label: smoke
           steps:
             - trigger-builds:
-                - project: cloud-mkphyscloud-qa-test-tempest-smoke-job
+                - project: cloud-mkphyscloud-qa-test-tempest-smoke
                   condition: ALWAYS
                   block: true
                   block-thresholds:
@@ -74,6 +78,7 @@
                     scenario_name=$scenario_name
                     scenario_job_name=$scenario_job_name
                     scenario_build_number=$scenario_build_number
+                    TESTHEAD=$TESTHEAD
 
       - conditional-step:
           condition-kind: regex-match
@@ -81,7 +86,7 @@
           label: defcore
           steps:
             - trigger-builds:
-                - project: cloud-mkphyscloud-qa-test-tempest-defcore-job
+                - project: cloud-mkphyscloud-qa-test-tempest-defcore
                   condition: ALWAYS
                   block: true
                   block-thresholds:
@@ -93,6 +98,7 @@
                     scenario_name=$scenario_name
                     scenario_job_name=$scenario_job_name
                     scenario_build_number=$scenario_build_number
+                    TESTHEAD=$TESTHEAD
 
       - conditional-step:
           condition-kind: regex-match
@@ -100,7 +106,7 @@
           label: full
           steps:
             - trigger-builds:
-                - project: cloud-mkphyscloud-qa-test-tempest-full-job
+                - project: cloud-mkphyscloud-qa-test-tempest-full
                   condition: ALWAYS
                   block: true
                   block-thresholds:
@@ -112,6 +118,7 @@
                     scenario_name=$scenario_name
                     scenario_job_name=$scenario_job_name
                     scenario_build_number=$scenario_build_number
+                    TESTHEAD=$TESTHEAD
 
       - conditional-step:
           condition-kind: boolean-expression 
@@ -130,4 +137,5 @@
                     scenario_name=$scenario_name
                     scenario_job_name=$scenario_job_name
                     scenario_build_number=$scenario_build_number
+                    TESTHEAD=$TESTHEAD
 
