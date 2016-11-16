@@ -417,7 +417,7 @@ function add_sdk_repo
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
             ;;
-        develcloud7|mitakacloud7|newtoncloud7|susecloud7|M?|Beta*|RC*|GMC*)
+        develcloud7|mitakacloud7|susecloud7|M?|Beta*|RC*|GMC*)
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
             ;;
@@ -944,7 +944,7 @@ function onadmin_prepare_cloud_repos
             develcloud6)
                 addsles12sp1testupdates
                 ;;
-            develcloud7|mitakacloud7|newtoncloud7|susecloud7|M?|Beta*|RC*|GMC*)
+            develcloud7|mitakacloud7|susecloud7|M?|Beta*|RC*|GMC*)
                 addsles12sp2testupdates
                 ;;
             *)
@@ -1162,12 +1162,6 @@ function onadmin_set_source_variables
         mitakacloud7)
             # This is used by the CloudFoundry team. Do not remove!
             CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7:/Mitaka/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"
-            CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
-        ;;
-        newtoncloud7)
-            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7:/Newton/images/iso
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
