@@ -93,7 +93,7 @@ function libvirt_do_setuphost()
         [[ $arch = s390x ]] && kvmpkg=qemu-s390
         zypper --non-interactive in --no-recommends \
             libvirt $kvmpkg $osloader $ipxe lvm2 curl wget bridge-utils \
-            dnsmasq netcat-openbsd ebtables libvirt-python
+            dnsmasq netcat-openbsd ebtables libvirt-python vlan
         [ "$?" == 0 -o "$?" == 4 ] || complain 10 "setuphost failed to install required packages"
 
         # enable KVM
