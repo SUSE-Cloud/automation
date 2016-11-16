@@ -322,13 +322,16 @@ function addsles12sp1testupdates
 
 function addsles12sp2testupdates
 {
-    echo "Enable SLES12SP2 Test Updates once available"
-    # add_mount "SLES12-SP2-Updates-test" \
-    #     $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/x86_64/update/' \
-    #     "$tftpboot_repos12sp2_dir/SLES12-SP2-Updates-test/" "sles12sp2tup"
-    # [[ $hacloud = 1 ]] && add_mount "SLE12-SP2-HA-Updates-test" \
-    #     $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/' \
-    #     "$tftpboot_repos12sp2_dir/SLE12-SP2-HA-Updates-test/"
+    if isrepoworking SLES12-SP2-Updates-test ; then
+        add_mount "SLES12-SP2-Updates-test" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/$arch/update/" \
+            "$tftpboot_repos12sp1_dir/SLES12-SP2-Updates-test/" "sles12sp1tup"
+    fi
+    if isrepoworking SLE12-SP2-HA-Updates-test ; then
+        [[ $hacloud = 1 ]] && add_mount "SLE12-SP2-HA-Updates-test" \
+            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/$arch/update/" \
+            "$tftpboot_repos12sp1_dir/SLE12-SP2-HA-Updates-test/"
+    fi
     if isrepoworking SUSE-Enterprise-Storage-4-Updates-test ; then
         if [ -n "$deployceph" ] && iscloudver 7plus; then
             add_mount "SUSE-Enterprise-Storage-4-Updates-test" \
