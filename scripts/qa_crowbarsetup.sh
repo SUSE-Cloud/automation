@@ -1155,8 +1155,8 @@ function onadmin_set_source_variables
         develcloud7)
             CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7/images/iso
             [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7:/Staging/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"
-            CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-7-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
         ;;
         mitakacloud7)
