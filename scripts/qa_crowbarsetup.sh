@@ -1013,8 +1013,6 @@ function onadmin_write_cloud_info
         echo
     fi
     ) >> /etc/motd
-
-    echo $cloudsource > /etc/cloudsource
 }
 
 
@@ -2817,11 +2815,6 @@ function custom_configuration
 # set global variables to be used in and after proposal phase
 function set_proposalvars
 {
-    # Determine if we went through an upgrade
-    if [[ -f /etc/cloudsource ]] ; then
-        export cloudsource=$(</etc/cloudsource)
-    fi
-
     ### dynamic defaults
     case "$nodenumber" in
         0|1)
