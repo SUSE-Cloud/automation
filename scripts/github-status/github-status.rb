@@ -88,6 +88,23 @@ class GHClientHandler
     end
   end
 
+  def get_pull_requests(state, status = [])
+    pulls = get_own_pull_requests(state, status)
+    # filter applicable PRs, non applicable PRs do not touch files affecting mkcloud runs
+    pulls_applicable, pulls_not_applicable =
+      pulls.partition do |p|
+        return true unless @repository == "SUSE-Cloud/automation"
+        pf = @client.pull_request_files(@repository, p[:number]).select do |f|
+          f[:filename] =~ %r{scripts/(mkcloud|qa_crowbarsetup\.sh|lib/.*)$}
+        end
+        # at least one filename must match to require a mkcloud gating run
+        pf.size > 0
+    end
+    # set status for non applicable PRs, to not see them again
+    pulls_not_applicable.each { |na| create_status(na.head.sha, :success, 'mkcloud gating not applicable') }
+    pulls_applicable
+  end
+
   def print_pr_sha_info(pull)
     if pull.is_a? Array
       pull.each do |p|
@@ -105,17 +122,17 @@ class GHClientHandler
 
   def show_rebuild_pull_requests
     print_pr_sha_info(
-      get_own_pull_requests('open', ['', 'pending']))
+      get_pull_requests('open', ['', 'pending']))
   end
 
   def show_forcerebuild_pull_requests
     print_pr_sha_info(
-      get_own_pull_requests('open', ['', 'pending', 'error', 'failure']))
+      get_pull_requests('open', ['', 'pending', 'error', 'failure']))
   end
 
   def show_open_pull_requests
     print_pr_sha_info(
-      get_own_pull_requests('open', ['', 'pending', 'error', 'failure', 'success']))
+      get_pull_requests('open', ['', 'pending', 'error', 'failure', 'success']))
   end
 
 end
