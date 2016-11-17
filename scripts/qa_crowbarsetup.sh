@@ -4151,7 +4151,7 @@ function onadmin_addupdaterepo
 function zypper_patch
 {
     wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
-    wait_for 30 3 ' zypper --non-interactive patch ; ret=$?; if [ $ret == 103 ]; then zypper --non-interactive patch ; ret=$?; fi; [[ $ret != 4 ]] ' "successful zypper run" "exit 9"
+    wait_for 30 3 ' zypper --non-interactive patch --with-interactive ; ret=$?; if [ $ret == 103 ]; then zypper --non-interactive patch --with-interactive ; ret=$?; fi; [[ $ret != 4 ]] ' "successful zypper run" "exit 9"
     wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
 }
 
@@ -4495,7 +4495,7 @@ function onadmin_reapply_openstack_proposals
 function onadmin_upgrade_prechecks
 {
     if ! crowbarctl upgrade prechecks --format json | rubyjsonparse \
-        'exit false if j.keys.any? { |key| j[key]["required"] && !j[key]["passed"]}'
+        "exit false if j.any? { |test| test['required'] && test['passed'] == false }"
     then
         complain 11 "Some necessary check before the upgrade has failed"
     fi
@@ -4510,13 +4510,25 @@ function onadmin_prepare_crowbar_upgrade
         # move nodes to upgrade mode
         safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
     else
-        if safely crowbarctl upgrade repocheck crowbar --format plain | grep "missing" ; then
-            complain 11 "Some repository is missing on admin server. Cannot upgrade."
-        fi
-        # FIXME: crowbarctl command can time out easily
-        # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
-        # safely crowbarctl upgrade prepare
-        safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
+        safely crowbarctl upgrade prepare
+        wait_for 200 5 "grep current_step /var/lib/crowbar/upgrade/progress.yml | grep -v upgrade_prepare" "prepare step to finish"
+    fi
+}
+
+function onadmin_upgrade_admin_backup
+{
+    if ! safely crowbarctl upgrade backup crowbar ; then
+        complain 11 "Creating the backup of admin server database has failed."
+    fi
+    if ! ls $crowbar_lib_dir/backup/*.gz > /dev/null ; then
+        complain 11 "Crowbar backup is not present in $crowbar_lib_dir/backup."
+    fi
+}
+
+function onadmin_upgrade_admin_repocheck
+{
+    if safely crowbarctl upgrade repocheck crowbar --format plain | grep "missing" ; then
+        complain 11 "Some repository is missing on admin server. Cannot upgrade."
     fi
 }
 
