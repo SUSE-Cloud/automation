@@ -2759,7 +2759,17 @@ function custom_configuration
             fi
             # manila options
             if iscloudver 6plus ; then
-                proposal_set_value tempest default "['attributes']['tempest']['manila']['image_password']" "'linux'"
+                if [ -n "$deployceph" ] && iscloudver 7plus; then
+                    # cephfs is deployed
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['enable_cert_rules_for_protocols']" "''"
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['enable_ip_rules_for_protocols']" "''"
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['run_consistency_group_tests']" "false"
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['run_snapshot_tests']" "false"
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['enable_protocols']" "'cephfs'"
+                else
+                    # generic driver
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['image_password']" "'linux'"
+                fi
             fi
             #magnum options
             if iscloudver 7plus ; then
