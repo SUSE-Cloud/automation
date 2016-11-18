@@ -1466,7 +1466,7 @@ function onadmin_activate_repositories
     fi
 
     # activate provisioner repos, so that nodes can use them
-    safely crowbar_api_request POST $crowbar_api "/utils/repositories/activate_all.json"
+    safely crowbar_api_request POST $crowbar_api "/utils/repositories/activate_all.json" "$crowbar_api_digest"
 }
 
 function onadmin_bootstrapcrowbar
@@ -4536,7 +4536,7 @@ function onadmin_prepare_crowbar_upgrade
     elif iscloudver 5; then
         # using the API, due to missing crowbar cli integration
         # move nodes to upgrade mode
-        safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
+        safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json "$crowbar_api_digest"
     else
         safely crowbarctl upgrade prepare
         wait_for 200 5 "grep current_step /var/lib/crowbar/upgrade/progress.yml | grep -v upgrade_prepare" "prepare step to finish"
@@ -4692,9 +4692,9 @@ function onadmin_crowbarrestore
             with_upgrade)
                 # restore after upgrade has different workflow (missing APIs) than
                 #   a restore from a backup of the same cloud release
-                safely crowbar_api_request POST $crowbar_api /installer/upgrade/start.json "-F file=@/tmp/$btarball"
             ;;
             *)
+            safely crowbar_api_request POST $crowbar_api /installer/upgrade/start.json "$crowbar_api_digest -F file=@/tmp/$btarball"
                 # crowbarctl needs --anonymous to workaround a crowbarctl issue which leads to two api requests
                 # per call (auth + actual request) which fails when running crowbarctl directly on the admin node
                 safely crowbarctl backup upload /tmp/$btarball --anonymous
@@ -4730,7 +4730,7 @@ function onadmin_crowbar_nodeupgrade
         local endpoint
         local http_code
         for endpoint in services backup nodes; do
-            safely crowbar_api_request POST $crowbar_api /installer/upgrade/${endpoint}.json
+            safely crowbar_api_request POST $crowbar_api /installer/upgrade/${endpoint}.json "$crowbar_api_digest"
         done
         wait_for 360 10 "crowbar_nodeupgrade_status | grep -q '\"left\": *0'" "crowbar to finish the nodeupgrade"
         if ! crowbar_nodeupgrade_status | grep -q '"failed": *0' ; then
