@@ -4711,9 +4711,9 @@ function onadmin_crowbar_nodeupgrade
         # FIXME: crowbarctl command can time out easily
         # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
         # safely crowbarctl upgrade services
-        curl -s -X POST -H $crowbar_api_v2_header $crowbar_api/api/upgrade/services
+        curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/services
         # safely crowbarctl upgrade nodes
-        curl -s -X POST -H $crowbar_api_v2_header $crowbar_api/api/upgrade/nodes
+        curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/nodes
     else
         local endpoint
         local http_code
