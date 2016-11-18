@@ -302,6 +302,7 @@
         export want_neutronsles12=1
         export want_mtu_size=8900
         [[ $libvirt_type = hyperv ]] && want_mtu_size=1500 # windows-PXE-bootloader seems to not like jumbo-packets
+        [[ $hacloud ]] && [[ $(uname -m) = aarch64 ]] && echo "WARNING: there are no HA repos for aarch64" && hacloud=
         export rally_server=backup.cloudadm.qa.suse.de
         # to not fail when two concurrent zypper runs happen:
         export ZYPP_LOCK_TIMEOUT=120
