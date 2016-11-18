@@ -461,6 +461,10 @@
           MKCLOUDTARGET+=" setuplonelynodes crowbar_register"
         fi
 
+        [ $(uname -m) = aarch64 ] && {
+            export vcpus=16
+        }
+
         pushd ~/pool/
             # free up a pool if more than one is reserved
             # policy allows only one reservation per host at the moment
