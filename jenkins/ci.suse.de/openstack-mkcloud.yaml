@@ -455,6 +455,8 @@
           [ $(uname -m) = s390x ] && {
               export nodenumberlonelynode=$nodenumber
               export nodenumber=0
+              export controller_node_memory=8388608
+              export compute_node_memory=6291456
           }
           MKCLOUDTARGET+=" setuplonelynodes crowbar_register"
         fi
