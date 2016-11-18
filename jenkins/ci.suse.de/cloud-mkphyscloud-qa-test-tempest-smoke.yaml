@@ -1,5 +1,5 @@
 - job:
-    name: cloud-mkphyscloud-qa-test-tempest-smoke-job
+    name: cloud-mkphyscloud-qa-test-tempest-smoke
     node: cloud-mkphyscloud-gate-qa
     description: |
       Runs tempest smoke tests
@@ -37,6 +37,14 @@
           name: scenario_build_number
           description: Optional; scenario build number that triggered this job
 
+      - string:
+          name: scenario_build_number
+          description: Optional; scenario build number that triggered this job
+
+      - string:
+          name: TESTHEAD
+          description: if non-empty, test latest version from Devel:Cloud Staging
+
       - bool:
           name: testsetup
           default: true
@@ -52,10 +60,11 @@
             export tempestoptions=\"-t -s\";
             export cloud=$cloud;
             export testsetup=$testsetup;
+            export TESTHEAD=$TESTHEAD;
           " '
             hostname -f;
             source mkcloud.config;
-            source qa_crowbarsetup.sh;
+            source scripts/qa_crowbarsetup.sh;
 
             if [ "$testsetup" == true ] ; then
                onadmin_testsetup;

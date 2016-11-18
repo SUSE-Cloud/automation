@@ -1,5 +1,5 @@
 - job:
-    name: cloud-mkphyscloud-qa-test-tempest-defcore-job
+    name: cloud-mkphyscloud-qa-test-tempest-defcore
     node: cloud-mkphyscloud-gate-qa
     description: |
       Runs tempest defcore tests on a specified QA hardware.
@@ -52,10 +52,11 @@
             export tempestoptions=\"--serial --no-virtual-env -- --load-list defcore.txt\";
             export cloud=$cloud;
             export testsetup=$testsetup;
+            export TESTHEAD=$TESTHEAD;
           " '
             hostname -f;
             source mkcloud.config;
-            source qa_crowbarsetup.sh;
+            source scripts/qa_crowbarsetup.sh;
 
             if [ "$testsetup" == true ] ; then
                onadmin_testsetup;
