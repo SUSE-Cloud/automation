@@ -4513,6 +4513,7 @@ function onadmin_upgrade_prechecks
     if ! crowbarctl upgrade prechecks --format json | rubyjsonparse \
         "exit false if j.any? { |test| test['required'] && test['passed'] == false }"
     then
+        crowbarctl upgrade prechecks
         complain 11 "Some necessary check before the upgrade has failed"
     fi
 }
