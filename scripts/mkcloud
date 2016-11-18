@@ -1219,6 +1219,7 @@ function sanity_checks
         complain 113 "Please increase number of nodes for this setup, minimal nodenumber=3"
     fi
 
+    [[ $hacloud = 1 ]] && [[ $(uname -m) = aarch64 ]] && complain 7 "there are no HA repos for aarch64"
     if iscloudver 6plus && [[ $want_ceph = 1 ]] && [[ $(nodes number normal) -lt 3 ]] ; then
         complain 113 "Please increase number of nodes for this setup, minimal nodenumber=3"
     fi
