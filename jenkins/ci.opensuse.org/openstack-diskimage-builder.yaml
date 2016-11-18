@@ -22,6 +22,7 @@
           type: user-defined
           name: opensuse_release
           values:
+            - 42.2
             - 42.1
             - 13.1
       - axis:
