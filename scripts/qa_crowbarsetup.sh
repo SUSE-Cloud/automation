@@ -2495,9 +2495,16 @@ function custom_configuration
             fi
 
             if iscloudver 6plus ; then
-                proposal_set_value manila default "['attributes']['manila']['default_share_type']" "'default'"
-                # new generic driver options since M9
-                if crowbar manila proposal show default|grep service_instance_name_or_id ; then
+                if [ -n "$deployceph" ] && iscloudver 7plus; then
+                    # deploy cephfs
+                    proposal_set_value manila default "['attributes']['manila']['default_share_type']" "'ceph'"
+                    proposal_set_value manila default "['attributes']['manila']['shares']" "[{}]"
+                    proposal_set_value manila default "['attributes']['manila']['shares'][0]['cephfs']" "j['attributes']['manila']['share_defaults']['cephfs']"
+                    proposal_set_value manila default "['attributes']['manila']['shares'][0]['backend_driver']" "'cephfs'"
+                    proposal_set_value manila default "['attributes']['manila']['shares'][0]['backend_name']" "'cephfs-backend'"
+                else
+                    # deploy generic driver
+                    proposal_set_value manila default "['attributes']['manila']['default_share_type']" "'default'"
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['backend_driver']" "'generic'"
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['backend_name']" "'backend1'"
                     proposal_set_value manila default "['attributes']['manila']['shares'][0]['generic']['service_instance_user']" "'root'"
@@ -2752,7 +2759,17 @@ function custom_configuration
             fi
             # manila options
             if iscloudver 6plus ; then
-                proposal_set_value tempest default "['attributes']['tempest']['manila']['image_password']" "'linux'"
+                if [ -n "$deployceph" ] && iscloudver 7plus; then
+                    # cephfs is deployed
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['enable_cert_rules_for_protocols']" "''"
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['enable_ip_rules_for_protocols']" "''"
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['run_consistency_group_tests']" "false"
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['run_snapshot_tests']" "false"
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['enable_protocols']" "'cephfs'"
+                else
+                    # generic driver
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['image_password']" "'linux'"
+                fi
             fi
             #magnum options
             if iscloudver 7plus ; then
@@ -3608,6 +3625,12 @@ function oncontroller_testsetup
         ! openstack catalog show manila 2>&1 | grep -q "service manila not found" && \
         ! manila type-list | grep -q "[[:space:]]default[[:space:]]" ; then
         manila type-create default false || complain 79 "manila type-create failed"
+    fi
+
+    if iscloudver 7plus && \
+        ! openstack catalog show manila 2>&1 | grep -q "service manila not found" && \
+        ! manila type-list | grep -q "[[:space:]]ceph[[:space:]]" ; then
+        manila type-create ceph false --snapshot_support false || complain 79 "manila type-create for ceph failed"
     fi
 
     # prepare test image with the -test packages containing functional tests
