@@ -86,12 +86,12 @@
             "openstack-murano",
             "openstack-horizon-plugin-sahara-ui",
             "openstack-horizon-plugin-trove-ui",
+            "openstack-zaqar",
             ].contains(component) ||
             [ "Cloud:OpenStack:Newton:Staging", "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging" ].contains(project) &&
             [
               "python-heat-cfntools",
               "openstack-rally",
-              "openstack-zaqar",
             ].contains(component)
             )
       sequential: true
