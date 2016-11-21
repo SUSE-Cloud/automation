@@ -3528,7 +3528,7 @@ function oncontroller_manila_generic_driver_setup()
         [ $? != 0 ] && complain 44 "adding a floating ip to the manila service VM failed"
     fi
     # check that the service VM is pingable. otherwise manila tempest tests will fail later
-    wait_for 300 1 "nc -z $manila_tenant_vm_ip 22" \
+    wait_for 300 1 "nc -w 1 -z $manila_tenant_vm_ip 22" \
         "manila service VM booted and ssh port open" \
         "echo \"ERROR: manila service VM not listening on ssh port. manila tests will fail!\""
 }
