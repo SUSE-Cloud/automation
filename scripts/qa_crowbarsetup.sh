@@ -1059,25 +1059,23 @@ function create_repos_yml
     echo --- > $tmp_yml
 
     # Clone test updates from admin node
-    ### FIXME: point to provisioner urls from admin node rather than direct links
+    local baseurl=http://crowbar.$cloudfqdn:8091/
     grep -q SLES12-SP1-Updates-test /etc/fstab && \
-        additional_repos+=" SLES12-SP1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/x86_64/update/"
+        additional_repos+=" SLES12-SP1-Updates-test=$baseurl/suse-12.1/$arch/repos/SLES12-SP1-Updates-test"
     grep -q SLES12-SP2-Updates-test /etc/fstab && \
-        additional_repos+=" SLES12-SP2-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/x86_64/update/"
+        additional_repos+=" SLES12-SP2-Updates-test=$baseurl/suse-12.2/$arch/repos/SLES12-SP2-Updates-test"
     grep -q SUSE-OpenStack-Cloud-6-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-OpenStack-Cloud-6-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/"
+        additional_repos+=" SUSE-OpenStack-Cloud-6-Updates-test=$baseurl/suse-12.1/$arch/repos/SUSE-OpenStack-Cloud-6-Updates-test"
     grep -q SUSE-OpenStack-Cloud-7-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/"
+        additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=$baseurl/suse-12.2/$arch/repos/SUSE-OpenStack-Cloud-7-Updates-test"
     grep -q SLE12-SP1-HA-Updates-test /etc/fstab && \
-        additional_repos+=" SLE12-SP1-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/x86_64/update/"
+        additional_repos+=" SLE12-SP1-HA-Updates-test=$baseurl/suse-12.1/$arch/repos/SLE12-SP1-HA-Updates-test"
     grep -q SLE12-SP2-HA-Updates-test /etc/fstab && \
-        additional_repos+=" SLE12-SP2-HA-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/x86_64/update/"
+        additional_repos+=" SLE12-SP2-HA-Updates-test=$baseurl/suse-12.2/$arch/repos/SLE12-SP2-HA-Updates-test"
     grep -q SUSE-Enterprise-Storage-2.1-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-Enterprise-Storage-2.1-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/x86_64/update/"
-    grep -q SUSE-Enterprise-Storage-3-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-Enterprise-Storage-3-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/3:/x86_64/update/"
+        additional_repos+=" SUSE-Enterprise-Storage-2.1-Updates-test=$baseurl/suse-12.1/$arch/repos/SUSE-Enterprise-Storage-2.1-Updates-test"
     grep -q SUSE-Enterprise-Storage-4-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-Enterprise-Storage-4-Updates-test=http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/4:/x86_64/update/"
+        additional_repos+=" SUSE-Enterprise-Storage-4-Updates-test=$baseurl/suse-12.2/$arch/repos/SUSE-Enterprise-Storage-4-Updates-test"
 
     if iscloudver 6; then
         for devel_repo in ${want_devel_repos//,/ }; do
