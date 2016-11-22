@@ -332,7 +332,7 @@ function onhost_prepareadmin
 
 function wait_for_crowbar_ssh
 {
-    wait_for 150 1 "nc -z $adminip 22" 'admin node to start ssh daemon'
+    wait_for 150 1 "nc -w 1 -z $adminip 22" 'admin node to start ssh daemon'
 }
 
 function wait_for_crowbar_ntpd
@@ -721,7 +721,7 @@ function rebootcrowbar
     # reboot the crowbar instance
     #  and test if everything is up and running afterwards
     sshrun "reboot"
-    wait_for 50 3 "! nc -z $adminip 22" 'crowbar to go down'
+    wait_for 50 3 "! nc -w 1 -z $adminip 22" 'crowbar to go down'
     wait_for_crowbar_ssh
     echo "waiting another 180 seconds for services"
     sleep 180
@@ -814,7 +814,7 @@ function crowbarupgrade_5plus
         onadmin upgrade_admin_repocheck
         onadmin upgrade_admin_server
         export cloudsource=$upgrade_cloudsource
-        wait_for 200 3 "! nc -z $adminip 22" 'crowbar to go down after upgrade'
+        wait_for 200 3 "! nc -w 1 -z $adminip 22" 'crowbar to go down after upgrade'
         wait_for_crowbar_ssh
         onadmin check_admin_server_upgraded
         # use crowbar-init to bootstrap crowbar
