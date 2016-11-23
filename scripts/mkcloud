@@ -806,6 +806,7 @@ function onhost_reset_admin
 function crowbarupgrade_5plus
 {
     if iscloudver 6plus ; then
+        onadmin zypper_patch_all
         onadmin upgrade_prechecks
         export cloudsource=$upgrade_cloudsource
         onadmin prepare_crowbar_upgrade
