@@ -93,7 +93,7 @@ class GHClientHandler
     # filter applicable PRs, non applicable PRs do not touch files affecting mkcloud runs
     pulls_applicable, pulls_not_applicable =
       pulls.partition do |p|
-        return true unless @repository == "SUSE-Cloud/automation"
+        next true unless @repository == "SUSE-Cloud/automation"
         pf = @client.pull_request_files(@repository, p[:number]).select do |f|
           f[:filename] =~ %r{scripts/(mkcloud|qa_crowbarsetup\.sh|lib/.*)$}
         end
