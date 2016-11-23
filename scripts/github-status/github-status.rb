@@ -3,6 +3,7 @@
 require 'octokit'
 require 'optparse'
 require 'json'
+require 'yaml'
 
 # GitHub client handler
 class GHClientHandler
@@ -14,6 +15,7 @@ class GHClientHandler
   # @option config [String] :context GH status context string
   # @option config [String] :branch ("") filter PRs by branch name
   def initialize(config = {})
+    read_config_file
     @comment_prefix = config[:comment_prefix] || 'CI mkcloud gating '
     @repository = config[:repository] || 'SUSE-Cloud/automation'
     @context = config[:context] || 'suse/mkcloud'
@@ -21,6 +23,13 @@ class GHClientHandler
     @client = Octokit::Client.new(:netrc => true)
     @client.auto_paginate = true
     @client.login
+  end
+
+  def read_config_file
+    filename = File.expand_path("../github-status.yaml", __FILE__)
+    yaml = YAML.load_file(filename)
+    @user_whitelist = yaml["user_whitelist"]
+    @team_whitelist = yaml["team_whitelist"]
   end
 
   def create_status(commit, result, description = nil, target_url = nil)
@@ -85,13 +94,10 @@ class GHClientHandler
     pulls.select do |p|
       user = p.head.repo.owner.login rescue ''
       next false if (!user || user.nil? || user.empty?)
-      # team id 1541628 -> SUSE-Cloud/developers
-      # team id 291046 -> crowbar/Owners
-      # team id 159206 -> SUSE-Cloud/Owners
-      user == "SUSE-Cloud" ||
-        @client.team_member?(1541628, user) ||
-        @client.team_member?(291046, user) ||
-        @client.team_member?(159206, user)
+      @user_whitelist.include?(user) || @team_whitelist.any? do |t_id|
+        # t_id is a numeric id
+        @client.team_member?(t_id, user)
+      end
     end
   end
 
