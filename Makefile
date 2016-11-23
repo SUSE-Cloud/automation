@@ -37,7 +37,7 @@ rounduptest:
 	cd scripts && roundup
 
 flake8:
-	flake8 scripts/
+	flake8 scripts/ hostscripts/soc-ci/soc-ci
 
 python_unittest:
 	python -m unittest discover -v -s scripts/lib/libvirt/
