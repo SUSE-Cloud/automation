@@ -137,6 +137,18 @@ class GHClientHandler
 
 end
 
+# To see API traffic:
+# RUBYOPT=-d github-status.rb ...
+if $DEBUG
+  require 'faraday'
+  stack = Faraday::RackBuilder.new do |builder|
+    builder.response :logger
+    builder.use Octokit::Response::RaiseError
+    builder.adapter Faraday.default_adapter
+  end
+  Octokit.middleware = stack
+end
+
 ACTIONS = %w(
   list-unseen-prs
   list-rebuild-prs
