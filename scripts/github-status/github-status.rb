@@ -117,7 +117,7 @@ class GHClientHandler
 
   def show_unseen_pull_requests
     print_pr_sha_info(
-      get_own_pull_requests('open', ['']))
+      get_pull_requests('open', ['']))
   end
 
   def show_rebuild_pull_requests
