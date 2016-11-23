@@ -220,12 +220,6 @@ function add_mount
     fi
 }
 
-function isupgradecloudver
-{
-    local cloudsource=$upgrade_cloudsource
-    iscloudver "$@"
-}
-
 function issusenode
 {
     local machine=$1
@@ -4327,12 +4321,6 @@ function onadmin_rebootneutron
 # This will adapt Cloud6 admin server repositories to Cloud7 ones
 function onadmin_prepare_cloudupgrade_repos_6_to_7
 {
-    test -z "$upgrade_cloudsource" && {
-        complain 15 "upgrade_cloudsource is not set"
-    }
-
-    export cloudsource=$upgrade_cloudsource
-
     export_tftpboot_repos_dir
 
     # change CLOUDSLE11DISTISO/CLOUDSLE11DISTPATH according to the new cloudsource
@@ -4378,12 +4366,6 @@ function onadmin_prepare_cloudupgrade
 
     wait_for_if_running chef-client
 
-    test -z "$upgrade_cloudsource" && {
-        complain 15 "upgrade_cloudsource is not set"
-    }
-
-    export cloudsource=$upgrade_cloudsource
-
     # Update new repo paths
     export_tftpboot_repos_dir
 
@@ -4413,7 +4395,6 @@ function onadmin_cloudupgrade_1st
         echo "SUSE-Cloud-5-Pool SUSE-Cloud-5-Updates" > /etc/zypp/repos.d/ignore-repos
     fi
 
-    export cloudsource=$upgrade_cloudsource
     do_set_repos_skip_checks
 
     # Disable all openstack proposals stop service on the client
