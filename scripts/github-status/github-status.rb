@@ -4,8 +4,15 @@ require 'octokit'
 require 'optparse'
 require 'json'
 
+# GitHub client handler
 class GHClientHandler
 
+  # @param  config [Hash]
+  # @option config [String] :comment_prefix will start every GH comment
+  #    FIXME: must include a trailing space
+  # @option config [String] :repository GH "owner/repo"
+  # @option config [String] :context GH status context string
+  # @option config [String] :branch ("") filter PRs by branch name
   def initialize(config = {})
     @comment_prefix = config[:comment_prefix] || 'CI mkcloud gating '
     @repository = config[:repository] || 'SUSE-Cloud/automation'
@@ -150,6 +157,7 @@ if $DEBUG
 end
 
 ACTIONS = %w(
+  list-open-prs
   list-unseen-prs
   list-rebuild-prs
   list-forcerebuild-prs
