@@ -1481,7 +1481,13 @@ function onadmin_bootstrapcrowbar
         if [[ $upgrademode = "with_upgrade" ]] ; then
             safely crowbarctl upgrade database new
         else
-            safely crowbarctl database create
+            if iscloudver 7M6minus ; then
+                safely crowbar_api_request POST $crowbar_init_api /database/new \
+                    '--data username=crowbar&password=crowbar' "$crowbar_api_v2_header"
+                safely crowbar_api_request POST $crowbar_init_api /init "" "$crowbar_api_v2_header"
+            else
+                safely crowbarctl database create
+            fi
         fi
     fi
 }
