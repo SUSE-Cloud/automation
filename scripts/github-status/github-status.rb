@@ -10,7 +10,6 @@ class GHClientHandler
 
   # @param  config [Hash]
   # @option config [String] :comment_prefix will start every GH comment
-  #    FIXME: must include a trailing space
   # @option config [String] :repository GH "owner/repo"
   # @option config [String] :context GH status context string
   # @option config [String] :branch ("") filter PRs by branch name
@@ -80,6 +79,11 @@ class GHClientHandler
     get_pr_latest_sha(pr) == sha
   end
 
+  # Get pull requests for *repository* that have a matching build *status*
+  # and match the *branch* (if set).
+  # @param state [String] "open" or "closed"
+  # @param status [Array<String>]
+  #   any of "" (not set), "pending", "success", "error", "failure"
   def get_all_pull_requests(state, status = [])
     pulls = @client.pull_requests(@repository, :state => state)
     pulls.select do |p|
@@ -88,6 +92,8 @@ class GHClientHandler
     end
   end
 
+  # Get pull requests; limit to those made by whitelisted people
+  # @see get_all_pull_requests
   def get_own_pull_requests(state, status = [])
     # filter for our own PRs, as we do not want to build anybodys PR
     pulls = get_all_pull_requests(state, status)
@@ -101,6 +107,10 @@ class GHClientHandler
     end
   end
 
+  # Get pull requests made by whitelisted people.
+  # Of these, return the applicable ones (touching specific files)
+  # AND set the status of the others to "success"
+  # @see get_own_pull_requests
   def get_pull_requests(state, status = [])
     pulls = get_own_pull_requests(state, status)
     # filter applicable PRs, non applicable PRs do not touch files affecting mkcloud runs
