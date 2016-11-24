@@ -184,11 +184,15 @@ options = {}
 optparse = OptionParser.new do |opts|
   opts.banner = "Query github for pull request status"
 
+  opts.separator ""
+  opts.separator "Required option:"
   actions = ACTIONS.join ', '
   opts.on('-a', '--action ACTION', "Action to perform (#{actions})") do |a|
     options[:action] = a
   end
 
+  opts.separator ""
+  opts.separator "Common options:"
   opts.on('-p', '--pullrequest PRID', 'Github Pull Request ID') do |pr|
     options[:pr] = pr
   end
@@ -205,6 +209,8 @@ optparse = OptionParser.new do |opts|
     options[:sha] = sha
   end
 
+  opts.separator ""
+  opts.separator "Options for set-status:"
   opts.on('-t', '--targeturl URL', 'Target URL of a CI Build') do |url|
     options[:target_url] = url
   end
@@ -217,10 +223,14 @@ optparse = OptionParser.new do |opts|
     options[:message] = msg
   end
 
+  opts.separator ""
+  opts.separator "Options for list-...-prs:"
   opts.on('-b', '--branch BRANCHNAME', 'Filters pull requests by target branch name.') do |br|
     options[:branch] = br
   end
 
+  opts.separator ""
+  opts.separator "Options for get-pr-info:"
   opts.on('-k', '--key KEY',
           'Dot-separated attribute path to extract from PR JSON, ' \
           'e.g. base.head.owner.  Optional, only for use with ' \
@@ -228,6 +238,7 @@ optparse = OptionParser.new do |opts|
     options[:key] = key
   end
 
+  opts.separator ""
   opts.on('-h', '--help', 'Show usage') do |h|
     puts opts
     exit
