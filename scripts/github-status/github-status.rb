@@ -118,13 +118,10 @@ class GHClientHandler
     pulls_applicable
   end
 
-  def print_pr_sha_info(pull)
-    if pull.is_a? Array
-      pull.each do |p|
-        print_pr_sha_info(p)
-      end
-    else
-      puts "#{pull.number}:#{pull.head.sha}:#{pull.base.ref}" if pull
+  # @param pulls [PR,Array<PR>]
+  def print_pr_sha_info(pulls)
+    Array(pulls).each do |pull|
+      puts "#{pull.number}:#{pull.head.sha}:#{pull.base.ref}"
     end
   end
 
