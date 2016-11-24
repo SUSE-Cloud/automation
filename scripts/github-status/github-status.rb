@@ -13,12 +13,14 @@ class GHClientHandler
   # @option config [String] :repository GH "owner/repo"
   # @option config [String] :context GH status context string
   # @option config [String] :branch ("") filter PRs by branch name
+  # @option config [Boolean] :mark_na (false)
   def initialize(config = {})
     read_config_file
     @comment_prefix = config[:comment_prefix] || 'CI mkcloud gating '
     @repository = config[:repository] || 'SUSE-Cloud/automation'
     @context = config[:context] || 'suse/mkcloud'
     @branch = config[:branch] || ''
+    @mark_na = config.fetch(:mark_na, false)
     @client = Octokit::Client.new(:netrc => true)
     @client.auto_paginate = true
     @client.login
@@ -123,8 +125,12 @@ class GHClientHandler
         # at least one filename must match to require a mkcloud gating run
         pf.size > 0
     end
-    # set status for non applicable PRs, to not see them again
-    pulls_not_applicable.each { |na| create_status(na.head.sha, :success, 'mkcloud gating not applicable') }
+    if @mark_na
+      # set status for non applicable PRs, to not see them again
+      pulls_not_applicable.each do |na|
+        create_status(na.head.sha, :success, 'mkcloud gating not applicable')
+      end
+    end
     pulls_applicable
   end
 
@@ -159,7 +165,7 @@ end
 
 # To see API traffic:
 # RUBYOPT=-d github-status.rb ...
-if $DEBUG
+if $DEBUG || ENV["FARADAY"]
   require 'faraday'
   stack = Faraday::RackBuilder.new do |builder|
     builder.response :logger
@@ -180,7 +186,7 @@ ACTIONS = %w(
   set-status
 )
 
-options = {}
+options = {mark_na: true}
 optparse = OptionParser.new do |opts|
   opts.banner = "Query github for pull request status"
 
@@ -228,6 +234,9 @@ optparse = OptionParser.new do |opts|
   opts.on('-b', '--branch BRANCHNAME', 'Filters pull requests by target branch name.') do |br|
     options[:branch] = br
   end
+  opts.on('--[no]-mark-na', 'Mark non-applicable PRs with a Success status. Enabled by default.') do |v|
+    options[:mark_na] = v
+  end
 
   opts.separator ""
   opts.separator "Options for get-pr-info:"
@@ -248,7 +257,7 @@ end
 
 optparse.parse!
 
-ghc=GHClientHandler.new(repository: options[:repository], branch: options[:branch], context: options[:context])
+ghc=GHClientHandler.new(repository: options[:repository], branch: options[:branch], context: options[:context], mark_na: options[:mark_na])
 
 def require_parameter(param, message)
   if param.to_s.empty?
