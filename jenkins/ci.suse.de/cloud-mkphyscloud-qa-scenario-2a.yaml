@@ -35,6 +35,31 @@
           description: Mandatory, name of the QA cloud server as integer
 
       - string:
+          name: admin_os
+          default: sles12sp2
+          description: Mandatory, admin node operating system version
+
+      - string:
+          name: shared_storage_ip
+          default: 10.162.66.1
+          description: Mandatory, shared storage server IP
+
+      - string:
+          name: repo_owner
+          default: SUSE-Cloud
+          description: Mandatory, automation repo owner/organization
+
+      - string:
+          name: automation_repo
+          default: git://github.com/$repo_owner/automation.git
+          description: Mandatory, automation repo URL
+
+      - string:
+          name: branch
+          default: master
+          description: Mandatory, automation repo branch
+
+      - string:
           name: tempest
           default: smoke
           description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
@@ -55,45 +80,50 @@
           description: Mandatory, version of the cloud to be installed as integer
 
       - string:
-          name: scenario_url
-          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-2a.yaml
-          description: Location of scenario yaml file
+          name: scenario_file
+          default: qa-scenario-2a.yaml
+          description: Scenario YAML file name
 
       # Parameters for qa_crowbarsetup.sh
       - string:
           name: cloudsource
           default: develcloud$cloud_version
+
       - string:
           name: TESTHEAD
           default: "1"
           description: if non-empty, test latest version from Devel:Cloud:Staging
+
       - string:
           name: hacloud
           default: "1"
           description: By default we do not want HA configured and installed
+
       - string:
           name: clusterconfig
           default: services=2,data=2,network=2
           description: HA configuration for clusters. Make sense only if hacloud=1
+
       - string:
           name: nodenumber
           default: "7"
           description: Number of nodes to use; is scenario specific
+
       - string:
           name: want_ipmi
           default: "true"
-      - string:
-          name: runner_url
-          default: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh
-          description: The runner must be qa_crowbarsetup.sh file
+          description: Boolean. If 'true' nodes will be rebooted via IPMI
+
       - string:
           name: commands
           default: prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate setup_aliases waitcloud
           description: All the steps that needs to be completed to have cloud installed
+
       - text:
           name: UPDATEREPOS
           default:
           description: Update repositories (one URL per line)
+
       - bool:
           name: UPDATEBEFOREINSTALL
           default: false
@@ -116,15 +146,31 @@
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
 
-          freshadminvm $admin
+          # destroy the old admin VM if any and spawn a clean new admin VM afterwards
+          # /usr/local/sbin/freshadminvm
+          freshadminvm $admin $admin_os
+
           sleep 100 # time for the admin VM to boot
 
-          # wipe out shared NFS that should be used by this deployment
+          # wipe out shared NFS that are being used by this deployment
+          # /usr/local/sbin/wipe_nfs_shares
           ssh root@localhost "wipe_nfs_shares qa$hw_number"
 
-          # rest of code runs on admin node:
+          # clone, fetch and update the automation repo
+          # /usr/local/sbin/update_automation
+          update_automation
+
+          # put variables needed during the build process into mkcloud.config file
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
-          scp mkcloud.config root@$admin:
+
+          # copy scripts/ directory onto the admin  node in /root/scripts
+          scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
+
+          # copy scenario file onto the admin node in /root/scenario.yml
+          scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
+              root@$admin:scenario.yml
+
+
           ret=0
 
           ssh root@$admin "
@@ -137,23 +183,19 @@
           export nodenumber=$nodenumber ;
           export hacloud=$hacloud ;
           export clusterconfig=$clusterconfig ;
-          export runner_url=$runner_url ;
-          export scenario_url=$scenario_url ;
+          export shared_storage_ip=$shared_storage_ip ;
           export want_node_aliases=controller=2,data=2,network=2,computekvm=1 ;
           export want_node_roles=controller=2,storage=2,network=2,compute=1 ;
-          export scenario=\"scenario.yml\" ;
+          export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
 
-          wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
-          wget --no-check-certificate -Oscenario.yml "$scenario_url"
-
-          sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
-          sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.24.1:/var/$cloud/ha-rabbitmq," scenario.yml
+          sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
+          sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," scenario.yml
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
           # first install the nodes and wait until the cloud is ready for further configuration steps
-          timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
+          timeout --signal=ALRM 240m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
           ' || ret=$?
 
           echo "mkphyscloud ret=$ret (before scenario and configuration)"
@@ -167,16 +209,16 @@
 
               wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
 
-              chmod +x iscsictl.py
+              chmod +x scripts/iscsictl.py
 
-              ./iscsictl.py --service target --host \$(hostname) --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host data1 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host data2 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host network1 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host network2 --no-key
-
+              . scripts/iscsictl.py --service target --host \$(hostname) --no-key
+              . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
+              . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
+              . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host data1 --no-key
+              . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host data2 --no-key
+              . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host network1 --no-key
+              . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host network2 --no-key
+              
               # preparation of SBD for services nodes
               SBD_DEV_SERVICES=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
               ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_SERVICES create"
@@ -226,10 +268,10 @@
             export cephvolumenumber=0;
             export scenario=scenario.yml "'
 
-            source qa_crowbarsetup.sh
-            ./sbd_prepare
+            source scripts/qa_crowbarsetup.sh
+            source ./sbd_prepare
 
-            timeout --signal=ALRM 60m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist batch;"
+            timeout --signal=ALRM 60m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist batch;"
             ' || ret=$?
 
             if [ $ret != 0 ] ; then
