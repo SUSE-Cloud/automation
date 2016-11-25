@@ -1481,7 +1481,13 @@ function onadmin_bootstrapcrowbar
         if [[ $upgrademode = "with_upgrade" ]] ; then
             safely crowbarctl upgrade database new
         else
-            safely crowbarctl database create
+            if iscloudver 7M6minus ; then
+                safely crowbar_api_request POST $crowbar_init_api /database/new \
+                    '--data username=crowbar&password=crowbar' "$crowbar_api_v2_header"
+                safely crowbar_api_request POST $crowbar_init_api /init "" "$crowbar_api_v2_header"
+            else
+                safely crowbarctl database create
+            fi
         fi
     fi
 }
@@ -1761,15 +1767,6 @@ function reboot_nodes_via_ipmi
                 "default gateway to be active in bmc"
 
             $ipmicmd chassis bootdev pxe options=persistent
-            $ipmicmd mc reset warm
-            wait_for 30 2 \
-                "! timeout 2 $ipmicmd mc selftest >/dev/null" \
-                "BMC to start rebooting" \
-                "echo 'Warning: BMC most likely booted faster than I expected'"
-            wait_for 30 2 \
-                "timeout 2 $ipmicmd mc selftest >/dev/null" \
-                "BMC to be up after rebooting"
-
             $ipmicmd power off
             wait_for 30 2 "timeout 2 $ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
             $ipmicmd power on
