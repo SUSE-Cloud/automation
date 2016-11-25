@@ -41,12 +41,6 @@ fi
 
 mount -o remount,noatime,barrier=0 /
 
-# Start libvirtd and friends. Usually libvirtd is available and is
-# running, but can be that virtlogd was not automatically started.
-service libvirtd status || service libvirtd start
-if [[ -e /usr/lib/systemd/system/virtlogd.service ]] ; then
-    service virtlogd status || service virtlogd start
-fi
 
 function get_dist_name() {
     . /etc/os-release
