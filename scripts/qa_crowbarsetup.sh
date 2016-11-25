@@ -395,6 +395,16 @@ function addcloud6pool
     add_mount "SUSE-OpenStack-Cloud-6-Pool" $clouddata':/srv/nfs/repos/SUSE-OpenStack-Cloud-6-Pool/' "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Pool/" "cloudpool"
 }
 
+function addcloud7pool
+{
+    add_mount "SUSE-OpenStack-Cloud-7-Pool" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-7-Pool/" "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Pool/" "cloudpool"
+}
+
+function addcloud7maintupdates
+{
+    add_mount "SUSE-OpenStack-Cloud-7-Updates" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-7-Updates/" "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates/" "cloudmaintup"
+}
+
 function addcctdepsrepo
 {
     if [[ $cloudsource = @(develcloud5|GM5|GM5+up) ]]; then
@@ -906,6 +916,10 @@ function onadmin_prepare_cloud_repos
         GM6+up)
             addcloud6pool
             addcloud6maintupdates
+            ;;
+        develcloud7|susecloud7|M?|Beta*|RC*|GMC*)
+            addcloud7pool
+            addcloud7maintupdates
             ;;
     esac
 
