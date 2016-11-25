@@ -77,7 +77,7 @@ class GHClientHandler
     pulls = get_all_pull_requests(state, status)
     pulls.select do |p|
       user = p.head.repo.owner.login rescue ''
-      next false unless user
+      next false if (!user || user.nil? || user.empty?)
       # team id 1541628 -> SUSE-Cloud/developers
       # team id 291046 -> crowbar/Owners
       # team id 159206 -> SUSE-Cloud/Owners
