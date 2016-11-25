@@ -23,6 +23,7 @@
         - 'cloud-mkcloud{version}-job-hyperv-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
-        - 'cloud-mkcloud{version}-job-tempestfull-{arch}'
+        - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
+        - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-tempestfull-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
