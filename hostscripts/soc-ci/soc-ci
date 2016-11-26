@@ -39,10 +39,10 @@ CI_WORKERS = list('abcdefghijklmn')
 
 def _config_credentials_get():
     """get username, password and url"""
-    user = input("username:")
+    user = input("username: ")
     password = getpass.getpass()
-    url = input("url:")
-    nick = input("nick (used for CI reservations, eg 'tbechtold'):")
+    url = input("url: ")
+    nick = input("nick (used for CI reservations, eg 'tbechtold'): ")
     return user, password, url, nick
 
 
