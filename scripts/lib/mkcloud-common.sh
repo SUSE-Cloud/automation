@@ -86,7 +86,7 @@ function rubyjsonparse
 
 function intercept
 {
-    if [[ $shell ]] ; then
+    if [[ $shell_intercept ]] ; then
         echo "Now starting bash for manual intervention..."
         echo "When ready exit this shell to continue with $1"
         bash
