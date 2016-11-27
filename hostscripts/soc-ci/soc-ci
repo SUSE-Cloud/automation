@@ -24,6 +24,8 @@ import os
 import re
 import subprocess
 import sys
+import threading
+from socket import timeout
 
 from jenkinsapi.jenkins import Jenkins
 
@@ -191,13 +193,28 @@ def os_mkcloud_artifacts(args):
     sys.exit(0)
 
 
-def ci_worker_pool_list(args):
+def _get_worker_pool_list(worker, data_dict, data_lock):
+    """write a worker pool list output to the data_dict"""
     client = _ssh_get_client()
-    client.connect('mkch%s.cloud.suse.de' % args.worker,
-                   username='root', password='linux')
-    stdin, stdout, stderr = client.exec_command('ls /root/pool/')
-    print(stdout.read())
-    sys.exit(stdout.channel.recv_exit_status())
+    try:
+        client.connect('mkch%s.cloud.suse.de' % worker,
+                       username='root', password='linux', timeout=3)
+    except timeout:
+        pass
+    else:
+        stdin, stdout, stderr = client.exec_command('ls /root/pool/')
+        if data_lock:
+            with data_lock:
+                data_dict[worker] = stdout.read().strip().split()
+        else:
+            data_dict[worker] = stdout.read().strip().split()
+
+
+def ci_worker_pool_list(args):
+    data = dict()
+    _get_worker_pool_list(args.worker, data, None)
+    print('\n'.join(data[args.worker]))
+    sys.exit(0)
 
 
 def ci_worker_pool_reserve(args):
@@ -223,6 +240,27 @@ def ci_worker_pool_release(args):
                                                  args.slot))
     print(stdout.read())
     sys.exit(stdout.channel.recv_exit_status())
+
+
+def ci_workers_pool_list(args):
+    conf = _config_get()
+    data = dict()
+    data_lock = threading.Lock()
+    threads = []
+    for worker in CI_WORKERS:
+        t = threading.Thread(target=_get_worker_pool_list,
+                             args=(worker, data, data_lock))
+        t.start()
+        threads.append(t)
+    for t in threads:
+        t.join()
+
+    for worker in sorted(data.keys()):
+        print('### mkch%s.cloud.suse.de ###' % worker)
+        for pool in data[worker]:
+            if args.all or pool.find('.%s' % conf['nick']) != -1:
+                print(pool)
+    sys.exit(0)
 
 
 def parse_args():
@@ -260,7 +298,7 @@ def parse_args():
 
     # worker pool list
     parser_worker_pool_list = subparsers.add_parser(
-        'worker-pool-list', help='List CI worker pool')
+        'worker-pool-list', help='List CI worker pool for a single worker')
     parser_worker_pool_list.add_argument('worker', type=str,
                                          choices=CI_WORKERS)
     parser_worker_pool_list.set_defaults(func=ci_worker_pool_list)
@@ -280,6 +318,14 @@ def parse_args():
                                             choices=CI_WORKERS)
     parser_worker_pool_release.add_argument('slot', type=int)
     parser_worker_pool_release.set_defaults(func=ci_worker_pool_release)
+
+    # workers pool list - list *all* workers pool
+    parser_workers_pool_list = subparsers.add_parser(
+        'workers-pool-list', help='List CI workers pool for all workers')
+    parser_workers_pool_list.add_argument('--all',
+                                          action='store_true',
+                                          help='Show all reservations.')
+    parser_workers_pool_list.set_defaults(func=ci_workers_pool_list)
 
     return parser.parse_args()
 
