@@ -62,5 +62,8 @@ $ zypper in python-paramiko python-jenkinsapi python-six
 ```
 
 ## Configuration
-When using it the first time, `soc-ci` will ask for the needed parameters and
-store them in ~/.soc-ci.ini .
+
+When using it the first time, `soc-ci` will ask for the needed
+parameters and store them in `~/.soc-ci.ini`.  The username and
+password are your normal Jenkin credentials, and the URL is
+https://ci.suse.de/.
