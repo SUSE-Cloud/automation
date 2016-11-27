@@ -34,7 +34,7 @@ from six.moves import input
 # path to the user configuration file
 USER_CONFIG_PATH = os.path.expanduser('~/.soc-ci.ini')
 # possible mkcX hosts
-CI_WORKERS = list('abcdefghijklmn')
+CI_WORKERS = list('abcdefghijklmnp')
 
 
 def _config_credentials_get():
