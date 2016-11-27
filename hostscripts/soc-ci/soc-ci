@@ -17,10 +17,12 @@
 from __future__ import print_function
 
 import argparse
-
+import contextlib
 import getpass
+import itertools
 import os
 import re
+import subprocess
 import sys
 
 from jenkinsapi.jenkins import Jenkins
@@ -61,10 +63,30 @@ def _config_get():
         with os.fdopen(os.open(
                 USER_CONFIG_PATH, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
             conf.write(f)
+
+    # some optional configuration options
+    if not conf.has_option(section_name, "artifacts_dir"):
+        conf.set(section_name, "artifacts_dir",
+                 os.path.expanduser('~/.soc-ci/artifacts/'))
+
+    # create things where needed
+    if not os.path.exists(conf.get(section_name, "artifacts_dir")):
+        os.makedirs(conf.get(section_name, "artifacts_dir"))
+
     return dict(conf.items(section_name))
 
 
 ###############################################################################
+@contextlib.contextmanager
+def changedir(newdir):
+    olddir = os.getcwd()
+    os.chdir(os.path.expanduser(newdir))
+    try:
+        yield
+    finally:
+        os.chdir(olddir)
+
+
 def _ssh_get_client():
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -126,6 +148,49 @@ def os_mkcloud_available(args):
         sys.exit('no idea where openstack-mkcloud job %s runs' % args.job_id)
 
 
+def _unpack_supportconfigs(cwd):
+    sucessful = True
+    with changedir(cwd):
+        for (dirpath, dirnames, filenames) in os.walk('.'):
+            for f in itertools.ifilter(lambda x: x.endswith('tbz'), filenames):
+                with open('/dev/null', 'w') as devnull:
+                    try:
+                        subprocess.check_call(
+                            'unpack-supportconfig %s' % f,
+                            stdout=devnull, stderr=devnull, shell=True)
+                    except subprocess.CalledProcessError as e:
+                        print('Something failed while trying to unpack the '
+                              'supportconfigs: %s' % (str(e)))
+                        sucessful = False
+    return sucessful
+
+
+def os_mkcloud_artifacts(args):
+    """download artifacts for the given job"""
+    conf = _config_get()
+    server = Jenkins(conf['url'],
+                     username=conf['user'],
+                     password=conf['password'])
+    job = server['openstack-mkcloud']
+
+    build = job.get_build(args.job_id)
+    dest_dir = os.path.join(conf['artifacts_dir'], 'os-mkcloud',
+                            '%s' % args.job_id)
+    if os.path.exists(dest_dir):
+        if not args.force:
+            print('Artifacts already available under %s' % dest_dir)
+            sys.exit(0)
+    else:
+        os.makedirs(dest_dir)
+
+    for filename, artifact in build.get_artifact_dict().items():
+        artifact.save_to_dir(dest_dir)
+    print('Artifacts downloaded to %s' % dest_dir)
+    if _unpack_supportconfigs(dest_dir):
+        print('supportconfigs available in %s' % dest_dir)
+    sys.exit(0)
+
+
 def ci_worker_pool_list(args):
     client = _ssh_get_client()
     client.connect('mkch%s.cloud.suse.de' % args.worker,
@@ -183,6 +248,15 @@ def parse_args():
         'available?')
     parser_os_mkcloud_available.add_argument('job_id', metavar='ID', type=int)
     parser_os_mkcloud_available.set_defaults(func=os_mkcloud_available)
+
+    # download openstack-mkcloud job artifacts
+    parser_os_mkcloud_artifacts = subparsers.add_parser(
+        'os-mkcloud-artifacts', help='openstack-mkcloud: download artifacts')
+    parser_os_mkcloud_artifacts.add_argument('job_id', metavar='ID', type=int)
+    parser_os_mkcloud_artifacts.add_argument('--force', action='store_true',
+                                             help='Force download even if'
+                                             'artifacts already exist')
+    parser_os_mkcloud_artifacts.set_defaults(func=os_mkcloud_artifacts)
 
     # worker pool list
     parser_worker_pool_list = subparsers.add_parser(
