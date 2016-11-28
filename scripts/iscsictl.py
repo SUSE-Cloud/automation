@@ -197,7 +197,8 @@ class ISCSI(object):
 
     def zypper(self, package):
         self.ssh.zypper('--non-interactive', 'install',
-                        '--no-recommends', package)
+                        '--no-recommends', package,
+                        _env={'ZYPP_LOCK_TIMEOUT': 120})
 
     def append_cfg(self, fname, lines):
         """Append only new lines in a configuration file."""
