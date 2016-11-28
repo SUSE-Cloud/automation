@@ -3061,6 +3061,10 @@ function deploy_single_proposal
         swift)
             [[ $deployswift ]] || return
             ;;
+        heat)
+            get_novacontroller
+            safely oncontroller heat_image_setup
+            ;;
         trove)
             iscloudver 5plus || return
             [[ $want_trove = 1 ]] || return
@@ -3303,20 +3307,6 @@ function oncontroller_tempest_cleanup
 
 function oncontroller_run_tempest
 {
-    local image_name="SLES11-SP3-x86_64-cfntools"
-
-    # Upload a Heat-enabled image
-    if ! glance_image_exists $image_name; then
-        curl -s \
-            http://$clouddata/images/${image_name}.qcow2 | \
-            openstack image create \
-                --public --disk-format qcow2 --container-format bare \
-                --property hypervisor_type=kvm \
-                $image_name | tee glance.out
-    fi
-    local imageid=$(glance_image_get_id $image_name)
-    crudini --set /etc/tempest/tempest.conf orchestration image_ref $imageid
-    wait_image_active "$image_name" tempest
     pushd /var/lib/openstack-tempest-test
     echo 1 > /proc/sys/kernel/sysrq
     if iscloudver 5plus; then
@@ -3441,6 +3431,26 @@ function oncontroller_run_integration_test()
     systemctl start chef-client.service
 
     return $integrationret
+}
+
+function oncontroller_heat_image_setup()
+{
+    local image_url=http://$clouddata/images/SLES11-SP3-x86_64-cfntools.qcow2
+    # this is the standard name we use in the tempest barclamp. If you change the name
+    # you may also want to set the new name in the barclamp
+    local image_name="heat-cfntools-image"
+
+    . .openrc
+
+    # Upload a Heat-enabled image
+    if ! glance_image_exists $image_name; then
+        curl -s \
+            $image_url | \
+            openstack image create \
+                --public --disk-format qcow2 --container-format bare \
+                --property hypervisor_type=kvm \
+                $image_name | tee glance.out
+    fi
 }
 
 function oncontroller_manila_generic_driver_setup()
