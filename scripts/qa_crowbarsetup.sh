@@ -3562,12 +3562,12 @@ function oncontroller_magnum_service_setup
     # (mjura): https://bugs.launchpad.net/magnum/+bug/1622468
     # Magnum functional tests have hardcoded swarm as coe backend, until then this will
     # not be fixed, we are going to have our own integration tests with SLES Magnum image
-    local service_image_name=magnum-service-image.qcow2
-    local service_image_url=http://clouddata.cloud.suse.de/images/$arch/other/$service_image_name
-    local service_sles_image_name=sles-openstack-magnum-kubernetes.$arch.qcow2
-    local service_sles_image_url=http://download.suse.de/ibs/Devel:/Docker:/Images:/SLE12SP1-JeOS-k8s-magnum/images/$service_sles_image_name
+    local service_image_name=magnum-service-image
+    local service_image_url=http://clouddata.cloud.suse.de/images/$arch/other/${service_image_name}.qcow2
+    local service_sles_image_name=sles-openstack-magnum-kubernetes
+    local service_sles_image_url=http://download.suse.de/ibs/Devel:/Docker:/Images:/SLE12SP1-JeOS-k8s-magnum/images/${service_sles_image_name}.${arch}.qcow2
 
-    if ! openstack image list --f value -c Name | grep -q "^magnum-service-image$"; then
+    if ! openstack image list --f value -c Name | grep -q "^${service_image_name}$"; then
         local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
         if [[ $ret =~ "200 OK" ]]; then
             echo $ret
@@ -3581,12 +3581,12 @@ function oncontroller_magnum_service_setup
 
         # TODO(toabctl): when replacing the Fedora image, also replace the
         # os-distro property
-        openstack image create --file $service_image_name \
+        openstack image create --file ${service_image_name}.qcow2 \
             --disk-format qcow2 --container-format bare --public \
-            --property os_distro=fedora-atomic magnum-service-image
+            --property os_distro=fedora-atomic $service_image_name
     fi
 
-    if ! openstack image list --f value -c Name | grep -q "^SLE12SP1-JeOS-k8s-magnum$"; then
+    if ! openstack image list --f value -c Name | grep -q "^${service_sles_image_name}$"; then
         local ret=$(wget -N --progress=dot:mega "$service_sles_image_url" 2>&1 >/dev/null)
         if [[ $ret =~ "200 OK" ]]; then
             echo $ret
@@ -3598,9 +3598,9 @@ function oncontroller_magnum_service_setup
 
         . ~/.openrc
 
-        openstack image create --file $service_sles_image_name \
+        openstack image create --file ${service_sles_image_name}.${arch}.qcow2 \
             --disk-format qcow2 --container-format bare --public \
-            --property os_distro=opensuse SLE12SP1-JeOS-k8s-magnum
+            --property os_distro=opensuse $service_sles_image_name
     fi
 
     # create magnum flavors used by tempest
@@ -3869,9 +3869,9 @@ function oncontroller_testsetup
 
     # run tests for Magnum bay deployment
     if iscloudver 7plus && [[ $want_magnum = 1 ]]; then
-        if ! magnum baymodel-show susek8sbaymodel > /dev/null 2>&1; then
-            safely magnum baymodel-create --name susek8sbaymodel \
-                --image-id SLE12SP1-JeOS-k8s-magnum \
+        if ! magnum cluster-template-show k8s_template > /dev/null 2>&1; then
+            safely magnum cluster-template-create --name k8s_template \
+                --image-id sles-openstack-magnum-kubernetes \
                 --keypair-id default \
                 --external-network-id floating \
                 --flavor-id m1.smaller \
@@ -3879,21 +3879,21 @@ function oncontroller_testsetup
                 --docker-volume-size 5 \
                 --network-driver flannel \
                 --coe kubernetes \
-                --tls-disabled
+                --master-lb-enabled
         fi
 
-        if ! magnum bay-show susek8sbay > /dev/null 2>&1; then
-            safely magnum bay-create --name susek8sbay --baymodel susek8sbaymodel --node-count 1
-            wait_for 500 3 'magnum bay-show susek8sbay | grep -q "status.*CREATE_COMPLETE"' "Creating Magnum bay for Kubernetes" "complain 130 'Magnum bay could not be created'"
+        if ! magnum cluster-show k8s_cluster > /dev/null 2>&1; then
+            safely magnum cluster-create --name k8s_cluster --cluster-template k8s_template --master-count 1 --node-count 1
+            wait_for 500 3 'magnum cluster-show k8s_cluster | grep -q "status.*CREATE_COMPLETE"' "Magnum is creating Kubernetes cluster" "complain 130 'Magnum could not create Kubernetes cluster'"
 
-            echo "Finished creating Magnum bay"
-            safely magnum bay-show susek8sbay
+            echo "Magnum finished creating Kubernetes cluster"
+            safely magnum cluster-show k8s_cluster
 
             # cleanup Magnum deployment
-            safely magnum bay-delete susek8sbay
-            wait_for 300 3 'magnum bay-show susek8sbay > /dev/null 2>&1; [[ $? == 1 ]]' "Removing Magnum bay" "complain 131 'Magnum bay could not be removed'"
-            safely magnum baymodel-delete susek8sbaymodel;
-            wait_for 300 3 'magnum baymodel-show susek8sbaymodel > /dev/null 2>&1; [[ $? == 1 ]]' "Removing Magnum baymodel" "complain 131 'Magnum baymodel could not be removed'"
+            safely magnum cluster-delete k8s_cluster
+            wait_for 300 3 'magnum cluster-show k8s_cluster > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster" "complain 131 'Magnum could not remove Kubernetes cluster'"
+            safely magnum cluster-template-delete k8s_template;
+            wait_for 300 3 'magnum cluster-template-show k8s_template > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster template" "complain 131 'Magnum could not remove Kubernetes cluster template'"
         fi
     fi
 
