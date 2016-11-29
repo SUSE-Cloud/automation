@@ -1065,6 +1065,8 @@ Optional
         an intrinsic default is chosen. Only possible with SLE12 node.
     want_all_debug=1 (default='')
         Enable debug level logging in barclamp proposals for all proposals.
+    want_manila=0 (default=1)
+        Deployed by default. Set to 0 to prevent manila from being deployed.
     want_magnum=1 (default=0)
         It's not deployed by default. Set to 1 to deploy magnum.
     want_barbican=0 (default=1)
