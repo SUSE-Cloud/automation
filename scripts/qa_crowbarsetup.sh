@@ -36,6 +36,7 @@ fi
 : ${want_multidnstest:=1}
 : ${want_magnum:=0}
 : ${want_barbican:=1}
+: ${want_ceilometer:=1}
 : ${want_sahara:=1}
 : ${want_murano:=0}
 : ${want_tempest:=1}
@@ -3020,6 +3021,9 @@ function deploy_single_proposal
                 echo "Barbican is SOC 7+ only. Skipping"
                 return
             fi
+            ;;
+        ceilometer)
+            [[ $want_ceilometer = 1 ]] || return
             ;;
         nfs_client)
             [[ $hacloud = 1 ]] || return
