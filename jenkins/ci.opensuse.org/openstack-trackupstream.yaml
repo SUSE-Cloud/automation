@@ -37,6 +37,7 @@
             - openstack-horizon-plugin-designate-ui
             - openstack-horizon-plugin-gbp-ui
             - openstack-horizon-plugin-ironic-ui
+            - openstack-horizon-plugin-neutron-lbaas-ui
             - openstack-horizon-plugin-manila-ui
             - openstack-horizon-plugin-magnum-ui
             - openstack-horizon-plugin-sahara-ui
@@ -84,6 +85,7 @@
             [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Mitaka:Staging" ].contains(project) &&
             [
             "openstack-murano",
+            "openstack-horizon-plugin-neutron-lbaas-ui",
             "openstack-horizon-plugin-sahara-ui",
             "openstack-horizon-plugin-trove-ui",
             "openstack-zaqar",
