@@ -1475,6 +1475,11 @@ function onadmin_bootstrapcrowbar
     # temporarily make it possible to not use postgres until we switched to the new upgrade process
     # otherwise we would break the upgrade gating
     [[ $want_postgresql = 0 ]] && return
+    # make sure to use the same production database in the development setup
+    cat <<EOF > /usr/share/crowbar-init/chef/cookbooks/postgresql/templates/default/database.yml.erb
+development:
+  <<: *default
+EOF
     if iscloudver 7plus ; then
         systemctl start crowbar-init
         wait_for 100 3 "onadmin_is_crowbar_init_api_available" "crowbar init service to start"
