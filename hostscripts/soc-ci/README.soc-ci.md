@@ -53,6 +53,31 @@ Finished: FAILURE
 
 ```
 
+* I have this mkcloud job and want to get the artifacts (which usually
+contain the supportconfig tarballs):
+```
+$ soc-ci os-mkcloud-artifacts 42432
+Artifacts downloaded to /home/tom/.soc-ci/artifacts/os-mkcloud/42432
+supportconfigs available in /home/tom/.soc-ci/artifacts/os-mkcloud/42432
+```
+For the automatic supportconfig extraction, you need [unpack-supportconfig](https://build.opensuse.org/package/show/home:aspiers/supportconfig-utils).
+
+* I want to see all my reserved workers:
+```
+$ soc-ci workers-pool-list
+### mkcha.cloud.suse.de ###
+### mkchb.cloud.suse.de ###
+### mkchc.cloud.suse.de ###
+### mkchd.cloud.suse.de ###
+1.tbechtold
+### mkche.cloud.suse.de ###
+2.tbechtold.2016-11-25
+### mkchf.cloud.suse.de ###
+### mkchg.cloud.suse.de ###
+### mkchh.cloud.suse.de ###
+```
+
+To list all available reservations, use ```soc-ci workers-pool-list --all```.
 ## Requirements
 
 You need a couple of python packages:
@@ -61,9 +86,19 @@ You need a couple of python packages:
 $ zypper in python-paramiko python-jenkinsapi python-six
 ```
 
+For the automatic supportconfig extraction, you need ```unpack-supportconfig``` from the [supportconfig-utils](https://build.opensuse.org/package/show/home:aspiers/supportconfig-utils)
+package.
+
+
 ## Configuration
 
 When using it the first time, `soc-ci` will ask for the needed
 parameters and store them in `~/.soc-ci.ini`.  The username and
 password are your normal Jenkin credentials, and the URL is
 https://ci.suse.de/.
+
+There are some optional parameters with default if the parameters are not in the
+config:
+
+* ```artifacts_dir```
+The directory path where to store the Jenkins artifacts.

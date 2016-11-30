@@ -17,11 +17,15 @@
 from __future__ import print_function
 
 import argparse
-
+import contextlib
 import getpass
+import itertools
 import os
 import re
+import subprocess
 import sys
+import threading
+from socket import timeout
 
 from jenkinsapi.jenkins import Jenkins
 
@@ -61,10 +65,30 @@ def _config_get():
         with os.fdopen(os.open(
                 USER_CONFIG_PATH, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
             conf.write(f)
+
+    # some optional configuration options
+    if not conf.has_option(section_name, "artifacts_dir"):
+        conf.set(section_name, "artifacts_dir",
+                 os.path.expanduser('~/.soc-ci/artifacts/'))
+
+    # create things where needed
+    if not os.path.exists(conf.get(section_name, "artifacts_dir")):
+        os.makedirs(conf.get(section_name, "artifacts_dir"))
+
     return dict(conf.items(section_name))
 
 
 ###############################################################################
+@contextlib.contextmanager
+def changedir(newdir):
+    olddir = os.getcwd()
+    os.chdir(os.path.expanduser(newdir))
+    try:
+        yield
+    finally:
+        os.chdir(olddir)
+
+
 def _ssh_get_client():
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -126,13 +150,71 @@ def os_mkcloud_available(args):
         sys.exit('no idea where openstack-mkcloud job %s runs' % args.job_id)
 
 
-def ci_worker_pool_list(args):
+def _unpack_supportconfigs(cwd):
+    sucessful = True
+    with changedir(cwd):
+        for (dirpath, dirnames, filenames) in os.walk('.'):
+            for f in itertools.ifilter(lambda x: x.endswith('tbz'), filenames):
+                with open('/dev/null', 'w') as devnull:
+                    try:
+                        subprocess.check_call(
+                            'unpack-supportconfig %s' % f,
+                            stdout=devnull, stderr=devnull, shell=True)
+                    except subprocess.CalledProcessError as e:
+                        print('Something failed while trying to unpack the '
+                              'supportconfigs: %s' % (str(e)))
+                        sucessful = False
+    return sucessful
+
+
+def os_mkcloud_artifacts(args):
+    """download artifacts for the given job"""
+    conf = _config_get()
+    server = Jenkins(conf['url'],
+                     username=conf['user'],
+                     password=conf['password'])
+    job = server['openstack-mkcloud']
+
+    build = job.get_build(args.job_id)
+    dest_dir = os.path.join(conf['artifacts_dir'], 'os-mkcloud',
+                            '%s' % args.job_id)
+    if os.path.exists(dest_dir):
+        if not args.force:
+            print('Artifacts already available under %s' % dest_dir)
+            sys.exit(0)
+    else:
+        os.makedirs(dest_dir)
+
+    for filename, artifact in build.get_artifact_dict().items():
+        artifact.save_to_dir(dest_dir)
+    print('Artifacts downloaded to %s' % dest_dir)
+    if _unpack_supportconfigs(dest_dir):
+        print('supportconfigs available in %s' % dest_dir)
+    sys.exit(0)
+
+
+def _get_worker_pool_list(worker, data_dict, data_lock):
+    """write a worker pool list output to the data_dict"""
     client = _ssh_get_client()
-    client.connect('mkch%s.cloud.suse.de' % args.worker,
-                   username='root', password='linux')
-    stdin, stdout, stderr = client.exec_command('ls /root/pool/')
-    print(stdout.read())
-    sys.exit(stdout.channel.recv_exit_status())
+    try:
+        client.connect('mkch%s.cloud.suse.de' % worker,
+                       username='root', password='linux', timeout=3)
+    except timeout:
+        pass
+    else:
+        stdin, stdout, stderr = client.exec_command('ls /root/pool/')
+        if data_lock:
+            with data_lock:
+                data_dict[worker] = stdout.read().strip().split()
+        else:
+            data_dict[worker] = stdout.read().strip().split()
+
+
+def ci_worker_pool_list(args):
+    data = dict()
+    _get_worker_pool_list(args.worker, data, None)
+    print('\n'.join(data[args.worker]))
+    sys.exit(0)
 
 
 def ci_worker_pool_reserve(args):
@@ -160,6 +242,27 @@ def ci_worker_pool_release(args):
     sys.exit(stdout.channel.recv_exit_status())
 
 
+def ci_workers_pool_list(args):
+    conf = _config_get()
+    data = dict()
+    data_lock = threading.Lock()
+    threads = []
+    for worker in CI_WORKERS:
+        t = threading.Thread(target=_get_worker_pool_list,
+                             args=(worker, data, data_lock))
+        t.start()
+        threads.append(t)
+    for t in threads:
+        t.join()
+
+    for worker in sorted(data.keys()):
+        print('### mkch%s.cloud.suse.de ###' % worker)
+        for pool in data[worker]:
+            if args.all or pool.find('.%s' % conf['nick']) != -1:
+                print(pool)
+    sys.exit(0)
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Useful commands for the CI')
     subparsers = parser.add_subparsers(help='sub-command help')
@@ -184,9 +287,18 @@ def parse_args():
     parser_os_mkcloud_available.add_argument('job_id', metavar='ID', type=int)
     parser_os_mkcloud_available.set_defaults(func=os_mkcloud_available)
 
+    # download openstack-mkcloud job artifacts
+    parser_os_mkcloud_artifacts = subparsers.add_parser(
+        'os-mkcloud-artifacts', help='openstack-mkcloud: download artifacts')
+    parser_os_mkcloud_artifacts.add_argument('job_id', metavar='ID', type=int)
+    parser_os_mkcloud_artifacts.add_argument('--force', action='store_true',
+                                             help='Force download even if'
+                                             'artifacts already exist')
+    parser_os_mkcloud_artifacts.set_defaults(func=os_mkcloud_artifacts)
+
     # worker pool list
     parser_worker_pool_list = subparsers.add_parser(
-        'worker-pool-list', help='List CI worker pool')
+        'worker-pool-list', help='List CI worker pool for a single worker')
     parser_worker_pool_list.add_argument('worker', type=str,
                                          choices=CI_WORKERS)
     parser_worker_pool_list.set_defaults(func=ci_worker_pool_list)
@@ -206,6 +318,14 @@ def parse_args():
                                             choices=CI_WORKERS)
     parser_worker_pool_release.add_argument('slot', type=int)
     parser_worker_pool_release.set_defaults(func=ci_worker_pool_release)
+
+    # workers pool list - list *all* workers pool
+    parser_workers_pool_list = subparsers.add_parser(
+        'workers-pool-list', help='List CI workers pool for all workers')
+    parser_workers_pool_list.add_argument('--all',
+                                          action='store_true',
+                                          help='Show all reservations.')
+    parser_workers_pool_list.set_defaults(func=ci_workers_pool_list)
 
     return parser.parse_args()
 
