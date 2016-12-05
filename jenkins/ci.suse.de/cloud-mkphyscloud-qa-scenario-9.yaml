@@ -48,27 +48,7 @@
           name: branch
           default: master
           description: Mandatory, automation repo branch
-
-      - string:
-          name: admin_os
-          default: sles12sp2
-          description: Mandatory, admin node operating system version
-
-      - string:
-          name: repo_owner
-          default: SUSE-Cloud
-          description: Mandatory, automation repo owner/organization
-
-      - string:
-          name: automation_repo
-          default: git://github.com/$repo_owner/automation.git
-          description: Mandatory, automation repo URL
-
-      - string:
-          name: branch
-          default: master
-          description: Mandatory, automation repo branch
-
+      
       - string:
           name: tempest
           default: smoke
@@ -126,7 +106,7 @@
 
       - string:
           name: commands
-          default: prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate setup_aliases waitcloud
+          default: prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases
           description: All the steps that needs to be completed to have cloud installed
 
       - text:
@@ -212,9 +192,9 @@
               
               chmod +x scripts/iscsictl.py
 
-              . scripts/iscsictl.py --service target --host \$(hostname) --no-key
-              . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
-              . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
+              ./scripts/iscsictl.py --service target --host \$(hostname) --no-key
+              ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
+              ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
               
               # preparation of SBD
               SBD_DEV1=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
