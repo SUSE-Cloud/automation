@@ -24,6 +24,7 @@
           values:
             - 42.2
             - 42.1
+            - 13.2
             - 13.1
       - axis:
           type: user-defined
@@ -38,6 +39,9 @@
             - cloud-cleanvm
 
     execution-strategy:
+      combination-filter: |
+        # There are no pre-built cloud images for opensuse-13.2
+        !(suse_element=="opensuse" && opensuse_release=="13.2")
       # We can only use one VM at a time, so serialize all jobs
       sequential: true
 
