@@ -1,7 +1,7 @@
 - job:
     name: 'cloud-mediacheck'
     project-type: matrix
-    node: cloud-trackupstream
+    label: cloud-mediacheck
 
     triggers:
       - timed: '@hourly'
@@ -32,9 +32,9 @@
             - ':Staging'
       - axis:
           type: slave
-          name: nodes
+          name: labels
           values:
-            - cloud-trackupstream-sle12
+            - cloud-mediacheck
     execution-strategy:
       combination-filter: |
         (["Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12_SP1", "Devel:Cloud:7/SLE_12_SP2" ].contains(project) || subproject == ":")
