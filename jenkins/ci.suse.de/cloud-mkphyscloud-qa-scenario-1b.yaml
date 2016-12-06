@@ -148,6 +148,7 @@
 
           # put variables needed during the build process into mkcloud.config file
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
+          echo "wantxenpv=1" >> mkcloud.config
 
           # copy scripts/ dir onto the admin node in /root/scripts
           scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
