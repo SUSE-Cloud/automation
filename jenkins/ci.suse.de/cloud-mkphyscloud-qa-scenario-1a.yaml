@@ -19,7 +19,7 @@
       - mkphyscloud-qa-common-publishers
 
     logrotate:
-      numToKeep: 7
+      numToKeep: 15
       daysToKeep: -1
 
     parameters:
