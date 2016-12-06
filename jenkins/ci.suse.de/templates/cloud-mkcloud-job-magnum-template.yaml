@@ -26,3 +26,8 @@
             mkcloudtarget=all
             label={label}
             job_name=cloud-mkcloud{version}-job-magnum-{arch}
+            want_barbican_proposal=0
+            want_ceilometer_proposal=0
+            want_manila_proposal=0
+            want_trove_proposal=0
+            want_sahara_proposal=0
