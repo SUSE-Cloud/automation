@@ -17,7 +17,6 @@
 source "https://rubygems.org"
 
 gem "ruby-trello"
-gem "launchy"
 gem "activemodel", "< 5.0.0"
 gem "json", "~> 1.8"
 gem "netrc"

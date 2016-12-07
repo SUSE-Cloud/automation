@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'trello'
-require 'netrc'
-require 'optparse'
-require 'ostruct'
 
-TRELLO_BOARD = 'ywSqlQpZ'.freeze
+require "trello"
+require "netrc"
+require "optparse"
+
+TRELLO_BOARD = "ywSqlQpZ".freeze
 
 module Job
   class Mapping
@@ -28,8 +28,8 @@ module Job
     attr_reader :retcode
 
     STATUS_MAPPING = {
-      '0' => 'successful',
-      '1' => 'failed'
+      "0" => "successful",
+      "1" => "failed"
     }.freeze
 
     def initialize(name, project, retcode)
@@ -39,7 +39,7 @@ module Job
     end
 
     def status
-      raise "Unknown returncode '#{retcode}'" unless STATUS_MAPPING.key? retcode
+      raise "Unknown returncode \"#{retcode}\"" unless STATUS_MAPPING.key? retcode
       STATUS_MAPPING[retcode]
     end
   end
@@ -50,14 +50,14 @@ module Job
     end
 
     def list_name
-      version = name.split('-')[1]
+      version = name.split("-")[1]
       "Cloud #{version[-1, 1]}"
     end
   end
 
   class SuseMatrix < Mapping
     def version
-      project.split(':')[2]
+      project.split(":")[2]
     end
 
     def card_name
@@ -71,12 +71,12 @@ module Job
 
   class OpenSuseMatrix < Mapping
     def card_name
-      card = name.gsub('openstack-', '')
+      card = name.gsub("openstack-", "")
       "#{card}: #{project}"
     end
 
     def list_name
-      'OpenStack'
+      "OpenStack"
     end
   end
 
@@ -98,9 +98,9 @@ end
 
 def credentials_from_netrc
   netrc = Netrc.read
-  dev, member = netrc['api.trello.com']
+  dev, member = netrc["api.trello.com"]
 
-  raise 'Could not find credentials!' if dev.nil? || member.nil?
+  raise "Could not find credentials!" if dev.nil? || member.nil?
 
   OpenStruct.new(developer_token: dev, member_token: member)
 end
@@ -108,24 +108,24 @@ end
 def parse_job_from_cli
   job = OpenStruct.new
   opts = OptionParser.new do |opt|
-    opt.banner = 'Usage: jtsync --ci SERVICE (--matrix|--job) JOB_STATUS'
-    opt.on('--ci SERVICE', [:suse, :opensuse], 'Which ci is used (suse or opensuse)') do |service|
+    opt.banner = "Usage: jtsync --ci SERVICE (--matrix|--job) JOB_STATUS"
+    opt.on("--ci SERVICE", [:suse, :opensuse], "Which ci is used (suse or opensuse)") do |service|
       job.service = service
     end
 
-    opt.on('--matrix NAME,PROJECT', Array, 'Set status of a matrix job') do |settings|
+    opt.on("--matrix NAME,PROJECT", Array, "Set status of a matrix job") do |settings|
       job.type = :matrix
       job.project = settings[1]
       job.name = settings[0]
     end
 
-    opt.on('--job NAME', 'Set status of a normal job') do |name|
+    opt.on("--job NAME", "Set status of a normal job") do |name|
       job.type = :normal
       job.name = name
     end
   end
   opts.order!
-  raise 'Either job or matrix is required' if job.type.nil?
+  raise "Either job or matrix is required" if job.type.nil?
 
   Job.for(job.service, job.type, job.name, job.project, ARGV.pop)
 end
@@ -136,11 +136,11 @@ end
 
 def notify_card_members(card)
   members = card.members.map do |m|
-    '@' + Trello::Member.find(m.id).username
+    "@" + Trello::Member.find(m.id).username
   end
 
-  comment = card.add_comment("#{members.join(' ')}: card status changed")
-  comment_id = JSON.parse(comment)['id']
+  comment = card.add_comment("#{members.join(" ")}: card status changed")
+  comment_id = JSON.parse(comment)["id"]
 
   card.comments.select do |c|
     c.action_id == comment_id
@@ -149,7 +149,7 @@ end
 
 def update_card_label(card, job)
   label = board.labels.select { |l| l.name == job.status }.first
-  raise "Could not find label '#{job.status}'" if label.nil?
+  raise "Could not find label \"#{job.status}\"" if label.nil?
 
   return if card.labels.include? label
 
@@ -167,14 +167,16 @@ def find_card_for(job)
   card
 end
 
-# run the script --------------------------------------------------------------
+#
+# run the script
+#
 begin
   credentials = credentials_from_netrc
-  job         = parse_job_from_cli
+  job = parse_job_from_cli
 
   Trello.configure do |config|
     config.developer_public_key = credentials.developer_token
-    config.member_token         = credentials.member_token
+    config.member_token = credentials.member_token
   end
 
   card = find_card_for(job)

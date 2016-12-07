@@ -47,5 +47,3 @@ bundle exec jtsync.rb --ci foobar --matrix openstack-cleanvm,Juno 0
 echo "returncode: $?"
 read -p "Press any key to continue... " -n1 -s
 echo ""
-
-
