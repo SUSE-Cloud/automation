@@ -40,7 +40,8 @@
 
     execution-strategy:
       # There are no pre-built cloud images for opensuse-13.2
-      combination-filter: !(suse_element=="opensuse" && opensuse_release=="13.2")
+      combination-filter: |
+        !(suse_element=="opensuse" && opensuse_release=="13.2")
       # We can only use one VM at a time, so serialize all jobs
       sequential: true
 
