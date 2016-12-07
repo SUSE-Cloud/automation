@@ -202,6 +202,15 @@ $zypper -n in wget
 # Everything below here is fatal
 set -e
 
+if [ -n "$QUICKSTART_DEBUG" ]; then
+    # when debugging, allow using a high-prio repo
+    if [ -n "$cloudsource_extra" ]; then
+        $zypper ar $cloudsource_extra cloudextra
+        $zypper mr --priority 5 cloudextra
+        echo "WARN: using extra repo $cloudsource_extra"
+    fi
+fi
+
 # start with patterns
 $zypper -n install -t pattern cloud_controller cloud_compute cloud_network
 $zypper -n install --force openstack-quickstart openstack-tempest-test
