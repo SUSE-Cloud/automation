@@ -40,6 +40,15 @@
         (["Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12_SP1", "Devel:Cloud:7/SLE_12_SP2" ].contains(project) || subproject == ":")
     builders:
       - shell: |
+          if [[ ! -d /mounts/dist ]] ; then
+              zypper -n install git-core rsync make autofs nfs-client ypbind kernel-default -kernel-default-base curl wget libsolv-tools bsdtar
+              echo -e 'ypserver 10.160.0.10\nypserver 10.160.0.1\nypserver 10.160.0.150' > /etc/yp.conf
+              echo suse.de > /etc/defaultdomain
+              for s in ypbind autofs ; do
+                  chkconfig $s on
+                  service $s restart
+              done
+          fi
           # temporary, similar to update_automation (not that advanced)
           d=/root/github.com/SUSE/cloud/
           if [ ! -e  $d ] ; then
