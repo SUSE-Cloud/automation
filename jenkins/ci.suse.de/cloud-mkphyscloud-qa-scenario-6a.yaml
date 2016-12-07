@@ -140,6 +140,7 @@
           # put variables needed during the build process into mkcloud.config file
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
 
+          echo "want_magnum=1" >> mkcloud.config
           echo "ostestroptions=\"--regex '^magnum.tests.functional.api'\"" >> mkcloud.config
 
           # copy scripts/ dir onto the admin node in /root/scripts
