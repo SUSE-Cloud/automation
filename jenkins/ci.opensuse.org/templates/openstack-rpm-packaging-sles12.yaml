@@ -61,6 +61,7 @@
                   for r in $res; do
                       # some failures?
                       if [[ $r =~ (failed$|unresolvable$|broken$) ]]; then
+                          echo $r
                           failed=1
                       fi
                       # still pending builds?
