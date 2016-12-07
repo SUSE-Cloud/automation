@@ -60,7 +60,13 @@
                   echo "... $(date): "
                   for r in $res; do
                       # some failures?
-                      if [[ $r =~ (failed$|unresolvable$|broken$) ]]; then
+                      if [[ $r =~ broken$ ]]; then
+                          echo "ignoring OBS broken state"
+                          echo $r
+                          continue
+                      fi
+                      # some failures?
+                      if [[ $r =~ (failed$|unresolvable$) ]]; then
                           echo $r
                           failed=1
                       fi
