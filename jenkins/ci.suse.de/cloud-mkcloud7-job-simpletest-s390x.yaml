@@ -18,8 +18,7 @@
           predefined-parameters: |
             TESTHEAD=1
             cloudsource=develcloud7
-            nodenumber=0
-            lonelynodenumber=2
-            mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
+            nodenumber=2
+            mkcloudtarget=cleanup prepare setupadmin prepareinstcrowbar bootstrapcrowbar instcrowbar setuplonelynodes crowbar_register proposal crowbarbackup crowbarrestore
             label=openstack-mkcloud-SLE12-s390x
             job_name=cloud-mkcloud7-job-simpletest-s390x

@@ -449,7 +449,7 @@
         MKCLOUDTARGET=$mkcloudtarget
         [ $UPDATEBEFOREINSTALL == "true" ] && MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
 
-
+        [ $(uname -m) = s390x ] && WITHCROWBARREGISTER=true
         if [ $WITHCROWBARREGISTER == "true" ] ; then
           export nodenumberlonelynode=1
           [ $(uname -m) = s390x ] && {
