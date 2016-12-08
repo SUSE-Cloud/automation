@@ -8,8 +8,7 @@
           type: user-defined
           name: image
           values:
-            - openSUSE-Leap-42.1
-            - SLE_12_SP1
+            - openSUSE-Leap-42.2
       - axis:
           type: slave
           name: slave
