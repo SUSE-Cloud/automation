@@ -20,3 +20,4 @@ rcopenstack-neutron-dhcp-agent try-restart
 
 sleep 300
 systemctl restart openstack-neutron-l3-agent.service
+chef-client
