@@ -67,7 +67,6 @@ checking mkchroot
 checking jenkins/update_automation
 checking jenkins/qa_openstack.sh
 checking jenkins/qa_tripleo.sh
-checking jenkins/track-upstream-and-package.sh
 checking jenkins/update_tempest.sh
 cd scripts ; for f in *.pl jenkins/{apicheck,jenkins-job-trigger,*.pl} ; do perl -c $f || exit 2 ; done
 analyse-py-module-deps.pl syntax OK
