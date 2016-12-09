@@ -2027,6 +2027,9 @@ function onadmin_crowbar_register
     local pubkey=`cat /root/.ssh/id_rsa.pub`
     ssh_password $crowbar_register_node_ip "mkdir -p /root/.ssh; echo '$pubkey' >> /root/.ssh/authorized_keys"
 
+    # uninstall cloud-init, its dependecies break the installation of openstack
+    $ssh $crowbar_register_node_ip "zypper --non-interactive rm -u cloud-init"
+
     # call crowbar_register on the lonely node
     local inject
 
@@ -2065,7 +2068,7 @@ function onadmin_crowbar_register
             touch /tmp/crowbar_register_done;'
         "
 
-    ssh $crowbar_register_node_ip "$inject"
+    $ssh $crowbar_register_node_ip "$inject"
 
     # wait for ip to be changed to a new one
     wait_for 160 10 "! ping -q -c 1 -w 1 $crowbar_register_node_ip >/dev/null" "ping to fail from ${cloud}-lonelynode (mac: $lonelymac)." "complain 81 'crowbar_register VM did not change its IP'"
