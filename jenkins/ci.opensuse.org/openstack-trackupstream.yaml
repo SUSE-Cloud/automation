@@ -150,13 +150,6 @@
           export OBS_CHECKOUT=$JHOME/OBS_CHECKOUT/$OBS_PROJECT
           export OSC_BUILD_ROOT=$JHOME/buildroot
 
-          mkdir -p ~/.obs
-          for i in incoming repo repourl
-          do
-            mkdir -p $JHOME/obscache/tar_scm/$i
-          done
-          echo "CACHEDIRECTORY=\"$JHOME/obscache/tar_scm\"" > ~/.obs/tar_scm
-
           mkdir -p "$OBS_CHECKOUT"
           cd "$OBS_CHECKOUT"
 
