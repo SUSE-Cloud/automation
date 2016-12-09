@@ -93,8 +93,10 @@ function h_setup_extra_disk {
 }
 
 function h_setup_devstack {
-    $zypper in git-core which
+    $zypper in git-core which ca-certificates-mozilla net-tools
     git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
+
+    hostname -f || hostname cleanvm.ci.opensuse.org
 
     # setup non-root user (username is "stack")
     (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)
