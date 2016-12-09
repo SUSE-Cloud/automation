@@ -242,7 +242,7 @@ sub osc_checkin()
   unless ( -e "$ENV{HOME}/.obs/tar_scm")
   {
     system("mkdir -p $ENV{HOME}/.obs/cache/tar_scm/{incoming,repo,repourl}");
-    system(qq(echo 'CACHEDIRECTORY="$ENV{HOME}/.obs/cache/tar_scm"' > ~/.obs/tar_scm));
+    system(qq(echo '[tar_scm]\nCACHEDIRECTORY="$ENV{HOME}/.obs/cache/tar_scm"' > ~/.obs/tar_scm));
   }
 
   die "Error: can not find .osc project in this directory: " unless ( -d '.osc');
