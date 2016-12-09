@@ -92,6 +92,25 @@ function h_setup_extra_disk {
     mount /dev/vdb /opt/stack
 }
 
+function h_install_devstack_deps {
+    # Translated package dependencies from Ubuntu Devstack
+    # plus some extra stuff the image on ci1 is missing.
+    $zypper in \
+            bridge-utils \
+            gettext-runtime \
+            iptables \
+            libffi48-devel \
+            libmysqlclient-devel \
+            libopenssl-devel \
+            libpqxx-devel \
+            python-devel \
+            python-pip
+
+    # pip packages required for Devstack to run
+    pip install -U \
+        os-testr
+}
+
 function h_setup_devstack {
     $zypper in git-core which ca-certificates-mozilla net-tools
     git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
@@ -156,6 +175,7 @@ h_setup_screen
 if [ -e "/dev/vdb" ]; then
     h_setup_extra_disk
 fi
+h_install_devstack_deps
 h_setup_devstack
 h_echo_header "Run devstack"
 sudo -u stack -i <<EOF
