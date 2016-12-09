@@ -86,7 +86,8 @@ EOF
 }
 
 function h_setup_extra_disk {
-    mkfs.ext3 /dev/vdb
+    $zypper in e2fsprogs
+    yes y | mkfs.ext4 /dev/vdb
     mkdir -p /opt/stack
     mount /dev/vdb /opt/stack
 }
