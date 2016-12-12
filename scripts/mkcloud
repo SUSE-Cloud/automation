@@ -64,7 +64,6 @@ nodenumbercomputedefault=2
 [[ $nodenumberphys = 0 ]] || [[ $mkch_physcloudif ]] || complain 100 "need to set mkch_physcloudif for physical nodes"
 # configuration of clusters
 : ${clusterconfig:=''}
-export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
 # '+'-separated list of MAC#serial_of_drbd_volume of the drbd cluster nodes
 # (used only internally to transport this information to qa_crowbarsetup):
 : ${drbdnode_mac_vol:=''}
@@ -253,6 +252,8 @@ function sshrun
         export JENKINS_EXECUTOR_NUMBER=$EXECUTOR_NUMBER;
         export JENKINS_WORKSPACE=$WORKSPACE;
 EOF
+    # setting these variables within mkcloud does not make them part of the env, so we need to export them
+    export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
     env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
 
     cp -a $mkcconf $artifacts_dir/
