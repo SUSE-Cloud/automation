@@ -86,14 +86,17 @@ EOF
 }
 
 function h_setup_extra_disk {
-    mkfs.ext3 /dev/vdb
+    $zypper in e2fsprogs
+    yes y | mkfs.ext4 /dev/vdb
     mkdir -p /opt/stack
     mount /dev/vdb /opt/stack
 }
 
 function h_setup_devstack {
-    $zypper in git-core which
+    $zypper in git-core which ca-certificates-mozilla net-tools
     git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
+
+    hostname -f || hostname cleanvm.ci.opensuse.org
 
     # setup non-root user (username is "stack")
     (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)

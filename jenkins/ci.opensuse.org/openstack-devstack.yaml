@@ -8,8 +8,7 @@
           type: user-defined
           name: image
           values:
-            - openSUSE-Leap-42.1
-            - SLE_12_SP1
+            - openSUSE-Leap-42.2
       - axis:
           type: slave
           name: slave
@@ -36,10 +35,9 @@
               # wait for clean shutdown
               n=20 ; while [[ $n > 0 ]] && virsh list |grep cleanvm.*running ; do sleep 2 ; n=$(($n-1)) ; done
               virsh destroy cleanvm
-              # cleanup old images
               find /mnt/cleanvmbackup -mtime +5 -type f | xargs --no-run-if-empty rm
               # backup /dev/vg0/cleanvm disk image
-              file=/mnt/cleanvmbackup/${BUILD_NUMBER}-${openstack_version}-${image}.raw.gz
+              file=/mnt/cleanvmbackup/${BUILD_NUMBER}-devstack-${image}.raw.gz
               time gzip -c1 /dev/vg0/cleanvm > $file
               du $file
               exit 1
