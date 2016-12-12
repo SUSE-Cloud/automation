@@ -4541,7 +4541,7 @@ function onadmin_prepare_crowbar_upgrade
         safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
     else
         safely crowbarctl upgrade prepare
-        wait_for 200 5 "grep current_step /var/lib/crowbar/upgrade/progress.yml | grep -v upgrade_prepare" "prepare step to finish"
+        wait_for 300 5 "grep current_step /var/lib/crowbar/upgrade/progress.yml | grep -v upgrade_prepare" "prepare step to finish"
     fi
 }
 
