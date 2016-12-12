@@ -4722,6 +4722,10 @@ function onadmin_crowbarrestore
 function onadmin_crowbar_nodeupgrade
 {
     if iscloudver 6plus ; then
+        if safely crowbarctl upgrade repocheck nodes --format plain | grep "missing" ; then
+            complain 11 "Some repository for the nodes is missing. Cannot continue with the upgrade."
+        fi
+
         # FIXME: crowbarctl command can time out easily
         # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
         # safely crowbarctl upgrade services
