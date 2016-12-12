@@ -830,8 +830,7 @@ function crowbarupgrade_5plus
 
 function cloudupgrade
 {
-    if iscloudver 6plus && [[ $want_nondisruptiveupgrade ]] ; then
-        # TODO: so far, we only have implementation for admin node upgrade
+    if iscloudver 6plus; then
         crowbarupgrade_5plus
         onadmin crowbar_nodeupgrade
     elif iscloudver 5plus ; then

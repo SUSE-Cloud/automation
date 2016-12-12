@@ -4721,7 +4721,7 @@ function onadmin_crowbarrestore
 
 function onadmin_crowbar_nodeupgrade
 {
-    if iscloudver 6plus && [[ $want_nondisruptiveupgrade ]] ; then
+    if iscloudver 6plus ; then
         # FIXME: crowbarctl command can time out easily
         # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
         # safely crowbarctl upgrade services
