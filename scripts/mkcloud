@@ -637,7 +637,7 @@ function instnodes
 
 function proposal
 {
-    onadmin proposal
+    onadmin proposal "$PROPOSALS"
     return $?
 }
 
