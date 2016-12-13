@@ -125,7 +125,7 @@ for version in 1.0 2.1 4; do
         fi
 
         if test -d $ibsmaint/Storage\:/$version\:/$arch/update/; then
-            $rsync $ibsmaint/Storage\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates-Test
+            $rsync $ibsmaint/Storage\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates-test
         fi
     done
 done
