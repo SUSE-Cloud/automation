@@ -21,7 +21,8 @@
             upgrade_cloudsource=develcloud{version}
             nodenumber=5
             hacloud=1
-            want_nondisruptiveupgrade=1
+            want_ceph=0
+            want_nodesupgrade=1
             mkcloudtarget=plain_with_upgrade
             label={label}
             want_postgresql=0
