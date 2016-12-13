@@ -4726,12 +4726,14 @@ function onadmin_crowbar_nodeupgrade
             complain 11 "Some repository for the nodes is missing. Cannot continue with the upgrade."
         fi
 
-        # FIXME: crowbarctl command can time out easily
-        # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
-        # safely crowbarctl upgrade services
-        curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/services
-        # safely crowbarctl upgrade nodes
-        curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/nodes
+        if [[ $want_nodesupgrade ]]; then
+            # FIXME: crowbarctl command can time out easily
+            # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
+            # safely crowbarctl upgrade services
+            curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/services
+            # safely crowbarctl upgrade nodes
+            curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/nodes
+        fi
     else
         local endpoint
         local http_code
