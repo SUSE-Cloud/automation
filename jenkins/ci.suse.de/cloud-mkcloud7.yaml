@@ -28,7 +28,7 @@
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
         - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-tempestfull-{arch}'
-        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-disruptive-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
         - 'cloud-mkcloud{version}-job-uefi-{arch}'
