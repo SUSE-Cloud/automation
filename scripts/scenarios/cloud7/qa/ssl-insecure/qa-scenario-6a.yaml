@@ -133,12 +133,12 @@ proposals:
 - barclamp: neutron
   attributes:
     ml2_mechanism_drivers:
-    - openvswitch
+    - ##networkingplugin##
     ml2_type_drivers:
-    - vlan
+    - ##networkingmode##
     num_vlans: 10
-    ml2_type_drivers_default_provider_network: vlan
-    ml2_type_drivers_default_tenant_network: vlan
+    ml2_type_drivers_default_provider_network: ##networkingmode##
+    ml2_type_drivers_default_tenant_network: ##networkingmode##
     ssl:
       generate_certs: true
       insecure: true

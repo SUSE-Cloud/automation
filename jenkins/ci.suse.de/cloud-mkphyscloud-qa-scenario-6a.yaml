@@ -15,7 +15,8 @@
       It will wipe all machines!
 
     wrappers:
-      - mkphyscloud-qa-common-wrappers
+      - build-name:
+          name: '#${BUILD_NUMBER}:${ENV,var="cloudsource"}:${ENV,var="networkingplugin"}:${ENV,var="networkingmode"}'
     publishers:
       - mkphyscloud-qa-common-publishers
 
@@ -83,25 +84,42 @@
       - string:
           name: cloudsource
           default: develcloud$cloud_version
+
       - string:
           name: TESTHEAD
           default: "1"
           description: if non-empty, test latest version from Devel:Cloud Stagin
+
       - string:
           name: hacloud
           default: "1"
           description: By default we do not want HA configured and installed
+
       - string:
           name: clusterconfig
           default: services=2
           description: HA configuration for clusters. Make sense only if hacloud=1
+
+      - string:
+          name: networkingplugin
+          default: linuxbridge
+          description: |
+               networking plugin to be used by neutron, available option is openvswitch:gre,vlan,vxlan / linuxbridge:vlan
+
+      - string:
+          name: networkingmode
+          default: vlan
+          description: networking mode to be used by neutron , available option is gre,vlan,vxlan
+
       - string:
           name: nodenumber
           default: "7"
           description: Number of nodes to use; is scenario specific
+
       - string:
           name: want_ipmi
           default: "true"
+
       - string:
           name: commands
           default: prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
@@ -178,6 +196,8 @@
               sed -i -e "s,##shared_nfs_for_glance##,$shared_storage_ip:/var/$cloud/ha-glance," scenario.yml
               sed -i -e "s,##nfs_server##,$shared_storage_ip," scenario.yml
               sed -i -e "s,##nfs_export##,/var/$cloud/ha-glance," scenario.yml
+              sed -i -e "s,##networkingplugin##,$networkingplugin," scenario.yml
+              sed -i -e "s,##networkingmode##,$networkingmode," scenario.yml
 
               [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate" ;
 
