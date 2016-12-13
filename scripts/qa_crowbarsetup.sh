@@ -4544,7 +4544,7 @@ function onadmin_prepare_crowbar_upgrade
         safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
     else
         safely crowbarctl upgrade prepare
-        wait_for 200 5 "grep current_step /var/lib/crowbar/upgrade/progress.yml | grep -v upgrade_prepare" "prepare step to finish"
+        wait_for 300 5 "grep current_step /var/lib/crowbar/upgrade/6-to-7-progress.yml | grep -v upgrade_prepare" "prepare step to finish"
     fi
 }
 
@@ -4724,13 +4724,19 @@ function onadmin_crowbarrestore
 
 function onadmin_crowbar_nodeupgrade
 {
-    if iscloudver 6plus && [[ $want_nondisruptiveupgrade ]] ; then
-        # FIXME: crowbarctl command can time out easily
-        # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
-        # safely crowbarctl upgrade services
-        curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/services
-        # safely crowbarctl upgrade nodes
-        curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/nodes
+    if iscloudver 6plus ; then
+        if safely crowbarctl upgrade repocheck nodes --format plain | grep "missing" ; then
+            complain 11 "Some repository for the nodes is missing. Cannot continue with the upgrade."
+        fi
+
+        if [[ $want_nodesupgrade ]]; then
+            # FIXME: crowbarctl command can time out easily
+            # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
+            # safely crowbarctl upgrade services
+            curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/services
+            # safely crowbarctl upgrade nodes
+            curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/nodes
+        fi
     else
         local endpoint
         local http_code
