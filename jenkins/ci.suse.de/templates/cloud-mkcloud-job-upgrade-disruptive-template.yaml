@@ -1,6 +1,7 @@
 - job-template:
     name: 'cloud-mkcloud{version}-job-upgrade-disruptive-{arch}'
     node: cloud-trigger
+    disabled: true
 
     triggers:
       - timed: '32 22 * * *'
