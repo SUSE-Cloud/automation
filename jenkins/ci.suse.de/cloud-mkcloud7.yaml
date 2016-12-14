@@ -32,7 +32,15 @@
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
+
+- project:
+    name: cloud-mkcloud7-sles12sp2-x86_64
+    version: 7
+    arch: x86_64
+    label: openstack-mkcloud-SLE12-SP2-x86_64
+    jobs:
         - 'cloud-mkcloud{version}-job-uefi-{arch}'
+
 - project:
     name: cloud-mkcloud7-aarch64
     version: 7
