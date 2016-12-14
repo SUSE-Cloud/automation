@@ -90,7 +90,7 @@ export want_postgresql=${want_postgresql:-1}
 [ "$libvirt_type" = hyperv ] && export wanthyperv=1
 [ "$libvirt_type" = xen ] && export wantxenpv=1 # xenhvm is broken anyway
 # FIXME: delete this after cloud 7 is released
-iscloudver 6 && export CROWBAR_EXPERIMENTAL=true
+iscloudver 6plus && export CROWBAR_EXPERIMENTAL=true
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
