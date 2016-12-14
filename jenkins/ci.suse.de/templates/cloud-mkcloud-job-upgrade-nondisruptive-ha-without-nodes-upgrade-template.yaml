@@ -25,4 +25,4 @@
             mkcloudtarget=plain_with_upgrade
             label={label}
             want_postgresql=0
-            job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}
+            job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}
