@@ -103,7 +103,7 @@ done
 # Storage
 ##############
 
-for version in 1.0 2.1 3 4; do
+for version in 1.0 2.1 4; do
 
     for arch in x86_64 aarch64; do
         [ "$arch" != x86_64 -a $version = 1.0 ] && continue
@@ -125,7 +125,7 @@ for version in 1.0 2.1 3 4; do
         fi
 
         if test -d $ibsmaint/Storage\:/$version\:/$arch/update/; then
-            $rsync $ibsmaint/Storage\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates-Test
+            $rsync $ibsmaint/Storage\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates-test
         fi
     done
 done
