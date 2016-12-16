@@ -97,7 +97,7 @@
           }
 
           echo "Building for openSUSE(${opensuse_release}) using: ${suse_element}"
-          DIB_RELEASE=${opensuse_release} disk-image-create -o qemu-image -t qcow2 ${suse_element} vm
+          DIB_RELEASE=${opensuse_release} disk-image-create -o qemu-image -t qcow2 ${suse_element} vm serial-console simple-init devuser growroot openssh-server
           ${BOOT_DIB_IMAGE} || exit 0
           [[ \$(uname -m) == x86_64 ]] || exit 0
           echo "Booting the image"
