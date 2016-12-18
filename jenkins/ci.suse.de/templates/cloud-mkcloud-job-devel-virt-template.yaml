@@ -6,8 +6,8 @@
       - timed: 'H H */2 * *'
 
     logrotate:
-      numToKeep: 7
-      daysToKeep: -1
+      numToKeep: -1
+      daysToKeep: 7
 
     builders:
       - trigger-builds:
