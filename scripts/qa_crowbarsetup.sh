@@ -3260,6 +3260,8 @@ function addfloatingip
     nova floating-ip-create | tee floating-ip-create.out
     floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
     nova add-floating-ip "$instanceid" "$floatingip"
+    # flush arp tables in case this floating ip was recently used for something else
+    arp -d "$floatingip"
 }
 
 # by setting --dns-nameserver for subnet, docker instance gets this as
