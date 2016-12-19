@@ -494,8 +494,12 @@ function iscloudver
     if [[ $v =~ M[0-9]+$ ]] ; then
         local milestone=${v#*M}
         v=${v%M*}
-        if [[ $ver -eq $v ]] && [[ $cloudsource =~ ^M[0-9]+$ ]] ; then
-            [ "${cloudsource#*M}" $operator "$milestone" ]
+        if [[ $ver -eq $v ]] ; then
+            local sourcemilestone=999 # no match for M4minus with develcloud
+            if [[ $cloudsource =~ ^M[0-9]+$ ]] ; then
+                sourcemilestone="${cloudsource#*M}"
+            fi
+            [ "$sourcemilestone" $operator "$milestone" ]
             return $?
         fi
     fi

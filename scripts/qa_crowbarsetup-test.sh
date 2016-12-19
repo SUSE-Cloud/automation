@@ -2,7 +2,7 @@
 
 describe "roundup(1) testing of qa_crowbarsetup.sh"
 
-verlist="3 4 5 5minus 7 4plus 7M4plus"
+verlist="3 4 5 5minus 7 4plus 7M4plus 7M4minus"
 export cloud=x
 
 cloudversionmatrixrow() {
@@ -25,12 +25,12 @@ cloudversionmatrix() {
 
 it_returns_correct_cloudver_matrix() {
     results=`cloudversionmatrix "develcloud3 GM3 develcloud4 GM4 develcloud5 GM5"`
-    test "$results" = " develcloud3=0110111 GM3=0110111 develcloud4=1010101 GM4=1010101 develcloud5=1100101 GM5=1100101"
+    test "$results" = " develcloud3=01101110 GM3=01101110 develcloud4=10101010 GM4=10101010 develcloud5=11001010 GM5=11001010"
 }
 
 it_returns_correct_cloudver_matrix_milestone() {
     results=`cloudversionmatrix "M3 M4 M5 Beta3 Beta4 RC3 GMC susecloud7 GM7+up"`
-    test "$results" = " M3=1111001 M4=1111000 M5=1111000 Beta3=1111000 Beta4=1111000 RC3=1111000 GMC=1111000 susecloud7=1111000 GM7+up=1111000"
+    test "$results" = " M3=11110010 M4=11110000 M5=11110001 Beta3=11110001 Beta4=11110001 RC3=11110001 GMC=11110001 susecloud7=11110001 GM7+up=11110001"
 }
 
 getcloudversionmatrixrow() {
