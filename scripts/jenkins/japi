@@ -45,7 +45,7 @@ if ($JURL =~ /river\.suse\.de/)
   $SCHEME='http';
 }
 
-mkdir -p $JURL;
+mkdir $JURL;
 
 my $UP='';
 $UP="${USER}:${APIKEY}\@" if (defined ${USER} && defined ${APIKEY} && ${USER} ne '' && ${APIKEY} ne '');
