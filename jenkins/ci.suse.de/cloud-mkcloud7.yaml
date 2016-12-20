@@ -18,7 +18,6 @@
         - 'cloud-mkcloud{version}-job-btrfs-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar-devsetup-{arch}'
-        - 'cloud-mkcloud{version}-job-docker-{arch}'
         - 'cloud-mkcloud{version}-job-dvr-{arch}'
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
@@ -50,7 +49,6 @@
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
-        - 'cloud-mkcloud{version}-job-docker-{arch}'
         - 'cloud-mkcloud{version}-job-btrfs-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
