@@ -2,6 +2,9 @@ pipelines:
   - name: rpm-packaging
     description: This pipeline runs check jobs on new changes being proposed.
     manager: IndependentPipelineManager
+    require:
+      open: True
+      current-patchset: True
     trigger:
       gerrit:
         - event: patchset-created
