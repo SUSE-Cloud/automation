@@ -126,7 +126,7 @@
          default:
          description: |
             If given, a extra ostestr run is executed (after the default tempest run).
-            Use i.e. " --regex '^magnum.tests.functional.api'"
+            Use i.e. " --regex '^magnum.tests.functional.k8s'"
 
      - string:
          name: want_horizon_integration_test
