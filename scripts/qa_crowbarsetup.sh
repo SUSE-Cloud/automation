@@ -4726,6 +4726,7 @@ function onadmin_crowbar_nodeupgrade
 {
     if iscloudver 6plus ; then
         if safely crowbarctl upgrade repocheck nodes --format plain | grep "missing" ; then
+            crowbarctl upgrade repocheck nodes
             complain 11 "Some repository for the nodes is missing. Cannot continue with the upgrade."
         fi
 
@@ -4734,6 +4735,12 @@ function onadmin_crowbar_nodeupgrade
             # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
             # safely crowbarctl upgrade services
             curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/services
+
+            if grep -q "failed" /var/lib/crowbar/upgrade/6-to-7-progress.yml ; then
+                crowbarctl upgrade status
+                complain 12 "Services step has failed. Check the upgrade status."
+            fi
+
             # safely crowbarctl upgrade nodes
             curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/nodes
         fi
