@@ -21,7 +21,7 @@
             upgrade_cloudsource=develcloud{version}
             nodenumber=5
             hacloud=1
-            want_ceph=0
+            storage_method=swift
             want_nodesupgrade=1
             mkcloudtarget=plain_with_upgrade
             label={label}

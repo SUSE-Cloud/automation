@@ -21,7 +21,7 @@
             upgrade_cloudsource=develcloud{version}
             nodenumber=4
             hacloud=1
-            want_ceph=0
+            storage_method=swift
             mkcloudtarget=plain_with_upgrade
             label={label}
             want_postgresql=0
