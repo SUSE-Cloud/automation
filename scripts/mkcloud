@@ -809,6 +809,9 @@ function crowbarupgrade_5plus
     if iscloudver 6plus ; then
         onadmin zypper_patch_all
         onadmin upgrade_prechecks
+        if [[ $cloudsource = develcloud6 ]] || [[ $upgrade_cloudsource = develcloud7 ]]; then
+            onadmin allow_vendor_change_at_nodes
+        fi
         export cloudsource=$upgrade_cloudsource
         onadmin prepare_crowbar_upgrade
         onadmin prepare_cloudupgrade_repos_6_to_7

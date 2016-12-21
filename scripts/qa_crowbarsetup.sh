@@ -4722,6 +4722,14 @@ function onadmin_crowbarrestore
     fi
 }
 
+
+function onadmin_allow_vendor_change_at_nodes
+{
+    for machine in $(get_all_nodes); do
+        ssh $machine "zypper -n in -y crudini; crudini --set /etc/zypp/zypp.conf main solver.allowVendorChange true"
+    done
+}
+
 function onadmin_crowbar_nodeupgrade
 {
     if iscloudver 6plus ; then
