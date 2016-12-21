@@ -51,7 +51,7 @@ install: debianinstall genericinstall
 
 debianinstall:
 	sudo apt-get update -qq
-	sudo apt-get -y install libxml-libxml-perl libjson-xs-perl python-libvirt
+	sudo apt-get -y install libxml-libxml-perl libjson-perl libjson-xs-perl python-libvirt
 
 suseinstall:
 	sudo zypper install perl-JSON-XS perl-libxml-perl python-pip libvirt-python
