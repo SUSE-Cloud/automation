@@ -54,7 +54,6 @@
             - openstack-neutron-vpnaas
             - openstack-neutron-zvm-agent
             - openstack-nova
-            - openstack-nova-docker
             - openstack-nova-virt-zvm
             - openstack-octavia
             - openstack-quickstart
