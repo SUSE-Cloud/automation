@@ -3869,8 +3869,10 @@ function oncontroller_testsetup
 
     # run tests for Magnum bay deployment
     if iscloudver 7plus && [[ $want_magnum = 1 ]]; then
-        if ! magnum cluster-template-show k8s_template > /dev/null 2>&1; then
-            safely magnum cluster-template-create --name k8s_template \
+
+        # This test will cover simple Kubernetes cluster with TLS disabled and no LoadBalancer
+        if ! magnum cluster-template-show k8s_template_tls_lb_off > /dev/null 2>&1; then
+            safely magnum cluster-template-create --name k8s_template_tls_lb_off \
                 --image-id sles-openstack-magnum-kubernetes \
                 --keypair-id default \
                 --external-network-id floating \
@@ -3879,21 +3881,50 @@ function oncontroller_testsetup
                 --docker-volume-size 5 \
                 --network-driver flannel \
                 --coe kubernetes \
+                --tls-disabled
+        fi
+
+        if ! magnum cluster-show k8s_cluster_one > /dev/null 2>&1; then
+            safely magnum cluster-create --name k8s_cluster_one --cluster-template k8s_template_tls_lb_off --master-count 1 --node-count 2
+            wait_for 500 3 'magnum cluster-show k8s_cluster_one | grep -q "status.*CREATE_COMPLETE"' "Magnum is creating Kubernetes cluster" "complain 130 'Magnum could not create Kubernetes cluster'"
+
+            echo "Magnum finished creating Kubernetes cluster"
+            safely magnum cluster-show k8s_cluster_one
+
+            # cleanup Magnum deployment
+            safely magnum cluster-delete k8s_cluster_one
+            wait_for 300 3 'magnum cluster-show k8s_cluster_one > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster" "complain 131 'Magnum could not remove Kubernetes cluster'"
+            safely magnum cluster-template-delete k8s_template_tls_lb_off;
+            wait_for 300 3 'magnum cluster-template-show k8s_template_tls_lb_off > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster template" "complain 131 'Magnum could not remove Kubernetes cluster template'"
+        fi
+
+        # This test will cover advanced Kubernetes cluster with TLS enabled and with LoadBalancer for multi master
+        if ! magnum cluster-template-show k8s_template_tls_lb_on > /dev/null 2>&1; then
+            safely magnum cluster-template-create --name k8s_template_tls_lb_on \
+                --image-id sles-openstack-magnum-kubernetes \
+                --keypair-id default \
+                --external-network-id floating \
+                --flavor-id m1.smaller \
+                --master-flavor-id m2.smaller \
+                --docker-volume-size 5 \
+                --network-driver flannel \
+                --coe kubernetes \
+                --floating-ip-enabled \
                 --master-lb-enabled
         fi
 
-        if ! magnum cluster-show k8s_cluster > /dev/null 2>&1; then
-            safely magnum cluster-create --name k8s_cluster --cluster-template k8s_template --master-count 1 --node-count 1
-            wait_for 500 3 'magnum cluster-show k8s_cluster | grep -q "status.*CREATE_COMPLETE"' "Magnum is creating Kubernetes cluster" "complain 130 'Magnum could not create Kubernetes cluster'"
+        if ! magnum cluster-show k8s_cluster_two > /dev/null 2>&1; then
+            safely magnum cluster-create --name k8s_cluster_two --cluster-template k8s_template_tls_lb_on --master-count 2 --node-count 1
+            wait_for 500 3 'magnum cluster-show k8s_cluster_two | grep -q "status.*CREATE_COMPLETE"' "Magnum is creating Kubernetes cluster" "complain 130 'Magnum could not create Kubernetes cluster'"
 
             echo "Magnum finished creating Kubernetes cluster"
-            safely magnum cluster-show k8s_cluster
+            safely magnum cluster-show k8s_cluster_two
 
             # cleanup Magnum deployment
-            safely magnum cluster-delete k8s_cluster
-            wait_for 300 3 'magnum cluster-show k8s_cluster > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster" "complain 131 'Magnum could not remove Kubernetes cluster'"
-            safely magnum cluster-template-delete k8s_template;
-            wait_for 300 3 'magnum cluster-template-show k8s_template > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster template" "complain 131 'Magnum could not remove Kubernetes cluster template'"
+            safely magnum cluster-delete k8s_cluster_two
+            wait_for 300 3 'magnum cluster-show k8s_cluster_two > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster" "complain 131 'Magnum could not remove Kubernetes cluster'"
+            safely magnum cluster-template-delete k8s_template_tls_lb_on;
+            wait_for 300 3 'magnum cluster-template-show k8s_template_tls_lb_on > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster template" "complain 131 'Magnum could not remove Kubernetes cluster template'"
         fi
     fi
 
