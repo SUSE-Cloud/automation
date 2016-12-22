@@ -349,6 +349,9 @@ function libvirt_do_setuplonelynodes()
         local lonely_disk
         lonely_disk="$vdisk_dir/${cloud}.node$i"
 
+        lvdisplay "$lonely_disk" || \
+            _lvcreate "${cloud}.node$i" "${lonelynode_hdd_size}" "$cloudvg"
+
         onhost_deploy_image "lonely" $(get_lonely_node_dist) $lonely_disk
         ${scripts_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
     done
