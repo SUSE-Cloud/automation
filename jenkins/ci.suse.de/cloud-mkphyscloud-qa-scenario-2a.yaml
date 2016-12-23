@@ -200,6 +200,8 @@
 
           echo "mkphyscloud ret=$ret (before scenario and configuration)"
 
+          sleep 60
+
           if [ $ret == "0" ]; then
             # ----- Prepare the SBD setup:
 
