@@ -1,5 +1,5 @@
 - job:
-    name: cloud-mkphyscloud-qa-test-cct-job
+    name: cloud-mkphyscloud-qa-test-cct
     node: cloud-mkphyscloud-gate-qa
     description: |
       Runs cct tests
@@ -28,15 +28,19 @@
       - string:
           name: cct_tests
           default: features:base
-          description: List of tests separated by plus sign, e.g. features:base+feature:scale:cirros
+          description: List of tests separated by plus sign, e.g. features:base+test:func:novaclient
 
       - string:
-          name: cct_git_url
-          default: https://github.com/SUSE-Cloud/cct.git
+          name: repo_owner
+          default: SUSE-Cloud
+
+      - string:
+          name: cct_repo
+          default: https://github.com/$repo_owner/cct.git
           description: Git repo url for cct
 
       - string:
-          name: cct_checkout_branch
+          name: branch
           default: master
           description: Git repo branch name
 
@@ -64,7 +68,7 @@
           #!/bin/bash
           admin=crowbar$hw_number;
           cloud=qa$hw_number;
-          cct_path="/root/github.com/SUSE-Cloud/cct";
+          cct_path="/root/github.com/$repo_owner/cct";
           artifacts_dir=$WORKSPACE/.artifacts
 
           rm -rf $artifacts_dir
@@ -72,14 +76,13 @@
           result=0
 
           ssh root@$admin "
-            export cloud=$cloud;
             export cct_tests=$cct_tests;
-            export cct_git_url=$cct_git_url;
-            export cct_checkout_branch=$cct_checkout_branch;
+            export cct_git_url=$cct_repo;
+            export cct_checkout_branch=$branch;
             export cct_skip_func_tests=$cct_skip_func_tests;
           " '
             hostname -f;
-            timeout --signal=ALRM 90m bash -x -c "source qa_crowbarsetup.sh; onadmin_run_cct"
+            timeout --signal=ALRM 90m bash -x -c "source scripts/qa_crowbarsetup.sh; source mkcloud.config; onadmin_run_cct"
 
           '|| result=$?
 
