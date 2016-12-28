@@ -40,6 +40,7 @@ fi
 : ${want_murano:=0}
 : ${want_tempest:=1}
 : ${want_trove:=1}
+: ${want_aodh:=0}
 : ${want_s390:=''}
 : ${want_horizon_integration_test:=''}
 
@@ -2396,7 +2397,7 @@ function custom_configuration
     esac
 
     case "$proposal" in
-        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard|sahara|murano)
+        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard|sahara|murano|aodh)
             if [[ $want_all_debug = 1 ]] || eval [[ \$want_${proposal}_debug = 1 ]] ; then
                 enable_debug_generic $proposal
             fi
@@ -3084,6 +3085,13 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        aodh)
+            [[ $want_aodh = 1 ]] || return
+            if ! iscloudver 7plus; then
+                echo "Aodh is SOC 7+ only. Skipping"
+                return
+            fi
+            ;;
         murano)
             [[ $want_murano = 1 ]] || return
             if ! iscloudver 7plus; then
@@ -3132,7 +3140,7 @@ function onadmin_proposal
     local proposal
     for proposal in nfs_client pacemaker database rabbitmq keystone swift \
         ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat \
-        manila trove barbican magnum sahara murano tempest; do
+        manila trove barbican magnum sahara murano aodh tempest; do
         deploy_single_proposal $proposal
     done
 
