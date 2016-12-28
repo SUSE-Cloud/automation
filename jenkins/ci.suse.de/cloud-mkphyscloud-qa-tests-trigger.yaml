@@ -58,6 +58,11 @@
           name: TESTHEAD
           description: if non-empty, test latest version from Devel:Cloud Staging
 
+      - bool:
+          name: testsetup
+          default: true
+          description: Run tempest with testsetup() in qa_crowbarsetup.sh script
+
     builders:
       - conditional-step:
           condition-kind: regex-match
@@ -74,7 +79,7 @@
                     unstable-threshold: FAILURE
                   predefined-parameters: |
                     hw_number=$hw_number
-                    testsetup=true
+                    testsetup=$testsetup
                     scenario_name=$scenario_name
                     scenario_job_name=$scenario_job_name
                     scenario_build_number=$scenario_build_number
@@ -98,6 +103,7 @@
                     scenario_name=$scenario_name
                     scenario_job_name=$scenario_job_name
                     scenario_build_number=$scenario_build_number
+                    testsetup=$testsetup
                     TESTHEAD=$TESTHEAD
 
       - conditional-step:
@@ -118,10 +124,32 @@
                     scenario_name=$scenario_name
                     scenario_job_name=$scenario_job_name
                     scenario_build_number=$scenario_build_number
+                    testsetup=$testsetup
                     TESTHEAD=$TESTHEAD
 
       - conditional-step:
-          condition-kind: boolean-expression 
+          condition-kind: regex-match
+          regex: (feature|test).*
+          label: ${ENV,var="cct_tests"}
+          steps:
+            - trigger-builds:
+                - project: cloud-mkphyscloud-qa-test-cct
+                  condition: ALWAYS
+                  block: true
+                  block-thresholds:
+                    build-step-failure-threshold: FAILURE
+                    failure-threshold: FAILURE
+                    unstable-threshold: FAILURE
+                  predefined-parameters: |
+                    hw_number=$hw_number
+                    scenario_name=$scenario_name
+                    scenario_job_name=$scenario_job_name
+                    scenario_build_number=$scenario_build_number
+                    cct_tests=$cct_tests
+                    testsetup=$testsetup
+
+      - conditional-step:
+          condition-kind: boolean-expression
           condition-expression: ${ENV,var="horizon-tests"}
           steps:
             - trigger-builds:
