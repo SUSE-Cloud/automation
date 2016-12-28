@@ -180,12 +180,20 @@ proposals:
       - cluster:services
 
 - barclamp: magnum
+  attributes:
+    trustee:
+      domain_name: magnum
+      domain_admin_name: magnum_domain_admin
   deployment:
     elements:
       magnum-server:
       - "@@controller1@@" #TODO Cluster will be enabled when implementation done cluster - cluster:services
 
 - barclamp: tempest
+  attributes:
+    magnum:
+      flavor_id: m1.smaller # required by function oncontroller_magnum_service_setup in qa_crowbarsetup
+      master_flavor_id: m2.smaller # required by function oncontroller_magnum_service_setup in qa_crowbarsetup
   deployment:
     elements:
       tempest:
