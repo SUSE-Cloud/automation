@@ -64,7 +64,7 @@
 
       - bool:
           name: testsetup
-          default: true
+          default: false
           description: Run tempest with testsetup() in qa_crowbarsetup.sh script
 
 
@@ -96,9 +96,9 @@
 
             if [ "$testsetup" == true ] ; then
               onadmin_testsetup
-            else
-              onadmin_run_cct
             fi
+
+            onadmin_run_cct
 
           '|| result=$?
 
