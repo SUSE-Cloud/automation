@@ -59,9 +59,12 @@
             source scripts/qa_crowbarsetup.sh;
 
             if [ "$testsetup" == true ] ; then
-               onadmin_testsetup;
-            else
-               get_novacontroller;
-               oncontroller oncontroller_run_tempest;
+              bash -x -c "source scripts/qa_crowbarsetup.sh; onadmin_testsetup"
+              result=$?
             fi
+
+            get_novacontroller;
+            oncontroller oncontroller_run_tempest;
+            result=${result: $?}
+            exit $result;
           '
