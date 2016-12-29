@@ -71,7 +71,7 @@
     builders:
       - shell: |
           #!/bin/bash
-          set -x
+          set +e;
           admin=crowbar$hw_number;
           cloud=qa$hw_number;
           cct_path="/root/github.com/$repo_owner/cct";
@@ -89,16 +89,24 @@
             export cct_skip_func_tests=$cct_skip_func_tests;
             export testsetup=$testsetup;
           " '
+            set +e;
             hostname -f;
             source scripts/qa_crowbarsetup.sh
-            echo "want_tempest=0" >> mkcloud.config | grep -q want_tempest mkcloud.config
             source mkcloud.config
 
             if [ "$testsetup" == true ] ; then
-              onadmin_testsetup
+              if ! grep -q want_tempest=0 mkcloud.config ; then
+                echo "want_tempest=0" >> mkcloud.config
+              fi
+              bash -x -c "source scripts/qa_crowbarsetup.sh; onadmin_testsetup"
+              result=$?
             fi
 
+            get_novacontroller
+            oncontroller prepare_functional_tests
             onadmin_run_cct
+            result=${result: $?}
+            exit $result;
 
           '|| result=$?
 
