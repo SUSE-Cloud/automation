@@ -4048,7 +4048,7 @@ function oncontroller_prepare_functional_tests
             develcloud?|susecloud?|M?|Beta*|RC*|GMC*)
                 local mount_dir="/var/lib/Cloud-Testing"
                 local repo_name="cloud-test"
-                if ! zypper mr "$repo_name" ; then
+                if ! zypper lr "$repo_name" ; then
                     rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
                     zypper -n ar --refresh -c -G -f "$mount_dir" "$repo_name"
                     zypper_refresh
