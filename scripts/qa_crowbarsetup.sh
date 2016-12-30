@@ -3640,6 +3640,7 @@ function nova_services_up
 function oncontroller_testsetup
 {
     . .openrc
+    oncontroller_prepare_functional_tests
     # 28 is the overhead of an ICMP(ping) packet
     [[ $want_mtu_size ]] && iscloudver 5plus && safely ping -M do -c 1 -s $(( want_mtu_size - 28 )) $adminip
     export LC_ALL=C
@@ -3654,16 +3655,6 @@ function oncontroller_testsetup
         ! openstack catalog show manila 2>&1 | grep -q "service manila not found" && \
         ! manila type-list | grep -q "[[:space:]]ceph[[:space:]]" ; then
         manila type-create ceph false --snapshot_support false || complain 79 "manila type-create for ceph failed"
-    fi
-
-    # prepare test image with the -test packages containing functional tests
-    if iscloudver 6plus && [[ $cloudsource =~ (devel|newton|suse)cloud ]]; then
-        local mount_dir="/var/lib/Cloud-Testing"
-        rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
-        zypper -n ar --refresh -c -G -f "$mount_dir" cloud-test
-        zypper_refresh
-
-        ensure_packages_installed python-novaclient-test python-manilaclient-test
     fi
 
     if [[ $deployswift ]] ; then
@@ -4049,6 +4040,25 @@ EOH
         done
     done
 }
+
+function oncontroller_prepare_functional_tests
+{
+    if iscloudver 6plus; then
+        case "$cloudsource" in
+            develcloud?|susecloud?|M?|Beta*|RC*|GMC*)
+                local mount_dir="/var/lib/Cloud-Testing"
+                local repo_name="cloud-test"
+                if ! zypper mr "$repo_name" ; then
+                    rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
+                    zypper -n ar --refresh -c -G -f "$mount_dir" "$repo_name"
+                    zypper_refresh
+                    ensure_packages_installed python-novaclient-test python-manilaclient-test
+                fi
+            ;;
+        esac
+    fi
+}
+
 
 function onadmin_testsetup
 {
