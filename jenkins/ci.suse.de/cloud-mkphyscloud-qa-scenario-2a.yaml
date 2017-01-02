@@ -200,8 +200,6 @@
 
           echo "mkphyscloud ret=$ret (before scenario and configuration)"
 
-          sleep 60
-
           if [ $ret == "0" ]; then
             # ----- Prepare the SBD setup:
 
@@ -259,6 +257,14 @@
 
             scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
 
+            # Check if zypper is used by other application
+            ssh root@$admin '
+              source scripts/qa_crowbarsetup.sh;
+              for node in $(crowbar machines aliases | grep -E "controller|data|network" | grep -oE "^.*[[:space:]]"); do
+                wait_for 20 10 "ssh $node \"zypper refresh\" "
+              done
+            '
+
             ssh root@$admin  "
             export cloud=$cloud ;
             export TESTHEAD=$TESTHEAD ;
@@ -271,7 +277,7 @@
             export scenario=scenario.yml "'
 
             source scripts/qa_crowbarsetup.sh
-            source ./sbd_prepare
+            ./sbd_prepare
 
             timeout --signal=ALRM 60m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist batch;"
             ' || ret=$?
