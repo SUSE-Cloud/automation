@@ -122,13 +122,6 @@
            Use just \"-t\" for a full tempest run.
 
      - string:
-         name: ostestroptions
-         default:
-         description: |
-            If given, a extra ostestr run is executed (after the default tempest run).
-            Use i.e. " --regex '^magnum.tests.functional.api'"
-
-     - string:
          name: want_horizon_integration_test
          default:
          description: |

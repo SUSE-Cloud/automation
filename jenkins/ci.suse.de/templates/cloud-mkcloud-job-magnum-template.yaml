@@ -22,7 +22,7 @@
             nodenumbercompute=3
             want_magnum=1
             storage_method=none
-            ostestroptions= --regex '^magnum.tests.functional.api'
+            tempestoptions=--regex '^magnum.tests.functional.api'
             mkcloudtarget=all
             label={label}
             job_name=cloud-mkcloud{version}-job-magnum-{arch}
