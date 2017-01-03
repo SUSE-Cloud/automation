@@ -73,10 +73,6 @@ declare -a unclustered_nodes
 
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
-# useful when tempest executes just the smoke tests but
-# you want to run some extra (non-smoke) tests
-# if set, ostestr is installed and executed with the given params
-export ostestroptions=${ostestroptions:-}
 export want_sles12
 [[ $want_sles12 = 0 ]] && want_sles12=
 export nodes=
@@ -3348,15 +3344,6 @@ function oncontroller_run_tempest
     fi
     testr last --subunit | subunit-1to2 > tempest.subunit.log
 
-    if [ -n "$ostestroptions" ]; then
-        zypper -n in python-os-testr
-        ostestr $ostestroptions 2>&1 | tee ostestr.log
-        local ostestrret=${PIPESTATUS[0]}
-        if [ "$ostestrret" -ne 0 ]; then
-            complain 111 "Extra ostestr run failed. See ostestr.log"
-        fi
-    fi
-
     oncontroller_tempest_cleanup
     popd
     return $tempestret
@@ -3949,7 +3936,7 @@ function oncontroller
     cd /root
     scp -r $SCRIPTS_DIR $mkcconf $novacontroller:
     ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ;
-        export tempestoptions=\"$tempestoptions\" ; export ostestroptions=\"$ostestroptions\" ;
+        export tempestoptions=\"$tempestoptions\" ;
         export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
@@ -4190,9 +4177,6 @@ EOF
         scp $novacontroller:/var/lib/openstack-tempest-test/tempest.log .
         scp $novacontroller:/var/lib/openstack-tempest-test/tempest.subunit.log .
         scp $novacontroller:.openrc .
-        if [ -n "$ostestroptions" ]; then
-            scp $novacontroller:/var/lib/openstack-tempest-test/ostestr.log .
-        fi
     fi
     exit $ret
 }
