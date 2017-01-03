@@ -29,7 +29,7 @@ function do_wget
 
 function do_git
 {
-    rpm -q git-core || zypper --non-interactive in git-core || return 24
+    rpm -q git-core >/dev/null || zypper --non-interactive in git-core || return 24
 
     if [ -d $a_dir/.git ] ; then
         pushd $a_dir > /dev/null
