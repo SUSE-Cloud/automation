@@ -125,18 +125,12 @@ enable_service postgresql
 # swift is disabled by default
 #enable_service s-proxy s-object s-container s-account
 
-# Use Neutron instead of Nova network
-disable_service n-net
-enable_service q-svc
-enable_service q-agt
-enable_service q-dhcp
-enable_service q-l3
-enable_service q-meta
-enable_service q-metering
-# vpn disabled for now. openswan required by devstack but not available in openSUSE
-# enable_service q-vpn
-# enable_service q-fwaas
-enable_service q-lbaas
+# enable heat, which enables almost everything
+enable_service heat
+enable_service h-api
+enable_service h-api-cfn
+enable_service h-api-cw
+enable_service h_eng
 
 # for testing
 enable_service tempest
