@@ -223,9 +223,19 @@
           EOSCRIPT
             chmod +x /tmp/sbd_prepare_$admin
             scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
+
+            # Check if zypper is used by other application
+            ssh root@$admin '
+              source scripts/qa_crowbarsetup.sh;
+              for node in $(crowbar machines aliases | grep "controller" | grep -oE "^.*[[:space:]]"); do
+                wait_for 20 10 "ssh $node \"zypper refresh\"" "zypper to be available on $node"
+              done
+            '
+
             ssh root@$admin './sbd_prepare
             ' || ret=$?
           fi
+
           if [ "$ret" = "0" ]; then
             ssh root@$admin "
             export cloud=$cloud ;

@@ -189,13 +189,13 @@
               # preparation of iSCSI
               export ZYPP_LOCK_TIMEOUT=120
               zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
-              
+
               chmod +x scripts/iscsictl.py
 
               ./scripts/iscsictl.py --service target --host \$(hostname) --no-key
               ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
               ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
-              
+
               # preparation of SBD
               SBD_DEV1=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
               SBD_DEV2=\$(ssh controller2 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
@@ -212,6 +212,15 @@
 
             chmod +x /tmp/sbd_prepare_$admin
             scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
+
+            # Check if zypper is used by other application
+            ssh root@$admin '
+              source scripts/qa_crowbarsetup.sh;
+              for node in $(crowbar machines aliases | grep "controller" | grep -oE "^.*[[:space:]]"); do
+                wait_for 20 10 "ssh $node \"zypper refresh\"" "zypper to be available on $node"
+              done
+            '
+
             ssh root@$admin './sbd_prepare
             ' || ret=$?
 
