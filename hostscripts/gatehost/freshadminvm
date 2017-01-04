@@ -1,0 +1,32 @@
+#!/bin/sh
+n=$1
+cloudsource=$2
+if [ -z "$n" ] ; then
+	echo "usage: $0 admin2 develcloud6"
+	exit 1
+fi
+
+if [[ "$n" != admin2 && "$n" != admin3 && "$n" != admin4 ]] ; then
+	echo "bad VM name"
+	exit 2
+fi
+
+virsh destroy $n
+
+echo "cloudsource=$cloudsource"
+rm -f mkcloud.config
+. /root/manual.bwiedemann/automation/scripts/qa_crowbarsetup.sh
+#if [[ "$n" = admin2 ]] ; then
+if iscloudver 6plus ; then
+  imgsp=1
+  iscloudver 7plus && imgsp=2
+  dd if=/dev/system/SLE12SP$imgsp of=/dev/system/$n bs=64k
+  resize_partition /dev/system/$n
+else
+  gzip -cd /mnt/bmwjdsn/$n.img.gz > /dev/system/$n
+fi
+virsh start $n
+sleep 100 # time for the admin VM to boot
+sshkey=`cat ~/.ssh/id_rsa.pub`
+ssh_password $n "echo '$sshkey' >> ~/.ssh/authorized_keys"
+
