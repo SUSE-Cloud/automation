@@ -1,0 +1,82 @@
+- job:
+    name: cloud-mkphyscloud-qa-test-upgrade-ui
+    node: cloud-mkphyscloud-gate-qa
+    description: |
+      Run upgrade on the selected cloud
+      Useful only for cloud that was built by mkcloud.
+      This job is making use of mkcloud.config file stored on admin node which contains
+      configuration values used from the jenkins cloud scenario
+
+      Mandatory parameter: hw_number
+
+    logrotate:
+      numToKeep: 15
+      daysToKeep: -1
+
+    wrappers:
+      - build-name:
+          name: '#${BUILD_NUMBER} - ${scenario_name} - qa$hw_number - upgrade-ui'
+      - timestamps
+    publishers:
+      - mkphyscloud-qa-common-publishers
+
+    concurrent: true
+
+    parameters:
+      - string:
+          name: hw_number
+          description: Mandatory, number of the QA cloud server
+
+      - string:
+          name: cct_tests
+          default: feature:ui:upgrade
+          description: cct upgrade tests to be run
+
+      - string:
+          name: upgrade_cloudsource
+          default: develcloud7
+          description: Mandatory, mkcloud cloudsource target name, e.g. develcloud7
+
+      - string:
+          name: scenario_name
+          description: Optional; scenario name which typically is an integer with a single letter
+
+      - string:
+          name: scenario_job_name
+          description: Optional; name of the scenario jenkins job that is used to trigger this job
+
+      - string:
+          name: scenario_build_number
+          description: Optional; scenario build number that triggered this job
+
+      - string:
+          name: scenario_build_number
+          description: Optional; scenario build number that triggered this job
+
+    builders:
+      - shell: |
+          #!/bin/bash
+          admin=crowbar$hw_number;
+          cloud=qa$hw_number;
+
+          ssh root@$admin "
+            export cloud=$cloud;
+            export upgrade_cloudsource=$upgrade_cloudsource
+            export cct_ui_tests=true
+            export cct_tests=$cct_tests
+          " '
+            set -x;
+            hostname -f;
+            source mkcloud.config;
+            source scripts/qa_crowbarsetup.sh;
+
+            [[ -z $upgrade_cloudsource ]] && \
+            complain 55 "Variable \$upgrade_cloudsource not defined, upgrade target is missing"
+
+            zypper --non-interactive install crowbar-ui
+
+            # from scripts/mkcloud -> crowbarupgrade_5plus
+            onadmin_zypper_patch_all
+            onadmin_run_cct
+          '
+
