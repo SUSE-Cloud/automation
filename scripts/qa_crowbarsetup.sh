@@ -73,10 +73,6 @@ declare -a unclustered_nodes
 
 export nodenumber=${nodenumber:-2}
 export tempestoptions=${tempestoptions:--t -s}
-# useful when tempest executes just the smoke tests but
-# you want to run some extra (non-smoke) tests
-# if set, ostestr is installed and executed with the given params
-export ostestroptions=${ostestroptions:-}
 export want_sles12
 [[ $want_sles12 = 0 ]] && want_sles12=
 export nodes=
@@ -3307,12 +3303,10 @@ function wait_image_active
 
 function oncontroller_tempest_cleanup
 {
-    if iscloudver 5plus; then
-        if tempest help cleanup &>/dev/null; then
-            tempest cleanup --delete-tempest-conf-objects
-        else
-            /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
-        fi
+    if iscloudver 6plus; then
+        tempest cleanup --delete-tempest-conf-objects
+    elif iscloudver 5plus; then
+        /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
     else
         /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
     fi
@@ -3322,44 +3316,33 @@ function oncontroller_run_tempest
 {
     pushd /var/lib/openstack-tempest-test
     echo 1 > /proc/sys/kernel/sysrq
-    if iscloudver 5plus; then
-        if tempest help cleanup; then
-            tempest cleanup --init-saved-state
+    local tempestret
+
+    if iscloudver 6plus; then
+        tempest cleanup --init-saved-state
+        local opts=$tempestoptions
+        if iscloudver 7plus; then
+            ### backward compatibility, remove
+            opts=${opts/-s/--smoke}
+            opts=${opts/-t/--serial}
+            tempest run $opts 2>&1 | tee tempest.log
+            tempestret=${PIPESTATUS[0]}
         else
-            /usr/bin/tempest-cleanup --init-saved-state || :
+            ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
+            tempestret=${PIPESTATUS[0]}
         fi
+    else
+        /usr/bin/tempest-cleanup --init-saved-state || :
+        ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
+        tempestret=${PIPESTATUS[0]}
     fi
-    ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
-    local tempestret=${PIPESTATUS[0]}
+
     # tempest returns 0 also if no tests were executed - so use "testr last"
     # to verify that some tests were executed
     if [ "$tempestret" -eq 0 ]; then
         testr last || complain 96 "Tempest run succeeded but something is wrong"
     fi
     testr last --subunit | subunit-1to2 > tempest.subunit.log
-
-    if [[ $tempestoptions = "-t" ]] && [[ $tempestret != 0 ]] ; then
-        # for tempestfull runs we want less than 1% failed tests (99% pass rate)
-        grep -A9 "Ran.*tests" tempest.log | perl -e '
-            while(<>) {
-                m/Ran:? (\d+) tests in / and $total=$1;
-                m/failures=(\d+)/  and $failed=$1; # cloud5
-                m/- Failed: (\d+)/ and $failed=$1; # cloud7
-            }
-            exit 107 unless defined $failed;
-            my $failratio = $failed/$total;
-            print "Failure ratio: $failratio = $failed/$total\n";
-            exit ($failratio > 0.01)   # 0 means success'
-        tempestret=$?
-    fi
-    if [ -n "$ostestroptions" ]; then
-        zypper -n in python-os-testr
-        ostestr $ostestroptions 2>&1 | tee ostestr.log
-        local ostestrret=${PIPESTATUS[0]}
-        if [ "$ostestrret" -ne 0 ]; then
-            complain 111 "Extra ostestr run failed. See ostestr.log"
-        fi
-    fi
 
     oncontroller_tempest_cleanup
     popd
@@ -3955,7 +3938,7 @@ function oncontroller
     cd /root
     scp -r $SCRIPTS_DIR $mkcconf $novacontroller:
     ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ;
-        export tempestoptions=\"$tempestoptions\" ; export ostestroptions=\"$ostestroptions\" ;
+        export tempestoptions=\"$tempestoptions\" ;
         export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
@@ -4196,9 +4179,6 @@ EOF
         scp $novacontroller:/var/lib/openstack-tempest-test/tempest.log .
         scp $novacontroller:/var/lib/openstack-tempest-test/tempest.subunit.log .
         scp $novacontroller:.openrc .
-        if [ -n "$ostestroptions" ]; then
-            scp $novacontroller:/var/lib/openstack-tempest-test/ostestr.log .
-        fi
     fi
     exit $ret
 }
