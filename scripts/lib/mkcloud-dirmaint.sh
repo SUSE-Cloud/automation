@@ -5,6 +5,57 @@
 
 . ~/.lxccfg
 
+shutdowntime=60
+zvmname=$(vmcp q userid | sed 's/ .*//')
+
+function dirmaint_do_sanity_checks()
+{
+    if [ ! -e ~/.lxccfg ] ; then
+        complain 1 "This script needs lxc configured and ~/.lxccfg to work correctly"
+    fi
+}
+
+# unit with 3390 would be a cylinder, with 9336 it would be 512 Byte
+function unit_to_byte()
+{
+    # each 3390 cylinder has 849960 bytes according to documentation
+    if [ "$1" == "3390" ]; then
+        echo $(($2 * 849960))
+        return 0
+    fi
+    if [ "$1" == "9336" ]; then
+        echo $(($2 * 512))
+        return 0
+    fi
+    return 1
+}
+
+# unit with 3390 would be a cylinder, with 9336 it would be 512 Byte
+function byte_to_unit()
+{
+    # $1 is device type (3390 or 9336)
+    # $2 is number of bytes
+    # I guess we want to round up...
+    # each 3390 cylinder has 849960 bytes according to documentation
+    if [ "$1" == "3390" ]; then
+        carry=$(($2 % 849960))
+        if [ $carry -ne 0 ]; then
+            carry=1
+        fi
+        echo $(($2 / 849960 + $carry))
+        return 0
+    fi
+    if [ "$1" == "9336" ]; then
+        carry=$(($2 % 512))
+        if [ $carry -ne 0 ]; then
+            carry=1
+        fi
+        echo $(($1 / 512 + $carry))
+        return 0
+    fi
+    return 1
+}
+
 function dirmaint_do_setuphost()
 {
     vmcp q cplevel || complain 191 "Something is wrong with the CP link"
@@ -23,7 +74,8 @@ function dirmaint_do_sanity_checks()
 
 function dirmaint_user_deleted()
 {
-    vmcp q $1 2> /dev/null | grep HCPCQV003E >& /dev/null
+    # HCP003E says invalid option. This means, the user does not exist.
+    vmcp q $1 2> /dev/null | grep -q HCPCQV003E
     return $?
 }
 
@@ -31,10 +83,11 @@ function dirmaint_do_shutdowncloud()
 {
     for i in $(nodes ids all); do
         # skip user, if it is logged off or if it does not exist
-        vmcp q $(printf "${cloud}n%02d" $i) 2> /dev/null |\
-            grep -e "HCPCQU045E" -e "HCPCQV003E" >& /dev/null && continue
-        sigcmd="cp sig shut $(printf "${cloud}n%02d" $i) within 60"
-        forcecmd="cp force $(printf "${cloud}n%02d" $i)"
+        local usrname=$(printf "${cloud}n%02d" $i)
+        vmcp q $usrname 2> /dev/null |\
+            grep -q -e "HCPCQU045E" -e "HCPCQV003E" && continue
+        sigcmd="cp sig shut $usrname within $shutdowntime"
+        forcecmd="cp force $usrname IMMED"
         $lxc -c "$sigcmd" || lxc -c "$forcecmd"
     done
     # if a guest is logged on, query to the name has status 0
@@ -68,7 +121,7 @@ function dirmaint_do_cleanup()
         ip link set $devname down
         # use system script to take down the device
         qeth_configure -l 0.0.1${cloudidx}00 0.0.1${cloudidx}01 0.0.1${cloudidx}02 0
-        $lxc -c "cp for lnxadmin cmd detach nic ${ndev}"
+        $lxc -c "cp for $zvmname cmd detach nic ${ndev}"
     fi
     # and finally delete the vswitch
     $lxc -c "cp q vswitch ${cloud}" >& /dev/null && $lxc -c "cp detach vswitch ${cloud}"
@@ -85,10 +138,10 @@ function dirmaint_do_prepare()
         $lxc -c "cp define vswitch ${cloud} qdio local nouplink ethernet vlan unaware"
         # create nic on the host, and plug it into that switch
         ndev=1${cloudidx}00
-        $lxc -c "cp for lnxadmin cmd define nic ${ndev} type qdio"
-        $lxc -c "cp for lnxadmin cmd set nic ${ndev} macid 0${cloudidx}7700"
-        $lxc -c "cp set vswitch ${cloud} grant lnxadmin"
-        $lxc -c "cp for lnxadmin cmd couple ${ndev} to system ${cloud}"
+        $lxc -c "cp for $zvmname cmd define nic ${ndev} type qdio"
+        $lxc -c "cp for $zvmname cmd set nic ${ndev} macid 0${cloudidx}7700"
+        $lxc -c "cp set vswitch ${cloud} grant $zvmname"
+        $lxc -c "cp for $zvmname cmd couple ${ndev} to system ${cloud}"
 
         # use system script to bring up the device
 	qeth_configure -l 0.0.1${cloudidx}00 0.0.1${cloudidx}01 0.0.1${cloudidx}02 1
@@ -154,8 +207,8 @@ function _dirmaint_link_and_write_disk()
     # container for images. Instead of /tmp/$image, there would be a certain
     # disk with $ccw that contains the image. The actual cloning would then be
     # done with a command like the following:
-    # lxc -h s390cld015 -u ladmin -P lin390 -c "dirm for $ruser clonedisk 0100 lnxadmin $ccw"
-    # note, that the disk must be detached from lnxadmin after the image has
+    # lxc -h s390cld015 -u ladmin -P lin390 -c "dirm for $ruser clonedisk 0100 $zvmname $ccw"
+    # note, that the disk must be detached from $zvmname after the image has
     # been copied there. The big advantage would be, that dirmaint would use
     # flashcopy if available.
     # After the copy, you would wait until the disk is not linked
@@ -209,7 +262,8 @@ EOF
     # FIXME: this is CKD (3390) only, also fixed size of 10015 cylinders
     # FIXME: for FBA, the type would be 9336, and counting would be 512 byte
     # blocks.
-    $lxc -c "dirm for $admuser amdisk 0100 3390 autog 10015 CLD9 mr"
+    disksize=$(byte_to_units 3390 8512349400) # this is just the 10015 cylinders
+    $lxc -c "dirm for $admuser amdisk 0100 3390 autog $disksize CLD9 mr"
     # other modifications also would work with similar commands
     # now deploy the standard image to the boot disk:
     dirmaint_do_onhost_deploy_image admin SLES12-SP2-ECKD.qcow2 0100
