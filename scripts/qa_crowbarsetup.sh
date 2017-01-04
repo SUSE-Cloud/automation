@@ -2552,6 +2552,13 @@ function custom_configuration
             proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
             [[ $libvirt_type = xen ]] && sed -i -e "s/${role_prefix}-compute-$libvirt_type/${role_prefix}-compute-xxx/g; s/${role_prefix}-compute-kvm/${role_prefix}-compute-$libvirt_type/g; s/${role_prefix}-compute-xxx/${role_prefix}-compute-kvm/g" $pfile
 
+
+            if iscloudver 7plus; then
+                ### pick cluster when ec2-api can be deployed on a cluster
+                local ec2node="${unclustered_nodes[0]}"
+                proposal_set_value nova default "['deployment']['nova']['elements']['ec2-api']" "['$ec2node']"
+            fi
+
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-controller']" "['cluster:$clusternameservices']"
 
