@@ -94,6 +94,7 @@ iscloudver 7plus && controller_node_memory=$(max $controller_node_memory 8388608
 : ${computenode_hdd_size:=20}
 : ${cephvolume_hdd_size:=21}
 : ${controller_ceph_hdd_size:=25}
+: ${lonelynode_hdd_size:=20}
 if [[ $hacloud ]]; then
     : ${drbd_hdd_size:=15}
 else
@@ -1004,6 +1005,8 @@ Optional
         Set the size in GB of data disk attached in compute nodes with enabled 'cephvolumenumber'
     controller_ceph_hdd_size (default 25)
         Set the size in GB of data disk attached in controller node  with enabled 'cephvolumenumber'
+    lonelynode_hdd_size (default 20)
+        Set the size in GB of data disk for lonely node.
     nodenumber=2    (default 2)
         set the number of nodes to be created for the cloud (excluding admin node)
         In HA mode (hacloud=1) the nodes needed for clusters are subtracted from nodenumber; the
