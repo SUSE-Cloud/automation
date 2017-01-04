@@ -262,7 +262,7 @@ EOF
     # FIXME: this is CKD (3390) only, also fixed size of 10015 cylinders
     # FIXME: for FBA, the type would be 9336, and counting would be 512 byte
     # blocks.
-    disksize=$(byte_to_units 3390 8512349400) # this is just the 10015 cylinders
+    disksize=$(byte_to_unit 3390 8512349400) # this is just the 10015 cylinders
     $lxc -c "dirm for $admuser amdisk 0100 3390 autog $disksize CLD9 mr"
     # other modifications also would work with similar commands
     # now deploy the standard image to the boot disk:
