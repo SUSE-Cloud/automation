@@ -3354,11 +3354,17 @@ function oncontroller_run_tempest
     fi
     if [ -n "$ostestroptions" ]; then
         zypper -n in python-os-testr
+        if [[ $want_magnum = 1 ]]; then
+            pushd /var/lib/openstack-magnum-test
+            export OS_TEST_PATH=./magnum/tests/functional/k8s
+            export OS_TEST_TIMEOUT=7200
+        fi
         ostestr $ostestroptions 2>&1 | tee ostestr.log
         local ostestrret=${PIPESTATUS[0]}
         if [ "$ostestrret" -ne 0 ]; then
             complain 111 "Extra ostestr run failed. See ostestr.log"
         fi
+        [[ $want_magnum = 1 ]] && popd
     fi
 
     oncontroller_tempest_cleanup
@@ -3567,35 +3573,11 @@ function oncontroller_manila_generic_driver_setup()
 
 function oncontroller_magnum_service_setup
 {
-    # (mjura): https://bugs.launchpad.net/magnum/+bug/1622468
-    # Magnum functional tests have hardcoded swarm as coe backend, until then this will
-    # not be fixed, we are going to have our own integration tests with SLES Magnum image
-    local service_image_name=magnum-service-image
-    local service_image_url=http://clouddata.cloud.suse.de/images/$arch/other/${service_image_name}.qcow2
-    local service_sles_image_name=sles-openstack-magnum-kubernetes
-    local service_sles_image_url=http://download.suse.de/ibs/Devel:/Docker:/Images:/SLE12SP1-JeOS-k8s-magnum/images/${service_sles_image_name}.${arch}.qcow2
+    local service_image_name=sles-openstack-magnum-kubernetes
+    local service_image_url=http://download.suse.de/ibs/Devel:/Docker:/Images:/SLE12SP1-JeOS-k8s-magnum/images/${service_image_name}.${arch}.qcow2
 
     if ! openstack image list --f value -c Name | grep -q "^${service_image_name}$"; then
         local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
-        if [[ $ret =~ "200 OK" ]]; then
-            echo $ret
-        elif [[ $ret =~ "Not Found" ]]; then
-            complain 73 "magnum image not found: $ret"
-        else
-            complain 74 "failed to retrieve magnum image: $ret"
-        fi
-
-        . ~/.openrc
-
-        # TODO(toabctl): when replacing the Fedora image, also replace the
-        # os-distro property
-        openstack image create --file ${service_image_name}.qcow2 \
-            --disk-format qcow2 --container-format bare --public \
-            --property os_distro=fedora-atomic $service_image_name
-    fi
-
-    if ! openstack image list --f value -c Name | grep -q "^${service_sles_image_name}$"; then
-        local ret=$(wget -N --progress=dot:mega "$service_sles_image_url" 2>&1 >/dev/null)
         if [[ $ret =~ "200 OK" ]]; then
             echo $ret
         elif [[ $ret =~ "Not Found" ]]; then
@@ -3606,9 +3588,9 @@ function oncontroller_magnum_service_setup
 
         . ~/.openrc
 
-        openstack image create --file ${service_sles_image_name}.${arch}.qcow2 \
+        openstack image create --file ${service_image_name}.${arch}.qcow2 \
             --disk-format qcow2 --container-format bare --public \
-            --property os_distro=opensuse $service_sles_image_name
+            --property os_distro=opensuse $service_image_name
     fi
 
     # create magnum flavors used by tempest
@@ -3624,6 +3606,31 @@ function oncontroller_magnum_service_setup
     if ! openstack keypair show default; then
         openstack keypair create --public-key /root/.ssh/id_rsa.pub default
     fi
+
+    safely zypper -n in openstack-magnum-test
+
+    cat > /var/lib/openstack-magnum-test/functional_creds.conf << EOF
+    # Credentials for functional testing
+    [auth]
+    auth_url = http://127.0.0.1:5000/v2.0
+    magnum_url = http://127.0.0.1:9511/v1
+    username = admin
+    tenant_name = openstack
+    password = crowbar
+    auth_version = v2
+    [admin]
+    user = admin
+    tenant = openstack
+    pass = password
+    [magnum]
+    image_id = sles-openstack-magnum-kubernetes
+    nic_id = floating
+    keypair_id = default
+    flavor_id = m1.smaller
+    master_flavor_id = m2.smaller
+    dns_nameserver = 8.8.8.8
+EOF
+
 }
 
 function nova_services_up
