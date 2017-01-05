@@ -3724,6 +3724,7 @@ function oncontroller_setupproduction()
     tenantid=$(getprojectid openstack)
     nova quota-update --instances 400 --key-pairs 400 --server-groups 400 --ram 120000 --cores 500 --floating-ips 200 $tenantid
     neutron quota-update --floatingip 200 --security-group 400 --port 400 --network 200 --router 100 --vip 100 --pool 100
+    OS_TENANT_NAME=qa neutron quota-update --port 100
     nova quota-update --ram 20000 $(getprojectid suse)
     nova quota-update --ram 55000 $(getprojectid cloudfoundry)
     nova quota-update --ram 80000 --cores 100 $(getprojectid ses)
