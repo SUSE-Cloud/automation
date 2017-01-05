@@ -1278,7 +1278,7 @@ function expand_steps
 
                 case "$cmd" in
                     _new_admin)
-                        runcmds="$runcmds cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar bootstrapcrowbar instcrowbar"
+                        runcmds="$runcmds cleanup prepare setupadmin addupdaterepo prepareinstcrowbar runupdate bootstrapcrowbar instcrowbar"
                     ;;
                     _compute)
                         runcmds="$runcmds setupnodes instnodes setup_aliases proposal"
