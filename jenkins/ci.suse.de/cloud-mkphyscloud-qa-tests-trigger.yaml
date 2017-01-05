@@ -38,7 +38,7 @@
           description: Optional; triggers cct tests. If the value is left empty, no cct tests will be run. The tests must be separated by + sign, e.g. feature:admin+feature:controller
 
       - bool:
-          name: trigger-upgrade
+          name: trigger_upgrade
           description: Trigger the upgrade process for this cloud in a separate job
 
       - bool:
@@ -171,7 +171,7 @@
 
       - conditional-step:
           condition-kind: boolean-expression
-          condition-expression: ${ENV,var="trigger-upgrade"}
+          condition-expression: ${ENV,var="trigger_upgrade"}
           steps:
             - trigger-builds:
                 - project: cloud-mkphyscloud-qa-test-upgrade-ui
