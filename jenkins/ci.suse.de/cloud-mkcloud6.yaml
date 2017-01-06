@@ -9,6 +9,7 @@
     version: 6
     previous_version: 5
     arch: x86_64
+    tempestoptions: -s -t
     label: openstack-mkcloud-SLE12-x86_64
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
