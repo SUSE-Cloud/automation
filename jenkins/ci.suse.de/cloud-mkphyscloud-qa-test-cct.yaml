@@ -1,5 +1,5 @@
 - job:
-    name: cloud-mkphyscloud-qa-test-cct-job
+    name: cloud-mkphyscloud-qa-test-cct
     node: cloud-mkphyscloud-gate-qa
     description: |
       Runs cct tests
@@ -7,12 +7,12 @@
       Mandatory parameter: hw_number
 
     logrotate:
-      numToKeep: 7
+      numToKeep: 30
       daysToKeep: -1
 
     wrappers:
       - build-name:
-          name: '#${BUILD_NUMBER} - ${scenario_name} - cloud${hw_number} - ${cct_tests}'
+          name: '#${BUILD_NUMBER} - ${scenario_name} - qa${hw_number} - ${cct_tests}'
       - timestamps
     publishers:
       - mkphyscloud-qa-common-publishers
@@ -28,15 +28,19 @@
       - string:
           name: cct_tests
           default: features:base
-          description: List of tests separated by plus sign, e.g. features:base+feature:scale:cirros
+          description: List of tests separated by plus sign, e.g. features:base+test:func:novaclient
 
       - string:
-          name: cct_git_url
-          default: https://github.com/SUSE-Cloud/cct.git
+          name: repo_owner
+          default: SUSE-Cloud
+
+      - string:
+          name: cct_repo
+          default: https://github.com/$repo_owner/cct.git
           description: Git repo url for cct
 
       - string:
-          name: cct_checkout_branch
+          name: branch
           default: master
           description: Git repo branch name
 
@@ -58,13 +62,19 @@
           name: scenario_build_number
           description: Optional; scenario build number that triggered this job
 
+      - bool:
+          name: testsetup
+          default: false
+          description: Run tempest with testsetup() in qa_crowbarsetup.sh script
+
 
     builders:
       - shell: |
           #!/bin/bash
+          set +e;
           admin=crowbar$hw_number;
           cloud=qa$hw_number;
-          cct_path="/root/github.com/SUSE-Cloud/cct";
+          cct_path="/root/github.com/$repo_owner/cct";
           artifacts_dir=$WORKSPACE/.artifacts
 
           rm -rf $artifacts_dir
@@ -74,12 +84,29 @@
           ssh root@$admin "
             export cloud=$cloud;
             export cct_tests=$cct_tests;
-            export cct_git_url=$cct_git_url;
-            export cct_checkout_branch=$cct_checkout_branch;
+            export cct_git_url=$cct_repo;
+            export cct_checkout_branch=$branch;
             export cct_skip_func_tests=$cct_skip_func_tests;
+            export testsetup=$testsetup;
           " '
+            set +e;
             hostname -f;
-            timeout --signal=ALRM 90m bash -x -c "source qa_crowbarsetup.sh; onadmin_run_cct"
+            source scripts/qa_crowbarsetup.sh
+            source mkcloud.config
+
+            if [ "$testsetup" == true ] ; then
+              if ! grep -q want_tempest=0 mkcloud.config ; then
+                echo "want_tempest=0" >> mkcloud.config
+              fi
+              bash -x -c "source scripts/qa_crowbarsetup.sh; onadmin_testsetup"
+              result=$?
+            fi
+
+            get_novacontroller
+            oncontroller prepare_functional_tests
+            onadmin_run_cct
+            result=${result: $?}
+            exit $result;
 
           '|| result=$?
 
