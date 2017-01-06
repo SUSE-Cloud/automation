@@ -19,7 +19,7 @@
             TESTHEAD=1
             cloudsource=develcloud{version}
             nodenumber=2
-            tempestoptions=
+            tempestoptions={tempestoptions}
             mkcloudtarget=all_noreboot
             label={label}
             job_name=cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}
