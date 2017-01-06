@@ -135,6 +135,8 @@ proposals:
       ksm_enabled: true
   deployment:
     elements:
+      ec2-api:
+      - "@@controller1@@"
       nova-controller:
       - cluster:services
       nova-compute-hyperv: []

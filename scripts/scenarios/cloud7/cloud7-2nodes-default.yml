@@ -113,6 +113,8 @@ proposals:
         json: '{"custom-key": "custom-value"}'
   deployment:
     elements:
+      ec2-api:
+      - @@controller@@
       nova-controller:
       - @@controller@@
       nova-compute-hyperv: []
