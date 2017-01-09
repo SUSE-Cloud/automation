@@ -10,7 +10,7 @@
     version: 7
     previous_version: 6
     arch: x86_64
-    tempestoptions: --parallel
+    tempestoptions: --smoke
     label: openstack-mkcloud-SLE12-x86_64
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
@@ -35,7 +35,7 @@
     version: 7
     arch: x86_64
     label: openstack-mkcloud-SLE12-SP2-x86_64
-    tempestoptions: --parallel
+    tempestoptions: --smoke
     jobs:
         - 'cloud-mkcloud{version}-job-uefi-{arch}'
 
@@ -45,7 +45,7 @@
     previous_version: 6
     arch: aarch64
     label: openstack-mkcloud-SLE12-{arch}
-    tempestoptions: --parallel
+    tempestoptions: --smoke
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
@@ -79,6 +79,6 @@
     previous_version: 6
     arch: s390x
     label: openstack-mkcloud-SLE12-{arch}
-    tempestoptions: --parallel
+    tempestoptions: --smoke
     jobs:
         - cloud-mkcloud7-job-simpletest-s390x
