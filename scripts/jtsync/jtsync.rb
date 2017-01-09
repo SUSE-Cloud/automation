@@ -19,7 +19,7 @@ require "trello"
 require "netrc"
 require "optparse"
 
-TRELLO_BOARD = "ywSqlQpZ".freeze
+TRELLO_BOARD = "ywSwlQpZ".freeze
 
 module Job
   class Mapping
