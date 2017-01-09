@@ -2555,8 +2555,17 @@ function custom_configuration
 
 
             if iscloudver 7plus; then
-                ### pick cluster when ec2-api can be deployed on a cluster
-                local ec2node="${unclustered_nodes[0]}"
+                local ec2node
+                if [[ $hacloud = 1 ]] ; then
+                    ### pick cluster when ec2-api can be deployed on a cluster;
+                    ### for now, we pick the first node of services cluster
+                    # ec2node = "cluster:$clusternameservices"
+                    local clusternodes_var=$(echo clusternodes${clusternameservices})
+                    local clusternodes=(${!clusternodes_var})
+                    ec2node="${clusternodes[0]}"
+                else
+                    ec2node="${unclustered_nodes[0]}"
+                fi
                 proposal_set_value nova default "['deployment']['nova']['elements']['ec2-api']" "['$ec2node']"
             fi
 
