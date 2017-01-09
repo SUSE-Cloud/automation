@@ -69,6 +69,7 @@ crowbar_install_log=/var/log/crowbar/install.log
 crowbar_init_api=http://localhost:4567/api
 crowbar_lib_dir=/var/lib/crowbar
 crowbar_api_v2_header="Accept: application/vnd.crowbar.v2.0+json"
+upgrade_progress_file=/var/lib/crowbar/upgrade/6-to-7-progress.yml
 declare -a unclustered_nodes
 
 export nodenumber=${nodenumber:-2}
@@ -4596,7 +4597,7 @@ function onadmin_prepare_crowbar_upgrade
         safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
     else
         safely crowbarctl upgrade prepare
-        wait_for 300 5 "grep current_step /var/lib/crowbar/upgrade/6-to-7-progress.yml | grep -v upgrade_prepare" "prepare step to finish"
+        wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v upgrade_prepare" "prepare step to finish"
     fi
 }
 
@@ -4791,18 +4792,26 @@ function onadmin_crowbar_nodeupgrade
         fi
 
         if [[ $want_nodesupgrade ]]; then
-            # FIXME: crowbarctl command can time out easily
-            # Do not use it until https://bugzilla.novell.com/show_bug.cgi?id=997293 is fixed
-            # safely crowbarctl upgrade services
-            curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/services
+            safely crowbarctl upgrade services
 
-            if grep -q "failed" /var/lib/crowbar/upgrade/6-to-7-progress.yml ; then
+            wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v services" "services step to finish"
+
+            if grep -q "failed" $upgrade_progress_file ; then
                 crowbarctl upgrade status
-                complain 12 "Services step has failed. Check the upgrade status."
+                complain 12 "'Services' step has failed. Check the upgrade status."
             fi
 
-            # safely crowbarctl upgrade nodes
-            curl -s -X POST -H "$crowbar_api_v2_header" $crowbar_api/api/upgrade/nodes
+            # This is just a fake command now for OpenStack DB backup
+            # FIXME: add a proper check for failure once OpenStack DB backup does real work
+            safely crowbarctl upgrade backup openstack
+
+            safely crowbarctl upgrade nodes
+            wait_for 120 30 "grep current_step $upgrade_progress_file | grep -v services" "nodes step to finish"
+
+            if grep -q "failed" $upgrade_progress_file ; then
+                crowbarctl upgrade status
+                complain 13 "'Nodes' step has failed. Check the upgrade status."
+            fi
         fi
     else
         local endpoint
