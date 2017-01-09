@@ -482,15 +482,21 @@
         perl -e "alarm 6*60*60 ; exec '${mkcloudwrapper} bash -x ${automationrepo}/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' ; print qq{$!\n} ; exit 127 " | tee $artifacts_dir/mkcloud_short_stdout.log
         ret=${PIPESTATUS[0]}
         if [[ $ret != 0 ]] ; then
-            [[ $github_pr_sha ]] && mkcloudgating_trap
+            if [[ $github_pr_sha ]] ; then
+              mkcloudgating_trap
+            else
+              ${automationrepo}/scripts/jtsync.rb --ci suse --job $job_name 1
+            fi
             echo "mkcloud ret=$ret"
             exit $ret # check return code before tee
         fi
 
-        # report mkcloud-gating status
+        # report mkcloud-gating status or jenkins trello status
         if [[ $github_pr_sha ]] ; then
           $ghs -r $github_pr_repo -a set-status -s "success" -t $BUILD_URL -c $github_pr_sha --context $ghs_context -m "PR gating succeeded"
           trap "-" ERR
+        else
+          ${automationrepo}/scripts/jtsync.rb --ci suse --job $job_name 0
         fi
 
     publishers:
