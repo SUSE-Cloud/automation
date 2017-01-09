@@ -20,6 +20,7 @@
             cloudsource=develcloud{version}
             nodenumber=4
             networkingplugin=linuxbridge
+            tempestoptions={tempestoptions}
             mkcloudtarget=all
             label={label}
             job_name=cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}

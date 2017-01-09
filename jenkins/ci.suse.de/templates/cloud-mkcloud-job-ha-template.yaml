@@ -20,6 +20,7 @@
             cloudsource=develcloud{version}
             nodenumber=5
             networkingmode=vxlan
+            tempestoptions={tempestoptions}
             hacloud=1
             mkcloudtarget=all_noreboot
             label={label}
