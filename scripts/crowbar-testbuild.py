@@ -66,6 +66,11 @@ JOB_PARAMETERS = {
     'barclamp-pacemaker': MKCLOUD_HA_PARAMETERS
 }
 
+HA_JOB_PARAMETERS = {
+    'crowbar-core': MKCLOUD_HA_PARAMETERS,
+    'crowbar-openstack': MKCLOUD_HA_PARAMETERS
+}
+
 htdocs_dir = '/srv/mkcloud'
 htdocs_url = 'http://clouddata.cloud.suse.de/mkcloud/'
 
@@ -84,7 +89,7 @@ def ghs_set_status(repo, head_sha1, status):
         '-c', head_sha1, '-a', 'set-status', '-s', status)
 
 
-def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
+def jenkins_job_trigger(repo, job_params, github_opts, cloudsource, ptfdir):
     print("triggering jenkins job with " + htdocs_url + ptfdir)
 
     jenkins = Command(
@@ -92,13 +97,7 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
             os.path.join(os.path.dirname(sys.argv[0]),
                          'jenkins/jenkins-job-trigger')))
 
-    job_parameters = (
-        'nodenumber=2', 'networkingplugin=openvswitch')
-
-    if repo in JOB_PARAMETERS:
-        job_parameters = JOB_PARAMETERS[repo]
-
-    job_parameters += ('all_noreboot',)
+    job_params += ('all_noreboot',)
 
     github_opts_list = github_opts.split(':')
     print(jenkins(
@@ -112,7 +111,7 @@ def jenkins_job_trigger(repo, github_opts, cloudsource, ptfdir):
         'mkcloudtarget=all_noreboot',
         "job_name=%s PR %s %s" % (
             repo, github_opts_list[0], github_opts_list[1][:8]),
-        *job_parameters))
+        *job_params))
 
 
 def add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec):
@@ -172,8 +171,18 @@ def trigger_testbuild(repo, github_opts):
         sh.sudo.rm('-rf', workdir)
 
     if not build_failed:
+        job_parameters = (
+            'nodenumber=2', 'networkingplugin=openvswitch')
+        if repo in JOB_PARAMETERS:
+            job_parameters = JOB_PARAMETERS[repo]
         jenkins_job_trigger(
-            repo, github_opts, CLOUDSRC[pr_branch], ptfdir)
+            repo, job_parameters, github_opts, CLOUDSRC[pr_branch], ptfdir)
+        if repo in HA_JOB_PARAMETERS:
+            job_parameters = HA_JOB_PARAMETERS[repo]
+            jenkins_job_trigger(
+                repo, job_parameters,
+                github_opts + ":hacloud=1",
+                CLOUDSRC[pr_branch], ptfdir)
 
     ghs_set_status(
         repo, head_sha1,
