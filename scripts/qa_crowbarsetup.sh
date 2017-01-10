@@ -3341,8 +3341,14 @@ function oncontroller_run_tempest
 
     if iscloudver 6plus; then
         tempest cleanup --init-saved-state
+        local opts=($tempestoptions)
         if iscloudver 7plus; then
-            tempest run $tempestoptions 2>&1 | tee tempest.log
+            ### backward compatibility, remove
+            for i in ${!opts[@]}; do
+                opts[$i]=${opts[$i]/#-s/--smoke}
+                opts[$i]=${opts[$i]/#-t/--serial}
+            done
+            tempest run ${opts[@]} 2>&1 | tee tempest.log
             tempestret=${PIPESTATUS[0]}
         else
             ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
