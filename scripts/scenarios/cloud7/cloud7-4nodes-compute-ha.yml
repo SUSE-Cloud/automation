@@ -69,6 +69,7 @@ proposals:
 - barclamp: swift
   attributes:
     zones: 1
+    replicas: 2
     keystone_delay_auth_decision: true
     allow_versions: true
     middlewares:
