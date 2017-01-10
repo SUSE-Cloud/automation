@@ -3341,8 +3341,8 @@ function oncontroller_run_tempest
         local opts=$tempestoptions
         if iscloudver 7plus; then
             ### backward compatibility, remove
-            opts=${opts/-s/--smoke}
-            opts=${opts/-t/--serial}
+            opts=$( echo "$opts" | sed 's/-s\( \|$\)/--smoke\1/'  )
+            opts=$( echo "$opts" | sed 's/-t\( \|$\)/--serial\1/' )
             tempest run $opts 2>&1 | tee tempest.log
             tempestret=${PIPESTATUS[0]}
         else
