@@ -116,10 +116,10 @@
 
      - string:
          name: tempestoptions
-         default: -t -s
+         default:
          description: |
-           Additional options to pass to the "run_tempest.sh -N " step.
-           Use just \"-t\" for a full tempest run.
+           Additional options to pass to the "tempest run " step. The default is cloudversion
+           specific but will default to a smoke run.
 
      - string:
          name: want_horizon_integration_test

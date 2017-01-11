@@ -701,7 +701,7 @@ function testtype
 {
     # If `tempestoptions` contains '-s' or '--smoke' parameter, is a
     # smoke test.  If there is '--load-list 2015.03.required.txt' is a
-    # defcore test.  A full test is supossed by default.
+    # defcore test.  A full test is assumed by default.
     local type="full"
     if [[ $tempestoptions ]] ; then
         if [[ $tempestoptions =~ -s ]] ; then
