@@ -4208,6 +4208,58 @@ EOF
     exit $ret
 }
 
+function ping_fips
+{
+    local fips=$(openstack ip floating list -f value -c IP)
+    for fip in $fips; do
+        ping -c 1 -w 60 $fip || complain 120 "cannot reach test VM at $fip."
+    done
+}
+
+function oncontroller_testpreupgrade
+{
+    heat stack-create upgrade_test -f /root/scripts/heat/main.yaml -P "num_networks=2;num_instances=1"
+    wait_for 15 20 "heat stack-list | grep upgrade_test | grep CREATE_COMPLETE" \
+             "waiting for heat stack for upgrade tests to complete"
+
+    ping_fips
+    echo "test pre-upgrade successful."
+}
+
+function oncontroller_testpostupgrade
+{
+    ping_fips
+
+    heat stack-delete upgrade_test
+    wait_for 15 20 "! heat stack-show upgrade_test" \
+             "waiting for heat stack for upgrade tests to be deleted"
+    echo "test post-upgrade successful."
+}
+
+function check_novacontroller
+{
+    if ! safely ssh "$novacontroller" true; then
+        complain 62 "no nova controller - something went wrong"
+    fi
+    echo "openstack nova controller node: $novacontroller"
+}
+
+function onadmin_testpreupgrade
+{
+    get_novacontroller
+    check_novacontroller
+
+    oncontroller testpreupgrade
+}
+
+function onadmin_testpostupgrade
+{
+    get_novacontroller
+    check_novacontroller
+
+    oncontroller testpostupgrade
+}
+
 function onadmin_addupdaterepo
 {
     pre_hook $FUNCNAME
