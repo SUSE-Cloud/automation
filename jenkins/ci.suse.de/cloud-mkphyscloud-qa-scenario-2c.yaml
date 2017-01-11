@@ -107,7 +107,7 @@
 
       - string:
           name: commands
-          default: prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases
+          default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases
           description: All the steps that needs to be completed to have cloud installed
 
       - text:
@@ -127,8 +127,6 @@
           cloud=qa$hw_number
 
           if [ ! -z "$UPDATEREPOS" ] ; then
-            # testing update only makes sense with GMx and without TESTHEAD
-            unset TESTHEAD
             export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
           fi
 
