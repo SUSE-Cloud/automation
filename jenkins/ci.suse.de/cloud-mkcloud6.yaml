@@ -18,9 +18,6 @@
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
         - 'cloud-mkcloud{version}-job-docker-{arch}'
         - 'cloud-mkcloud{version}-job-dvr-{arch}'
-        - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
-        - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
-        - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-hyperv-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
@@ -28,3 +25,14 @@
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-tempestfull-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
+- project:
+    name: cloud-mkcloud6-ha-x86_64
+    version: 6
+    previous_version: 5
+    arch: x86_64
+    tempestoptions: -s -t
+    label: openstack-mkcloud-ha-x86_64
+    jobs:
+        - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-{arch}'

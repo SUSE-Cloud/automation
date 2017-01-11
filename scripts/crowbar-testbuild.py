@@ -44,6 +44,7 @@ CLOUDSRC = {
 }
 
 MKCLOUD_HA_PARAMETERS = (
+    'label=openstack-mkcloud-ha-x86_64',
     'nodenumber=5', 'hacloud=1',
     'networkingmode=vxlan',
     'clusterconfig="data+services+network=2"')
