@@ -126,8 +126,6 @@
           cloud=qa$hw_number
 
           if [ ! -z "$UPDATEREPOS" ] ; then
-            # testing update only makes sense with GMx and without TESTHEAD
-            unset TESTHEAD
             export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
           fi
 

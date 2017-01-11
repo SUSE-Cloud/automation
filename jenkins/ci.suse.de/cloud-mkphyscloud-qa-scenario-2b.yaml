@@ -135,8 +135,6 @@
           vcenter_password=`cat /home/jenkins/passwords/Administrator\@vsphere.qa.suse.de`
 
           if [ ! -z "$UPDATEREPOS" ] ; then
-            # testing update only makes sense with GMx and without TESTHEAD
-            unset TESTHEAD
             export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
           fi
 
