@@ -73,7 +73,11 @@ upgrade_progress_file=/var/lib/crowbar/upgrade/6-to-7-progress.yml
 declare -a unclustered_nodes
 
 export nodenumber=${nodenumber:-2}
-export tempestoptions=${tempestoptions:--t -s}
+if iscloudver 7plus; then
+    export tempestoptions=${tempestoptions:---smoke}
+else
+    export tempestoptions=${tempestoptions:--t -s}
+fi
 export want_sles12
 [[ $want_sles12 = 0 ]] && want_sles12=
 export nodes=
@@ -3341,12 +3345,8 @@ function oncontroller_run_tempest
 
     if iscloudver 6plus; then
         tempest cleanup --init-saved-state
-        local opts=$tempestoptions
         if iscloudver 7plus; then
-            ### backward compatibility, remove
-            opts=${opts/-s/--smoke}
-            opts=${opts/-t/--serial}
-            tempest run $opts 2>&1 | tee tempest.log
+            tempest run $tempestoptions 2>&1 | tee tempest.log
             tempestret=${PIPESTATUS[0]}
         else
             ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
