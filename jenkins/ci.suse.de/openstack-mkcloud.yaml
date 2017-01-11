@@ -289,6 +289,7 @@
         export log_dir=$artifacts_dir/mkcloud_log
 
         export automationrepo=~/github.com/SUSE-Cloud/automation
+        jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
         export debug_qa_crowbarsetup=1
         export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
         export debug=0
@@ -485,7 +486,7 @@
             if [[ $github_pr_sha ]] ; then
               mkcloudgating_trap
             else
-              ${automationrepo}/scripts/jtsync.rb --ci suse --job $job_name 1
+              $jtsync --ci suse --job $job_name 1
             fi
             echo "mkcloud ret=$ret"
             exit $ret # check return code before tee
@@ -496,7 +497,7 @@
           $ghs -r $github_pr_repo -a set-status -s "success" -t $BUILD_URL -c $github_pr_sha --context $ghs_context -m "PR gating succeeded"
           trap "-" ERR
         else
-          ${automationrepo}/scripts/jtsync.rb --ci suse --job $job_name 0
+          $jtsync --ci suse --job $job_name 0
         fi
 
     publishers:
