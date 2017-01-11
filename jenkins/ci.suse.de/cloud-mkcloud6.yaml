@@ -21,8 +21,6 @@
         - 'cloud-mkcloud{version}-job-hyperv-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
-        - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
-        - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-tempestfull-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
 - project:
@@ -36,3 +34,13 @@
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-ha-{arch}'
+- project:
+    name: cloud-mkcloud6-tempestfull-x86_64
+    version: 6
+    previous_version: 5
+    arch: x86_64
+    tempestoptions: -t
+    label: openstack-mkcloud-SLE12-x86_64
+    jobs:
+        - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
+        - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-tempestfull-{arch}'
