@@ -2724,7 +2724,10 @@ function custom_configuration
             fi
         ;;
         swift)
-            [[ $nodenumber -lt 3 ]] && proposal_set_value swift default "['attributes']['swift']['zones']" "1"
+            [[ $nodenumber -lt 3 ]] && {
+                proposal_set_value swift default "['attributes']['swift']['zones']" "1"
+                proposal_set_value swift default "['attributes']['swift']['replicas']" "1"
+            }
             proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
             proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
             proposal_set_value swift default "['attributes']['swift']['middlewares']['crossdomain']['enabled']" "true"
