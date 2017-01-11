@@ -486,7 +486,7 @@
             if [[ $github_pr_sha ]] ; then
               mkcloudgating_trap
             else
-              $jtsync --ci suse --job $job_name 1
+              $jtsync --ci suse --job $JOB_NAME 1
             fi
             echo "mkcloud ret=$ret"
             exit $ret # check return code before tee
@@ -497,7 +497,7 @@
           $ghs -r $github_pr_repo -a set-status -s "success" -t $BUILD_URL -c $github_pr_sha --context $ghs_context -m "PR gating succeeded"
           trap "-" ERR
         else
-          $jtsync --ci suse --job $job_name 0
+          $jtsync --ci suse --job $JOB_NAME 0
         fi
 
     publishers:
