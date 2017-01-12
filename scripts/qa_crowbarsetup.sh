@@ -2726,7 +2726,11 @@ function custom_configuration
         swift)
             [[ $nodenumber -lt 3 ]] && {
                 proposal_set_value swift default "['attributes']['swift']['zones']" "1"
-                proposal_set_value swift default "['attributes']['swift']['replicas']" "1"
+                # This should be set for C6 and C5 as well, but currently the swift barclamp
+                # is broken there..
+                if iscloudver 7plus ; then
+                    proposal_set_value swift default "['attributes']['swift']['replicas']" "1"
+                fi
             }
             proposal_set_value swift default "['attributes']['swift']['allow_versions']" "true"
             proposal_set_value swift default "['attributes']['swift']['keystone_delay_auth_decision']" "true"
