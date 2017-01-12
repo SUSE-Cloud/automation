@@ -59,7 +59,7 @@ function wait_for_if_running
 function complain
 {
     local ex=$1; shift
-    printf "Error: %s\n" "$@" >&2
+    printf "Error ($ex): %s\n" "$@" >&2
     [[ $ex = - ]] || exit $ex
 }
 
