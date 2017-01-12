@@ -6,6 +6,12 @@ echo "returncode: $?"
 read -p "Press any key to continue... " -n1 -s
 echo ""
 
+echo "set (Cloud 7) cloud-mkcloud7-job-4nodes-linuxbridge-x86-64 to failed (no notification)"
+bundle exec jtsync.rb --ci suse --job cloud-mkcloud7-job-4nodes-linuxbridge-x86-64 1
+echo "returncode: $?"
+read -p "Press any key to continue... " -n1 -s
+echo ""
+
 echo "set (Cloud 7) cloud-mkcloud7-job-4nodes-linuxbridge-x86-64 to success"
 bundle exec jtsync.rb --ci suse --job cloud-mkcloud7-job-4nodes-linuxbridge-x86-64 0
 echo "returncode: $?"

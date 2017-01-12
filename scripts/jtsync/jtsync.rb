@@ -150,15 +150,18 @@ end
 
 def update_card_label(card, job)
   label = board.labels.select { |l| l.name == job.status }.first
+  current_status = nil
   raise "Could not find label \"#{job.status}\"" if label.nil?
 
-  return if card.labels.include? label
+  return job.status if card.labels.include? label
 
   card.labels.each do |l|
     next unless STATUS_MAPPING.values.include? l.name
-    card.remove_label(l) 
+    card.remove_label(l)
+    current_status = l.name
   end
   card.add_label(label)
+  current_status
 end
 
 def find_card_for(job)
@@ -184,8 +187,11 @@ begin
   end
 
   card = find_card_for(job)
-  update_card_label(card, job)
-  notify_card_members(card)
+  old_status = update_card_label(card, job)
+
+  # only notify members if the status changes from failed to success or
+  # vice versa.
+  notify_card_members(card) if old_status != job.status
 
 rescue RuntimeError => err
   puts("Running jtsync failed: #{err}")
