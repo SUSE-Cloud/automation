@@ -21,16 +21,17 @@ require "optparse"
 
 TRELLO_BOARD = "ywSwlQpZ".freeze
 
+STATUS_MAPPING = {
+  "0" => "successful",
+  "1" => "failed"
+}.freeze
+
 module Job
   class Mapping
     attr_reader :name
     attr_reader :project
     attr_reader :retcode
 
-    STATUS_MAPPING = {
-      "0" => "successful",
-      "1" => "failed"
-    }.freeze
 
     def initialize(name, project, retcode)
       @name = name
@@ -153,7 +154,10 @@ def update_card_label(card, job)
 
   return if card.labels.include? label
 
-  card.labels.each { |l| card.remove_label(l) }
+  card.labels.each do |l|
+    next unless STATUS_MAPPING.values.include? l.name
+    card.remove_label(l) 
+  end
   card.add_label(label)
 end
 
