@@ -4600,7 +4600,7 @@ function onadmin_prepare_crowbar_upgrade
         safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
     else
         safely crowbarctl upgrade prepare
-        wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v upgrade_prepare" "prepare step to finish"
+        wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v prepare" "prepare step to finish"
     fi
 }
 
@@ -4633,7 +4633,7 @@ function onadmin_upgrade_admin_server
     if iscloudver 5minus; then
         complain 11 "This upgrade path is only supported for Cloud 6+"
     else
-        safely crowbarctl upgrade crowbar
+        safely crowbarctl upgrade admin
     fi
 }
 
