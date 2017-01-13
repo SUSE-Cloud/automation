@@ -83,7 +83,7 @@ proposals:
       ceph-radosgw:
       - @@ceph1@@
       ceph-mds:
-      - @@compute2@@ 
+      - @@compute2@@
 
 - barclamp: glance
   attributes:
@@ -121,7 +121,7 @@ proposals:
     - vlan
     ml2_type_drivers_default_provider_network: vlan
     ml2_type_drivers_default_tenant_network: vlan
-    num_vlans: 10
+    num_vlans: 99
   deployment:
     elements:
       neutron-server:
