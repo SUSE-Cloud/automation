@@ -68,6 +68,7 @@ proposals:
       - cluster:services
 - barclamp: swift
   attributes:
+    replicas: 2
     cluster_hash: 181d283256
     keystone_delay_auth_decision: true
     allow_versions: true
