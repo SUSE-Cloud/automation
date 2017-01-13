@@ -1104,6 +1104,8 @@ Optional
         Currently only the step 'batch' uses such a file.
     scenario_dir='/tmp' (default=${SCRIPTS_DIR}/scenarios/cloud\$(getcloudver)/)
         Full path to directory containing scenario file.
+    log_dir=PATH (default = ${log_dir})
+        The standard output and error will be logged in that directory.
 EOUSAGE
     qacrowbarsetup_help
     exit 1
