@@ -93,12 +93,6 @@
           export automationrepo=~/github.com/SUSE-Cloud/automation
           export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
 
-          function jtsync_trap()
-          {
-            $jtsync --ci suse --matrix crowbar-trackupstream,${project} 1
-          }
-          trap "jtsync_trap" ERR EXIT
-
           # automation bootstrapping
           if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
               rm -rf ${automationrepo}
@@ -167,9 +161,9 @@
           [ -d "$COMPONENT" ] || ( echo "Error: Component $COMPONENT does not exist (yet) or has been removed."  ; exit 1 )
           cd "$COMPONENT"
 
-          set +e
           grep -q "<linkinfo" .osc/_files || exit 2
 
           /root/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-and-package.pl
-          trap "-" ERR EXIT
-          $jtsync --ci suse --matrix cloud-trackupstream,${project} 0
+          ret=$?
+          $jtsync --ci suse --matrix cloud-trackupstream,${project} $ret || :
+          exit $ret
