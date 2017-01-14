@@ -168,10 +168,7 @@
           cd "$COMPONENT"
 
           set +e
-          if [ ${OBS_PROJECT} != "Cloud:OpenStack:Master" ] ; then
-              # skip test in C:O:M as we do not have linked packages there
-              grep -q "<linkinfo" .osc/_files || exit 2
-          fi
+          grep -q "<linkinfo" .osc/_files || exit 2
 
           /root/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-and-package.pl
           trap "-" ERR EXIT
