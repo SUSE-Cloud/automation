@@ -101,8 +101,8 @@
 
           # automation bootstrapping
           if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
-            rm -rf ${automationrepo}
-            curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
+              rm -rf ${automationrepo}
+              curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
           fi
           ${automationrepo}/scripts/jenkins/update_automation
 
@@ -113,12 +113,12 @@
           OSC_BUILD_ARCH=x86_64
 
           case $project in
-            Devel:Cloud:[45]*)
-              BUILD_DIST=SLE_11_SP3
-            ;;
-            Devel:Cloud:6*)
-              BUILD_DIST=SLE_12_SP1
-            ;;
+              Devel:Cloud:[45]*)
+                  BUILD_DIST=SLE_11_SP3
+                  ;;
+              Devel:Cloud:6*)
+                  BUILD_DIST=SLE_12_SP1
+                  ;;
           esac
 
 
@@ -139,8 +139,8 @@
           OBS_PROJECT=${OBS_PROJECT// /}
 
           if [ -z "$COMPONENT" ] ; then
-            echo "Error: Variable COMPONENT is unset."
-            exit 1
+              echo "Error: Variable COMPONENT is unset."
+              exit 1
           fi
 
           export OSCAPI
@@ -154,7 +154,7 @@
           mkdir -p ~/.obs
           for i in incoming repo repourl
           do
-            mkdir -p $JHOME/obscache/tar_scm/$i
+              mkdir -p $JHOME/obscache/tar_scm/$i
           done
           echo "CACHEDIRECTORY=\"$JHOME/obscache/tar_scm\"" > ~/.obs/tar_scm
 
@@ -169,8 +169,8 @@
 
           set +e
           if [ ${OBS_PROJECT} != "Cloud:OpenStack:Master" ] ; then
-            # skip test in C:O:M as we do not have linked packages there
-            grep -q "<linkinfo" .osc/_files || exit 2
+              # skip test in C:O:M as we do not have linked packages there
+              grep -q "<linkinfo" .osc/_files || exit 2
           fi
 
           /root/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-and-package.pl
