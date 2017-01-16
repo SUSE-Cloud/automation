@@ -480,7 +480,7 @@ function iscloudver
     return $?
 }
 
-get_nodenumbercontroller()
+function get_nodenumbercontroller
 {
     local nodenumbercontroller=1
     if [[ $clusterconfig == *services* ]]; then
