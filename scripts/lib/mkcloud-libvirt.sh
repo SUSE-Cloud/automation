@@ -302,13 +302,13 @@ function libvirt_do_prepare()
 function libvirt_do_onhost_deploy_image()
 {
     local role=$1
-    local image=$(dist_to_image_name $2)
+    local image=${admin_image:-$(dist_to_image_name $2)}
     local disk=$3
 
     [[ $clouddata ]] || complain 108 "clouddata IP not set - is DNS broken?"
     if [[ ! $want_cached_images = 1 ]] ; then
         safely rsync --compress --progress --inplace --archive --verbose \
-            rsync://$clouddata/cloud/images/$arch/$image $cachedir/
+            rsync://$clouddata/$images_dir/$image $cachedir/
     else
         # In this case the image has to be supplied by other means than
         # mkcloud (e.g. manual upload). If it doesn't exist we bail.
@@ -319,18 +319,20 @@ function libvirt_do_onhost_deploy_image()
     echo "Cloning $role node vdisk from $image ..."
     safely qemu-img convert -t none -O raw -S 0 -p $cachedir/$image $disk
 
-    # resize the last partition only if it has id 83
-    local last_part=$(fdisk -l $disk | grep -c "^$disk")
-    if fdisk -l $disk | grep -q "$last_part *\* *.*83 *Linux" ; then
-        echo -e "d\n$last_part\nn\np\n$last_part\n\n\na\n$last_part\nw" | fdisk $disk
-        local part=$(kpartx -asv $disk|perl -ne 'm/add map (\S+'"$last_part"') / && print $1')
-        test -n "$part" || complain 31 "failed to find partition #$last_part"
-        local bdev=/dev/mapper/$part
-        safely fsck -y -f $bdev
-        safely resize2fs $bdev
-        time udevadm settle
-        sleep 1 # time for dev to become unused
-        safely kpartx -dsv $disk
+    if [[ ${resize_admin_node_partition:-1} = 1 ]]; then 
+        # resize the last partition only if it has id 83
+        local last_part=$(fdisk -l $disk | grep -c "^$disk")
+        if fdisk -l $disk | grep -q "$last_part *\* *.*83 *Linux" ; then
+            echo -e "d\n$last_part\nn\np\n$last_part\n\n\na\n$last_part\nw" | fdisk $disk
+            local part=$(kpartx -asv $disk|perl -ne 'm/add map (\S+'"$last_part"') / && print $1')
+            test -n "$part" || complain 31 "failed to find partition #$last_part"
+            local bdev=/dev/mapper/$part
+            safely fsck -y -f $bdev
+            safely resize2fs $bdev
+            time udevadm settle
+            sleep 1 # time for dev to become unused
+            safely kpartx -dsv $disk
+        fi
     fi
 }
 
