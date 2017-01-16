@@ -79,6 +79,7 @@ proposals:
 
 - barclamp: swift
   attributes:
+    replicas: 2
     ssl:
       enabled: true
       generate_certs: true
