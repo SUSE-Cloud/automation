@@ -3473,16 +3473,16 @@ function oncontroller_heat_image_setup()
 function oncontroller_manila_generic_driver_setup()
 {
     if [[ $wantxenpv ]] ; then
-        local service_image_url=http://$clouddata/images/other/manila-service-image-xen.raw
+        local service_image_url=http://$clouddata/images/$arch/other/manila-service-image-xen.raw
         local service_image_name=manila-service-image-xen.raw
         local service_image_params="--disk-format raw --property hypervisor_type=xen --property vm_mode=xen"
 
     elif [[ $wanthyperv ]] ; then
-        local service_image_url=http://$clouddata/images/other/manila-service-image.vhd
+        local service_image_url=http://$clouddata/images/$arch/other/manila-service-image.vhd
         local service_image_name=manila-service-image.vhd
         local service_image_params="--disk-format vhd --property hypervisor_type=hyperv"
     else
-        local service_image_url=http://$clouddata/images/other/manila-service-image.qcow2
+        local service_image_url=http://$clouddata/images/$arch/other/manila-service-image.qcow2
         local service_image_name=manila-service-image.qcow2
         local service_image_params="--disk-format qcow2 --property hypervisor_type=kvm"
     fi
