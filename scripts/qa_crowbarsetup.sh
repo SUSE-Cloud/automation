@@ -2303,19 +2303,11 @@ function onadmin_setup_nfs_server
 function onadmin_crowbar_register
 {
     pre_hook $FUNCNAME
-    wait_for 150 10 "onadmin_get_ip_from_dhcp '$lonelymac'" "node to get an IP from DHCP" "exit 78"
-    local crowbar_register_node_ip=`onadmin_get_ip_from_dhcp "$lonelymac"`
 
-    [ -n "$crowbar_register_node_ip" ] || complain 84 "Could not get IP address of crowbar_register_node"
-
-    lonely_node_sshkey $crowbar_register_node_ip
-
-    # uninstall cloud-init, its dependecies break the installation of openstack
-    $ssh $crowbar_register_node_ip "zypper --non-interactive rm -u cloud-init"
-
-    # call crowbar_register on the lonely node
-    local inject
-
+    local adminfqdn=`get_crowbar_node`
+    local adminip=$(get_ip_address_by_node_name $adminfqdn)
+    local pubkey=`cat /root/.ssh/id_rsa.pub`
+    local image
     if iscloudver 6 ; then
         image="suse-12.1/x86_64/"
     elif iscloudver 7; then
@@ -2330,46 +2322,48 @@ function onadmin_crowbar_register
         fi
     fi
 
-    local adminfqdn=`get_crowbar_node`
-    local adminip=`knife node show $adminfqdn -a crowbar.network.admin.address | awk '{print $2}'`
+    local node_id
+    for node_id in "$@" ; do
+        local lonelymac=$(macfunc $node_id)
+        wait_for 150 10 "onadmin_get_ip_from_dhcp '$lonelymac'" "node to get an IP from DHCP"
+        local node_ip=`onadmin_get_ip_from_dhcp "$lonelymac"`
+        [[ $node_ip ]] || complain 84 "Could not get IP address of crowbar_register_node"
 
-    if [[ $keep_existing_hostname -eq 1 ]] ; then
-        local hostname="$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)"
-        local domain="${adminfqdn#*.}"
-        local hostnamecmd='echo "'$hostname'.'$domain'" > /etc/HOSTNAME'
-    fi
+        lonely_node_sshkey $node_ip
 
-    inject="
-            set -x
-            rm -f /tmp/crowbar_register_done;
-            zypper -n in wget screen
-            wget http://$adminip:8091/$image/crowbar_register &&
-            chmod a+x crowbar_register &&
-            $hostnamecmd
-            zypper -n ref &&
-            zypper -n up --no-recommends &&
-            screen -d -m -L /bin/bash -c '
-            yes | bash -x ./crowbar_register --no-gpg-checks &&
-            touch /tmp/crowbar_register_done;'
-        "
+        # uninstall cloud-init, its dependecies break the installation of openstack
+        $ssh $node_ip "zypper --non-interactive rm -u cloud-init"
 
-    $ssh $crowbar_register_node_ip "$inject"
+        local node=$(mac_to_nodename $lonelymac)
+        if [[ $keep_existing_hostname -eq 1 ]] ; then
+            local hostname="$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)"
+            local domain="${adminfqdn#*.}"
+            node="$hostname.$domain"
+            local hostnamecmd="echo '$node' > /etc/HOSTNAME"
+        fi
 
-    # wait for ip to be changed to a new one
-    wait_for 160 10 "! ping -q -c 1 -w 1 $crowbar_register_node_ip >/dev/null" "ping to fail from ${cloud}-lonelynode (mac: $lonelymac)." "complain 81 'crowbar_register VM did not change its IP'"
-    # get new ip from crowbar
-    sleep 10
-    local crowbar_register_node_ip_new
-    if [[ $keep_existing_hostname -eq 1 ]] ; then
-        local node="$hostname.$domain"
-    else
-        local node=`mac_to_nodename $lonelymac`
-    fi
-    crowbar_register_node_ip_new=`knife node show $node -a crowbar.network.admin.address | awk '{print $2}'`
+        local inject="
+                set -x
+                rm -f /tmp/crowbar_register_done;
+                zypper -n in wget screen
+                wget http://$adminip:8091/$image/crowbar_register &&
+                chmod a+x crowbar_register &&
+                $hostnamecmd
+                zypper -n ref &&
+                zypper -n up --no-recommends &&
+                screen -d -m -L /bin/bash -c '
+                yes | bash -x ./crowbar_register --no-gpg-checks &&
+                touch /tmp/crowbar_register_done;'
+            "
 
-    [ -n "$crowbar_register_node_ip_new" ] || complain 84 "Could not get Crowbar assigned IP address of crowbar_register_node"
+        # call crowbar_register on the lonely node
+        $ssh $node_ip "$inject"
 
-    wait_for 160 10 "ssh $crowbar_register_node_ip_new '[ -e /tmp/crowbar_register_done ]'" "crowbar_register on $node" "complain 83 'crowbar_register failed'"
+        wait_for 180 10 "new_ip=\$(get_ip_address_by_node_name $node) ; [[ \$new_ip && $node_ip != \$new_ip ]]" "lonelynode to get a new ip address"
+        local node_ip_new=$(get_ip_address_by_node_name $node)
+        wait_for 10 10 "ping -q -c 1 -w 1 $node_ip_new >/dev/null" "lonelynode to reply to ping on new ip address"
+        wait_for 160 10 "ssh $node_ip_new '[ -e /tmp/crowbar_register_done ]'" "crowbar_register to finish on $node"
+    done
 }
 
 
