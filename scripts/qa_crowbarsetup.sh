@@ -4786,6 +4786,20 @@ function onadmin_allow_vendor_change_at_nodes
     done
 }
 
+function crowbar_nodeupgrade_finished
+{
+    if grep current_step $upgrade_progress_file | grep -v nodes ; then
+        echo "'nodes' step finished successfuly"
+        return 0
+    fi
+
+    if grep -q failed $upgrade_progress_file ; then
+        echo "Something has failed during 'nodes' upgrade step."
+        return 0
+    fi
+    return 1
+}
+
 function onadmin_crowbar_nodeupgrade
 {
     if iscloudver 6plus ; then
@@ -4809,7 +4823,7 @@ function onadmin_crowbar_nodeupgrade
             safely crowbarctl upgrade backup openstack
 
             safely crowbarctl upgrade nodes
-            wait_for 120 30 "grep current_step $upgrade_progress_file | grep -v nodes" "nodes step to finish"
+            wait_for 240 30 "crowbar_nodeupgrade_finished" "'nodes' upgrade step to finish"
 
             if grep -q "failed" $upgrade_progress_file ; then
                 crowbarctl upgrade status
