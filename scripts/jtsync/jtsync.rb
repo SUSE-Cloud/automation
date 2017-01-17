@@ -135,12 +135,13 @@ def board
   @trello_board ||= Trello::Board.find(TRELLO_BOARD)
 end
 
-def notify_card_members(card)
+def notify_card_members(card, new_status)
   members = card.members.map do |m|
     "@" + Trello::Member.find(m.id).username
   end
 
-  comment = card.add_comment("#{members.join(" ")}: card status changed")
+  msg = "#{members.join(" ")}: card status changed to #{new_status}"
+  comment = card.add_comment(msg)
   comment_id = JSON.parse(comment)["id"]
 
   card.comments.select do |c|
@@ -191,7 +192,7 @@ begin
 
   # only notify members if the status changes from failed to success or
   # vice versa.
-  notify_card_members(card) if old_status != job.status
+  notify_card_members(card, job.status) if old_status != job.status
 
 rescue RuntimeError => err
   puts("Running jtsync failed: #{err}")
