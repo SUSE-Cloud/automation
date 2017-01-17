@@ -139,6 +139,7 @@ def notify_card_members(card, new_status)
   members = card.members.map do |m|
     "@" + Trello::Member.find(m.id).username
   end
+  return if members.empty?
 
   msg = "#{members.join(" ")}: card status changed to #{new_status}"
   comment = card.add_comment(msg)
