@@ -2451,7 +2451,14 @@ function custom_configuration
             local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
             proposal_set_value dns default "['attributes']['dns']['records']" "{}"
             proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
-            proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']['ips']" "['10.11.12.13']"
+            # We could do the usual "if iscloudver 6plus ; then", but this
+            # would break mkcloud when installing Cloud 6 without updates
+            if grep -q CNAME /opt/dell/crowbar_framework/app/helpers/barclamp/dns_helper.rb; then
+                proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']['type']" "'A'"
+                proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']['values']" "['10.11.12.13']"
+            else
+                proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']['ips']" "['10.11.12.13']"
+            fi
             proposal_set_value dns default "['deployment']['dns']['elements']['dns-server']" "[$dnsnodes]"
         ;;
         ipmi)
