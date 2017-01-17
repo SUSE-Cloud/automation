@@ -9,7 +9,7 @@
       on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes
 
     logrotate:
-        numToKeep: 1000
+        numToKeep: 2000
         daysToKeep: 300
 
     properties:
