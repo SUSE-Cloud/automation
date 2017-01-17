@@ -40,7 +40,7 @@ fi
 : ${want_murano:=0}
 : ${want_tempest:=1}
 : ${want_trove:=1}
-: ${want_aodh:=0}
+: ${want_aodh:=1}
 : ${want_s390:=''}
 : ${want_horizon_integration_test:=''}
 
