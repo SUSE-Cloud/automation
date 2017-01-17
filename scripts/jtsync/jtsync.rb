@@ -108,8 +108,15 @@ end
 
 def parse_job_from_cli
   job = OpenStruct.new
+  board_id = TRELLO_BOARD
+
   opts = OptionParser.new do |opt|
     opt.banner = "Usage: jtsync --ci SERVICE (--matrix|--job) JOB_STATUS"
+
+    opt.on("--board BOARDID", "Board id to update") do |id|
+      board_id = id
+    end
+
     opt.on("--ci SERVICE", [:suse, :opensuse], "Which ci is used (suse or opensuse)") do |service|
       job.service = service
     end
@@ -128,11 +135,11 @@ def parse_job_from_cli
   opts.order!
   raise "Either job or matrix is required" if job.type.nil?
 
-  Job.for(job.service, job.type, job.name, job.project, ARGV.pop)
+  [board_id, Job.for(job.service, job.type, job.name, job.project, ARGV.pop)]
 end
 
-def board
-  @trello_board ||= Trello::Board.find(TRELLO_BOARD)
+def board(board_id)
+  @trello_board ||= Trello::Board.find(board_id)
 end
 
 def notify_card_members(card, new_status)
@@ -149,8 +156,8 @@ def notify_card_members(card, new_status)
   end.map(&:delete)
 end
 
-def update_card_label(card, job)
-  label = board.labels.select { |l| l.name == job.status }.first
+def update_card_label(board_id, card, job)
+  label = board(board_id).labels.select { |l| l.name == job.status }.first
   current_status = nil
   raise "Could not find label \"#{job.status}\"" if label.nil?
 
@@ -165,8 +172,8 @@ def update_card_label(card, job)
   current_status
 end
 
-def find_card_for(job)
-  list = board.lists.select { |l| l.name == job.list_name }.first
+def find_card_for(board_id, job)
+  list = board(board_id).lists.select { |l| l.name == job.list_name }.first
   raise "Could not find list #{job.list_name}" if list.nil?
 
   card = list.cards.select { |c| c.name == job.card_name }.first
@@ -180,15 +187,15 @@ end
 #
 begin
   credentials = credentials_from_netrc
-  job = parse_job_from_cli
+  board_id, job = parse_job_from_cli
 
   Trello.configure do |config|
     config.developer_public_key = credentials.developer_token
     config.member_token = credentials.member_token
   end
 
-  card = find_card_for(job)
-  old_status = update_card_label(card, job)
+  card = find_card_for(board_id, job)
+  old_status = update_card_label(board_id, card, job)
 
   # only notify members if the status changes from failed to success or
   # vice versa.
