@@ -182,7 +182,7 @@ proposals:
     ml2_type_drivers_default_provider_network: vlan
     ml2_type_drivers_default_tenant_network: vlan
     use_lbaas: false
-    num_vlans: 10
+    num_vlans: 99
   deployment:
     elements:
       neutron-server:

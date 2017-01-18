@@ -107,7 +107,7 @@ proposals:
     - gre
     - vxlan
     - vlan
-    num_vlans: 10
+    num_vlans: 99
   deployment:
     elements:
       neutron-server:
