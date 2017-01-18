@@ -25,6 +25,4 @@
             want_nodesupgrade=1
             mkcloudtarget=plain_with_upgrade
             label={label}
-            want_postgresql=0
-            want_ceilometer_proposal=0
             job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}
