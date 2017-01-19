@@ -95,8 +95,15 @@ sub osc_build()
   my $OSC_BUILD_DIST = $ENV{OSC_BUILD_DIST};
   unless($OSC_BUILD_DIST) {
     my $prj = `cat .osc/_project`;
-    $OSC_BUILD_DIST = "SLE_12_SP1";
-    $OSC_BUILD_DIST = "SLE_11_SP3" if ($prj =~ /Devel:Cloud:[1-5]/);
+    if ($prj =~ /Devel:Cloud:[1-5]/) {
+      $OSC_BUILD_DIST = "SLE_11_SP3";
+    }
+    elsif ($prj =~ /Devel:Cloud:6/) {
+      $OSC_BUILD_DIST = "SLE_12_SP1";
+    }
+    else {
+      $OSC_BUILD_DIST = "SLE_12_SP2";
+    }
   }
 
   my $cmd = "yes '1' | ".join(' ',@OSCBASE)." build --clean --no-verify $OSC_BUILD_DIST $OSC_BUILD_ARCH 2>&1 | ";
