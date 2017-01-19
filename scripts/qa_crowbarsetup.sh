@@ -3795,10 +3795,10 @@ function oncontroller_testsetup
     fi
 
     # wait for image to finish uploading
-    imageid=$(glance_image_get_id $image_name)
-    if ! [[ $imageid ]]; then
+
+    local imageid
+    imageid=$(glance_image_get_id $image_name) || \
         complain 37 "Image ID for $image_name not found"
-    fi
     wait_image_active "$image_name" testsetup
 
     if [[ $want_ldap = 1 ]] ; then
