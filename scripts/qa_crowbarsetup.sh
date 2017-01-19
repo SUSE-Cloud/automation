@@ -4243,6 +4243,7 @@ function onadmin_addupdaterepo
         onadmin_setup_local_zypper_repositories
         ensure_packages_installed createrepo
         createrepo -o $UPR $UPR || exit 8
+        gpg --detach-sign --armor --yes $UPR/repodata/repomd.xml
     fi
     zypper modifyrepo -e cloud-ptf >/dev/null 2>&1 ||\
         safely zypper ar $UPR cloud-ptf
