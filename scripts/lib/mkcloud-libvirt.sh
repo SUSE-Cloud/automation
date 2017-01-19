@@ -252,6 +252,17 @@ EOF
     fi
 }
 
+function recursive_remove_holders
+{
+    local dm=$1
+    [[ $dm ]] || return 0
+    local dev
+    for dev in $(ls /sys/class/block/$dm/holders/) ; do
+        recursive_remove_holders $dev
+        dmsetup remove --force /dev/$dev
+    done
+}
+
 function libvirt_do_cleanup()
 {
     # cleanup leftover from last run
@@ -278,8 +289,11 @@ function libvirt_do_cleanup()
     # 2. remove all previous volumes for that cloud; this helps preventing
     # accidental booting and freeing space
     if [ -d $vdisk_dir ]; then
-        find -L $vdisk_dir -name "$cloud.*" -type b | \
-            xargs --no-run-if-empty lvremove --force || complain 104 "lvremove failure"
+        local lv
+        for lv in $(find -L $vdisk_dir -name "$cloud.*" -type b) ; do
+            recursive_remove_holders $(basename $(readlink $lv))
+            lvremove --force $lv || complain 104 "lvremove failure"
+        done
     fi
     rm -f /etc/lvm/archive/*
 
