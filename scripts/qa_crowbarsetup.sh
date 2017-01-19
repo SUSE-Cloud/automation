@@ -4242,7 +4242,7 @@ function onadmin_addupdaterepo
         done
         onadmin_setup_local_zypper_repositories
         ensure_packages_installed createrepo
-        createrepo -o $UPR $UPR || exit 8
+        createrepo-cloud-ptf || createrepo -o $UPR $UPR || exit 8
     fi
     zypper modifyrepo -e cloud-ptf >/dev/null 2>&1 ||\
         safely zypper ar $UPR cloud-ptf
