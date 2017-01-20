@@ -1,6 +1,22 @@
 ---
 # 3 - 7 nodes: HA IMPI 1 x 3, KVM x 3
 proposals:
+- barclamp: nfs_client
+  name: glance
+  attributes:
+    exports:
+      glance:
+        nfs_server: ##shared_nfs_for_glance##
+        export: ##shared_nfs_export_for_glance##
+        mount_path: "/images"
+        mount_options:
+        - nfsvers=3
+  deployment:
+    elements:
+      nfs-client:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
 - barclamp: pacemaker
   name: services
   attributes:
@@ -103,11 +119,15 @@ proposals:
 
 - barclamp: neutron
   attributes:
+    ml2_mechanism_drivers:
+    - linuxbridge
     ml2_type_drivers:
     - gre
-    - vxlan
     - vlan
+    - vxlan
     num_vlans: 99
+    ml2_type_drivers_default_provider_network: vlan
+    ml2_type_drivers_default_tenant_network: vlan
   deployment:
     elements:
       neutron-server:
