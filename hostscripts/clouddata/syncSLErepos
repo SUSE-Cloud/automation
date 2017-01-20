@@ -23,8 +23,6 @@ ibsmaint=$buildsuse/SUSE\:/Maintenance\:/Test\:/
 
 # SLE11 SP3
 echo ================== Updating SLE 11 SP3
-$rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-SERVER/11-SP3-POOL/ /srv/nfs/repos/SLES11-SP3-Pool/
-$rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SLE-HAE/11-SP3-POOL/ /srv/nfs/repos/SLE11-HAE-SP3-Pool/
 $rsync $buildncc/SUSE/Updates/SLE-SERVER/11-SP3/x86_64/update/ /srv/nfs/repos/SLES11-SP3-Updates/
 $rsync $buildncc/SUSE/Updates/SLE-HAE/11-SP3/x86_64/update/ /srv/nfs/repos/SLE11-HAE-SP3-Updates/
 $rsync $ibsmaint/SLE-SERVER\:/11-SP3\:/x86_64/update/ /srv/nfs/repos/SLES11-SP3-Updates-test/
@@ -157,7 +155,6 @@ for version in 5; do
     mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version/images/iso/SUSE-CLOUD-$version-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-$version-devel
     mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-CLOUD-$version-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-$version-devel-staging
 
-    $rsync /mnt/euklid/mirror/SuSE/zypp-patches.suse.de/x86_64/update/SUSE-CLOUD/$version-POOL/ /srv/nfs/repos/SUSE-Cloud-$version-Pool/
     $rsync $buildncc/SUSE/Updates/SUSE-CLOUD/$version/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-$version-Updates/
     if test -d $ibsmaint/Cloud\:/$version\:/$arch/update/; then
         $rsync $ibsmaint/Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Cloud-$version-Updates-test/
