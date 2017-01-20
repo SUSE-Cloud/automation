@@ -3260,6 +3260,15 @@ function get_ceph_nodes
 {
     if [[ $deployceph ]]; then
         cephmons=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-mon']"`
+        for machine in $cephmons; do
+            net_name="`crowbar machines show $machine | rubyjsonparse "puts j['ceph']['client_network']"`"
+            if [[ $net_name -eq "admin" ]]
+            then
+                cephmons_names+="$machine "
+            else
+                cephmons_names+="$net_name.$machine "
+            fi
+        done
         cephosds=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-osd']"`
         cephradosgws=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-radosgw']"`
     else
@@ -3968,6 +3977,7 @@ function oncontroller
     ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ;
         export tempestoptions=\"$tempestoptions\" ;
         export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
+        export cephmons_names=\"$cephmons_names\" ;
         export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
         export libvirt_type=\"$libvirt_type\" ;
@@ -3994,7 +4004,6 @@ EOF
 function ceph_testsuite_configure_storage3
 {
     # this is the configuration for the tests from the storage3 branch
-    yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
     yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
     osds=""
     for node in $yaml_osds; do
@@ -4004,7 +4013,7 @@ function ceph_testsuite_configure_storage3
         done
     done
 
-    ./update_template $yaml_allnodes
+    ./update_template ${cephmons_names}
     ./update_template --nodes-type osd --user root --yaml-file templates/template.yml.new $osds
     export YAMLDATA_FILE=templates/template.yml.new
 }
