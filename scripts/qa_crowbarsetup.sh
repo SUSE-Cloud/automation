@@ -3328,8 +3328,10 @@ function glance_image_exists
 
 function glance_image_get_id
 {
-    local image_id=$(openstack image list | grep "[[:space:]]$1[[:space:]]" | awk '{ print $2 }')
-    echo $image_id
+    local id=""
+    eval $(openstack image show -f shell "$1")
+    echo "$id"
+    [[ $id ]] # set return code
 }
 
 # test if image is fully uploaded
@@ -3802,10 +3804,10 @@ function oncontroller_testsetup
     fi
 
     # wait for image to finish uploading
-    imageid=$(glance_image_get_id $image_name)
-    if ! [[ $imageid ]]; then
+
+    local imageid
+    imageid=$(glance_image_get_id $image_name) || \
         complain 37 "Image ID for $image_name not found"
-    fi
     wait_image_active "$image_name" testsetup
 
     if [[ $want_ldap = 1 ]] ; then
