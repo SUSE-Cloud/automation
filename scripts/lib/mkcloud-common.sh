@@ -4,6 +4,8 @@
 : ${admin_image_password:='linux'}
 : ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
 : ${clouddata_base_path:="/repos"}
+: ${clouddata_nfs:=$clouddata}
+: ${clouddata_nfs_dir:='srv/nfs'}
 : ${distsuse:=dist.nue.suse.com}
 distsuseip=$(dig -t A +short $distsuse)
 : ${susedownload:=download.nue.suse.com}

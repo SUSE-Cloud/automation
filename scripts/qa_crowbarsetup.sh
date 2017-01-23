@@ -452,7 +452,7 @@ function add_ha12sp1_repo
     for repo in SLE12-SP1-HA-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+        add_mount "$repo" "$clouddata_nfs:/$clouddata_nfs_dir/repos/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
     done
 }
@@ -809,7 +809,7 @@ function onadmin_prepare_sles12sp1_installmedia
     for a in $architectures; do
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$a/install"
         add_mount "SLE-12-SP1-Server-LATEST/sle-12-$a" \
-            "$clouddata:/srv/nfs/suse-12.1/$a/install" \
+            "$clouddata_nfs:/$clouddata_nfs_dir/suse-12.1/$a/install" \
             "$sles12sp1_mount"
 
         if [ ! -d "$sles12sp1_mount/media.1" ] ; then
@@ -844,7 +844,7 @@ function onadmin_prepare_sles12_other_repos
 function onadmin_prepare_sles12sp1_other_repos
 {
     for repo in SLES12-SP1-{Pool,Updates}; do
-        add_mount "$repo/sle-12-$arch" "$clouddata:/srv/nfs/repos/$arch/$repo" \
+        add_mount "$repo/sle-12-$arch" "$clouddata_nfs:/$clouddata_nfs_dir/repos/$arch/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
