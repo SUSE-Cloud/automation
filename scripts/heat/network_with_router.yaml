@@ -1,0 +1,67 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  private_net_name:
+    type: string
+    description: Name of private network to be created
+
+  private_net_cidr:
+    type: string
+
+  private_net_pool_start:
+    type: string
+    description: Start of private network IP address allocation pool
+
+  private_net_pool_end:
+    type: string
+    description: End of private network IP address allocation pool
+
+  public_net:
+    type: string
+    description: >
+      ID or name of public network for which floating IP addresses will be allocated
+
+  num_instances:
+    type: number
+    description: number of instances to create on each network
+    default: 1
+
+
+resources:
+  private_net:
+    type: OS::Neutron::Net
+    properties:
+      name: { get_param: private_net_name }
+
+  private_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: private_net }
+      cidr: { get_param: private_net_cidr }
+      allocation_pools:
+        - start: { get_param: private_net_pool_start }
+          end: { get_param: private_net_pool_end }
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network: { get_param: public_net }
+
+  router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router }
+      subnet_id: { get_resource: private_subnet }
+
+  instances:
+    type: OS::Heat::ResourceGroup
+    depends_on: router_interface
+    properties:
+      count: { get_param: num_instances }
+      resource_def:
+        type: instances.yaml
+        properties:
+          private_net: { get_resource: private_net }
+          private_subnet: { get_resource: private_subnet }
+

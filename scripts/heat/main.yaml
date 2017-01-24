@@ -1,0 +1,28 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  num_networks:
+    type: number
+    description: number of private networks with external router to create
+    default: 1
+
+  num_instances:
+    type: number
+    description: number of instances to create on each network
+    default: 1
+
+
+resources:
+  networks:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: num_networks }
+      resource_def:
+        type: network_with_router.yaml
+        properties:
+          private_net_name: heat-net-%index%
+          public_net: floating
+          private_net_cidr: 172.20.%index%.0/24
+          private_net_pool_start: 172.20.%index%.10
+          private_net_pool_end: 172.20.%index%.99
+          num_instances: { get_param: num_instances }

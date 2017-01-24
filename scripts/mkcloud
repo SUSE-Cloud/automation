@@ -666,6 +666,16 @@ function testsetup
     return $ret
 }
 
+function testpreupgrade
+{
+    onadmin testpreupgrade
+}
+
+function testpostupgrade
+{
+    onadmin testpostupgrade
+}
+
 function testname
 {
     local -a var_names=(ha cluster upgrade ceph cinder drbd net
@@ -896,6 +906,8 @@ These steps are expanding to the following steps:
         -> $(expand_steps plain)
     plain_with_upgrade
         -> $(expand_steps plain_with_upgrade)
+    plain_with_upgrade_test
+        -> $(expand_steps plain_with_upgrade_test)
     instonly
         -> $(expand_steps instonly)
 
@@ -1253,7 +1265,8 @@ allcmds="$step_aliases all all_noreboot all_batch all_batch_noreboot instonly \
     rebootneutron cloudupgrade \
     setuplonelynodes crowbar_register createadminsnapshot \
     restoreadminfromsnapshot createcloudsnapshot restorecloudfromsnapshot \
-    cct steps batch setup_aliases onadmin onhost devsetup"
+    cct steps batch setup_aliases onadmin onhost devsetup plain_with_upgrade_test \
+    testpreupgrade testpostupgrade"
 wantedcmds=$@
 
 function expand_steps
@@ -1310,6 +1323,9 @@ function expand_steps
                     ;;
                     plain_with_upgrade)
                         runcmds="$runcmds `expand_steps plain` addupdaterepo runupdate `expand_steps _upgrade`"
+                    ;;
+                    plain_with_upgrade_test)
+                        runcmds="$runcmds `expand_steps plain` testpreupgrade addupdaterepo runupdate `expand_steps _upgrade` testpostupgrade"
                     ;;
                     *)
                         runcmds="$runcmds $cmd"

@@ -1,0 +1,56 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  image:
+    type: string
+    default: cirros-0.3.4-x86_64-tempest-machine
+
+  flavor:
+    type: string
+    default: m1.tiny
+
+  public_net:
+    type: string
+    description: >
+      ID or name of public network for which floating IP addresses will be allocated
+    default: floating
+
+  private_net:
+    type: string
+    description: ID or name of private network
+
+  private_subnet:
+    type: string
+    description: ID or name of private subnet
+
+
+resources:
+  security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - direction: ingress
+          ethertype: IPv4
+
+  server:
+    type: OS::Nova::Server
+    properties:
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      networks:
+        - port: { get_resource: server_port }
+
+  server_port:
+    type: OS::Neutron::Port
+    properties:
+      security_groups:
+        - { get_resource: security_group }
+      network_id: { get_param: private_net }
+      fixed_ips:
+        - subnet_id: { get_param: private_subnet }
+
+  server_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_net }
+      port_id: { get_resource: server_port }
