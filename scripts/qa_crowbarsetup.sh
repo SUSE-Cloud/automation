@@ -3261,12 +3261,14 @@ function get_ceph_nodes
     if [[ $deployceph ]]; then
         cephmons=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-mon']"`
         for machine in $cephmons; do
-            net_name="`crowbar machines show $machine | rubyjsonparse "puts j['ceph']['client_network']"`"
-            if [[ $net_name -eq "admin" ]]
+            temp_output="`crowbar machines show $machine`"
+            net_name="`echo $temp_output | rubyjsonparse "puts j['ceph']['client_network']"`"
+            hostname="`echo $temp_output | rubyjsonparse "puts j['hostname']"`"
+            if [[ $net_name == "admin" ]]
             then
-                cephmons_names+="$machine "
+                cephmons_names+="$hostname "
             else
-                cephmons_names+="$net_name.$machine "
+                cephmons_names+="$net_name.$hostname "
             fi
         done
         cephosds=`crowbar ceph proposal show default | rubyjsonparse "puts j['deployment']['ceph']['elements']['ceph-osd']"`
