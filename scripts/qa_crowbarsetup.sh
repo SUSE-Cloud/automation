@@ -4240,9 +4240,9 @@ function oncontroller_testpreupgrade
 {
     heat stack-create upgrade_test -f /root/scripts/heat/main.yaml -P "num_networks=2;num_instances=1"
     wait_for 15 20 "heat stack-list | grep upgrade_test | grep CREATE_COMPLETE" \
-             "waiting for heat stack for upgrade tests to complete"
+             "heat stack for upgrade tests to complete"
 
-    ping_fips
+    ping_fips && \
     echo "test pre-upgrade successful."
 }
 
@@ -4252,15 +4252,13 @@ function oncontroller_testpostupgrade
 
     heat stack-delete upgrade_test
     wait_for 15 20 "! heat stack-show upgrade_test" \
-             "waiting for heat stack for upgrade tests to be deleted"
+             "heat stack for upgrade tests to be deleted"
     echo "test post-upgrade successful."
 }
 
 function check_novacontroller
 {
-    if ! safely ssh "$novacontroller" true; then
-        complain 62 "no nova controller - something went wrong"
-    fi
+    safely ssh "$novacontroller" true
     echo "openstack nova controller node: $novacontroller"
 }
 
