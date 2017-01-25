@@ -17,6 +17,24 @@ function max
     echo $(( $1 > $2 ? $1 : $2 ))
 }
 
+function node_role
+{
+    local i=$1
+    local nodenumbercontroller=1
+    if [[ $clusterconfig == *services* ]]; then
+        nodenumbercontroller=`echo ${clusterconfig}\
+            | sed -e "s/^.*services[^:]*=\([[:digit:]]\+\).*/\1/"`
+    fi
+
+    if [ $i -gt $(($nodenumbercontroller+$nodenumberstorage)) ]; then
+        echo "compute"
+    elif [ $i -gt $nodenumbercontroller ]; then
+        echo "storage"
+    else
+        echo "controller"
+    fi
+}
+
 function wait_for
 {
     local timecount=${1:-300}

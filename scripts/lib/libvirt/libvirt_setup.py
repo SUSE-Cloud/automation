@@ -212,17 +212,10 @@ def compute_config(args, cpu_flags=cpuflags()):
         configopts['memballoon'] = "    <memballoon model='none' />"
         target_address = ""
 
-    controller_raid_volumes = args.controller_raid_volumes
-    if args.nodecounter > args.numcontrollers:
-        controller_raid_volumes = 0
-        nodememory = args.computenodememory
-    else:
-        nodememory = args.controllernodememory
-
     raidvolume = ""
     # a valid serial is defined in libvirt-1.2.18/src/qemu/qemu_command.c:
     serialcloud = re.sub("[^A-Za-z0-9-_]", "_", args.cloud)
-    for i in range(1, controller_raid_volumes):
+    for i in range(1, args.raid_volumes):
         raid_template = string.Template(
             readfile(os.path.join(TEMPLATE_DIR, "extra-volume.xml")))
         raidvolume += "\n" + raid_template.substitute(merge_dicts({
@@ -275,7 +268,7 @@ def compute_config(args, cpu_flags=cpuflags()):
     values = dict(
         cloud=args.cloud,
         nodecounter=args.nodecounter,
-        nodememory=nodememory,
+        nodememory=args.nodememory,
         vcpus=args.vcpus,
         march=get_machine_arch(),
         machine=get_default_machine(args.emulator),

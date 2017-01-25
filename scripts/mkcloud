@@ -57,6 +57,7 @@ setcloudnetvars $virtualcloud
 nodenumbercomputedefault=2
 [[ $hacloud ]] && nodenumbercomputedefault=1
 : ${nodenumber:=$nodenumbercomputedefault}
+: ${nodenumberstorage:=0}
 : ${nodenumbercompute:=$nodenumbercomputedefault}
 # expect to have this many physical machines attached via $mkch_physcloudif
 # these replace virtual machines, so we start less VMs
@@ -83,6 +84,7 @@ needcvol=1
 : ${admin_node_memory:=4194304}
 : ${controller_node_memory:=6291456}
 iscloudver 7plus && controller_node_memory=$(max $controller_node_memory 12582912)
+: ${storage_node_memory:=2621440}
 : ${compute_node_memory:=2621440}
 [[ "$libvirt_type" = "hyperv" ]] && \
     compute_node_memory=$(max $compute_node_memory ${hyperv_node_memory:-3000000})
@@ -91,9 +93,11 @@ iscloudver 7plus && controller_node_memory=$(max $controller_node_memory 1258291
 # hdd size defaults (unless defined otherwise)
 : ${adminnode_hdd_size:=15}
 : ${controller_hdd_size:=20}
+: ${storage_hdd_size:=20}
 : ${computenode_hdd_size:=20}
 : ${cephvolume_hdd_size:=21}
 : ${controller_ceph_hdd_size:=25}
+: ${storage_ceph_hdd_size:=25}
 : ${lonelynode_hdd_size:=20}
 if [[ $hacloud ]]; then
     : ${drbd_hdd_size:=15}
@@ -574,12 +578,6 @@ function setupnodes
 {
     onadmin wait_tftpd || return $?
 
-    local nodenumbercontroller=1
-    if [[ $clusterconfig == *services* ]]; then
-        nodenumbercontroller=`echo ${clusterconfig}\
-            | sed -e "s/^.*services[^:]*=\([[:digit:]]\+\).*/\1/"`
-    fi
-
     setuppublicnet
     local i
     for i in $(nodes ids normal) ; do
@@ -598,11 +596,27 @@ function setupnodes
             fi
         fi
 
+        local noderole=$(node_role $i)
+        local raidvolumes=0
+        local nodememory
+        case $noderole in
+            controller)
+                raidvolumes=$controller_raid_volumes
+                nodememory=$controller_node_memory
+                ;;
+            storage)
+                nodememory=$storage_node_memory
+                ;;
+            compute)
+                nodememory=$compute_node_memory
+                ;;
+        esac
+
         ${scripts_lib_dir}/libvirt/compute-config $cloud $i $macaddress\
-            $controller_raid_volumes $cephvolumenumber "$drbd_serial"\
-            $compute_node_memory $controller_node_memory $libvirt_type $vcpus\
-            $emulator $vdisk_dir 3 \
-            $nodenumbercontroller "$firmware_type" > /tmp/$cloud-node$i.xml
+            $raidvolumes $cephvolumenumber "$drbd_serial"\
+            $nodememory \
+            $libvirt_type $vcpus $emulator $vdisk_dir 3 \
+            "$firmware_type" > /tmp/$cloud-node$i.xml
         ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
     done
 

@@ -193,8 +193,18 @@ function libvirt_do_create_cloud_lvm()
     _lvcreate $cloud.admin $adminnode_hdd_size $cloudvg $next_pv_device
     for i in $(nodes ids all) ; do
         onhost_get_next_pv_device
-        hdd_size=${computenode_hdd_size}
-        test "$i" = "1" && hdd_size=${controller_hdd_size}
+        local noderole=$(node_role $i)
+        case $noderole in
+            controller)
+                hdd_size=$controller_hdd_size
+                ;;
+            storage)
+                hdd_size=$storage_hdd_size
+                ;;
+            compute)
+                hdd_size=$computenode_hdd_size
+                ;;
+        esac
         _lvcreate $cloud.node$i $hdd_size $cloudvg $next_pv_device
     done
     if [ $controller_raid_volumes -gt 1 ] ; then
@@ -212,10 +222,11 @@ function libvirt_do_create_cloud_lvm()
 
     if [ $cephvolumenumber -gt 0 ] ; then
         for i in $(nodes ids all) ; do
+            local noderole=$(node_role $i)
             for n in $(seq 1 $cephvolumenumber) ; do
                 onhost_get_next_pv_device
                 hdd_size=${cephvolume_hdd_size}
-                test "$i" = "1" -a "$n" = "1" && hdd_size=${controller_ceph_hdd_size}
+                test "$noderole" = "controller" -a "$n" = "1" && hdd_size=${controller_ceph_hdd_size}
                 _lvcreate $cloud.node$i-ceph$n $hdd_size $cloudvg $next_pv_device
             done
         done
@@ -341,10 +352,10 @@ function libvirt_do_setuplonelynodes()
         local mac=$(macfunc $i)
         local lonely_node
         lonely_node=$cloud-node$i
-        safely ${scripts_lib_dir}/libvirt/compute-config $cloud $i $mac 0\
-            "$cephvolumenumber" "$drbdvolume" $compute_node_memory\
-            $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir\
-            1 1 "$firmware_type" > /tmp/$cloud-node$i.xml
+        safely ${scripts_lib_dir}/libvirt/compute-config $cloud $i $mac 0 \
+            "$cephvolumenumber" "$drbdvolume" \
+            $controller_node_memory $libvirt_type $vcpus \
+            $emulator $vdisk_dir 1 "$firmware_type" > /tmp/$cloud-node$i.xml
 
         local lonely_disk
         lonely_disk="$vdisk_dir/${cloud}.node$i"

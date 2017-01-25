@@ -13,15 +13,13 @@ def main():
                         (when this script is called within a loop, this \
                         is usually an incremented number)")
     parser.add_argument("macaddress", help="MAC Address")
-    parser.add_argument("controller_raid_volumes", type=int,
-                        help="Number of disks for RAID on controller node")
+    parser.add_argument("raid_volumes", type=int,
+                        help="Number of disks for RAID on node")
     parser.add_argument("cephvolumenumber", type=int,
                         help="Number of Ceph Volumes")
     parser.add_argument("drbdserial", help="DRBD Volume Serial")
-    parser.add_argument("computenodememory", type=int,
-                        help="Compute Node Memory (kB)")
-    parser.add_argument("controllernodememory", type=int,
-                        help="Controller Node Memory (kB)")
+    parser.add_argument("nodememory", type=int,
+                        help="Node Memory (kB)")
     parser.add_argument("libvirttype", help="Libvirt Type (e.g. kvm)")
     parser.add_argument("vcpus", type=int, help="Number of VCPUs")
     parser.add_argument("emulator", help="QEMU to use",
@@ -29,8 +27,6 @@ def main():
     parser.add_argument("vdiskdir",
                         help="Virtual Disk Directory (e.g /dev/cloud)")
     parser.add_argument("bootorder", type=int, help="Boot Order (e.g. 2)")
-    parser.add_argument("numcontrollers", type=int, default=1,
-                        help="Number of controller nodes")
     parser.add_argument("firmwaretype", default="bios",
                         help="Boot firmware type for the node")
     args = parser.parse_args()
