@@ -2565,12 +2565,8 @@ function custom_configuration
             if iscloudver 7plus; then
                 local ec2node
                 if [[ $hacloud = 1 ]] ; then
-                    ### pick cluster when ec2-api can be deployed on a cluster;
-                    ### for now, we pick the first node of services cluster
-                    # ec2node = "cluster:$clusternameservices"
-                    local clusternodes_var=$(echo clusternodes${clusternameservices})
-                    local clusternodes=(${!clusternodes_var})
-                    ec2node="${clusternodes[0]}"
+                    ### deploy ec2-api on a cluster;
+                    ec2node = "cluster:$clusternameservices"
                 else
                     ec2node="${unclustered_nodes[0]}"
                 fi
