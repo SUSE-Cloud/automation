@@ -23,6 +23,6 @@
             hacloud=1
             storage_method=swift
             want_nodesupgrade=1
-            mkcloudtarget=plain_with_upgrade
+            mkcloudtarget=plain_with_upgrade_test testsetup
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}
