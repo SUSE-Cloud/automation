@@ -316,7 +316,7 @@ function libvirt_do_prepare()
 function libvirt_do_onhost_deploy_image()
 {
     local role=$1
-    local image=$(dist_to_image_name $2)
+    local image=${override_disk_image:-$(dist_to_image_name $2)}
     local disk=$3
 
     [[ $clouddata ]] || complain 108 "clouddata IP not set - is DNS broken?"

@@ -210,6 +210,8 @@ function sshrun
         # hostname of NFS server with repos and images:
         export clouddata=$clouddata ;
         export clouddata_base_path=$clouddata_base_path ;
+        export clouddata_nfs=$clouddata_nfs ;
+        export clouddata_nfs_dir=$clouddata_nfs_dir ;
         export distsuse=$distsuse ;
         export susedownload=$susedownload ;
         export cloudfqdn=$cloudfqdn ;
