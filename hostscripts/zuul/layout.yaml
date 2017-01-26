@@ -34,12 +34,14 @@ projects:
   - name: openstack/rpm-packaging
     rpm-packaging:
       - openstack-rpm-packaging-sles12-Master
-      - openstack-rpm-packaging-sles12-Newton
       - openstack-rpm-packaging-sles12-Mitaka
+      - openstack-rpm-packaging-sles12-Newton
+      - openstack-rpm-packaging-sles12-Ocata
     post-rpm-packaging:
       - openstack-rpm-packaging-update-Master
-      - openstack-rpm-packaging-update-Newton
       - openstack-rpm-packaging-update-Mitaka
+      - openstack-rpm-packaging-update-Newton
+      - openstack-rpm-packaging-update-Ocata
 
 jobs:
   - name: openstack-rpm-packaging-sles12-Master
@@ -47,21 +49,29 @@ jobs:
     failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Master-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Master-{build.build_set.commit}
 
-  - name: openstack-rpm-packaging-sles12-Newton
-    branch: stable/newton
-    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Newton-{build.build_set.commit}
-    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Newton-{build.build_set.commit}
-
   - name: openstack-rpm-packaging-sles12-Mitaka
     branch: stable/mitaka
     failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Mitaka-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Mitaka-{build.build_set.commit}
 
+  - name: openstack-rpm-packaging-sles12-Newton
+    branch: stable/newton
+    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Newton-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Newton-{build.build_set.commit}
+
+  - name: openstack-rpm-packaging-sles12-Ocata
+    branch: stable/newton
+    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Ocata-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Ocata-{build.build_set.commit}
+
   - name: openstack-rpm-packaging-update-Master
     branch: master
+
+  - name: openstack-rpm-packaging-update-Mitaka
+    branch: stable/mitaka
 
   - name: openstack-rpm-packaging-update-Newton
     branch: stable/newton
 
-  - name: openstack-rpm-packaging-update-Mitaka
-    branch: stable/mitaka
+  - name: openstack-rpm-packaging-update-Ocata
+    branch: stable/ocata

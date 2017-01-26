@@ -7,3 +7,5 @@
             release: 'Newton'
         - 'openstack-rpm-packaging-update-{release}':
             release: 'Mitaka'
+        - 'openstack-rpm-packaging-update-{release}':
+            release: 'Ocata'
