@@ -4120,11 +4120,7 @@ function onadmin_testsetup
         echo "ceph radosgw:" $cephradosgws
         if [ -n "$cephradosgws" ] ; then
             wantcephtestsuite=1
-            # RadosGW in SES4 is broken, so skipping it for now
-            # https://bugzilla.suse.com/show_bug.cgi?id=1017837
-            if iscloudver 6minus; then
-                wantradosgwtest=1
-            fi
+            wantradosgwtest=1
         fi
     fi
 
