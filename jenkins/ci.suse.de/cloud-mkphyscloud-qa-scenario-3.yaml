@@ -169,7 +169,8 @@
           export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
 
-
+          sed -i -e "s,##shared_nfs_for_glance##,$shared_storage_ip," scenario.yml
+          sed -i -e "s,##shared_nfs_export_for_glance##,/var/$cloud/ha-glance/," scenario.yml
           sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
           sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," scenario.yml
 
