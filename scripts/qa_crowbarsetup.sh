@@ -2116,7 +2116,7 @@ function waitnodes
 
             local onenode
             for onenode in `get_all_discovered_nodes` ; do
-                wait_for 500 1 "netcat -w 3 -z $onenode 22 || netcat -w 3 -z $onenode 3389" "node $onenode to be acessible"
+                wait_for 500 1 "netcat -w 3 -z $onenode 22 || netcat -w 3 -z $onenode 3389" "node $onenode to be accessible"
                 echo "node $onenode ready"
             done
             ;;
