@@ -2745,6 +2745,10 @@ function custom_configuration
             proposal_set_value swift default "['attributes']['swift']['middlewares']['formpost']['enabled']" "true"
             proposal_set_value swift default "['attributes']['swift']['middlewares']['staticweb']['enabled']" "true"
             proposal_set_value swift default "['attributes']['swift']['middlewares']['tempurl']['enabled']" "true"
+
+            if [[ $hacloud = 1 ]] ; then
+                proposal_set_value swift default "['deployment']['swift']['elements']['swift-proxy']" "['cluster:$clusternameservices']"
+            fi
         ;;
         cinder)
             if iscloudver 4 ; then
