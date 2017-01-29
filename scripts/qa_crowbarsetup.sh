@@ -2563,14 +2563,12 @@ function custom_configuration
 
 
             if iscloudver 7plus; then
-                local ec2node
                 if [[ $hacloud = 1 ]] ; then
-                    ### deploy ec2-api on a cluster;
-                    ec2node = "cluster:$clusternameservices"
+                    proposal_set_value nova default "['deployment']['nova']['elements']['ec2-api']" "['cluster:$clusternameservices']"
                 else
-                    ec2node="${unclustered_nodes[0]}"
+                    local ec2node="${unclustered_nodes[0]}"
+                    proposal_set_value nova default "['deployment']['nova']['elements']['ec2-api']" "['$ec2node']"
                 fi
-                proposal_set_value nova default "['deployment']['nova']['elements']['ec2-api']" "['$ec2node']"
             fi
 
             if [[ $hacloud = 1 ]] ; then
