@@ -1,16 +1,18 @@
 # jtsync - synchronize status from jenkins to trello
     Usage: jtsync --ci SERVICE (--matrix|--job) JOB_STATUS
-            --ci SERVICE                 Which ci is used (suse or opensuse)
-            --matrix NAME,PROJECT        Set status of a matrix job
-            --job NAME                   Set status of a normal job
+            --board BOARDID                   Board which should be updated
+            --ci SERVICE                      Which ci is used (suse or opensuse)
+            --matrix NAME,PROJECT,BUILDNR     Set status of a matrix job
+            --job NAME                        Set status of a normal job
 
 Matrix job cards are selected in this form:
 
-    $ jtsync --ci suse --matrix cloud-trackupstream,Devel:Cloud:7:Staging
+    $ jtsync --ci suse --matrix cloud-trackupstream,Devel:Cloud:7:Staging,${BUILDNR}
 
 The script never returns anything other than `0` to make sure jenkins runs are not interruped
 by the script.
 
+If no `--board` parameter is given, the default SUSE Cloud board is used.
 
 ## Run the script on a developer machine
 Install `bundler` before continue:
@@ -33,8 +35,10 @@ Place them in your local `.netrc` file:
 A test board is available here: [https://trello.com/b/fL7fv67z/jtsync](https://trello.com/b/fL7fv67z/jtsync)
 It can be just used or cloned when a own board is desired.
 
-Replace the _hardcoded_ __board id__ in `jtsync.rb` to your test __board id__.
-Make sure that the following structure exists:
+Set the `TEST_BOARD` variable in test_jtsync to your test board or use the
+`--board` parameter in manual tests.
+
+The test board should have this structure:
 
     Board
     |---- Cloud 7
