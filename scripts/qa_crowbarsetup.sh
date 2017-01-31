@@ -4900,9 +4900,8 @@ function onadmin_crowbar_nodeupgrade
                 complain 12 "'Services' step has failed. Check the upgrade status."
             fi
 
-            # This is just a fake command now for OpenStack DB backup
-            # FIXME: add a proper check for failure once OpenStack DB backup does real work
             safely crowbarctl upgrade backup openstack
+            wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v backup_openstack" "backup openstack step to finish"
 
             safely crowbarctl upgrade nodes
             wait_for 240 30 "crowbar_nodeupgrade_finished" "'nodes' upgrade step to finish"
