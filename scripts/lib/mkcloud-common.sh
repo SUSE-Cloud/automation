@@ -123,7 +123,7 @@ function is_oncontroller
     [[ $BASH_SOURCE =~ qa_crowbarsetup.sh$ ]] && [[ $is_oncontroller ]]
 }
 
-sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oServerAliveInterval=2"
+sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oServerAliveInterval=20"
 scp="scp $sshopts"
 ssh="ssh $sshopts"
 function ssh_password
