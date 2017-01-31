@@ -60,7 +60,7 @@ jobs:
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Newton-{build.build_set.commit}
 
   - name: openstack-rpm-packaging-sles12-Ocata
-    branch: stable/newton
+    branch: stable/ocata
     failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Ocata-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Ocata-{build.build_set.commit}
 
