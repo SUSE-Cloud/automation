@@ -4904,7 +4904,7 @@ function onadmin_crowbar_nodeupgrade
             wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v backup_openstack" "backup openstack step to finish"
 
             safely crowbarctl upgrade nodes
-            wait_for 240 30 "crowbar_nodeupgrade_finished" "'nodes' upgrade step to finish"
+            wait_for 360 30 "crowbar_nodeupgrade_finished" "'nodes' upgrade step to finish"
 
             if grep -q "failed" $upgrade_progress_file ; then
                 crowbarctl upgrade status
