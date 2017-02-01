@@ -4883,7 +4883,7 @@ function onadmin_allow_vendor_change_at_nodes
 
 function crowbar_nodeupgrade_finished
 {
-    if grep current_step $upgrade_progress_file | grep -v nodes ; then
+    if [ ! -e /var/lib/crowbar/upgrade/6-to-7-upgrade-running ] ; then
         echo "'nodes' step finished successfuly"
         return 0
     fi
