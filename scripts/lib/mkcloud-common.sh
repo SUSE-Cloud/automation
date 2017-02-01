@@ -204,6 +204,28 @@ function setcloudnetvars
             vlan_fixed=566
             want_ipmi=true
         ;;
+        p2)
+            net=$netp.171
+            net_public=$netp.164
+            net_fixed=44.0.0
+            vlan_storage=563
+            vlan_sdn=$vlan_storage
+            vlan_public=564
+            vlan_fixed=565
+            want_ipmi=true
+        ;;
+        p3)
+            nodenumbertotal=3
+            net=$netp.184
+            net_public=$netp.187
+            net_fixed=44.13.0
+            vlan_storage=582
+            vlan_sdn=$vlan_storage
+            vlan_public=585
+            #vlan_admin=584
+            vlan_fixed=583
+            want_ipmi=true
+        ;;
         d2)
             nodenumbertotal=2
             net=$netp.186
@@ -255,16 +277,6 @@ function setcloudnetvars
             vlan_storage=756
             vlan_fixed=758
             vlan_sdn=757
-            want_ipmi=true
-        ;;
-        p2)
-            net=$netp.171
-            net_public=$netp.164
-            net_fixed=44.0.0
-            vlan_storage=563
-            vlan_sdn=$vlan_storage
-            vlan_public=564
-            vlan_fixed=565
             want_ipmi=true
         ;;
         virtual)
