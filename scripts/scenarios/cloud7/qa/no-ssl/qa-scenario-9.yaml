@@ -110,21 +110,23 @@ proposals:
 
 - barclamp: neutron
   attributes:
+    use_dvr: true
+    use_l2pop: true
     ml2_mechanism_drivers:
     - openvswitch
     ml2_type_drivers:
     - gre
     - vlan
     - vxlan
-    ml2_type_drivers_default_provider_network: vlan
-    ml2_type_drivers_default_tenant_network: vlan
+    ml2_type_drivers_default_provider_network: vxlan
+    ml2_type_drivers_default_tenant_network: vxlan
     num_vlans: 99
   deployment:
     elements:
       neutron-server:
       - cluster:services
       neutron-network:
-      - "@@controller1@@" #will be changed after bug #974495 fix
+      - cluster:services
 
 - barclamp: nova
   attributes:
