@@ -201,7 +201,31 @@ function setcloudnetvars
             vlan_storage=568
             vlan_sdn=$vlan_storage
             vlan_public=567
+            #vlan_admin=561
             vlan_fixed=566
+            want_ipmi=true
+        ;;
+        p2)
+            net=$netp.171
+            net_public=$netp.164
+            net_fixed=44.0.0
+            vlan_storage=563
+            vlan_sdn=$vlan_storage
+            vlan_public=564
+            #vlan_admin=560
+            vlan_fixed=565
+            want_ipmi=true
+        ;;
+        p3)
+            nodenumbertotal=3
+            net=$netp.184
+            net_public=$netp.187
+            net_fixed=44.13.0
+            vlan_storage=582
+            vlan_sdn=$vlan_storage
+            vlan_public=585
+            #vlan_admin=584
+            vlan_fixed=583
             want_ipmi=true
         ;;
         d2)
@@ -211,6 +235,7 @@ function setcloudnetvars
             vlan_storage=581
             vlan_sdn=$vlan_storage
             vlan_public=580
+            #vlan_admin=562
             vlan_fixed=569
             want_ipmi=true
         ;;
@@ -221,17 +246,9 @@ function setcloudnetvars
             vlan_storage=586
             vlan_sdn=$vlan_storage
             vlan_public=588
+            #vlan_admin=587
             vlan_fixed=589
             want_ipmi=true
-        ;;
-        qa1)
-            nodenumbertotal=6
-            net=${netp}.26
-            net_public=$net
-            vlan_public=300
-            vlan_fixed=500
-            vlan_storage=200
-            want_ipmi=false
         ;;
         qa2)
             nodenumbertotal=7
@@ -266,34 +283,8 @@ function setcloudnetvars
             vlan_sdn=757
             want_ipmi=true
         ;;
-        p2)
-            net=$netp.171
-            net_public=$netp.164
-            net_fixed=44.0.0
-            vlan_storage=563
-            vlan_sdn=$vlan_storage
-            vlan_public=564
-            vlan_fixed=565
-            want_ipmi=true
-        ;;
-p)
-            net=$netp.169
-            net_public=$netp.168
-            vlan_storage=565
-            vlan_sdn=$vlan_storage
-            vlan_public=564
-            vlan_fixed=563
-            want_ipmi=true
-        ;;
         virtual)
                     true # defaults are fine (and overridable)
-        ;;
-        cumulus)
-            net=$netp.189
-            net_public=$netp.190
-            vlan_storage=577
-            vlan_public=579
-            vlan_fixed=578
         ;;
         *)
                     true # defaults are fine (and overridable)
