@@ -4695,7 +4695,7 @@ function onadmin_prepare_crowbar_upgrade
         safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
     else
         safely crowbarctl upgrade prepare
-        wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v prepare" "prepare step to finish"
+        wait_for 300 10 "crowbarctl upgrade status | grep 'steps.prepare.status' | grep -q passed" "prepare step to finish"
     fi
 }
 
@@ -4883,12 +4883,12 @@ function onadmin_allow_vendor_change_at_nodes
 
 function crowbar_nodeupgrade_finished
 {
-    if [ ! -e /var/lib/crowbar/upgrade/6-to-7-upgrade-running ] ; then
+    if crowbarctl upgrade status | grep 'steps.nodes' | grep -q passed; then
         echo "'nodes' step finished successfuly"
         return 0
     fi
 
-    if grep -q failed $upgrade_progress_file ; then
+    if crowbarctl upgrade status | grep -q failed; then
         echo "Something has failed during 'nodes' upgrade step."
         return 0
     fi
@@ -4906,7 +4906,7 @@ function onadmin_crowbar_nodeupgrade
         if [[ $want_nodesupgrade ]]; then
             safely crowbarctl upgrade services
 
-            wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v services" "services step to finish"
+            wait_for 300 10 "crowbarctl upgrade status | grep 'steps.services.status' | grep -q passed" "services step to finish"
 
             if grep -q "failed" $upgrade_progress_file ; then
                 crowbarctl upgrade status
@@ -4914,7 +4914,7 @@ function onadmin_crowbar_nodeupgrade
             fi
 
             safely crowbarctl upgrade backup openstack
-            wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v backup_openstack" "backup openstack step to finish"
+            wait_for 300 10 "crowbarctl upgrade status | grep 'steps.backup_openstack.status' | grep -q passed" "backup openstack step to finish"
 
             safely crowbarctl upgrade nodes
             wait_for 360 30 "crowbar_nodeupgrade_finished" "'nodes' upgrade step to finish"
