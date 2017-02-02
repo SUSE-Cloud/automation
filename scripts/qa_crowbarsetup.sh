@@ -1202,8 +1202,8 @@ function onadmin_set_source_variables
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
-        M?)
-            cs=${cloudsource//M/Milestone}
+        GMC|M?)
+            cs=${cloudsource/#M/Milestone}
             CLOUDSLE12DISTPATH=/install/SLE-12-SP2-Cloud7-$cs/
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*1.iso"
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
