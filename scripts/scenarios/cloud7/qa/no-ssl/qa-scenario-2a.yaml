@@ -203,7 +203,7 @@ proposals:
   deployment:
     elements:
       ec2-api:
-      - "@@controller1@@"
+      - cluster:services
       nova-controller:
       - cluster:services
       nova-compute-hyperv: []
