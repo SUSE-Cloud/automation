@@ -2694,10 +2694,10 @@ function custom_configuration
                         proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vxlan','vlan']"
                         if [[ $want_dvr = 1 ]]; then
                             proposal_set_value neutron default "['attributes']['neutron']['use_dvr']" "true"
+                            # Enable L2 population, because for mkcloud we enable all ml2_type_drivers
+                            #     'ml2_type_drivers' = ['gre','vxlan','vlan']
                             # DVR with GRE or VXLAN requires L2 population
-                            if [[ $networkingmode = vxlan || $networkingmode = gre ]]; then
-                                proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "true"
-                            fi
+                            proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "true"
                         fi
                     else
                         proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vlan']"
