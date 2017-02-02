@@ -201,6 +201,7 @@ function setcloudnetvars
             vlan_storage=568
             vlan_sdn=$vlan_storage
             vlan_public=567
+            #vlan_admin=561
             vlan_fixed=566
             want_ipmi=true
         ;;
@@ -211,6 +212,7 @@ function setcloudnetvars
             vlan_storage=563
             vlan_sdn=$vlan_storage
             vlan_public=564
+            #vlan_admin=560
             vlan_fixed=565
             want_ipmi=true
         ;;
@@ -233,6 +235,7 @@ function setcloudnetvars
             vlan_storage=581
             vlan_sdn=$vlan_storage
             vlan_public=580
+            #vlan_admin=562
             vlan_fixed=569
             want_ipmi=true
         ;;
@@ -243,6 +246,7 @@ function setcloudnetvars
             vlan_storage=586
             vlan_sdn=$vlan_storage
             vlan_public=588
+            #vlan_admin=587
             vlan_fixed=589
             want_ipmi=true
         ;;
