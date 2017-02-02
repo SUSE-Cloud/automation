@@ -1,6 +1,6 @@
     <disk type='block' device='disk'>
       <serial>$volume_serial</serial>
-      <driver name='qemu' type='raw' cache='unsafe'/>
+      <driver name='qemu' type='raw' cache='$cache_mode'/>
       <source dev='$source_dev'/>
       <target dev='$target_dev' bus='$target_bus'/>
       $target_address
