@@ -139,6 +139,15 @@
           export automationrepo=~/github.com/SUSE-Cloud/automation
           export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
 
+          function jtsync_trap() {
+            $jtsync --ci suse --matrix ${JOB_BASE_NAME},${project},${BUILD_NUMBER} 1
+          }
+
+          # only enable jtsync when build is not manually triggered
+          if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
+            trap jtsync_trap EXIT ERR
+          fi
+
           # automation bootstrapping
           if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
               rm -rf ${automationrepo}
@@ -211,5 +220,10 @@
 
           /root/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-and-package.pl
           ret=$?
-          $jtsync --ci suse --matrix cloud-trackupstream,${project} $ret || :
+
+          # only enable jtsync when build is not manually triggered
+          if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
+            trap - EXIT ERR
+            $jtsync --ci suse --matrix ${JOB_BASE_NAME},${project},${BUILD_NUMBER} $ret
+          fi
           exit $ret
