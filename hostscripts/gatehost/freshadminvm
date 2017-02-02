@@ -32,5 +32,5 @@ virsh define $SCRIPTS_DIR/../hostscripts/gatehost/$n.xml # is OK to fail if alre
 virsh start $n
 sleep 100 # time for the admin VM to boot
 sshkey=`cat ~/.ssh/id_rsa.pub`
-ssh_password $n "echo '$sshkey' >> ~/.ssh/authorized_keys"
+ssh_password $n "mkdir -p ~/.ssh ; echo '$sshkey' >> ~/.ssh/authorized_keys"
 
