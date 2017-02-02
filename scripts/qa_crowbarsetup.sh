@@ -2837,6 +2837,7 @@ function custom_configuration
                     proposal_set_value tempest default "['attributes']['tempest']['manila']['run_consistency_group_tests']" "false"
                     proposal_set_value tempest default "['attributes']['tempest']['manila']['run_snapshot_tests']" "false"
                     proposal_set_value tempest default "['attributes']['tempest']['manila']['enable_protocols']" "'cephfs'"
+                    proposal_set_value tempest default "['attributes']['tempest']['manila']['storage_protocol']" "'CEPHFS'"
                 else
                     # generic driver
                     proposal_set_value tempest default "['attributes']['tempest']['manila']['image_password']" "'linux'"
