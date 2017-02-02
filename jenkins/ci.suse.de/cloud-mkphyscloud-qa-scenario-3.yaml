@@ -160,18 +160,18 @@
           ret=0
 
           ssh root@$admin "
-          export cloud=$cloud ;
-          export hw_number=$hw_number ;
-          export UPDATEREPOS=$UPDATEREPOS ;
-          export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
-          export TESTHEAD=$TESTHEAD ;
-          export cloudsource=$cloudsource ;
-          export nodenumber=$nodenumber ;
-          export hacloud=$hacloud ;
-          export clusterconfig=$clusterconfig ;
-          export shared_storage_ip=$shared_storage_ip ;
-          export want_node_aliases=controller=3,compute=3;
-          export scenario=\"/root/scenario.yml\" ;
+          export cloud=$cloud
+          export hw_number=$hw_number
+          export UPDATEREPOS=$UPDATEREPOS
+          export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL
+          export TESTHEAD=$TESTHEAD
+          export cloudsource=$cloudsource
+          export nodenumber=$nodenumber
+          export hacloud=$hacloud
+          export clusterconfig=$clusterconfig
+          export shared_storage_ip=$shared_storage_ip
+          export want_node_aliases=controller=3,compute=3
+          export scenario=\"/root/scenario.yml\"
           export commands=\"$commands\" "'
 
           sed -i -e "s,##shared_nfs_for_glance##,$shared_storage_ip," scenario.yml
