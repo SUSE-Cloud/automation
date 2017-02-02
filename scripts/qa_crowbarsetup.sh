@@ -1407,7 +1407,7 @@ EOF
         -e "s/ [47]00/ $vlan_sdn/g" \
         $netfile
 
-    if [[ $cloud =~ p ]] ; then
+    if [[ $cloud =~ ^p ]] ; then
         # production cloud has a /22 network
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.252.0 $netfile
     fi
