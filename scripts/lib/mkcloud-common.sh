@@ -224,15 +224,6 @@ function setcloudnetvars
             vlan_fixed=589
             want_ipmi=true
         ;;
-        qa1)
-            nodenumbertotal=6
-            net=${netp}.26
-            net_public=$net
-            vlan_public=300
-            vlan_fixed=500
-            vlan_storage=200
-            want_ipmi=false
-        ;;
         qa2)
             nodenumbertotal=7
             net=${netp}.24
@@ -276,24 +267,8 @@ function setcloudnetvars
             vlan_fixed=565
             want_ipmi=true
         ;;
-p)
-            net=$netp.169
-            net_public=$netp.168
-            vlan_storage=565
-            vlan_sdn=$vlan_storage
-            vlan_public=564
-            vlan_fixed=563
-            want_ipmi=true
-        ;;
         virtual)
                     true # defaults are fine (and overridable)
-        ;;
-        cumulus)
-            net=$netp.189
-            net_public=$netp.190
-            vlan_storage=577
-            vlan_public=579
-            vlan_fixed=578
         ;;
         *)
                     true # defaults are fine (and overridable)
