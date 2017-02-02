@@ -243,6 +243,13 @@ proposals:
 
 - barclamp: tempest
   attributes:
+    manila:
+      run_consistency_group_tests: false
+      run_snapshot_tests: false
+      enable_protocols: cephfs
+      enable_ip_rules_for_protocols: ""
+      enable_cert_rules_for_protocols: ""
+      storage_protocol: CEPHFS
   deployment:
     elements:
       tempest:
