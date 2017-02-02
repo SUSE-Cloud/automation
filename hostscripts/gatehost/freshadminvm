@@ -28,6 +28,7 @@ admin_node_disk=/dev/system/$n
 [ -e $admin_node_disk ] || admin_node_disk=/dev/gate/$n
 [ -e $admin_node_disk ] || exit 51
 onhost_prepareadmin
+virsh define $SCRIPTS_DIR/../hostscripts/gatehost/$n.xml # is OK to fail if already there
 virsh start $n
 sleep 100 # time for the admin VM to boot
 sshkey=`cat ~/.ssh/id_rsa.pub`
