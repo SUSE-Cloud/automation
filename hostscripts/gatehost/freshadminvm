@@ -1,4 +1,5 @@
 #!/bin/sh
+[ "$UID" = 0 ] || exec sudo $0 "$@" || exit 52
 n=$1
 cloudsource=$2
 if [ -z "$n" ] ; then
