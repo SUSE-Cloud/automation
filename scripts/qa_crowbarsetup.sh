@@ -3881,7 +3881,7 @@ function oncontroller_testsetup
         complain 95 could not reach internet
     fi
 
-    if iscloudver 7plus ; then
+    if iscloudver 7plus && [ -z "$upgrade_cloudsource" ]; then
         wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target curl -s http://169.254.169.254/openstack/latest/vendor_data.json|grep -q custom-key" "Custom vendordata not accessable from VM"
     fi
 
