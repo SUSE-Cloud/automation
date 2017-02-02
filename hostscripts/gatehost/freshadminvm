@@ -2,11 +2,11 @@
 n=$1
 cloudsource=$2
 if [ -z "$n" ] ; then
-	echo "usage: $0 admin2 develcloud6"
+	echo "usage: $0 crowbard3 develcloud6"
 	exit 1
 fi
 
-if [[ "$n" != admin2 && "$n" != admin3 && "$n" != admin4 ]] ; then
+if [[ "$n" != crowbard2 && "$n" != crowbard3 ]] ; then
 	echo "bad VM name"
 	exit 2
 fi
