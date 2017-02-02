@@ -15,16 +15,16 @@ virsh destroy $n
 
 echo "cloudsource=$cloudsource"
 rm -f mkcloud.config
-. /root/manual.bwiedemann/automation/scripts/qa_crowbarsetup.sh
-#if [[ "$n" = admin2 ]] ; then
-if iscloudver 6plus ; then
-  imgsp=1
-  iscloudver 7plus && imgsp=2
-  dd if=/dev/system/SLE12SP$imgsp of=/dev/system/$n bs=64k
-  resize_partition /dev/system/$n
-else
-  gzip -cd /mnt/bmwjdsn/$n.img.gz > /dev/system/$n
-fi
+: ${cachedir:=/tmp}
+export mkclouddriver=libvirt
+SCRIPTS_DIR=/usr/src/automation/scripts
+scripts_lib_dir=${SCRIPTS_DIR}/lib
+common_scripts="mkcloud-onhost.sh mkcloud-common.sh mkcloud-$mkclouddriver.sh"
+for script in $common_scripts; do
+    source ${scripts_lib_dir}/$script
+done
+admin_node_disk=/dev/system/$n
+onhost_prepareadmin
 virsh start $n
 sleep 100 # time for the admin VM to boot
 sshkey=`cat ~/.ssh/id_rsa.pub`
