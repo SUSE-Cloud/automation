@@ -2517,6 +2517,9 @@ function custom_configuration
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value glance default "['deployment']['glance']['elements']['glance-server']" "['cluster:$clusternameservices']"
             fi
+            if iscloudver 7plus && [[ $want_magnum = 1 ]]; then
+                proposal_set_value glance default "['attributes']['glance']['enable_v1]" true
+            fi
         ;;
         manila)
             if [[ $hacloud = 1 ]] ; then
