@@ -11,7 +11,7 @@ popd
 #TODO during start dd if=/dev/gate/jenkins-tu-sle12 of=/dev/shm/jenkins-tu-sle12 bs=64k
 #TODO make clean image - initial setup of image used ssh -C gate dd if=/dev/system/jenkins-tu-sle12 bs=64k | dd of=/dev/gate/jenkins-tu-sle12 bs=64k
 
-for vm in gatevm jenkins-tu-sle12 ; do
+for vm in gatevm clouddata jenkins-tu-sle12 ; do
   virsh define $vm.xml
   virsh start $vm
   virsh autostart $vm
