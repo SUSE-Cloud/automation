@@ -42,10 +42,14 @@ function libvirt_configure_libvirtd()
 
 function libvirt_start_daemon()
 {
-    if libvirt_configure_libvirtd; then # config was changed
-        service libvirtd stop
+    service_name="libvirtd"
+    if [ -f "/lib/systemd/system/libvirt-bin.service" ]; then
+        service_name="libvirt-bin"
     fi
-    safely service libvirtd start
+    if libvirt_configure_libvirtd; then # config was changed
+        service $service_name stop
+    fi
+    safely service $service_name start
     wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 }
 
