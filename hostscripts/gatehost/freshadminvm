@@ -16,7 +16,8 @@ virsh destroy $n
 
 echo "cloudsource=$cloudsource"
 rm -f mkcloud.config
-: ${cachedir:=/tmp}
+: ${cachedir:=/root/tmp}
+mkdir -p $cachedir
 export mkclouddriver=libvirt
 SCRIPTS_DIR=/usr/src/automation/scripts
 scripts_lib_dir=${SCRIPTS_DIR}/lib
