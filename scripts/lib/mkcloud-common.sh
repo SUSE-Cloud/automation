@@ -2,7 +2,8 @@
 
 # defaults for generic common variables
 : ${admin_image_password:='linux'}
-: ${clouddata:=$(dig -t A +short clouddata.nue.suse.com)}
+: ${clouddatadns:=clouddata.nue.suse.com}
+: ${clouddata:=$(dig -t A +short $clouddatadns)}
 : ${clouddata_base_path:="/repos"}
 : ${clouddata_nfs:=$clouddata}
 : ${clouddata_nfs_dir:='srv/nfs'}

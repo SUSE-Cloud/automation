@@ -209,6 +209,7 @@ function sshrun
         export cloud=$virtualcloud ;
         # hostname of NFS server with repos and images:
         export clouddata=$clouddata ;
+        export clouddatadns=$clouddatadns ;
         export clouddata_base_path=$clouddata_base_path ;
         export clouddata_nfs=$clouddata_nfs ;
         export clouddata_nfs_dir=$clouddata_nfs_dir ;
@@ -1184,6 +1185,9 @@ function sanity_checks
         echo "export cloudsource=M?|develcloud4|develcloud5|develcloud6|develcloud7|susecloud7|GM4+up|GM5|GM5+up|GM6|GM6+up"
         exit 1
     fi
+
+    [[ $clouddata =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || \
+    complain 96 "clouddata must be an IPv4 address"
 
     # checking clusterconfig
     if [[ $hacloud && ! $clusterconfig ]] ; then
