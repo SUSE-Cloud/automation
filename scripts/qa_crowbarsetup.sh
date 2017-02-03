@@ -2849,6 +2849,11 @@ function custom_configuration
                 proposal_set_value tempest default "['attributes']['tempest']['magnum']['master_flavor_id']" "'m2.smaller'"
             fi
         ;;
+        trove)
+            if [[ $hacloud = 1 ]] && iscloudver 7plus ; then
+                proposal_set_value database default "['deployment']['trove']['elements']['trove-server']" "['cluster:$clusternameservices']"
+            fi
+        ;;
         provisioner)
             # set default password
             proposal_set_value provisioner default "['attributes']['provisioner']['root_password_hash']" "\"$(openssl passwd -1 $want_rootpw)\""
