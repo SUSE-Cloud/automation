@@ -41,7 +41,7 @@ fi
 scripts_lib_dir=${SCRIPTS_DIR}/lib
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
-common_scripts="mkcloud-common.sh mkcloud-$mkclouddriver.sh qa_crowbarsetup-help.sh"
+common_scripts="mkcloud-onhost.sh mkcloud-common.sh mkcloud-$mkclouddriver.sh qa_crowbarsetup-help.sh"
 for script in $common_scripts; do
     source ${scripts_lib_dir}/$script
 done
@@ -297,11 +297,6 @@ function onhost_get_next_pv_device
     ${mkclouddriver}_do_get_next_pv_device
 }
 
-function onhost_deploy_image
-{
-    ${mkclouddriver}_do_onhost_deploy_image "$@"
-}
-
 function onhost_add_etchosts_entries
 {
     grep -q crowbar /etc/hosts || echo "$adminip crowbar.$cloudfqdn crowbar" >> /etc/hosts
@@ -325,11 +320,6 @@ function prepare
     fi
 
     ${mkclouddriver}_do_prepare
-}
-
-function onhost_prepareadmin
-{
-    onhost_deploy_image "admin" $(get_admin_node_dist) "$admin_node_disk"
 }
 
 function wait_for_crowbar_ssh
