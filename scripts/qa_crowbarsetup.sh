@@ -3393,7 +3393,7 @@ function oncontroller_tempest_cleanup
 function oncontroller_run_tempest
 {
     pushd /var/lib/openstack-tempest-test
-    echo 1 > /proc/sys/kernel/sysrq
+    sysctl -e kernel.sysrq=1 net.ipv4.neigh.default.gc_thresh1=0
     local tempestret
 
     if iscloudver 6plus; then
