@@ -445,6 +445,8 @@ function dist_to_image_name
             complain 71 "No admin node image defined for this distribution: $dist"
         ;;
     esac
+    iscloudver 7plus && [[ $want_efi ]] && \
+        [[ $arch == x86_64 ]] && image="SLES12-SP2-uefi"
     echo "$image.qcow2"
 }
 
