@@ -71,6 +71,7 @@ crowbar_lib_dir=/var/lib/crowbar
 crowbar_api_v2_header="Accept: application/vnd.crowbar.v2.0+json"
 upgrade_progress_file=/var/lib/crowbar/upgrade/6-to-7-progress.yml
 declare -a unclustered_nodes
+export magnum_k8s_image_name=openstack-magnum-k8s-image
 
 export nodenumber=${nodenumber:-2}
 if iscloudver 7plus; then
@@ -3626,8 +3627,6 @@ function oncontroller_magnum_service_setup
     # not be fixed, we are going to have our own integration tests with SLES Magnum image
     local service_image_name=magnum-service-image
     local service_image_url=http://clouddata.cloud.suse.de/images/$arch/other/${service_image_name}.qcow2
-    local service_sles_image_name=sles-openstack-magnum-kubernetes
-    local service_sles_image_url=http://download.suse.de/ibs/Devel:/Docker:/Images:/SLE12SP1-JeOS-k8s-magnum/images/${service_sles_image_name}.${arch}.qcow2
 
     if ! openstack image list --f value -c Name | grep -q "^${service_image_name}$"; then
         local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
@@ -3648,21 +3647,13 @@ function oncontroller_magnum_service_setup
             --property os_distro=fedora-atomic $service_image_name
     fi
 
-    if ! openstack image list --f value -c Name | grep -q "^${service_sles_image_name}$"; then
-        local ret=$(wget -N --progress=dot:mega "$service_sles_image_url" 2>&1 >/dev/null)
-        if [[ $ret =~ "200 OK" ]]; then
-            echo $ret
-        elif [[ $ret =~ "Not Found" ]]; then
-            complain 73 "SLES magnum image not found: $ret"
-        else
-            complain 74 "failed to retrieve SLES magnum image: $ret"
-        fi
-
+    if ! openstack image list --f value -c Name | grep -q "^${magnum_k8s_image_name}$"; then
         . ~/.openrc
 
-        openstack image create --file ${service_sles_image_name}.${arch}.qcow2 \
-            --disk-format qcow2 --container-format bare --public \
-            --property os_distro=opensuse $service_sles_image_name
+        curl http://$adminip:8091/files/$magnum_k8s_image_name/$magnum_k8s_image_name.$arch.qcow2 | \
+            openstack image create \
+                --disk-format qcow2 --container-format bare --public \
+                --property os_distro=opensuse $magnum_k8s_image_name
     fi
 
     # create magnum flavors used by tempest
@@ -3932,7 +3923,7 @@ function oncontroller_testsetup
         # This test will cover simple Kubernetes cluster with TLS disabled and no LoadBalancer
         if ! magnum cluster-template-show k8s_template_tls_lb_off > /dev/null 2>&1; then
             safely magnum cluster-template-create --name k8s_template_tls_lb_off \
-                --image-id sles-openstack-magnum-kubernetes \
+                --image-id $magnum_k8s_image_name \
                 --keypair-id default \
                 --external-network-id floating \
                 --flavor-id m1.smaller \
@@ -3960,7 +3951,7 @@ function oncontroller_testsetup
         # This test will cover advanced Kubernetes cluster with TLS enabled and with LoadBalancer for multi master
         if ! magnum cluster-template-show k8s_template_tls_lb_on > /dev/null 2>&1; then
             safely magnum cluster-template-create --name k8s_template_tls_lb_on \
-                --image-id sles-openstack-magnum-kubernetes \
+                --image-id $magnum_k8s_image_name \
                 --keypair-id default \
                 --external-network-id floating \
                 --flavor-id m1.smaller \
