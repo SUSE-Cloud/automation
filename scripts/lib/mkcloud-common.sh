@@ -129,7 +129,7 @@ scp="scp $sshopts"
 ssh="ssh $sshopts"
 function ssh_password
 {
-    SSH_ASKPASS=/root/echolinux
+    SSH_ASKPASS=~/echolinux
     cat > $SSH_ASKPASS <<EOSSHASK
 #!/bin/sh
 echo $admin_image_password
