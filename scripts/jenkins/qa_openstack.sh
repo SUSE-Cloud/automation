@@ -19,8 +19,12 @@ ifconfig | grep inet
 
 # setup optional extra disk for cinder-volumes
 dev_cinder=/dev/vdb
-if ! test -e $dev_cinder && file -s /dev/sdb|grep -q "ext3 filesystem data" ; then
-    dev_cinder=/dev/sdb
+if ! test -e $dev_cinder ; then
+    # maybe we run under xen
+    dev_cinder=/dev/xvdb
+    if ! test -e $dev_cinder && file -s /dev/sdb|grep -q "ext3 filesystem data" ; then
+        dev_cinder=/dev/sdb
+    fi
 fi
 if [ -e $dev_cinder ]; then
     # CINDER_VOLUMES_DEV is evaulated by openstack-loopback-lvm
@@ -30,8 +34,13 @@ fi
 
 # setup optional extra disk for manila-shares
 dev_manila=/dev/vdc
-if ! test -e $dev_manila && file -s /dev/sdc|grep -q "ext3 filesystem data" ; then
-    dev_manila=/dev/sdc
+if ! test -e $dev_manila ; then
+    # maybe we run under xen
+    dev_manila=/dev/xvdc
+
+    if ! test -e $dev_manila && file -s /dev/sdc|grep -q "ext3 filesystem data" ; then
+        dev_manila=/dev/sdc
+    fi
 fi
 if [ -e $dev_manila ]; then
     # MANILA_SHARES_DEV is evaluated by openstack-loopback-lvm
