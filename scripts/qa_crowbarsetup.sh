@@ -2510,6 +2510,9 @@ function custom_configuration
             if [[ $want_keystone_v3 ]] ; then
                 proposal_set_value keystone default "['attributes']['keystone']['api']['version']" "'3'"
             fi
+            if iscloudver 7plus && [[ $want_keystone_token_type ]]; then
+                proposal_set_value keystone default "['attributes']['keystone']['signing']['token_format']" "'$want_keystone_token_type'"
+            fi
         ;;
         glance)
             if [[ $deployceph ]]; then
