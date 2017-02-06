@@ -347,7 +347,7 @@ function setupadmin
     local x keyfile
     for keyfile in ~/.ssh/*.pub ; do
         local pubkey=`cat $keyfile`
-        ssh_password $adminip "
+        ssh_password root@$adminip "
             mkdir -p ~/.ssh;
             grep -q '$pubkey' ~/.ssh/authorized_keys 2>/dev/null ||
                 echo '$pubkey injected-from-host' >> ~/.ssh/authorized_keys
