@@ -2,15 +2,8 @@
 # usage:
 # curl http://openqa.suse.de/sle/qatests/qa_openstack.sh | sh -x
 # needs 2.1GB space for /var/lib/{glance,nova}
-export MODE=kvm
-# Avoid nested virtualisation by setting the line below
-# Note that as of today (2014-02-14) OpenStack Nova has known
-# bugs. Since upstream tests with kvm, it doesn't really
-# make sense to test anything else.
-# MODE=lxc
-if ! grep -q -e vmx -e svm /proc/cpuinfo ; then
-    MODE=lxc
-fi
+
+: ${MODE:=kvm}
 ARCH=$(uname -i)
 : ${repomirror:=http://download.opensuse.org}
 cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
