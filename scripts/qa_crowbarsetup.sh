@@ -4277,7 +4277,7 @@ function oncontroller_testpreupgrade
 function oncontroller_testpostupgrade
 {
     # retrieve the ping results
-    local fips=$(openstack ip floating list -f value -c IP)
+    local fips=$(openstack floating ip list -f value -c "Floating IP Address")
     for fip in $fips; do
         scp cirros@$fip:/var/log/ping_neighbour.out ping_neighbour.$fip.out
         max=$(sed -n 's/^.* not available for: //p' ping_neighbour.$fip.out | sort | tail -n 1)
@@ -4288,7 +4288,7 @@ function oncontroller_testpostupgrade
         echo "Maximum outage while pinging outside IP from $fip: $max seconds"
     done
 
-    heat stack-delete upgrade_test
+    openstack stack delete --yes upgrade_test
     wait_for 15 20 "! heat stack-show upgrade_test" \
              "heat stack for upgrade tests to be deleted"
     echo "test post-upgrade successful."
