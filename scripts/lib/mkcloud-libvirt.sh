@@ -1,12 +1,12 @@
 function libvirt_modprobe_kvm()
 {
     if [[ $(uname -m) = x86_64 ]]; then
-        modprobe kvm-amd
+        $sudo modprobe kvm-amd
         if [ ! -e /etc/modprobe.d/80-kvm-intel.conf ] ; then
-            echo "options kvm-intel nested=1" > /etc/modprobe.d/80-kvm-intel.conf
-            rmmod kvm-intel
+            echo "options kvm-intel nested=1" | $sudo dd of=/etc/modprobe.d/80-kvm-intel.conf
+            $sudo rmmod kvm-intel
         fi
-        modprobe kvm-intel
+        $sudo modprobe kvm-intel
     fi
 }
 
@@ -20,14 +20,14 @@ function workaround_bsc928384()
     # This change was needed after PR #290
     # For further details see https://bugzilla.suse.com/show_bug.cgi?id=928384
     grep -q -- --bind-dynamic /usr/lib*/libvirt.so.0 \
-        && sed -i.orig -e 's/--bind-dynamic/--bindnotthere/g' /usr/lib*/libvirt.so.0
+        && $sudo sed -i.orig -e 's/--bind-dynamic/--bindnotthere/g' /usr/lib*/libvirt.so.0
     return $?
 }
 
 # Returns success if the config was changed
 function libvirt_configure_libvirtd()
 {
-    chkconfig libvirtd on
+    $sudo chkconfig libvirtd on
 
     local changed=
 
@@ -43,18 +43,18 @@ function libvirt_configure_libvirtd()
 function libvirt_start_daemon()
 {
     if libvirt_configure_libvirtd; then # config was changed
-        service libvirtd stop
+        $sudo service libvirtd stop
     fi
-    safely service libvirtd start
+    safely $sudo service libvirtd start
     wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 }
 
 function libvirt_net_start()
 {
-    virsh net-start $cloud-admin
-    echo 1 > /proc/sys/net/ipv4/conf/$cloudbr/forwarding
+    $sudo virsh net-start $cloud-admin
+    $sudo sysctl -e net.ipv4.conf.$cloudbr.forwarding=1
     for dev in $cloudbr-nic $cloudbr ; do
-        ip link set mtu 9000 dev $dev
+        $sudo ip link set mtu 9000 dev $dev
     done
 
     onhost_setup_portforwarding
@@ -68,16 +68,17 @@ function libvirt_prepare()
 
     # network
     ${scripts_lib_dir}/libvirt/net-config $cloud $cloudbr $admingw $adminnetmask $cloudfqdn $adminip $forwardmode > /tmp/$cloud-admin.net.xml
-    ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
+    $sudo ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
     libvirt_net_start
 }
 
 function libvirt_do_setupadmin()
 {
     ${scripts_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $(get_emulator) $admin_node_disk "$localreposdir_src" "$localreposdir_target" "$firmware_type" > /tmp/$cloud-admin.xml
-    ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
+    $sudo ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
 }
 
+# run as root
 function libvirt_do_setuphost()
 {
     local kvmpkg=kvm
@@ -114,15 +115,15 @@ function libvirt_do_setuphost()
     fi
 
     # Start libvirtd and friends
-    sudo service libvirtd status || sudo service libvirtd start
+    $sudo service libvirtd status || $sudo service libvirtd start
     if [[ -e /usr/lib/systemd/system/virtlogd.service ]] ; then
-        sudo service virtlogd status || sudo service virtlogd start
+        $sudo service virtlogd status || $sudo service virtlogd start
     fi
 }
 
 function libvirt_do_sanity_checks()
 {
-    vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
+    $sudo vgdisplay "$cloudvg" >/dev/null 2>&1 && needcvol=
     if [ -n "$needcvol" ] ; then
         : ${cloudpv:=/dev/vdb}
         if grep -q $cloudpv /proc/mounts ; then
@@ -157,13 +158,13 @@ function libvirt_do_cleanup_admin_node()
     # this function is meant to only clean the admin node
     # in order to deploy a new one, while keeping all cloud nodes
 
-    ${scripts_lib_dir}/libvirt/cleanup_one_node ${cloud}-admin
+    $sudo ${scripts_lib_dir}/libvirt/cleanup_one_node ${cloud}-admin
 }
 
 function libvirt_do_get_next_pv_device()
 {
     if [ -z "$pvlist" ] ; then
-        pvlist=`pvs --sort -Free | awk '$2~/'$cloudvg'/{print $1}'`
+        pvlist=`$sudo pvs --sort -Free | awk '$2~/'$cloudvg'/{print $1}'`
         pv_cur_device_no=0
     fi
     next_pv_device=`perl -e '$i=shift; $i=$i % @ARGV;  print $ARGV[$i]' $pv_cur_device_no $pvlist`
@@ -180,15 +181,15 @@ function _lvcreate()
 
     # first: create on the PV device (spread IO)
     # fallback: create in VG (if PVs with different size exist)
-    lvcreate -n $lv_name -L ${lv_size}G $lv_vg $lv_pv || \
-        safely lvcreate -n $lv_name -L ${lv_size}G $lv_vg
+    $sudo lvcreate -n $lv_name -L ${lv_size}G $lv_vg $lv_pv || \
+        safely $sudo lvcreate -n $lv_name -L ${lv_size}G $lv_vg
 }
 
 # spread block devices over a LVM's PVs so that different VMs
 # are likely to use different PVs to optimize concurrent IO throughput
 function libvirt_do_create_cloud_lvm()
 {
-    safely vgchange -ay $cloudvg # for later boots
+    safely $sudo vgchange -ay $cloudvg # for later boots
 
     local i n hdd_size
 
@@ -203,13 +204,13 @@ function libvirt_do_create_cloud_lvm()
     if [ $controller_raid_volumes -gt 1 ] ; then
         # total wipeout of the disks used for RAID, to prevent bsc#966685
         volume="/dev/$cloudvg/$cloud.node1"
-        dd if=/dev/zero of=$volume bs=1M count=$(($controller_hdd_size * 1024))
+        $sudo dd if=/dev/zero of=$volume bs=1M count=$(($controller_hdd_size * 1024))
         for n in $(seq 1 $(($controller_raid_volumes-1))) ; do
             onhost_get_next_pv_device
             hdd_size=${controller_hdd_size}
             _lvcreate $cloud.node1-raid$n $hdd_size $cloudvg $next_pv_device
             volume="/dev/$cloudvg/$cloud.node1-raid$n"
-            dd if=/dev/zero of=$volume bs=1M count=$(($hdd_size * 1024))
+            $sudo dd if=/dev/zero of=$volume bs=1M count=$(($hdd_size * 1024))
         done
     fi
 
@@ -230,8 +231,8 @@ function libvirt_do_create_cloud_lvm()
             onhost_get_next_pv_device
             _lvcreate $cloud.node$i-drbd $drbd_hdd_size $cloudvg $next_pv_device
             # clean drbd signatures
-            dd if=/dev/zero of=/dev/$cloudvg/$cloud.node$i-drbd  bs=1M count=1
-            dd if=/dev/zero of=/dev/$cloudvg/$cloud.node$i-drbd  bs=1M count=1 seek=$((($drbd_hdd_size * 1024) - 1))
+            $sudo dd if=/dev/zero of=/dev/$cloudvg/$cloud.node$i-drbd  bs=1M count=1
+            $sudo dd if=/dev/zero of=/dev/$cloudvg/$cloud.node$i-drbd  bs=1M count=1 seek=$((($drbd_hdd_size * 1024) - 1))
         done
     fi
 
@@ -262,32 +263,32 @@ function recursive_remove_holders
     local dev
     for dev in $(ls /sys/class/block/$dm/holders/) ; do
         recursive_remove_holders $dev
-        dmsetup remove --force /dev/$dev
+        $sudo dmsetup remove --force /dev/$dev
     done
 }
 
 function libvirt_do_cleanup()
 {
     # cleanup leftover from last run
-    ${scripts_lib_dir}/libvirt/cleanup $cloud $nodenumber $cloudbr $vlan_public
+    $sudo ${scripts_lib_dir}/libvirt/cleanup $cloud $nodenumber $cloudbr $vlan_public
 
     if ip link show ${cloudbr}.$vlan_public >/dev/null 2>&1; then
-        ip link set ${cloudbr}.$vlan_public down
+        $sudo ip link set ${cloudbr}.$vlan_public down
     fi
     if ip link show ${cloudbr} >/dev/null 2>&1; then
-        ip link set ${cloudbr} down
-        ip link delete ${cloudbr} type bridge
-        ip link delete ${cloudbr}-nic
+        $sudo ip link set ${cloudbr} down
+        $sudo ip link delete ${cloudbr} type bridge
+        $sudo ip link delete ${cloudbr}-nic
     fi
     # 1. remove leftover partition mappings that are still open for this cloud
     local vol
-    dmsetup ls | awk "/^$cloudvg-${cloud}\./ {print \$1}" | while read vol ; do
-        kpartx -dsv /dev/mapper/$vol
+    $sudo dmsetup ls | awk "/^$cloudvg-${cloud}\./ {print \$1}" | while read vol ; do
+        $sudo kpartx -dsv /dev/mapper/$vol
     done
 
     # workaround host grabbing guest devices
     for vol in postgresql rabbitmq ; do
-        dmsetup remove drbd-$vol
+        $sudo dmsetup remove drbd-$vol
     done
     # 2. remove all previous volumes for that cloud; this helps preventing
     # accidental booting and freeing space
@@ -295,14 +296,14 @@ function libvirt_do_cleanup()
         local lv
         for lv in $(find -L $vdisk_dir -name "$cloud.*" -type b) ; do
             recursive_remove_holders $(basename $(readlink $lv))
-            lvremove --force $lv || complain 104 "lvremove failure"
+            $sudo lvremove --force $lv || complain 104 "lvremove failure"
         done
     fi
-    rm -f /etc/lvm/archive/*
+    $sudo rm -f /etc/lvm/archive/*
 
     if [[ $wipe = 1 ]] ; then
-        vgchange -an $cloudvg
-        dd if=/dev/zero of=$cloudpv count=1000
+        $sudo vgchange -an $cloudvg
+        $sudo dd if=/dev/zero of=$cloudpv count=1000
     fi
     return 0
 }
@@ -323,6 +324,7 @@ function libvirt_do_onhost_deploy_image()
     local disk=$3
 
     [[ $clouddata ]] || complain 108 "clouddata IP not set - is DNS broken?"
+    mkdir -p $cachedir
     if [[ ! $want_cached_images = 1 ]] ; then
         safely rsync --compress --progress --inplace --archive --verbose \
             rsync://$clouddata/cloud/images/$arch/$image $cachedir/
@@ -334,20 +336,20 @@ function libvirt_do_onhost_deploy_image()
     fi
 
     echo "Cloning $role node vdisk from $image ..."
-    safely qemu-img convert -t none -O raw -S 0 -p $cachedir/$image $disk
+    safely $sudo qemu-img convert -t none -O raw -S 0 -p $cachedir/$image $disk
 
     # resize the last partition only if it has id 83
     local last_part=$(fdisk -l $disk | grep -c "^$disk")
-    if fdisk -l $disk | grep -q "$last_part *\* *.*83 *Linux" ; then
-        echo -e "d\n$last_part\nn\np\n$last_part\n\n\na\n$last_part\nw" | fdisk $disk
-        local part=$(kpartx -asv $disk|perl -ne 'm/add map (\S+'"$last_part"') / && print $1')
+    if $sudo fdisk -l $disk | grep -q "$last_part *\* *.*83 *Linux" ; then
+        echo -e "d\n$last_part\nn\np\n$last_part\n\n\na\n$last_part\nw" | $sudo fdisk $disk
+        local part=$($sudo kpartx -asv $disk|perl -ne 'm/add map (\S+'"$last_part"') / && print $1')
         test -n "$part" || complain 31 "failed to find partition #$last_part"
         local bdev=/dev/mapper/$part
-        safely fsck -y -f $bdev
-        safely resize2fs $bdev
-        time udevadm settle
+        safely $sudo fsck -y -f $bdev
+        safely $sudo resize2fs $bdev
+        time $sudo udevadm settle
         sleep 1 # time for dev to become unused
-        safely kpartx -dsv $disk
+        safely $sudo kpartx -dsv $disk
     fi
     # resize partitionless disk with ext2 filesystem
     tune2fs -l $disk > /dev/null 2>&1 && safely resize2fs $disk
@@ -378,20 +380,20 @@ function libvirt_do_setuplonelynodes()
         local lonely_disk
         lonely_disk="$vdisk_dir/${cloud}.node$i"
 
-        lvdisplay "$lonely_disk" || \
+        $sudo lvdisplay "$lonely_disk" || \
             _lvcreate "${cloud}.node$i" "${lonelynode_hdd_size}" "$cloudvg"
 
         onhost_deploy_image "lonely" $(get_lonely_node_dist) $lonely_disk
-        ${scripts_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
+        $sudo ${scripts_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
     done
 }
 
 function libvirt_do_shutdowncloud()
 {
-    virsh shutdown $cloud-admin
+    $sudo virsh shutdown $cloud-admin
     local i
     for i in $(nodes ids all) ; do
-        virsh shutdown $cloud-node$i
+        $sudo virsh shutdown $cloud-node$i
     done
 }
 

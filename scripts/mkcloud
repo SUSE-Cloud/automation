@@ -365,11 +365,11 @@ function setupadmin
         IFS=$nfs
         for x in $(iptables -S FORWARD | grep -o --color=never FORWARD.*TCPMSS.*); do
             IFS=$ofs
-            iptables -D ${x} 2>/dev/null
+            $sudo iptables -D ${x} 2>/dev/null
             IFS=$nfs
         done
         IFS=$ofs
-        iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss $mss
+        $sudo iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss $mss
     fi
 }
 
@@ -380,43 +380,43 @@ function wait_for_node_shutdown
 
 function remove_snapshot_volume
 {
-    if $(lvs "$1.snap" > /dev/null 2>&1) ; then
-        safely lvremove -f "$1.snap"
+    if $($sudo lvs "$1.snap" > /dev/null 2>&1) ; then
+        safely $sudo lvremove -f "$1.snap"
     fi
 }
 
 function merge_snapshot_volume
 {
-    if $(lvs "$1.snap" > /dev/null 2>&1) ; then
-        safely lvconvert --merge "$1.snap"
+    if $($sudo lvs "$1.snap" > /dev/null 2>&1) ; then
+        safely $sudo lvconvert --merge "$1.snap"
     fi
 }
 
 function create_snapshot_volume
 {
-    safely lvcreate -l100%ORIGIN -s -n "$1.snap" "$1"
+    safely $sudo lvcreate -l100%ORIGIN -s -n "$1.snap" "$1"
 }
 
 function createadminsnapshot
 {
-    virsh shutdown $cloud-admin
+    $sudo virsh shutdown $cloud-admin
     wait_for_node_shutdown $cloud-admin
     remove_snapshot_volume $admin_node_disk
     create_snapshot_volume $admin_node_disk
-    virsh start $cloud-admin
+    $sudo virsh start $cloud-admin
     wait_for_crowbar_ssh
 }
 
 function restoreadminfromsnapshot
 {
-    virsh destroy $cloud-admin
+    $sudo virsh destroy $cloud-admin
     merge_snapshot_volume $admin_node_disk
     createadminsnapshot
 }
 
 function lvs_lv_name
 {
-    lvs -o lv_name ${cloudvg}
+    $sudo lvs -o lv_name ${cloudvg}
 }
 
 function createcloudsnapshot
@@ -458,9 +458,9 @@ function restorecloudfromsnapshot
         return
     fi
 
-    virsh destroy $cloud-admin
+    $sudo virsh destroy $cloud-admin
     for i in $(nodes ids all) ; do
-        virsh destroy $cloud-node$i
+        $sudo virsh destroy $cloud-node$i
     done
     for d in $(lvs_lv_name | grep "${cloud}\..*snap") ; do
         merge_snapshot_volume "${cloudvg}/${d%.snap}"
@@ -531,8 +531,8 @@ function mkvlan
 {
     local DEFVLAN=$1 ; shift
     local IP=$1 ; shift
-    ip link add link $cloudbr name $cloudbr.$DEFVLAN type vlan id $DEFVLAN
-    safely ifconfig $cloudbr.$DEFVLAN $IP/24
+    $sudo ip link add link $cloudbr name $cloudbr.$DEFVLAN type vlan id $DEFVLAN
+    safely $sudo ifconfig $cloudbr.$DEFVLAN $IP/24
 }
 
 function setuppublicnet
@@ -541,8 +541,8 @@ function setuppublicnet
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
     mkvlan $vlan_public $net_public.1
     if [[ $mkch_physcloudif ]] ; then
-        brctl addif $cloudbr $mkch_physcloudif
-        ip link set dev $mkch_physcloudif up
+        $sudo brctl addif $cloudbr $mkch_physcloudif
+        $sudo ip link set dev $mkch_physcloudif up
     fi
 }
 
@@ -555,12 +555,12 @@ function restartcloud
 {
     vgchange -ay $cloudvg
     libvirt_net_start
-    virsh start $cloud-admin
+    $sudo virsh start $cloud-admin
     setuppublicnet
     wait_for_crowbar_ntpd
     local i
     for i in $(nodes ids all) ; do
-        virsh start $cloud-node$i
+        $sudo virsh start $cloud-node$i
     done
     wait_for_crowbar_ssh
 }
@@ -611,7 +611,7 @@ function setupnodes
                         --numcontrollers $nodenumbercontroller \
                         --firmwaretype "$firmware_type" \
                         --controller-raid-volumes $controller_raid_volumes > /tmp/$cloud-node$i.xml
-        ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
+        $sudo ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
     done
 
     echo "========================================================"
@@ -626,7 +626,7 @@ function setupnodes
     # mkch_physwol can be set by the user to a space-separated list of MAC-addrs
     # of pysical nodes to wake up using WoL
     for i in $mkch_physwol ; do
-        ether-wake -i $cloudbr $i
+        $sudo ether-wake -i $cloudbr $i
     done
     return 0
 }
@@ -1189,8 +1189,8 @@ function is_concurrent_run
 
 function sanity_checks
 {
-    if test `id -u` != 0 ; then
-        complain 1 "This script needs to be run as root" \
+    if test `$sudo id -u` != 0 ; then
+        complain 1 "This script needs to be run as root or have sudoers setup" \
             "Please be aware that this script will create a LVM" \
             "and kill all current VMs on this host."
     fi
