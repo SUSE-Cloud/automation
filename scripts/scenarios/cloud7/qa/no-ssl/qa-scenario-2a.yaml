@@ -115,8 +115,6 @@ proposals:
 
 - barclamp: keystone
   attributes:
-    signing:
-      token_format: UUID
   deployment:
     elements:
       keystone-server:

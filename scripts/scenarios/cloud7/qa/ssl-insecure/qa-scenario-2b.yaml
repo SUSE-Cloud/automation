@@ -73,7 +73,7 @@ proposals:
     api:
       protocol: https
     signing:
-      token_format: UUID
+      token_format: uuid
   deployment:
     elements:
       keystone-server:

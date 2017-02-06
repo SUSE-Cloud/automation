@@ -120,8 +120,6 @@ proposals:
       insecure: true
     api:
       protocol: https
-    signing:
-      token_format: UUID
   deployment:
     elements:
       keystone-server:
