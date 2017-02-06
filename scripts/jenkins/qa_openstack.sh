@@ -9,6 +9,8 @@ ARCH=$(uname -i)
 : ${imagemirror:=http://149.44.161.38/images} # ci1-opensuse
 : ${cirros_base_url:="$imagemirror"} # could also be "http://download.cirros-cloud.net/0.3.4/"
 cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
+# if set to something, skip the base operating system repository setup
+: ${skip_reposetup:""}
 
 ifconfig | grep inet
 
@@ -142,38 +144,41 @@ if [ -n "$OSHEAD" ]; then
     $zypper mr --priority 42 cloudhead
 fi
 
-if [ $VERSION = 11 ] ; then
-    $zypper rr CloudProduct || true
-    $zypper rr SUSE_SLE-11-SP2_Update_Products_Test || true
-    if [ "$REPO" = SLE_11_SP3 ] ; then
-        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SLES11-SP3-Pool/sle-11-x86_64/' SP3Pool
+if [ -z "$skip_reposetup" ]; then
+    # do the basic operating system repository setup
+    if [ $VERSION = 11 ] ; then
+        $zypper rr CloudProduct || true
+        $zypper rr SUSE_SLE-11-SP2_Update_Products_Test || true
+        if [ "$REPO" = SLE_11_SP3 ] ; then
+            $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SLES11-SP3-Pool/sle-11-x86_64/' SP3Pool
+        fi
     fi
-fi
 
-if [ "$VERSION" = "12" ] ; then
-    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12/x86_64/product/' SLES12-Pool
-    $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12/x86_64/update/' SLES12-Updates
-fi
+    if [ "$VERSION" = "12" ] ; then
+        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12/x86_64/product/' SLES12-Pool
+        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12/x86_64/update/' SLES12-Updates
+    fi
 
-if [ "$VERSION" = "12.1" ]; then
-    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
-    $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
-fi
+    if [ "$VERSION" = "12.1" ]; then
+        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
+        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
+    fi
 
-if [ "$VERSION" = "12.2" ]; then
-    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/' SLE12-SP2-Pool
-    $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/' SLES12-SP2-Updates
-fi
+    if [ "$VERSION" = "12.2" ]; then
+        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/' SLE12-SP2-Pool
+        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/' SLES12-SP2-Updates
+    fi
 
-# openSUSE Leap versions
-if [ "$VERSION" = "42.1" ]; then
-    $zypper ar "$repomirror/distribution/leap/42.1/repo/oss/" Leap-42.1-oss
-    $zypper ar "$repomirror/update/leap/42.1/oss/" Leap-42.1-oss-update
-fi
+    # openSUSE Leap versions
+    if [ "$VERSION" = "42.1" ]; then
+        $zypper ar "$repomirror/distribution/leap/42.1/repo/oss/" Leap-42.1-oss
+        $zypper ar "$repomirror/update/leap/42.1/oss/" Leap-42.1-oss-update
+    fi
 
-if [ "$VERSION" = "42.2" ]; then
-    $zypper ar "$repomirror/distribution/leap/42.2/repo/oss/" Leap-42.2-oss
-    $zypper ar "$repomirror/update/leap/42.2/oss/" Leap-42.2-oss-update
+    if [ "$VERSION" = "42.2" ]; then
+        $zypper ar "$repomirror/distribution/leap/42.2/repo/oss/" Leap-42.2-oss
+        $zypper ar "$repomirror/update/leap/42.2/oss/" Leap-42.2-oss-update
+    fi
 fi
 
 # install maintenance updates
