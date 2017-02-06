@@ -27,7 +27,7 @@ function workaround_bsc928384()
 # Returns success if the config was changed
 function libvirt_configure_libvirtd()
 {
-    chkconfig libvirtd on
+    systemctl enable libvirtd
 
     local changed=
 
@@ -35,7 +35,9 @@ function libvirt_configure_libvirtd()
     confset /etc/libvirt/libvirtd.conf listen_tcp 1            && changed=y
     confset /etc/libvirt/libvirtd.conf listen_addr '"0.0.0.0"' && changed=y
     confset /etc/libvirt/libvirtd.conf auth_tcp '"none"'       && changed=y
-    workaround_bsc928384 && changed=y
+    if is_suse ; then
+        workaround_bsc928384 && changed=y
+    fi
 
     [ -n "$changed" ]
 }
@@ -43,9 +45,9 @@ function libvirt_configure_libvirtd()
 function libvirt_start_daemon()
 {
     if libvirt_configure_libvirtd; then # config was changed
-        service libvirtd stop
+        systemctl stop libvirtd
     fi
-    safely service libvirtd start
+    safely systemctl start libvirtd
     wait_for 300 1 '[ -S /var/run/libvirt/libvirt-sock ]' 'libvirt startup'
 }
 
@@ -333,18 +335,20 @@ function libvirt_do_onhost_deploy_image()
     echo "Cloning $role node vdisk from $image ..."
     safely qemu-img convert -t none -O raw -S 0 -p $cachedir/$image $disk
 
-    # resize the last partition only if it has id 83
-    local last_part=$(fdisk -l $disk | grep -c "^$disk")
-    if fdisk -l $disk | grep -q "$last_part *\* *.*83 *Linux" ; then
-        echo -e "d\n$last_part\nn\np\n$last_part\n\n\na\n$last_part\nw" | fdisk $disk
-        local part=$(kpartx -asv $disk|perl -ne 'm/add map (\S+'"$last_part"') / && print $1')
-        test -n "$part" || complain 31 "failed to find partition #$last_part"
-        local bdev=/dev/mapper/$part
-        safely fsck -y -f $bdev
-        safely resize2fs $bdev
-        time udevadm settle
-        sleep 1 # time for dev to become unused
-        safely kpartx -dsv $disk
+    if is_suse; then
+        # resize the last partition only if it has id 83
+        local last_part=$(fdisk -l $disk | grep -c "^$disk")
+        if fdisk -l $disk | grep -q "$last_part *\* *.*83 *Linux" ; then
+            echo -e "d\n$last_part\nn\np\n$last_part\n\n\na\n$last_part\nw" | fdisk $disk
+            local part=$(kpartx -asv $disk|perl -ne 'm/add map (\S+'"$last_part"') / && print $1')
+            test -n "$part" || complain 31 "failed to find partition #$last_part"
+            local bdev=/dev/mapper/$part
+            safely fsck -y -f $bdev
+            safely resize2fs $bdev
+            time udevadm settle
+            sleep 1 # time for dev to become unused
+            safely kpartx -dsv $disk
+        fi
     fi
 }
 
