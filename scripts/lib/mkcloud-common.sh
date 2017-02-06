@@ -346,11 +346,35 @@ function jsonice
 
 function ensure_packages_installed
 {
-    local zypper_params="--non-interactive --gpg-auto-import-keys --no-gpg-checks"
     local pack
     for pack in "$@" ; do
-        rpm -q $pack &> /dev/null || safely zypper $zypper_params install "$pack"
+        rpm -q $pack &> /dev/null || safely install_trying_all_versions "$pack"
     done
+}
+
+function install_trying_all_versions
+{
+    local package_name
+    package_name="$1"
+
+    local available_versions
+    available_versions="$(zypper search -s $package_name --non-interactive |
+        grep $package_name |
+        cut -d'|' -f 4 |
+        tr -d ' ' |
+        sort -r)"
+    local zypper_params="--non-interactive --gpg-auto-import-keys --no-gpg-checks"
+    local package_name_with_version
+
+    for version in $available_versions; do
+        package_name_with_version="${package_name}-${version}"
+        echo "Trying to install $package_name_with_version"
+        if zypper $zypper_params install "$package_name_with_version"; then
+            return 0
+        fi
+    done
+
+    return 1
 }
 
 function zypper_refresh
