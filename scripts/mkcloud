@@ -414,6 +414,11 @@ function restoreadminfromsnapshot
     createadminsnapshot
 }
 
+function lvs_lv_name
+{
+    lvs -o lv_name ${cloudvg}
+}
+
 function createcloudsnapshot
 {
     shutdowncloud
@@ -422,10 +427,10 @@ function createcloudsnapshot
     for i in $(nodes ids all) ; do
         wait_for_node_shutdown $cloud-node$i
     done
-    for d in $(lvs -o lv_name ${cloudvg} | grep "${cloud}\..*snap") ; do
+    for d in $(lvs_lv_name | grep "${cloud}\..*snap") ; do
         remove_snapshot_volume "${cloudvg}/${d%.snap}"
     done
-    for d in $(lvs -o lv_name ${cloudvg} | grep ${cloud}\.) ; do
+    for d in $(lvs_lv_name | grep ${cloud}\.) ; do
         create_snapshot_volume "${cloudvg}/${d}"
     done
     restartcloud
@@ -434,7 +439,7 @@ function createcloudsnapshot
 function restorecloudfromsnapshot
 {
     local i d can_restore=1
-    lvs -o lv_name ${cloudvg} | grep "${cloud}.admin.snap" || {
+    lvs_lv_name | grep "${cloud}.admin.snap" || {
         echo "Missing snapshot for ${cloud}.admin"
         can_restore=
     }
@@ -442,7 +447,7 @@ function restorecloudfromsnapshot
         if [[ ! ${can_restore} ]]; then
             break
         fi
-        lvs -o lv_name ${cloudvg} | grep "${cloud}.node$i.snap" || {
+        lvs_lv_name | grep "${cloud}.node$i.snap" || {
             echo "Missing snapshot for ${cloud}.node$i"
             can_restore=
         }
@@ -457,7 +462,7 @@ function restorecloudfromsnapshot
     for i in $(nodes ids all) ; do
         virsh destroy $cloud-node$i
     done
-    for d in $(lvs -o lv_name ${cloudvg} | grep "${cloud}\..*snap") ; do
+    for d in $(lvs_lv_name | grep "${cloud}\..*snap") ; do
         merge_snapshot_volume "${cloudvg}/${d%.snap}"
     done
     createcloudsnapshot
