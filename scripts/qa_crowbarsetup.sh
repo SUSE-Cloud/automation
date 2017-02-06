@@ -3844,7 +3844,7 @@ function oncontroller_testsetup
     wait_for 200 1 nova_services_up "Nova services to be up and running"
 
     nova flavor-delete m1.smaller || :
-    nova flavor-create m1.smaller 11 512 8 1
+    nova flavor-create m1.smaller 101 512 8 1
     nova delete testvm  || :
     nova keypair-add --pub-key /root/.ssh/id_rsa.pub testkey
     nova secgroup-delete testvm || :
