@@ -6,6 +6,8 @@
 : ${MODE:=kvm}
 ARCH=$(uname -i)
 : ${repomirror:=http://download.opensuse.org}
+: ${imagemirror:=http://149.44.161.38/images} # ci1-opensuse
+: ${cirros_base_url:="$imagemirror"} # could also be "http://download.cirros-cloud.net/0.3.4/"
 cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
 
 ifconfig | grep inet
@@ -298,10 +300,6 @@ cinder delete $vol_id
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
 ssh_user="root"
-: ${mirror:=http://149.44.161.38/images} # ci1-opensuse
-
-cirros_base_url="http://download.cirros-cloud.net/0.3.4/"
-cirros_base_url="$mirror"
 cirros_base_name="cirros-0.3.4-x86_64"
 
 # since glanceclient Liberty, --is-public is gone and --visibility should be used
@@ -321,7 +319,7 @@ case "$MODE" in
         $GC_IMAGE_CREATE --disk-format=ami --container-format=ami --name=debian-5 --property vm_mode=xen ramdisk_id=f663eb9a-986b-466f-bd3e-f0aa2c847eef kernel_id=d654691a-0135-4f6d-9a60-536cf534b284 < debian.5-0.x86.img
     ;;
     lxc)
-        $GC_IMAGE_CREATE --name="debian-5" --disk-format=ami --container-format=ami --copy-from $mirror/debian.5-0.x86.qcow2
+        $GC_IMAGE_CREATE --name="debian-5" --disk-format=ami --container-format=ami --copy-from $imagemirror/debian.5-0.x86.qcow2
     ;;
     *)
         wget $cirros_base_url/$cirros_base_name-uec.tar.gz
