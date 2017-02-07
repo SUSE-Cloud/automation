@@ -1409,8 +1409,10 @@ EOF
         $netfile
 
     if [[ $cloud =~ ^p ]] ; then
-        # production cloud has a /22 network
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.252.0 $netfile
+        local pcloudnum=${cloud#p}
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.1$pcloudnum.63.254 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.broadcast -v 44.1$pcloudnum.63.255 $netfile
     fi
     if [[ $cloud =~ qa ]] ; then
         # QA clouds have too few IP addrs, so smaller subnets are used
@@ -1420,9 +1422,6 @@ EOF
         fi
     fi
     if [[ $cloud = p1 ]] ; then
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.11.63.254 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.broadcast -v 44.11.63.255 $netfile
         # floating net is the 2nd half of public net:
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.254.0 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v $netp.162.0 $netfile
