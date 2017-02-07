@@ -3424,6 +3424,16 @@ function oncontroller_run_tempest
     return $tempestret
 }
 
+function oncontroller_upload_defcore
+{
+    pushd /var/lib/openstack-tempest-test
+    source /root/.openrc
+    testr last --subunit | subunit-2to1 > tempest.subunit.log
+    git clone https://github.com/openstack/refstack-client
+    yes | refstack-client/refstack-client upload-subunit --keystone-endpoint $OS_AUTH_URL tempest.subunit.log
+    popd
+}
+
 function oncontroller_run_integration_test()
 {
     # Install Mozilla Firefox < 47 to work with Selenium.
