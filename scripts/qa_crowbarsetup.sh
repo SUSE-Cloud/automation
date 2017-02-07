@@ -4321,6 +4321,20 @@ function onadmin_testpreupgrade
     oncontroller testpreupgrade
 }
 
+function oncontroller_get_fips
+{
+    echo $(openstack ip floating list -f value -c IP)
+}
+
+function onadmin_ping_running_instances
+{
+    get_novacontroller
+    local fip
+    for fip in $(oncontroller get_fips); do
+        bash $SCRIPTS_DIR/ping_forever.sh $fip </dev/null >/dev/null 2>&1 &
+    done
+}
+
 function onadmin_testpostupgrade
 {
     get_novacontroller

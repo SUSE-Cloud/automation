@@ -837,6 +837,9 @@ function cloudupgrade
 {
     if iscloudver 6plus; then
         crowbarupgrade_5plus
+        if [[ $want_ping_running_instances = 1 ]]; then
+            onadmin ping_running_instances
+        fi
         onadmin crowbar_nodeupgrade
     elif iscloudver 5plus ; then
         crowbarupgrade_5plus
