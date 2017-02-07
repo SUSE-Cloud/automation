@@ -82,7 +82,7 @@ EOS
     local f
     for f in "$boot_mkcloud" $boot_mkcloud_d/*; do
         if [ -x "$f" ]; then
-            $f
+            "$f"
         fi
     done
 }
