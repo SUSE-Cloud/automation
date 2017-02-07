@@ -2579,6 +2579,9 @@ function custom_configuration
 
 
             if iscloudver 7plus; then
+                # create (and test) the trusted flavors
+                proposal_set_value nova default "['attributes']['nova']['trusted_flavors']" "true"
+
                 if [[ $hacloud = 1 ]] ; then
                     proposal_set_value nova default "['deployment']['nova']['elements']['ec2-api']" "['cluster:$clusternameservices']"
                 else
@@ -3843,7 +3846,7 @@ function oncontroller_testsetup
     wait_for 200 1 nova_services_up "Nova services to be up and running"
 
     nova flavor-delete m1.smaller || :
-    nova flavor-create m1.smaller 11 512 8 1
+    nova flavor-create m1.smaller 101 512 8 1
     nova delete testvm  || :
     nova keypair-add --pub-key /root/.ssh/id_rsa.pub testkey
     nova secgroup-delete testvm || :
