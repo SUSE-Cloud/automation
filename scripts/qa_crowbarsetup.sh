@@ -3340,7 +3340,11 @@ function get_manila_service_instance_details
 function addfloatingip
 {
     local instanceid=$1
-    nova floating-ip-create | tee floating-ip-create.out
+    if iscloudver 7plus; then
+        openstack floating ip create floating | tee floating-ip-create.out
+    else
+        nova floating-ip-create | tee floating-ip-create.out
+    fi
     floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
     nova add-floating-ip "$instanceid" "$floatingip"
 }
@@ -3849,11 +3853,19 @@ function oncontroller_testsetup
     nova flavor-create m1.smaller 101 512 8 1
     nova delete testvm  || :
     nova keypair-add --pub-key /root/.ssh/id_rsa.pub testkey
-    nova secgroup-delete testvm || :
-    nova secgroup-create testvm testvm
-    nova secgroup-add-rule testvm icmp -1 -1 0.0.0.0/0
-    nova secgroup-add-rule testvm tcp 1 65535 0.0.0.0/0
-    nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
+    if iscloudver 7plus; then
+        openstack security group delete testvm || :
+        openstack security group create testvm
+        openstack security group rule create --protocol icmp testvm
+        openstack security group rule create --protocol udp testvm
+        openstack security group rule create --protocol tcp testvm
+    else
+        nova secgroup-delete testvm || :
+        nova secgroup-create testvm testvm
+        nova secgroup-add-rule testvm icmp -1 -1 0.0.0.0/0
+        nova secgroup-add-rule testvm tcp 1 65535 0.0.0.0/0
+        nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
+    fi
     timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
