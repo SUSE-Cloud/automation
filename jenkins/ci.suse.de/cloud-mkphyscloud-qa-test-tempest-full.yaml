@@ -49,7 +49,7 @@
           cloud=qa$hw_number;
 
           ssh root@$admin "
-            export tempestoptions=\"-t\";
+            export tempestoptions=\"--parallel\";
             export cloud=$cloud;
             export testsetup=$testsetup;
             export TESTHEAD=$TESTHEAD;
