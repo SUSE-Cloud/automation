@@ -41,4 +41,5 @@ $serialdevice
 $videodevices
 $memballoon
   </devices>
+$uefisecureboot
 </domain>
