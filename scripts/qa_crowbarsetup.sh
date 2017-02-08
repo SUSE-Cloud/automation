@@ -3880,9 +3880,7 @@ function oncontroller_testsetup
 
     # The custom-key value is only set during initial deployment of Cloud7 directly from this script
     # So it is not present when the cloud is upgraded from Cloud6 and we need to skip this test.
-    if iscloudver 7plus && crowbar nova proposal show default | rubyjsonparse \
-        "exit false if j['attributes']['nova']['metadata']['vendordata']['json'] == '{}'"
-    then
+    if iscloudver 7plus && grep -q "custom-value" /etc/nova/suse-vendor-data.json 2>/dev/null ; then
         wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target curl -s http://169.254.169.254/openstack/latest/vendor_data.json|grep -q custom-key" "Custom vendordata not accessable from VM"
     fi
 
