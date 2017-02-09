@@ -2,25 +2,26 @@
 # usage:
 # curl http://openqa.suse.de/sle/qatests/qa_openstack.sh | sh -x
 # needs 2.1GB space for /var/lib/{glance,nova}
-export MODE=kvm
-# Avoid nested virtualisation by setting the line below
-# Note that as of today (2014-02-14) OpenStack Nova has known
-# bugs. Since upstream tests with kvm, it doesn't really
-# make sense to test anything else.
-# MODE=lxc
-if ! grep -q -e vmx -e svm /proc/cpuinfo ; then
-    MODE=lxc
-fi
+
+: ${MODE:=kvm}
 ARCH=$(uname -i)
 : ${repomirror:=http://download.opensuse.org}
+: ${imagemirror:=http://149.44.161.38/images} # ci1-opensuse
+: ${cirros_base_url:="$imagemirror"} # could also be "http://download.cirros-cloud.net/0.3.4/"
 cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
+# if set to something, skip the base operating system repository setup
+: ${skip_reposetup:""}
 
 ifconfig | grep inet
 
 # setup optional extra disk for cinder-volumes
 dev_cinder=/dev/vdb
-if ! test -e $dev_cinder && file -s /dev/sdb|grep -q "ext3 filesystem data" ; then
-    dev_cinder=/dev/sdb
+if ! test -e $dev_cinder ; then
+    # maybe we run under xen
+    dev_cinder=/dev/xvdb
+    if ! test -e $dev_cinder && file -s /dev/sdb|grep -q "ext3 filesystem data" ; then
+        dev_cinder=/dev/sdb
+    fi
 fi
 if [ -e $dev_cinder ]; then
     # CINDER_VOLUMES_DEV is evaulated by openstack-loopback-lvm
@@ -30,8 +31,13 @@ fi
 
 # setup optional extra disk for manila-shares
 dev_manila=/dev/vdc
-if ! test -e $dev_manila && file -s /dev/sdc|grep -q "ext3 filesystem data" ; then
-    dev_manila=/dev/sdc
+if ! test -e $dev_manila ; then
+    # maybe we run under xen
+    dev_manila=/dev/xvdc
+
+    if ! test -e $dev_manila && file -s /dev/sdc|grep -q "ext3 filesystem data" ; then
+        dev_manila=/dev/sdc
+    fi
 fi
 if [ -e $dev_manila ]; then
     # MANILA_SHARES_DEV is evaluated by openstack-loopback-lvm
@@ -138,38 +144,41 @@ if [ -n "$OSHEAD" ]; then
     $zypper mr --priority 42 cloudhead
 fi
 
-if [ $VERSION = 11 ] ; then
-    $zypper rr CloudProduct || true
-    $zypper rr SUSE_SLE-11-SP2_Update_Products_Test || true
-    if [ "$REPO" = SLE_11_SP3 ] ; then
-        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SLES11-SP3-Pool/sle-11-x86_64/' SP3Pool
+if [ -z "$skip_reposetup" ]; then
+    # do the basic operating system repository setup
+    if [ $VERSION = 11 ] ; then
+        $zypper rr CloudProduct || true
+        $zypper rr SUSE_SLE-11-SP2_Update_Products_Test || true
+        if [ "$REPO" = SLE_11_SP3 ] ; then
+            $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SLES11-SP3-Pool/sle-11-x86_64/' SP3Pool
+        fi
     fi
-fi
 
-if [ "$VERSION" = "12" ] ; then
-    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12/x86_64/product/' SLES12-Pool
-    $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12/x86_64/update/' SLES12-Updates
-fi
+    if [ "$VERSION" = "12" ] ; then
+        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12/x86_64/product/' SLES12-Pool
+        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12/x86_64/update/' SLES12-Updates
+    fi
 
-if [ "$VERSION" = "12.1" ]; then
-    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
-    $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
-fi
+    if [ "$VERSION" = "12.1" ]; then
+        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
+        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
+    fi
 
-if [ "$VERSION" = "12.2" ]; then
-    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/' SLE12-SP2-Pool
-    $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/' SLES12-SP2-Updates
-fi
+    if [ "$VERSION" = "12.2" ]; then
+        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/' SLE12-SP2-Pool
+        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/' SLES12-SP2-Updates
+    fi
 
-# openSUSE Leap versions
-if [ "$VERSION" = "42.1" ]; then
-    $zypper ar "$repomirror/distribution/leap/42.1/repo/oss/" Leap-42.1-oss
-    $zypper ar "$repomirror/update/leap/42.1/oss/" Leap-42.1-oss-update
-fi
+    # openSUSE Leap versions
+    if [ "$VERSION" = "42.1" ]; then
+        $zypper ar "$repomirror/distribution/leap/42.1/repo/oss/" Leap-42.1-oss
+        $zypper ar "$repomirror/update/leap/42.1/oss/" Leap-42.1-oss-update
+    fi
 
-if [ "$VERSION" = "42.2" ]; then
-    $zypper ar "$repomirror/distribution/leap/42.2/repo/oss/" Leap-42.2-oss
-    $zypper ar "$repomirror/update/leap/42.2/oss/" Leap-42.2-oss-update
+    if [ "$VERSION" = "42.2" ]; then
+        $zypper ar "$repomirror/distribution/leap/42.2/repo/oss/" Leap-42.2-oss
+        $zypper ar "$repomirror/update/leap/42.2/oss/" Leap-42.2-oss-update
+    fi
 fi
 
 # install maintenance updates
@@ -296,10 +305,6 @@ cinder delete $vol_id
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
 ssh_user="root"
-: ${mirror:=http://149.44.161.38/images} # ci1-opensuse
-
-cirros_base_url="http://download.cirros-cloud.net/0.3.4/"
-cirros_base_url="$mirror"
 cirros_base_name="cirros-0.3.4-x86_64"
 
 # since glanceclient Liberty, --is-public is gone and --visibility should be used
@@ -319,7 +324,7 @@ case "$MODE" in
         $GC_IMAGE_CREATE --disk-format=ami --container-format=ami --name=debian-5 --property vm_mode=xen ramdisk_id=f663eb9a-986b-466f-bd3e-f0aa2c847eef kernel_id=d654691a-0135-4f6d-9a60-536cf534b284 < debian.5-0.x86.img
     ;;
     lxc)
-        $GC_IMAGE_CREATE --name="debian-5" --disk-format=ami --container-format=ami --copy-from $mirror/debian.5-0.x86.qcow2
+        $GC_IMAGE_CREATE --name="debian-5" --disk-format=ami --container-format=ami --copy-from $imagemirror/debian.5-0.x86.qcow2
     ;;
     *)
         wget $cirros_base_url/$cirros_base_name-uec.tar.gz
