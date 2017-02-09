@@ -1,0 +1,18 @@
+---
+proposals:
+- barclamp: keystone
+  attributes:
+    token_expiration: 86400
+    admin:
+      password: securepassword
+    default:
+      tenant: suse
+- barclamp: crowbar
+  attributes:
+    users:
+      crowbar:
+        password: securepassword
+- barclamp: horizon
+  attributes:
+    session_timeout: 1000
+    multi_domain_support: true
