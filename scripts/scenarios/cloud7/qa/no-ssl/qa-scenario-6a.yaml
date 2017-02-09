@@ -122,6 +122,7 @@ proposals:
     - ##networkingmode##
     ml2_type_drivers_default_provider_network: ##networkingmode##
     ml2_type_drivers_default_tenant_network: ##networkingmode##
+    num_vlans: 99
   deployment:
     elements:
       neutron-server:
