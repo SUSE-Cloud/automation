@@ -52,7 +52,5 @@
             source mkcloud.config;
             source scripts/qa_crowbarsetup.sh;
 
-            get_novacontroller;
-            oncontroller upload_defcore;
-            exit $?;
+            onadmin_upload_defcore;
           '
