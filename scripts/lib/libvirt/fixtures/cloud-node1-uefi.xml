@@ -6,7 +6,7 @@
   <os>
     <type arch='x86_64' machine='pc-0.14'>hvm</type>
 <loader readonly='yes' type='pflash'>/usr/share/qemu/ovmf-x86_64-code.bin</loader>
-    <nvram template='/usr/share/qemu/ovmf-x86_64-vars.bin' />
+<nvram template='/usr/share/qemu/ovmf-x86_64-vars.bin' />
   </os>
   <features>
     <acpi/>
