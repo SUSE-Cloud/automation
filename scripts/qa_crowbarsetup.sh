@@ -5397,6 +5397,69 @@ function onadmin_batch
     return $?
 }
 
+function oncontroller_setupproduction()
+{
+    (cd /usr/local/bin ; wget https://raw.githubusercontent.com/SUSE-Cloud/cloud-tools/master/openstack/{getinstanceuser,getprojectid} ; chmod a+x *)
+    (cd /etc/keystone ; wget -N https://w3.suse.de/~bwiedemann/cloud/user-project-map.json)
+    wget -O/usr/lib/python2.7/site-packages/keystone/assignment/backends/hybrid.py https://raw.githubusercontent.com/SUSE-Cloud/automation/p3/hostscripts/productioncloud/hybrid_json_assignment.py
+    # create projects, increase quotas
+    local tenantid
+    for prj in $(curl https://w3.suse.de/~bwiedemann/cloud/projects.txt) ; do
+        openstack project create $prj
+        openstack role add --project $prj --user admin admin
+        tenantid=$(getprojectid $prj)
+        nova quota-update --instances 50 --cores 50 --floating-ips 50 --key-pairs 50 --server-groups 50 --ram 40000 $tenantid
+        neutron quota-update --tenant-id $tenantid --floatingip 50 --security-group 50 --port 50 --network 50 --router 50 --vip 50 --pool 50
+        cinder quota-update --gigabytes 150 $tenantid
+    done
+
+    tenantid=$(getprojectid openstack)
+    nova quota-update --instances 400 --key-pairs 400 --server-groups 400 --ram 120000 --cores 500 --floating-ips 200 $tenantid
+    neutron quota-update --floatingip 200 --security-group 400 --port 400 --network 200 --router 100 --vip 100 --pool 100
+    OS_TENANT_NAME=qa neutron quota-update --port 100
+    nova quota-update --ram 20000 $(getprojectid suse)
+    nova quota-update --ram 55000 $(getprojectid cloudfoundry)
+    nova quota-update --ram 80000 --cores 100 $(getprojectid ses)
+    # extra users
+    openstack user create --project ses --email jschmid.suse.de ses-jenkins
+    openstack role add --project ses --user ses-jenkins Member
+    openstack user create --project cloudfoundry --email thardeck@suse.de cloudfoundry
+    openstack role add --project cloudfoundry --user cloudfoundry Member
+    openstack role add --project bosh --user cloudfoundry Member
+    openstack project create demo
+    openstack user create --password demo --email ashish.sodhi@suse.com --project demo demo
+    openstack role add --project demo --user demo Member
+
+    # import images
+    for img in SLES12.qcow2 SLES12-SP1.qcow2 SLES12-SP2.qcow2 x86_64/SLES12-SP3.qcow2 x86_64/SP4-64up.qcow2 cirros-0.3.4-x86_64-disk.img other/openSUSE-Leap-42.1.qcow2 other/openSUSE-Leap-42.1-OpenStack.x86_64-0.0.3-Build1.2.qcow2 Fedora-x86_64-20-20131211.1-sda.qcow2 x86_64/other/debian-jessie.qcow2 x86_64/other/debian-jessie-nopart.qcow2 x86_64/other/openSUSE-Leap-42.2-altimagebuild.qcow2 ; do
+        local bimg=$(basename $img)
+        local image_name=${bimg//.qcow2}
+        local params="--disk-format qcow2 --container-format bare "
+        [[ $image_name =~ -Build ]] && params+=' --min-ram 300 --min-disk 10'
+        curl -s \
+            http://$clouddata/images/$img | \
+            OS_TENANT_NAME=admin openstack image create --public --property hypervisor_type=kvm \
+            $params $image_name
+    done
+}
+
+function onadmin_setupproduction()
+{
+    (cd /srv/tftpboot/suse-12.?/x86_64/repos/PTF && wget http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP1/noarch/ca-certificates-suse-1.0-5.1.noarch.rpm && createrepo-cloud-ptf)
+    get_novacontroller
+    for m in $(get_all_suse_nodes) ; do
+        ssh $m "
+            zypper ar http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP1/ ca
+            zypper -n in ca-certificates-suse iotop
+            for u in {keystone,glance,cinder,neutron,nova} ; do
+                setfacl -m u:$u:r /etc/cloud-keys/*.key
+            done
+            sed -i -e 's/splash=silent.*\"/splash=verbose rootflags=rw,data=writeback console=tty console=ttyS1,115200 vga=normal\"/' /etc/default/grub
+        "
+    done
+    oncontroller setupproduction
+}
+
 # deactivate proposals and forget cloud nodes
 # can be useful for faster testing cycles
 function onadmin_teardown
