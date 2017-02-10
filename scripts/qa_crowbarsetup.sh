@@ -1870,7 +1870,7 @@ function onadmin_allocate
     wait_for 100 10 '[[ $(get_all_discovered_nodes | wc -l) -ge $nodenumber ]]' "all nodes to be discovered"
     local n
     for n in `get_all_discovered_nodes` ; do
-        wait_for 100 2 "knife node show -a state $n | grep -q discovered" \
+        wait_for 100 2 "knife node show -a state $n | grep -q 'discovered\|ready'" \
             "node to enter discovered state"
         if iscloudver 6minus; then
             # provisioner is the last transition discovered role, so we're
