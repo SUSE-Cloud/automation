@@ -1492,6 +1492,20 @@ EOF
         /opt/dell/bin/json-edit -a attributes.network.mode -v dual $netfile
         /opt/dell/bin/json-edit -a attributes.network.teaming.mode -r -v 5 $netfile
     fi
+    if [[ $cloud = cf1 ]] ; then
+        # floating net is the 2nd half of public net:
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.255.224 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v 10.162.211.192 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.start -v 10.162.211.193 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v 10.162.211.222 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.broadcast -v 10.162.211.223 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.255.128 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.broadcast -v 10.162.211.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.subnet -v 10.162.211.128 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.router -v 10.162.211.254 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.start -v 10.162.211.132 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.end -v 10.162.211.191 $netfile
+    fi
     # Setup network attributes for custom MTU
     if [[ $want_mtu_size -ne 1500 ]]; then
         echo "Setting MTU to custom value of: $want_mtu_size"
