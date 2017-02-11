@@ -4289,7 +4289,7 @@ function oncontroller_testpreupgrade
 function oncontroller_testpostupgrade
 {
     # retrieve the ping results
-    local fips=$(openstack floating ip list -f value -c "Floating IP Address")
+    local fips=$(openstack ip floating list -f value -c IP)
     for fip in $fips; do
         scp cirros@$fip:/var/log/ping_neighbour.out ping_neighbour.$fip.out
         max=$(sed -n 's/^.* not available for: //p' ping_neighbour.$fip.out | sort | tail -n 1)
