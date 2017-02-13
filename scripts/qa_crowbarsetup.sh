@@ -1408,7 +1408,7 @@ EOF
         -e "s/ [47]00/ $vlan_sdn/g" \
         $netfile
 
-    if [[ $cloud =~ ^p ]] ; then
+    if [[ $cloud =~ ^p[0-9]$ ]] ; then
         local pcloudnum=${cloud#p}
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.1$pcloudnum.63.254 $netfile
