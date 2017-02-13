@@ -54,6 +54,11 @@ oncontroller '
 for u in {keystone,glance,cinder,neutron,nova} ; do
     setfacl -m u:$u:r /etc/cloud-keys/*.key
     done
+cat > /etc/openldap/ldap.conf <<EOF
+TLS_CACERTDIR   /etc/ssl/certs/
+uri     ldaps://ldap.suse.de
+base    dc=suse,dc=de
+EOF
     '
 echo TODO set public name to dashboard.p3.cloud.suse.de
 
