@@ -28,6 +28,7 @@
             - Liberty
             - Mitaka
             - Newton
+            - Ocata
             - Master
       - axis:
           type: slave
@@ -42,6 +43,7 @@
         || ( openstack_project=="Liberty" && (image=="SLE_12_SP1" || image=="SLE_12" || image=="openSUSE-Leap-42.1"))
         || ( openstack_project=="Mitaka" && (image=="SLE_12_SP1" || image=="SLE_12_SP2" || image=="openSUSE-Leap-42.1"))
         || ( openstack_project=="Newton" && (image=="SLE_12_SP2" || image=="openSUSE-Leap-42.2" || image=="openSUSE-Leap-42.1"))
+        || ( openstack_project=="Ocata" && (image=="SLE_12_SP2" || image=="openSUSE-Leap-42.2"))
         || ( openstack_project=="Master" && (image=="openSUSE-Leap-42.2" || image=="SLE_12_SP2"))
         )
       sequential: true
