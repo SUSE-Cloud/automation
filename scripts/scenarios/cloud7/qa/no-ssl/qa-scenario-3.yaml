@@ -122,9 +122,7 @@ proposals:
     ml2_mechanism_drivers:
     - linuxbridge
     ml2_type_drivers:
-    - gre
     - vlan
-    - vxlan
     num_vlans: 99
     ml2_type_drivers_default_provider_network: vlan
     ml2_type_drivers_default_tenant_network: vlan
