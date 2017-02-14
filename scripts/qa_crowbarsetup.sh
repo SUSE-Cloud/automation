@@ -4323,7 +4323,13 @@ function onadmin_testpreupgrade
 
 function oncontroller_get_fips
 {
-    echo $(openstack ip floating list -f value -c IP)
+    # Checking for cloudver might not get correct results here due to the nature of upgrade
+    # So let's check the version directly at controller
+    if grep -q SP1 /etc/os-release ; then
+        echo $(openstack ip floating list -f value -c IP)
+    else
+        echo $(openstack floating ip list -f value -c "Floating IP Address")
+    fi
 }
 
 function onadmin_ping_running_instances
