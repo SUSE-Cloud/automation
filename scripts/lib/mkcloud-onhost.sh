@@ -77,16 +77,12 @@ EOS
         fi
     fi
 
-    # Kept for backwards compatibility and for hand-written setups
+    # $boot_mkcloud is for backwards compatibility and for setups
     # on mkch*.cloud.suse.de hosts.
-    if [ -x "$boot_mkcloud" ]; then
-        $boot_mkcloud
-    fi
-
     local f
-    for f in $boot_mkcloud_d/*; do
+    for f in "$boot_mkcloud" $boot_mkcloud_d/*; do
         if [ -x "$f" ]; then
-            $f
+            "$f"
         fi
     done
 }
