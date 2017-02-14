@@ -67,6 +67,7 @@ crowbar_api_installer_path=/installer/installer
 crowbar_api_digest="--digest -u crowbar:crowbar"
 crowbar_install_log=/var/log/crowbar/install.log
 crowbar_init_api=http://localhost:4567/api
+[[ $cloudsource = mitakacloud7 ]] && crowbar_init_api=http://localhost:4567/
 crowbar_lib_dir=/var/lib/crowbar
 crowbar_api_v2_header="Accept: application/vnd.crowbar.v2.0+json"
 upgrade_progress_file=/var/lib/crowbar/upgrade/6-to-7-progress.yml
@@ -1499,7 +1500,7 @@ function onadmin_bootstrapcrowbar
         if [[ $upgrademode = "with_upgrade" ]] ; then
             safely crowbarctl upgrade database new
         else
-            if iscloudver 7M6minus ; then
+            if iscloudver 7M6minus || [[ $cloudsource = mitakacloud7 ]] ; then
                 safely crowbar_api_request POST $crowbar_init_api /database/new \
                     '--data username=crowbar&password=crowbar' "$crowbar_api_v2_header"
                 safely crowbar_api_request POST $crowbar_init_api /init "" "$crowbar_api_v2_header"
