@@ -21,6 +21,7 @@ seconds_failing=0
 while [ 1 = 1 ]; do
     if [ -e /var/lib/crowbar/stop_pinging.$fip ]; then
         echo "Stopping the ping of $fip" >> $LOGFILE
+        rm -f /var/lib/crowbar/stop_pinging.$fip
         exit 0
     fi
     if ping $fip -W 1 -w 1 > /dev/null ; then

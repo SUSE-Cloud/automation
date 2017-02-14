@@ -4340,6 +4340,15 @@ function onadmin_testpostupgrade
     get_novacontroller
     check_novacontroller
 
+    if [[ $want_ping_running_instances = 1 ]]; then
+        # retrieve the ping results
+        local fip
+        for fip in $(oncontroller get_fips); do
+            touch /var/lib/crowbar/stop_pinging.$fip
+            max=$(sed -n 's/^.* not available for: //p' /var/log/ping_instance.$fip.out | sort | tail -n 1)
+            echo "Maximum outage while pinging VM at $fip: $max seconds"
+        done
+    fi
     oncontroller testpostupgrade
 }
 
