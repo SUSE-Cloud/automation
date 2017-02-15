@@ -550,6 +550,7 @@ function shutdowncloud
 
 function restartcloud
 {
+    vgchange -ay $cloudvg
     libvirt_net_start
     virsh start $cloud-admin
     setuppublicnet
