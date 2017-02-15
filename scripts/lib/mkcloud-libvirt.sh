@@ -83,6 +83,7 @@ function libvirt_do_setuphost()
     local kvmpkg=kvm
     local extra_packages=
     if is_suse ; then
+        extra_packages=python-xml
         [[ $arch = aarch64 ]] && {
             kvmpkg=qemu-arm
             extra_packages+=" qemu-uefi-aarch64 qemu-ipxe"
