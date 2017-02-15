@@ -112,6 +112,12 @@ function libvirt_do_setuphost()
         usermod --groups kvm --append libvirt-qemu
         chkconfig exim4 off
     fi
+    # dnsmasq must not be running on the ANY-addr
+    # to leave port 53 available to libvirt's dnsmasq
+    if ss -ulpn | grep '\*:53.*dnsmasq' ; then
+        service dnsmasq stop
+        chkconfig dnsmasq off
+    fi
 
     # Start libvirtd and friends
     sudo service libvirtd status || sudo service libvirtd start
