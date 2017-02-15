@@ -4293,11 +4293,11 @@ function oncontroller_testpostupgrade
     local fips=$(openstack floating ip list -f value -c "Floating IP Address")
     for fip in $fips; do
         scp cirros@$fip:/var/log/ping_neighbour.out ping_neighbour.$fip.out
-        max=$(sed -n 's/^.* not available for: //p' ping_neighbour.$fip.out | sort | tail -n 1)
+        max=$(sed -n 's/^.* not available for: //p' ping_neighbour.$fip.out | sort -n | tail -n 1)
         echo "Maximum outage while pinging other VM from $fip: $max seconds"
 
         scp cirros@$fip:/var/log/ping_outside.out ping_outside.$fip.out
-        max=$(sed -n 's/^.* not available for: //p' ping_outside.$fip.out | sort | tail -n 1)
+        max=$(sed -n 's/^.* not available for: //p' ping_outside.$fip.out | sort -n | tail -n 1)
         echo "Maximum outage while pinging outside IP from $fip: $max seconds"
     done
 
@@ -4351,7 +4351,7 @@ function onadmin_testpostupgrade
         local fip
         for fip in $(oncontroller get_fips); do
             touch /var/lib/crowbar/stop_pinging.$fip
-            max=$(sed -n 's/^.* not available for: //p' /var/log/ping_instance.$fip.out | sort | tail -n 1)
+            max=$(sed -n 's/^.* not available for: //p' /var/log/ping_instance.$fip.out | sort -n | tail -n 1)
             echo "Maximum outage while pinging VM at $fip: $max seconds"
         done
     fi
