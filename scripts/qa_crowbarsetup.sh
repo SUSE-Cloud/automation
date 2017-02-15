@@ -4130,6 +4130,27 @@ function oncontroller_prepare_functional_tests
     fi
 }
 
+# use admin node as empty scratch VM to test our setuphost code
+function onadmin_test_setuphost
+{
+    set -x
+    if ! test -e /root/loop ; then
+        dd if=/dev/zero of=/root/loop bs=1M seek=150000 count=1
+        losetup /dev/loop1 /root/loop
+    fi
+    export cloudpv=/dev/loop1
+    # to not need lvm.conf patches
+    export SHAREDVG=1
+    export debug_mkcloud=1
+    # must be different from our admin net
+    # and in a private range to make libvirt happy
+    export net_admin=172.27.176
+    export admin_node_memory=1048576
+    unset adminip
+    rm -f $mkcconf
+    onadmin_setup_local_zypper_repositories
+    safely $SCRIPTS_DIR/mkcloud setuphost cleanup prepare setupadmin
+}
 
 function onadmin_testsetup
 {
