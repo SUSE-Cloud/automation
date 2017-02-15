@@ -82,6 +82,7 @@ function libvirt_do_setuphost()
 {
     local kvmpkg=kvm
     local extra_packages=
+    is_debian && extra_packages="chkconfig"
     if is_suse ; then
         extra_packages=python-xml
         [[ $arch = aarch64 ]] && {
@@ -105,6 +106,11 @@ function libvirt_do_setuphost()
     if [ -n "$needcvol" ] ; then
         safely pvcreate "$cloudpv"
         safely vgcreate "$cloudvg" "$cloudpv"
+    fi
+
+    if is_debian ; then
+        usermod --groups kvm --append libvirt-qemu
+        chkconfig exim4 off
     fi
 
     # Start libvirtd and friends
