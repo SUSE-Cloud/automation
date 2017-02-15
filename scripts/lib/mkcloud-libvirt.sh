@@ -80,27 +80,23 @@ function libvirt_do_setupadmin()
 
 function libvirt_do_setuphost()
 {
+    local kvmpkg=kvm
+    local extra_packages=
     if is_suse ; then
-        export ZYPP_LOCK_TIMEOUT=60
-        kvmpkg=kvm
-        osloader=
-        ipxe=
         [[ $arch = aarch64 ]] && {
             kvmpkg=qemu-arm
-            osloader=qemu-uefi-aarch64
-            ipxe=qemu-ipxe
+            extra_packages+=" qemu-uefi-aarch64 qemu-ipxe"
         }
-        [[ $arch = s390x ]] && kvmpkg=qemu-s390
-        zypper --non-interactive in --no-recommends \
-            libvirt $kvmpkg $osloader $ipxe lvm2 curl wget bridge-utils \
-            dnsmasq netcat-openbsd ebtables libvirt-python vlan
-        [ "$?" == 0 -o "$?" == 4 ] || complain 10 "setuphost failed to install required packages"
-
-        # enable KVM
         [[ $arch = s390x ]] && {
+            kvmpkg=qemu-s390
+            # enable KVM
             echo 1 > /proc/sys/vm/allocate_pgste
         }
     fi
+    zypper_override_params="--non-interactive" extra_zypper_install_params="--no-recommends" ensure_packages_installed \
+        libvirt libvirt-python $kvmpkg $extra_packages \
+        lvm2 curl wget bridge-utils \
+        dnsmasq netcat-openbsd ebtables vlan
 
     sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
     echo "net.ipv4.conf.all.rp_filter = 0" > /etc/sysctl.d/90-cloudrpfilter.conf

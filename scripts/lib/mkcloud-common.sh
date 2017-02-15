@@ -346,11 +346,16 @@ function jsonice
 
 function ensure_packages_installed
 {
-    local zypper_params="--non-interactive --gpg-auto-import-keys --no-gpg-checks"
-    local pack
-    for pack in "$@" ; do
-        rpm -q $pack &> /dev/null || safely zypper $zypper_params install "$pack"
-    done
+    if is_suse ; then
+        export ZYPP_LOCK_TIMEOUT=60
+        local zypper_params="${zypper_override_params:---non-interactive --gpg-auto-import-keys --no-gpg-checks}"
+        local pack
+        for pack in "$@" ; do
+            rpm -q $pack &> /dev/null || safely zypper $zypper_params install $extra_zypper_install_params "$pack"
+        done
+    else
+        echo "Warning: ensure_packages_installed did not know your OS, doing nothing"
+    fi
 }
 
 function zypper_refresh
