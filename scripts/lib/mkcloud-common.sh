@@ -108,6 +108,11 @@ function is_suse
     grep -qi suse /etc/*release
 }
 
+function is_debian
+{
+    grep -q debian /etc/os-release
+}
+
 function is_onhost
 {
     # match for the mkcloud script name in the BASH_SOURCE stack
@@ -351,6 +356,12 @@ function ensure_packages_installed
         export ZYPP_LOCK_TIMEOUT=60
         local zypper_params="${zypper_override_params:---non-interactive --gpg-auto-import-keys --no-gpg-checks}"
         rpm -q "$@" &> /dev/null || safely zypper $zypper_params install $extra_zypper_install_params "$@"
+    elif is_debian ; then
+        pkglist=$(echo "$@" | sed -e '
+            s/\blibvirt\b/libvirt-clients libvirt-daemon-system/;
+            s/\blibvirt-python\b/python-libvirt/;
+        ')
+        safely apt-get -q -y install $pkglist
     else
         echo "Warning: ensure_packages_installed did not know your OS, doing nothing"
     fi
