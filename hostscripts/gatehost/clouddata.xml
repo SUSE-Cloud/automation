@@ -1,9 +1,9 @@
 <domain type='kvm'>
   <name>clouddata</name>
   <uuid>e04898bf-349d-e43f-6c59-e6310f830d4a</uuid>
-  <memory unit='KiB'>1048576</memory>
-  <currentMemory unit='KiB'>1048576</currentMemory>
-  <vcpu placement='static'>1</vcpu>
+  <memory unit='KiB'>4194304</memory>
+  <currentMemory unit='KiB'>4194304</currentMemory>
+  <vcpu placement='static'>2</vcpu>
   <os>
     <type arch='x86_64' machine='pc-i440fx-2.0'>hvm</type>
     <boot dev='hd'/>
