@@ -437,6 +437,12 @@ function add_sdk_repo
     esac
 }
 
+function add_hcp_repo
+{
+    # priority required to overwrite the default cloud6 packages
+    zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/HCP/SLE_12_SP1/Devel:Cloud:6:HPC.repo
+}
+
 function add_ha_repo
 {
     local repo
@@ -1355,6 +1361,8 @@ EOF
             complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
         fi
     fi
+
+    [[ $want_hcp = 1 ]] && add_hcp_repo
 
     if [ -n "$deployceph" ] && iscloudver 5plus; then
         add_suse_storage_repo
