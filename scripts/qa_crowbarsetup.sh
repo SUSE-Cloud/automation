@@ -4436,7 +4436,11 @@ function power_cycle_and_wait
 {
     local machine=$1
 
-    ssh $machine "reboot"
+    if iscloudver 6plus; then
+        crowbarctl node reboot $machine
+    else
+        ssh $machine "reboot"
+    fi
 
     # "crowbar machines list" returns FQDNs but "crowbar node_state status"
     # only hostnames. Get hostname part of FQDN
