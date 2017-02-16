@@ -4136,18 +4136,19 @@ EOH
 function oncontroller_prepare_functional_tests
 {
     if iscloudver 6plus; then
-        case "$cloudsource" in
-            develcloud?|susecloud?|M?|Beta*|RC*|GMC*|GM*)
-                local mount_dir="/var/lib/Cloud-Testing"
-                local repo_name="cloud-test"
-                if ! zypper lr "$repo_name" ; then
-                    rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
-                    zypper -n ar --refresh -c -G -f "$mount_dir" "$repo_name"
-                    zypper_refresh
-                    ensure_packages_installed python-novaclient-test python-manilaclient-test
-                fi
-            ;;
-        esac
+        local mount_dir="/var/lib/Cloud-Testing"
+        local repo_name="cloud-test"
+
+        if ! [[ $CLOUDSLE12TESTISO ]]; then
+            echo "Error: Testing ISO for $cloudsource is not defined, functional tests are not available"
+        else
+            if ! zypper lr "$repo_name" ; then
+                rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
+                zypper -n ar --refresh -c -G -f "$mount_dir" "$repo_name"
+                zypper_refresh
+                ensure_packages_installed python-novaclient-test python-manilaclient-test
+            fi
+        fi
     fi
 }
 
