@@ -1,0 +1,6 @@
+user_whitelist:
+- "SUSE-Cloud"
+team_whitelist:
+- 1541628 # SUSE-Cloud/developers
+- 291046  # crowbar/Owners
+- 159206  # SUSE-Cloud/Owners

@@ -3,17 +3,34 @@
 require 'octokit'
 require 'optparse'
 require 'json'
+require 'yaml'
 
+# GitHub client handler
 class GHClientHandler
 
+  # @param  config [Hash]
+  # @option config [String] :comment_prefix will start every GH comment
+  # @option config [String] :repository GH "owner/repo"
+  # @option config [String] :context GH status context string
+  # @option config [String] :branch ("") filter PRs by branch name
+  # @option config [Boolean] :mark_na (false)
   def initialize(config = {})
+    read_config_file
     @comment_prefix = config[:comment_prefix] || 'CI mkcloud gating '
     @repository = config[:repository] || 'SUSE-Cloud/automation'
     @context = config[:context] || 'suse/mkcloud'
     @branch = config[:branch] || ''
+    @mark_na = config.fetch(:mark_na, false)
     @client = Octokit::Client.new(:netrc => true)
     @client.auto_paginate = true
     @client.login
+  end
+
+  def read_config_file
+    filename = File.expand_path("../github-status.yaml", __FILE__)
+    yaml = YAML.load_file(filename)
+    @user_whitelist = yaml["user_whitelist"]
+    @team_whitelist = yaml["team_whitelist"]
   end
 
   def create_status(commit, result, description = nil, target_url = nil)
@@ -64,6 +81,11 @@ class GHClientHandler
     get_pr_latest_sha(pr) == sha
   end
 
+  # Get pull requests for *repository* that have a matching build *status*
+  # and match the *branch* (if set).
+  # @param state [String] "open" or "closed"
+  # @param status [Array<String>]
+  #   any of "" (not set), "pending", "success", "error", "failure"
   def get_all_pull_requests(state, status = [])
     pulls = @client.pull_requests(@repository, :state => state)
     pulls.select do |p|
@@ -72,22 +94,25 @@ class GHClientHandler
     end
   end
 
+  # Get pull requests; limit to those made by whitelisted people
+  # @see get_all_pull_requests
   def get_own_pull_requests(state, status = [])
     # filter for our own PRs, as we do not want to build anybodys PR
     pulls = get_all_pull_requests(state, status)
     pulls.select do |p|
       user = p.head.repo.owner.login rescue ''
       next false if (!user || user.nil? || user.empty?)
-      # team id 1541628 -> SUSE-Cloud/developers
-      # team id 291046 -> crowbar/Owners
-      # team id 159206 -> SUSE-Cloud/Owners
-      user == "SUSE-Cloud" ||
-        @client.team_member?(1541628, user) ||
-        @client.team_member?(291046, user) ||
-        @client.team_member?(159206, user)
+      @user_whitelist.include?(user) || @team_whitelist.any? do |t_id|
+        # t_id is a numeric id
+        @client.team_member?(t_id, user)
+      end
     end
   end
 
+  # Get pull requests made by whitelisted people.
+  # Of these, return the applicable ones (touching specific files)
+  # AND set the status of the others to "success"
+  # @see get_own_pull_requests
   def get_pull_requests(state, status = [])
     pulls = get_own_pull_requests(state, status)
     # filter applicable PRs, non applicable PRs do not touch files affecting mkcloud runs
@@ -100,18 +125,19 @@ class GHClientHandler
         # at least one filename must match to require a mkcloud gating run
         pf.size > 0
     end
-    # set status for non applicable PRs, to not see them again
-    pulls_not_applicable.each { |na| create_status(na.head.sha, :success, 'mkcloud gating not applicable') }
+    if @mark_na
+      # set status for non applicable PRs, to not see them again
+      pulls_not_applicable.each do |na|
+        create_status(na.head.sha, :success, 'mkcloud gating not applicable')
+      end
+    end
     pulls_applicable
   end
 
-  def print_pr_sha_info(pull)
-    if pull.is_a? Array
-      pull.each do |p|
-        print_pr_sha_info(p)
-      end
-    else
-      puts "#{pull.number}:#{pull.head.sha}:#{pull.base.ref}" if pull
+  # @param pulls [PR,Array<PR>]
+  def print_pr_sha_info(pulls)
+    Array(pulls).each do |pull|
+      puts "#{pull.number}:#{pull.head.sha}:#{pull.base.ref}"
     end
   end
 
@@ -137,7 +163,20 @@ class GHClientHandler
 
 end
 
+# To see API traffic:
+# RUBYOPT=-d github-status.rb ...
+if $DEBUG || ENV["FARADAY"]
+  require 'faraday'
+  stack = Faraday::RackBuilder.new do |builder|
+    builder.response :logger
+    builder.use Octokit::Response::RaiseError
+    builder.adapter Faraday.default_adapter
+  end
+  Octokit.middleware = stack
+end
+
 ACTIONS = %w(
+  list-open-prs
   list-unseen-prs
   list-rebuild-prs
   list-forcerebuild-prs
@@ -147,15 +186,19 @@ ACTIONS = %w(
   set-status
 )
 
-options = {}
+options = {mark_na: true}
 optparse = OptionParser.new do |opts|
   opts.banner = "Query github for pull request status"
 
+  opts.separator ""
+  opts.separator "Required option:"
   actions = ACTIONS.join ', '
   opts.on('-a', '--action ACTION', "Action to perform (#{actions})") do |a|
     options[:action] = a
   end
 
+  opts.separator ""
+  opts.separator "Common options:"
   opts.on('-p', '--pullrequest PRID', 'Github Pull Request ID') do |pr|
     options[:pr] = pr
   end
@@ -172,6 +215,8 @@ optparse = OptionParser.new do |opts|
     options[:sha] = sha
   end
 
+  opts.separator ""
+  opts.separator "Options for set-status:"
   opts.on('-t', '--targeturl URL', 'Target URL of a CI Build') do |url|
     options[:target_url] = url
   end
@@ -184,10 +229,17 @@ optparse = OptionParser.new do |opts|
     options[:message] = msg
   end
 
+  opts.separator ""
+  opts.separator "Options for list-...-prs:"
   opts.on('-b', '--branch BRANCHNAME', 'Filters pull requests by target branch name.') do |br|
     options[:branch] = br
   end
+  opts.on('--[no]-mark-na', 'Mark non-applicable PRs with a Success status. Enabled by default.') do |v|
+    options[:mark_na] = v
+  end
 
+  opts.separator ""
+  opts.separator "Options for get-pr-info:"
   opts.on('-k', '--key KEY',
           'Dot-separated attribute path to extract from PR JSON, ' \
           'e.g. base.head.owner.  Optional, only for use with ' \
@@ -195,6 +247,7 @@ optparse = OptionParser.new do |opts|
     options[:key] = key
   end
 
+  opts.separator ""
   opts.on('-h', '--help', 'Show usage') do |h|
     puts opts
     exit
@@ -204,7 +257,7 @@ end
 
 optparse.parse!
 
-ghc=GHClientHandler.new(repository: options[:repository], branch: options[:branch], context: options[:context])
+ghc=GHClientHandler.new(repository: options[:repository], branch: options[:branch], context: options[:context], mark_na: options[:mark_na])
 
 def require_parameter(param, message)
   if param.to_s.empty?
