@@ -6,6 +6,13 @@ require 'json'
 
 class GHClientHandler
 
+  # mapping of github team names to team ids
+  TEAMS = {
+    :suse_cloud_owners     => 159206,   # SUSE-Cloud/Owners
+    :suse_cloud_developers => 1541628,  # SUSE-Cloud/developers
+    :crowbar_owners        => 291046    # crowbar/Owners
+  }
+
   def initialize(config = {})
     @comment_prefix = config[:comment_prefix] || 'CI mkcloud gating '
     @repository = config[:repository] || 'SUSE-Cloud/automation'
@@ -14,6 +21,16 @@ class GHClientHandler
     @client = Octokit::Client.new(:netrc => true)
     @client.auto_paginate = true
     @client.login
+    @members = {}
+  end
+
+  def team_members(team_name)
+    # only query when needed
+    @members[team_name] ||= @client.team_members(TEAMS[team_name]).map{|m| m['login']} rescue {}
+  end
+
+  def team_member?(team_name, login)
+    team_members(team_name).include?(login)
   end
 
   def create_status(commit, result, description = nil, target_url = nil)
@@ -78,13 +95,10 @@ class GHClientHandler
     pulls.select do |p|
       user = p.head.repo.owner.login rescue ''
       next false if (!user || user.nil? || user.empty?)
-      # team id 1541628 -> SUSE-Cloud/developers
-      # team id 291046 -> crowbar/Owners
-      # team id 159206 -> SUSE-Cloud/Owners
       user == "SUSE-Cloud" ||
-        @client.team_member?(1541628, user) ||
-        @client.team_member?(291046, user) ||
-        @client.team_member?(159206, user)
+        [:suse_cloud_developers, :suse_cloud_owners, :crowbar_owners].find do |team|
+          team_member?(team, user)
+        end
     end
   end
 
