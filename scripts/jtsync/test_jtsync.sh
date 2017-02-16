@@ -21,38 +21,52 @@ echo "returncode: $?"
 read -p "Press any key to continue... " -n1 -s
 echo ""
 
-echo "test: matrix job (cloud) to success"
-${RUBY} jtsync.rb --board ${TEST_BOARD} --ci suse --matrix crowbar-trackupstream,Devel:Cloud:7:Staging 0
-echo "returncode: $?"
-read -p "Press any key to continue... " -n1 -s
-echo ""
-
-echo "test: matrix job (cloud) to failed"
-${RUBY} jtsync.rb --board ${TEST_BOARD} --ci suse --matrix crowbar-trackupstream,Devel:Cloud:7:Staging 1
-echo "returncode: $?"
-read -p "Press any key to continue... " -n1 -s
-echo ""
-
-echo "test: matrix job (openstack)"
-${RUBY} jtsync.rb --board ${TEST_BOARD} --ci opensuse --matrix openstack-cleanvm,Juno 0
-echo "returncode: $?"
-read -p "Press any key to continue... " -n1 -s
-echo ""
-
 echo "test: search non existing job"
-${RUBY} jtsync.rb --board ${TEST_BOARD} --ci opensuse --matrix openstack-cleannothing,Juno 0
+${RUBY} jtsync.rb --board ${TEST_BOARD} --ci opensuse --matrix openstack-cleannothing,Juno,12 0
 echo "returncode: $?"
 read -p "Press any key to continue... " -n1 -s
 echo ""
 
 echo "test: invalid returncode"
-${RUBY} jtsync.rb --board ${TEST_BOARD} --ci opensuse --matrix openstack-cleanvm,Juno a
+${RUBY} jtsync.rb --board ${TEST_BOARD} --ci opensuse --matrix openstack-cleanvm,Juno,13 a
 echo "returncode: $?"
 read -p "Press any key to continue... " -n1 -s
 echo ""
 
 echo "test: invalid ci type"
-${RUBY} ./jtsync.rb --board ${TEST_BOARD}--ci foobar --matrix openstack-cleanvm,Juno 0
+${RUBY} jtsync.rb --board ${TEST_BOARD} --ci foobar --matrix openstack-cleanvm,Juno 0
 echo "returncode: $?"
+read -p "Press any key to continue... " -n1 -s
+echo ""
+
+BUILDNR=$(( ( RANDOM % 10000 )  + 1 ))
+echo "Buildnr is ${BUILDNR}"
+echo "Start new matrix run"
+echo "cloud-trackupstream (${BUILDNR}) run successful"
+${RUBY} jtsync.rb --board ${TEST_BOARD} --ci suse --matrix cloud-trackupstream,Devel:Cloud:7:Staging,${BUILDNR} 0
+echo "returncode: $?"
+
+echo "cloud-trackupstream (${BUILDNR}) run failed"
+${RUBY} jtsync.rb --board ${TEST_BOARD} --ci suse --matrix cloud-trackupstream,Devel:Cloud:7:Staging,${BUILDNR} 1
+echo "returncode: $?"
+
+echo "cloud-trackupstream (${BUILDNR}) run successful"
+${RUBY} jtsync.rb --board ${TEST_BOARD} --ci suse --matrix cloud-trackupstream,Devel:Cloud:7:Staging,${BUILDNR} 0
+echo "returncode: $?"
+
+echo ""
+echo "State should be failed"
+read -p "Press any key to continue... " -n1 -s
+echo ""
+
+BUILDNR_NEXT=$(( BUILDNR + 1 ))
+echo "Buildnr is now ${BUILDNR_NEXT}"
+echo "Start new matrix run to with already set buildnr"
+echo "cloud-trackupstream (${BUILDNR_NEXT}) run successful"
+${RUBY} jtsync.rb --board ${TEST_BOARD} --ci suse --matrix cloud-trackupstream,Devel:Cloud:7:Staging,${BUILDNR_NEXT} 0
+echo "returncode: $?"
+
+echo ""
+echo "State should be successful and Buildnr should change from ${BUILDNR} to ${BUILDNR_NEXT}"
 read -p "Press any key to continue... " -n1 -s
 echo ""
