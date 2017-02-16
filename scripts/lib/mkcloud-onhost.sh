@@ -1,4 +1,15 @@
-function onhost_setup_portforwarding()
+function get_emulator
+{
+    local emulator=/usr/bin/qemu-system-$arch
+    if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
+        # on SLE11, qemu-kvm is preferred, since qemu-system-x86_64 is
+        # some rotten old stuff without KVM support
+        emulator=/usr/bin/qemu-kvm
+    fi
+    echo $emulator
+}
+
+function onhost_setup_portforwarding
 {
     boot_mkcloud=/etc/init.d/boot.mkcloud
     boot_mkcloud_d="$boot_mkcloud.d"

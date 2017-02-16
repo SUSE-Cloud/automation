@@ -126,13 +126,6 @@ host_mtu=$(determine_mtu)
 iscloudver 7plus && [[ $arch == x86_64 ]] && \
     [[ -n $want_efi ]] && firmware_type="uefi"
 
-emulator=/usr/bin/qemu-system-$arch
-if [ -x /usr/bin/qemu-kvm ] && file /usr/bin/qemu-kvm | grep -q ELF; then
-    # on SLE11, qemu-kvm is preferred, since qemu-system-x86_64 is
-    # some rotten old stuff without KVM support
-    emulator=/usr/bin/qemu-kvm
-fi
-
 pidfile=mkcloud.pid
 
 trap 'error_exit $? "error caught by trap"' TERM
@@ -594,7 +587,7 @@ function setupnodes
         ${scripts_lib_dir}/libvirt/compute-config $cloud $i $macaddress\
             $controller_raid_volumes $cephvolumenumber "$drbd_serial"\
             $compute_node_memory $controller_node_memory $libvirt_type $vcpus\
-            $emulator $vdisk_dir 3 \
+            $(get_emulator) $vdisk_dir 3 \
             $nodenumbercontroller "$firmware_type" > /tmp/$cloud-node$i.xml
         ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
     done

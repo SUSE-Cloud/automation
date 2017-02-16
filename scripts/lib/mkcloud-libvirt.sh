@@ -74,7 +74,7 @@ function libvirt_prepare()
 
 function libvirt_do_setupadmin()
 {
-    ${scripts_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $emulator $admin_node_disk "$localreposdir_src" "$localreposdir_target" "$firmware_type" > /tmp/$cloud-admin.xml
+    ${scripts_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $(get_emulator) $admin_node_disk "$localreposdir_src" "$localreposdir_target" "$firmware_type" > /tmp/$cloud-admin.xml
     ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
 }
 
@@ -357,7 +357,7 @@ function libvirt_do_setuplonelynodes()
         lonely_node=$cloud-node$i
         safely ${scripts_lib_dir}/libvirt/compute-config $cloud $i $mac 0\
             "$cephvolumenumber" "$drbdvolume" $compute_node_memory\
-            $controller_node_memory $libvirt_type $vcpus $emulator $vdisk_dir\
+            $controller_node_memory $libvirt_type $vcpus $(get_emulator) $vdisk_dir\
             1 1 "$firmware_type" > /tmp/$cloud-node$i.xml
 
         local lonely_disk
