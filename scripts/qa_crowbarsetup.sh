@@ -411,6 +411,13 @@ function addcloud7maintupdates
     add_mount "SUSE-OpenStack-Cloud-7-Updates" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-7-Updates/" "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates/" "cloudmaintup"
 }
 
+function addcloud7testupdates
+{
+    add_mount "SUSE-OpenStack-Cloud-7-Updates-test" \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/' \
+        "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates-test/" "cloudtup"
+}
+
 function addcctdepsrepo
 {
     if [[ $cloudsource = @(develcloud5|GM5|GM5+up) ]]; then
@@ -969,6 +976,20 @@ function onadmin_prepare_cloud_repos
                 addsles12sp1testupdates
                 addcloud6testupdates
                 ;;
+            GM7)
+                addsles12sp2testupdates
+                ;;
+            GM7+up)
+                addsles12sp2testupdates
+                addcloud7testupdates
+                ;;
+            GM8)
+                addsles12sp3testupdates
+                ;;
+            GM8+up)
+                addsles12sp3testupdates
+                addcloud8testupdates
+                ;;
             develcloud4)
                 addsp3testupdates
                 ;;
@@ -979,9 +1000,12 @@ function onadmin_prepare_cloud_repos
             develcloud6)
                 addsles12sp1testupdates
                 ;;
-            develcloud7|mitakacloud7|GM7|GM7+up|M?|Beta*|RC*|GMC*)
+            *cloud7)
                 addsles12sp2testupdates
                 ;;
+            *cloud8|M?|Beta*|RC*|GMC*)
+                addsles12sp3testupdates
+            ;;
             *)
                 complain 26 "no test update repos defined for cloudsource=$cloudsource"
                 ;;
