@@ -64,6 +64,11 @@
           description: Optional, specify cct tests to run
 
       - bool:
+          name: trigger_upgrade
+          default: false
+          description: Trigger the upgrade process for this cloud in a separate job
+
+      - bool:
           name: horizon-tests
           default: false
           description: Optional, Run horizon integration tests.
@@ -87,6 +92,9 @@
       - string:
           name: cloudsource
           default: develcloud$cloud_version
+      - string:
+          name: upgrade_cloudsource
+          default: develcloud$(($cloud_version + 1))
       - string:
           name: TESTHEAD
           default: "1"
@@ -148,7 +156,7 @@
           update_automation
 
           # put variables needed during the build process into mkcloud.config file
-          env | grep -e networking -e libvirt -e cloud > mkcloud.config
+          env | grep -e networking -e libvirt -e cloud -e upgrade -e cct -e TESTHEAD > mkcloud.config
 
           # copy scripts/ dir onto the admin node in /root/scripts
           scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
@@ -211,6 +219,7 @@
               tempest=$tempest
               cct_tests=$cct
               horizon-tests=$horizon-tests
+              trigger_upgrade=$trigger_upgrade
               scenario_name=1a
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER
