@@ -1,0 +1,238 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  image:
+    type: string
+    default: cirros-0.3.4-x86_64-tempest-machine
+
+  flavor:
+    type: string
+    default: m1.tiny
+
+  public_net:
+    type: string
+    description: >
+      ID or name of public network for which floating IP addresses will be allocated
+    default: floating
+
+  outside_ip:
+    type: string
+    default: 8.8.8.8
+
+  east_net_cidr:
+    type: string
+    default: 172.20.0.0/24
+
+  east_net_pool_start:
+    type: string
+    description: Start of private network IP address allocation pool
+    default: 172.20.0.10
+
+  east_net_pool_end:
+    type: string
+    description: End of private network IP address allocation pool
+    default: 172.20.0.99
+
+  west_net_cidr:
+    type: string
+    default: 172.20.1.0/24
+
+  west_net_pool_start:
+    type: string
+    description: Start of private network IP address allocation pool
+    default: 172.20.1.10
+
+  west_net_pool_end:
+    type: string
+    description: End of private network IP address allocation pool
+    default: 172.20.1.99
+
+resources:
+
+  keypair:
+    type: OS::Nova::KeyPair
+    properties:
+      name: testkey
+      public_key: { get_file: /root/.ssh/id_rsa.pub }
+
+  private_net_east:
+    type: OS::Neutron::Net
+    properties:
+      name: private_net_east
+
+  private_subnet_east:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: private_net_east }
+      cidr: { get_param: east_net_cidr }
+      allocation_pools:
+        - start: { get_param: east_net_pool_start }
+          end: { get_param: east_net_pool_end }
+
+  private_net_west:
+    type: OS::Neutron::Net
+    properties:
+      name: private_net_west
+
+  private_subnet_west:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: private_net_west }
+      cidr: { get_param: west_net_cidr }
+      allocation_pools:
+        - start: { get_param: west_net_pool_start }
+          end: { get_param: west_net_pool_end }
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network: { get_param: public_net }
+
+  router_interface_east:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router }
+      subnet_id: { get_resource: private_subnet_east }
+
+  router_interface_west:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router }
+      subnet_id: { get_resource: private_subnet_west }
+
+  security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - direction: ingress
+          ethertype: IPv4
+
+  east1_port:
+    type: OS::Neutron::Port
+    properties:
+      security_groups:
+        - { get_resource: security_group }
+      network_id: { get_resource: private_net_east }
+      fixed_ips:
+        - subnet_id: { get_resource: private_subnet_east }
+
+  east2_port:
+    type: OS::Neutron::Port
+    properties:
+      security_groups:
+        - { get_resource: security_group }
+      network_id: { get_resource: private_net_east }
+      fixed_ips:
+        - subnet_id: { get_resource: private_subnet_east }
+
+  east1_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_net }
+      port_id: { get_resource: east1_port }
+
+  east2_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_net }
+      port_id: { get_resource: east2_port }
+
+  west1_port:
+    type: OS::Neutron::Port
+    properties:
+      security_groups:
+        - { get_resource: security_group }
+      network_id: { get_resource: private_net_west }
+      fixed_ips:
+        - subnet_id: { get_resource: private_subnet_west }
+
+  west2_port:
+    type: OS::Neutron::Port
+    properties:
+      security_groups:
+        - { get_resource: security_group }
+      network_id: { get_resource: private_net_west }
+      fixed_ips:
+        - subnet_id: { get_resource: private_subnet_west }
+
+  west1_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_net }
+      port_id: { get_resource: west1_port }
+
+  west2_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_net }
+      port_id: { get_resource: west2_port }
+
+
+  east1:
+    type: OS::Nova::Server
+    properties:
+      name: east1
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_resource: keypair }
+      networks:
+        - port: { get_resource: east1_port }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: { get_file: ping_template.sh }
+          params:
+            "@outside_ip@": { get_param: outside_ip }
+            "@neighbour_ip@": { get_attr: [ west1_floating_ip, floating_ip_address ] }
+
+  east2:
+    type: OS::Nova::Server
+    properties:
+      name: east2
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_resource: keypair }
+      networks:
+        - port: { get_resource: east2_port }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: { get_file: ping_template.sh }
+          params:
+            "@outside_ip@": { get_param: outside_ip }
+            "@neighbour_ip@": { get_attr: [ west2_floating_ip, floating_ip_address ] }
+
+  west1:
+    type: OS::Nova::Server
+    properties:
+      name: west1
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_resource: keypair }
+      networks:
+        - port: { get_resource: west1_port }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: { get_file: ping_template.sh }
+          params:
+            "@outside_ip@": { get_param: outside_ip }
+            "@neighbour_ip@": { get_attr: [ east1_floating_ip, floating_ip_address ] }
+
+  west2:
+    type: OS::Nova::Server
+    properties:
+      name: west2
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_resource: keypair }
+      networks:
+        - port: { get_resource: west2_port }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: { get_file: ping_template.sh }
+          params:
+            "@outside_ip@": { get_param: outside_ip }
+            "@neighbour_ip@": { get_attr: [ east2_floating_ip, floating_ip_address ] }
