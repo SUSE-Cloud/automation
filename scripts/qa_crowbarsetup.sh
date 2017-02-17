@@ -39,6 +39,7 @@ fi
 : ${want_sahara:=1}
 : ${want_murano:=0}
 : ${want_tempest:=1}
+: ${want_ceilometer:=1}
 : ${want_trove:=1}
 : ${want_aodh:=1}
 : ${want_s390:=''}
@@ -3171,6 +3172,9 @@ function deploy_single_proposal
                 echo "Murano is SOC 7+ only. Skipping"
                 return
             fi
+            ;;
+        ceilometer)
+            [[ $want_ceilometer = 1 ]] || return
             ;;
     esac
 
