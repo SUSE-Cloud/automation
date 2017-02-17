@@ -64,6 +64,7 @@
           values:
             - Devel:Cloud:5:Staging
             - Devel:Cloud:6:Staging
+            - Devel:Cloud:6:HCP
             - Devel:Cloud:7:Staging
       - axis:
           type: slave
@@ -107,6 +108,19 @@
             ].contains(project) &&
             [
               "crowbar-init"
+            ].contains(component)
+          )
+          ||
+          (
+            [
+              "Devel:Cloud:6:HCP"
+            ].contains(project) &&
+            [
+              "crowbar-ui",
+              "crowbar-hyperv",
+              "crowbar-init",
+              "openstack-dashboard-theme-SUSE",
+              "release-notes-suse-openstack-cloud"
             ].contains(component)
           )
         )
