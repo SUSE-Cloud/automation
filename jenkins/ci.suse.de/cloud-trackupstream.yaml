@@ -72,11 +72,44 @@
             - openstack-trackupstream
     execution-strategy:
       combination-filter: |
-        !( ( ["Devel:Cloud:5:Staging"].contains(project)  &&
-             ["openstack-dashboard-theme-SUSE", "crowbar-core", "crowbar-openstack", "crowbar-ha", "crowbar-hyperv", "crowbar-ceph", "release-notes-suse-openstack-cloud", "crowbar-ui"].contains(component)      )   ||
-           ( ( ! ["Devel:Cloud:5:Staging"].contains(project) ) &&
-             component.startsWith('crowbar-barclamp-')  || ["suse-cloud-upgrade"].contains(component)    ) ||
-           ( ["Devel:Cloud:5:Staging", "Devel:Cloud:6:Staging"].contains(project)  && ["crowbar-init"].contains(component)) )
+        !(
+          (
+            [
+              "Devel:Cloud:5:Staging"
+            ].contains(project) &&
+            [
+              "openstack-dashboard-theme-SUSE",
+              "crowbar-core",
+              "crowbar-openstack",
+              "crowbar-ha",
+              "crowbar-hyperv",
+              "crowbar-ceph",
+              "release-notes-suse-openstack-cloud",
+              "crowbar-ui"
+            ].contains(component)
+          )
+          ||
+          (
+            (
+              ! [
+                "Devel:Cloud:5:Staging"
+              ].contains(project) ) &&
+             component.startsWith('crowbar-barclamp-') ||
+             [
+               "suse-cloud-upgrade"
+             ].contains(component)
+          )
+          ||
+          (
+            [
+              "Devel:Cloud:5:Staging",
+              "Devel:Cloud:6:Staging"
+            ].contains(project) &&
+            [
+              "crowbar-init"
+            ].contains(component)
+          )
+        )
       sequential: true
     builders:
       - shell: |
