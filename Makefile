@@ -1,5 +1,8 @@
 SHELL := /bin/bash
-test: bashate perlcheck rubycheck pythoncheck rounduptest flake8 python_unittest jjb_test
+test: filecheck bashate perlcheck rubycheck pythoncheck rounduptest flake8 python_unittest jjb_test
+
+filecheck:
+	! git ls-tree -r HEAD --name-only | grep -v Makefile | xargs grep $$'\t'
 
 bashate:
 	cd scripts && \
