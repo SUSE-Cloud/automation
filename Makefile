@@ -1,6 +1,10 @@
 SHELL := /bin/bash
 test: filecheck bashate perlcheck rubycheck pythoncheck rounduptest flake8 python_unittest jjb_test
 
+clean:
+	rm -f scripts/jenkins/jenkins-job-triggerc scripts/lib/libvirt/{net-configc,vm-startc,compute-configc,net-startc,admin-configc,cleanupc}
+	find -name \*.pyc -print0 | xargs -0 rm -f
+
 filecheck:
 	! git ls-tree -r HEAD --name-only | grep -v Makefile | xargs grep $$'\t'
 
