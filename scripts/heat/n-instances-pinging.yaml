@@ -1,0 +1,32 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  num_pairs:
+    type: number
+    description: number of instance pairs to create
+
+resources:
+  keypair:
+    type: OS::Nova::KeyPair
+    properties:
+      name: testkey
+      public_key: { get_file: /root/.ssh/id_rsa.pub }
+
+  pairs:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: num_pairs }
+      resource_def:
+        type: instance_pairs.yaml
+        properties:
+          east_name: east-%index%
+          east_net_name: east-net-%index%
+          east_net_cidr: 172.20.%index%.0/24
+          east_net_pool_start: 172.20.%index%.10
+          east_net_pool_end: 172.20.%index%.99
+          west_name: west-%index%
+          west_net_name: west-net-%index%
+          west_net_cidr: 172.21.%index%.0/24
+          west_net_pool_start: 172.21.%index%.10
+          west_net_pool_end: 172.21.%index%.99
+
