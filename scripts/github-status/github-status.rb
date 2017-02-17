@@ -81,6 +81,15 @@ class GHClientHandler
     get_pr_latest_sha(pr) == sha
   end
 
+  def allowed_pull_request_source?(user)
+    return false if (!user || user.nil? || user.empty?)
+    return true if user == "SUSE-Cloud"
+    return true if [:suse_cloud_developers, :suse_cloud_owners, :crowbar_owners].find do |team|
+      team_member?(team, user)
+    end
+    false
+  end
+
   def get_all_pull_requests(state, status = [])
     pulls = @client.pull_requests(@repository, :state => state)
     pulls.select do |p|
@@ -94,11 +103,7 @@ class GHClientHandler
     pulls = get_all_pull_requests(state, status)
     pulls.select do |p|
       user = p.head.repo.owner.login rescue ''
-      next false if (!user || user.nil? || user.empty?)
-      user == "SUSE-Cloud" ||
-        [:suse_cloud_developers, :suse_cloud_owners, :crowbar_owners].find do |team|
-          team_member?(team, user)
-        end
+      allowed_pull_request_source?(user)
     end
   end
 
