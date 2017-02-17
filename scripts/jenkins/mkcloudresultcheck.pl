@@ -25,8 +25,8 @@ for my $num ($startnum..$endnum) {
         '(SHA1 mismatch), newer commit exists',
         'crowbar\.(\w\d+)\.cloud\.suse\.de',
         'Error: (crowbar self-test) failed',
-	'(Automatic merge failed)',
-	'(binding_failed)',
+        '(Automatic merge failed)',
+        '(binding_failed)',
         'mk(?:phys)?cloud (ret=\d+)',
         '\((safelyret=\d+)\) Aborting',
     ) {

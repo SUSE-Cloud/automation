@@ -18,28 +18,28 @@ sleep(rand(2)); # reduce chance of collisions with make -j
 # lock+select testdir
 my $found=0;
 foreach my $d (@dirs) {
-	# use own allocation lock protocol
-	my $a="$d/$allocname";
-	sysopen my $fh, $a, O_RDWR|O_CREAT or die "cant create $a";
-	flock $fh, LOCK_EX or next;
-	my $num = <$fh>;
-	if($num && $num=~m/^\d{1,5}$/) {
-		my $signalled=kill(0, $num);
+        # use own allocation lock protocol
+        my $a="$d/$allocname";
+        sysopen my $fh, $a, O_RDWR|O_CREAT or die "cant create $a";
+        flock $fh, LOCK_EX or next;
+        my $num = <$fh>;
+        if($num && $num=~m/^\d{1,5}$/) {
+                my $signalled=kill(0, $num);
                 diag "PID file had $num";
-		if($signalled) {
-			diag "someone else owns $a and is alive";
-			next;
-		}
-	}
-	# process is dead => cleanup
-	seek $fh, 0, 0 or die "can't rewind numfile: $!";
-	truncate $fh, 0 or die "can't truncate numfile: $!";
-	print $fh "$$\n";
-	close($fh);
-	diag "Wrote new PID file with $$";
-	$ENV{testdir}=$d;
-	$found=1;
-	last;
+                if($signalled) {
+                        diag "someone else owns $a and is alive";
+                        next;
+                }
+        }
+        # process is dead => cleanup
+        seek $fh, 0, 0 or die "can't rewind numfile: $!";
+        truncate $fh, 0 or die "can't truncate numfile: $!";
+        print $fh "$$\n";
+        close($fh);
+        diag "Wrote new PID file with $$";
+        $ENV{testdir}=$d;
+        $found=1;
+        last;
 }
 if(!$found) {die "all pool dirs are currently in use - please make sure you have enough free pool slots or reduce the number of executors for this node: ".`hostname`}
 print "using testdir=$ENV{testdir}\n";
