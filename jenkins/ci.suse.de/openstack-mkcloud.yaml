@@ -139,6 +139,11 @@
          description: deploy cloud7 with SP2 instead of SP1
 
      - string:
+         name: want_hcp
+         default:
+         description: set to 1 deploy hcp
+
+     - string:
          name: upgrade_cloudsource
          default:
          description: In case of using upgrade, upgrade to that cloudsource version
