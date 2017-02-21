@@ -30,6 +30,8 @@ function qacrowbarsetup_help
             want_node_roles=controller=1,compute=2,storage=3
     want_test_updates=0 | 1  (default=1 if TESTHEAD is set, 0 otherwise)
         add test update repositories
+    want_timescaling=2 (default 1)
+        increase all wait_for sleeps by this factor
     want_sbd=1 (default 0)
         Setup SBD over iSCSI for cluster nodes, with iSCSI target on admin node. Only usable for HA configuration.
     want_devel_repos=list of Devel Projects to use for other products

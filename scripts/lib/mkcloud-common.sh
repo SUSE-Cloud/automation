@@ -30,6 +30,7 @@ function wait_for
     local error_cmd=${5:-'exit 11'}
 
     local original_xstatus=${-//[^x]/}
+    timesleep=$((timesleep*${want_timescaling:-1}))
     set +x
     echo "Waiting for: $waitfor"
     echo "  until this condition is true: $condition"
