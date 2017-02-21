@@ -3438,6 +3438,12 @@ function oncontroller_run_tempest
 function oncontroller_upload_defcore
 {
     pushd /var/lib/openstack-tempest-test
+    # get the test list
+    wget "https://refstack.openstack.org/api/v1/guidelines/2017.01/tests?target=platform&type=required&alias=true&flag=false" -O defcore-with-id.txt
+    # remove the id in [] or tempest will complain on incorrect regex
+    sed -e 's/\[[^][]*\]//g' defcore-with-id.txt > defcore.txt
+    # run only the specified tests
+    tempest run --whitelist-file defcore.txt
     source /root/.openrc
     testr last --subunit | subunit-2to1 > tempest.subunit.log
     test -d refstack-client || safely git clone https://github.com/openstack/refstack-client
