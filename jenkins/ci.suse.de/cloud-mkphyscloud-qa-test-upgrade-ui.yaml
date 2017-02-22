@@ -58,6 +58,12 @@
           #!/bin/bash
           admin=crowbar$hw_number;
           cloud=qa$hw_number;
+          result=0
+
+          artifacts_dir=$WORKSPACE/.artifacts
+          rm -rf $artifacts_dir
+          mkdir -p $artifacts_dir
+          touch $artifacts_dir/.ignore
 
           ssh root@$admin "
             export cloud=$cloud;
@@ -73,10 +79,15 @@
             [[ -z $upgrade_cloudsource ]] && \
             complain 55 "Variable \$upgrade_cloudsource not defined, upgrade target is missing"
 
+            zypper refresh
+            zypper update
             zypper --non-interactive install crowbar-ui
 
             # from scripts/mkcloud -> crowbarupgrade_5plus
             onadmin_zypper_patch_all
             onadmin_run_cct
-          '
+          ' || result=$?
 
+          scp root@$admin:/root/github.com/SUSE-Cloud/cct/*.png $artifacts_dir
+
+          exit $result
