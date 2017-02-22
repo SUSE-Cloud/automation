@@ -126,6 +126,12 @@ case "$cloudsource" in
             $zypper ar -G -f $cloudopenstackmirror/Newton:/Staging/$REPO/ cloudhead
         fi
     ;;
+    openstackocata)
+        $zypper ar -G -f $cloudopenstackmirror/Ocata/$REPO/ cloud
+        if test -n "$OSHEAD" ; then
+            $zypper ar -G -f $cloudopenstackmirror/Ocata:/Staging/$REPO/ cloudhead
+        fi
+    ;;
     openstackmaster)
         $zypper ar -G -f $cloudopenstackmirror/Master/$REPO/ cloud || :
         # no staging for master
