@@ -88,6 +88,7 @@ proposals:
       - cluster:services
 - barclamp: cinder
   attributes:
+    replicas: 2
     volumes:
     - backend_driver: raw
       backend_name: default

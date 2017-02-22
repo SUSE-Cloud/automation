@@ -124,6 +124,7 @@ proposals:
 
 - barclamp: swift
   attributes:
+    replicas: 2
     keystone_delay_auth_decision: true
     allow_versions: true
   deployment:
