@@ -3354,6 +3354,90 @@ function addfloatingip
     nova add-floating-ip "$instanceid" "$floatingip"
 }
 
+function oncontroller_nova_evacuate
+{
+    local num_controllers=$1
+
+    # Test nova evacuate
+    local vm_name=NovaEvacuate
+
+    # JSON parser with python
+    local PJSON='import json,sys; field=json.load(sys.stdin)'
+
+    # Get hypervisor hostname
+    local hypervisors=$(openstack hypervisor list -c 'Hypervisor Hostname' --format json)
+    local hypervisor_host_fqdn=$(echo $hypervisors | python -c "$PJSON; print field[0]['Hypervisor Hostname']")
+    local hypervisor_host=$(echo $hypervisor_host_fqdn | cut -d '.' -f 1)
+
+    # Create instance on specific hypervisor
+    # image always exist after tempest run (cirros-0.3.4-x86_64-tempest-machine)
+    nova boot --image cirros-0.3.4-x86_64-tempest-machine --flavor tempest-stuff --availability-zone nova:$hypervisor_host $vm_name
+    # Create floating ip assign to instance
+    addfloatingip $vm_name
+    local floatingip=$(openstack server show -c addresses --format value $vm_name | cut -d " " -f 2)
+    # Update security group for icmp
+    nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0 &> /dev/null
+
+    # Check if instance is ACTIVE and Running
+    ping -c 10 $floatingip >/dev/null 2>&1
+    local ping_result=$?
+    local status=$(openstack server show -c status --format value $vm_name)
+    echo "Instance status: $status"
+    if [[ $status = ACTIVE && $ping_result = 0 ]]; then
+        echo "Instance launched successfully"
+    else
+        echo "Instance launch failed"
+        exit 1
+    fi
+
+    # Simulate failure of hypervisor node
+    kill_pacemaker_remote $hypervisor_host_fqdn $floatingip $num_controllers
+
+    # Check that instance evacuated to working hypervisor host
+    local ret=0
+    local hypervisor_evacuate_host=$(openstack server show -c OS-EXT-SRV-ATTR:hypervisor_hostname --format value $vm_name)
+    if [[ $hypervisor_evacuate_host != $hypervisor_host ]]; then
+        echo "Instance evacuated"
+    else
+        echo "Evacuate fail, instance remains on failed host"
+        ret=20
+    fi
+
+    # NOTE(gosipyan) because of bsc#1025230 the compute node is fenced
+    # (shutdown in real hardware, and rebooted w/out network in VM) and can't
+    # be recovered, but because this is the last test and the environment is
+    # not needed anymore, we can do the recovery later.
+
+    exit $ret
+}
+
+function kill_pacemaker_remote
+{
+    echo "Killing pacemaker..."
+
+    local hypervisor_fqdn=$1
+    local floatingip=$2
+    local num_controllers=$3
+
+    # Simulate failure of hypervisor node
+    ssh -T $hypervisor_fqdn "killall -9 pacemaker_remoted"
+
+    local ret=1
+    local n=120
+    # Check for nova-evacute log on all cluster nodes
+    while [[ $n -gt 0 && $ret != 0 ]]; do
+        for((i=1; i<=$num_controllers; i++)) ; do
+            ssh controller$i 'grep -q "Completed evacuation of" /var/log/messages'
+            ret=$?
+            [[ $ret != 0 ]] && break
+        done
+        sleep 1
+        n=$(expr $n - 1)
+    done
+    # Wait to instance be up
+    wait_for 100 1 "ping -q -c 1 -w 1 $floatingip >/dev/null" "Instance to be up"
+}
+
 # by setting --dns-nameserver for subnet, docker instance gets this as
 # DNS info (otherwise it would use /etc/resolv.conf from its host)
 function adapt_dns_for_docker

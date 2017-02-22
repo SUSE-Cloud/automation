@@ -114,6 +114,11 @@
           default: false
           description: add update repos before crowbar install
 
+      - bool:
+          name: RUNNOVAEVACUATE
+          default: false
+          description: Will execute nova evacuate test after deployment
+
     builders:
       - shell: |
           #!/bin/bash
@@ -155,18 +160,18 @@
           ret=0
 
           ssh root@$admin "
-          export cloud=$cloud ;
-          export hw_number=$hw_number ;
-          export UPDATEREPOS=$UPDATEREPOS ;
-          export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
-          export TESTHEAD=$TESTHEAD ;
-          export cloudsource=$cloudsource ;
-          export nodenumber=$nodenumber ;
-          export hacloud=$hacloud ;
-          export clusterconfig=$clusterconfig ;
-          export shared_storage_ip=$shared_storage_ip ;
-          export want_node_aliases=controller=3,compute=3;
-          export scenario=\"/root/scenario.yml\" ;
+          export cloud=$cloud
+          export hw_number=$hw_number
+          export UPDATEREPOS=$UPDATEREPOS
+          export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL
+          export TESTHEAD=$TESTHEAD
+          export cloudsource=$cloudsource
+          export nodenumber=$nodenumber
+          export hacloud=$hacloud
+          export clusterconfig=$clusterconfig
+          export shared_storage_ip=$shared_storage_ip
+          export want_node_aliases=controller=3,compute=3
+          export scenario=\"/root/scenario.yml\"
           export commands=\"$commands\" "'
 
           sed -i -e "s,##shared_nfs_for_glance##,$shared_storage_ip," scenario.yml
@@ -179,6 +184,42 @@
           timeout --signal=ALRM 150m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands;"
           ' || ret=$?
 
+          # Some initial preparations:
+          #  * copy the certificate from controller1 to
+          #    all compute nodes
+          #  * calculate the number of compute nodes
+
+          if [[ $RUNNOVAEVACUATE = true && $ret = 0 ]]; then
+            echo "Start nova evacuate testing"
+            ssh -T root@$admin << 'EOF'
+            PJSON="import json,sys; field = json.load(sys.stdin)"
+
+            # Extract the list of controll nodes, that will be copied to the
+            # admin node. Used in oncontroller_nova_evacuate in
+            # qa_crowbarsetup.sh
+            controller_nodes=$(crowbarctl proposal show --filter deployment.pacemaker.elements.pacemaker-cluster-member --json pacemaker services)
+            num_controllers=$(echo $controller_nodes | python -c "$PJSON; print len(field)")
+            # Recover the controller1 certificate
+            scp controller1:/root/.ssh/id_rsa.pub /tmp/
+
+            # Extract the list of compute nodes, that will be copied to the
+            # admin node.
+            compute_nodes=$(crowbarctl proposal show --filter deployment.pacemaker.elements.pacemaker-remote --json pacemaker services)
+            num_computes=$(echo $compute_nodes | python -c "$PJSON; print len(field)")
+
+            # Deploy the certificate to all compute nodes
+            for ((i=1; i<=$num_computes; i++)); do
+              echo "Copy auth keys from $HOSTNAME to compute$i"
+              ssh-copy-id -f -i /tmp/id_rsa.pub compute$i
+            done
+
+            # Run test oncontroller_nova_evacuate
+            source scripts/qa_crowbarsetup.sh
+            get_novacontroller
+            oncontroller nova_evacuate $num_controllers
+          EOF
+            ret=$?
+          fi
 
           if [ $ret != 0 ] ; then
             ssh $sshopts root@$admin '
