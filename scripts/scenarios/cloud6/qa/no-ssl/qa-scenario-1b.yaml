@@ -86,6 +86,7 @@ proposals:
 
 - barclamp: glance
   attributes:
+    replicas: 2
     default_store: swift
   deployment:
     elements:

@@ -80,9 +80,10 @@ proposals:
       - cluster:services
 
 - barclamp: swift
-  keystone_delay_auth_decision: true
-  allow_versions: true
   attributes:
+    keystone_delay_auth_decision: true
+    allow_versions: true
+    replicas: 2
     ssl:
       enabled: true
       generate_certs: true
