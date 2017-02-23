@@ -72,6 +72,8 @@ proposals:
       - cluster:services
 
 - barclamp: swift
+  attributes:
+    replicas: 2
   deployment:
     elements:
       swift-dispersion:
@@ -86,7 +88,6 @@ proposals:
 
 - barclamp: glance
   attributes:
-    replicas: 2
     default_store: swift
   deployment:
     elements:
