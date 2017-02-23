@@ -17,6 +17,7 @@
             - Cloud:OpenStack:Liberty:Staging
             - Cloud:OpenStack:Mitaka:Staging
             - Cloud:OpenStack:Newton:Staging
+            - Cloud:OpenStack:Ocata:Staging
             - Cloud:OpenStack:Master
       - axis:
           type: user-defined
@@ -89,7 +90,7 @@
             "openstack-horizon-plugin-trove-ui",
             "openstack-zaqar",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Newton:Staging", "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Ocata:Staging", "Cloud:OpenStack:Newton:Staging", "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging" ].contains(project) &&
             [
               "python-heat-cfntools",
               "openstack-rally",
@@ -116,7 +117,7 @@
             OBS) OSCAPI="https://api.opensuse.org"
                 OSC_BUILD_ARCH=x86_64
                 case $OBS_PROJECT in
-                    Cloud:OpenStack:Master|Cloud:OpenStack:Newton*)
+                    Cloud:OpenStack:Master|Cloud:OpenStack:Newton*|Cloud:OpenStack:Ocata*)
                         OSC_BUILD_DIST=SLE_12_SP2
                         ;;
                     Cloud:OpenStack:Mitaka*|Cloud:OpenStack:Liberty*)
