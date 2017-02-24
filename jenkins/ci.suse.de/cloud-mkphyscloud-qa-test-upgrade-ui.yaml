@@ -85,7 +85,10 @@
 
             # from scripts/mkcloud -> crowbarupgrade_5plus
             onadmin_zypper_patch_all
+            onadmin_allow_vendor_change_at_nodes
             onadmin_run_cct
+            export cloudsource=$upgrade_cloudsource
+            onadmin_prepare_cloudupgrade_repos_6_to_7
           ' || result=$?
 
           scp root@$admin:/root/github.com/SUSE-Cloud/cct/*.png $artifacts_dir
