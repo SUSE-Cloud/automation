@@ -1456,7 +1456,7 @@ EOF
         /opt/dell/bin/json-edit -a attributes.network.teaming.mode -r -v 5 $netfile
     fi
     # Setup network attributes for custom MTU
-    if [[ $want_mtu_size -gt 1500 ]]; then
+    if [[ $want_mtu_size -ne 1500 ]]; then
         echo "Setting MTU to custom value of: $want_mtu_size"
         local lnet
         for lnet in admin storage os_sdn ; do
