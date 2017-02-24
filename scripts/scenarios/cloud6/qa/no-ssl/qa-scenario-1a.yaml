@@ -69,6 +69,7 @@ proposals:
 - barclamp: swift
   attributes:
     cluster_hash: 181d283256
+    replicas: 2
   deployment:
     elements:
       swift-dispersion: []
@@ -88,7 +89,6 @@ proposals:
       - cluster:services
 - barclamp: cinder
   attributes:
-    replicas: 2
     volumes:
     - backend_driver: raw
       backend_name: default
