@@ -3767,15 +3767,6 @@ function oncontroller_magnum_service_setup
             --property os_distro=fedora-atomic $service_image_name
     fi
 
-    if ! openstack image list --f value -c Name | grep -q "^${magnum_k8s_image_name}$"; then
-        . ~/.openrc
-
-        curl http://$adminip:8091/files/$magnum_k8s_image_name/$magnum_k8s_image_name.$arch.qcow2 | \
-            openstack image create \
-                --disk-format qcow2 --container-format bare --public \
-                --property os_distro=opensuse $magnum_k8s_image_name
-    fi
-
     # create magnum flavors used by tempest
     if ! openstack flavor show m2.smaller; then
         openstack flavor create --ram 1024 --disk 8 --vcpus 1 m2.smaller
