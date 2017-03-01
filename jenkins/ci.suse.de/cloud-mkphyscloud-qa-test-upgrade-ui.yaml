@@ -37,6 +37,21 @@
           description: Optional; scenario name which typically is an integer with a single letter
 
       - string:
+          name: cct_repo_owner
+          default: SUSE-Cloud
+          description: Optional; scenario name which typically is an integer with a single letter
+
+      - string:
+          name: cct_git_url
+          default: https://github.com/$cct_repo_owner/cct.git
+          description: Optional, cct git repo url
+
+      - string:
+          name: cct_checkout_branch
+          default: cloud6
+          description: Optional, pick git branch to be tested
+
+      - string:
           name: scenario_job_name
           description: Optional; name of the scenario jenkins job that is used to trigger this job
 
@@ -64,6 +79,8 @@
             export cloud=$cloud;
             export upgrade_cloudsource=$upgrade_cloudsource
             export cct_ui_tests=true
+            export cct_git_url=$cct_git_url
+            export cct_checkout_branch=$cct_checkout_branch
           " '
             set -x;
             hostname -f;
@@ -89,8 +106,58 @@
 
             export cct_tests=feature:ui:upgrade:admin:repos
             onadmin_run_cct
+
+            # We only check if the upgrade screen is ready but we will do the upgrade via crowbarctl later
+            export cct_tests=feature:ui:upgrade:admin:upgrade
+            onadmin_run_cct
+
           ' || result=$?
 
-          scp root@$admin:/root/github.com/SUSE-Cloud/cct/*.png $artifacts_dir
+          scp root@$admin:/root/github.com/$cct_repo_owner/cct/*.png $artifacts_dir
 
-          exit $result
+          if [[ $result != 0 ]]; then
+              exit $result
+          fi
+
+          # Clean up deps installed for cct UI tests
+          # and remove SDK-SP1 SDK-SP1-Update repos
+          # /usr/local/sbin/cct_deps_cleanup
+          cct_deps_cleanup $admin
+
+          # remove cloud6 ptf repo in case it exists
+          ssh root@admin "zypper --non-interactive cloud-ptf"
+
+          # Trigger the SLE upgrade from crowbarctl
+          # The cct process runs on the admin node we can't use it here reliably
+          # We plug it back once the admin node is upgraded and ready to use
+          ssh root@$admin "
+            export cloud=$cloud;
+            export cloudsource=$upgrade_cloudsource
+          " '
+            set -x;
+            hostname -f;
+            source mkcloud.config;
+            source scripts/qa_crowbarsetup.sh;
+
+            # Do the upgrade of the admin node
+            onadmin_upgrade_admin_server
+          ' || result=$?
+
+          if [[ $result != 0 ]]; then
+              exit $result
+          fi
+
+          wait_for 400 3 "! nc -w 1 -z $admin 22" "crowbar to go down after upgrade"
+          wait_for 150 1 "nc -w 1 -z $admin 22" "admin node to start ssh daemon"
+
+          ssh root@$admin "
+            export cloud=$cloud;
+            export cloudsource=$upgrade_cloudsource
+          " '
+            set -x;
+            hostname -f;
+            source mkcloud.config;
+            source scripts/qa_crowbarsetup.sh;
+
+            onadmin_check_admin_server_upgraded
+          '
