@@ -4398,7 +4398,7 @@ function ping_fips
 
 function oncontroller_testpreupgrade
 {
-    heat stack-create upgrade_test -f /root/scripts/heat/2-instances-pinging.yaml
+    heat stack-create upgrade_test -f /root/scripts/heat/2-instances-cinder.yaml
     wait_for 15 20 "heat stack-list | grep upgrade_test | grep CREATE_COMPLETE" \
              "heat stack for upgrade tests to complete"
 
@@ -4418,6 +4418,14 @@ function oncontroller_testpostupgrade
         scp cirros@$fip:/var/log/ping_outside.out ping_outside.$fip.out
         max=$(sed -n 's/^.* not available for: //p' ping_outside.$fip.out | sort -n | tail -n 1)
         echo "Maximum outage while pinging outside IP from $fip: $max seconds"
+
+        scp cirros@$fip:/mnt/cinder_test.out cinder_test.$fip.out
+        res=$(awk '$1!=p+1{print $1-p}{p=$1}' cinder_test.$fip.out | tail -n +2 | sort | tail -n 1)
+        if [ -z "$res" ]; then
+            echo "No cinder volume outage when writing from $fip"
+        else
+            echo "Maximum cinder volume outage when writing from $fip: $res seconds"
+        fi
     done
 
     openstack stack delete --yes upgrade_test
