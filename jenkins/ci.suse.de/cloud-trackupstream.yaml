@@ -64,7 +64,7 @@
           values:
             - Devel:Cloud:5:Staging
             - Devel:Cloud:6:Staging
-            - Devel:Cloud:6:HCP
+            - Devel:Cloud:6:Staging:HCP
             - Devel:Cloud:7:Staging
       - axis:
           type: slave
@@ -113,7 +113,7 @@
           ||
           (
             [
-              "Devel:Cloud:6:HCP"
+              "Devel:Cloud:6:Staging:HCP"
             ].contains(project) &&
             [
               "crowbar-ui",
