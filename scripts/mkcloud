@@ -1073,6 +1073,8 @@ Optional
         It's not deployed by default. Set to 1 to deploy magnum.
     want_barbican=0 (default=1)
         Deployed by default. Set to 0 to prevent barbican from being deployed.
+    want_ceilometer=0 (default=1)
+        Deployed by default. Set to 0 to prevent ceilometer from being deployed.
     want_sahara=0 (default=1)
         Deployed by default. Set to 0 to prevent sahara from being deployed.
     want_murano=1 (default=0)
