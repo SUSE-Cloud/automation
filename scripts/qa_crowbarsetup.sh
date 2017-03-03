@@ -34,6 +34,7 @@ fi
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
+: ${want_manila:=1}
 : ${want_magnum:=0}
 : ${want_barbican:=1}
 : ${want_sahara:=1}
@@ -3123,6 +3124,7 @@ function deploy_single_proposal
             fi
             ;;
         manila)
+            [[ $want_manila = 1 ]] || return
             # manila-service can not be deployed currently with docker
             [[ $want_docker = 1 ]] && return
             # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
