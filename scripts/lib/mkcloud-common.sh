@@ -103,6 +103,11 @@ function determine_mtu
     LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1
 }
 
+function is_opensuse
+{
+    grep -q ID=opensuse /etc/os-release
+}
+
 function is_suse
 {
     grep -qi suse /etc/*release

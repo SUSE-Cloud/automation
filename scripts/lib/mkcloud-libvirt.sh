@@ -343,6 +343,9 @@ function libvirt_do_onhost_deploy_image()
         sleep 1 # time for dev to become unused
         safely kpartx -dsv $disk
     fi
+    # resize partitionless disk with ext2 filesystem
+    tune2fs -l $disk > /dev/null 2>&1 && safely resize2fs $disk
+    true
 }
 
 function libvirt_do_setuplonelynodes()
