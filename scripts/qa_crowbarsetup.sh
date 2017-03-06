@@ -2240,6 +2240,11 @@ function enable_ssl_generic
     echo "Enabling SSL for $service"
     local p="proposal_set_value $service default"
     local a="['attributes']['$service']"
+    local pfile=`get_proposal_filename "$service" default`
+    if ! grep -q generate_certs $pfile ; then
+        echo "Cannot enable ssl for $service - not supported in this cloud version"
+        return
+    fi
     case $service in
         swift)
             $p "$a['ssl']['enabled']" true
