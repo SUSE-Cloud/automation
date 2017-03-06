@@ -411,6 +411,13 @@ function addcloud7maintupdates
     add_mount "SUSE-OpenStack-Cloud-7-Updates" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-7-Updates/" "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates/" "cloudmaintup"
 }
 
+function addcloud7testupdates
+{
+    add_mount "SUSE-OpenStack-Cloud-7-Updates-test" \
+        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/' \
+        "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates-test/" "cloudtup"
+}
+
 function addcctdepsrepo
 {
     if [[ $cloudsource = @(develcloud5|GM5|GM5+up) ]]; then
@@ -430,7 +437,7 @@ function add_sdk_repo
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
             ;;
-        develcloud7|mitakacloud7|susecloud7|M?|Beta*|RC*|GMC*)
+        develcloud7|mitakacloud7|GM7|GM7+up|M?|Beta*|RC*|GMC*)
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
             ;;
@@ -931,9 +938,15 @@ function onadmin_prepare_cloud_repos
             addcloud6pool
             addcloud6maintupdates
             ;;
-        develcloud7|susecloud7|M?|Beta*|RC*|GMC*)
+        develcloud7|GM7)
+            addcloud7pool
+            ;;
+        GM7+up)
             addcloud7pool
             addcloud7maintupdates
+            ;;
+        develcloud8|susecloud8|GM8|M?|Beta*|RC*|GMC*)
+            complain 57 "We don't have Cloud8 yet, please try again later"
             ;;
     esac
 
@@ -959,6 +972,13 @@ function onadmin_prepare_cloud_repos
                 addsles12sp1testupdates
                 addcloud6testupdates
                 ;;
+            GM7)
+                addsles12sp2testupdates
+                ;;
+            GM7+up)
+                addsles12sp2testupdates
+                addcloud7testupdates
+                ;;
             develcloud4)
                 addsp3testupdates
                 ;;
@@ -969,7 +989,7 @@ function onadmin_prepare_cloud_repos
             develcloud6)
                 addsles12sp1testupdates
                 ;;
-            develcloud7|mitakacloud7|susecloud7|M?|Beta*|RC*|GMC*)
+            develcloud7|mitakacloud7|M?|Beta*|RC*|GMC*)
                 addsles12sp2testupdates
                 ;;
             *)
@@ -1212,15 +1232,16 @@ function onadmin_set_source_variables
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
-        GMC*|M?)
+        GM7|GM7+up|GMC*|M?)
             cs=${cloudsource/#M/Milestone}
+            [[ $cs =~ GM7 ]] && cs=GM
             CLOUDSLE12DISTPATH=/install/SLE-12-SP2-Cloud7-$cs/
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*1.iso"
-            CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*DVD1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|develcloud7|susecloud7|GM4+up|GM5|Mx|GM6"
+            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|develcloud7|GM4+up|GM5|Mx|GM6|GM7"
         ;;
     esac
 
@@ -4206,18 +4227,19 @@ EOH
 function oncontroller_prepare_functional_tests
 {
     if iscloudver 6plus; then
-        case "$cloudsource" in
-            develcloud?|susecloud?|M?|Beta*|RC*|GMC*)
-                local mount_dir="/var/lib/Cloud-Testing"
-                local repo_name="cloud-test"
-                if ! zypper lr "$repo_name" ; then
-                    rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
-                    zypper -n ar --refresh -c -G -f "$mount_dir" "$repo_name"
-                    zypper_refresh
-                    ensure_packages_installed python-novaclient-test python-manilaclient-test
-                fi
-            ;;
-        esac
+        local mount_dir="/var/lib/Cloud-Testing"
+        local repo_name="cloud-test"
+
+        if ! [[ $CLOUDSLE12TESTISO ]]; then
+            echo "Error: Testing ISO for $cloudsource is not defined, functional tests are not available"
+        else
+            if ! zypper lr "$repo_name" ; then
+                rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
+                zypper -n ar --refresh -c -G -f "$mount_dir" "$repo_name"
+                zypper_refresh
+                ensure_packages_installed python-novaclient-test python-manilaclient-test
+            fi
+        fi
     fi
 }
 
