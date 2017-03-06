@@ -10,7 +10,8 @@ class GHClientHandler
   TEAMS = {
     :suse_cloud_owners     => 159206,   # SUSE-Cloud/Owners
     :suse_cloud_developers => 1541628,  # SUSE-Cloud/developers
-    :crowbar_owners        => 291046    # crowbar/Owners
+    :crowbar_owners        => 291046,   # crowbar/Owners
+    :crowbar_fujitsu       => 2259331   # crowbar/Fujitsu
   }
 
   def initialize(config = {})
@@ -98,7 +99,9 @@ class GHClientHandler
       user == "SUSE-Cloud" ||
         [:suse_cloud_developers, :suse_cloud_owners, :crowbar_owners].find do |team|
           team_member?(team, user)
-        end
+        end ||
+        ( team_member?(:crowbar_fujitsu, user) &&
+          ["crowbar/crowbar-openstack", "crowbar/crowbar-monitoring"].include?(@repository) )
     end
   end
 
