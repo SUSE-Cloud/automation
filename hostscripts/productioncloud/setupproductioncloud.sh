@@ -21,6 +21,8 @@ export cephvolumenumber=1
 # 2nd node only has 64GB RAM, making it more suitable for controller
 export want_node_roles=compute=1,controller=1,compute=1
 export want_node_aliases=n1=1,dashboard=1,n2=1
+export want_node_roles=controller=1,compute=2
+export want_node_aliases=dashboard=1,n1=1,n2=1
 export want_rootpw=securepassword
 export want_tempest=0
 # avoid crashing controller node from ovs+gre (bnc#970720)
