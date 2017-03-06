@@ -440,9 +440,9 @@ function add_sdk_repo
 function add_hcp_repo
 {
     local stage=
-    [[ $TESTHEAD ]] && stage="Staging:/"
+    [[ $TESTHEAD ]] && stage=":/Staging"
     # priority required to overwrite the default cloud6 packages
-    zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/${stage}HCP/SLE_12_SP1/ dc6hpc
+    zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/HCP${stage}/SLE_12_SP1/ dc6hpc
 }
 
 function add_ha_repo
