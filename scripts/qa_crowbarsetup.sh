@@ -425,14 +425,18 @@ function add_sdk_repo
     local sdk_repo_priority
     sdk_repo_priority=199
 
-    case "$cloudsource" in
-        develcloud6|GM6|GM6+up)
+    case $(getcloudver) in
+        6)
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
             ;;
-        develcloud7|mitakacloud7|GM7|GM7+up|M?|Beta*|RC*|GMC*)
+        7)
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
             zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
+            ;;
+        8)
+            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/ SDK-SP3
+            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/ SDK-SP3-Update
             ;;
     esac
 }
