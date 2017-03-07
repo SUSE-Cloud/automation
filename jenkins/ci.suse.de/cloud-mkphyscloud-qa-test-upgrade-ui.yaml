@@ -98,8 +98,6 @@
             onadmin_zypper_patch_all
             onadmin_allow_vendor_change_at_nodes
 
-            # fail on errors on the next two steps
-            set -e
             export cct_tests=feature:ui:upgrade:landing+feature:ui:upgrade:admin:backup
             onadmin_run_cct
 
@@ -109,8 +107,6 @@
             export cct_tests=feature:ui:upgrade:admin:repos
             onadmin_run_cct
 
-            # do not fail on error in the last step
-            set +e
             # We only check if the upgrade screen is ready but we will do the upgrade via crowbarctl later
             export cct_tests=feature:ui:upgrade:admin:upgrade
             onadmin_run_cct
