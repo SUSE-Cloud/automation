@@ -4439,6 +4439,12 @@ function oncontroller_testpostupgrade
 {
     # retrieve the ping results
     local fips=$(openstack floating ip list -f value -c "Floating IP Address")
+
+    # remove manila-service fip from list
+    manila_vm=$(openstack server list --all-projects -f value | grep manila-service | awk '{ print $1 }' )
+    manila_fip=$(openstack server show $manila_vm -f value -c addresses | awk '{ print $2 }' )
+    fips=( "${fips[@]/$manila_fip}" )
+
     for fip in $fips; do
         scp cirros@$fip:/var/log/ping_neighbour.out ping_neighbour.$fip.out
         max=$(sed -n 's/^.* not available for: //p' ping_neighbour.$fip.out | sort -n | tail -n 1)
