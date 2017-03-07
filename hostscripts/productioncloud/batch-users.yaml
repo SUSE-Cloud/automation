@@ -4,14 +4,14 @@ proposals:
   attributes:
     token_expiration: 86400
     admin:
-      password: securepassword
+      #password: securepassword
     default:
-      tenant: suse
+      #tenant: suse
 - barclamp: crowbar
   attributes:
     users:
       crowbar:
-        password: securepassword
+        #password: securepassword
 - barclamp: horizon
   attributes:
     session_timeout: 1000
