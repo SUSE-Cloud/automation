@@ -125,7 +125,7 @@
           cct_deps_cleanup $admin
 
           # remove cloud6 ptf repo in case it exists
-          ssh root@admin "zypper --non-interactive cloud-ptf"
+          ssh root@$admin "zypper rr cloud-ptf"
 
           # Trigger the SLE upgrade from crowbarctl
           # The cct process runs on the admin node we can't use it here reliably
@@ -154,6 +154,7 @@
             export cloud=$cloud;
             export cloudsource=$upgrade_cloudsource
             export cct_checkout_branch=$cct_checkout_branch
+            export cct_ui_tests=true
           " '
             set -x;
             hostname -f;
