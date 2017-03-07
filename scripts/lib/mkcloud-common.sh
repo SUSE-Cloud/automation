@@ -259,7 +259,7 @@ function setcloudnetvars
             vlan_sdn=$vlan_storage
             vlan_public=588
             #vlan_admin=587
-            vlan_fixed=589
+            vlan_fixed=582 # overlap with p3 storage/sdn to use less VLAN IDs
             want_ipmi=true
         ;;
         qa2)
