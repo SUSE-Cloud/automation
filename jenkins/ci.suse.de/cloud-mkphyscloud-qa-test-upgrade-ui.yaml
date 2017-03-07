@@ -157,6 +157,7 @@
           ssh root@$admin "
             export cloud=$cloud;
             export cloudsource=$upgrade_cloudsource
+            export cct_checkout_branch=$cct_checkout_branch
           " '
             set -x;
             hostname -f;
@@ -164,4 +165,10 @@
             source scripts/qa_crowbarsetup.sh;
 
             onadmin_check_admin_server_upgraded
+
+            export cct_tests=feature:ui:upgrade:pgsql:create
+            onadmin_run_cct
+
+            export cct_tests=feature:ui:upgrade:nodes:repos
+            onadmin_run_cct
           '
