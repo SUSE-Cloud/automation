@@ -4,7 +4,7 @@ proposals:
   attributes:
     ssl:
       generate_certs: false
-      insecure: false
+      insecure: true
       certfile: "/etc/cloud-keys/combined.crt"
       keyfile: "/etc/cloud-keys/server.key"
     api:
