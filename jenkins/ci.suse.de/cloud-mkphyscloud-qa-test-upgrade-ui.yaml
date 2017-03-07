@@ -138,6 +138,7 @@
             hostname -f;
             source mkcloud.config;
             source scripts/qa_crowbarsetup.sh;
+            export cloudsource=$upgrade_cloudsource
 
             # Do the upgrade of the admin node
             onadmin_upgrade_admin_server
@@ -160,6 +161,7 @@
             hostname -f;
             source mkcloud.config;
             source scripts/qa_crowbarsetup.sh;
+            export cloudsource=$upgrade_cloudsource
 
             onadmin_check_admin_server_upgraded
 
