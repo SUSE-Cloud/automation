@@ -103,6 +103,7 @@
 
             export cloudsource=$upgrade_cloudsource
             onadmin_prepare_cloudupgrade_repos_6_to_7
+            addcloud7maintupdates
 
             export cct_tests=feature:ui:upgrade:admin:repos
             onadmin_run_cct
