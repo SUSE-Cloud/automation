@@ -448,12 +448,12 @@ function add_sdk_repo
     esac
 }
 
-function add_hcp_repo
+function add_sap_repo
 {
     local stage=
     [[ $TESTHEAD ]] && stage=":/Staging"
     # priority required to overwrite the default cloud6 packages
-    zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/HCP${stage}/SLE_12_SP1/ dc6hpc
+    zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/SAP${stage}/SLE_12_SP1/ dc6sap
 }
 
 function add_ha_repo
@@ -1399,7 +1399,7 @@ EOF
         fi
     fi
 
-    [[ $want_hcp = 1 ]] && add_hcp_repo
+    [[ $want_sap = 1 ]] && add_sap_repo
 
     if [ -n "$deployceph" ] && iscloudver 5plus; then
         add_suse_storage_repo
