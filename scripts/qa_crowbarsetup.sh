@@ -585,6 +585,12 @@ function get_docker_nodes
     knife search node "roles:`nova_role_prefix`-compute-docker" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'
 }
 
+function show_crowbar_nodes_to_upgrade
+{
+    crowbarctl upgrade status nodes --plain | grep not_upgraded | cut -d ' ' -f 2 | cut -d '.' -f 1 | \
+    sort | tr '\n' ','| sed 's/,$//' | xargs printf 'Upgrading nodes: %s\r'
+}
+
 function remove_node_from_list
 {
     local onenode="$1"
@@ -5315,7 +5321,7 @@ function onadmin_crowbar_nodeupgrade
             wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v backup_openstack" "backup openstack step to finish"
 
             safely crowbarctl upgrade nodes all
-            wait_for 360 30 "crowbar_nodeupgrade_finished" "'nodes' upgrade step to finish"
+            wait_for 360 30 "crowbar_nodeupgrade_finished" "'nodes' upgrade step to finish" "complain 13 'Nodes step has failed. Check the upgrade status.'" "show_crowbar_nodes_to_upgrade"
 
             if grep -q "failed" $upgrade_progress_file ; then
                 crowbarctl upgrade status
