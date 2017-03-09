@@ -28,18 +28,21 @@ from sh import Command
 IBS_MAPPING = {
     'release/tex/master':    'Devel:Cloud:5:Staging',
     'stable/3.0':            'Devel:Cloud:6:Staging',
+    'stable/sap/3.0':        'Devel:Cloud:6:SAP:Staging',
     'master':                'Devel:Cloud:7:Staging'
 }
 
 REPO_MAPPING = {
     'release/tex/master':    'SLE_11_SP3',
     'stable/3.0':            'SLE_12_SP1',
+    'stable/sap/3.0':        'SLE_12_SP1',
     'master':                'SLE_12_SP2'
 }
 
 CLOUDSRC = {
     'release/tex/master':    'develcloud5',
     'stable/3.0':            'develcloud6',
+    'stable/sap/3.0':        'develcloud6',
     'master':                'develcloud7'
 }
 
@@ -58,18 +61,32 @@ MKCLOUD_CEPH_PARAMETERS = (
     'nodenumber=4', 'want_ceph=1',
     'networkingplugin=linuxbridge')
 
+MKCLOUD_SAP_PARAMETERS = (
+    'cloudsource=develcloud6',
+    'hacloud=1',
+    'storage_method=swift',
+    'nodenumber=10',
+    'clusterconfig=data=2:services=3:network=3'
+)
+
 JOB_PARAMETERS = {
-    'crowbar-ha': MKCLOUD_HA_PARAMETERS,
-    'crowbar-hyperv': MKCLOUD_HYPERV_PARAMETERS,
-    'crowbar-ceph': MKCLOUD_CEPH_PARAMETERS,
-    'barclamp-ceph': MKCLOUD_CEPH_PARAMETERS,
-    'barclamp-hyperv': MKCLOUD_HYPERV_PARAMETERS,
-    'barclamp-pacemaker': MKCLOUD_HA_PARAMETERS
+    'crowbar/crowbar-ha': MKCLOUD_HA_PARAMETERS,
+    'crowbar/crowbar-hyperv': MKCLOUD_HYPERV_PARAMETERS,
+    'crowbar/crowbar-ceph': MKCLOUD_CEPH_PARAMETERS,
+    'crowbar/barclamp-ceph': MKCLOUD_CEPH_PARAMETERS,
+    'crowbar/barclamp-hyperv': MKCLOUD_HYPERV_PARAMETERS,
+    'crowbar/barclamp-pacemaker': MKCLOUD_HA_PARAMETERS,
+    'sap-oc/crowbar': MKCLOUD_SAP_PARAMETERS,
+    'sap-oc/crowbar-ceph': MKCLOUD_SAP_PARAMETERS,
+    'sap-oc/crowbar-core': MKCLOUD_SAP_PARAMETERS,
+    'sap-oc/crowbar-ha': MKCLOUD_SAP_PARAMETERS,
+    'sap-oc/crowbar-monitoring': MKCLOUD_SAP_PARAMETERS,
+    'sap-oc/crowbar-openstack': MKCLOUD_SAP_PARAMETERS
 }
 
 HA_JOB_PARAMETERS = {
-    'crowbar-core': MKCLOUD_HA_PARAMETERS,
-    'crowbar-openstack': MKCLOUD_HA_PARAMETERS
+    'crowbar/crowbar-core': MKCLOUD_HA_PARAMETERS,
+    'crowbar/crowbar-openstack': MKCLOUD_HA_PARAMETERS
 }
 
 htdocs_dir = '/srv/mkcloud'
@@ -79,18 +96,19 @@ iosc = functools.partial(
     Command('/usr/bin/osc'), '-A', 'https://api.suse.de')
 
 
-def ghs_set_status(repo, head_sha1, status):
+def ghs_set_status(org, repo, head_sha1, status):
     ghs = Command(
         os.path.abspath(
             os.path.join(os.path.dirname(sys.argv[0]),
                          'github-status/github-status.rb')))
 
-    ghs('-r', 'crowbar/' + repo,
+    ghs('-r', org + '/' + repo,
         '--context', 'suse/mkcloud/testbuild',
         '-c', head_sha1, '-a', 'set-status', '-s', status)
 
 
-def jenkins_job_trigger(repo, job_params, github_opts, cloudsource, ptfdir):
+def jenkins_job_trigger(org, repo, job_params,
+                        github_opts, cloudsource, ptfdir):
     print("triggering jenkins job with " + htdocs_url + ptfdir)
 
     jenkins = Command(
@@ -104,28 +122,28 @@ def jenkins_job_trigger(repo, job_params, github_opts, cloudsource, ptfdir):
     print(jenkins(
         'openstack-mkcloud',
         '-p',
-        "github_pr=crowbar/%s:%s" % (repo, github_opts),
+        "github_pr=%s/%s:%s" % (org, repo, github_opts),
         "cloudsource=" + cloudsource,
         # trailing slash required
         # to prevent wget from traversing all test-updates
         'UPDATEREPOS=' + htdocs_url + ptfdir + "/",
         'mkcloudtarget=all_noreboot',
-        "job_name=%s PR %s %s" % (
-            repo, github_opts_list[0], github_opts_list[1][:8]),
+        "job_name=%s/%s PR %s %s" % (
+            org, repo, github_opts_list[0], github_opts_list[1][:8]),
         *job_params))
 
 
-def add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec):
+def add_pr_to_checkout(org, repo, pr_id, head_sha1, pr_branch, spec):
     sh.curl(
         '-s', '-k', '-L',
-        "https://github.com/crowbar/%s/compare/%s...%s.patch" % (
-            repo, pr_branch, head_sha1),
+        "https://github.com/%s/%s/compare/%s...%s.patch" % (
+            org, repo, pr_branch, head_sha1),
         '-o', 'prtest.patch')
     sh.sed('-i', '-e', 's,Url:.*,%define _default_patch_fuzz 2,',
            '-e', 's,%patch[0-36-9].*,,', spec)
     Command('/usr/lib/build/spec_add_patch')(spec, 'prtest.patch')
-    iosc('vc', '-m', "added PR test patch from %s#%s (%s)" % (
-        repo, pr_id, head_sha1))
+    iosc('vc', '-m', "added PR test patch from %s/%s#%s (%s)" % (
+        org, repo, pr_id, head_sha1))
 
 
 def prep_webroot(ptfdir):
@@ -135,11 +153,11 @@ def prep_webroot(ptfdir):
     return webroot
 
 
-def trigger_testbuild(repo, github_opts):
+def trigger_testbuild(org, repo, github_opts):
     pr_id, head_sha1, pr_branch = github_opts.split(':')
 
     olddir = os.getcwd()
-    ptfdir = repo + ':' + github_opts
+    ptfdir = ':'.join(org, repo, github_opts)
     webroot = prep_webroot(ptfdir)
     workdir = tempfile.mkdtemp()
     build_failed = False
@@ -153,7 +171,7 @@ def trigger_testbuild(repo, github_opts):
             buildroot = os.path.join(os.getcwd(), 'BUILD')
             iosc('co', IBS_MAPPING[pr_branch], pkg, '-c')
             os.chdir(pkg)
-            add_pr_to_checkout(repo, pr_id, head_sha1, pr_branch, spec)
+            add_pr_to_checkout(org, repo, pr_id, head_sha1, pr_branch, spec)
             iosc('build', '--root', buildroot, '--noverify', '--noservice',
                  REPO_MAPPING[pr_branch], 'x86_64', spec, _out=sys.stdout)
         except:
@@ -172,36 +190,40 @@ def trigger_testbuild(repo, github_opts):
         sh.sudo.rm('-rf', workdir)
 
     if not build_failed:
+        org_repo = '/'.join(org, repo)
         job_parameters = (
             'nodenumber=2', 'networkingplugin=openvswitch')
-        if repo in JOB_PARAMETERS:
-            job_parameters = JOB_PARAMETERS[repo]
+        if org_repo in JOB_PARAMETERS:
+            job_parameters = JOB_PARAMETERS[org_repo]
         jenkins_job_trigger(
-            repo, job_parameters, github_opts, CLOUDSRC[pr_branch], ptfdir)
-        if repo in HA_JOB_PARAMETERS:
-            job_parameters = HA_JOB_PARAMETERS[repo]
+            org, repo, job_parameters,
+            github_opts, CLOUDSRC[pr_branch], ptfdir)
+        if org_repo in HA_JOB_PARAMETERS:
+            job_parameters = HA_JOB_PARAMETERS[org_repo]
             jenkins_job_trigger(
-                repo, job_parameters,
+                org, repo, job_parameters,
                 github_opts + ":hacloud=1",
                 CLOUDSRC[pr_branch], ptfdir)
 
     ghs_set_status(
-        repo, head_sha1,
+        org, repo, head_sha1,
         'failure' if build_failed else'pending')
 
 
 def main():
     parser = argparse.ArgumentParser(
         description='Build a testpackage for a crowbar/ Pull Request')
+    parser.add_argument('org', metavar='ORG',
+                        help='github org name')
     parser.add_argument('repo', metavar='REPO',
-                        help='github repo in the crowbar organization')
+                        help='github repo name')
     parser.add_argument('pr', metavar='PRID:SHA1:BRANCH',
                         help='github PR id, SHA1 head of PR, and '
                              'destination branch of PR')
 
     args = parser.parse_args()
 
-    trigger_testbuild(args.repo, args.pr)
+    trigger_testbuild(args.org, args.repo, args.pr)
 
 
 if __name__ == '__main__':
