@@ -4742,6 +4742,7 @@ function onadmin_prepare_cloudupgrade_repos_6_to_7
 
     # recreate the SUSE-Cloud Repo with the latest iso
     onadmin_prepare_cloud_repos
+    addcloud7maintupdates
     onadmin_add_cloud_repo
 
     # create skeleton for PTF repositories
