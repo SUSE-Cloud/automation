@@ -157,7 +157,7 @@ def trigger_testbuild(org, repo, github_opts):
     pr_id, head_sha1, pr_branch = github_opts.split(':')
 
     olddir = os.getcwd()
-    ptfdir = ':'.join(org, repo, github_opts)
+    ptfdir = ':'.join([org, repo, github_opts])
     webroot = prep_webroot(ptfdir)
     workdir = tempfile.mkdtemp()
     build_failed = False
@@ -190,7 +190,7 @@ def trigger_testbuild(org, repo, github_opts):
         sh.sudo.rm('-rf', workdir)
 
     if not build_failed:
-        org_repo = '/'.join(org, repo)
+        org_repo = '/'.join([org, repo])
         job_parameters = (
             'nodenumber=2', 'networkingplugin=openvswitch')
         if org_repo in JOB_PARAMETERS:
