@@ -28,6 +28,7 @@ function wait_for
     local condition=${3:-'/bin/true'}
     local waitfor=${4:-'unknown process'}
     local error_cmd=${5:-'exit 11'}
+    local print_while=${6:-'echo -n .'}
 
     local original_xstatus=${-//[^x]/}
     timesleep=$((timesleep*${want_timescaling:-1}))
@@ -38,7 +39,7 @@ function wait_for
     local n=$timecount
     while test $n -gt 0 && ! eval $condition
     do
-        echo -n .
+        eval "$print_while"
         sleep $timesleep
         n=$(($n - 1))
         [[ $(( ($timecount - $n) % 75)) != 0 ]] || echo
