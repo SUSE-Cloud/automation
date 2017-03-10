@@ -20,9 +20,8 @@
             TESTHEAD=1
             cloudsource=develcloud{previous_version}
             upgrade_cloudsource=develcloud{version}
-            nodenumber=2
-            want_nondisruptiveupgrade=1
-            mkcloudtarget=plain_with_upgrade
+            nodenumber=3
+            mkcloudtarget=plain_with_upgrade testsetup
+            want_nodesupgrade=1
             label={label}
-            want_postgresql=1
             job_name=cloud-mkcloud{version}-job-upgrade-disruptive-{arch}
