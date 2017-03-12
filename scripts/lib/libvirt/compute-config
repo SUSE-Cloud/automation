@@ -12,27 +12,33 @@ def main():
                         help="Node Counter \
                         (when this script is called within a loop, this \
                         is usually an incremented number)")
-    parser.add_argument("macaddress", help="MAC Address")
-    parser.add_argument("controller_raid_volumes", type=int,
-                        help="Number of disks for RAID on controller node")
-    parser.add_argument("cephvolumenumber", type=int,
-                        help="Number of Ceph Volumes")
-    parser.add_argument("drbdserial", help="DRBD Volume Serial")
-    parser.add_argument("computenodememory", type=int,
-                        help="Compute Node Memory (kB)")
-    parser.add_argument("controllernodememory", type=int,
-                        help="Controller Node Memory (kB)")
-    parser.add_argument("libvirttype", help="Libvirt Type (e.g. kvm)")
-    parser.add_argument("vcpus", type=int, help="Number of VCPUs")
-    parser.add_argument("emulator", help="QEMU to use",
+    parser.add_argument("--macaddress", help="MAC Address")
+    parser.add_argument("--controller-raid-volumes", type=int, default=0,
+                        help="Number of disks for RAID on controller node. "
+                        "Default: %(default)s")
+    parser.add_argument("--cephvolumenumber", type=int, default=0,
+                        help="Number of Ceph Volumes. Default: %(default)s")
+    parser.add_argument("--drbdserial", help="DRBD Volume Serial")
+    parser.add_argument("--computenodememory", type=int, default=2097152,
+                        help="Compute Node Memory (kB). Default: %(default)s")
+    parser.add_argument("--controllernodememory", type=int, default=6291456,
+                        help="Controller Node Memory (kB). "
+                        "Default: %(default)s")
+    parser.add_argument("--libvirttype", default="kvm",
+                        help="Libvirt Type (e.g. kvm). Default: %(default)s")
+    parser.add_argument("--vcpus", type=int, default=1, help="Number of VCPUs. "
+                        "Default: %(default)s")
+    parser.add_argument("--emulator", help="QEMU to use. Default: %(default)s",
                         default="/usr/bin/qemu-system-%s" % os.uname()[4])
-    parser.add_argument("vdiskdir",
-                        help="Virtual Disk Directory (e.g /dev/cloud)")
-    parser.add_argument("bootorder", type=int, help="Boot Order (e.g. 2)")
-    parser.add_argument("numcontrollers", type=int, default=1,
-                        help="Number of controller nodes")
-    parser.add_argument("firmwaretype", default="bios",
-                        help="Boot firmware type for the node")
+    parser.add_argument("--vdiskdir", default="/var/lib/libvirt/",
+                        help="Virtual Disk Directory (e.g /dev/cloud). "
+                        "Default: %(default)s")
+    parser.add_argument("--bootorder", type=int, help="Boot Order (e.g. 2)")
+    parser.add_argument("--numcontrollers", type=int, default=1,
+                        help="Number of controller nodes. Default: %(default)s")
+    parser.add_argument("--firmwaretype", default="bios",
+                        help="Boot firmware type for the node. "
+                        "Default: %(default)s")
     args = parser.parse_args()
 
     print(libvirt_setup.compute_config(args, libvirt_setup.cpuflags()))

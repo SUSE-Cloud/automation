@@ -583,11 +583,20 @@ function setupnodes
             fi
         fi
 
-        ${scripts_lib_dir}/libvirt/compute-config $cloud $i $macaddress\
-            $controller_raid_volumes $cephvolumenumber "$drbd_serial"\
-            $compute_node_memory $controller_node_memory $libvirt_type $vcpus\
-            $(get_emulator) $vdisk_dir 3 \
-            $nodenumbercontroller "$firmware_type" > /tmp/$cloud-node$i.xml
+        ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
+                        --macaddress $macaddress \
+                        --cephvolumenumber $cephvolumenumber \
+                        --drbdserial "$drbd_serial"\
+                        --computenodememory $compute_node_memory \
+                        --controllernodememory $controller_node_memory \
+                        --libvirttype $libvirt_type \
+                        --vcpus $vcpus \
+                        --emulator $(get_emulator) \
+                        --vdiskdir $vdisk_dir \
+                        --bootorder 3 \
+                        --numcontrollers $nodenumbercontroller \
+                        --firmwaretype "$firmware_type" \
+                        --controller-raid-volumes $controller_raid_volumes > /tmp/$cloud-node$i.xml
         ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
     done
 
