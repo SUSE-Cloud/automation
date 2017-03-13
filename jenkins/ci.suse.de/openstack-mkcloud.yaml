@@ -316,7 +316,12 @@
                 fi
                 ;;
             M*|develcloud7|mitakacloud7|susecloud7)
-                echo "Not setting want_ldap=1 until hybrid backend is ported to Mitaka/Newton"
+                if [[ $mkcloudtarget =~ upgrade ]]; then
+                    echo "Unsetting want_ldap for upgrade jobs until hybrid backend is migrated to domain-specific backends"
+                    unset want_ldap
+                else
+                    [[ $nodenumber == 2 && -z "$scenario" ]] && export want_ldap=1
+                fi
                 ;;
             *)
                 [[ $nodenumber == 2 && -z "$scenario" ]] && export want_ldap=1

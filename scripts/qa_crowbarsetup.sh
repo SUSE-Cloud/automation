@@ -2536,14 +2536,17 @@ function custom_configuration
             fi
             if [[ $want_ldap = 1 ]] ; then
                 local p="proposal_set_value keystone default"
-                if iscloudver 6plus; then
+                local l="['attributes']['keystone']['ldap']"
+                if iscloudver 7plus ; then
+                    $p "['attributes']['keystone']['domain_specific_drivers']" true
+                    l="['attributes']['keystone']['domain_specific_config']['ldap_users']['ldap']"
+                elif iscloudver 6; then
                     $p "['attributes']['keystone']['identity']['driver']" "'hybrid'"
                     $p "['attributes']['keystone']['assignment']['driver']" "'hybrid'"
                 else
                     $p "['attributes']['keystone']['identity']['driver']" "'keystone.identity.backends.hybrid.Identity'"
                     $p "['attributes']['keystone']['assignment']['driver']" "'keystone.assignment.backends.hybrid.Assignment'"
                 fi
-                local l="['attributes']['keystone']['ldap']"
                 $p "$l['url']" "'ldap://ldap.suse.de'"
                 $p "$l['suffix']" "'dc=suse,dc=de'"
                 $p "$l['user_tree_dn']" "'ou=accounts,dc=suse,dc=de'"
@@ -2552,10 +2555,8 @@ function custom_configuration
                 $p "$l['user_name_attribute']" "'uid'"
                 $p "$l['use_tls']" "true"
                 $p "$l['tls_cacertdir']" "'/etc/ssl/certs'"
-                $p "$l['tls_req_cert']" "'allow'" # FIXME: this allows MitM
-                # to be secure, set to 'demand' and run on keystone node:
-                #zypper ar --refresh http://$susedownload/ibs/SUSE:/CA/SLE_11_SP3/SUSE:CA.repo
-                #zypper -n --gpg-auto-import-keys in ca-certificates-suse
+                $p "$l['tls_req_cert']" "'demand'"
+                $p "$l['use_pool']" "false" # ldappool does not work with tls https://review.openstack.org/#/c/443264/
             fi
             if [[ $want_keystone_v3 ]] ; then
                 proposal_set_value keystone default "['attributes']['keystone']['api']['version']" "'3'"
@@ -3987,7 +3988,12 @@ function oncontroller_testsetup
     wait_image_active "$image_name" testsetup
 
     if [[ $want_ldap = 1 ]] ; then
-        openstack user show bwiedemann | grep -q 82608 || complain 103 "LDAP not working"
+        install_suse_ca
+        if iscloudver 7plus  ; then
+            openstack user show bwiedemann --domain ldap_users | grep bwiedemann || complain 103 "LDAP not working"
+        else
+            openstack user show bwiedemann | grep -q 82608 || complain 103 "LDAP not working"
+        fi
     fi
 
     # wait for nova-manage to be successful
