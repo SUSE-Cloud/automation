@@ -1,0 +1,98 @@
+- job:
+    name: cloud-mkphyscloud-qa-test-pacemaker-cts
+    node: cloud-mkphyscloud-gate-qa
+    description: |
+      Run pacemaker-cts testsuite.      
+      It's a useful only for cloud that was built by mkcloud 
+      and which has 3 nodes cluster (e.g. 1a, 1b, 2b, 6a)                      
+      Mandatory parameter: hw_number
+
+    logrotate:
+      numToKeep: 15
+      daysToKeep: -1
+
+    wrappers:
+      - build-name:
+          name: '#${BUILD_NUMBER} - ${scenario_name} - qa$hw_number - pacemaker-cts'
+      - timestamps
+    publishers:
+      - mkphyscloud-qa-common-publishers
+
+    concurrent: true
+
+    parameters:
+      - string:
+          name: hw_number
+          default: "2"
+          description: Mandatory, number of the QA cloud server
+
+      - string:
+          name: scenario_name
+          description: Optional; scenario name which typically is an integer with a single letter
+
+      - string:
+          name: scenario_job_name
+          description: Optional; name of the scenario jenkins job that is used to trigger this job
+
+      - string:
+          name: scenario_build_number
+          description: Optional; scenario build number that triggered this job
+
+
+    builders:
+      - shell: |
+          #!/bin/bash
+          admin=crowbar$hw_number
+          cloud=qa$hw_number
+          
+          # Create the artifacts directory
+          export artifacts_dir=$WORKSPACE/.artifacts
+          rm -rf $artifacts_dir
+          mkdir -p $artifacts_dir
+          touch $artifacts_dir/.ignore
+          
+          ssh root@$admin "echo \"/usr/share/pacemaker/tests/cts/CTSlab.py \
+                           --nodes 'node1 node2 node3' --at-boot 0 \
+                           --benchmark --stonith-type ipmi --no-loop-tests \
+                           --no-unsafe-tests --fencing openstack --once\" > \
+                           /tmp/pacemaker_cts_runner"
+
+          ssh -T root@$admin '
+          export node1=`ssh controller1 hostname`;
+          export node2=`ssh controller2 hostname`;
+          export node3=`ssh controller3 hostname`;
+
+          # pacemaker-cts preparation script
+          cat > /tmp/pacemaker_cts_prepare <<EOSCRIPT
+            zypper ar dir:///srv/tftpboot/suse-12.2/x86_64/repos/SLE12-SP2-HA-Updates SLES12-SP2-HA-Updates 
+            zypper ar dir:///srv/tftpboot/suse-12.2/x86_64/repos/SLE12-SP2-HA-Pool SLE12-SP2-HA-Pool  
+            zypper ref
+            zypper -n in pacemaker-cts
+          EOSCRIPT
+          
+          # install pacemaker-cts utility on the crowbar node
+          bash /tmp/pacemaker_cts_prepare 
+
+          # copy pacemaker-cts preparation script to every node in the cluster
+          for i in controller{1..3}; do scp /tmp/pacemaker_cts_prepare $i:/tmp \
+          ; done 
+          
+          # install pacemaker-cts on each controller node in the cluster
+          for i in controller{1..3}; do ssh $i bash /tmp/pacemaker_cts_prepare \
+          ; done 
+          
+          # obtaining credentials
+          source .openrc 
+
+          sed -i -e "s,node1,$node1," /tmp/pacemaker_cts_runner
+          sed -i -e "s,node2,$node2," /tmp/pacemaker_cts_runner
+          sed -i -e "s,node3,$node3," /tmp/pacemaker_cts_runner
+          
+          # run pacemaker-cts on the crowbar node
+          bash /tmp/pacemaker_cts_runner
+          ' 
+          
+          result=$?
+          if [[ $result -gt 0 ]]; then
+            exit $result
+          fi
