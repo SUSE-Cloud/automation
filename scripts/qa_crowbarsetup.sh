@@ -4438,7 +4438,7 @@ function ping_fips
 
 function oncontroller_testpreupgrade
 {
-    heat stack-create upgrade_test -f /root/scripts/heat/2-instances-pinging.yaml
+    heat stack-create upgrade_test -f /root/scripts/heat/4-instances-pinging.yaml
     wait_for 15 20 "heat stack-list | grep upgrade_test | grep CREATE_COMPLETE" \
              "heat stack for upgrade tests to complete"
 
