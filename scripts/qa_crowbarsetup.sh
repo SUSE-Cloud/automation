@@ -2605,7 +2605,7 @@ function custom_configuration
             # don't deploy calamari by default on SOC7. calamari needs a postgres DB on localhost
             # and get's confused if it is deployed on the controller where a postgres DB is already running
             # see https://bugzilla.suse.com/show_bug.cgi?id=1008331
-            if iscloudver 7plus ; then
+            if iscloudver 6plus ; then
                 proposal_set_value ceph default "['deployment']['ceph']['elements']['ceph-calamari']" "[]"
             fi
         ;;
