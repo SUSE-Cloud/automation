@@ -70,6 +70,7 @@ nodenumbercomputedefault=2
 : ${cephvolumenumber:=1}
 : ${controller_raid_volumes:=0}
 : ${vcpus:=2}
+: ${nics:=1}
 : ${adminvcpus:=2}
 cpuflags=''
 working_dir_orig=`pwd`
@@ -582,9 +583,12 @@ function setupnodes
                 drbdnode_mac_vol="${drbdnode_mac_vol#+}"
             fi
         fi
-
+        local mac_params=""
+        for nicnumber in $(seq 1 $nics) ; do
+            mac_params+=" --macaddress $(macfunc $i $nicnumber)";
+        done
         ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
-                        --macaddress $macaddress \
+                        $mac_params \
                         --cephvolumenumber $cephvolumenumber \
                         --drbdserial "$drbd_serial"\
                         --computenodememory $compute_node_memory \
@@ -1027,6 +1031,8 @@ Optional
         of $nodenumber - $nodenumbercompute are used as HA cluster nodes
     vcpus=1         (default $vcpus)
         set the number of CPU cores per compute node
+    nics=1         (default $nics)
+        set the number of network interfaces per cloud node
     adminvcpus=1    (default $adminvcpus)
         set the number of CPU cores for admin node
     admin_node_memory (default 4194304)

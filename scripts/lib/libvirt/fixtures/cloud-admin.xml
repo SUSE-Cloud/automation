@@ -36,7 +36,7 @@
       <target dev='cloud-a'/>
       <source network='cloud-admin'/>
       <model type='virtio'/>
-      <address type='pci' slot='0x03'/>
+      <address type='pci' slot='0x3'/>
     </interface>
     <serial type='pty'>
       <target port='0'/>

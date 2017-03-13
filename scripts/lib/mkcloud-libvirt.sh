@@ -397,5 +397,7 @@ function libvirt_do_shutdowncloud()
 
 function libvirt_do_macfunc
 {
-    printf "$macprefix:77:77:%02x" $1
+    local nodenumber=$1
+    local nicnumber=${2:-"1"}
+    printf "$macprefix:77:%02x:%02x" $nicnumber $nodenumber
 }

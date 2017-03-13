@@ -58,14 +58,15 @@
     </disk>
 
 
-    <interface type='network'>
-      <mac address='52:54:01:77:77:01'/>
-      <target dev='cloud-1'/>
-      <source network='cloud-admin'/>
-      <model type='virtio'/>
-      <address type='pci' slot='0x03'/>
-      <boot order='2'/>
-    </interface>
+<interface type='network'>
+  <mac address='52:54:01:77:77:01'/>
+  <target dev='cloud-1-0'/>
+  <source network='cloud-admin'/>
+  <model type='virtio'/>
+  <address type='pci' slot='0x3'/>
+  <boot order='2'/>
+</interface>
+
     <serial type='pty'>
       <target port='0'/>
     </serial>

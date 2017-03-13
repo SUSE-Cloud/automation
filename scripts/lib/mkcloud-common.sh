@@ -183,7 +183,7 @@ function nodes
 : ${macprefix:=52:54:77}
 function macfunc
 {
-    ${mkclouddriver}_do_macfunc $1
+    ${mkclouddriver}_do_macfunc $@
 }
 
 function mac_to_nodename

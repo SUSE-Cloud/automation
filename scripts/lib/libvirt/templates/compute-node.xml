@@ -25,14 +25,7 @@ $cpuflags
 $raidvolume
 $cephvolume
 $drbdvolume
-    <interface type='network'>
-      <mac address='$macaddress'/>
-      <target dev='$cloud-$nodecounter'/>
-      <source network='$cloud-admin'/>
-      <model type='$nicmodel'/>
-      $mainnicaddress
-      <boot order='2'/>
-    </interface>
+$nics
 $serialdevice
     <console type='pty'>
       <target type='$consoletype' port='0'/>

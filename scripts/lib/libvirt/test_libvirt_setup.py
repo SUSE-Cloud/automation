@@ -88,7 +88,7 @@ def filter_vm_xml(xmlstr):
 def default_test_args(args):
     args.cloud = "cloud"
     args.nodecounter = 1
-    args.macaddress = "52:54:01:77:77:01"
+    args.macaddress = ["52:54:01:77:77:01"]
     args.controller_raid_volumes = 0
     args.cephvolumenumber = 1
     args.computenodememory = 2097152
