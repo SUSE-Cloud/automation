@@ -171,4 +171,10 @@
 
             export cct_tests=feature:ui:upgrade:nodes:repos
             onadmin_run_cct
+
+            export cct_tests=feature:ui:upgrade:os-services:stop
+            onadmin_run_cct
+
+            export cct_tests=feature:ui:upgrade:os-db:backup
+            onadmin_run_cct
           '
