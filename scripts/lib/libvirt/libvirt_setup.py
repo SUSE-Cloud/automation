@@ -116,13 +116,12 @@ def get_serial_device():
     </serial>"""
 
 
-def get_mainnic_address():
-    mainnicaddress = "<address type='pci' slot='0x03'/>"
-
+def get_mainnic_address(index):
+    mainnicaddress = "<address type='pci' slot='%s'/>" % (hex(index + 0x3))
     if 's390x' in get_machine_arch():
-        mainnicaddress = \
-            "<address type='ccw' cssid='0xfe' ssid='0x0' devno='0x1'/>"
-
+        mainnicaddress = "<address type='ccw' cssid='0xfe' ssid='0x0' " \
+                                         "devno='%s'/>" % \
+                                         (hex(index + 0x1))
     return mainnicaddress
 
 
@@ -158,13 +157,32 @@ def admin_config(args, cpu_flags=cpuflags()):
         osloader=get_os_loader(firmware_type=args.firmwaretype),
         memballoon=get_memballoon_type(),
         maindiskaddress=get_maindisk_address(),
-        mainnicaddress=get_mainnic_address(),
+        mainnicaddress=get_mainnic_address(0),
         admin_node_disk=args.adminnodedisk,
         videodevices=get_video_devices(),
         serialdevice=get_serial_device(),
         local_repository_mount=localrepomount)
 
     return get_config(values, os.path.join(TEMPLATE_DIR, "admin-node.xml"))
+
+
+def net_interfaces_config(args, nicmodel):
+    nic_configs = []
+    bootorderoffset = 2
+    for index, mac in enumerate(args.macaddress):
+        mainnicaddress = get_mainnic_address(index)
+        values = dict(
+            cloud=args.cloud,
+            nodecounter=args.nodecounter,
+            nicindex=index,
+            macaddress=mac,
+            nicmodel=nicmodel,
+            bootorder=bootorderoffset+(index*10),
+            mainnicaddress=mainnicaddress)
+        nic_configs.append(
+            get_config(values, os.path.join(TEMPLATE_DIR,
+                                            "net-interface.xml")))
+    return "\n".join(nic_configs)
 
 
 def net_config(args):
@@ -285,9 +303,8 @@ def compute_config(args, cpu_flags=cpuflags()):
         raidvolume=raidvolume,
         cephvolume=cephvolume,
         drbdvolume=drbdvolume,
-        macaddress=args.macaddress,
+        nics=net_interfaces_config(args, configopts["nicmodel"]),
         maindiskaddress=get_maindisk_address(),
-        mainnicaddress=get_mainnic_address(),
         videodevices=get_video_devices(),
         target_dev=targetdevprefix + 'a',
         serialdevice=get_serial_device(),

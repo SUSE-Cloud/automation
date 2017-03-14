@@ -182,5 +182,7 @@ function dirmaint_do_setuplonelynodes()
 
 function dirmaint_do_macfunc()
 {
-    printf "$macprefix:0${cloudidx}:77:%02x" $1
+    local nodenumber=$1
+    local nicnumber=${2:-"1"}
+    printf "$macprefix:0${cloudidx}:%02x:%02x" $nicnumber $nodenumber
 }

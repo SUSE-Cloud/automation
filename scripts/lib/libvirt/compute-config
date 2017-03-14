@@ -12,7 +12,7 @@ def main():
                         help="Node Counter \
                         (when this script is called within a loop, this \
                         is usually an incremented number)")
-    parser.add_argument("--macaddress", help="MAC Address")
+    parser.add_argument("--macaddress", help="MAC Address(es)", action="append")
     parser.add_argument("--controller-raid-volumes", type=int, default=0,
                         help="Number of disks for RAID on controller node. "
                         "Default: %(default)s")

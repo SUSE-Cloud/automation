@@ -1,0 +1,8 @@
+<interface type='network'>
+  <mac address='$macaddress'/>
+  <target dev='$cloud-$nodecounter-$nicindex'/>
+  <source network='$cloud-admin'/>
+  <model type='$nicmodel'/>
+  $mainnicaddress
+  <boot order='$bootorder'/>
+</interface>
