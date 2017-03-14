@@ -1,6 +1,7 @@
 - job:
     name: 'cloud-crowbar-sap-testbuild-pr-trigger'
     node: cloud-trigger
+    disabled: true
 
     parameters:
       - choice:
