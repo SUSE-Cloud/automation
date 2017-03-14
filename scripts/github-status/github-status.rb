@@ -10,7 +10,8 @@ class GHClientHandler
   TEAMS = {
     :suse_cloud_owners     => 159206,   # SUSE-Cloud/Owners
     :suse_cloud_developers => 1541628,  # SUSE-Cloud/developers
-    :crowbar_owners        => 291046    # crowbar/Owners
+    :crowbar_owners        => 291046,   # crowbar/Owners
+    :sap_oc_suse_team      => 2255704,  # sap-oc/suse-team
   }
 
   def initialize(config = {})
@@ -87,6 +88,7 @@ class GHClientHandler
     return true if [:suse_cloud_developers, :suse_cloud_owners, :crowbar_owners].find do |team|
       team_member?(team, user)
     end
+    return true if (@repository =~ /^sap-oc\//) && team_member?(:sap_oc_suse_team, user)
     false
   end
 
