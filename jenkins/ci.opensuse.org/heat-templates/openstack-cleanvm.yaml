@@ -6,25 +6,26 @@ description: |
 
   Usage examples:
 
-    # Build from Cloud:OpenStack:Mitaka:Staging on SLE12 SP1
+    # Build from Cloud:OpenStack:Newton:Staging on SLE12 SP2
     heat stack-create -f openstack-cleanvm.yaml -P key_name=myuser -P TESTHEAD=1 myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Mitaka on SLE12 SP1
+    # Build from Cloud:OpenStack:Newton on SLE12 SP2
     heat stack-create -f openstack-cleanvm.yaml -P key_name=myuser myuser-cleanvm
 
     # Build from Cloud:OpenStack:Liberty on SLE12 SP1
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
       -P cloudsource=openstackliberty \
+      -P image=SLES12-SP1
       myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Mitaka on openSUSE Leap 42.1
+    # Build from Cloud:OpenStack:Newton on openSUSE Leap 42.1
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
       -P image=openSUSE-Leap-42.1 \
       myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Mitaka on openSUSE Leap 42.1 and use a
+    # Build from Cloud:OpenStack:Newton on openSUSE Leap 42.1 and use a
     # openstack-quickstart fork
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
@@ -33,7 +34,7 @@ description: |
       -P quickstart_branch=my-quickstart-feature
       myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Mitaka on openSUSE Leap 42.1 and use a
+    # Build from Cloud:OpenStack:Newton on openSUSE Leap 42.1 and use a
     # fork of SUSE-cloud/automation
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
@@ -66,7 +67,7 @@ parameters:
     description: The repository URL to clone the automation repository from
   cloudsource:
     type: string
-    default: openstackmitaka
+    default: openstacknewton
     description: The Cloud source to use.
   floating_network:
     type: string
@@ -74,7 +75,7 @@ parameters:
     description: The network to draw floating IPs from.
   image:
     type: string
-    default: SLES12-SP1
+    default: SLES12-SP2
     description: >
       The Glance image to use for the cleanvm machine. Use `SLES12-SP1`,
       `SLES12-SP2` or `openSUSE-Leap-42.1` for now.
