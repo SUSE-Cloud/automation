@@ -50,6 +50,12 @@ parameters:
     description: >
       Test packages from the staging repository (defaults to `1`, since this
       job normally gates the transition from staging to non-staging.
+  package_repo:
+    type: string
+    default: ''
+    description: >
+      Additional repository to draw package from (useful for testing packages
+      in a project you branched).
   automation_branch:
     default: master
     type: string
@@ -137,6 +143,7 @@ resources:
             _TESTHEAD: { get_param: TESTHEAD }
             _automation_repo: { get_param: automation_repo }
             _automation_branch: { get_param: automation_branch }
+            _package_repo: { get_param: package_repo }
             _quickstart_repo: { get_param: quickstart_repo }
             _quickstart_branch: { get_param: quickstart_branch }
           template: |
@@ -148,6 +155,11 @@ resources:
             export automation_branch=_automation_branch
             export quickstart_repo=_quickstart_repo
             export quickstart_branch=_quickstart_branch
+            export package_repo=_package_repo
+
+            if [ -n "$package_repo" ]; then
+              zypper ar --priority 22 -G -f "$package_repo" extra
+            fi
 
             . /etc/os-release; # retrieve VERSION_ID
 
