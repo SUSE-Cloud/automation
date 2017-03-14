@@ -63,6 +63,8 @@ MKCLOUD_CEPH_PARAMETERS = (
 
 MKCLOUD_SAP_PARAMETERS = (
     'cloudsource=develcloud6',
+    'want_sap=1',
+    'label=openstack-mkcloud-DMZ-x86_64',
     'hacloud=1',
     'storage_method=swift',
     'nodenumber=10',
