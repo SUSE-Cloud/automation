@@ -84,7 +84,7 @@
                       # set status to pending (do it first to prevent race condition with github status)
                       $ghs -r $org/$repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "Queued testbuild job"
                       # trigger testbuild job
-                      job_name="$repo testbuild PR $github_pr_id $github_pr_sha_short"
+                      job_name="$org/$repo testbuild PR $github_pr_id $github_pr_sha_short"
                       ${automationrepo}/scripts/jenkins/jenkins-job-trigger \
                           cloud-crowbar-testbuild-pr -p crowbar_repo=$repo crowbar_org=$org crowbar_github_pr=$github_pr job_name="$job_name"
                   done
