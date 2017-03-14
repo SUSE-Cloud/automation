@@ -43,3 +43,24 @@ cat >> /usr/bin/ping_forever_neighbour << EOF
 EOF
 chmod +x /usr/bin/ping_forever_neighbour
 /usr/bin/ping_forever_neighbour &
+
+cat >> /usr/bin/cinder_test << EOF
+  #!/bin/sh
+
+  device="/dev/vdb"
+  while [ ! -e \$device ]; do
+      echo "waiting for \$device to be ready"
+      sleep 10
+  done
+
+  sudo mkfs -t ext4 -L cinder_volume \$device
+  sudo mount \$device /mnt
+
+  while [ 1 = 1 ]; do
+      date +%s >> /mnt/cinder_test.out
+      sleep 1
+  done
+EOF
+chmod +x /usr/bin/cinder_test
+/usr/bin/cinder_test &
+
