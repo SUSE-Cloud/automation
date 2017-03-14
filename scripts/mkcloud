@@ -959,7 +959,7 @@ function steps() {
     exit 1
 }
 
-function usage
+function help
 {
     show_steps
     cat <<EOUSAGE
@@ -1363,9 +1363,13 @@ function expand_steps
 }
 
 steplist=`expand_steps $wantedcmds`
-[[ ! $steplist ]] || [[ "$steplist" =~ "help" ]] && usage
-[[ "$steplist" =~ "steps" ]] && steps
 
+: ${steplist:=help}
+if [[ $steplist =~ ^(cleanup|help|steps)$ ]] ; then
+    # skipping sanity checks
+    $steplist
+    exit $?
+fi
 sanity_checks
 
 echo "You choose to run these mkcloud steps:"
