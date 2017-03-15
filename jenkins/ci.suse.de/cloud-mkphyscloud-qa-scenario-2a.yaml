@@ -213,6 +213,7 @@
 
           sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
           sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," scenario.yml
+          sed -i -e "s,##cinder-storage-shares##,$shared_storage_ip:/var/$cloud/cinder-storage," scenario.yml
           sed -i -e "s,##netapp_password##,$netapp_password," scenario.yml
           sed -i -e "s,##netapp_server##,$netapp_server," scenario.yml
           sed -i -e "s,##netapp_vserver##,$netapp_vserver," scenario.yml

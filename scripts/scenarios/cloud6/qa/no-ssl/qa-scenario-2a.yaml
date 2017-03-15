@@ -150,12 +150,11 @@ proposals:
 - barclamp: cinder
   attributes:
     volumes:
-    - backend_driver: local
-      backend_name: default
-      local:
-        volume_name: cinder-volumes
-        file_name: "/var/lib/cinder/volume.raw"
-        file_size: 2000
+    - backend_driver: nfs
+      backend_name: nfs
+      nfs:
+        nfs_shares: ##cinder-storage-shares##
+        nfs_mount_options: nfsvers=3,rw,sync,nofail
   deployment:
     elements:
       cinder-controller:
