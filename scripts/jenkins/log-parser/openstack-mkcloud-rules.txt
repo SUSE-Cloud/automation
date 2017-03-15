@@ -1,0 +1,8 @@
+start /^(===+> MKCLOUD STEP START: |MKCLOUD step: )/
+start /^Starting proposal/
+
+info /^\+ onadmin /
+info /^Waiting for /
+
+error /Error/
+error /$h1!!/
