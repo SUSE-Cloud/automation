@@ -263,6 +263,11 @@
          default: '1'
          description: set to 0 to not deploy aodh
 
+     - string:
+         name: clusterconfig
+         default:
+         description: the cluster configuration to pass to the mkcloud script
+
      - text:
          name: custom_settings
          default:
@@ -336,7 +341,8 @@
 
         # HAcloud
         if [[ $hacloud == 1 ]] ; then
-          export clusterconfig="data+services+network=2"
+          : ${clusterconfig:=data+services+network=2}
+          export clusterconfig
           if [[ $nodenumber < 4 ]] ; then
             export nodenumber=4
           fi
