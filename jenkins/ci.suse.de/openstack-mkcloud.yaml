@@ -517,8 +517,4 @@
          only-if-success: false
          fingerprint: false
          default-excludes: true
-      - email:
-         notify-every-unstable-build: true
-         recipients: null
-         send-to-individuals: false
     triggers: []
