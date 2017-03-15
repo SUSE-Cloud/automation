@@ -390,7 +390,6 @@
         # fetch the latest automation updates
         ${automationrepo}/scripts/jenkins/update_automation #NO PARAMETERS HERE ANY MORE!!!
 
-
         function mkcloudgating_trap()
         {
             $ghs -a set-status -s "failure" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha --context $ghs_context
@@ -445,6 +444,8 @@
             $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha --context $ghs_context -m "Started PR gating"
 
         fi
+
+        cp ${automationrepo}/scripts/jenkins/log-parser/openstack-mkcloud-rules.txt log-parser-plugin-rules.txt
 
         echo "########################################################################"
         env
@@ -511,14 +512,16 @@
         fi
 
     publishers:
+      - logparser:
+          use-project-rules: true
+          parse-rules: log-parser-plugin-rules.txt
+          unstable-on-warning: true
+          fail-on-error: false
+          show-graphs: true
       - archive:
          artifacts: .artifacts/**
          allow-empty: false
          only-if-success: false
          fingerprint: false
          default-excludes: true
-      - email:
-         notify-every-unstable-build: true
-         recipients: null
-         send-to-individuals: false
     triggers: []
