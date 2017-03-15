@@ -2551,8 +2551,14 @@ function custom_configuration
                 $p "$l['suffix']" "'dc=suse,dc=de'"
                 $p "$l['user_tree_dn']" "'ou=accounts,dc=suse,dc=de'"
                 $p "$l['user_objectclass']" "'posixAccount'"
-                $p "$l['user_id_attribute']" "'suseid'"
+                $p "$l['user_id_attribute']" "'uid'"
                 $p "$l['user_name_attribute']" "'uid'"
+                $p "$l['group_tree_dn']" "'ou=accounts,dc=suse,dc=de'"
+                $p "$l['group_objectclass']" "'posixGroup'"
+                $p "$l['group_id_attribute']" "'gidNumber'"
+                $p "$l['group_name_attribute']" "'cn'"
+                $p "$l['group_member_attribute']" "'memberUid'"
+                $p "$l['group_members_are_ids']" "true"
                 $p "$l['use_tls']" "true"
                 $p "$l['tls_cacertdir']" "'/etc/ssl/certs'"
                 $p "$l['tls_req_cert']" "'demand'"
@@ -3991,8 +3997,10 @@ function oncontroller_testsetup
         install_suse_ca
         if iscloudver 7plus  ; then
             openstack user show bwiedemann --domain ldap_users | grep bwiedemann || complain 103 "LDAP not working"
+            openstack group show suse --domain ldap_users | grep suse || complain 103 "LDAP not working"
+            openstack group contains user --group-domain ldap_users --user-domain ldap_users suse bwiedemann | grep 'bwiedemann in group suse' || complain 103 "LDAP not working"
         else
-            openstack user show bwiedemann | grep -q 82608 || complain 103 "LDAP not working"
+            openstack user show bwiedemann | grep -q bwiedemann || complain 103 "LDAP not working"
         fi
     fi
 
