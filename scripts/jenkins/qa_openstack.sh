@@ -213,6 +213,10 @@ cp /tmp/cloud-final.service /usr/lib/systemd/system/cloud-final.service
 # the hostname (see <https://bugzilla.opensuse.org/show_bug.cgi?id=974661>).
 sed -i -e "s/DHCLIENT_SET_HOSTNAME=\"yes\"/DHCLIENT_SET_HOSTNAME=\"no\"/" /etc/sysconfig/network/dhcp
 sed -i -e "s/DHCLIENT6_SET_HOSTNAME=\"yes\"/DHCLIENT6_SET_HOSTNAME=\"no\"/" /etc/sysconfig/network/dhcp
+
+# Make sure the machine's host name is resolvable
+echo $(ip addr sh eth0 | grep -w inet | awk '{print $2}' | sed 's#/.*##') $(hostnamectl --static) $(hostnamectl --transient) >> /etc/hosts
+
 # This is to reapply the config to wickedd
 ifup all
 
