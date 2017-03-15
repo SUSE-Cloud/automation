@@ -117,6 +117,11 @@ proposals:
 - barclamp: cinder
   attributes:
     volumes:
+    - backend_driver: nfs
+      backend_name: nfs
+      nfs:
+        nfs_shares: ##cinder-storage-shares##
+        nfs_mount_options: nfsvers=3,rw,sync,nofail
     - backend_driver: vmware
       backend_name: vmware-backend
       vmware:
@@ -137,9 +142,8 @@ proposals:
       cinder-controller:
       - cluster:services
       cinder-volume:
-      - "@@controller1@@"
-      - "@@controller2@@"
-      - "@@controller3@@"
+      - "@@computekvm1@@"
+      - "@@computekvm2@@"
 
 - barclamp: neutron
   attributes:
