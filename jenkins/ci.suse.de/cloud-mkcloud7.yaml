@@ -65,7 +65,7 @@
 
 - project:
     name: cloud-mkcloud7-aarch64
-    disabled: false
+    disabled: true
     version: 7
     previous_version: 6
     arch: aarch64
