@@ -1375,7 +1375,9 @@ sleep 2
 
 for cmd in `echo $steplist` ; do
     echo
-    echo "============> MKCLOUD STEP START: $cmd <============"
+    echo "============> MKCLOUD STEP START <============"
+    # next line is for jenkins log parser:
+    echo "MKCLOUD step: $cmd"
     echo
     sleep 2
     echo $cmd >> mkcloud.steps.log
