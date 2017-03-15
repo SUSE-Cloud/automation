@@ -1,6 +1,7 @@
 - job-template:
     name: 'cloud-mkcloud{version}-job-ssl-{arch}'
     node: cloud-trigger
+    disabled: {disabled}
 
     triggers:
       - timed: '29 1 * * *'

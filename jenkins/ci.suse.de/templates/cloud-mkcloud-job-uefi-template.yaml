@@ -1,6 +1,7 @@
 - job-template:
     name: 'cloud-mkcloud{version}-job-uefi-{arch}'
     node: cloud-trigger
+    disabled: {disabled}
 
     triggers:
       - timed: '29 1 * * *'

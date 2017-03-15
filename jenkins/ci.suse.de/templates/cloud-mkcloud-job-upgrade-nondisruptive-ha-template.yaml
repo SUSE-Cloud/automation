@@ -1,6 +1,7 @@
 - job-template:
     name: 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}'
     node: cloud-trigger
+    disabled: {disabled}
 
     triggers:
       - timed: '32 22 * * *'

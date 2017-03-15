@@ -7,6 +7,7 @@
         - 'cloud-mkcloud{version}-gating'
 - project:
     name: cloud-mkcloud7-x86_64
+    disabled: false
     version: 7
     previous_version: 6
     arch: x86_64
@@ -27,6 +28,7 @@
         - 'cloud-mkcloud{version}-job-xen-{arch}'
 - project:
     name: cloud-mkcloud7-ha-x86_64
+    disabled: false
     version: 7
     previous_version: 6
     arch: x86_64
@@ -42,6 +44,7 @@
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}'
 - project:
     name: cloud-mkcloud7-tempestfull-x86_64
+    disabled: false
     version: 7
     previous_version: 6
     arch: x86_64
@@ -52,6 +55,7 @@
          - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-tempestfull-{arch}'
 - project:
     name: cloud-mkcloud7-sles12sp2-x86_64
+    disabled: false
     version: 7
     arch: x86_64
     label: openstack-mkcloud-SLE12-SP2-x86_64
@@ -61,6 +65,7 @@
 
 - project:
     name: cloud-mkcloud7-aarch64
+    disabled: false
     version: 7
     previous_version: 6
     arch: aarch64
@@ -95,6 +100,7 @@
           #
 - project:
     name: cloud-mkcloud7-s390x
+    disabled: false
     version: 7
     previous_version: 6
     arch: s390x

@@ -6,6 +6,7 @@
         - 'cloud-mkcloud{version}-gating'
 - project:
     name: cloud-mkcloud6-x86_64
+    disabled: false
     version: 6
     previous_version: 5
     arch: x86_64
@@ -25,6 +26,7 @@
         - 'cloud-mkcloud{version}-job-xen-{arch}'
 - project:
     name: cloud-mkcloud6-ha-x86_64
+    disabled: false
     version: 6
     previous_version: 5
     arch: x86_64
@@ -36,6 +38,7 @@
         - 'cloud-mkcloud{version}-job-ha-{arch}'
 - project:
     name: cloud-mkcloud6-tempestfull-x86_64
+    disabled: false
     version: 6
     previous_version: 5
     arch: x86_64
