@@ -1,6 +1,7 @@
 - job-template:
     name: 'cloud-mkcloud{version}-job-dvr-{arch}'
     node: cloud-trigger
+    disabled: {disabled}
 
     triggers:
       - timed: 'H 20 * * *'
