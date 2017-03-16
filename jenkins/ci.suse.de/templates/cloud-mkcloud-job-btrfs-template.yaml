@@ -1,7 +1,7 @@
 - job-template:
     name: 'cloud-mkcloud{version}-job-btrfs-{arch}'
     node: cloud-trigger
-    disabled: {disabled}
+    disabled: '{obj:disabled}'
 
     triggers:
       - timed: 'H H * * *'
