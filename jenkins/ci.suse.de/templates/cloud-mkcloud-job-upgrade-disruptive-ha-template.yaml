@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-upgrade-disruptive-{arch}'
+    name: 'cloud-mkcloud{version}-job-upgrade-disruptive-ha-{arch}'
     node: cloud-trigger
 
     triggers:
@@ -19,8 +19,10 @@
             TESTHEAD=1
             cloudsource=develcloud{previous_version}
             upgrade_cloudsource=develcloud{version}
-            nodenumber=3
+            nodenumber=4
             mkcloudtarget=plain_with_upgrade testsetup
             want_nodesupgrade=1
+            hacloud=1
+            storage_method=swift
             label={label}
-            job_name=cloud-mkcloud{version}-job-upgrade-disruptive-{arch}
+            job_name=cloud-mkcloud{version}-job-upgrade-disruptive-ha-{arch}
