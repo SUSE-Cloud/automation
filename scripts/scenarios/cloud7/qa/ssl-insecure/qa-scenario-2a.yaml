@@ -196,11 +196,11 @@ proposals:
 - barclamp: neutron
   attributes:
     ml2_mechanism_drivers:
-    - linuxbridge
+    - ##networkingplugin##
     ml2_type_drivers:
-    - vlan
-    ml2_type_drivers_default_provider_network: vlan
-    ml2_type_drivers_default_tenant_network: vlan
+    - ##networkingmode##
+    ml2_type_drivers_default_provider_network: ##networkingmode##
+    ml2_type_drivers_default_tenant_network: ##networkingmode##
     num_vlans: 99
     ssl:
       generate_certs: true

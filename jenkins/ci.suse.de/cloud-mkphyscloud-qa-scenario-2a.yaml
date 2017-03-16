@@ -15,13 +15,14 @@
         - glance (storage swift)
         - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 KVM
         - cinder: Local file
-        - neutron: linuxbridge
+        - neutron: linuxbridge or OVS 
         - manila: NetApp backend (we expect that a vserver 'cloud-manila-svm' is available on the 'netapp-n1-e0m.cloud.suse.de' server)
 
       Warning: It will wipe all machines!
 
     wrappers:
-      - mkphyscloud-qa-common-wrappers
+      - build-name:
+          name: '#${BUILD_NUMBER} ${ENV,var="cloudsource"} - qa${ENV,var="hw_number"} ${ENV,var="networkingplugin"}:${ENV,var="networkingmode"}'
     publishers:
       - mkphyscloud-qa-common-publishers
 
@@ -116,6 +117,17 @@
           description: HA configuration for clusters. Make sense only if hacloud=1
 
       - string:
+          name: networkingplugin
+          default: linuxbridge
+          description: |
+              networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
+      
+      - string:
+          name: networkingmode
+          default: vlan
+          description: networking mode to be used by Neutron. Available options are gre, vlan, vxlan
+
+      - string:
           name: nodenumber
           default: "7"
           description: Number of nodes to use; is scenario specific
@@ -189,7 +201,6 @@
           scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
               root@$admin:scenario.yml
 
-
           ret=0
 
           ssh root@$admin "
@@ -216,6 +227,8 @@
           sed -i -e "s,##netapp_password##,$netapp_password," scenario.yml
           sed -i -e "s,##netapp_server##,$netapp_server," scenario.yml
           sed -i -e "s,##netapp_vserver##,$netapp_vserver," scenario.yml
+          sed -i -e "s,##networkingplugin##,$networkingplugin," scenario.yml
+          sed -i -e "s,##networkingmode##,$networkingmode," scenario.yml
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
