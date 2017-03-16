@@ -47,14 +47,22 @@ chmod +x /usr/bin/ping_forever_neighbour
 cat >> /usr/bin/cinder_test << EOF
   #!/bin/sh
 
+  trap "" 1
+
+  if [ `id -u` -ne 0 ]; then
+    echo "please run as root"
+    exit 1
+  fi
+
   device="/dev/vdb"
   while [ ! -e \$device ]; do
       echo "waiting for \$device to be ready"
+      echo 1 > /sys/bus/pci/rescan
       sleep 10
   done
 
-  sudo mkfs -t ext4 -L cinder_volume \$device
-  sudo mount \$device /mnt
+  mkfs -t ext4 -L cinder_volume \$device
+  mount \$device /mnt
 
   while [ 1 = 1 ]; do
       date +%s >> /mnt/cinder_test.out
