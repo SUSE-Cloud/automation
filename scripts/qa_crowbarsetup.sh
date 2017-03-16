@@ -2080,6 +2080,60 @@ function lonely_node_sshkey
     ssh_password $lonely_ip "mkdir -p /root/.ssh; echo '$pubkey' >> /root/.ssh/authorized_keys"
 }
 
+function add_dns_record
+{
+    local name=$1
+    local ip=$2
+    local pfile=`get_proposal_filename dns default`
+    crowbar dns proposal show default |
+        rubyjsonparse "
+            j['attributes']['dns']['records']['$name']={};
+            j['attributes']['dns']['records']['$name']['type']='A';
+            j['attributes']['dns']['records']['$name']['values']=['$ip'];
+            puts JSON.pretty_generate(j)" > $pfile
+    crowbar dns proposal --file=$pfile edit default
+    crowbar dns proposal commit default
+}
+
+function onadmin_setup_nfs_server
+{
+    local nfsservermac=$1
+    wait_for 150 10 "onadmin_get_ip_from_dhcp '$nfsservermac'" "node to get an IP from DHCP" "exit 78"
+    local nfs_server_node_ip=`onadmin_get_ip_from_dhcp "$nfsservermac"`
+
+    lonely_node_sshkey "$nfs_server_node_ip"
+
+    add_dns_record "nfsserver" "$nfs_server_node_ip"
+
+    local uri_base="http://${clouddata}${clouddata_base_path}"
+    local sle_pool=""
+    local sle_updates=""
+
+    case $(getcloudver) in
+        6)
+            sle_pool="$uri_base/SLES12-SP1-Pool/ sles12sp1"
+            sle_updates="$uri_base/SLES12-SP1-Updates/ sles12sp1up"
+        ;;
+        7)
+            sle_pool="$uri_base/$arch/SLES12-SP2-Pool/ sles12sp2"
+            sle_updates="$uri_base/$arch/SLES12-SP2-Updates/ sles12sp2up"
+        ;;
+    esac
+
+    inject="
+        set -x
+        zypper ar $sle_pool
+        zypper ar $sle_updates
+        zypper -n in nfs-kernel-server
+        mkdir -p /srv/nfs/cinder
+        chmod 0777 /srv/nfs/cinder
+        echo '/srv/nfs/cinder *(rw,async,no_root_squash,no_subtree_check)' >> /etc/exports
+        systemctl enable nfs-server
+        systemctl start nfs-server
+    "
+    $ssh $nfs_server_node_ip "$inject"
+}
+
 # register a new node with crowbar_register
 function onadmin_crowbar_register
 {
