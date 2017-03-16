@@ -2513,7 +2513,6 @@ function custom_configuration
             [ "$want_multidnstest" = 1 ] || return 0
             local cmachines=$(get_all_suse_nodes | head -n 3)
             local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
-            proposal_set_value dns default "['attributes']['dns']['records']" "{}"
             proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
             # We could do the usual "if iscloudver 6plus ; then", but this
             # would break mkcloud when installing Cloud 6 without updates
