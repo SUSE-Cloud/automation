@@ -2909,6 +2909,10 @@ function custom_configuration
                 netapp)
                     cinder_netapp_proposal_configuration "0"
                     ;;
+                nfs)
+                    proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['backend_name']" "'backend_nfs'"
+                    proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['nfs']['nfs_shares']" "'nfsserver:/srv/nfs/cinder'"
+                    ;;
             esac
 
             # add a second backend to enable multi-backend, if not already present
