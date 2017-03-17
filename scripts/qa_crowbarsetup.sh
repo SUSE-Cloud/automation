@@ -2068,6 +2068,18 @@ function onadmin_get_ip_from_dhcp
         END{ if (res=="") exit 1; print res }' $leasefile
 }
 
+function lonely_node_sshkey
+{
+    local lonely_ip=$1
+    wait_for 150 10 "ping -q -c 1 -w 1 $lonely_ip >/dev/null" "ping to return from ${cloud}-lonelynode" "complain 82 'could not ping lonely-node VM ($lonely_ip)'"
+
+    # wait a bit for sshd.service on ${cloud}-lonelynode
+    wait_for 10 10 "ssh_password $lonely_ip 'echo'" "ssh to be running on ${cloud}-lonelynode" "complain 82 'sshd is not responding on ($lonely_ip)'"
+
+    local pubkey=`cat /root/.ssh/id_rsa.pub`
+    ssh_password $lonely_ip "mkdir -p /root/.ssh; echo '$pubkey' >> /root/.ssh/authorized_keys"
+}
+
 # register a new node with crowbar_register
 function onadmin_crowbar_register
 {
@@ -2077,13 +2089,7 @@ function onadmin_crowbar_register
 
     [ -n "$crowbar_register_node_ip" ] || complain 84 "Could not get IP address of crowbar_register_node"
 
-    wait_for 150 10 "ping -q -c 1 -w 1 $crowbar_register_node_ip >/dev/null" "ping to return from ${cloud}-lonelynode" "complain 82 'could not ping crowbar_register VM ($crowbar_register_node_ip)'"
-
-    # wait a bit for sshd.service on ${cloud}-lonelynode
-    wait_for 10 10 "ssh_password $crowbar_register_node_ip 'echo'" "ssh to be running on ${cloud}-lonelynode" "complain 82 'sshd is not responding on ($crowbar_register_node_ip)'"
-
-    local pubkey=`cat /root/.ssh/id_rsa.pub`
-    ssh_password $crowbar_register_node_ip "mkdir -p /root/.ssh; echo '$pubkey' >> /root/.ssh/authorized_keys"
+    lonely_node_sshkey $crowbar_register_node_ip
 
     # uninstall cloud-init, its dependecies break the installation of openstack
     $ssh $crowbar_register_node_ip "zypper --non-interactive rm -u cloud-init"
