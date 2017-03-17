@@ -4186,7 +4186,7 @@ function install_suse_ca
     # trust build key - workaround https://bugzilla.opensuse.org/show_bug.cgi?id=935020
     wget -O build.suse.de.key.pgp http://$susedownload/ibs/SUSE:/CA/SLE_12/repodata/repomd.xml.key
     safely sha1sum -c <<EOF
-ee896d59206e451d563fcecef72608546bf10ad6  build.suse.de.key.pgp
+ef3fdcda62d5f5bc5ad2c94b0bd326fb2519ede8  build.suse.de.key.pgp
 EOF
     rpm --import build.suse.de.key.pgp
 
