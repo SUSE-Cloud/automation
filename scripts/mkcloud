@@ -115,8 +115,8 @@ next_pv_device=
 pv_cur_device_no=0
 
 : ${cloudbr:=${cloud}br}
-# IFNAMSIZ - 1 - 4 (vlan suffix likely length) - 2 (for interface number from PR #1750)
-cloudbrlimit=9
+# IFNAMSIZ - 1 - 4 (vlan suffix likely length)
+cloudbrlimit=11
 [[ ${#cloudbr} -gt $cloudbrlimit ]] && complain 100 "cloudbr name is too long (> $cloudbrlimit); \$cloud must be shorter"
 
 #if localreposdir_src string is available, the local repositories are used for setup
