@@ -4184,11 +4184,9 @@ function oncontroller
 function install_suse_ca
 {
     # trust build key - workaround https://bugzilla.opensuse.org/show_bug.cgi?id=935020
-    wget -O build.suse.de.key.pgp http://$susedownload/ibs/SUSE:/CA/SLE_12/repodata/repomd.xml.key
-    safely sha1sum -c <<EOF
-ef3fdcda62d5f5bc5ad2c94b0bd326fb2519ede8  build.suse.de.key.pgp
-EOF
-    rpm --import build.suse.de.key.pgp
+    wget -O- http://$susedownload/ibs/SUSE:/CA/SLE_12/repodata/repomd.xml.key | gpg --import
+    gpg --export -a 0xFEAB502539D846DB2C0961CA70AF9E8139DB7C82 > build.suse.de.key.pgp
+    safely rpm --import build.suse.de.key.pgp
 
     onadmin_set_source_variables # for $slesdist
     zypper ar --refresh http://$susedownload/ibs/SUSE:/CA/$slesdist/SUSE:CA.repo
