@@ -113,13 +113,11 @@ proposals:
     use_dvr: true
     use_l2pop: true
     ml2_mechanism_drivers:
-    - openvswitch
+    - ##networkingplugin##
     ml2_type_drivers:
-    - gre
-    - vlan
-    - vxlan
-    ml2_type_drivers_default_provider_network: vxlan
-    ml2_type_drivers_default_tenant_network: vxlan
+    - ##networkingmode##
+    ml2_type_drivers_default_provider_network: ##networkingmode##
+    ml2_type_drivers_default_tenant_network: ##networkingmode##
     num_vlans: 99
   deployment:
     elements:

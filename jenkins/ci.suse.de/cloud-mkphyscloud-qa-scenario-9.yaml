@@ -12,11 +12,12 @@
         - HA with SBD (2 nodes)
         - ceph (3 nodes)
         - 2 kvm compute nodes
+        - Neutron: linuxbridge and OVS
 
       It will wipe all QA2 machines!
 
     wrappers:
-      - mkphyscloud-qa-common-wrappers
+      - mkphyscloud-qa-build-name-wrapper      
     publishers:
       - mkphyscloud-qa-common-publishers
 
@@ -50,6 +51,17 @@
           default: master
           description: Mandatory, automation repo branch
       
+      - string:
+          name: networkingplugin
+          default: openvswitch
+          description: |
+              networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
+
+      - string:
+          name: networkingmode
+          default: vxlan
+          description: Networking mode to be used by Neutron. Available options are gre, vlan, vxlan
+
       - string:
           name: tempest
           default: smoke
@@ -172,8 +184,13 @@
           export networkingplugin=openvswitch ;
           export networkingmode=vlan ;
           export cephvolumenumber=1 ;
+          export networkingplugin=$networkingplugin ;
+          export networkingmode=$networkingmode ;
           export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
+
+          sed -i -e "s,##networkingplugin##,$networkingplugin," scenario.yml
+          sed -i -e "s,##networkingmode##,$networkingmode," scenario.yml
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
