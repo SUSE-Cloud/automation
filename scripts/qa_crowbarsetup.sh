@@ -1704,8 +1704,9 @@ EOF
         crowbar ntp proposal commit default
     fi
 
-    update_one_proposal provisioner default
-    update_one_proposal dns default
+    for proposal in crowbar provisioner dns; do
+        update_one_proposal $proposal default
+    done
 
     if ! validate_data_bags; then
         complain 68 "Validation error in default data bags. Aborting."
@@ -2246,6 +2247,13 @@ function enable_ssl_generic
         return
     fi
     case $service in
+        crowbar)
+            if iscloudver 7plus ; then
+                $p "$a['apache']['ssl']" true
+                $p "$a['apache']['generate_certs']" true
+            fi
+            return
+        ;;
         swift)
             $p "$a['ssl']['enabled']" true
         ;;
@@ -2452,7 +2460,7 @@ function custom_configuration
     ###       So, only edit the proposal file, and NOT the proposal itself
 
     case "$proposal" in
-        keystone|glance|neutron|cinder|swift|ceph|nova|horizon|nova_dashboard|heat|manila|aodh|barbican)
+        crowbar|keystone|glance|neutron|cinder|swift|ceph|nova|horizon|nova_dashboard|heat|manila|aodh|barbican)
             if [[ $want_all_ssl = 1 ]] || eval [[ \$want_${proposal}_ssl = 1 ]] ; then
                 enable_ssl_generic $proposal
             fi
