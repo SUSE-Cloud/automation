@@ -820,6 +820,7 @@ function onhost_reset_admin
 function crowbarupgrade_5plus
 {
     if iscloudver 6plus ; then
+        cloudsource=$upgrade_cloudsource onadmin prepare_cloudupgrade_nodes_repos_6_to_7
         onadmin zypper_patch_all
         onadmin upgrade_prechecks
         if [[ $cloudsource = develcloud6 ]] || [[ $upgrade_cloudsource = develcloud7 ]]; then
@@ -827,7 +828,7 @@ function crowbarupgrade_5plus
         fi
         export cloudsource=$upgrade_cloudsource
         onadmin prepare_crowbar_upgrade
-        onadmin prepare_cloudupgrade_repos_6_to_7
+        onadmin prepare_cloudupgrade_admin_repos_6_to_7
         onadmin upgrade_admin_backup
         onadmin upgrade_admin_repocheck
         onadmin upgrade_admin_server

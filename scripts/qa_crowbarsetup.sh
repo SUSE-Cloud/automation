@@ -4754,8 +4754,8 @@ function onadmin_rebootneutron
     onneutron_wait_for_neutron
 }
 
-# This will adapt Cloud6 admin server repositories to Cloud7 ones
-function onadmin_prepare_cloudupgrade_repos_6_to_7
+# This will adapt Cloud6 nodes repositories to Cloud7 ones
+function onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
 {
     export_tftpboot_repos_dir
 
@@ -4773,6 +4773,15 @@ function onadmin_prepare_cloudupgrade_repos_6_to_7
     if [ -n "$deployceph" ] && iscloudver 5plus; then
         add_suse_storage_repo
     fi
+}
+
+# This will adapt Cloud6 admin server repositories to Cloud7 ones
+function onadmin_prepare_cloudupgrade_admin_repos_6_to_7
+{
+    export_tftpboot_repos_dir
+
+    # change CLOUDSLE11DISTISO/CLOUDSLE11DISTPATH according to the new cloudsource
+    onadmin_set_source_variables
 
     # recreate the SUSE-Cloud Repo with the latest iso
     onadmin_prepare_cloud_repos
