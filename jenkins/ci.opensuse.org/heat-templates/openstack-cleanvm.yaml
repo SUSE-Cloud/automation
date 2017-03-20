@@ -147,60 +147,8 @@ resources:
             _package_repo: { get_param: package_repo }
             _quickstart_repo: { get_param: quickstart_repo }
             _quickstart_branch: { get_param: quickstart_branch }
-          template: |
-            #!/bin/sh -x
-            exec >> /root/cleanvm.log 2>&1
-            export TESTHEAD=_TESTHEAD
-            export cloudsource=_cloudsource
-            export automation_repo=_automation_repo
-            export automation_branch=_automation_branch
-            export quickstart_repo=_quickstart_repo
-            export quickstart_branch=_quickstart_branch
-            export package_repo=_package_repo
-
-            if [ -n "$package_repo" ]; then
-              zypper ar --priority 22 -G -f "$package_repo" extra
-            fi
-
-            . /etc/os-release; # retrieve VERSION_ID
-
-            zypper='zypper --non-interactive'
-
-            case "$VERSION_ID" in
-              "12.2")
-                $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
-                $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
-               ;;
-              "12.1")
-                $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
-                $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
-               ;;
-              "12")
-                $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12/x86_64/product/' SLES12-Pool
-                $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12/x86_64/update/' SLES12-Updates
-               ;;
-              *)
-               ;;
-            esac
-
-            zypper --non-interactive install git-core
-
-            # override openstack-quickstart if an alternate repo was specified
-            if [ -n "$quickstart_repo" ]; then
-              export QUICKSTART_DEBUG=1
-              git clone $quickstart_repo  --branch $quickstart_branch /root/openstack-quickstart
-              install -p -m 755 /root/openstack-quickstart/scripts/keystone_data.sh /tmp
-              install -p -m 755 /root/openstack-quickstart/lib/functions.sh /tmp
-              install -p -m 644 /root/openstack-quickstart/etc/bash.openstackrc /tmp
-              install -p -m 755 /root/openstack-quickstart/scripts/openstack-loopback-lvm /tmp
-              install -p -m 755 /root/openstack-quickstart/scripts/openstack-quickstart-demosetup /tmp
-              install -p -m 600 /root/openstack-quickstart/etc/openstackquickstartrc /tmp
-            fi
-
-            git clone $automation_repo --branch $automation_branch /root/automation
-
-            sh -x /root/automation/scripts/jenkins/qa_openstack.sh &&
-            touch /root/cleanvm_finished
+            _NOTHEAT: 'HEAT'
+          template: { get_file: deploy-cleanvm.sh }
 
   router:
     type: OS::Neutron::Router
