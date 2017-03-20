@@ -2555,7 +2555,7 @@ function custom_configuration
                     $p "['attributes']['keystone']['identity']['driver']" "'keystone.identity.backends.hybrid.Identity'"
                     $p "['attributes']['keystone']['assignment']['driver']" "'keystone.assignment.backends.hybrid.Assignment'"
                 fi
-                $p "$l['url']" "'ldap://ldap.suse.de'"
+                $p "$l['url']" "'ldaps://ldap.suse.de'"
                 $p "$l['suffix']" "'dc=suse,dc=de'"
                 $p "$l['user_tree_dn']" "'ou=accounts,dc=suse,dc=de'"
                 $p "$l['user_objectclass']" "'posixAccount'"
@@ -2567,10 +2567,10 @@ function custom_configuration
                 $p "$l['group_name_attribute']" "'cn'"
                 $p "$l['group_member_attribute']" "'memberUid'"
                 $p "$l['group_members_are_ids']" "true"
-                $p "$l['use_tls']" "true"
+                $p "$l['use_tls']" "false"
                 $p "$l['tls_cacertdir']" "'/etc/ssl/certs'"
                 $p "$l['tls_req_cert']" "'demand'"
-                $p "$l['use_pool']" "false" # ldappool does not work with tls https://review.openstack.org/#/c/443264/
+                $p "$l['use_pool']" "true"
             fi
             if [[ $want_keystone_v3 ]] ; then
                 proposal_set_value keystone default "['attributes']['keystone']['api']['version']" "'3'"
