@@ -24,7 +24,7 @@ function onhost_setup_portforwarding
         mosh_end=$((   $cloud_port_offset + 60010 ))
 
         mkdir -p $boot_mkcloud_d
-        cat > $boot_mkcloud_d_cloud <<EOS
+        $sudo tee $boot_mkcloud_d_cloud >/dev/null <<EOS
 #!/bin/bash
 # Auto-generated from $0 on `date`
 
@@ -73,9 +73,9 @@ done
 
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
 EOS
-        chmod +x $boot_mkcloud_d_cloud
+        $sudo chmod +x $boot_mkcloud_d_cloud
         if ! grep -q "boot\.mkcloud\.d" /etc/init.d/boot.local ; then
-            cat >> /etc/init.d/boot.local <<EOS
+            $sudo tee -a /etc/init.d/boot.local >/dev/null <<EOS
 
 # --v--v--  Automatically added by mkcloud on `date`
 for f in $boot_mkcloud_d/*; do
@@ -93,7 +93,7 @@ EOS
     local f
     for f in "$boot_mkcloud" $boot_mkcloud_d/*; do
         if [ -x "$f" ]; then
-            "$f"
+            $sudo "$f"
         fi
     done
 }

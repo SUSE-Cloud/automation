@@ -10,6 +10,9 @@
 : ${distsuse:=dist.nue.suse.com}
 distsuseip=$(dig -t A +short $distsuse)
 : ${susedownload:=download.nue.suse.com}
+if [[ $UID != 0 ]] ; then
+    : ${sudo:=sudo}
+fi
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
 : ${arch:=$(uname -m)}
@@ -323,20 +326,20 @@ function confset
     local file="$1"
     local key="$2"
     local value="$3"
-    if grep -q "^$key *= *$value" "$file"; then
+    if $sudo grep -q "^$key *= *$value" "$file"; then
         return 1 # already set correctly
     fi
 
     local new_line="$key = $value"
-    if grep -q "^$key[ =]" "$file"; then
+    if $sudo grep -q "^$key[ =]" "$file"; then
         # change existing value
-        sed -i "s/^$key *=.*/$new_line/" "$file"
-    elif grep -q "^# *$key[ =]" "$file"; then
+        $sudo sed -i "s/^$key *=.*/$new_line/" "$file"
+    elif $sudo grep -q "^# *$key[ =]" "$file"; then
         # uncomment existing setting
-        sed -i "s/^# *$key *=.*/$new_line/" "$file"
+        $sudo sed -i "s/^# *$key *=.*/$new_line/" "$file"
     else
         # add new setting
-        echo "$new_line" >> "$file"
+        echo "$new_line" | $sudo tee -a "$file" >/dev/null
     fi
 
     return 0
@@ -361,13 +364,13 @@ function ensure_packages_installed
     if is_suse ; then
         export ZYPP_LOCK_TIMEOUT=60
         local zypper_params="${zypper_override_params:---non-interactive --gpg-auto-import-keys --no-gpg-checks}"
-        rpm -q "$@" &> /dev/null || safely zypper $zypper_params install $extra_zypper_install_params "$@"
+        rpm -q "$@" &> /dev/null || safely $sudo zypper $zypper_params install $extra_zypper_install_params "$@"
     elif is_debian ; then
         pkglist=$(echo "$@" | sed -e '
             s/\blibvirt\b/libvirt-clients libvirt-daemon-system/;
             s/\blibvirt-python\b/python-libvirt/;
         ')
-        safely apt-get -q -y install $pkglist
+        safely $sudo apt-get -q -y install $pkglist
     else
         echo "Warning: ensure_packages_installed did not know your OS, doing nothing"
     fi
@@ -376,7 +379,7 @@ function ensure_packages_installed
 function zypper_refresh
 {
     # --no-gpg-checks for Devel:Cloud repo
-    safely zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
+    safely $sudo zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
 }
 
 # ---- START: functions related to repos and distribution settings
