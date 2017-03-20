@@ -3999,7 +3999,7 @@ function oncontroller_testsetup
     local imageid
     imageid=$(glance_image_get_id $image_name) || \
         complain 37 "Image ID for $image_name not found"
-    wait_image_active "$image_name" testsetup
+    wait_image_active "$imageid" testsetup
 
     if [[ $want_ldap = 1 ]] ; then
         install_suse_ca
