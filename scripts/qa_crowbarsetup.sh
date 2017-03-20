@@ -3854,6 +3854,9 @@ function oncontroller_testsetup
 {
     . .openrc
     oncontroller_prepare_functional_tests
+    if [[ $hacloud = 1 ]] ; then
+        crm_mon --failcounts -1 | grep "fail-count=" && complain 55 "Cluster resources' failures detected"
+    fi
     # 28 is the overhead of an ICMP(ping) packet
     [[ $want_mtu_size ]] && iscloudver 5plus && safely ping -M do -c 1 -s $(( want_mtu_size - 28 )) $adminip
     export LC_ALL=C
