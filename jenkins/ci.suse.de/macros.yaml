@@ -6,6 +6,13 @@
           name: '#${BUILD_NUMBER}: ${ENV,var="cloudsource"}'
       - timestamps
 
+- wrapper:
+    name: mkphyscloud-qa-build-name-wrapper
+    wrappers: 
+      - build-name:
+          name: '#${BUILD_NUMBER} ${ENV,var="cloudsource"} - qa${ENV,var="hw_number"} ${ENV,var="networkingplugin"}:${ENV,var="networkingmode"}'
+      - timestamps
+
 - publisher:
     name: mkphyscloud-qa-common-publishers
     publishers:
