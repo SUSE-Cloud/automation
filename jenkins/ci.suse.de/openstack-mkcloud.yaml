@@ -166,6 +166,7 @@
            - raw
            - rbd
            - netapp
+           - nfs
      - bool:
          name: want_cindermultibackend
          default: false
@@ -336,6 +337,8 @@
 
         if [[ $cinder_backend = " " ]] ; then
           cinder_backend=""
+        elif [[ $cinder_backend = "nfs" ]] ; then
+          export nodenumberlonelynode=1
         fi
 
 
