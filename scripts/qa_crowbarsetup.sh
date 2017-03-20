@@ -2083,6 +2083,72 @@ function onadmin_get_ip_from_dhcp
         END{ if (res=="") exit 1; print res }' $leasefile
 }
 
+function lonely_node_sshkey
+{
+    local lonely_ip=$1
+    wait_for 150 10 "ping -q -c 1 -w 1 $lonely_ip >/dev/null" "ping to return from ${cloud}-lonelynode" "complain 82 'could not ping lonely-node VM ($lonely_ip)'"
+
+    # wait a bit for sshd.service on ${cloud}-lonelynode
+    wait_for 10 10 "ssh_password $lonely_ip 'echo'" "ssh to be running on ${cloud}-lonelynode" "complain 82 'sshd is not responding on ($lonely_ip)'"
+
+    local pubkey=`cat /root/.ssh/id_rsa.pub`
+    ssh_password $lonely_ip "mkdir -p /root/.ssh; echo '$pubkey' >> /root/.ssh/authorized_keys"
+}
+
+function add_dns_record
+{
+    local name=$1
+    local ip=$2
+    local pfile=`get_proposal_filename dns default`
+    crowbar dns proposal show default |
+        rubyjsonparse "
+            j['attributes']['dns']['records']['$name']={};
+            j['attributes']['dns']['records']['$name']['type']='A';
+            j['attributes']['dns']['records']['$name']['values']=['$ip'];
+            puts JSON.pretty_generate(j)" > $pfile
+    crowbar dns proposal --file=$pfile edit default
+    crowbar dns proposal commit default
+}
+
+function onadmin_setup_nfs_server
+{
+    local nfsservermac=$1
+    wait_for 150 10 "onadmin_get_ip_from_dhcp '$nfsservermac'" "node to get an IP from DHCP" "exit 78"
+    local nfs_server_node_ip=`onadmin_get_ip_from_dhcp "$nfsservermac"`
+
+    lonely_node_sshkey "$nfs_server_node_ip"
+
+    add_dns_record "nfsserver" "$nfs_server_node_ip"
+
+    local uri_base="http://${clouddata}${clouddata_base_path}"
+    local sle_pool=""
+    local sle_updates=""
+
+    case $(getcloudver) in
+        6)
+            sle_pool="$uri_base/SLES12-SP1-Pool/ sles12sp1"
+            sle_updates="$uri_base/SLES12-SP1-Updates/ sles12sp1up"
+        ;;
+        7)
+            sle_pool="$uri_base/$arch/SLES12-SP2-Pool/ sles12sp2"
+            sle_updates="$uri_base/$arch/SLES12-SP2-Updates/ sles12sp2up"
+        ;;
+    esac
+
+    inject="
+        set -x
+        zypper ar $sle_pool
+        zypper ar $sle_updates
+        zypper -n in nfs-kernel-server
+        mkdir -p /srv/nfs/cinder
+        chmod 0777 /srv/nfs/cinder
+        echo '/srv/nfs/cinder *(rw,async,no_root_squash,no_subtree_check)' >> /etc/exports
+        systemctl enable nfs-server
+        systemctl start nfs-server
+    "
+    $ssh $nfs_server_node_ip "$inject"
+}
+
 # register a new node with crowbar_register
 function onadmin_crowbar_register
 {
@@ -2092,13 +2158,7 @@ function onadmin_crowbar_register
 
     [ -n "$crowbar_register_node_ip" ] || complain 84 "Could not get IP address of crowbar_register_node"
 
-    wait_for 150 10 "ping -q -c 1 -w 1 $crowbar_register_node_ip >/dev/null" "ping to return from ${cloud}-lonelynode" "complain 82 'could not ping crowbar_register VM ($crowbar_register_node_ip)'"
-
-    # wait a bit for sshd.service on ${cloud}-lonelynode
-    wait_for 10 10 "ssh_password $crowbar_register_node_ip 'echo'" "ssh to be running on ${cloud}-lonelynode" "complain 82 'sshd is not responding on ($crowbar_register_node_ip)'"
-
-    local pubkey=`cat /root/.ssh/id_rsa.pub`
-    ssh_password $crowbar_register_node_ip "mkdir -p /root/.ssh; echo '$pubkey' >> /root/.ssh/authorized_keys"
+    lonely_node_sshkey $crowbar_register_node_ip
 
     # uninstall cloud-init, its dependecies break the installation of openstack
     $ssh $crowbar_register_node_ip "zypper --non-interactive rm -u cloud-init"
@@ -2535,7 +2595,6 @@ function custom_configuration
             [ "$want_multidnstest" = 1 ] || return 0
             local cmachines=$(get_all_suse_nodes | head -n 3)
             local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
-            proposal_set_value dns default "['attributes']['dns']['records']" "{}"
             proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
             # We could do the usual "if iscloudver 6plus ; then", but this
             # would break mkcloud when installing Cloud 6 without updates
@@ -2871,6 +2930,10 @@ function custom_configuration
             case "$cinder_backend" in
                 netapp)
                     cinder_netapp_proposal_configuration "0"
+                    ;;
+                nfs)
+                    proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['backend_name']" "'backend_nfs'"
+                    proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['nfs']['nfs_shares']" "'nfsserver:/srv/nfs/cinder'"
                     ;;
             esac
 

@@ -484,6 +484,14 @@ function crowbar_register
     done
 }
 
+# setup an NFS server on the first lonely node
+function lonelynode_nfs_server
+{
+    local nfsserver=($(nodes ids lonely))
+    local mac=$(macfunc $nfsserver)
+    onadmin setup_nfs_server $mac
+}
+
 function prepareinstcrowbar
 {
     echo "connecting to crowbar admin server at $adminip"
@@ -1245,7 +1253,7 @@ function sanity_checks
     fi
 
     case $cinder_backend in
-        ''|netapp|local|raw|rbd)
+        ''|netapp|local|nfs|raw|rbd)
             ;;
         *)
             complain 101 "$cinder_backend as the cinder backend is currently not supported."
@@ -1287,6 +1295,7 @@ allcmds="$step_aliases _test_setuphost \
     crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help \
     rebootneutron cloudupgrade \
     setuplonelynodes crowbar_register createadminsnapshot \
+    lonelynode_nfs_server \
     restoreadminfromsnapshot createcloudsnapshot restorecloudfromsnapshot \
     cct steps batch setup_aliases onadmin onhost devsetup plain_with_upgrade_test \
     testpreupgrade testpostupgrade"
