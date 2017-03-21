@@ -839,6 +839,7 @@ function crowbarupgrade_5plus
             onadmin upgrade_ses_to_4
         fi
         onadmin zypper_patch_all
+        onadmin cleanup_crm_resources
         onadmin upgrade_prechecks
         if [[ $cloudsource = develcloud6 ]] || [[ $upgrade_cloudsource = develcloud7 ]]; then
             onadmin allow_vendor_change_at_nodes
