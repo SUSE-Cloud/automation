@@ -4,5 +4,9 @@ start /^Starting proposal/
 info /^\+ onadmin /
 info /^Waiting for /
 
+ok /Warning: Turning on '--gpg-auto-import-keys'/
+ok /Warning: Permanently added .* to the list of known hosts/
+warning /(?i)warning/
+
 error /Error/
 error /$h1!!/
