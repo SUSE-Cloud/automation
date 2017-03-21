@@ -177,4 +177,7 @@
 
             export cct_tests=feature:ui:upgrade:os-db:backup
             onadmin_run_cct
+
+            export cct_tests=feature:ui:upgrade:nodes:upgrade
+            onadmin_run_cct
           '
