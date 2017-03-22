@@ -2954,9 +2954,8 @@ function custom_configuration
             if [[ $hacloud = 1 ]] ; then
                 # fetch one of the compute nodes as cinder_volume
                 local cinder_volume=("${unclustered_nodes[@]}")
-                # make sure we do not pick SP1 nodes on cloud7
-                if [ -n "$deployceph" ] && iscloudver 7 ; then
-                    cinder_volume=("${unclustered_sles12plusnodes[@]}")
+                if [[ "$deployceph" ]] && iscloudver 7plus ; then
+                    cinder_volume=("cluster:$clusternameservices")
                 fi
                 if [[ ${#cinder_volume[@]} -eq 0 ]]; then
                     complain 105 "No suitable node(s) for cinder-volume found."
@@ -2976,7 +2975,7 @@ function custom_configuration
             fi
             # manila options
             if iscloudver 6plus ; then
-                if [ -n "$deployceph" ] && iscloudver 7plus; then
+                if [[ "$deployceph" ]] && iscloudver 7plus ; then
                     # cephfs is deployed
                     proposal_set_value tempest default "['attributes']['tempest']['manila']['enable_cert_rules_for_protocols']" "''"
                     proposal_set_value tempest default "['attributes']['tempest']['manila']['enable_ip_rules_for_protocols']" "''"
