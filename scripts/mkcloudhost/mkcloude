@@ -1,6 +1,6 @@
 #!/bin/sh -x
 n=$(basename $testdir)
-ar=${automationrepo:-/root/github.com/SUSE-Cloud/automation}
+ar=${automationrepo:-~/github.com/SUSE-Cloud/automation}
 if [[ $(hostname) =~ ^mkch.$ ]] ; then
     . $ar/scripts/mkcloudhost/routed.cloud $n
 else
