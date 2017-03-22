@@ -29,7 +29,7 @@
           ## THIS IS A TRIGGER JOB ONLY - NO WORKER CODE IN HERE - DO NOT DARE TO ADD SOME
           ## TRIGGER JOBS ARE MOVED TO A DEDICATED TRIGGER NODE
           ## THIS JOB IS ABOUT PRs FOR THE CCT REPO
-          [[ $NODE_NAME != 'cloud-trigger' ]] && exit 99
+          [[ $NODE_NAME =~ cloud.?trigger ]] || exit 99
           ##
 
           set -x
