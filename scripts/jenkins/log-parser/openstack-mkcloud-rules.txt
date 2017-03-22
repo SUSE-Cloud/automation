@@ -8,5 +8,6 @@ ok /Warning: Turning on '--gpg-auto-import-keys'/
 ok /Warning: Permanently added .* to the list of known hosts/
 warning /(?i)warning/
 
-error /Error/
+error /(?i)error/
+error /(?i)(failure|fail\b)/
 error /$h1!!/
