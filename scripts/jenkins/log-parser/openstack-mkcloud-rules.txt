@@ -10,4 +10,5 @@ warning /(?i)warning/
 
 error /(?i)error/
 error /(?i)(failure|fail\b)/
+error /(?i)fatal/
 error /$h1!!/
