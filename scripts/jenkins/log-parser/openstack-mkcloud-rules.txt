@@ -6,9 +6,17 @@ info /^Waiting for /
 
 ok /Warning: Turning on '--gpg-auto-import-keys'/
 ok /Warning: Permanently added .* to the list of known hosts/
+ok /WARNING: Device for PV .* not found or rejected by a filter/
+ok /WARNING: \w+ signature detected on .* offset \d+. Wipe it?/
 warning /(?i)warning/
 
+ok /trap 'error_exit/
+ok /local 'error_cmd=/
+ok /Loading robots.txt; please ignore errors/
+ok /update-alternatives: .*ruby_parse_extract_error/
+# https://bugzilla.redhat.com/show_bug.cgi?id=1312188
+ok /virtlogd\[\d+\]: End of file while reading data: Input\/output error/
 error /(?i)error/
-error /(?i)(failure|fail\b)/
+error /(?i)\bfail(ure)?\b/
 error /(?i)fatal/
 error /$h1!!/
