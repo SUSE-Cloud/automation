@@ -311,9 +311,10 @@ class Target(ISCSI):
         iqn = 'iqn.2015-01.qa.cloud.suse.de:%s' % self.iqn_id
 
         print("Registering target for %s ..." % iqn)
-        self.ssh.tcm_node('--block', 'iblock_0/id01', '/dev/loop0')
+        self.ssh.tcm_node('--block', 'iblock_0/%s' % self.iqn_id,
+                          self.device)
         self.ssh.lio_node('--addlun', iqn, '1', '0', 'iscsi_port',
-                          'iblock_0/id01')
+                          'iblock_0/%s' % self.iqn_id)
         self.ssh.lio_node('--addnp', iqn, '1', '%s:3260' % ip)
         self.ssh.lio_node('--disableauth', iqn, '1')
         self.ssh.lio_node('--enabletpg', iqn, '1')
