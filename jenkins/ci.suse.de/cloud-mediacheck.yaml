@@ -70,9 +70,9 @@
               done
           fi
           # temporary, similar to update_automation (not that advanced)
-          d=/root/github.com/SUSE/cloud/
+          d=~/github.com/SUSE/cloud/
           if [ ! -e  $d ] ; then
-            mkdir -p /root/github.com/SUSE
+            mkdir -p ~/github.com/SUSE
             git clone git@github.com:SUSE/cloud.git $d
           fi
           pushd $d

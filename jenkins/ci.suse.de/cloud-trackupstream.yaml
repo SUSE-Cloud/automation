@@ -218,7 +218,7 @@
 
           grep -q "<linkinfo" .osc/_files || exit 2
 
-          /root/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-and-package.pl
+          ${automationrepo}/scripts/jenkins/track-upstream-and-package.pl
           ret=$?
 
           # only enable jtsync when build is not manually triggered
