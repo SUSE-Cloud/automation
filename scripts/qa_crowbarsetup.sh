@@ -4834,8 +4834,45 @@ function onadmin_rebootneutron
     onneutron_wait_for_neutron
 }
 
-# This will adapt Cloud6 admin server repositories to Cloud7 ones
-function onadmin_prepare_cloudupgrade_repos_6_to_7
+function onadmin_upgrade_ses_to_4
+{
+    # 1a. find all ceph nodes
+    local ceph_nodes=$(knife search node "roles:ceph-*" -a name | \
+        grep ^name: | cut -d : -f 2 | sed 's/\s//g')
+
+    # 1b save the search for ceph-mons
+    local ceph_mons=$(knife search node "roles:ceph-mon" -a name | \
+        grep ^name: | cut -d : -f 2 | sed 's/\s//g')
+
+    # 2. move ceph nodes to crowbar_upgrade state
+    crowbar_api_request POST $crowbar_api /utils/ceph_pre_upgrade/prepare.json
+
+    # 3. upgrade ceph nodes
+    for node in $ceph_nodes; do
+        # Replace SP1 repos with the new ones
+        ssh $node "rm /etc/zypp/repos.d/*
+zypper ar -f http://$adminip:8091/suse-12.2/x86_64/install SLES12-SP2-12.2-0
+zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SLES12-SP2-Updates SLES12-SP2-Updates
+zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SLES12-SP2-Pool SLES12-SP2-Pool
+zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Pool SUSE-Enterprise-Storage-4-Pool
+zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Updates SUSE-Enterprise-Storage-4-Updates
+zypper ref
+zypper -non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgrade-helper"
+
+        ssh $node "upgrade-ses.sh --non-interactive"
+        ssh $node "reboot"
+        wait_for 100 3 "! nc -w 1 -z $node 22" "node $node to go down"
+        wait_for 200 3 "nc -w 1 -z $node 22" "node $node to be back online"
+    done
+
+    # update the ceph osd configuration to new defaults
+    for node in $ceph_mons; do
+        ssh $node "ceph osd crush tunables firefly; ceph osd set require_jewel_osds"
+    done
+}
+
+# This will adapt Cloud6 nodes repositories to Cloud7 ones
+function onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
 {
     export_tftpboot_repos_dir
 
@@ -4853,6 +4890,15 @@ function onadmin_prepare_cloudupgrade_repos_6_to_7
     if [ -n "$deployceph" ] && iscloudver 5plus; then
         add_suse_storage_repo
     fi
+}
+
+# This will adapt Cloud6 admin server repositories to Cloud7 ones
+function onadmin_prepare_cloudupgrade_admin_repos_6_to_7
+{
+    export_tftpboot_repos_dir
+
+    # change CLOUDSLE11DISTISO/CLOUDSLE11DISTPATH according to the new cloudsource
+    onadmin_set_source_variables
 
     # recreate the SUSE-Cloud Repo with the latest iso
     onadmin_prepare_cloud_repos
