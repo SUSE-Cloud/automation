@@ -1,0 +1,153 @@
+- job:
+    name: openstack-mkcloud-log-parser-test
+    node: openstack-mkcloud
+    concurrent: true
+    description: |
+      <!-- Managed by Jenkins Job Builder -->
+      This job runs https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud results are
+      analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl
+      on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes
+
+    logrotate:
+        numToKeep: 200
+        daysToKeep: 30
+
+    properties:
+      - authorization:
+          cloud:
+               - job-build
+               - job-cancel
+               - job-configure
+               - job-delete
+               - job-discover
+               - job-read
+               - job-workspace
+               - run-delete
+               - run-update
+               - scm-tag
+          anonymous:
+               - job-read
+
+    parameters:
+     - string:
+        name: sample_log_file
+        default: jenkins/ci.suse.de/openstack-mkcloud-sample-logs/develcloud7-PR-crowbar-openstack-868.txt
+        description: |
+             Sample log from a previous run to emit as a fake job log,
+             providing text to test the log parser rules against.
+     - string:
+         name: github_pr
+         description: |
+              String is a ':' separated list of these vaules: $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context Note:
+              SHA1 must be latest commit in PR, $context is optional  (only use if multiple gating runs needed per PR)
+
+    wrappers:
+     - timestamps:
+     - build-name:
+         name: '#${BUILD_NUMBER}: ${ENV,var="job_name"}'
+     - timeout:
+        timeout: 60
+        type: no-activity
+        abort: true
+        write-description: "Job aborted due to 60 minutes of inactivity."
+
+    builders:
+    - shell: |
+        set -x
+        shopt -s extglob
+        # emptying the workspace
+        mkdir -p empty
+        rsync -r --delete empty/ ./
+
+        export artifacts_dir=$WORKSPACE/.artifacts
+        rm -rf $artifacts_dir
+        mkdir -p $artifacts_dir
+        touch $artifacts_dir/.ignore
+
+        export automationrepo=~/github.com/SUSE-Cloud/automation
+
+        # automation bootstrapping
+        if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+          rm -rf ${automationrepo}
+          curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
+        fi
+        # fetch the latest automation updates
+        ${automationrepo}/scripts/jenkins/update_automation #NO PARAMETERS HERE ANY MORE!!!
+
+        #function mkcloudgating_trap()
+        #{
+        #    $ghs -a set-status -s "failure" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha --context $ghs_context
+        #}
+
+        ## mkcloud github PR gating
+        if [[ $github_pr ]] ; then
+            github_opts=(${github_pr//:/ })
+            github_pr_repo=${github_opts[0]}
+            github_pr_id=${github_opts[1]}
+            github_pr_sha=${github_opts[2]}
+            github_pr_context=${github_opts[4]}
+            ghs_context=suse/mkcloud
+            if [[ $github_pr_context ]] ; then
+              ghs_context=$ghs_context/$github_pr_context
+            fi
+
+            echo "testing PR: https://github.com/$github_pr_repo/pull/$github_pr_id"
+            ghs=${automationrepo}/scripts/github-status/github-status.rb
+            zypper -n install "rubygem(netrc)" "rubygem(octokit)"
+
+            #if ! $ghs -r $github_pr_repo -a is-latest-sha -p $github_pr_id -c $github_pr_sha ; then
+            #    $ghs -a set-status -s "error" -t $BUILD_URL -r $github_pr_repo -c $github_pr_sha -m "SHA1 mismatch, newer commit exists" --context $ghs_context
+            #    exit 1
+            #fi
+
+            #trap "mkcloudgating_trap" ERR
+
+            # Support for automation self-gating
+            if [[ "$github_pr_repo" = "SUSE-Cloud/automation" ]]; then
+                automationrepo_orig=$automationrepo
+                pr_dir=`mktemp -d $WORKSPACE/SUSE-Cloud.automation.XXXXXX`
+                automationrepo=$pr_dir/automation
+
+                mkdir -p $automationrepo
+                rsync -a ${automationrepo_orig%/}/ $automationrepo/
+                pushd $automationrepo
+                ghremote=origin
+                git config --get-all remote.${ghremote}.fetch | grep -q pull || \
+                    git config --add remote.${ghremote}.fetch "+refs/pull/*/head:refs/remotes/${ghremote}/pr/*"
+                git fetch $ghremote 2>&1 | grep -v '\[new ref\]'
+                git checkout -t $ghremote/pr/$github_pr_id
+                echo "we merge to always test what will end up in master"
+                git merge master -m temp-merge-commit
+                # show latest commit in log to see what's really tested
+                #git --no-pager show
+                popd
+            elif [[ "$github_pr_repo" = "SUSE-Cloud/cct" ]]; then
+                export want_cct_pr=$github_pr_id
+            fi
+
+            #$ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha --context $ghs_context -m "Started PR gating"
+
+        fi
+
+        cp ${automationrepo}/scripts/jenkins/log-parser/openstack-mkcloud-rules.txt log-parser-plugin-rules.txt
+
+        echo "########################################################################"
+        env
+        echo "########################################################################"
+
+        cat ${automationrepo}/${sample_log_file}
+
+    publishers:
+      - logparser:
+          use-project-rules: true
+          parse-rules: log-parser-plugin-rules.txt
+          unstable-on-warning: true
+          fail-on-error: false
+          show-graphs: true
+      - archive:
+         artifacts: .artifacts/**
+         allow-empty: false
+         only-if-success: false
+         fingerprint: false
+         default-excludes: true
+    triggers: []

@@ -116,7 +116,8 @@ class GHClientHandler
       pulls.partition do |p|
         next true unless @repository == "SUSE-Cloud/automation"
         pf = @client.pull_request_files(@repository, p[:number]).select do |f|
-          f[:filename] =~ %r{scripts/(mkcloud|qa_crowbarsetup\.sh|lib/.*)$}
+          f[:filename] =~ %r{scripts/(mkcloud|qa_crowbarsetup\.sh|lib/.*)$} ||
+          f[:filename] =~ %r{scripts/jenkins/log-parser/}
         end
         # at least one filename must match to require a mkcloud gating run
         pf.size > 0

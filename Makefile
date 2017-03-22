@@ -6,7 +6,9 @@ clean:
 	find -name \*.pyc -print0 | xargs -0 rm -f
 
 filecheck:
-	! git ls-tree -r HEAD --name-only | grep -v Makefile | xargs grep $$'\t'
+	! git ls-tree -r HEAD --name-only | \
+		egrep -v 'Makefile|sample-logs/.*\.txt$$' | \
+		xargs grep $$'\t'
 
 bashate:
 	cd scripts && \
