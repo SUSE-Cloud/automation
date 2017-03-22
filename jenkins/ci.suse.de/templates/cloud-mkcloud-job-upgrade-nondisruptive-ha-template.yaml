@@ -23,8 +23,9 @@
             nodenumber=5
             hacloud=1
             storage_method=swift
+            cinder_backend=nfs
             want_nodesupgrade=1
             want_ping_running_instances=1
-            mkcloudtarget=plain_with_upgrade_test testsetup
+            mkcloudtarget=instonly setuplonelynodes lonelynode_nfs_server proposal testpreupgrade addupdaterepo runupdate cloudupgrade testpostupgrade testsetup
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}
