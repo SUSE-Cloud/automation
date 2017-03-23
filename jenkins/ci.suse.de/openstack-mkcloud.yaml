@@ -376,7 +376,6 @@
           jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
           export debug_qa_crowbarsetup=1
           export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
-          export debug=0
           export want_neutronsles12=1
           export want_mtu_size=8900
           [[ $libvirt_type = hyperv ]] && want_mtu_size=1500 # windows-PXE-bootloader seems to not like jumbo-packets
