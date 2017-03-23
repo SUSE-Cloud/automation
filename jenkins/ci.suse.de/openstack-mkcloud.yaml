@@ -74,6 +74,12 @@
             openstack-mkcloud-SLE12 (SLE12 host),
             openstack-mkcloud-SLE12-aarch64 (SLE12 aarch64 host)
 
+      - string:
+          name: debug_qa_crowbarsetup
+          default: '1'
+          description: |
+            Use set -x and PS4 tracing for qa_crowbarsetup.sh
+
       ################################################
       # repositories
 
@@ -374,7 +380,6 @@
 
           export automationrepo=~/github.com/SUSE-Cloud/automation
           jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
-          export debug_qa_crowbarsetup=1
           export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
           export want_neutronsles12=1
           export want_mtu_size=8900
