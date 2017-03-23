@@ -21,14 +21,13 @@
             cloudsource=develcloud{previous_version}
             upgrade_cloudsource=develcloud{version}
             nodenumber=7
-            want_ceph=1
-            cinder_backend=rbd
+            storage_method=ceph
             hacloud=1
-            want_node_roles=storage=3,controller=2,compute=2
             want_node_aliases=ceph=3,controller=2,compute=2
             clusterconfig=data+network+services=2
             want_nodesupgrade=1
             want_ping_running_instances=1
-            mkcloudtarget=plain_with_upgrade_test testsetup
+            mkcloudtarget=instonly batch testpreupgrade addupdaterepo runupdate cloudupgrade testpostupgrade testsetup
+            scenario=cloud{version}-upgrade-non-disruptive-ceph.yml
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-ceph-{arch}
