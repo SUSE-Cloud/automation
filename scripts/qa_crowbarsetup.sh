@@ -5432,13 +5432,13 @@ function oncontroller_setupproduction()
     openstack role add --project demo --user demo Member
 
     # import images
-    for img in SLES12.qcow2 SLES12-SP1.qcow2 SLES12-SP2.qcow2 x86_64/SLES12-SP3.qcow2 x86_64/SP4-64up.qcow2 cirros-0.3.4-x86_64-disk.img other/openSUSE-Leap-42.1.qcow2 other/openSUSE-Leap-42.1-OpenStack.x86_64-0.0.3-Build1.2.qcow2 Fedora-x86_64-20-20131211.1-sda.qcow2 x86_64/other/debian-jessie.qcow2 x86_64/other/debian-jessie-nopart.qcow2 x86_64/other/openSUSE-Leap-42.2-altimagebuild.qcow2 ; do
+    for img in SLES12.qcow2 SLES12-SP1.qcow2 SLES12-SP2.qcow2 SLES12-SP3.qcow2 SP4-64up.qcow2 cirros-0.3.4-x86_64-disk.img openSUSE-Leap-42.1.qcow2 openSUSE-Leap-42.1-OpenStack.x86_64-0.0.3-Build1.2.qcow2 openSUSE-Leap-42.2-OpenStack.x86_64-0.0.4-Build3.1.qcow2 Fedora-x86_64-20-20131211.1-sda.qcow2 debian-jessie-nopart.qcow2 openSUSE-Leap-42.2-altimagebuild.qcow2 ; do
         local bimg=$(basename $img)
         local image_name=${bimg//.qcow2}
         local params="--disk-format qcow2 --container-format bare "
         [[ $image_name =~ -Build ]] && params+=' --min-ram 300 --min-disk 10'
         curl -s \
-            http://$clouddata/images/$img | \
+            http://$clouddata/images/openstack/x86_64/$img | \
             OS_TENANT_NAME=admin openstack image create --public --property hypervisor_type=kvm \
             $params $image_name
     done
