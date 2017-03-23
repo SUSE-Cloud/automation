@@ -834,10 +834,7 @@ function crowbarupgrade_5plus
 {
     if iscloudver 6plus ; then
         cloudsource=$upgrade_cloudsource onadmin prepare_cloudupgrade_nodes_repos_6_to_7
-        # if SES was deployed, it needs to be upgraded before Cloud
-        if [[ $want_ceph = 1 ]] ; then
-            onadmin upgrade_ses_to_4
-        fi
+        onadmin upgrade_ses_to_4
         onadmin zypper_patch_all
         onadmin cleanup_crm_resources
         onadmin upgrade_prechecks
