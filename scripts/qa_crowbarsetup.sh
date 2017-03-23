@@ -4833,8 +4833,14 @@ function onadmin_rebootneutron
     onneutron_wait_for_neutron
 }
 
+# if SES was deployed, it needs to be upgraded before Cloud
 function onadmin_upgrade_ses_to_4
 {
+    if [ -z "$deployceph" ] ; then
+        echo "ceph not deployed, no upgrade needed"
+        return
+    fi
+
     # 1a. find all ceph nodes
     local ceph_nodes=$(knife search node "roles:ceph-*" -a name | \
         grep ^name: | cut -d : -f 2 | sed 's/\s//g')
