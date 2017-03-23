@@ -136,8 +136,8 @@ proposals:
       swift-ring-compute:
       - "@@controller1@@"
       swift-storage:
-      - "@@computekvm1@@"
-      - "@@computekvm2@@"
+      - "@@controller2@@"
+      - "@@compute-kvm@@"
 
 - barclamp: glance
   attributes:
@@ -192,8 +192,7 @@ proposals:
       - cluster:services
       nova-compute-hyperv: []
       nova-compute-kvm:
-      - "@@computekvm1@@"
-      - "@@computekvm2@@"
+      - "@@compute-kvm@@"
       nova-compute-qemu: []
       nova-compute-xen: []
 
@@ -222,8 +221,7 @@ proposals:
   deployment:
     elements:
       ceilometer-agent:
-      - "@@computekvm1@@"
-      - "@@computekvm2@@"
+      - "@@compute-kvm@@"
       ceilometer-agent-hyperv: []
       ceilometer-central:
       - cluster:services

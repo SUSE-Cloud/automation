@@ -146,7 +146,7 @@ proposals:
       - "@@controller1@@"
       swift-storage:
       - "@@controller2@@"
-      - "@@computekvm@@"
+      - "@@compute-kvm@@"
 
 - barclamp: glance
   attributes:
@@ -223,7 +223,7 @@ proposals:
       - cluster:services
       nova-compute-hyperv: []
       nova-compute-kvm:
-      - "@@computekvm@@"
+      - "@@compute-kvm@@"
       nova-compute-qemu: []
       nova-compute-xen: []
 
@@ -255,7 +255,7 @@ proposals:
   deployment:
     elements:
       ceilometer-agent:
-      - "@@computekvm@@"
+      - "@@compute-kvm@@"
       ceilometer-agent-hyperv: []
       ceilometer-central:
       - cluster:services

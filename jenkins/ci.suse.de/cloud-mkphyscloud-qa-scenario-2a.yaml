@@ -219,6 +219,7 @@
           ssh root@$admin "
           export cloud=$cloud ;
           export hw_number=$hw_number ;
+          export sbd_ip=$sbd_ip ;
           export UPDATEREPOS=$UPDATEREPOS ;
           export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
           export TESTHEAD=$TESTHEAD ;
@@ -259,16 +260,11 @@
               # preparation of iSCSI
               zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
 
-              wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
-
               chmod +x scripts/iscsictl.py
 
-              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host controller1 --no-key --id id-qa$hw_number
-              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host controller2 --no-key --id id-qa$hw_number
-              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host data1       --no-key --id id-qa$hw_number
-              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host data2       --no-key --id id-qa$hw_number
-              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host network1    --no-key --id id-qa$hw_number
-              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host network2    --no-key --id id-qa$hw_number
+              for node in {controller1,controller2,data1,data2,network1,network2} ; do
+                ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host \$node --no-key --id id-qa$hw_number
+              done
 
               # preparation of SBD for services nodes
               SBD_DEV_SERVICES=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
