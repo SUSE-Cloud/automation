@@ -4,10 +4,11 @@ use strict;
 use Time::HiRes qw(sleep);
 use Fcntl qw(:DEFAULT :flock);
 
+my $pooldir="$ENV{HOME}/pool";
 my $allocname="tmpqueuesched.pid";
 # Take the oldest directory
 my @dirs= sort { (stat("$a/$allocname"))[9] <=>
-                 (stat("$b/$allocname"))[9] } (</root/pool/?>,</root/pool/??>);
+                 (stat("$b/$allocname"))[9] } (<$pooldir/?>,<$pooldir/??>);
 
 #print "@dirs\n";
 
