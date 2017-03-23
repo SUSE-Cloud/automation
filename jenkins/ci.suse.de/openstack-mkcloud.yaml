@@ -2,10 +2,11 @@
     name: openstack-mkcloud
     node: openstack-mkcloud
     concurrent: true
-    description: |
-      <!-- Managed by Jenkins Job Builder -->
-      This job runs https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud results are
-      analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl
+    description: >-
+      This job runs https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud
+
+      Results are analyzed by
+      https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl
       on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes
 
     logrotate:
