@@ -232,6 +232,9 @@ function sshrun
         export drbd_rabbitmq_size=$drbd_rabbitmq_size ;
         export shell=$shell ;
         export keep_existing_hostname=$keep_existing_hostname ;
+        export http_proxy=$http_proxy ;
+        export https_proxy=$https_proxy ;
+        export no_proxy=$no_proxy ;
         export cct_tests=$cct_tests ;
         export scenario=$scenario ;
         export host_mtu=$host_mtu ;
