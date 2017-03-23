@@ -524,7 +524,7 @@
       - logparser:
           use-project-rules: true
           parse-rules: log-parser-plugin-rules.txt
-          unstable-on-warning: true
+          unstable-on-warning: false
           fail-on-error: false
           show-graphs: true
       - archive:
