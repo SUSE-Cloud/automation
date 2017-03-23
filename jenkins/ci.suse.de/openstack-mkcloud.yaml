@@ -265,6 +265,16 @@
          description: set to 0 to not deploy aodh
 
      - string:
+         name: want_nodesupgrade
+         default: '1'
+         description: set to 0 to not upgrade nodes, only admin server
+
+     - string:
+         name: want_ping_running_instances
+         default:
+         description: set to 1 to ping running instances during the upgrade
+
+     - string:
          name: clusterconfig
          default:
          description: the cluster configuration to pass to the mkcloud script
