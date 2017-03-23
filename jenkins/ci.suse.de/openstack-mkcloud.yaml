@@ -36,34 +36,42 @@
       - string:
           name: mkcloudtarget
           default: all
-          description: Set mkcloudtarget to define the mkcloud command line parameters.
+          description: >-
+            Set mkcloudtarget to define the mkcloud command line parameters.
 
       - string:
           name: github_pr
-          description: |
-            String is a ':' separated list of these values: $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context Note:
-            SHA1 must be latest commit in PR, $context is optional  (only use if multiple gating runs needed per PR)
+          description: >-
+            String is a ':' separated list of these values:
+            $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
+
+            Note: SHA1 must be latest commit in PR, $context is optional
+            (only use if multiple gating runs needed per PR)
 
       - string:
           name: job_name
           default: "-no-name-"
-          description: |
-            This name will become the build name of the job. It will appear in the list of builds (webUI, RSS feed).
+          description: >-
+            This name will become the build name of the job.
+            It will appear in the list of builds (webUI, RSS feed).
 
       - string:
           name: scenario
           default:
-          description: |
-            Defines which scenario file should be used. Only works with cloud5 or newer.
-            Currently only the 'batch' step uses such a file.
+          description: >-
+            Defines which scenario file should be used. Only works
+            with cloud5 or newer.  Currently only the 'batch' step uses
+            such a file.
 
       - label:
           name: label
           default: openstack-mkcloud
-          description: |
-            Default: openstack-mkcloud | Possible values:
-            openstack-mkcloud-SLE11 (SLE11 host) |
-            openstack-mkcloud-SLE12 (SLE12 host) | openstack-mkcloud-SLE12-aarch64 (SLE12 aarch64 host)
+          description: >-
+            Default: openstack-mkcloud |
+            Possible values:
+            openstack-mkcloud-SLE11 (SLE11 host),
+            openstack-mkcloud-SLE12 (SLE12 host),
+            openstack-mkcloud-SLE12-aarch64 (SLE12 aarch64 host)
 
       ################################################
       # repositories
@@ -71,45 +79,52 @@
       - string:
           name: cloudsource
           default: develcloud7
-          description: |
-            Can be something like develcloud6 (uses Devel:Cloud:*, see TESTHEAD parameter for Staging),  susecloud6 (uses SUSE:*), GM3 (uses the GM ISO)
+          description: >-
+            Can be something like develcloud6 (uses Devel:Cloud:*, see
+            TESTHEAD parameter for Staging), susecloud6 (uses SUSE:*),
+            GM3 (uses the GM ISO)
 
       - text:
           name: UPDATEREPOS
           default:
-          description: |
-               Update repositories (one URL per line)
+          description: >-
+            Update repositories (one URL per line)
 
       - bool:
           name: UPDATEBEFOREINSTALL
           default: false
-          description: 'add update repos before crowbar install'
+          description: >-
+            Add update repos before crowbar install
 
       - string:
           name: TESTHEAD
           default: '1'
-          description: |
-               if non-empty, test latest version from Devel:Cloud (:1.0)
+          description: >-
+            If non-empty, test latest version from Devel:Cloud (:1.0)
 
       - string:
           name: want_test_updates
           default:
-          description: allow disabling of test updates
+          description: >-
+            Allow disabling of test updates
 
       - string:
           name: want_sles12
           default:
-          description: Set to 1 if sle12 nodes should be installed
+          description: >-
+            Set to 1 if sle12 nodes should be installed
 
       - string:
           name: want_sles12sp2
           default:
-          description: deploy cloud7 with SP2 instead of SP1
+          description: >-
+            Deploy cloud7 with SP2 instead of SP1
 
       - string:
           name: upgrade_cloudsource
           default:
-          description: In case of using upgrade, upgrade to that cloudsource version
+          description: >-
+            In case of using upgrade, upgrade to that cloudsource version
 
       ################################################
       # cloud shape and size
@@ -124,7 +139,8 @@
       - string:
           name: nodenumber
           default: '2'
-          description: number of nodes excl. admin-node minimum 2=controller+compute
+          description: >-
+            Number of nodes excluding admin-node.  Minimum is 2 (controller+compute)
 
       - string:
           name: nodenumbercompute
@@ -134,19 +150,25 @@
       - bool:
           name: WITHCROWBARREGISTER
           default: false
-          description: boot up one lonely node in the admin network and register it with crowbar_register (image type depends on want_sles12 parameter)
+          description: >-
+            Boot up one node in the admin network from a preinstalled
+            OS image, and register it with crowbar_register (image type
+            depends on want_sles12 parameter)
 
       - string:
           name: want_node_aliases
           default:
-          description: |
-            List of aliases to assign to nodes.
-            Takes all provided aliases and assign them to available nodes successively.
-            Examples want_node_aliases='controller=1,ceph=2,compute=1'
+          description: >-
+            List of aliases to assign to nodes.  Takes all provided
+            aliases and assign them to available nodes
+            successively. Examples:
+
+            want_node_aliases='controller=1,ceph=2,compute=1'
             assigns the aliases to 4 nodes as controller, ceph1, ceph2, compute
-             want_node_aliases='data=1,services=2,storage=2'
-             assigns the aliases to 5 nodes as data, service1, service2,
-             storage1, storage2
+
+            want_node_aliases='data=1,services=2,storage=2'
+            assigns the aliases to 5 nodes as data, service1, service2,
+            storage1, storage2
 
       - string:
           name: hacloud
@@ -156,12 +178,12 @@
       - string:
           name: clusterconfig
           default:
-          description: the cluster configuration to pass to the mkcloud script
+          description: Cluster configuration to pass to the mkcloud script
 
       - string:
           name: vcpus
           default: '2'
-          description: number of vcpus for the compute nodes
+          description: Number of vcpus for the compute nodes
 
       ################################################
       # OS deployment
@@ -174,7 +196,7 @@
       - string:
           name: want_rootfs
           default:
-          description: set to btrfs to deploy with btrfs
+          description: Set to btrfs to deploy with btrfs
 
       ################################################
       # general OpenStack deployment
@@ -182,12 +204,12 @@
       - string:
           name: want_postgresql
           default:
-          description: set to 1 to deploy with postgresql
+          description: Set to 1 to deploy with postgresql
 
       - string:
           name: want_all_ssl
           default:
-          description: set to 1 to deploy all cloud services with SSL aka HTTPS
+          description: Set to 1 to deploy all cloud services with SSL aka HTTPS
 
       ################################################
       # neutron
@@ -236,12 +258,14 @@
       - string:
           name: cinder_netapp_login
           default:
-          description: the password for the user "openstack" as configured on the netapp server
+          description: >-
+            Password for the user "openstack" as configured on the netapp server
 
       - string:
           name: cinder_netapp_password
           default:
-          description: the password for the user "openstack" as configured on the netapp server
+          description: >-
+            Password for the user "openstack" as configured on the netapp server
 
       ################################################
       # tempest
@@ -254,9 +278,9 @@
       - string:
           name: tempestoptions
           default:
-          description: |
-            Additional options to pass to the "tempest run " step. The default is cloudversion
-            specific but will default to a smoke run.
+          description: >-
+            Additional options to pass to the "tempest run " step. The
+            default is cloudversion specific but will default to a smoke run.
 
       ################################################
       # horizon
@@ -264,9 +288,10 @@
       - string:
           name: want_horizon_integration_test
           default:
-          description: |
-              Execute selenium integration tests for Horizon after Tempest. This test is in beta, and
-              a fail will not be considered for now.
+          description: >-
+            Execute selenium integration tests for Horizon after
+            Tempest. This test is in beta, and a fail will not be
+            considered for now.
 
       ################################################
       # extras
@@ -304,21 +329,23 @@
       ################################################
       # misc
 
-     - string:
-         name: want_nodesupgrade
-         default: '1'
-         description: set to 0 to not upgrade nodes, only admin server
+      - string:
+          name: want_nodesupgrade
+          default: '1'
+          description: set to 0 to not upgrade nodes, only admin server
 
-     - string:
-         name: want_ping_running_instances
-         default:
-         description: set to 1 to ping running instances during the upgrade
+      - string:
+          name: want_ping_running_instances
+          default:
+          description: set to 1 to ping running instances during the upgrade
 
       - text:
           name: custom_settings
           default:
-          description: |
-               This holds shell code and will be executed before calling mkcloud. This should not be used by default or regularly. It is meant to test PRs with special configurations.
+          description: >-
+            This holds shell code and will be executed before calling
+            mkcloud. This should not be used by default or regularly. It
+            is meant to test PRs with special configurations.
 
     wrappers:
       - timestamps:
