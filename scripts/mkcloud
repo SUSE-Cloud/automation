@@ -654,6 +654,7 @@ function instnodes
 function proposal
 {
     onadmin proposal
+    onadmin cleanup_crm_resources
     return $?
 }
 
