@@ -25,7 +25,7 @@ bashate:
 
 perlcheck:
 	cd scripts && \
-	for f in `find -name \*.pl` jenkins/{apicheck,grep,japi}; \
+	for f in `find -name \*.pl` jenkins/{apicheck,grep,japi} mkcloudhost/allocpool ; \
 	do \
 	    perl -wc $$f || exit 2; \
 	done
