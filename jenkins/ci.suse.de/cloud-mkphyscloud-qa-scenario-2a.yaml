@@ -47,6 +47,11 @@
           description: Mandatory, shared storage server IP
 
       - string:
+          name: sbd_ip
+          default: 10.162.64.10
+          description: Mandatory, IP of iscsi target for sbd
+
+      - string:
           name: repo_owner
           default: SUSE-Cloud
           description: Mandatory, automation repo owner/organization
@@ -60,7 +65,7 @@
           name: branch
           default: master
           description: Mandatory, automation repo branch
-      
+
       - string:
           name: netapp_server
           default: netapp-n1-e0m.cloud.suse.de
@@ -121,7 +126,7 @@
           default: linuxbridge
           description: |
               networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
-      
+
       - string:
           name: networkingmode
           default: vlan
@@ -168,7 +173,7 @@
           rm -rf $artifacts_dir
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
-            
+
           # check that netapp backend server is available
           ping -c 3 $netapp_server || ret=$?
 
@@ -250,12 +255,12 @@
 
               chmod +x scripts/iscsictl.py
 
-              ./scripts/iscsictl.py --service initiator --target_host $shared_storage_ip --host controller1 --no-key --id id-qa02
-              ./scripts/iscsictl.py --service initiator --target_host $shared_storage_ip --host controller2 --no-key --id id-qa02
-              ./scripts/iscsictl.py --service initiator --target_host $shared_storage_ip --host data1       --no-key --id id-qa02
-              ./scripts/iscsictl.py --service initiator --target_host $shared_storage_ip --host data2       --no-key --id id-qa02
-              ./scripts/iscsictl.py --service initiator --target_host $shared_storage_ip --host network1    --no-key --id id-qa02
-              ./scripts/iscsictl.py --service initiator --target_host $shared_storage_ip --host network2    --no-key --id id-qa02
+              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host controller1 --no-key --id id-qa$hw_number
+              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host controller2 --no-key --id id-qa$hw_number
+              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host data1       --no-key --id id-qa$hw_number
+              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host data2       --no-key --id id-qa$hw_number
+              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host network1    --no-key --id id-qa$hw_number
+              ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host network2    --no-key --id id-qa$hw_number
 
               # preparation of SBD for services nodes
               SBD_DEV_SERVICES=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
@@ -295,7 +300,7 @@
 
             scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
 
-            # Rerun chef-client
+            # Rerun chef-client to avoid frequent failures here and update bind records, see bsc#1021900
             ssh roott@$admin 'chef-client'
 
             # Check if zypper is used by other application
