@@ -1,4 +1,6 @@
-. /root/cloud.d/cloudrc.host
+hostrc=/etc/mkcloud/cloudrc.host
+test -e $hostrc || hostrc=~/cloud.d/cloudrc.host
+. $hostrc
 cloudspernode=32
 
 # note, cloudadminnet must be in the same /23 as cloudpublicnet
