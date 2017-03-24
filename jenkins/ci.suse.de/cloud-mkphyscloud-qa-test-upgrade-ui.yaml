@@ -102,8 +102,7 @@
             onadmin_run_cct
 
             export cloudsource=$upgrade_cloudsource
-            onadmin_prepare_cloudupgrade_repos_6_to_7
-            addcloud7maintupdates
+            onadmin_prepare_cloudupgrade_admin_repos_6_to_7
 
             export cct_tests=feature:ui:upgrade:admin:repos
             onadmin_run_cct
@@ -169,6 +168,7 @@
             export cct_tests=feature:ui:upgrade:pgsql:create
             onadmin_run_cct
 
+            onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
             export cct_tests=feature:ui:upgrade:nodes:repos
             onadmin_run_cct
 
