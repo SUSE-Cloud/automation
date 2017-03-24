@@ -9,7 +9,9 @@ fi
 
 # workaround libvirtd disappearance:
 pidof libvirtd || /usr/local/sbin/fixlibvirt
-. /root/cloud.d/cloudfunc
+cloudfunc=~/cloud.d/cloudfunc
+test -e $cloudfunc || cloudfunc=$(dirname $(readlink -e $BASH_SOURCE))/cloudfunc
+. $cloudfunc
 
 #export cloudsource=GM2.0
 #export TESTHEAD=1
