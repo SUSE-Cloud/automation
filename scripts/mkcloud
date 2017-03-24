@@ -214,6 +214,7 @@ function sshrun
         export clouddata_nfs_dir=$clouddata_nfs_dir ;
         export distsuse=$distsuse ;
         export susedownload=$susedownload ;
+        export smturl=$smturl ;
         export cloudfqdn=$cloudfqdn ;
         export cloudsource=$cloudsource ;
         export mkclouddriver=$mkclouddriver ;

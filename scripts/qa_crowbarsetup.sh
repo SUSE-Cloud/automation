@@ -434,16 +434,16 @@ function add_sdk_repo
 
     case $(getcloudver) in
         6)
-            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
-            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
+            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
+            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
             ;;
         7)
-            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
-            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
+            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
+            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
             ;;
         8)
-            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/ SDK-SP3
-            zypper ar -p $sdk_repo_priority -f http://$susedownload/update/build.suse.de/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/ SDK-SP3-Update
+            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/ SDK-SP3
+            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/ SDK-SP3-Update
             ;;
     esac
 }
@@ -1298,7 +1298,7 @@ function onadmin_setup_local_zypper_repositories
     zypper lr -e - | sed -n '/^name=/ {s///; /ptf/! p}' | \
         xargs -r zypper rr
 
-    uri_base="http://${clouddata}${clouddata_base_path}"
+    uri_base=$smturl
     # restore needed repos depending on localreposdir_target
     if [ -n "${localreposdir_target}" ]; then
         mount_localreposdir_target
@@ -1306,16 +1306,17 @@ function onadmin_setup_local_zypper_repositories
     fi
     case $(getcloudver) in
         4|5)
+            uri_base="http://${clouddata}${clouddata_base_path}"
             zypper ar $uri_base/SLES11-SP3-Pool/ sles11sp3
             zypper ar $uri_base/SLES11-SP3-Updates/ sles11sp3up
         ;;
         6)
-            zypper ar $uri_base/SLES12-SP1-Pool/ sles12sp1
-            zypper ar $uri_base/SLES12-SP1-Updates/ sles12sp1up
+            zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP1/$arch/product/ sles12sp1
+            zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP1/$arch/update/ sles12sp1up
         ;;
         7)
-            zypper ar $uri_base/$arch/SLES12-SP2-Pool/ sles12sp2
-            zypper ar $uri_base/$arch/SLES12-SP2-Updates/ sles12sp2up
+            zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP2/$arch/product/ sles12sp2
+            zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP2/$arch/update/ sles12sp2up
         ;;
     esac
 }
