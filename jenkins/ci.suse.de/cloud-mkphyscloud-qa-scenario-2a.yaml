@@ -52,6 +52,11 @@
           description: Mandatory, IP of iscsi target for sbd
 
       - string:
+          name: kvm-compute-nodes
+          default: "1"
+          description: Mandatory, set other number of kvm compute nodes
+
+      - string:
           name: repo_owner
           default: SUSE-Cloud
           description: Mandatory, automation repo owner/organization
@@ -219,8 +224,8 @@
           export hacloud=$hacloud ;
           export clusterconfig=$clusterconfig ;
           export shared_storage_ip=$shared_storage_ip ;
-          export want_node_aliases=controller=2,data=2,network=2,computekvm=1 ;
-          export want_node_roles=controller=2,storage=2,network=2,compute=1 ;
+          export want_node_aliases=controller=2,data=2,network=2,compute-kvm=$kvm-compute-nodes ;
+          export want_node_roles=controller=2,storage=2,network=2,compute=$kvm-compute-nodes ;
           export scenario=\"/root/scenario.yml\" ;
           export netapp_password=$netapp_password ;
           export netapp_server=$netapp_server ;
