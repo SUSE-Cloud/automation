@@ -246,5 +246,5 @@ rescue RuntimeError => err
 rescue Netrc::Error => err
   puts("Could not fetch credentials: #{err}")
 rescue => err
-  puts("Script failed err was: #{err}")
+  puts("Script failed err was: #{err} #{err.backtrace}")
 end
