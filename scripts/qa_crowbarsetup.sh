@@ -4877,11 +4877,9 @@ zypper -non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgra
     done
 }
 
-# Some resources are known to fail for a short time after Cloud6 deployment
-# because wicked ifreload call.
-# It's safe to clean existing errors now so we have a error-less crm status
-# output before the upgrade.
-function onadmin_cleanup_crm_resources
+# Some resources are known to fail for a short time because of a wicked ifreload call.
+# It's safe to clean existing errors now so we have a error-less crm status output.
+function onadmin_cleanup_db_mq_vips
 {
     for svc in database rabbitmq; do
         local node=$(knife search node "roles:$svc-server AND pacemaker_founder:true" -a name | \
