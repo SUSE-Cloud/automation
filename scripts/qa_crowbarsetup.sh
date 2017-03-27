@@ -750,7 +750,7 @@ function rsync_iso
     mkdir -p /mnt/cloud "$targetdir"
     (
         cd "$targetdir"
-        wget --progress=dot:mega -r -np -nc -A "$distiso" \
+        wget --progress=dot:mega -r -np -nc -e robots=off -A "$distiso" \
             http://$susedownload$distpath/ \
         || complain 71 "iso not found"
         local cloudiso=$(ls */$distpath/*.iso | tail -1)
@@ -4644,6 +4644,7 @@ function onadmin_addupdaterepo
         for repo in ${UPDATEREPOS//+/ } ; do
             safely wget --progress=dot:mega \
                 -r --directory-prefix $UPR \
+                -e robots=off \
                 --no-check-certificate \
                 --no-parent \
                 --no-clobber \
