@@ -149,8 +149,7 @@ proposals:
       - cluster:services
       ceilometer-server:
       - cluster:services
-      ceilometer-swift-proxy-middleware:
-      - @@controller1@@
+      ceilometer-swift-proxy-middleware: []
 - barclamp: tempest
   attributes:
   deployment:
