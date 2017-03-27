@@ -320,6 +320,11 @@
           description: Deploy with Magnum
 
       - string:
+          name: want_monasca
+          default:
+          description: Deploy with Monasca
+
+      - string:
           name: want_barbican
           default:
           description: Deploy with Barbican
