@@ -93,6 +93,7 @@ proposals:
         admin_keyring: "/etc/ceph/ceph.client.admin.keyring"
         pool: volumes
         user: cinder
+        secret_uuid: ""
   deployment:
     elements:
       cinder-controller:
