@@ -22,3 +22,11 @@
             mkcloudtarget=cleanup prepare setupadmin addupdaterepo prepareinstcrowbar runupdate bootstrapcrowbar instcrowbar setuplonelynodes crowbar_register proposal crowbarbackup crowbarrestore
             label=openstack-mkcloud-SLE12-s390x
             job_name=cloud-mkcloud7-job-simpletest-s390x
+            want_ceilometer_proposal=0
+            want_manila_proposal=0
+            want_trove_proposal=0
+            want_barbican_proposal=0
+            want_magnum_proposal=0
+            want_sahara_proposal=0
+            want_murano_proposal=0
+            want_aodh_proposal=0
