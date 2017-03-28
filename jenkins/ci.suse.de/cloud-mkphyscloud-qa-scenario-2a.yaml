@@ -52,9 +52,12 @@
           description: Mandatory, IP of iscsi target for sbd
 
       - string:
-          name: kvm-compute-nodes
+          name: compute_nodes_number
           default: "1"
-          description: Mandatory, set other number of kvm compute nodes
+          description: |
+            Mandatory; after increasing the number of nodes don't forget to reference
+            scenario file accordingly by changing the git repo below;
+            by default only 1 compute node alias is added
 
       - string:
           name: repo_owner
@@ -224,13 +227,13 @@
           export hacloud=$hacloud ;
           export clusterconfig=$clusterconfig ;
           export shared_storage_ip=$shared_storage_ip ;
-          export want_node_aliases=controller=2,data=2,network=2,computekvm=$kvm-compute-nodes ;
-          export want_node_roles=controller=2,storage=2,network=2,compute=$kvm-compute-nodes ;
+          export want_node_aliases=controller=2,data=2,network=2,compute-kvm=$compute_nodes_number ;
+          export want_node_roles=controller=2,storage=2,network=2,compute=$compute_nodes_number ;
           export scenario=\"/root/scenario.yml\" ;
           export netapp_password=$netapp_password ;
           export netapp_server=$netapp_server ;
           export netapp_vserver=$netapp_vserver ;
-          export commands=\"$commands\" "' 
+          export commands=\"$commands\" "'
 
           sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
           sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," scenario.yml
@@ -269,21 +272,21 @@
 
               # preparation of SBD for services nodes
               SBD_DEV_SERVICES=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_SERVICES create"
+              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_SERVICES create -4 20 -1 10"
               ssh controller2 "zypper --non-interactive install sbd"
               # take scenario yaml file and replace placeholders
               sed -i "s|@@sbd_device_services@@|\${SBD_DEV_SERVICES}|g" scenario.yml
 
               # preparation of SBD for data nodes
               SBD_DEV_DATA=\$(ssh data1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh data1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_DATA create"
+              ssh data1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_DATA create -4 20 -1 10"
               ssh data2 "zypper --non-interactive install sbd"
               # take scenario yaml file and replace placeholders
               sed -i "s|@@sbd_device_data@@|\${SBD_DEV_DATA}|g" scenario.yml
 
               # preparation of SBD for network nodes
               SBD_DEV_NETWORK=\$(ssh network1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh network1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_NETWORK create"
+              ssh network1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_NETWORK create -4 20 -1 10"
               ssh network2 "zypper --non-interactive install sbd"
               # take scenario yaml file and replace placeholders
               sed -i "s|@@sbd_device_network@@|\${SBD_DEV_NETWORK}|g" scenario.yml
