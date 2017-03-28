@@ -194,6 +194,17 @@ function error_exit
         '
         $scp root@$adminip:/var/log/*tbz $artifacts_dir/
     fi
+
+    # stop chef-client on nodes so the env will not be altered after a failure
+    ssh $sshopts root@$adminip '
+            set -x
+            for node in $(crowbar machines list | grep ^d) ; do
+            (
+                echo "Stopping chef-client on $node"
+                timeout 30 ssh $node rcchef-client stop
+            )
+            done
+        '
     pre_exit_cleanup
     echo $message
     show_environment
