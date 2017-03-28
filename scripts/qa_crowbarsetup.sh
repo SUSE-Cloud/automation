@@ -4821,6 +4821,25 @@ function oncontroller_waitforinstance
     wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
 }
 
+function oncontroller_suspendallinstances
+{
+    . .openrc
+    for i in `openstack server list --all-projects --status active -f value -c ID`; do
+        openstack server suspend $i
+    done
+    wait_for 300 5 "openstack server list --all-projects|grep -vqe ACTIVE" "waiting for all instance to be suspended"
+}
+
+function oncontroller_resumeallinstances
+{
+    . .openrc
+    for i in `openstack server list --all-projects --status suspended -f value -c ID`; do
+        openstack server resume $i
+    done
+    wait_for 300 5 "openstack server list --all-projects|grep -vqe SUSPENDED" "waiting for all instance to be resumed"
+}
+
+
 function onadmin_rebootneutron
 {
     pre_hook $FUNCNAME
@@ -5302,6 +5321,14 @@ function onadmin_crowbar_nodeupgrade
         fi
 
         if [[ $want_nodesupgrade ]]; then
+            local upgrade_mode="normal"
+            if safely crowbarctl upgrade mode | grep -q non_disruptive ; then
+                upgrade_mode="non_disruptive"
+            fi
+            # suspend all active instances on disruptive upgrade
+            if [[ "$upgrade_mode" == "normal" ]]; then
+                oncontroller_suspendallinstances
+            fi
             safely crowbarctl upgrade services
 
             wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v services" "services step to finish"
@@ -5320,6 +5347,10 @@ function onadmin_crowbar_nodeupgrade
             if grep -q "failed" $upgrade_progress_file ; then
                 crowbarctl upgrade status
                 complain 13 "'Nodes' step has failed. Check the upgrade status."
+            fi
+            # resume all suspended instances after disruptive upgrade
+            if [[ "$upgrade_mode" == "normal" ]]; then
+                oncontroller_resumeallinstances
             fi
         fi
     else
