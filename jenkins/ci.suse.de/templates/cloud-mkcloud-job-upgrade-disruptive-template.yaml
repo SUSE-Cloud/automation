@@ -20,8 +20,7 @@
             TESTHEAD=1
             cloudsource=develcloud{previous_version}
             upgrade_cloudsource=develcloud{version}
-            nodenumber=3
-            cephvolumenumber=2
+            nodenumber=4
             storage_method=swift
             mkcloudtarget=plain_with_upgrade testsetup
             want_nodesupgrade=1
