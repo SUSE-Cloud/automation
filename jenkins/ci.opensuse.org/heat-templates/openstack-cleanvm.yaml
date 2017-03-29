@@ -6,25 +6,26 @@ description: |
 
   Usage examples:
 
-    # Build from Cloud:OpenStack:Mitaka:Staging on SLE12 SP1
+    # Build from Cloud:OpenStack:Newton:Staging on SLE12 SP2
     heat stack-create -f openstack-cleanvm.yaml -P key_name=myuser -P TESTHEAD=1 myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Mitaka on SLE12 SP1
+    # Build from Cloud:OpenStack:Newton on SLE12 SP2
     heat stack-create -f openstack-cleanvm.yaml -P key_name=myuser myuser-cleanvm
 
     # Build from Cloud:OpenStack:Liberty on SLE12 SP1
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
       -P cloudsource=openstackliberty \
+      -P image=SLES12-SP1
       myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Mitaka on openSUSE Leap 42.1
+    # Build from Cloud:OpenStack:Newton on openSUSE Leap 42.1
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
       -P image=openSUSE-Leap-42.1 \
       myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Mitaka on openSUSE Leap 42.1 and use a
+    # Build from Cloud:OpenStack:Newton on openSUSE Leap 42.1 and use a
     # openstack-quickstart fork
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
@@ -33,7 +34,7 @@ description: |
       -P quickstart_branch=my-quickstart-feature
       myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Mitaka on openSUSE Leap 42.1 and use a
+    # Build from Cloud:OpenStack:Newton on openSUSE Leap 42.1 and use a
     # fork of SUSE-cloud/automation
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
@@ -50,6 +51,12 @@ parameters:
     description: >
       Test packages from the staging repository (defaults to `1`, since this
       job normally gates the transition from staging to non-staging.
+  package_repo:
+    type: string
+    default: ''
+    description: >
+      Additional repository to draw package from (useful for testing packages
+      in a project you branched).
   automation_branch:
     default: master
     type: string
@@ -60,7 +67,7 @@ parameters:
     description: The repository URL to clone the automation repository from
   cloudsource:
     type: string
-    default: openstackmitaka
+    default: openstacknewton
     description: The Cloud source to use.
   floating_network:
     type: string
@@ -68,7 +75,7 @@ parameters:
     description: The network to draw floating IPs from.
   image:
     type: string
-    default: SLES12-SP1
+    default: SLES12-SP2
     description: >
       The Glance image to use for the cleanvm machine. Use `SLES12-SP1`,
       `SLES12-SP2` or `openSUSE-Leap-42.1` for now.
@@ -137,57 +144,11 @@ resources:
             _TESTHEAD: { get_param: TESTHEAD }
             _automation_repo: { get_param: automation_repo }
             _automation_branch: { get_param: automation_branch }
+            _package_repo: { get_param: package_repo }
             _quickstart_repo: { get_param: quickstart_repo }
             _quickstart_branch: { get_param: quickstart_branch }
-          template: |
-            #!/bin/sh -x
-            exec >> /root/cleanvm.log 2>&1
-            export TESTHEAD=_TESTHEAD
-            export cloudsource=_cloudsource
-            export automation_repo=_automation_repo
-            export automation_branch=_automation_branch
-            export quickstart_repo=_quickstart_repo
-            export quickstart_branch=_quickstart_branch
-
-            . /etc/os-release; # retrieve VERSION_ID
-
-            zypper='zypper --non-interactive'
-
-            case "$VERSION_ID" in
-              "12.2")
-                $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
-                $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
-               ;;
-              "12.1")
-                $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
-                $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
-               ;;
-              "12")
-                $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12/x86_64/product/' SLES12-Pool
-                $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12/x86_64/update/' SLES12-Updates
-               ;;
-              *)
-               ;;
-            esac
-
-            zypper --non-interactive install git-core
-
-            # override openstack-quickstart if an alternate repo was specified
-            if [ -n "$quickstart_repo" ]; then
-              export QUICKSTART_DEBUG=1
-              git clone $quickstart_repo  --branch $quickstart_branch /root/openstack-quickstart
-              install -p -m 755 /root/openstack-quickstart/scripts/keystone_data.sh /tmp
-              install -p -m 755 /root/openstack-quickstart/lib/functions.sh /tmp
-              install -p -m 644 /root/openstack-quickstart/etc/bash.openstackrc /tmp
-              install -p -m 755 /root/openstack-quickstart/scripts/openstack-loopback-lvm /tmp
-              install -p -m 755 /root/openstack-quickstart/scripts/openstack-quickstart-demosetup /tmp
-              install -p -m 600 /root/openstack-quickstart/etc/openstackquickstartrc /tmp
-            fi
-
-            git clone $automation_repo --branch $automation_branch /root/automation
-
-            sh -x /root/automation/scripts/jenkins/qa_openstack.sh &&
-            touch /root/cleanvm_finished
+            _NOTHEAT: 'HEAT'
+          template: { get_file: deploy-cleanvm.sh }
 
   router:
     type: OS::Neutron::Router
