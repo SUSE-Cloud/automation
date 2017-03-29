@@ -75,7 +75,13 @@ function libvirt_prepare()
 function libvirt_do_setupadmin()
 {
     ${scripts_lib_dir}/libvirt/admin-config $cloud $admin_node_memory $adminvcpus $(get_emulator) $admin_node_disk "$localreposdir_src" "$localreposdir_target" "$firmware_type" > /tmp/$cloud-admin.xml
-    $sudo ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-admin.xml || exit $?
+    libvirt_vm_start /tmp/$cloud-admin.xml
+}
+
+libvirt_vm_start()
+{
+    local xml="$1"
+    $sudo ${scripts_lib_dir}/libvirt/vm-start "$xml"
 }
 
 # run as root
@@ -390,7 +396,7 @@ function libvirt_do_setuplonelynodes()
             _lvcreate "${cloud}.node$i" "${lonelynode_hdd_size}" "$cloudvg"
 
         onhost_deploy_image "lonely" $(get_lonely_node_dist) $lonely_disk
-        $sudo ${scripts_lib_dir}/libvirt/vm-start /tmp/${lonely_node}.xml
+        libvirt_vm_start /tmp/${lonely_node}.xml
     done
 }
 
