@@ -179,8 +179,7 @@ proposals:
       cinder-controller:
       - cluster:services
       cinder-volume:
-      - "@@data1@@"
-      - "@@data2@@"
+      - cluster:services
 
 - barclamp: neutron
   attributes:
