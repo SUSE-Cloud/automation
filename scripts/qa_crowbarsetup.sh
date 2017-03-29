@@ -5350,7 +5350,7 @@ function onadmin_crowbar_nodeupgrade
             fi
             # suspend all active instances on disruptive upgrade
             if [[ "$upgrade_mode" == "normal" ]]; then
-                oncontroller_suspendallinstances
+                oncontroller suspendallinstances
             fi
             safely crowbarctl upgrade services
 
@@ -5373,7 +5373,7 @@ function onadmin_crowbar_nodeupgrade
             fi
             # resume all suspended instances after disruptive upgrade
             if [[ "$upgrade_mode" == "normal" ]]; then
-                oncontroller_resumeallinstances
+                oncontroller resumeallinstances
             fi
         fi
     else
