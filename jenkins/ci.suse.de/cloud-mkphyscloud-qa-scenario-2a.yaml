@@ -308,8 +308,11 @@
 
             scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
 
+            # Remove unused initiators from the iscsi target
+            iscsi_target_cleanup qa$hw_number
+
             # Rerun chef-client to avoid frequent failures here and update bind records, see bsc#1021900
-            ssh roott@$admin 'chef-client'
+            ssh root@$admin 'chef-client'
 
             # Check if zypper is used by other application
             ssh root@$admin '
