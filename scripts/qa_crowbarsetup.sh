@@ -4922,6 +4922,10 @@ zypper -non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgra
     for node in $ceph_mons; do
         ssh $node "ceph osd crush tunables firefly; ceph osd set require_jewel_osds"
     done
+
+    # wait for ceph cluster to recover after the upgrade
+    nodes=($ceph_mons)
+    wait_for 60 5 "ssh ${nodes[0]} ceph health | grep -q HEALTH_OK" "ceph cluster to recover after upgrade"
 }
 
 # Some resources are known to fail for a short time because of a wicked ifreload call.
