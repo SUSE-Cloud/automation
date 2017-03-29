@@ -2633,6 +2633,7 @@ function custom_configuration
                 local l="['attributes']['keystone']['ldap']"
                 if iscloudver 7plus ; then
                     $p "['attributes']['keystone']['domain_specific_drivers']" true
+                    $p "$l['group_members_are_ids']" "true"
                     l="['attributes']['keystone']['domain_specific_config']['ldap_users']['ldap']"
                 elif iscloudver 6; then
                     $p "['attributes']['keystone']['identity']['driver']" "'hybrid'"
@@ -2652,7 +2653,6 @@ function custom_configuration
                 $p "$l['group_id_attribute']" "'gidNumber'"
                 $p "$l['group_name_attribute']" "'cn'"
                 $p "$l['group_member_attribute']" "'memberUid'"
-                $p "$l['group_members_are_ids']" "true"
                 $p "$l['use_tls']" "false"
                 $p "$l['tls_cacertdir']" "'/etc/ssl/certs'"
                 $p "$l['tls_req_cert']" "'demand'"
