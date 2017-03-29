@@ -4,16 +4,33 @@ start /^Starting proposal/
 info /^\+ onadmin /
 info /^Waiting for /
 
+# Ignore set -x trace output
+ok /^\++\((mkcloud(-common\.sh)?|qa_crowbarsetup\.sh):\d+\) /
+
+# wait_for() a condition to become true
+ok /^ *until this condition is true: /
+
+# Successful tempest run
+ok /^ - Expected Fail: 0$/
+ok /^ - Failed: 0$/
+
 ok /Warning: Turning on '--gpg-auto-import-keys'/
 ok /Warning: Permanently added .* to the list of known hosts/
 ok /WARNING: Device for PV .* not found or rejected by a filter/
 ok /WARNING: \w+ signature detected on .* offset \d+. Wipe it?/
+
+# This one comes from dracut when some kernel modules could not be
+# included in the initrd being built.
+warning /This is not necessarily an error/
+
 warning /(?i)warning/
 
-ok /trap 'error_exit/
-ok /local 'error_cmd=/
+ok /^\+ \/\S+\/github-status\.rb /
 ok /Loading robots.txt; please ignore errors/
 ok /update-alternatives: .*ruby_parse_extract_error/
+
+# Normal error whilst preparing the partition table for the admin node
+ok /Re-reading the partition table failed/
 
 # https://bugzilla.suse.com/show_bug.cgi?id=1031131
 ok /dracut-install: ERROR: installing .*dracut-fsck-help.txt/
@@ -22,6 +39,6 @@ ok /dracut-install: ERROR: installing .*dracut-fsck-help.txt/
 ok /(libvirtd|virtlogd)\[\d+\]: End of file while reading data: Input\/output error/
 
 error /(?i)error/
-error /(?i)\bfail(ure)?\b/
+error /(?i)\bfail(ure|ed)?\b/
 error /(?i)fatal/
 error /$h1!!/
