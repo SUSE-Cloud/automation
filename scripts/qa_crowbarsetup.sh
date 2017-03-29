@@ -136,6 +136,7 @@ function pre_hook
     func=$1
     pre=$(eval echo \$pre_$func | base64 -d)
     setcloudnetvars $cloud
+    set_noproxyvar
     test -n "$pre" && eval "$pre"
     echo $func >> /root/qa_crowbarsetup.steps.log
 }
@@ -3133,6 +3134,21 @@ function set_proposalvars
     fi
 }
 
+function set_noproxyvar
+{
+    [[ $http_proxy ]] || [[ $https_proxy ]] || return 0
+    [[ $admin_ip ]] || return 0
+    [[ $no_proxy =~ "$adminip" ]] || no_proxy="$adminip,$no_proxy"
+    export no_proxy="${no_proxy%,}";
+    if [[ ! $net_public ]] || [[ $no_proxy =~ $net_public ]] ; then
+        return 0 # only apply this once
+    fi
+    local ips
+    printf -v ips '%s,' $net_public.{1..254}
+    no_proxy="$ips$no_proxy"
+    no_proxy="${no_proxy%,}";
+}
+
 # configure and commit one proposal
 function update_one_proposal
 {
@@ -5396,6 +5412,7 @@ function onadmin_qa_test
 # $cct_skip_func_tests -> optional, functional tests will be skipped if value is 1, default is 0
 function onadmin_run_cct
 {
+    pre_hook $FUNCNAME
     local ret=0
     if iscloudver 5plus && [[ $cct_tests ]]; then
         # - install cct dependencies
@@ -5651,3 +5668,4 @@ ruby=/usr/bin/ruby
 iscloudver 5plus && ruby=/usr/bin/ruby.ruby2.1
 export_tftpboot_repos_dir
 set_proposalvars
+set_noproxyvar
