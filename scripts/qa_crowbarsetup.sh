@@ -5349,13 +5349,14 @@ function onadmin_crowbar_nodeupgrade
         fi
 
         if [[ $want_nodesupgrade ]]; then
+            get_novacontroller
             local upgrade_mode="normal"
             if safely crowbarctl upgrade mode | grep -q non_disruptive ; then
                 upgrade_mode="non_disruptive"
             fi
             # suspend all active instances on disruptive upgrade
             if [[ "$upgrade_mode" == "normal" ]]; then
-                oncontroller suspendallinstances
+                safely oncontroller suspendallinstances
             fi
             safely crowbarctl upgrade services
 
@@ -5378,7 +5379,7 @@ function onadmin_crowbar_nodeupgrade
             fi
             # resume all suspended instances after disruptive upgrade
             if [[ "$upgrade_mode" == "normal" ]]; then
-                oncontroller resumeallinstances
+                safely oncontroller resumeallinstances
             fi
         fi
     else
