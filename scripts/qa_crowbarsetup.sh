@@ -2342,6 +2342,11 @@ function enable_ssl_generic
         nova)
             $p "$a['ssl']['enabled']" true
             $p "$a['novnc']['ssl']['enabled']" true
+            if iscloudver 7plus ; then
+                $p "$a['ec2-api']['ssl']['enabled']" true
+                $p "$a['ec2-api']['ssl']['generate_certs']" true
+                $p "$a['ec2-api']['ssl']['insecure']" true
+            fi
         ;;
         horizon|nova_dashboard)
             $p "$a['apache']['ssl']" true
