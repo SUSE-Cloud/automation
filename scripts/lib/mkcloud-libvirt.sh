@@ -300,7 +300,10 @@ function libvirt_do_cleanup()
 
     # workaround host grabbing guest devices
     for vol in postgresql rabbitmq ; do
-        $sudo dmsetup remove drbd-$vol
+        dev=drbd-$vol
+        if $sudo dmsetup info $dev >/dev/null 2>&1; then
+            $sudo lvremove $cloudvg/$dev
+        fi
     done
     # 2. remove all previous volumes for that cloud; this helps preventing
     # accidental booting and freeing space
