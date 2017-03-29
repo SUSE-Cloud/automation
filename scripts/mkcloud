@@ -631,7 +631,11 @@ function setupnodes
                         --numcontrollers $nodenumbercontroller \
                         --firmwaretype "$firmware_type" \
                         --controller-raid-volumes $controller_raid_volumes > /tmp/$cloud-node$i.xml
-        $sudo ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml
+
+        # Hide expected message from libvirt about non-existing domain, since
+        # this creates false positives for anything which scans for errors.
+        $sudo ${scripts_lib_dir}/libvirt/vm-start /tmp/$cloud-node$i.xml \
+              2>&1 | grep -v "libvirt: QEMU Driver error : Domain not found: no domain with matching name"
     done
 
     echo "========================================================"
