@@ -153,7 +153,7 @@ proposals:
       - "@@controller1@@"
       swift-storage:
       - "@@controller2@@"
-      - "@@computekvm@@"
+      - "@@compute-kvm@@"
 
 - barclamp: glance
   attributes:
@@ -171,15 +171,11 @@ proposals:
 - barclamp: cinder
   attributes:
     volumes:
-    - backend_driver: local
-      backend_name: default
-      raw:
-        volume_name: cinder-volumes
-        cinder_raw_method: first
-      local:
-        volume_name: cinder-volumes
-        file_name: "/var/lib/cinder/volume.raw"
-        file_size: 2000
+    - backend_driver: nfs
+      backend_name: nfs
+      nfs:
+        nfs_shares: ##cinder-storage-shares##
+        nfs_mount_options: nfsvers=3,rw,sync,nofail
     api:
       protocol: https
     ssl:
@@ -190,8 +186,7 @@ proposals:
       cinder-controller:
       - cluster:services
       cinder-volume:
-      - "@@data1@@"
-      - "@@data2@@"
+      - cluster:services
 
 - barclamp: neutron
   attributes:
@@ -240,7 +235,7 @@ proposals:
       - cluster:services
       nova-compute-hyperv: []
       nova-compute-kvm:
-      - "@@computekvm@@"
+      - "@@compute-kvm@@"
       nova-compute-qemu: []
       nova-compute-xen: []
 
@@ -272,7 +267,7 @@ proposals:
   deployment:
     elements:
       ceilometer-agent:
-      - "@@computekvm@@"
+      - "@@compute-kvm@@"
       ceilometer-agent-hyperv: []
       ceilometer-central:
       - cluster:services
