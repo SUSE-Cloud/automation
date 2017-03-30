@@ -35,6 +35,7 @@ fi
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
 : ${want_magnum:=0}
+: ${want_monasca:=0}
 : ${want_barbican:=1}
 : ${want_sahara:=1}
 : ${want_murano:=0}
@@ -3298,6 +3299,13 @@ function deploy_single_proposal
                 get_manila_service_instance_details
             fi
             ;;
+        monasca)
+            # PM does not want to support monasca for anything non-x86
+            if [[ $arch != "x86_64" ]]; then
+                return
+            fi
+            [[ $want_monasca = 1 ]] || return
+            ;;
         swift)
             [[ $deployswift ]] || return
             ;;
@@ -3373,8 +3381,9 @@ function onadmin_proposal
     fi
     local proposal
     for proposal in nfs_client pacemaker database rabbitmq keystone swift \
-        ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat \
-        manila trove barbican magnum sahara murano aodh tempest; do
+        ceph monasca glance cinder neutron nova `horizon_barclamp` \
+        ceilometer heat manila trove barbican magnum sahara murano \
+        aodh tempest; do
         deploy_single_proposal $proposal
     done
 
