@@ -189,6 +189,7 @@
           export clusterconfig=$clusterconfig ;
           export shared_storage_ip=$shared_storage_ip ;
           export want_node_aliases=controller=3,compute-kvm=2,compute-xen=2 ;
+          export want_node_roles=controller=3,compute=4 ;
           export networkingplugin=$networkingplugin ;
           export networkingmode=$networkingmode ;
           export scenario=\"/root/scenario.yml\" ;

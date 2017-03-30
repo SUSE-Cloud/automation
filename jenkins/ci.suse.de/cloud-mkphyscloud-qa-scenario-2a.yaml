@@ -47,6 +47,19 @@
           description: Mandatory, shared storage server IP
 
       - string:
+          name: sbd_ip
+          default: 10.162.64.10
+          description: Mandatory, IP of iscsi target for sbd
+
+      - string:
+          name: compute_nodes_number
+          default: "1"
+          description: |
+            Mandatory; after increasing the number of nodes don't forget to reference
+            scenario file accordingly by changing the git repo below;
+            by default only 1 compute node alias is added
+
+      - string:
           name: repo_owner
           default: SUSE-Cloud
           description: Mandatory, automation repo owner/organization
@@ -60,7 +73,7 @@
           name: branch
           default: master
           description: Mandatory, automation repo branch
-      
+
       - string:
           name: netapp_server
           default: netapp-n1-e0m.cloud.suse.de
@@ -121,7 +134,7 @@
           default: linuxbridge
           description: |
               networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
-      
+
       - string:
           name: networkingmode
           default: vlan
@@ -168,7 +181,7 @@
           rm -rf $artifacts_dir
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
-            
+
           # check that netapp backend server is available
           ping -c 3 $netapp_server || ret=$?
 
@@ -206,6 +219,7 @@
           ssh root@$admin "
           export cloud=$cloud ;
           export hw_number=$hw_number ;
+          export sbd_ip=$sbd_ip ;
           export UPDATEREPOS=$UPDATEREPOS ;
           export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
           export TESTHEAD=$TESTHEAD ;
@@ -214,13 +228,13 @@
           export hacloud=$hacloud ;
           export clusterconfig=$clusterconfig ;
           export shared_storage_ip=$shared_storage_ip ;
-          export want_node_aliases=controller=2,data=2,network=2,computekvm=1 ;
-          export want_node_roles=controller=2,storage=2,network=2,compute=1 ;
+          export want_node_aliases=controller=2,data=2,network=2,compute-kvm=$compute_nodes_number ;
+          export want_node_roles=controller=2,storage=2,network=2,compute=$compute_nodes_number ;
           export scenario=\"/root/scenario.yml\" ;
           export netapp_password=$netapp_password ;
           export netapp_server=$netapp_server ;
           export netapp_vserver=$netapp_vserver ;
-          export commands=\"$commands\" "' 
+          export commands=\"$commands\" "'
 
           sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
           sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," scenario.yml
@@ -246,48 +260,42 @@
               # preparation of iSCSI
               zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
 
-              wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
-
               chmod +x scripts/iscsictl.py
 
-              ./scripts/iscsictl.py --service target --host \$(hostname) --no-key
-              ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
-              ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
-              ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host data1 --no-key
-              ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host data2 --no-key
-              ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host network1 --no-key
-              ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host network2 --no-key
-              
+              for node in {controller1,controller2,data1,data2,network1,network2} ; do
+                ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host \$node --no-key --id id-qa$hw_number
+              done
+
               # preparation of SBD for services nodes
               SBD_DEV_SERVICES=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_SERVICES create"
+              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_SERVICES create -4 20 -1 10"
               ssh controller2 "zypper --non-interactive install sbd"
               # take scenario yaml file and replace placeholders
               sed -i "s|@@sbd_device_services@@|\${SBD_DEV_SERVICES}|g" scenario.yml
 
               # preparation of SBD for data nodes
               SBD_DEV_DATA=\$(ssh data1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh data1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_DATA create"
+              ssh data1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_DATA create -4 20 -1 10"
               ssh data2 "zypper --non-interactive install sbd"
               # take scenario yaml file and replace placeholders
               sed -i "s|@@sbd_device_data@@|\${SBD_DEV_DATA}|g" scenario.yml
 
               # preparation of SBD for network nodes
               SBD_DEV_NETWORK=\$(ssh network1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh network1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_NETWORK create"
+              ssh network1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_NETWORK create -4 20 -1 10"
               ssh network2 "zypper --non-interactive install sbd"
               # take scenario yaml file and replace placeholders
               sed -i "s|@@sbd_device_network@@|\${SBD_DEV_NETWORK}|g" scenario.yml
 
               # watchdog configuration
-              ssh controller1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-              ssh controller2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
+              ssh controller1 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
+              ssh controller2 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
 
-              ssh data1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-              ssh data2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
+              ssh data1 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
+              ssh data2 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
 
-              ssh network1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-              ssh network2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
+              ssh network1 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
+              ssh network2 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
 
               # ----- End of SBD
           EOSCRIPT
@@ -295,6 +303,12 @@
             chmod +x /tmp/sbd_prepare_$admin
 
             scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
+
+            # Remove unused initiators from the iscsi target
+            iscsi_target_cleanup qa$hw_number
+
+            # Rerun chef-client to avoid frequent failures here and update bind records, see bsc#1021900
+            ssh root@$admin 'chef-client'
 
             # Check if zypper is used by other application
             ssh root@$admin '

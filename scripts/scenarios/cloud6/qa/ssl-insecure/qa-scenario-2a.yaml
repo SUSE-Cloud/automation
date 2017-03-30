@@ -146,7 +146,7 @@ proposals:
       - "@@controller1@@"
       swift-storage:
       - "@@controller2@@"
-      - "@@computekvm@@"
+      - "@@compute-kvm@@"
 
 - barclamp: glance
   attributes:
@@ -179,8 +179,7 @@ proposals:
       cinder-controller:
       - cluster:services
       cinder-volume:
-      - "@@data1@@"
-      - "@@data2@@"
+      - cluster:services
 
 - barclamp: neutron
   attributes:
@@ -223,7 +222,7 @@ proposals:
       - cluster:services
       nova-compute-hyperv: []
       nova-compute-kvm:
-      - "@@computekvm@@"
+      - "@@compute-kvm@@"
       nova-compute-qemu: []
       nova-compute-xen: []
 
@@ -255,7 +254,7 @@ proposals:
   deployment:
     elements:
       ceilometer-agent:
-      - "@@computekvm@@"
+      - "@@compute-kvm@@"
       ceilometer-agent-hyperv: []
       ceilometer-central:
       - cluster:services
@@ -267,16 +266,16 @@ proposals:
   attributes:
     default_share_type: default
     shares:
-    - backend_driver: generic
-      backend_name: backend1
-      generic:
-        service_instance_user: root
-        service_instance_password: linux
-        share_volume_fstype: ext3
-        path_to_private_key: ""
-        service_instance_name_or_id: ##manila_instance_name_or_id##
-        service_net_name_or_ip: ##service_net_name_or_ip##
-        tenant_net_name_or_ip: ##tenant_net_name_or_ip##
+    - backend_driver: netapp
+      backend_name: netapp1
+      netapp:
+        netapp_storage_family: ontap_cluster
+        netapp_server_hostname: ##netapp_server##
+        netapp_server_port: 80
+        netapp_login: admin
+        netapp_password: ##netapp_password##
+        netapp_vserver: ##netapp_vserver##
+        netapp_transport_type: http
   deployment:
     elements:
       manila-server:
