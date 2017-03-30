@@ -1543,6 +1543,12 @@ EOF
             echo "/srv/nfs     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
         fi
     fi
+
+    # Ensure the admin timezone is the same as the timezone that
+    # autoyast will configure for the deployed nodes
+    timedatectl set-timezone "Etc/UTC"
+    echo 'TIMEZONE="Etc/UTC"' >> /etc/sysconfig/clock
+
     return 0
 }
 
