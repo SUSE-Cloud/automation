@@ -2634,8 +2634,8 @@ function custom_configuration
                 local l="['attributes']['keystone']['ldap']"
                 if iscloudver 7plus ; then
                     $p "['attributes']['keystone']['domain_specific_drivers']" true
-                    $p "$l['group_members_are_ids']" "true"
                     l="['attributes']['keystone']['domain_specific_config']['ldap_users']['ldap']"
+                    $p "$l['group_members_are_ids']" "true"
                 elif iscloudver 6; then
                     $p "['attributes']['keystone']['identity']['driver']" "'hybrid'"
                     $p "['attributes']['keystone']['assignment']['driver']" "'hybrid'"
