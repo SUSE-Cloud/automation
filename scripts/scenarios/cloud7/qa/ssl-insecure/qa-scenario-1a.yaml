@@ -112,14 +112,15 @@ proposals:
     elements:
       glance-server:
       - cluster:services
+
 - barclamp: cinder
   attributes:
     volumes:
-    - backend_driver: raw
-      backend_name: default
-      raw:
-        volume_name: cinder-volumes
-        cinder_raw_method: all
+    - backend_driver: nfs
+      backend_name: nfs
+      nfs:
+        nfs_shares: ##cinder-storage-shares##
+        nfs_mount_options: nfsvers=3,rw,sync,nofail
     api:
       protocol: https
     ssl:
@@ -130,7 +131,8 @@ proposals:
       cinder-controller:
       - cluster:services
       cinder-volume:
-      - "@@controller1@@"
+      - cluster:services
+
 - barclamp: neutron
   attributes:
     ml2_mechanism_drivers:
