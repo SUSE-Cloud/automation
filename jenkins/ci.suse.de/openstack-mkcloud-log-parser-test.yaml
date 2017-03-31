@@ -32,7 +32,7 @@
     parameters:
      - string:
         name: sample_log_file
-        default: jenkins/ci.suse.de/openstack-mkcloud-sample-logs/develcloud7-PR-crowbar-openstack-868.txt
+        default: jenkins/ci.suse.de/openstack-mkcloud-sample-logs/develcloud7-PR-automation-1830.txt
         description: |
              Sample log from a previous run to emit as a fake job log,
              providing text to test the log parser rules against.

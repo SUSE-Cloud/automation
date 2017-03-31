@@ -330,12 +330,27 @@ def domain_cleanup(dom):
             print("failed to undefine {0}".format(dom.name()))
 
 
+# Incredibly, libvirt's API offers no way to quietly look up a domain
+# by name without risking an exception *and* an error message being
+# spewed to STDERR if the domain doesn't exist.  And we need to avoid
+# the error message, because it would generate false positives for
+# anything which scans output for errors, such as the Jenkins Log
+# Parser plugin.  So we use our own wrapper here, which hacks around
+# the limited API by instead using the less risky listAllDomains().
+# It returns the domain object if a domain is found with the requested
+# name, otherwise None.
+def get_domain_by_name(conn, name):
+    return next((domain for domain in conn.listAllDomains()
+                 if domain.name == name),
+                None)
+
+
 def cleanup_one_node(args):
     conn = libvirt_connect()
-    try:
-        domain = conn.lookupByName(args.nodename)
+    domain = get_domain_by_name(conn, args.nodename)
+    if domain:
         domain_cleanup(domain)
-    except libvirt.libvirtError:
+    else:
         print("no domain found with the name {0}".format(args.nodename))
 
 
@@ -385,16 +400,19 @@ def vm_start(args):
     vmpath = args.vmpath
     vmname = xml_get_value(vmpath, "name")
     # cleanup old domain
-    try:
-        print("cleaning up {0}".format(vmname))
-        dom = conn.lookupByName(vmname)
+    print("cleaning up {0}".format(vmname))
+    dom = get_domain_by_name(conn, vmname)
+    if dom:
         domain_cleanup(dom)
-    except libvirt.libvirtError:
+    else:
         print("no domain for {0} active".format(vmname))
 
     xml = readfile(vmpath)
     print("defining VM from {0}".format(vmpath))
     conn.defineXML(xml)
+    # Contrary to the above lookup, if this one fails, something has
+    # gone badly wrong so we *want* an exception and ugly error
+    # message.
     dom = conn.lookupByName(vmname)
     print("booting {0} VM".format(vmname))
     dom.create()
