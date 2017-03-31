@@ -43,6 +43,7 @@
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-ceph-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-dvr-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-lbaasv2-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}'
 - project:
     name: cloud-mkcloud7-tempestfull-x86_64
