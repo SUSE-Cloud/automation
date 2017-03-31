@@ -249,7 +249,9 @@ function libvirt_do_create_cloud_lvm()
     fi
 
     echo "Checking for LVs treated by LVM as valid PV devices ..."
-    if [[ $SHAREDVG != 1 ]] && lvmdiskscan | egrep "/dev/($cloudvg/|mapper/$cloudvg-)"; then
+    if [[ $SHAREDVG != 1 ]] &&
+        $sudo lvmdiskscan | egrep "/dev/($cloudvg/|mapper/$cloudvg-)"
+    then
         error=$(cat <<EOF
 Error: your lvm.conf is not filtering out mkcloud LVs.
 Please fix by adding the following regular expressions
