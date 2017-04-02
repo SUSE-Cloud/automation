@@ -108,8 +108,12 @@ function libvirt_do_setuphost()
         dnsmasq netcat-openbsd ebtables iproute2 sudo kpartx rsync
 
     sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
-    echo "net.ipv4.conf.all.rp_filter = 0" > /etc/sysctl.d/90-cloudrpfilter.conf
-    echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
+    rm -f /etc/sysctl.d/90-cloudrpfilter.conf
+    # to enable IPv6 forwarding, we also need to enable accepting IPv6 RA
+    local mkcloudconf=/etc/sysctl.d/90-mkcloud.conf
+    echo "net.ipv4.conf.all.rp_filter = 0" > $mkcloudconf
+    echo "net.ipv6.conf.all.accept_ra = 2" >> $mkcloudconf
+    sysctl -p $mkcloudconf
     if [ -n "$needcvol" ] ; then
         safely pvcreate "$cloudpv"
         safely vgcreate "$cloudvg" "$cloudpv"
