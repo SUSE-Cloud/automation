@@ -1,0 +1,87 @@
+branches:
+  release/tex/master:
+    bs_project:  Devel:Cloud:5:Staging
+    bs_repo:     SLE_11_SP3
+    cloudsource: develcloud5
+  stable/3.0:
+    bs_project:  Devel:Cloud:6:Staging
+    bs_repo:     SLE_12_SP1
+    cloudsource: develcloud6
+  stable/sap/3.0:
+    bs_project:  Devel:Cloud:6:SAP:Staging
+    bs_repo:     SLE_12_SP1
+    cloudsource: develcloud6
+  master:
+    bs_project:  Devel:Cloud:7:Staging
+    bs_repo:     SLE_12_SP2
+    cloudsource: develcloud7
+parameters_template:
+  default: &mkcloud_default
+    nodenumber: 2
+    networkingplugin: openvswitch
+  ha: &mkcloud_ha
+    label: openstack-mkcloud-ha-x86_64
+    nodenumber: 5
+    hacloud: 1
+    networkingmode: vxlan
+    clusterconfig: "data+services+network=2"
+  hyperv: &mkcloud_hyperv
+    networkingplugin: linuxbridge
+    libvirt_type: hyperv
+    networkingmode: vlan
+  ceph: &mkcloud_ceph
+    nodenumber: 4
+    want_ceph: 1
+    networkingplugin: linuxbridge
+  sap:  &mkcloud_sap
+    cloudsource: develcloud6
+    want_sap: 1
+    label: openstack-mkcloud-DMZ-x86_64
+    hacloud: 1
+    storage_method: swift
+    nodenumber: 10
+    clusterconfig: data=2:services=3:network=3
+parameters:
+  crowbar/crowbar-core:
+    standard: *mkcloud_default
+    ha: *mkcloud_ha
+  crowbar/crowbar-openstack:
+    standard: *mkcloud_default
+    ha: *mkcloud_ha
+  crowbar/crowbar-ha:
+    standard: *mkcloud_ha
+  crowbar/crowbar-hyperv:
+    standard: *mkcloud_hyperv
+  crowbar/crowbar-ceph:
+    standard: *mkcloud_ceph
+  crowbar/barclamp-ceph:
+    standard: *mkcloud_ceph
+  crowbar/barclamp-hyperv:
+    standard: *mkcloud_hyperv
+  crowbar/barclamp-pacemaker:
+    standard: *mkcloud_ha
+  sap-oc/crowbar:
+    standard: *mkcloud_sap
+  sap-oc/crowbar-ceph:
+    standard: *mkcloud_sap
+  sap-oc/crowbar-core:
+    standard: *mkcloud_sap
+  sap-oc/crowbar-ha:
+    standard: *mkcloud_sap
+  sap-oc/crowbar-monitoring:
+    standard: *mkcloud_sap
+  sap-oc/crowbar-openstack:
+    standard: *mkcloud_sap
+mkcloud:
+  job_name: openstack-mkcloud
+  target: all_noreboot
+infrastructure:
+  htdocs_dir: /srv/mkcloud
+  htdocs_url: http://clouddata.cloud.suse.de/mkcloud/
+  osc:
+    cmd: /usr/bin/osc
+    parameters:
+      - -A
+      - https://api.suse.de
+  jenkins_job_trigger:
+    cmd: jenkins/jenkins-job-trigger
