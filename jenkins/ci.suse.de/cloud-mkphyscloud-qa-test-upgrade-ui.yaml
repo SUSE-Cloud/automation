@@ -75,6 +75,37 @@
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
 
+          ssh root@$admin '
+            hostname -f
+            source mkcloud.config;
+            source scripts/qa_crowbarsetup.sh;
+
+            export heat_stack_params="--parameters"
+            heat_stack_params="$heat_stack_params east_net_cidr=44.0.1.0/27;east_net_pool_start=44.0.1.10;east_net_pool_end=44.0.1.20"
+            heat_stack_params="$heat_stack_params;west_net_cidr=44.0.2.0/27;west_net_pool_start=44.0.2.10;west_net_pool_end=44.0.2.20"
+            onadmin_testpreupgrade
+          ' || result=$?
+
+          if [[ $result != 0 ]]; then
+              exit $result
+          fi
+
+          fips=`ssh root@$admin '
+            source mkcloud.config;
+            source scripts/qa_crowbarsetup.sh;
+            get_novacontroller
+            oncontroller get_fips
+          '`
+
+          if [[ -z $fips ]]; then
+            echo "No floating IPs found"
+            exit 1
+          fi
+
+          ping_instances start "$fips"
+
+          ps aux | grep ping
+
           ssh root@$admin "
             export cloud=$cloud;
             export upgrade_cloudsource=$upgrade_cloudsource
@@ -98,14 +129,17 @@
             onadmin_zypper_patch_all
             onadmin_allow_vendor_change_at_nodes
 
-            export cct_tests=feature:ui:upgrade:landing+feature:ui:upgrade:admin:backup
-            onadmin_run_cct
+            export cct_tests=feature:ui:upgrade:landing
+            onadmin_run_cct || exit 1
+
+            export cct_tests=feature:ui:upgrade:admin:backup
+            onadmin_run_cct || exit 1
 
             export cloudsource=$upgrade_cloudsource
             onadmin_prepare_cloudupgrade_admin_repos_6_to_7
 
             export cct_tests=feature:ui:upgrade:admin:repos
-            onadmin_run_cct
+            onadmin_run_cct || exit 1
 
             # We only check if the upgrade screen is ready but we will do the upgrade via crowbarctl later
             export cct_tests=feature:ui:upgrade:admin:upgrade
@@ -162,13 +196,13 @@
             hostname -f;
             source mkcloud.config;
             source scripts/qa_crowbarsetup.sh;
+            export cloudsource=$upgrade_cloudsource
 
             onadmin_check_admin_server_upgraded
 
             export cct_tests=feature:ui:upgrade:pgsql:create
             onadmin_run_cct
 
-            export cloudsource=$upgrade_cloudsource
             onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
             export cct_tests=feature:ui:upgrade:nodes:repos
             onadmin_run_cct
@@ -181,4 +215,15 @@
 
             export cct_tests=feature:ui:upgrade:nodes:upgrade
             onadmin_run_cct
+
           '
+          # Stop the ping script
+          ping_instances stop $fips
+
+          # Show results from ping log files
+          ssh root@$admin "
+            source mkcloud.config;
+            source scripts/qa_crowbarsetup.sh;
+            get_novacontroller
+            oncontroller testpostupgrade
+          "
