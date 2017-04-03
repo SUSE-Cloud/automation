@@ -3,17 +3,8 @@
 # For more information,
 # see http://www.vm.ibm.com/related/dirmaint/overview.html
 
-. ~/.lxccfg
-
 shutdowntime=60
 zvmname=$(vmcp q userid | sed 's/ .*//')
-
-function dirmaint_do_sanity_checks()
-{
-    if [ ! -e ~/.lxccfg ] ; then
-        complain 1 "This script needs lxc configured and ~/.lxccfg to work correctly"
-    fi
-}
 
 # unit with 3390 would be a cylinder, with 9336 it would be 512 Byte
 function unit_to_byte()
@@ -63,6 +54,12 @@ function dirmaint_do_setuphost()
 
 function dirmaint_do_sanity_checks()
 {
+    if [ ! -e ~/.lxccfg ] ; then
+        complain 1 "This script needs lxc configured and ~/.lxccfg to work correctly"
+    else
+        . ~/.lxccfg
+    fi
+
     # This assumes $cloud is named "mkcl<single-hex-digit>"
     if [[ ${cloud} =~ ^mkcl[0-9a-f]$ ]]; then
         cloudidx=${cloud: -1}
@@ -244,6 +241,7 @@ function dirmaint_do_setupadmin()
 
     local admuser=${cloud}adm
     local cloudbr=${cloud}
+    local cld=${cld:-CLD9}
     # default directory entry for this user:
     cat <<EOF > $HOME/${admuser^^}.DIRECT
 USER $admuser cldpaswd 2G 4G G
@@ -262,7 +260,7 @@ EOF
     # FIXME: for FBA, the type would be 9336, and counting would be 512 byte
     # blocks.
     disksize=$(byte_to_unit 3390 8512349400) # this is just the 10015 cylinders
-    $lxc -c "dirm for $admuser amdisk 0100 3390 autog $disksize CLD9 mr"
+    $lxc -c "dirm for $admuser amdisk 0100 3390 autog $disksize $cld mr"
     # other modifications also would work with similar commands
     # now deploy the standard image to the boot disk:
     dirmaint_do_onhost_deploy_image admin SLES12-SP2-ECKD.qcow2 0100
@@ -279,14 +277,15 @@ EOF
 
 function dirmaint_add_node()
 {
-	# assuming that there has been added a CLDPROT PROTODIR entry to
-	# dirmaint that sets common defaults.
-	# The prototype contains default disk and network. If different defaults
-	# are desired, we can also add several prototypes or finalize a user
-	# later on.
-	local node=$1
-	# FIXME: I guess, for production, we would use AUTOONLY as password.
-	$lxc -c "cms dirm add $node like CLDPROT PW lin390"
+    # assuming that there has been added a CLDPROT PROTODIR entry to
+    # dirmaint that sets common defaults.
+    # The prototype contains default disk and network. If different defaults
+    # are desired, we can also add several prototypes or finalize a user
+    # later on.
+    local node=$1
+    local cldprot=${cldprot:-CLDPROT}
+    # FIXME: I guess, for production, we would use AUTOONLY as password.
+    $lxc -c "cms dirm add $node like $cldprot PW lin390"
 }
 
 function dirmaint_do_setuplonelynodes()
@@ -300,10 +299,10 @@ function dirmaint_do_setuplonelynodes()
         lonely_node=$(printf "${cloud}n%02d" $i)
 
         # FIXME push user directory entry
-		dirmaint_add_node $lonely_node
-		# while this is not a bad thing as it is, we could improve the
-		# situation by preparing a number of disks that hold default images.
-		# in that case, dirmaint could be used to clone the respective disk.
+        dirmaint_add_node $lonely_node
+        # while this is not a bad thing as it is, we could improve the
+        # situation by preparing a number of disks that hold default images.
+        # in that case, dirmaint could be used to clone the respective disk.
         _dirmaint_link_and_write_disk $lonely_node SLES12-SP2-ECKD.qcow2
 
         # grant access rights to the vswitch:
