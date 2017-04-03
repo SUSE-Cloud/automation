@@ -4939,21 +4939,14 @@ zypper -non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgra
 
 # Some resources are known to fail for a short time because of a wicked ifreload call.
 # It's safe to clean existing errors now so we have a error-less crm status output.
-function onadmin_cleanup_db_mq_vips
+function onadmin_cleanup_crm_errors
 {
-    for svc in database rabbitmq; do
-        local node=$(knife search node "roles:$svc-server AND pacemaker_founder:true" -a name | \
-            grep ^name: | cut -d : -f 2 | sed 's/\s//g')
+    local node=$(knife search node "pacemaker_founder:true" -a name | \
+          grep ^name: | cut -d : -f 2 | sed 's/\s//g')
+    if [ -n "$node" ] ; then
+        ssh $node "crm_resource -C"
+    fi
 
-        if [ -n "$node" ] ; then
-            # We're looking for resource like vip-admin-database-default-data (where 'data' is cluster name)
-            ssh $node "
-res=\$(crm resource list | grep vip-admin-$svc-default | cut -f 1 | sed 's/\s//g')
-if [ -n \"\$res\" ]; then
-    crm resource cleanup \$res
-fi"
-        fi
-    done
 }
 
 # This will adapt Cloud6 nodes repositories to Cloud7 ones

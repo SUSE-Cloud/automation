@@ -670,7 +670,7 @@ function instnodes
 function proposal
 {
     onadmin proposal
-    onadmin cleanup_db_mq_vips
+    onadmin cleanup_crm_errors
     return $?
 }
 
