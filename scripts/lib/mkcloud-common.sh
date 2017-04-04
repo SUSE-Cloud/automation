@@ -13,6 +13,7 @@ distsuseip=$(dig -t A +short $distsuse)
 : ${smturl:="http://$susedownload/update/build.suse.de"}
 if [[ $UID != 0 ]] ; then
     : ${sudo:=sudo}
+    PATH=/sbin:/usr/sbin:/usr/local/sbin:$PATH
 fi
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
