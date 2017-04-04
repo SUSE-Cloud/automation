@@ -39,5 +39,13 @@ function qacrowbarsetup_help
         Example:
             want_devel_repos=storage,virt
         Valid values: ha, storage, virt
+    want_cloud6_iso_path=path to search for Cloud 6 ISO image in
+        Search for Cloud 6 ISO image files in this path.
+    want_cloud6_iso=ISO filename
+        Name of Cloud 6 ISO image file.
+    want_cloud7_iso_path=path to search for Cloud 7 ISO image in
+        Search for Cloud 7 ISO image files in this path.
+    want_cloud7_iso=ISO filename
+        Name of Cloud 7 ISO image file.
 EOUSAGE
 }

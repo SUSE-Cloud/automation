@@ -1218,16 +1218,16 @@ function onadmin_set_source_variables
             CLOUDLOCALREPOS="SUSE-Cloud-5-devel"
         ;;
         develcloud6)
-            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6/images/iso
+            CLOUDSLE12DISTPATH=${want_cloud6_iso_path:='/ibs/Devel:/Cloud:/6/images/iso'}
             [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"
+            CLOUDSLE12DISTISO=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"}
             CLOUDSLE12TESTISO="CLOUD-6-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         develcloud7)
-            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7/images/iso
+            CLOUDSLE12DISTPATH=${want_cloud7_iso_path:='/ibs/Devel:/Cloud:/7/images/iso'}
             [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7:/Staging/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"
+            CLOUDSLE12DISTISO=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"}
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
         ;;
@@ -1259,15 +1259,15 @@ function onadmin_set_source_variables
         GM6|GM6+up)
             cs=$cloudsource
             [[ $cs =~ GM6 ]] && cs=GM
-            CLOUDSLE12DISTPATH=/install/SLE-12-SP1-Cloud6-$cs/
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"
+            CLOUDSLE12DISTPATH=${want_cloud6_iso_path:="/install/SLE-12-SP1-Cloud6-$cs/"}
+            CLOUDSLE12DISTISO=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
         GM7|GM7+up|GMC*|M?)
             cs=${cloudsource/#M/Milestone}
             [[ $cs =~ GM7 ]] && cs=GM
-            CLOUDSLE12DISTPATH=/install/SLE-12-SP2-Cloud7-$cs/
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*1.iso"
+            CLOUDSLE12DISTPATH=${want_cloud7_iso_path:="/install/SLE-12-SP2-Cloud7-$cs/"}
+            CLOUDSLE12DISTISO=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-$arch*1.iso"}
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*DVD1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
