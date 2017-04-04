@@ -355,18 +355,20 @@ function libvirt_do_onhost_deploy_image()
     echo "Cloning $role node vdisk from $image ..."
     safely $sudo qemu-img convert -t none -O raw -S 0 -p $cachedir/$image $disk
 
-    # resize the last partition only if it has id 83
-    local last_part=$(fdisk -l $disk | grep -c "^$disk")
-    if $sudo fdisk -l $disk | grep -q "$last_part *\* *.*83 *Linux" ; then
-        echo -e "d\n$last_part\nn\np\n$last_part\n\n\na\n$last_part\nw" | $sudo fdisk $disk
-        local part=$($sudo kpartx -asv $disk|perl -ne 'm/add map (\S+'"$last_part"') / && print $1')
-        test -n "$part" || complain 31 "failed to find partition #$last_part"
-        local bdev=/dev/mapper/$part
-        safely $sudo fsck -y -f $bdev
-        safely $sudo resize2fs $bdev
-        time $sudo udevadm settle
-        sleep 1 # time for dev to become unused
-        safely $sudo kpartx -dsv $disk
+    if [[ ${resize_admin_node_partition:-1} = 1 ]]; then
+        # resize the last partition only if it has id 83
+        local last_part=$(fdisk -l $disk | grep -c "^$disk")
+        if $sudo fdisk -l $disk | grep -q "$last_part *\* *.*83 *Linux" ; then
+            echo -e "d\n$last_part\nn\np\n$last_part\n\n\na\n$last_part\nw" | $sudo fdisk $disk
+            local part=$($sudo kpartx -asv $disk|perl -ne 'm/add map (\S+'"$last_part"') / && print $1')
+            test -n "$part" || complain 31 "failed to find partition #$last_part"
+            local bdev=/dev/mapper/$part
+            safely $sudo fsck -y -f $bdev
+            safely $sudo resize2fs $bdev
+            time $sudo udevadm settle
+            sleep 1 # time for dev to become unused
+            safely $sudo kpartx -dsv $disk
+        fi
     fi
     # resize partitionless disk with ext2 filesystem
     tune2fs -l $disk > /dev/null 2>&1 && safely resize2fs $disk
