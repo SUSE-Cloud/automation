@@ -11,6 +11,11 @@
 distsuseip=$(dig -t A +short $distsuse)
 : ${susedownload:=download.nue.suse.com}
 : ${smturl:="http://$susedownload/update/build.suse.de"}
+: ${cloud6_iso_path:='/ibs/Devel:/Cloud:/6/images/iso'}
+: ${cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"}
+: ${cloud7_iso_path:='/ibs/Devel:/Cloud:/7/images/iso'}
+: ${cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"}
+
 if [[ $UID != 0 ]] ; then
     : ${sudo:=sudo}
 fi

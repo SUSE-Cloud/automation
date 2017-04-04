@@ -250,6 +250,10 @@ function sshrun
         export scenario=$scenario ;
         export host_mtu=$host_mtu ;
         export architectures='$architectures';
+        export cloud6_iso_path=$cloud6_iso_path ;
+        export cloud6_iso=$cloud6_iso ;
+        export cloud7_iso_path=$cloud7_iso_path ;
+        export cloud7_iso=$cloud7_iso ;
 
         export nova_shared_instance_storage=$nova_shared_instance_storage ;
 
