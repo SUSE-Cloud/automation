@@ -38,6 +38,8 @@ ok /dracut-install: ERROR: installing .*dracut-fsck-help.txt/
 # https://bugzilla.redhat.com/show_bug.cgi?id=1312188
 ok /(libvirtd|virtlogd)\[\d+\]: End of file while reading data: Input\/output error/
 
+ok /^suse\/(repodata|setup\/descr)\/appdata-failed\.(xml|html)\.(gz|xz|bz2)$/
+
 error /(?i)error/
 error /(?i)\bfail(ure|ed)?\b/
 error /(?i)fatal/
