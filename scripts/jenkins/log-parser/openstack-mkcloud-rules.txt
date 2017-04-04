@@ -18,6 +18,8 @@ ok /Warning: Turning on '--gpg-auto-import-keys'/
 ok /Warning: Permanently added .* to the list of known hosts/
 ok /WARNING: Device for PV .* not found or rejected by a filter/
 ok /WARNING: \w+ signature detected on .* offset \d+. Wipe it?/
+ok /perl-Error[ -]/
+ok /grep -v failed\b/
 
 # https://bugzilla.suse.com/show_bug.cgi?id=1030822
 warning /Cleaning up (vip-admin-\S+) on \S+, removing fail-count-\1/
