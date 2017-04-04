@@ -30,17 +30,20 @@
             - job-read
 
     parameters:
-     - string:
-        name: sample_log_file
-        default: jenkins/ci.suse.de/openstack-mkcloud-sample-logs/develcloud7-PR-automation-1830.txt
-        description: |
-             Sample log from a previous run to emit as a fake job log,
-             providing text to test the log parser rules against.
-     - string:
-         name: github_pr
-         description: |
-              String is a ':' separated list of these vaules: $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context Note:
-              SHA1 must be latest commit in PR, $context is optional  (only use if multiple gating runs needed per PR)
+      - string:
+          name: sample_log_file
+          default: jenkins/ci.suse.de/openstack-mkcloud-sample-logs/develcloud7-PR-automation-1830.txt
+          description: >-
+            Sample log from a previous run to emit as a fake job log,
+            providing text to test the log parser rules against.
+      - string:
+          name: github_pr
+          description: >-
+            String is a ':' separated list of these values:
+            $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
+
+            Note: SHA1 must be latest commit in PR, $context is optional
+            (only use if multiple gating runs needed per PR)
 
     wrappers:
       - timestamps:
