@@ -38,6 +38,7 @@
             providing text to test the log parser rules against.
       - string:
           name: github_pr
+          default: SUSE-Cloud/automation:PR_ID:SHA1:master
           description: >-
             String is a ':' separated list of these values:
             $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
