@@ -106,7 +106,9 @@ class CrowbarTestbuild
     sub_context = mode == "standard" ? "":mode
     sub_context_suffix = sub_context.empty? ? "" : ":#{sub_context}"
     job_name = "#{@org}/#{@repo} PR #{pr_id} #{pr_sha1_short} #{sub_context}"
-    jcmd = [ File.expand_path(j["cmd"]), mkcloud_job_name, "-p" ]
+    cmd = j["cmd"]
+    cmd = File.join(File.dirname(__FILE__), cmd) unless File.exists?(cmd)
+    jcmd = [ cmd, mkcloud_job_name, "-p" ]
     para_default = {
       mkcloudtarget: mkcloud_target,
       cloudsource: cloudsource,
