@@ -21,6 +21,7 @@ fi
 : ${networkingplugin:=openvswitch}
 : ${architectures:='aarch64 x86_64 s390x'}
 : ${nodenumberlonelynode:=0}
+: ${want_mtu_size:=1500}
 
 function max
 {
