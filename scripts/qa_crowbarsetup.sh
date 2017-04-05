@@ -434,6 +434,8 @@ function add_sdk_repo
     local sdk_repo_priority
     sdk_repo_priority=199
 
+    export_tftpboot_repos_dir
+
     case $(getcloudver) in
         6)
             zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
@@ -442,6 +444,13 @@ function add_sdk_repo
         7)
             zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
             zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
+
+            if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] && isrepoworking SLE12-SP2-SDK-Updates-test ; then
+                add_mount "SLE12-SP2-SDK-Updates-test" \
+                    $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP2:/$arch/update/" \
+                    "$tftpboot_repos12sp2_dir/SLE12-SP2-SDK-Updates-test/" "SDK-SP2-Update-test"
+            fi
+
             ;;
         8)
             zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/ SDK-SP3
