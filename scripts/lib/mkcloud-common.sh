@@ -1,6 +1,7 @@
 # This file shares common code between mkcloud-${mkclouddriver}.sh files and qa_crowbarsetup.sh
 
 # defaults for generic common variables
+: ${arch:=$(uname -m)}
 : ${admin_image_password:='linux'}
 : ${images_dir:="cloud/images/$arch"}
 : ${clouddatadns:=clouddata.nue.suse.com}
@@ -17,7 +18,6 @@ if [[ $UID != 0 ]] ; then
 fi
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
-: ${arch:=$(uname -m)}
 : ${architectures:='aarch64 x86_64 s390x'}
 : ${nodenumberlonelynode:=0}
 
