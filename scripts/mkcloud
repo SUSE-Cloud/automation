@@ -16,7 +16,9 @@
 # 3. Please 'export' environment variables according to your needs.
 
 : ${cloud:=cloud}
-: ${log_dir:=/var/log/mkcloud/$cloud}
+log_dir_default=/var/log/mkcloud/$cloud
+[[ $UID != 0 ]] && log_dir_default="./log"
+: ${log_dir:=$log_dir_default}
 mkdir -p "$log_dir"
 log_file=$log_dir/`date -Iseconds`.log
 exec >  >(tee -ia $log_file)
