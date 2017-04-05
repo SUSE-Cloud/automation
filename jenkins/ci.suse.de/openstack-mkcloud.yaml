@@ -434,7 +434,7 @@
           if [[ $hacloud == 1 ]] ; then
             : ${clusterconfig:=data+services+network=2}
             export clusterconfig
-            if [[ $nodenumber < 4 ]] ; then
+            if [[ $nodenumber -lt 4 ]] ; then
               export nodenumber=4
             fi
 
@@ -459,7 +459,7 @@
             ceph)
               want_ceph=1
               want_swift=0
-              if [[ $nodenumber < 5 ]] ; then
+              if [[ $nodenumber -lt 5 ]] ; then
                 export nodenumber=5
               fi
               cephvolumenumber=2
