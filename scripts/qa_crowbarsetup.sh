@@ -4937,7 +4937,8 @@ zypper -non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgra
     wait_for 60 5 "ssh ${nodes[0]} ceph health | grep -q HEALTH_OK" "ceph cluster to recover after upgrade"
 }
 
-# Some resources are known to fail for a short time because of a wicked ifreload call.
+# Some resources are known to fail for a short time because of a wicked ifreload call:
+# https://bugzilla.suse.com/show_bug.cgi?id=1030822
 # It's safe to clean existing errors now so we have a error-less crm status output.
 function onadmin_cleanup_db_mq_vips
 {
