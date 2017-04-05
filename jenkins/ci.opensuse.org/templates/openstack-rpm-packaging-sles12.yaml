@@ -19,7 +19,7 @@
           # set vars
           OBS_BASE_SRC_PROJECT="Cloud:OpenStack:Upstream:{release}"
           OBS_BASE_TARGET_PROJECT="home:suse-cloud-ci:rpm-packaging-sles12-{release}"
-          OBS_TEST_PROJECT="${{OBS_BASE_TARGET_PROJECT}}-${{ZUUL_COMMIT}}"
+          OBS_TEST_PROJECT="${{OBS_BASE_TARGET_PROJECT}}-${{ZUUL_COMMIT}}-${{BUILD_ID}}"
           TEMP_DIR="/tmp/rpm-packaging-${{ZUUL_COMMIT}}"
 
           # cleanup
