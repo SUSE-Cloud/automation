@@ -5024,7 +5024,7 @@ function oncontroller_setupproduction()
 
 function oncontroller_import_images
 {
-    for img in SLES12.qcow2 SLES12-SP1.qcow2 SLES12-SP2.qcow2 SLES12-SP3.qcow2 SP4-64up.qcow2 cirros-0.3.4-x86_64-disk.img openSUSE-Leap-42.1.qcow2 openSUSE-Leap-42.1-OpenStack.x86_64-0.0.3-Build1.2.qcow2 openSUSE-Leap-42.2-OpenStack.x86_64-0.0.4-Build3.1.qcow2 Fedora-x86_64-20-20131211.1-sda.qcow2 debian-jessie-nopart.qcow2 openSUSE-Leap-42.2-altimagebuild.qcow2 ; do
+    for img in SLES12.qcow2 SLES12-SP1.qcow2 SLES12-SP2.qcow2 SLES12-SP3.qcow2 SP4-64up.qcow2 cirros-0.3.4-x86_64-disk.img openSUSE-Leap-42.1.qcow2 openSUSE-Leap-42.1-OpenStack.x86_64-0.0.3-Build1.2.qcow2 openSUSE-Leap-42.2-OpenStack.x86_64-0.0.4-Build3.1.qcow2 Fedora-x86_64-20-20131211.1-sda.qcow2 ubuntu-16.04-server-cloudimg-amd64-disk1.img debian-jessie-nopart.qcow2 openSUSE-Leap-42.2-altimagebuild.qcow2 ; do
         local bimg=$(basename $img)
         local image_name=${bimg//.qcow2}
         local params="--disk-format qcow2 --container-format bare "
