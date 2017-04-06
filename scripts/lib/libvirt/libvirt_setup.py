@@ -341,7 +341,7 @@ def domain_cleanup(dom):
 # name, otherwise None.
 def get_domain_by_name(conn, name):
     return next((domain for domain in conn.listAllDomains()
-                 if domain.name == name),
+                 if domain.name() == name),
                 None)
 
 
