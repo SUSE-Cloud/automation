@@ -4577,6 +4577,9 @@ function ping_fips
 
 function oncontroller_testpreupgrade
 {
+    # Workaround for onadmin_cleanup_db_mq_vips restarting
+    # the db/rpc servers. Wait until heat stack-list success
+    wait_for 120 5 "heat stack-list" "heat api to be available"
     heat stack-create upgrade_test -f /root/scripts/heat/2-instances-cinder.yaml
     wait_for 15 20 "heat stack-list | grep upgrade_test | grep CREATE_COMPLETE" \
              "heat stack for upgrade tests to complete"
