@@ -3175,7 +3175,8 @@ function crowbar_proposal_commit
 {
     local proposal="$1"
     local proposaltype="${2:-default}"
-    if iscloudver 6plus ; then
+    # crowbarctl triggers timeouts on deployment (2017-04-05)
+    if false && iscloudver 6plus ; then
         safely crowbarctl proposal commit "$proposal" "$proposaltype"
     else
         safely crowbar "$proposal" proposal commit "$proposaltype"
