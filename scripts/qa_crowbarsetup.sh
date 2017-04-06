@@ -441,7 +441,7 @@ function add_sdk_repo
             zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
             zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
 
-            if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] && isrepoworking SLE12-SP1-SDK-Updates-test ; then
+            if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP1-SDK-Updates-test ; then
                 add_mount "SLE12-SP1-SDK-Updates-test" \
                     $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP1:/$arch/update/" \
                     "$tftpboot_repos12sp2_dir/SLE12-SP1-SDK-Updates-test/" "SDK-SP1-Update-test"
@@ -451,16 +451,21 @@ function add_sdk_repo
             zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
             zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
 
-            if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] && isrepoworking SLE12-SP2-SDK-Updates-test ; then
+            if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP2-SDK-Updates-test ; then
                 add_mount "SLE12-SP2-SDK-Updates-test" \
                     $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP2:/$arch/update/" \
                     "$tftpboot_repos12sp2_dir/SLE12-SP2-SDK-Updates-test/" "SDK-SP2-Update-test"
             fi
-
             ;;
         8)
             zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/ SDK-SP3
             zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/ SDK-SP3-Update
+
+            if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP3-SDK-Updates-test ; then
+                add_mount "SLE12-SP3-SDK-Updates-test" \
+                    $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP3:/$arch/update/" \
+                    "$tftpboot_repos12sp3_dir/SLE12-SP3-SDK-Updates-test/" "SDK-SP3-Update-test"
+            fi
             ;;
     esac
 }
@@ -977,7 +982,7 @@ function onadmin_prepare_cloud_repos
             ;;
     esac
 
-    if [ -n "$want_test_updates" -a "$want_test_updates" != "0" ] ; then
+    if [[ "$want_test_updates" = 1 ]] ; then
         case "$cloudsource" in
             GM4+up)
                 addsp3testupdates
