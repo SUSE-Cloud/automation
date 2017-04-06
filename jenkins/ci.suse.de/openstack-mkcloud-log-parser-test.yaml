@@ -31,11 +31,11 @@
 
     parameters:
       - string:
-          name: sample_log_file
-          default: jenkins/ci.suse.de/openstack-mkcloud-sample-logs/develcloud7-PR-automation-1830.txt
+          name: sample_build_num
           description: >-
-            Sample log from a previous run to emit as a fake job log,
-            providing text to test the log parser rules against.
+            Number of a previous openstack-mkcloud build from which to
+            emit the log as a fake job log, providing text to test the
+            log parser rules against.
       - string:
           name: github_pr
           default: SUSE-Cloud/automation:PR_ID:SHA1:master
@@ -140,7 +140,7 @@
           env
           echo "########################################################################"
 
-          cat ${automationrepo}/${sample_log_file}
+          curl -s https://ci.suse.de/view/Cloud/view/Worker/job/openstack-mkcloud/${sample_build_num}/consoleText
 
     publishers:
       - logparser:
