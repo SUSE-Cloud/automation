@@ -7,6 +7,9 @@ info /^Waiting for /
 # Ignore set -x trace output
 ok /^\++\((mkcloud(-common\.sh)?|qa_crowbarsetup\.sh):\d+\) /
 
+# Ignore output of git show when testing PRs
+ok /^\|@\| /
+
 # wait_for() a condition to become true
 ok /^ *until this condition is true: /
 
