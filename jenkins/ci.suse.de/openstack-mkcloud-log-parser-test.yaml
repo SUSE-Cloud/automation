@@ -123,8 +123,10 @@
                   git checkout -t $ghremote/pr/$github_pr_id
                   echo "we merge to always test what will end up in master"
                   git merge master -m temp-merge-commit
-                  # show latest commit in log to see what's really tested
-                  git --no-pager show
+                  # Show latest commit in log to see what's really tested.
+                  # Include a unique indent so that the log parser plugin
+                  # can ignore the output and avoid false positives.
+                  git --no-pager show | sed 's/^/|@| /'
                   popd
               elif [[ "$github_pr_repo" = "SUSE-Cloud/cct" ]]; then
                   export want_cct_pr=$github_pr_id
