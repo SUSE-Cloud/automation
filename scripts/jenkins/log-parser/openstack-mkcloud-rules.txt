@@ -21,11 +21,27 @@ ok /Warning: Turning on '--gpg-auto-import-keys'/
 ok /Warning: Permanently added .* to the list of known hosts/
 ok /WARNING: Device for PV .* not found or rejected by a filter/
 ok /WARNING: \w+ signature detected on .* offset \d+. Wipe it?/
-ok /perl-Error[ -]/
 ok /grep -v failed\b/
+
+# rpms containing "Error"
+ok /perl-Error[ -]/
+ok /libsamba-errors/
+
+# Crowbar upgrade messages
+ok /^\| Check ID +\| Passed \| Required \| Errors/
+ok /^Make sure that there are no errors for the required checks before executing the next step/
+# https://bugzilla.suse.com/show_bug.cgi?id=1032906
+ok /^update-alternatives: error: no alternatives for/
+
+# SES upgrade messages
+ok /^- fatal errors if the journal or data partitions are of an invalid/
+ok /^- warnings if an OSD directory found under /var/lib/ceph/osd/ appears/
 
 # https://bugzilla.suse.com/show_bug.cgi?id=1030822
 warning /Cleaning up (vip-admin-\S+) on \S+, removing fail-count-\1/
+
+# https://bugzilla.suse.com/show_bug.cgi?id=971832
+ok /Failed to try-restart vsftpd@.service: Unit name vsftpd@.service is not valid/
 
 # This one comes from dracut when some kernel modules could not be
 # included in the initrd being built.
