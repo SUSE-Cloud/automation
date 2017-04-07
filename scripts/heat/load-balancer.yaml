@@ -1,0 +1,141 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  image:
+    type: string
+    default: cirros-thttpd
+
+  flavor:
+    type: string
+    default: m1.tiny
+
+  public_net:
+    type: string
+    description: >
+      ID or name of public network for which floating IP addresses will be allocated
+    default: floating
+
+  net_cidr:
+    type: string
+    default: 172.20.0.0/24
+
+  net_pool_start:
+    type: string
+    description: Start of private network IP address allocation pool
+    default: 172.20.0.10
+
+  net_pool_end:
+    type: string
+    description: End of private network IP address allocation pool
+    default: 172.20.0.99
+
+  num_web_servers:
+    type: number
+    description: Number of web servers to spawn in the instance
+    default: 2
+
+resources:
+
+  keypair:
+    type: OS::Nova::KeyPair
+    properties:
+      name: testkey
+      public_key: { get_file: /root/.ssh/id_rsa.pub }
+
+  private_net:
+    type: OS::Neutron::Net
+    properties:
+      name: private_net
+
+  private_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: private_net }
+      cidr: { get_param: net_cidr }
+      allocation_pools:
+        - start: { get_param: net_pool_start }
+          end: { get_param: net_pool_end }
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network: { get_param: public_net }
+
+  router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router }
+      subnet_id: { get_resource: private_subnet }
+
+  security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - direction: ingress
+          ethertype: IPv4
+
+  east_port:
+    type: OS::Neutron::Port
+    properties:
+      security_groups:
+        - { get_resource: security_group }
+      network_id: { get_resource: private_net }
+      fixed_ips:
+        - subnet_id: { get_resource: private_subnet }
+
+  east_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_net }
+      port_id: { get_resource: east_port }
+
+  west_port:
+    type: OS::Neutron::Port
+    properties:
+      security_groups:
+        - { get_resource: security_group }
+      network_id: { get_resource: private_net }
+      fixed_ips:
+        - subnet_id: { get_resource: private_subnet }
+
+  west_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_net }
+      port_id: { get_resource: west_port }
+
+  east:
+    type: OS::Nova::Server
+    properties:
+      name: east
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_resource: keypair }
+      networks:
+        - port: { get_resource: east_port }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: { get_file: webserver.sh }
+          params:
+            "@fip@": { get_attr: [ east_floating_ip, floating_ip_address ] }
+            "@num_web_servers@": { get_param: num_web_servers }
+
+  west:
+    type: OS::Nova::Server
+    properties:
+      name: west
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_resource: keypair }
+      networks:
+        - port: { get_resource: west_port }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: { get_file: webserver.sh }
+          params:
+            "@fip@": { get_attr: [ west_floating_ip, floating_ip_address ] }
+            "@num_web_servers@": { get_param: num_web_servers }
+
