@@ -1,5 +1,51 @@
 # This file shares common code between mkcloud-${mkclouddriver}.sh files and qa_crowbarsetup.sh
 
+# ---- START: functions related to repos and distribution settings
+
+function get_getent_hosts
+{
+    local db item element
+    case $2 in
+        ip4) db=ahostsv4
+            item=1
+        ;;
+        ip6) db=ahostsv6
+            item=1
+        ;;
+        fqdn) db=hosts
+            item=2
+        ;;
+        *)  complain 11 "Do not know what to resolve via getent."
+        ;;
+    esac
+    element=$(set -o pipefail ; getent "$db" "$1" | head -n1 | awk "{print \$$item}")
+    if [[ $? != 0 || ! $element ]] ; then
+        complain 11 "Could not resolve $1 via: getent $db"
+    fi
+    echo $element
+}
+
+function to_ip6
+{
+    get_getent_hosts $1 ip6
+}
+
+function to_ip4
+{
+    get_getent_hosts $1 ip4
+}
+
+function to_ip
+{
+    to_ip4 $1
+}
+
+function to_fqdn
+{
+    get_getent_hosts $1 fqdn
+}
+
+
 # defaults for generic common variables
 : ${arch:=$(uname -m)}
 : ${admin_image_password:='linux'}
