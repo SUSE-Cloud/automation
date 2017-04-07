@@ -37,6 +37,9 @@ ok /^- warnings if an OSD directory found under /var/lib/ceph/osd/ appears/
 # https://bugzilla.suse.com/show_bug.cgi?id=1030822
 warning /Cleaning up (vip-admin-\S+) on \S+, removing fail-count-\1/
 
+# https://bugzilla.suse.com/show_bug.cgi?id=971832
+ok /Failed to try-restart vsftpd@.service: Unit name vsftpd@.service is not valid/
+
 # This one comes from dracut when some kernel modules could not be
 # included in the initrd being built.
 warning /This is not necessarily an error/
