@@ -231,6 +231,7 @@ proposals:
 - barclamp: neutron
   attributes:
     use_lbaas: true
+    use_lbaasv2: true
 
 - barclamp: horizon
   attributes:
