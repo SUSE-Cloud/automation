@@ -230,6 +230,24 @@ function sshrun
     cat > $mkcconf <<EOF
         export drbdnode_mac_vol=$drbdnode_mac_vol ;
         export cloud=$virtualcloud ;
+        # hostnames of repo, nfs, rsync and smt servers
+        # (*_ip and *_fqdn suffix variables are computed automatically)
+        export reposerver=$reposerver ;
+        export reposerver_ip=$reposerver_ip ;
+        export reposerver_fqdn=$reposerver_fqdn ;
+        export reposerver_base_path=$reposerver_base_path ;
+        export nfsserver=$nfsserver ;
+        export nfsserver_ip=$nfsserver_ip ;
+        export nfsserver_fqdn=$nfsserver_fqdn ;
+        export nfsserver_base_path=$nfsserver_base_path ;
+        export rsyncserver=$rsyncserver ;
+        export rsyncserver_ip=$rsyncserver_ip ;
+        export rsyncserver_fqdn=$rsyncserver_fqdn ;
+        export rsyncserver_images_dir=$rsyncserver_images_dir ;
+        export smtserver=$smtserver ;
+        export smtserver_ip=$smtserver_ip ;
+        export smtserver_fqdn=$smtserver_fqdn ;
+        export smturl=$smturl ;
         # hostname of NFS server with repos and images:
         export clouddata=$clouddata ;
         export clouddatadns=$clouddatadns ;
