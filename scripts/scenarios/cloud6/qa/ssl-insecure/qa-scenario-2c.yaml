@@ -132,8 +132,7 @@ proposals:
       cinder-controller:
       - cluster:services
       cinder-volume:
-      - @@controller1@@
-      - @@controller2@@
+      - cluster:services
 
 - barclamp: neutron
   attributes:
@@ -212,16 +211,16 @@ proposals:
   attributes:
     default_share_type: default
     shares:
-    - backend_driver: generic
-      backend_name: backend1
-      generic:
-        service_instance_user: root
-        service_instance_password: linux
-        share_volume_fstype: ext3
-        path_to_private_key: ""
-        service_instance_name_or_id: ##manila_instance_name_or_id##
-        service_net_name_or_ip: ##service_net_name_or_ip##
-        tenant_net_name_or_ip: ##tenant_net_name_or_ip##
+    - backend_driver: netapp
+      backend_name: netapp1
+      netapp:
+        netapp_storage_family: ontap_cluster
+        netapp_server_hostname: ##netapp_server##
+        netapp_server_port: 80
+        netapp_login: admin
+        netapp_password: ##netapp_password##
+        netapp_vserver: ##netapp_vserver##
+        netapp_transport_type: http
   deployment:
     elements:
       manila-server:
