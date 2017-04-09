@@ -140,6 +140,7 @@
               onadmin_upgrade_ses_to_4
             fi
 
+            export cloudsource=$cloudsource
             export cct_tests=feature:ui:upgrade:landing
             onadmin_run_cct || exit 1
 
