@@ -136,7 +136,6 @@ iscloudver 7plus && [[ $arch == x86_64 ]] && \
 
 pidfile=mkcloud.pid
 
-trap 'error_exit $? "error caught by trap"' TERM
 exec </dev/null
 
 function show_environment
