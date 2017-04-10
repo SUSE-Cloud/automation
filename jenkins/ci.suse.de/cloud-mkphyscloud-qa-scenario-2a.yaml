@@ -33,7 +33,6 @@
     parameters:
       - string:
           name: hw_number
-          default: "2"
           description: Mandatory, name of the QA cloud server as integer
 
       - string:
@@ -325,8 +324,6 @@
             export nodenumber=$nodenumber ;
             export hacloud=$hacloud ;
             export clusterconfig=$clusterconfig ;
-            export want_ceph=1 ;
-            export cephvolumenumber=0;
             export scenario=scenario.yml "'
 
             source scripts/qa_crowbarsetup.sh

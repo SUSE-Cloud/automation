@@ -175,7 +175,7 @@ proposals:
   deployment:
     elements:
       neutron-server:
-      - cluster:network
+      - cluster:services
       neutron-network:
       - cluster:network
 
@@ -201,6 +201,7 @@ proposals:
 - barclamp: neutron
   attributes:
     use_lbaas: true
+    use_lbaasv2: true
 
 - barclamp: horizon
   attributes:

@@ -83,6 +83,8 @@
             export heat_stack_params="--parameters"
             heat_stack_params="$heat_stack_params east_net_cidr=44.0.1.0/27;east_net_pool_start=44.0.1.10;east_net_pool_end=44.0.1.20"
             heat_stack_params="$heat_stack_params;west_net_cidr=44.0.2.0/27;west_net_pool_start=44.0.2.10;west_net_pool_end=44.0.2.20"
+            echo "heat_stack_params=\"$heat_stack_params\"" >> mkcloud.config
+            echo "Going to create heat stack with these params: $heat_stack_params"
             onadmin_testpreupgrade
           ' || result=$?
 
@@ -129,6 +131,16 @@
             onadmin_zypper_patch_all
             onadmin_allow_vendor_change_at_nodes
 
+            if crowbarctl proposal show ceph default ; then
+              export deployceph=1
+              export adminip=`hostname -f`
+              grep adminip mkcloud.config || echo "adminip=$adminip" >> mkcloud.config
+              export cloudsource=$upgrade_cloudsource
+              onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
+              onadmin_upgrade_ses_to_4
+            fi
+
+            export cloudsource=$cloudsource
             export cct_tests=feature:ui:upgrade:landing
             onadmin_run_cct || exit 1
 
@@ -203,7 +215,6 @@
             export cct_tests=feature:ui:upgrade:pgsql:create
             onadmin_run_cct
 
-            onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
             export cct_tests=feature:ui:upgrade:nodes:repos
             onadmin_run_cct
 

@@ -29,13 +29,17 @@
     parameters:
       - string:
           name: hw_number
-          default: "2"
           description: Mandatory, name of the QA cloud server as integer
 
       - string:
           name: admin_os
           default: sles12sp2
           description: Mandatory, admin node operating system version
+
+      - string:
+          name: sbd_ip
+          default: 10.162.64.10
+          description: Mandatory, IP of iscsi target for sbd
 
       - string:
           name: repo_owner
@@ -51,6 +55,16 @@
           name: branch
           default: master
           description: Mandatory, automation repo branch
+
+      - string:
+          name: netapp_server
+          default: netapp-n1-e0m.cloud.suse.de
+          description: Mandatory, the name of the NetApp Storage backend server 
+
+      - string:
+          name: netapp_vserver
+          default: cloud-manila-svm
+          description: Mandatory, the name of the NetApp Storage backend vserver 
 
       - string:
           name: tempest
@@ -138,6 +152,8 @@
           #!/bin/bash
           admin=crowbar$hw_number
           cloud=qa$hw_number
+          netapp_server=$netapp_server
+          netapp_password=`cat /home/jenkins/passwords/netapp_password`
 
           if [ ! -z "$UPDATEREPOS" ] ; then
             export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
@@ -147,6 +163,14 @@
           rm -rf $artifacts_dir
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
+
+          # check that netapp backend server is available
+          ping -c 3 $netapp_server || ret=$?
+
+          if [ $ret != 0 ] ; then 
+            echo "netapp server is unavailable!"
+            exit 1
+          fi
 
           # destroy the old admin VM if any and spawn a clean new admin VM afterwards
           # /usr/local/sbin/freshadminvm
@@ -171,6 +195,8 @@
 
           ssh root@$admin "
           export cloud=$cloud ;
+          export hw_number=$hw_number ;
+          export sbd_ip=$sbd_ip ;
           export UPDATEREPOS=$UPDATEREPOS ;
           export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
           export TESTHEAD=$TESTHEAD ;
@@ -184,11 +210,17 @@
           export networkingplugin=$networkingplugin ;
           export networkingmode=$networkingmode ;
           export cephvolumenumber=1 ;
+          export netapp_password=$netapp_password ;
+          export netapp_server=$netapp_server ;
+          export netapp_vserver=$netapp_vserver ;
           export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
 
           sed -i -e "s,##networkingplugin##,$networkingplugin," scenario.yml
           sed -i -e "s,##networkingmode##,$networkingmode," scenario.yml
+          sed -i -e "s,##netapp_password##,$netapp_password," scenario.yml
+          sed -i -e "s,##netapp_server##,$netapp_server," scenario.yml
+          sed -i -e "s,##netapp_vserver##,$netapp_vserver," scenario.yml
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
@@ -204,18 +236,19 @@
               export ZYPP_LOCK_TIMEOUT=120
               zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
 
-              wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
-              chmod +x iscsictl.py
-              ./iscsictl.py --service target --host \$(hostname) --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
+              chmod +x scripts/iscsictl.py
+
+              for node in {controller1,controller2} ; do
+                ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host \$node --no-key --id id-qa$hw_number
+              done
+
               # preparation of SBD
               SBD_DEV=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV create"
+              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV create -4 20 -1 10"
               ssh controller2 "zypper --non-interactive install sbd"
               # watchdog configuration
-              ssh controller1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-              ssh controller2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
+              ssh controller1 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
+              ssh controller2 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
               # take scenario yaml file and replace /dev/sda with the right thing:
               sed -i "s|/dev/sda|\${SBD_DEV}|g" scenario.yml
               # ----- End of SBD
@@ -224,6 +257,12 @@
             chmod +x /tmp/sbd_prepare_$admin
             scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
 
+            # Remove unused initiators from the iscsi target
+            iscsi_target_cleanup qa$hw_number
+
+            # Rerun chef-client to avoid frequent failures here and update bind records, see bsc#1021900
+            ssh root@$admin 'chef-client'
+
             # Check if zypper is used by other application
             ssh root@$admin '
               source scripts/qa_crowbarsetup.sh;
@@ -231,13 +270,9 @@
                 wait_for 20 10 "ssh $node \"zypper refresh\"" "zypper to be available on $node"
               done
             '
-
-            ssh root@$admin './sbd_prepare
-            ' || ret=$?
           fi
 
-          if [ "$ret" = "0" ]; then
-            ssh root@$admin "
+          ssh root@$admin "
             export cloud=$cloud ;
             export TESTHEAD=$TESTHEAD ;
             export cloudsource=$cloudsource ;
@@ -247,28 +282,30 @@
             export want_ceph=1 ;
             export cephvolumenumber=1;
             export scenario=scenario.yml "'
+            echo "deployceph=1" >> mkcloud.config
 
-            timeout --signal=ALRM 240m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist batch;"
-            ' || ret=$?
+            source scripts/qa_crowbarsetup.sh
 
-            if [ $ret != 0 ] ; then
-              ssh root@$admin '
-              set -x
-              for node in $(crowbar machines list | grep ^d) ; do
-                (
-                echo "Collecting supportconfig from $node"
-                timeout 400 ssh $node supportconfig | wc
-                timeout 300 scp $node:/var/log/\*tbz /var/log/
-                )&
-              done
-              timeout 500 supportconfig | wc &
-              wait
-              '
+            ./sbd_prepare
 
-              scp root@$admin:/var/log/*tbz $artifacts_dir/
-            fi >&2
-            echo "mkphyscloud ret=$ret"
-          fi
+            crowbar batch --timeout 2400 build scenario.yml' || ret=$?
+
+          if [ $ret != 0 ] ; then
+            ssh root@$admin '
+            set -x
+            for node in $(crowbar machines list | grep ^d) ; do
+              (
+              echo "Collecting supportconfig from $node"
+              timeout 400 ssh $node supportconfig | wc
+              timeout 300 scp $node:/var/log/\*tbz /var/log/
+              )&
+            done
+            timeout 500 supportconfig | wc &
+            wait
+            '
+          fi >&2
+
+          scp root@$admin:/var/log/*tbz $artifacts_dir/
           exit $ret
 
       - trigger-builds:
