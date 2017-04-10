@@ -69,5 +69,6 @@ cd ~/automation/hostscripts/productioncloud/
 crowbar batch build batch-ssl.yaml
 crowbar batch build batch-ssh-keys.yaml
 crowbar batch build batch-users.yaml
+crowbar batch build batch-users2.yaml
 #crowbar batch build batch-ceph.yaml
 )
