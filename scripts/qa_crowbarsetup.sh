@@ -5401,7 +5401,11 @@ function oncontroller_setupproduction()
 {
     (cd /usr/local/bin ; wget https://raw.githubusercontent.com/SUSE-Cloud/cloud-tools/master/openstack/{getinstanceuser,getprojectid} ; chmod a+x *)
     (cd /etc/keystone ; wget -N https://w3.suse.de/~bwiedemann/cloud/user-project-map.json)
-    wget -O/usr/lib/python2.7/site-packages/keystone/assignment/backends/hybrid.py https://raw.githubusercontent.com/SUSE-Cloud/automation/p3/hostscripts/productioncloud/hybrid_json_assignment.py
+    #wget -O/usr/lib/python2.7/site-packages/keystone/assignment/backends/hybrid.py https://raw.githubusercontent.com/SUSE-Cloud/automation/p3/hostscripts/productioncloud/hybrid_json_assignment.py
+    zypper -n in python-pip git-core
+    git clone https://github.com/cmurphy/keystone-json-assignment
+    pip install keystone-json-assignment/
+
     # create projects, increase quotas
     local tenantid
     for prj in $(curl https://w3.suse.de/~bwiedemann/cloud/projects.txt) ; do

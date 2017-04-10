@@ -1,0 +1,6 @@
+---
+proposals:
+- barclamp: keystone
+  attributes:
+    assignment:
+      driver: "json"
