@@ -4595,9 +4595,9 @@ function oncontroller_testpreupgrade
 {
     # Workaround for onadmin_cleanup_db_mq_vips restarting
     # the db/rpc servers. Wait until heat stack-list success
-    wait_for 120 5 "heat stack-list" "heat api to be available"
-    heat stack-create upgrade_test -f /root/scripts/heat/2-instances-cinder.yaml $heat_stack_params
-    wait_for 15 20 "heat stack-list | grep upgrade_test | grep CREATE_COMPLETE" \
+    wait_for 120 5 "heat --insecure stack-list" "heat api to be available"
+    heat --insecure stack-create upgrade_test -f /root/scripts/heat/2-instances-cinder.yaml $heat_stack_params
+    wait_for 15 20 "heat --insecure stack-list | grep upgrade_test | grep CREATE_COMPLETE" \
              "heat stack for upgrade tests to complete"
     ping_fips && \
     echo "test pre-upgrade successful."
@@ -4606,11 +4606,11 @@ function oncontroller_testpreupgrade
 function oncontroller_testpostupgrade
 {
     # retrieve the ping results
-    local fips=$(openstack floating ip list -f value -c "Floating IP Address")
+    local fips=$(openstack --insecure floating ip list -f value -c "Floating IP Address")
 
     # remove manila-service fip from list
-    manila_vm=$(openstack server list --all-projects -f value | grep manila-service | awk '{ print $1 }' )
-    manila_fip=$(openstack server show $manila_vm -f value -c addresses | awk '{ print $2 }' )
+    manila_vm=$(openstack --insecure server list --all-projects -f value | grep manila-service | awk '{ print $1 }' )
+    manila_fip=$(openstack --insecure server show $manila_vm -f value -c addresses | awk '{ print $2 }' )
     fips=( "${fips[@]/$manila_fip}" )
 
     for fip in $fips; do
@@ -4631,8 +4631,8 @@ function oncontroller_testpostupgrade
         fi
     done
 
-    openstack stack delete --yes upgrade_test
-    wait_for 15 20 "! heat stack-show upgrade_test" \
+    openstack --insecure stack delete --yes upgrade_test
+    wait_for 15 20 "! heat --insecure stack-show upgrade_test" \
              "heat stack for upgrade tests to be deleted"
     echo "test post-upgrade successful."
 }
