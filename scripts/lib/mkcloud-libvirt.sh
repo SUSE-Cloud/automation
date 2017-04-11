@@ -87,11 +87,12 @@ libvirt_vm_start()
 # run as root
 function libvirt_do_setuphost()
 {
-    local kvmpkg=kvm
+    local kvmpkg=qemu-kvm
     local extra_packages=
     is_debian && extra_packages="chkconfig"
     if is_suse ; then
         extra_packages=python-xml
+        grep -q "SUSE Linux Enterprise Server 11" /etc/os-release && kvmpkg=kvm
         [[ $arch = aarch64 ]] && {
             kvmpkg=qemu-arm
             extra_packages+=" qemu-uefi-aarch64 qemu-ipxe"
