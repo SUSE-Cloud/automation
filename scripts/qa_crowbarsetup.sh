@@ -3647,14 +3647,20 @@ function adapt_dns_for_docker
 
 function glance_image_exists
 {
-    openstack image show "$1" &>/dev/null
+    glance_image_get_id $1
     return $?
 }
 
 function glance_image_get_id
 {
     local id=""
-    eval $(openstack image show -f shell "$1")
+    #due to https://bugs.launchpad.net/python-openstackclient/+bug/1501362
+    #images cannot be found by name over glance v2 api
+    if iscloudver 6minus; then
+        eval $(openstack --os-image-api-version 1 image show -f shell "$1")
+    else
+        eval $(openstack image show -f shell "$1")
+    fi
     echo "$id"
     [[ $id ]] # set return code
 }
