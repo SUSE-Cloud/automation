@@ -3172,6 +3172,7 @@ function set_proposalvars
 function set_noproxyvar
 {
     [[ $http_proxy ]] || [[ $https_proxy ]] || return 0
+    [[ $no_proxy =~ "localhost" ]] || no_proxy="127.0.0.1,localhost,$no_proxy"
     [[ $admin_ip ]] || return 0
     [[ $no_proxy =~ "$adminip" ]] || no_proxy="$adminip,$no_proxy"
     export no_proxy="${no_proxy%,}";
