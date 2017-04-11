@@ -4184,7 +4184,8 @@ function oncontroller_testsetup
 
     wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
 
-    if ! ssh $ssh_target curl $clouddatadns/test ; then
+    [[ $http_proxy ]] && http_proxy_env="http_proxy=$http_proxy" || http_proxy_env=""
+    if ! ssh $ssh_target $http_proxy_env curl -s --fail http://suse.com ; then
         complain 95 could not reach internet
     fi
 
