@@ -217,6 +217,8 @@
             export cct_tests=feature:ui:upgrade:pgsql:create
             onadmin_run_cct
 
+            onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
+
             export cct_tests=feature:ui:upgrade:nodes:repos
             onadmin_run_cct
 
