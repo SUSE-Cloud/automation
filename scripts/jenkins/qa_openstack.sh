@@ -15,7 +15,7 @@ cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
 ifconfig | grep inet
 
 # setup optional extra disk for cinder-volumes
-dev_cinder=/dev/vdb
+: ${dev_cinder:=/dev/vdb}
 if ! test -e $dev_cinder ; then
     # maybe we run under xen
     dev_cinder=/dev/xvdb
@@ -30,7 +30,7 @@ if [ -e $dev_cinder ]; then
 fi
 
 # setup optional extra disk for manila-shares
-dev_manila=/dev/vdc
+: ${dev_manila:=/dev/vdc}
 if ! test -e $dev_manila ; then
     # maybe we run under xen
     dev_manila=/dev/xvdc
