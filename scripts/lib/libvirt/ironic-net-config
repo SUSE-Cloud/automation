@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+import argparse
+
+import libvirt_setup
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Create Ironic Network Config")
+    parser.add_argument("cloud", help="Name of the Cloud")
+    parser.add_argument("ironicbr", help="Name of the Virtual bridge")
+    parser.add_argument("ironicgw", help="IP Address of the Ironic Gateway")
+    parser.add_argument("ironicnetmask", help="Netmask of the Ironic Network")
+    parser.add_argument("forwardmode", help="Forward Mode (e.g. nat)")
+    args = parser.parse_args()
+
+    print(libvirt_setup.ironic_net_config(args))
+
+
+if __name__ == "__main__":
+    main()

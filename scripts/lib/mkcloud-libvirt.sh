@@ -57,6 +57,11 @@ function libvirt_net_start()
         $sudo ip link set mtu 9000 dev $dev
     done
 
+    if [[ $want_ironic ]]; then
+        $sudo virsh net-start $cloud-ironic
+        $sudo sysctl -e net.ipv4.conf.$ironicbr.forwarding=1
+    fi
+
     onhost_setup_portforwarding
 }
 
@@ -66,9 +71,14 @@ function libvirt_prepare()
     libvirt_modprobe_kvm
     libvirt_start_daemon
 
-    # network
+    # admin network
     ${scripts_lib_dir}/libvirt/net-config $cloud $cloudbr $admingw $adminnetmask $cloudfqdn $adminip $forwardmode > /tmp/$cloud-admin.net.xml
     $sudo ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
+    # ironic network
+    if [[ $want_ironic ]]; then
+        ${scripts_lib_dir}/libvirt/ironic-net-config $cloud $ironicbr $ironicgw $ironicnetmask $forwardmode > /tmp/$cloud-ironic.net.xml
+        $sudo ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-ironic.net.xml || exit $?
+    fi
     libvirt_net_start
 }
 
@@ -284,7 +294,7 @@ function recursive_remove_holders
 function libvirt_do_cleanup()
 {
     # cleanup leftover from last run
-    $sudo ${scripts_lib_dir}/libvirt/cleanup $cloud $nodenumber $cloudbr $vlan_public
+    $sudo ${scripts_lib_dir}/libvirt/cleanup $cloud $nodenumber $cloudbr $vlan_public $ironicbr
 
     if ip link show ${cloudbr}.$vlan_public >/dev/null 2>&1; then
         $sudo ip link set ${cloudbr}.$vlan_public down
