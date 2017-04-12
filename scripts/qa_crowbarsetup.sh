@@ -3940,7 +3940,7 @@ function oncontroller_magnum_service_setup
     # Magnum functional tests have hardcoded swarm as coe backend, until then this will
     # not be fixed, we are going to have our own integration tests with SLES Magnum image
     local service_image_name=magnum-service-image
-    local service_image_url=http://clouddata.cloud.suse.de/images/$arch/other/${service_image_name}.qcow2
+    local service_image_url=http://$clouddata/images/$arch/other/${service_image_name}.qcow2
 
     if ! openstack image list --f value -c Name | grep -q "^${service_image_name}$"; then
         local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
