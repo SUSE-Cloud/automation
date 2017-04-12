@@ -149,7 +149,7 @@ class CrowbarTestbuild
     puts "Github diff method: #{compare_method}"
     patch_diff = "prtest.#{compare_method}"
     patch_diff_url = "https://github.com/#{@org}/#{@repo}/compare/#{pr_branch}...#{pr_sha1}.#{compare_method}"
-    puts "Fetching patch from this URL: ${patch_diff_url}"
+    puts "Fetching patch from this URL: #{patch_diff_url}"
     system(
       *[
         "curl", "-s", "-k", "-L", "-o", patch_diff, patch_diff_url
