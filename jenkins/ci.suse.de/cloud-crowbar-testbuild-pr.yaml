@@ -1,6 +1,6 @@
 - job:
     name: cloud-crowbar-testbuild-pr
-    node: cloud-testbuild-pr 
+    node: cloud-testbuild-pr
     concurrent: true
     description: |
       <!-- Managed by Jenkins Job Builder -->
@@ -59,15 +59,15 @@
     builders:
     - shell: |
         #####
-        # THIS JOB JUST BUILD ONE CROWBAR PR AND HANDS IT OVER TO MKCLOUD (IMPLICITLY VIA THE crowbar-testbuild.py)
-        # you can call it with a crowbar repo and a PR "<pr_id>:<sha1>:<branch_name>" as parameter and for this single
-        # pr the crowbar-testbuild.py will be run no matter what its github status is
-        #
+        # THIS JOB JUST BUILD ONE CROWBAR PR AND HANDS IT OVER TO MKCLOUD (IMPLICITLY VIA THE crowbar-testbuild.rb)
         # The corresponding trigger job will (by default) only trigger builds for "unseen" PRs
         #  (unseen PR = no status reported from github-status on last commit of this PR)
-        
+        echo "Example how to call this job locally:"
+        echo "   crowbar-testbuild.rb --org $crowbar_org --repo $crowbar_repo --pr $crowbar_github_pr"
+        echo "This requires a valid config yaml however. See the automation repo for an example."
+
         set -x
-        
+
         export automationrepo=~/github.com/SUSE-Cloud/automation
         # automation bootstrapping
         if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
@@ -76,33 +76,30 @@
         fi
         # fetch the latest automation updates
         ${automationrepo}/scripts/jenkins/update_automation
-        
+
         ghs=${automationrepo}/scripts/github-status/github-status.rb
-        
+
         github_opts=(${crowbar_github_pr//:/ })
         github_pr_id=${github_opts[0]}
         github_pr_sha=${github_opts[1]}
         github_pr_branch=${github_opts[2]}
-        
+
         function crowbargating_trap()
         {
             $ghs -a set-status -s "failure" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "testbuild job failed"
         }
-        
-        # this job is part of the "pending" state (as it is a prerequisite of the openstack-mkcloud job)
-        # so we report pending now
-        $ghs -a set-status -s "pending" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "Started testbuild job"
-        
-        
-        # the status of the build is set via crowbar-testbuild.py (hopefully)
-        # as lots of failures happened lately, a trap was added to catch exceptions (all that we saw were worth an error report to the PR)
-        trap "crowbargating_trap" ERR
-        
-        ${automationrepo}/scripts/crowbar-testbuild.py $crowbar_org $crowbar_repo $crowbar_github_pr
-        
-        $ghs -a set-status -s "success" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "testbuild job succeeded"
-        $ghs -a set-status -s "pending" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud" -m "Queued testbuild PR gating"
-        
-        trap "-" ERR
 
-    triggers: []
+        # using a trap to catch all errors of the following commands
+        trap "crowbargating_trap" ERR
+
+        # report that the job has started (status "pending")
+        $ghs -a set-status -s "pending" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "Started testbuild job"
+
+        # do the build
+        ${automationrepo}/scripts/crowbar-testbuild.rb --org $crowbar_org --repo $crowbar_repo --pr $crowbar_github_pr --trigger-gating
+
+        # update the status
+        $ghs -a set-status -s "pending" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud" -m "Queued testbuild PR gating"
+        $ghs -a set-status -s "success" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "testbuild job succeeded"
+
+        trap "-" ERR
