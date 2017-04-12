@@ -546,7 +546,8 @@
 
           fi
 
-          cp ${automationrepo}/scripts/jenkins/log-parser/openstack-mkcloud-rules.txt log-parser-plugin-rules.txt
+          cp ${automationrepo}/scripts/jenkins/log-parser/openstack-mkcloud-rules.txt \
+              $WORKSPACE/log-parser-plugin-rules.txt
 
           echo "########################################################################"
           env
