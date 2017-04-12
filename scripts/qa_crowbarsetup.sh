@@ -1340,12 +1340,12 @@ function onadmin_setup_local_zypper_repositories
             zypper ar $uri_base/SLES11-SP3-Updates/ sles11sp3up
         ;;
         6)
-            zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP1/$arch/product/ sles12sp1
-            zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP1/$arch/update/ sles12sp1up
+            zypper ar $uri_base/SLES12-SP1-Pool/ sles12sp1
+            zypper ar $uri_base/SLES12-SP2-Updates/ sles12sp1up
         ;;
         7)
-            zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP2/$arch/product/ sles12sp2
-            zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP2/$arch/update/ sles12sp2up
+            zypper ar $uri_base/SLES12-SP2-Pool/ sles12sp2
+            zypper ar $uri_base/SLES12-SP2-Updates/ sles12sp2up
         ;;
     esac
 }
