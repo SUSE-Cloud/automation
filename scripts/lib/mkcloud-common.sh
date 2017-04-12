@@ -540,7 +540,6 @@ function dist_to_image_name
 # defaults for generic common variables
 : ${arch:=$(uname -m)}
 : ${admin_image_password:='linux'}
-: ${images_dir:="cloud/images/$arch"}
 : ${clouddatadns:=clouddata.nue.suse.com}
 : ${clouddata:=$(dig -t A +short $clouddatadns)}
 : ${clouddata_base_path:="/repos"}
