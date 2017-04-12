@@ -23,7 +23,7 @@
             nodenumber=7
             storage_method=ceph
             hacloud=1
-            want_node_aliases=ceph=3,controller=2,compute=2
+            want_node_aliases=controller=2,ceph=3,compute=2
             clusterconfig=data+network+services=2
             want_nodesupgrade=1
             want_ping_running_instances=1
