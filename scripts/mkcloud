@@ -592,18 +592,6 @@ function restartcloud
 function setupnodes
 {
     onadmin wait_tftpd || return $?
-
-    local nodenumbercontroller=1
-    if [[ $clusterconfig == *services* ]]; then
-        nodenumbercontroller=`echo ${clusterconfig}\
-            | sed -e "s/^.*services[^:]*=\([[:digit:]]\+\).*/\1/"`
-    fi
-
-    # Need one more big VM for Monasca
-    if iscloudver 7plus && [[ $want_monasca_proposal = 1 ]]; then
-        nodenumbercontroller=$(($nodenumbercontroller+1))
-    fi
-
     setuppublicnet
     local i
     for i in $(nodes ids normal) ; do
@@ -636,7 +624,7 @@ function setupnodes
                         --emulator $(get_emulator) \
                         --vdiskdir $vdisk_dir \
                         --bootorder 3 \
-                        --numcontrollers $nodenumbercontroller \
+                        --numcontrollers $(get_nodenumbercontroller) \
                         --firmwaretype "$firmware_type" \
                         --controller-raid-volumes $controller_raid_volumes > /tmp/$cloud-node$i.xml
 
