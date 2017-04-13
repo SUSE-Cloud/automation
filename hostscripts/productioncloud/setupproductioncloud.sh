@@ -12,23 +12,30 @@ export want_ldap=1
 export want_all_ssl=1
 export controller_raid_volumes=2
 export want_ssl_keys=root@cloud.suse.de:/etc/cloud-keys/
-export cloudsource=GM7
-#export TESTHEAD=1
+export cloudsource=GM7+up
+export TESTHEAD=1 # for unreleased openstack-keystone and crowbar-openstack LDAP fixes
 export cloud=p3
 export nodenumber=3
-#export want_mtu_size=8900 # creates trouble for gate->crowbarp3
-export cephvolumenumber=1
+export want_mtu_size=9000
+export hacloud=1
+export clusterconfig='services+data+network=2'
+export want_ceilometer_proposal=0
+export want_sahara_proposal=0
+export want_barbican_proposal=0
+export want_magnum_proposal=1
+export cephvolumenumber=3
 # 2nd node only has 64GB RAM, making it more suitable for controller
 export want_node_roles=compute=1,controller=1,compute=1
-export want_node_aliases=n1=1,dashboard=1,n2=1
-export want_node_roles=controller=1,compute=2
-export want_node_aliases=dashboard=1,n1=1,n2=1
+#export want_node_aliases=n1=1,dashboard=1,n2=1
+export want_node_roles=controller=2,compute=1
+#export want_node_aliases=dashboard=1,n1=1,n2=1
 export want_rootpw=securepassword
 export want_tempest=0
 # avoid crashing controller node from ovs+gre (bnc#970720)
 # or use ethtool... gso off
-export networkingplugin=linuxbridge
+export networkingplugin=openvswitch
 export networkingmode=vlan
+export want_dvr=1
 # workaround OpteronG3 (bnc#872677) and general SVM nested virt bugs (bnc#946701/946068)
 #TODO: update to SP2 export UPDATEREPOS=http://download.suse.de/ibs/home:/bmwiedemann:/branches:/Devel:/Virt:/SLE-12-SP1/SUSE_SLE-12-SP1_Update_standard/
 # allow VMs to be reachable while controller node is down
