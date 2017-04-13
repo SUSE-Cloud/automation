@@ -3,6 +3,11 @@
 # curl http://openqa.suse.de/sle/qatests/qa_openstack.sh | sh -x
 # needs 2.1GB space for /var/lib/{glance,nova}
 
+if [[ $debug_openstack = 1 ]] ; then
+    set -x
+    PS4='+(${BASH_SOURCE##*/}:${LINENO}) ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+fi
+
 : ${MODE:=kvm}
 ARCH=$(uname -i)
 : ${repomirror:=http://download.opensuse.org}
