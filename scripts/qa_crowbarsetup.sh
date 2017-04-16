@@ -2123,6 +2123,9 @@ function lonely_node_sshkey
     # wait a bit for sshd.service on ${cloud}-lonelynode
     wait_for 10 10 "ssh_password $lonely_ip 'echo'" "ssh to be running on ${cloud}-lonelynode" "complain 82 'sshd is not responding on ($lonely_ip)'"
 
+    # wait a bit for sshd.service on ${cloud}-lonelynode
+    wait_for 10 10 "ssh_password $crowbar_register_node_ip 'echo'" "ssh to be running on ${cloud}-lonelynode" "complain 82 'sshd is not responding on ($crowbar_register_node_ip)'"
+
     local pubkey=`cat /root/.ssh/id_rsa.pub`
     ssh_password $lonely_ip "mkdir -p /root/.ssh; echo '$pubkey' >> /root/.ssh/authorized_keys"
 }
