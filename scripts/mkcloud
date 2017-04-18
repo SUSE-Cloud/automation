@@ -600,6 +600,11 @@ function setupnodes
             | sed -e "s/^.*services[^:]*=\([[:digit:]]\+\).*/\1/"`
     fi
 
+    # Need one more big VM for Monasca
+    if iscloudver 7plus && [[ $want_monasca = 1 ]]; then
+        nodenumbercontroller=$(($nodenumbercontroller+1))
+    fi
+
     setuppublicnet
     local i
     for i in $(nodes ids normal) ; do
