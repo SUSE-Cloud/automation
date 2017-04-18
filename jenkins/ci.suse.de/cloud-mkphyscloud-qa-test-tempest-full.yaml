@@ -59,13 +59,12 @@
             source scripts/qa_crowbarsetup.sh;
 
             if [ "$testsetup" == true ] ; then
-              sed -i "s/want_tempest=1/want_tempest=0/" mkcloud.config
-              bash -x -c "source scripts/qa_crowbarsetup.sh; onadmin_testsetup"
-              result=$?
-
-              if [[ $result -gt 0 ]]; then
-                exit $result
+              if grep want_tempest mkcloud.config; then
+                sed -i "s/want_tempest.*/want_tempest=0/" mkcloud.config
+              else
+                echo want_tempest=0 >> mkcloud.config
               fi
+              bash -x -c "source scripts/qa_crowbarsetup.sh; onadmin_testsetup" || exit 1
             fi
 
             get_novacontroller;
