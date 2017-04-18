@@ -4225,10 +4225,10 @@ function oncontroller_testsetup
     fi
 
     # cleanup so that we can run testvm without leaking volumes, IPs etc
-    nova remove-floating-ip "$instanceid" "$floatingip"
-    nova floating-ip-delete "$floatingip"
-    nova stop "$instanceid"
-    wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
+    #nova remove-floating-ip "$instanceid" "$floatingip"
+    #nova floating-ip-delete "$floatingip"
+    #nova stop "$instanceid"
+    #wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
     # run tests for Magnum bay deployment
     if iscloudver 7plus && [[ $want_magnum = 1 ]]; then
