@@ -506,7 +506,7 @@
 
               echo "testing PR: https://github.com/$github_pr_repo/pull/$github_pr_id"
               ghs=${automationrepo}/scripts/github-status/github-status.rb
-              sudo zypper -n install "rubygem(netrc)" "rubygem(octokit)"
+              sudo ZYPP_LOCK_TIMEOUT=$ZYPP_LOCK_TIMEOUT zypper -n install "rubygem(netrc)" "rubygem(octokit)"
 
               if ! $ghs -r $github_pr_repo -a is-latest-sha -p $github_pr_id -c $github_pr_sha ; then
                   $ghs -a set-status -s "error" -t $BUILD_URL -r $github_pr_repo -c $github_pr_sha -m "SHA1 mismatch, newer commit exists" --context $ghs_context
