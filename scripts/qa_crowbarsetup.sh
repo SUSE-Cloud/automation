@@ -1539,13 +1539,11 @@ EOF
         /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.end -v 10.162.211.191 $netfile
     fi
     # Setup network attributes for custom MTU
-    if [[ $want_mtu_size -ne 1500 ]]; then
-        echo "Setting MTU to custom value of: $want_mtu_size"
-        local lnet
-        for lnet in admin storage os_sdn ; do
-            /opt/dell/bin/json-edit -a attributes.network.networks.$lnet.mtu -r -v $want_mtu_size $netfile
-        done
-    fi
+    echo "Setting MTU to: $want_mtu_size"
+    local lnet
+    for lnet in admin storage os_sdn ; do
+        /opt/dell/bin/json-edit -a attributes.network.networks.$lnet.mtu -r -v $want_mtu_size $netfile
+    done
 
     # to allow integration into external DNS:
     local f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
