@@ -311,8 +311,11 @@ def compute_config(args, cpu_flags=cpuflags()):
         target_address=target_address.format('0x0a'),
         bootorder=args.bootorder)
 
-    return get_config(merge_dicts(values, configopts),
-                      os.path.join(TEMPLATE_DIR, "compute-node.xml"))
+    config = get_config(merge_dicts(values, configopts),
+                        os.path.join(TEMPLATE_DIR, "compute-node.xml"))
+    if not hypervisor_has_virtio(libvirt_type):
+        config = re.sub(r"<address type='pci'[^>\n]*>", "", config)
+    return config
 
 
 def domain_cleanup(dom):
