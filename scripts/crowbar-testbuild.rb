@@ -98,7 +98,8 @@ class CrowbarTestbuild
 
   def extra_build_parameters(mode)
     p = @config["parameters_template"]["default"]
-    p.merge(@config["parameters"]["#{@org}/#{@repo}"][mode])
+    p.merge!(@config["parameters"]["#{@org}/#{@repo}"][mode]) if @config["parameters"].includes?("#{@org}/#{@repo}")
+    p
   end
 
   def trigger_jenkins_job(mode)
