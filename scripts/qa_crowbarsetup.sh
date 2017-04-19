@@ -4320,12 +4320,12 @@ function oncontroller_testsetup
 }
 
 
-function oncontroller
+function run_on
 {
-    local func=$1 ; shift
+    local remote=$1 ; shift
     cd /root
-    scp -r $SCRIPTS_DIR $mkcconf $novacontroller:
-    ssh $novacontroller "export deployswift=$deployswift ; export deployceph=$deployceph ;
+    scp -r $SCRIPTS_DIR $mkcconf "$remote:"
+    ssh "$remote" "export deployswift=$deployswift ; export deployceph=$deployceph ;
         export tempestoptions=\"$tempestoptions\" ;
         export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
         export cephmons_names=\"$cephmons_names\" ;
@@ -4334,8 +4334,14 @@ function oncontroller
         export libvirt_type=\"$libvirt_type\" ;
         export cloud=$cloud ; export TESTHEAD=$TESTHEAD ;
         export is_oncontroller=yes ;
-        . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ;  source .openrc; onadmin_set_source_variables; oncontroller_${func} $@"
+        . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ;  source .openrc; onadmin_set_source_variables; $@"
     return $?
+}
+
+function oncontroller
+{
+    local func=$1 ; shift
+    run_on "$novacontroller" "oncontroller_$func $@"
 }
 
 function install_suse_ca
