@@ -98,7 +98,7 @@ class CrowbarTestbuild
 
   def extra_build_parameters(mode)
     p = @config["parameters_template"]["default"]
-    p.merge!(@config["parameters"]["#{@org}/#{@repo}"][mode]) if @config["parameters"].includes?("#{@org}/#{@repo}")
+    p.merge!(@config["parameters"]["#{@org}/#{@repo}"][mode]) if @config["parameters"].include?("#{@org}/#{@repo}")
     p
   end
 
