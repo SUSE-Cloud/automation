@@ -42,6 +42,8 @@ parameters_template:
     nodenumber: 10
     clusterconfig: data=2:services=3:network=3
 parameters:
+  default:
+    standard: *mkcloud_default
   crowbar/crowbar-core:
     standard: *mkcloud_default
     ha: *mkcloud_ha

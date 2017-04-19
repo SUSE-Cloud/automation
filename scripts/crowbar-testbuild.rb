@@ -123,8 +123,16 @@ class CrowbarTestbuild
     system(*jcmd) or raise
   end
 
+  def jenkins_jobs_scenarios
+    if @config["parameters"].include?("#{@org}/#{@repo}")
+      @config["parameters"]["#{@org}/#{@repo}"].keys
+    else
+      @config["parameters"]["default"].keys
+    end
+  end
+
   def trigger_jenkins_jobs
-    @config["parameters"]["#{@org}/#{@repo}"].keys.each do |k|
+    jenkins_jobs_scenarios.each do |k|
       trigger_jenkins_job(k)
     end
   end
