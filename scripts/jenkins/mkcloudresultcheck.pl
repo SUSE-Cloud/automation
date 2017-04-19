@@ -32,6 +32,7 @@ for my $num ($startnum..$endnum) {
     ) {
         if(m/$regexp/) {$descr.="$1 "}
     }
+    /^storage_method WARNING/m and $descr.="Not using parameter storage_method. ";
     /\+ '\[' (\d+) = 0 '\]'\n\+ exit 1\nBuild step/ and $1 and $descr.="ret=$1";
     if(/The step '(\w+)' returned with exit code (\d+)/) {
         $descr.="/$2/$1";
