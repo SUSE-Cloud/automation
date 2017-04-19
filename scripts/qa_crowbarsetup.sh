@@ -2658,6 +2658,10 @@ function custom_configuration
                 proposal_set_value keystone default "['deployment']['keystone']['elements']['keystone-server']" "['cluster:$clusternameservices']"
             fi
             if [[ $want_ldap = 1 ]] ; then
+                local machine
+                for machine in $(get_all_discovered_nodes); do
+                    run_on "$machine" install_suse_ca
+                done
                 local p="proposal_set_value keystone default"
                 local l="['attributes']['keystone']['ldap']"
                 if iscloudver 7plus ; then
@@ -4151,7 +4155,6 @@ function oncontroller_testsetup
     wait_image_active "$imageid" testsetup
 
     if [[ $want_ldap = 1 ]] ; then
-        install_suse_ca
         if iscloudver 7plus  ; then
             openstack user show bwiedemann --domain ldap_users | grep bwiedemann || complain 103 "LDAP not working"
             openstack group show suse --domain ldap_users | grep suse || complain 103 "LDAP not working"
