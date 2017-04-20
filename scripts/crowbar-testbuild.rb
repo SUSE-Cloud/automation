@@ -138,9 +138,11 @@ class CrowbarTestbuild
     end
   end
 
-  def osc_cmd
+  def osc_cmd(subcommand)
     [ @config["infrastructure"]["osc"]["cmd"] ] +
-      ( @config["infrastructure"]["osc"]["parameters"] || [] )
+      ( @config["infrastructure"]["osc"]["parameters"]["_global"] || [] ) +
+      [ subcommand ] +
+      ( @config["infrastructure"]["osc"]["parameters"][subcommand] || [] )
   end
 
   def package_name
@@ -181,9 +183,9 @@ class CrowbarTestbuild
 
     system(
       *(
-        osc_cmd +
+        osc_cmd("vc") +
         [
-          "vc", "-m",
+          "-m",
           "added PR test patch from #{@org}/#{@repo}##{pr_id} (#{pr_sha1})"
         ]
       )
@@ -198,18 +200,17 @@ class CrowbarTestbuild
 
     Dir.chdir(work_dir) do
       begin
-        osc_co = osc_cmd + ["co", bs_project, package_name, "-c"]
+        osc_co = osc_cmd("co") + [bs_project, package_name]
         system(*osc_co)
         Dir.chdir(package_name) do
           Dir.mkdir(build_root)
           add_pr_to_checkout(method)
           system(
             *(
-              osc_cmd +
+              osc_cmd("build") +
               [
-                "build",
                 "--root", File.join(Dir.pwd, build_root),
-                "--noverify", bs_repo, "x86_64", package_spec_file
+                bs_repo, "x86_64", package_spec_file
               ]
             )
           ) or raise SystemCallError, "Build failed."

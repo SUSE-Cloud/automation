@@ -83,7 +83,14 @@ infrastructure:
   osc:
     cmd: /usr/bin/osc
     parameters:
-      - -A
-      - https://api.suse.de
+      _global:
+        - -A
+        - https://api.suse.de
+      co:
+        - -c
+        # - --server-side-source-service-files # for SAP
+      build:
+        - --noverify
+        # - --noservice # for SAP, to skip local service run, if server side source service files is enabled
   jenkins_job_trigger:
     cmd: jenkins/jenkins-job-trigger
