@@ -23,6 +23,9 @@ fi
 : ${nodenumberlonelynode:=0}
 : ${want_mtu_size:=1500}
 
+# service dependencies
+[[ $want_ceilometer_proposal = 0 ]] && want_aodh_proposal=0
+
 function max
 {
     echo $(( $1 > $2 ? $1 : $2 ))
