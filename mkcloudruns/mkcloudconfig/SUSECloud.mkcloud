@@ -46,7 +46,7 @@ export want_sles12sp2=1 # For Cloud 7
 export cephvolumenumber=1
 
 # Enable magnum
-#export want_magnum=1 # Note: Changes the compute node parameters.
+#export want_magnum_proposal=1 # Note: Changes the compute node parameters.
 #export want_docker=1 # Upload docker image ...
 
 ### HA Configuration ###
