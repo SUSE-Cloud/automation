@@ -3411,11 +3411,21 @@ function onadmin_proposal
         done
     fi
     local proposal
-    for proposal in nfs_client pacemaker database rabbitmq keystone swift \
-        ceph monasca glance cinder neutron nova `horizon_barclamp` \
-        ceilometer heat manila trove barbican magnum sahara murano \
-        aodh tempest; do
+    # Deploy all the proposals up through nova normally
+    for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph \
+        monasca glance cinder neutron nova ; do
         deploy_single_proposal $proposal
+    done
+    # Set the $novacontroller global variable so that we
+    # can execute actions from the controller
+    get_novacontroller
+    # Check if there were any HA failures from the proposals so far
+    oncontroller check_crm_failcounts
+    # For all remaining proposals, check for HA failures after each deployment
+    for proposal in `horizon_barclamp` ceilometer heat manila trove \
+        barbican magnum sahara murano aodh tempest; do
+        deploy_single_proposal $proposal
+        oncontroller check_crm_failcounts
     done
 
     set_dashboard_alias
@@ -3992,15 +4002,20 @@ function nova_services_up
     fi
 }
 
+function oncontroller_check_crm_failcounts
+{
+    if iscloudver 7plus && [[ $hacloud = 1 ]] ; then
+        crm_mon --failcounts -1 | grep "fail-count=" && complain 55 "Cluster resources' failures detected"
+    fi
+}
+
 # code run on controller/dashboard node to do basic tests of deployed cloud
 # uploads an image, create flavor, boots a VM, assigns a floating IP, ssh to VM, attach/detach volume
 function oncontroller_testsetup
 {
     . .openrc
     oncontroller_prepare_functional_tests
-    if iscloudver 7plus && [[ $hacloud = 1 ]] ; then
-        crm_mon --failcounts -1 | grep "fail-count=" && complain 55 "Cluster resources' failures detected"
-    fi
+    oncontroller_check_crm_failcounts
     # 28 is the overhead of an ICMP(ping) packet
     [[ $want_mtu_size ]] && iscloudver 5plus && safely ping -M do -c 1 -s $(( want_mtu_size - 28 )) $adminip
     export LC_ALL=C
