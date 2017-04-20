@@ -50,12 +50,10 @@
             - openstack-magnum
             - openstack-monasca-agent
             - openstack-monasca-api
-            - openstack-monasca-common
             - openstack-monasca-log-agent
             - openstack-monasca-log-api
             - openstack-monasca-notification
             - openstack-monasca-persister
-            - openstack-monasca-statsd
             - openstack-murano
             - openstack-neutron
             - openstack-neutron-fwaas
@@ -75,6 +73,8 @@
             - openstack-utils
             - openstack-zaqar
             - python-heat-cfntools
+            - python-monasca-common
+            - python-monasca-statsd
             - python-networking-cisco
             - python-networking-hyperv
       - axis:
@@ -92,13 +92,13 @@
               "openstack-horizon-plugin-monasca-ui",
               "openstack-monasca-agent",
               "openstack-monasca-api",
-              "openstack-monasca-common",
               "openstack-monasca-log-agent",
               "openstack-monasca-log-api",
               "openstack-monasca-notification",
               "openstack-monasca-persister",
-              "openstack-monasca-statsd",
               "openstack-octavia",
+              "python-monasca-common",
+              "python-monasca-statsd",
             ].contains(component) ||
             [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Mitaka:Staging" ].contains(project) &&
             [
