@@ -315,32 +315,32 @@
           description: set to 1 to deploy with docker
 
       - string:
-          name: want_magnum
+          name: want_magnum_proposal
           default:
           description: Deploy with Magnum
 
       - string:
-          name: want_monasca
+          name: want_monasca_proposal
           default:
           description: Deploy with Monasca
 
       - string:
-          name: want_barbican
+          name: want_barbican_proposal
           default:
           description: Deploy with Barbican
 
       - string:
-          name: want_sahara
+          name: want_sahara_proposal
           default:
           description: set to 1 to deploy sahara
 
       - string:
-          name: want_murano
+          name: want_murano_proposal
           default:
           description: set to 1 to deploy murano
 
       - string:
-          name: want_aodh
+          name: want_aodh_proposal
           default: '1'
           description: set to 0 to not deploy aodh
 

@@ -160,7 +160,7 @@
           # put variables needed during the build process into mkcloud.config file
           env | grep -e networking -e libvirt -e cloud > mkcloud.config
 
-          echo "want_magnum=1" >> mkcloud.config
+          echo "want_magnum_proposal=1" >> mkcloud.config
           echo "ostestroptions=--regex\ '^magnum.tests.functional.api'" >> mkcloud.config
 
           # copy scripts/ dir onto the admin node in /root/scripts
@@ -183,7 +183,7 @@
               export nodenumber=$nodenumber ;
               export hacloud=$hacloud ;
               export clusterconfig=$clusterconfig ;
-              export want_magnum=1 ;
+              export want_magnum_proposal=1 ;
               export want_ceph=0
               export runner_url=$runner_url ;
               export scenario_url=$scenario_url ;

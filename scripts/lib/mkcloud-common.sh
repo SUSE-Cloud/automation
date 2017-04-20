@@ -22,6 +22,10 @@ fi
 : ${architectures:='aarch64 x86_64 s390x'}
 : ${nodenumberlonelynode:=0}
 : ${want_mtu_size:=1500}
+# proposals:
+: ${want_magnum_proposal:=0}
+: ${want_monasca_proposal:=0}
+: ${want_murano_proposal:=0}
 
 function max
 {

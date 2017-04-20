@@ -34,14 +34,7 @@ fi
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}
-: ${want_magnum:=0}
-: ${want_monasca:=0}
-: ${want_barbican:=1}
-: ${want_sahara:=1}
-: ${want_murano:=0}
 : ${want_tempest:=1}
-: ${want_trove:=1}
-: ${want_aodh:=1}
 : ${want_s390:=''}
 : ${want_horizon_integration_test:=''}
 
@@ -1926,7 +1919,7 @@ function onadmin_allocate
     echo "Setting first node to controller..."
     set_node_role_and_platform ${controllernodes[0]} "controller" $controller_os
 
-    if iscloudver 7plus && [[ $want_monasca = 1 ]]; then
+    if iscloudver 7plus && [[ $want_monasca_proposal = 1 ]]; then
         echo "Setting 2nd node to monitoring..."
         set_node_role_and_platform ${controllernodes[1]} "monitoring" $controller_os
     fi
@@ -3287,7 +3280,6 @@ function deploy_single_proposal
             if [[ $arch = "s390x" ]]; then
                 return
             fi
-            [[ $want_barbican = 1 ]] || return
             if ! iscloudver 7plus; then
                 echo "Barbican is SOC 7+ only. Skipping"
                 return
@@ -3307,7 +3299,6 @@ function deploy_single_proposal
             if [[ $arch = "s390x" ]]; then
                 return
             fi
-            [[ $want_magnum = 1 ]] || return
             if iscloudver 7plus ; then
                 get_novacontroller
                 safely oncontroller magnum_service_setup
@@ -3335,7 +3326,6 @@ function deploy_single_proposal
             if [[ $arch != "x86_64" ]]; then
                 return
             fi
-            [[ $want_monasca = 1 ]] || return
             if ! iscloudver 7plus; then
                 echo "monasca is SOC 7+ only. Skipping"
                 return
@@ -3350,27 +3340,23 @@ function deploy_single_proposal
             ;;
         trove)
             iscloudver 5plus || return
-            [[ $want_trove = 1 ]] || return
             ;;
         tempest)
             [[ $want_tempest = 1 ]] || return
             ;;
         sahara)
-            [[ $want_sahara = 1 ]] || return
             if ! iscloudver 7plus; then
                 echo "Sahara is SOC 7+ only. Skipping"
                 return
             fi
             ;;
         aodh)
-            [[ $want_aodh = 1 ]] || return
             if ! iscloudver 7plus; then
                 echo "Aodh is SOC 7+ only. Skipping"
                 return
             fi
             ;;
         murano)
-            [[ $want_murano = 1 ]] || return
             if ! iscloudver 7plus; then
                 echo "Murano is SOC 7+ only. Skipping"
                 return
@@ -4256,7 +4242,7 @@ function oncontroller_testsetup
     wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
     # run tests for Magnum bay deployment
-    if iscloudver 7plus && [[ $want_magnum = 1 ]]; then
+    if iscloudver 7plus && [[ $want_magnum_proposal = 1 ]]; then
 
         # This test will cover simple Kubernetes cluster with TLS disabled and no LoadBalancer
         if ! magnum cluster-template-show k8s_template_tls_lb_off > /dev/null 2>&1; then
