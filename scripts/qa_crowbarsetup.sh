@@ -2866,7 +2866,12 @@ function custom_configuration
                 [[ $networkingplugin = linuxbridge ]] && networkingmode=vlan
             fi
             proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
-
+            # TODO(mjura): We would like to have cloud-mkcloud7-job-magnum-x86_64 CI Jenkins job green
+            # Currently we are using only Magnum from Mitaka, which still doesn't support Lbaas v2
+            # After we will swith develcloud7 to Newton this condition can be removed
+            if [[ $want_magnum = 1 ]] ; then
+                proposal_set_value neutron default "['attributes']['neutron']['use_lbaasv2']" "false"
+            fi
             if iscloudver 5plus; then
                 if [ $networkingplugin = openvswitch ] ; then
                     if [[ $networkingmode = vxlan ]] || iscloudver 6plus; then
