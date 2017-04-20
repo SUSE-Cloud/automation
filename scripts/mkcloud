@@ -675,7 +675,6 @@ function instnodes
 function proposal
 {
     onadmin proposal
-    onadmin cleanup_db_mq_vips
     return $?
 }
 
@@ -858,7 +857,6 @@ function crowbarupgrade_5plus
         cloudsource=$upgrade_cloudsource onadmin prepare_cloudupgrade_nodes_repos_6_to_7
         onadmin upgrade_ses_to_4
         onadmin zypper_patch_all
-        onadmin cleanup_db_mq_vips
         onadmin upgrade_prechecks
         if [[ $cloudsource = develcloud6 ]] || [[ $upgrade_cloudsource = develcloud7 ]]; then
             onadmin allow_vendor_change_at_nodes
