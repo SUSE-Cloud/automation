@@ -36,6 +36,7 @@ fi
 : ${want_multidnstest:=1}
 : ${want_magnum:=0}
 : ${want_monasca:=0}
+: ${want_magnum_trusts:=0}
 : ${want_barbican:=1}
 : ${want_sahara:=1}
 : ${want_murano:=0}
@@ -2741,6 +2742,9 @@ function custom_configuration
             fi
         ;;
         magnum)
+            if [ $want_magnum_trusts = 1 ]; then
+                proposal_set_value magnum default "['attributes']['magnum']['trustee']['cluster_user_trust']" "true"
+            fi
             proposal_set_value magnum default "['attributes']['magnum']['trustee']['domain_name']" "'magnum'"
             proposal_set_value magnum default "['attributes']['magnum']['trustee']['domain_admin_name']" "'magnum_domain_admin'"
 

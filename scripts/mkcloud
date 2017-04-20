@@ -1132,6 +1132,9 @@ Optional
         It's not deployed by default. Set to 1 to deploy magnum.
     want_monasca=1 (default=0)
       Set to 1 to deploy monasca (Cloud7+ only)
+    want_magnum_trusts (default=0)
+        Set to 1 to pass trust ID into magnum clusters' instances. Insecure but
+        required for some functional tests.
     want_barbican=0 (default=1)
         Deployed by default. Set to 0 to prevent barbican from being deployed.
     want_sahara=0 (default=1)
