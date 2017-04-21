@@ -27,6 +27,9 @@ fi
 : ${want_monasca_proposal:=0}
 : ${want_murano_proposal:=0}
 
+# service dependencies
+[[ $want_ceilometer_proposal = 0 ]] && want_aodh_proposal=0
+
 function max
 {
     echo $(( $1 > $2 ? $1 : $2 ))
