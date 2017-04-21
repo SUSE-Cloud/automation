@@ -1643,9 +1643,10 @@ function do_installcrowbar_cloud6plus
     # call api to start asyncronous install job
     safely crowbar_api_request POST $crowbar_api $crowbar_api_installer_path/start.json
 
-    wait_for 9 2 "crowbar_install_status | grep -q '\"installing\": *true'" "crowbar to start installing" "tail -n 500 $crowbar_install_log ; complain 88 'crowbar did not start to install'"
-    wait_for 180 10 "crowbar_install_status | grep -q '\"installing\": *false'" "crowbar to finish installing" "tail -n 500 $crowbar_install_log ; complain 89 'crowbar installation failed'"
+    wait_for 9 2 "crowbar_install_status | grep -q '\"installing\": *true'" "crowbar to start installing" "echofailed ; tail -n 500 $crowbar_install_log ; complain 88 'crowbar did not start to install'"
+    wait_for 180 10 "crowbar_install_status | grep -q '\"installing\": *false'" "crowbar to finish installing" "echofailed ; tail -n 500 $crowbar_install_log ; complain 89 'crowbar installation failed'"
     if ! crowbar_install_status | grep -q '\"success\": *true' ; then
+        echofailed
         tail -n 500 $crowbar_install_log
         crowbar_install_status
         complain 90 "Crowbar installation failed"
@@ -1677,6 +1678,7 @@ function do_installcrowbar_legacy
 
     # Make sure install finished correctly
     if ! [ -e /opt/dell/crowbar_framework/.crowbar-installed-ok ]; then
+        echofailed
         tail -n 90 /root/screenlog.0
         complain 89 "Crowbar \".crowbar-installed-ok\" marker missing"
     fi
@@ -1724,9 +1726,10 @@ EOF
         service smb restart
     fi
 
-    wait_for 30 5 "onadmin_is_crowbar_api_available" "crowbar service to start" "tail -n 90 $crowbar_install_log ; exit 11"
+    wait_for 30 5 "onadmin_is_crowbar_api_available" "crowbar service to start" "echofailed ; tail -n 90 $crowbar_install_log ; exit 11"
 
     if ! get_all_nodes | grep -q crowbar.$cloudfqdn ; then
+        echofailed
         tail -n 90 $crowbar_install_log
         complain 85 "crowbar 2nd self-test failed"
     fi
@@ -2291,6 +2294,7 @@ function waitnodes
             local proposalstatus=''
             wait_for 800 1 "proposalstatus=\`onadmin_get_proposalstatus $proposal $proposaltype\` ; [[ \$proposalstatus =~ success|failed ]]" "proposal to be successful"
             if [[ $proposalstatus = failed ]] ; then
+                echofailed
                 tail -n 90 \
                     /opt/dell/crowbar_framework/log/d*.log \
                     /var/log/crowbar/chef-client/d*.log
@@ -3214,6 +3218,7 @@ function update_one_proposal
         sleep 10
     fi
     if [ $ret != 0 ] ; then
+        echofailed
         tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log
         complain 73 "Committing the crowbar '$proposaltype' proposal for '$proposal' failed ($ret)."
     fi
@@ -4187,6 +4192,7 @@ function oncontroller_testsetup
     vmip=`nova show "$instanceid" | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
     echo "VM IP address: $vmip"
     if [ -z "$vmip" ] ; then
+        echofailed
         tail -n 90 /var/log/nova/*
         complain 38 "VM IP is empty. Exiting"
     fi

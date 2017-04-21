@@ -35,6 +35,11 @@ function max
     echo $(( $1 > $2 ? $1 : $2 ))
 }
 
+function echofailed
+{
+    echo "^^^^^ failed ^^^^^" >&2
+}
+
 function wait_for
 {
     local timecount=${1:-300}

@@ -208,6 +208,7 @@ function error_exit
     pre_exit_cleanup
     echo $message
     show_environment
+    echo "exitcode: $exitcode"
     exit $exitcode
 } >&2
 
