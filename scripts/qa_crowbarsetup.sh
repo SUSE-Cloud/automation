@@ -239,9 +239,11 @@ export NEUTRONCLIENT_INSECURE=true
 export NOVACLIENT_INSECURE=true
 export SWIFTCLIENT_INSECURE=true
 export CINDERCLIENT_INSECURE=true
+export MAGNUMCLIENT_INSECURE=true
 # Extra environment variable because of https://launchpad.net/bugs/1535284
 export manilaclient_INSECURE=true
 export MANILACLIENT_INSECURE=true
+export MISTRALCLIENT_INSECURE=true
 export TROVECLIENT_INSECURE=true
 
 function isrepoworking
