@@ -4547,6 +4547,13 @@ function onadmin_testsetup
     if [ "$wantradosgwtest" == 1 ] ; then
         # test S3 access using python API
         radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
+        if [ "$want_ceph_ssl" == 1 -o "$want_all_ssl" == 1 ] ; then
+            local radosgwport=8081
+            local is_secure=True
+        else
+            local radosgwport=8080
+            local is_secure=False
+        fi
         ssh $radosgw radosgw-admin user create --uid=rados --display-name=RadosGW --secret="secret" --access-key="access"
 
         # using curl directly is complicated, see http://ceph.com/docs/master/radosgw/s3/authentication/
@@ -4559,8 +4566,8 @@ conn = boto.connect_s3(
         aws_access_key_id = "access",
         aws_secret_access_key = "secret",
         host = "$radosgw",
-        port = 8080,
-        is_secure=False,
+        port = $radosgwport,
+        is_secure=$is_secure,
         calling_format = boto.s3.connection.OrdinaryCallingFormat()
     )
 bucket = conn.create_bucket("test-s3-bucket")
