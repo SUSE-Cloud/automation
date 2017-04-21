@@ -1572,6 +1572,10 @@ function onadmin_activate_repositories
 
 function onadmin_bootstrapcrowbar
 {
+    if [[ $upgrademode = "with_upgrade" ]] ; then
+        export cloudsource=$upgrade_cloudsource
+    fi
+
     local upgrademode=$1
     # temporarily make it possible to not use postgres until we switched to the new upgrade process
     # otherwise we would break the upgrade gating
