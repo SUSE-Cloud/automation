@@ -219,11 +219,14 @@ function libvirt_do_create_cloud_lvm()
         volume="/dev/$cloudvg/$cloud.node1"
         $sudo dd if=/dev/zero of=$volume bs=1M count=$(($controller_hdd_size * 1024))
         for n in $(seq 1 $(($controller_raid_volumes-1))) ; do
-            onhost_get_next_pv_device
             hdd_size=${controller_hdd_size}
-            _lvcreate $cloud.node1-raid$n $hdd_size $cloudvg $next_pv_device
-            volume="/dev/$cloudvg/$cloud.node1-raid$n"
-            $sudo dd if=/dev/zero of=$volume bs=1M count=$(($hdd_size * 1024))
+            local nodenum
+            for nodenum in $(seq 1 $(get_nodenumbercontroller)) ; do
+                onhost_get_next_pv_device
+                _lvcreate $cloud.node$nodenum-raid$n $hdd_size $cloudvg $next_pv_device
+                volume="/dev/$cloudvg/$cloud.node$nodenum-raid$n"
+                $sudo dd if=/dev/zero of=$volume bs=1M count=$(($hdd_size * 1024))
+            done
         done
     fi
 

@@ -449,6 +449,20 @@ function iscloudver
     return $?
 }
 
+get_nodenumbercontroller()
+{
+    local nodenumbercontroller=1
+    if [[ $clusterconfig == *services* ]]; then
+        nodenumbercontroller=`echo ${clusterconfig}\
+            | sed -e "s/^.*services[^:]*=\([[:digit:]]\+\).*/\1/"`
+    fi
+    # Need one more big VM for Monasca
+    if iscloudver 7plus && [[ $want_monasca_proposal = 1 ]]; then
+        nodenumbercontroller=$(($nodenumbercontroller+1))
+    fi
+    echo "$nodenumbercontroller"
+}
+
 function get_admin_node_dist
 {
     # echo the name of the current dist for the admin node
