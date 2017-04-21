@@ -21,7 +21,7 @@
             cloudsource=develcloud{previous_version}
             upgrade_cloudsource=develcloud{version}
             nodenumber=4
-            storage_method=swift
+            storage_method=none
             cinder_backend=nfs
             hacloud=1
             want_node_aliases=controller=2,compute=2
