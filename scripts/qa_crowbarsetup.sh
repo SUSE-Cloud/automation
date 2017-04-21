@@ -1443,7 +1443,8 @@ EOF
 
     # avoid kernel update
     zypper al kernel-default
-    zypper -n dup --no-recommends -r Cloud -r cloudtup || zypper -n dup --no-recommends -r Cloud
+    local zypperdup="zypper -n dup --no-recommends --no-allow-downgrade"
+    $zypperdup -r Cloud -r cloudtup || $zypperdup -r Cloud
     zypper rl kernel-default
 
     # Workaround chef-solr crashes
