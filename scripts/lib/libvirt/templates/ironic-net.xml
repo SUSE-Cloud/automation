@@ -1,8 +1,8 @@
 <network>
   <name>${cloud}-ironic</name>
-  <bridge name='${ironicbr}' stp='off' delay='0' />
+  <bridge name='${bridge}' stp='off' delay='0' />
   <mac address='52:54:00:AB:B1:78'/>
-  <ip address='${ironicgw}' netmask='${ironicnetmask}'/>
+  <ip address='${gateway}' netmask='${netmask}'/>
   <forward mode='${forwardmode}'>
   </forward>
 </network>

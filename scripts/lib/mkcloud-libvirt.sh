@@ -72,11 +72,11 @@ function libvirt_prepare()
     libvirt_start_daemon
 
     # admin network
-    ${scripts_lib_dir}/libvirt/net-config $cloud $cloudbr $admingw $adminnetmask $cloudfqdn $adminip $forwardmode > /tmp/$cloud-admin.net.xml
+    ${scripts_lib_dir}/libvirt/net-config 'admin' $cloud $cloudbr $admingw $adminnetmask $forwardmode $cloudfqdn $adminip > /tmp/$cloud-admin.net.xml
     $sudo ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
     # ironic network
     if [[ $want_ironic ]]; then
-        ${scripts_lib_dir}/libvirt/ironic-net-config $cloud $ironicbr $ironicgw $ironicnetmask $forwardmode > /tmp/$cloud-ironic.net.xml
+        ${scripts_lib_dir}/libvirt/net-config 'ironic' $cloud $ironicbr $ironicgw $ironicnetmask $forwardmode > /tmp/$cloud-ironic.net.xml
         $sudo ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-ironic.net.xml || exit $?
     fi
     libvirt_net_start

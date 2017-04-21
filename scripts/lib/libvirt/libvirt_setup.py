@@ -191,31 +191,20 @@ def net_interfaces_config(args, nicmodel):
 
 
 def net_config(args):
-    cloud = args.cloud
     values = {
-        'cloud': cloud,
-        'cloudbr': args.cloudbr,
-        'admingw': args.admingw,
-        'adminnetmask': args.adminnetmask,
+        'cloud': args.cloud,
+        'bridge': args.bridge,
+        'gateway': args.gateway,
+        'netmask': args.netmask,
         'cloudfqdn': args.cloudfqdn,
-        'adminip': args.adminip,
+        'hostip': args.hostip,
         'forwardmode': args.forwardmode
     }
 
-    return get_config(values, os.path.join(TEMPLATE_DIR, "admin-net.xml"))
-
-
-def ironic_net_config(args):
-    cloud = args.cloud
-    values = {
-        'cloud': cloud,
-        'ironicbr': args.ironicbr,
-        'ironicgw': args.ironicgw,
-        'ironicnetmask': args.ironicnetmask,
-        'forwardmode': args.forwardmode
-    }
-
-    return get_config(values, os.path.join(TEMPLATE_DIR, "ironic-net.xml"))
+    return get_config(
+        values,
+        os.path.join(TEMPLATE_DIR, "%s-net.xml" % args.network)
+    )
 
 
 def merge_dicts(d1, d2):
