@@ -143,13 +143,19 @@ def generate_pkgspec(pkgoutdir, global_requirements, spectemplate, pkgname):
             os.path.join(obsservicedir, 'format_spec_file'))
         format_spec_file(*outdir)
 
+        # NOTE(toabctl): Do not use the cache for now. Using make creates
+        # problems with tracking stable-$release tarballs where the filename
+        # does not change (but the file content). In that case the
+        # download_files service uses a file from the cache
+
         # configure a download cache to avoid downloading the same files
-        download_env = os.environ.copy()
-        download_env["CACHEDIRECTORY"] = os.path.join(
-            os.path.expanduser("~"), ".cache", "download_files")
+        # download_env = os.environ.copy()
+        #download_env["CACHEDIRECTORY"] = os.path.join(
+        #    os.path.expanduser("~"), ".cache", "download_files")
 
         download_files = Command(os.path.join(obsservicedir, 'download_files'))
-        download_files(_env=download_env, *outdir)
+        # download_files(_env=download_env, *outdir)
+        download_files(*outdir)
     finally:
         os.chdir(olddir)
 
