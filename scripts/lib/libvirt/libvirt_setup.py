@@ -248,6 +248,7 @@ def compute_config(args, cpu_flags=cpuflags()):
                 serialcloud,
                 args.nodecounter,
                 i),
+            'cache_mode': 'unsafe',
             'source_dev': "{0}/{1}.node{2}-raid{3}".format(
                 args.vdiskdir,
                 args.cloud,
@@ -267,6 +268,7 @@ def compute_config(args, cpu_flags=cpuflags()):
                     serialcloud,
                     args.nodecounter,
                     i),
+                'cache_mode': 'unsafe',
                 'source_dev': "{0}/{1}.node{2}-ceph{3}".format(
                     args.vdiskdir,
                     args.cloud,
@@ -282,6 +284,7 @@ def compute_config(args, cpu_flags=cpuflags()):
             readfile(os.path.join(TEMPLATE_DIR, "extra-volume.xml")))
         drbdvolume = drbd_template.substitute(merge_dicts({
             'volume_serial': args.drbdserial,
+            'cache_mode': 'none',
             'source_dev': "{0}/{1}.node{2}-drbd".format(
                 args.vdiskdir,
                 args.cloud,
