@@ -2821,6 +2821,7 @@ function custom_configuration
             fi
         ;;
         horizon|nova_dashboard)
+            [[ $want_ldap = 1 ]] && iscloudver 7plus && proposal_set_value $proposal default "['attributes']['$proposal']['multi_domain_support']" "true"
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value $proposal default "['deployment']['$proposal']['elements']['$proposal-server']" "['cluster:$clusternameservices']"
             fi
