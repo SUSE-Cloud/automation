@@ -67,6 +67,7 @@ proposals:
 - barclamp: ceph
   attributes:
     disk_mode: first
+    client_network: admin
   deployment:
     elements:
       ceph-calamari: []
