@@ -5509,6 +5509,22 @@ function onadmin_run_cct
             done
         fi
 
+        # NOTE(aplanas) This workaround for bsc#1024742 will inject
+        # overrides to compute nodes the belong to the pacemaker
+        # remote cluster. This override will decrease the
+        # TimeoutStopSec from 30min to 30secs, making the boot process
+        # faster.
+        if iscloudver 7plus; then
+            local remotes=$(crowbarctl proposal show \
+                --filter deployment.pacemaker.elements.pacemaker-remote \
+                --plain pacemaker services | cut -d' ' -f2)
+            local override=/etc/systemd/system/pacemaker_remote.d/override.conf
+            local node
+            for node in $remotes; do
+                ssh $node "echo TimeoutStopSec=30s > $override; systemctl daemon-reload"
+            done
+        fi
+
         # prepare CCT checkout
         local ghdir=/root/github.com/SUSE-Cloud
         mkdir -p $ghdir
