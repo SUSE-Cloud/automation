@@ -2651,6 +2651,7 @@ function custom_configuration
         ;;
         ipmi)
             proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
+            [[ $want_ipmi_dhcp = 1 ]] && proposal_set_value ipmi default "['attributes']['ipmi']['use_dhcp']" true
         ;;
         keystone)
             # set a custom region name
