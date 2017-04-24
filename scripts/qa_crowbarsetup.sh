@@ -5734,3 +5734,4 @@ iscloudver 5plus && ruby=/usr/bin/ruby.ruby2.1
 export_tftpboot_repos_dir
 set_proposalvars
 set_noproxyvar
+handle_service_dependencies || :

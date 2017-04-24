@@ -27,9 +27,6 @@ fi
 : ${want_monasca_proposal:=0}
 : ${want_murano_proposal:=0}
 
-# service dependencies
-[[ $want_ceilometer_proposal = 0 ]] && want_aodh_proposal=0
-
 function max
 {
     echo $(( $1 > $2 ? $1 : $2 ))
@@ -116,6 +113,11 @@ function intercept
         echo "When ready exit this shell to continue with $1"
         bash
     fi
+}
+
+function handle_service_dependencies
+{
+    [[ $want_ceilometer_proposal = 0 ]] && want_aodh_proposal=0
 }
 
 function determine_mtu
