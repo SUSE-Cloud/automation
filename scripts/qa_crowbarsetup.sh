@@ -1465,7 +1465,10 @@ EOF
     local netfile="/etc/crowbar/network.json"
 
     local netfilepatch=`basename $netfile`.patch
-    [ -e ~/$netfilepatch ] && patch -p1 $netfile < ~/$netfilepatch
+    if [ -e ~/$netfilepatch ]; then
+        ensure_packages_installed patch
+        patch -p1 $netfile < ~/$netfilepatch
+    fi
 
     # to revert https://github.com/crowbar/barclamp-network/commit/a85bb03d7196468c333a58708b42d106d77eaead
     sed -i.netbak1 -e 's/192\.168\.126/192.168.122/g' $netfile
