@@ -10,6 +10,7 @@ def main():
     parser.add_argument("nodenumber", type=int, help="Number of Nodes")
     parser.add_argument("cloudbr", help="Name of the Virtual Bridge")
     parser.add_argument("vlan_public", help="ID of the Public VLAN")
+    parser.add_argument("ironicbr", help="Name of the Ironic Bridge")
     args = parser.parse_args()
 
     libvirt_setup.cleanup(args)

@@ -166,6 +166,10 @@ def admin_config(args, cpu_flags=cpuflags()):
     return get_config(values, os.path.join(TEMPLATE_DIR, "admin-node.xml"))
 
 
+def get_net_for_nic(args, index):
+    return 'ironic' if index == args.ironicnic else 'admin'
+
+
 def net_interfaces_config(args, nicmodel):
     nic_configs = []
     bootorderoffset = 2
@@ -175,6 +179,7 @@ def net_interfaces_config(args, nicmodel):
             cloud=args.cloud,
             nodecounter=args.nodecounter,
             nicindex=index,
+            net=get_net_for_nic(args, index),
             macaddress=mac,
             nicmodel=nicmodel,
             bootorder=bootorderoffset+(index*10),
@@ -186,17 +191,20 @@ def net_interfaces_config(args, nicmodel):
 
 
 def net_config(args):
-    cloud = args.cloud
-    values = dict(
-        cloud=cloud,
-        cloudbr=args.cloudbr,
-        admingw=args.admingw,
-        adminnetmask=args.adminnetmask,
-        cloudfqdn=args.cloudfqdn,
-        adminip=args.adminip,
-        forwardmode=args.forwardmode)
+    values = {
+        'cloud': args.cloud,
+        'bridge': args.bridge,
+        'gateway': args.gateway,
+        'netmask': args.netmask,
+        'cloudfqdn': args.cloudfqdn,
+        'hostip': args.hostip,
+        'forwardmode': args.forwardmode
+    }
 
-    return get_config(values, os.path.join(TEMPLATE_DIR, "admin-net.xml"))
+    return get_config(
+        values,
+        os.path.join(TEMPLATE_DIR, "%s-net.xml" % args.network)
+    )
 
 
 def merge_dicts(d1, d2):
@@ -229,6 +237,10 @@ def compute_config(args, cpu_flags=cpuflags()):
         configopts['target_bus'] = 'ide'
         configopts['memballoon'] = "    <memballoon model='none' />"
         target_address = ""
+
+    # override nic model for ironic setups
+    if args.ironicnic >= 0:
+        configopts['nicmodel'] = 'e1000'
 
     controller_raid_volumes = args.controller_raid_volumes
     if args.nodecounter > args.numcontrollers:
@@ -363,7 +375,7 @@ def cleanup(args):
         domain_cleanup(dom)
 
     for network in conn.listAllNetworks():
-        if network.name() == args.cloud + "-admin":
+        if network.name() in (args.cloud + "-admin", args.cloud + "-ironic"):
             print("Cleaning up network {0}".format(network.name()))
             if network.isActive():
                 network.destroy()

@@ -337,9 +337,11 @@ function setcloudnetvars
     net_fixed=${net_fixed:-192.168.123}
     net_public=${net_public:-192.168.122}
     net_storage=${net_storage:-192.168.125}
+    net_ironic=${net_ironic:-192.168.128}
     net_sdn=${net_sdn:-192.168.130}
     : ${admingw:=$net.1}
     : ${adminip:=$net.10}
+    : ${ironicgw:=$net_ironic.1}
 }
 
 # Returns success if a change was made

@@ -55,6 +55,7 @@ rm -f $mkcconf # we dont want to source old info in the line below
 setcloudnetvars $virtualcloud
 : ${forwardmode:=nat}
 : ${adminnetmask:=255.255.248.0}
+: ${ironicnetmask:=255.255.255.0}
 # the default nodenumber of compute nodes
 nodenumbercomputedefault=2
 [[ $hacloud ]] && nodenumbercomputedefault=1
@@ -72,7 +73,9 @@ nodenumbercomputedefault=2
 : ${cephvolumenumber:=1}
 : ${controller_raid_volumes:=0}
 : ${vcpus:=2}
-: ${nics:=1}
+nicsdefault=1
+[[ $want_ironic ]] && nicsdefault=2
+: ${nics:=$nicsdefault}
 : ${adminvcpus:=2}
 cpuflags=''
 working_dir_orig=`pwd`
@@ -120,6 +123,14 @@ pv_cur_device_no=0
 # IFNAMSIZ - 1 - 4 (vlan suffix likely length)
 cloudbrlimit=11
 [[ ${#cloudbr} -gt $cloudbrlimit ]] && complain 100 "cloudbr name is too long (> $cloudbrlimit); \$cloud must be shorter"
+
+: ${ironicbr:=${cloud}irobr}
+if [[ $want_ironic ]]; then
+    [[ ${#ironicbr} -gt $cloudbrlimit ]] && complain 100 "ironicbr name is too long (> $cloudbrlimit); \$cloud must be shorter"
+
+    # network card index for ironic network
+    : ${ironicnic:=1}
+fi
 
 #if localreposdir_src string is available, the local repositories are used for setup
 : ${localreposdir_src:=""}
@@ -614,8 +625,12 @@ function setupnodes
         for nicnumber in $(seq 1 $nics) ; do
             mac_params+=" --macaddress $(macfunc $i $nicnumber)";
         done
+        local ironic_params=""
+        [[ $want_ironic ]] && ironic_params="--ironicnic $ironicnic"
+
         ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
                         $mac_params \
+                        $ironic_params \
                         --cephvolumenumber $cephvolumenumber \
                         --drbdserial "$drbd_serial"\
                         --computenodememory $compute_node_memory \
@@ -1064,6 +1079,7 @@ Optional
         set the number of CPU cores per compute node
     nics=1         (default $nics)
         set the number of network interfaces per cloud node
+        if Ironic is enabled (want_ironic=1), default is set to 2
     adminvcpus=1    (default $adminvcpus)
         set the number of CPU cores for admin node
     admin_node_memory (default 4194304)
@@ -1139,6 +1155,10 @@ Optional
         Default value will be applied from Keystone barclamp proposal.
     want_sap='' | 1  (default='')
         Set up a cloud based on the SAP fork.
+    want_ironic=1 (default='')
+        Prepare (virtualized) environment for ironic.
+    ironicnic=1 (default=1)
+        Index of network card to be used for ironic.
     install_chef_suse_override='path/to/script'
         Optional path to an alternate version of install-chef-suse.sh on the mkcloud hostto use
         instead of the one from the packages.  This will be scp'd to the admin node before use.

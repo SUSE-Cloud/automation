@@ -5,14 +5,15 @@ import libvirt_setup
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Create Admin Network Config")
+    parser = argparse.ArgumentParser(description="Create Virtual Network Config")
+    parser.add_argument("network", help="Name of the network to be configured (admin, ironic)")
     parser.add_argument("cloud", help="Name of the Cloud")
-    parser.add_argument("cloudbr", help="Name of the Virtual bridge")
-    parser.add_argument("admingw", help="IP Address of the Admin Gateway")
-    parser.add_argument("adminnetmask", help="Netmask of the Admin Network")
-    parser.add_argument("cloudfqdn", help="Name of the Cloud-FQDN")
-    parser.add_argument("adminip", help="IP Address of the Admin Node")
+    parser.add_argument("bridge", help="Name of the Virtual bridge to be used for this network")
+    parser.add_argument("gateway", help="IP Address of the Gateway for this network")
+    parser.add_argument("netmask", help="Netmask of this network")
     parser.add_argument("forwardmode", help="Forward Mode (e.g. nat)")
+    parser.add_argument("cloudfqdn", help="Name of the Cloud-FQDN", nargs='?')
+    parser.add_argument("hostip", help="IP Address of the (admin) host to be configured in DHCP", nargs='?')
     args = parser.parse_args()
 
     print(libvirt_setup.net_config(args))

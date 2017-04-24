@@ -30,12 +30,13 @@ class TestLibvirtHelpers(unittest.TestCase):
     def test_get_config(self):
         fin = "{0}/admin-net.xml".format(TEMPLATE_DIR)
         values = dict(
+            network="admin",
             cloud="cloud",
-            cloudbr="cloudbr",
-            admingw="192.168.124.1",
-            adminnetmask="255.255.248.0",
+            bridge="cloudbr",
+            gateway="192.168.124.1",
+            netmask="255.255.248.0",
             cloudfqdn="unittest.suse.de",
-            adminip="192.168.124.10",
+            hostip="192.168.124.10",
             forwardmode="nat")
         is_config = libvirt_setup.get_config(values, fin)
         should_config = libvirt_setup.readfile(
@@ -65,12 +66,13 @@ class TestLibvirtNetConfig(unittest.TestCase):
 
     def test_net_config(self):
         args = Arguments()
+        args.network = "admin"
         args.cloud = "cloud"
-        args.cloudbr = "cloudbr"
-        args.admingw = "192.168.124.1"
-        args.adminnetmask = "255.255.248.0"
+        args.bridge = "cloudbr"
+        args.gateway = "192.168.124.1"
+        args.netmask = "255.255.248.0"
         args.cloudfqdn = "unittest.suse.de"
-        args.adminip = "192.168.124.10"
+        args.hostip = "192.168.124.10"
         args.forwardmode = "nat"
 
         should_config = libvirt_setup.readfile(
@@ -89,6 +91,7 @@ def default_test_args(args):
     args.cloud = "cloud"
     args.nodecounter = 1
     args.macaddress = ["52:54:01:77:77:01"]
+    args.ironicnic = -1
     args.controller_raid_volumes = 0
     args.cephvolumenumber = 1
     args.computenodememory = 2097152
