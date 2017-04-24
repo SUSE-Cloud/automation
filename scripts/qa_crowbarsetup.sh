@@ -5094,7 +5094,7 @@ function onadmin_cloudupgrade_2nd
     crudini --set /etc/zypp/zypp.conf main solver.allowVendorChange true
 
     # Upgrade Admin node
-    zypper --non-interactive up --no-recommends -l
+    onadmin_zypper_update
     echo -n "This cloud was upgraded from : " | cat - /etc/cloudversion >> /etc/motd
 
     echo 'y' | suse-cloud-upgrade upgrade ||\
@@ -5109,6 +5109,11 @@ function onadmin_cloudupgrade_2nd
         echo "Enabling VendorChange on $node"
         timeout 60 ssh $node "zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install crudini; crudini --set /etc/zypp/zypp.conf main solver.allowVendorChange true"
     done
+}
+
+function onadmin_zypper_update
+{
+    zypper --non-interactive update --no-recommends --auto-agree-with-licenses
 }
 
 function onadmin_cloudupgrade_clients
