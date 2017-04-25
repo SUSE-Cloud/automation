@@ -266,7 +266,7 @@ def compute_config(args, cpu_flags=cpuflags()):
                 args.nodecounter,
                 i),
             'target_dev': targetdevprefix + ''.join(alldevices.next()),
-            'target_address': target_address.format('0x1' + hex(i+9)[2:]),
+            'target_address': target_address.format(hex(0x10+i)),
         }, configopts))
 
     cephvolume = ""
@@ -285,7 +285,7 @@ def compute_config(args, cpu_flags=cpuflags()):
                     args.nodecounter,
                     i),
                 'target_dev': targetdevprefix + ''.join(alldevices.next()),
-                'target_address': target_address.format('0x1' + str(i)),
+                'target_address': target_address.format(hex(0x16+i)),
             }, configopts))
 
     drbdvolume = ""
