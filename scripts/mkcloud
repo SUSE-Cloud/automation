@@ -272,6 +272,7 @@ function sshrun
         export cinder_netapp_login=$cinder_netapp_login;
         export cinder_netapp_password=$cinder_netapp_password;
 
+        export UPDATEREPOS=$UPDATEREPOS ;
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
 
@@ -1211,7 +1212,7 @@ EOUSAGE
 
 function addupdaterepo
 {
-    sshrun "UPDATEREPOS=$UPDATEREPOS onadmin_addupdaterepo"
+    onadmin addupdaterepo "$@"
     return $?
 }
 

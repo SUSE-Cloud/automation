@@ -4724,6 +4724,7 @@ function onadmin_addupdaterepo
 {
     pre_hook $FUNCNAME
 
+    local repos=$UPDATEREPOS
     local UPR=
     if iscloudver 7plus; then
         UPR=$tftpboot_repos12sp2_dir/PTF
@@ -4734,9 +4735,9 @@ function onadmin_addupdaterepo
     fi
     mkdir -p $UPR
 
-    if [[ $UPDATEREPOS ]]; then
+    if [[ $repos ]]; then
         local repo
-        for repo in ${UPDATEREPOS//+/ } ; do
+        for repo in ${repos//+/ } ; do
             safely wget --progress=dot:mega \
                 -r --directory-prefix $UPR \
                 -e robots=off \
