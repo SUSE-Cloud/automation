@@ -91,6 +91,8 @@ export want_postgresql=${want_postgresql:-1}
 if iscloudver 6plus ; then
     export CROWBAR_EXPERIMENTAL=true
     export CROWBAR_VERIFY_SSL=false
+    # export crowbar timeout to have the new timeout also in GM without updates
+    export CROWBAR_TIMEOUT=3600
 fi
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
