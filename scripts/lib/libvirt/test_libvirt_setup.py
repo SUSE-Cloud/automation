@@ -98,7 +98,7 @@ def default_test_args(args):
     args.controllernodememory = 5242880
     args.libvirttype = "kvm"
     args.vcpus = 1
-    args.emulator = "/usr/bin/qemu-system-x86_64"
+    args.emulator = "/bin/false"
     args.vdiskdir = "/dev/cloud"
     args.drbdserial = ""
     args.bootorder = 3
@@ -113,7 +113,7 @@ class TestLibvirtAdminConfig(unittest.TestCase):
         self.args.cloud = "cloud"
         self.args.adminnodememory = 2097152
         self.args.adminvcpus = 1
-        self.args.emulator = "/usr/bin/qemu-system-x86_64"
+        self.args.emulator = "/bin/false"
         self.args.adminnodedisk = "/dev/cloud/cloud.admin"
         self.args.firmwaretype = ""
         self.args.localreposrc = ""
