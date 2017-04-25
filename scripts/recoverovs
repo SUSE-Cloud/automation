@@ -2,14 +2,21 @@
 # recover from bsc#998363 to get network back
 rcipmi start
 ipmitool lan print | grep IP.Addr
+cp -a /etc/openvswitch/conf.db /root/
+for b in br-tunnel br-public br-fixed br-int ; do ovs-vsctl del-br $b ; done
+ovs-dpctl del-dp ovs-system
 for s in openstack-neutron-l3-agent openstack-neutron-openvswitch-agent openvswitch ; do
   systemctl stop $s.service
 done
+ip link del vxlan_sys_4789
+rmmod vport_vxlan
 rmmod openvswitch
 modprobe openvswitch
+cp -a /root/conf.db /etc/openvswitch/conf.db
 systemctl restart openvswitch.service
 eval `grep IPADDR= /etc/sysconfig/network/ifcfg-br-fixed`
 ip a add $IPADDR dev br-fixed
+#ovs-vsctl add-port br-fixed em1
 for i in `ip a|grep state.DOWN|perl -ne 'm/^\d+: ([0-9a-z-]*):/ && print "$1\n"'` ; do ip link set $i up ; done
 ip r add default via 10.162.178.1
 systemctl restart openstack-neutron-openvswitch-agent.service
