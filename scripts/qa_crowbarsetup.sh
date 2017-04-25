@@ -3890,6 +3890,7 @@ function oncontroller_manila_generic_driver_setup()
         openstack role add --project manila-service --user admin admin
     fi
     export OS_TENANT_NAME='manila-service'
+    export OS_PROJECT_NAME=$OS_TENANT_NAME
 
     # using list subcommand because show requires an ID
     if ! openstack image list --f value -c Name | grep -q "^manila-service-image$"; then
