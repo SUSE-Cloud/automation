@@ -976,7 +976,7 @@ Steps:
     testsetup:      start a VM in the cloud
     addupdaterepo:  addupdate repos defined in UPDATEREPOS= (URLs separated by '+')
     runupdate:      run zypper up on the crowbar node
-                    (compute nodes are automaticallyupdated via chef run)
+                    (compute nodes are automatically updated via chef run)
     rebootcrowbar:  reboot the crowbar instance and wait for it being up
     rebootcloud:    reboot the cloud nodes and wait for them being up
     restartcloud:   start a pre-existing cloud again after host reboot
