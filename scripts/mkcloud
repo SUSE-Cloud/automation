@@ -273,6 +273,7 @@ function sshrun
         export cinder_netapp_password=$cinder_netapp_password;
 
         export UPDATEREPOS=$UPDATEREPOS ;
+        export UPDATEREPOS_EXTRA=$UPDATEREPOS_EXTRA ;
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
 
