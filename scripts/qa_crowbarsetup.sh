@@ -4235,6 +4235,9 @@ function ping_fips
 # Use $heat_stack_params to provide parameters to heat template
 function oncontroller_testpreupgrade
 {
+    # Workaround for onadmin_cleanup_db_mq_vips restarting
+    # the db/rpc servers. Wait until heat stack-list success
+    wait_for 120 5 "heat --insecure stack-list" "heat api to be available"
     heat --insecure stack-create upgrade_test -f /root/scripts/heat/2-instances-cinder.yaml $heat_stack_params
     wait_for 15 20 "heat --insecure stack-list | grep upgrade_test | grep CREATE_COMPLETE" \
              "heat stack for upgrade tests to complete"
@@ -4619,6 +4622,26 @@ zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgr
     # wait for ceph cluster to recover after the upgrade
     nodes=($ceph_mons)
     wait_for 60 5 "ssh ${nodes[0]} ceph health | grep -q HEALTH_OK" "ceph cluster to recover after upgrade"
+}
+
+# Some resources are known to fail for a short time because of a wicked ifreload call:
+# https://bugzilla.suse.com/show_bug.cgi?id=1030822
+# It's safe to clean existing errors now so we have a error-less crm status output.
+function onadmin_cleanup_db_mq_vips
+{
+    for svc in database rabbitmq; do
+        local node=$(knife search node "roles:$svc-server AND pacemaker_founder:true" -a name | \
+            grep ^name: | cut -d : -f 2 | sed 's/\s//g')
+
+        if [ -n "$node" ] ; then
+            # We're looking for resource like vip-admin-database-default-data (where 'data' is cluster name)
+            ssh $node "
+res=\$(crm resource list | grep vip-admin-$svc-default | cut -f 1 | sed 's/\s//g')
+if [ -n \"\$res\" ]; then
+    crm resource cleanup \$res
+fi"
+        fi
+    done
 }
 
 # This will adapt Cloud6 nodes repositories to Cloud7 ones
