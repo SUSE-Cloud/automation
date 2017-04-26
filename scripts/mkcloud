@@ -336,7 +336,7 @@ function onhost_enable_ksm
 
 function setuphost
 {
-    ${mkclouddriver}_do_setuphost
+    SKIPSUPPORTCONFIG=1 ${mkclouddriver}_do_setuphost
 }
 
 function prepare
