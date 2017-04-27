@@ -1255,9 +1255,6 @@ function sanity_checks
         exit 1
     fi
 
-    [[ $clouddata =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || \
-        complain 96 "clouddata must be an IPv4 address"
-
     # checking clusterconfig
     if [[ $hacloud && ! $clusterconfig ]] ; then
         echo "Examples for clusterconfig:"
