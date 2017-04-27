@@ -5162,6 +5162,8 @@ function onadmin_zypper_update
 function onadmin_cloudupgrade_clients
 {
     pre_hook $FUNCNAME
+    # make sure the api is accessible
+    onadmin_wait_for_crowbar_api
     # Upgrade Packages on the client nodes
     crowbar updater proposal create default
     crowbar updater proposal show default > updater.json
