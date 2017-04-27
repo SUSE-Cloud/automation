@@ -5170,7 +5170,6 @@ function onadmin_cloudupgrade_clients
     safely json-edit updater.json -a attributes.updater.zypper.method -v "update"
     safely json-edit updater.json -a attributes.updater.zypper.licenses_agree --raw -v "true"
     safely crowbar updater proposal --file updater.json edit default
-    rm updater.json
     crowbar_proposal_commit updater
 }
 
