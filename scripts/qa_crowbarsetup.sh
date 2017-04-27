@@ -5149,6 +5149,10 @@ function onadmin_cloudupgrade_clients
     crowbar updater proposal show default > updater.json
     json-edit updater.json -a attributes.updater.zypper.method -v "update"
     json-edit updater.json -a attributes.updater.zypper.licenses_agree --raw -v "true"
+    # Update the nodes, except the crowbar one
+    local nodes=$(get_all_discovered_nodes)
+    nodes=$(printf "\"%s\"," ${nodes[@]})
+    json-edit updater.json -a deployment.updater.elements.updater --raw -v "['$nodes']"
     crowbar updater proposal --file updater.json edit default
     rm updater.json
     crowbar updater proposal commit default
