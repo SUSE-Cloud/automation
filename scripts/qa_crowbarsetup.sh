@@ -5165,11 +5165,11 @@ function onadmin_cloudupgrade_clients
     # make sure the api is accessible
     onadmin_wait_for_crowbar_api
     # Upgrade Packages on the client nodes
-    crowbar updater proposal create default
-    crowbar updater proposal show default > updater.json
-    json-edit updater.json -a attributes.updater.zypper.method -v "update"
-    json-edit updater.json -a attributes.updater.zypper.licenses_agree --raw -v "true"
-    crowbar updater proposal --file updater.json edit default
+    safely crowbar updater proposal create default
+    safely crowbar updater proposal show default > updater.json
+    safely json-edit updater.json -a attributes.updater.zypper.method -v "update"
+    safely json-edit updater.json -a attributes.updater.zypper.licenses_agree --raw -v "true"
+    safely crowbar updater proposal --file updater.json edit default
     rm updater.json
     crowbar_proposal_commit updater
 }
