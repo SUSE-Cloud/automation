@@ -4727,6 +4727,8 @@ function onadmin_addupdaterepo
 {
     pre_hook $FUNCNAME
 
+    local repos=$UPDATEREPOS
+    local extra_repos=${1}
     local UPR=
     if iscloudver 7plus; then
         UPR=$tftpboot_repos12sp2_dir/PTF
@@ -4737,9 +4739,23 @@ function onadmin_addupdaterepo
     fi
     mkdir -p $UPR
 
-    if [[ $UPDATEREPOS ]]; then
+    # Extra repos can be fetched on demand to the ptf repo
+    # From the variable $UPDATEREPOS_EXTRA the first 'n' repos are added, where n is the parameter to this function
+    # So addupdaterepo can be called repeatedly. Contents of the extra repos are only added but never removed.
+    case $extra_repos in
+        all|0)
+            repos=$UPDATEREPOS_EXTRA ;;
+        [1-9]*)
+            repos="$(echo $UPDATEREPOS_EXTRA | cut -d+ -f1-${extra_repos//[^0-9]/})" ;;
+        '')
+            echo "Info: No extra repos will be fetched from \$UPDATEREPOS_EXTRA." ;;
+        *)
+            complain 13 "Invalid parameter for addupdaterepo. Valid are integers or the string 'all' (0 == all). The value was: $extra_repos" ;;
+    esac
+
+    if [[ $repos ]]; then
         local repo
-        for repo in ${UPDATEREPOS//+/ } ; do
+        for repo in ${repos//+/ } ; do
             safely wget --progress=dot:mega \
                 -r --directory-prefix $UPR \
                 -e robots=off \
