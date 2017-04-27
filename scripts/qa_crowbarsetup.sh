@@ -91,6 +91,8 @@ export want_postgresql=${want_postgresql:-1}
 if iscloudver 6plus ; then
     export CROWBAR_EXPERIMENTAL=true
     export CROWBAR_VERIFY_SSL=false
+    # export crowbar timeout to have the new timeout also in GM without updates
+    export CROWBAR_TIMEOUT=3600
 fi
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
@@ -1747,7 +1749,7 @@ EOF
             puts JSON.pretty_generate(j)" > $pfile
         crowbar ntp proposal --file=$pfile edit default
         rm -f $pfile
-        crowbar ntp proposal commit default
+        crowbar_proposal_commit ntp
     fi
 
     for proposal in crowbar provisioner dns; do
@@ -2147,7 +2149,7 @@ function add_dns_record
             j['attributes']['dns']['records']['$name']['values']=['$ip'];
             puts JSON.pretty_generate(j)" > $pfile
     crowbar dns proposal --file=$pfile edit default
-    crowbar dns proposal commit default
+    crowbar_proposal_commit dns
 }
 
 function onadmin_setup_nfs_server
@@ -3197,6 +3199,18 @@ function set_noproxyvar
     no_proxy="${no_proxy%,}";
 }
 
+# commit a proposal, but use crowbarctl from cloud6 on
+function crowbar_proposal_commit
+{
+    local proposal="$1"
+    local proposaltype="${2:-default}"
+    if iscloudver 6plus ; then
+        safely crowbarctl proposal commit "$proposal" "$proposaltype"
+    else
+        safely crowbar "$proposal" proposal commit "$proposaltype"
+    fi
+}
+
 # configure and commit one proposal
 function update_one_proposal
 {
@@ -3209,8 +3223,8 @@ function update_one_proposal
     date
     # hook for changing proposals:
     custom_configuration $proposal $proposaltypemapped
+    crowbar_proposal_commit "$proposal" $proposaltype
 
-    crowbar "$proposal" proposal commit $proposaltype
     local ret=$?
     echo "Commit exit code: $ret"
     if [ "$ret" = "0" ]; then
@@ -5124,7 +5138,7 @@ function onadmin_cloudupgrade_2nd
 
     echo 'y' | suse-cloud-upgrade upgrade ||\
         complain $? "Upgrade failed with $?"
-    crowbar provisioner proposal commit default
+    crowbar_proposal_commit provisioner
 
     # Allow vendor changes for packages as we might be updating an official
     # Cloud release to something form the Devel:Cloud projects. Note: On the
@@ -5151,7 +5165,7 @@ function onadmin_cloudupgrade_clients
     json-edit updater.json -a attributes.updater.zypper.licenses_agree --raw -v "true"
     crowbar updater proposal --file updater.json edit default
     rm updater.json
-    crowbar updater proposal commit default
+    crowbar_proposal_commit updater
 }
 
 function onadmin_cloudupgrade_reboot_and_redeploy_clients
@@ -5191,8 +5205,7 @@ function onadmin_reapply_openstack_proposals
 
         for proposal in $applied_proposals; do
             echo "Commiting proposal $proposal of barclamp ${barclamp}..."
-            crowbar "$barclamp" proposal commit "$proposal" ||\
-                complain 30 "committing barclamp-$barclamp failed"
+            crowbar_proposal_commit "$barclamp" "$proposal"
         done
     done
 }
