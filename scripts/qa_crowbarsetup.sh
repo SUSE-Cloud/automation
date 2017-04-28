@@ -4786,6 +4786,7 @@ function onadmin_addupdaterepo
     zypper modifyrepo -e cloud-ptf >/dev/null 2>&1 ||\
         safely zypper ar $UPR cloud-ptf
     safely zypper mr -p 90 -r cloud-ptf
+    [[ ! -e $UPR/repodata/repomd.xml.key ]] || safely rpmkeys --import $UPR/repodata/repomd.xml.key
 }
 
 function zypper_patch
