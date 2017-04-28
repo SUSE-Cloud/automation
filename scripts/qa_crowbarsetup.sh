@@ -3437,12 +3437,12 @@ function onadmin_proposal
     # can execute actions from the controller
     get_novacontroller
     # Check if there were any HA failures from the proposals so far
-    oncontroller check_crm_failcounts
+    safely oncontroller check_crm_failcounts
     # For all remaining proposals, check for HA failures after each deployment
     for proposal in `horizon_barclamp` ceilometer heat manila trove \
         barbican magnum sahara murano aodh tempest; do
         deploy_single_proposal $proposal
-        oncontroller check_crm_failcounts
+        safely oncontroller check_crm_failcounts
     done
 
     set_dashboard_alias
