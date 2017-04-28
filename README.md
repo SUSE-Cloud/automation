@@ -2,35 +2,30 @@ This repository contains various scripts which SUSE uses to automate
 development, testing, and CI (continuous integration) of the various
 components of SUSE Cloud, i.e. OpenStack and Crowbar.
 
-# Developer Environments:
-
-* For using the automation repository for development, testing and training please refer
-  the mkcloudruns folder in this repository. Check the readme in there for more details.
-
 # Scripts
 
-This project has several scripts for different automated tasks, some of them are:
+This project has several scripts for different automated tasks. Some of them are:
 
-* create-vm.sh, creates a fresh KVM VM via libvirt.
-* crowbar-prep.sh, prepare a host for Crowbar admin node installation.
-* [`/scripts/mkcloud`](docs/mkcloud.md), script used to build a SUSE Cloud environment
+* create-vm.sh: creates a fresh KVM VM via libvirt.
+* crowbar-prep.sh: prepares a host for Crowbar admin node installation.
+* [`/scripts/mkcloud`](docs/mkcloud.md): builds a SUSE Cloud environment
   for development or testing purposes.
-* repochecker, try to solve runtime dependencies for a given repository
+* repochecker: tries to solve runtime dependencies for a given repository
+* mkcloudruns: runs multiple copies of [`mkcloud`](scripts/mkcloud) for various scenarios.  More details are in the
+  [`README`](mkcloudruns/README.md).
 
 # Documentation
 
-Find out more about configuration/usage
-
-* [`/scripts/mkcloud`](docs/mkcloud.md)
+Find out more about configuration and usage in [`/docs/mkcloud.md`](docs/mkcloud.md)
 
 # License
 
-Files in this repository are licensed under the Apache 2.0 license,
+Files in this repository are licensed under the Apache 2.0 license
 unless stated otherwise. See [the LICENSE file](LICENSE) for details.
 
 # Contributing
 
-This project uses the pull requests to process contributions,
+This project uses pull requests to process contributions and
 [travis-ci](http://travis-ci.org/) to test that your changes are OK to be
 merged.
 
@@ -49,7 +44,7 @@ $ sudo pip install bashate
 ```
 
 Once you have installed bashate and the changes you wanted, you should check the
-syntax of the shell scripts running `make test`, here is an example output of
+syntax of the shell scripts running `make test`. Here is an example output of
 a successful execution:
 
 ```
@@ -79,7 +74,7 @@ jenkins/track-upstream-and-package.pl syntax OK
 ```
 
 # jenkins jobs
-There are manually maintained jobs and some jobs are now using
+There are manually maintained jobs, and some jobs are now using
 [jenkins-job-builder](http://docs.openstack.org/infra/jenkins-job-builder/)
 which defines jobs in yaml format. New jobs should always be defined
 in yaml format.
@@ -92,7 +87,7 @@ They can also be deployed manually via Makefile targets
 make cisd_deploy # deploys ci.suse.de jobs
 make cioo_deploy # deploys ci.opensuse.org jobs
 ```
-This requires to setup jenkins job builder locally:
+This requires setting up jenkins job builder locally:
 
 * Install SUSE CA certificate package as described in http://ca.suse.de/gettingstarted/
 * Install jenkins-job-builder:

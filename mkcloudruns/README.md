@@ -4,9 +4,9 @@ MkCloud Runs
 # Description
 
 Run multiple copies of various scenarios of SUSE OpenStack Cloud product
-using mkcloud ([automation repository](https://github.com/SUSE-Cloud/automation)).
+using [mkcloud](../scripts/mkcloud).
 
-This repository is basically a wrapper which automates the boilerplate required
+This directory contains a wrapper which automates the boilerplate required
 to start mkcloud with the right configuration settings. Even for non-beginners
 this boilerplate wrapper script should be really handy due to the overwhelming
 amount of configuration options and environment variables used by mkcloud :|.
@@ -23,7 +23,7 @@ Follow these steps to deploy the required SUSE Cloud setup.
 ## Initial Setup
 
 * Clone the repository
-* Setup up libvirt, KVM,LVM as per the automation repo, follow [this link](https://github.com/dguitarbite/automation/blob/master/docs/mkcloud.md)
+* Setup up libvirt, KVM, and LVM. Follow [this link](../docs/mkcloud.md)
 * Create a LVM drive either using dd or give it one partition from your disk
 drive.
 * Create PV and VG give the VG name in the config file.
@@ -60,9 +60,9 @@ drive.
     $ sudo service SuSEfirewall2 off
     ```
 
-### Setup storage for mkcloud.
+### Setup storage for mkcloud
 
-#### Using file as a disk.
+#### Using file as a disk
 
 *Note:* Skip this step if you have a dedicated partition or disk for LVM.
 
@@ -86,18 +86,17 @@ To use mkcloud the following additional steps are needed:
   $ sudo losetup
   ```
 
-* Set the `cloudpv` variable in (mkcloudrun)[mkcloudrun] script for using this disk.
+* Set the `cloudpv` variable in [SUSECloud.mkcloud](mkcloudconfig/SUSECloud.mkcloud) for using this disk.
   - Ex: export cloudpv=/dev/loop0
   - Replace /dev/loop0 with your LVM partition if you want to use a dedicated PV.
 
 
-##Deploy SUSE Cloud
+## Deploy SUSE Cloud
 
-* Configure storage options in the (mkcloudrun)[mkcloudrun] script. Read the comments under LVM.
-* Go to the required folder and run the script `*.mkcloud*`.
-* Ex.:
+* Configure storage options in the [SUSECloud.mkcloud](mkcloudconfig/SUSECloud.mkcloud) script. Read the comments under LVM.
+* Go to the [`mkcloudruns`](.) folder and run the script `install_suse_cloud`. For example,
     ```
-    $ cd mkcloudconfig/
+    $ cd mkcloudruns/mkcloudconfig
     $ cp template user.cloud<ver>
     $ ...
     $ cd ..; sudo ./install_suse_cloud
@@ -110,7 +109,7 @@ To use mkcloud the following additional steps are needed:
     ```
   To move around in the screen session use the command `<C-R>-a, <tab number>`.
   **Note:** The screen session are mostly invoked as root user, try to use ``sudo screen`` or access as a root user.
-* Monitor the VMs via. virt-manager or virsh. Virt-manager should give you a GUI and easier to use for new users.
+* Monitor the VMs via virt-manager or virsh. The virt-manager GUI is easier to use for new users.
 * After the deployment access the dashboards:
   - Crowbar/Admin Dashboard:
     + URL: `http://192.168.52.10:3000` *For DevelCloud5.mkcloud1 only*
@@ -120,15 +119,15 @@ To use mkcloud the following additional steps are needed:
     + Admin User: `admin` Pass: `crowbar`
     + OpenStack User: `crowbar` Pass: `crowbar`
 
-##Parallel Mkclouds
+## Parallel Mkclouds
 
 * To find out the required IP addresses of the mkcloud steup, go through the
-  mkcloudrun file in this folder. Usually the formual is good to guess the
-required IP addresses.
+  [SUSECloud.mkcloud](mkcloudconfig/SUSECloud.mkcloud) script. Usually the formula is good to guess the
+  required IP addresses.
 * Crowbar admin IP is at xxx.10.
 * Ex: For `cloud number 5` the ip for admin node is 192.168.60.10
 
-##RoadMap
+## Roadmap for future development
 
 * Add basic CLI to `install_suse_cloud`.
 * Modify the scripts based on others feedback and requirements.
