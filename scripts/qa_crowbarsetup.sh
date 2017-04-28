@@ -4802,6 +4802,18 @@ function onadmin_zypper_patch_all
     wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
 }
 
+function onadmin_wait_for_crowbar_api
+{
+    if iscloudver 6plus ; then
+        # The crowbar service might have been restarted during the zypper patch.
+        # Wait for it to answer queries again to not break any further mkcloud
+        # steps that might be executed after "runupdate".
+        if systemctl --quiet is-enabled crowbar.service; then
+            wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar service to restart"
+        fi
+    fi
+}
+
 function onadmin_runupdate
 {
     onadmin_repocleanup
@@ -4813,15 +4825,7 @@ function onadmin_runupdate
     [[ $host_mtu ]] && ip link set mtu $host_mtu dev eth0
 
     zypper_patch
-
-    if iscloudver 6plus ; then
-        # The crowbar service might have been restarted during the zypper patch.
-        # Wait for it to answer queries again to not break any further mkcloud
-        # steps that might be executed after "runupdate".
-        if systemctl --quiet is-enabled crowbar.service; then
-            wait_for 20 10 "onadmin_is_crowbar_api_available" "crowbar service to restart"
-        fi
-    fi
+    onadmin_wait_for_crowbar_api
 }
 
 function get_proposal_role_elements
@@ -5158,13 +5162,14 @@ function onadmin_zypper_update
 function onadmin_cloudupgrade_clients
 {
     pre_hook $FUNCNAME
+    # make sure the api is accessible
+    onadmin_wait_for_crowbar_api
     # Upgrade Packages on the client nodes
-    crowbar updater proposal create default
-    crowbar updater proposal show default > updater.json
-    json-edit updater.json -a attributes.updater.zypper.method -v "update"
-    json-edit updater.json -a attributes.updater.zypper.licenses_agree --raw -v "true"
-    crowbar updater proposal --file updater.json edit default
-    rm updater.json
+    safely crowbar updater proposal create default
+    safely crowbar updater proposal show default > updater.json
+    safely json-edit updater.json -a attributes.updater.zypper.method -v "update"
+    safely json-edit updater.json -a attributes.updater.zypper.licenses_agree --raw -v "true"
+    safely crowbar updater proposal --file updater.json edit default
     crowbar_proposal_commit updater
 }
 
