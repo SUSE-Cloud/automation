@@ -199,13 +199,16 @@ function nodes
     local query=${1:number}
     local type=${2:all}
     local start_id=1
-    local end_id=$(($nodenumber + $nodenumberlonelynode))
+    local end_id=$(($nodenumber + $nodenumberlonelynode + $nodenumberironicnode))
     case $type in
         normal|pxe)
             end_id=$nodenumber
         ;;
         lonely|preinstalled)
             start_id=$(($nodenumber + 1))
+        ;;
+        ironic)
+            start_id=$(($nodenumber + $nodenumberlonelynode + 1))
         ;;
         all)
         ;;
@@ -599,6 +602,7 @@ fi
 : ${networkingplugin:=openvswitch}
 : ${architectures:='aarch64 x86_64 s390x'}
 : ${nodenumberlonelynode:=0}
+: ${nodenumberironicnode:=0}
 : ${want_mtu_size:=1500}
 # proposals:
 : ${want_magnum_proposal:=0}
