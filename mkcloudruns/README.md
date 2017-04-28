@@ -16,84 +16,13 @@ amount of configuration options and environment variables used by mkcloud :|.
 - The perfect world:
     > We do not need these scripts!
 
-# Deploying SUSE CLoud
+# Deploy SUSE Cloud
 
-Follow these steps to deploy the required SUSE Cloud setup.
-
-## Initial Setup
-
-* Clone the repository
-* Setup up libvirt, KVM, and LVM. Follow [this link](../docs/mkcloud.md)
-* Create a LVM drive either using dd or give it one partition from your disk
-drive.
-* Create PV and VG give the VG name in the config file.
-
-### Libvirt
-
-* Check if `libvirtd` is running and if it isn't start it.
-
-  ```
-  $ sudo systemctl status libvirtd.service # to check the status
-  $ sudo systemctl start libvirtd.service # to start the daemon
-  ```
-
-  It's recommended to configure libvirtd to start on boot.
-    ```
-    $ sudo systemctl enable libvirtd.service
-    ```
-
-* Turn off the firewall, otherwise there are going to be conflicts with the
-  rules added by `libvirt`.
-
-  ```
-  $ sudo service SuSEfirewall2 stop
-  ```
-
-  Disable the firewall service to prevent it from starting on boot.
-
-  * Using systemd:
-    ```
-    $ sudo systemctl disable SuSEfirewall2
-    ```
-  * Using SysV:
-    ```
-    $ sudo service SuSEfirewall2 off
-    ```
-
-### Setup storage for mkcloud
-
-#### Using file as a disk
-
-*Note:* Skip this step if you have a dedicated partition or disk for LVM.
-
-To use mkcloud the following additional steps are needed:
-
-* Create a disk file where the virtual machines are going to be stored. The
-  minimum recommended is 80 GB.
-
-  ```
-  $ fallocate -l 80G mkcloud.disk
-  ```
-
-* Attach the created disk file to a loop device
-
-  ```
-  $ sudo losetup -f mkcloud.disk
-  ```
-
-* Check the location of the loop device. Something like `/dev/loop0`.
-  ```
-  $ sudo losetup
-  ```
-
-* Set the `cloudpv` variable in [SUSECloud.mkcloud](mkcloudconfig/SUSECloud.mkcloud) for using this disk.
+* Follow the instructions for installing and configuring [mkcloud](../docs/mkcloud.md).
+* Configure storage options in the [SUSECloud.mkcloud](mkcloudconfig/SUSECloud.mkcloud) script. Read the comments under LVM.
   - Ex: export cloudpv=/dev/loop0
   - Replace /dev/loop0 with your LVM partition if you want to use a dedicated PV.
 
-
-## Deploy SUSE Cloud
-
-* Configure storage options in the [SUSECloud.mkcloud](mkcloudconfig/SUSECloud.mkcloud) script. Read the comments under LVM.
 * Go to the [`mkcloudruns`](.) folder and run the script `install_suse_cloud`. For example,
     ```
     $ cd mkcloudruns/mkcloudconfig
@@ -119,7 +48,7 @@ To use mkcloud the following additional steps are needed:
     + Admin User: `admin` Pass: `crowbar`
     + OpenStack User: `crowbar` Pass: `crowbar`
 
-## Parallel Mkclouds
+# Parallel Mkclouds
 
 * To find out the required IP addresses of the mkcloud steup, go through the
   [SUSECloud.mkcloud](mkcloudconfig/SUSECloud.mkcloud) script. Usually the formula is good to guess the
@@ -127,7 +56,7 @@ To use mkcloud the following additional steps are needed:
 * Crowbar admin IP is at xxx.10.
 * Ex: For `cloud number 5` the ip for admin node is 192.168.60.10
 
-## Roadmap for future development
+# Roadmap for future development
 
 * Add basic CLI to `install_suse_cloud`.
 * Modify the scripts based on others feedback and requirements.
