@@ -4031,6 +4031,7 @@ function oncontroller_check_crm_failcounts
     if iscloudver 7plus && [[ $hacloud = 1 ]] ; then
         crm_mon --failcounts -1 | grep "fail-count=" && complain 55 "Cluster resources' failures detected"
     fi
+    return 0
 }
 
 # code run on controller/dashboard node to do basic tests of deployed cloud
