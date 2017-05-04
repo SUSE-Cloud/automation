@@ -4245,6 +4245,7 @@ function oncontroller_testsetup
     local volumeattachret=0
     local volumeresult=""
     local portresult=0
+    local dnsresult=0
 
     # do volume tests for non-docker scenario only
     if [ -z "$want_docker" ] ; then
@@ -4267,6 +4268,9 @@ function oncontroller_testsetup
         ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
         ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
         volumeresult="$volumecreateret & $volumeattachret"
+
+        # Check for DNS available inside instances
+        ssh $ssh_target getent hosts www.google.com || dnsresult=59
     else
         volumeresult="tests skipped (not supported for docker)"
     fi
@@ -4351,10 +4355,11 @@ function oncontroller_testsetup
     echo "RadosGW Tests: $radosgwret"
     echo "Tempest: $tempestret"
     echo "Volume in VM: $volumeresult"
+    echo "DNS inside VM: $dnsresult"
     echo "Ports in binding_failed: $portresult"
 
     test $tempestret = 0 -a $volumecreateret = 0 -a $volumeattachret = 0 \
-        -a $radosgwret = 0 -a $portresult = 0 || exit 102
+        -a $radosgwret = 0 -a $volumeresult = 0 -a $portresult = 0 || exit 102
 }
 
 
