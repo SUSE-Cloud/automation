@@ -45,34 +45,6 @@ function to_fqdn
     get_getent_hosts $1 fqdn
 }
 
-
-# defaults for generic common variables
-: ${arch:=$(uname -m)}
-: ${admin_image_password:='linux'}
-: ${images_dir:="cloud/images/$arch"}
-: ${clouddatadns:=clouddata.nue.suse.com}
-: ${clouddata:=$(dig -t A +short $clouddatadns)}
-: ${clouddata_base_path:="/repos"}
-: ${clouddata_nfs:=$clouddata}
-: ${clouddata_nfs_dir:='srv/nfs'}
-: ${distsuse:=dist.nue.suse.com}
-distsuseip=$(dig -t A +short $distsuse)
-: ${susedownload:=download.nue.suse.com}
-: ${smturl:="http://$susedownload/update/build.suse.de"}
-if [[ $UID != 0 ]] ; then
-    : ${sudo:=sudo}
-    PATH=/sbin:/usr/sbin:/usr/local/sbin:$PATH
-fi
-: ${libvirt_type:=kvm}
-: ${networkingplugin:=openvswitch}
-: ${architectures:='aarch64 x86_64 s390x'}
-: ${nodenumberlonelynode:=0}
-: ${want_mtu_size:=1500}
-# proposals:
-: ${want_magnum_proposal:=0}
-: ${want_monasca_proposal:=0}
-: ${want_murano_proposal:=0}
-
 function max
 {
     echo $(( $1 > $2 ? $1 : $2 ))
@@ -562,3 +534,34 @@ function dist_to_image_name
 }
 
 # ---- END: functions related to repos and distribution settings
+
+# ---- START: common variables and defaults
+
+# defaults for generic common variables
+: ${arch:=$(uname -m)}
+: ${admin_image_password:='linux'}
+: ${images_dir:="cloud/images/$arch"}
+: ${clouddatadns:=clouddata.nue.suse.com}
+: ${clouddata:=$(dig -t A +short $clouddatadns)}
+: ${clouddata_base_path:="/repos"}
+: ${clouddata_nfs:=$clouddata}
+: ${clouddata_nfs_dir:='srv/nfs'}
+: ${distsuse:=dist.nue.suse.com}
+distsuseip=$(dig -t A +short $distsuse)
+: ${susedownload:=download.nue.suse.com}
+: ${smturl:="http://$susedownload/update/build.suse.de"}
+if [[ $UID != 0 ]] ; then
+    : ${sudo:=sudo}
+    PATH=/sbin:/usr/sbin:/usr/local/sbin:$PATH
+fi
+: ${libvirt_type:=kvm}
+: ${networkingplugin:=openvswitch}
+: ${architectures:='aarch64 x86_64 s390x'}
+: ${nodenumberlonelynode:=0}
+: ${want_mtu_size:=1500}
+# proposals:
+: ${want_magnum_proposal:=0}
+: ${want_monasca_proposal:=0}
+: ${want_murano_proposal:=0}
+
+# ---- END: common variables and defaults
