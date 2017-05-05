@@ -1714,6 +1714,7 @@ function do_installcrowbar
 
     ## common code - installer agnostic
     [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
+    sed -i -e 's/timeout = 500/timeout = 3600/' /opt/dell/bin/barclamp_lib.rb
 
     if [ -n "$wanthyperv" ] ; then
         # prepare Hyper-V 2012 R2 PXE-boot env and export it via Samba:
