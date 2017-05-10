@@ -33,6 +33,11 @@ function do_git
 
     if [ -d $a_dir/.git ] ; then
         pushd $a_dir > /dev/null
+            local n=100
+            while [[ $(find .git -name "*.lock") ]] && [[ $n -gt 0 ]] ; do
+                sleep $((3+RANDOM%10))
+                n=$((n-1))
+            done
             git clean -f
             git checkout $branch
             git fetch origin
