@@ -1,0 +1,20 @@
+#!/bin/sh
+n=$1
+shift
+[ -z "$n" ] && echo usage: "$0 NUM" && exit 55
+if [ $n -lt 1 -o $n -gt 6 ] ; then
+  echo "$n out of range"
+  exit 56
+fi
+
+cloudfunc=$(dirname $(readlink -e $BASH_SOURCE))/cloudfunc
+. $cloudfunc
+: ${vcloudname:=c}
+
+export net_admin=$(cloudadminnet $n)
+export net_public=$(cloudpublicnet $n)
+export adminnetmask=255.255.254.0
+export virtualcloud=$vcloudname$n
+export cloud=$virtualcloud
+export cloud_port_offset=$((10000*$n))
+#exec bash -x ./mkcloud "$@"
