@@ -103,7 +103,7 @@ def get_memballoon_type():
     </memballoon>"""
 
     return """    <memballoon model='virtio' autodeflate='on'>
-      <address type='pci' slot='0x05'/>
+      <address type='pci' bus='0x02' slot='0x01'/>
     </memballoon>"""
 
 
@@ -117,7 +117,7 @@ def get_serial_device():
 
 
 def get_mainnic_address(index):
-    mainnicaddress = "<address type='pci' slot='%s'/>" % (hex(index + 0x3))
+    mainnicaddress = "<address type='pci' bus='0x01' slot='%s'/>" % (hex(index + 0x1))
     if 's390x' in get_machine_arch():
         mainnicaddress = "<address type='ccw' cssid='0xfe' ssid='0x0' " \
                                          "devno='%s'/>" % \
