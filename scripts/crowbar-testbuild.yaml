@@ -1,8 +1,4 @@
 branches:
-  release/tex/master:
-    bs_project:  Devel:Cloud:5:Staging
-    bs_repo:     SLE_11_SP3
-    cloudsource: develcloud5
   stable/3.0:
     bs_project:  Devel:Cloud:6:Staging
     bs_repo:     SLE_12_SP1

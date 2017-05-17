@@ -65,42 +65,6 @@
               crowbar-hyperv
               crowbar-init
               crowbar-openstack
-              barclamp-ceilometer
-              barclamp-ceph
-              barclamp-cinder
-              barclamp-cisco-ucs
-              barclamp-crowbar
-              barclamp-database
-              barclamp-dell_raid
-              barclamp-deployer
-              barclamp-dns
-              barclamp-ganglia
-              barclamp-glance
-              barclamp-heat
-              barclamp-ipmi
-              barclamp-keystone
-              barclamp-logging
-              barclamp-manila
-              barclamp-network
-              barclamp-neutron
-              barclamp-nfs_client
-              barclamp-nova
-              barclamp-nova_dashboard
-              barclamp-ntp
-              barclamp-openstack
-              barclamp-pacemaker
-              barclamp-provisioner
-              barclamp-rabbitmq
-              barclamp-raid
-              barclamp-suse-manager-client
-              barclamp-swift
-              barclamp-tempest
-              barclamp-trove
-              barclamp-updater
-          )
-
-          declare -a master_branches_old=(
-              release/tex/master
           )
 
           declare -a master_branches=(
@@ -109,20 +73,7 @@
           )
 
           for repo in ${crowbar_repos[@]}; do
-              declare -a branches=()
-              case $repo in
-                  crowbar)
-                      branches=( "${master_branches_old[@]}" "${master_branches[@]}" )
-                      ;;
-                  crowbar-*)
-                      branches=${master_branches[@]}
-                      ;;
-                  barclamp-*)
-                      branches=${master_branches_old[@]}
-                      ;;
-              esac
-
-              for branch in ${branches[@]} ; do
+              for branch in ${master_branches[@]} ; do
                   for github_pr in $(timeout 4m $ghs -r crowbar/$repo -a $action -b $branch --context "suse/mkcloud/testbuild") ; do
                       github_pr_opts=(${github_pr//:/ })
                       github_pr_id=${github_pr_opts[0]}
