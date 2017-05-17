@@ -34,7 +34,7 @@ $rsync $ibsmaint/SLE-HAE\:/11-SP3\:/x86_64/update/ /srv/nfs/repos/SLE11-HAE-SP3-
 # SLE 12
 ##############
 
-for servicepack in 0 1 2; do
+for servicepack in 0 1 2 3; do
     # fetch latest code from service pack in development (not just latest beta)
     sync_from_ibs=
     [ $servicepack -eq 3 ] && sync_from_ibs=1
@@ -58,10 +58,12 @@ for servicepack in 0 1 2; do
 
         echo ================== Updating SLE 12 SP$servicepack for $arch
 
+        destdir=/srv/nfs/suse-${chef_version}${install_subdir}/install/
+        mkdir -p $destdir
         if test -d /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ ; then
-            $rsync /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ /srv/nfs/suse-${chef_version}${install_subdir}/install/
+            $rsync /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ $destdir
         else
-            $rsync /mnt/dist/install/SLP/SLE-$version-Server-TEST/$arch/DVD1/ /srv/nfs/suse-${chef_version}${install_subdir}/install/
+            $rsync /mnt/dist/install/SLP/SLE-$version-Server-TEST/$arch/DVD1/ $destdir
         fi
 
         # SLES pool
