@@ -278,24 +278,24 @@ function export_tftpboot_repos_dir
 
 function addsp3testupdates
 {
-    add_mount "SLES11-SP3-Updates" \
+    add_mount "repos/SLES11-SP3-Updates" \
         $clouddata':/srv/nfs/repos/SLES11-SP3-Updates/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates/" "sp3up"
-    add_mount "SLES11-SP3-Updates-test" \
+    add_mount "repos/SLES11-SP3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
-    [[ $hacloud = 1 ]] && add_mount "SLE11-HAE-SP3-Updates-test" \
+    [[ $hacloud = 1 ]] && add_mount "repos/SLE11-HAE-SP3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/' \
         "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/"
 }
 
 function addsles12testupdates
 {
-    add_mount "SLES12-Updates-test" \
+    add_mount "repos/SLES12-GA-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
         "$tftpboot_repos12_dir/SLES12-Updates-test/"
     if [ -n "$deployceph" ]; then
-        add_mount "SUSE-Enterprise-Storage-1.0-Updates-test" \
+        add_mount "repos/SUSE-Enterprise-Storage-1.0-Updates-Test" \
             $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
             "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/"
     fi
@@ -304,18 +304,18 @@ function addsles12testupdates
 function addsles12sp1testupdates
 {
     if isrepoworking SLES12-SP1-Updates-test ; then
-        add_mount "SLES12-SP1-Updates-test" \
+        add_mount "repos/SLES12-SP1-Updates-test" \
             $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/$arch/update/" \
             "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     fi
     if isrepoworking SLE12-SP1-HA-Updates-test ; then
-        [[ $hacloud = 1 ]] && add_mount "SLE12-SP1-HA-Updates-test" \
+        [[ $hacloud = 1 ]] && add_mount "repos/SLE12-SP1-HA-Updates-test" \
             $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/$arch/update/" \
             "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     fi
     if isrepoworking SUSE-Enterprise-Storage-2.1-Updates-test ; then
         if [ -n "$deployceph" ] && iscloudver 6; then
-            add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
+            add_mount "repos/SUSE-Enterprise-Storage-2.1-Updates-Test" \
                       $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$arch/update/" \
                       "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
         fi
@@ -325,18 +325,18 @@ function addsles12sp1testupdates
 function addsles12sp2testupdates
 {
     if isrepoworking SLES12-SP2-Updates-test ; then
-        add_mount "SLES12-SP2-Updates-test" \
+        add_mount "repos/SLES12-SP2-Updates-test" \
             $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/$arch/update/" \
             "$tftpboot_repos12sp2_dir/SLES12-SP2-Updates-test/" "sles12sp2tup"
     fi
     if isrepoworking SLE12-SP2-HA-Updates-test ; then
-        [[ $hacloud = 1 ]] && add_mount "SLE12-SP2-HA-Updates-test" \
+        [[ $hacloud = 1 ]] && add_mount "repos/SLE12-SP2-HA-Updates-test" \
             $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/$arch/update/" \
             "$tftpboot_repos12sp2_dir/SLE12-SP2-HA-Updates-test/"
     fi
     if isrepoworking SUSE-Enterprise-Storage-4-Updates-test ; then
         if [ -n "$deployceph" ] && iscloudver 7plus; then
-            add_mount "SUSE-Enterprise-Storage-4-Updates-test" \
+            add_mount "repos/$arch/SUSE-Enterprise-Storage-4-Updates-Test" \
                       $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/4:/$arch/update/" \
                       "$tftpboot_repos12sp2_dir/SUSE-Enterprise-Storage-4-Updates-test/"
         fi
@@ -345,42 +345,42 @@ function addsles12sp2testupdates
 
 function addcloud4maintupdates
 {
-    add_mount "SUSE-Cloud-4-Updates" \
+    add_mount "repos/SUSE-Cloud-4-Updates" \
         $clouddata':/srv/nfs/repos/SUSE-Cloud-4-Updates/' \
         "$tftpboot_repos_dir/SUSE-Cloud-4-Updates/" "cloudmaintup"
 }
 
 function addcloud4testupdates
 {
-    add_mount "SUSE-Cloud-4-Updates-test" \
+    add_mount "repos/SUSE-Cloud-4-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/' \
         "$tftpboot_repos_dir/SUSE-Cloud-4-Updates-test/" "cloudtup"
 }
 
 function addcloud5maintupdates
 {
-    add_mount "SUSE-Cloud-5-Updates" \
+    add_mount "repos/SUSE-Cloud-5-Updates" \
         $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Updates/' \
         "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" \
         "cloudmaintup"
-    add_mount "SUSE-Cloud-5-SLE-12-Updates" \
+    add_mount "repos/SUSE-Cloud-5-SLE-12-Updates" \
         $clouddata':/srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/' \
         "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates/"
 }
 
 function addcloud5testupdates
 {
-    add_mount "SUSE-Cloud-5-Updates-test" \
+    add_mount "repos/SUSE-Cloud-5-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/' \
         "$tftpboot_repos_dir/SUSE-Cloud-5-Updates-test/" "cloudtup"
-    add_mount "SUSE-Cloud-5-SLE-12-Updates-test" \
+    add_mount "repos/SUSE-Cloud-5-SLE-12-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update' \
         "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/"
 }
 
 function addcloud5pool
 {
-    add_mount "SUSE-Cloud-5-Pool" \
+    add_mount "repos/SUSE-Cloud-5-Pool" \
         $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Pool/' \
         "$tftpboot_repos_dir/SUSE-Cloud-5-Pool/" \
         "cloudpool"
@@ -388,29 +388,29 @@ function addcloud5pool
 
 function addcloud6maintupdates
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Updates" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-6-Updates/" "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates/" "cloudmaintup"
+    add_mount "repos/SUSE-OpenStack-Cloud-6-Updates" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-6-Updates/" "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates/" "cloudmaintup"
 }
 
 function addcloud6testupdates
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
+    add_mount "repos/SUSE-OpenStack-Cloud-6-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
         "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
 }
 
 function addcloud6pool
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Pool" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-6-Pool/" "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Pool/" "cloudpool"
+    add_mount "repos/SUSE-OpenStack-Cloud-6-Pool" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-6-Pool/" "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Pool/" "cloudpool"
 }
 
 function addcloud7pool
 {
-    add_mount "SUSE-OpenStack-Cloud-7-Pool" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-7-Pool/" "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Pool/" "cloudpool"
+    add_mount "repos/$arch/SUSE-OpenStack-Cloud-7-Pool" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-7-Pool/" "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Pool/" "cloudpool"
 }
 
 function addcloud7maintupdates
 {
-    add_mount "SUSE-OpenStack-Cloud-7-Updates" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-7-Updates/" "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates/" "cloudmaintup"
+    add_mount "repos/$arch/SUSE-OpenStack-Cloud-7-Updates" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-7-Updates/" "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates/" "cloudmaintup"
 }
 
 function addcloud7testupdates
@@ -484,7 +484,7 @@ function add_ha_repo
     for repo in SLE11-HAE-SP3-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo/sle-11-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
+        add_mount "repos/$repo" "$clouddata:/srv/nfs/repos/$repo" \
             "$tftpboot_repos_dir/$repo"
     done
 }
@@ -495,7 +495,7 @@ function add_ha12sp1_repo
     for repo in SLE12-SP1-HA-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo" "$clouddata_nfs:/$clouddata_nfs_dir/repos/$repo" \
+        add_mount "repos/$repo" "$clouddata_nfs:/$clouddata_nfs_dir/repos/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
     done
 }
@@ -506,7 +506,7 @@ function add_ha12sp2_repo
     for repo in SLE12-SP2-HA-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo" "$clouddata:/srv/nfs/repos/$arch/$repo" \
+        add_mount "repos/$repo" "$clouddata:/srv/nfs/repos/$arch/$repo" \
             "$tftpboot_repos12sp2_dir/$repo"
     done
 }
@@ -518,7 +518,7 @@ function add_suse_storage_repo
             for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
-                add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+                add_mount "repos/$repo" "$clouddata:/srv/nfs/repos/$repo" \
                     "$tftpboot_repos12_dir/$repo"
             done
         fi
@@ -526,7 +526,7 @@ function add_suse_storage_repo
             for repo in SUSE-Enterprise-Storage-2.1-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
-                add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+                add_mount "repos/$repo" "$clouddata:/srv/nfs/repos/$repo" \
                     "$tftpboot_repos12sp1_dir/$repo"
             done
         fi
@@ -534,7 +534,8 @@ function add_suse_storage_repo
             for repo in SUSE-Enterprise-Storage-4-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
-                add_mount "$repo" "$clouddata:/srv/nfs/repos/$arch/$repo" \
+                # FIXME
+                add_mount "repos/$repo" "$clouddata:/srv/nfs/repos/$arch/$repo" \
                     "$tftpboot_repos12sp2_dir/$repo"
             done
         fi
@@ -732,7 +733,7 @@ function onadmin_prepare_sles11sp3_repos
     local targetdir_install="$tftpboot_suse_dir/install"
 
     if [ -n "${localreposdir_target}" ]; then
-        add_mount "SUSE-Cloud-SLE-11-SP3-deps/sle-11-x86_64/" "" \
+        add_mount "repos/SUSE-Cloud-SLE-11-SP3-deps/" "" \
             "${targetdir_install}" "Cloud-Deps"
         zypper_refresh
     else
@@ -843,7 +844,7 @@ function onadmin_prepare_sles12plus_cloud_repos
 function onadmin_prepare_sles12_installmedia
 {
     local sles12_mount="$tftpboot_suse12_dir/install"
-    add_mount "SLE-12-Server-LATEST/sle-12-x86_64" \
+    add_mount "suse-12.0/install" \
         "$clouddata:/srv/nfs/suse-12.0/install" \
         "$sles12_mount"
 
@@ -857,7 +858,7 @@ function onadmin_prepare_sles12sp1_installmedia
     local a
     for a in $architectures; do
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$a/install"
-        add_mount "SLE-12-SP1-Server-LATEST/sle-12-$a" \
+        add_mount "suse-12.1/$a/install" \
             "$clouddata_nfs:/$clouddata_nfs_dir/suse-12.1/$a/install" \
             "$sles12sp1_mount"
 
@@ -872,7 +873,7 @@ function onadmin_prepare_sles12sp2_installmedia
     local a
     for a in $architectures; do
         local sles12sp2_mount="$tftpboot_suse12sp2_dir/$a/install"
-        add_mount "SLE-12-SP2-Server-TEST/sle-12-$a" \
+        add_mount "suse-12.2/$a/install" \
             "$clouddata:/srv/nfs/suse-12.2/$a/install" \
             "$sles12sp2_mount"
 
@@ -885,7 +886,7 @@ function onadmin_prepare_sles12sp2_installmedia
 function onadmin_prepare_sles12_other_repos
 {
     for repo in SLES12-{Pool,Updates}; do
-        add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
+        add_mount "repos/$repo" "$clouddata:/srv/nfs/repos/$repo" \
             "$tftpboot_repos12_dir/$repo"
     done
 }
@@ -893,10 +894,10 @@ function onadmin_prepare_sles12_other_repos
 function onadmin_prepare_sles12sp1_other_repos
 {
     for repo in SLES12-SP1-{Pool,Updates}; do
-        add_mount "$repo/sle-12-$arch" "$clouddata_nfs:/$clouddata_nfs_dir/repos/$arch/$repo" \
+        add_mount "repos/$arch/$repo" "$clouddata_nfs:/$clouddata_nfs_dir/repos/$arch/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
         if [[ $want_s390 ]] ; then
-            add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
+            add_mount "repos/s390x/$repo" "$clouddata:/srv/nfs/repos/s390x/$repo" \
                 "$tftpboot_suse12sp1_dir/s390x/repos/$repo"
         fi
     done
@@ -905,10 +906,10 @@ function onadmin_prepare_sles12sp1_other_repos
 function onadmin_prepare_sles12sp2_other_repos
 {
     for repo in SLES12-SP2-{Pool,Updates}; do
-        add_mount "$repo/sle-12-$arch" "$clouddata:/srv/nfs/repos/$arch/$repo" \
+        add_mount "repos/$arch/$repo" "$clouddata:/srv/nfs/repos/$arch/$repo" \
             "$tftpboot_repos12sp2_dir/$repo"
         if [[ $want_s390 ]] ; then
-            add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
+            add_mount "$repo/s390x/$repo" "$clouddata:/srv/nfs/repos/s390x/$repo" \
                 "$tftpboot_suse12sp2_dir/s390x/repos/$repo"
         fi
     done
@@ -929,11 +930,11 @@ function onadmin_prepare_cloud_repos
     if [ -n "${localreposdir_target}" ]; then
         if iscloudver 6plus; then
             add_bind_mount \
-                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-12-$arch/" \
+                "${localreposdir_target}/repos/${CLOUDLOCALREPOS}/" \
                 "${targetdir}"
         else
             add_bind_mount \
-                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-$arch/" \
+                "${localreposdir_target}/repos/${CLOUDLOCALREPOS}/" \
                 "${targetdir}"
         fi
     else
@@ -1330,7 +1331,7 @@ function onadmin_setup_local_zypper_repositories
     # restore needed repos depending on localreposdir_target
     if [ -n "${localreposdir_target}" ]; then
         mount_localreposdir_target
-        uri_base="file:///repositories"
+        uri_base="file:///repositories/repos"
     fi
     case $(getcloudver) in
         4|5)
