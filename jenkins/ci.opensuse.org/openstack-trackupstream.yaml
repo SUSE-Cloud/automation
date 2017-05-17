@@ -14,7 +14,6 @@
           type: user-defined
           name: project
           values:
-            - Cloud:OpenStack:Liberty:Staging
             - Cloud:OpenStack:Mitaka:Staging
             - Cloud:OpenStack:Newton:Staging
             - Cloud:OpenStack:Ocata:Staging
@@ -84,23 +83,7 @@
             - cloud-trackupstream
     execution-strategy:
       combination-filter: |
-        ! ( [ "Cloud:OpenStack:Liberty:Staging" ].contains(project) &&
-            [ "openstack-magnum",
-              "openstack-barbican",
-              "openstack-horizon-plugin-ironic-ui",
-              "openstack-horizon-plugin-magnum-ui",
-              "openstack-horizon-plugin-monasca-ui",
-              "openstack-monasca-agent",
-              "openstack-monasca-api",
-              "openstack-monasca-log-agent",
-              "openstack-monasca-log-api",
-              "openstack-monasca-notification",
-              "openstack-monasca-persister",
-              "openstack-octavia",
-              "python-monasca-common",
-              "python-monasca-statsd",
-            ].contains(component) ||
-            [ "Cloud:OpenStack:Liberty:Staging", "Cloud:OpenStack:Mitaka:Staging" ].contains(project) &&
+        ! ( [ "Cloud:OpenStack:Mitaka:Staging" ].contains(project) &&
             [
             "openstack-murano",
             "openstack-horizon-plugin-neutron-lbaas-ui",
@@ -108,7 +91,7 @@
             "openstack-horizon-plugin-trove-ui",
             "openstack-zaqar",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Ocata:Staging", "Cloud:OpenStack:Newton:Staging", "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Liberty:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Ocata:Staging", "Cloud:OpenStack:Newton:Staging", "Cloud:OpenStack:Mitaka:Staging" ].contains(project) &&
             [
               "python-heat-cfntools",
               "openstack-rally",
@@ -138,11 +121,12 @@
                     Cloud:OpenStack:Master|Cloud:OpenStack:Newton*|Cloud:OpenStack:Ocata*)
                         OSC_BUILD_DIST=SLE_12_SP2
                         ;;
-                    Cloud:OpenStack:Mitaka*|Cloud:OpenStack:Liberty*)
+                    Cloud:OpenStack:Mitaka*)
                         OSC_BUILD_DIST=SLE_12_SP1
                         ;;
                     *)
-                        OSC_BUILD_DIST=SLE_11_SP3
+                        echo "Support missing"
+                        exit 1
                         ;;
                 esac
                 ;;
