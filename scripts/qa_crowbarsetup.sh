@@ -4463,7 +4463,7 @@ function oncontroller_prepare_functional_tests
         local repo_name="cloud-test"
 
         if ! [[ $CLOUDSLE12TESTISO ]]; then
-            echo "Error: Testing ISO for $cloudsource is not defined, functional tests are not available"
+            echo "Warning: Testing ISO for $cloudsource is not defined, functional tests are not available"
         else
             if ! zypper lr "$repo_name" ; then
                 rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
