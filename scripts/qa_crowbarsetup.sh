@@ -1341,7 +1341,7 @@ function onadmin_setup_local_zypper_repositories
         ;;
         6)
             zypper ar $uri_base/SLES12-SP1-Pool/ sles12sp1
-            zypper ar $uri_base/SLES12-SP2-Updates/ sles12sp1up
+            zypper ar $uri_base/SLES12-SP1-Updates/ sles12sp1up
         ;;
         7)
             zypper ar $uri_base/SLES12-SP2-Pool/ sles12sp2
