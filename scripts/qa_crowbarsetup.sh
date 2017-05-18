@@ -2403,7 +2403,7 @@ function enable_ssl_generic
             $p "$a['api']['protocol']" "'https'"
         ;;
         magnum)
-            if ! iscloudver 7plus ; then
+            if ! [ -f chef/data_bags/crowbar/migrate/magnum/101_add_cluster_user_trust.rb ] ; then
                 return
             fi
             $p "$a['api']['protocol']" "'https'"
