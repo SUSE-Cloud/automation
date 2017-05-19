@@ -2754,6 +2754,13 @@ function custom_configuration
                 proposal_set_value magnum default "['deployment']['magnum']['elements']['magnum-server']" "['cluster:$clusternameservices']"
             fi
             ;;
+
+        monasca)
+            if [[ $hacloud = 1 ]] ; then
+                echo "Warning: Monasca currently is not HA ready"
+            fi
+            ;;
+
         barbican)
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value barbican default "['deployment']['barbican']['elements']['barbican-controller']" "['cluster:$clusternameservices']"
