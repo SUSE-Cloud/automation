@@ -1,31 +1,49 @@
 # This file shares common code between mkcloud-${mkclouddriver}.sh files and qa_crowbarsetup.sh
 
-# defaults for generic common variables
-: ${arch:=$(uname -m)}
-: ${admin_image_password:='linux'}
-: ${images_dir:="cloud/images/$arch"}
-: ${clouddatadns:=clouddata.nue.suse.com}
-: ${clouddata:=$(dig -t A +short $clouddatadns)}
-: ${clouddata_base_path:="/repos"}
-: ${clouddata_nfs:=$clouddata}
-: ${clouddata_nfs_dir:='srv/nfs'}
-: ${distsuse:=dist.nue.suse.com}
-distsuseip=$(dig -t A +short $distsuse)
-: ${susedownload:=download.nue.suse.com}
-: ${smturl:="http://$susedownload/update/build.suse.de"}
-if [[ $UID != 0 ]] ; then
-    : ${sudo:=sudo}
-    PATH=/sbin:/usr/sbin:/usr/local/sbin:$PATH
-fi
-: ${libvirt_type:=kvm}
-: ${networkingplugin:=openvswitch}
-: ${architectures:='aarch64 x86_64 s390x'}
-: ${nodenumberlonelynode:=0}
-: ${want_mtu_size:=1500}
-# proposals:
-: ${want_magnum_proposal:=0}
-: ${want_monasca_proposal:=0}
-: ${want_murano_proposal:=0}
+# ---- START: functions related to repos and distribution settings
+
+function get_getent_hosts
+{
+    local db item element
+    case $2 in
+        ip4) db=ahostsv4
+            item=1
+        ;;
+        ip6) db=ahostsv6
+            item=1
+        ;;
+        fqdn) db=hosts
+            item=2
+        ;;
+        *)  complain 11 "Do not know what to resolve via getent."
+        ;;
+    esac
+    element=$(set -o pipefail ; getent "$db" "$1" | head -n1 | awk "{print \$$item}")
+    if [[ $? != 0 || ! $element ]] ; then
+        complain 11 "Could not resolve $1 via: getent $db"
+    fi
+    echo $element
+}
+
+function to_ip6
+{
+    get_getent_hosts $1 ip6
+}
+
+function to_ip4
+{
+    get_getent_hosts $1 ip4
+}
+
+function to_ip
+{
+    to_ip4 $1
+}
+
+function to_fqdn
+{
+    get_getent_hosts $1 fqdn
+}
 
 function max
 {
@@ -516,3 +534,75 @@ function dist_to_image_name
 }
 
 # ---- END: functions related to repos and distribution settings
+
+# ---- START: common variables and defaults
+
+# defaults for generic common variables
+: ${arch:=$(uname -m)}
+: ${admin_image_password:='linux'}
+: ${distsuse:=dist.nue.suse.com}
+distsuseip=$(dig -t A +short $distsuse)
+: ${susedownload:=download.nue.suse.com}
+
+# NOTE: $clouddata and similar variables are deprecated
+if [[ $clouddata || $clouddatadns || $clouddata_base_path || $clouddata_nfs || $clouddata_nfs_dir ]] ; then
+    echo 'Warning: $clouddata and all related variables are deprecated.'
+    echo '  please use these new variables instead:'
+    echo '  - $reposerver'
+    echo '    - $reposerver_base_path'
+    echo '  - $nfsserver'
+    echo '    - $nfsserver_base_path'
+    echo '  - $smtserver'
+    : ${clouddatadns:=clouddata.nue.suse.com}
+    : ${clouddata:=$(dig -t A +short $clouddatadns)}
+    : ${clouddata_base_path:="/repos"}
+    : ${clouddata_nfs:=$clouddata}
+    : ${clouddata_nfs_dir:='srv/nfs'}
+    reposerver=$(dig -t A +short $clouddatadns)
+    reposerver_base_path=$clouddata_base_path
+    nfsserver=$(dig -t A +short $clouddatadns)
+    nfsserver_base_path=$clouddata_nfs_dir
+    unset clouddata clouddatadns clouddata_base_path clouddata_nfs clouddata_nfs_dir
+    sleep 5
+fi
+
+# $reposerver,$nfsserver,$rsyncserver,$smtserver are only set from outside
+# NOTE: they are not to be used in mkcloud/qa_crowbarsetup
+# Please ONLY use the suffixed variables: '*_ip' or '*_fqdn'
+
+: ${reposerver:=clouddata.nue.suse.com}
+: ${reposerver_ip:=$(to_ip $reposerver)}
+: ${reposerver_fqdn:=$(to_fqdn $reposerver)}
+: ${reposerver_base_path:=/repos}
+
+: ${nfsserver:=$reposerver}
+: ${nfsserver_ip:=$(to_ip $nfsserver)}
+: ${nfsserver_fqdn:=$(to_fqdn $nfsserver)}
+: ${nfsserver_base_path:=/srv/nfs}
+
+: ${rsyncserver:=$reposerver}
+: ${rsyncserver_ip:=$(to_ip $rsyncserver)}
+: ${rsyncserver_fqdn:=$(to_fqdn $rsyncserver)}
+: ${rsyncserver_images_dir:="cloud/images/$arch"}
+
+: ${smtserver:=$susedownload}
+: ${smtserver_ip:=$(to_ip $smtserver)}
+: ${smtserver_fqdn:=$(to_fqdn $smtserver)}
+: ${smturl:=http://$smtserver_fqdn/update/build.suse.de}
+
+
+if [[ $UID != 0 ]] ; then
+    : ${sudo:=sudo}
+    PATH=/sbin:/usr/sbin:/usr/local/sbin:$PATH
+fi
+: ${libvirt_type:=kvm}
+: ${networkingplugin:=openvswitch}
+: ${architectures:='aarch64 x86_64 s390x'}
+: ${nodenumberlonelynode:=0}
+: ${want_mtu_size:=1500}
+# proposals:
+: ${want_magnum_proposal:=0}
+: ${want_monasca_proposal:=0}
+: ${want_murano_proposal:=0}
+
+# ---- END: common variables and defaults

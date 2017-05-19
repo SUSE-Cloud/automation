@@ -230,15 +230,26 @@ function sshrun
     cat > $mkcconf <<EOF
         export drbdnode_mac_vol=$drbdnode_mac_vol ;
         export cloud=$virtualcloud ;
-        # hostname of NFS server with repos and images:
-        export clouddata=$clouddata ;
-        export clouddatadns=$clouddatadns ;
-        export clouddata_base_path=$clouddata_base_path ;
-        export clouddata_nfs=$clouddata_nfs ;
-        export clouddata_nfs_dir=$clouddata_nfs_dir ;
+        # hostnames of repo, nfs, rsync and smt servers
+        # (*_ip and *_fqdn suffix variables are computed automatically)
+        export reposerver=$reposerver ;
+        export reposerver_ip=$reposerver_ip ;
+        export reposerver_fqdn=$reposerver_fqdn ;
+        export reposerver_base_path=$reposerver_base_path ;
+        export nfsserver=$nfsserver ;
+        export nfsserver_ip=$nfsserver_ip ;
+        export nfsserver_fqdn=$nfsserver_fqdn ;
+        export nfsserver_base_path=$nfsserver_base_path ;
+        export rsyncserver=$rsyncserver ;
+        export rsyncserver_ip=$rsyncserver_ip ;
+        export rsyncserver_fqdn=$rsyncserver_fqdn ;
+        export rsyncserver_images_dir=$rsyncserver_images_dir ;
+        export smtserver=$smtserver ;
+        export smtserver_ip=$smtserver_ip ;
+        export smtserver_fqdn=$smtserver_fqdn ;
+        export smturl=$smturl ;
         export distsuse=$distsuse ;
         export susedownload=$susedownload ;
-        export smturl=$smturl ;
         export cloudfqdn=$cloudfqdn ;
         export cloudsource=$cloudsource ;
         export mkclouddriver=$mkclouddriver ;
@@ -1255,13 +1266,6 @@ function sanity_checks
         echo "export cloudsource=M?|develcloud4|develcloud5|develcloud6|develcloud7|susecloud7|GM5|GM5+up|GM6|GM6+up|GM7|GM7+up"
         exit 1
     fi
-
-    if [[ -z $clouddata ]] ; then
-        complain 96 "The host $clouddatadns could not be resolved and no alternative has been supplied in \$clouddata"
-    fi
-
-    [[ $clouddata =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || \
-        complain 96 "clouddata must be an IPv4 address"
 
     # checking clusterconfig
     if [[ $hacloud && ! $clusterconfig ]] ; then

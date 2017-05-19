@@ -347,11 +347,10 @@ function libvirt_do_onhost_deploy_image()
     local image=${override_disk_image:-$(dist_to_image_name $2)}
     local disk=$3
 
-    [[ $clouddata ]] || complain 108 "clouddata IP not set - is DNS broken?"
     mkdir -p $cachedir
     if [[ ! $want_cached_images = 1 ]] ; then
         safely rsync --compress --progress --inplace --archive --verbose \
-            rsync://$clouddata/$images_dir/$image $cachedir/
+            rsync://$rsyncserver_fqdn/$rsyncserver_images_dir/$image $cachedir/
     else
         # In this case the image has to be supplied by other means than
         # mkcloud (e.g. manual upload). If it doesn't exist we bail.

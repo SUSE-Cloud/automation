@@ -251,7 +251,7 @@ export TROVECLIENT_INSECURE=true
 function isrepoworking
 {
     local repo=$1
-    curl -s http://$clouddata/repos/disabled | egrep -q "^$repo" && {
+    curl -s http://$reposerver_fqdn$reposerver_base_path/disabled | egrep -q "^$repo" && {
         echo "WARNING: The repo $repo is marked as broken"
         return 1
     }
@@ -279,7 +279,7 @@ function export_tftpboot_repos_dir
 function addsp3testupdates
 {
     add_mount "SLES11-SP3-Updates" \
-        $clouddata':/srv/nfs/repos/SLES11-SP3-Updates/' \
+        "$nfsserver_ip:$nfsserver_base_path/repos/SLES11-SP3-Updates/" \
         "$tftpboot_repos_dir/SLES11-SP3-Updates/" "sp3up"
     add_mount "SLES11-SP3-Updates-test" \
         $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
@@ -346,7 +346,7 @@ function addsles12sp2testupdates
 function addcloud4maintupdates
 {
     add_mount "SUSE-Cloud-4-Updates" \
-        $clouddata':/srv/nfs/repos/SUSE-Cloud-4-Updates/' \
+        "$nfsserver_ip:$nfsserver_base_path/repos/SUSE-Cloud-4-Updates/" \
         "$tftpboot_repos_dir/SUSE-Cloud-4-Updates/" "cloudmaintup"
 }
 
@@ -360,11 +360,11 @@ function addcloud4testupdates
 function addcloud5maintupdates
 {
     add_mount "SUSE-Cloud-5-Updates" \
-        $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Updates/' \
+        "$nfsserver_ip:$nfsserver_base_path/repos/SUSE-Cloud-5-Updates/" \
         "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" \
         "cloudmaintup"
     add_mount "SUSE-Cloud-5-SLE-12-Updates" \
-        $clouddata':/srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/' \
+        "$nfsserver_ip:$nfsserver_base_path/repos/SUSE-Cloud-5-SLE-12-Updates/" \
         "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates/"
 }
 
@@ -381,14 +381,17 @@ function addcloud5testupdates
 function addcloud5pool
 {
     add_mount "SUSE-Cloud-5-Pool" \
-        $clouddata':/srv/nfs/repos/SUSE-Cloud-5-Pool/' \
+        "$nfsserver_ip:$nfsserver_base_path/repos/SUSE-Cloud-5-Pool/" \
         "$tftpboot_repos_dir/SUSE-Cloud-5-Pool/" \
         "cloudpool"
 }
 
 function addcloud6maintupdates
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Updates" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-6-Updates/" "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates/" "cloudmaintup"
+    add_mount "SUSE-OpenStack-Cloud-6-Updates" \
+        "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SUSE-OpenStack-Cloud-6-Updates/" \
+        "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates/" \
+        "cloudmaintup"
 }
 
 function addcloud6testupdates
@@ -400,17 +403,26 @@ function addcloud6testupdates
 
 function addcloud6pool
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Pool" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-6-Pool/" "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Pool/" "cloudpool"
+    add_mount "SUSE-OpenStack-Cloud-6-Pool" \
+        "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SUSE-OpenStack-Cloud-6-Pool/" \
+        "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Pool/" \
+        "cloudpool"
 }
 
 function addcloud7pool
 {
-    add_mount "SUSE-OpenStack-Cloud-7-Pool" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-7-Pool/" "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Pool/" "cloudpool"
+    add_mount "SUSE-OpenStack-Cloud-7-Pool" \
+        "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SUSE-OpenStack-Cloud-7-Pool/" \
+        "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Pool/" \
+        "cloudpool"
 }
 
 function addcloud7maintupdates
 {
-    add_mount "SUSE-OpenStack-Cloud-7-Updates" "$clouddata:/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-7-Updates/" "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates/" "cloudmaintup"
+    add_mount "SUSE-OpenStack-Cloud-7-Updates" \
+        "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SUSE-OpenStack-Cloud-7-Updates/" \
+        "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates/" \
+        "cloudmaintup"
 }
 
 function addcloud7testupdates
@@ -484,7 +496,8 @@ function add_ha_repo
     for repo in SLE11-HAE-SP3-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo/sle-11-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
+        add_mount "$repo/sle-11-x86_64"
+            "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
             "$tftpboot_repos_dir/$repo"
     done
 }
@@ -495,7 +508,8 @@ function add_ha12sp1_repo
     for repo in SLE12-SP1-HA-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo" "$clouddata_nfs:/$clouddata_nfs_dir/repos/$repo" \
+        add_mount "$repo" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
     done
 }
@@ -506,7 +520,8 @@ function add_ha12sp2_repo
     for repo in SLE12-SP2-HA-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo" "$clouddata:/srv/nfs/repos/$arch/$repo" \
+        add_mount "$repo" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$arch/$repo" \
             "$tftpboot_repos12sp2_dir/$repo"
     done
 }
@@ -518,7 +533,8 @@ function add_suse_storage_repo
             for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
-                add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+                add_mount "$repo" \
+                    "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
                     "$tftpboot_repos12_dir/$repo"
             done
         fi
@@ -526,7 +542,8 @@ function add_suse_storage_repo
             for repo in SUSE-Enterprise-Storage-2.1-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
-                add_mount "$repo" "$clouddata:/srv/nfs/repos/$repo" \
+                add_mount "$repo" \
+                    "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
                     "$tftpboot_repos12sp1_dir/$repo"
             done
         fi
@@ -534,7 +551,8 @@ function add_suse_storage_repo
             for repo in SUSE-Enterprise-Storage-4-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
-                add_mount "$repo" "$clouddata:/srv/nfs/repos/$arch/$repo" \
+                add_mount "$repo" \
+                    "$nfsserver_ip:$nfsserver_base_path/repos/$arch/$repo" \
                     "$tftpboot_repos12sp2_dir/$repo"
             done
         fi
@@ -745,7 +763,7 @@ function onadmin_prepare_sles11sp3_repos
 
         if ! $longdistance ; then
             add_mount "" \
-                "$clouddata:/srv/nfs/suse-$suseversion/install" \
+                "$nfsserver_ip:$nfsserver_base_path/suse-$suseversion/install" \
                 "$targetdir_install"
         fi
 
@@ -754,7 +772,7 @@ function onadmin_prepare_sles11sp3_repos
             local zypprepo=""
             [ "$WITHSLEUPDATES" != "" ] && zypprepo="$repo"
             add_mount "$zypprepo" \
-                "$clouddata:/srv/nfs/repos/$repo" \
+                "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
                 "$tftpboot_repos_dir/$repo"
         done
 
@@ -844,7 +862,7 @@ function onadmin_prepare_sles12_installmedia
 {
     local sles12_mount="$tftpboot_suse12_dir/install"
     add_mount "SLE-12-Server-LATEST/sle-12-x86_64" \
-        "$clouddata:/srv/nfs/suse-12.0/install" \
+        "$nfsserver_ip:$nfsserver_base_path/suse-12.0/install" \
         "$sles12_mount"
 
     if [ ! -d "$sles12_mount/media.1" ] ; then
@@ -858,7 +876,7 @@ function onadmin_prepare_sles12sp1_installmedia
     for a in $architectures; do
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$a/install"
         add_mount "SLE-12-SP1-Server-LATEST/sle-12-$a" \
-            "$clouddata_nfs:/$clouddata_nfs_dir/suse-12.1/$a/install" \
+            "$nfsserver_ip:$nfsserver_base_path/suse-12.1/$a/install" \
             "$sles12sp1_mount"
 
         if [ ! -d "$sles12sp1_mount/media.1" ] ; then
@@ -873,7 +891,7 @@ function onadmin_prepare_sles12sp2_installmedia
     for a in $architectures; do
         local sles12sp2_mount="$tftpboot_suse12sp2_dir/$a/install"
         add_mount "SLE-12-SP2-Server-TEST/sle-12-$a" \
-            "$clouddata:/srv/nfs/suse-12.2/$a/install" \
+            "$nfsserver_ip:$nfsserver_base_path/suse-12.2/$a/install" \
             "$sles12sp2_mount"
 
         if [ ! -d "$sles12sp2_mount/media.1" ] ; then
@@ -885,7 +903,8 @@ function onadmin_prepare_sles12sp2_installmedia
 function onadmin_prepare_sles12_other_repos
 {
     for repo in SLES12-{Pool,Updates}; do
-        add_mount "$repo/sle-12-x86_64" "$clouddata:/srv/nfs/repos/$repo" \
+        add_mount "$repo/sle-12-x86_64" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
             "$tftpboot_repos12_dir/$repo"
     done
 }
@@ -893,10 +912,12 @@ function onadmin_prepare_sles12_other_repos
 function onadmin_prepare_sles12sp1_other_repos
 {
     for repo in SLES12-SP1-{Pool,Updates}; do
-        add_mount "$repo/sle-12-$arch" "$clouddata_nfs:/$clouddata_nfs_dir/repos/$arch/$repo" \
+        add_mount "$repo/sle-12-$arch" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$arch/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
         if [[ $want_s390 ]] ; then
-            add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
+            add_mount "$repo/sle-12-s390x" \
+                "$nfsserver_ip:$nfsserver_base_path/repos/s390x/$repo" \
                 "$tftpboot_suse12sp1_dir/s390x/repos/$repo"
         fi
     done
@@ -905,10 +926,12 @@ function onadmin_prepare_sles12sp1_other_repos
 function onadmin_prepare_sles12sp2_other_repos
 {
     for repo in SLES12-SP2-{Pool,Updates}; do
-        add_mount "$repo/sle-12-$arch" "$clouddata:/srv/nfs/repos/$arch/$repo" \
+        add_mount "$repo/sle-12-$arch" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$arch/$repo" \
             "$tftpboot_repos12sp2_dir/$repo"
         if [[ $want_s390 ]] ; then
-            add_mount "$repo/sle-12-s390x" "$clouddata:/srv/nfs/repos/s390x/$repo" \
+            add_mount "$repo/sle-12-s390x" \
+                "$nfsserver_ip:$nfsserver_base_path/repos/s390x/$repo" \
                 "$tftpboot_suse12sp2_dir/s390x/repos/$repo"
         fi
     done
@@ -1318,7 +1341,7 @@ function onadmin_repocleanup
 }
 
 # replace zypper repos from the image with user-specified ones
-# because clouddata might not be reachable from where this runs
+# because the reposerver might not be reachable from where this runs
 function onadmin_setup_local_zypper_repositories
 {
     # Delete all repos except PTF repo, because this could
@@ -1334,7 +1357,7 @@ function onadmin_setup_local_zypper_repositories
     fi
     case $(getcloudver) in
         4|5)
-            uri_base="http://${clouddata}${clouddata_base_path}"
+            uri_base="http://${reposerver_fqdn}${reposerver_base_path}"
             zypper ar $uri_base/SLES11-SP3-Pool/ sles11sp3
             zypper ar $uri_base/SLES11-SP3-Updates/ sles11sp3up
         ;;
@@ -1388,10 +1411,7 @@ EOF
     hostname -f # make sure it is a FQDN
     ping -c 1 `hostname -f`
     longdistance=${longdistance:-false}
-    # $clouddata is treated as a URL fragment in other places, grab only
-    # the host portion.
-    clouddata_host=$(echo $clouddata | cut -d/ -f1)
-    if [[ $(ping -q -c1 $clouddata_host |
+    if [[ $(ping -q -c1 $reposerver_ip |
             perl -ne 'm{min/avg/max/mdev = (\d+)} && print $1') -gt 100 ]]
     then
         longdistance=true
@@ -1718,7 +1738,7 @@ function do_installcrowbar
     if [ -n "$wanthyperv" ] ; then
         # prepare Hyper-V 2012 R2 PXE-boot env and export it via Samba:
         zypper -n in samba
-        rsync -a $clouddata::cloud/hyperv-6.3 /srv/tftpboot/
+        rsync -a $rsyncserver_fqdn::cloud/hyperv-6.3 /srv/tftpboot/
         chkconfig smb on
         chkconfig nmb on
         cat >> /etc/samba/smb.conf <<EOF
@@ -1897,7 +1917,7 @@ function onadmin_allocate
     fi
 
     if [[ $cloud = qa1 ]] ; then
-        curl http://$clouddata/git/automation/scripts/qa1_nodes_reboot | bash
+        curl http://$reposerver_fqdn/git/automation/scripts/qa1_nodes_reboot | bash
     fi
 
     [[ $nodenumber -gt 0 ]] && wait_for 50 10 'test $(get_all_discovered_nodes | wc -l) -ge 1' "first node to be discovered"
@@ -2162,7 +2182,7 @@ function onadmin_setup_nfs_server
 
     add_dns_record "nfsserver" "$nfs_server_node_ip"
 
-    local uri_base="http://${clouddata}${clouddata_base_path}"
+    local uri_base="http://${reposerver_fqdn}${reposerver_base_path}"
     local sle_pool=""
     local sle_updates=""
 
@@ -3864,7 +3884,7 @@ function oncontroller_run_integration_test()
 
 function oncontroller_heat_image_setup()
 {
-    local image_url=http://$clouddata/images/SLES11-SP3-x86_64-cfntools.qcow2
+    local image_url=http://$reposerver_fqdn/images/SLES11-SP3-x86_64-cfntools.qcow2
     # this is the standard name we use in the tempest barclamp. If you change the name
     # you may also want to set the new name in the barclamp
     local image_name="heat-cfntools-image"
@@ -3885,16 +3905,16 @@ function oncontroller_heat_image_setup()
 function oncontroller_manila_generic_driver_setup()
 {
     if [[ $wantxenpv ]] ; then
-        local service_image_url=http://$clouddata/images/$arch/other/manila-service-image-xen.raw
+        local service_image_url=http://$reposerver_fqdn/images/$arch/other/manila-service-image-xen.raw
         local service_image_name=manila-service-image-xen.raw
         local service_image_params="--disk-format raw --property hypervisor_type=xen --property vm_mode=xen"
 
     elif [[ $wanthyperv ]] ; then
-        local service_image_url=http://$clouddata/images/$arch/other/manila-service-image.vhd
+        local service_image_url=http://$reposerver_fqdn/images/$arch/other/manila-service-image.vhd
         local service_image_name=manila-service-image.vhd
         local service_image_params="--disk-format vhd --property hypervisor_type=hyperv"
     else
-        local service_image_url=http://$clouddata/images/$arch/other/manila-service-image.qcow2
+        local service_image_url=http://$reposerver_fqdn/images/$arch/other/manila-service-image.qcow2
         local service_image_name=manila-service-image.qcow2
         local service_image_params="--disk-format qcow2 --property hypervisor_type=kvm"
     fi
@@ -3988,7 +4008,7 @@ function oncontroller_magnum_service_setup
     # Magnum functional tests have hardcoded swarm as coe backend, until then this will
     # not be fixed, we are going to have our own integration tests with SLES Magnum image
     local service_image_name=magnum-service-image
-    local service_image_url=http://$clouddata/images/$arch/other/${service_image_name}.qcow2
+    local service_image_url=http://$reposerver_fqdn/images/$arch/other/${service_image_name}.qcow2
 
     if ! openstack image list --f value -c Name | grep -q "^${service_image_name}$"; then
         local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
@@ -4126,20 +4146,20 @@ function oncontroller_testsetup
 
     if ! glance_image_exists $image_name ; then
         if [[ $wanthyperv ]] ; then
-            mount $clouddata:/srv/nfs/ /mnt/
+            mount $nfsserver_ip:/srv/nfs/ /mnt/
             zypper -n in virt-utils
             qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
             openstack image create --public --disk-format vhd --container-format bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd $image_name | tee glance.out
             rm /tmp/SP3.vhd ; umount /mnt
         elif [[ $wantxenpv ]] ; then
             curl -s \
-                http://$clouddata/images/jeos-64-pv.qcow2 | \
+                http://$reposerver_fqdn/images/jeos-64-pv.qcow2 | \
                 openstack image create --public --disk-format qcow2 \
                 --container-format bare --property hypervisor_type=xen \
                 --property vm_mode=xen  $image_name | tee glance.out
         else
             curl -s \
-                http://$clouddata/images/$arch/SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.$arch-GM.qcow2 | \
+                http://$reposerver_fqdn/images/$arch/SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.$arch-GM.qcow2 | \
                 openstack image create --public --property hypervisor_type=kvm \
                 --disk-format qcow2 --container-format bare $image_name | tee glance.out
         fi
@@ -4161,7 +4181,7 @@ function oncontroller_testsetup
         ssh_user="cirros"
         if ! glance_image_exists $image_name ; then
             curl -s \
-                http://$clouddata/images/docker/cirros.tar | \
+                http://$reposerver_fqdn/images/docker/cirros.tar | \
             openstack image create --public --container-format docker \
                 --disk-format raw --property hypervisor_type=docker  \
                 $image_name | tee glance.out
@@ -4175,7 +4195,7 @@ function oncontroller_testsetup
         ssh_user="root"
         if ! glance_image_exists $image_name ; then
             curl -s \
-                http://$clouddata/images/s390x/xCAT-SLES12SP1-ECKD.img | \
+                http://$reposerver_fqdn/images/s390x/xCAT-SLES12SP1-ECKD.img | \
             openstack image create --public --container-format bare \
                 --disk-format raw --property hypervisor_type=zvm  \
                 --property architecture=s390x \
@@ -4238,7 +4258,7 @@ function oncontroller_testsetup
 
     wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
 
-    if ! ssh $ssh_target curl $clouddatadns/test ; then
+    if ! ssh $ssh_target curl $reposerver_fqdn/test ; then
         complain 95 could not reach internet
     fi
 

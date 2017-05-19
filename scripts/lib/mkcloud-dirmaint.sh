@@ -136,10 +136,9 @@ function dirmaint_do_onhost_deploy_image()
     local image=SLES12-SP2-ECKD.qcow2
     local disk=$3
 
-    [[ $clouddata ]] || complain 108 "clouddata IP not set - is DNS broken?"
     pushd /tmp
     safely wget --progress=dot:mega -N \
-        http://$clouddata/images/$arch/$image
+        http://$reposerver_fqdn/images/$arch/$image
     popd
 
     _dirmaint_link_and_write_disk ${cloud}adm $image
