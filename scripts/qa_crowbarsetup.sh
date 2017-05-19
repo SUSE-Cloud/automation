@@ -2465,15 +2465,6 @@ function hacloud_configure_cluster_members
             "['deployment']['pacemaker']['elements']['$role']" "$nodes"
     done
 
-    if [[ "configuration" = "with per_node" ]] ; then
-        for node in $@; do
-            proposal_set_value pacemaker "$clustername" \
-                "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']" "{}"
-            proposal_set_value pacemaker "$clustername" \
-                "['attributes']['pacemaker']['stonith']['per_node']['nodes']['$node']['params']" "''"
-        done
-    fi
-
     if [[ $want_sbd = 1 ]] ; then
         for node in $@; do
             sbd_device=$(ssh $node echo '/dev/disk/by-id/scsi-$(lsscsi -i |grep LIO|head -n 1| tr -s " " |cut -d " " -f7)')
