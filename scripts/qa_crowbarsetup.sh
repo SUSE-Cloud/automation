@@ -343,20 +343,6 @@ function addsles12sp2testupdates
     fi
 }
 
-function addcloud4maintupdates
-{
-    add_mount "SUSE-Cloud-4-Updates" \
-        "$nfsserver_ip:$nfsserver_base_path/repos/SUSE-Cloud-4-Updates/" \
-        "$tftpboot_repos_dir/SUSE-Cloud-4-Updates/" "cloudmaintup"
-}
-
-function addcloud4testupdates
-{
-    add_mount "SUSE-Cloud-4-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/' \
-        "$tftpboot_repos_dir/SUSE-Cloud-4-Updates-test/" "cloudtup"
-}
-
 function addcloud5maintupdates
 {
     add_mount "SUSE-Cloud-5-Updates" \
@@ -976,9 +962,6 @@ function onadmin_prepare_cloud_repos
     fi
 
     case "$cloudsource" in
-        GM4+up)
-            addcloud4maintupdates
-            ;;
         GM5)
             addcloud5pool
             ;;
@@ -1007,10 +990,6 @@ function onadmin_prepare_cloud_repos
 
     if [[ "$want_test_updates" = 1 ]] ; then
         case "$cloudsource" in
-            GM4+up)
-                addsp3testupdates
-                addcloud4testupdates
-                ;;
             GM5)
                 addsp3testupdates
                 addsles12testupdates
@@ -1040,9 +1019,6 @@ function onadmin_prepare_cloud_repos
             GM8+up)
                 addsles12sp3testupdates
                 addcloud8testupdates
-                ;;
-            develcloud4)
-                addsp3testupdates
                 ;;
             develcloud5)
                 addsp3testupdates
@@ -1237,12 +1213,6 @@ function onadmin_set_source_variables
     fi
 
     case "$cloudsource" in
-        develcloud4)
-            CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/4/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/4:/Staging/images/iso
-            CLOUDSLE11DISTISO="S*-CLOUD*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-4-devel"
-        ;;
         develcloud5)
             CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/5/images/iso
             [ -n "$TESTHEAD" ] && CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/5:/Staging/images/iso
@@ -1278,11 +1248,6 @@ function onadmin_set_source_variables
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
-        GM4+up)
-            CLOUDSLE11DISTPATH=/install/SLE-11-SP3-Cloud-4-GM/
-            CLOUDSLE11DISTISO="S*-CLOUD*1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-4-official"
-        ;;
         GM5|GM5+up)
             CLOUDSLE11DISTPATH=/install/SUSE-Cloud-5-GM/
             CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
@@ -1306,7 +1271,7 @@ function onadmin_set_source_variables
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud4|develcloud5|develcloud6|develcloud7|GM4+up|GM5|Mx|GM6|GM7"
+            complain 76 "You must set environment variable cloudsource=develcloud5|develcloud6|develcloud7|GM5|Mx|GM6|GM7"
         ;;
     esac
 
@@ -1356,7 +1321,7 @@ function onadmin_setup_local_zypper_repositories
         uri_base="file:///repositories"
     fi
     case $(getcloudver) in
-        4|5)
+        5)
             uri_base="http://${reposerver_fqdn}${reposerver_base_path}"
             zypper ar $uri_base/SLES11-SP3-Pool/ sles11sp3
             zypper ar $uri_base/SLES11-SP3-Updates/ sles11sp3up
@@ -1437,7 +1402,7 @@ EOF
     fi
 
     if [[ $hacloud = 1 ]]; then
-        if [ "$slesdist" = "SLE_11_SP3" ] && iscloudver 4plus ; then
+        if iscloudver 5plus ; then
             add_ha_repo
         elif iscloudver 7plus; then
             add_ha12sp2_repo
@@ -2990,10 +2955,6 @@ function custom_configuration
             fi
         ;;
         cinder)
-            if iscloudver 4 ; then
-                proposal_set_value cinder default "['attributes']['cinder']['enable_v2_api']" "true"
-            fi
-
             proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['${cinder_backend}']" "j['attributes']['cinder']['volume_defaults']['${cinder_backend}']"
             proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['backend_driver']" "'${cinder_backend}'"
             case "$cinder_backend" in
@@ -3081,31 +3042,25 @@ function custom_configuration
                 local autoyast="['attributes']['provisioner']['suse']['autoyast']"
                 local repos="$autoyast['repos']"
 
-                if iscloudver 5plus ; then
-                    repos="$autoyast['repos']['suse-11.3']"
-                    proposal_set_value provisioner default "$repos" "{}"
-                fi
+                repos="$autoyast['repos']['suse-11.3']"
+                proposal_set_value provisioner default "$repos" "{}"
 
                 provisioner_add_repo $repos "$tftpboot_repos_dir" "SLES11-SP3-Updates-test" \
                     "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/"
                 provisioner_add_repo $repos "$tftpboot_repos_dir" "SLE11-HAE-SP3-Updates-test" \
                     "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/"
-                provisioner_add_repo $repos "$tftpboot_repos_dir" "SUSE-Cloud-4-Updates-test" \
-                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/4:/x86_64/update/"
                 provisioner_add_repo $repos "$tftpboot_repos_dir" "SUSE-Cloud-5-Updates-test" \
                     "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/"
 
-                if iscloudver 5plus ; then
-                    repos="$autoyast['repos']['suse-12.0']"
-                    proposal_set_value provisioner default "$repos" "{}"
+                repos="$autoyast['repos']['suse-12.0']"
+                proposal_set_value provisioner default "$repos" "{}"
 
-                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLES12-Updates-test" \
-                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/"
-                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLE-12-Cloud-Compute5-Updates-test" \
-                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/"
-                    provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-1.0-Updates-test" \
-                        "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/"
-                fi
+                provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLES12-Updates-test" \
+                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/"
+                provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLE-12-Cloud-Compute5-Updates-test" \
+                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/"
+                provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-1.0-Updates-test" \
+                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/"
             fi
 
         ;;
@@ -5219,9 +5174,6 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients
         update_one_proposal dns default
         ensure_packages_installed crowbar-barclamp-trove
         do_one_proposal trove default
-    elif iscloudver 4; then
-        ensure_packages_installed crowbar-barclamp-tempest
-        do_one_proposal tempest default
     fi
 
     # TODO: restart any suspended instance?
@@ -5254,9 +5206,7 @@ function onadmin_upgrade_prechecks
 
 function onadmin_prepare_crowbar_upgrade
 {
-    if iscloudver 4; then
-        complain 11 "This upgrade path is only supported for Cloud 5+"
-    elif iscloudver 5; then
+    if iscloudver 5; then
         # using the API, due to missing crowbar cli integration
         # move nodes to upgrade mode
         safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
