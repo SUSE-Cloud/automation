@@ -91,6 +91,17 @@
             "openstack-horizon-plugin-trove-ui",
             "openstack-zaqar",
             ].contains(component) ||
+            [ "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Master" ].contains(project) &&
+            [
+            "openstack-monasca-agent",
+            "openstack-monasca-api",
+            "openstack-monasca-log-agent",
+            "openstack-monasca-log-api",
+            "openstack-monasca-notification",
+            "openstack-monasca-persister",
+            "python-monasca-common",
+            "python-monasca-statsd"
+            ].contains(component) ||
             [ "Cloud:OpenStack:Ocata:Staging", "Cloud:OpenStack:Newton:Staging", "Cloud:OpenStack:Mitaka:Staging" ].contains(project) &&
             [
               "python-heat-cfntools",
