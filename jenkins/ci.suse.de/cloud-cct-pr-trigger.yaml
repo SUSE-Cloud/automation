@@ -83,13 +83,6 @@
                       nodenumber=2
                       networkingplugin=openvswitch
                       ;;
-                    cloud5)
-                      # default config / may be overridden by tags from PR message
-                      mkcloudtarget=all_noreboot
-                      cloudsource=develcloud5
-                      nodenumber=2
-                      networkingplugin=openvswitch
-                      ;;
                     *)
                       continue
                   esac

@@ -15,14 +15,11 @@
           type: user-defined
           name: project
           values:
-            - Devel:Cloud:5
-            - Devel:Cloud:5/SLE_12
             - Devel:Cloud:6/SLE_12_SP1
             - Devel:Cloud:6:Appliances/SLE_12_SP1
             - Devel:Cloud:7/SLE_12_SP2
             - Devel:Cloud:7:Mitaka/SLE_12_SP2
             - Devel:Cloud:Shared:11-SP3:Update
-            - SUSE:SLE-11-SP3:Update:Cloud5:Test
             - SUSE:SLE-12-SP1:Update:Products:Cloud6/SLE_12_SP1
             - SUSE:SLE-12-SP2:Update:Products:Cloud7/SLE_12_SP2
       - axis:
@@ -38,7 +35,7 @@
             - cloud-mediacheck
     execution-strategy:
       combination-filter: |
-        (["Devel:Cloud:5", "Devel:Cloud:5/SLE_12", "Devel:Cloud:6", "Devel:Cloud:6/SLE_12_SP1", "Devel:Cloud:7/SLE_12_SP2" ].contains(project) || subproject == ":")
+        (["Devel:Cloud:6", "Devel:Cloud:6/SLE_12_SP1", "Devel:Cloud:7/SLE_12_SP2" ].contains(project) || subproject == ":")
     builders:
       - shell: |
           export automationrepo=~/github.com/SUSE-Cloud/automation
