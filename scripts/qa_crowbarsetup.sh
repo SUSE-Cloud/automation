@@ -1402,12 +1402,12 @@ EOF
     fi
 
     if [[ $hacloud = 1 ]]; then
-        if iscloudver 5plus ; then
+        if iscloudver 5 ; then
             add_ha_repo
+        elif iscloudver 6; then
+            add_ha12sp1_repo
         elif iscloudver 7plus; then
             add_ha12sp2_repo
-        elif iscloudver 6plus; then
-            add_ha12sp1_repo
         else
             complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
         fi
