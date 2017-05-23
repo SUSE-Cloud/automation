@@ -1,0 +1,92 @@
+# directories to search for interaction files (ia_*.rb), will be requried
+interaction_dirs:
+  - /some/where/else/interactions
+# templating is not required, but might make it better readable
+template:
+  mkcloud_parameters: &mkcloud_automation_parameters
+    standard: &mkcloud_automation_standard
+      label: openstack-mkcloud
+      mkcloudtarget: all_noreboot
+      cloudsource: develcloud8
+      nodenumber: 2
+      networkingplugin: openvswitch
+    stable: &mkcloud_automation_stable
+      <<: *mkcloud_automation_standard
+      cloudsource: GM7+up
+  user:
+    suse_cloud_user: &suse_cloud_user
+      - SUSE-Cloud
+  team:
+    suse_cloud_team: &suse_cloud_team
+      - name: SUSE-Cloud/Owners
+        id: 159206
+      - name: SUSE-Cloud/developers
+        id: 1541628
+    crowbar_team: &crowbar_team
+      - name: crowbar/Owners
+        id: 291046
+  filter:
+    # filter and action classes are defined in interaction files
+    # there they are suffixed with .*Filter or .*Action
+    suse_automation: &suse_automation
+      # match the name of the target merge branch
+      - type: MergeBranch
+        config:
+          # can be a list of several branch names
+          branches:
+            - master
+      # match the latest status of the latest sha1sum of the PR
+      #  can be one of [unseen, rebuild, forcerebuild, all]
+      - type: Status
+        config:
+          status: unseen
+      # match users and teams to verify that the PR comes from a trusted source
+      - type: TrustedSource
+        config:
+          users:
+            *suse_cloud_user
+          teams:
+            *suse_cloud_team
+      # match the changed files in the PR to check if/how we care about the PR
+      - type: FileMatch
+        config:
+          paths:
+            -  !ruby/regexp '/scripts\/(mkcloud|qa_crowbarsetup\.sh|lib\/.*)$/'
+            -  !ruby/regexp '/scripts\/jenkins\/log-parser\//'
+        blacklist_handler:
+          # action(s) for the PRs that do not match the filter (blacklist)
+          - type: SetStatus
+            parameters:
+              status: success
+              message: mkcloud gating not applicable
+        whitelist_handler:
+          # action(s) for the PRs that do match the filter (whitelist)
+          - type: SetStatus
+            parameters:
+              status: pending
+              message: Queued automation PR gating
+          - type: JenkinsJobTriggerMkcloud
+            parameters:
+              job_name: openstack-mkcloud
+              job_cmd: "../jenkins/jenkins-job-trigger"
+              job_parameters:
+                *mkcloud_automation_parameters
+# definition of the orgs and repos to be processed wiht this config
+pr_processing:
+  - config:
+    organization: SUSE-Cloud
+    #repositories:
+    #  - automation
+    # if both repository and repository_filter are set, repositories has precedence
+    repository_filter:
+      - !ruby/regexp '/auto-?mati.*/'
+      - !ruby/regexp '/^a/'
+    context: suse/mkcloud
+    filter: *suse_automation
+  # it can have many of these entries
+  - config:
+    organization: other-org
+    repositories:
+      - automation2
+    context: suse/other
+    filter: *other_definition
