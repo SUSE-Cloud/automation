@@ -482,7 +482,7 @@ function add_ha_repo
     for repo in SLE11-HAE-SP3-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo/sle-11-x86_64"
+        add_mount "$repo/sle-11-x86_64" \
             "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
             "$tftpboot_repos_dir/$repo"
     done
