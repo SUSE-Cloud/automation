@@ -93,6 +93,7 @@
             ].contains(component) ||
             [ "Cloud:OpenStack:Mitaka:Staging", "Cloud:OpenStack:Master" ].contains(project) &&
             [
+            "openstack-horizon-plugin-monasca-ui",
             "openstack-monasca-agent",
             "openstack-monasca-api",
             "openstack-monasca-log-agent",
