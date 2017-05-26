@@ -15,8 +15,6 @@
           type: user-defined
           name: project
           values:
-            - Cloud:OpenStack:Juno
-            - Cloud:OpenStack:Juno:Staging
             - Cloud:OpenStack:Liberty
             - Cloud:OpenStack:Liberty:Staging
             - Cloud:OpenStack:Mitaka
@@ -31,12 +29,10 @@
           type: user-defined
           name: repository
           values:
-            - SLE_11_SP3
-            - SLE_12
             - SLE_12_SP1
             - SLE_12_SP2
-            - openSUSE_Leap_42.1
             - openSUSE_Leap_42.2
+            - openSUSE_Leap_42.3
       - axis:
           type: slave
           name: nodes
@@ -44,14 +40,14 @@
             - cloud-trackupstream
     execution-strategy:
       combination-filter: |
-       !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_11_SP3", "SLE_12", "openSUSE_Leap_42.1", "SLE_12_SP1"].contains(repository) ||
-         ["Cloud:OpenStack:Factory"].contains(project) && ["SLE_11_SP3", "SLE_12", "SLE_12_SP1", "SLE_12_SP2", "openSUSE_Leap_42.1", "openSUSE_Leap_42.2"].contains(repository) ||
-         ["Cloud:OpenStack:Juno", "Cloud:OpenStack:Juno:Staging"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "openSUSE_Leap_42.1", "openSUSE_Leap_42.2"].contains(repository)  ||
-         ["Cloud:OpenStack:Liberty", "Cloud:OpenStack:Liberty:Staging"].contains(project) && ["SLE_11_SP3", "SLE_12_SP2", "openSUSE_Leap_42.2"].contains(repository) ||
-         ["Cloud:OpenStack:Mitaka", "Cloud:OpenStack:Mitaka:Staging"].contains(project) && ["SLE_12", "SLE_11_SP3", "openSUSE_Leap_42.2"].contains(repository) ||
-         ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["SLE_12", "SLE_12_SP1", "SLE_11_SP3"].contains(repository) ||
-         ["Cloud:OpenStack:Ocata", "Cloud:OpenStack:Ocata:Staging"].contains(project) && ["SLE_12", "SLE_12_SP1", "openSUSE_Leap_42.1", "SLE_11_SP3"].contains(repository) ||
-         ["Cloud:Tools"].contains(project) && ["SLE_11_SP3", "SLE_12"].contains(repository)
+       !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_12_SP1"].contains(repository) ||
+         ["Cloud:OpenStack:Factory"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
+         ["Cloud:OpenStack:Juno", "Cloud:OpenStack:Juno:Staging"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository)  ||
+         ["Cloud:OpenStack:Liberty", "Cloud:OpenStack:Liberty:Staging"].contains(project) && ["SLE_12_SP2", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
+         ["Cloud:OpenStack:Mitaka", "Cloud:OpenStack:Mitaka:Staging"].contains(project) && ["openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
+         ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["SLE_12_SP1", "openSUSE_Leap_42.3"].contains(repository) ||
+         ["Cloud:OpenStack:Ocata", "Cloud:OpenStack:Ocata:Staging"].contains(project) && ["SLE_12_SP1"].contains(repository) ||
+         ["Cloud:Tools"].contains(project) && ["SLE_12"].contains(repository)
        )
       sequential: true
     builders:
@@ -76,11 +72,7 @@
           case $OBS_TYPE in
             OBS) OSCAPI="https://api.opensuse.org"
                 OSC_BUILD_ARCH=x86_64
-                case $OBS_PROJECT in
-                    *)
-                        OSC_BUILD_DIST=SLE_11_SP3
-                        ;;
-                esac
+                OSC_BUILD_DIST=SLE_11_SP3
                 ;;
             *)   echo "This jenkins instance only interacts with OBS."
                 exit 1
