@@ -1557,18 +1557,6 @@ EOF
     if iscloudver 6plus ; then
         create_repos_yml
     fi
-
-    if [[ $hacloud = 1 ]] ; then
-        f=/opt/dell/chef/cookbooks/nfs-server/templates/default/exports.erb
-        mkdir -p /var/lib/glance/images
-        if ! grep -q /var/lib/glance/images $f; then
-            echo "/var/lib/glance/images     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
-        fi
-        mkdir -p /srv/nfs/{database,rabbitmq}
-        if ! grep -q /srv/nfs $f; then
-            echo "/srv/nfs     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
-        fi
-    fi
     return 0
 }
 
@@ -1584,6 +1572,18 @@ function onadmin_activate_repositories
 
 function onadmin_bootstrapcrowbar
 {
+    if [[ $hacloud = 1 ]] ; then
+        local f=/opt/dell/chef/cookbooks/nfs-server/templates/default/exports.erb
+        mkdir -p /var/lib/glance/images
+        if ! grep -q /var/lib/glance/images $f; then
+            echo "/var/lib/glance/images     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
+        fi
+        mkdir -p /srv/nfs/{database,rabbitmq}
+        if ! grep -q /srv/nfs $f; then
+            echo "/srv/nfs     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
+        fi
+    fi
+
     local upgrademode=$1
     # temporarily make it possible to not use postgres until we switched to the new upgrade process
     # otherwise we would break the upgrade gating
