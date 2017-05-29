@@ -1472,6 +1472,25 @@ EOF
         -e "s/ [47]00/ $vlan_sdn/g" \
         $netfile
 
+    # set requested networking mode for Crowbar
+    /opt/dell/bin/json-edit -a attributes.network.mode -v "$crowbar_networkingmode" $netfile
+
+    if [ "$crowbar_networkingmode" == "team" ]; then
+        # special conduit mapping when having a crowbar admin node with a single
+        # nic but want bonding for the rest of the nodes
+        local conmap_element='{"pattern": "team/1/crowbar",
+            "conduit_list": {"intf0": {"if_list"  : ["?1g1"]},
+            "intf1": {"if_list": ["?1g1"]},
+            "intf2": {"if_list": ["?1g1"]}}
+            }'
+        # insert the conmap_element as first element to conduit_map list
+        local conmap_complete=`python -c "import json; f=open('$netfile'); \
+            j=json.load(f);j['attributes']['network']['conduit_map'].insert(0, $conmap_element); \
+            print json.dumps(j['attributes']['network']['conduit_map'], indent=4)"`
+        # set the modified conduit map
+        /opt/dell/bin/json-edit -a attributes.network.conduit_map -r -v "$conmap_complete" $netfile
+    fi
+
     if [[ $cloud =~ ^p[0-9]$ ]] ; then
         local pcloudnum=${cloud#p}
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
