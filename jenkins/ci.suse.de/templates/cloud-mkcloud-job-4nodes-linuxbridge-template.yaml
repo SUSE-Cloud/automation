@@ -24,4 +24,6 @@
             tempestoptions={tempestoptions}
             mkcloudtarget=all
             label={label}
+            # Temporal fix meanwhile test repository is fixed for Ceph
+            want_test_updates=0
             job_name=cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}
