@@ -160,6 +160,12 @@
           default:
           description: Number of compute nodes
 
+      - string:
+          name: nics
+          default: '1'
+          description: >-
+            Number of network interfaces for the nodes (admin node has always 1 currently)
+
       - bool:
           name: WITHCROWBARREGISTER
           default: false
@@ -210,6 +216,14 @@
           name: want_rootfs
           default:
           description: Set to btrfs to deploy with btrfs
+
+      ################################################
+      # Crowbar
+
+      - string:
+          name: crowbar_networkingmode
+          default: 'single'
+          description: The Crowbar networking mode.
 
       ################################################
       # general OpenStack deployment
