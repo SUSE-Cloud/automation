@@ -28,6 +28,6 @@
             networkingmode=gre
             want_node_aliases=controller=3,compute=2
             label={label}
-            job_name=cloud-mkcloud{version}-job-ha-linuxbridge-{arch}
+            job_name=cloud-mkcloud{version}-job-ha-ironic-{arch}
             want_ironic=1
             nodenumberironicnode=1
