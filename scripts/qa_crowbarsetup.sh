@@ -1164,10 +1164,10 @@ function create_repos_yml
         for devel_repo in ${want_devel_repos//,/ }; do
             case "$devel_repo" in
                 storage)
-                    additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/2.1/SLE12_SP1/"
+                    additional_repos+=" Devel-Storage=http://$susedownload/ibs/Devel:/Storage:/2.1/SLE12_SP1/"
                     ;;
                 virt)
-                    additional_repos+=" Devel-Virt=http://$distsuse/ibs/Devel:/Virt:/SLE-12-SP1/SUSE_SLE-12-SP1_Update_standard/"
+                    additional_repos+=" Devel-Virt=http://$susedownload/ibs/Devel:/Virt:/SLE-12-SP1/SUSE_SLE-12-SP1_Update_standard/"
                     ;;
                 *)
                     complain 72 "do not know how to translate one of the requested devel repos: $want_devel_repos"
@@ -1183,10 +1183,10 @@ function create_repos_yml
         for devel_repo in ${want_devel_repos//,/ }; do
             case "$devel_repo" in
                 storage)
-                    additional_repos+=" Devel-Storage=http://$distsuse/ibs/Devel:/Storage:/4.0/SLE12_SP2/"
+                    additional_repos+=" Devel-Storage=http://$susedownload/ibs/Devel:/Storage:/4.0/SLE12_SP2/"
                     ;;
                 virt)
-                    additional_repos+=" Devel-Virt=http://$distsuse/ibs/Devel:/Virt:/SLE-12-SP2/SUSE_SLE-12-SP2_GA_standard/"
+                    additional_repos+=" Devel-Virt=http://$susedownload/ibs/Devel:/Virt:/SLE-12-SP2/SUSE_SLE-12-SP2_GA_standard/"
                     ;;
                 *)
                     complain 72 "do not know how to translate one of the requested devel repos: $want_devel_repos"
@@ -3065,21 +3065,21 @@ function custom_configuration
                 proposal_set_value provisioner default "$repos" "{}"
 
                 provisioner_add_repo $repos "$tftpboot_repos_dir" "SLES11-SP3-Updates-test" \
-                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/"
+                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/"
                 provisioner_add_repo $repos "$tftpboot_repos_dir" "SLE11-HAE-SP3-Updates-test" \
-                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/"
+                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/"
                 provisioner_add_repo $repos "$tftpboot_repos_dir" "SUSE-Cloud-5-Updates-test" \
-                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/"
+                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/"
 
                 repos="$autoyast['repos']['suse-12.0']"
                 proposal_set_value provisioner default "$repos" "{}"
 
                 provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLES12-Updates-test" \
-                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/"
+                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/"
                 provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLE-12-Cloud-Compute5-Updates-test" \
-                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/"
+                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/"
                 provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-1.0-Updates-test" \
-                    "http://$distsuse/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/"
+                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/"
             fi
 
         ;;
