@@ -47,3 +47,11 @@
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-tempestfull-{arch}'
+- project:
+    name: cloud-mkcloud6-sap-x86_64
+    disabled: false
+    version: 6
+    arch: x86_64
+    label: openstack-mkcloud-DMZ-x86_64
+    jobs:
+        - 'cloud-mkcloud{version}-job-sap-ha-{arch}'
