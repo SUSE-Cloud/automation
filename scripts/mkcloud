@@ -1232,7 +1232,7 @@ Optional
         instead of the one from the packages.  This will be scp'd to the admin node before use.
     vlan_public=<id> (default 300)
         VLAN id for public network
-    tempestoptions (default='-t -s')
+    tempestoptions (default='-t -s' for <cloud7 and '--smoke' for >=cloud7)
         parameters passed to run_tempest.sh script
     rally_server (default='')
         rally server address
