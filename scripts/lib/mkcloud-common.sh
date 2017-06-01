@@ -557,7 +557,7 @@ if [[ $clouddata || $clouddatadns || $clouddata_base_path || $clouddata_nfs || $
     : ${clouddata:=$(dig -t A +short $clouddatadns)}
     : ${clouddata_base_path:="/repos"}
     : ${clouddata_nfs:=$clouddata}
-    : ${clouddata_nfs_dir:='srv/nfs'}
+    : ${clouddata_nfs_dir:='/srv/nfs'}
     reposerver=$(dig -t A +short $clouddatadns)
     reposerver_base_path=$clouddata_base_path
     nfsserver=$(dig -t A +short $clouddatadns)
