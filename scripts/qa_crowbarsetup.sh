@@ -5711,6 +5711,10 @@ function onadmin_batch
 
     if iscloudver 5plus; then
         sed -i "s/##hypervisor_ip##/$admingw/g" ${scenario}
+
+        sed -i "s/##ironic_net_prefix##/$net_ironic/g" ${scenario}
+        sed -i "s/##ironic_netmask##/$ironicnetmask/g" ${scenario}
+
         if iscloudver 6plus; then
             safely crowbar batch --exclude manila --timeout 2400 build ${scenario}
             if grep -q "barclamp: manila" ${scenario}; then
