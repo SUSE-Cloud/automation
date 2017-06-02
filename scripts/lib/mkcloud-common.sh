@@ -574,6 +574,8 @@ fi
 : ${reposerver_ip:=$(to_ip $reposerver)}
 : ${reposerver_fqdn:=$(to_fqdn $reposerver)}
 : ${reposerver_base_path:=/repos}
+: ${reposerver_url:=http://$reposerver_fqdn$reposerver_httpport$reposerver_base_path}
+: ${imageserver_url:=http://$reposerver_fqdn$reposerver_httpport/images}
 
 : ${nfsserver:=$reposerver}
 : ${nfsserver_ip:=$(to_ip $nfsserver)}
