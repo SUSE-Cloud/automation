@@ -26,11 +26,7 @@
           OSCBUILDDIST=SLE_11_SP3
 
           case $COS in
-            Cloud:OpenStack:[GHIJ]*)
-              submitcmd="$OSC copypac -K -e"
-              OSCBUILDDIST=SLE_11_SP3
-            ;;
-            Cloud:OpenStack:[KL]*)
+            Cloud:OpenStack:[L]*)
               submitcmd="$OSC copypac -K -e"
               OSCBUILDDIST=SLE_12
             ;;
@@ -38,7 +34,7 @@
               submitcmd="$OSC copypac -K -e"
               OSCBUILDDIST=SLE_12_SP1
             ;;
-            Cloud:OpenStack:[N]*)
+            Cloud:OpenStack:[NO]*)
               submitcmd="$OSC copypac -K -e"
               OSCBUILDDIST=SLE_12_SP2
             ;;
