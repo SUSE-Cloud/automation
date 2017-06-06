@@ -1413,7 +1413,7 @@ EOF
         fi
     fi
 
-    [[ $want_sap = 1 ]] && add_sap_repo
+    [[ $want_cd = 1 ]] && add_sap_repo
 
     if [ -n "$deployceph" ] && iscloudver 5plus; then
         add_suse_storage_repo

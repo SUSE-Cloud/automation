@@ -1170,8 +1170,8 @@ Optional
     want_keystone_token_type='uuid' | 'fernet' (default='')
         Choose Keystone token provider type, possible values are "uuid" or "fernet".
         Default value will be applied from Keystone barclamp proposal.
-    want_sap='' | 1  (default='')
-        Set up a cloud based on the SAP fork.
+    want_cd='' | 1  (default='')
+        Set up a cloud based on the continuous delivery channel.
     want_ironic=1 (default='')
         Prepare (virtualized) environment for ironic.
     ironicnic=1 (default=1)
@@ -1256,6 +1256,10 @@ function sanity_checks
     if is_concurrent_run; then
         complain 33 "mkcloud was started twice from same working directory: `pwd`" \
             "Please always use a separate working directory for each (parallel) mkcloud run."
+    fi
+
+    if [[ $want_sap ]] ; then
+        complain 34 "Usage of obsolete parameter. want_sap is now want_cd (continuous delivery)."
     fi
 
     # test for existence of qa_crowbarsetup.sh

@@ -23,6 +23,6 @@
             clusterconfig=data=2:services=3:network=3
             storage_method=swift
             hacloud=1
-            want_sap=1
+            want_cd=1
             label={label}
             job_name=cloud-mkcloud{version}-job-sap-ha-{arch}
