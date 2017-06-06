@@ -47,6 +47,7 @@
               node-label: cloud-trigger
               predefined-parameters: |
                 TESTHEAD=
+                want_test_updates=1
                 cloudsource=susecloud7
                 nodenumber=5
                 networkingmode=vxlan
