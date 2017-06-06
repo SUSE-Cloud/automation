@@ -17,7 +17,6 @@
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
-        - 'cloud-mkcloud{version}-job-docker-{arch}'
         - 'cloud-mkcloud{version}-job-dvr-{arch}'
         - 'cloud-mkcloud{version}-job-hyperv-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
