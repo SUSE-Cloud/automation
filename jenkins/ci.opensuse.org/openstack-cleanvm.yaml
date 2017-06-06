@@ -44,12 +44,14 @@
         ))
       sequential: true
     builders:
-      - update-automation
       - shell: |
           #!/bin/bash
+          ssh jenkins@ci1-opensuse openstack_project=$openstack_project image=$image '
+          [ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation && chmod a+x ~/bin/update_automation
+          update_automation
           sudo /usr/local/sbin/freshvm cleanvm $image
           sleep 100
-          cloudsource=openstack$(echo $openstack_project | tr '[:upper:]' '[:lower:]')
+          cloudsource=openstack$(echo $openstack_project | tr "[:upper:]" "[:lower:]")
           oshead=1
           set -u
           set +e
@@ -71,6 +73,7 @@
           fi
 
           exit $ret
+          '
       - trigger-builds:
         - project: openstack-submit
           condition: SUCCESS
