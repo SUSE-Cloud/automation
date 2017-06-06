@@ -67,14 +67,6 @@ function h_setup_base_repos {
 }
 
 
-function h_setup_extra_repos {
-    # NOTE(toabctl): This is currently needed for i.e. haproxy package (and I guess for other packages/OS-versions too)
-    # This package is not available in openSUSE 13.1 but needs to be installed for lbaas tempest tests
-
-    # NOTE(toabctl): On Cloud:OpenStack:Master, for SLE12SP1 it must be 12_SP1 (not 12-SP1 which is used in the smt-internal path). It's crazy...
-    $zypper ar -f http://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/${DIST_NAME}_${DIST_VERSION//-/_}/Cloud:OpenStack:Master.repo || true
-}
-
 function h_setup_screen {
     cat > ~/.screenrc <<EOF
 altscreen on
@@ -118,21 +110,12 @@ LOG_COLOR=False
 API_RATE_LIMIT=False
 TEMPEST_ALLOW_TENANT_ISOLATION=True
 
+ENABLED_SERVICES=c-api,c-bak,c-sch,c-vol,ceilometer-acentral,ceilometer-acompute,ceilometer-alarm-evaluator,ceilometer-alarm-notifier,ceilometer-anotification,ceilometer-api,ceilometer-collector,cinder,dstat,etcd3,g-api,g-reg,horizon,key,mysql,n-api,n-cauth,n-cond,n-cpu,n-novnc,n-obj,n-sch,peakmem_tracker,placement-api,q-agt,q-dhcp,q-l3,q-meta,q-metering,q-svc,rabbit,s-account,s-container,s-object,s-proxy,tempest,tls-proxy
+
 # use postgres instead of mysql as database
 disable_service mysql
 enable_service postgresql
 
-# swift is disabled by default
-#enable_service s-proxy s-object s-container s-account
-
-# Use Neutron instead of Nova network
-disable_service n-net
-enable_service q-svc
-enable_service q-agt
-enable_service q-dhcp
-enable_service q-l3
-enable_service q-meta
-enable_service q-metering
 # vpn disabled for now. openswan required by devstack but not available in openSUSE
 # enable_service q-vpn
 # enable_service q-fwaas
@@ -149,7 +132,6 @@ EOF
 ###################### Start running code #########################
 h_echo_header "Setup"
 h_setup_base_repos
-h_setup_extra_repos
 $zypper ref
 h_setup_screen
 # setup extra disk if parameters given
