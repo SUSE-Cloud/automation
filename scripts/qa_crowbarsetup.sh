@@ -4292,6 +4292,7 @@ function oncontroller_testsetup
     nova flavor-delete m1.smaller || :
     nova flavor-create m1.smaller 101 512 8 1
     nova delete testvm  || :
+    wait_for 10 3 "[[ ! \$(nova show $instanceid) ]]" "testvm to be deleted"
     nova keypair-add --pub-key /root/.ssh/id_rsa.pub testkey
     nova secgroup-delete testvm || :
     nova secgroup-create testvm testvm
