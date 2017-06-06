@@ -4,17 +4,11 @@
     node: cloud-trigger
 
     triggers:
-      - pollurl:
-          cron: 'H/5 * * * *'
-          polling-node: cloud-trigger
-          urls:
-            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/Cloud7/images/iso/?regexp=x86_64'
-              check-content:
-                - simple: true
+      - timed: 'H H * * *'
 
     logrotate:
-      numToKeep: 7
-      daysToKeep: -1
+      numToKeep: -1
+      daysToKeep: 7
 
     builders:
       - multijob:
@@ -53,6 +47,7 @@
               node-label: cloud-trigger
               predefined-parameters: |
                 TESTHEAD=
+                want_test_updates=1
                 cloudsource=susecloud7
                 nodenumber=5
                 networkingmode=vxlan
