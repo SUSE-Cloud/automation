@@ -4759,6 +4759,8 @@ function onadmin_addupdaterepo
     case $extra_repos in
         all|0)
             repos=$UPDATEREPOS_EXTRA ;;
+        upgrade)
+            repos=$UPDATEREPOS_UPGRADE ;;
         [1-9]*)
             repos="$(echo $UPDATEREPOS_EXTRA | cut -d+ -f1-${extra_repos//[^0-9]/})" ;;
         '')
