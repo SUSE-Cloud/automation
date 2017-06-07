@@ -102,6 +102,7 @@ iscloudver 7plus && : ${controller_node_memory:=12582912}
 : ${cephvolume_hdd_size:=21}
 : ${controller_ceph_hdd_size:=25}
 : ${lonelynode_hdd_size:=20}
+: ${ironicnode_hdd_size:=20}
 if [[ $hacloud ]]; then
     : ${drbd_hdd_size:=15}
 else
@@ -299,7 +300,7 @@ function sshrun
         export JENKINS_WORKSPACE=$WORKSPACE;
 EOF
     # setting these variables within mkcloud does not make them part of the env, so we need to export them
-    export nodenumber nodenumbercompute nodenumberlonelynode clusterconfig
+    export nodenumber nodenumbercompute nodenumberlonelynode nodenumberironicnode clusterconfig
     env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig | sort >> $mkcconf
 
     cp -a $mkcconf $artifacts_dir/
@@ -516,6 +517,17 @@ function restorecloudfromsnapshot
 function setuplonelynodes
 {
     ${mkclouddriver}_do_setuplonelynodes
+}
+
+# bring up ironic nodes in the ironic network
+function setupironicnodes
+{
+    if [[ $(nodes number ironic) -lt 1 ]] ; then
+        complain 80 "Please set nodenumberironicnode."
+        return
+    fi
+
+    ${mkclouddriver}_do_setupironicnodes
 }
 
 # register lonely_node against crowbar
@@ -989,6 +1001,7 @@ Steps:
     setup_aliases:  set aliases for the nodes (usually needed for batch step)
     batch:          build proposals from exported crowbar_batch YAML file
     setuplonelynodes: boot a number (defined by nodenumberlonelynode) of non-crowbar registered nodes in the admin network
+    setupironicnodes: boot a number of empty nodes to be used by the ironic service
     crowbar_register: register a number (defined by nodenumberlonelynode) of non-crowbar nodes with crowbar (setuplonelynodes needs to have run before)
     testsetup:      start a VM in the cloud
     addupdaterepo:  addupdate repos defined in UPDATEREPOS= (URLs separated by '+')
@@ -1081,12 +1094,16 @@ Optional
         Set the size in GB of data disk attached in controller node  with enabled 'cephvolumenumber'
     lonelynode_hdd_size (default 20)
         Set the size in GB of data disk for lonely node.
+    ironicnode_hdd_size (default 20)
+        Set the size in GB of data disk for ironic node.
     nodenumber=2    (default 2)
         set the number of nodes to be created for the cloud (excluding admin node)
         In HA mode (hacloud=1) the nodes needed for clusters are subtracted from nodenumber; the
         remaining nodes are compute nodes.
     nodenumberlonelynode=2    (default 0)
         set the number of non-crowbar registered nodes to be created in the admin network
+    nodenumberironicnode=2    (default 0)
+        set the number of empty nodes to be used by the ironic service
     nodenumbercompute=1  (default $nodenumber resp. 1 in case of hacloud=1)'
         set the number of compute nodes in a HA setup, the remaining nodes
         of $nodenumber - $nodenumbercompute are used as HA cluster nodes
@@ -1342,7 +1359,7 @@ allcmds="$step_aliases _test_setuphost \
     crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help \
     rebootneutron cloudupgrade \
     setuplonelynodes crowbar_register createadminsnapshot \
-    lonelynode_nfs_server \
+    lonelynode_nfs_server setupironicnodes\
     restoreadminfromsnapshot createcloudsnapshot restorecloudfromsnapshot \
     cct steps batch setup_aliases onadmin onhost devsetup plain_with_upgrade_test \
     testpreupgrade testpostupgrade"

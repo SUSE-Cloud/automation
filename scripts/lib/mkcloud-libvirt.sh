@@ -413,6 +413,40 @@ function libvirt_do_setuplonelynodes()
     done
 }
 
+function libvirt_do_setupironicnodes()
+{
+    local i
+    for i in $(nodes ids ironic) ; do
+        # note: for now only one 'ironic' nic is added so $nics is ignored
+        local mac_params=" --macaddress $(macfunc $i 1)"
+
+        local ironic_node
+        ironic_node=$cloud-node$i
+        safely ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
+               $mac_params \
+               --drbdserial "$drbdvolume" \
+               --computenodememory $compute_node_memory\
+               --controllernodememory $controller_node_memory \
+               --libvirttype $libvirt_type \
+               --vcpus $vcpus \
+               --emulator $(get_emulator) \
+               --vdiskdir $vdisk_dir \
+               --bootorder 1 \
+               --numcontrollers 0 \
+               --ironicnic 0 \
+               --firmwaretype "$firmware_type" > /tmp/$cloud-node$i.xml
+
+        local ironic_disk
+        ironic_disk="$vdisk_dir/${cloud}.node$i"
+
+        $sudo lvdisplay "$ironic_disk" || \
+            _lvcreate "${cloud}.node$i" "${ironicnode_hdd_size}" "$cloudvg"
+
+        libvirt_vm_start /tmp/${ironic_node}.xml
+    done
+}
+
+
 function libvirt_do_shutdowncloud()
 {
     $sudo virsh shutdown $cloud-admin
