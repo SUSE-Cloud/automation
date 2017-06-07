@@ -4793,16 +4793,16 @@ function onadmin_addupdaterepo
 
 function zypper_patch
 {
-    wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
-    wait_for 30 3 ' zypper --non-interactive patch ; ret=$?; if [ $ret == 103 ]; then zypper --non-interactive patch ; ret=$?; fi; [[ $ret != 4 ]] ' "successful zypper run" "exit 9"
-    wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
+    local zypper_patch_para=
+    [[ $1 = "all" ]] && zypper_patch_para="--with-interactive"
+    wait_for 30 3 " zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
+    wait_for 30 3 " zypper --non-interactive patch $zypper_patch_para ; ret=$?; if [ $ret == 103 ]; then zypper --non-interactive patch $zypper_patch_para ; ret=$?; fi; [[ $ret != 4 ]] " "successful zypper run" "exit 9"
+    wait_for 30 3 " zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
 }
 
 function onadmin_zypper_patch_all
 {
-    wait_for 30 3 ' zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
-    wait_for 30 3 ' zypper --non-interactive patch --with-interactive ; ret=$?; if [ $ret == 103 ]; then zypper --non-interactive patch --with-interactive ; ret=$?; fi; [[ $ret != 4 ]] ' "successful zypper run" "exit 9"
-    wait_for 30 3 ' zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] ' "successful zypper run" "exit 9"
+    zypper_patch all
 }
 
 function onadmin_wait_for_crowbar_api
