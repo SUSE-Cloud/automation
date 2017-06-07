@@ -536,6 +536,13 @@ function dist_to_image_name
     echo "$image.qcow2"
 }
 
+: ${zypper:=run_zypper}
+function run_zypper
+{
+    local params=${zypper_override_params:---non-interactive --gpg-auto-import-keys --no-gpg-checks}
+    $sudo zypper $params "$@"
+}
+
 # ---- END: functions related to repos and distribution settings
 
 # ---- START: common variables and defaults
