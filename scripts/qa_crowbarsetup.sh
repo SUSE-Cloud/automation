@@ -221,8 +221,8 @@ function add_mount
     fi
 
     if [ -n "${zypper_alias}" ]; then
-        zypper rr "${zypper_alias}"
-        safely zypper -n ar -f "${targetdir}" "${zypper_alias}"
+        $zypper rr "${zypper_alias}"
+        safely $zypper ar -f "${targetdir}" "${zypper_alias}"
     fi
 }
 
@@ -421,7 +421,7 @@ function addcloud7testupdates
 function addcctdepsrepo
 {
     if [[ $cloudsource = @(develcloud5|GM5|GM5+up) ]]; then
-        zypper ar -f http://$susedownload/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
+        $zypper ar -f http://$susedownload/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
     else
         add_sdk_repo
     fi
@@ -436,8 +436,8 @@ function add_sdk_repo
 
     case $(getcloudver) in
         6)
-            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
-            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
+            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
+            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
 
             if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP1-SDK-Updates-test ; then
                 add_mount "SLE12-SP1-SDK-Updates-test" \
@@ -446,8 +446,8 @@ function add_sdk_repo
             fi
             ;;
         7)
-            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
-            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
+            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
+            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
 
             if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP2-SDK-Updates-test ; then
                 add_mount "SLE12-SP2-SDK-Updates-test" \
@@ -456,8 +456,8 @@ function add_sdk_repo
             fi
             ;;
         8)
-            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/ SDK-SP3
-            zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/ SDK-SP3-Update
+            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/ SDK-SP3
+            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/ SDK-SP3-Update
 
             if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP3-SDK-Updates-test ; then
                 add_mount "SLE12-SP3-SDK-Updates-test" \
@@ -473,7 +473,7 @@ function add_sap_repo
     local stage=
     [[ $TESTHEAD ]] && stage=":/Staging"
     # priority required to overwrite the default cloud6 packages
-    zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/SAP${stage}/SLE_12_SP1/ dc6sap
+    $zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/SAP${stage}/SLE_12_SP1/ dc6sap
 }
 
 function add_ha_repo
@@ -740,10 +740,10 @@ function onadmin_prepare_sles11sp3_repos
             "${targetdir_install}" "Cloud-Deps"
         zypper_refresh
     else
-        zypper se -s sles-release | \
+        $zypper se -s sles-release | \
             grep -v -e "sp.up\s*$" -e "(System Packages)" | \
             grep -q x86_64 \
-        || zypper ar \
+        || $zypper ar \
             http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ \
             sles
 
@@ -1052,8 +1052,8 @@ function onadmin_add_cloud_repo
         targetdir="$tftpboot_repos_dir/Cloud/"
     fi
 
-    zypper rr Cloud
-    safely zypper ar -f ${targetdir} Cloud
+    $zypper rr Cloud
+    safely $zypper ar -f ${targetdir} Cloud
 
     if [ -n "${localreposdir_target}" ]; then
         echo $CLOUDLOCALREPOS > /etc/cloudversion
@@ -1300,9 +1300,9 @@ function onadmin_set_source_variables
 function onadmin_repocleanup
 {
     # Workaround broken admin image that has SP3 Test update channel enabled
-    zypper mr -d sp3tup
+    $zypper mr -d sp3tup
     # disable extra repos
-    zypper mr -d sp3sdk
+    $zypper mr -d sp3sdk
 }
 
 # replace zypper repos from the image with user-specified ones
@@ -1311,8 +1311,8 @@ function onadmin_setup_local_zypper_repositories
 {
     # Delete all repos except PTF repo, because this could
     # be called after the addupdaterepo step.
-    zypper lr -e - | sed -n '/^name=/ {s///; /ptf/! p}' | \
-        xargs -r zypper rr
+    $zypper lr -e - | sed -n '/^name=/ {s///; /ptf/! p}' | \
+        xargs -r $zypper rr
 
     uri_base=$smturl
     # restore needed repos depending on localreposdir_target
@@ -1323,16 +1323,16 @@ function onadmin_setup_local_zypper_repositories
     case $(getcloudver) in
         5)
             uri_base=$reposerver_url
-            zypper ar $uri_base/SLES11-SP3-Pool/ sles11sp3
-            zypper ar $uri_base/SLES11-SP3-Updates/ sles11sp3up
+            $zypper ar $uri_base/SLES11-SP3-Pool/ sles11sp3
+            $zypper ar $uri_base/SLES11-SP3-Updates/ sles11sp3up
         ;;
         6)
-            zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP1/$arch/product/ sles12sp1
-            zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP1/$arch/update/ sles12sp1up
+            $zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP1/$arch/product/ sles12sp1
+            $zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP1/$arch/update/ sles12sp1up
         ;;
         7)
-            zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP2/$arch/product/ sles12sp2
-            zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP2/$arch/update/ sles12sp2up
+            $zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP2/$arch/product/ sles12sp2
+            $zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP2/$arch/update/ sles12sp2up
         ;;
     esac
 }
@@ -1432,9 +1432,9 @@ EOF
 
     # avoid kernel update
     zypper al kernel-default
-    local zypperdup="zypper -n dup --no-recommends --no-allow-downgrade"
+    local zypperdup="$zypper dup --no-recommends --no-allow-downgrade"
     $zypperdup -r Cloud -r cloudtup || $zypperdup -r Cloud
-    zypper rl kernel-default
+    $zypper rl kernel-default
 
     # Workaround chef-solr crashes
     if [ "$arch" = "aarch64" ]; then
@@ -1442,9 +1442,9 @@ EOF
     fi
 
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
-        safely zypper --no-gpg-checks -n in -l -t pattern cloud_admin
+        safely $zypper in -l -t pattern cloud_admin
         # make sure to use packages from PTF repo (needs zypper dup)
-        zypper mr -e cloud-ptf && safely zypper -n dup --from cloud-ptf
+        $zypper mr -e cloud-ptf && safely $zypper dup --from cloud-ptf
     fi
 
     cd /tmp
@@ -1721,7 +1721,7 @@ function do_installcrowbar
 
     if [ -n "$wanthyperv" ] ; then
         # prepare Hyper-V 2012 R2 PXE-boot env and export it via Samba:
-        zypper -n in samba
+        $zypper in samba
         rsync -a $rsyncserver_fqdn::cloud/hyperv-6.3 /srv/tftpboot/
         chkconfig smb on
         chkconfig nmb on
@@ -2100,7 +2100,7 @@ function onadmin_post_allocate
         done
 
         if iscloudver 6plus && [[ $want_sbd = 1 ]] ; then
-            zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/$slesdist/ --non-interactive install python-sh
+            $zypper -p http://download.opensuse.org/repositories/devel:/languages:/python/$slesdist/ install python-sh
             chmod +x $SCRIPTS_DIR/iscsictl.py
             $SCRIPTS_DIR/iscsictl.py --service target --host $(hostname) --no-key
 
@@ -3770,14 +3770,14 @@ function onadmin_upload_defcore
 function oncontroller_run_integration_test()
 {
     # Install Mozilla Firefox < 47 to work with Selenium.
-    safely zypper -n in 'MozillaFirefox<47'
+    safely $zypper in 'MozillaFirefox<47'
 
     # Add Devel:Languages:Python repo (no GPG checks) to install Selenium
     local dlp="http://download.opensuse.org/repositories/devel:/languages:/python/$slesdist/"
-    zypper ar --no-gpgcheck --refresh $dlp python
-    safely zypper -n in python-selenium
-    safely zypper -n in python-nose
-    safely zypper -n in python-xvfbwrapper
+    $zypper ar --no-gpgcheck --refresh $dlp python
+    safely $zypper in python-selenium
+    safely $zypper in python-nose
+    safely $zypper in python-xvfbwrapper
 
     source .openrc
 
@@ -4112,7 +4112,7 @@ function oncontroller_testsetup
     if ! glance_image_exists $image_name ; then
         if [[ $wanthyperv ]] ; then
             mount $nfsserver_ip:/srv/nfs/ /mnt/
-            zypper -n in virt-utils
+            $zypper in virt-utils
             qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
             openstack image create --public --disk-format vhd --container-format bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd $image_name | tee glance.out
             rm /tmp/SP3.vhd ; umount /mnt
@@ -4382,8 +4382,8 @@ function install_suse_ca
     safely rpm --import build.suse.de.key.pgp
 
     onadmin_set_source_variables # for $slesdist
-    zypper ar --refresh http://$susedownload/ibs/SUSE:/CA/$slesdist/SUSE:CA.repo
-    safely zypper -n in ca-certificates-suse
+    $zypper ar --refresh http://$susedownload/ibs/SUSE:/CA/$slesdist/SUSE:CA.repo
+    safely $zypper in ca-certificates-suse
 }
 
 function ceph_testsuite_configure_storage3
@@ -4457,9 +4457,9 @@ function oncontroller_prepare_functional_tests
         if ! [[ $CLOUDSLE12TESTISO ]]; then
             echo "Warning: Testing ISO for $cloudsource is not defined, functional tests are not available"
         else
-            if ! zypper lr "$repo_name" ; then
+            if ! $zypper lr "$repo_name" ; then
                 rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
-                zypper -n ar --refresh -c -G -f "$mount_dir" "$repo_name"
+                $zypper ar --refresh -c -G -f "$mount_dir" "$repo_name"
                 zypper_refresh
                 ensure_packages_installed python-novaclient-test python-manilaclient-test
             fi
@@ -4536,9 +4536,9 @@ function onadmin_testsetup
             rpm -Uvh http://$susedownload/ibs/SUSE:/SLE-12:/GA/standard/noarch/python-nose-1.3.0-8.4.noarch.rpm
         else
             if ! rpm -q python-nose &> /dev/null; then
-                zypper ar http://$susedownload/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
+                $zypper ar http://$susedownload/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/standard/Devel:Cloud:Shared:11-SP3:Update.repo
                 ensure_packages_installed python-nose
-                zypper rr Devel_Cloud_Shared_11-SP3_Update
+                $zypper rr Devel_Cloud_Shared_11-SP3_Update
             fi
         fi
 
@@ -4785,9 +4785,9 @@ function onadmin_addupdaterepo
         ensure_packages_installed createrepo
         createrepo-cloud-ptf || createrepo -o $UPR $UPR || exit 8
     fi
-    zypper modifyrepo -e cloud-ptf >/dev/null 2>&1 ||\
-        safely zypper ar $UPR cloud-ptf
-    safely zypper mr -p 90 -r cloud-ptf
+    $zypper modifyrepo -e cloud-ptf >/dev/null 2>&1 ||\
+        safely $zypper ar $UPR cloud-ptf
+    safely $zypper mr -p 90 -r cloud-ptf
     [[ ! -e $UPR/repodata/repomd.xml.key ]] || safely rpmkeys --import $UPR/repodata/repomd.xml.key
 }
 
@@ -4795,9 +4795,9 @@ function zypper_patch
 {
     local zypper_patch_para=
     [[ $1 = "all" ]] && zypper_patch_para="--with-interactive"
-    wait_for 30 3 " zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks ref ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
-    wait_for 30 3 " zypper --non-interactive patch $zypper_patch_para ; ret=$?; if [ $ret == 103 ]; then zypper --non-interactive patch $zypper_patch_para ; ret=$?; fi; [[ $ret != 4 ]] " "successful zypper run" "exit 9"
-    wait_for 30 3 " zypper --non-interactive up --repo cloud-ptf ; [[ $? != 4 ]] " "successful zypper run" "exit 9"
+    wait_for 30 3 " $zypper ref ; [[ \$? != 4 ]] " "successful zypper run" "exit 9"
+    wait_for 30 3 " $zypper patch $zypper_patch_para ; ret=\$?; if [ \$ret == 103 ]; then $zypper patch $zypper_patch_para ; ret=\$?; fi; [[ \$ret != 4 ]] " "successful zypper run" "exit 9"
+    wait_for 30 3 " $zypper up --repo cloud-ptf ; [[ \$? != 4 ]] " "successful zypper run" "exit 9"
 }
 
 function onadmin_zypper_patch_all
@@ -5018,7 +5018,7 @@ zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SLES12-SP2-Pool SLES12-
 zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Pool SUSE-Enterprise-Storage-4-Pool
 zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Updates SUSE-Enterprise-Storage-4-Updates
 zypper ref
-zypper -non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgrade-helper"
+zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgrade-helper"
 
         ssh $node "upgrade-ses.sh --non-interactive"
         ssh $node "reboot"
@@ -5077,9 +5077,9 @@ function onadmin_prepare_cloudupgrade_admin_repos_6_to_7
     safely createrepo $tftpboot_repos12sp2_dir/PTF
 
     # change system repositories to SP2
-    zypper rr sles12sp1
-    zypper rr sles12sp1up
-    zypper rr sles12sp1tup
+    $zypper rr sles12sp1
+    $zypper rr sles12sp1up
+    $zypper rr sles12sp1tup
     onadmin_setup_local_zypper_repositories
 }
 
@@ -5112,7 +5112,7 @@ function onadmin_prepare_cloudupgrade
     # on the admin node, this is NOT a bug). Let's wait for that to finish
     # before trying to install anything.
     wait_for_if_running chef-client
-    zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks refresh -f || complain 3 "Couldn't refresh zypper indexes after adding SUSE-Cloud-$update_version repos"
+    zypper_refresh -f
     ensure_packages_installed suse-cloud-upgrade
 }
 
@@ -5159,7 +5159,7 @@ function onadmin_cloudupgrade_2nd
 
 function onadmin_zypper_update
 {
-    zypper --non-interactive update --no-recommends --auto-agree-with-licenses
+    $zypper update --no-recommends --auto-agree-with-licenses
 }
 
 function onadmin_cloudupgrade_clients
@@ -5311,7 +5311,7 @@ function onadmin_crowbarpurge
     killall epmd # part of rabbitmq
     killall looper_chef_client.sh
 
-    safely zypper -n rm \
+    safely $zypper rm \
         `rpm -qa|grep -e crowbar -e chef -e rubygem -e susecloud -e apache2` \
         couchdb createrepo erlang rabbitmq-server sleshammer yum-common \
         bind bind-chrootenv dhcp-server tftp
@@ -5377,7 +5377,7 @@ function onadmin_crowbarrestore
     local restoremode=$1
     local btarballname=backup-crowbar
     local btarball=${btarballname}.tar.gz
-    zypper --non-interactive in --auto-agree-with-licenses -t pattern cloud_admin
+    $zypper in --auto-agree-with-licenses -t pattern cloud_admin
 
     if iscloudver 6plus ; then
         systemctl start crowbar.service
@@ -5492,7 +5492,7 @@ function onadmin_crowbar_nodeupgrade
 function onadmin_qa_test
 {
     pre_hook $FUNCNAME
-    zypper -n in -y python-{keystone,nova,glance,heat,cinder,ceilometer}client
+    $zypper in -y python-{keystone,nova,glance,heat,cinder,ceilometer}client
 
     get_novacontroller
     scp $novacontroller:.openrc ~/
