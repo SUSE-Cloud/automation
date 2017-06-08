@@ -289,6 +289,7 @@ function sshrun
         export cinder_netapp_password=$cinder_netapp_password;
 
         export UPDATEREPOS=$UPDATEREPOS ;
+        export UPDATEREPOS_UPGRADE=$UPDATEREPOS_UPGRADE ;
         export UPDATEREPOS_EXTRA=$UPDATEREPOS_EXTRA ;
         export TESTHEAD=$TESTHEAD ;
         export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
@@ -897,6 +898,7 @@ function crowbarupgrade_5plus
         export cloudsource=$upgrade_cloudsource
         onadmin prepare_crowbar_upgrade
         onadmin prepare_cloudupgrade_admin_repos_6_to_7
+        onadmin addupdaterepo upgrade
         onadmin upgrade_admin_backup
         onadmin upgrade_admin_repocheck
         onadmin upgrade_admin_server
