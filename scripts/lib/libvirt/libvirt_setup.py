@@ -135,6 +135,17 @@ def get_maindisk_address():
     return maindiskaddress
 
 
+def uefisecureboot(firmwaretype=None, enabled=False):
+    template = """  <qemu:commandline>
+   <qemu:arg value='-global'/>
+   <qemu:arg value='driver=cfi.pflash01,property=secure,value={}'/>
+  </qemu:commandline>"""
+    if 'x86_64' in get_machine_arch() and firmwaretype == "uefi":
+        return template.format("on" if enabled else "off")
+    else:
+        return ""
+
+
 def admin_config(args, cpu_flags=cpuflags()):
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
@@ -321,7 +332,8 @@ def compute_config(args, cpu_flags=cpuflags()):
         target_dev=targetdevprefix + 'a',
         serialdevice=get_serial_device(),
         target_address=target_address.format('0x0a'),
-        bootorder=args.bootorder)
+        bootorder=args.bootorder,
+        uefisecureboot=uefisecureboot(args.firmwaretype))
 
     return get_config(merge_dicts(values, configopts),
                       os.path.join(TEMPLATE_DIR, "compute-node.xml"))

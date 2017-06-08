@@ -57,4 +57,8 @@
     </memballoon>
 
   </devices>
+  <qemu:commandline>
+   <qemu:arg value='-global'/>
+   <qemu:arg value='driver=cfi.pflash01,property=secure,value=off'/>
+  </qemu:commandline>
 </domain>
