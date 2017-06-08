@@ -56,14 +56,24 @@ def get_machine_arch():
     return os.uname()[4]
 
 
-def get_os_loader(firmware_type=None):
+def get_os_loader(firmware_type=None, secureboot=False):
     path = None
-    template = "<loader readonly='yes' type='pflash'>%s</loader>"
+    template = """<loader readonly='yes' type='pflash'>/usr/share/qemu/{0}</loader>
+{1}"""
+    nvram = "<nvram>/var/lib/libvirt/$cloud-node${nodecounter}_VARS.fd</nvram>"
     if 'aarch64' in get_machine_arch():
-        path = "/usr/share/qemu/aavmf-aarch64-code.bin"
+        path = "aavmf-aarch64-code.bin"
     elif 'x86_64' in get_machine_arch() and firmware_type == "uefi":
-        path = "/usr/share/qemu/ovmf-x86_64-ms-code.bin"
-    return template % path if path else ""
+        nvramtemplate = "<nvram template='/usr/share/qemu/{}' />"
+        if secureboot:
+            # uefi loader with secure boot enabled
+            path = "ovmf-x86_64-ms-code.bin"
+            nvram = nvramtemplate.format("ovmf-x86_64-ms-vars.bin")
+        else:
+            # uefi loader with secure boot disabled
+            path = "ovmf-x86_64-code.bin"
+            nvram = nvramtemplate.format("ovmf-x86_64-vars.bin")
+    return template.format(path, nvram) if path else ""
 
 
 def get_video_devices():
