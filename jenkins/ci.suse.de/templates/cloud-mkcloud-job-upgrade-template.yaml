@@ -1,7 +1,7 @@
 - job-template:
     name: 'cloud-mkcloud{version}-job-upgrade-{arch}'
     node: cloud-trigger
-    disabled: '{obj:disabled}'
+    disabled: true
 
     triggers:
       - timed: '32 22 * * *'
