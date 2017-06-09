@@ -21,7 +21,7 @@
             cloudsource=develcloud{version}
             nodenumber=4
             nodenumbercompute=3
-            want_magnum=1
+            want_magnum_proposal=1
             storage_method=none
             tempestoptions=--regex '^magnum.tests.functional.api'
             mkcloudtarget=all
