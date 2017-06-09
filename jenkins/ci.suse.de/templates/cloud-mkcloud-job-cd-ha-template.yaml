@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-sap-ha-{arch}'
+    name: 'cloud-mkcloud{version}-job-cd-ha-{arch}'
     node: cloud-trigger
     disabled: '{obj:disabled}'
 
@@ -25,4 +25,4 @@
             hacloud=1
             want_cd=1
             label={label}
-            job_name=cloud-mkcloud{version}-job-sap-ha-{arch}
+            job_name=cloud-mkcloud{version}-job-cd-ha-{arch}
