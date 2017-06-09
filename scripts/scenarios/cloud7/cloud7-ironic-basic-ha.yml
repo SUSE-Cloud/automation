@@ -112,15 +112,6 @@ proposals:
             start: ##ironic_net_prefix##.21
             end: ##ironic_net_prefix##.254
         mtu: 1500
-  deployment:
-    elements:
-      switch_config:
-      - crowbar.virtual.cloud.suse.de
-      network:
-      - crowbar.virtual.cloud.suse.de
-      - "@@controller1@@"
-      - "@@compute@@"
-      - "@@controller2@@"
 - barclamp: pacemaker
   name: data
   attributes:
@@ -130,7 +121,6 @@ proposals:
         hypervisor_ip: ##hypervisor_ip##
     drbd:
       enabled: true
-      shared_secret: yaYqaPqd3jYz
   deployment:
     elements:
       pacemaker-cluster-member:
@@ -144,7 +134,6 @@ proposals:
   attributes:
     exports:
       glance-images:
-        nfs_server: crowbar.virtual.cloud.suse.de
         export: "/var/lib/glance/images"
         mount_path: "/var/lib/glance/images"
         mount_options:
