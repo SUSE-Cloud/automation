@@ -238,6 +238,8 @@ function sshrun
         export reposerver_ip=$reposerver_ip ;
         export reposerver_fqdn=$reposerver_fqdn ;
         export reposerver_base_path=$reposerver_base_path ;
+        export reposerver_url=$reposerver_url ;
+        export imageserver_url=$imageserver_url ;
         export nfsserver=$nfsserver ;
         export nfsserver_ip=$nfsserver_ip ;
         export nfsserver_fqdn=$nfsserver_fqdn ;
