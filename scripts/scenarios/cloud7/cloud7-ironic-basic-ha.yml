@@ -224,6 +224,7 @@ proposals:
     rabbitmq_instance: default
     keystone_instance: default
     ml2_type_drivers:
+    - gre
     - vxlan
     - vlan
     database_instance: default
