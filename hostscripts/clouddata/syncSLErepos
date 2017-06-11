@@ -213,12 +213,12 @@ for version in 6 7; do
     done
 done
 
-# sync cloud images
-$rsync /mnt/dist/ibs/SUSE:/SLE-12-SP3:/Update:/JeOS/images/SLES12-SP3-JeOS-for-OpenStack-Cloud.x86_64-*.qcow2 /srv/nfs/images/x86_64/SLES12-SP3.qcow2
-
 # sync admin images
 for arch in x86_64 aarch64 s390x ; do
     $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2.${arch}.qcow2 /srv/nfs/images/$arch/SLES12-SP2-untested.qcow2
+
+    $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP3/mkcloud-admin-node-SLE12SP3.${arch}.qcow2 /srv/nfs/images/$arch/SLES12-SP3-untested.qcow2
+
     if [ "$arch" == x86_64 ]; then
         $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2-uefi.${arch}.qcow2 /srv/nfs/images/$arch/SLES12-SP2-uefi.qcow2
     fi

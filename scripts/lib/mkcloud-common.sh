@@ -501,6 +501,8 @@ function get_admin_node_dist
     # echo the name of the current dist for the admin node
     local dist=
     case $(getcloudver) in
+        8)  dist=SLE12SP3
+            ;;
         7)  dist=SLE12SP2
             [[ $want_sles12sp1_admin ]] && dist=SLE12SP1
             ;;
@@ -523,6 +525,7 @@ function dist_to_image_name
     # get the name of the image to deploy the admin node
     local dist=$1
     case $dist in
+        SLE12SP3) image=SLES12-SP3 ;;
         SLE12SP2) image=SLES12-SP2 ;;
         SLE12SP1) image=SLES12-SP1 ;;
         SLE12)    image=SLES12     ;;
