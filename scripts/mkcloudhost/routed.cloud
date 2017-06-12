@@ -13,6 +13,7 @@ fi
 : ${nfsserver:=clouddata.cloud.suse.de}
 export reposerver nfsserver
 export net_admin=$(cloudadminnet $n)
+export net_ironic=$(cloudironicnet $n)
 export net_public=$(routedcloudpublicnet $n)
 export adminnetmask=255.255.255.0
 export virtualcloud=$vcloudname$n

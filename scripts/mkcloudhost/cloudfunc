@@ -10,6 +10,12 @@ function cloudadminnet()
     echo -n 192.168.$((255-2*n))
 }
 
+function cloudironicnet()
+{
+    n=$1
+    echo -n 192.168.$((4*n))
+}
+
 function cloudpublicnet()
 {
     n=$1
