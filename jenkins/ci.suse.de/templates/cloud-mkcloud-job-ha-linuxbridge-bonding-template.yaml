@@ -1,0 +1,33 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-ha-linuxbridge-bonding-{arch}'
+    node: cloud-trigger
+    disabled: '{obj:disabled}'
+
+    triggers:
+      - timed: 'H 21 * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 7
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{version}
+            nodenumber=5
+            clusterconfig=data+network+services=2
+            storage_method=swift
+            hacloud=1
+            mkcloudtarget=all_noreboot
+            networkingplugin=linuxbridge
+            networkingmode=vxlan
+            nics=2
+            crowbar_networkingmode=team
+            want_node_aliases=controller=2,compute=2
+            label={label}
+            job_name=cloud-mkcloud{version}-job-ha-linuxbridge-{arch}
