@@ -129,20 +129,6 @@ proposals:
       hawk-server:
       - "@@controller1@@"
       - "@@controller2@@"
-- barclamp: nfs_client
-  name: data
-  attributes:
-    exports:
-      glance-images:
-        export: "/var/lib/glance/images"
-        mount_path: "/var/lib/glance/images"
-        mount_options:
-        - ''
-  deployment:
-    elements:
-      nfs-client:
-      - "@@controller1@@"
-      - "@@controller2@@"
 - barclamp: database
   attributes:
     ha:
