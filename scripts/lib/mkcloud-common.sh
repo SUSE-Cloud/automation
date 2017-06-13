@@ -488,6 +488,9 @@ get_nodenumbercontroller()
     if [[ $clusterconfig == *services* ]]; then
         nodenumbercontroller=`echo ${clusterconfig}\
             | sed -e "s/^.*services[^:]*=\([[:digit:]]\+\).*/\1/"`
+    elif [[ $clusterconfig == *data* ]]; then
+        nodenumbercontroller=`echo ${clusterconfig}\
+            | sed -e "s/^.*data[^:]*=\([[:digit:]]\+\).*/\1/"`
     fi
     # Need one more big VM for Monasca
     if iscloudver 7plus && [[ $want_monasca_proposal = 1 ]]; then
