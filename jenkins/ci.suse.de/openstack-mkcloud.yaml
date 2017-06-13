@@ -134,6 +134,12 @@
             Deploy cloud7 with SP2 instead of SP1
 
       - string:
+          name: want_cd
+          default:
+          description: >-
+            Add CD repos before crowbar install
+
+      - string:
           name: upgrade_cloudsource
           default:
           description: >-
