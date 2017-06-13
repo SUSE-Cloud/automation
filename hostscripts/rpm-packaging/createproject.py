@@ -112,6 +112,13 @@ def upload_meta_enable_repository(project, linkproject):
     upload_meta(project, repository, linkproject)
 
 
+def freeze_project(project):
+    """Generate a _frozenlink file for the project"""
+    result = sh.osc('api', '-X', 'POST', '/source/%s?cmd=freezelink' % project)
+    if '<status code="ok" />' not in result:
+        print('WARNING: freeze the project fails: %s' % result)
+
+
 def create_new_build_project(workdir, project, linkproject):
     sh.mkdir('-p', workdir)
     olddir = os.getcwd()
@@ -119,6 +126,7 @@ def create_new_build_project(workdir, project, linkproject):
         os.chdir(workdir)
         if linkproject:
             upload_meta_enable_repository(project, linkproject)
+            freeze_project(project)
         sh.osc('init', project)
     finally:
         os.chdir(olddir)
