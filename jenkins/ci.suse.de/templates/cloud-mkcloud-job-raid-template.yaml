@@ -20,6 +20,7 @@
             TESTHEAD=1
             cloudsource=develcloud{version}
             nodenumber=2
+            storage_method=none
             controller_raid_volumes=2
             want_raidtype=raid1
             mkcloudtarget=all
