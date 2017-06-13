@@ -82,10 +82,10 @@ Project used: %(ZUUL_PROJECT)s
                   'projectlink': projectlink,
                   'build_repository': build_repository})
 
-    with tempfile.NamedTemporaryFile(delete=False) as meta:
+    with tempfile.NamedTemporaryFile() as meta:
         meta.write(templ)
+        meta.flush()
         print('Updating meta for ', project)
-        meta.close()
 
         # work around build service bug that triggers a database deadlock
         for fail_counter in range(1, 5):
@@ -97,7 +97,6 @@ Project used: %(ZUUL_PROJECT)s
                 # proven to be the correct sleep factor, but it seems to work
                 time.sleep(2)
                 continue
-        os.unlink(meta.name)
 
 
 def upload_meta_enable_repository(project, linkproject):
