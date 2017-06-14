@@ -598,6 +598,7 @@ fi
 : ${smtserver_fqdn:=$(to_fqdn $smtserver)}
 : ${smturl:=http://$smtserver_fqdn/update/build.suse.de}
 
+: ${test_internet_url:=http://$reposerver_fqdn/test}
 
 if [[ $UID != 0 ]] ; then
     : ${sudo:=sudo}

@@ -301,6 +301,7 @@ function sshrun
         export JENKINS_NODE_NAME=$NODE_NAME;
         export JENKINS_EXECUTOR_NUMBER=$EXECUTOR_NUMBER;
         export JENKINS_WORKSPACE=$WORKSPACE;
+        export test_internet_url=$test_internet_url;
 EOF
     # setting these variables within mkcloud does not make them part of the env, so we need to export them
     export nodenumber nodenumbercompute nodenumberlonelynode nodenumberironicnode clusterconfig ironicnetmask

@@ -4319,7 +4319,7 @@ function oncontroller_testsetup
 
     wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
 
-    if ! ssh $ssh_target curl $reposerver_fqdn/test ; then
+    if ! ssh $ssh_target curl $test_internet_url ; then
         complain 95 could not reach internet
     fi
 
