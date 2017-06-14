@@ -170,8 +170,7 @@ class CrowbarTestbuild
     system(
       *[
         "sed", "-i",
-        "-e", "s,Url:.*,%define _default_patch_fuzz 2,",
-        "-e", "s,%patch[0-36-9].*,,", package_spec_file
+        "-e", "s,Url:.*,%define _default_patch_fuzz 2,", package_spec_file
       ]
     )
 
