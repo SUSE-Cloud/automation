@@ -267,10 +267,13 @@ function export_tftpboot_repos_dir
         tftpboot_repos_dir=$tftpboot_suse_dir/repos
         tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
         tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
-    elif iscloudver 7plus ; then
+    elif iscloudver 8plus ; then
+        tftpboot_suse12sp3_dir=/srv/tftpboot/suse-12.3
+        tftpboot_repos12sp3_dir=$tftpboot_suse12sp3_dir/$arch/repos
+    elif iscloudver 7 ; then
         tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
         tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/$arch/repos
-    elif iscloudver 6plus; then
+    elif iscloudver 6; then
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
         tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$arch/repos
     fi
@@ -403,6 +406,14 @@ function addcloud7pool
         "cloudpool"
 }
 
+function addcloud8pool
+{
+    add_mount "SUSE-OpenStack-Cloud-8-Pool" \
+        "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SUSE-OpenStack-Cloud-8-Pool/" \
+        "$tftpboot_repos12sp3_dir/SUSE-OpenStack-Cloud-8-Pool/" \
+        "cloudpool"
+}
+
 function addcloud7maintupdates
 {
     add_mount "SUSE-OpenStack-Cloud-7-Updates" \
@@ -512,6 +523,18 @@ function add_ha12sp2_repo
     done
 }
 
+function add_ha12sp3_repo
+{
+    local repo
+    for repo in SLE12-SP3-HA-{Pool,Updates}; do
+        # Note no zypper alias parameter here since we don't want to
+        # zypper addrepo on the admin node.
+        add_mount "$repo" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$arch/$repo" \
+            "$tftpboot_repos12sp3_dir/$repo"
+    done
+}
+
 function add_suse_storage_repo
 {
         local repo
@@ -592,7 +615,8 @@ function get_unclustered_sles12plus_nodes
 {
     local target="suse-12.0"
     iscloudver 6 && target="suse-12.1"
-    iscloudver 7plus && target="suse-12.2"
+    iscloudver 7 && target="suse-12.2"
+    iscloudver 8plus && target="suse-12.3"
 
     local sles12plusnodes=($(knife search node "target_platform:$target AND \
         NOT crowbar_admin_node:true" -a name | grep ^name: | cut -d : -f 2 | \
@@ -805,6 +829,12 @@ function onadmin_prepare_sles12sp2_repos
     onadmin_prepare_sles12sp2_other_repos
 }
 
+function onadmin_prepare_sles12sp3_repos
+{
+    onadmin_prepare_sles12sp3_installmedia
+    onadmin_prepare_sles12sp3_other_repos
+}
+
 function onadmin_prepare_sles12plus_cloud_repos
 {
     if iscloudver 5; then
@@ -816,7 +846,13 @@ function onadmin_prepare_sles12plus_cloud_repos
 
     local sles12optionalrepolist
     local targetdir
-    if iscloudver 7plus; then
+    if iscloudver 8plus; then
+        sles12optionalrepolist=(
+            SUSE-OpenStack-Cloud-8-Pool
+            SUSE-OpenStack-Cloud-8-Updates
+        )
+        targetdir="$tftpboot_repos12sp3_dir"
+    elif iscloudver 7plus; then
         sles12optionalrepolist=(
             SUSE-OpenStack-Cloud-7-Pool
             SUSE-OpenStack-Cloud-7-Updates
@@ -886,6 +922,22 @@ function onadmin_prepare_sles12sp2_installmedia
     done
 }
 
+function onadmin_prepare_sles12sp3_installmedia
+{
+    local a
+    for a in $architectures; do
+        local sles12sp3_mount="$tftpboot_suse12sp3_dir/$a/install"
+        add_mount "SLE-12-SP3-Server-TEST/sle-12-$a" \
+            "$nfsserver_ip:$nfsserver_base_path/suse-12.3/$a/install" \
+            "$sles12sp3_mount"
+
+        if [ ! -d "$sles12sp3_mount/media.1" ] ; then
+            complain 34 "We do not have SLES12 SP3 install media - giving up"
+        fi
+    done
+}
+
+
 function onadmin_prepare_sles12_other_repos
 {
     for repo in SLES12-{Pool,Updates}; do
@@ -923,10 +975,26 @@ function onadmin_prepare_sles12sp2_other_repos
     done
 }
 
+function onadmin_prepare_sles12sp3_other_repos
+{
+    for repo in SLES12-SP3-{Pool,Updates}; do
+        add_mount "$repo/sle-12-$arch" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$arch/$repo" \
+            "$tftpboot_repos12sp3_dir/$repo"
+        if [[ $want_s390 ]] ; then
+            add_mount "$repo/sle-12-s390x" \
+                "$nfsserver_ip:$nfsserver_base_path/repos/s390x/$repo" \
+                "$tftpboot_suse12sp3_dir/s390x/repos/$repo"
+        fi
+    done
+}
+
 function onadmin_prepare_cloud_repos
 {
     local targetdir=
-    if iscloudver 7plus; then
+    if iscloudver 8plus; then
+        targetdir="$tftpboot_repos12sp3_dir/Cloud"
+    elif iscloudver 7plus; then
         targetdir="$tftpboot_repos12sp2_dir/Cloud"
     elif iscloudver 6plus; then
         targetdir="$tftpboot_repos12sp1_dir/Cloud"
@@ -983,8 +1051,8 @@ function onadmin_prepare_cloud_repos
             addcloud7pool
             addcloud7maintupdates
             ;;
-        develcloud8|susecloud8|GM8|M?|Beta*|RC*|GMC*)
-            complain 57 "We don't have Cloud8 yet, please try again later"
+        develcloud8)
+            addcloud8pool
             ;;
     esac
 
@@ -1032,7 +1100,7 @@ function onadmin_prepare_cloud_repos
                 ;;
             *cloud8|M?|Beta*|RC*|GMC*)
                 addsles12sp3testupdates
-            ;;
+                ;;
             *)
                 complain 26 "no test update repos defined for cloudsource=$cloudsource"
                 ;;
@@ -1044,7 +1112,9 @@ function onadmin_prepare_cloud_repos
 function onadmin_add_cloud_repo
 {
     local targetdir=
-    if iscloudver 7plus; then
+    if iscloudver 8plus; then
+        targetdir="$tftpboot_repos12sp3_dir/Cloud/"
+    elif iscloudver 7plus; then
         targetdir="$tftpboot_repos12sp2_dir/Cloud/"
     elif iscloudver 6plus; then
         targetdir="$tftpboot_repos12sp1_dir/Cloud/"
@@ -1242,11 +1312,18 @@ function onadmin_set_source_variables
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
-        susecloud7)
-            CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/Cloud7/images/iso/
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"
-            CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
+        develcloud8)
+            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/8/images/iso
+            [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/8:/Staging/images/iso
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-$arch*Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-8-TESTING-${arch}-Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-devel"
+        ;;
+        susecloud8)
+            CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/Cloud8/images/iso/
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-$arch*Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-8-TESTING-$arch*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
         GM5|GM5+up)
             CLOUDSLE11DISTPATH=/install/SUSE-Cloud-5-GM/
@@ -1271,7 +1348,7 @@ function onadmin_set_source_variables
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud5|develcloud6|develcloud7|GM5|Mx|GM6|GM7"
+            complain 76 "You must set environment variable cloudsource=develcloud5|develcloud6|develcloud7|develcloud8|GM5|Mx|GM6|GM7"
         ;;
     esac
 
@@ -1292,6 +1369,11 @@ function onadmin_set_source_variables
             slesversion=12-SP2
             slesdist=SLE_12_SP2
             slesmilestone=GM
+        ;;
+        12.3)
+            slesversion=12-SP3
+            slesdist=SLE_12_SP3
+            slesmilestone=LATEST
         ;;
     esac
 }
@@ -1333,6 +1415,10 @@ function onadmin_setup_local_zypper_repositories
         7)
             zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP2/$arch/product/ sles12sp2
             zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP2/$arch/update/ sles12sp2up
+        ;;
+        8)
+            zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP3/$arch/product/ sles12sp3
+            zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP3/$arch/update/ sles12sp3up
         ;;
     esac
 }
@@ -1385,7 +1471,10 @@ EOF
     onadmin_set_source_variables
     onadmin_setup_local_zypper_repositories
 
-    if iscloudver 7plus; then
+    if iscloudver 8plus; then
+        onadmin_prepare_sles12sp3_repos
+        onadmin_prepare_sles12plus_cloud_repos
+    elif iscloudver 7plus; then
         onadmin_prepare_sles12sp2_repos
         onadmin_prepare_sles12plus_cloud_repos
     elif iscloudver 6plus ; then
@@ -1406,8 +1495,10 @@ EOF
             add_ha_repo
         elif iscloudver 6; then
             add_ha12sp1_repo
-        elif iscloudver 7plus; then
+        elif iscloudver 7; then
             add_ha12sp2_repo
+        elif iscloudver 8plus; then
+            add_ha12sp3_repo
         else
             complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
         fi
@@ -1927,8 +2018,11 @@ function onadmin_allocate
     if iscloudver 6; then
         controller_os="suse-12.1"
     fi
-    if iscloudver 7plus ; then
+    if iscloudver 7 ; then
         controller_os="suse-12.2"
+    fi
+    if iscloudver 8plus ; then
+        controller_os="suse-12.3"
     fi
 
     echo "Setting first node to controller..."
@@ -2214,8 +2308,10 @@ function onadmin_crowbar_register
 
     if iscloudver 6 ; then
         image="suse-12.1/x86_64/"
-    elif iscloudver 7plus; then
+    elif iscloudver 7; then
         image="suse-12.2/$arch/"
+    elif iscloudver 8plus; then
+        image="suse-12.3/$arch/"
     else
         if [ -n "$want_sles12" ] ; then
             image="suse-12.0"
