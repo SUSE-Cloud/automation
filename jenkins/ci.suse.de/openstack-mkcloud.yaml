@@ -170,7 +170,8 @@
           name: nics
           default: '1'
           description: >-
-            Number of network interfaces for the nodes (admin node has always 1 currently)
+            Number of network interfaces for the nodes (admin node has always 1 currently).
+            If Ironic is enabled (want_ironic=1) min value of this parameter is set to 2.
 
       - bool:
           name: WITHCROWBARREGISTER
@@ -465,6 +466,10 @@
             #export cephvolumenumber=0
           fi
 
+          # enforce min 2 nics if deploying with ironic
+          if [[ $want_ironic ]] ; then
+            [[ $nics -lt 2 ]] && nics=2
+          fi
 
           #storage
           case "$storage_method" in
