@@ -413,11 +413,11 @@ function setupadmin
         IFS=$nfs
         for x in $(iptables -S FORWARD | grep -o --color=never FORWARD.*TCPMSS.*); do
             IFS=$ofs
-            $sudo iptables -D ${x} 2>/dev/null
+            $sudo iptables -w -D ${x} 2>/dev/null
             IFS=$nfs
         done
         IFS=$ofs
-        $sudo iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss $mss
+        $sudo iptables -w -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss $mss
     fi
 }
 
