@@ -455,8 +455,8 @@
           if [[ $hacloud == 1 ]] ; then
             : ${clusterconfig:=data+services+network=2}
             export clusterconfig
-            if [[ $nodenumber -lt 4 ]] ; then
-              export nodenumber=4
+            if [[ $nodenumber -lt 3 ]] ; then
+              export nodenumber=3
             fi
 
             # for now disable ceph deployment in HA mode explicitly
