@@ -874,6 +874,8 @@ function crowbarrestore
         onhost_reset_admin
     fi
     safely $scp "$btarball" root@$adminip:/tmp/
+    safely prepareinstcrowbar
+    safely bootstrapcrowbar
     safely onadmin crowbarrestore "$@"
 }
 
