@@ -7,10 +7,14 @@ branches:
     bs_project:  Devel:Cloud:6:SAP:Staging
     bs_repo:     SLE_12_SP1
     cloudsource: develcloud6
-  master:
+  stable/4.0:
     bs_project:  Devel:Cloud:7:Staging
     bs_repo:     SLE_12_SP2
     cloudsource: develcloud7
+  master:
+    bs_project:  Devel:Cloud:8:Staging
+    bs_repo:     SLE_12_SP3
+    cloudsource: develcloud8
 parameters_template:
   default: &mkcloud_default
     nodenumber: 2
