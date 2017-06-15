@@ -96,7 +96,7 @@
 
       - string:
           name: scenario_file
-          default: qa-scenario-1a.yaml
+          default: qam-scenario-1a.yaml
           description: Scenario yaml file name
 
       # Parameters for qa_crowbarsetup.sh
@@ -110,12 +110,12 @@
 
       - string:
           name: TESTHEAD
-          default: "1"
+          default: "0"
           description: if non-empty, test latest version from Devel:Cloud Stagin
 
       - string:
           name: hacloud
-          default: "1"
+          default: "0"
           description: By default we do not want HA configured and installed
 
       - string:
@@ -162,14 +162,25 @@
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
 
-          # copy scenario file onto the admin node in /root/scenario.yml
-          scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
-              root@$admin:scenario.yml
+          echo "export want_node_aliases=controller=1,compute-kvm=1" >> mkcloud.config
 
-          ret = 0
-          cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM$${cloud_version}+up /root/automation/scripts/mkcloud  \
+          ret=0
+          whoami
+          pwd
+          echo "$HOME"
+          want_node_aliases=controller=1,compute-kvm=1 \
+          cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
+          /root/automation/scripts/mkcloud \
           cleanup prepare setupadmin addupdaterepo prepareinstcrowbar runupdate bootstrapcrowbar instcrowbar rebootcrowbar \
           setupnodes instnodes setup_aliases || ret=$?
+
+          if [ $ret != 0 ] ; then
+            scp root@$admin:/var/log/*tbz $artifacts_dir/
+          fi >&2
+
+
+          scenario_dir="/root/automation/scripts/scenarios/cloud7/qam/$ssl_type" scenario=$scenario_file cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
+          /root/automation/scripts/mkcloud batch || ret=$?
 
           if [ $ret != 0 ] ; then
             scp root@$admin:/var/log/*tbz $artifacts_dir/

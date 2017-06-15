@@ -10,7 +10,7 @@ proposals:
 - barclamp: rabbitmq
   attributes:
     trove:
-      enabled: true
+      enabled: false
   deployment:
     elements:
       rabbitmq-server:
