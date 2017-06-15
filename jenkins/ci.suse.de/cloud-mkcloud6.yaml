@@ -21,7 +21,6 @@
         - 'cloud-mkcloud{version}-job-hyperv-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
-        - 'cloud-mkcloud{version}-job-upgrade-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
 - project:
     name: cloud-mkcloud6-ha-x86_64
