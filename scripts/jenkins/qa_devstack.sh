@@ -170,7 +170,7 @@ crudini --set /opt/stack/tempest/etc/tempest.conf network-feature-enabled api_ex
 if [ -z "${DISABLE_TEMPESTRUN}" ]; then
     sudo -u stack -i <<EOF
 cd /opt/stack/tempest
-./run_tempest.sh -s -N -C etc/tempest.conf
+tox -e smoke
 EOF
 fi
 
