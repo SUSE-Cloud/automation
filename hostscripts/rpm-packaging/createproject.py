@@ -107,7 +107,7 @@ def upload_meta_enable_repository(project, linkproject):
     <arch>x86_64</arch>
   </repository>
 """ % ({'linkproject': linkproject,
-        'repoflags': 'rebuild="local" block="local" linkedbuild="localdep"'})
+        'repoflags': 'rebuild="direct" block="local" linkedbuild="localdep"'})
 
     upload_meta(project, repository, linkproject)
 
