@@ -24,7 +24,7 @@ if ! openstack image show -c name --format value $image_name; then
 fi
 
 # Run rally test
-rally task start rally/samples/tasks/scenarios/nova/nova.json
+rally task start rally-test.json
 
 # Generate run results output
 out_dir=/root/results

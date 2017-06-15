@@ -66,6 +66,7 @@
           export image_name=$image_name
 
           scp root@$admin:/root/scripts/jenkins-support.sh .
+          scp root@$admin:/root/scripts/scenarios/rally/rally-test.json .
           source jenkins-support.sh
           connect_rally_server_run_test
           ret=$?

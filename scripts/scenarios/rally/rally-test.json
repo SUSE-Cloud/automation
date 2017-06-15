@@ -1,0 +1,1236 @@
+{% set flavor_name = flavor_name or "m1.small" %}
+{% set image_name = image_name or "jeos" %}
+{% set volume_type = volume_type or "" %}
+{% set availability_zone = availability_zone or "nova" %}
+{% set image_location = image_location or "http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img" %}
+
+{
+# Create a volume type, delete a volume type
+  "CinderVolumeTypes.create_and_delete_volume_type": [
+        {
+            "args": {},
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            },
+            "sla": {
+                "failure_rate": {
+                    "max": 0
+                }
+            }
+        }
+    ],
+
+# Create and delete volume
+  "CinderVolumes.create_and_delete_volume": [
+        {
+            "args": {
+                "size": 1
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            }
+        },
+        {
+            "args": {
+                "size": {
+                    "min": 1,
+                    "max": 5
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Create, extend, delete a volume
+  "CinderVolumes.create_and_extend_volume": [
+        {
+            "args": {
+                "size": 1,
+                "new_size": 2
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                }
+            }
+        },
+        {
+            "args": {
+                "size": {
+                    "min": 1,
+                    "max": 5
+                },
+                "new_size": {
+                    "min": 6,
+                    "max": 10
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                }
+            }
+        }
+    ],
+
+# Create and get volumes 
+  "CinderVolumes.create_and_get_volume": [
+        {
+            "args": {
+                "size": 1
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            },
+            "sla": {
+                "failure_rate": {
+                    "max": 0
+                }
+            }
+        },
+        {
+            "args": {
+                "size": {
+                    "min": 1,
+                    "max": 5
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            },
+            "sla": {
+                "failure_rate": {
+                    "max": 0
+                }
+            }
+        }
+    ],
+
+# Boot a server, create a volume, attach a volume to the server, detach the volume, delete the volume, delete the server 
+  "CinderVolumes.create_and_attach_volume": [
+        {
+            "args": {
+                "size": 10,
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "create_volume_params": {
+                    "availability_zone": "{{availability_zone}}"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 1
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            }
+        },
+        {
+            "args": {
+                "size": {
+                    "min": 1,
+                    "max": 5
+                },
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "create_volume_params": {
+                    "availability_zone": "{{availability_zone}}"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 1
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Create and delete a snapshot
+  "CinderVolumes.create_and_delete_snapshot": [
+        {
+            "args": {
+                "force": false
+            },
+            "runner": {
+                "type": "constant",
+                "times": 3,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                },
+                "volumes": {
+                    "size": 1
+                }
+            }
+        }
+    ],
+
+# Create and list snapshot
+  "CinderVolumes.create_and_list_snapshots": [
+        {
+            "args": {
+                "force": false,
+                "detailed": true
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+                "volumes": {
+                    "size": 1
+                }
+            }
+        }
+    ],
+
+# Create a volume and list volumes 
+   "CinderVolumes.create_and_list_volume": [
+        {
+            "args": {
+                "size": 1,
+                "detailed": true
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 1
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                }
+            }
+        },
+        {
+            "args": {
+                "size": {
+                    "min": 1,
+                    "max": 5
+                },
+                "detailed": true
+            },
+            "runner": {
+                "type": "constant",
+                "times": 3,
+                "concurrency": 1
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                }
+            }
+        }
+    ],
+
+# Create a volume and update readonly flag
+    "CinderVolumes.create_volume_and_update_readonly_flag": [
+        {
+            "args": {
+                "size": 1,
+                "read_only": true
+            },
+            "runner": {
+                "type": "constant",
+                "times": 3,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            },
+            "sla": {
+                "failure_rate": {
+                    "max": 0
+                }
+            }
+        }
+    ],
+
+# Create a volume and update a volume
+    "CinderVolumes.create_and_update_volume": [
+        {
+            "args": {
+                "create_volume_kwargs": {},
+                "update_volume_kwargs": {
+                    "display_name": "name_updated",
+                    "display_description": "desc_updated"
+                 },
+                "size": 1
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                }
+            }
+        }
+    ],
+
+# Create a volume, upload the volume to an image, delete the volume, delete the image
+  "CinderVolumes.create_and_upload_volume_to_image": [
+        {
+            "args": {
+                "size": 1,
+                "force": false,
+                "container_format": "bare",
+                "disk_format": "raw",
+                "do_delete": true,
+                "image": {
+                    "name": "{{image_name}}"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 3,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            }
+        },
+        {
+            "args": {
+                "size": {
+                    "min": 1,
+                    "max": 5
+                },
+                "force": false,
+                "container_format": "bare",
+                "disk_format": "raw",
+                "do_delete": true,
+                "image": {
+                    "name": "{{image_name}}"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 3,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Create nested snapshot and attach volume
+  "CinderVolumes.create_nested_snapshots_and_attach_volume": [
+        {
+            "args": {
+                "size": {
+                    "min": 1,
+                    "max": 5
+                },
+                "nested_level": 5
+            },
+            "runner": {
+                "type": "constant",
+                "times": 1,
+                "concurrency": 1
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 1
+                },
+                "servers": {
+                    "image": {
+                        "name": "{{image_name}}"
+                    },
+                    "flavor": {
+                        "name": "{{flavor_name}}"
+                    },
+                    "servers_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Create a volume and clone it
+  "CinderVolumes.create_volume_and_clone": [
+        {
+            "args": {
+                "size": 1
+            },
+            "runner": {
+                "type": "constant",
+                "times": 3,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            }
+        },
+        {
+            "args": {
+                "size": {
+                    "min": 1,
+                    "max": 5
+                },
+                "nested_level": 3
+            },
+            "runner": {
+                "type": "constant",
+                "times": 3,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Set 3 metadatas 10 times, delete 3 metadatas 5 times
+  "CinderVolumes.modify_volume_metadata": [
+        {
+            "args": {},
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 2
+            },
+            "context": {
+                "volumes": {
+                    "size": 1
+                },
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Create an image and delete it
+  "GlanceImages.create_and_delete_image": [
+        {
+            "args": {
+                "image_location": "{{image_location}}",
+                "container_format": "bare",
+                "disk_format": "qcow2"
+            },
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 3
+                }
+            }
+        }
+    ],
+
+# Create an image and list images 
+    "GlanceImages.create_and_list_image": [
+        {
+            "args": {
+                "image_location": "{{image_location}}",
+                "container_format": "bare",
+                "disk_format": "qcow2"
+            },
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 1
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                }
+            }
+        }
+    ],
+
+# Create an image and boot an instance
+  "GlanceImages.create_image_and_boot_instances": [
+        {
+            "args": {
+                "image_location": "{{image_location}}",
+                "container_format": "bare",
+                "disk_format": "qcow2",
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "number_instances": 2
+            },
+            "runner": {
+                "type": "constant",
+                "times": 2,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 3,
+                    "users_per_tenant": 5
+                }
+            }
+        }
+    ],
+
+# List images
+  "GlanceImages.list_images": [
+        {
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 1
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                },
+                "images": {
+                    "image_url": "{{image_location}}",
+                    "image_type": "qcow2",
+                    "image_container": "bare",
+                    "images_per_tenant": 4
+                }
+            }
+        }
+    ],
+
+# Add an interface router and create a router
+  "NeutronNetworks.create_and_update_routers": [
+        {
+            "args": {
+                "network_create_args": {},
+                "subnet_create_args": {},
+                "subnet_cidr_start": "1.1.0.0/30",
+                "subnets_per_network": 2,
+                "router_create_args": {},
+                "router_update_args": {
+                    "admin_state_up": false,
+                    "name": "_router_updated"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 5
+            },
+            "context": {
+                "network": {},
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 3
+                },
+                "quotas": {
+                    "neutron": {
+                        "network": -1,
+                        "subnet": -1,
+                        "router": -1
+                    }
+                }
+            }
+        }
+    ],
+
+# Create floating IPs and delete  
+  "NeutronNetworks.create_and_delete_floating_ips": [
+        {
+            "args": {
+                "floating_network": "floating",
+                "floating_ip_args": {10.162.0.0}
+            },
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 3
+                },
+                "quotas": {
+                    "neutron": {
+                        "floatingip": -1
+                    }
+                }
+            }
+        }
+    ],
+
+# Measure the "nova agent-list" command performance    
+  "NeutronNetworks.list_agents": [
+        {
+            "args": {
+                "agent_args": {}
+            },
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 3
+                }
+            },
+            "sla": {
+                "failure_rate": {
+                    "max": 0
+                }
+            }
+        }
+    ],
+
+# run 5 instances from 'jeos' image simultaneously - (5 servers at the same time)
+# and then delete them simultaneously
+  "NovaServers.boot_and_delete_server": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "force_delete": false
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 3,
+                    "users_per_tenant": 2
+                }
+            }
+        },
+        {
+            "args": {
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "auto_assign_nic": true
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 3,
+                    "users_per_tenant": 2
+                },
+                "network": {
+                    "start_cidr": "10.2.0.0/24",
+                    "networks_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# run 5 instances from 'jeos' image simultaneously - (5 servers at the same time)
+# and then get console output from them
+  "NovaServers.boot_and_get_console_output": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                }
+            }
+        }
+    ],
+
+# boot 47 instances and list them 
+  "NovaServers.boot_and_list_server": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "m1.tiny"
+                },
+                "image": {
+                    "name": "cirros-0.3.4-x86_64-tempest-machine"
+                },
+                "detailed": true
+            },
+            "runner": {
+                "type": "constant",
+                "times": 47,
+                "concurrency": 1
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+                "quotas": {
+                    "nova": {
+                        "instances": -1,
+                        "cores": -1,
+                    }
+                }
+            }
+        }
+    ],
+# boot 5 servers and migrate (live) them simultaneously - (5 servers at the same time) 
+  "NovaServers.boot_and_live_migrate_server": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "m1.tiny"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "block_migration": true
+            },
+            "runner": {
+                "type": "constant",
+                "times": 20,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                }
+            }
+        }
+    ],
+
+# Boot 5 servers and migrate (cold) them simultaneously - (5 servers at the same time) 
+ "NovaServers.boot_and_migrate_server": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "m1.tiny"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                }
+            }
+        }
+    ],
+
+# Boot 10 servers from volume and delete them (5 servers at the same time) 
+  "NovaServers.boot_server_from_volume_and_delete": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "volume_size": 10,
+                "volume_type": "{{volume_type}}",
+                "force_delete": true
+            },
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 3,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ], 
+
+# Boot 5 servers with m1.tiny flavor and resize them to m1.small flavor
+  "NovaServers.boot_server_from_volume_and_resize": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "m1.tiny"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "to_flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "confirm": true,
+                "volume_size": 1,
+                "force_delete": false,
+                "do_delete": true,
+                "boot_server_kwargs": {},
+                "create_volume_kwargs": {}
+            },
+            "runner": {
+                "type": "constant",
+                "times": 5,
+                "concurrency": 1
+            },
+            "context": {
+                "users": {
+                    "tenants": 3,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Boot servers from the volume snaphost (2 servers at the same time)
+    "NovaServers.boot_server_from_volume_snapshot": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "m1.tiny"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "volume_size": 10,
+                "volume_type": "{{volume_type}}"
+            },
+            "runner": {
+                "type": "constant",
+                "times": 6,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 3,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Boot, lock, unlock and delete 10 servers (5 servers at the same time)
+  "NovaServers.boot_lock_unlock_and_delete": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                }
+            }
+        }
+    ],
+
+# Boot 4 servers, create cinder volume, attach volume, live migrate them (4 servers at the same time)
+  "NovaServers.boot_server_attach_created_volume_and_live_migrate": [
+        {
+            "args": {
+                "size": 10,
+                "block_migration": true,
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "flavor": {
+                    "name": "m1.tiny"
+                },
+                "boot_server_kwargs": {},
+                "create_volume_kwargs": {}
+            },
+            "runner": {
+                "type": "constant",
+                "times": 4,
+                "concurrency": 4
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Boot server, create image, delete server, boot server from image (5 servers at the same time)
+    "NovaServers.snapshot_server": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "m1.tiny"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "force_delete": false
+            },
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 5
+            },
+            "context": {
+                "users": {
+                    "tenants": 3,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Boot, pause and unpause servers (2 servers at the same time)
+  "NovaServers.pause_and_unpause_server": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "force_delete": false
+            },
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 3,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Boot server, suspend it, resume it (2 servers at the same time)
+  "NovaServers.suspend_and_resume_server": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "force_delete": false
+            },
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 3,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+
+# Boot server, shelve it, unshelve it (2 servers at the same time)
+  "NovaServers.shelve_and_unshelve_server": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "force_delete": false
+            },
+            "runner": {
+                "type": "constant",
+                "times": 10,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 3,
+                    "users_per_tenant": 2
+                }
+            }
+        }
+    ],
+    
+# Boot a server and associate a floating IP to it
+  "NovaServers.boot_and_associate_floating_ip": [
+    {
+      "runner": {
+        "type": "constant",
+        "concurrency": 1,
+        "times": 1
+      },
+      "args": {
+        "flavor": {
+          "name": "{{flavor_name}}"
+        },
+        "image": {
+          "name": "{{image_name}}"
+        }
+      },
+      "context": {
+        "users": {
+          "users_per_tenant": 1,
+          "tenants": 1
+        },
+        "network": {}
+      }
+    }
+  ],
+    
+  "SwiftObjects.create_container_and_object_then_delete_all": [
+        {
+            "args": {
+                "objects_per_container": 5,
+                "object_size": 102400
+            },
+            "runner": {
+                "type": "constant",
+                "times": 4,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+                "roles": [
+                    "admin"
+                ]
+            }
+        }
+    ],
+ 
+  "SwiftObjects.create_container_and_object_then_download_object": [
+        {
+            "args": {
+                "objects_per_container": 5,
+                "object_size": 1024
+            },
+            "runner": {
+                "type": "constant",
+                "times": 6,
+                "concurrency": 3
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+                "roles": [
+                    "admin"
+                ]
+            }
+        }
+    ],
+
+  "SwiftObjects.create_container_and_object_then_list_objects": [
+        {
+            "args": {
+                "objects_per_container": 2,
+                "object_size": 5120
+            },
+            "runner": {
+                "type": "constant",
+                "times": 2,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+                "roles": [
+                    "admin"
+                ]
+            }
+        }
+    ],
+
+  "SwiftObjects.list_and_download_objects_in_containers": [
+        {
+            "runner": {
+                "type": "constant",
+                "times": 2,
+                "concurrency": 2
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+                "roles": [
+                    "admin"
+                ],
+                "swift_objects": {
+                    "containers_per_tenant": 2,
+                    "objects_per_container": 5,
+                    "object_size": 10240
+                }
+            }
+        }
+    ],
+
+  "SwiftObjects.list_objects_in_containers": [
+        {
+            "runner": {
+                "type": "constant",
+                "times": 6,
+                "concurrency": 3
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+                "roles": [
+                    "admin"
+                ],
+                "swift_objects": {
+                    "containers_per_tenant": 1,
+                    "objects_per_container": 10,
+                    "object_size": 1024
+                }
+            }
+        }
+    ]
+}
