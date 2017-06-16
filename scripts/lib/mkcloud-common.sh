@@ -410,8 +410,7 @@ function ensure_packages_installed
 {
     if is_suse ; then
         export ZYPP_LOCK_TIMEOUT=60
-        local zypper_params="${zypper_override_params:---non-interactive --gpg-auto-import-keys --no-gpg-checks}"
-        rpm -q "$@" &> /dev/null || safely $sudo zypper $zypper_params install $extra_zypper_install_params "$@"
+        rpm -q "$@" &> /dev/null || safely $zypper install $extra_zypper_install_params "$@"
     elif is_debian ; then
         pkglist=$(echo "$@" | sed -e '
             s/\blibvirt\b/libvirt-clients libvirt-daemon-system/;
@@ -425,8 +424,7 @@ function ensure_packages_installed
 
 function zypper_refresh
 {
-    # --no-gpg-checks for Devel:Cloud repo
-    safely $sudo zypper -v --gpg-auto-import-keys --no-gpg-checks -n ref
+    safely $zypper -v refresh "$@"
 }
 
 # ---- START: functions related to repos and distribution settings
@@ -537,6 +535,13 @@ function dist_to_image_name
     iscloudver 7plus && [[ $want_efi ]] && \
         [[ $arch == x86_64 ]] && image="SLES12-SP2-uefi"
     echo "$image.qcow2"
+}
+
+: ${zypper:=run_zypper}
+function run_zypper
+{
+    local params=${zypper_override_params:---non-interactive --gpg-auto-import-keys --no-gpg-checks}
+    $sudo zypper $params "$@"
 }
 
 # ---- END: functions related to repos and distribution settings
