@@ -31,6 +31,7 @@
             - Devel:Cloud:6:Staging
             - Devel:Cloud:6:SAP:Staging
             - Devel:Cloud:7:Staging
+            - Devel:Cloud:8:Staging
       - axis:
           type: slave
           name: label
@@ -60,6 +61,16 @@
               "release-notes-suse-openstack-cloud"
             ].contains(component)
           )
+          ||
+          (
+            [
+              "Devel:Cloud:8:Staging"
+            ].contains(project) &&
+            [
+              "crowbar-hyperv"
+            ].contains(component)
+          )
+
         )
       sequential: true
     builders:
@@ -95,12 +106,15 @@
           OBS_TYPE=${PROJECTSOURCE%%/*}
           OBS_PROJECT=${PROJECTSOURCE##*/}
 
-          BUILD_DIST=SLE_12_SP2
+          BUILD_DIST=SLE_12_SP3
           OSC_BUILD_ARCH=x86_64
 
           case $project in
               Devel:Cloud:6*)
                   BUILD_DIST=SLE_12_SP1
+                  ;;
+              Devel:Cloud:7*)
+                  BUILD_DIST=SLE_12_SP2
                   ;;
           esac
 
