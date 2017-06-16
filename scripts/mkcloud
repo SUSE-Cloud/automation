@@ -407,6 +407,11 @@ function setupadmin
     onadmin write_cloud_info
     echo "you can now proceed with installing crowbar"
     # prevent jumbo frames from going out
+    local IPTABLES_WAITOPT
+    if $($sudo iptables --wait --list INPUT > /dev/null); then
+        IPTABLES_WAITOPT=-w 
+    fi
+
     if [[ $want_mtu_size -gt 1500 ]] || [[ $host_mtu -lt 1500 ]]; then
         # we subtract 40 to account for the IP + TCP headers.
         let mss=host_mtu-40
@@ -414,11 +419,11 @@ function setupadmin
         IFS=$nfs
         for x in $(iptables -S FORWARD | grep -o --color=never FORWARD.*TCPMSS.*); do
             IFS=$ofs
-            $sudo iptables -w -D ${x} 2>/dev/null
+            $sudo iptables $IPTABLES_WAITOPT -D ${x} 2>/dev/null
             IFS=$nfs
         done
         IFS=$ofs
-        $sudo iptables -w -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss $mss
+        $sudo iptables $IPTABLES_WAITOPT -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss $mss
     fi
 }
 
