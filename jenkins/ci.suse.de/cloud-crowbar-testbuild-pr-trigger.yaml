@@ -70,6 +70,7 @@
           declare -a master_branches=(
               master
               stable/3.0
+              stable/4.0
           )
 
           for repo in ${crowbar_repos[@]}; do
