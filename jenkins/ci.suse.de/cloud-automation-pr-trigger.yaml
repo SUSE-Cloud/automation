@@ -71,7 +71,7 @@
                   if [ "$github_pr_branch" = "master" ]; then
                       # default config / may be overridden by tags from PR message
                       mkcloudtarget=all_noreboot
-                      cloudsource=develcloud7
+                      cloudsource=develcloud8
                       nodenumber=2
                       networkingplugin=openvswitch
                       #echo eval `$ghs -a get-pr-config -p $github_pr_sha` # not yet implemented
