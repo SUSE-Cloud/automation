@@ -72,6 +72,13 @@
                     master)
                       # default config / may be overridden by tags from PR message
                       mkcloudtarget=all_noreboot
+                      cloudsource=develcloud8
+                      nodenumber=2
+                      networkingplugin=openvswitch
+                      ;;
+                    cloud7)
+                      # default config / may be overridden by tags from PR message
+                      mkcloudtarget=all_noreboot
                       cloudsource=develcloud7
                       nodenumber=2
                       networkingplugin=openvswitch

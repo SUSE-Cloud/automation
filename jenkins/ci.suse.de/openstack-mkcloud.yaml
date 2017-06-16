@@ -91,9 +91,9 @@
 
       - string:
           name: cloudsource
-          default: develcloud7
+          default: develcloud8
           description: >-
-            Can be something like develcloud6 (uses Devel:Cloud:*, see
+            Can be something like develcloud7 (uses Devel:Cloud:*, see
             TESTHEAD parameter for Staging), susecloud6 (uses SUSE:*),
             GM3 (uses the GM ISO)
 
@@ -423,7 +423,7 @@
                       unset want_ldap
                   fi
                   ;;
-              M*|develcloud7|mitakacloud7|susecloud7)
+              M*|develcloud8|develcloud7|mitakacloud7|susecloud7)
                   if [[ $mkcloudtarget =~ upgrade ]]; then
                       echo "Unsetting want_ldap for upgrade jobs until hybrid backend is migrated to domain-specific backends"
                       unset want_ldap
