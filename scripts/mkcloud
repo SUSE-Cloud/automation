@@ -407,9 +407,9 @@ function setupadmin
     onadmin write_cloud_info
     echo "you can now proceed with installing crowbar"
     # prevent jumbo frames from going out
-    local IPTABLES_WAITOPT=""
+    local IPTABLES_WAITOPT
     if $($sudo iptables --wait --list INPUT > /dev/null); then
-        IPTABLES_WAITOPT="-w "
+        IPTABLES_WAITOPT=-w 
     fi
 
     if [[ $want_mtu_size -gt 1500 ]] || [[ $host_mtu -lt 1500 ]]; then
