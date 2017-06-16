@@ -61,6 +61,16 @@
               "release-notes-suse-openstack-cloud"
             ].contains(component)
           )
+          ||
+          (
+            [
+              "Devel:Cloud:8:Staging"
+            ].contains(project) &&
+            [
+              "crowbar-hyperv"
+            ].contains(component)
+          )
+
         )
       sequential: true
     builders:
