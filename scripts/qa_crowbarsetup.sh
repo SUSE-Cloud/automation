@@ -268,6 +268,9 @@ function export_tftpboot_repos_dir
         tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
         tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
     elif iscloudver 8plus ; then
+        ### dmllr: SP2-DROP: REMOVE ME
+        tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
+        tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/$arch/repos
         tftpboot_suse12sp3_dir=/srv/tftpboot/suse-12.3
         tftpboot_repos12sp3_dir=$tftpboot_suse12sp3_dir/$arch/repos
     elif iscloudver 7 ; then
@@ -1474,6 +1477,8 @@ EOF
     if iscloudver 8plus; then
         onadmin_prepare_sles12sp3_repos
         onadmin_prepare_sles12plus_cloud_repos
+        ### dmllr: SP2-DROP: REMOVE ME
+        onadmin_prepare_sles12sp2_repos
     elif iscloudver 7plus; then
         onadmin_prepare_sles12sp2_repos
         onadmin_prepare_sles12plus_cloud_repos
@@ -1498,6 +1503,8 @@ EOF
         elif iscloudver 7; then
             add_ha12sp2_repo
         elif iscloudver 8plus; then
+            ### dmllr: SP2-DROP: REMOVE ME
+            add_ha12sp2_repo
             add_ha12sp3_repo
         else
             complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
