@@ -10,7 +10,6 @@ n=$1 # Allocated Cloud.
 
 export libvirt_type=kvm
 export nodenumber=5 # Number of nodes (Admin Node not counted)
-#export nodenumbercompute=2 # Set the number of compute nodes
 export TESTHEAD=1 # Use Media from Devel:Cloud:Staging and add test update repositories
 
 #export want_sles12=1 # For Cloud 5
@@ -34,8 +33,6 @@ export want_sles12sp2=1 # For Cloud 7
 #export compute_node_memory=2621440 # KB's (RAM)
 #export comnputenode_hdd_size=20 # GB
 #export vcpus=1 # Default 1 vcpu
-# Change the number of default compute nodes.
-#export nodenumbercomputedefault=2
 
 ### Enable Other Services (OpenStack related services and features)
 ### Most of these services are disabled by default

@@ -162,11 +162,6 @@
             Number of nodes excluding admin-node.  Minimum is 2 (controller+compute)
 
       - string:
-          name: nodenumbercompute
-          default:
-          description: Number of compute nodes
-
-      - string:
           name: nics
           default: '1'
           description: >-

@@ -56,11 +56,7 @@ setcloudnetvars $virtualcloud
 : ${forwardmode:=nat}
 : ${adminnetmask:=255.255.248.0}
 : ${ironicnetmask:=255.255.255.0}
-# the default nodenumber of compute nodes
-nodenumbercomputedefault=2
-[[ $hacloud ]] && nodenumbercomputedefault=1
-: ${nodenumber:=$nodenumbercomputedefault}
-: ${nodenumbercompute:=$nodenumbercomputedefault}
+: ${nodenumber:=2}
 # expect to have this many physical machines attached via $mkch_physcloudif
 # these replace virtual machines, so we start less VMs
 : ${nodenumberphys:=0}
@@ -304,7 +300,7 @@ function sshrun
         export test_internet_url=$test_internet_url;
 EOF
     # setting these variables within mkcloud does not make them part of the env, so we need to export them
-    export nodenumber nodenumbercompute nodenumberlonelynode nodenumberironicnode clusterconfig ironicnetmask
+    export nodenumber nodenumberlonelynode nodenumberironicnode clusterconfig ironicnetmask
     env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig -e ^ironicnetmask | sort >> $mkcconf
 
     cp -a $mkcconf $artifacts_dir/
@@ -1105,9 +1101,6 @@ Optional
         set the number of non-crowbar registered nodes to be created in the admin network
     nodenumberironicnode=2    (default 0)
         set the number of empty nodes to be used by the ironic service
-    nodenumbercompute=1  (default $nodenumber resp. 1 in case of hacloud=1)'
-        set the number of compute nodes in a HA setup, the remaining nodes
-        of $nodenumber - $nodenumbercompute are used as HA cluster nodes
     vcpus=1         (default $vcpus)
         set the number of CPU cores per compute node
     nics=1         (default $nics)
