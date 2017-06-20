@@ -33,6 +33,25 @@ function do_git
 
     if [ -d $a_dir/.git ] ; then
         pushd $a_dir > /dev/null
+            local n=100
+            # check counter before mkdir to be sure that we did not get the lock when it is 0
+            while [[ $n -gt 0 ]] && ! mkdir .git/lock.update-automation ; do
+                sleep $((3+RANDOM%10))
+                n=$((n-1))
+            done
+            if [[ $n -eq 0 ]] ; then
+                echo "Error: Failed to get .git/lock.update-automation"
+                exit 39
+            fi
+            trap "rmdir `pwd`/.git/lock.update-automation" EXIT SIGINT SIGTERM
+            while [[ $(find .git -name "*.lock") ]] && [[ $n -gt 0 ]] ; do
+                sleep $((3+RANDOM%10))
+                n=$((n-1))
+            done
+            if [[ $n -eq 0 ]] ; then
+                echo "Error: Failed to get git lock"
+                exit 38
+            fi
             git clean -f
             git checkout $branch
             git fetch origin
