@@ -259,7 +259,7 @@ sub setdescription
 {
   my $build=shift; # e.g. "openstack-mkcloud/3668"
   my $descr=urlencode(shift); # Text to set
-  curl("${jurlbase}/job/${build}/submitDescription?description=$descr");
+  curl(qw"-X POST -d", "description=$descr", "${jurlbase}/job/${build}/submitDescription");
 }
 
 sub getbuilds
