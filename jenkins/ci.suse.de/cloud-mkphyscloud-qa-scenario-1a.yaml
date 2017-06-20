@@ -31,7 +31,7 @@
 
       - string:
           name: admin_os
-          default: sles12sp2
+          default: sles12sp3
           description: Mandatory, admin node operating system version
 
       - string:
@@ -92,7 +92,7 @@
 
       - string:
           name: cloud_version
-          default: "7"
+          default: "8"
           description: Mandatory, version of the cloud to be installed as integer
 
       - string:
