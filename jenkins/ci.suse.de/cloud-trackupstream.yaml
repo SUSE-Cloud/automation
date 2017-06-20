@@ -172,6 +172,6 @@
           # only enable jtsync when build is not manually triggered
           if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
             trap - EXIT ERR
-            $jtsync --ci suse --matrix ${JOB_BASE_NAME},${project},${BUILD_NUMBER} $ret
+            $jtsync --ci suse --matrix ${COMPONENT},${PROJECT},${BUILD_NUMBER} $ret
           fi
           exit $ret
