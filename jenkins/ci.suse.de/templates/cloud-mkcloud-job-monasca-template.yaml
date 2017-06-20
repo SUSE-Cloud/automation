@@ -20,7 +20,6 @@
             TESTHEAD=1
             cloudsource=develcloud{version}
             nodenumber=4
-            nodenumbercompute=1
             want_monasca_proposal=1
             storage_method=none
             mkcloudtarget=all
