@@ -384,8 +384,6 @@ function wait_for_crowbar_ntpd
 # bring up the VM for crowbar
 function setupadmin
 {
-    local ofs=$IFS nfs=$'\n' mss
-
     ${mkclouddriver}_do_setupadmin
 
     wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
@@ -409,15 +407,12 @@ function setupadmin
     # prevent jumbo frames from going out
     if [[ $want_mtu_size -gt 1500 ]] || [[ $host_mtu -lt 1500 ]]; then
         # we subtract 40 to account for the IP + TCP headers.
-        let mss=host_mtu-40
+        local mss=$(( $host_mtu - 40 ))
+        local rule
         # Remove all previous TCPMSS rules
-        IFS=$nfs
-        for x in $(iptables -S FORWARD | grep -o --color=never FORWARD.*TCPMSS.*); do
-            IFS=$ofs
-            $sudo iptables -w -D ${x} 2>/dev/null
-            IFS=$nfs
+        iptables -S FORWARD | grep -o FORWARD.*TCPMSS.* | while read rule ; do
+            $sudo iptables -w -D ${rule} 2>/dev/null
         done
-        IFS=$ofs
         $sudo iptables -w -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss $mss
     fi
 }
