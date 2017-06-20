@@ -38,6 +38,10 @@ function do_git
                 sleep $((3+RANDOM%10))
                 n=$((n-1))
             done
+            if [[ $n -eq 0 ]] ; then
+                echo "Error: Failed to get git lock"
+                exit 38
+            fi
             git clean -f
             git checkout $branch
             git fetch origin
