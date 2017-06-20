@@ -76,7 +76,6 @@
     builders:
       - shell: |
           PROJECTSOURCE=IBS/${project}
-          COMPONENT=$component
 
           # needs .oscrc with user,pass,trusted_prj
           # zypper ar http://download.opensuse.org/repositories/openSUSE:/Tools/SLE_11_SP2/openSUSE:Tools.repo
@@ -132,11 +131,11 @@
           esac
 
           # remove accidentally added spaces
-          COMPONENT=${COMPONENT// /}
+          component=${component// /}
           OBS_PROJECT=${OBS_PROJECT// /}
 
-          if [ -z "$COMPONENT" ] ; then
-              echo "Error: Variable COMPONENT is unset."
+          if [ -z "$component" ] ; then
+              echo "Error: Variable component is unset."
               exit 1
           fi
 
@@ -158,11 +157,11 @@
           mkdir -p "$BS_CHECKOUT"
           cd "$BS_CHECKOUT"
 
-          rm -rf "$COMPONENT"
-          osc -A $OSCAPI co -c "$OBS_PROJECT" "$COMPONENT"
+          rm -rf "$component"
+          osc -A $OSCAPI co -c "$OBS_PROJECT" "$component"
 
-          [ -d "$COMPONENT" ] || ( echo "Error: Component $COMPONENT does not exist (yet) or has been removed."  ; exit 1 )
-          cd "$COMPONENT"
+          [ -d "$component" ] || ( echo "Error: Component $component does not exist (yet) or has been removed."  ; exit 1 )
+          cd "$component"
 
           grep -q "<linkinfo" .osc/_files || exit 2
 
@@ -172,6 +171,6 @@
           # only enable jtsync when build is not manually triggered
           if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
             trap - EXIT ERR
-            $jtsync --ci suse --matrix ${COMPONENT},${PROJECT},${BUILD_NUMBER} $ret
+            $jtsync --ci suse --matrix ${component},${project},${BUILD_NUMBER} $ret
           fi
           exit $ret
