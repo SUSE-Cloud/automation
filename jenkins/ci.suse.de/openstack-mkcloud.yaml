@@ -236,11 +236,6 @@
       # general OpenStack deployment
 
       - string:
-          name: want_postgresql
-          default:
-          description: Set to 1 to deploy with postgresql
-
-      - string:
           name: want_all_ssl
           default:
           description: Set to 1 to deploy all cloud services with SSL aka HTTPS

@@ -1182,8 +1182,6 @@ Optional
         want_magnum_proposal=1
         want_monasca_proposal=1   (Cloud7+ only)
         want_murano_proposal=1
-    want_postgresql=0 (default=1)
-        Use PostgreSQL instead of SQLite as a Crowbar database
     want_horizon_integration_test=1 (default='')
         Execute selenium integration tests for Horizon after Tempest. This test is in beta, and
         a fail will not be considered for now.
