@@ -84,7 +84,6 @@ export cinder_netapp_login
 export cinder_netapp_password
 export localreposdir_target
 export want_ipmi=${want_ipmi:-false}
-export want_postgresql=${want_postgresql:-1}
 [ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
 [ "$libvirt_type" = hyperv ] && export wanthyperv=1
 [ "$libvirt_type" = xen ] && export wantxenpv=1 # xenhvm is broken anyway
@@ -1684,9 +1683,6 @@ function onadmin_bootstrapcrowbar
     fi
 
     local upgrademode=$1
-    # temporarily make it possible to not use postgres until we switched to the new upgrade process
-    # otherwise we would break the upgrade gating
-    [[ $want_postgresql = 0 ]] && return
     if iscloudver 7plus ; then
         systemctl start crowbar-init
         wait_for 100 3 "onadmin_is_crowbar_init_api_available" "crowbar init service to start"
@@ -1737,7 +1733,7 @@ function crowbar_nodeupgrade_status
 
 function do_installcrowbar_cloud6plus
 {
-    if [[ $want_postgresql = 0 ]] || iscloudver 6minus; then
+    if iscloudver 6minus; then
         service crowbar status || service crowbar stop
         service crowbar start
 
