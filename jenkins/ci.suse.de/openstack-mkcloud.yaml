@@ -245,6 +245,11 @@
           default:
           description: Set to 1 to deploy all cloud services with SSL aka HTTPS
 
+      - string:
+          name: want_ldap
+          default:
+          description: Set to 1 to deploy keystone with LDAP
+
       ################################################
       # neutron
 
@@ -261,8 +266,18 @@
             - vlan
             - vxlan
 
+      - string:
+          name: want_dvr
+          default:
+          description: Set to 1 to deploy neutron with Distributed Virtual Router
+
       ################################################
       # storage
+
+      - string:
+          name: cephvolumenumber
+          default: '1'
+          description: number of extra disks (for cinder, swift, ceph)
 
       - choice:
           name: storage_method
@@ -336,9 +351,19 @@
           description: set to 1 to deploy with docker
 
       - string:
+          name: want_ceilometer_proposal
+          default:
+          description: Deploy with Ceilomenter
+
+      - string:
           name: want_magnum_proposal
           default:
           description: Deploy with Magnum
+
+      - string:
+          name: want_manila_proposal
+          default:
+          description: Deploy with Manila
 
       - string:
           name: want_monasca_proposal
@@ -412,7 +437,6 @@
 
           export automationrepo=~/github.com/SUSE-Cloud/automation
           jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
-          export cephvolumenumber=1 # one disk is either cinder raw, ceph-osd or swift storage
           export want_neutronsles12=1
           export want_mtu_size=8900
           [[ $libvirt_type = hyperv ]] && want_mtu_size=1500 # windows-PXE-bootloader seems to not like jumbo-packets
@@ -487,7 +511,9 @@
               if [[ $nodenumber -lt 5 ]] ; then
                 export nodenumber=5
               fi
-              cephvolumenumber=2
+              if [[ $cephvolumenumber -lt 2 ]] ; then
+                cephvolumenumber=2
+              fi
               ;;
             *)
               unset want_ceph
