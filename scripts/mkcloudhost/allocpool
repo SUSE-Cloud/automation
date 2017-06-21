@@ -42,7 +42,7 @@ foreach my $d (@dirs) {
         $found=1;
         last;
 }
-if(!$found) {die "all pool dirs are currently in use - please make sure you have enough free pool slots or reduce the number of executors for this node: ".`hostname`}
+if(!$found) {die "Error: all pool dirs are currently in use - please make sure you have enough free pool slots or reduce the number of executors for this node: ".`hostname`}
 print "using testdir=$ENV{testdir}\n";
 exec(@ARGV);
 die "exec failed: $!";
