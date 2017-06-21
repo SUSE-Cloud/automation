@@ -2887,8 +2887,8 @@ function custom_configuration
                 # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
                 local novanodes=("${unclustered_nodes[@]}")
 
-                # make sure we do not pick SP1 nodes on cloud7
-                if [ -n "$deployceph" ] && iscloudver 7 ; then
+                # make sure we do not pick SP1 nodes on cloud7 (or SP2 for cloud 8)
+                if [ -n "$deployceph" ] && iscloudver 7plus ; then
                     novanodes=("${unclustered_sles12plusnodes[@]}")
                 fi
 
@@ -2958,8 +2958,8 @@ function custom_configuration
                 proposal_set_value ceilometer default "['attributes']['ceilometer']['use_mongodb']" "false"
 
                 local ceilometernodes=("${unclustered_nodes[@]}")
-                # make sure we do not pick SP1 nodes on cloud7
-                if [ -n "$deployceph" ] && iscloudver 7 ; then
+                # make sure we do not pick SP1 nodes on cloud7 (or SP2 for cloud 8)
+                if [ -n "$deployceph" ] && iscloudver 7plus ; then
                     ceilometernodes=("${unclustered_sles12plusnodes[@]}")
                 fi
                 if [[ ${#ceilometernodes[@]} -eq 0 ]]; then
