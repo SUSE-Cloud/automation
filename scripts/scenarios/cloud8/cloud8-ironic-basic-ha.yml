@@ -112,15 +112,6 @@ proposals:
             start: ##ironic_net_prefix##.21
             end: ##ironic_net_prefix##.254
         mtu: 1500
-  deployment:
-    elements:
-      switch_config:
-      - crowbar.virtual.cloud.suse.de
-      network:
-      - crowbar.virtual.cloud.suse.de
-      - "@@controller1@@"
-      - "@@compute@@"
-      - "@@controller2@@"
 - barclamp: pacemaker
   name: data
   attributes:
@@ -130,28 +121,12 @@ proposals:
         hypervisor_ip: ##hypervisor_ip##
     drbd:
       enabled: true
-      shared_secret: yaYqaPqd3jYz
   deployment:
     elements:
       pacemaker-cluster-member:
       - "@@controller1@@"
       - "@@controller2@@"
       hawk-server:
-      - "@@controller1@@"
-      - "@@controller2@@"
-- barclamp: nfs_client
-  name: data
-  attributes:
-    exports:
-      glance-images:
-        nfs_server: crowbar.virtual.cloud.suse.de
-        export: "/var/lib/glance/images"
-        mount_path: "/var/lib/glance/images"
-        mount_options:
-        - ''
-  deployment:
-    elements:
-      nfs-client:
       - "@@controller1@@"
       - "@@controller2@@"
 - barclamp: database
@@ -224,6 +199,7 @@ proposals:
     rabbitmq_instance: default
     keystone_instance: default
     ml2_type_drivers:
+    - gre
     - vxlan
     - vlan
     database_instance: default
