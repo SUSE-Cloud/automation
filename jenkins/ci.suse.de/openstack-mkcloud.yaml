@@ -341,6 +341,11 @@
           description: set to 1 to deploy with docker
 
       - string:
+          name: want_ironic
+          default:
+          description: set to 1 to deploy with ironic
+
+      - string:
           name: want_ceilometer_proposal
           default:
           description: Deploy with Ceilomenter
