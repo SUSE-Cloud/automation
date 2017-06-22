@@ -17,7 +17,7 @@
               forceall: trigger rebuild for all open PRs
 
     triggers:
-      - timed: 'H/30 * * * *'
+      - timed: 'H * * * *'
 
     logrotate:
       numToKeep: 7
