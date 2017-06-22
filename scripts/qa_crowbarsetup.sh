@@ -3257,6 +3257,12 @@ function set_proposalvars
         complain 88 "swift does not work with SLES12 nodes in Cloud5 - use want_swift=0"
     fi
 
+    # C5: Do not deploy ceph with 4 or less nodes setup
+    # (ceph would take 3 SP2 nodes and we want more then one SP3 node for OpenStack)
+    if iscloudver 8 && [[ $nodenumber -lt 5 ]] ; then
+        deployceph=
+    fi
+
     if iscloudver 6plus ; then
         want_sles12=1
     fi
