@@ -21,7 +21,7 @@
             cloudsource=develcloud{version}
             nodenumber=3
             clusterconfig=data+network+services=2
-            storage_method=default
+            storage_method=none
             hacloud=1
             mkcloudtarget=instonly batch setupironicnodes
             networkingplugin=openvswitch
