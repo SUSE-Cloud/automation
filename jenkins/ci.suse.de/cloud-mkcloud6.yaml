@@ -31,6 +31,7 @@
     arch: x86_64
     tempestoptions: -s -t
     label: openstack-mkcloud-ha-x86_64
+    nodenumber_ha: 5
     jobs:
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'

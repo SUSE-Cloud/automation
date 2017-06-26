@@ -35,6 +35,7 @@
     arch: x86_64
     tempestoptions: --smoke
     label: openstack-mkcloud-ha-x86_64
+    nodenumber_ha: 5
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
