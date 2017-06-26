@@ -33,8 +33,10 @@
     arch: x86_64
     tempestoptions: --smoke
     label: openstack-mkcloud-ha-x86_64
+    storage_method_ha: swift
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-{arch}'
