@@ -22,6 +22,7 @@
             nodenumber=5
             networkingmode=vxlan
             tempestoptions={tempestoptions}
+            storage_method={storage_method_ha}
             hacloud=1
             mkcloudtarget=all_noreboot
             label={label}
