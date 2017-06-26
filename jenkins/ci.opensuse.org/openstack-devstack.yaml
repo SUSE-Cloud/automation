@@ -42,6 +42,6 @@
               du $file
               exit 1
           fi
-
+          exit $ret
     wrappers:
       - timestamps
