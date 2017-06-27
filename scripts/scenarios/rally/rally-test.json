@@ -1,5 +1,6 @@
-{% set flavor_name = flavor_name or "m1.small" %}
-{% set image_name = image_name or "jeos" %}
+{% set flavor_name = flavor_name or "m1.tiny" %}
+{% set to_flavor = to_flavor or "m1.small" %}
+{% set image_name = image_name or "cirros-0.3.4-x86_64-tempest-machine" %}
 {% set volume_type = volume_type or "" %}
 {% set availability_zone = availability_zone or "nova" %}
 {% set image_location = image_location or "http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img" %}
@@ -877,13 +878,13 @@
         {
             "args": {
                 "flavor": {
-                    "name": "m1.tiny"
+                    "name": "{{flavor_name}}"
                 },
                 "image": {
                     "name": "{{image_name}}"
                 },
                 "to_flavor": {
-                    "name": "{{flavor_name}}"
+                    "name": "{{to_flavor}}"
                 },
                 "confirm": true,
                 "volume_size": 1,
