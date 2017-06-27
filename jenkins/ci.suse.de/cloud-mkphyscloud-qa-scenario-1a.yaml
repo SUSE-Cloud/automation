@@ -85,6 +85,11 @@
           default: false
           description: Optional, Run horizon integration tests.
 
+      - bool:
+          name: rally-tests
+          default: false
+          description: Optional, Run rally  tests
+
       - string:
           name: ssl_type
           default: no-ssl

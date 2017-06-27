@@ -46,6 +46,11 @@
           default: false
           description: Optional, Run horizon integration test.
 
+      - bool:
+          name: rally-tests
+          default: false
+          description: Optional, Run rally tests
+
       - string:
           name: scenario_name
           description: Optional; scenario name which typically is an integer with a single letter
@@ -186,3 +191,22 @@
                     scenario_name=$scenario_name
                     scenario_job_name=$scenario_job_name
                     scenario_build_number=$scenario_build_number
+
+      - conditional-step:
+          condition-kind: boolean-expression
+          condition-expression: ${ENV,var="rally-tests"}
+          steps:
+            - trigger-builds:
+                - project: cloud-mkphyscloud-qa-rally-tests
+                  condition: ALWAYS
+                  block: true
+                  block-thresholds:
+                    build-step-failure-threshold: FAILURE
+                    failure-threshold: FAILURE
+                    unstable-threshold: FAILURE
+                  predefined-parameters: |
+                    hw_number=$hw_number
+                    scenario_name=$scenario_name
+                    scenario_job_name=$scenario_job_name
+                    scenario_build_number=$scenario_build_number
+                    TESTHEAD=$TESTHEAD
