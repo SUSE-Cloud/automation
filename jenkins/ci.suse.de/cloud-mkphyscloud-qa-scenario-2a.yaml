@@ -93,6 +93,11 @@
           default: features:base
           description: Optional, specify cct tests to run
 
+      - bool:
+          name: rally-tests
+          default: false
+          description: Optional, Run rally  tests
+
       - string:
           name: ssl_type
           default: no-ssl
