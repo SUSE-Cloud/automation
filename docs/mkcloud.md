@@ -3,6 +3,8 @@
 `mkcloud` is a script used to build a SUSE Cloud environment for development
 or testing purposes.
 
+It requires SLE-12 or openSUSE Leap 42.2 or newer as host OS.
+
 ## Obtain automation
 
 * Get automation's sources from git:

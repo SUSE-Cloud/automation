@@ -1294,6 +1294,9 @@ function sanity_checks
 
     ${mkclouddriver}_do_sanity_checks
 
+    if ! /usr/sbin/iptables --help | grep -q -- --wait ; then
+        complain 90 "mkcloud requires a more recent iptables version that supports --wait"
+    fi
     if [ -e /etc/init.d/SuSEfirewall2_init ] && rcSuSEfirewall2 status ; then
         complain 91 "SuSEfirewall is running - it will interfere with the iptables rules done by libvirt" \
             "Please stop the SuSEfirewall completely and run mkcloud again" \
