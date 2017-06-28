@@ -1542,7 +1542,7 @@ EOF
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
         safely $zypper in -l -t pattern cloud_admin
         # make sure to use packages from PTF repo (needs zypper dup)
-        $zypper mr -e cloud-ptf && safely $zypper dup --from cloud-ptf
+        $zypper mr -e cloud-ptf && safely $zypper dup --no-recommends --from cloud-ptf
     fi
 
     cd /tmp
