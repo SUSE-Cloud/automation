@@ -4899,7 +4899,10 @@ function onadmin_addupdaterepo
         safely $zypper ar $UPR cloud-ptf
     safely $zypper mr -p 90 -r cloud-ptf
     safely $zypper ref
-    [[ ! -e $UPR/repodata/repomd.xml.key ]] || safely rpmkeys --import $UPR/repodata/repomd.xml.key
+    if iscloudver 7minus ; then
+        # workaround missing in cloud 6 GM and 7 GM: https://github.com/crowbar/crowbar/pull/2320
+        [[ ! -e $UPR/repodata/repomd.xml.key ]] || safely rpmkeys --import $UPR/repodata/repomd.xml.key
+    fi
 }
 
 function zypper_patch
