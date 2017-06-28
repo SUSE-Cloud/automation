@@ -54,7 +54,10 @@
           fi
           cd $COMPONENT || exit 1
 
-          grep -q "<linkinfo" .osc/_files || exit 2
+          if ! grep -q "<linkinfo" .osc/_files; then
+              echo "$COMPONENT is not a link; please fix it in $COSS and ensure the checkout of the package in this worker is up-to-date"
+              exit 2
+          fi
 
           if $OSC rdiff $COS $COMPONENT $COSS | grep .  &&  $OSC api /build/$COSS/$OSCBUILDDIST/x86_64/$COMPONENT/_status | grep -q 'code="succeeded"'
           then
