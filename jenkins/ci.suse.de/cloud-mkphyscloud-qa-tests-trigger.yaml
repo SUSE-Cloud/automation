@@ -37,20 +37,6 @@
           name: cct_tests
           description: Optional; triggers cct tests. If the value is left empty, no cct tests will be run. The tests must be separated by + sign, e.g. feature:admin+feature:controller
 
-      - bool:
-          name: trigger_upgrade
-          description: Trigger the upgrade process for this cloud in a separate job
-
-      - bool:
-          name: horizon-tests
-          default: false
-          description: Optional, Run horizon integration test.
-
-      - bool:
-          name: rally-tests
-          default: false
-          description: Optional, Run rally tests
-
       - string:
           name: scenario_name
           description: Optional; scenario name which typically is an integer with a single letter
@@ -66,6 +52,20 @@
       - string:
           name: TESTHEAD
           description: if non-empty, test latest version from Devel:Cloud Staging
+
+      - bool:
+          name: trigger_upgrade
+          description: Trigger the upgrade process for this cloud in a separate job
+
+      - bool:
+          name: horizon-tests
+          default: false
+          description: Optional, Run horizon integration test.
+
+      - bool:
+          name: rally-tests
+          default: false
+          description: Optional, Run rally tests
 
       - bool:
           name: testsetup
