@@ -225,6 +225,18 @@ proposals:
       heat-server:
       - cluster:services
 
+- barclamp: barbican
+  attributes:
+    ssl:
+      generate_certs: true
+      insecure: true
+    api:
+      protocol: https
+  deployment:
+    elements:
+      barbican-controller:
+      - cluster:services
+
 - barclamp: ceilometer
   attributes:
   deployment:
@@ -272,6 +284,25 @@ proposals:
 #    elements:
 #      trove-server:
 #        - cluster:services
+
+- barclamp: aodh
+  attributes:
+    ssl:
+      generate_certs: true
+      insecure: true
+    api:
+      protocol: https
+  deployment:
+    elements:
+      aodh-server:
+      - cluster:services
+
+- barclamp: sahara
+  attributes:
+  deployment:
+    elements:
+      sahara-server:
+      - cluster:services
 
 - barclamp: tempest
   attributes:
