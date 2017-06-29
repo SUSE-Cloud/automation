@@ -161,7 +161,6 @@ proposals:
       backend_name: nfs
       nfs:
         nfs_shares: ##cinder-storage-shares##
-        nfs_mount_options: nfsvers=3,rw,sync,nofail
   deployment:
     elements:
       cinder-controller:
@@ -172,7 +171,7 @@ proposals:
 - barclamp: neutron
   attributes:
     ml2_mechanism_drivers:
-    - ##networkingplugin## 
+    - ##networkingplugin##
     ml2_type_drivers:
     - ##networkingmode##
     ml2_type_drivers_default_provider_network: ##networkingmode##
