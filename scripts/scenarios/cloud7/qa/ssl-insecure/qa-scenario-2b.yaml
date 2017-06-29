@@ -130,7 +130,6 @@ proposals:
       backend_name: nfs
       nfs:
         nfs_shares: ##cinder-storage-shares##
-        nfs_mount_options: nfsvers=3,rw,sync,nofail
     - backend_driver: vmware
       backend_name: vmware-backend
       vmware:
