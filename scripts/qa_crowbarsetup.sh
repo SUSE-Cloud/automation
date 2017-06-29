@@ -3215,7 +3215,17 @@ function set_proposalvars
     esac
 
     ### filter (temporarily changing defaults)
-    # F1: hyperV only without swift and ceph
+    # F1: cloud8 no longer defaults to ceph, even if the nodenumbers allow it
+    # background: starting with cloud8 the ceph nodes can not have openstack roles
+    # this complicates the nodenumber counting.
+    if iscloudver 8plus ; then
+        deployceph=
+        if [[ $nodenumber -gt 1 ]]; then
+            deployswift=1
+        fi
+    fi
+
+    # F2: hyperV only without swift and ceph
     if [[ $wanthyperv ]] ; then
         deployswift=
         deployceph=
