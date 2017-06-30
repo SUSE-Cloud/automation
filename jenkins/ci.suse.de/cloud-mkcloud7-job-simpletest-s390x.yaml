@@ -30,3 +30,4 @@
             want_sahara_proposal=0
             want_murano_proposal=0
             want_aodh_proposal=0
+            want_node_roles=controller=1
