@@ -3640,6 +3640,11 @@ function get_horizon
                         ['elements']['$horizon-server']"`
     horizonserver=`resolve_element_to_hostname "$element"`
     horizonservice=`resolve_element_to_hostname "$element" service`
+    horizonprotocol=http
+    `crowbar $horizon proposal show default | \
+        rubyjsonparse "
+                    puts j['attributes']['$horizon']['apache']['ssl']"` && \
+        horizonprotocol=https
 }
 
 function get_ceph_nodes
@@ -4635,7 +4640,7 @@ function onadmin_testsetup
     get_horizon
     echo "openstack horizon server:  $horizonserver"
     echo "openstack horizon service: $horizonservice"
-    curl -L -m 120 -s -S -k http://$horizonservice | \
+    curl -L -m 120 -s -S -k $horizonprotocol://$horizonservice | \
         grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
     || complain 101 "simple horizon test failed"
 
