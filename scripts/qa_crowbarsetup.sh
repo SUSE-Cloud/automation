@@ -31,6 +31,7 @@ fi
 : ${cinder_netapp_storage_protocol:=iscsi}
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
+: ${crowbar_networkingmode:=single}
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
 : ${want_multidnstest:=1}

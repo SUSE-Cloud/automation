@@ -73,7 +73,6 @@ nicsdefault=1
 [[ $want_ironic ]] && nicsdefault=2
 : ${nics:=$nicsdefault}
 : ${adminvcpus:=2}
-: ${crowbar_networkingmode:=single}
 cpuflags=''
 working_dir_orig=`pwd`
 : ${artifacts_dir:=$working_dir_orig/.artifacts}
@@ -1106,8 +1105,6 @@ Optional
     nics=1         (default $nics)
         set the number of network interfaces per cloud node
         if Ironic is enabled (want_ironic=1), default is set to 2
-    crowbar_networkingmode=single         (default $crowbar_networkingmode)
-        set the networking mode for Crowbar.
     adminvcpus=1    (default $adminvcpus)
         set the number of CPU cores for admin node
     admin_node_memory (default 4194304)
