@@ -13,10 +13,11 @@
 # Bernhard M. Wiedemann <bwiedemann suse.de>
 #
 
-: ${automation_repo:="git://github.com/SUSE-Cloud/automation.git"}
+: ${automation_repo:="https://github.com/SUSE-Cloud/automation.git"}
 : ${branch:=master}
 
 a_dir=${automation_repo#*git://}
+a_dir=${a_dir#*https://}
 a_dir=${a_dir%.git}
 p_dir=${a_dir%/*}
 
