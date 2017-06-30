@@ -5015,8 +5015,8 @@ function reboot_controller_clusters
                 "drbd devices to be consistent on node $m_hostname"
             power_cycle_and_wait $machine
             wait_for 400 5 "crowbar node_state status | grep $m_hostname | grep -qiE \"ready$|problem$\"" "node $m_hostname to be online"
+            complain_if_problem_on_reboot
         done
-        complain_if_problem_on_reboot
     done
 }
 
