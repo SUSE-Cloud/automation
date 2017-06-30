@@ -4141,7 +4141,7 @@ function nova_services_up
 
 function oncontroller_check_crm_failcounts
 {
-    if iscloudver 7plus && [[ $hacloud = 1 ]] ; then
+    if iscloudver 7plus && [[ $hacloud = 1 && ( $1 = "disallowskipfailcount" || $want_crm_failcount_skip != 1 ) ]] ; then
         crm_mon --failcounts -1 | grep "fail-count=" && complain 55 "Cluster resources' failures detected"
     fi
     return 0
@@ -4153,7 +4153,7 @@ function oncontroller_testsetup
 {
     . .openrc
     oncontroller_prepare_functional_tests
-    oncontroller_check_crm_failcounts
+    oncontroller_check_crm_failcounts disallowskipfailcount
     # 28 is the overhead of an ICMP(ping) packet
     [[ $want_mtu_size ]] && iscloudver 5plus && safely ping -M do -c 1 -s $(( want_mtu_size - 28 )) $adminip
     export LC_ALL=C
