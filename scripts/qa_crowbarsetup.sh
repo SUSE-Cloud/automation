@@ -1754,12 +1754,12 @@ function reboot_nodes_via_ipmi
         local ipmicmd="ipmitool -H $ip -U root"
         local pw
         for pw in 'cr0wBar!' $extraipmipw ; do
-            if timeout 5 $ipmicmd -P $pw mc selftest ; then
+            if timeout 5 $ipmicmd -P $pw mc info ; then
                 ipmicmd+=" -P $pw"
                 break
             fi
         done
-        safely timeout 5 $ipmicmd mc selftest
+        safely timeout 5 $ipmicmd mc info
 
         if [ $i -gt $nodenumber ]; then
             # power off extra nodes
