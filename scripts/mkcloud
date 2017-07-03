@@ -678,9 +678,13 @@ function setupnodes
             localrepos_params="--localreposrc ${localreposdir_src} --localrepotgt ${localreposdir_target}"
         fi
 
+        local ipmi_params=""
+        [[ $want_ipmi = 1 ]] && ipmi_params="--ipmi"
+
         ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
                         $mac_params \
                         $ironic_params \
+                        $ipmi_params \
                         --cephvolumenumber $cephvolumenumber \
                         --drbdserial "$drbd_serial"\
                         --computenodememory $compute_node_memory \

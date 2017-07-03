@@ -1,4 +1,4 @@
-<domain type='kvm'>
+<domain type='kvm' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
   <name>$cloud-node$nodecounter</name>
   <memory>$nodememory</memory>
   <currentMemory>$nodememory</currentMemory>
@@ -35,4 +35,5 @@ $videodevices
 $memballoon
 $local_repository_mount
   </devices>
+$ipmidevice
 </domain>

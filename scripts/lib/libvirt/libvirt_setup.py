@@ -312,6 +312,15 @@ def compute_config(args, cpu_flags=cpuflags()):
             'target_address': target_address.format('0x1f')},
             configopts))
 
+    if args.ipmi:
+        values = dict(
+          nodecounter=args.nodecounter
+        )
+        ipmi_config = get_config(values,
+                                 os.path.join(TEMPLATE_DIR, "ipmi-device.xml"))
+    else:
+        ipmi_config = ''
+
     values = dict(
         cloud=args.cloud,
         nodecounter=args.nodecounter,
@@ -330,6 +339,7 @@ def compute_config(args, cpu_flags=cpuflags()):
         videodevices=get_video_devices(),
         target_dev=targetdevprefix + 'a',
         serialdevice=get_serial_device(),
+        ipmidevice=ipmi_config,
         target_address=target_address.format('0x0a'),
         bootorder=args.bootorder,
         local_repository_mount=localrepomount)
