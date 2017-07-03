@@ -210,7 +210,6 @@ class CrowbarTestbuild
               osc_cmd("build") +
               [
                 "--root", File.join(Dir.pwd, build_root),
-                '--noverify', '--noservice',
                 bs_repo, "x86_64", package_spec_file
               ]
             )
