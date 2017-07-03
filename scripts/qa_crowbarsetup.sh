@@ -1940,11 +1940,8 @@ function set_node_raid
     "
 }
 
-
-# Reboot the nodes with ipmi
-function reboot_nodes_via_ipmi
+function set_crowbar_ipmi_ip_addrs
 {
-    do_one_proposal ipmi default
     local bmc_values=($(
         crowbar network proposal show default | \
         rubyjsonparse "
@@ -1954,11 +1951,23 @@ function reboot_nodes_via_ipmi
         "
     ))
     test -n "${bmc_values[1]}" || bmc_values[1]="0.0.0.0"
+    ipmi_default_gw=${bmc_values[1]}
     IFS=. read ip1 ip2 ip3 ip4 <<< "${bmc_values[0]}"
     local bmc_net="$ip1.$ip2.$ip3"
     local i
     for i in $(seq 1 $nodenumbertotal); do
         local ip=$bmc_net.$(($ip4 + $i))
+        ipmi_ip_addrs="$ipmi_ip_addrs $ip"
+    done
+}
+
+# Reboot the nodes with ipmi
+function reboot_nodes_via_ipmi
+{
+    do_one_proposal ipmi default
+    [[ $ipmi_ip_addrs ]] || set_crowbar_ipmi_ip_addrs
+    local ip
+    for ip in $ipmi_ip_addrs ; do
         local ipmicmd="ipmitool -H $ip -U root"
         local pw
         for pw in 'cr0wBar!' $extraipmipw ; do
@@ -1974,10 +1983,12 @@ function reboot_nodes_via_ipmi
             $ipmicmd power off
             wait_for 30 2 "$ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
         else
-            $ipmicmd lan set 1 defgw ipaddr "${bmc_values[1]}"
-            wait_for 30 2 \
-                "$ipmicmd lan print | grep 'Default Gateway IP' | grep -q ${bmc_values[1]}" \
-                "default gateway to be active in bmc"
+            if [[ $ipmi_default_gw ]] ; then
+                $ipmicmd lan set 1 defgw ipaddr "$ipmi_default_gw"
+                wait_for 30 2 \
+                    "$ipmicmd lan print | grep 'Default Gateway IP' | grep -q $ipmi_default_gw" \
+                    "default gateway to be active in bmc"
+            fi
 
             $ipmicmd chassis bootdev pxe options=persistent
             $ipmicmd power off
