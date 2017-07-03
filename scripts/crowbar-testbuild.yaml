@@ -91,6 +91,6 @@ infrastructure:
         # - --server-side-source-service-files # for SAP
       build:
         - --noverify
-        # - --noservice # for SAP, to skip local service run, if server side source service files is enabled
+        - --noservice # for SAP, to skip local service run, if server side source service files is enabled ; for us because otherwise commented out patches are causing a failure, which is not really relevant.
   jenkins_job_trigger:
     cmd: jenkins/jenkins-job-trigger
