@@ -28,7 +28,7 @@
           set +ex
 
           scp ~/github.com/SUSE-Cloud/automation/scripts/jenkins/qa_devstack.sh root@cleanvm:
-          ssh root@cleanvm "bash -x ~/qa_devstack.sh"
+          ssh root@cleanvm "export DO_UNSTACK=yes; bash -x ~/qa_devstack.sh"
           ret=$?
           if [ "$ret" != 0 ] ; then
               virsh shutdown cleanvm

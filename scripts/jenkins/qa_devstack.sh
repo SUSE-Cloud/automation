@@ -157,4 +157,11 @@ tox -e smoke
 EOF
 fi
 
+if [ -n "${DO_UNSTACK}" ]; then
+    sudo -u stack -i <<EOF
+cd $DEVSTACK_DIR
+./unstack.sh || :
+EOF
+fi
+
 exit 0
