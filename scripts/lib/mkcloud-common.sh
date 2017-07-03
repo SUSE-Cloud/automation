@@ -295,7 +295,7 @@ function setcloudnetvars
             want_ipmi=true
         ;;
         d3)
-            nodenumbertotal=3
+            nodenumbertotal=2
             net=$netp.189
             net_public=$netp.188
             vlan_storage=586
