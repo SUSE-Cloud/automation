@@ -5010,6 +5010,27 @@ function power_cycle_and_wait
         "node $m_hostname to power cycle"
 }
 
+function recover_if_fenced
+{
+    local machine=$1
+
+    # Check the machine has a problem reported by crowbar
+    if ! crowbar node_state status | grep $machine | grep -i "problem$"; then
+        return
+    fi
+
+    # Check the machine was fenced
+    if ! ssh $machine 'ls /var/spool/corosync/block_automatic_start'; then
+        return
+    fi
+
+    # Fencing recovery steps (fencing on reboot particular case)
+    # https://w3.suse.de/~aspiers/cloud/HA-training/HA-training-all-slides.pdf
+    ssh $machine 'rm /var/spool/corosync/block_automatic_start'
+    ssh $machine 'systemctl stop chef-client.service'
+    ssh $machine 'systemctl start crowbar_join.service'
+}
+
 function complain_if_problem_on_reboot
 {
     if crowbar node_state status | grep ^d | grep -i "problem$"; then
@@ -5033,6 +5054,7 @@ function reboot_controller_clusters
                 "drbd devices to be consistent on node $m_hostname"
             power_cycle_and_wait $machine
             wait_for 400 5 "crowbar node_state status | grep $m_hostname | grep -qiE \"ready$|problem$\"" "node $m_hostname to be online"
+            recover_if_fenced $machine
         done
         complain_if_problem_on_reboot
     done
