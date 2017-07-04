@@ -20,7 +20,6 @@
             - crowbar-openstack
             - crowbar-ceph
             - crowbar-ha
-            - crowbar-hyperv
             - crowbar-init
             - openstack-dashboard-theme-SUSE
             - release-notes-suse-openstack-cloud
