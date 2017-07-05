@@ -4983,6 +4983,8 @@ function onneutron_wait_for_neutron
 {
     get_neutron_server_node
 
+    [ -z "$NEUTRON_SERVER" ] && return
+
     wait_for 300 3 "ssh $NEUTRON_SERVER 'rcopenstack-neutron status' |grep -q running" "neutron-server service running state"
     wait_for 200 3 " ! ssh $NEUTRON_SERVER '. .openrc && neutron --insecure agent-list -f csv --quote none'|tail -n+2 | grep -q -v ':-)'" "neutron agents up"
 
