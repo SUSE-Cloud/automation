@@ -2736,6 +2736,9 @@ function custom_configuration
                 proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
                 proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
             fi
+            if iscloudver 8plus && [[ $want_database_sql_engine ]] ; then
+                proposal_set_value database default "['attributes']['database']['sql_engine']" "'$want_database_sql_engine'"
+            fi
         ;;
         rabbitmq)
             if [[ $hacloud = 1 ]] ; then
