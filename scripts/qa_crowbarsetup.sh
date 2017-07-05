@@ -4784,8 +4784,10 @@ function oncontroller_testpostupgrade
 
     # remove manila-service fip from list
     manila_vm=$(openstack --insecure server list --all-projects -f value | grep manila-service | awk '{ print $1 }' )
-    manila_fip=$(openstack --insecure server show $manila_vm -f value -c addresses | awk '{ print $2 }' )
-    fips=( "${fips[@]/$manila_fip}" )
+    if [[ $manila_vm ]]; then
+        manila_fip=$(openstack --insecure server show $manila_vm -f value -c addresses | awk '{ print $2 }' )
+        fips=( "${fips[@]/$manila_fip}" )
+    fi
 
     for fip in $fips; do
         scp cirros@$fip:/var/log/ping_neighbour.out ping_neighbour.$fip.out
