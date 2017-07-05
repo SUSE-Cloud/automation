@@ -336,11 +336,6 @@
       # extras
 
       - string:
-          name: want_docker
-          default:
-          description: set to 1 to deploy with docker
-
-      - string:
           name: want_ironic
           default:
           description: set to 1 to deploy with ironic

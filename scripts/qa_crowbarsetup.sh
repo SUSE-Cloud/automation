@@ -2137,11 +2137,6 @@ function onadmin_allocate
         done
     fi
 
-    # set BTRFS for all nodes when docker is wanted (docker likes btrfs)
-    if [ -n "$want_docker" ] ; then
-        : ${want_rootfs:=btrfs}
-    fi
-
     # set rootfs for all nodes when want_rootfs is set
     if [ -n "$want_rootfs" ] ; then
         for node in `get_all_discovered_nodes` ; do
@@ -2920,23 +2915,6 @@ function custom_configuration
                 proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes_json"
             fi
 
-            if [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
-                if [[ $hacloud = 1 ]] ; then
-                    cluster_node_assignment
-                    local nodes=($unclustered_nodes)
-                else
-                    local nodes=($(get_all_discovered_nodes))
-                    nodes=("${nodes[@]:1}") #remove the 1st node, it's the controller
-                fi
-                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-docker']" "['$nodes']"
-
-                local computetype
-                for computetype in "xen" "qemu" "${libvirt_type}"; do
-                    # do not assign another compute role to this node
-                    proposal_modify_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${computetype}']" "['$nodes']" "-="
-                done
-            fi
-
             if [[ $nova_shared_instance_storage = 1 ]] ; then
                 proposal_set_value nova default "['attributes']['nova']['use_shared_instance_storage']" "true"
             fi
@@ -3463,8 +3441,6 @@ function deploy_single_proposal
             fi
             ;;
         manila)
-            # manila-service can not be deployed currently with docker
-            [[ $want_docker = 1 ]] && return
             # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
             if iscloudver 5minus && ! [[ $cloudsource = develcloud5 && $want_sles12 ]]; then
                 return
@@ -3795,19 +3771,6 @@ function kill_pacemaker_remote
     done
     # Wait to instance be up
     wait_for 100 1 "ping -q -c 1 -w 1 $floatingip >/dev/null" "Instance to be up"
-}
-
-# by setting --dns-nameserver for subnet, docker instance gets this as
-# DNS info (otherwise it would use /etc/resolv.conf from its host)
-function adapt_dns_for_docker
-{
-    # DNS server is the first IP from the allocation pool, or the
-    # second one from the network range
-    local dns_server=`neutron subnet-show fixed | grep allocation_pools | cut -d '"' -f4`
-    if [ -z "$dns_server" ] ; then
-        complain 36 "DNS server info not found. Exiting"
-    fi
-    neutron subnet-update --dns-nameserver "$dns_server" fixed
 }
 
 function glance_image_exists
@@ -4279,20 +4242,6 @@ function oncontroller_testsetup
             && complain 114 "Unexpected errors in glance-scrubber logs"
     fi
 
-    if [ -n "$want_docker" ] ; then
-        image_name="cirros"
-        flavor="m1.tiny"
-        ssh_user="cirros"
-        if ! glance_image_exists $image_name ; then
-            curl -s \
-                $imageserver_url/docker/cirros.tar | \
-            openstack image create --public --container-format docker \
-                --disk-format raw --property hypervisor_type=docker  \
-                $image_name | tee glance.out
-        fi
-        adapt_dns_for_docker
-    fi
-
     if [ -n "$want_s390" ] ; then
         image_name="s390x-SLES12SP1-cloud-init"
         flavor="m1.small"
@@ -4381,30 +4330,25 @@ function oncontroller_testsetup
     local volumeresult=""
     local portresult=0
 
-    # do volume tests for non-docker scenario only
-    if [ -z "$want_docker" ] ; then
-        # Workaround SLE12SP1 regression
-        iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
-        cinder list | grep -q available || cinder create 1
-        wait_for 9 5 "cinder list | grep available" "volume to become available" "volumecreateret=1"
-        volumeid=`cinder list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
-        nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
-        volumeattachret=$?
-        device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
-        wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
-        ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
-        rand=$RANDOM
-        ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
-        nova volume-detach "$instanceid" "$volumeid"
-        wait_for 29 5 "cinder show $volumeid | grep 'status.*available'" "volume to become available after detach" "volumeattachret=55"
-        nova volume-attach "$instanceid" "$volumeid" /dev/vdb
-        wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become reattached" "volumeattachret=56"
-        ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
-        ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
-        volumeresult="$volumecreateret & $volumeattachret"
-    else
-        volumeresult="tests skipped (not supported for docker)"
-    fi
+    # Workaround SLE12SP1 regression
+    iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
+    cinder list | grep -q available || cinder create 1
+    wait_for 9 5 "cinder list | grep available" "volume to become available" "volumecreateret=1"
+    volumeid=`cinder list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
+    nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
+    volumeattachret=$?
+    device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
+    wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
+    ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
+    rand=$RANDOM
+    ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
+    nova volume-detach "$instanceid" "$volumeid"
+    wait_for 29 5 "cinder show $volumeid | grep 'status.*available'" "volume to become available after detach" "volumeattachret=55"
+    nova volume-attach "$instanceid" "$volumeid" /dev/vdb
+    wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become reattached" "volumeattachret=56"
+    ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
+    ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
+    volumeresult="$volumecreateret & $volumeattachret"
 
     # cleanup so that we can run testvm without leaking volumes, IPs etc
     nova remove-floating-ip "$instanceid" "$floatingip"
@@ -4748,13 +4692,6 @@ EOF
             echo "test-s3-bucket not found"
             s3radosgwret=1
         fi
-    fi
-
-    # prepare docker image at docker compute nodes
-    if iscloudver 5 && [ -n "$want_sles12" ] && [ -n "$want_docker" ] ; then
-        for n in `get_docker_nodes` ; do
-            ssh $n docker pull cirros
-        done
     fi
 
     oncontroller testsetup
