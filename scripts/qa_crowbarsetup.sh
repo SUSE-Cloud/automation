@@ -1323,6 +1323,13 @@ function onadmin_set_source_variables
             CLOUDSLE12TESTISO="CLOUD-8-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-devel"
         ;;
+        ocatacloud8)
+            # This is used by the CloudFoundry team. Do not remove!
+            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/8:/Ocata/images/iso
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-$arch*Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-8-TESTING-$arch*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
+        ;;
         susecloud8)
             CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/Cloud8/images/iso/
             CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-$arch*Media1.iso"
