@@ -25,6 +25,8 @@
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
+        - 'cloud-mkcloud{version}-job-2nodes-ocata'
+        - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-ocata'
 - project:
     name: cloud-mkcloud8-ha-x86_64
     disabled: false
@@ -41,6 +43,7 @@
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-ocata'
 - project:
     name: cloud-mkcloud8-aarch64
     disabled: false
