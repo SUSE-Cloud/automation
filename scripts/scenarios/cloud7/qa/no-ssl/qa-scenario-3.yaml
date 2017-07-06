@@ -168,6 +168,12 @@ proposals:
       heat-server:
       - cluster:services
 
+- barclamp: barbican
+  deployment:
+    elements:
+      barbican-controller:
+      - cluster:services
+
 - barclamp: ceilometer
   attributes:
   deployment:
@@ -211,6 +217,19 @@ proposals:
     elements:
       trove-server:
       - @@controller1@@
+
+- barclamp: aodh
+  attributes:
+  deployment:
+    elements:
+      aodh-server:
+      - cluster:services
+- barclamp: sahara
+  attributes:
+  deployment:
+    elements:
+      sahara-server:
+      - cluster:services
 
 - barclamp: tempest
   attributes:

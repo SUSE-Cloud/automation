@@ -163,6 +163,12 @@ proposals:
       heat-server:
       - cluster:services
 
+- barclamp: barbican
+  deployment:
+    elements:
+      barbican-controller:
+      - cluster:services
+
 - barclamp: ceilometer
   deployment:
     elements:
@@ -191,6 +197,19 @@ proposals:
     elements:
       magnum-server:
       - "@@controller1@@" #TODO Cluster will be enabled when implementation done cluster - cluster:services
+
+- barclamp: aodh
+  attributes:
+  deployment:
+    elements:
+      aodh-server:
+      - cluster:services
+- barclamp: sahara
+  attributes:
+  deployment:
+    elements:
+      sahara-server:
+      - cluster:services
 
 - barclamp: tempest
   attributes:
