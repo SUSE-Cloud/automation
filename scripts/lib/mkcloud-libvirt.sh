@@ -212,7 +212,7 @@ function wipe_volume
 {
     local volume=$1
     local size=$2 # in GB
-    $sudo dd if=/dev/zero of="$volume" bs=1M count=$(($size * 1024))
+    $sudo dd if=/dev/zero of="$volume" bs=1M count=$(($size * 1024)) conv=fdatasync oflag=nocache
 }
 
 # spread block devices over a LVM's PVs so that different VMs
@@ -235,14 +235,15 @@ function libvirt_do_create_cloud_lvm()
         # total wipeout of the disks used for RAID, to prevent bsc#966685
         local nodenum
         for nodenum in $(seq 1 $(get_nodenumbercontroller)) ; do
-            wipe_volume "/dev/$cloudvg/$cloud.node$nodenum" $controller_hdd_size
+            wipe_volume "/dev/$cloudvg/$cloud.node$nodenum" $controller_hdd_size &
             for n in $(seq 1 $(($controller_raid_volumes-1))) ; do
                 hdd_size=${controller_hdd_size}
                 onhost_get_next_pv_device
                 _lvcreate $cloud.node$nodenum-raid$n $hdd_size $cloudvg $next_pv_device
-                wipe_volume "/dev/$cloudvg/$cloud.node$nodenum-raid$n" $hdd_size
+                wipe_volume "/dev/$cloudvg/$cloud.node$nodenum-raid$n" $hdd_size &
             done
         done
+        wait
     fi
 
     if [ $cephvolumenumber -gt 0 ] ; then
