@@ -72,6 +72,10 @@
               OSCBUILDDIST=SLE_12_SP2
               ECOS=systemsmanagement:crowbar:4.0
           ;;
+          Devel:Cloud:8)
+              OSCBUILDDIST=SLE_12_SP3
+              ECOS=systemsmanagement:crowbar:5.0
+          ;;
           *) echo "Please add support for the project: $project"
               exit 1
           esac
