@@ -226,12 +226,12 @@ function libvirt_do_create_cloud_lvm()
     done
     if [ $controller_raid_volumes -gt 1 ] ; then
         # total wipeout of the disks used for RAID, to prevent bsc#966685
-        volume="/dev/$cloudvg/$cloud.node1"
-        $sudo dd if=/dev/zero of=$volume bs=1M count=$(($controller_hdd_size * 1024))
-        for n in $(seq 1 $(($controller_raid_volumes-1))) ; do
-            hdd_size=${controller_hdd_size}
-            local nodenum
-            for nodenum in $(seq 1 $(get_nodenumbercontroller)) ; do
+        local nodenum
+        for nodenum in $(seq 1 $(get_nodenumbercontroller)) ; do
+            volume="/dev/$cloudvg/$cloud.node$nodenum"
+            $sudo dd if=/dev/zero of=$volume bs=1M count=$(($controller_hdd_size * 1024))
+            for n in $(seq 1 $(($controller_raid_volumes-1))) ; do
+                hdd_size=${controller_hdd_size}
                 onhost_get_next_pv_device
                 _lvcreate $cloud.node$nodenum-raid$n $hdd_size $cloudvg $next_pv_device
                 volume="/dev/$cloudvg/$cloud.node$nodenum-raid$n"
