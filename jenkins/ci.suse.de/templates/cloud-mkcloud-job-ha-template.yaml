@@ -24,6 +24,7 @@
             tempestoptions={tempestoptions}
             storage_method={storage_method_ha}
             hacloud=1
+            want_all_ssl=1
             mkcloudtarget=all_noreboot
             label={label}
             job_name=cloud-mkcloud{version}-job-ha-{arch}
