@@ -5175,6 +5175,9 @@ zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgr
         ssh $node "reboot"
         wait_for 100 3 "! nc -w 1 -z $node 22" "node $node to go down"
         wait_for 200 3 "nc -w 1 -z $node 22" "node $node to be back online"
+        # wait for HEALTH_OK or HEALTH_WARN status (WARN might be there because of require_jewel_osds not set yet)
+        wait_for 50 5 "local health=\$(ssh $node ceph health); echo \"\$health\" | grep -E 'HEALTH_(OK|WARN)'" \
+            "ceph cluster to recover after node upgrade" "exit 12" 'echo "$health"'
     done
 
     # update the ceph osd configuration to new defaults
