@@ -31,6 +31,7 @@
           values:
             - SLE_12_SP1
             - SLE_12_SP2
+            - SLE_12_SP3
             - openSUSE_Leap_42.2
             - openSUSE_Leap_42.3
       - axis:
@@ -41,9 +42,8 @@
     execution-strategy:
       combination-filter: |
        !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_12_SP1"].contains(repository) ||
-         ["Cloud:OpenStack:Factory"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
-         ["Cloud:OpenStack:Juno", "Cloud:OpenStack:Juno:Staging"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository)  ||
-         ["Cloud:OpenStack:Liberty", "Cloud:OpenStack:Liberty:Staging"].contains(project) && ["SLE_12_SP2", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
+         ["Cloud:OpenStack:Factory"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "SLE_12_SP3", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
+         ["Cloud:OpenStack:Liberty", "Cloud:OpenStack:Liberty:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP3", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
          ["Cloud:OpenStack:Mitaka", "Cloud:OpenStack:Mitaka:Staging"].contains(project) && ["openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
          ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["SLE_12_SP1", "openSUSE_Leap_42.3"].contains(repository) ||
          ["Cloud:OpenStack:Ocata", "Cloud:OpenStack:Ocata:Staging"].contains(project) && ["SLE_12_SP1"].contains(repository) ||
