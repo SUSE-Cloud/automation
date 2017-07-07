@@ -240,6 +240,11 @@
           default:
           description: Set to 1 to deploy keystone with LDAP
 
+      - string:
+          name: want_database_sql_engine
+          default: ''
+          description: The database backend sql_engine to be used
+
       ################################################
       # neutron
 
@@ -334,11 +339,6 @@
 
       ################################################
       # extras
-
-      - string:
-          name: want_docker
-          default:
-          description: set to 1 to deploy with docker
 
       - string:
           name: want_ironic
@@ -449,7 +449,7 @@
                       unset want_ldap
                   fi
                   ;;
-              M*|develcloud8|develcloud7|mitakacloud7|susecloud7)
+              M*|ocatacloud8|develcloud8|develcloud7|mitakacloud7|susecloud7)
                   if [[ $mkcloudtarget =~ upgrade ]]; then
                       echo "Unsetting want_ldap for upgrade jobs until hybrid backend is migrated to domain-specific backends"
                       unset want_ldap

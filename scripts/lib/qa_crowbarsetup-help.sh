@@ -12,6 +12,8 @@ function qacrowbarsetup_help
         Option to set variable MTU size or select Jumbo Frames for Admin and Storage nodes. 1500 is used if not set.
     want_raidtype (default='raid1')
         The type of RAID to create.
+    want_database_sql_engine (default='' which picks cloud default)
+        The type of database backend to create (only cloud8+)
     want_node_aliases=list of aliases to assign to nodes
         Takes all provided aliases and assign them to available nodes successively.
         Note that this doesn't take care about node assignment itself.
