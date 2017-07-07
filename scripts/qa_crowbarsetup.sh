@@ -12,7 +12,7 @@ fi
 
 : ${SCRIPTS_DIR:=$(dirname $(readlink -e $BASH_SOURCE))}
 scripts_lib_dir=${SCRIPTS_DIR}/lib
-common_scripts="mkcloud-common.sh qa_crowbarsetup-help.sh"
+common_scripts="mkcloud-common.sh mkcloud-${mkclouddriver}.sh qa_crowbarsetup-help.sh"
 for script in $common_scripts; do
     source ${scripts_lib_dir}/$script
 done
