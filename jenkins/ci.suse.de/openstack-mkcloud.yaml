@@ -240,6 +240,11 @@
           default:
           description: Set to 1 to deploy keystone with LDAP
 
+      - string:
+          name: want_database_sql_engine
+          default: ''
+          description: The database backend sql_engine to be used
+
       ################################################
       # neutron
 
