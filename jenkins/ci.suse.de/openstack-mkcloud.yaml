@@ -163,7 +163,7 @@
 
       - string:
           name: nics
-          default: '1'
+          default:
           description: >-
             Number of network interfaces for the nodes (admin node has always 1 currently).
             If Ironic is enabled (want_ironic=1) min value of this parameter is set to 2.
@@ -483,11 +483,6 @@
             #### temorarily allow ceph in HA (test if it works)
             #export want_ceph=0
             #export cephvolumenumber=0
-          fi
-
-          # enforce min 2 nics if deploying with ironic
-          if [[ $want_ironic ]] ; then
-            [[ $nics -lt 2 ]] && nics=2
           fi
 
           #storage

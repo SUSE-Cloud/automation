@@ -21,7 +21,6 @@
             cloudsource=develcloud{version}
             nodenumber=4
             networkingplugin=linuxbridge
-            nics=2
             crowbar_networkingmode=team
             tempestoptions={tempestoptions}
             mkcloudtarget=all
