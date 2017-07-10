@@ -22,7 +22,6 @@
             nodenumber=5
             networkingmode=vxlan
             tempestoptions={tempestoptions}
-            nics=2
             crowbar_networkingmode=team
             storage_method={storage_method_ha}
             hacloud=1

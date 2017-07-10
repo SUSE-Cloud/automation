@@ -26,7 +26,6 @@
             mkcloudtarget=all_noreboot
             networkingplugin=linuxbridge
             networkingmode=vxlan
-            nics=2
             crowbar_networkingmode=team
             want_node_aliases=controller=2,compute=2
             label={label}
