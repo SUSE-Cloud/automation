@@ -5,6 +5,11 @@
 
 shopt -s extglob
 
+mkcconf=mkcloud.config
+if [ -z "$testfunc" ] && [ -e $mkcconf ]; then
+    source $mkcconf
+fi
+
 : ${SCRIPTS_DIR:=$(dirname $(readlink -e $BASH_SOURCE))}
 scripts_lib_dir=${SCRIPTS_DIR}/lib
 common_scripts="mkcloud-common.sh qa_crowbarsetup-help.sh"
@@ -14,11 +19,6 @@ done
 
 # not being sourced from mkcloud is a feature
 is_onhost && complain 9 "qa_crowbarsetup.sh should not be sourced within mkcloud. Shared functions are in files in scripts/lib/: eg. mkcloud-common.sh or qa_crowbarsetup-help.sh."
-
-mkcconf=mkcloud.config
-if [ -z "$testfunc" ] && [ -e $mkcconf ]; then
-    source $mkcconf
-fi
 
 # this needs to be after mkcloud.config got sourced
 if [[ $debug_qa_crowbarsetup = 1 ]] ; then
