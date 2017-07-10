@@ -208,6 +208,13 @@ function _lvcreate()
         safely $sudo lvcreate -n $lv_name -L ${lv_size}G $lv_vg
 }
 
+function wipe_volume
+{
+    local volume=$1
+    local size=$2 # in GB
+    $sudo dd if=/dev/zero of="$volume" bs=1M count=$(($size * 1024)) conv=fdatasync oflag=nocache
+}
+
 # spread block devices over a LVM's PVs so that different VMs
 # are likely to use different PVs to optimize concurrent IO throughput
 function libvirt_do_create_cloud_lvm()
@@ -226,18 +233,17 @@ function libvirt_do_create_cloud_lvm()
     done
     if [ $controller_raid_volumes -gt 1 ] ; then
         # total wipeout of the disks used for RAID, to prevent bsc#966685
-        volume="/dev/$cloudvg/$cloud.node1"
-        $sudo dd if=/dev/zero of=$volume bs=1M count=$(($controller_hdd_size * 1024))
-        for n in $(seq 1 $(($controller_raid_volumes-1))) ; do
-            hdd_size=${controller_hdd_size}
-            local nodenum
-            for nodenum in $(seq 1 $(get_nodenumbercontroller)) ; do
+        local nodenum
+        for nodenum in $(seq 1 $(get_nodenumbercontroller)) ; do
+            wipe_volume "/dev/$cloudvg/$cloud.node$nodenum" $controller_hdd_size &
+            for n in $(seq 1 $(($controller_raid_volumes-1))) ; do
+                hdd_size=${controller_hdd_size}
                 onhost_get_next_pv_device
                 _lvcreate $cloud.node$nodenum-raid$n $hdd_size $cloudvg $next_pv_device
-                volume="/dev/$cloudvg/$cloud.node$nodenum-raid$n"
-                $sudo dd if=/dev/zero of=$volume bs=1M count=$(($hdd_size * 1024))
+                wipe_volume "/dev/$cloudvg/$cloud.node$nodenum-raid$n" $hdd_size &
             done
         done
+        wait
     fi
 
     if [ $cephvolumenumber -gt 0 ] ; then
