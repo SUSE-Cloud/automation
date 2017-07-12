@@ -221,11 +221,6 @@
 
           timeout --signal=ALRM 240m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
 
-          ## Make monasca barclamp visible in crowbar UI
-          sed -i -e "s,user_managed: false,user_managed: true", /opt/dell/crowbar_framework/barclamps/monasca.yml
-          /opt/dell/bin/barclamp_install.rb --rpm openstack
-          systemctl restart crowbar
-
           ' || ret=$?
 
 
