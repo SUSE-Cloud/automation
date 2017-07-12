@@ -283,6 +283,9 @@ sub osc_checkin()
     eval {
       $custom_service=xml_get_text($xmldom, '/services/service[@name="download_files"][1]/param[@name="changesgenerate"][1]');
     };
+    eval {
+      $custom_service=xml_get_text($xmldom, '/services/service[@name="renderspec"][1]/param[@name="output-name"][1]');
+    };
     die $@ unless $custom_service;
   }
   eval {
