@@ -1,0 +1,28 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-ha-mariadb-{arch}'
+    node: cloud-trigger
+    disabled: 'true'
+
+    triggers:
+      - timed: '11 2 * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 7
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{version}
+            nodenumber=4
+            tempestoptions={tempestoptions}
+            hacloud=1
+            want_database_sql_engine=mysql
+            mkcloudtarget=all_noreboot
+            label={label}
+            job_name=cloud-mkcloud{version}-job-ha-mariadb-{arch}
