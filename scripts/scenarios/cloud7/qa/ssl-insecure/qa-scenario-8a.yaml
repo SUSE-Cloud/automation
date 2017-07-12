@@ -68,7 +68,6 @@ proposals:
     ssl:
       generate_certs: true
       insecure: true
-      protocol: https
   deployment:
     elements:
       keystone-server:
@@ -124,7 +123,6 @@ proposals:
       backend_name: nfs
       nfs:
         nfs_shares: ##cinder-storage-shares##
-        nfs_mount_options: nfsvers=3,rw,sync,nofail
     api:
       protocol: https
     ssl:
