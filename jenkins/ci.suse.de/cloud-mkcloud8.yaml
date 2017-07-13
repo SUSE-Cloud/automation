@@ -42,6 +42,7 @@
         - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-mariadb-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ocata'

@@ -1,10 +1,10 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-mariadb-{arch}'
+    name: 'cloud-mkcloud{version}-job-ha-mariadb-{arch}'
     node: cloud-trigger
-    disabled: '{obj:disabled}'
+    disabled: 'true'
 
     triggers:
-      - timed: 'H 2 * * *'
+      - timed: '11 2 * * *'
 
     logrotate:
       numToKeep: -1
@@ -19,11 +19,10 @@
           predefined-parameters: |
             TESTHEAD=1
             cloudsource=develcloud{version}
-            nodenumber=2
-            mkcloudtarget=all_noreboot
-            want_database_sql_engine=mysql
+            nodenumber=4
             tempestoptions={tempestoptions}
+            hacloud=1
+            want_database_sql_engine=mysql
+            mkcloudtarget=all_noreboot
             label={label}
-            want_node_aliases=controller=1,compute-kvm=1
-            job_name=cloud-mkcloud{version}-job-mariadb-{arch}
-
+            job_name=cloud-mkcloud{version}-job-ha-mariadb-{arch}
