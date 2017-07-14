@@ -88,7 +88,7 @@ export cinder_netapp_storage_protocol
 export cinder_netapp_login
 export cinder_netapp_password
 export localreposdir_target
-export want_ipmi=${want_ipmi:-false}
+export want_ipmi=${want_ipmi:-}
 [ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
 [ "$libvirt_type" = hyperv ] && export wanthyperv=1
 [ "$libvirt_type" = xen ] && export wantxenpv=1 # xenhvm is broken anyway
@@ -2014,7 +2014,7 @@ function onadmin_allocate
 {
     pre_hook $FUNCNAME
 
-    if $want_ipmi ; then
+    if [[ $want_ipmi = 1 ]] ; then
         reboot_nodes_via_ipmi
     fi
 

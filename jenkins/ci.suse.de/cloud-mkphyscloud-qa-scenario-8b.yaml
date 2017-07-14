@@ -127,7 +127,7 @@
 
       - string:
           name: want_ipmi
-          default: "true"
+          default: "1"
 
       - string:
           name: want_test_updates

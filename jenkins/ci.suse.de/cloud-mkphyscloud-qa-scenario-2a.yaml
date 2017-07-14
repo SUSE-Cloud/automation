@@ -151,7 +151,7 @@
 
       - string:
           name: want_ipmi
-          default: "true"
+          default: "1"
           description: Boolean. If 'true' nodes will be rebooted via IPMI
 
       - string:
