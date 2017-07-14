@@ -745,7 +745,7 @@ function testpostupgrade
 function testname
 {
     local -a var_names=(ha cluster upgrade ceph cinder drbd net
-        netmode sles12 dvr docker rootfs)
+        netmode sles12 dvr rootfs)
     local -a var_values=("$hacloud" "$clusterconfig"
         "$upgrade_cloudsource" "$cephvolumenumber" "$cinder_backend"
         "$drbd_hdd_size" "$networkingplugin" "$networkingmode"
