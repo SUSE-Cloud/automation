@@ -2605,6 +2605,9 @@ function hacloud_configure_cluster_defaults
             "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
         proposal_set_value pacemaker "$clustername" \
             "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$admingw'"
+    elif [[ $want_ipmi = 1 ]] ; then
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['mode']" "'ipmi_barclamp'"
     else
         proposal_set_value pacemaker "$clustername" \
             "['attributes']['pacemaker']['stonith']['mode']" "'manual'"
