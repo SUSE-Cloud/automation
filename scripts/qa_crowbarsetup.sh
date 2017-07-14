@@ -3081,7 +3081,7 @@ function custom_configuration
         cinder)
             proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['${cinder_backend}']" "j['attributes']['cinder']['volume_defaults']['${cinder_backend}']"
             proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['backend_driver']" "'${cinder_backend}'"
-            if [[ $deployceph && $want_cinder_rbd_flatten_snaps ]] && iscloudver 7plus ; then
+            if [[ $deployceph && $want_cinder_rbd_flatten_snaps = 1 ]] && iscloudver 7plus ; then
                 proposal_set_value cinder default "['attributes']['cinder']['volumes'][0]['${cinder_backend}']['flatten_volume_from_snapshot']" "true"
             fi
             case "$cinder_backend" in
