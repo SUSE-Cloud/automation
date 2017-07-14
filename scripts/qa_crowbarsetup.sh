@@ -435,7 +435,7 @@ function add_ha12sp1_repo
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
         add_mount "$repo" \
-            "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$arch/$repo" \
             "$tftpboot_repos12sp1_dir/$repo"
     done
 }
@@ -472,7 +472,7 @@ function add_suse_storage_repo
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
                 add_mount "$repo" \
-                    "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
+                    "$nfsserver_ip:$nfsserver_base_path/repos/$arch/$repo" \
                     "$tftpboot_repos12sp1_dir/$repo"
             done
         fi
