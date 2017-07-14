@@ -38,7 +38,11 @@ fi
 : ${want_tempest:=1}
 : ${want_s390:=''}
 : ${want_horizon_integration_test:=''}
-: ${want_cinder_rbd_flatten_snaps:=1}
+if iscloudver 8plus; then
+    : ${want_cinder_rbd_flatten_snaps:=1}
+else
+    : ${want_cinder_rbd_flatten_snaps:=0}
+fi
 
 if [[ $arch = "s390x" ]] ; then
     want_s390=1
