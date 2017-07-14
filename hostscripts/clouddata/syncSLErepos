@@ -88,10 +88,9 @@ done
 # Storage
 ##############
 
-for version in 1.0 2.1 4; do
+for version in 2.1 4 5; do
 
     for arch in x86_64 aarch64; do
-        [ "$arch" != x86_64 -a $version = 1.0 ] && continue
         [ "$arch" != x86_64 -a $version = 2.1 ] && continue
 
         echo ================== Updating Storage $version
@@ -134,7 +133,7 @@ function mount_and_rsync {
 # mirror aarch64 SP1 builds
 $rsync /mnt/dist/ibs/Devel:/ARM:/SLE-12-SP1:/Update/images/repo/SLE-12-SP1-Server-POOL-aarch64-*-Media1/ /srv/nfs/repos/aarch64/SLES12-SP1-Pool
 
-for version in 6 7; do
+for version in 6 7 8; do
     # fetch latest code from version in development (not just latest beta)
     sync_from_ibs=
     [ "$version" == "8" ] && sync_from_ibs=1
