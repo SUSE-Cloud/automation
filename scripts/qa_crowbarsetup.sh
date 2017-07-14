@@ -316,18 +316,18 @@ function addsles12sp1testupdates
 {
     if isrepoworking SLES12-SP1-Updates-test ; then
         add_mount "SLES12-SP1-Updates-test" \
-            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP1:/$arch/update/" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SLES12-SP1-Updates-test/" \
             "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     fi
     if isrepoworking SLE12-SP1-HA-Updates-test ; then
         [[ $hacloud = 1 ]] && add_mount "SLE12-SP1-HA-Updates-test" \
-            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP1:/$arch/update/" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SLE12-SP1-HA-Updates-test/" \
             "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
     fi
     if isrepoworking SUSE-Enterprise-Storage-2.1-Updates-test ; then
         if [ -n "$deployceph" ] && iscloudver 6; then
             add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-                      $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/2.1:/$arch/update/" \
+                      "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SUSE-Enterprise-Storage-2.1-Updates-test/" \
                       "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
         fi
     fi
@@ -337,18 +337,18 @@ function addsles12sp2testupdates
 {
     if isrepoworking SLES12-SP2-Updates-test ; then
         add_mount "SLES12-SP2-Updates-test" \
-            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12-SP2:/$arch/update/" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SLES12-SP2-Updates-test/" \
             "$tftpboot_repos12sp2_dir/SLES12-SP2-Updates-test/" "sles12sp2tup"
     fi
     if isrepoworking SLE12-SP2-HA-Updates-test ; then
         [[ $hacloud = 1 ]] && add_mount "SLE12-SP2-HA-Updates-test" \
-            $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HA:/12-SP2:/$arch/update/" \
+            "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SLE12-SP2-HA-Updates-test/" \
             "$tftpboot_repos12sp2_dir/SLE12-SP2-HA-Updates-test/"
     fi
     if isrepoworking SUSE-Enterprise-Storage-4-Updates-test ; then
         if [ -n "$deployceph" ] && iscloudver 7plus; then
             add_mount "SUSE-Enterprise-Storage-4-Updates-test" \
-                      $distsuseip":/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/4:/$arch/update/" \
+                      "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SUSE-Enterprise-Storage-4-Updates-test/" \
                       "$tftpboot_repos12sp2_dir/SUSE-Enterprise-Storage-4-Updates-test/"
         fi
     fi
@@ -394,7 +394,8 @@ function addcloud6maintupdates
 function addcloud6testupdates
 {
     add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/6:/x86_64/update/' \
+
+        "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SUSE-OpenStack-Cloud-6-Updates-test/" \
         "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
 }
 
@@ -433,7 +434,7 @@ function addcloud7maintupdates
 function addcloud7testupdates
 {
     add_mount "SUSE-OpenStack-Cloud-7-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/OpenStack-Cloud:/7:/x86_64/update/' \
+        "$nfsserver_ip:$nfsserver_base_path/repos/$arch/SUSE-OpenStack-Cloud-7-Updates-test/" \
         "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates-test/" "cloudtup"
 }
 
