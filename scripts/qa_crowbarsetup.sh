@@ -1052,14 +1052,14 @@ function onadmin_prepare_cloud_repos
             addcloud6pool
             addcloud6maintupdates
             ;;
-        develcloud7|GM7)
+        GM7)
             addcloud7pool
             ;;
         GM7+up)
             addcloud7pool
             addcloud7maintupdates
             ;;
-        develcloud8)
+        GM8)
             addcloud8pool
             ;;
     esac
