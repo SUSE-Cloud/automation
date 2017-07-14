@@ -265,17 +265,7 @@ function isrepoworking
 
 function export_tftpboot_repos_dir
 {
-    tftpboot_repos_dir=/srv/tftpboot/repos
-    tftpboot_suse_dir=/srv/tftpboot/suse-11.3
-
-    if iscloudver 5; then
-        tftpboot_repos_dir=$tftpboot_suse_dir/repos
-        tftpboot_suse12_dir=/srv/tftpboot/suse-12.0
-        tftpboot_repos12_dir=$tftpboot_suse12_dir/repos
-    elif iscloudver 8plus ; then
-        ### dmllr: SP2-DROP: REMOVE ME
-        tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
-        tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/$arch/repos
+    if iscloudver 8plus ; then
         tftpboot_suse12sp3_dir=/srv/tftpboot/suse-12.3
         tftpboot_repos12sp3_dir=$tftpboot_suse12sp3_dir/$arch/repos
     elif iscloudver 7 ; then
@@ -284,31 +274,6 @@ function export_tftpboot_repos_dir
     elif iscloudver 6; then
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
         tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$arch/repos
-    fi
-}
-
-function addsp3testupdates
-{
-    add_mount "SLES11-SP3-Updates" \
-        "$nfsserver_ip:$nfsserver_base_path/repos/SLES11-SP3-Updates/" \
-        "$tftpboot_repos_dir/SLES11-SP3-Updates/" "sp3up"
-    add_mount "SLES11-SP3-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/' \
-        "$tftpboot_repos_dir/SLES11-SP3-Updates-test/" "sp3tup"
-    [[ $hacloud = 1 ]] && add_mount "SLE11-HAE-SP3-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/' \
-        "$tftpboot_repos_dir/SLE11-HAE-SP3-Updates-test/"
-}
-
-function addsles12testupdates
-{
-    add_mount "SLES12-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/' \
-        "$tftpboot_repos12_dir/SLES12-Updates-test/"
-    if [ -n "$deployceph" ]; then
-        add_mount "SUSE-Enterprise-Storage-1.0-Updates-test" \
-            $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/' \
-            "$tftpboot_repos12_dir/SUSE-Enterprise-Storage-1.0-Updates-test/"
     fi
 }
 
@@ -352,35 +317,6 @@ function addsles12sp2testupdates
                       "$tftpboot_repos12sp2_dir/SUSE-Enterprise-Storage-4-Updates-test/"
         fi
     fi
-}
-
-function addcloud5maintupdates
-{
-    add_mount "SUSE-Cloud-5-Updates" \
-        "$nfsserver_ip:$nfsserver_base_path/repos/SUSE-Cloud-5-Updates/" \
-        "$tftpboot_repos_dir/SUSE-Cloud-5-Updates/" \
-        "cloudmaintup"
-    add_mount "SUSE-Cloud-5-SLE-12-Updates" \
-        "$nfsserver_ip:$nfsserver_base_path/repos/SUSE-Cloud-5-SLE-12-Updates/" \
-        "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates/"
-}
-
-function addcloud5testupdates
-{
-    add_mount "SUSE-Cloud-5-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/' \
-        "$tftpboot_repos_dir/SUSE-Cloud-5-Updates-test/" "cloudtup"
-    add_mount "SUSE-Cloud-5-SLE-12-Updates-test" \
-        $distsuseip':/dist/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update' \
-        "$tftpboot_repos12_dir/SLE-12-Cloud-Compute5-Updates-test/"
-}
-
-function addcloud5pool
-{
-    add_mount "SUSE-Cloud-5-Pool" \
-        "$nfsserver_ip:$nfsserver_base_path/repos/SUSE-Cloud-5-Pool/" \
-        "$tftpboot_repos_dir/SUSE-Cloud-5-Pool/" \
-        "cloudpool"
 }
 
 function addcloud6maintupdates
@@ -440,11 +376,7 @@ function addcloud7testupdates
 
 function addcctdepsrepo
 {
-    if [[ $cloudsource = @(develcloud5|GM5|GM5+up) ]]; then
-        $zypper ar -f http://$susedownload/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_11_SP3/Devel:Cloud:Shared:Rubygem.repo
-    else
-        add_sdk_repo
-    fi
+    add_sdk_repo
 }
 
 function add_sdk_repo
@@ -496,18 +428,6 @@ function add_sap_repo
     $zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/SAP${stage}/SLE_12_SP1/ dc6sap
 }
 
-function add_ha_repo
-{
-    local repo
-    for repo in SLE11-HAE-SP3-{Pool,Updates}; do
-        # Note no zypper alias parameter here since we don't want to
-        # zypper addrepo on the admin node.
-        add_mount "$repo/sle-11-x86_64" \
-            "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
-            "$tftpboot_repos_dir/$repo"
-    done
-}
-
 function add_ha12sp1_repo
 {
     local repo
@@ -547,15 +467,6 @@ function add_ha12sp3_repo
 function add_suse_storage_repo
 {
         local repo
-        if iscloudver 5; then
-            for repo in SUSE-Enterprise-Storage-1.0-{Pool,Updates}; do
-                # Note no zypper alias parameter here since we don't want
-                # to zypper addrepo on the admin node.
-                add_mount "$repo" \
-                    "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
-                    "$tftpboot_repos12_dir/$repo"
-            done
-        fi
         if iscloudver 6; then
             for repo in SUSE-Enterprise-Storage-2.1-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
@@ -764,49 +675,6 @@ function cluster_node_assignment
     echo "............................................................"
 }
 
-function onadmin_prepare_sles11sp3_repos
-{
-    local targetdir_install="$tftpboot_suse_dir/install"
-
-    if [ -n "${localreposdir_target}" ]; then
-        add_mount "SUSE-Cloud-SLE-11-SP3-deps/sle-11-x86_64/" "" \
-            "${targetdir_install}" "Cloud-Deps"
-        zypper_refresh
-    else
-        $zypper se -s sles-release | \
-            grep -v -e "sp.up\s*$" -e "(System Packages)" | \
-            grep -q x86_64 \
-        || $zypper ar \
-            http://$susedownload/install/SLP/SLES-${slesversion}-LATEST/x86_64/DVD1/ \
-            sles
-
-        if ! $longdistance ; then
-            add_mount "" \
-                "$nfsserver_ip:$nfsserver_base_path/suse-$suseversion/install" \
-                "$targetdir_install"
-        fi
-
-        local repo
-        for repo in SLES11-SP3-Pool SLES11-SP3-Updates ; do
-            local zypprepo=""
-            [ "$WITHSLEUPDATES" != "" ] && zypprepo="$repo"
-            add_mount "$zypprepo" \
-                "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
-                "$tftpboot_repos_dir/$repo"
-        done
-
-        # fallback: download the image and mount it if NFS mount didn't work
-        if [ ! -e "$targetdir_install/media.1/" ]; then
-            local iso_file=SLES-$slesversion-DVD-x86_64-$slesmilestone-DVD1.iso
-            rsync_iso "install/SLES-$slesversion-$slesmilestone/$iso_file" $iso_file $targetdir_install
-        fi
-    fi
-
-    if [ ! -e "${targetdir_install}/media.1/" ] ; then
-        complain 34 "We do not have SLES install media - giving up"
-    fi
-}
-
 function rsync_iso
 {
     local distpath="$1"
@@ -846,10 +714,6 @@ function onadmin_prepare_sles12sp3_repos
 
 function onadmin_prepare_sles12plus_cloud_repos
 {
-    if iscloudver 5; then
-        rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$tftpboot_repos12_dir/SLE12-Cloud-Compute"
-    fi
-
     #  create empty repository when there is none yet
     ensure_packages_installed createrepo
 
@@ -887,18 +751,6 @@ function onadmin_prepare_sles12plus_cloud_repos
             safely createrepo "$targetdir/$repo"
         fi
     done
-}
-
-function onadmin_prepare_sles12_installmedia
-{
-    local sles12_mount="$tftpboot_suse12_dir/install"
-    add_mount "SLE-12-Server-LATEST/sle-12-x86_64" \
-        "$nfsserver_ip:$nfsserver_base_path/suse-12.0/install" \
-        "$sles12_mount"
-
-    if [ ! -d "$sles12_mount/media.1" ] ; then
-        complain 34 "We do not have SLES12 install media - giving up"
-    fi
 }
 
 function onadmin_prepare_sles12sp1_installmedia
@@ -943,16 +795,6 @@ function onadmin_prepare_sles12sp3_installmedia
         if [ ! -d "$sles12sp3_mount/media.1" ] ; then
             complain 34 "We do not have SLES12 SP3 install media - giving up"
         fi
-    done
-}
-
-
-function onadmin_prepare_sles12_other_repos
-{
-    for repo in SLES12-{Pool,Updates}; do
-        add_mount "$repo/sle-12-x86_64" \
-            "$nfsserver_ip:$nfsserver_base_path/repos/$repo" \
-            "$tftpboot_repos12_dir/$repo"
     done
 }
 
@@ -1007,31 +849,18 @@ function onadmin_prepare_cloud_repos
         targetdir="$tftpboot_repos12sp2_dir/Cloud"
     elif iscloudver 6plus; then
         targetdir="$tftpboot_repos12sp1_dir/Cloud"
-    else
-        targetdir="$tftpboot_repos_dir/Cloud/"
     fi
     mkdir -p ${targetdir}
 
     if [ -n "${localreposdir_target}" ]; then
-        if iscloudver 6plus; then
-            add_bind_mount \
-                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-12-$arch/" \
-                "${targetdir}"
-        else
-            add_bind_mount \
-                "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-11-$arch/" \
-                "${targetdir}"
-        fi
+        add_bind_mount \
+            "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-12-$arch/" \
+            "${targetdir}"
     else
-        if iscloudver 6plus; then
-            rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$targetdir"
-            if [[ $want_s390 ]] ; then
-                rsync_iso "$CLOUDSLE12DISTPATH" "${CLOUDSLE12DISTISO/$arch/s390x}" "${targetdir/$arch/s390x}"
-            fi
-        else
-            rsync_iso "$CLOUDSLE11DISTPATH" "$CLOUDSLE11DISTISO" "$targetdir"
+        rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$targetdir"
+        if [[ $want_s390 ]] ; then
+            rsync_iso "$CLOUDSLE12DISTPATH" "${CLOUDSLE12DISTISO/$arch/s390x}" "${targetdir/$arch/s390x}"
         fi
-
     fi
 
     if [ ! -e "${targetdir}/media.1" ] ; then
@@ -1039,13 +868,6 @@ function onadmin_prepare_cloud_repos
     fi
 
     case "$cloudsource" in
-        GM5)
-            addcloud5pool
-            ;;
-        GM5+up)
-            addcloud5pool
-            addcloud5maintupdates
-            ;;
         GM6)
             addcloud6pool
             ;;
@@ -1067,15 +889,6 @@ function onadmin_prepare_cloud_repos
 
     if [[ "$want_test_updates" = 1 ]] ; then
         case "$cloudsource" in
-            GM5)
-                addsp3testupdates
-                addsles12testupdates
-                ;;
-            GM5+up)
-                addsp3testupdates
-                addsles12testupdates
-                addcloud5testupdates
-                ;;
             GM6)
                 addsles12sp1testupdates
                 ;;
@@ -1097,10 +910,6 @@ function onadmin_prepare_cloud_repos
                 addsles12sp3testupdates
                 addcloud8testupdates
                 ;;
-            develcloud5)
-                addsp3testupdates
-                addsles12testupdates
-                ;;
             develcloud6)
                 addsles12sp1testupdates
                 ;;
@@ -1121,14 +930,12 @@ function onadmin_prepare_cloud_repos
 function onadmin_add_cloud_repo
 {
     local targetdir=
-    if iscloudver 8plus; then
+    if iscloudver 8; then
         targetdir="$tftpboot_repos12sp3_dir/Cloud/"
-    elif iscloudver 7plus; then
+    elif iscloudver 7; then
         targetdir="$tftpboot_repos12sp2_dir/Cloud/"
-    elif iscloudver 6plus; then
+    elif iscloudver 6; then
         targetdir="$tftpboot_repos12sp1_dir/Cloud/"
-    else
-        targetdir="$tftpboot_repos_dir/Cloud/"
     fi
 
     $zypper rr Cloud
@@ -1288,18 +1095,10 @@ function onadmin_set_source_variables
     elif iscloudver 6plus; then
         suseversion=12.1
     else
-        suseversion=11.3
+        suseversion=12.3
     fi
 
     case "$cloudsource" in
-        develcloud5)
-            CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/5/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDSLE11DISTPATH=/ibs/Devel:/Cloud:/5:/Staging/images/iso
-            CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
-            CLOUDSLE11DISTISO="SUSE-CLOUD*Media1.iso"
-            CLOUDSLE12DISTISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-5-devel"
-        ;;
         develcloud6)
             CLOUDSLE12DISTPATH=${want_cloud6_iso_path:='/ibs/Devel:/Cloud:/6/images/iso'}
             [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
@@ -1341,13 +1140,6 @@ function onadmin_set_source_variables
             CLOUDSLE12TESTISO="CLOUD-8-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
-        GM5|GM5+up)
-            CLOUDSLE11DISTPATH=/install/SUSE-Cloud-5-GM/
-            CLOUDSLE12DISTPATH=$CLOUDSLE11DISTPATH
-            CLOUDSLE11DISTISO="SUSE-CLOUD*1.iso"
-            CLOUDSLE12DISTISO="SUSE-SLE12-CLOUD-5-COMPUTE-x86_64*1.iso"
-            CLOUDLOCALREPOS="SUSE-Cloud-5-official"
-        ;;
         GM6|GM6+up)
             cs=$cloudsource
             [[ $cs =~ GM6 ]] && cs=GM
@@ -1364,18 +1156,13 @@ function onadmin_set_source_variables
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud5|develcloud6|develcloud7|develcloud8|GM5|Mx|GM6|GM7"
+            complain 76 "You must set environment variable cloudsource=develcloud6|develcloud7|develcloud8|Mx|GM6|GM7"
         ;;
     esac
 
     [ -n "$TESTHEAD" ] && CLOUDLOCALREPOS="$CLOUDLOCALREPOS-staging"
 
     case "$suseversion" in
-        11.3)
-            slesversion=11-SP3
-            slesdist=SLE_11_SP3
-            slesmilestone=GM
-        ;;
         12.1)
             slesversion=12-SP1
             slesdist=SLE_12_SP1
@@ -1489,35 +1276,19 @@ EOF
 
     if iscloudver 8plus; then
         onadmin_prepare_sles12sp3_repos
-        onadmin_prepare_sles12plus_cloud_repos
-        ### dmllr: SP2-DROP: REMOVE ME
-        onadmin_prepare_sles12sp2_repos
     elif iscloudver 7plus; then
         onadmin_prepare_sles12sp2_repos
-        onadmin_prepare_sles12plus_cloud_repos
     elif iscloudver 6plus ; then
         onadmin_prepare_sles12sp1_repos
-        onadmin_prepare_sles12plus_cloud_repos
-    else
-        onadmin_prepare_sles11sp3_repos
-
-        if iscloudver 5plus ; then
-            onadmin_prepare_sles12_installmedia
-            onadmin_prepare_sles12_other_repos
-            onadmin_prepare_sles12plus_cloud_repos
-        fi
     fi
+    onadmin_prepare_sles12plus_cloud_repos
 
     if [[ $hacloud = 1 ]]; then
-        if iscloudver 5 ; then
-            add_ha_repo
-        elif iscloudver 6; then
+        if iscloudver 6; then
             add_ha12sp1_repo
         elif iscloudver 7; then
             add_ha12sp2_repo
-        elif iscloudver 8plus; then
-            ### dmllr: SP2-DROP: REMOVE ME
-            add_ha12sp2_repo
+        elif iscloudver 8; then
             add_ha12sp3_repo
         else
             complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
@@ -1526,7 +1297,7 @@ EOF
 
     [[ $want_cd = 1 ]] && add_sap_repo
 
-    if [ -n "$deployceph" ] && iscloudver 5plus; then
+    if [ -n "$deployceph" ]; then
         add_suse_storage_repo
     fi
 
@@ -1876,12 +1647,10 @@ EOF
 
 function onadmin_installcrowbarfromgit
 {
-    if iscloudver 5plus ; then
-        # on SLE11 we dont have update-alternatives for ruby
-        # but we need a "ruby" in PATH for various crowbar scripts
-        ln -s /usr/bin/ruby.ruby2.1 /usr/bin/ruby
-        ln -s /usr/bin/gem.ruby2.1 /usr/bin/gem
-    fi
+    # on SLE11 we dont have update-alternatives for ruby
+    # but we need a "ruby" in PATH for various crowbar scripts
+    ln -s /usr/bin/ruby.ruby2.1 /usr/bin/ruby
+    ln -s /usr/bin/gem.ruby2.1 /usr/bin/gem
     export CROWBAR_FROM_GIT=1
     do_installcrowbar "--from-git"
 }
@@ -2042,7 +1811,6 @@ function onadmin_allocate
             $(get_all_discovered_nodes | head -n 2)
         )
 
-    controller_os="suse-11.3"
     if iscloudver 6; then
         controller_os="suse-12.1"
     fi
@@ -2095,14 +1863,6 @@ function onadmin_allocate
         fi
         local nodes_count=${#nodes[@]}
 
-        if [ -n "$want_sles12" ] && iscloudver 5 ; then
-            if [ -n "$deployceph" ] ; then
-                echo "Setting second last node to SLE12 Storage..."
-                set_node_role_and_platform ${nodes[$(($nodes_count-2))]} "storage" "suse-12.0"
-            fi
-            echo "Setting last node to SLE12 compute..."
-            set_node_role_and_platform ${nodes[$(($nodes_count-1))]} "compute" "suse-12.0"
-        fi
         if [ -n "$deployceph" ] && iscloudver 6 ; then
             storage_os="suse-12.1"
             for n in $(seq 0 1); do
@@ -2290,8 +2050,8 @@ function onadmin_setup_nfs_server
 
     case $(getcloudver) in
         6)
-            sle_pool="$uri_base/SLES12-SP1-Pool/ sles12sp1"
-            sle_updates="$uri_base/SLES12-SP1-Updates/ sles12sp1up"
+            sle_pool="$uri_base/$arch/SLES12-SP1-Pool/ sles12sp1"
+            sle_updates="$uri_base/$arch/SLES12-SP1-Updates/ sles12sp1up"
         ;;
         7)
             sle_pool="$uri_base/$arch/SLES12-SP2-Pool/ sles12sp2"
@@ -2336,12 +2096,6 @@ function onadmin_crowbar_register
         image="suse-12.2/$arch/"
     elif iscloudver 8plus; then
         image="suse-12.3/$arch/"
-    else
-        if [ -n "$want_sles12" ] ; then
-            image="suse-12.0"
-        else
-            image="suse-11.3"
-        fi
     fi
 
     local adminfqdn=`get_crowbar_node`
@@ -2527,9 +2281,6 @@ function enable_ssl_generic
             $p "$a['api']['protocol']" "'https'"
         ;;
         ceph)
-            if ! iscloudver 5plus ; then
-                return
-            fi
             $p "$a['radosgw']['ssl']['enabled']" true
             $p "$a['radosgw']['ssl']['generate_certs']" true
             $p "$a['radosgw']['ssl']['insecure']" true
@@ -2752,9 +2503,7 @@ function custom_configuration
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
                 proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamedata']"
             fi
-            if iscloudver 5plus; then
-                proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
-            fi
+            proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
         ;;
         dns)
             [ "$want_multidnstest" = 1 ] || return 0
@@ -2990,45 +2739,36 @@ function custom_configuration
             fi
             proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
 
-            if iscloudver 5plus; then
-                if [ $networkingplugin = openvswitch ] ; then
-                    if [[ $networkingmode = vxlan ]] || iscloudver 6plus; then
-                        proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vxlan','vlan']"
-                        if [[ $want_dvr = 1 ]]; then
-                            proposal_set_value neutron default "['attributes']['neutron']['use_dvr']" "true"
-                            # Enable L2 population, because for mkcloud we enable all ml2_type_drivers
-                            #     'ml2_type_drivers' = ['gre','vxlan','vlan']
-                            # DVR with GRE or VXLAN requires L2 population
-                            proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "true"
-                        fi
-                    else
-                        proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vlan']"
-                    fi
-                elif [ "$networkingplugin" = "linuxbridge" ] ; then
-                    if iscloudver 7plus; then
-                        proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vxlan','vlan']"
-                    else
-                        proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
-                    fi
-                    if iscloudver 5plus && ! iscloudver 6plus ; then
-                        proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "false"
+            if [ $networkingplugin = openvswitch ] ; then
+                if [[ $networkingmode = vxlan ]] || iscloudver 6plus; then
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vxlan','vlan']"
+                    if [[ $want_dvr = 1 ]]; then
+                        proposal_set_value neutron default "['attributes']['neutron']['use_dvr']" "true"
+                        # Enable L2 population, because for mkcloud we enable all ml2_type_drivers
+                        #     'ml2_type_drivers' = ['gre','vxlan','vlan']
+                        # DVR with GRE or VXLAN requires L2 population
+                        proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "true"
                     fi
                 else
-                    complain 106 "networkingplugin '$networkingplugin' not yet covered in mkcloud"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vlan']"
                 fi
-                proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'ml2'"
-                proposal_set_value neutron default "['attributes']['neutron']['ml2_mechanism_drivers']" "['$networkingplugin']"
-                if [ -n "$networkingmode" ] ; then
-                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_provider_network']" "'$networkingmode'"
-                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_tenant_network']" "'$networkingmode'"
+            elif [ "$networkingplugin" = "linuxbridge" ] ; then
+                if iscloudver 7plus; then
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vxlan','vlan']"
+                else
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
+                fi
+                if iscloudver 5plus && ! iscloudver 6plus ; then
+                    proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "false"
                 fi
             else
-                if [ -n "$networkingmode" ] ; then
-                    proposal_set_value neutron default "['attributes']['neutron']['networking_mode']" "'$networkingmode'"
-                fi
-                if [ -n "$networkingplugin" ] ; then
-                    proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'$networkingplugin'"
-                fi
+                complain 106 "networkingplugin '$networkingplugin' not yet covered in mkcloud"
+            fi
+            proposal_set_value neutron default "['attributes']['neutron']['networking_plugin']" "'ml2'"
+            proposal_set_value neutron default "['attributes']['neutron']['ml2_mechanism_drivers']" "['$networkingplugin']"
+            if [ -n "$networkingmode" ] ; then
+                proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_provider_network']" "'$networkingmode'"
+                proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers_default_tenant_network']" "'$networkingmode'"
             fi
 
             # assign neutron-network role to one of SLE12 nodes
@@ -3163,35 +2903,6 @@ function custom_configuration
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
             fi
 
-            if ! iscloudver 6plus ; then
-                proposal_set_value provisioner default "['attributes']['provisioner']['suse']" "{}"
-                proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']" "{}"
-                proposal_set_value provisioner default "['attributes']['provisioner']['suse']['autoyast']['repos']" "{}"
-
-                local autoyast="['attributes']['provisioner']['suse']['autoyast']"
-                local repos="$autoyast['repos']"
-
-                repos="$autoyast['repos']['suse-11.3']"
-                proposal_set_value provisioner default "$repos" "{}"
-
-                provisioner_add_repo $repos "$tftpboot_repos_dir" "SLES11-SP3-Updates-test" \
-                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/11-SP3:/x86_64/update/"
-                provisioner_add_repo $repos "$tftpboot_repos_dir" "SLE11-HAE-SP3-Updates-test" \
-                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/SLE-HAE:/11-SP3:/x86_64/update/"
-                provisioner_add_repo $repos "$tftpboot_repos_dir" "SUSE-Cloud-5-Updates-test" \
-                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/SUSE-CLOUD:/5:/x86_64/update/"
-
-                repos="$autoyast['repos']['suse-12.0']"
-                proposal_set_value provisioner default "$repos" "{}"
-
-                provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLES12-Updates-test" \
-                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/SLE-SERVER:/12:/x86_64/update/"
-                provisioner_add_repo $repos "$tftpboot_repos12_dir" "SLE-12-Cloud-Compute5-Updates-test" \
-                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/12-Cloud-Compute:/5:/x86_64/update/"
-                provisioner_add_repo $repos "$tftpboot_repos12_dir" "SUSE-Enterprise-Storage-1.0-Updates-test" \
-                    "http://$susedownload/ibs/SUSE:/Maintenance:/Test:/Storage:/1.0:/x86_64/update/"
-            fi
-
         ;;
         *) echo "No hooks defined for service: $proposal"
         ;;
@@ -3265,15 +2976,6 @@ function set_proposalvars
         deployswift=
         deployceph=
     fi
-    # C3: Cloud5 only has ceph for SLES12
-    if iscloudver 5 && [ -z "$want_sles12" ] ; then
-        deployceph=
-    fi
-    # C4: swift isn't possible with Cloud5 and SLES12 nodes
-    if iscloudver 5 && [[ $deployswift ]] && [[ $want_sles12 ]] ; then
-        complain 88 "swift does not work with SLES12 nodes in Cloud5 - use want_swift=0"
-    fi
-
     # C5: Do not deploy ceph with 4 or less nodes setup
     # (ceph would take 3 SP2 nodes and we want more then one SP3 node for OpenStack)
     if iscloudver 8 && [[ $nodenumber -lt 5 ]] ; then
@@ -3379,9 +3081,7 @@ function prepare_proposals
     pre_hook $FUNCNAME
     waitnodes nodes
 
-    if iscloudver 5plus; then
-        update_one_proposal dns default
-    fi
+    update_one_proposal dns default
 
     local ptfchannel="SLE-Cloud-PTF"
     iscloudver 6plus && ptfchannel="PTF"
@@ -3450,10 +3150,6 @@ function deploy_single_proposal
             fi
             ;;
         manila)
-            # manila barclamp is only in SC6+ and develcloud5 with SLE12CC5
-            if iscloudver 5minus && ! [[ $cloudsource = develcloud5 && $want_sles12 ]]; then
-                return
-            fi
             # PM does not want to support manila on non-x86
             if [[ $arch != "x86_64" ]]; then
                 return
@@ -3480,9 +3176,6 @@ function deploy_single_proposal
         heat)
             get_novacontroller
             safely oncontroller heat_image_setup
-            ;;
-        trove)
-            iscloudver 5plus || return
             ;;
         tempest)
             [[ $want_tempest = 1 ]] || return
@@ -3583,7 +3276,7 @@ function set_node_alias_and_role
     local node_alias=$2
     local intended_role=$3
     set_node_alias $node_name $node_alias
-    iscloudver 5plus && crowbar machines role $node_name $intended_role || :
+    crowbar machines role $node_name $intended_role || :
 }
 
 function get_first_node_from_cluster
@@ -3816,10 +3509,8 @@ function oncontroller_tempest_cleanup
 {
     if iscloudver 6plus; then
         tempest cleanup --delete-tempest-conf-objects
-    elif iscloudver 5plus; then
-        /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
     else
-        /var/lib/openstack-tempest-test/bin/tempest_cleanup.sh || :
+        /usr/bin/tempest-cleanup --delete-tempest-conf-objects || :
     fi
 }
 
@@ -4145,7 +3836,7 @@ function oncontroller_testsetup
     oncontroller_prepare_functional_tests
     oncontroller_check_crm_failcounts disallowskipfailcount
     # 28 is the overhead of an ICMP(ping) packet
-    [[ $want_mtu_size ]] && iscloudver 5plus && safely ping -M do -c 1 -s $(( want_mtu_size - 28 )) $adminip
+    [[ $want_mtu_size ]] && safely ping -M do -c 1 -s $(( want_mtu_size - 28 )) $adminip
     export LC_ALL=C
 
     if iscloudver 6plus && \
@@ -4590,7 +4281,7 @@ function onadmin_testsetup
     pre_hook $FUNCNAME
 
     local numdnsservers=$(crowbar dns proposal show default | rubyjsonparse "puts j['deployment']['dns']['elements']['dns-server'].length")
-    if [ "$want_multidnstest" = 1 ] && [ "$numdnsservers" -gt 1 ] && iscloudver 5plus; then
+    if [ "$want_multidnstest" = 1 ] && [ "$numdnsservers" -gt 1 ]; then
         for machine in $(get_all_suse_nodes); do
             ssh $machine 'dig multi-dns.'"'$cloudfqdn'"' | grep -q 10.11.12.13' ||\
                 complain 13 "Multi DNS server test failed!"
@@ -4835,12 +4526,12 @@ function onadmin_addupdaterepo
     local repos=$UPDATEREPOS
     local extra_repos=${1}
     local UPR=
-    if iscloudver 7plus; then
+    if iscloudver 8; then
+        UPR=$tftpboot_repos12sp3_dir/PTF
+    elif iscloudver 7; then
         UPR=$tftpboot_repos12sp2_dir/PTF
-    elif iscloudver 6plus ; then
+    elif iscloudver 6; then
         UPR=$tftpboot_repos12sp1_dir/PTF
-    else
-        UPR=$tftpboot_repos_dir/Cloud-PTF
     fi
     mkdir -p $UPR
 
@@ -5152,7 +4843,7 @@ function onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
         add_ha12sp2_repo
     fi
 
-    if [ -n "$deployceph" ] && iscloudver 5plus; then
+    if [ -n "$deployceph" ]; then
         add_suse_storage_repo
     fi
 }
@@ -5218,11 +4909,6 @@ function onadmin_prepare_cloudupgrade
 
 function onadmin_cloudupgrade_1st
 {
-    if iscloudver 5; then
-        # Workaround registration checks
-        echo "SUSE-Cloud-5-Pool SUSE-Cloud-5-Updates" > /etc/zypp/repos.d/ignore-repos
-    fi
-
     do_set_repos_skip_checks
 
     # Disable all openstack proposals stop service on the client
@@ -5290,13 +4976,6 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients
 
     onadmin_reapply_openstack_proposals
 
-    # Install new features
-    if iscloudver 5; then
-        update_one_proposal dns default
-        ensure_packages_installed crowbar-barclamp-trove
-        do_one_proposal trove default
-    fi
-
     # TODO: restart any suspended instance?
 }
 
@@ -5327,14 +5006,8 @@ function onadmin_upgrade_prechecks
 
 function onadmin_prepare_crowbar_upgrade
 {
-    if iscloudver 5; then
-        # using the API, due to missing crowbar cli integration
-        # move nodes to upgrade mode
-        safely crowbar_api_request POST $crowbar_api /installer/upgrade/prepare.json
-    else
-        safely crowbarctl upgrade prepare
-        wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v prepare" "prepare step to finish"
-    fi
+    safely crowbarctl upgrade prepare
+    wait_for 300 5 "grep current_step $upgrade_progress_file | grep -v prepare" "prepare step to finish"
 }
 
 function onadmin_upgrade_admin_backup
@@ -5363,11 +5036,7 @@ function onadmin_check_admin_server_upgraded
 
 function onadmin_upgrade_admin_server
 {
-    if iscloudver 5minus; then
-        complain 11 "This upgrade path is only supported for Cloud 6+"
-    else
-        safely crowbarctl upgrade admin
-    fi
+    safely crowbarctl upgrade admin
 }
 
 function onadmin_crowbarbackup
@@ -5386,9 +5055,6 @@ function onadmin_crowbarbackup
         safely crowbarctl backup download $bid
         popd
         [[ -e /tmp/$btarball ]] || complain 12 "Backup tarball not created: /tmp/$btarball"
-    elif iscloudver 5 && [[ $backupmode = "with_upgrade" ]] ; then
-        # using the API, due to missing crowbarctl integration
-        safely curl -s $crowbar_api_digest $crowbar_api/installer/upgrade/file > /tmp/$btarball
     else
         AGREEUNSUPPORTED=1 CB_BACKUP_IGNOREWARNING=1 \
             safely bash -x /usr/sbin/crowbar-backup backup /tmp/$btarball
@@ -5462,7 +5128,6 @@ function crowbar_api_request
 function onadmin_is_crowbar_api_available
 {
     local api_path=$crowbar_api_installer_path/status.json
-    iscloudver 5minus && api_path=
     crowbar_api_request GET "$crowbar_api" "$api_path" "$crowbar_api_digest"
 }
 
@@ -5619,7 +5284,7 @@ function onadmin_run_cct
 {
     pre_hook $FUNCNAME
     local ret=0
-    if iscloudver 5plus && [[ $cct_tests ]]; then
+    if [[ $cct_tests ]]; then
         # - install cct dependencies
         addcctdepsrepo
         ensure_packages_installed git-core gcc make ruby2.1-devel
@@ -5636,9 +5301,7 @@ function onadmin_run_cct
             checkout_branch=$cct_checkout_branch
         else
             # checkout branches if needed, otherwise use master
-            if iscloudver 5; then
-                checkout_branch=cloud5
-            elif iscloudver 6; then
+            if iscloudver 6; then
                 checkout_branch=cloud6
             elif iscloudver 7; then
                 checkout_branch=cloud7
@@ -5810,31 +5473,27 @@ function onadmin_batch
 {
     pre_hook $FUNCNAME
 
-    if iscloudver 5plus; then
-        sed -i "s/##hypervisor_ip##/$admingw/g" ${scenario}
+    sed -i "s/##hypervisor_ip##/$admingw/g" ${scenario}
 
-        sed -i "s/##ironic_net_prefix##/$net_ironic/g" ${scenario}
-        sed -i "s/##ironic_netmask##/$ironicnetmask/g" ${scenario}
+    sed -i "s/##ironic_net_prefix##/$net_ironic/g" ${scenario}
+    sed -i "s/##ironic_netmask##/$ironicnetmask/g" ${scenario}
 
-        if iscloudver 6plus; then
-            safely crowbar batch --exclude manila --timeout 2400 build ${scenario}
-            if grep -q "barclamp: manila" ${scenario}; then
-                get_novacontroller
-                safely oncontroller manila_generic_driver_setup
-                get_manila_service_instance_details
-                sed -i "s/##manila_instance_name_or_id##/$manila_service_vm_uuid/g; \
-                        s/##service_net_name_or_ip##/$manila_tenant_vm_ip/g; \
-                        s/##tenant_net_name_or_ip##/$manila_tenant_vm_ip/g" \
-                        ${scenario}
-                safely crowbar batch --include manila --timeout 2400 build ${scenario}
-            fi
-        else
-            safely crowbar batch --timeout 2400 build ${scenario}
+    if iscloudver 6plus; then
+        safely crowbar batch --exclude manila --timeout 2400 build ${scenario}
+        if grep -q "barclamp: manila" ${scenario}; then
+            get_novacontroller
+            safely oncontroller manila_generic_driver_setup
+            get_manila_service_instance_details
+            sed -i "s/##manila_instance_name_or_id##/$manila_service_vm_uuid/g; \
+                    s/##service_net_name_or_ip##/$manila_tenant_vm_ip/g; \
+                    s/##tenant_net_name_or_ip##/$manila_tenant_vm_ip/g" \
+                    ${scenario}
+            safely crowbar batch --include manila --timeout 2400 build ${scenario}
         fi
-        return $?
     else
-        complain 116 "crowbar batch is only supported with cloudversions 5plus"
+        safely crowbar batch --timeout 2400 build ${scenario}
     fi
+    return $?
 }
 
 # deactivate proposals and forget cloud nodes
@@ -5872,8 +5531,7 @@ function onadmin_runlist
 
 #--
 
-ruby=/usr/bin/ruby
-iscloudver 5plus && ruby=/usr/bin/ruby.ruby2.1
+ruby=/usr/bin/ruby.ruby2.1
 export_tftpboot_repos_dir
 set_proposalvars
 set_noproxyvar
