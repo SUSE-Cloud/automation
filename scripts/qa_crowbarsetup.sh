@@ -2600,16 +2600,14 @@ function hacloud_configure_cluster_defaults
             "['attributes']['pacemaker']['stonith']['mode']" "'sbd'"
         proposal_set_value pacemaker "$clustername" \
             "['attributes']['pacemaker']['stonith']['sbd']['watchdog_module']" "'softdog'"
+    elif [[ $mkclouddriver = "libvirt" ]]; then
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$admingw'"
     else
-        if [[ $mkclouddriver = "libvirt" ]]; then
-            proposal_set_value pacemaker "$clustername" \
-                "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
-            proposal_set_value pacemaker "$clustername" \
-                "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$admingw'"
-        else
-            proposal_set_value pacemaker "$clustername" \
-                "['attributes']['pacemaker']['stonith']['mode']" "'manual'"
-        fi
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['mode']" "'manual'"
     fi
     proposal_modify_value pacemaker "$clustername" \
         "['description']" "'Clustername: $clustername, type: $clustertype ; '" "+="
