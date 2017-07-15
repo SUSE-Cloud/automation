@@ -1104,56 +1104,56 @@ function onadmin_set_source_variables
         develcloud6)
             CLOUDSLE12DISTPATH=${want_cloud6_iso_path:='/ibs/Devel:/Cloud:/6/images/iso'}
             [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
-            CLOUDSLE12DISTISO=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-$arch*Media1.iso"}
+            CLOUDSLE12DISTISO=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}-Media1.iso"}
             CLOUDSLE12TESTISO="CLOUD-6-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         develcloud7)
             CLOUDSLE12DISTPATH=${want_cloud7_iso_path:='/ibs/Devel:/Cloud:/7/images/iso'}
             [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7:/Staging/images/iso
-            CLOUDSLE12DISTISO=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"}
+            CLOUDSLE12DISTISO=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"}
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
         ;;
         mitakacloud7)
             # This is used by the CloudFoundry team. Do not remove!
             CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7:/Mitaka/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-$arch*Media1.iso"
-            CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*Media1.iso"
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-7-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
         develcloud8)
             CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/8/images/iso
             [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/8:/Staging/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-$arch*Media1.iso"
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-${arch}-Media1.iso"
             CLOUDSLE12TESTISO="CLOUD-8-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-devel"
         ;;
         ocatacloud8)
             # This is used by the CloudFoundry team. Do not remove!
             CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/8:/Ocata/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-$arch*Media1.iso"
-            CLOUDSLE12TESTISO="CLOUD-8-TESTING-$arch*Media1.iso"
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-${arch}-Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-8-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
         susecloud8)
             CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/Cloud8/images/iso/
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-$arch*Media1.iso"
-            CLOUDSLE12TESTISO="CLOUD-8-TESTING-$arch*Media1.iso"
+            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-${arch}*Media1.iso"
+            CLOUDSLE12TESTISO="CLOUD-8-TESTING-${arch}*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
         GM6|GM6+up)
             cs=$cloudsource
             [[ $cs =~ GM6 ]] && cs=GM
             CLOUDSLE12DISTPATH=${want_cloud6_iso_path:="/install/SLE-12-SP1-Cloud6-$cs/"}
-            CLOUDSLE12DISTISO=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-$arch*1.iso"}
+            CLOUDSLE12DISTISO=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
         GM7|GM7+up|GMC*|M?)
             cs=${cloudsource/#M/Milestone}
             [[ $cs =~ GM7 ]] && cs=GM
             CLOUDSLE12DISTPATH=${want_cloud7_iso_path:="/install/SLE-12-SP2-Cloud7-$cs/"}
-            CLOUDSLE12DISTISO=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-$arch*1.iso"}
+            CLOUDSLE12DISTISO=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}*1.iso"}
             CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*DVD1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
