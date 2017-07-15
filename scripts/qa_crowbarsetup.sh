@@ -5635,14 +5635,13 @@ function onadmin_run_cct
             checkout_branch=$cct_checkout_branch
         else
             # checkout branches if needed, otherwise use master
-            case "$cloudsource" in
-                develcloud5|GM5|GM5+up)
-                    checkout_branch=cloud5
-                    ;;
-                develcloud6|GM6|GM6+up)
-                    checkout_branch=cloud6
-                    ;;
-            esac
+            if iscloudver 5; then
+                checkout_branch=cloud5
+            elif iscloudver 6; then
+                checkout_branch=cloud6
+            elif iscloudver 7; then
+                checkout_branch=cloud7
+            fi
         fi
 
         if iscloudver 6plus && [ "$skip_func_tests" == 0 ]; then
