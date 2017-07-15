@@ -60,9 +60,8 @@
           name: scenario
           default:
           description: >-
-            Defines which scenario file should be used. Only works
-            with cloud5 or newer.  Currently only the 'batch' step uses
-            such a file.
+            Defines which scenario file should be used.
+            Currently only the 'batch' step uses such a file.
 
       - label:
           name: label

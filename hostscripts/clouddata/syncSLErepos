@@ -21,31 +21,17 @@ buildsuse=/mnt/dist/ibs/
 buildncc=$buildsuse
 ibsmaint=$buildsuse/SUSE\:/Maintenance\:/Test\:/
 
-# SLE11 SP3
-echo ================== Updating SLE 11 SP3
-$rsync $buildncc/SUSE/Updates/SLE-SERVER/11-SP3/x86_64/update/ /srv/nfs/repos/SLES11-SP3-Updates/
-$rsync $buildncc/SUSE/Updates/SLE-HAE/11-SP3/x86_64/update/ /srv/nfs/repos/SLE11-HAE-SP3-Updates/
-$rsync $ibsmaint/SLE-SERVER\:/11-SP3\:/x86_64/update/ /srv/nfs/repos/SLES11-SP3-Updates-test/
-$rsync $ibsmaint/SLE-HAE\:/11-SP3\:/x86_64/update/ /srv/nfs/repos/SLE11-HAE-SP3-Updates-test/
-/usr/local/bin/miniuprepo /srv/nfs/repos/SLES11-SP3-Updates/
-
-
 ##############
 # SLE 12
 ##############
 
-for servicepack in 0 1 2 3; do
+for servicepack in 1 2 3; do
     # fetch latest code from service pack in development (not just latest beta)
     sync_from_ibs=
     [ $servicepack -eq 3 ] && sync_from_ibs=1
 
-    if [ $servicepack -eq 0 ]; then
-        version=12
-        repo_version="12-GA"
-    else
-        version="12-SP$servicepack"
-        repo_version="$version"
-    fi
+    version="12-SP$servicepack"
+    repo_version="$version"
     chef_version="12.$servicepack"
 
     for arch in x86_64 s390x aarch64; do
@@ -74,7 +60,6 @@ for servicepack in 0 1 2 3; do
         fi
         # SLES updates
         $rsync $buildsuse/SUSE/Updates/SLE-SERVER/$version/$arch/update/ /srv/nfs/repos/$arch/SLES$repo_version-Updates/
-        [ "$arch" == x86_64 ] && /usr/local/bin/miniuprepo /srv/nfs/repos/$arch/SLES$repo_version-Updates/
         # SLES test updates
         if test -d $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ ; then
             $rsync $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLES$repo_version-Updates-test/
@@ -103,10 +88,9 @@ done
 # Storage
 ##############
 
-for version in 1.0 2.1 4; do
+for version in 2.1 4 5; do
 
     for arch in x86_64 aarch64; do
-        [ "$arch" != x86_64 -a $version = 1.0 ] && continue
         [ "$arch" != x86_64 -a $version = 2.1 ] && continue
 
         echo ================== Updating Storage $version
@@ -146,38 +130,10 @@ function mount_and_rsync {
     fi
 }
 
-for version in 5; do
-    echo ================== Updating Cloud $version
-
-    if test -d /mnt/dist/install/SLP/SUSE-Cloud-$version-GM/; then
-        $rsync /mnt/dist/install/SLP/SUSE-Cloud-$version-GM/x86_64/DVD1/ /srv/nfs/repos/SUSE-Cloud-$version-official
-    else
-        mount_and_rsync "/mnt/dist/ibs/SUSE:/SLE-11-SP3:/Update:/Cloud$version:/Test/images/iso/*Media1.iso" SUSE-Cloud-$version-official
-    fi
-    mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version/images/iso/SUSE-CLOUD-$version-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-$version-devel
-    mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-CLOUD-$version-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-$version-devel-staging
-
-    $rsync $buildncc/SUSE/Updates/SUSE-CLOUD/$version/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-$version-Updates/
-    if test -d $ibsmaint/Cloud\:/$version\:/$arch/update/; then
-        $rsync $ibsmaint/Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Cloud-$version-Updates-test/
-    fi
-done
-
-mount_and_rsync "/mnt/dist/ibs/Devel:/Cloud:/Shared:/11-SP3:/Update/images/iso/SUSE-CLOUD-*11-SP3-DEPS-x86_64-Build[0-9][0-9][0-9][0-9]-Media.iso" SUSE-Cloud-SLE-11-SP3-deps
-
-echo ================== Updating Cloud 5 for SLE12
-
-$rsync /mnt/dist/install/SLP/SLE-12-Module-Public-Cloud-GM/x86_64/CD1/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-official
-mount_and_rsync "/mnt/dist/ibs/Devel:/Cloud:/5/images/iso/SUSE-SLE12-CLOUD-5-COMPUTE-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-5-SLE-12-devel
-mount_and_rsync "/mnt/dist/ibs/Devel:/Cloud:/5:/Staging/images/iso/SUSE-SLE12-CLOUD-5-COMPUTE-x86_64-Build[0-9][0-9][0-9][0-9]-Media1.iso" SUSE-Cloud-5-SLE-12-devel-staging
-$rsync $buildsuse/SUSE/Products/12-Cloud-Compute/5/x86_64/product/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Pool/
-$rsync $buildsuse/SUSE/Updates/12-Cloud-Compute/5/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates/
-$rsync $ibsmaint/12-Cloud-Compute\:/5\:/x86_64/update/ /srv/nfs/repos/SUSE-Cloud-5-SLE-12-Updates-test/
-
 # mirror aarch64 SP1 builds
 $rsync /mnt/dist/ibs/Devel:/ARM:/SLE-12-SP1:/Update/images/repo/SLE-12-SP1-Server-POOL-aarch64-*-Media1/ /srv/nfs/repos/aarch64/SLES12-SP1-Pool
 
-for version in 6 7; do
+for version in 6 7 8; do
     # fetch latest code from version in development (not just latest beta)
     sync_from_ibs=
     [ "$version" == "8" ] && sync_from_ibs=1

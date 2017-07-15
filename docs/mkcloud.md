@@ -165,7 +165,7 @@ Here's an example script you can execute to create a full cloud:
 export localreposdir_src=/home/tom/devel/repositories/
 
 # setup/create lvm disk
-cloud_lvm_disk=/home/tom/devel/libvirt-images/develcloud5-lvm.raw
+cloud_lvm_disk=/home/tom/devel/libvirt-images/develcloud7-lvm.raw
 if ! [ -f $cloud_lvm_disk ] ; then
     qemu-img create -f raw $cloud_lvm_disk 100G
 fi
@@ -178,7 +178,7 @@ else
 fi
 
 export cloudpv=${loused}
-export cloudsource=develcloud5
+export cloudsource=develcloud7
 export cloud=$cloudsource
 export net_fixed=192.168.150
 export net_public=192.168.151
