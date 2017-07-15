@@ -85,7 +85,7 @@ Default: openvswitch</description>
         <hudson.model.StringParameterDefinition>
           <name>want_ipmi</name>
           <description/>
-          <defaultValue>true</defaultValue>
+          <defaultValue>1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>runner_url</name>

@@ -88,7 +88,7 @@ export cinder_netapp_storage_protocol
 export cinder_netapp_login
 export cinder_netapp_password
 export localreposdir_target
-export want_ipmi=${want_ipmi:-false}
+export want_ipmi=${want_ipmi:-}
 [ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
 [ "$libvirt_type" = hyperv ] && export wanthyperv=1
 [ "$libvirt_type" = xen ] && export wantxenpv=1 # xenhvm is broken anyway
@@ -2015,7 +2015,7 @@ function onadmin_allocate
 {
     pre_hook $FUNCNAME
 
-    if $want_ipmi ; then
+    if [[ $want_ipmi = 1 ]] ; then
         reboot_nodes_via_ipmi
     fi
 
@@ -2601,16 +2601,17 @@ function hacloud_configure_cluster_defaults
             "['attributes']['pacemaker']['stonith']['mode']" "'sbd'"
         proposal_set_value pacemaker "$clustername" \
             "['attributes']['pacemaker']['stonith']['sbd']['watchdog_module']" "'softdog'"
+    elif [[ $mkclouddriver = "libvirt" ]]; then
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$admingw'"
+    elif [[ $want_ipmi = 1 ]] ; then
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['mode']" "'ipmi_barclamp'"
     else
-        if [[ $mkclouddriver = "libvirt" ]]; then
-            proposal_set_value pacemaker "$clustername" \
-                "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
-            proposal_set_value pacemaker "$clustername" \
-                "['attributes']['pacemaker']['stonith']['libvirt']['hypervisor_ip']" "'$admingw'"
-        else
-            proposal_set_value pacemaker "$clustername" \
-                "['attributes']['pacemaker']['stonith']['mode']" "'manual'"
-        fi
+        proposal_set_value pacemaker "$clustername" \
+            "['attributes']['pacemaker']['stonith']['mode']" "'manual'"
     fi
     proposal_modify_value pacemaker "$clustername" \
         "['description']" "'Clustername: $clustername, type: $clustertype ; '" "+="
@@ -2771,7 +2772,7 @@ function custom_configuration
             proposal_set_value dns default "['deployment']['dns']['elements']['dns-server']" "[$dnsnodes]"
         ;;
         ipmi)
-            proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
+            [[ $want_ipmi = 1 ]] && proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
         ;;
         keystone)
             # set a custom region name

@@ -123,7 +123,7 @@
 
       - string:
           name: want_ipmi
-          default: "true"
+          default: "1"
 
       - string:
           name: commands

@@ -258,7 +258,7 @@ function setcloudnetvars
             vlan_public=567
             #vlan_admin=561
             vlan_fixed=566
-            want_ipmi=true
+            want_ipmi=1
         ;;
         p2)
             net=$netp.171
@@ -269,7 +269,7 @@ function setcloudnetvars
             vlan_public=564
             #vlan_admin=560
             vlan_fixed=565
-            want_ipmi=true
+            want_ipmi=1
         ;;
         p3)
             nodenumbertotal=3
@@ -281,7 +281,7 @@ function setcloudnetvars
             vlan_public=585
             #vlan_admin=584
             vlan_fixed=583
-            want_ipmi=true
+            want_ipmi=1
         ;;
         d2)
             nodenumbertotal=2
@@ -292,7 +292,7 @@ function setcloudnetvars
             vlan_public=580
             #vlan_admin=562
             vlan_fixed=569
-            want_ipmi=true
+            want_ipmi=1
         ;;
         d3)
             nodenumbertotal=2
@@ -303,7 +303,7 @@ function setcloudnetvars
             vlan_public=588
             #vlan_admin=587
             vlan_fixed=582 # overlap with p3 storage/sdn to use less VLAN IDs
-            want_ipmi=true
+            want_ipmi=1
         ;;
         cf1)
             net_fixed=192.168.129
@@ -320,7 +320,7 @@ function setcloudnetvars
             vlan_fixed=611
             vlan_storage=612
             vlan_sdn=$vlan_storage
-            want_ipmi=true
+            want_ipmi=1
         ;;
         qa3)
             nodenumbertotal=8
@@ -331,7 +331,7 @@ function setcloudnetvars
             vlan_fixed=615
             vlan_storage=616
             vlan_sdn=$vlan_storage
-            want_ipmi=true
+            want_ipmi=1
         ;;
         qa4)
             nodenumbertotal=7
@@ -342,7 +342,7 @@ function setcloudnetvars
             vlan_storage=756
             vlan_fixed=758
             vlan_sdn=757
-            want_ipmi=true
+            want_ipmi=1
         ;;
         virtual)
                     true # defaults are fine (and overridable)
