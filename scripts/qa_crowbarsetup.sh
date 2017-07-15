@@ -855,9 +855,9 @@ function onadmin_prepare_cloud_repos
     mkdir -p ${targetdir}
 
     if [ -n "${localreposdir_target}" ]; then
-        add_bind_mount \
-            "${localreposdir_target}/${CLOUDLOCALREPOS}/sle-12-$arch/" \
-            "${targetdir}"
+        add_mount "${CLOUDLOCALREPOS}" \
+                "$nfsserver_ip:$nfsserver_base_path/repos/$arch/${CLOUDLOCALREPOS}/" \
+                "$targetdir"
     else
         rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$targetdir"
         if [[ $want_s390 ]] ; then
