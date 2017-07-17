@@ -152,6 +152,8 @@ function mount_localreposdir_target
     fi
     mkdir -p $localreposdir_target
     if ! grep -q "$localreposdir_target\s\+$localreposdir_target" /etc/fstab ; then
+        echo 'force_drivers+="9pnet_virtio"' > /etc/dracut.conf.d/03-libvirt.conf
+        dracut -f
         echo "$localreposdir_target $localreposdir_target 9p    ro,trans=virtio,version=9p2000.L,msize=262144  0 0" >> /etc/fstab
     fi
     mount "$localreposdir_target"
