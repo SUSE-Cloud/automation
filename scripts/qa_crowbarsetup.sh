@@ -1199,7 +1199,7 @@ function onadmin_setup_local_zypper_repositories
     # Delete all repos except PTF repo, because this could
     # be called after the addupdaterepo step.
     $zypper lr -e - | sed -n '/^name=/ {s///; /ptf/! p}' | \
-        xargs -r $zypper rr
+        xargs -r zypper rr
 
     uri_base=$smturl
     # restore needed repos depending on localreposdir_target
