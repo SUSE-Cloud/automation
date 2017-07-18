@@ -3388,9 +3388,14 @@ function get_manila_service_instance_details
 function addfloatingip
 {
     local instanceid=$1
-    nova floating-ip-create | tee floating-ip-create.out
-    floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
-    nova add-floating-ip "$instanceid" "$floatingip"
+    if iscloudver 7plus; then
+        floatingip=$(openstack floating ip create floating -f value -c floating_ip_address)
+        openstack server add floating ip $instanceid $floatingip
+    else
+        nova floating-ip-create | tee floating-ip-create.out
+        floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
+        nova add-floating-ip "$instanceid" "$floatingip"
+    fi
 }
 
 function oncontroller_nova_evacuate
@@ -4053,8 +4058,13 @@ function oncontroller_testsetup
     volumeresult="$volumecreateret & $volumeattachret"
 
     # cleanup so that we can run testvm without leaking volumes, IPs etc
-    nova remove-floating-ip "$instanceid" "$floatingip"
-    nova floating-ip-delete "$floatingip"
+    if iscloudver 7plus; then
+        openstack server remove floating ip "$instanceid" "$floatingip"
+        openstack floating ip delete "$floatingip"
+    else
+        nova remove-floating-ip "$instanceid" "$floatingip"
+        nova floating-ip-delete "$floatingip"
+    fi
     nova stop "$instanceid"
     wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
