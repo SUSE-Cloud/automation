@@ -23,7 +23,7 @@
             clusterconfig=data+network+services=2
             storage_method=swift
             hacloud=1
-            mkcloudtarget=all_noreboot
+            mkcloudtarget=all
             networkingplugin=linuxbridge
             networkingmode=vxlan
             crowbar_networkingmode=team

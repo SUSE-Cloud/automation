@@ -20,7 +20,7 @@
             TESTHEAD=1
             cloudsource=develcloud{version}
             nodenumber=2
-            mkcloudtarget=all_noreboot
+            mkcloudtarget=all
             want_database_sql_engine=mysql
             tempestoptions={tempestoptions}
             label={label}
