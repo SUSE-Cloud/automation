@@ -3075,6 +3075,9 @@ function do_one_proposal
     local proposaltypemapped=$proposaltype
     proposaltype=${proposaltype%%+*}
     crowbar "$proposal" proposal create $proposaltype
+    if [[ $? != 0 ]] && [[ $want_reapply_proposal = 0 ]] ; then
+        return
+    fi
     update_one_proposal "$proposal" "$proposaltypemapped"
 }
 

@@ -38,6 +38,9 @@ function qacrowbarsetup_help
         increase all wait_for sleeps by this factor
     want_sbd=1 (default 0)
         Setup SBD over iSCSI for cluster nodes, with iSCSI target on admin node. Only usable for HA configuration.
+    want_reapply_proposal=0 (default 1)
+        If set to 0, only newly created proposals will be applied
+        to speed up running a 2nd proposal step
     want_devel_repos=list of Devel Projects to use for other products
         Adds Devel Projects for other products on deployed nodes
         Example:
