@@ -4870,6 +4870,9 @@ function onadmin_prepare_cloudupgrade_admin_repos_6_to_7
 
     # recreate the SUSE-Cloud Repo with the latest iso
     onadmin_prepare_cloud_repos
+
+    # Pool repositories presence are required for nodes repocheck step during upgrade
+    addcloud7pool
     addcloud7maintupdates
     onadmin_add_cloud_repo
 
