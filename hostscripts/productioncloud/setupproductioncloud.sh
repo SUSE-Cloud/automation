@@ -15,7 +15,7 @@ export want_ssl_keys=root@cloud.suse.de:/etc/cloud-keys/
 export cloudsource=GM7+up
 export TESTHEAD=1 # for unreleased openstack-keystone and crowbar-openstack LDAP fixes
 export cloud=p3
-export nodenumber=3
+export nodenumber=5
 export want_mtu_size=9000
 export hacloud=1
 export clusterconfig='services+data+network=2'
@@ -27,7 +27,7 @@ export cephvolumenumber=3
 # 2nd node only has 64GB RAM, making it more suitable for controller
 export want_node_roles=compute=1,controller=1,compute=1
 #export want_node_aliases=n1=1,dashboard=1,n2=1
-export want_node_roles=controller=2,compute=1
+export want_node_roles=controller=2,compute=3
 #export want_node_aliases=dashboard=1,n1=1,n2=1
 export want_rootpw=securepassword
 export want_tempest=0
