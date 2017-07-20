@@ -272,7 +272,7 @@ function setcloudnetvars
             want_ipmi=1
         ;;
         p3)
-            nodenumbertotal=3
+            nodenumbertotal=5
             net=$netp.184
             net_public=$netp.187
             net_fixed=44.13.0
