@@ -1,0 +1,79 @@
+#! /bin/sh
+# ipmi_sim_lancontrol - provide link addresses to ipmi_sim for device $1
+# See lan_config_program in ipmi_lan(5)
+#
+# 2015-05-06  Noel Burton-Krahn <noel@pistoncloud.com>
+
+#NOTE(colleen) vendored with modifications from https://github.com/wrouesnel/openipmi/blob/master/ipmi_sim_lancontrol
+
+set -eu
+
+# arguments: dev op var
+# network interface
+dev=$1
+# get or set.  This script just supports get
+op=$2
+# var name
+var=$3
+
+veth_peer=$(ip link show dev $dev | awk 'NR==1 { split($2, subfield, "@"); print substr(subfield[2], 1, length(subfield[2])-1)}')
+gw_dev=$(bridge link show dev $veth_peer |  awk '{for(j=0;j<=NF;j++) if ($j == "master" ) print $(j+1) }')
+
+link_ip() {
+    ip -o -4 addr list $1 | sed -ne 's/.* inet \([.0-9]*\)\/.*/\1/p'
+}
+
+link_mac() {
+    ip -o link list $1 | sed -ne 's/.* link\/ether \([:0-9a-f]*\) .*/\1/p'
+}
+
+link_subnet() {
+    ifconfig $1 | sed -n -e 's/.*Mask:\([.0-9]*\).*/\1/p'
+}
+
+get_val() {
+    case $var in
+    ip_addr_src)
+        if grep $(link_mac $dev) /var/lib/libvirt/dnsmasq/*.hostsfile >/dev/null ; then
+            echo "dhcp"
+        else
+            echo "static"
+        fi
+        ;;
+
+    ip_addr)
+        link_ip $dev
+        ;;
+
+    mac_addr)
+        link_mac $dev
+        ;;
+
+    subnet_mask)
+        link_subnet $dev
+        ;;
+
+    default_gw_ip_addr)
+        link_ip $gw_dev
+        ;;
+
+    default_gw_mac_addr)
+        link_mac $gw_dev
+        ;;
+
+    backup_gw_ip_addr)
+        link_ip $gw_dev
+        ;;
+
+    backup_gw_mac_addr)
+        link_mac $gw_dev
+        ;;
+    esac
+}
+
+if [ $op = "get" ]; then
+    val=$(get_val $var)
+    echo "$var: $val"
+fi
+
+#TODO(colleen): implement set_val()

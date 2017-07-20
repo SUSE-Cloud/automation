@@ -48,7 +48,7 @@ mkdir -p "$cache_dir"
 scripts_lib_dir=${SCRIPTS_DIR}/lib
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
-common_scripts="mkcloud-onhost.sh mkcloud-common.sh mkcloud-driver-$mkclouddriver.sh qa_crowbarsetup-help.sh"
+common_scripts="mkcloud-onhost.sh mkcloud-common.sh mkcloud-driver-$mkclouddriver.sh qa_crowbarsetup-help.sh mkcloud-ipmi.sh"
 for script in $common_scripts; do
     source ${scripts_lib_dir}/$script
 done
@@ -323,7 +323,8 @@ function sshrun
         export test_internet_url=$test_internet_url;
         export extraipmipw=$extraipmipw;
         export ipmi_ip_addrs=$ipmi_ip_addrs;
-
+        export bmc_user=$bmc_user;
+        export bmc_password=$bmc_password;
 EOF
     # setting these variables within mkcloud does not make them part of the env, so we need to export them
     export nodenumber nodenumberlonelynode nodenumberironicnode clusterconfig ironicnetmask
@@ -355,6 +356,7 @@ function onhost
 
 function cleanup
 {
+    ipmi_cleanup
     ${mkclouddriver}_do_cleanup
 }
 
@@ -679,7 +681,18 @@ function setupnodes
         fi
 
         local ipmi_params=""
-        [[ $want_ipmi = 1 ]] && ipmi_params="--ipmi"
+        if [[ $want_ipmi = 1 ]] ; then
+            ipmi_params="--ipmi"
+            local bmc_addr=$(( 162 + $i ))
+            if [[ $bmc_addr > 240 ]] ; then
+                echo "You have more nodes than allocated addresses."
+                exit 1
+            fi
+            bmc_addr=$net.$bmc_addr
+            mkveth $i $bmc_addr
+            generate_lan_config $i $bmc_user $bmc_password $bmc_addr
+            screen -S $cloud-node$i-bmc-lan -d -m ipmi_sim -c /tmp/ipmi-lan-$cloud-node$i.conf -f ${SCRIPTS_DIR}/lib/ipmi/ipmi_sim.emu
+        fi
 
         ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
                         $mac_params \
