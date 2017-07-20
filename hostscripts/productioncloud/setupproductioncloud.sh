@@ -50,7 +50,7 @@ onadmin_runlist addupdaterepo prepareinstallcrowbar bootstrapcrowbar installcrow
 
 # give read-permissions to the users that will need it
 get_novacontroller
-run_on "$novacontroller" '
+run_on "$novacontroller" 'set -x;
 for u in keystone glance cinder neutron nova barbican ceph aodh heat manila ; do
     setfacl -m u:$u:r /etc/cloud-keys/*.key
     done
