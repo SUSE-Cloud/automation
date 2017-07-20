@@ -24,6 +24,6 @@
             tempestoptions={tempestoptions}
             storage_method=ceph
             hacloud=1
-            mkcloudtarget=all
+            mkcloudtarget=all_noreboot
             label={label}
             job_name=cloud-mkcloud{version}-job-ha-ceph-{arch}

@@ -23,6 +23,6 @@
             tempestoptions={tempestoptions}
             hacloud=1
             want_database_sql_engine=mysql
-            mkcloudtarget=all
+            mkcloudtarget=all_noreboot
             label={label}
             job_name=cloud-mkcloud{version}-job-ha-mariadb-{arch}

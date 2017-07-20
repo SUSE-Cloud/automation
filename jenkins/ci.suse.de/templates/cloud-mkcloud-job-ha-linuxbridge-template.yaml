@@ -23,7 +23,7 @@
             clusterconfig=data+network+services=2
             storage_method=swift
             hacloud=1
-            mkcloudtarget=all
+            mkcloudtarget=all_noreboot
             networkingplugin=linuxbridge
             networkingmode=vxlan
             want_node_aliases=controller=2,compute=2
