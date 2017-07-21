@@ -1208,11 +1208,6 @@ function onadmin_setup_local_zypper_repositories
         uri_base="file:///repositories"
     fi
     case $(getcloudver) in
-        5)
-            uri_base=$reposerver_url
-            $zypper ar $uri_base/SLES11-SP3-Pool/ sles11sp3
-            $zypper ar $uri_base/SLES11-SP3-Updates/ sles11sp3up
-        ;;
         6)
             $zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP1/$arch/product/ sles12sp1
             $zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP1/$arch/update/ sles12sp1up
