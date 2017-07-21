@@ -74,10 +74,10 @@ base    dc=suse,dc=de
 EOF
     '
 done
-echo TODO set public name to dashboard.p3.cloud.suse.de
 
 # on admin node to enable real certs:
 cd ~/automation/hostscripts/productioncloud/
+crowbar batch build batch-publicname.yaml
 crowbar batch build batch-ssl.yaml
 crowbar batch build batch-ssh-keys.yaml
 crowbar batch build batch-users.yaml
