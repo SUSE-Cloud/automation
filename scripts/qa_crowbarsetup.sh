@@ -1267,6 +1267,7 @@ function onadmin_repocleanup
 # because the reposerver might not be reachable from where this runs
 function onadmin_setup_local_zypper_repositories
 {
+    local localrepos_base
     # Delete all repos except PTF repo, because this could
     # be called after the addupdaterepo step.
     $zypper lr -e - | sed -n '/^name=/ {s///; /ptf/! p}' | \
@@ -1276,7 +1277,26 @@ function onadmin_setup_local_zypper_repositories
     # restore needed repos depending on localreposdir_target
     if [ -n "${localreposdir_target}" ]; then
         mount_localreposdir_target
-        uri_base="file:///repositories"
+        if [ -z "$localreposdir_is_clouddata" ]; then
+            uri_base="file:///repositories"
+        else
+            localrepos_base="file://$localreposdir_target/repos/$arch"
+            case $(getcloudver) in
+                6)
+                    $zypper ar "$localrepos_base/SLES12-SP1-Pool" sles12sp1
+                    $zypper ar "$localrepos_base/SLES12-SP1-Updates" sles12sp1up
+                ;;
+                7)
+                    $zypper ar "$localrepos_base/SLES12-SP2-Pool" sles12sp2
+                    $zypper ar "$localrepos_base/SLES12-SP2-Updates" sles12sp2up
+                ;;
+                8)
+                    $zypper ar "$localrepos_base/SLES12-SP3-Pool" sles12sp3
+                    $zypper ar "$localrepos_base/SLES12-SP3-Updates" sles12sp3up
+                ;;
+            esac
+            return
+        fi
     fi
     case $(getcloudver) in
         6)
