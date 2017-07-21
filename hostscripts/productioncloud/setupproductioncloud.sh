@@ -55,11 +55,15 @@ EOF
 )
 
 ( . qa_crowbarsetup.sh ;
-onadmin_runlist addupdaterepo prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate setup_aliases proposal setupproduction testsetup
+onadmin_runlist addupdaterepo prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate setup_aliases proposal testsetup
 
 # give read-permissions to the users that will need it
 get_novacontroller
-run_on "$novacontroller" 'set -x;
+for controller in "$novacontroller" services1 services2 dashboard ; do
+# FIXME: split setupproduction into parts that need to run once per cloud
+# and parts that need to run once per controller node (e.g. local file setup)
+run_on "$controller" 'set -x
+oncontroller_setupproduction
 for u in keystone glance cinder neutron nova barbican ceph aodh heat manila ; do
     setfacl -m u:$u:r /etc/cloud-keys/*.key
     done
@@ -69,6 +73,7 @@ uri     ldaps://ldap.suse.de
 base    dc=suse,dc=de
 EOF
     '
+done
 echo TODO set public name to dashboard.p3.cloud.suse.de
 
 # on admin node to enable real certs:
