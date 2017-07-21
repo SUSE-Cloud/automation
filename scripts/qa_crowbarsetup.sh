@@ -1750,7 +1750,9 @@ function reboot_nodes_via_ipmi
     do_one_proposal ipmi default
     [[ $ipmi_ip_addrs ]] || set_crowbar_ipmi_ip_addrs
     local ip
+    local i=0
     for ip in $ipmi_ip_addrs ; do
+        let i++
         local ipmicmd="ipmitool -H $ip -U root"
         local pw
         for pw in 'cr0wBar!' $extraipmipw ; do
@@ -1761,7 +1763,7 @@ function reboot_nodes_via_ipmi
         done
         safely timeout 5 $ipmicmd mc info
 
-        if [ $i -gt $nodenumber ]; then
+        if [[ $i -gt $nodenumber ]]; then
             # power off extra nodes
             $ipmicmd power off
             wait_for 30 2 "$ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
