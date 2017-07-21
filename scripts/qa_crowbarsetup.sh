@@ -217,15 +217,25 @@ function add_mount
     local targetdir="$4"
     local zypper_alias="$5"
 
+    local localreposdir_path
+
     case "$reposerver" in
         "CDREPOS")
             nfssrc="$nfsserver_ip:$nfsserver_base_path/repos/$path"
+            localreposdir_path="$localreposdir_target/repos/$path"
             ;;
         "CDROOT")
             nfssrc="$nfsserver_ip:$nfsserver_base_path/$path"
+            localreposdir_path="$localreposdir_target/$path"
             ;;
         "BUILD")
             nfssrc="${distsuseip}:/dist/ibs/${path}"
+            # BUILD is used with:
+            # SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP1:/
+            # SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP2:/
+            # SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP3:/
+            # AFAIK these are not available on clouddata
+            localreposdir_path=""
             ;;
         *)
             complain 50 "This reposerver is not recognised"
@@ -237,7 +247,18 @@ function add_mount
                 "(nfssrc=$nfssrc targetdir=$targetdir alias=$zypper_alias)\n" \
                 "This will break for those not using NFS."
         fi
-        add_bind_mount "$localreposdir_target/$bindsrc" "$targetdir"
+
+        if [ -z "$localreposdir_is_clouddata" ]; then
+            # Use legacy structure
+            add_bind_mount "$localreposdir_target/$bindsrc" "$targetdir"
+        else
+            # localreposdir_src holds a mirror of clouddata
+            if [ -z "$localreposdir_path" ]; then
+                complain 34 "IBS builds are not supported in local mode"
+            fi
+
+            add_bind_mount "$localreposdir_path" "$targetdir"
+        fi
     else
         if [ -z "$nfssrc" ]; then
             complain 50 "BUG: add_mount() called with empty nfssrc parameter" \
