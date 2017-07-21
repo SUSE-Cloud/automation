@@ -1,5 +1,5 @@
 - job:
-    name: 'cloud-mkcloud7-suse-x86_64'
+    name: 'cloud-mkcloud8-suse-x86_64'
     project-type: multijob
     node: cloud-trigger
 
@@ -18,19 +18,19 @@
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
-                cloudsource=GM7+up
+                cloudsource=susecloud8
                 TESTHEAD=
                 want_test_updates=1
                 nodenumber=2
                 mkcloudtarget=all_batch
-                scenario=cloud7-2nodes-default.yml
+                scenario=cloud8-2nodes-default.yml
                 want_node_aliases=controller=1,compute-kvm=1
                 label=openstack-mkcloud-SLE12-x86_64
                 job_name=GM7+up: OVS
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
-                cloudsource=GM7+up
+                cloudsource=susecloud8
                 TESTHEAD=
                 want_test_updates=1
                 nodenumber=4
@@ -48,7 +48,7 @@
               predefined-parameters: |
                 TESTHEAD=
                 want_test_updates=1
-                cloudsource=GM7+up
+                cloudsource=susecloud8
                 nodenumber=5
                 networkingmode=vxlan
                 hacloud=1
