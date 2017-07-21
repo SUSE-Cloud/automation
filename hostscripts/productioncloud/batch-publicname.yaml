@@ -1,0 +1,7 @@
+---
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    haproxy:
+      public_name: dashboardp3.cloud.suse.de
