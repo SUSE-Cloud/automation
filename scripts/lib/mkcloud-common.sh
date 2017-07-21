@@ -634,6 +634,7 @@ fi
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
 : ${architectures:='aarch64 x86_64 s390x'}
+: ${nodenumbertotal:=$nodenumber}
 : ${nodenumberlonelynode:=0}
 : ${nodenumberironicnode:=0}
 : ${want_mtu_size:=1500}
