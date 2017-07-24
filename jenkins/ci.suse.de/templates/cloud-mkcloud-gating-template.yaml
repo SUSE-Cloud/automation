@@ -27,7 +27,7 @@
           projects:
             - name: cloud-mkcloud{version}-job-2nodes-x86_64
               node-label: cloud-trigger
-            
+
             - name: cloud-mkcloud{version}-job-4nodes-linuxbridge-x86_64
               node-label: cloud-trigger
 

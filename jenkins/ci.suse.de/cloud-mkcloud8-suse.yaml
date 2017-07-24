@@ -34,7 +34,6 @@
                 TESTHEAD=
                 want_test_updates=1
                 nodenumber=4
-                storage_method=ceph
                 networkingplugin=linuxbridge
                 mkcloudtarget=all
                 label=openstack-mkcloud-SLE12-x86_64
@@ -51,6 +50,8 @@
                 cloudsource=susecloud8
                 nodenumber=5
                 networkingmode=vxlan
+                crowbar_networkingmode=team
+                storage_method=swift
                 hacloud=1
                 mkcloudtarget=all_noreboot
                 label=openstack-mkcloud-SLE12-x86_64
