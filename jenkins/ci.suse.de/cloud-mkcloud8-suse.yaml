@@ -26,7 +26,7 @@
                 scenario=cloud8-2nodes-default.yml
                 want_node_aliases=controller=1,compute-kvm=1
                 label=openstack-mkcloud-SLE12-x86_64
-                job_name=GM7+up: OVS
+                job_name=susecloud8: OVS
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
@@ -38,7 +38,7 @@
                 networkingplugin=linuxbridge
                 mkcloudtarget=all
                 label=openstack-mkcloud-SLE12-x86_64
-                job_name=GM7+up: linuxbridge
+                job_name=susecloud8: linuxbridge
       - multijob:
           name: 'Extra Gate Checks (HA)'
           condition: SUCCESSFUL
@@ -54,4 +54,4 @@
                 hacloud=1
                 mkcloudtarget=all_noreboot
                 label=openstack-mkcloud-SLE12-x86_64
-                job_name=GM7+up: HA vxlan
+                job_name=susecloud8: HA vxlan
