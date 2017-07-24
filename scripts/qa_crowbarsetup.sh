@@ -1869,7 +1869,7 @@ function onadmin_allocate
                 set_node_role_and_platform ${nodes[$n]} "storage" ${storage_os}
             done
         fi
-        if [ -n "$deployceph" ] && iscloudver 7plus ; then
+        if [ -n "$deployceph" ] && iscloudver 7 ; then
             storage_os="suse-12.2"
             # we need 3 ceph nodes: at least 2 for osd (can be mixed with mons) and 1 for mds
             for n in $(seq 0 2); do
