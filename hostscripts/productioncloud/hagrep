@@ -1,0 +1,8 @@
+#!/bin/sh
+exec grep --color=auto \
+    -e 'Processing crowbar-pacemaker_sync_mark\[.*\])' \
+    -e '\*\*\* Chef [0-9].*' \
+    -e 'FATAL.*' \
+    -e 'Setting .* cluster mark' \
+    -e 'FATAL: No authorization keys found' \
+    "$@"
