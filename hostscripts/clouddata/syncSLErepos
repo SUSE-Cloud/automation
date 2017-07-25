@@ -181,7 +181,7 @@ for arch in x86_64 aarch64 s390x ; do
 done
 
 # reduce disk usage
-fdupes -q -n -r /srv/nfs/repos/ |
+fdupes -q -n -r /srv/nfs/repos/ /srv/nfs/install/ |
     while read _file; do
         if test -z "$_target" ; then
             _target="$_file";
