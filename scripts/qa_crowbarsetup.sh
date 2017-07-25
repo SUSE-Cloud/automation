@@ -5472,7 +5472,7 @@ function oncontroller_import_images
         [[ $image_name =~ -altimagebuild ]] && params+=' --min-disk 2'
         curl -s \
             $imageserver_url/openstack/x86_64/$img | \
-            OS_TENANT_NAME=admin openstack image create --public --property hypervisor_type=kvm \
+            OS_PROJECT_NAME=admin OS_TENANT_NAME=admin openstack image create --public --property hypervisor_type=kvm \
             $params $image_name
     done
 }
