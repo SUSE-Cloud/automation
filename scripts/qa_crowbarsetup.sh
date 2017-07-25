@@ -5060,7 +5060,7 @@ function oncontroller_import_images
         [[ $image_name =~ -Build ]] && params+=' --min-ram 300 --min-disk 10'
         [[ $image_name =~ -altimagebuild ]] && params+=' --min-disk 2'
         curl -s \
-            http://$clouddata/images/openstack/x86_64/$img | \
+            $imageserver_url/openstack/x86_64/$img | \
             OS_TENANT_NAME=admin openstack image create --public --property hypervisor_type=kvm \
             $params $image_name
     done
