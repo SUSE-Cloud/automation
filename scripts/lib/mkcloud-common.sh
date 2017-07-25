@@ -502,11 +502,11 @@ function get_admin_node_dist
         8)  dist=SLE12SP3
             ;;
         7)  dist=SLE12SP2
-            [[ $want_sles12sp1_admin ]] && dist=SLE12SP1
             ;;
-        6)  dist=SLE12SP1 ;;
-        5)  dist=SLE11    ;;
-        *)  dist=SLE11    ;;
+        6)  dist=SLE12SP1
+            ;;
+        *)  dist=UNKNOWN
+            ;;
     esac
     echo "$dist"
 }
@@ -514,7 +514,6 @@ function get_admin_node_dist
 function get_lonely_node_dist
 {
     local dist=$(get_admin_node_dist)
-    iscloudver 5 && [[ $want_sles12 ]] && dist=SLE12
     echo $dist
 }
 
@@ -526,13 +525,11 @@ function dist_to_image_name
         SLE12SP3) image=SLES12-SP3 ;;
         SLE12SP2) image=SLES12-SP2 ;;
         SLE12SP1) image=SLES12-SP1 ;;
-        SLE12)    image=SLES12     ;;
-        SLE11)    image=SP3-64up   ;;
         *)
             complain 71 "No admin node image defined for this distribution: $dist"
         ;;
     esac
-    iscloudver 7plus && [[ $want_efi ]] && \
+    iscloudver 7 && [[ $want_efi ]] && \
         [[ $arch == x86_64 ]] && image="SLES12-SP2-uefi"
     echo "$image.qcow2"
 }
