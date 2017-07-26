@@ -102,16 +102,6 @@ export CROWBAR_TIMEOUT=3600
 
 export ZYPP_LOCK_TIMEOUT=120
 
-function horizon_barclamp
-{
-    echo "horizon"
-}
-
-function nova_role_prefix
-{
-    echo "nova"
-}
-
 function onadmin_help
 {
     # The help moved to lib/qa_crowbarsetup-help.sh
@@ -536,11 +526,6 @@ function get_unclustered_sles12plus_nodes
             <(printf "%s\n" ${unclustered_nodes[@]})))
     fi
     echo ${sles12plusnodes[@]}
-}
-
-function get_docker_nodes
-{
-    knife search node "roles:`nova_role_prefix`-compute-docker" -a name | grep ^name: | cut -d : -f 2 | sort | sed 's/\s//g'
 }
 
 function show_crowbar_nodes_to_upgrade
@@ -2564,11 +2549,10 @@ function custom_configuration
             fi
             ;;
         nova)
-            local role_prefix=`nova_role_prefix`
             # custom nova config of libvirt
             [[ $libvirt_type = hyperv ]] || proposal_set_value nova default "['attributes']['nova']['libvirt_type']" "'$libvirt_type'"
             proposal_set_value nova default "['attributes']['nova']['use_migration']" "true"
-            [[ $libvirt_type = xen ]] && sed -i -e "s/${role_prefix}-compute-$libvirt_type/${role_prefix}-compute-xxx/g; s/${role_prefix}-compute-kvm/${role_prefix}-compute-$libvirt_type/g; s/${role_prefix}-compute-xxx/${role_prefix}-compute-kvm/g" $pfile
+            [[ $libvirt_type = xen ]] && sed -i -e "s/nova-compute-$libvirt_type/nova-compute-xxx/g; s/nova-compute-kvm/nova-compute-$libvirt_type/g; s/nova-compute-xxx/nova-compute-kvm/g" $pfile
 
 
             if iscloudver 7plus; then
@@ -2584,7 +2568,7 @@ function custom_configuration
             fi
 
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-controller']" "['cluster:$clusternameservices']"
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-controller']" "['cluster:$clusternameservices']"
 
                 # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
                 local novanodes=("${unclustered_nodes[@]}")
@@ -2595,11 +2579,11 @@ function custom_configuration
                 fi
 
                 if [[ ${#novanodes[@]} -eq 0 ]]; then
-                    complain 105 "No suitable node(s) for ${role_prefix}-compute-${libvirt_type} found."
+                    complain 105 "No suitable node(s) for nova-compute-${libvirt_type} found."
                 fi
                 novanodes_json=$(printf "\"%s\"," ${novanodes[@]})
                 novanodes_json="[ ${novanodes_json%,} ]"
-                proposal_set_value nova default "['deployment']['nova']['elements']['${role_prefix}-compute-${libvirt_type}']" "$novanodes_json"
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-compute-${libvirt_type}']" "$novanodes_json"
             fi
 
             if [[ $nova_shared_instance_storage = 1 ]] ; then
@@ -3165,7 +3149,7 @@ function onadmin_proposal
     # Check if there were any HA failures from the proposals so far
     safely oncontroller check_crm_failcounts
     # For all remaining proposals, check for HA failures after each deployment
-    for proposal in `horizon_barclamp` ceilometer heat manila trove \
+    for proposal in horizon ceilometer heat manila trove \
         barbican magnum sahara murano aodh tempest; do
         deploy_single_proposal $proposal
         safely oncontroller check_crm_failcounts
@@ -3232,21 +3216,19 @@ function resolve_element_to_hostname
 
 function get_novacontroller
 {
-    local role_prefix=`nova_role_prefix`
     local element=`crowbar nova proposal show default | \
         rubyjsonparse "
                     puts j['deployment']['nova']\
-                        ['elements']['$role_prefix-controller']"`
+                        ['elements']['nova-controller']"`
     novacontroller=`resolve_element_to_hostname "$element"`
 }
 
 function get_horizon
 {
-    local horizon=`horizon_barclamp`
-    local element=`crowbar $horizon proposal show default | \
+    local element=`crowbar horizon proposal show default | \
         rubyjsonparse "
-                    puts j['deployment']['$horizon']\
-                        ['elements']['$horizon-server']"`
+                    puts j['deployment']['horizon']\
+                        ['elements']['horizon-server']"`
     horizonserver=`resolve_element_to_hostname "$element"`
     horizonservice=`resolve_element_to_hostname "$element" service`
 }
@@ -4877,7 +4859,7 @@ function onadmin_cloudupgrade_reboot_and_redeploy_clients
 
 function onadmin_reapply_openstack_proposals
 {
-    for barclamp in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova `horizon_barclamp` ceilometer heat trove tempest; do
+    for barclamp in nfs_client pacemaker database rabbitmq keystone swift ceph glance cinder neutron nova horizon ceilometer heat trove tempest; do
         applied_proposals=$(crowbar "$barclamp" proposal list )
         if test "$applied_proposals" == "No current proposals"; then
             continue
@@ -5338,7 +5320,7 @@ function onadmin_teardown
 
     # undo propsal create+commit
     local service
-    for service in `horizon_barclamp` nova glance ceph swift keystone database; do
+    for service in horizon nova glance ceph swift keystone database; do
         crowbar "$service" proposal delete default
         crowbar "$service" delete default
     done
