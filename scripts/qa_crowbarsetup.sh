@@ -830,9 +830,9 @@ function onadmin_prepare_cloud_repos
                 "$nfsserver_ip:$nfsserver_base_path/repos/$arch/${CLOUDLOCALREPOS}/" \
                 "$targetdir"
     else
-        rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12DISTISO" "$targetdir"
+        rsync_iso "$CLOUDISOPATH" "$CLOUDISONAME" "$targetdir"
         if [[ $want_s390 ]] ; then
-            rsync_iso "$CLOUDSLE12DISTPATH" "${CLOUDSLE12DISTISO/$arch/s390x}" "${targetdir/$arch/s390x}"
+            rsync_iso "$CLOUDISOPATH" "${CLOUDISONAME/$arch/s390x}" "${targetdir/$arch/s390x}"
         fi
     fi
 
@@ -1073,59 +1073,59 @@ function onadmin_set_source_variables
 
     case "$cloudsource" in
         develcloud6)
-            CLOUDSLE12DISTPATH=${want_cloud6_iso_path:='/ibs/Devel:/Cloud:/6/images/iso'}
-            [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
-            CLOUDSLE12DISTISO=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}-Media1.iso"}
-            CLOUDSLE12TESTISO="CLOUD-6-TESTING-$arch*Media1.iso"
+            CLOUDISOPATH=${want_cloud6_iso_path:='/ibs/Devel:/Cloud:/6/images/iso'}
+            [ -n "$TESTHEAD" ] && CLOUDISOPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
+            CLOUDISONAME=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}-Media1.iso"}
+            CLOUDTESTISONAME="CLOUD-6-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         develcloud7)
-            CLOUDSLE12DISTPATH=${want_cloud7_iso_path:='/ibs/Devel:/Cloud:/7/images/iso'}
-            [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7:/Staging/images/iso
-            CLOUDSLE12DISTISO=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"}
-            CLOUDSLE12TESTISO="CLOUD-7-TESTING-${arch}-Media1.iso"
+            CLOUDISOPATH=${want_cloud7_iso_path:='/ibs/Devel:/Cloud:/7/images/iso'}
+            [ -n "$TESTHEAD" ] && CLOUDISOPATH=/ibs/Devel:/Cloud:/7:/Staging/images/iso
+            CLOUDISONAME=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"}
+            CLOUDTESTISONAME="CLOUD-7-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
         ;;
         mitakacloud7)
             # This is used by the CloudFoundry team. Do not remove!
-            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/7:/Mitaka/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"
-            CLOUDSLE12TESTISO="CLOUD-7-TESTING-${arch}-Media1.iso"
+            CLOUDISOPATH=/ibs/Devel:/Cloud:/7:/Mitaka/images/iso
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"
+            CLOUDTESTISONAME="CLOUD-7-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
         develcloud8)
-            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/8/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/8:/Staging/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-${arch}-Media1.iso"
-            CLOUDSLE12TESTISO="CLOUD-8-TESTING-${arch}-Media1.iso"
+            CLOUDISOPATH=/ibs/Devel:/Cloud:/8/images/iso
+            [ -n "$TESTHEAD" ] && CLOUDISOPATH=/ibs/Devel:/Cloud:/8:/Staging/images/iso
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-8-${arch}-Media1.iso"
+            CLOUDTESTISONAME="CLOUD-8-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-devel"
         ;;
         ocatacloud8)
             # This is used by the CloudFoundry team. Do not remove!
-            CLOUDSLE12DISTPATH=/ibs/Devel:/Cloud:/8:/Ocata/images/iso
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-${arch}-Media1.iso"
-            CLOUDSLE12TESTISO="CLOUD-8-TESTING-${arch}-Media1.iso"
+            CLOUDISOPATH=/ibs/Devel:/Cloud:/8:/Ocata/images/iso
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-8-${arch}-Media1.iso"
+            CLOUDTESTISONAME="CLOUD-8-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
         susecloud8)
-            CLOUDSLE12DISTPATH=/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/Cloud8/images/iso/
-            CLOUDSLE12DISTISO="SUSE-OPENSTACK-CLOUD-8-${arch}*Media1.iso"
-            CLOUDSLE12TESTISO="CLOUD-8-TESTING-${arch}*Media1.iso"
+            CLOUDISOPATH=/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/Cloud8/images/iso/
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-8-${arch}*Media1.iso"
+            CLOUDTESTISONAME="CLOUD-8-TESTING-${arch}*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
         GM6|GM6+up)
             cs=$cloudsource
             [[ $cs =~ GM6 ]] && cs=GM
-            CLOUDSLE12DISTPATH=${want_cloud6_iso_path:="/install/SLE-12-SP1-Cloud6-$cs/"}
-            CLOUDSLE12DISTISO=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}*1.iso"}
+            CLOUDISOPATH=${want_cloud6_iso_path:="/install/SLE-12-SP1-Cloud6-$cs/"}
+            CLOUDISONAME=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
         GM7|GM7+up|GMC*|M?)
             cs=${cloudsource/#M/Milestone}
             [[ $cs =~ GM7 ]] && cs=GM
-            CLOUDSLE12DISTPATH=${want_cloud7_iso_path:="/install/SLE-12-SP2-Cloud7-$cs/"}
-            CLOUDSLE12DISTISO=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}*1.iso"}
-            CLOUDSLE12TESTISO="CLOUD-7-TESTING-$arch*DVD1.iso"
+            CLOUDISOPATH=${want_cloud7_iso_path:="/install/SLE-12-SP2-Cloud7-$cs/"}
+            CLOUDISONAME=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}*1.iso"}
+            CLOUDTESTISONAME="CLOUD-7-TESTING-$arch*DVD1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
         *)
@@ -4128,11 +4128,11 @@ function oncontroller_prepare_functional_tests
     local mount_dir="/var/lib/Cloud-Testing"
     local repo_name="cloud-test"
 
-    if ! [[ $CLOUDSLE12TESTISO ]]; then
+    if ! [[ $CLOUDTESTISONAME ]]; then
         echo "Warning: Testing ISO for $cloudsource is not defined, functional tests are not available"
     else
         if ! $zypper lr "$repo_name" ; then
-            rsync_iso "$CLOUDSLE12DISTPATH" "$CLOUDSLE12TESTISO" "$mount_dir"
+            rsync_iso "$CLOUDISOPATH" "$CLOUDTESTISONAME" "$mount_dir"
             $zypper ar --refresh -c -G -f "$mount_dir" "$repo_name"
             zypper_refresh
             ensure_packages_installed python-novaclient-test python-manilaclient-test
@@ -4703,7 +4703,7 @@ function onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
 {
     export_tftpboot_repos_dir
 
-    # change CLOUDSLE11DISTISO/CLOUDSLE11DISTPATH according to the new cloudsource
+    # change CLOUDISONAME/CLOUDISOPATH according to the new cloudsource
     onadmin_set_source_variables
 
     # prepare installation repositories for nodes
@@ -4724,7 +4724,7 @@ function onadmin_prepare_cloudupgrade_admin_repos_6_to_7
 {
     export_tftpboot_repos_dir
 
-    # change CLOUDSLE11DISTISO/CLOUDSLE11DISTPATH according to the new cloudsource
+    # change CLOUDISONAME/CLOUDISOPATH according to the new cloudsource
     onadmin_set_source_variables
 
     # recreate the SUSE-Cloud Repo with the latest iso
@@ -4765,7 +4765,7 @@ function onadmin_prepare_cloudupgrade
     # Client nodes need to be up to date
     onadmin_cloudupgrade_clients
 
-    # change CLOUDSLE11DISTISO/CLOUDSLE11DISTPATH according to the new cloudsource
+    # change CLOUDISONAME/CLOUDISOPATH according to the new cloudsource
     onadmin_set_source_variables
 
     # recreate the SUSE-Cloud Repo with the latest iso
