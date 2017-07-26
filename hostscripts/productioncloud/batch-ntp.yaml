@@ -1,0 +1,15 @@
+---
+proposals:
+- barclamp: ntp
+  attributes:
+    external_servers:
+      - ntp1.cloud.suse.de.
+      - ntp2.cloud.suse.de.
+      - ntp3.cloud.suse.de.
+      - ntp4.cloud.suse.de.
+      - ntp5.cloud.suse.de.
+      - ntp6.cloud.suse.de.
+      - ntp1.suse.de.
+      - ntp2.suse.de.
+      - ntp1.zq1.de.
+      - ntp3.zq1.de.
