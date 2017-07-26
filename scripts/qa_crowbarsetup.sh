@@ -4952,41 +4952,6 @@ function onadmin_crowbarbackup
     [[ -e /tmp/$btarball ]] || complain 12 "Backup tarball not created: /tmp/$btarball"
 }
 
-function onadmin_crowbarpurge
-{
-    pre_hook $FUNCNAME
-    if iscloudver 6plus ; then
-        complain 3 "crowbarpurge is not implemented for Cloud 6+ (maybe not needed)"
-    fi
-
-    # Purge files to pretend we start from a clean state
-    cp -a $crowbar_lib_dir/cache/etc/resolv.conf /etc/resolv.conf
-
-    for service in crowbar chef-{server,solr,expander,client} couchdb apache2 named dhcpd xinetd rabbitmq-server ; do
-        [ -e /etc/init.d/$service ] && /etc/init.d/$service stop
-    done
-    killall epmd # part of rabbitmq
-    killall looper_chef_client.sh
-
-    safely $zypper rm \
-        `rpm -qa|grep -e crowbar -e chef -e rubygem -e susecloud -e apache2` \
-        couchdb createrepo erlang rabbitmq-server sleshammer yum-common \
-        bind bind-chrootenv dhcp-server tftp
-
-    rm -rf \
-        /opt/dell \
-        /etc/{bind,chef,crowbar,crowbar.install.key,dhcp3,xinetd.d/tftp} \
-        /etc/sysconfig/{dhcpd,named,rabbitmq-server} \
-        /var/lib/{chef,couchdb,crowbar,dhcp,named,rabbitmq} \
-        /var/run/{chef,crowbar,named,rabbitmq} \
-        /var/log/{apache2,chef,couchdb,crowbar,nodes,rabbitmq} \
-        /var/cache/chef \
-        /var/chef \
-        /srv/tftpboot/{discovery/pxelinux.cfg/*,nodes,validation.pem}
-
-    killall epmd ||: # need to kill again after uninstall
-}
-
 # parameters
 #  1:  method  GET|POST
 #  2:  api     schema://hostname.tld
