@@ -249,7 +249,6 @@ function sshrun
         export smtserver_ip=$smtserver_ip ;
         export smtserver_fqdn=$smtserver_fqdn ;
         export smturl=$smturl ;
-        export distsuse=$distsuse ;
         export susedownload=$susedownload ;
         export cloudfqdn=$cloudfqdn ;
         export cloudsource=$cloudsource ;

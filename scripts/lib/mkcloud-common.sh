@@ -548,8 +548,6 @@ function run_zypper
 # defaults for generic common variables
 : ${arch:=$(uname -m)}
 : ${admin_image_password:='linux'}
-: ${distsuse:=dist.nue.suse.com}
-distsuseip=$(dig -t A +short $distsuse)
 : ${susedownload:=download.nue.suse.com}
 
 # NOTE: $clouddata and similar variables are deprecated
