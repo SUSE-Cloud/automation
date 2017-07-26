@@ -1408,10 +1408,6 @@ EOF
 
 function onadmin_activate_repositories
 {
-    if iscloudver 5minus; then
-        complain 11 "This upgrade path is only supported for Cloud 6+"
-    fi
-
     # activate provisioner repos, so that nodes can use them
     safely crowbar_api_request POST $crowbar_api "/utils/repositories/activate_all.json"
 }
