@@ -2342,7 +2342,7 @@ function custom_configuration
 
             if iscloudver 7plus; then
                 # create (and test) the trusted flavors
-                proposal_set_value nova default "['attributes']['nova']['trusted_flavors']" "true"
+                #proposal_set_value nova default "['attributes']['nova']['trusted_flavors']" "true"
 
                 if [[ $hacloud = 1 ]] ; then
                     proposal_set_value nova default "['deployment']['nova']['elements']['ec2-api']" "['cluster:$clusternameservices']"
