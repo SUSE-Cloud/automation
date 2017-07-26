@@ -409,11 +409,6 @@ function addcloud7testupdates
         "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates-test/" "cloudtup"
 }
 
-function addcctdepsrepo
-{
-    add_sdk_repo
-}
-
 function add_sdk_repo
 {
     local sdk_repo_priority
@@ -5191,7 +5186,7 @@ function onadmin_run_cct
     local ret=0
     if [[ $cct_tests ]]; then
         # - install cct dependencies
-        addcctdepsrepo
+        add_sdk_repo
         ensure_packages_installed git-core gcc make ruby2.1-devel
 
         if [[ $cct_tests =~ ":ui:" ]]; then
