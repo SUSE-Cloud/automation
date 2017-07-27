@@ -921,6 +921,7 @@ function onadmin_prepareinstallcrowbar
     pre_hook $FUNCNAME
     [[ $forcephysicaladmin ]] || lsmod | grep -q ^virtio_blk || complain 25 "this script should be run in the crowbar admin VM"
     [[ $want_ssl_keys ]] && ! [[ -e /root/cloud-keys/ ]] && rsync -a "$want_ssl_keys/" /root/cloud-keys/
+    [[ -e /root/cloud-keys/crowbarsecrets.sh ]] && . /root/cloud-keys/crowbarsecrets.sh
     [[ $want_rootpw = linux ]] || echo -e "$want_rootpw\n$want_rootpw" | passwd
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
     # We want to use static networking which needs a static resolv.conf .
