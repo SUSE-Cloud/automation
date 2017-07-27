@@ -1,6 +1,6 @@
 #!/bin/bash
 hostname crowbar
-zypper ar http://clouddata.cloud.suse.de/repos/x86_64/SLES12-SP2-Pool/ pool
+zypper ar http://download.nue.suse.com/ibs/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/ pool
 zypper -n in git-core patch
 zypper rr pool
 git clone https://github.com/SUSE-Cloud/automation.git
