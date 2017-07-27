@@ -7,7 +7,7 @@ if [ -z "$n" ] ; then
         exit 1
 fi
 
-if [[ "$n" != crowbard2 && "$n" != crowbard3 ]] ; then
+if [[ "$n" != crowbarp2 ]] ; then
         echo "bad VM name"
         exit 2
 fi
@@ -33,6 +33,6 @@ onhost_prepareadmin
 virsh define $SCRIPTS_DIR/../hostscripts/gatehost/$n.xml # is OK to fail if already there
 virsh start $n
 sleep 100 # time for the admin VM to boot
-sshkey=`cat /home/jenkins/.ssh/id_rsa.pub`
-ssh_password $n "mkdir -p ~/.ssh ; echo '$sshkey' >> ~/.ssh/authorized_keys"
+sshkey=`cat /root/.ssh/id_rsa.pub`
+ssh_password $n.cloud.suse.de. "mkdir -p ~/.ssh ; echo '$sshkey' >> ~/.ssh/authorized_keys"
 

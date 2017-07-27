@@ -6,8 +6,9 @@ proposals:
       - ntp1.cloud.suse.de.
       - ntp2.cloud.suse.de.
       - ntp3.cloud.suse.de.
-      - ntp4.cloud.suse.de.
-      - ntp5.cloud.suse.de.
+      - kirk.provo.novell.com
+      - 1.us.pool.ntp.org.
+      - 2.us.pool.ntp.org.
       - ntp6.cloud.suse.de.
       - ntp1.suse.de.
       - ntp2.suse.de.
