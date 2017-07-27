@@ -8,6 +8,7 @@ cd automation
 git checkout provo
 cd scripts
 
+export debug_qa_crowbarsetup=1
 export want_ldap=1
 export want_all_ssl=1
 export controller_raid_volumes=2
