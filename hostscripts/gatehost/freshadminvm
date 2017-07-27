@@ -13,6 +13,7 @@ if [[ "$n" != crowbard2 && "$n" != crowbard3 ]] ; then
 fi
 
 virsh destroy $n
+virsh undefine $n
 
 echo "cloudsource=$cloudsource"
 rm -f mkcloud.config
