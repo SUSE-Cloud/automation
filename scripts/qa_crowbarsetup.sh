@@ -1290,7 +1290,7 @@ function onadmin_prepareinstallcrowbar
 {
     pre_hook $FUNCNAME
     [[ $forcephysicaladmin ]] || lsmod | grep -q ^virtio_blk || complain 25 "this script should be run in the crowbar admin VM"
-    [[ $want_ssl_keys ]] && rsync -a "$want_ssl_keys/" /root/cloud-keys/
+    [[ $want_ssl_keys ]] && ! [[ -e /root/cloud-keys/ ]] && rsync -a "$want_ssl_keys/" /root/cloud-keys/
     onadmin_repocleanup
     [[ $want_rootpw = linux ]] || echo -e "$want_rootpw\n$want_rootpw" | passwd
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
