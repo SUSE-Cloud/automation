@@ -3,9 +3,8 @@ hostname crowbar
 zypper ar http://download.nue.suse.com/ibs/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/ pool
 zypper -n in git-core patch
 zypper rr pool
-git clone https://github.com/SUSE-Cloud/automation.git
+git clone --branch provo --depth 1 https://github.com/SUSE-Cloud/automation.git
 cd automation
-git checkout provo
 git pull --rebase
 cd scripts
 
