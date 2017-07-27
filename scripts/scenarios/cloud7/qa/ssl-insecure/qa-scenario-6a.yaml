@@ -230,7 +230,7 @@ proposals:
   deployment:
     elements:
       trove-server:
-      - cluster:services
+      - "@@controller1@@"
 
 - barclamp: magnum
   attributes:
