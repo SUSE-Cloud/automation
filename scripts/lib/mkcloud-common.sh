@@ -263,7 +263,7 @@ function setcloudnetvars
         p2)
             net=192.168.76
             net_public=10.84.192
-            net_fixed=44.21.0
+            net_fixed=44.12.0
             vlan_storage=1198
             vlan_sdn=1199
             vlan_public=1197
