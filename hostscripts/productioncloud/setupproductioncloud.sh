@@ -6,6 +6,7 @@ zypper rr pool
 git clone https://github.com/SUSE-Cloud/automation.git
 cd automation
 git checkout provo
+git pull --rebase
 cd scripts
 
 export debug_qa_crowbarsetup=1
