@@ -72,6 +72,15 @@ TLS_CACERTDIR   /etc/ssl/certs/
 uri     ldaps://ldap.suse.de
 base    dc=suse,dc=de
 EOF
+
+cat > /srv/www/openstack-dashboard/openstack_dashboard/templates/_login_footer.html <<EOF
+<h1 style="color: #ffffff; text-align: center">
+Use R&D credentials to login here with Domain "ldap_users"
+<span style="color: #aaa">(or "Default" for the few non-LDAP users)</span>
+
+<a href="https://wiki.innerweb.novell.com/index.php/Cloud/cloud.suse.de">See wiki how to use the cloud</a>
+</h1>
+EOF
     '
 done
 
