@@ -261,15 +261,15 @@ function setcloudnetvars
             want_ipmi=1
         ;;
         p2)
-            net=$netp.171
-            net_public=$netp.164
-            net_fixed=44.0.0
-            vlan_storage=563
-            vlan_sdn=$vlan_storage
-            vlan_public=564
-            #vlan_admin=560
-            vlan_fixed=565
-            want_ipmi=1
+            net=192.168.76
+            net_public=10.84.192
+            net_fixed=44.21.0
+            vlan_storage=1198
+            vlan_sdn=1199
+            vlan_public=1197
+            #vlan_admin=1196
+            vlan_fixed=1200
+            want_ipmi=0
         ;;
         p3)
             nodenumbertotal=5

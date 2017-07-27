@@ -5,7 +5,7 @@ zypper -n in git-core patch
 zypper rr pool
 git clone https://github.com/SUSE-Cloud/automation.git
 cd automation
-git checkout p3
+git checkout provo
 cd scripts
 
 export want_ldap=1
@@ -14,7 +14,7 @@ export controller_raid_volumes=2
 export want_ssl_keys=root@cloud.suse.de:/etc/cloud-keys/
 export cloudsource=GM7+up
 export TESTHEAD=1 # for unreleased openstack-keystone and crowbar-openstack LDAP fixes
-export cloud=p3
+export cloud=p2
 export nodenumber=5
 export want_mtu_size=9000
 export hacloud=1
@@ -31,6 +31,8 @@ export want_node_roles=controller=2,compute=3
 #export want_node_aliases=dashboard=1,n1=1,n2=1
 export want_rootpw=securepassword
 export want_tempest=0
+export ipmi_ip_addrs="192.168.10.105 192.168.10.110 192.168.10.111 192.168.10.112 192.168.10.212 192.168.10.213 192.168.10.226 192.168.10.236 192.168.10.238 192.168.10.240 192.168.10.241 192.168.10.242 192.168.10.248 192.168.10.251 192.168.11.4 192.168.11.30 192.168.11.36"
+export want_ipmi_username=ENGCLOUD
 # avoid crashing controller node from ovs+gre (bnc#970720)
 # or use ethtool... gso off
 export networkingplugin=openvswitch
