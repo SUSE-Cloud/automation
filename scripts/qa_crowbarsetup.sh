@@ -1378,7 +1378,7 @@ EOF
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
         safely $zypper in -l -t pattern cloud_admin
         # make sure to use packages from PTF repo (needs zypper dup)
-        $zypper mr -e cloud-ptf && safely $zypper dup --no-recommends --from cloud-ptf
+        $zypper mr -G -e cloud-ptf && safely $zypper dup --no-recommends --from cloud-ptf
     fi
 
     cd /tmp
@@ -3069,7 +3069,7 @@ function prepare_proposals
 
     local ptfchannel="PTF"
     for machine in $(get_all_nodes); do
-        ssh $machine "zypper mr -p 90 $ptfchannel"
+        ssh $machine "zypper mr -G -p 90 $ptfchannel"
     done
 
 }
@@ -4531,7 +4531,7 @@ function onadmin_addupdaterepo
     fi
     $zypper modifyrepo -e cloud-ptf >/dev/null 2>&1 ||\
         safely $zypper ar $UPR cloud-ptf
-    safely $zypper mr -p 90 -r cloud-ptf
+    safely $zypper mr -G -p 90 -r cloud-ptf
     safely $zypper ref
     if iscloudver 7minus ; then
         # workaround missing in cloud 6 GM and 7 GM: https://github.com/crowbar/crowbar/pull/2320
