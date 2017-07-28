@@ -731,7 +731,7 @@ function onadmin_prepare_sles12sp1_installmedia
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$a/install"
         add_mount "SLE-12-SP1-Server-LATEST/sle-12-$a" \
             "CDROOT" \
-            "suse-12.1/$a/install" \
+            "install/suse-12.1/$a/install" \
             "$sles12sp1_mount"
 
         if [ ! -d "$sles12sp1_mount/media.1" ] ; then
@@ -747,7 +747,7 @@ function onadmin_prepare_sles12sp2_installmedia
         local sles12sp2_mount="$tftpboot_suse12sp2_dir/$a/install"
         add_mount "SLE-12-SP2-Server-TEST/sle-12-$a" \
             "CDROOT" \
-            "suse-12.2/$a/install" \
+            "install/suse-12.2/$a/install" \
             "$sles12sp2_mount"
 
         if [ ! -d "$sles12sp2_mount/media.1" ] ; then
@@ -763,7 +763,7 @@ function onadmin_prepare_sles12sp3_installmedia
         local sles12sp3_mount="$tftpboot_suse12sp3_dir/$a/install"
         add_mount "SLE-12-SP3-Server-TEST/sle-12-$a" \
             "CDROOT" \
-            "suse-12.3/$a/install" \
+            "install/suse-12.3/$a/install" \
             "$sles12sp3_mount"
 
         if [ ! -d "$sles12sp3_mount/media.1" ] ; then
