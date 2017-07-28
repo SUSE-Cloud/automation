@@ -1197,7 +1197,9 @@ function onadmin_set_source_variables
         ;;
     esac
 
-    [ -n "$TESTHEAD" ] && CLOUDLOCALREPOS="$CLOUDLOCALREPOS-staging"
+    if [ -n "$TESTHEAD" ] && [[ $cloudsource =~ (develcloud) ]]; then
+        CLOUDLOCALREPOS="$CLOUDLOCALREPOS-staging"
+    fi
 
     case "$suseversion" in
         12.1)
