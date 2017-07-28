@@ -2489,6 +2489,8 @@ function custom_configuration
             fi
         ;;
         provisioner)
+            proposal_set_value provisioner default "['attributes']['provisioner']['serial_tty']" "\"ttyS1,115200\""
+            proposal_set_value provisioner default "['attributes']['provisioner']['use_serial_console']" "true"
             # set default password
             proposal_set_value provisioner default "['attributes']['provisioner']['root_password_hash']" "\"$(openssl passwd -1 $want_rootpw)\""
             # set discovery root password too
