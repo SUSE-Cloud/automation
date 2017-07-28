@@ -1417,7 +1417,7 @@ function onadmin_allocate
 {
     pre_hook $FUNCNAME
 
-    if [[ $want_ipmi = 1 ]] ; then
+    if [[ ${want_ipmi_reboot:-$want_ipmi} = 1 ]] ; then
         reboot_nodes_via_ipmi
     fi
 
