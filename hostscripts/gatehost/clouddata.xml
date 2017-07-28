@@ -27,7 +27,7 @@
     </disk>
     <disk type='block' device='disk'>
       <driver name='qemu' type='raw'/>
-      <source dev='/dev/gate/clouddatadata'/>
+      <source dev='/dev/system/clouddatadata'/>
       <target dev='vdb' bus='virtio'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
     </disk>
