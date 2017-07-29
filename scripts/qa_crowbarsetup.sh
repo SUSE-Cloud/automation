@@ -275,17 +275,17 @@ function isrepoworking
     return 0
 }
 
-function export_tftpboot_repos_dir
+function export_tftpboot_dirs
 {
     if iscloudver 8plus ; then
         tftpboot_suse12sp3_dir=/srv/tftpboot/suse-12.3
-        tftpboot_repos12sp3_dir=$tftpboot_suse12sp3_dir/$arch/repos
+        tftpboot_repos_dir=$tftpboot_suse12sp3_dir/$arch/repos
     elif iscloudver 7 ; then
         tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
-        tftpboot_repos12sp2_dir=$tftpboot_suse12sp2_dir/$arch/repos
+        tftpboot_repos_dir=$tftpboot_suse12sp2_dir/$arch/repos
     elif iscloudver 6; then
         tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos12sp1_dir=$tftpboot_suse12sp1_dir/$arch/repos
+        tftpboot_repos_dir=$tftpboot_suse12sp1_dir/$arch/repos
     fi
 }
 
@@ -295,20 +295,20 @@ function addsles12sp1testupdates
         add_mount "SLES12-SP1-Updates-test" \
             "CDREPOS" \
             "$arch/SLES12-SP1-Updates-test/" \
-            "$tftpboot_repos12sp1_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
+            "$tftpboot_repos_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     fi
     if isrepoworking SLE12-SP1-HA-Updates-test ; then
         [[ $hacloud = 1 ]] && add_mount "SLE12-SP1-HA-Updates-test" \
             "CDREPOS" \
             "$arch/SLE12-SP1-HA-Updates-test/" \
-            "$tftpboot_repos12sp1_dir/SLE12-SP1-HA-Updates-test/"
+            "$tftpboot_repos_dir/SLE12-SP1-HA-Updates-test/"
     fi
     if isrepoworking SUSE-Enterprise-Storage-2.1-Updates-test ; then
         if [ -n "$deployceph" ] && iscloudver 6; then
             add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
                       "CDREPOS" \
                       "$arch/SUSE-Enterprise-Storage-2.1-Updates-test/" \
-                      "$tftpboot_repos12sp1_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
+                      "$tftpboot_repos_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
         fi
     fi
 }
@@ -319,83 +319,51 @@ function addsles12sp2testupdates
         add_mount "SLES12-SP2-Updates-test" \
             "CDREPOS" \
             "$arch/SLES12-SP2-Updates-test/" \
-            "$tftpboot_repos12sp2_dir/SLES12-SP2-Updates-test/" "sles12sp2tup"
+            "$tftpboot_repos_dir/SLES12-SP2-Updates-test/" "sles12sp2tup"
     fi
     if isrepoworking SLE12-SP2-HA-Updates-test ; then
         [[ $hacloud = 1 ]] && add_mount "SLE12-SP2-HA-Updates-test" \
             "CDREPOS" \
             "$arch/SLE12-SP2-HA-Updates-test/" \
-            "$tftpboot_repos12sp2_dir/SLE12-SP2-HA-Updates-test/"
+            "$tftpboot_repos_dir/SLE12-SP2-HA-Updates-test/"
     fi
     if isrepoworking SUSE-Enterprise-Storage-4-Updates-test ; then
         if [ -n "$deployceph" ] && iscloudver 7plus; then
             add_mount "SUSE-Enterprise-Storage-4-Updates-test" \
                       "CDREPOS" \
                       "$arch/SUSE-Enterprise-Storage-4-Updates-test/" \
-                      "$tftpboot_repos12sp2_dir/SUSE-Enterprise-Storage-4-Updates-test/"
+                      "$tftpboot_repos_dir/SUSE-Enterprise-Storage-4-Updates-test/"
         fi
     fi
 }
 
-function addcloud6maintupdates
+function addcloudmaintupdates
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Updates" \
+    local cloudver=$(getcloudver)
+    add_mount "SUSE-OpenStack-Cloud-$cloudver-Updates" \
         "CDREPOS" \
-        "$arch/SUSE-OpenStack-Cloud-6-Updates/" \
-        "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates/" \
+        "$arch/SUSE-OpenStack-Cloud-$cloudver-Updates/" \
+        "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Updates/" \
         "cloudmaintup"
 }
 
-function addcloud6testupdates
+function addcloudtestupdates
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Updates-test" \
+    local cloudver=$(getcloudver)
+    add_mount "SUSE-OpenStack-Cloud-$cloudver-Updates-test" \
         "CDREPOS" \
-        "$arch/SUSE-OpenStack-Cloud-6-Updates-test/" \
-        "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Updates-test/" "cloudtup"
+        "$arch/SUSE-OpenStack-Cloud-$cloudver-Updates-test/" \
+        "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Updates-test/" "cloudtup"
 }
 
-function addcloud6pool
+function addcloudpool
 {
-    add_mount "SUSE-OpenStack-Cloud-6-Pool" \
+    local cloudver=$(getcloudver)
+    add_mount "SUSE-OpenStack-Cloud-$cloudver-Pool" \
         "CDREPOS" \
-        "$arch/SUSE-OpenStack-Cloud-6-Pool/" \
-        "$tftpboot_repos12sp1_dir/SUSE-OpenStack-Cloud-6-Pool/" \
+        "$arch/SUSE-OpenStack-Cloud-$cloudver-Pool/" \
+        "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Pool/" \
         "cloudpool"
-}
-
-function addcloud7pool
-{
-    add_mount "SUSE-OpenStack-Cloud-7-Pool" \
-        "CDREPOS" \
-        "$arch/SUSE-OpenStack-Cloud-7-Pool/" \
-        "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Pool/" \
-        "cloudpool"
-}
-
-function addcloud8pool
-{
-    add_mount "SUSE-OpenStack-Cloud-8-Pool" \
-        "CDREPOS" \
-        "repos/$arch/SUSE-OpenStack-Cloud-8-Pool/" \
-        "$tftpboot_repos12sp3_dir/SUSE-OpenStack-Cloud-8-Pool/" \
-        "cloudpool"
-}
-
-function addcloud7maintupdates
-{
-    add_mount "SUSE-OpenStack-Cloud-7-Updates" \
-        "CDREPOS" \
-        "$arch/SUSE-OpenStack-Cloud-7-Updates/" \
-        "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates/" \
-        "cloudmaintup"
-}
-
-function addcloud7testupdates
-{
-    add_mount "SUSE-OpenStack-Cloud-7-Updates-test" \
-        "CDREPOS" \
-        "$arch/SUSE-OpenStack-Cloud-7-Updates-test/" \
-        "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates-test/" "cloudtup"
 }
 
 function add_sdk_repo
@@ -403,7 +371,7 @@ function add_sdk_repo
     local sdk_repo_priority
     sdk_repo_priority=199
 
-    export_tftpboot_repos_dir
+    export_tftpboot_dirs
 
     case $(getcloudver) in
         6)
@@ -419,7 +387,7 @@ function add_sdk_repo
                 add_mount "SLE12-SP1-SDK-Updates-test" \
                     "CDREPOS" \
                     "$arch/SLE12-SP1-SDK-Updates-test/" \
-                    "$tftpboot_repos12sp1_dir/SLE12-SP1-SDK-Updates-test/" "SDK-SP1-Update-test"
+                    "$tftpboot_repos_dir/SLE12-SP1-SDK-Updates-test/" "SDK-SP1-Update-test"
             fi
             ;;
         7)
@@ -430,7 +398,7 @@ function add_sdk_repo
                 add_mount "SLE12-SP2-SDK-Updates-test" \
                     "CDREPOS" \
                     "$arch/SLE12-SP2-SDK-Updates-test/" \
-                    "$tftpboot_repos12sp2_dir/SLE12-SP2-SDK-Updates-test/" "SDK-SP2-Update-test"
+                    "$tftpboot_repos_dir/SLE12-SP2-SDK-Updates-test/" "SDK-SP2-Update-test"
             fi
             ;;
         8)
@@ -441,7 +409,7 @@ function add_sdk_repo
                 add_mount "SLE12-SP3-SDK-Updates-test" \
                     "CDREPOS" \
                     "$arch/SLE12-SP3-SDK-Updates-test/" \
-                    "$tftpboot_repos12sp3_dir/SLE12-SP3-SDK-Updates-test/" "SDK-SP3-Update-test"
+                    "$tftpboot_repos_dir/SLE12-SP3-SDK-Updates-test/" "SDK-SP3-Update-test"
             fi
             ;;
     esac
@@ -464,7 +432,7 @@ function add_ha12sp1_repo
         add_mount "$repo" \
             "CDREPOS" \
             "$arch/$repo" \
-            "$tftpboot_repos12sp1_dir/$repo"
+            "$tftpboot_repos_dir/$repo"
     done
 }
 
@@ -477,7 +445,7 @@ function add_ha12sp2_repo
         add_mount "$repo" \
             "CDREPOS" \
             "$arch/$repo" \
-            "$tftpboot_repos12sp2_dir/$repo"
+            "$tftpboot_repos_dir/$repo"
     done
 }
 
@@ -490,7 +458,7 @@ function add_ha12sp3_repo
         add_mount "$repo" \
             "CDREPOS" \
             "$arch/$repo" \
-            "$tftpboot_repos12sp3_dir/$repo"
+            "$tftpboot_repos_dir/$repo"
     done
 }
 
@@ -504,7 +472,7 @@ function add_suse_storage_repo
                 add_mount "$repo" \
                     "CDREPOS" \
                     "$arch/$repo" \
-                    "$tftpboot_repos12sp1_dir/$repo"
+                    "$tftpboot_repos_dir/$repo"
             done
         fi
         if iscloudver 7plus; then
@@ -514,7 +482,7 @@ function add_suse_storage_repo
                 add_mount "$repo" \
                     "CDREPOS" \
                     "$arch/$repo" \
-                    "$tftpboot_repos12sp2_dir/$repo"
+                    "$tftpboot_repos_dir/$repo"
             done
         fi
 }
@@ -741,37 +709,17 @@ function onadmin_prepare_sles12plus_cloud_repos
     ensure_packages_installed createrepo
 
     local sles12optionalrepolist
-    local targetdir
-    if iscloudver 8plus; then
+    local cloudver=$(getcloudver)
+    if iscloudver 6plus; then
         sles12optionalrepolist=(
-            SUSE-OpenStack-Cloud-8-Pool
-            SUSE-OpenStack-Cloud-8-Updates
+            SUSE-OpenStack-Cloud-$cloudver-Pool
+            SUSE-OpenStack-Cloud-$cloudver-Updates
         )
-        targetdir="$tftpboot_repos12sp3_dir"
-    elif iscloudver 7plus; then
-        sles12optionalrepolist=(
-            SUSE-OpenStack-Cloud-7-Pool
-            SUSE-OpenStack-Cloud-7-Updates
-        )
-        targetdir="$tftpboot_repos12sp2_dir"
-    elif iscloudver 6; then
-        sles12optionalrepolist=(
-            SUSE-OpenStack-Cloud-6-Pool
-            SUSE-OpenStack-Cloud-6-Updates
-        )
-        targetdir="$tftpboot_repos12sp1_dir"
-    else
-        sles12optionalrepolist=(
-            SLE-12-Cloud-Compute5-Pool
-            SLE-12-Cloud-Compute5-Updates
-        )
-        targetdir="$tftpboot_repos12_dir"
     fi
-
     for repo in ${sles12optionalrepolist[@]}; do
-        if [ ! -e "$targetdir/$repo/repodata/" ] ; then
-            mkdir -p "$targetdir/$repo"
-            safely createrepo "$targetdir/$repo"
+        if [ ! -e "$tftpboot_repos_dir/$repo/repodata/" ] ; then
+            mkdir -p "$tftpboot_repos_dir/$repo"
+            safely createrepo "$tftpboot_repos_dir/$repo"
         fi
     done
 }
@@ -830,7 +778,7 @@ function onadmin_prepare_sles12sp1_other_repos
         add_mount "$repo/sle-12-$arch" \
             "CDREPOS" \
             "$arch/$repo" \
-            "$tftpboot_repos12sp1_dir/$repo"
+            "$tftpboot_repos_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" \
                 "CDREPOS" \
@@ -846,7 +794,7 @@ function onadmin_prepare_sles12sp2_other_repos
         add_mount "$repo/sle-12-$arch" \
             "CDREPOS" \
             "$arch/$repo" \
-            "$tftpboot_repos12sp2_dir/$repo"
+            "$tftpboot_repos_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" \
                 "CDREPOS" \
@@ -862,7 +810,7 @@ function onadmin_prepare_sles12sp3_other_repos
         add_mount "$repo/sle-12-$arch" \
             "CDREPOS" \
             "$arch/$repo" \
-            "$tftpboot_repos12sp3_dir/$repo"
+            "$tftpboot_repos_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" \
                 "CDREPOS" \
@@ -874,15 +822,8 @@ function onadmin_prepare_sles12sp3_other_repos
 
 function onadmin_prepare_cloud_repos
 {
-    local targetdir=
-    if iscloudver 8plus; then
-        targetdir="$tftpboot_repos12sp3_dir/Cloud"
-    elif iscloudver 7plus; then
-        targetdir="$tftpboot_repos12sp2_dir/Cloud"
-    elif iscloudver 6plus; then
-        targetdir="$tftpboot_repos12sp1_dir/Cloud"
-    fi
-    mkdir -p ${targetdir}
+    local targetdir="$tftpboot_repos_dir/Cloud"
+    mkdir -p $targetdir
 
     if [ -n "${localreposdir_target}" ]; then
         add_mount "${CLOUDLOCALREPOS}" \
@@ -896,27 +837,27 @@ function onadmin_prepare_cloud_repos
         fi
     fi
 
-    if [ ! -e "${targetdir}/media.1" ] ; then
-        complain 35 "We do not have cloud install media in ${targetdir} - giving up"
+    if [ ! -e "$targetdir/media.1" ] ; then
+        complain 35 "We do not have cloud install media in $targetdir - giving up"
     fi
 
     case "$cloudsource" in
         GM6)
-            addcloud6pool
+            addcloudpool
             ;;
         GM6+up)
-            addcloud6pool
-            addcloud6maintupdates
+            addcloudpool
+            addcloudmaintupdates
             ;;
         GM7)
-            addcloud7pool
+            addcloudpool
             ;;
         GM7+up)
-            addcloud7pool
-            addcloud7maintupdates
+            addcloudpool
+            addcloudmaintupdates
             ;;
         GM8)
-            addcloud8pool
+            addcloudpool
             ;;
     esac
 
@@ -927,14 +868,14 @@ function onadmin_prepare_cloud_repos
                 ;;
             GM6+up)
                 addsles12sp1testupdates
-                addcloud6testupdates
+                addcloudtestupdates
                 ;;
             GM7)
                 addsles12sp2testupdates
                 ;;
             GM7+up)
                 addsles12sp2testupdates
-                addcloud7testupdates
+                addcloudtestupdates
                 ;;
             GM8)
                 addsles12sp3testupdates
@@ -962,17 +903,10 @@ function onadmin_prepare_cloud_repos
 
 function onadmin_add_cloud_repo
 {
-    local targetdir=
-    if iscloudver 8; then
-        targetdir="$tftpboot_repos12sp3_dir/Cloud/"
-    elif iscloudver 7; then
-        targetdir="$tftpboot_repos12sp2_dir/Cloud/"
-    elif iscloudver 6; then
-        targetdir="$tftpboot_repos12sp1_dir/Cloud/"
-    fi
+    local targetdir="$tftpboot_repos_dir/Cloud/"
 
     $zypper rr Cloud
-    safely $zypper ar -f ${targetdir} Cloud
+    safely $zypper ar -f $targetdir Cloud
 
     if [ -n "${localreposdir_target}" ]; then
         echo $CLOUDLOCALREPOS > /etc/cloudversion
@@ -1094,7 +1028,7 @@ function create_repos_yml
                     ;;
             esac
         done
-        create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos12sp1_dir" \
+        create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos_dir" \
             $additional_repos \
             >> $tmp_yml
     fi
@@ -1113,7 +1047,7 @@ function create_repos_yml
                     ;;
             esac
         done
-        create_repos_yml_for_platform "suse-12.2" "x86_64" "$tftpboot_repos12sp2_dir" \
+        create_repos_yml_for_platform "suse-12.2" "x86_64" "$tftpboot_repos_dir" \
             $additional_repos \
             >> $tmp_yml
     fi
@@ -4449,14 +4383,7 @@ function onadmin_addupdaterepo
 
     local repos=$UPDATEREPOS
     local extra_repos=${1}
-    local UPR=
-    if iscloudver 8; then
-        UPR=$tftpboot_repos12sp3_dir/PTF
-    elif iscloudver 7; then
-        UPR=$tftpboot_repos12sp2_dir/PTF
-    elif iscloudver 6; then
-        UPR=$tftpboot_repos12sp1_dir/PTF
-    fi
+    local UPR=$tftpboot_repos_dir/PTF
     mkdir -p $UPR
 
     # Extra repos can be fetched on demand to the ptf repo
@@ -4745,7 +4672,7 @@ zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgr
 # This will adapt Cloud6 nodes repositories to Cloud7 ones
 function onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
 {
-    export_tftpboot_repos_dir
+    export_tftpboot_dirs
 
     # change CLOUDISONAME/CLOUDISOPATH according to the new cloudsource
     onadmin_set_source_variables
@@ -4766,7 +4693,7 @@ function onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
 # This will adapt Cloud6 admin server repositories to Cloud7 ones
 function onadmin_prepare_cloudupgrade_admin_repos_6_to_7
 {
-    export_tftpboot_repos_dir
+    export_tftpboot_dirs
 
     # change CLOUDISONAME/CLOUDISOPATH according to the new cloudsource
     onadmin_set_source_variables
@@ -4775,15 +4702,15 @@ function onadmin_prepare_cloudupgrade_admin_repos_6_to_7
     onadmin_prepare_cloud_repos
 
     # Pool repositories presence are required for nodes repocheck step during upgrade
-    addcloud7pool
-    addcloud7maintupdates
+    addcloudpool
+    addcloudmaintupdates
     onadmin_add_cloud_repo
 
     # create skeleton for PTF repositories
     # during installation, this would be done by install-suse-cloud
-    mkdir -p $tftpboot_repos12sp2_dir/PTF
+    mkdir -p $tftpboot_repos_dir/PTF
     ensure_packages_installed createrepo
-    safely createrepo $tftpboot_repos12sp2_dir/PTF
+    safely createrepo $tftpboot_repos_dir/PTF
 
     # change system repositories to SP2
     $zypper rr sles12sp1
@@ -4804,7 +4731,7 @@ function onadmin_prepare_cloudupgrade
     wait_for_if_running chef-client
 
     # Update new repo paths
-    export_tftpboot_repos_dir
+    export_tftpboot_dirs
 
     # Client nodes need to be up to date
     onadmin_cloudupgrade_clients
@@ -5382,7 +5309,7 @@ function onadmin_runlist
 #--
 
 common_set_slesversions
-export_tftpboot_repos_dir
+export_tftpboot_dirs
 set_proposalvars
 set_noproxyvar
 handle_service_dependencies || :
