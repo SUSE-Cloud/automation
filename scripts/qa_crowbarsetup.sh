@@ -1126,14 +1126,6 @@ function create_repos_yml
 
 function onadmin_set_source_variables
 {
-    if iscloudver 7; then
-        suseversion=12.2
-    elif iscloudver 6; then
-        suseversion=12.1
-    else
-        suseversion=12.3
-    fi
-
     case "$cloudsource" in
         develcloud6)
             CLOUDISOPATH=${want_cloud6_iso_path:='/ibs/Devel:/Cloud:/6/images/iso'}
@@ -1207,20 +1199,7 @@ function onadmin_set_source_variables
         CLOUDLOCALREPOS="$CLOUDLOCALREPOS-staging"
     fi
 
-    case "$suseversion" in
-        12.1)
-            slesversion=12-SP1
-            slesdist=SLE_12_SP1
-        ;;
-        12.2)
-            slesversion=12-SP2
-            slesdist=SLE_12_SP2
-        ;;
-        12.3)
-            slesversion=12-SP3
-            slesdist=SLE_12_SP3
-        ;;
-    esac
+    common_set_slesversions
 }
 
 # replace zypper repos from the image with user-specified ones
@@ -1806,15 +1785,7 @@ function onadmin_allocate
             $(get_all_discovered_nodes | head -n 2)
         )
 
-    if iscloudver 6; then
-        controller_os="suse-12.1"
-    fi
-    if iscloudver 7 ; then
-        controller_os="suse-12.2"
-    fi
-    if iscloudver 8plus ; then
-        controller_os="suse-12.3"
-    fi
+    controller_os="suse-$suseversion"
 
     echo "Setting first node to controller..."
     set_node_role_and_platform ${controllernodes[0]} "controller" $controller_os
