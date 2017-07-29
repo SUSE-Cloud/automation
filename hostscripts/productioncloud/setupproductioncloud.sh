@@ -61,7 +61,7 @@ EOF
 )
 
 export pre_do_installcrowbar=$(base64 -w 0 <<EOF
-( cd /opt/dell/ ; ln -s barclamps/core/updates ; curl https://github.com/crowbar/crowbar-core/compare/stable/4.0...SUSE-Cloud:p2cloud.patch | patch -p1 )
+( cd /opt/dell/ ; ln -s barclamps/core/updates ; curl https://github.com/crowbar/crowbar-core/compare/stable/4.0...SUSE-Cloud:p2cloud.patch | patch -p1 --batch )
 EOF
 )
 
