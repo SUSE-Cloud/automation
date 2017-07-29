@@ -267,25 +267,13 @@ function addsles12sp1testupdates
         add_mount "repos/$arch/SLES12-SP1-Updates-test/" \
             "$tftpboot_repos_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     fi
-   if isrepoworking SUSE-Enterprise-Storage-2.1-Updates-test ; then
-        if [ -n "$deployceph" ] && iscloudver 6; then
-            add_mount "repos/$arch/SUSE-Enterprise-Storage-2.1-Updates-test/" \
-                      "$tftpboot_repos_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
-        fi
-    fi
 }
 
-function addsles12sp2testupdates
+function addslestestupdates
 {
-    if isrepoworking SLES12-SP2-Updates-test ; then
-        add_mount "repos/$arch/SLES12-SP2-Updates-test/" \
-            "$tftpboot_repos_dir/SLES12-SP2-Updates-test/" "sles12sp2tup"
-    fi
-    if isrepoworking SUSE-Enterprise-Storage-4-Updates-test ; then
-        if [ -n "$deployceph" ] && iscloudver 7plus; then
-            add_mount "repos/$arch/SUSE-Enterprise-Storage-4-Updates-test/" \
-                      "$tftpboot_repos_dir/SUSE-Enterprise-Storage-4-Updates-test/"
-        fi
+    if isrepoworking SLES$slesversion-Updates-test ; then
+        add_mount "repos/$arch/SLES$slesversion-Updates-test/" \
+            "$tftpboot_repos_dir/SLES$slesversion-Updates-test/" "slestup"
     fi
 }
 
@@ -356,23 +344,21 @@ function add_ha_repo
 
 function add_suse_storage_repo
 {
-        local repo
-        if iscloudver 6; then
-            for repo in SUSE-Enterprise-Storage-2.1-{Pool,Updates}; do
-                # Note no zypper alias parameter here since we don't want
-                # to zypper addrepo on the admin node.
-                add_mount "repos/$arch/$repo" \
-                    "$tftpboot_repos_dir/$repo"
-            done
+    # Note no zypper alias parameter here since we don't want
+    # to zypper addrepo on the admin node.
+    local repo
+    if [ -n "$deployceph" ]; then
+        for repo in SUSE-Enterprise-Storage-$sesversion-{Pool,Updates}; do
+            add_mount "repos/$arch/$repo" "$tftpboot_repos_dir/$repo"
+        done
+
+        if [[ "$want_test_updates" = 1 ]] ; then
+            if isrepoworking SUSE-Enterprise-Storage-$sesversion-Updates-test ; then
+                add_mount "repos/$arch/SUSE-Enterprise-Storage-$sesversion-Updates-test/" \
+                    "$tftpboot_repos_dir/SUSE-Enterprise-Storage-$sesversion-Updates-test/"
+            fi
         fi
-        if iscloudver 7; then
-            for repo in SUSE-Enterprise-Storage-4-{Pool,Updates}; do
-                # Note no zypper alias parameter here since we don't want
-                # to zypper addrepo on the admin node.
-                add_mount "repos/$arch/$repo" \
-                    "$tftpboot_repos_dir/$repo"
-            done
-        fi
+    fi
 }
 
 function get_disk_id_by_serial_and_libvirt_type
@@ -718,27 +704,27 @@ function onadmin_prepare_cloud_repos
                 addcloudtestupdates
                 ;;
             GM7)
-                addsles12sp2testupdates
+                addslestestupdates
                 ;;
             GM7+up)
-                addsles12sp2testupdates
+                addslestestupdates
                 addcloudtestupdates
                 ;;
             GM8)
-                addsles12sp3testupdates
+                addslestestupdates
                 ;;
             GM8+up)
-                addsles12sp3testupdates
-                addcloud8testupdates
+                addslestestupdates
+                addcloudtestupdates
                 ;;
             develcloud6)
                 addsles12sp1testupdates
                 ;;
             *cloud7)
-                addsles12sp2testupdates
+                addslestestupdates
                 ;;
             *cloud8|M?|Beta*|RC*|GMC*)
-                addsles12sp3testupdates
+                addslestestupdates
                 ;;
             *)
                 complain 26 "no test update repos defined for cloudsource=$cloudsource"
@@ -853,10 +839,8 @@ function create_repos_yml
         additional_repos+=" SLE$slesversion-HA-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLE$slesversion-HA-Updates-test"
     grep -q SUSE-OpenStack-Cloud-$cloudver-Updates-test /etc/fstab && \
         additional_repos+=" SUSE-OpenStack-Cloud-$cloudver-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SUSE-OpenStack-Cloud-$cloudver-Updates-test"
-    grep -q SUSE-Enterprise-Storage-4-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-Enterprise-Storage-4-Updates-test=$baseurl/suse-12.2/$arch/repos/SUSE-Enterprise-Storage-4-Updates-test"
-    grep -q SUSE-Enterprise-Storage-2.1-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-Enterprise-Storage-2.1-Updates-test=$baseurl/suse-12.1/$arch/repos/SUSE-Enterprise-Storage-2.1-Updates-test"
+    grep -q SUSE-Enterprise-Storage-$sesversion-Updates-test /etc/fstab && \
+        additional_repos+=" SUSE-Enterprise-Storage-$sesversion-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SUSE-Enterprise-Storage-$sesversion-Updates-test"
 
     if iscloudver 6; then
         for devel_repo in ${want_devel_repos//,/ }; do

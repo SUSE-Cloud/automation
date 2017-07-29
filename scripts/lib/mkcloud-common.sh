@@ -547,14 +547,17 @@ function common_set_slesversions
         12.1)
             slesversion=12-SP1
             slesdist=SLE_12_SP1
+            sesversion=2.1
         ;;
         12.2)
             slesversion=12-SP2
             slesdist=SLE_12_SP2
+            sesversion=4
         ;;
         12.3)
             slesversion=12-SP3
             slesdist=SLE_12_SP3
+            sesversion=5
         ;;
     esac
 }
