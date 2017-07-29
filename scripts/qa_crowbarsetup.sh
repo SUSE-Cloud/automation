@@ -1223,15 +1223,6 @@ function onadmin_set_source_variables
     esac
 }
 
-
-function onadmin_repocleanup
-{
-    # Workaround broken admin image that has SP3 Test update channel enabled
-    $zypper mr -d sp3tup
-    # disable extra repos
-    $zypper mr -d sp3sdk
-}
-
 # replace zypper repos from the image with user-specified ones
 # because the reposerver might not be reachable from where this runs
 function onadmin_setup_local_zypper_repositories
@@ -1289,7 +1280,6 @@ function onadmin_prepareinstallcrowbar
     pre_hook $FUNCNAME
     [[ $forcephysicaladmin ]] || lsmod | grep -q ^virtio_blk || complain 25 "this script should be run in the crowbar admin VM"
     [[ $want_ssl_keys ]] && ! [[ -e /root/cloud-keys/ ]] && rsync -a "$want_ssl_keys/" /root/cloud-keys/
-    onadmin_repocleanup
     [[ $want_rootpw = linux ]] || echo -e "$want_rootpw\n$want_rootpw" | passwd
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
     # We want to use static networking which needs a static resolv.conf .
@@ -4570,8 +4560,6 @@ function onadmin_wait_for_crowbar_api
 
 function onadmin_runupdate
 {
-    onadmin_repocleanup
-
     pre_hook $FUNCNAME
 
     # We need to set the correct MTU here since we haven't done any
