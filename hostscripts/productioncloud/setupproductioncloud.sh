@@ -22,7 +22,7 @@ export architectures="x86_64"
 export cloudsource=GM7+up
 #export TESTHEAD=1 # for unreleased openstack-keystone and crowbar-openstack LDAP fixes
 export cloud=p2
-export nodenumber=5
+export nodenumber=12
 export want_mtu_size=9000
 export hacloud=1
 export clusterconfig='services+data+network=2'

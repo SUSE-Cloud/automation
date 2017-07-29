@@ -1384,15 +1384,15 @@ function reboot_nodes_via_ipmi
         let i++
         local ipmicmd="ipmitool -I lanplus -H $ip -U $want_ipmi_username"
         local pw
-        for pw in 'cr0wBar!' $extraipmipw ; do
-            if timeout 5 $ipmicmd -P $pw mc info ; then
+        for pw in $extraipmipw ; do
+            #if timeout 5 $ipmicmd -P $pw mc info ; then
                 ipmicmd+=" -P $pw"
-                break
-            fi
+            #    break
+            #fi
         done
-        safely timeout 5 $ipmicmd mc info
+        #safely timeout 5 $ipmicmd mc info
 
-        if [[ $i -gt $nodenumber ]]; then
+        if false && [[ $i -gt $nodenumber ]]; then
             # power off extra nodes
             $ipmicmd power off
             wait_for 30 2 "$ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
@@ -1405,8 +1405,8 @@ function reboot_nodes_via_ipmi
             fi
 
             $ipmicmd chassis bootdev pxe options=persistent
-            $ipmicmd power off
-            wait_for 30 2 "timeout 5 $ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
+            $ipmicmd power reset
+            #wait_for 30 2 "timeout 5 $ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
             $ipmicmd power on
             wait_for 30 2 "timeout 5 $ipmicmd power status | grep -q 'is on'" "node ($ip) to power on"
         fi
