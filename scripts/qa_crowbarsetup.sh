@@ -180,35 +180,20 @@ function add_nfs_mount
 # mount a zypper repo either from NFS or from the host (if localreposdir_target is set)
 #   also adds an entry to /etc/fstab so that mounts can be restored after a reboot
 # input1: bindsrc    - dir used for mounts from the host
-# input2: reposerver - repository server that can hold several repositories.
-#                      at the moment this can be:
-#                      CDREPOS - referring to repos sitting under clouddata/repos
-#                      CDROOT  - referring to repos sitting in the root of clouddata
-# input3: path       - path within the specified reposerver
-# input4: targetdir  - where to mount (usually in /srv/tftpboot/repos/DIR )
-# input5(optional):  zypper_alias - if set, this dir is added as a local repo for zypper
+# input2: path       - path within the specified reposerver
+# input3: targetdir  - where to mount (usually in /srv/tftpboot/repos/DIR )
+# input4(optional):  zypper_alias - if set, this dir is added as a local repo for zypper
 function add_mount
 {
     local bindsrc="$1"
-    local reposerver="$2"
-    local path="$3"
-    local targetdir="$4"
-    local zypper_alias="$5"
+    local path="$2"
+    local targetdir="$3"
+    local zypper_alias="$4"
 
     local localreposdir_path
 
-    case "$reposerver" in
-        "CDREPOS")
-            nfssrc="$nfsserver_ip:$nfsserver_base_path/repos/$path"
-            localreposdir_path="$localreposdir_target/repos/$path"
-            ;;
-        "CDROOT")
-            nfssrc="$nfsserver_ip:$nfsserver_base_path/$path"
-            localreposdir_path="$localreposdir_target/$path"
-            ;;
-        *)
-            complain 50 "This reposerver is not recognised"
-    esac
+    nfssrc="$nfsserver_ip:$nfsserver_base_path/$path"
+    localreposdir_path="$localreposdir_target/$path"
 
     if [ -n "$localreposdir_target" ]; then
         if [ -z "$bindsrc" ]; then
@@ -293,21 +278,13 @@ function addsles12sp1testupdates
 {
     if isrepoworking SLES12-SP1-Updates-test ; then
         add_mount "SLES12-SP1-Updates-test" \
-            "CDREPOS" \
-            "$arch/SLES12-SP1-Updates-test/" \
+            "repos/$arch/SLES12-SP1-Updates-test/" \
             "$tftpboot_repos_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     fi
-    if isrepoworking SLE12-SP1-HA-Updates-test ; then
-        [[ $hacloud = 1 ]] && add_mount "SLE12-SP1-HA-Updates-test" \
-            "CDREPOS" \
-            "$arch/SLE12-SP1-HA-Updates-test/" \
-            "$tftpboot_repos_dir/SLE12-SP1-HA-Updates-test/"
-    fi
-    if isrepoworking SUSE-Enterprise-Storage-2.1-Updates-test ; then
+   if isrepoworking SUSE-Enterprise-Storage-2.1-Updates-test ; then
         if [ -n "$deployceph" ] && iscloudver 6; then
             add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-                      "CDREPOS" \
-                      "$arch/SUSE-Enterprise-Storage-2.1-Updates-test/" \
+                      "repos/$arch/SUSE-Enterprise-Storage-2.1-Updates-test/" \
                       "$tftpboot_repos_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
         fi
     fi
@@ -317,21 +294,13 @@ function addsles12sp2testupdates
 {
     if isrepoworking SLES12-SP2-Updates-test ; then
         add_mount "SLES12-SP2-Updates-test" \
-            "CDREPOS" \
-            "$arch/SLES12-SP2-Updates-test/" \
+            "repos/$arch/SLES12-SP2-Updates-test/" \
             "$tftpboot_repos_dir/SLES12-SP2-Updates-test/" "sles12sp2tup"
-    fi
-    if isrepoworking SLE12-SP2-HA-Updates-test ; then
-        [[ $hacloud = 1 ]] && add_mount "SLE12-SP2-HA-Updates-test" \
-            "CDREPOS" \
-            "$arch/SLE12-SP2-HA-Updates-test/" \
-            "$tftpboot_repos_dir/SLE12-SP2-HA-Updates-test/"
     fi
     if isrepoworking SUSE-Enterprise-Storage-4-Updates-test ; then
         if [ -n "$deployceph" ] && iscloudver 7plus; then
             add_mount "SUSE-Enterprise-Storage-4-Updates-test" \
-                      "CDREPOS" \
-                      "$arch/SUSE-Enterprise-Storage-4-Updates-test/" \
+                      "repos/$arch/SUSE-Enterprise-Storage-4-Updates-test/" \
                       "$tftpboot_repos_dir/SUSE-Enterprise-Storage-4-Updates-test/"
         fi
     fi
@@ -341,8 +310,7 @@ function addcloudmaintupdates
 {
     local cloudver=$(getcloudver)
     add_mount "SUSE-OpenStack-Cloud-$cloudver-Updates" \
-        "CDREPOS" \
-        "$arch/SUSE-OpenStack-Cloud-$cloudver-Updates/" \
+        "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Updates/" \
         "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Updates/" \
         "cloudmaintup"
 }
@@ -351,8 +319,7 @@ function addcloudtestupdates
 {
     local cloudver=$(getcloudver)
     add_mount "SUSE-OpenStack-Cloud-$cloudver-Updates-test" \
-        "CDREPOS" \
-        "$arch/SUSE-OpenStack-Cloud-$cloudver-Updates-test/" \
+        "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Updates-test/" \
         "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Updates-test/" "cloudtup"
 }
 
@@ -360,8 +327,7 @@ function addcloudpool
 {
     local cloudver=$(getcloudver)
     add_mount "SUSE-OpenStack-Cloud-$cloudver-Pool" \
-        "CDREPOS" \
-        "$arch/SUSE-OpenStack-Cloud-$cloudver-Pool/" \
+        "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Pool/" \
         "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Pool/" \
         "cloudpool"
 }
@@ -376,15 +342,13 @@ function add_sdk_repo
     local suffix
     for suffix in Pool Updates; do
         add_mount "SLE$slesversion-SDK-$suffix" \
-            "CDREPOS" \
-            "$arch/SLE$slesversion-SDK-$suffix/" \
+            "repos/$arch/SLE$slesversion-SDK-$suffix/" \
             "$tftpboot_repos_dir/SLE$slesversion-SDK-$suffix/" "SDK-$suffix"
     done
 
     if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE$slesversion-SDK-Updates-test ; then
         add_mount "SLE$slesversion-SDK-Updates-test" \
-            "CDREPOS" \
-            "$arch/SLE$slesversion-SDK-Updates-test/" \
+            "repos/$arch/SLE$slesversion-SDK-Updates-test/" \
             "$tftpboot_repos_dir/SLE$slesversion-SDK-Updates-test/" "SDK-Updates-test"
     fi
 }
@@ -408,6 +372,11 @@ function add_ha_repo
             "$arch/$repo" \
             "$tftpboot_repos_dir/$repo"
     done
+    if [[ $hacloud = 1 ]] && isrepoworking SLE$slesversion-HA-Updates-test ; then
+        add_mount "SLE$slesversion-HA-Updates-test" \
+            "repos/$arch/SLE$slesversion-HA-Updates-test/" \
+            "$tftpboot_repos_dir/SLE$slesversion-HA-Updates-test/"
+    fi
 }
 
 function add_suse_storage_repo
@@ -418,8 +387,7 @@ function add_suse_storage_repo
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
                 add_mount "$repo" \
-                    "CDREPOS" \
-                    "$arch/$repo" \
+                    "repos/$arch/$repo" \
                     "$tftpboot_repos_dir/$repo"
             done
         fi
@@ -428,8 +396,7 @@ function add_suse_storage_repo
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
                 add_mount "$repo" \
-                    "CDREPOS" \
-                    "$arch/$repo" \
+                    "repos/$arch/$repo" \
                     "$tftpboot_repos_dir/$repo"
             done
         fi
@@ -678,7 +645,6 @@ function onadmin_prepare_sles12sp1_installmedia
     for a in $architectures; do
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$a/install"
         add_mount "SLE-12-SP1-Server-LATEST/sle-12-$a" \
-            "CDROOT" \
             "install/suse-12.1/$a/install" \
             "$sles12sp1_mount"
 
@@ -694,7 +660,6 @@ function onadmin_prepare_sles12sp2_installmedia
     for a in $architectures; do
         local sles12sp2_mount="$tftpboot_suse12sp2_dir/$a/install"
         add_mount "SLE-12-SP2-Server-TEST/sle-12-$a" \
-            "CDROOT" \
             "install/suse-12.2/$a/install" \
             "$sles12sp2_mount"
 
@@ -710,7 +675,6 @@ function onadmin_prepare_sles12sp3_installmedia
     for a in $architectures; do
         local sles12sp3_mount="$tftpboot_suse12sp3_dir/$a/install"
         add_mount "SLE-12-SP3-Server-TEST/sle-12-$a" \
-            "CDROOT" \
             "install/suse-12.3/$a/install" \
             "$sles12sp3_mount"
 
@@ -724,12 +688,10 @@ function onadmin_prepare_sles12sp1_other_repos
 {
     for repo in SLES12-SP1-{Pool,Updates}; do
         add_mount "$repo/sle-12-$arch" \
-            "CDREPOS" \
-            "$arch/$repo" \
+            "repos/$arch/$repo" \
             "$tftpboot_repos_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" \
-                "CDREPOS" \
                 "repos/s390x/$repo" \
                 "$tftpboot_suse12sp1_dir/s390x/repos/$repo"
         fi
@@ -740,13 +702,11 @@ function onadmin_prepare_sles12sp2_other_repos
 {
     for repo in SLES12-SP2-{Pool,Updates}; do
         add_mount "$repo/sle-12-$arch" \
-            "CDREPOS" \
-            "$arch/$repo" \
+            "repos/$arch/$repo" \
             "$tftpboot_repos_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" \
-                "CDREPOS" \
-                "s390x/$repo" \
+                "repos/s390x/$repo" \
                 "$tftpboot_suse12sp2_dir/s390x/repos/$repo"
         fi
     done
@@ -756,13 +716,11 @@ function onadmin_prepare_sles12sp3_other_repos
 {
     for repo in SLES12-SP3-{Pool,Updates}; do
         add_mount "$repo/sle-12-$arch" \
-            "CDREPOS" \
-            "$arch/$repo" \
+            "repos/$arch/$repo" \
             "$tftpboot_repos_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "$repo/sle-12-s390x" \
-                "CDREPOS" \
-                "s390x/$repo" \
+                "repos/s390x/$repo" \
                 "$tftpboot_suse12sp3_dir/s390x/repos/$repo"
         fi
     done
@@ -775,8 +733,7 @@ function onadmin_prepare_cloud_repos
 
     if [ -n "${localreposdir_target}" ]; then
         add_mount "${CLOUDLOCALREPOS}" \
-                "CDREPOS" \
-                "$arch/${CLOUDLOCALREPOS}/" \
+                "repos/$arch/${CLOUDLOCALREPOS}/" \
                 "$targetdir"
     else
         rsync_iso "$CLOUDISOPATH" "$CLOUDISONAME" "$targetdir"
