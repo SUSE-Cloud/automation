@@ -42,6 +42,7 @@ export want_tempest=0
 export want_ipmi_reboot=1
 export ipmi_ip_addrs="192.168.10.105 192.168.10.110 192.168.10.111 192.168.10.112 192.168.10.212 192.168.10.213 192.168.10.226 192.168.10.236 192.168.10.238 192.168.10.240 192.168.10.241 192.168.10.242 192.168.10.248 192.168.10.251 192.168.11.4 192.168.11.30 192.168.11.36"
 export want_ipmi_username=ENGCLOUD
+[[ -e /root/cloud-keys/crowbarsecrets.sh ]] && . /root/cloud-keys/crowbarsecrets.sh # in case of re-runs
 # avoid crashing controller node from ovs+gre (bnc#970720)
 # or use ethtool... gso off
 export networkingplugin=openvswitch
