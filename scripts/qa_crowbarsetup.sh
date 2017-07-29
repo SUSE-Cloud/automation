@@ -1126,9 +1126,9 @@ function create_repos_yml
 
 function onadmin_set_source_variables
 {
-    if iscloudver 7plus; then
+    if iscloudver 7; then
         suseversion=12.2
-    elif iscloudver 6plus; then
+    elif iscloudver 6; then
         suseversion=12.1
     else
         suseversion=12.3
