@@ -1115,37 +1115,14 @@ function onadmin_setup_local_zypper_repositories
             uri_base="file:///repositories"
         else
             localrepos_base="file://$localreposdir_target/repos/$arch"
-            case $(getcloudver) in
-                6)
-                    $zypper ar "$localrepos_base/SLES12-SP1-Pool" sles12sp1
-                    $zypper ar "$localrepos_base/SLES12-SP1-Updates" sles12sp1up
-                ;;
-                7)
-                    $zypper ar "$localrepos_base/SLES12-SP2-Pool" sles12sp2
-                    $zypper ar "$localrepos_base/SLES12-SP2-Updates" sles12sp2up
-                ;;
-                8)
-                    $zypper ar "$localrepos_base/SLES12-SP3-Pool" sles12sp3
-                    $zypper ar "$localrepos_base/SLES12-SP3-Updates" sles12sp3up
-                ;;
-            esac
+            $zypper ar "$localrepos_base/SLES$slesversion-Pool" SLES-$slesversion-Pool
+            $zypper ar "$localrepos_base/SLES$slesversion-Updates" SLES-$slesversion-Updates
             return
         fi
     fi
-    case $(getcloudver) in
-        6)
-            $zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP1/$arch/product/ sles12sp1
-            $zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP1/$arch/update/ sles12sp1up
-        ;;
-        7)
-            $zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP2/$arch/product/ sles12sp2
-            $zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP2/$arch/update/ sles12sp2up
-        ;;
-        8)
-            zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP3/$arch/product/ sles12sp3
-            zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP3/$arch/update/ sles12sp3up
-        ;;
-    esac
+
+    $zypper ar $uri_base/SUSE/Products/SLE-SERVER/$slesversion/$arch/product/ SLES-$slesversion-Pool
+    $zypper ar $uri_base/SUSE/Updates/SLE-SERVER/$slesversion/$arch/update/ SLES-$slesversion-Updates
 }
 
 # setup network/DNS, add repos and install crowbar packages
@@ -1907,19 +1884,8 @@ function onadmin_setup_nfs_server
     add_dns_record "nfsserver" "$nfs_server_node_ip"
 
     local uri_base=$reposerver_url
-    local sle_pool=""
-    local sle_updates=""
-
-    case $(getcloudver) in
-        6)
-            sle_pool="$uri_base/$arch/SLES12-SP1-Pool/ sles12sp1"
-            sle_updates="$uri_base/$arch/SLES12-SP1-Updates/ sles12sp1up"
-        ;;
-        7)
-            sle_pool="$uri_base/$arch/SLES12-SP2-Pool/ sles12sp2"
-            sle_updates="$uri_base/$arch/SLES12-SP2-Updates/ sles12sp2up"
-        ;;
-    esac
+    local sle_pool="$uri_base/$arch/SLES$slesversion-Pool/ SLES-$slesversion-Pool"
+    local sle_updates="$uri_base/$arch/SLES$slesversion-Updates/ SLES-$slesversion-Updates"
 
     inject="
         set -x
