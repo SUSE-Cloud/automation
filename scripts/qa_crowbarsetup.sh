@@ -994,25 +994,22 @@ function create_repos_yml
 
     echo --- > $tmp_yml
 
+    common_set_slesversions
+
     # Clone test updates from admin node
     local baseurl=http://crowbar.$cloudfqdn:8091/
-    grep -q SLES12-SP1-Updates-test /etc/fstab && \
-        additional_repos+=" SLES12-SP1-Updates-test=$baseurl/suse-12.1/$arch/repos/SLES12-SP1-Updates-test"
-    grep -q SUSE-OpenStack-Cloud-6-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-OpenStack-Cloud-6-Updates-test=$baseurl/suse-12.1/$arch/repos/SUSE-OpenStack-Cloud-6-Updates-test"
-    grep -q SLE12-SP1-HA-Updates-test /etc/fstab && \
-        additional_repos+=" SLE12-SP1-HA-Updates-test=$baseurl/suse-12.1/$arch/repos/SLE12-SP1-HA-Updates-test"
-    grep -q SUSE-Enterprise-Storage-2.1-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-Enterprise-Storage-2.1-Updates-test=$baseurl/suse-12.1/$arch/repos/SUSE-Enterprise-Storage-2.1-Updates-test"
+    local cloudver=$(getcloudver)
 
-    grep -q SLES12-SP2-Updates-test /etc/fstab && \
-        additional_repos+=" SLES12-SP2-Updates-test=$baseurl/suse-12.2/$arch/repos/SLES12-SP2-Updates-test"
-    grep -q SUSE-OpenStack-Cloud-7-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=$baseurl/suse-12.2/$arch/repos/SUSE-OpenStack-Cloud-7-Updates-test"
-    grep -q SLE12-SP2-HA-Updates-test /etc/fstab && \
-        additional_repos+=" SLE12-SP2-HA-Updates-test=$baseurl/suse-12.2/$arch/repos/SLE12-SP2-HA-Updates-test"
+    grep -q SLES$slesversion-Updates-test /etc/fstab && \
+        additional_repos+=" SLES$slesversion-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-Updates-test"
+    grep -q SLE$slesversion-HA-Updates-test /etc/fstab && \
+        additional_repos+=" SLE$slesversion-HA-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLE$slesversion-HA-Updates-test"
+    grep -q SUSE-OpenStack-Cloud-$cloudver-Updates-test /etc/fstab && \
+        additional_repos+=" SUSE-OpenStack-Cloud-$cloudver-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SUSE-OpenStack-Cloud-$cloudver-Updates-test"
     grep -q SUSE-Enterprise-Storage-4-Updates-test /etc/fstab && \
         additional_repos+=" SUSE-Enterprise-Storage-4-Updates-test=$baseurl/suse-12.2/$arch/repos/SUSE-Enterprise-Storage-4-Updates-test"
+    grep -q SUSE-Enterprise-Storage-2.1-Updates-test /etc/fstab && \
+        additional_repos+=" SUSE-Enterprise-Storage-2.1-Updates-test=$baseurl/suse-12.1/$arch/repos/SUSE-Enterprise-Storage-2.1-Updates-test"
 
     if iscloudver 6; then
         for devel_repo in ${want_devel_repos//,/ }; do
@@ -1023,14 +1020,8 @@ function create_repos_yml
                 virt)
                     additional_repos+=" Devel-Virt=http://$susedownload/ibs/Devel:/Virt:/SLE-12-SP1/SUSE_SLE-12-SP1_Update_standard/"
                     ;;
-                *)
-                    complain 72 "do not know how to translate one of the requested devel repos: $want_devel_repos"
-                    ;;
             esac
         done
-        create_repos_yml_for_platform "suse-12.1" "x86_64" "$tftpboot_repos_dir" \
-            $additional_repos \
-            >> $tmp_yml
     fi
 
     if iscloudver 7; then
@@ -1042,15 +1033,13 @@ function create_repos_yml
                 virt)
                     additional_repos+=" Devel-Virt=http://$susedownload/ibs/Devel:/Virt:/SLE-12-SP2/SUSE_SLE-12-SP2_GA_standard/"
                     ;;
-                *)
-                    complain 72 "do not know how to translate one of the requested devel repos: $want_devel_repos"
-                    ;;
             esac
         done
-        create_repos_yml_for_platform "suse-12.2" "x86_64" "$tftpboot_repos_dir" \
-            $additional_repos \
-            >> $tmp_yml
     fi
+
+    create_repos_yml_for_platform "suse-$suseversion" "$arch" "$tftpboot_repos_dir" \
+        $additional_repos \
+        >> $tmp_yml
 
     mv $tmp_yml $repos_yml
 }
