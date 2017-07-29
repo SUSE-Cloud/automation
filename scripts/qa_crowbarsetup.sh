@@ -179,16 +179,14 @@ function add_nfs_mount
 
 # mount a zypper repo either from NFS or from the host (if localreposdir_target is set)
 #   also adds an entry to /etc/fstab so that mounts can be restored after a reboot
-# input1: bindsrc    - dir used for mounts from the host
-# input2: path       - path within the specified reposerver
-# input3: targetdir  - where to mount (usually in /srv/tftpboot/repos/DIR )
-# input4(optional):  zypper_alias - if set, this dir is added as a local repo for zypper
+# input1: path       - path within the specified reposerver
+# input2: targetdir  - where to mount (usually in /srv/tftpboot/repos/DIR )
+# input3(optional):  zypper_alias - if set, this dir is added as a local repo for zypper
 function add_mount
 {
-    local bindsrc="$1"
-    local path="$2"
-    local targetdir="$3"
-    local zypper_alias="$4"
+    local path="$1"
+    local targetdir="$2"
+    local zypper_alias="$3"
 
     local localreposdir_path
 
@@ -196,27 +194,16 @@ function add_mount
     localreposdir_path="$localreposdir_target/$path"
 
     if [ -n "$localreposdir_target" ]; then
-        if [ -z "$bindsrc" ]; then
-            complain 50 "BUG: add_mount() called with empty bindsrc parameter" \
-                "(nfssrc=$nfssrc targetdir=$targetdir alias=$zypper_alias)\n" \
-                "This will break for those not using NFS."
+        # localreposdir_src holds a mirror of clouddata
+        if [ -z "$localreposdir_path" ]; then
+            complain 34 "IBS builds are not supported in local mode"
         fi
 
-        if [ -z "$localreposdir_is_clouddata" ]; then
-            # Use legacy structure
-            add_bind_mount "$localreposdir_target/$bindsrc" "$targetdir"
-        else
-            # localreposdir_src holds a mirror of clouddata
-            if [ -z "$localreposdir_path" ]; then
-                complain 34 "IBS builds are not supported in local mode"
-            fi
-
-            add_bind_mount "$localreposdir_path" "$targetdir"
-        fi
+        add_bind_mount "$localreposdir_path" "$targetdir"
     else
         if [ -z "$nfssrc" ]; then
             complain 50 "BUG: add_mount() called with empty nfssrc parameter" \
-                "(bindsrc=$bindsrc targetdir=$targetdir alias=$zypper_alias)\n" \
+                "(targetdir=$targetdir alias=$zypper_alias)\n" \
                 "This will break for those using NFS."
         fi
         add_nfs_mount "$nfssrc" "$targetdir"
@@ -277,14 +264,12 @@ function export_tftpboot_dirs
 function addsles12sp1testupdates
 {
     if isrepoworking SLES12-SP1-Updates-test ; then
-        add_mount "SLES12-SP1-Updates-test" \
-            "repos/$arch/SLES12-SP1-Updates-test/" \
+        add_mount "repos/$arch/SLES12-SP1-Updates-test/" \
             "$tftpboot_repos_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
     fi
    if isrepoworking SUSE-Enterprise-Storage-2.1-Updates-test ; then
         if [ -n "$deployceph" ] && iscloudver 6; then
-            add_mount "SUSE-Enterprise-Storage-2.1-Updates-test" \
-                      "repos/$arch/SUSE-Enterprise-Storage-2.1-Updates-test/" \
+            add_mount "repos/$arch/SUSE-Enterprise-Storage-2.1-Updates-test/" \
                       "$tftpboot_repos_dir/SUSE-Enterprise-Storage-2.1-Updates-test/"
         fi
     fi
@@ -293,14 +278,12 @@ function addsles12sp1testupdates
 function addsles12sp2testupdates
 {
     if isrepoworking SLES12-SP2-Updates-test ; then
-        add_mount "SLES12-SP2-Updates-test" \
-            "repos/$arch/SLES12-SP2-Updates-test/" \
+        add_mount "repos/$arch/SLES12-SP2-Updates-test/" \
             "$tftpboot_repos_dir/SLES12-SP2-Updates-test/" "sles12sp2tup"
     fi
     if isrepoworking SUSE-Enterprise-Storage-4-Updates-test ; then
         if [ -n "$deployceph" ] && iscloudver 7plus; then
-            add_mount "SUSE-Enterprise-Storage-4-Updates-test" \
-                      "repos/$arch/SUSE-Enterprise-Storage-4-Updates-test/" \
+            add_mount "repos/$arch/SUSE-Enterprise-Storage-4-Updates-test/" \
                       "$tftpboot_repos_dir/SUSE-Enterprise-Storage-4-Updates-test/"
         fi
     fi
@@ -309,8 +292,7 @@ function addsles12sp2testupdates
 function addcloudmaintupdates
 {
     local cloudver=$(getcloudver)
-    add_mount "SUSE-OpenStack-Cloud-$cloudver-Updates" \
-        "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Updates/" \
+    add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Updates/" \
         "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Updates/" \
         "cloudmaintup"
 }
@@ -318,16 +300,14 @@ function addcloudmaintupdates
 function addcloudtestupdates
 {
     local cloudver=$(getcloudver)
-    add_mount "SUSE-OpenStack-Cloud-$cloudver-Updates-test" \
-        "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Updates-test/" \
+    add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Updates-test/" \
         "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Updates-test/" "cloudtup"
 }
 
 function addcloudpool
 {
     local cloudver=$(getcloudver)
-    add_mount "SUSE-OpenStack-Cloud-$cloudver-Pool" \
-        "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Pool/" \
+    add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Pool/" \
         "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Pool/" \
         "cloudpool"
 }
@@ -341,14 +321,12 @@ function add_sdk_repo
 
     local suffix
     for suffix in Pool Updates; do
-        add_mount "SLE$slesversion-SDK-$suffix" \
-            "repos/$arch/SLE$slesversion-SDK-$suffix/" \
+        add_mount "repos/$arch/SLE$slesversion-SDK-$suffix/" \
             "$tftpboot_repos_dir/SLE$slesversion-SDK-$suffix/" "SDK-$suffix"
     done
 
     if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE$slesversion-SDK-Updates-test ; then
-        add_mount "SLE$slesversion-SDK-Updates-test" \
-            "repos/$arch/SLE$slesversion-SDK-Updates-test/" \
+        add_mount "repos/$arch/SLE$slesversion-SDK-Updates-test/" \
             "$tftpboot_repos_dir/SLE$slesversion-SDK-Updates-test/" "SDK-Updates-test"
     fi
 }
@@ -367,14 +345,11 @@ function add_ha_repo
     for repo in SLE$slesversion-HA-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
-        add_mount "$repo" \
-            "CDREPOS" \
-            "$arch/$repo" \
+        add_mount "repos/$arch/$repo" \
             "$tftpboot_repos_dir/$repo"
     done
     if [[ $hacloud = 1 ]] && isrepoworking SLE$slesversion-HA-Updates-test ; then
-        add_mount "SLE$slesversion-HA-Updates-test" \
-            "repos/$arch/SLE$slesversion-HA-Updates-test/" \
+        add_mount "repos/$arch/SLE$slesversion-HA-Updates-test/" \
             "$tftpboot_repos_dir/SLE$slesversion-HA-Updates-test/"
     fi
 }
@@ -386,8 +361,7 @@ function add_suse_storage_repo
             for repo in SUSE-Enterprise-Storage-2.1-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
-                add_mount "$repo" \
-                    "repos/$arch/$repo" \
+                add_mount "repos/$arch/$repo" \
                     "$tftpboot_repos_dir/$repo"
             done
         fi
@@ -395,8 +369,7 @@ function add_suse_storage_repo
             for repo in SUSE-Enterprise-Storage-4-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
-                add_mount "$repo" \
-                    "repos/$arch/$repo" \
+                add_mount "repos/$arch/$repo" \
                     "$tftpboot_repos_dir/$repo"
             done
         fi
@@ -609,13 +582,13 @@ function onadmin_prepare_sles12sp1_repos
 function onadmin_prepare_sles12sp2_repos
 {
     onadmin_prepare_sles12sp2_installmedia
-    onadmin_prepare_sles12sp2_other_repos
+    onadmin_prepare_sles_other_repos
 }
 
 function onadmin_prepare_sles12sp3_repos
 {
     onadmin_prepare_sles12sp3_installmedia
-    onadmin_prepare_sles12sp3_other_repos
+    onadmin_prepare_sles_other_repos
 }
 
 function onadmin_prepare_sles12plus_cloud_repos
@@ -644,9 +617,7 @@ function onadmin_prepare_sles12sp1_installmedia
     local a
     for a in $architectures; do
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$a/install"
-        add_mount "SLE-12-SP1-Server-LATEST/sle-12-$a" \
-            "install/suse-12.1/$a/install" \
-            "$sles12sp1_mount"
+        add_mount "install/suse-12.1/$a/install" "$sles12sp1_mount"
 
         if [ ! -d "$sles12sp1_mount/media.1" ] ; then
             complain 34 "We do not have SLES12 SP1 install media - giving up"
@@ -659,9 +630,7 @@ function onadmin_prepare_sles12sp2_installmedia
     local a
     for a in $architectures; do
         local sles12sp2_mount="$tftpboot_suse12sp2_dir/$a/install"
-        add_mount "SLE-12-SP2-Server-TEST/sle-12-$a" \
-            "install/suse-12.2/$a/install" \
-            "$sles12sp2_mount"
+        add_mount "install/suse-12.2/$a/install" "$sles12sp2_mount"
 
         if [ ! -d "$sles12sp2_mount/media.1" ] ; then
             complain 34 "We do not have SLES12 SP2 install media - giving up"
@@ -674,9 +643,7 @@ function onadmin_prepare_sles12sp3_installmedia
     local a
     for a in $architectures; do
         local sles12sp3_mount="$tftpboot_suse12sp3_dir/$a/install"
-        add_mount "SLE-12-SP3-Server-TEST/sle-12-$a" \
-            "install/suse-12.3/$a/install" \
-            "$sles12sp3_mount"
+        add_mount "install/suse-12.3/$a/install" "$sles12sp3_mount"
 
         if [ ! -d "$sles12sp3_mount/media.1" ] ; then
             complain 34 "We do not have SLES12 SP3 install media - giving up"
@@ -687,42 +654,18 @@ function onadmin_prepare_sles12sp3_installmedia
 function onadmin_prepare_sles12sp1_other_repos
 {
     for repo in SLES12-SP1-{Pool,Updates}; do
-        add_mount "$repo/sle-12-$arch" \
-            "repos/$arch/$repo" \
-            "$tftpboot_repos_dir/$repo"
+        add_mount "repos/$arch/$repo" "$tftpboot_repos_dir/$repo"
         if [[ $want_s390 ]] ; then
-            add_mount "$repo/sle-12-s390x" \
-                "repos/s390x/$repo" \
+            add_mount "repos/s390x/$repo" \
                 "$tftpboot_suse12sp1_dir/s390x/repos/$repo"
         fi
     done
 }
 
-function onadmin_prepare_sles12sp2_other_repos
+function onadmin_prepare_sles_other_repos
 {
-    for repo in SLES12-SP2-{Pool,Updates}; do
-        add_mount "$repo/sle-12-$arch" \
-            "repos/$arch/$repo" \
-            "$tftpboot_repos_dir/$repo"
-        if [[ $want_s390 ]] ; then
-            add_mount "$repo/sle-12-s390x" \
-                "repos/s390x/$repo" \
-                "$tftpboot_suse12sp2_dir/s390x/repos/$repo"
-        fi
-    done
-}
-
-function onadmin_prepare_sles12sp3_other_repos
-{
-    for repo in SLES12-SP3-{Pool,Updates}; do
-        add_mount "$repo/sle-12-$arch" \
-            "repos/$arch/$repo" \
-            "$tftpboot_repos_dir/$repo"
-        if [[ $want_s390 ]] ; then
-            add_mount "$repo/sle-12-s390x" \
-                "repos/s390x/$repo" \
-                "$tftpboot_suse12sp3_dir/s390x/repos/$repo"
-        fi
+    for repo in SLES$slesversion-{Pool,Updates}; do
+        add_mount "repos/$arch/$repo" "$tftpboot_repos_dir/$repo"
     done
 }
 
@@ -732,8 +675,7 @@ function onadmin_prepare_cloud_repos
     mkdir -p $targetdir
 
     if [ -n "${localreposdir_target}" ]; then
-        add_mount "${CLOUDLOCALREPOS}" \
-                "repos/$arch/${CLOUDLOCALREPOS}/" \
+        add_mount "repos/$arch/${CLOUDLOCALREPOS}/" \
                 "$targetdir"
     else
         rsync_iso "$CLOUDISOPATH" "$CLOUDISONAME" "$targetdir"
@@ -1042,14 +984,9 @@ function onadmin_setup_local_zypper_repositories
     # restore needed repos depending on localreposdir_target
     if [ -n "${localreposdir_target}" ]; then
         mount_localreposdir_target
-        if [ -z "$localreposdir_is_clouddata" ]; then
-            uri_base="file:///repositories"
-        else
-            localrepos_base="file://$localreposdir_target/repos/$arch"
-            $zypper ar "$localrepos_base/SLES$slesversion-Pool" SLES-$slesversion-Pool
-            $zypper ar "$localrepos_base/SLES$slesversion-Updates" SLES-$slesversion-Updates
-            return
-        fi
+        localrepos_base="file://$localreposdir_target/repos/$arch"
+        $zypper ar "$localrepos_base/SLES$slesversion-Pool" SLES-$slesversion-Pool
+        $zypper ar "$localrepos_base/SLES$slesversion-Updates" SLES-$slesversion-Updates
     fi
 
     $zypper ar $uri_base/SUSE/Products/SLE-SERVER/$slesversion/$arch/product/ SLES-$slesversion-Pool

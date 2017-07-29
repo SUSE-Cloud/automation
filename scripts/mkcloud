@@ -137,7 +137,6 @@ fi
 
 #if localreposdir_src string is available, the local repositories are used for setup
 : ${localreposdir_src:=""}
-: ${localreposdir_is_clouddata:=""}
 : ${cct_tests:="features:base"}
 
 [ -n "$cache_clouddata" ] && {
@@ -147,7 +146,6 @@ fi
     # Remove cct: requires SDK to mirror which is huge
     export cct_tests=""
     export localreposdir_src=$cache_dir
-    export localreposdir_is_clouddata=1
 }
 
 #localreposdir_target is the 9p target dir and also the mount target dir in the VM
@@ -295,7 +293,6 @@ function sshrun
         export nova_shared_instance_storage=$nova_shared_instance_storage ;
 
         export localreposdir_target=$localreposdir_target ;
-        export localreposdir_is_clouddata=$localreposdir_is_clouddata ;
 
         export cinder_backend=$cinder_backend;
         export cinder_netapp_storage_protocol=$cinder_netapp_storage_protocol;
@@ -1215,15 +1212,7 @@ Optional
         this is a convenience for all the individual options like localreposdir_*.
     localreposdir_src (default='')
         If you want to use repositories from your host's local filesystem, set
-        this variable to point to the root of the hierarchy. Please note that
-        the expected directory structure is somewhat different from the layout
-        that is used by clouddata. If your local directory points to a
-        directory structure that is a mirror of clouddata, then please define
-        localreposdir_is_clouddata as well.
-    localreposdir_is_clouddata (default='')
-        Set this variable to a non-empty value to communicate that the
-        directory hierarchy referenced by localreposdir_src matches clouddata's
-        hierarchy.
+        this variable to point to the root of the hierarchy.
 EOUSAGE
     qacrowbarsetup_help
     exit 1
