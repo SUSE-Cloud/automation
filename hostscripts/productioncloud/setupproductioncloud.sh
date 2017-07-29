@@ -54,9 +54,15 @@ export want_dvr=1
 #export want_dvr=1
 # add CA
 export pre_prepare_proposals=$(base64 -w 0 <<'EOF'
-for m in $(get_all_suse_nodes) ; do ssh $m "
+for m in $(get_all_suse_nodes) ; do ssh $m '
 zypper ar http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP1/ ca
-zypper -n in ca-certificates-suse"
+zypper -n in ca-certificates-suse
+        # TODO: integrate in barclamp-nova ; there is something in chef/cookbooks/nova/templates/default/qemu-kvm.erb but it looks like dead code
+        if [ ! -e /etc/modprobe.d/80-kvm-intel.conf ] ; then
+            echo "options kvm-intel nested=1" > /etc/modprobe.d/80-kvm-intel.conf
+            rmmod kvm-intel
+        fi
+        modprobe kvm-intel'
 done
 EOF
 )
