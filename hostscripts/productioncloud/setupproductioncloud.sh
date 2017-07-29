@@ -31,7 +31,7 @@ export want_sahara_proposal=0
 export want_barbican_proposal=0
 export want_magnum_proposal=1
 export cephvolumenumber=3
-export want_ceph=0
+export want_ceph=1
 # 2nd node only has 64GB RAM, making it more suitable for controller
 export want_node_roles=compute=1,controller=1,compute=1
 #export want_node_aliases=n1=1,dashboard=1,n2=1
