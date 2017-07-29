@@ -80,6 +80,22 @@ for servicepack in 1 2 3; do
                 $rsync $ibsmaint/SLE-HA\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates-test/
             fi
         fi
+
+        # SDK is only for > SP1, and not for ARM
+        if [ $servicepack -gt 0 -a "$arch" != aarch64 ]; then
+            # SDK pool
+            if [ -z "$sync_from_ibs" ]; then
+                $rsync $buildsuse/SUSE/Products/SLE-SDK/$version/$arch/product/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Pool/
+            else
+                $rsync /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-SDK-POOL-$arch-Media1/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Pool/
+            fi
+            # SDK updates
+            $rsync $buildsuse/SUSE/Updates/SLE-SDK/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates/
+            # SDK test updates
+            if test -d $ibsmaint/SLE-SDK\:/$version\:/$arch/update/ ; then
+                $rsync $ibsmaint/SLE-SDK\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates-test/
+            fi
+        fi
     done
 done
 

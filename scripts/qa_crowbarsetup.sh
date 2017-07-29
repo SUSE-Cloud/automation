@@ -186,7 +186,6 @@ function add_nfs_mount
 #                      at the moment this can be:
 #                      CDREPOS - referring to repos sitting under clouddata/repos
 #                      CDROOT  - referring to repos sitting in the root of clouddata
-#                      BUILD   - referring to repos that sit on $distsuseip, ibs
 # input3: path       - path within the specified reposerver
 # input4: targetdir  - where to mount (usually in /srv/tftpboot/repos/DIR )
 # input5(optional):  zypper_alias - if set, this dir is added as a local repo for zypper
@@ -208,15 +207,6 @@ function add_mount
         "CDROOT")
             nfssrc="$nfsserver_ip:$nfsserver_base_path/$path"
             localreposdir_path="$localreposdir_target/$path"
-            ;;
-        "BUILD")
-            nfssrc="${distsuseip}:/dist/ibs/${path}"
-            # BUILD is used with:
-            # SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP1:/
-            # SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP2:/
-            # SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP3:/
-            # AFAIK these are not available on clouddata
-            localreposdir_path=""
             ;;
         *)
             complain 50 "This reposerver is not recognised"
@@ -410,11 +400,6 @@ function addcloud7testupdates
         "$tftpboot_repos12sp2_dir/SUSE-OpenStack-Cloud-7-Updates-test/" "cloudtup"
 }
 
-function addcctdepsrepo
-{
-    add_sdk_repo
-}
-
 function add_sdk_repo
 {
     local sdk_repo_priority
@@ -429,9 +414,9 @@ function add_sdk_repo
 
             if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP1-SDK-Updates-test ; then
                 add_mount "SLE12-SP1-SDK-Updates-test" \
-                    "BUILD" \
-                    "SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP1:/$arch/update/" \
-                    "$tftpboot_repos12sp2_dir/SLE12-SP1-SDK-Updates-test/" "SDK-SP1-Update-test"
+                    "CDREPOS" \
+                    "$arch/SLE12-SP1-SDK-Updates-test/" \
+                    "$tftpboot_repos12sp1_dir/SLE12-SP1-SDK-Updates-test/" "SDK-SP1-Update-test"
             fi
             ;;
         7)
@@ -440,8 +425,8 @@ function add_sdk_repo
 
             if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP2-SDK-Updates-test ; then
                 add_mount "SLE12-SP2-SDK-Updates-test" \
-                    "BUILD" \
-                    "SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP2:/$arch/update/" \
+                    "CDREPOS" \
+                    "$arch/SLE12-SP2-SDK-Updates-test/" \
                     "$tftpboot_repos12sp2_dir/SLE12-SP2-SDK-Updates-test/" "SDK-SP2-Update-test"
             fi
             ;;
@@ -451,8 +436,8 @@ function add_sdk_repo
 
             if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP3-SDK-Updates-test ; then
                 add_mount "SLE12-SP3-SDK-Updates-test" \
-                    "BUILD" \
-                    "SUSE:/Maintenance:/Test:/SLE-SDK:/12-SP3:/$arch/update/" \
+                    "CDREPOS" \
+                    "$arch/SLE12-SP3-SDK-Updates-test/" \
                     "$tftpboot_repos12sp3_dir/SLE12-SP3-SDK-Updates-test/" "SDK-SP3-Update-test"
             fi
             ;;
@@ -5192,7 +5177,7 @@ function onadmin_run_cct
     local ret=0
     if [[ $cct_tests ]]; then
         # - install cct dependencies
-        addcctdepsrepo
+        add_sdk_repo
         ensure_packages_installed git-core gcc make ruby2.1-devel
 
         if [[ $cct_tests =~ ":ui:" ]]; then
