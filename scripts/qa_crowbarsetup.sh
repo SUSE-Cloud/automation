@@ -373,46 +373,20 @@ function add_sdk_repo
 
     export_tftpboot_dirs
 
-    case $(getcloudver) in
-        6)
-            add_mount "SLE12-SP1-SDK-Pool" \
-                "CDREPOS" \
-                "$arch/SLE12-SP1-SDK-Pool/" \
-                "$tftpboot_repos_dir/SLE12-SP1-SDK-Pool/" "SDK-SP1-Pool"
+    local suffix
+    for suffix in Pool Updates; do
+        add_mount "SLE$slesversion-SDK-$suffix" \
+            "CDREPOS" \
+            "$arch/SLE$slesversion-SDK-$suffix/" \
+            "$tftpboot_repos_dir/SLE$slesversion-SDK-$suffix/" "SDK-$suffix"
+    done
 
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
-
-            if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP1-SDK-Updates-test ; then
-                add_mount "SLE12-SP1-SDK-Updates-test" \
-                    "CDREPOS" \
-                    "$arch/SLE12-SP1-SDK-Updates-test/" \
-                    "$tftpboot_repos_dir/SLE12-SP1-SDK-Updates-test/" "SDK-SP1-Update-test"
-            fi
-            ;;
-        7)
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
-
-            if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP2-SDK-Updates-test ; then
-                add_mount "SLE12-SP2-SDK-Updates-test" \
-                    "CDREPOS" \
-                    "$arch/SLE12-SP2-SDK-Updates-test/" \
-                    "$tftpboot_repos_dir/SLE12-SP2-SDK-Updates-test/" "SDK-SP2-Update-test"
-            fi
-            ;;
-        8)
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/ SDK-SP3
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/ SDK-SP3-Update
-
-            if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP3-SDK-Updates-test ; then
-                add_mount "SLE12-SP3-SDK-Updates-test" \
-                    "CDREPOS" \
-                    "$arch/SLE12-SP3-SDK-Updates-test/" \
-                    "$tftpboot_repos_dir/SLE12-SP3-SDK-Updates-test/" "SDK-SP3-Update-test"
-            fi
-            ;;
-    esac
+    if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE$slesversion-SDK-Updates-test ; then
+        add_mount "SLE$slesversion-SDK-Updates-test" \
+            "CDREPOS" \
+            "$arch/SLE$slesversion-SDK-Updates-test/" \
+            "$tftpboot_repos_dir/SLE$slesversion-SDK-Updates-test/" "SDK-Updates-test"
+    fi
 }
 
 function add_sap_repo
@@ -475,7 +449,7 @@ function add_suse_storage_repo
                     "$tftpboot_repos_dir/$repo"
             done
         fi
-        if iscloudver 7plus; then
+        if iscloudver 7; then
             for repo in SUSE-Enterprise-Storage-4-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
