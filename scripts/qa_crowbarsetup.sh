@@ -169,12 +169,7 @@ function add_nfs_mount
     fi
 
     echo "$nfs $dir nfs    ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock  0 0" >> /etc/fstab
-    ensure_packages_installed tcpdump
-    tcpdump -s 0 -w /var/log/nfs.pcap.notbz -epni eth0 & # for debugging random NFS mount timout
-    local tcpdumppid=$!
     safely mount "$dir"
-    kill $tcpdumppid
-    rm -f /var/log/nfs.pcap.notbz
 }
 
 # mount a zypper repo either from NFS or from the host (if localreposdir_target is set)
@@ -582,15 +577,8 @@ function onadmin_prepare_sles12plus_cloud_repos
     #  create empty repository when there is none yet
     ensure_packages_installed createrepo
 
-    local sles12optionalrepolist
     local cloudver=$(getcloudver)
-    if iscloudver 6plus; then
-        sles12optionalrepolist=(
-            SUSE-OpenStack-Cloud-$cloudver-Pool
-            SUSE-OpenStack-Cloud-$cloudver-Updates
-        )
-    fi
-    for repo in ${sles12optionalrepolist[@]}; do
+    for repo in SUSE-OpenStack-Cloud-$cloudver-{Pool,Updates}; do
         if [ ! -e "$tftpboot_repos_dir/$repo/repodata/" ] ; then
             mkdir -p "$tftpboot_repos_dir/$repo"
             safely createrepo "$tftpboot_repos_dir/$repo"
@@ -691,6 +679,10 @@ function onadmin_prepare_cloud_repos
             ;;
         GM8)
             addcloudpool
+            ;;
+        GM8+up)
+            addcloudpool
+            addcloudmaintupdates
             ;;
     esac
 
@@ -964,17 +956,11 @@ function onadmin_setup_local_zypper_repositories
     $zypper lr -e - | sed -n '/^name=/ {s///; /ptf/! p}' | \
         xargs -r zypper rr
 
-    uri_base=$smturl
-    # restore needed repos depending on localreposdir_target
-    if [ -n "${localreposdir_target}" ]; then
-        mount_localreposdir_target
-        localrepos_base="file://$localreposdir_target/repos/$arch"
-        $zypper ar "$localrepos_base/SLES$slesversion-Pool" SLES-$slesversion-Pool
-        $zypper ar "$localrepos_base/SLES$slesversion-Updates" SLES-$slesversion-Updates
-    fi
-
-    $zypper ar $uri_base/SUSE/Products/SLE-SERVER/$slesversion/$arch/product/ SLES-$slesversion-Pool
-    $zypper ar $uri_base/SUSE/Updates/SLE-SERVER/$slesversion/$arch/update/ SLES-$slesversion-Updates
+    [ -n "${localreposdir_target}" ] && mount_localreposdir_target
+    mkdir -p /hostmirror
+    for repo in SLES$slesversion-{Pool,Updates}; do
+        add_mount "repos/$arch/$repo" "/hostmirror/$repo" $repo
+    done
 }
 
 # setup network/DNS, add repos and install crowbar packages

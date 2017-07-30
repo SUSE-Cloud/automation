@@ -579,7 +579,6 @@ if [[ $clouddata || $clouddatadns || $clouddata_base_path || $clouddata_nfs || $
     echo '    - $reposerver_base_path'
     echo '  - $nfsserver'
     echo '    - $nfsserver_base_path'
-    echo '  - $smtserver'
     : ${clouddatadns:=clouddata.nue.suse.com}
     : ${clouddata:=$(dig -t A +short $clouddatadns)}
     : ${clouddata_base_path:="/repos"}
@@ -593,7 +592,7 @@ if [[ $clouddata || $clouddatadns || $clouddata_base_path || $clouddata_nfs || $
     sleep 5
 fi
 
-# $reposerver,$nfsserver,$rsyncserver,$smtserver are only set from outside
+# $reposerver,$nfsserver,$rsyncserver are only set from outside
 # NOTE: they are not to be used in mkcloud/qa_crowbarsetup
 # Please ONLY use the suffixed variables: '*_ip' or '*_fqdn'
 
@@ -613,11 +612,6 @@ fi
 : ${rsyncserver_ip:=$(to_ip $rsyncserver)}
 : ${rsyncserver_fqdn:=$(to_fqdn $rsyncserver)}
 : ${rsyncserver_images_dir:="cloud/images/$arch"}
-
-: ${smtserver:=$susedownload}
-: ${smtserver_ip:=$(to_ip $smtserver)}
-: ${smtserver_fqdn:=$(to_fqdn $smtserver)}
-: ${smturl:=http://$smtserver_fqdn/update/build.suse.de}
 
 : ${test_internet_url:=http://$reposerver_fqdn/test}
 

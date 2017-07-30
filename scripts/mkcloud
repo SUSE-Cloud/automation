@@ -258,10 +258,6 @@ function sshrun
         export rsyncserver_ip=$rsyncserver_ip ;
         export rsyncserver_fqdn=$rsyncserver_fqdn ;
         export rsyncserver_images_dir=$rsyncserver_images_dir ;
-        export smtserver=$smtserver ;
-        export smtserver_ip=$smtserver_ip ;
-        export smtserver_fqdn=$smtserver_fqdn ;
-        export smturl=$smturl ;
         export susedownload=$susedownload ;
         export cloudfqdn=$cloudfqdn ;
         export cloudsource=$cloudsource ;
