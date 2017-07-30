@@ -244,24 +244,8 @@ function isrepoworking
 
 function export_tftpboot_dirs
 {
-    if iscloudver 8plus ; then
-        tftpboot_suse12sp3_dir=/srv/tftpboot/suse-12.3
-        tftpboot_repos_dir=$tftpboot_suse12sp3_dir/$arch/repos
-    elif iscloudver 7 ; then
-        tftpboot_suse12sp2_dir=/srv/tftpboot/suse-12.2
-        tftpboot_repos_dir=$tftpboot_suse12sp2_dir/$arch/repos
-    elif iscloudver 6; then
-        tftpboot_suse12sp1_dir=/srv/tftpboot/suse-12.1
-        tftpboot_repos_dir=$tftpboot_suse12sp1_dir/$arch/repos
-    fi
-}
-
-function addsles12sp1testupdates
-{
-    if isrepoworking SLES12-SP1-Updates-test ; then
-        add_mount "repos/$arch/SLES12-SP1-Updates-test/" \
-            "$tftpboot_repos_dir/SLES12-SP1-Updates-test/" "sles12sp1tup"
-    fi
+    tftpboot_suse_dir=/srv/tftpboot/suse-$suseversion
+    tftpboot_repos_dir=$tftpboot_suse_dir/$arch/repos
 }
 
 function addslestestupdates
@@ -556,20 +540,8 @@ function rsync_iso
 
 function onadmin_prepare_sles12sp1_repos
 {
-    onadmin_prepare_sles12sp1_installmedia
+    onadmin_prepare_sles_installmedia
     onadmin_prepare_sles12sp1_other_repos
-}
-
-function onadmin_prepare_sles12sp2_repos
-{
-    onadmin_prepare_sles12sp2_installmedia
-    onadmin_prepare_sles_other_repos
-}
-
-function onadmin_prepare_sles12sp3_repos
-{
-    onadmin_prepare_sles12sp3_installmedia
-    onadmin_prepare_sles_other_repos
 }
 
 function onadmin_prepare_sles12plus_cloud_repos
@@ -586,41 +558,15 @@ function onadmin_prepare_sles12plus_cloud_repos
     done
 }
 
-function onadmin_prepare_sles12sp1_installmedia
+function onadmin_prepare_sles_installmedia
 {
     local a
     for a in $architectures; do
-        local sles12sp1_mount="$tftpboot_suse12sp1_dir/$a/install"
-        add_mount "install/suse-12.1/$a/install" "$sles12sp1_mount"
+        local sles_mount="$tftpboot_suse_dir/$a/install"
+        add_mount "install/suse-$suseversion/$a/install" "$sles_mount"
 
-        if [ ! -d "$sles12sp1_mount/media.1" ] ; then
-            complain 34 "We do not have SLES12 SP1 install media - giving up"
-        fi
-    done
-}
-
-function onadmin_prepare_sles12sp2_installmedia
-{
-    local a
-    for a in $architectures; do
-        local sles12sp2_mount="$tftpboot_suse12sp2_dir/$a/install"
-        add_mount "install/suse-12.2/$a/install" "$sles12sp2_mount"
-
-        if [ ! -d "$sles12sp2_mount/media.1" ] ; then
-            complain 34 "We do not have SLES12 SP2 install media - giving up"
-        fi
-    done
-}
-
-function onadmin_prepare_sles12sp3_installmedia
-{
-    local a
-    for a in $architectures; do
-        local sles12sp3_mount="$tftpboot_suse12sp3_dir/$a/install"
-        add_mount "install/suse-12.3/$a/install" "$sles12sp3_mount"
-
-        if [ ! -d "$sles12sp3_mount/media.1" ] ; then
-            complain 34 "We do not have SLES12 SP3 install media - giving up"
+        if [ ! -d "$sles_mount/media.1" ] ; then
+            complain 34 "We do not have suse-$suseversion install media - giving up"
         fi
     done
 }
@@ -689,10 +635,10 @@ function onadmin_prepare_cloud_repos
     if [[ "$want_test_updates" = 1 ]] ; then
         case "$cloudsource" in
             GM6)
-                addsles12sp1testupdates
+                addslestestupdates
                 ;;
             GM6+up)
-                addsles12sp1testupdates
+                addslestestupdates
                 addcloudtestupdates
                 ;;
             GM7)
@@ -710,7 +656,7 @@ function onadmin_prepare_cloud_repos
                 addcloudtestupdates
                 ;;
             develcloud6)
-                addsles12sp1testupdates
+                addslestestupdates
                 ;;
             *cloud7)
                 addslestestupdates
@@ -1011,12 +957,11 @@ EOF
     common_set_slesversions
     onadmin_setup_local_zypper_repositories
 
-    if iscloudver 8plus; then
-        onadmin_prepare_sles12sp3_repos
-    elif iscloudver 7plus; then
-        onadmin_prepare_sles12sp2_repos
-    elif iscloudver 6plus ; then
+    if iscloudver 6 ; then
         onadmin_prepare_sles12sp1_repos
+    else
+        onadmin_prepare_sles_installmedia
+        onadmin_prepare_sles_other_repos
     fi
     onadmin_prepare_sles12plus_cloud_repos
 
@@ -1484,10 +1429,10 @@ function onadmin_allocate
                 "node to be in provisioner proposal"
         fi
     done
-    local controllernodes=(
-            $(get_all_discovered_nodes | head -n 2)
-        )
 
+    local controllernodes=($(get_all_discovered_nodes | head -n 2))
+
+    common_set_slesversions
     controller_os="suse-$suseversion"
 
     echo "Setting first node to controller..."
@@ -4437,7 +4382,8 @@ function onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
     onadmin_set_source_variables
 
     # prepare installation repositories for nodes
-    onadmin_prepare_sles12sp2_repos
+    onadmin_prepare_sles_installmedia
+    onadmin_prepare_sles_other_repos
     onadmin_prepare_sles12plus_cloud_repos
 
     if [[ $hacloud = 1 ]]; then
