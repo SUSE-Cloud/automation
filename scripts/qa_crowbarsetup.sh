@@ -1177,13 +1177,20 @@ function onadmin_set_source_variables
             CLOUDISONAME=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
-        GM7|GM7+up|GMC*|M?)
+        GM7|GM7+up)
             cs=${cloudsource/#M/Milestone}
             [[ $cs =~ GM7 ]] && cs=GM
             CLOUDISOPATH=${want_cloud7_iso_path:="/install/SLE-12-SP2-Cloud7-$cs/"}
             CLOUDISONAME=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}*1.iso"}
             CLOUDTESTISONAME="CLOUD-7-TESTING-$arch*DVD1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
+        ;;
+        GMC*|M?)
+            cs=${cloudsource/#M/Milestone}
+            CLOUDISOPATH=${want_cloud8_iso_path:="/install/SLE-12-SP3-Cloud8-$cs/"}
+            CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-8-${arch}*1.iso"}
+            CLOUDTESTISONAME="CLOUD-8-TESTING-$arch*DVD1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
         *)
             complain 76 "You must set environment variable cloudsource=develcloud6|develcloud7|develcloud8|Mx|GM6|GM7"
