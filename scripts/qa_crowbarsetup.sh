@@ -81,8 +81,6 @@ if iscloudver 7plus; then
 else
     export tempestoptions=${tempestoptions:--t -s}
 fi
-export want_sles12
-[[ $want_sles12 = 0 ]] && want_sles12=
 export nodes=
 export cinder_backend
 export cinder_netapp_storage_protocol
@@ -1298,6 +1296,7 @@ EOF
     fi
 
     onadmin_set_source_variables
+    common_set_slesversions
     onadmin_setup_local_zypper_repositories
 
     if iscloudver 8plus; then
@@ -2726,7 +2725,7 @@ function custom_configuration
             fi
 
             # assign neutron-network role to one of SLE12 nodes
-            if [[ $want_sles12 && ! $hacloud && $want_neutronsles12 ]] && iscloudver 5plus ; then
+            if [[ $hacloud && $want_neutronsles12 ]] && iscloudver 5plus ; then
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['${unclustered_sles12plusnodes[0]}']"
             fi
 
@@ -2933,9 +2932,6 @@ function set_proposalvars
         deployceph=
     fi
 
-    if iscloudver 6plus ; then
-        want_sles12=1
-    fi
     ### FINAL swift and ceph check
     if [[ $deployswift && $deployceph ]] ; then
         complain 89 "Can not deploy ceph and swift at the same time."
@@ -5385,7 +5381,7 @@ function onadmin_runlist
 
 #--
 
-ruby=/usr/bin/ruby.ruby2.1
+common_set_slesversions
 export_tftpboot_repos_dir
 set_proposalvars
 set_noproxyvar

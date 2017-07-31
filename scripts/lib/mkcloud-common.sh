@@ -117,7 +117,7 @@ function safely
 
 function rubyjsonparse
 {
-    $ruby -e "
+    ruby -e "
         require 'rubygems'
         require 'json'
         j=JSON.parse(STDIN.read)
