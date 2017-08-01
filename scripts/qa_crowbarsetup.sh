@@ -409,6 +409,11 @@ function add_sdk_repo
 
     case $(getcloudver) in
         6)
+            add_mount "SLE12-SP1-SDK-Pool" \
+                "CDREPOS" \
+                "$arch/SLE12-SP1-SDK-Pool/" \
+                "$tftpboot_repos_dir/SLE12-SP1-SDK-Pool/" "SDK-SP1-Pool"
+
             $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
             $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
 
@@ -1061,18 +1066,19 @@ function create_repos_yml
     local baseurl=http://crowbar.$cloudfqdn:8091/
     grep -q SLES12-SP1-Updates-test /etc/fstab && \
         additional_repos+=" SLES12-SP1-Updates-test=$baseurl/suse-12.1/$arch/repos/SLES12-SP1-Updates-test"
-    grep -q SLES12-SP2-Updates-test /etc/fstab && \
-        additional_repos+=" SLES12-SP2-Updates-test=$baseurl/suse-12.2/$arch/repos/SLES12-SP2-Updates-test"
     grep -q SUSE-OpenStack-Cloud-6-Updates-test /etc/fstab && \
         additional_repos+=" SUSE-OpenStack-Cloud-6-Updates-test=$baseurl/suse-12.1/$arch/repos/SUSE-OpenStack-Cloud-6-Updates-test"
-    grep -q SUSE-OpenStack-Cloud-7-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=$baseurl/suse-12.2/$arch/repos/SUSE-OpenStack-Cloud-7-Updates-test"
     grep -q SLE12-SP1-HA-Updates-test /etc/fstab && \
         additional_repos+=" SLE12-SP1-HA-Updates-test=$baseurl/suse-12.1/$arch/repos/SLE12-SP1-HA-Updates-test"
-    grep -q SLE12-SP2-HA-Updates-test /etc/fstab && \
-        additional_repos+=" SLE12-SP2-HA-Updates-test=$baseurl/suse-12.2/$arch/repos/SLE12-SP2-HA-Updates-test"
     grep -q SUSE-Enterprise-Storage-2.1-Updates-test /etc/fstab && \
         additional_repos+=" SUSE-Enterprise-Storage-2.1-Updates-test=$baseurl/suse-12.1/$arch/repos/SUSE-Enterprise-Storage-2.1-Updates-test"
+
+    grep -q SLES12-SP2-Updates-test /etc/fstab && \
+        additional_repos+=" SLES12-SP2-Updates-test=$baseurl/suse-12.2/$arch/repos/SLES12-SP2-Updates-test"
+    grep -q SUSE-OpenStack-Cloud-7-Updates-test /etc/fstab && \
+        additional_repos+=" SUSE-OpenStack-Cloud-7-Updates-test=$baseurl/suse-12.2/$arch/repos/SUSE-OpenStack-Cloud-7-Updates-test"
+    grep -q SLE12-SP2-HA-Updates-test /etc/fstab && \
+        additional_repos+=" SLE12-SP2-HA-Updates-test=$baseurl/suse-12.2/$arch/repos/SLE12-SP2-HA-Updates-test"
     grep -q SUSE-Enterprise-Storage-4-Updates-test /etc/fstab && \
         additional_repos+=" SUSE-Enterprise-Storage-4-Updates-test=$baseurl/suse-12.2/$arch/repos/SUSE-Enterprise-Storage-4-Updates-test"
 
@@ -1120,9 +1126,9 @@ function create_repos_yml
 
 function onadmin_set_source_variables
 {
-    if iscloudver 7plus; then
+    if iscloudver 7; then
         suseversion=12.2
-    elif iscloudver 6plus; then
+    elif iscloudver 6; then
         suseversion=12.1
     else
         suseversion=12.3
@@ -1197,34 +1203,24 @@ function onadmin_set_source_variables
         ;;
     esac
 
-    [ -n "$TESTHEAD" ] && CLOUDLOCALREPOS="$CLOUDLOCALREPOS-staging"
+    if [ -n "$TESTHEAD" ] && [[ $cloudsource =~ (develcloud) ]]; then
+        CLOUDLOCALREPOS="$CLOUDLOCALREPOS-staging"
+    fi
 
     case "$suseversion" in
         12.1)
             slesversion=12-SP1
             slesdist=SLE_12_SP1
-            slesmilestone=GM
         ;;
         12.2)
             slesversion=12-SP2
             slesdist=SLE_12_SP2
-            slesmilestone=GM
         ;;
         12.3)
             slesversion=12-SP3
             slesdist=SLE_12_SP3
-            slesmilestone=LATEST
         ;;
     esac
-}
-
-
-function onadmin_repocleanup
-{
-    # Workaround broken admin image that has SP3 Test update channel enabled
-    $zypper mr -d sp3tup
-    # disable extra repos
-    $zypper mr -d sp3sdk
 }
 
 # replace zypper repos from the image with user-specified ones
@@ -1284,7 +1280,6 @@ function onadmin_prepareinstallcrowbar
     pre_hook $FUNCNAME
     [[ $forcephysicaladmin ]] || lsmod | grep -q ^virtio_blk || complain 25 "this script should be run in the crowbar admin VM"
     [[ $want_ssl_keys ]] && ! [[ -e /root/cloud-keys/ ]] && rsync -a "$want_ssl_keys/" /root/cloud-keys/
-    onadmin_repocleanup
     [[ $want_rootpw = linux ]] || echo -e "$want_rootpw\n$want_rootpw" | passwd
     echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
     # We want to use static networking which needs a static resolv.conf .
@@ -1378,7 +1373,7 @@ EOF
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
         safely $zypper in -l -t pattern cloud_admin
         # make sure to use packages from PTF repo (needs zypper dup)
-        $zypper mr -e cloud-ptf && safely $zypper dup --no-recommends --from cloud-ptf
+        $zypper mr -G -e cloud-ptf && safely $zypper dup --no-recommends --from cloud-ptf
     fi
 
     cd /tmp
@@ -3069,7 +3064,7 @@ function prepare_proposals
 
     local ptfchannel="PTF"
     for machine in $(get_all_nodes); do
-        ssh $machine "zypper mr -p 90 $ptfchannel"
+        ssh $machine "zypper mr -G -p 90 $ptfchannel"
     done
 
 }
@@ -4531,7 +4526,7 @@ function onadmin_addupdaterepo
     fi
     $zypper modifyrepo -e cloud-ptf >/dev/null 2>&1 ||\
         safely $zypper ar $UPR cloud-ptf
-    safely $zypper mr -p 90 -r cloud-ptf
+    safely $zypper mr -G -p 90 -r cloud-ptf
     safely $zypper ref
     if iscloudver 7minus ; then
         # workaround missing in cloud 6 GM and 7 GM: https://github.com/crowbar/crowbar/pull/2320
@@ -4565,8 +4560,6 @@ function onadmin_wait_for_crowbar_api
 
 function onadmin_runupdate
 {
-    onadmin_repocleanup
-
     pre_hook $FUNCNAME
 
     # We need to set the correct MTU here since we haven't done any

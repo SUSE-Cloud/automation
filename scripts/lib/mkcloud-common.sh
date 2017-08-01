@@ -499,11 +499,11 @@ function get_admin_node_dist
     # echo the name of the current dist for the admin node
     local dist=
     case $(getcloudver) in
-        8)  dist=SLE12SP3
+        8)  dist=SLES12-SP3
             ;;
-        7)  dist=SLE12SP2
+        7)  dist=SLES12-SP2
             ;;
-        6)  dist=SLE12SP1
+        6)  dist=SLES12-SP1
             ;;
         *)  dist=UNKNOWN
             ;;
@@ -520,15 +520,7 @@ function get_lonely_node_dist
 function dist_to_image_name
 {
     # get the name of the image to deploy the admin node
-    local dist=$1
-    case $dist in
-        SLE12SP3) image=SLES12-SP3 ;;
-        SLE12SP2) image=SLES12-SP2 ;;
-        SLE12SP1) image=SLES12-SP1 ;;
-        *)
-            complain 71 "No admin node image defined for this distribution: $dist"
-        ;;
-    esac
+    local image=$1
     iscloudver 7 && [[ $want_efi ]] && \
         [[ $arch == x86_64 ]] && image="SLES12-SP2-uefi"
     echo "$image.qcow2"
