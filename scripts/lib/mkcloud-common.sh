@@ -117,7 +117,7 @@ function safely
 
 function rubyjsonparse
 {
-    $ruby -e "
+    ruby -e "
         require 'rubygems'
         require 'json'
         j=JSON.parse(STDIN.read)
@@ -531,6 +531,32 @@ function run_zypper
 {
     local params=${zypper_override_params:---non-interactive --gpg-auto-import-keys --no-gpg-checks}
     $sudo zypper $params "$@"
+}
+
+function common_set_slesversions
+{
+    if iscloudver 7; then
+        suseversion=12.2
+    elif iscloudver 6; then
+        suseversion=12.1
+    else
+        suseversion=12.3
+    fi
+
+    case "$suseversion" in
+        12.1)
+            slesversion=12-SP1
+            slesdist=SLE_12_SP1
+        ;;
+        12.2)
+            slesversion=12-SP2
+            slesdist=SLE_12_SP2
+        ;;
+        12.3)
+            slesversion=12-SP3
+            slesdist=SLE_12_SP3
+        ;;
+    esac
 }
 
 # ---- END: functions related to repos and distribution settings
