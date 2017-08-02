@@ -397,36 +397,10 @@ function add_sap_repo
     $zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/SAP${stage}/SLE_12_SP1/ dc6sap
 }
 
-function add_ha12sp1_repo
+function add_ha_repo
 {
     local repo
-    for repo in SLE12-SP1-HA-{Pool,Updates}; do
-        # Note no zypper alias parameter here since we don't want to
-        # zypper addrepo on the admin node.
-        add_mount "$repo" \
-            "CDREPOS" \
-            "$arch/$repo" \
-            "$tftpboot_repos_dir/$repo"
-    done
-}
-
-function add_ha12sp2_repo
-{
-    local repo
-    for repo in SLE12-SP2-HA-{Pool,Updates}; do
-        # Note no zypper alias parameter here since we don't want to
-        # zypper addrepo on the admin node.
-        add_mount "$repo" \
-            "CDREPOS" \
-            "$arch/$repo" \
-            "$tftpboot_repos_dir/$repo"
-    done
-}
-
-function add_ha12sp3_repo
-{
-    local repo
-    for repo in SLE12-SP3-HA-{Pool,Updates}; do
+    for repo in SLE$slesversion-HA-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
         add_mount "$repo" \
@@ -1183,15 +1157,7 @@ EOF
     onadmin_prepare_sles12plus_cloud_repos
 
     if [[ $hacloud = 1 ]]; then
-        if iscloudver 6; then
-            add_ha12sp1_repo
-        elif iscloudver 7; then
-            add_ha12sp2_repo
-        elif iscloudver 8; then
-            add_ha12sp3_repo
-        else
-            complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
-        fi
+        add_ha_repo
     fi
 
     [[ $want_cd = 1 ]] && add_sap_repo
