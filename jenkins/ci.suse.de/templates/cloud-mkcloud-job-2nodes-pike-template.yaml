@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-2nodes-ocata'
+    name: 'cloud-mkcloud{version}-job-2nodes-pike'
     node: cloud-trigger
     disabled: '{obj:disabled}'
 
@@ -17,12 +17,12 @@
           block: true
           current-parameters: true
           predefined-parameters: |
-            cloudsource=ocatacloud{version}
+            cloudsource=pikecloud{version}
             nodenumber=2
             mkcloudtarget=all_batch
             tempestoptions={tempestoptions}
             label={label}
             scenario=cloud{version}-2nodes-default.yml
             want_node_aliases=controller=1,compute-kvm=1
-            job_name=cloud-mkcloud{version}-job-2nodes-ocata
+            job_name=cloud-mkcloud{version}-job-2nodes-pike
 

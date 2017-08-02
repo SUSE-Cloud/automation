@@ -448,7 +448,7 @@
                       unset want_ldap
                   fi
                   ;;
-              M*|ocatacloud8|develcloud8|develcloud7|mitakacloud7|susecloud7)
+              M*|ocatacloud8|pikecloud8|develcloud8|develcloud7|mitakacloud7|susecloud7)
                   if [[ $mkcloudtarget =~ upgrade ]]; then
                       echo "Unsetting want_ldap for upgrade jobs until hybrid backend is migrated to domain-specific backends"
                       unset want_ldap

@@ -1,10 +1,10 @@
 - job-template:
-    name: 'cloud-mkcloud{version}-job-ha-ocata'
+    name: 'cloud-mkcloud{version}-job-4nodes-linuxbridge-pike'
     node: cloud-trigger
     disabled: '{obj:disabled}'
 
     triggers:
-      - timed: '11 2 * * *'
+      - timed: 'H 2 * * *'
 
     logrotate:
       numToKeep: -1
@@ -17,12 +17,10 @@
           block: true
           current-parameters: true
           predefined-parameters: |
-            cloudsource=ocatacloud{version}
-            nodenumber=5
-            networkingmode=vxlan
+            cloudsource=pikecloud{version}
+            nodenumber=4
+            networkingplugin=linuxbridge
             tempestoptions={tempestoptions}
-            storage_method={storage_method_ha}
-            hacloud=1
-            mkcloudtarget=all_noreboot
+            mkcloudtarget=all
             label={label}
-            job_name=cloud-mkcloud{version}-job-ha-ocata
+            job_name=cloud-mkcloud{version}-job-4nodes-linuxbridge-pike

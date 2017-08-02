@@ -1038,7 +1038,7 @@ Mandatory
     cloudpv=/dev/vdx (default /dev/vdb)
         Device where a LVM physical volume will be created, all data lost on this device
         Should be at least 80 GB. The volume group will be called 'cloud'.
-    cloudsource=develcloud6/7/8 | mitakacloud7 | ocatacloud8 | susecloud8 | GM6 | GM6+up | GM7 | GM7+up | M?  (default '')
+    cloudsource=develcloud6/7/8 | mitakacloud7 | ocatacloud8 | pikecloud8 | susecloud8 | GM6 | GM6+up | GM7 | GM7+up | M?  (default '')
         NOTE: The latest version always is in development. So do NOT expect it to work out of the box.
         NOTE: If you need a stable/working version use <latest-version>-1.
         defines the installation source of the product
@@ -1046,6 +1046,7 @@ Mandatory
         develcloud7   : product from IBS Devel:Cloud:7
         mitakacloud7  : product from IBS Devel:Cloud:7:Mitaka
         ocatacloud8   : product from IBS Devel:Cloud:8:Ocata
+        pikecloud8    : product from IBS Devel:Cloud:8:Pike
         develcloud8   : product from IBS Devel:Cloud:8
         susecloud8    : product from IBS SUSE:SLE....
         GM6           : SUSE Cloud Goldmaster 6 without updates
