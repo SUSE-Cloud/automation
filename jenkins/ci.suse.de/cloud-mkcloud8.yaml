@@ -23,6 +23,7 @@
         - 'cloud-mkcloud{version}-job-dvr-{arch}'
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-mariadb-{arch}'
+        - 'cloud-mkcloud{version}-job-monasca-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
