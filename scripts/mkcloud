@@ -34,6 +34,10 @@ cache_dir_default=/var/cache/mkcloud/$cloud
 : ${cache_dir:=$cache_dir_default}
 mkdir -p "$cache_dir"
 
+# want_test_updates is used to determine whether to cache the test repos. If
+# TESTHEAD is set, it implies the test repos are needed.
+[ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
+
 # FIXME: separate user-tweakable parameters from script local variables.
 # Currently there is no clearly defined interface point.  One of the
 # causes of this is violation of the common shell coding standard which
