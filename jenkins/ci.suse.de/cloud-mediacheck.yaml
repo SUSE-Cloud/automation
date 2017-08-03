@@ -21,6 +21,7 @@
             - Devel:Cloud:7:Mitaka/SLE_12_SP2
             - Devel:Cloud:8/SLE_12_SP3
             - Devel:Cloud:8:Ocata/SLE_12_SP3
+            - Devel:Cloud:8:Pike/SLE_12_SP3
             - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3
       - axis:
           type: user-defined
