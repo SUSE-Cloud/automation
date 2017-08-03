@@ -373,46 +373,20 @@ function add_sdk_repo
 
     export_tftpboot_dirs
 
-    case $(getcloudver) in
-        6)
-            add_mount "SLE12-SP1-SDK-Pool" \
-                "CDREPOS" \
-                "$arch/SLE12-SP1-SDK-Pool/" \
-                "$tftpboot_repos_dir/SLE12-SP1-SDK-Pool/" "SDK-SP1-Pool"
+    local suffix
+    for suffix in Pool Updates; do
+        add_mount "SLE$slesversion-SDK-$suffix" \
+            "CDREPOS" \
+            "$arch/SLE$slesversion-SDK-$suffix/" \
+            "$tftpboot_repos_dir/SLE$slesversion-SDK-$suffix/" "SDK-$suffix"
+    done
 
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP1/$arch/product/ SDK-SP1
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP1/$arch/update/ SDK-SP1-Update
-
-            if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP1-SDK-Updates-test ; then
-                add_mount "SLE12-SP1-SDK-Updates-test" \
-                    "CDREPOS" \
-                    "$arch/SLE12-SP1-SDK-Updates-test/" \
-                    "$tftpboot_repos_dir/SLE12-SP1-SDK-Updates-test/" "SDK-SP1-Update-test"
-            fi
-            ;;
-        7)
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP2/x86_64/product/ SDK-SP2
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP2/x86_64/update/ SDK-SP2-Update
-
-            if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP2-SDK-Updates-test ; then
-                add_mount "SLE12-SP2-SDK-Updates-test" \
-                    "CDREPOS" \
-                    "$arch/SLE12-SP2-SDK-Updates-test/" \
-                    "$tftpboot_repos_dir/SLE12-SP2-SDK-Updates-test/" "SDK-SP2-Update-test"
-            fi
-            ;;
-        8)
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/ SDK-SP3
-            $zypper ar -p $sdk_repo_priority -f $smturl/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/ SDK-SP3-Update
-
-            if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE12-SP3-SDK-Updates-test ; then
-                add_mount "SLE12-SP3-SDK-Updates-test" \
-                    "CDREPOS" \
-                    "$arch/SLE12-SP3-SDK-Updates-test/" \
-                    "$tftpboot_repos_dir/SLE12-SP3-SDK-Updates-test/" "SDK-SP3-Update-test"
-            fi
-            ;;
-    esac
+    if [[ "$want_test_updates" = 1 ]] && isrepoworking SLE$slesversion-SDK-Updates-test ; then
+        add_mount "SLE$slesversion-SDK-Updates-test" \
+            "CDREPOS" \
+            "$arch/SLE$slesversion-SDK-Updates-test/" \
+            "$tftpboot_repos_dir/SLE$slesversion-SDK-Updates-test/" "SDK-Updates-test"
+    fi
 }
 
 function add_sap_repo
@@ -423,36 +397,10 @@ function add_sap_repo
     $zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/SAP${stage}/SLE_12_SP1/ dc6sap
 }
 
-function add_ha12sp1_repo
+function add_ha_repo
 {
     local repo
-    for repo in SLE12-SP1-HA-{Pool,Updates}; do
-        # Note no zypper alias parameter here since we don't want to
-        # zypper addrepo on the admin node.
-        add_mount "$repo" \
-            "CDREPOS" \
-            "$arch/$repo" \
-            "$tftpboot_repos_dir/$repo"
-    done
-}
-
-function add_ha12sp2_repo
-{
-    local repo
-    for repo in SLE12-SP2-HA-{Pool,Updates}; do
-        # Note no zypper alias parameter here since we don't want to
-        # zypper addrepo on the admin node.
-        add_mount "$repo" \
-            "CDREPOS" \
-            "$arch/$repo" \
-            "$tftpboot_repos_dir/$repo"
-    done
-}
-
-function add_ha12sp3_repo
-{
-    local repo
-    for repo in SLE12-SP3-HA-{Pool,Updates}; do
+    for repo in SLE$slesversion-HA-{Pool,Updates}; do
         # Note no zypper alias parameter here since we don't want to
         # zypper addrepo on the admin node.
         add_mount "$repo" \
@@ -475,7 +423,7 @@ function add_suse_storage_repo
                     "$tftpboot_repos_dir/$repo"
             done
         fi
-        if iscloudver 7plus; then
+        if iscloudver 7; then
             for repo in SUSE-Enterprise-Storage-4-{Pool,Updates}; do
                 # Note no zypper alias parameter here since we don't want
                 # to zypper addrepo on the admin node.
@@ -731,7 +679,7 @@ function onadmin_prepare_sles12sp1_installmedia
         local sles12sp1_mount="$tftpboot_suse12sp1_dir/$a/install"
         add_mount "SLE-12-SP1-Server-LATEST/sle-12-$a" \
             "CDROOT" \
-            "suse-12.1/$a/install" \
+            "install/suse-12.1/$a/install" \
             "$sles12sp1_mount"
 
         if [ ! -d "$sles12sp1_mount/media.1" ] ; then
@@ -747,7 +695,7 @@ function onadmin_prepare_sles12sp2_installmedia
         local sles12sp2_mount="$tftpboot_suse12sp2_dir/$a/install"
         add_mount "SLE-12-SP2-Server-TEST/sle-12-$a" \
             "CDROOT" \
-            "suse-12.2/$a/install" \
+            "install/suse-12.2/$a/install" \
             "$sles12sp2_mount"
 
         if [ ! -d "$sles12sp2_mount/media.1" ] ; then
@@ -763,7 +711,7 @@ function onadmin_prepare_sles12sp3_installmedia
         local sles12sp3_mount="$tftpboot_suse12sp3_dir/$a/install"
         add_mount "SLE-12-SP3-Server-TEST/sle-12-$a" \
             "CDROOT" \
-            "suse-12.3/$a/install" \
+            "install/suse-12.3/$a/install" \
             "$sles12sp3_mount"
 
         if [ ! -d "$sles12sp3_mount/media.1" ] ; then
@@ -1141,37 +1089,14 @@ function onadmin_setup_local_zypper_repositories
             uri_base="file:///repositories"
         else
             localrepos_base="file://$localreposdir_target/repos/$arch"
-            case $(getcloudver) in
-                6)
-                    $zypper ar "$localrepos_base/SLES12-SP1-Pool" sles12sp1
-                    $zypper ar "$localrepos_base/SLES12-SP1-Updates" sles12sp1up
-                ;;
-                7)
-                    $zypper ar "$localrepos_base/SLES12-SP2-Pool" sles12sp2
-                    $zypper ar "$localrepos_base/SLES12-SP2-Updates" sles12sp2up
-                ;;
-                8)
-                    $zypper ar "$localrepos_base/SLES12-SP3-Pool" sles12sp3
-                    $zypper ar "$localrepos_base/SLES12-SP3-Updates" sles12sp3up
-                ;;
-            esac
+            $zypper ar "$localrepos_base/SLES$slesversion-Pool" SLES-$slesversion-Pool
+            $zypper ar "$localrepos_base/SLES$slesversion-Updates" SLES-$slesversion-Updates
             return
         fi
     fi
-    case $(getcloudver) in
-        6)
-            $zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP1/$arch/product/ sles12sp1
-            $zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP1/$arch/update/ sles12sp1up
-        ;;
-        7)
-            $zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP2/$arch/product/ sles12sp2
-            $zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP2/$arch/update/ sles12sp2up
-        ;;
-        8)
-            zypper ar $uri_base/SUSE/Products/SLE-SERVER/12-SP3/$arch/product/ sles12sp3
-            zypper ar $uri_base/SUSE/Updates/SLE-SERVER/12-SP3/$arch/update/ sles12sp3up
-        ;;
-    esac
+
+    $zypper ar $uri_base/SUSE/Products/SLE-SERVER/$slesversion/$arch/product/ SLES-$slesversion-Pool
+    $zypper ar $uri_base/SUSE/Updates/SLE-SERVER/$slesversion/$arch/update/ SLES-$slesversion-Updates
 }
 
 # setup network/DNS, add repos and install crowbar packages
@@ -1232,15 +1157,7 @@ EOF
     onadmin_prepare_sles12plus_cloud_repos
 
     if [[ $hacloud = 1 ]]; then
-        if iscloudver 6; then
-            add_ha12sp1_repo
-        elif iscloudver 7; then
-            add_ha12sp2_repo
-        elif iscloudver 8; then
-            add_ha12sp3_repo
-        else
-            complain 18 "You requested a HA setup but for this combination ($cloudsource : $slesdist) no HA setup is available."
-        fi
+        add_ha_repo
     fi
 
     [[ $want_cd = 1 ]] && add_sap_repo
@@ -1933,19 +1850,8 @@ function onadmin_setup_nfs_server
     add_dns_record "nfsserver" "$nfs_server_node_ip"
 
     local uri_base=$reposerver_url
-    local sle_pool=""
-    local sle_updates=""
-
-    case $(getcloudver) in
-        6)
-            sle_pool="$uri_base/$arch/SLES12-SP1-Pool/ sles12sp1"
-            sle_updates="$uri_base/$arch/SLES12-SP1-Updates/ sles12sp1up"
-        ;;
-        7)
-            sle_pool="$uri_base/$arch/SLES12-SP2-Pool/ sles12sp2"
-            sle_updates="$uri_base/$arch/SLES12-SP2-Updates/ sles12sp2up"
-        ;;
-    esac
+    local sle_pool="$uri_base/$arch/SLES$slesversion-Pool/ SLES-$slesversion-Pool"
+    local sle_updates="$uri_base/$arch/SLES$slesversion-Updates/ SLES-$slesversion-Updates"
 
     inject="
         set -x
