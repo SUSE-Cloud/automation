@@ -24,15 +24,15 @@ log_file=$log_dir/`date -Iseconds`.log
 exec >  >(exec tee -ia $log_file)
 exec 2> >(exec tee -ia $log_file >&2)
 
-cache_dir_default=/var/cache/mkcloud/$cloud
-[[ $UID != 0 ]] && cache_dir_default="${XDG_CACHE_HOME/mkcloud+./cache}"
-: ${cache_dir:=$cache_dir_default}
-mkdir -p "$cache_dir"
-
 if [[ $debug_mkcloud = 1 ]] ; then
     set -x
     PS4='+(${BASH_SOURCE##*/}:${LINENO}) ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 fi
+
+cache_dir_default=/var/cache/mkcloud/$cloud
+[[ $UID != 0 ]] && cache_dir_default="${XDG_CACHE_HOME:-./cache}/mkcloud"
+: ${cache_dir:=$cache_dir_default}
+mkdir -p "$cache_dir"
 
 # FIXME: separate user-tweakable parameters from script local variables.
 # Currently there is no clearly defined interface point.  One of the
