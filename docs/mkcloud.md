@@ -151,10 +151,9 @@ A basic working mkcloud environment could look like [this](basic-mkcloud-config.
 ## Using with local repositories
 
 To be able to deploy a complete Cloud with `mkcloud` and without network access,
-you need a couple of repositories locally synced.
-The repositories are `SUSE-Cloud-SLE-11-SP3-deps` and `SUSE-Cloud-5-devel`. Depending on your
-env variables, other repositories maybe needed.
-The repositories can be synced with a tool called [`sync-repos`](https://github.com/SUSE/cloud/blob/master/dev-setup/sync-repos) (which is a SUSE internal tool).
+you can run the "prepare" step in mkcloud using the cache_clouddata=1 environment
+variable set. This will create a cache under $cache_dir (set to /var/cache/mkcloud by default
+of images and repositories needed during deployment.
 
 Here's an example script you can execute to create a full cloud:
 
