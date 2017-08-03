@@ -107,3 +107,47 @@ function onhost_prepareadmin
 {
     onhost_deploy_image "admin" $(get_admin_node_dist) "$admin_node_disk"
 }
+
+function onhost_cacheclouddata
+{
+    [[ "$cache_clouddata" = 1 ]] || return
+
+    common_set_slesversions
+
+    local include=$(mktemp)
+    (
+        local cloudver=$(getcloudver)
+        local a
+        for a in $architectures; do
+            local suffix
+            # Mirror SLES/HA/SOC update + pool repos
+            for suffix in Pool Updates; do
+                echo "repos/$a/SLES$slesversion-$suffix/***"
+                [[ $hacloud = 1 ]] && echo "repos/$a/SLE$slesversion-HA-$suffix/***"
+                echo "repos/$a/SUSE-OpenStack-Cloud-$cloudver-$suffix/***"
+            done
+            [[ $want_test_updates = 1 ]] && echo "repos/$a/SLES$slesversion-Updates-test/***"
+            echo "install/suse-$suseversion/$a/install/***"
+
+            # Determine which cloudsource based media to mirror
+            suffix="official"
+            if [[ $cloudsource =~ (develcloud) ]]; then
+                suffix="devel"
+                [ -n "$TESTHEAD" ] && suffix+="-staging"
+            fi
+            echo "repos/$a/SUSE-OpenStack-Cloud-$cloudver-$suffix/***"
+
+            # Now the various test images
+            echo "images/$a/other/magnum-service-image.qcow2"
+            echo "images/$a/other/manila-service-image.qcow2"
+        done
+    ) > $include
+
+    echo "----------------"
+    cat $include
+    echo "----------------"
+
+    local rsync_options="-mavHP --delete --ignore-errors"
+    rsync $rsync_options --include-from=$include --include="*/" --exclude="*" $reposerver::cloud $cache_dir
+    rm -f $include
+}
