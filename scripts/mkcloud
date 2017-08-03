@@ -30,7 +30,7 @@ if [[ $debug_mkcloud = 1 ]] ; then
 fi
 
 cache_dir_default=/var/cache/mkcloud/$cloud
-[[ $UID != 0 ]] && cache_dir_default="${XDG_CACHE_HOME/mkcloud+./cache}"
+[[ $UID != 0 ]] && cache_dir_default="${XDG_CACHE_HOME:-./cache}/mkcloud"
 : ${cache_dir:=$cache_dir_default}
 mkdir -p "$cache_dir"
 
