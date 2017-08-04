@@ -76,6 +76,7 @@ if [ -f "/etc/os-release" ]; then
             REPO="SLE_12"
             [ "$VERSION" = "12.1" ] && REPO="SLE_12_SP1"
             [ "$VERSION" = "12.2" ] && REPO="SLE_12_SP2"
+            [ "$VERSION" = "12.3" ] && REPO="SLE_12_SP3"
         ;;
         "openSUSE Leap")
             REPO="openSUSE_Leap_${VERSION}"
@@ -178,6 +179,11 @@ if [ -z "$skip_reposetup" ]; then
     if [ "$VERSION" = "12.2" ]; then
         $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/' SLE12-SP2-Pool
         $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/' SLES12-SP2-Updates
+    fi
+
+    if [ "$VERSION" = "12.3" ]; then
+        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/' SLE12-SP3-Pool
+        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP3/x86_64/update/' SLES12-SP3-Updates
     fi
 
     # openSUSE Leap versions
