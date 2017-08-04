@@ -1054,6 +1054,30 @@ EOF
         /opt/dell/bin/json-edit -a attributes.network.conduit_map -r -v "$conmap_complete" $netfile
     fi
 
+    if [[ $cloud = p2 ]] ; then
+        local crowbar_specific_conduit='{"pattern": "single/1/.*",
+            "conduit_list": {"intf0": {"if_list"  : ["?1g1"]},
+            "intf1": {"if_list": ["?1g1"]},
+            "intf2": {"if_list": ["?1g1"]}}
+            }'
+
+        local hardware_node_conduit='{"pattern": "single/.*/.*",
+            "conduit_list": {"intf0": {"if_list"  : ["10g1"]},
+            "intf1": {"if_list": ["10g1"]},
+            "intf2": {"if_list": ["10g1"]}}
+            }'
+
+        local conmap_complete=`python -c "import json; f=open('$netfile'); \
+            j=json.load(f);\
+            j['attributes']['network']['conduit_map'] = [item for item in j['attributes']['network']['conduit_map'] if item['pattern'] != 'single/.*/.*']; \
+            j['attributes']['network']['conduit_map'] = [item for item in j['attributes']['network']['conduit_map'] if item['pattern'] != 'single/1/.*']; \
+            j['attributes']['network']['conduit_map'].insert(0, $hardware_node_conduit); \
+            j['attributes']['network']['conduit_map'].insert(0, $crowbar_specific_conduit); \
+            print json.dumps(j['attributes']['network']['conduit_map'], indent=4)"`
+        # set the modified conduit map
+        /opt/dell/bin/json-edit -a attributes.network.conduit_map -r -v "$conmap_complete" $netfile
+    fi
+
     if [[ $cloud =~ ^p[0-9]$ ]] ; then
         local pcloudnum=${cloud#p}
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
