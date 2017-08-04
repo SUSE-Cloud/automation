@@ -11,16 +11,20 @@ set -eu
 # arguments: dev op var
 # network interface
 dev=$1
-# get or set.  This script just supports get
+# get or set.
 op=$2
 # var name
 var=$3
+# value to set if any
+val=${4:-''}
 
 veth_peer=$(ip link show dev $dev | awk 'NR==1 { split($2, subfield, "@"); print substr(subfield[2], 1, length(subfield[2])-1)}')
 gw_dev=$(bridge link show dev $veth_peer |  awk '{for(j=0;j<=NF;j++) if ($j == "master" ) print $(j+1) }')
 
 link_ip() {
-    ip -o -4 addr list $1 | sed -ne 's/.* inet \([.0-9]*\)\/.*/\1/p'
+    # We might want to change the IP address of the BMC device, but to avoid having
+    # to change the lan conf and re-bind, we just take the latest address
+    ip -o -4 addr list $1 | tail -1 | sed -ne 's/.* inet \([.0-9]*\)\/.*/\1/p'
 }
 
 link_mac() {
@@ -71,9 +75,45 @@ get_val() {
     esac
 }
 
-if [ $op = "get" ]; then
-    val=$(get_val $var)
-    echo "$var: $val"
-fi
+set_val() {
+    case $var in
+    ip_addr_src)
+        ;;
 
-#TODO(colleen): implement set_val()
+    ip_addr)
+        # If it already has two addresses, replace the last one.
+        # Otherwise, just add a second one (keep the first one)
+        if [ $(ip -o link list $dev | wc -l) -gt 1 ] ; then
+            local current=$(link_ip $dev)
+            ip addr del $current dev $dev
+        fi
+        ip addr add $val dev $dev
+        ;;
+
+    mac_addr)
+        ;;
+
+    subnet_mask)
+        ifconfig $dev netmask $val
+        ;;
+
+    default_gw_ip_addr)
+        ;;
+
+    default_gw_mac_addr)
+        ;;
+
+    backup_gw_ip_addr)
+        ;;
+
+    backup_gw_mac_addr)
+        ;;
+    esac
+}
+
+if [ $op = "get" ]; then
+    val=$(get_val)
+    echo "$var: $val"
+elif [ $op = "set" ]; then
+    set_val
+fi
