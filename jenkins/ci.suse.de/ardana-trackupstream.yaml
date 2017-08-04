@@ -1,0 +1,76 @@
+- job:
+    name: 'ardana-trackupstream'
+    project-type: matrix
+
+    triggers:
+      - timed: 'H 5,19 * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 30
+
+    axes:
+      - axis:
+          type: user-defined
+          name: component
+          values:
+            - ardana
+            - ardana-barbican
+            - ardana-ceilometer
+            - ardana-ceph
+            - ardana-cephlm
+            - ardana-certifi
+            - ardana-cinder
+            - ardana-cinderlm
+            - ardana-cluster
+            - ardana-db
+            - ardana-designate
+            - ardana-freezer
+            - ardana-glance
+            - ardana-glance-check
+            - ardana-heat
+            - ardana-horizon
+            - ardana-ironic
+            - ardana-keystone
+            - ardana-logging
+            - ardana-magnum
+            - ardana-memcached
+            - ardana-monasca
+            - ardana-monasca-transform
+            - ardana-mq
+            - ardana-neutron
+            - ardana-nova
+            - ardana-octavia
+            - ardana-opsconsole
+            - ardana-osconfig
+            - ardana-spark
+            - ardana-swift
+            - ardana-tempest
+            - ardana-tls
+            - ardana-vmfactory
+      - axis:
+          type: user-defined
+          name: project
+          values:
+            - Devel:Cloud:8:Staging
+      - axis:
+          type: slave
+          name: label
+          values:
+            - openstack-trackupstream
+    # execution-strategy:
+    #   combination-filter: |
+    #     !(
+    #       (
+    #         [
+    #           "Devel:Cloud:8:Staging"
+    #         ].contains(project) &&
+    #         [
+    #           "XXX"
+    #         ].contains(component)
+    #       )
+
+    #     )
+    #   sequential: true
+    builders:
+      - trackupstream
