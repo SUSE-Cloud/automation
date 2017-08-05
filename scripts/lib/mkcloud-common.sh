@@ -630,4 +630,6 @@ fi
 : ${want_monasca_proposal:=0}
 : ${want_murano_proposal:=0}
 
+[ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
+
 # ---- END: common variables and defaults
