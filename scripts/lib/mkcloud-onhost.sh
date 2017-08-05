@@ -126,7 +126,10 @@ function onhost_cacheclouddata
                 [[ $hacloud = 1 ]] && echo "repos/$a/SLE$slesversion-HA-$suffix/***"
                 echo "repos/$a/SUSE-OpenStack-Cloud-$cloudver-$suffix/***"
             done
-            [[ $want_test_updates = 1 ]] && echo "repos/$a/SLES$slesversion-Updates-test/***"
+            [[ $want_test_updates = 1 ]] && {
+                echo "repos/$a/SLES$slesversion-Updates-test/***"
+                [[ $hacloud = 1 ]] && echo "repos/$a/SLE$slesversion-HA-Updates-test/***"
+            }
             echo "install/suse-$suseversion/$a/install/***"
 
             # Determine which cloudsource based media to mirror
