@@ -315,7 +315,7 @@ function add_ha_repo
         add_mount "repos/$arch/$repo" \
             "$tftpboot_repos_dir/$repo"
     done
-    if [[ $hacloud = 1 ]] && isrepoworking SLE$slesversion-HA-Updates-test ; then
+    if [[ $want_test_updates = 1 ]] && isrepoworking SLE$slesversion-HA-Updates-test ; then
         add_mount "repos/$arch/SLE$slesversion-HA-Updates-test/" \
             "$tftpboot_repos_dir/SLE$slesversion-HA-Updates-test/"
     fi
