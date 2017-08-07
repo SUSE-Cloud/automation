@@ -1449,7 +1449,7 @@ function onadmin_allocate
     fi
 
     [[ $nodenumber -gt 0 ]] && wait_for 50 10 'test $(get_all_discovered_nodes | wc -l) -ge 1' "first node to be discovered"
-    wait_for 100 10 '[[ $(get_all_discovered_nodes | wc -l) -ge $nodenumber ]]' "all nodes to be discovered"
+    wait_for 1000 10 '[[ $(get_all_discovered_nodes | wc -l) -ge $nodenumber ]]' "all nodes to be discovered"
     local n
     for n in `get_all_discovered_nodes` ; do
         wait_for 100 2 "knife node show -a state $n | grep -q 'discovered\|ready'" \
