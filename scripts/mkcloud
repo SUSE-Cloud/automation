@@ -98,6 +98,8 @@ iscloudver 7plus && : ${controller_node_memory:=12582912}
     compute_node_memory=$(max $compute_node_memory ${xen_node_memory:-4000000})
 # hdd size defaults (unless defined otherwise)
 : ${adminnode_hdd_size:=15}
+[[ "$upgrade_cloudsource" ]] && \
+    adminnode_hdd_size=$(max $adminnode_hdd_size 20)
 : ${controller_hdd_size:=20}
 : ${computenode_hdd_size:=20}
 : ${cephvolume_hdd_size:=21}
