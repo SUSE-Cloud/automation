@@ -9,3 +9,5 @@
             release: 'Mitaka'
         - 'openstack-rpm-packaging-update-{release}':
             release: 'Ocata'
+        - 'openstack-rpm-packaging-update-{release}':
+            release: 'Pike'
