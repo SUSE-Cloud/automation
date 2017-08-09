@@ -1361,7 +1361,7 @@ function set_node_raid
     raid_type="$2"
     disks_count="$3"
 
-    wait_for 10 5 "getent hosts $node &> /dev/null" "$node name to be resolvable"
+    wait_for 300 10 "getent hosts $node &> /dev/null" "$node name to be resolvable"
 
     wait_for 300 10 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $node true" "$node to become sshable"
     # to find out available disks, we need to look at the nodes directly
