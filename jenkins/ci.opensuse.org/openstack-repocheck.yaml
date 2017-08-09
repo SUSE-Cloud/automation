@@ -16,12 +16,12 @@
           values:
             - Cloud:OpenStack:Liberty
             - Cloud:OpenStack:Liberty:Staging
-            - Cloud:OpenStack:Mitaka
-            - Cloud:OpenStack:Mitaka:Staging
             - Cloud:OpenStack:Newton
             - Cloud:OpenStack:Newton:Staging
             - Cloud:OpenStack:Ocata
             - Cloud:OpenStack:Ocata:Staging
+            - Cloud:OpenStack:Pike
+            - Cloud:OpenStack:Pike:Staging
             - Cloud:OpenStack:Master
             - Cloud:Tools
       - axis:
@@ -40,13 +40,12 @@
             - cloud-trackupstream
     execution-strategy:
       combination-filter: |
-       !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_12_SP1"].contains(repository) ||
-         ["Cloud:OpenStack:Factory"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "SLE_12_SP3", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
+       !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "openSUSE_Leap_42.2"].contains(repository) ||
          ["Cloud:OpenStack:Liberty", "Cloud:OpenStack:Liberty:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP3", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
-         ["Cloud:OpenStack:Mitaka", "Cloud:OpenStack:Mitaka:Staging"].contains(project) && ["SLE_12_SP3", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
          ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["SLE_12_SP1", "openSUSE_Leap_42.3"].contains(repository) ||
          ["Cloud:OpenStack:Ocata", "Cloud:OpenStack:Ocata:Staging"].contains(project) && ["SLE_12_SP1"].contains(repository) ||
-         ["Cloud:Tools"].contains(project) && ["SLE_12"].contains(repository)
+         ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "openSUSE_Leap_42.2"].contains(repository) ||
+         ["Cloud:Tools"].contains(project) && ["SLE_12", "SLE_12_SP1"].contains(repository)
        )
       sequential: true
     builders:
