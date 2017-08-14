@@ -86,7 +86,7 @@ def get_default_machine(emulator):
     else:
         machine = "pc-i440fx-2.0"
         if os.system("%(emulator)s -machine help | grep -q %(machine)s" % ({
-                         'emulator': emulator, 'machine': machine})) != 0:
+                     'emulator': emulator, 'machine': machine})) != 0:
             return "pc-0.14"
         return machine
 
@@ -103,7 +103,7 @@ def get_memballoon_type():
     </memballoon>"""
 
     return """    <memballoon model='virtio' autodeflate='on'>
-      <address type='pci' slot='0x05'/>
+      <address type='pci' bus='0x02' slot='0x01'/>
     </memballoon>"""
 
 
@@ -117,11 +117,12 @@ def get_serial_device():
 
 
 def get_mainnic_address(index):
-    mainnicaddress = "<address type='pci' slot='%s'/>" % (hex(index + 0x3))
+    mainnicaddress = "<address type='pci' bus='0x01' slot='%s'/>" % \
+        (hex(index + 0x1))
     if 's390x' in get_machine_arch():
         mainnicaddress = "<address type='ccw' cssid='0xfe' ssid='0x0' " \
-                                         "devno='%s'/>" % \
-                                         (hex(index + 0x1))
+            "devno='%s'/>" % \
+            (hex(index + 0x1))
     return mainnicaddress
 
 
@@ -182,7 +183,7 @@ def net_interfaces_config(args, nicmodel):
             net=get_net_for_nic(args, index),
             macaddress=mac,
             nicmodel=nicmodel,
-            bootorder=bootorderoffset+(index*10),
+            bootorder=bootorderoffset + (index * 10),
             mainnicaddress=mainnicaddress)
         nic_configs.append(
             get_config(values, os.path.join(TEMPLATE_DIR,
@@ -266,12 +267,12 @@ def compute_config(args, cpu_flags=cpuflags()):
                 args.nodecounter,
                 i),
             'target_dev': targetdevprefix + ''.join(alldevices.next()),
-            'target_address': target_address.format(hex(0x10+i)),
+            'target_address': target_address.format(hex(0x10 + i)),
         }, configopts))
 
     cephvolume = ""
     if args.cephvolumenumber and args.cephvolumenumber > 0:
-        for i in range(1, args.cephvolumenumber+1):
+        for i in range(1, args.cephvolumenumber + 1):
             ceph_template = string.Template(
                 readfile(os.path.join(TEMPLATE_DIR, "extra-volume.xml")))
             cephvolume += "\n" + ceph_template.substitute(merge_dicts({
@@ -285,7 +286,7 @@ def compute_config(args, cpu_flags=cpuflags()):
                     args.nodecounter,
                     i),
                 'target_dev': targetdevprefix + ''.join(alldevices.next()),
-                'target_address': target_address.format(hex(0x16+i)),
+                'target_address': target_address.format(hex(0x16 + i)),
             }, configopts))
 
     drbdvolume = ""
@@ -369,7 +370,7 @@ def cleanup_one_node(args):
 def cleanup(args):
     conn = libvirt_connect()
     domains = [i for i in conn.listAllDomains()
-               if i.name().startswith(args.cloud+"-")]
+               if i.name().startswith(args.cloud + "-")]
 
     for dom in domains:
         domain_cleanup(dom)

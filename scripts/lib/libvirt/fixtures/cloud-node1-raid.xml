@@ -64,7 +64,7 @@
   <target dev='cloud-1-0'/>
   <source network='cloud-admin'/>
   <model type='virtio'/>
-  <address type='pci' slot='0x3'/>
+  <address type='pci' bus='0x01' slot='0x1'/>
   <boot order='2'/>
 </interface>
 
@@ -82,7 +82,7 @@
     </video>
 
     <memballoon model='virtio' autodeflate='on'>
-      <address type='pci' slot='0x05'/>
+      <address type='pci' bus='0x02' slot='0x01'/>
     </memballoon>
   </devices>
 </domain>
