@@ -17,9 +17,12 @@ install_source_prv="rsync://ibs-mirror.prv.suse.net/dist/install/"
 if [ $SITE = "nue" ]; then
     ibs_source=$ibs_source_nue
     install_source=$install_source_nue
+    archs=x86_64 s390x aarch64
 elif [ $SITE = "prv" ]; then
     ibs_source=$ibs_source_prv
     install_source=$install_source_prv
+    # we do not need anything other that x86_64 in provo currently
+    archs=x86_64
 else
     echo "Invalid site $SITE"
     exit 1
@@ -56,7 +59,7 @@ for servicepack in 1 2 3; do
     repo_version="$version"
     chef_version="12.$servicepack"
 
-    for arch in x86_64 s390x aarch64; do
+    for arch in $archs; do
         # only x86_64 for SP0
         [ "$arch" != x86_64 -a $servicepack -eq 0 ] && continue
         [ "$arch" = "aarch64" -a $servicepack -eq 1 ] && continue
@@ -202,7 +205,7 @@ for version in 6 7 8; do
     servicepack=1
     [ "$version" == "7" ] && servicepack=2
 
-    for arch in x86_64 s390x aarch64; do
+    for arch in $archs; do
         # no ARM for Cloud <= 6
         [ "$arch" == aarch64 -a $version -le 6 ] && continue
 
@@ -238,7 +241,7 @@ for version in 6 7 8; do
 done
 
 # sync admin images
-for arch in x86_64 aarch64 s390x ; do
+for arch in $archs ; do
     destdir_admin_images=/srv/nfs/images/$arch/
     mkdir -p $destdir_admin_images
     $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-untested.qcow2
