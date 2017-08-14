@@ -3,16 +3,23 @@
 # SITE to use. Can be "nue" or "prv" (Nuermberg and Provo)
 : ${SITE:="nue"}
 
+# The IBS source in Nuermberg ("mount dist.nue.suse.com:/dist /mnt/dist/")
+ibs_source_nue="/mnt/dist/ibs/"
+# The install source in Nuermberg
+# For rsync, needs https://infra.nue.suse.com/SelfService/Display.html?id=90326
+install_source_nue="/mnt/dist/install/"
+
+# The IBS source for Provo (NFS not provided - see https://infra.nue.suse.com/SelfService/Display.html?id=90350
+ibs_source_prv="rsync://ibs-mirror.prv.suse.net/dist/ibs/"
+# The install source in Provo
+install_source_prv="rsync://ibs-mirror.prv.suse.net/dist/install/"
+
 if [ $SITE = "nue" ]; then
-    # Currently /mnt/dist can be setup via: "mount dist.nue.suse.com:/dist /mnt/dist/"
-    ibs_source="/mnt/dist/ibs/"
-    # FIXME(toabctl): use rsync for ibs_source and install_source when
-    # https://infra.nue.suse.com/SelfService/Display.html?id=90326 is fixed
-    #ibs_source="rsync://dist.suse.de/ibs/"
-    #install_source="/mnt/dist/install/"
+    ibs_source=$ibs_source_nue
+    install_source=$install_source_nue
 elif [ $SITE = "prv" ]; then
-    ibs_source="rsync://ibs-mirror.prv.suse.net/dist/ibs/"
-    #install_source="rsync://ibs-mirror.prv.suse.net/dist/install/"
+    ibs_source=$ibs_source_prv
+    install_source=$install_source_prv
 else
     echo "Invalid site $SITE"
     exit 1
