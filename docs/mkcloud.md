@@ -150,18 +150,36 @@ A basic working mkcloud environment could look like [this](basic-mkcloud-config.
 
 ## Using with local repositories
 
-To be able to deploy a complete Cloud with `mkcloud` and without network access,
-you can run the "prepare" step in mkcloud using the cache_clouddata=1 environment
-variable set. This will create a cache under $cache_dir (set to /var/cache/mkcloud by default
-of images and repositories needed during deployment.
+To be able to deploy a complete Cloud with `mkcloud` and without VPN access,
+you can run the "prepare" step in mkcloud using the `cache_clouddata=1`
+environment variable set. This will create a cache under `$cache_dir` (set to
+`/var/cache/mkcloud` by default) of images and repositories needed during
+deployment. Make sure your `$cache_dir` partition has enough free space to
+store all the repos. You should always monitor the space on that partition and
+adjust accordingly.
+
+Note that you will need to run the "prepare" step again (with VPN access) if
+your `$cloudsource` environment variable had changed. For example, if you are
+developing on "devcloud8" and "devcloud7" in parallel, you will need to run the
+"prepare" step for each separately.
 
 Here's an example script you can execute to create a full cloud:
 
 ```
 #!/bin/bash
 
-# path to the locally available repositories
-export localreposdir_src=/home/tom/devel/repositories/
+export cache_clouddata=1
+
+# path to the locally available repositories. By default, cache_dir is set
+# to "/var/cache/mkcloud". If you want to change it to a different location,
+# you should be making sure that the partition have enough free space to cache
+# all the necessary repos.
+#export cache_dir=<some other dir>
+
+# for offline (no VPN access) mkcloud run, we must also set the
+# want_cached_images environment variable so it does not attempt to rsync
+# it from the clouddata repo server.
+export want_cached_images=1
 
 # setup/create lvm disk
 cloud_lvm_disk=/home/tom/devel/libvirt-images/develcloud7-lvm.raw
