@@ -375,6 +375,7 @@ function prepare
         ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
     fi
 
+    onhost_cacheclouddata
     ${mkclouddriver}_do_prepare
 }
 
