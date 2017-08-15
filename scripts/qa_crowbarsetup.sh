@@ -1418,10 +1418,6 @@ function onadmin_allocate
         reboot_nodes_via_ipmi
     fi
 
-    if [[ $cloud = qa1 ]] ; then
-        curl http://$reposerver_fqdn/git/automation/scripts/qa1_nodes_reboot | bash
-    fi
-
     [[ $nodenumber -gt 0 ]] && wait_for 50 10 'test $(get_all_discovered_nodes | wc -l) -ge 1' "first node to be discovered"
     wait_for 100 10 '[[ $(get_all_discovered_nodes | wc -l) -ge $nodenumber ]]' "all nodes to be discovered"
     local n
