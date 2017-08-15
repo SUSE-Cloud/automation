@@ -125,10 +125,12 @@ function onhost_cacheclouddata
                 echo "repos/$a/SLES$slesversion-$suffix/***"
                 [[ $hacloud = 1 ]] && echo "repos/$a/SLE$slesversion-HA-$suffix/***"
                 echo "repos/$a/SUSE-OpenStack-Cloud-$cloudver-$suffix/***"
+                echo "repos/$a/SUSE-Enterprise-Storage-$sesversion-$suffix/***"
             done
             [[ $want_test_updates = 1 ]] && {
                 echo "repos/$a/SLES$slesversion-Updates-test/***"
                 [[ $hacloud = 1 ]] && echo "repos/$a/SLE$slesversion-HA-Updates-test/***"
+                echo "repos/$a/SUSE-Enterprise-Storage-$sesversion-Updates-test/***"
             }
             echo "install/suse-$suseversion/$a/install/***"
 
