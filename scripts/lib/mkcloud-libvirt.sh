@@ -344,7 +344,6 @@ function libvirt_do_prepare()
     libvirt_do_create_cloud_lvm
     onhost_add_etchosts_entries
     libvirt_prepare
-    onhost_cacheclouddata
     onhost_prepareadmin
 }
 
