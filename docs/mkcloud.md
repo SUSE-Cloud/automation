@@ -176,11 +176,6 @@ export cache_clouddata=1
 # all the necessary repos.
 #export cache_dir=<some other dir>
 
-# for offline (no VPN access) mkcloud run, we must also set the
-# want_cached_images environment variable so it does not attempt to rsync
-# it from the clouddata repo server.
-export want_cached_images=1
-
 # setup/create lvm disk
 cloud_lvm_disk=/home/tom/devel/libvirt-images/develcloud7-lvm.raw
 if ! [ -f $cloud_lvm_disk ] ; then

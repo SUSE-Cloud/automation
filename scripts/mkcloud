@@ -148,6 +148,8 @@ fi
     # Remove cct: requires SDK to mirror which is huge
     export cct_tests=""
     export localreposdir_src=$cache_dir
+    # make sure the cached images are used
+    export want_cached_images=1
 }
 
 #localreposdir_target is the 9p target dir and also the mount target dir in the VM
