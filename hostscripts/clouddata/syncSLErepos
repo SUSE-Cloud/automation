@@ -63,13 +63,10 @@ for servicepack in 1 2 3; do
         # only x86_64 for SP0
         [ "$arch" != x86_64 -a $servicepack -eq 0 ] && continue
         [ "$arch" = "aarch64" -a $servicepack -eq 1 ] && continue
-        install_subdir="/$arch"
-        # no subdir for /install for SP0
-        [ $servicepack -eq 0 ] && install_subdir=
 
         echo ================== Updating SLE 12 SP$servicepack for $arch
 
-        destdir_install=/srv/nfs/suse-${chef_version}${install_subdir}/install/
+        destdir_install=/srv/nfs/install/suse-${chef_version}/$arch/install/
         mkdir -p $destdir_install
         if test -d /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ ; then
             $rsync /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ $destdir_install
@@ -81,9 +78,9 @@ for servicepack in 1 2 3; do
         destdir_sles_pool=/srv/nfs/repos/$arch/SLES$repo_version-Pool/
         mkdir -p $destdir_sles_pool
         if [ -z "$sync_from_ibs" ]; then
-            $rsync --link-dest /srv/nfs/suse-${chef_version}${install_subdir}/install/suse/ ${ibs_source}/SUSE/Products/SLE-SERVER/$version/$arch/product/ $destdir_sles_pool
+            $rsync --link-dest /srv/nfs/install/suse-${chef_version}/$arch/install/suse/ ${ibs_source}/SUSE/Products/SLE-SERVER/$version/$arch/product/ $destdir_sles_pool
         else
-            $rsync --link-dest /srv/nfs/suse-${chef_version}${install_subdir}/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-Server-POOL-$arch-Media1/ $destdir_sles_pool
+            $rsync --link-dest /srv/nfs/install/suse-${chef_version}/$arch/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-Server-POOL-$arch-Media1/ $destdir_sles_pool
         fi
         # SLES updates
         destdir_sles_updates=/srv/nfs/repos/$arch/SLES$repo_version-Updates/
@@ -96,8 +93,8 @@ for servicepack in 1 2 3; do
             $rsync $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ $destdir_sles_updates_test
         fi
 
-        # HA is only for > SP1, and not for ARM
-        if [ $servicepack -gt 0 -a "$arch" != aarch64 ]; then
+        # HA is not for ARM
+        if [ "$arch" != aarch64 ]; then
             # HA pool
             destdir_ha_pool=/srv/nfs/repos/$arch/SLE$repo_version-HA-Pool/
             mkdir -p $destdir_ha_pool
@@ -118,8 +115,8 @@ for servicepack in 1 2 3; do
             fi
         fi
 
-        # SDK is only for > SP1, and not for ARM
-        if [ $servicepack -gt 0 -a "$arch" != aarch64 ]; then
+        # SDK is not for ARM
+        if [ "$arch" != aarch64 ]; then
             # SDK pool
             destdir_sdk_pool=/srv/nfs/repos/$arch/SLE$repo_version-SDK-Pool/
             mkdir -p $destdir_sdk_pool
