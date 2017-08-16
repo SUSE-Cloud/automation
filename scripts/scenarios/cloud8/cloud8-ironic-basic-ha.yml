@@ -48,20 +48,6 @@ proposals:
         intf3:
           if_list:
           - "?1g2"
-      pattern: single/.*/.*ironic.*
-    - conduit_list:
-        intf0:
-          if_list:
-          - "?1g1"
-        intf1:
-          if_list:
-          - "?1g1"
-        intf2:
-          if_list:
-          - "?1g1"
-        intf3:
-          if_list:
-          - "?1g1"
       pattern: single/.*/.*
     - conduit_list:
         intf0:
