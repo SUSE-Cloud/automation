@@ -1975,7 +1975,9 @@ function hacloud_configure_cluster_defaults
 
 function hacloud_configure_data_cluster
 {
-    proposal_set_value pacemaker $clusternamedata "['attributes']['pacemaker']['drbd']['enabled']" true
+    if [[ "$want_database_sql_engine" != "mysql" ]] ; then
+        proposal_set_value pacemaker $clusternamedata "['attributes']['pacemaker']['drbd']['enabled']" true
+    fi
     hacloud_configure_cluster_defaults $clusternamedata "data"
 }
 
@@ -2066,9 +2068,10 @@ function custom_configuration
         ;;
     esac
 
+    local adminfqdn=`get_crowbar_node`
+
     case "$proposal" in
         nfs_client)
-            local adminfqdn=`get_crowbar_node`
             proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']" "{}"
             proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['nfs_server']" "'$adminfqdn'"
             proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['export']" "'/var/lib/glance/images'"
@@ -2094,8 +2097,10 @@ function custom_configuration
         ;;
         database)
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
-                proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
+                if [[ "$want_database_sql_engine" != "mysql" ]] ; then
+                    proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
+                    proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
+                fi
                 proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
             fi
             if iscloudver 7plus && [[ $want_database_sql_engine ]] ; then
@@ -2104,8 +2109,16 @@ function custom_configuration
         ;;
         rabbitmq)
             if [[ $hacloud = 1 ]] ; then
-                proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
-                proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
+                # FIXME: mysql implies 3 node cluster which implies no DRBD
+                # update this check to something rabbitmq related once we get rid of DRBD for good
+                if [[ "$want_database_sql_engine" == "mysql" ]] ; then
+                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['device']" "'$adminfqdn:/srv/nfs/rabbitmq'"
+                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['fstype']" "'nfs'"
+                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['options']" "'rw,async,nofail'"
+                else
+                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
+                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
+                fi
                 proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamedata']"
             fi
             proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true

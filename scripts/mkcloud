@@ -106,7 +106,7 @@ iscloudver 7plus && : ${controller_node_memory:=12582912}
 : ${controller_ceph_hdd_size:=25}
 : ${lonelynode_hdd_size:=20}
 : ${ironicnode_hdd_size:=20}
-if [[ $hacloud ]]; then
+if [[ $hacloud ]] && [[ "$want_database_sql_engine" != "mysql" ]]; then
     : ${drbd_hdd_size:=15}
 else
     : ${drbd_hdd_size:=0}

@@ -19,6 +19,7 @@
           predefined-parameters: |
             TESTHEAD=1
             cloudsource=develcloud{version}
+            clusterconfig="data+services+network=3"
             nodenumber=4
             tempestoptions={tempestoptions}
             hacloud=1
