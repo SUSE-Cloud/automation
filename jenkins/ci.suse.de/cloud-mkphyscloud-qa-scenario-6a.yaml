@@ -194,6 +194,8 @@
               export scenario_url=$scenario_url ;
               export want_node_aliases=controller=3,kvm=4
               export want_node_roles=controller=3,compute=4
+              export networkingplugin=$networkingplugin ;
+              export networkingmode=$networkingmode ;
               export scenario=/root/scenario.yml;
               export commands="$commands"
 

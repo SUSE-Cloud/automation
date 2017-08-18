@@ -238,6 +238,8 @@
           export netapp_password=$netapp_password ;
           export netapp_server=$netapp_server ;
           export netapp_vserver=$netapp_vserver ;
+          export networkingplugin=$networkingplugin ;
+          export networkingmode=$networkingmode ;
           export commands=\"$commands\" "'
 
           sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
