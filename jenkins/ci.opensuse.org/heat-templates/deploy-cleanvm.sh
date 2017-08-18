@@ -15,11 +15,11 @@ if [ "$IS_HEAT" = HEAT ]; then
 else
   # In standalone mode these defaults are used:
   : ${TESTHEAD:=1}
-  : ${cloudsource:=openstacknewton}
-  : ${automation_repo:=''}
+  : ${cloudsource:=openstackocata}
+  : ${automation_repo:='https://github.com/suse-cloud/automation.git'}
   : ${automation_branch:='master'}
-  : ${quickstart_repo:=''}
-  : ${quickstart_branch:='master'}
+  : ${quickstart_repo:='https://github.com/suse-cloud/openstack-quickstart.git'}
+  : ${quickstart_branch:='stable/ocata'}
   : ${package_repo:=''}
 fi
 
@@ -34,6 +34,10 @@ fi
 zypper='zypper --non-interactive'
 
 case "$VERSION_ID" in
+  12.3)
+    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/' SLE12-SP3-Pool
+    $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP3/x86_64/update/' SLES12-SP3-Updates
+    ;;
   "12.2")
     $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
     $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
@@ -50,7 +54,12 @@ case "$VERSION_ID" in
    ;;
 esac
 
-zypper --non-interactive install git-core ca-certificates-mozilla
+$zypper install git-core ca-certificates-mozilla
+
+# Make sure these packages are not present. If they present on the system, an
+# upgrade from Devel:Cloud:* would require a vendor change, which causes zypper
+# to abort.
+$zypper remove python-psutil python-backports.ssl_match_hostname
 
 # override openstack-quickstart if an alternate repo was specified
 if [ -n "$quickstart_repo" ]; then
