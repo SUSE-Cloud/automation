@@ -55,6 +55,7 @@
             export TESTHEAD=$TESTHEAD;
           " '
             hostname -f;
+            grep adminip= mkcloud.config || echo "adminip=`hostname -f`" >> mkcloud.config
             source mkcloud.config;
             source scripts/qa_crowbarsetup.sh;
 

@@ -64,6 +64,7 @@
           " '
             hostname -f;
             sed -i "s/tempestoptions.*/tempestoptions=--smoke/" mkcloud.config
+            grep adminip= mkcloud.config || echo "adminip=`hostname -f`" >> mkcloud.config
             source mkcloud.config;
             source scripts/qa_crowbarsetup.sh;
 
