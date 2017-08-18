@@ -1158,12 +1158,43 @@ EOPYTHON
         /opt/dell/bin/json-edit -a attributes.network.networks.public.broadcast -v $netp.163.255 $netfile
     fi
     if [[ $cloud = p2 ]] ; then
+        ### admin ###
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.netmask -v 255.255.252.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.broadcast -v 192.168.79.255 $netfile
+        # admin node itself
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.admin.start -v 192.168.76.10 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.admin.end -v 192.168.76.11 $netfile
+        # dhcp
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.dhcp.start -v 192.168.76.21 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.dhcp.end -v 192.168.76.255 $netfile
+        # host
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.host.start -v 192.168.77.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.host.end -v 192.168.77.240 $netfile
+        # switches
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.switch.start -v 192.168.77.241 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.switch.end -v 192.168.77.255 $netfile
+
+        ### bmc and bmc_vlan ###
+        # bmc_vlan
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.router -v 192.168.76.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.netmask -v 255.255.252.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.broadcast -v 192.168.79.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.ranges.host.start -v 192.168.78.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.ranges.host.end -v 192.168.78.1 $netfile
+        # bmc
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.router -v 192.168.76.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.netmask -v 255.255.252.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.broadcast -v 192.168.79.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.ranges.host.start -v 192.168.78.2 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.ranges.host.end -v 192.168.78.240 $netfile
+
         /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.240.0 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.subnet -v 10.84.192.0 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.start -v 10.84.192.1 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.end -v 10.84.199.253 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.broadcast -v 10.84.207.255 $netfile
         #/opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.12.7.254 $netfile
+
         # floating net is the 2nd half of public net:
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.248.0 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v 10.84.200.0 $netfile
