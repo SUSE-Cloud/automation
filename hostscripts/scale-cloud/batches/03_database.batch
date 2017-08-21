@@ -1,0 +1,8 @@
+---
+proposals:
+- barclamp: database
+  attributes:
+  deployment:
+    elements:
+      database-server:
+      - "@@database1@@"

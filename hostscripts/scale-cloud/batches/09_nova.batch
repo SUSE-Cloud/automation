@@ -1,0 +1,35 @@
+---
+proposals:
+- barclamp: nova
+  attributes:
+    service_password: z3f8LbdUVYCE
+    neutron_metadata_proxy_shared_secret: waRLPHDCa51O
+    database_instance: default
+    rabbitmq_instance: default
+    keystone_instance: default
+    glance_instance: default
+    cinder_instance: default
+    neutron_instance: default
+    itxt_instance: ''
+    use_shared_instance_storage: true
+    use_migration: true
+    ec2-api:
+      db:
+        password: vQVyJgalkd44
+    db:
+      password: shpMiAWgg8vR
+    api_db:
+      password: DbGADzPPiMTY
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:services
+      nova-compute-kvm:
+      - "@@compute1@@"
+      - "@@compute2@@"
+      - "@@compute3@@"
+      - "@@compute4@@"
+      - "@@compute5@@"
+      - "@@compute6@@"
+      nova-compute-qemu: []
+      nova-compute-xen: []

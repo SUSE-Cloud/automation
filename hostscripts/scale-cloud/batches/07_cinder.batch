@@ -1,0 +1,23 @@
+---
+proposals:
+- barclamp: cinder
+  attributes:
+    rabbitmq_instance: default
+    keystone_instance: default
+    glance_instance: default
+    database_instance: default
+    service_password: PNwX1wPczH9F
+    keymgr_fixed_key: 0WZTkhxtEfqN
+    volumes:
+    - backend_driver: nfs
+      backend_name: nfs-backend1
+      nfs:
+        nfs_shares: nfsserver1:/srv/nfs/cinder-backend1
+    db:
+      password: il9V42HwLCXq
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - "@@controller1@@"

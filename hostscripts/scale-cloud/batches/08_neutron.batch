@@ -1,0 +1,22 @@
+---
+proposals:
+- barclamp: neutron
+  attributes:
+    service_password: YQ7OxsEihpt3
+    rabbitmq_instance: default
+    keystone_instance: default
+    use_l2pop: true
+    use_dvr: true
+    ml2_type_drivers:
+    - vxlan
+    ml2_type_drivers_default_provider_network: vxlan
+    ml2_type_drivers_default_tenant_network: vxlan
+    database_instance: default
+    db:
+      password: 9mFmyrywr7x4
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:network
+      neutron-network:
+      - cluster:network

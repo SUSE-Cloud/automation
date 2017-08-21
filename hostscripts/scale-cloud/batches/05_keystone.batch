@@ -1,0 +1,16 @@
+---
+proposals:
+- barclamp: keystone
+  attributes:
+    database_instance: default
+    rabbitmq_instance: default
+    db:
+      password: u3rHX2SkiMIb
+    service:
+      token: jKz15Hb9YwCT
+    signing:
+      token_format: uuid
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services

@@ -1,0 +1,54 @@
+---
+proposals:
+- barclamp: pacemaker
+  name: network
+  attributes:
+    corosync:
+      mcast_addr: 239.255.0.2
+    stonith:
+      mode: ipmi_barclamp
+      per_node:
+        nodes:
+          d8c-dc-d4-b5-7a-0c.p2.cloud.suse.de:
+            params: ''
+          d8c-dc-d4-b5-7e-cc.p2.cloud.suse.de:
+            params: ''
+          d8c-dc-d4-b5-83-90.p2.cloud.suse.de:
+            params: ''
+    drbd:
+      shared_secret: WuskhabCNDIp
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@network1@@"
+      - "@@network2@@"
+      - "@@network3@@"
+      hawk-server:
+      - "@@network1@@"
+      - "@@network2@@"
+      - "@@network3@@"
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: ipmi_barclamp
+      per_node:
+        nodes:
+          d8c-dc-d4-b5-c3-c8.p2.cloud.suse.de:
+            params: ''
+          d8c-dc-d4-b5-c4-fc.p2.cloud.suse.de:
+            params: ''
+          d8c-dc-d4-b5-c6-58.p2.cloud.suse.de:
+            params: ''
+    drbd:
+      shared_secret: IZhKyq98wbvq
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      hawk-server:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"

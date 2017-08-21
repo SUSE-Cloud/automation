@@ -1,0 +1,37 @@
+---
+proposals:
+- barclamp: nfs_client
+  name: glance
+  attributes:
+    exports:
+      glance-images:
+        nfs_server: nfsserver1
+        export: "/srv/nfs/glance-images/"
+        mount_path: "/var/lib/glance/images"
+        mount_options:
+        - ''
+  deployment:
+    elements:
+      nfs-client:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+- barclamp: nfs_client
+  name: Nova
+  attributes:
+    exports:
+      nova-instances:
+        nfs_server: nfsserver1
+        export: "/srv/nfs/nova-instances"
+        mount_path: "/var/lib/nova/instances"
+        mount_options:
+        - ''
+  deployment:
+    elements:
+      nfs-client:
+      - "@@compute1@@"
+      - "@@compute2@@"
+      - "@@compute3@@"
+      - "@@compute4@@"
+      - "@@compute5@@"
+      - "@@compute6@@"
