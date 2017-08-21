@@ -1,0 +1,11 @@
+---
+proposals:
+- barclamp: rabbitmq
+  attributes:
+    password: NWIM52KdggNQ
+    trove:
+      password: RlxtObjBpS6q
+  deployment:
+    elements:
+      rabbitmq-server:
+      - "@@messagequeue1@@"

@@ -1,0 +1,14 @@
+---
+proposals:
+- barclamp: tempest
+  attributes:
+    tempest_adm_password: 7IwFHo9Ob9RR
+    tempest_adm_username: tempest-adm-Ysx6oEBe6kf3
+    tempest_user_password: STMTBfAfeLgo
+    tempest_user_username: tempest-user-37kMiurcxnNU
+    tempest_user_tenant: tempest-tenant-2Yb0shba3W3b
+    nova_instance: default
+  deployment:
+    elements:
+      tempest:
+      - "@@controller1@@"

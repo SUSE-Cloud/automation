@@ -1,0 +1,14 @@
+---
+proposals:
+- barclamp: glance
+  attributes:
+    service_password: BeGfa7LtFST1
+    db:
+      password: 5OujLPozO196
+    keystone_instance: default
+    database_instance: default
+    rabbitmq_instance: default
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
