@@ -136,7 +136,7 @@ def get_maindisk_address():
     return maindiskaddress
 
 
-def admin_config(args, cpu_flags=cpuflags()):
+def _get_localrepomount_config(args):
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
     if args.localreposrc and args.localrepotgt:
@@ -145,6 +145,12 @@ def admin_config(args, cpu_flags=cpuflags()):
         local_repo_values = dict(localreposdir_src=args.localreposrc,
                                  localreposdir_target=args.localrepotgt)
         localrepomount = local_repo_template.substitute(local_repo_values)
+    return localrepomount
+
+
+def admin_config(args, cpu_flags=cpuflags()):
+    # add xml snippet to be able to mount a local dir via 9p in a VM
+    localrepomount = _get_localrepomount_config(args)
 
     values = dict(
         cloud=args.cloud,
@@ -213,6 +219,9 @@ def merge_dicts(d1, d2):
 
 
 def compute_config(args, cpu_flags=cpuflags()):
+    # add xml snippet to be able to mount a local dir via 9p in a VM
+    localrepomount = _get_localrepomount_config(args)
+
     libvirt_type = args.libvirttype
     alldevices = it.chain(it.chain(string.lowercase[1:]),
                           it.product(string.lowercase, string.lowercase))
@@ -322,7 +331,8 @@ def compute_config(args, cpu_flags=cpuflags()):
         target_dev=targetdevprefix + 'a',
         serialdevice=get_serial_device(),
         target_address=target_address.format('0x0a'),
-        bootorder=args.bootorder)
+        bootorder=args.bootorder,
+        local_repository_mount=localrepomount)
 
     return get_config(merge_dicts(values, configopts),
                       os.path.join(TEMPLATE_DIR, "compute-node.xml"))

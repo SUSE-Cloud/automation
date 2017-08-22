@@ -129,6 +129,10 @@ function mount_localreposdir_target
     if [ -z "$localreposdir_target" ]; then
         return
     fi
+    if mountpoint -q -- "$localreposdir_target" ; then
+        echo "$localreposdir_target is already mounted"
+        return
+    fi
     mkdir -p $localreposdir_target
     if ! grep -q "$localreposdir_target\s\+$localreposdir_target" /etc/fstab ; then
         echo 'force_drivers+="9pnet_virtio"' > /etc/dracut.conf.d/03-libvirt.conf
@@ -2853,6 +2857,10 @@ function onadmin_proposal
     # Set the $novacontroller global variable so that we
     # can execute actions from the controller
     get_novacontroller
+
+    # use local cache whenever possible
+    oncontroller mount_localreposdir
+
     # Check if there were any HA failures from the proposals so far
     safely oncontroller check_crm_failcounts
     # For all remaining proposals, check for HA failures after each deployment
@@ -3248,21 +3256,31 @@ function oncontroller_run_integration_test()
 
 function oncontroller_heat_image_setup()
 {
-    local image_url=$imageserver_url/SLES11-SP3-x86_64-cfntools.qcow2
+    local image_filename=SLES11-SP3-x86_64-cfntools.qcow2
+    local image_url=$imageserver_url/$image_filename
     # this is the standard name we use in the tempest barclamp. If you change the name
     # you may also want to set the new name in the barclamp
     local image_name="heat-cfntools-image"
+    local local_image_path=""
+    [[ -n "${localreposdir_target}" ]] && local_image_path=$localreposdir_target/images/$image_filename
 
     . .openrc
 
     # Upload a Heat-enabled image
     if ! glance_image_exists $image_name; then
-        curl -s \
-            $image_url | \
+        if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
             openstack image create \
                 --public --disk-format qcow2 --container-format bare \
                 --property hypervisor_type=kvm \
-                $image_name | tee glance.out
+                --file $local_image_path $image_name | tee glance.out
+        else
+            curl -s \
+                $image_url | \
+                openstack image create \
+                    --public --disk-format qcow2 --container-format bare \
+                    --property hypervisor_type=kvm \
+                    $image_name | tee glance.out
+        fi
     fi
 }
 
@@ -3272,7 +3290,6 @@ function oncontroller_manila_generic_driver_setup()
         local service_image_url=$imageserver_url/$arch/other/manila-service-image-xen.raw
         local service_image_name=manila-service-image-xen.raw
         local service_image_params="--disk-format raw --property hypervisor_type=xen --property vm_mode=xen"
-
     elif [[ $wanthyperv ]] ; then
         local service_image_url=$imageserver_url/$arch/other/manila-service-image.vhd
         local service_image_name=manila-service-image.vhd
@@ -3285,14 +3302,22 @@ function oncontroller_manila_generic_driver_setup()
 
     local sec_group="manila-service"
     local neutron_net=$sec_group
+    local local_image_path=""
+    if [ -n "${localreposdir_target}" ] ; then
+        local_image_path=$localreposdir_target/images/$arch/other/$service_image_name
+    fi
 
-    local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
-    if [[ $ret =~ "200 OK" ]]; then
-        echo $ret
-    elif [[ $ret =~ "Not Found" ]]; then
-        complain 73 "manila image not found: $ret"
+    if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
+        service_image_name=$local_image_path
     else
-        complain 74 "failed to retrieve manila image: $ret"
+        local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
+        if [[ $ret =~ "200 OK" ]]; then
+            echo $ret
+        elif [[ $ret =~ "Not Found" ]]; then
+            complain 73 "manila image not found: $ret"
+        else
+            complain 74 "failed to retrieve manila image: $ret"
+        fi
     fi
 
     . .openrc
@@ -3371,24 +3396,33 @@ function oncontroller_magnum_service_setup
     # (mjura): https://bugs.launchpad.net/magnum/+bug/1622468
     # Magnum functional tests have hardcoded swarm as coe backend, until then this will
     # not be fixed, we are going to have our own integration tests with SLES Magnum image
-    local service_image_name=magnum-service-image
-    local service_image_url=$imageserver_url/$arch/other/${service_image_name}.qcow2
+    local service_image_name="magnum-service-image.qcow2"
+    local service_image_filename=${service_image_name}.qcow2
+    local service_image_url=$imageserver_url/$arch/other/$service_image_filename
+    local local_image_path=""
+    if [ -n "${localreposdir_target}" ] ; then
+        local_image_path=$localreposdir_target/images/$arch/other/$service_image_filename
+    fi
 
     if ! openstack image list --f value -c Name | grep -q "^${service_image_name}$"; then
-        local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
-        if [[ $ret =~ "200 OK" ]]; then
-            echo $ret
-        elif [[ $ret =~ "Not Found" ]]; then
-            complain 73 "magnum image not found: $ret"
+        if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
+            service_image_filename=$local_image_path}
         else
-            complain 74 "failed to retrieve magnum image: $ret"
+            local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
+            if [[ $ret =~ "200 OK" ]]; then
+                echo $ret
+            elif [[ $ret =~ "Not Found" ]]; then
+                complain 73 "magnum image not found: $ret"
+            else
+                complain 74 "failed to retrieve magnum image: $ret"
+            fi
         fi
 
         . ~/.openrc
 
         # TODO(toabctl): when replacing the Fedora image, also replace the
         # os-distro property
-        openstack image create --file ${service_image_name}.qcow2 \
+        openstack image create --file $service_image_filename \
             --disk-format qcow2 --container-format bare --public \
             --property os_distro=fedora-atomic $service_image_name
     fi
@@ -3423,6 +3457,13 @@ function oncontroller_check_crm_failcounts
         crm_mon --failcounts -1 | grep "fail-count=" && complain 55 "Cluster resources' failures detected"
     fi
     return 0
+}
+
+function oncontroller_mount_localreposdir
+{
+    # use the local cache if available. This is done by mounting the local
+    # repositories from the host machine via 9pnet_virtio.
+    [ -n "${localreposdir_target}" ] && mount_localreposdir_target
 }
 
 # code run on controller/dashboard node to do basic tests of deployed cloud
@@ -3506,6 +3547,7 @@ function oncontroller_testsetup
     local image_name="jeos"
     local flavor="m1.smaller"
     local ssh_user="root"
+    local local_image_path=""
 
     if ! glance_image_exists $image_name ; then
         if [[ $wanthyperv ]] ; then
@@ -3515,16 +3557,35 @@ function oncontroller_testsetup
             openstack image create --public --disk-format vhd --container-format bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd $image_name | tee glance.out
             rm /tmp/SP3.vhd ; umount /mnt
         elif [[ $wantxenpv ]] ; then
-            curl -s \
-                $imageserver_url/jeos-64-pv.qcow2 | \
+            local image_filename="jeos-64-pv.qcow2"
+            [[ -n "${localreposdir_target}" ]] && local_image_path="${localreposdir_target}/images/${image_filename}"
+
+            if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
                 openstack image create --public --disk-format qcow2 \
                 --container-format bare --property hypervisor_type=xen \
-                --property vm_mode=xen  $image_name | tee glance.out
+                --property vm_mode=xen  \
+                --file $local_image_path $image_name | tee glance.out
+            else
+                curl -s \
+                    $imageserver_url/$image_filename | \
+                    openstack image create --public --disk-format qcow2 \
+                    --container-format bare --property hypervisor_type=xen \
+                    --property vm_mode=xen  $image_name | tee glance.out
+            fi
         else
-            curl -s \
-                $imageserver_url/$arch/SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.$arch-GM.qcow2 | \
+            local image_filename="SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.${arch}-GM.qcow2"
+            [[ -n "${localreposdir_target}" ]] && local_image_path="${localreposdir_target}/images/x86_64/${image_filename}"
+
+            if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
                 openstack image create --public --property hypervisor_type=kvm \
-                --disk-format qcow2 --container-format bare $image_name | tee glance.out
+                --disk-format qcow2 --container-format bare \
+                --file $local_image_path $image_name | tee glance.out
+            else
+                curl -s \
+                    $imageserver_url/$arch/$image_filename | \
+                    openstack image create --public --property hypervisor_type=kvm \
+                    --disk-format qcow2 --container-format bare $image_name | tee glance.out
+            fi
         fi
     fi
 
@@ -3982,6 +4043,9 @@ EOF
             s3radosgwret=1
         fi
     fi
+
+    # use local cache whenever possible
+    oncontroller mount_localreposdir
 
     oncontroller testsetup
     ret=$?
