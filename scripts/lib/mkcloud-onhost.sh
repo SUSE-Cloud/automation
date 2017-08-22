@@ -143,9 +143,23 @@ function onhost_cacheclouddata
             echo "repos/$a/SUSE-OpenStack-Cloud-$cloudver-$suffix/***"
 
             # Now the various test images
-            echo "images/$a/other/magnum-service-image.qcow2"
-            echo "images/$a/other/manila-service-image.qcow2"
+            # NOTE: looks like these images are only availabe on x86_64
+            if [ "${a}" == "x86_64" ] ; then
+                echo "images/$a/other/magnum-service-image.qcow2"
+                echo "images/$a/other/manila-service-image.qcow2"
+                # these are the real ones, the above are just symlinks
+                echo "images/$a/other/fedora-23-atomic-7.qcow2"
+                echo "images/$a/other/manila-service-image.x86_64-0.13.0-Build14.1.qcow2"
+                # need for the testsetup step
+                echo "images/$a/SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.x86_64-GM.qcow2"
+            fi
+
+            # now cache the admin image
+            admin_image_name=$(dist_to_image_name $(get_admin_node_dist))
+            echo "images/${a}/${admin_image_name}"
         done
+
+        echo "images/SLES11-SP3-x86_64-cfntools.qcow2"
     ) > $include
 
     echo "----------------"
