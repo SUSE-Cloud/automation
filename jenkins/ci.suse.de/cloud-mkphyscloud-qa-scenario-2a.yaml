@@ -159,6 +159,11 @@
           default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases
           description: All the steps that needs to be completed to have cloud installed
 
+      - string:
+          name: want_test_updates
+          default: 0
+          description: Use updates-test repos for all SUSE products
+
       - text:
           name: UPDATEREPOS
           default:
@@ -238,6 +243,8 @@
           export netapp_password=$netapp_password ;
           export netapp_server=$netapp_server ;
           export netapp_vserver=$netapp_vserver ;
+          export networkingplugin=$networkingplugin ;
+          export networkingmode=$networkingmode ;
           export commands=\"$commands\" "'
 
           sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml

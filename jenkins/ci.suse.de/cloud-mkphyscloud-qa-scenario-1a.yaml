@@ -143,6 +143,11 @@
           default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
           description: All the steps that needs to be completed to have cloud installed
 
+      - string:
+          name: want_test_updates
+          default: 0
+          description: Use updates-test repos for all SUSE products
+
       - text:
           name: UPDATEREPOS
           default:
