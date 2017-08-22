@@ -352,6 +352,7 @@ function libvirt_do_onhost_deploy_image()
     local role=$1
     local image=${override_disk_image:-$(dist_to_image_name $2)}
     local disk=$3
+    local image_path=$cache_dir/$image
 
     if [[ ! $want_cached_images = 1 ]] ; then
         safely rsync --compress --progress --inplace --archive --verbose \
@@ -359,12 +360,22 @@ function libvirt_do_onhost_deploy_image()
     else
         # In this case the image has to be supplied by other means than
         # mkcloud (e.g. manual upload). If it doesn't exist we bail.
-        [[ -f $cache_dir/$image ]] || complain 19 \
-            "No image found on host and want_cached_images was set."
+        if [ ! -f "${image_path}" ] ; then
+            # look for the image file in the cache if it is not there in the
+            # usual location. Sometimes the image got cache into a different
+            # directory.
+            found_image_path=$(find $cache_dir -name $image | sed -n 1p | tr -d '\n')
+            if [ -n "${found_image_path}" -a -f "${found_image_path}" ] ; then
+                image_path=$found_image_path
+            else
+                complain 19 \
+                "No image found on host and want_cached_images was set."
+            fi
+        fi
     fi
 
     echo "Cloning $role node vdisk from $image ..."
-    safely $sudo qemu-img convert -t none -O raw -S 0 -p $cache_dir/$image $disk
+    safely $sudo qemu-img convert -t none -O raw -S 0 -p $image_path $disk
 
     if [[ ${resize_admin_node_partition:-1} = 1 ]]; then
         # resize the last partition only if it has id 83
