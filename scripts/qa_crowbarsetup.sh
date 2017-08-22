@@ -31,6 +31,7 @@ fi
 : ${cinder_netapp_storage_protocol:=iscsi}
 : ${cinder_netapp_login:=openstack}
 : ${cinder_netapp_password:=''}
+: ${want_separate_ceph_network:=0}
 : ${crowbar_networkingmode:=single}
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
@@ -1026,9 +1027,11 @@ EOF
         -e "s/192.168.124/$net/g" \
         -e "s/192.168.130/$net_sdn/g" \
         -e "s/192.168.125/$net_storage/g" \
+        -e "s/192.168.127/$net_ceph/g" \
         -e "s/192.168.123/$net_fixed/g" \
         -e "s/192.168.122/$net_public/g" \
         -e "s/ 200/ $vlan_storage/g" \
+        -e "s/ 600/ $vlan_ceph/g" \
         -e "s/ 300/ $vlan_public/g" \
         -e "s/ 500/ $vlan_fixed/g" \
         -e "s/ [47]00/ $vlan_sdn/g" \
@@ -1051,6 +1054,13 @@ EOF
             print json.dumps(j['attributes']['network']['conduit_map'], indent=4)"`
         # set the modified conduit map
         /opt/dell/bin/json-edit -a attributes.network.conduit_map -r -v "$conmap_complete" $netfile
+    fi
+
+    if [[ $want_separate_ceph_network = 1 ]]; then
+        python $SCRIPTS_DIR/ceph/create_separate_network.py $netfile $net_ceph $vlan_ceph
+        if [ $? != 0 ]; then
+            complain 117 "Failed to add a separate ceph network to $netfile"
+        fi
     fi
 
     if [[ $cloud =~ ^p[0-9]$ ]] ; then

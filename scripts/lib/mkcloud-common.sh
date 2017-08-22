@@ -354,12 +354,14 @@ function setcloudnetvars
     test -n "$nodenumbertotal" && nodenumber=${nodenumber:-$nodenumbertotal}
     # default networks in crowbar:
     vlan_storage=${vlan_storage:-200}
+    vlan_ceph=${vlan_ceph:-600}
     vlan_public=${vlan_public:-300}
     vlan_fixed=${vlan_fixed:-500}
     vlan_sdn=${vlan_sdn:-400}
     net_fixed=${net_fixed:-192.168.123}
     net_public=${net_public:-192.168.122}
     net_storage=${net_storage:-192.168.125}
+    net_ceph=${net_ceph:-192.168.127}
     net_ironic=${net_ironic:-192.168.128}
     net_sdn=${net_sdn:-192.168.130}
     : ${admingw:=$net.1}

@@ -77,6 +77,8 @@ setcloudnetvars $virtualcloud
 nicsdefault=1
 [[ $want_ironic ]] && nicsdefault=2
 [[ $crowbar_networkingmode = team ]] && nicsdefault=$((nicsdefault + 1))
+[[ $want_separate_ceph_network ]] && crowbar_networkingmode="team"
+[[ $want_separate_ceph_network ]] && nicsdefault=4
 : ${nics:=$nicsdefault}
 : ${adminvcpus:=2}
 cpuflags=''
