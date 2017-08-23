@@ -884,7 +884,7 @@ function onadmin_set_source_variables
             cs=${cloudsource/#M/Milestone}
             CLOUDISOPATH=${want_cloud8_iso_path:="/install/SLE-12-SP3-Cloud8-$cs/"}
             CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-8-${arch}*1.iso"}
-            CLOUDTESTISONAME="CLOUD-8-TESTING-$arch*DVD1.iso"
+            CLOUDTESTISONAME="CLOUD-8-TESTING-$arch*1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
         *)
