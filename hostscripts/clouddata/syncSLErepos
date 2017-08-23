@@ -151,10 +151,10 @@ for version in 2.1 4 5; do
 
         echo ================== Updating Storage $version
 
-        # sync version 4 from ibs while in development
+        # sync version 5 from ibs while in development
         poolsource=
-        if [[ $version == 4 ]]; then
-            poolsource=/mnt/dist/ibs/SUSE\:/SLE-12-SP2\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
+        if [[ $version == 5 ]]; then
+            poolsource=/mnt/dist/ibs/SUSE\:/SLE-12-SP3\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
         else
             poolsource=${ibs_source}/SUSE/Products/Storage/$version/$arch/product/
         fi
