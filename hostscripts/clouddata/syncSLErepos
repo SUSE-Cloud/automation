@@ -3,9 +3,10 @@
 # SITE to use. Can be "nue" or "prv" (Nuermberg and Provo)
 : ${SITE:="nue"}
 
-# The IBS source in Nuermberg ("mount dist.nue.suse.com:/dist /mnt/dist/")
-ibs_source_nue="/mnt/dist/ibs/"
+# The IBS source in Nuermberg
+ibs_source_nue="rsync://dist.nue.suse.com/repos/"
 # The install source in Nuermberg
+# ("mount dist.nue.suse.com:/dist /mnt/dist/")
 # For rsync, needs https://infra.nue.suse.com/SelfService/Display.html?id=90326
 install_source_nue="/mnt/dist/install/"
 
