@@ -1132,7 +1132,7 @@ EOF
 
         /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.240.0 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.subnet -v 10.84.192.0 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.start -v 10.84.192.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.start -v 10.84.192.2 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.end -v 10.84.199.253 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.broadcast -v 10.84.207.255 $netfile
         #/opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.12.7.254 $netfile
