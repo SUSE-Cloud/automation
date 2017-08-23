@@ -81,7 +81,7 @@ for servicepack in 1 2 3; do
         if [ -z "$sync_from_ibs" ]; then
             $rsync --link-dest /srv/nfs/install/suse-${chef_version}/$arch/install/suse/ ${ibs_source}/SUSE/Products/SLE-SERVER/$version/$arch/product/ $destdir_sles_pool
         else
-            $rsync --link-dest /srv/nfs/install/suse-${chef_version}/$arch/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-Server-POOL-$arch-Media1/ $destdir_sles_pool
+            $rsync --link-dest /srv/nfs/install/suse-${chef_version}/$arch/install/suse/ ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-Server-POOL-$arch-Media1/ $destdir_sles_pool
         fi
         # SLES updates
         destdir_sles_updates=/srv/nfs/repos/$arch/SLES$repo_version-Updates/
@@ -102,7 +102,7 @@ for servicepack in 1 2 3; do
             if [ -z "$sync_from_ibs" ]; then
                 $rsync ${ibs_source}/SUSE/Products/SLE-HA/$version/$arch/product/ $destdir_ha_pool
             else
-                $rsync /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-HA-POOL-$arch-Media1/ $destdir_ha_pool
+                $rsync ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-HA-POOL-$arch-Media1/ $destdir_ha_pool
             fi
             # HA updates
             destdir_ha_updates=/srv/nfs/repos/$arch/SLE$repo_version-HA-Updates/
@@ -124,7 +124,7 @@ for servicepack in 1 2 3; do
             if [ -z "$sync_from_ibs" ]; then
                 $rsync ${ibs_source}/SUSE/Products/SLE-SDK/$version/$arch/product/ $destdir_sdk_pool
             else
-                $rsync /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-SDK-POOL-$arch-Media1/ $destdir_sdk_pool
+                $rsync ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-SDK-POOL-$arch-Media1/ $destdir_sdk_pool
             fi
             # SDK updates
             destdir_sdk_updates=/srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates/
@@ -155,7 +155,7 @@ for version in 2.1 4 5; do
         # sync version 5 from ibs while in development
         poolsource=
         if [[ $version == 5 ]]; then
-            poolsource=/mnt/dist/ibs/SUSE\:/SLE-12-SP3\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
+            poolsource=${ibs_source}/SUSE\:/SLE-12-SP3\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
         else
             poolsource=${ibs_source}/SUSE/Products/Storage/$version/$arch/product/
         fi
@@ -242,12 +242,12 @@ done
 for arch in $archs ; do
     destdir_admin_images=/srv/nfs/images/$arch/
     mkdir -p $destdir_admin_images
-    $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-untested.qcow2
+    $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-untested.qcow2
 
-    $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP3/mkcloud-admin-node-SLE12SP3.${arch}.qcow2 $destdir_admin_images/SLES12-SP3-untested.qcow2
+    $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP3/mkcloud-admin-node-SLE12SP3.${arch}.qcow2 $destdir_admin_images/SLES12-SP3-untested.qcow2
 
     if [ "$arch" == x86_64 ]; then
-        $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2-uefi.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-uefi.qcow2
+        $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2-uefi.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-uefi.qcow2
     fi
 done
 
