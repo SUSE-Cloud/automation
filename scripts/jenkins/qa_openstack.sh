@@ -442,7 +442,12 @@ fi
 
 sleep 10
 
-for i in $(nova floating-ip-list | grep -P -o "172.31\S+"); do nova floating-ip-delete $i; done
+# nova floating-ip-delete was removed in Pike
+if nova help floating-ip-delete; then
+    for i in $(nova floating-ip-list | grep -P -o "172.31\S+"); do nova floating-ip-delete $i; done
+else
+    for fip in $(openstack floating ip list -f value -c 'Floating IP Address'); do openstack floating ip delete $fip; done
+fi
 
 # run tempest
 if [ -e /etc/tempest/tempest.conf ]; then
