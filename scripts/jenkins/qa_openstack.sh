@@ -477,7 +477,13 @@ if [ -e /etc/tempest/tempest.conf ]; then
     else
         test -x "$(type -p tempest-cleanup)" && tempest-cleanup --init-saved-state
     fi
-    ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
+
+    if tempest help run; then
+        tempest run 2>&1 | tee console.log
+    else
+        # run_tempest.sh is no longer available since tempest 16 (~ since Pike)
+        ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
+    fi
     ret=${PIPESTATUS[0]}
     if tempest help cleanup; then
         tempest cleanup
