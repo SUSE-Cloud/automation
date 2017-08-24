@@ -478,7 +478,7 @@ if [ -e /etc/tempest/tempest.conf ]; then
     fi
 
     if tempest help run; then
-        tempest run 2>&1 | tee console.log
+        tempest run -t -s 2>&1 | tee console.log
     else
         # run_tempest.sh is no longer available since tempest 16 (~ since Pike)
         ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
