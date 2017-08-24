@@ -53,7 +53,7 @@ ibsmaint=${ibs_source}/SUSE\:/Maintenance\:/Test\:/
 for servicepack in 1 2 3; do
     # fetch latest code from service pack in development (not just latest beta)
     sync_from_ibs=
-    [ $servicepack -eq 3 ] && sync_from_ibs=1
+    [ $servicepack -eq 4 ] && sync_from_ibs=1
 
     version="12-SP$servicepack"
     repo_version="$version"
