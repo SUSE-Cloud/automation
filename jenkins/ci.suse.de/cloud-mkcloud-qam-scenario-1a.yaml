@@ -52,18 +52,18 @@
           name: branch
           default: master
           description: Mandatory, automation repo branch
-      
+
       - string:
           name: networkingplugin
           default: linuxbridge
           description: |
                networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
 
-      - string: 
+      - string:
           name: networkingmode
           default: vlan
           description: networking mode to be used by Neutron. Available options are gre, vlan, vxlan
-          
+
       - string:
           name: tempest
           default: smoke
@@ -139,8 +139,8 @@
 
       - string:
           name: controller_node_memory
-          default: 4242880
-          description: set controlled memory
+          default: "4242880"
+          description: set controller memory
 
       - text:
           name: UPDATEREPOS
@@ -173,7 +173,7 @@
           whoami
           pwd
           echo "$HOME"
-          controller_node_memory=${controller_node_memory}
+          controller_node_memory=${controller_node_memory} \
           want_node_aliases=controller=1,compute-kvm=1 \
           cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
           /root/automation/scripts/mkcloud \
