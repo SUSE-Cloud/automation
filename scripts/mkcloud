@@ -99,8 +99,6 @@ iscloudver 7plus && : ${controller_node_memory:=12582912}
 [[ "$libvirt_type" = "xen" ]] && \
     compute_node_memory=$(max $compute_node_memory ${xen_node_memory:-4000000})
 # hdd size defaults (unless defined otherwise)
-[[ "$upgrade_cloudsource" ]] && \
-    adminnode_hdd_size=$(max $adminnode_hdd_size 20)
 : ${adminnode_hdd_size:=15}
 [[ "$upgrade_cloudsource" ]] && \
     adminnode_hdd_size=$(max $adminnode_hdd_size 20)
