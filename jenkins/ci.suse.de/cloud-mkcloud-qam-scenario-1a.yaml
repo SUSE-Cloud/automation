@@ -162,7 +162,7 @@
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
 
-          echo "export want_node_aliases=controller=1,compute-kvm=1" >> mkcloud.config
+          export want_node_aliases=controller=1,compute-kvm=1"
 
           ret=0
           whoami
