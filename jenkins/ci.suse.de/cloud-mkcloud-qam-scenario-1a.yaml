@@ -137,6 +137,11 @@
           default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
           description: All the steps that needs to be completed to have cloud installed
 
+      - string:
+          name: controller_node_memory
+          default: 4242880
+          description: set controlled memory
+
       - text:
           name: UPDATEREPOS
           default:
@@ -168,6 +173,7 @@
           whoami
           pwd
           echo "$HOME"
+          controller_node_memory=${controller_node_memory}
           want_node_aliases=controller=1,compute-kvm=1 \
           cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
           /root/automation/scripts/mkcloud \
