@@ -116,13 +116,6 @@ else
 fi
 : ${drbd_database_size:=5}
 : ${drbd_rabbitmq_size:=5}
-
-# temporarily disabling magnum in develcloud8 due to
-# missing packages python-kubernetes and python-marathon
-# This needs to be re-enabled when Devel:Cloud:8 is switched to pike
-# and missing packages are added
-[[ $cloudsource == develcloud8 ]] && want_magnum_proposal=0
-
 # magnum sets up two nodes using docker/kubernetes on compute node
 # each node requiring 2GB of RAM and 20GB of harddisk for the images
 if [[ $want_magnum_proposal = 1 ]]; then
