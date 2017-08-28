@@ -68,6 +68,7 @@
             - openstack-sahara
             - openstack-swift
             - openstack-trove
+            - openstack-tempest
             - openstack-utils
             - openstack-zaqar
             - python-heat-cfntools
@@ -98,6 +99,7 @@
             [
               "python-heat-cfntools",
               "openstack-rally",
+              "openstack-tempest",
             ].contains(component)
             )
       sequential: true
