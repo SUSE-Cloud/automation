@@ -16,6 +16,7 @@
           values:
             - Cloud:OpenStack:Newton:Staging
             - Cloud:OpenStack:Ocata:Staging
+            - Cloud:OpenStack:Pike:Staging
             - Cloud:OpenStack:Master
       - axis:
           type: user-defined
@@ -95,7 +96,7 @@
             "python-monasca-common",
             "python-monasca-statsd"
             ].contains(component) ||
-            [ "Cloud:OpenStack:Ocata:Staging", "Cloud:OpenStack:Newton:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Ocata:Staging", "Cloud:OpenStack:Newton:Staging" ].contains(project) &&
             [
               "python-heat-cfntools",
               "openstack-rally",
@@ -123,6 +124,9 @@
             OBS) OSCAPI="https://api.opensuse.org"
                 OSC_BUILD_ARCH=x86_64
                 case $OBS_PROJECT in
+                    Cloud:OpenStack:Pike*)
+                        OSC_BUILD_DIST=SLE_12_SP3
+                        ;;
                     Cloud:OpenStack:Master|Cloud:OpenStack:Newton*|Cloud:OpenStack:Ocata*)
                         OSC_BUILD_DIST=SLE_12_SP2
                         ;;
