@@ -140,7 +140,7 @@ function handle_service_dependencies
 
 function determine_mtu
 {
-    LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1
+    ( shopt -s extglob; LC_ALL=C eval "sort -n /sys/class/net/!(lo)/mtu" | head -n 1 )
 }
 
 function is_opensuse
