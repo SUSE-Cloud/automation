@@ -49,7 +49,7 @@
             - openstack-magnum
             - openstack-monasca-agent
             - openstack-monasca-api
-            - openstack-monasca-log-agent
+            #- openstack-monasca-log-agent
             - openstack-monasca-log-api
             - openstack-monasca-notification
             - openstack-monasca-persister
