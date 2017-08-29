@@ -14,6 +14,9 @@ function qacrowbarsetup_help
         The type of RAID to create.
     want_database_sql_engine (default='' which picks cloud default)
         The type of database backend to create (only cloud7; cloud8 can only have mysql)
+    want_network_json_url=http://some.server/path/network.json (default='')
+        If set, download and use network.json from this URL
+        ignoring most other network values (such as vlan_storage)
     want_node_aliases=list of aliases to assign to nodes
         Takes all provided aliases and assign them to available nodes successively.
         Note that this doesn't take care about node assignment itself.
