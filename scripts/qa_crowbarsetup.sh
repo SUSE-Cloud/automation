@@ -3305,7 +3305,7 @@ function oncontroller_manila_generic_driver_setup()
     export OS_PROJECT_NAME=$OS_TENANT_NAME
 
     # using list subcommand because show requires an ID
-    if ! openstack image list --f value -c Name | grep -q "^manila-service-image$"; then
+    if ! openstack image list --format value -c Name | grep -q "^manila-service-image$"; then
         openstack image create --file $service_image_name \
             $service_image_params --container-format bare --public \
             manila-service-image
@@ -3330,7 +3330,7 @@ function oncontroller_manila_generic_driver_setup()
         nova secgroup-add-rule $sec_group udp 111 111 0.0.0.0/0
     fi
 
-    service_vm_status="`openstack server show --f value -c status manila-service`"
+    service_vm_status="`openstack server show --format value -c status manila-service`"
     if [ "$service_vm_status" = "ACTIVE" ] || [ "$service_vm_status" = "SHUTOFF" ] ; then
         if [ "$service_vm_status" = "SHUTOFF" ]; then
             # We're upgrading. Restart existing instance as it was shutdown during
@@ -3374,7 +3374,7 @@ function oncontroller_magnum_service_setup
     local service_image_name=magnum-service-image
     local service_image_url=$imageserver_url/$arch/other/${service_image_name}.qcow2
 
-    if ! openstack image list --f value -c Name | grep -q "^${service_image_name}$"; then
+    if ! openstack image list --format value -c Name | grep -q "^${service_image_name}$"; then
         local ret=$(wget -N --progress=dot:mega "$service_image_url" 2>&1 >/dev/null)
         if [[ $ret =~ "200 OK" ]]; then
             echo $ret
