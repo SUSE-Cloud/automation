@@ -3028,7 +3028,13 @@ function oncontroller_nova_evacuate
     addfloatingip $vm_name
     local floatingip=$(openstack server show -c addresses --format value $vm_name | cut -d " " -f 2)
     # Update security group for icmp
-    nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0 &> /dev/null
+    if iscloudver 8plus; then
+        local projectid=$(openstack project show -c id --format value $OS_PROJECT_NAME)
+        local secgroupid=$(openstack security group list -c ID -c Project --format value | grep $projectid | cut -d " " -f 1)
+        openstack security group rule create --protocol icmp $secgroupid &> /dev/null
+    else
+        nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0 &> /dev/null
+    fi
 
     # Check if instance is ACTIVE and Running
     ping -c 10 $floatingip >/dev/null 2>&1
@@ -3330,7 +3336,7 @@ function oncontroller_manila_generic_driver_setup()
     export OS_PROJECT_NAME=$OS_TENANT_NAME
 
     # using list subcommand because show requires an ID
-    if ! openstack image list --f value -c Name | grep -q "^manila-service-image$"; then
+    if ! openstack image list --format value -c Name | grep -q "^manila-service-image$"; then
         openstack image create --file $service_image_name \
             $service_image_params --container-format bare --public \
             manila-service-image
@@ -3340,22 +3346,39 @@ function oncontroller_manila_generic_driver_setup()
         nova flavor-create manila-service-image-flavor 100 512 0 1
     fi
 
-    if ! nova secgroup-list-rules manila-service; then
-        nova secgroup-create $sec_group "$sec_group description"
-        nova secgroup-add-rule $sec_group icmp -1 -1 0.0.0.0/0
-        nova secgroup-add-rule $sec_group tcp 22 22 0.0.0.0/0
-        nova secgroup-add-rule $sec_group tcp 2049 2049 0.0.0.0/0
-        nova secgroup-add-rule $sec_group tcp 20000 65535 0.0.0.0/0
-        nova secgroup-add-rule $sec_group udp 2049 2049 0.0.0.0/0
-        nova secgroup-add-rule $sec_group udp 445 445 0.0.0.0/0
-        nova secgroup-add-rule $sec_group tcp 445 445 0.0.0.0/0
-        nova secgroup-add-rule $sec_group tcp 137 139 0.0.0.0/0
-        nova secgroup-add-rule $sec_group udp 137 139 0.0.0.0/0
-        nova secgroup-add-rule $sec_group tcp 111 111 0.0.0.0/0
-        nova secgroup-add-rule $sec_group udp 111 111 0.0.0.0/0
+    if iscloudver 8plus; then
+        if ! openstack security group show $sec_group; then
+            openstack security group create --description "$sec_group description" $sec_group
+            openstack security group rule create --protocol icmp $sec_group
+            openstack security group rule create --protocol tcp --dst-port 22 $sec_group
+            openstack security group rule create --protocol tcp --dst-port 2049 $sec_group
+            openstack security group rule create --protocol tcp --dst-port 20000:65535 $sec_group
+            openstack security group rule create --protocol udp --dst-port 2049 $sec_group
+            openstack security group rule create --protocol udp --dst-port 445 $sec_group
+            openstack security group rule create --protocol tcp --dst-port 445 $sec_group
+            openstack security group rule create --protocol tcp --dst-port 137:139 $sec_group
+            openstack security group rule create --protocol udp --dst-port 137:139 $sec_group
+            openstack security group rule create --protocol tcp --dst-port 111 $sec_group
+            openstack security group rule create --protocol udp --dst-port 111 $sec_group
+        fi
+    else
+        if ! nova secgroup-list-rules manila-service; then
+            nova secgroup-create $sec_group "$sec_group description"
+            nova secgroup-add-rule $sec_group icmp -1 -1 0.0.0.0/0
+            nova secgroup-add-rule $sec_group tcp 22 22 0.0.0.0/0
+            nova secgroup-add-rule $sec_group tcp 2049 2049 0.0.0.0/0
+            nova secgroup-add-rule $sec_group tcp 20000 65535 0.0.0.0/0
+            nova secgroup-add-rule $sec_group udp 2049 2049 0.0.0.0/0
+            nova secgroup-add-rule $sec_group udp 445 445 0.0.0.0/0
+            nova secgroup-add-rule $sec_group tcp 445 445 0.0.0.0/0
+            nova secgroup-add-rule $sec_group tcp 137 139 0.0.0.0/0
+            nova secgroup-add-rule $sec_group udp 137 139 0.0.0.0/0
+            nova secgroup-add-rule $sec_group tcp 111 111 0.0.0.0/0
+            nova secgroup-add-rule $sec_group udp 111 111 0.0.0.0/0
+        fi
     fi
 
-    service_vm_status="`openstack server show --f value -c status manila-service`"
+    service_vm_status="`openstack server show --format value -c status manila-service`"
     if [ "$service_vm_status" = "ACTIVE" ] || [ "$service_vm_status" = "SHUTOFF" ] ; then
         if [ "$service_vm_status" = "SHUTOFF" ]; then
             # We're upgrading. Restart existing instance as it was shutdown during
@@ -3404,7 +3427,7 @@ function oncontroller_magnum_service_setup
         local_image_path=$localreposdir_target/images/$arch/other/$service_image_filename
     fi
 
-    if ! openstack image list --f value -c Name | grep -q "^${service_image_name}$"; then
+    if ! openstack image list --format value -c Name | grep -q "^${service_image_name}$"; then
         if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
             service_image_filename=$local_image_path}
         else
@@ -3646,11 +3669,21 @@ function oncontroller_testsetup
         wait_for 10 3 "[[ ! \$(nova show $instanceid) ]]" "testvm to be deleted"
     fi
     nova keypair-add --pub-key /root/.ssh/id_rsa.pub testkey
-    nova secgroup-delete testvm || :
-    nova secgroup-create testvm testvm
-    nova secgroup-add-rule testvm icmp -1 -1 0.0.0.0/0
-    nova secgroup-add-rule testvm tcp 1 65535 0.0.0.0/0
-    nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
+
+    if iscloudver 8plus; then
+        openstack security group delete testvm || :
+        openstack security group create --description testvm testvm
+        openstack security group rule create --protocol icmp testvm
+        openstack security group rule create --protocol tcp --dst-port 1:65535 testvm
+        openstack security group rule create --protocol udp --dst-port 1:65535 testvm
+    else
+        nova secgroup-delete testvm || :
+        nova secgroup-create testvm testvm
+        nova secgroup-add-rule testvm icmp -1 -1 0.0.0.0/0
+        nova secgroup-add-rule testvm tcp 1 65535 0.0.0.0/0
+        nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
+    fi
+
     timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
