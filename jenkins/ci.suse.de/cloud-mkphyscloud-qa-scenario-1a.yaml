@@ -64,7 +64,12 @@
           name: networkingmode
           default: vlan
           description: networking mode to be used by Neutron. Available options are gre, vlan, vxlan
-          
+
+      - bool:
+          name: mariadb
+          default: false
+          description: Will deploy cloud with miariadb.Scenario should be updated to qa-scenario-1c.yaml
+
       - string:
           name: tempest
           default: smoke
@@ -188,7 +193,10 @@
 
           # put variables needed during the build process into mkcloud.config file
           env | grep -e networking -e libvirt -e cloud -e upgrade -e cct -e TESTHEAD > mkcloud.config
-
+          if [ $mariadb == 0 ]
+            echo "want_database_sql_engine=mysql" >> mkcloud.config
+            export scenario_file="qa-scenario-1c.yaml"
+          fi
           # copy scripts/ dir onto the admin node in /root/scripts
           scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
 
