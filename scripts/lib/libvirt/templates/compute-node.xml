@@ -33,5 +33,6 @@ $serialdevice
     <input type='mouse' bus='ps2'/>
 $videodevices
 $memballoon
+$local_repository_mount
   </devices>
 </domain>

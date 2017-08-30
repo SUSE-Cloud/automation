@@ -104,6 +104,8 @@ def default_test_args(args):
     args.bootorder = 3
     args.numcontrollers = 1
     args.firmwaretype = "bios"
+    args.localreposrc = None
+    args.localrepotgt = None
 
 
 class TestLibvirtAdminConfig(unittest.TestCase):
@@ -172,6 +174,12 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         args.controller_raid_volumes = 2
         args.cephvolumenumber = 2
         self._compare_configs(args, "raid")
+
+    def test_compute_config_with_9pnet_virtio_mount(self):
+        args = self.args
+        args.localreposrc = '/var/cache/mkcloud/cloud'
+        args.localrepotgt = '/repositories'
+        self._compare_configs(args, '9pnet-mount')
 
 
 if __name__ == '__main__':

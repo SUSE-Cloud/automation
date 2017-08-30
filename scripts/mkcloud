@@ -677,6 +677,10 @@ function setupnodes
         done
         local ironic_params=""
         [[ $want_ironic ]] && ironic_params="--ironicnic $ironicnic"
+        local localrepos_params=""
+        if [ -n "${localreposdir_src}" -a -n "${localreposdir_target}" ] ; then
+            localrepos_params="--localreposrc ${localreposdir_src} --localrepotgt ${localreposdir_target}"
+        fi
 
         ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
                         $mac_params \
@@ -691,6 +695,7 @@ function setupnodes
                         --vdiskdir $vdisk_dir \
                         --bootorder 3 \
                         --numcontrollers $(get_nodenumbercontroller) \
+                        $localrepos_params \
                         --firmwaretype "$firmware_type" \
                         --controller-raid-volumes $controller_raid_volumes > /tmp/$cloud-node$i.xml
 
