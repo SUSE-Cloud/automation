@@ -4542,9 +4542,8 @@ function onadmin_prepare_cloudupgrade_admin_repos_6_to_7
     safely createrepo $tftpboot_repos_dir/PTF
 
     # change system repositories to SP2
-    $zypper rr sles12sp1
-    $zypper rr sles12sp1up
-    $zypper rr sles12sp1tup
+    $zypper rr SLES12-SP1-Pool
+    $zypper rr SLES12-SP1-Updates
     onadmin_setup_local_zypper_repositories
 }
 
