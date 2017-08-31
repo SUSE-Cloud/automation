@@ -1,0 +1,26 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-4nodes-linuxbridge-ocata'
+    node: cloud-trigger
+    disabled: '{obj:disabled}'
+
+    triggers:
+      - timed: 'H 2 * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 7
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            cloudsource=ocatacloud{version}
+            nodenumber=4
+            networkingplugin=linuxbridge
+            tempestoptions={tempestoptions}
+            mkcloudtarget=all
+            label={label}
+            job_name=cloud-mkcloud{version}-job-4nodes-linuxbridge-ocata
