@@ -15,21 +15,30 @@
           name: component
           values:
             - ardana
+            - ardana-ansible
             - ardana-barbican
+            - ardana-build-config
             - ardana-ceilometer
             - ardana-ceph
             - ardana-cephlm
             - ardana-certifi
+            - ardana-ci
             - ardana-cinder
             - ardana-cinderlm
             - ardana-cluster
+            - ardana-configuration-processor
             - ardana-db
             - ardana-designate
+            - ardana-extensions-dcn
+            - ardana-extensions-example
             - ardana-freezer
             - ardana-glance
             - ardana-glance-check
             - ardana-heat
             - ardana-horizon
+            - ardana-input-model
+            - ardana-input-model-ref
+            - ardana-installer-ui
             - ardana-ironic
             - ardana-keystone
             - ardana-logging
@@ -42,12 +51,23 @@
             - ardana-nova
             - ardana-octavia
             - ardana-opsconsole
+            - ardana-opsconsole-ui
+            - ardana-opsconsole-server
             - ardana-osconfig
+            - ardana-qa-ansible
+            - ardana-re-osrb
+            - ardana-re-tools
+            - ardana-service
+            - ardana-service-ansible
             - ardana-spark
+            - ardana-storevirtual-installer
             - ardana-swift
+            - ardana-swiftlm
             - ardana-tempest
             - ardana-tls
+            - ardana-ui-common
             - ardana-vmfactory
+            - ardana-vsa
       - axis:
           type: user-defined
           name: project
