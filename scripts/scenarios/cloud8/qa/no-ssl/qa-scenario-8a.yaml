@@ -1,5 +1,5 @@
 ---
-# 1c - 7 nodes: HA (IPMI 1 x 3), KVM x 1, Swift, Monasca
+# 8a - 7 nodes: HA (IPMI 1 x 3), KVM x 1, Swift, Monasca
 proposals:
 - barclamp: pacemaker
   name: services
