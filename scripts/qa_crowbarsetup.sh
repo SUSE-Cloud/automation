@@ -4511,7 +4511,7 @@ function onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
     onadmin_prepare_sles12plus_cloud_repos
 
     if [[ $hacloud = 1 ]]; then
-        add_ha12sp2_repo
+        add_ha_repo
     fi
 
     if [ -n "$deployceph" ]; then
