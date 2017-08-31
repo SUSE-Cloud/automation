@@ -26,6 +26,7 @@ ok /grep -v failed\b/
 # rpms containing "Error"
 ok /perl-Error[ -]/
 ok /libsamba-errors/
+ok /mariadb-errormessages/
 
 # Crowbar upgrade messages
 ok /^\| Check ID +\| Passed \| Required \| Errors/
