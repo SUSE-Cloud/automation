@@ -3582,7 +3582,7 @@ function oncontroller_testsetup
     instanceid=`openstack server show testvm -f value -c id`
     if [[ $instanceid ]] ; then
         nova delete $instanceid
-        wait_for 10 3 "[[ ! \$(nova show $instanceid) ]]" "testvm to be deleted"
+        wait_for 10 3 "[[ \$(nova show $instanceid) ]]" "testvm to be deleted"
     fi
     nova keypair-add --pub-key /root/.ssh/id_rsa.pub testkey
     nova secgroup-delete testvm || :
