@@ -20,6 +20,7 @@
             TESTHEAD=1
             cloudsource=develcloud{version}
             clusterconfig="data+services+network=3"
+            storage_method=swift
             nodenumber=4
             tempestoptions={tempestoptions}
             hacloud=1
