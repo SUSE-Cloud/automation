@@ -2,9 +2,10 @@
 proposals:
 - barclamp: ipmi
   attributes:
-    bmc_enable: false
+    bmc_enable: true
     bmc_user: ENGCLOUD
     bmc_password: ylzTDoH6ZQ4s
+    use_dhcp: true
   deployment:
     elements:
       bmc-nat-router:
