@@ -468,10 +468,21 @@
 
           # HAcloud
           if [[ $hacloud == 1 ]] ; then
-            : ${clusterconfig:=data+services+network=2}
+            case $cloudsource in
+              develcloud6|develcloud7|mitakacloud7|susecloud7)
+                  clusternodes=2
+                  nodes=3
+                  ;;
+              *)
+                  clusternodes=3
+                  nodes=4
+                  ;;
+            esac
+
+            : ${clusterconfig:=data+services+network=$clusternodes}
             export clusterconfig
-            if [[ $nodenumber -lt 3 ]] ; then
-              export nodenumber=3
+            if [[ $nodenumber -lt $nodes ]] ; then
+                export nodenumber=$nodes
             fi
 
             # for now disable ceph deployment in HA mode explicitly
