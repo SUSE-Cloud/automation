@@ -157,6 +157,7 @@
           #!/bin/bash
           admin=crowbar
           cloud=doener$hw_number
+          scenario=$scenario_file
 
           if [ ! -z "$UPDATEREPOS" ] ; then
             export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
@@ -192,7 +193,7 @@
           fi >&2
 
           #scenario_dir="/root/automation/scripts/scenarios/cloud7/qam/$ssl_type" 
-          scenario="/root/$scenario_file"" cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
+          scenario="/root/$scenario"" cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
           /root/automation/scripts/mkcloud batch || ret=$?
 
           if [ $ret != 0 ] ; then
