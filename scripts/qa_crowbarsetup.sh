@@ -3348,7 +3348,7 @@ function oncontroller_manila_generic_driver_setup()
             manila-service-image
     fi
 
-    if ! nova flavor-show manila-service-image-flavor; then
+    if ! nova flavor-show manila-service-image-flavor 2> /dev/null ; then
         nova flavor-create manila-service-image-flavor 100 512 0 1
     fi
 
@@ -3368,7 +3368,7 @@ function oncontroller_manila_generic_driver_setup()
             openstack security group rule create --protocol udp --dst-port 111 $sec_group
         fi
     else
-        if ! nova secgroup-list-rules manila-service; then
+        if ! nova secgroup-list-rules manila-service 2> /dev/null ; then
             nova secgroup-create $sec_group "$sec_group description"
             nova secgroup-add-rule $sec_group icmp -1 -1 0.0.0.0/0
             nova secgroup-add-rule $sec_group tcp 22 22 0.0.0.0/0
@@ -3667,7 +3667,9 @@ function oncontroller_testsetup
     # wait for nova-manage to be successful
     wait_for 200 1 nova_services_up "Nova services to be up and running"
 
-    nova flavor-delete m1.smaller || :
+    if nova flavor-show m1.smaller 2> /dev/null ; then
+        nova flavor-delete m1.smaller
+    fi
     nova flavor-create m1.smaller 101 512 8 1
     instanceid=`openstack server show testvm -f value -c id`
     if [[ $instanceid ]] ; then
@@ -3683,7 +3685,9 @@ function oncontroller_testsetup
         openstack security group rule create --protocol tcp --dst-port 1:65535 testvm
         openstack security group rule create --protocol udp --dst-port 1:65535 testvm
     else
-        nova secgroup-delete testvm || :
+        if nova secgroup-list-rules testvm &>/dev/null ; then
+            nova secgroup-delete testvm
+        fi
         nova secgroup-create testvm testvm
         nova secgroup-add-rule testvm icmp -1 -1 0.0.0.0/0
         nova secgroup-add-rule testvm tcp 1 65535 0.0.0.0/0
