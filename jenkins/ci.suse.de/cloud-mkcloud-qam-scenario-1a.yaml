@@ -191,8 +191,8 @@
             exit 10
           fi >&2
 
-
-          scenario_dir="/root/automation/scripts/scenarios/cloud7/qam/$ssl_type" scenario=$scenario_file cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
+          #scenario_dir="/root/automation/scripts/scenarios/cloud7/qam/$ssl_type" 
+          scenario="/root/$scenario_file"" cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
           /root/automation/scripts/mkcloud batch || ret=$?
 
           if [ $ret != 0 ] ; then
