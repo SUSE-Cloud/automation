@@ -46,12 +46,6 @@ else
     : ${want_cinder_rbd_flatten_snaps:=0}
 fi
 
-# FIXME: Remove once HA MariaDB works https://trello.com/c/tYDIJuGO
-if iscloudver 8plus && [[ $hacloud = 1 ]] && [[ ! $want_database_sql_engine ]]; then
-    echo "WARNING: using postgresql for SOC8 HA builds; https://trello.com/c/tYDIJuGO"
-    want_database_sql_engine=postgresql
-fi
-
 if [[ $arch = "s390x" ]] ; then
     want_s390=1
 fi
