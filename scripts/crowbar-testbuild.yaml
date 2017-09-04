@@ -21,10 +21,10 @@ parameters_template:
     networkingplugin: openvswitch
   ha: &mkcloud_ha
     label: openstack-mkcloud-ha-x86_64
-    nodenumber: 5
+    nodenumber: 6
     hacloud: 1
     networkingmode: vxlan
-    clusterconfig: "data+services+network=2"
+    clusterconfig: "data+services+network=3"
   hyperv: &mkcloud_hyperv
     networkingplugin: linuxbridge
     libvirt_type: hyperv
