@@ -166,14 +166,20 @@
           rm -rf $artifacts_dir
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
+          sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," $scenario_file
+          sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," $scenario_file
+          sed -i -e "s,##cinder-storage-shares##,$shared_storage_ip:/var/$cloud/cinder-storage," $scenario_file
+          sed -i -e "s,##networkingplugin##,$networkingplugin," scenario.yml
+		  sed -i -e "s,##networkingmode##,$networkingmode," scenario.yml
 
-          export want_node_aliases=controller=1,compute-kvm=1"
+          export want_node_aliases="controller=1,compute-kvm=1"
 
           ret=0
           whoami
           pwd
           echo "$HOME"
-          controller_node_memory=${controller_node_memory} \
+
+          controller_node_memory=$controller_node_memory \
           want_node_aliases=controller=1,compute-kvm=1 \
           cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
           /root/automation/scripts/mkcloud \
@@ -182,6 +188,7 @@
 
           if [ $ret != 0 ] ; then
             scp root@$admin:/var/log/*tbz $artifacts_dir/
+            exit $ret
           fi >&2
 
 
@@ -190,6 +197,7 @@
 
           if [ $ret != 0 ] ; then
             scp root@$admin:/var/log/*tbz $artifacts_dir/
+            exit $ret
           fi >&2
 
           exit $ret
