@@ -1538,6 +1538,7 @@ if [[ $steplist =~ ^(cleanup|help|steps|setuphost)$ ]] ; then
     exit $?
 fi
 sanity_checks
+steplist=cleanup
 
 echo "You choose to run these mkcloud steps:"
 echo "  $steplist"
