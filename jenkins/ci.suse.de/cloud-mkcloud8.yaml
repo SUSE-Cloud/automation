@@ -49,6 +49,26 @@
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
         - 'cloud-mkcloud{version}-job-ha-pike'
 - project:
+    name: cloud-mkcloud8-tempestfull-x86_64
+    disabled: false
+    version: 8
+    previous_version: 7
+    arch: x86_64
+    tempestoptions: --parallel
+    label: openstack-mkcloud-SLE12-x86_64
+    jobs:
+         - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
+         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-tempestfull-{arch}'
+- project:
+    name: cloud-mkcloud8-sles12sp2-x86_64
+    disabled: false
+    version: 8
+    arch: x86_64
+    label: openstack-mkcloud-SLE12-SP2-x86_64
+    tempestoptions: --smoke
+    jobs:
+        - 'cloud-mkcloud{version}-job-uefi-{arch}'
+- project:
     name: cloud-mkcloud8-aarch64
     disabled: false
     version: 8
