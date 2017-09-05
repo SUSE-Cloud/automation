@@ -110,7 +110,7 @@ iscloudver 7plus && : ${controller_node_memory:=12582912}
 : ${ironicnode_hdd_size:=20}
 
 # mysql (MariaDB actually) is the default option for Cloud8
-iscloudver 8plus && want_database_sql_engine="mysql"
+iscloudver 8plus && export want_database_sql_engine="mysql"
 
 if [[ $hacloud ]] && [[ "$want_database_sql_engine" != "mysql" ]]; then
     : ${drbd_hdd_size:=15}
