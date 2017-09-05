@@ -157,7 +157,6 @@
           #!/bin/bash
           admin=crowbar
           cloud=doener$hw_number
-          scenario=$scenario_file
 
           if [ ! -z "$UPDATEREPOS" ] ; then
             export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
@@ -167,6 +166,8 @@
           rm -rf $artifacts_dir
           mkdir -p $artifacts_dir
           touch $artifacts_dir/.ignore
+
+          cp /root/automation/scripts/scenarios/cloud7/qam/$ssl_type/$scenario_file $scenario_file
           sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," $scenario_file
           sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," $scenario_file
           sed -i -e "s,##cinder-storage-shares##,$shared_storage_ip:/var/$cloud/cinder-storage," $scenario_file
@@ -192,8 +193,8 @@
             exit 10
           fi >&2
 
-          #scenario_dir="/root/automation/scripts/scenarios/cloud7/qam/$ssl_type" 
-          scenario="/root/$scenario"" cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
+          scenario_dir="./" \
+          scenario="$scenario_file" cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
           /root/automation/scripts/mkcloud batch || ret=$?
 
           if [ $ret != 0 ] ; then
