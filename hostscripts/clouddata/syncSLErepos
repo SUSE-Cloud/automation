@@ -245,6 +245,6 @@ fdupes -q -n -r /srv/nfs/repos/ /srv/nfs/install/ |
             fi
             ln -f "$_target" "$_file";
         fi
-     done
+    done
 
 ~/bin/syncgitrepos
