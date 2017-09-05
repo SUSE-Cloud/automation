@@ -1,12 +1,12 @@
 - job:
     name: cloud-mkcloud-qam-scenario-1a
-    node: qam-cloud-doener7-virt
+    node: qam-cloud-doener-nonha-virt
     description: |
       <b>This job is managed by JJB! Changes must be done in
       <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'>git</a>
       </b>
       Scenario details:
-        - 2 nodes
+        - 6 nodes
         - non-HA
         - swift
         - Neutron: linuxbridge or OVS
@@ -125,7 +125,17 @@
 
       - string:
           name: nodenumber
-          default: "2"
+          default: "5"
+          description: Number of nodes to use; is scenario specific
+
+      - string:
+          name: controllernumber
+          default: "1"
+          description: Number of nodes to use; is scenario specific
+
+      - string:
+          name: computenumber
+          default: "3"
           description: Number of nodes to use; is scenario specific
 
       - string:
@@ -139,7 +149,7 @@
 
       - string:
           name: controller_node_memory
-          default: "4242880"
+          default: "8242880"
           description: set controller memory
 
       - text:
@@ -174,7 +184,7 @@
           sed -i -e "s,##networkingplugin##,$networkingplugin," $scenario_file
           sed -i -e "s,##networkingmode##,$networkingmode," $scenario_file
 
-          export want_node_aliases="controller=1,compute-kvm=1"
+          export want_node_aliases="controller=$controllernumber,compute-kvm=$computenumber"
 
           ret=0
           whoami
@@ -205,7 +215,7 @@
           exit $ret
 
       - trigger-builds:
-          - project: cloud-mkphyscloud-qa-tests-trigger
+          - project: cloud-mkcloud-qam-tests-trigger
             condition: SUCCESS
             block: true
             predefined-parameters: |
