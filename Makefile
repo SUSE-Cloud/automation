@@ -15,7 +15,7 @@ bashate:
 	for f in \
 	    *.sh mkcloud mkchroot repochecker \
 	    jenkins/{update_automation,*.sh} \
-	    ../hostscripts/ci1/* ../mkcloudruns/*/[^R]*;\
+	    ../hostscripts/ci1/* ../hostscripts/clouddata/syncSLErepos ../mkcloudruns/*/[^R]*;\
 	do \
 	    echo "checking $$f"; \
 	    bash -n $$f || exit 3; \
