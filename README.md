@@ -111,3 +111,7 @@ jenkins-jobs --ignore-cache update \
 
 For this you need a local ini file and add it via the `--conf` parameter to
 the above command.
+
+To tune the Parsed Console Output of mkcloud jobs, edit
+[the rules file](scripts/jenkins/log-parser/openstack-mkcloud-rules.txt) according to
+[the documented rules file syntax](https://wiki.jenkins-ci.org/display/JENKINS/Log+Parser+Plugin#LogParserPlugin-Parsingrulesfiles).
