@@ -156,3 +156,8 @@ function onhost_cacheclouddata
     rsync $rsync_options --include-from=$include --include="*/" --exclude="*" $reposerver::cloud $cache_dir
     rm -f $include
 }
+
+function onhost_do_prepare
+{
+    :
+}
