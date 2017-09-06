@@ -87,12 +87,12 @@ proposals:
 
 - barclamp: database
   attributes:
+    sql_engine: postgresql
     ha:
       storage:
         shared:
           device: ##shared_nfs_for_database##
           fstype: nfs
-          options: nfsvers=3
   deployment:
     elements:
       database-server:
@@ -107,7 +107,6 @@ proposals:
         shared:
           device: ##shared_nfs_for_rabbitmq##
           fstype: nfs
-          options: nfsvers=3
   deployment:
     elements:
       rabbitmq-server:

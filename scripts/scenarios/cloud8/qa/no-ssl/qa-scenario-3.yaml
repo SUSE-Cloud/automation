@@ -9,8 +9,6 @@ proposals:
         nfs_server: ##shared_nfs_for_glance##
         export: ##shared_nfs_export_for_glance##
         mount_path: "/images"
-        mount_options:
-        - nfsvers=3
   deployment:
     elements:
       nfs-client:
@@ -42,28 +40,23 @@ proposals:
           @@controller3@@:
             params: ''
     drbd:
-      enabled: true
+      enabled: false
   deployment:
     elements:
       pacemaker-cluster-member:
       - @@controller1@@
       - @@controller2@@
+      - @@controller3@@
       hawk-server:
       - @@controller1@@
       - @@controller2@@
+      - @@controller3@@
       pacemaker-remote:
       - @@compute1@@
       - @@compute2@@
       - @@compute3@@
 
 - barclamp: database
-  attributes:
-    ha:
-      storage:
-        shared:
-          device: ##shared_nfs_for_database##
-          fstype: nfs
-          options: nfsvers=3
   deployment:
     elements:
       database-server:
@@ -78,7 +71,6 @@ proposals:
         shared:
           device: ##shared_nfs_for_rabbitmq##
           fstype: nfs
-          options: nfsvers=3
   deployment:
     elements:
       rabbitmq-server:
