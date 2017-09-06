@@ -50,14 +50,8 @@
           # fetch the latest automation updates
           ${automationrepo}/scripts/jenkins/update_automation
 
-          function cleanup() {
-              # Cleanup isos from old builds
-              rm -f scripts/release-mgmt/*Media1.iso
-          }
-
           function jtsync_trap() {
             $jtsync --ci suse --matrix ${JOB_BASE_NAME},${project},${BUILD_NUMBER} 1 || :
-            cleanup
           }
 
           # only enable jtsync when build is not manually triggered
@@ -86,7 +80,8 @@
           mkdir -p cloud
           rsync -av $d/scripts ./cloud/
 
-          cleanup
+          # Cleanup isos from old builds
+          rm -f scripts/release-mgmt/*Media1.iso
 
           # options
           export RPM_DEPCHECK=1
