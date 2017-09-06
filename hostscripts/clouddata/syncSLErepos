@@ -52,6 +52,14 @@ rsync="$E rsync $DRY --bwlimit 10000 --delay-updates $rsync_delete -aH --no-owne
 
 ibsmaint=${ibs_source}/SUSE\:/Maintenance\:/Test\:/
 
+mkdirrsync()
+{
+    local src=$1
+    local dest=$2
+    mkdir -p "$dest"
+    $rsync "$src" "$dest"
+}
+
 ##############
 # SLE 12
 ##############
@@ -89,13 +97,11 @@ for servicepack in 1 2 3; do
             $rsync --link-dest /srv/nfs/install/suse-${chef_version}/$arch/install/suse/ ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-Server-POOL-$arch-Media1/ $destdir_sles_pool
         fi
         # SLES updates
-        destdir_sles_updates=/srv/nfs/repos/$arch/SLES$repo_version-Updates/
-        mkdir -p $destdir_sles_updates
-        $rsync ${ibs_source}/SUSE/Updates/SLE-SERVER/$version/$arch/update/ $destdir_sles_updates
+        mkdirrsync ${ibs_source}/SUSE/Updates/SLE-SERVER/$version/$arch/update/ \
+            /srv/nfs/repos/$arch/SLES$repo_version-Updates/
         # SLES test updates
-        destdir_sles_updates_test=/srv/nfs/repos/$arch/SLES$repo_version-Updates-test/
-        mkdir -p $destdir_sles_updates_test
-        $rsync $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ $destdir_sles_updates_test
+        mkdirrsync $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ \
+            /srv/nfs/repos/$arch/SLES$repo_version-Updates-test/
 
         # HA is not for ARM
         if [ "$arch" != aarch64 ]; then
@@ -108,13 +114,11 @@ for servicepack in 1 2 3; do
                 $rsync ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-HA-POOL-$arch-Media1/ $destdir_ha_pool
             fi
             # HA updates
-            destdir_ha_updates=/srv/nfs/repos/$arch/SLE$repo_version-HA-Updates/
-            mkdir -p $destdir_ha_updates
-            $rsync ${ibs_source}/SUSE/Updates/SLE-HA/$version/$arch/update/ $destdir_ha_updates
+            mkdirrsync ${ibs_source}/SUSE/Updates/SLE-HA/$version/$arch/update/ \
+                /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates/
             # HA test updates
-            destdir_ha_updates_test=/srv/nfs/repos/$arch/SLE$repo_version-HA-Updates-test/
-            mkdir -p $destdir_ha_updates_test
-            $rsync $ibsmaint/SLE-HA\:/$version\:/$arch/update/ $destdir_ha_updates_test
+            mkdirrsync $ibsmaint/SLE-HA\:/$version\:/$arch/update/ \
+                /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates-test/
         fi
 
         # SDK is not for ARM
@@ -128,13 +132,11 @@ for servicepack in 1 2 3; do
                 $rsync ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-SDK-POOL-$arch-Media1/ $destdir_sdk_pool
             fi
             # SDK updates
-            destdir_sdk_updates=/srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates/
-            mkdir -p $destdir_sdk_updates
-            $rsync ${ibs_source}/SUSE/Updates/SLE-SDK/$version/$arch/update/ $destdir_sdk_updates
+            mkdirrsync ${ibs_source}/SUSE/Updates/SLE-SDK/$version/$arch/update/ \
+                /srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates/
             # SDK test updates
-            destdir_sdk_updates_test=/srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates-test/
-            mkdir -p $destdir_sdk_updates_test
-            $rsync $ibsmaint/SLE-SDK\:/$version\:/$arch/update/ $destdir_sdk_updates_test
+            mkdirrsync $ibsmaint/SLE-SDK\:/$version\:/$arch/update/ \
+                /srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates-test/
         fi
     done
 done
@@ -158,17 +160,12 @@ for version in 2.1 4 5; do
         else
             poolsource=${ibs_source}/SUSE/Products/Storage/$version/$arch/product/
         fi
-        destdir_ses_pool=/srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Pool
-        mkdir -p $destdir_ses_pool
-        $rsync $poolsource $destdir_ses_pool
-
-        destdir_ses_updates=/srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates
-        mkdir -p $destdir_ses_updates
-        $rsync ${ibs_source}/SUSE/Updates/Storage/$version/$arch/update/ $destdir_ses_updates
-
-        destdir_ses_updates_test=/srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates-test
-        mkdir -p $destdir_ses_updates_test
-        $rsync $ibsmaint/Storage\:/$version\:/$arch/update/ $destdir_ses_updates_test
+        mkdirrsync $poolsource \
+            /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Pool
+        mkdirrsync ${ibs_source}/SUSE/Updates/Storage/$version/$arch/update/ \
+            /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates
+        mkdirrsync $ibsmaint/Storage\:/$version\:/$arch/update/ \
+            /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates-test
     done
 done
 
@@ -214,17 +211,12 @@ for version in 6 7 8; do
         mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Build[0-9][0-9][0-9][0-9]-Media1.iso" $arch/SUSE-OpenStack-Cloud-$version-devel
         mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Build[0-9][0-9][0-9][0-9]-Media1.iso" $arch/SUSE-OpenStack-Cloud-$version-devel-staging
 
-        destdir_cloud_pool=/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Pool/
-        mkdir -p $destdir_cloud_pool
-        $rsync ${ibs_source}/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ $destdir_cloud_pool
-
-        destdir_cloud_updates=/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates/
-        mkdir -p $destdir_cloud_updates
-        $rsync ${ibs_source}/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ $destdir_cloud_updates
-
-        destdir_cloud_updates_test=/srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
-        mkdir -p $destdir_cloud_updates_test
-        $rsync $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/ $destdir_cloud_updates_test
+        mkdirrsync ${ibs_source}/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ \
+            /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Pool/
+        mkdirrsync ${ibs_source}/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ \
+            /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates/
+        mkdirrsync $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/ \
+            /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
     done
 done
 
@@ -253,6 +245,6 @@ fdupes -q -n -r /srv/nfs/repos/ /srv/nfs/install/ |
             fi
             ln -f "$_target" "$_file";
         fi
-     done
+    done
 
 ~/bin/syncgitrepos
