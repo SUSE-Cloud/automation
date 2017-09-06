@@ -114,8 +114,7 @@
           OBS_TYPE=IBS OBS_PROJECT=$OBS_PROJECT make -C cloud/scripts/release-mgmt/ mediacheck
           RETVAL=$?
 
-          # Cleanup
-          rm -r cloud/scripts/release-mgmt/*.iso
+          cleanup
 
           # only enable jtsync when build is not manually triggered
           if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
