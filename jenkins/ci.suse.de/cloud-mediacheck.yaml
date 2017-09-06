@@ -50,6 +50,14 @@
           # fetch the latest automation updates
           ${automationrepo}/scripts/jenkins/update_automation
 
+          traps=(cleanup)
+          function run_traps() {
+              for one_trap in "${traps[@]}" ; do
+                  eval "$one_trap"
+              done
+          }
+          trap run_traps EXIT ERR
+
           function cleanup() {
               # Cleanup isos from old builds
               rm -f scripts/release-mgmt/*Media1.iso
@@ -57,12 +65,11 @@
 
           function jtsync_trap() {
             $jtsync --ci suse --matrix ${JOB_BASE_NAME},${project},${BUILD_NUMBER} 1 || :
-            cleanup
           }
 
           # only enable jtsync when build is not manually triggered
           if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
-            trap jtsync_trap EXIT ERR
+            traps+=('jtsync_trap')
           fi
           if [[ ! -d /mounts/dist ]] ; then
               zypper -n install git-core rsync make autofs nfs-client ypbind kernel-default -kernel-default-base curl wget libsolv-tools bsdtar
@@ -114,11 +121,10 @@
           OBS_TYPE=IBS OBS_PROJECT=$OBS_PROJECT make -C cloud/scripts/release-mgmt/ mediacheck
           RETVAL=$?
 
-          # Cleanup
-          rm -r cloud/scripts/release-mgmt/*.iso
+          cleanup
 
           # only enable jtsync when build is not manually triggered
           if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
-            trap - EXIT ERR
+            traps=("${traps[@]/jtsync_trap}")
             $jtsync --ci suse --matrix ${project},${subproject},${BUILD_NUMBER} $RETVAL || :
           fi
