@@ -50,14 +50,8 @@
           # fetch the latest automation updates
           ${automationrepo}/scripts/jenkins/update_automation
 
-          function cleanup() {
-              # Cleanup isos from old builds
-              rm -f scripts/release-mgmt/*Media1.iso
-          }
-
           function jtsync_trap() {
             $jtsync --ci suse --matrix ${JOB_BASE_NAME},${project},${BUILD_NUMBER} 1 || :
-            cleanup
           }
 
           # only enable jtsync when build is not manually triggered
@@ -86,8 +80,6 @@
           mkdir -p cloud
           rsync -av $d/scripts ./cloud/
 
-          cleanup
-
           # options
           export RPM_DEPCHECK=1
           export SRCRPM_DEPCHECK=0
@@ -114,11 +106,12 @@
           OBS_TYPE=IBS OBS_PROJECT=$OBS_PROJECT make -C cloud/scripts/release-mgmt/ mediacheck
           RETVAL=$?
 
-          # Cleanup
-          rm -r cloud/scripts/release-mgmt/*.iso
-
           # only enable jtsync when build is not manually triggered
           if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
             trap - EXIT ERR
             $jtsync --ci suse --matrix ${project},${subproject},${BUILD_NUMBER} $RETVAL || :
           fi
+    publishers:
+      - workspace-cleanup:
+          fail-build: false
+          clean-parent: false
