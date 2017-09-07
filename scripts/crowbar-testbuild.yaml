@@ -21,7 +21,7 @@ parameters_template:
     networkingplugin: openvswitch
   ha: &mkcloud_ha
     label: openstack-mkcloud-ha-x86_64
-    nodenumber: 6
+    nodenumber: 5
     hacloud: 1
     networkingmode: vxlan
     clusterconfig: "data+services+network=3"
