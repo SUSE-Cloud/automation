@@ -363,11 +363,6 @@ function onhost_add_etchosts_entries
     grep -q crowbar /etc/hosts || echo "$adminip crowbar.$cloudfqdn crowbar" >> /etc/hosts
 }
 
-function onhost_enable_ksm
-{
-    ${mkclouddriver}_onhost_enable_ksm
-}
-
 function setuphost
 {
     SKIPSUPPORTCONFIG=1 ${mkclouddriver}_do_setuphost
