@@ -48,7 +48,7 @@ mkdir -p "$cache_dir"
 scripts_lib_dir=${SCRIPTS_DIR}/lib
 # include separate bash libs
 # NOTE that this is a temporary solution during refactoring of mkcloud
-common_scripts="mkcloud-onhost.sh mkcloud-common.sh mkcloud-$mkclouddriver.sh qa_crowbarsetup-help.sh"
+common_scripts="mkcloud-onhost.sh mkcloud-common.sh mkcloud-driver-$mkclouddriver.sh qa_crowbarsetup-help.sh"
 for script in $common_scripts; do
     source ${scripts_lib_dir}/$script
 done
