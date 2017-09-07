@@ -1,5 +1,5 @@
 - job:
-    name: cloud-mkcloud-qam-scenario-1a
+    name: cloud-mkcloud-qam-scenario-3a
     node: qam-cloud-doener-nonha-virt
     description: |
       <b>This job is managed by JJB! Changes must be done in
@@ -55,13 +55,13 @@
 
       - string:
           name: networkingplugin
-          default: linuxbridge
+          default: openvswitch
           description: |
                networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
 
       - string:
           name: networkingmode
-          default: vlan
+          default: gre
           description: networking mode to be used by Neutron. Available options are gre, vlan, vxlan
 
       - string:
