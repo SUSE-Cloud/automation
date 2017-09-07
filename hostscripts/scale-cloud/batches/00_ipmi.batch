@@ -3,8 +3,8 @@ proposals:
 - barclamp: ipmi
   attributes:
     bmc_enable: true
-    bmc_user: ENGCLOUD
-    bmc_password: ylzTDoH6ZQ4s
+    bmc_user: %IPMIUSER%
+    bmc_password: %IPMIPASS%
     use_dhcp: true
   deployment:
     elements:
