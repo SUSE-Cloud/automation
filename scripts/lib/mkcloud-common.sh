@@ -305,6 +305,17 @@ function setcloudnetvars
             vlan_fixed=582 # overlap with p3 storage/sdn to use less VLAN IDs
             want_ipmi=1
         ;;
+        ecp1)
+            net=192.168.80
+            net_public=10.86.32
+            net_fixed=44.71.0
+            vlan_storage=1210
+            vlan_sdn=1211
+            vlan_public=1207
+            #vlan_admin=1209
+            vlan_fixed=1211
+            want_ipmi=1
+        ;;
         cf1)
             net_fixed=192.168.129
             net_public=10.162.211

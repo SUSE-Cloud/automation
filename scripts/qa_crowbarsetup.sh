@@ -1202,6 +1202,52 @@ EOPYTHON
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v 10.84.207.253 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.broadcast -v 10.84.207.255 $netfile
     fi
+    if [[ $cloud = ecp1 ]] ; then
+        ### admin ###
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.netmask -v 255.255.248.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.broadcast -v 192.168.87.255 $netfile
+        # admin node itself
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.admin.start -v 192.168.80.10 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.admin.end -v 192.168.80.11 $netfile
+        # dhcp
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.dhcp.start -v 192.168.80.12 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.dhcp.end -v 192.168.80.255 $netfile
+        # host
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.host.start -v 192.168.81.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.host.end -v 192.168.86.127 $netfile
+        # switches
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.switch.start -v 192.168.87.241 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.switch.end -v 192.168.87.255 $netfile
+
+        ### bmc and bmc_vlan ###
+        # bmc_vlan
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.router -v 192.168.80.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.netmask -v 255.255.248.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.broadcast -v 192.168.87.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.ranges.host.start -v 192.168.86.128 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.ranges.host.end -v 192.168.86.128 $netfile
+        # bmc
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.router -v 192.168.80.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.netmask -v 255.255.248.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.broadcast -v 192.168.87.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.ranges.host.start -v 192.168.86.129 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.ranges.host.end -v 192.168.87.240 $netfile
+
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.254.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.subnet -v 10.86.32.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.start -v 10.86.32.2 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.end -v 10.86.33.250 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.broadcast -v 10.86.33.255 $netfile
+        #/opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.12.7.254 $netfile
+
+        # floating net is separate from public net:
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.vlan -v 1208 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.224.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v 10.86.0.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.start -v 10.86.0.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v 10.86.31.251 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.broadcast -v 10.86.31.255 $netfile
+    fi
     # Setup specific network configuration for d2 cloud
     if [[ $cloud = d2 ]] ; then
         /opt/dell/bin/json-edit -a attributes.network.mode -v dual $netfile
