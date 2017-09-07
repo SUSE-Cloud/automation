@@ -105,23 +105,19 @@ proposals:
       mode: libvirt
       libvirt:
         hypervisor_ip: ##hypervisor_ip##
-    drbd:
-      enabled: true
   deployment:
     elements:
       pacemaker-cluster-member:
       - "@@controller1@@"
       - "@@controller2@@"
+      - "@@controller3@@"
       hawk-server:
       - "@@controller1@@"
       - "@@controller2@@"
+      - "@@controller3@@"
 - barclamp: database
   attributes:
-    ha:
-      storage:
-        mode: drbd
-        drbd:
-          size: 5
+    sql_engine: mysql
   deployment:
     elements:
       database-server:
@@ -130,11 +126,10 @@ proposals:
   attributes:
     ha:
       storage:
-        mode: drbd
-        drbd:
-          size: 5
-    trove:
-      enabled: true
+        shared:
+          device: ##shared_nfs_for_rabbitmq##
+          fstype: nfs
+          options: nfsvers=3
   deployment:
     elements:
       rabbitmq-server:

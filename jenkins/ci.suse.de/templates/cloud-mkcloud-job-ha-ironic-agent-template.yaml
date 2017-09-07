@@ -24,7 +24,7 @@
             mkcloudtarget=instonly batch setupironicnodes
             networkingplugin=openvswitch
             networkingmode=gre
-            want_node_aliases=controller=2,compute=1
+            want_node_aliases=controller=3,compute=1
             label={label}
             scenario=cloud{version}-ironic-swift-ha.yml
             job_name=cloud-mkcloud{version}-job-ha-ironic-agent-{arch}
