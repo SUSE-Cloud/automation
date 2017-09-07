@@ -2272,6 +2272,7 @@ function custom_configuration
         ipmi)
             if [[ $want_ipmi = 1 ]] ; then
                 proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
+                proposal_set_value ipmi default "['attributes']['ipmi']['use_dhcp']" true
                 proposal_set_value ipmi default "['attributes']['ipmi']['debug']" true
                 proposal_set_value ipmi default "['attributes']['ipmi']['bmc_user']" "'$bmc_user'"
                 proposal_set_value ipmi default "['attributes']['ipmi']['bmc_password']" "'$bmc_password'"
