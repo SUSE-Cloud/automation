@@ -1216,8 +1216,8 @@ EOPYTHON
         /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.host.start -v 192.168.81.1 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.host.end -v 192.168.86.127 $netfile
         # switches
-        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.switch.start -v 192.168.87.241 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.switch.end -v 192.168.87.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.switch.start -v 192.168.87.251 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.switch.end -v 192.168.87.254 $netfile
 
         ### bmc and bmc_vlan ###
         # bmc_vlan
@@ -1241,9 +1241,10 @@ EOPYTHON
         #/opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.12.7.254 $netfile
 
         # floating net is separate from public net:
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.vlan -v 1208 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.vlan -r -v 1208 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.224.0 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v 10.86.0.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.router -v 10.86.31.254 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.start -v 10.86.0.1 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v 10.86.31.251 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.broadcast -v 10.86.31.255 $netfile
