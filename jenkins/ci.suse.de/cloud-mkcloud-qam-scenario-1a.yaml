@@ -1,0 +1,234 @@
+- job:
+    name: cloud-mkcloud-qam-scenario-1a
+    node: qam-cloud-doener-nonha-virt
+    description: |
+      <b>This job is managed by JJB! Changes must be done in
+      <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'>git</a>
+      </b>
+      Scenario details:
+        - 6 nodes
+        - non-HA
+        - swift
+        - Neutron: linuxbridge or OVS
+
+      It will wipe all machines in the selected cloud!
+
+    wrappers:
+      - mkphyscloud-qa-build-name-wrapper
+    publishers:
+      - mkphyscloud-qa-common-publishers
+
+    logrotate:
+      numToKeep: 15
+      daysToKeep: -1
+
+    parameters:
+      - string:
+          name: hw_number
+          default: "7"
+          description: Mandatory, name of the QA cloud server as integer
+
+      - string:
+          name: admin_os
+          default: sles12sp2
+          description: Mandatory, admin node operating system version
+
+      - string:
+          name: shared_storage_ip
+          default: 10.162.66.1
+          description: Mandatory, shared storage server IP
+
+      - string:
+          name: repo_owner
+          default: SUSE-Cloud
+          description: Mandatory, automation repo owner/organization
+
+      - string:
+          name: automation_repo
+          default: git://github.com/$repo_owner/automation.git
+          description: Mandatory, automation repo URL
+
+      - string:
+          name: branch
+          default: master
+          description: Mandatory, automation repo branch
+
+      - string:
+          name: networkingplugin
+          default: linuxbridge
+          description: |
+               networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
+
+      - string:
+          name: networkingmode
+          default: vlan
+          description: networking mode to be used by Neutron. Available options are gre, vlan, vxlan
+
+      - string:
+          name: tempest
+          default: smoke
+          description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
+
+      - string:
+          name: cct
+          default: features:base
+          description: Optional, specify cct tests to run
+
+      - bool:
+          name: trigger_upgrade
+          default: false
+          description: Trigger the upgrade process for this cloud in a separate job
+
+      - bool:
+          name: horizon-tests
+          default: false
+          description: Optional, Run horizon integration tests.
+
+      - string:
+          name: ssl_type
+          default: no-ssl
+          description: "Mandatory, set the SSL configuration for the cloud, available options: no-ssl, ssl-insecure, ssl"
+
+      - string:
+          name: cloud_version
+          default: "7"
+          description: Mandatory, version of the cloud to be installed as integer
+
+      - string:
+          name: scenario_file
+          default: qam-scenario-1a.yaml
+          description: Scenario yaml file name
+
+      # Parameters for qa_crowbarsetup.sh
+      - string:
+          name: cloudsource
+          default: $cloud_version
+
+      - string:
+          name: upgrade_cloudsource
+          default: develcloud$(($cloud_version + 1))
+
+      - string:
+          name: TESTHEAD
+          default: "0"
+          description: if non-empty, test latest version from Devel:Cloud Stagin
+
+      - string:
+          name: hacloud
+          default: "0"
+          description: By default we do not want HA configured and installed
+
+      - string:
+          name: clusterconfig
+          default: services=3
+          description: HA configuration for clusters. Make sense only if hacloud=1
+
+      - string:
+          name: nodenumber
+          default: "6"
+          description: Number of nodes to use; is scenario specific
+
+      - string:
+          name: controllernumber
+          default: "1"
+          description: Number of nodes to use; is scenario specific
+
+      - string:
+          name: computenumber
+          default: "3"
+          description: Number of nodes to use; is scenario specific
+
+      - string:
+          name: want_ipmi
+          default: "false"
+
+      - string:
+          name: commands
+          default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
+          description: All the steps that needs to be completed to have cloud installed
+
+      - string:
+          name: controller_node_memory
+          default: "8242880"
+          description: set controller memory
+
+      - text:
+          name: UPDATEREPOS
+          default:
+          description: Update repositories (one URL per line)
+
+      - bool:
+          name: UPDATEBEFOREINSTALL
+          default: false
+          description: add update repos before crowbar install
+
+    builders:
+      - shell: |
+          #!/bin/bash
+          admin=crowbar
+          cloud=doener$hw_number
+          scenario_dir="/workspace/${scenario_file%.yaml}/${scenario_file}"
+
+          if [ ! -z "$UPDATEREPOS" ] ; then
+            export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
+          fi
+
+          export artifacts_dir=$WORKSPACE/.artifacts
+          rm -rf $artifacts_dir
+          mkdir -p $artifacts_dir
+          touch $artifacts_dir/.ignore
+
+          cp /root/automation/scripts/scenarios/cloud7/qam/$ssl_type/$scenario_file ${scenario_file}
+          echo "pwd"
+          pwd
+          sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," $scenario_file
+          sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," $scenario_file
+          sed -i -e "s,##cinder-storage-shares##,$shared_storage_ip:/var/$cloud/cinder-storage," $scenario_file
+          sed -i -e "s,##networkingplugin##,$networkingplugin," $scenario_file
+          sed -i -e "s,##networkingmode##,$networkingmode," $scenario_file
+
+          export want_node_aliases="controller=$controllernumber,compute-kvm=$computenumber"
+
+          ret=0
+          echo "pwd"
+          whoami
+          pwd
+          echo "$HOME"
+
+          controller_node_memory=$controller_node_memory \
+          want_node_aliases=controller=1,compute-kvm=1 \
+          cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
+          /root/automation/scripts/mkcloud \
+          cleanup prepare setupadmin addupdaterepo prepareinstcrowbar runupdate bootstrapcrowbar instcrowbar rebootcrowbar \
+          setupnodes instnodes setup_aliases || ret=$?
+
+          if [ $ret != 0 ] ; then
+            scp root@$admin:/var/log/*tbz $artifacts_dir/
+            exit 10
+          fi >&2
+
+          scenario_dir="./" \
+          scenario="${scenario_dir}/$scenario_file" cloudpv=/dev/cloud nodenumber=$nodenumber cloudsource=GM${cloud_version}+up \
+          /root/automation/scripts/mkcloud batch || ret=$?
+
+          if [ $ret != 0 ] ; then
+            scp root@$admin:/var/log/*tbz $artifacts_dir/
+            exit 20
+          fi >&2
+
+          exit $ret
+
+      - trigger-builds:
+          - project: cloud-mkcloud-qam-tests-trigger
+            condition: SUCCESS
+            block: true
+            predefined-parameters: |
+              hw_number=$hw_number
+              tempest=$tempest
+              cct_tests=$cct
+              horizon-tests=$horizon-tests
+              trigger_upgrade=$trigger_upgrade
+              scenario_name=1a
+              scenario_job_name=$JOB_NAME
+              scenario_build_number=$BUILD_NUMBER
+              TESTHEAD=$TESTHEAD

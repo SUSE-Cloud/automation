@@ -1,0 +1,82 @@
+- job:
+    name: cloud-mkcloud-qa-test-tempest-smoke
+    node: qam-cloud-doener-nonha-virt
+    description: |
+      Runs tempest smoke tests
+      Useful only for cloud that was built by mkcloud.
+      Mandatory parameter: hw_number
+
+    logrotate:
+      numToKeep: 7
+      daysToKeep: -1
+
+    wrappers:
+      - build-name:
+          name: '#${BUILD_NUMBER} - ${scenario_name} - qa$hw_number - smoke'
+      - timestamps
+    publishers:
+      - mkphyscloud-qa-common-publishers
+
+    concurrent: true
+
+    parameters:
+      - string:
+          name: hw_number
+          default: "2"
+          description: Mandatory, number of the QA cloud server
+
+      - string:
+          name: scenario_name
+          description: Optional; scenario name which typically is an integer with a single letter
+
+      - string:
+          name: scenario_job_name
+          description: Optional; name of the scenario jenkins job that is used to trigger this job
+
+      - string:
+          name: scenario_build_number
+          description: Optional; scenario build number that triggered this job
+
+      - string:
+          name: scenario_build_number
+          description: Optional; scenario build number that triggered this job
+
+      - string:
+          name: TESTHEAD
+          description: if non-empty, test latest version from Devel:Cloud Staging
+
+      - bool:
+          name: testsetup
+          default: true
+          description: Run tempest with testsetup() in qa_crowbarsetup.sh script
+
+    builders:
+      - shell: |
+          #!/bin/bash
+          admin=crowbar$hw_number;
+          cloud=doener$hw_number;
+
+          ssh root@$admin "
+            export tempestoptions=\"--smoke\";
+            export cloud=$cloud;
+            export testsetup=$testsetup;
+            export TESTHEAD=$TESTHEAD;
+          " '
+            hostname -f;
+            sed -i "s/tempestoptions.*/tempestoptions=--smoke/" mkcloud.config
+            source mkcloud.config;
+            source scripts/qa_crowbarsetup.sh;
+
+            if [ "$testsetup" == true ] ; then
+              if grep want_tempest mkcloud.config; then
+                sed -i "s/want_tempest.*/want_tempest=0/" mkcloud.config
+              else
+                echo want_tempest=0 >> mkcloud.config
+              fi
+              bash -x -c "source scripts/qa_crowbarsetup.sh; onadmin_testsetup" || exit 1
+            fi
+
+            get_novacontroller;
+            oncontroller run_tempest;
+            exit $?;
+          '
