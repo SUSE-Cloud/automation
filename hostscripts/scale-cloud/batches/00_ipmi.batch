@@ -6,36 +6,3 @@ proposals:
     bmc_user: %IPMIUSER%
     bmc_password: %IPMIPASS%
     use_dhcp: true
-  deployment:
-    elements:
-      bmc-nat-router:
-      - crowbar.p2.cloud.suse.de
-      ipmi:
-      - crowbar.p2.cloud.suse.de
-      - "@@network2@@"
-      - "@@controller2@@"
-      - "@@controller1@@"
-      - "@@network1@@"
-      - "@@messagequeue1@@"
-      - "@@database1@@"
-      - "@@controller3@@"
-      - "@@network3@@"
-      - "@@nfsserver1@@"
-      - "@@compute4@@"
-      - "@@compute1@@"
-      - "@@compute2@@"
-      - "@@compute3@@"
-      bmc-nat-client:
-      - "@@network2@@"
-      - "@@controller1@@"
-      - "@@compute4@@"
-      - "@@controller2@@"
-      - "@@database1@@"
-      - "@@compute1@@"
-      - "@@network1@@"
-      - "@@nfsserver1@@"
-      - "@@compute3@@"
-      - "@@compute2@@"
-      - "@@messagequeue1@@"
-      - "@@controller3@@"
-      - "@@network3@@"
