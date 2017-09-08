@@ -74,7 +74,7 @@
           label: smoke
           steps:
             - trigger-builds:
-                - project: cloud-mkphyscloud-qa-test-tempest-smoke
+                - project: cloud-mkcloud-qam-test-tempest-smoke
                   condition: ALWAYS
                   block: true
                   block-thresholds:
@@ -95,7 +95,7 @@
           label: defcore
           steps:
             - trigger-builds:
-                - project: cloud-mkphyscloud-qa-test-tempest-defcore
+                - project: cloud-mkphyscloud-qam-test-tempest-defcore
                   condition: ALWAYS
                   block: true
                   block-thresholds:
@@ -116,7 +116,7 @@
           label: full
           steps:
             - trigger-builds:
-                - project: cloud-mkphyscloud-qa-test-tempest-full
+                - project: cloud-mkphyscloud-qam-test-tempest-full
                   condition: ALWAYS
                   block: true
                   block-thresholds:
