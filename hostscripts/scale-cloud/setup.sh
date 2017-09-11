@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# do not use the libvirt driver
-export mkclouddriver=onhost
+export mkclouddriver=physical
 export net_admin=192.168.76
 # see https://github.com/SUSE-Cloud/automation/blob/master/docs/mkcloud.md#using-with-local-repositories
 export cache_clouddata=1
