@@ -90,6 +90,17 @@
               export INSTALLCHECK_EXTRA_OPTS="--exclude pattern:"
           fi
 
+          # temporary, remove once there is a current resource-agents package
+          # in SLE-12-SP3 and we no longer need to keep our own in
+          # Devel:Cloud:8 (otherwise we'd have to pull all the HA dependencies
+          # used by resource-agents into the product just for the sake of
+          # the cloud-mediacheck job since everything except mediacheck has SLE
+          # 12 SP3 HA media available and can thus fulfill the resource-agents
+          # package's dependencies).
+          if [[ "$project" =~ Devel:Cloud:8.* ]]; then
+              export INSTALLCHECK_EXTRA_OPTS="--exclude resource-agents"
+          fi
+
           OBS_PROJECT=$project
           stage=$subproject
           [[ $stage == ":" ]] && stage=
