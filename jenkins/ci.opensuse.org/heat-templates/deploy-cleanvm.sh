@@ -12,6 +12,7 @@ if [ "$IS_HEAT" = HEAT ]; then
   quickstart_repo=_quickstart_repo
   quickstart_branch=_quickstart_branch
   package_repo=_package_repo
+  allow_vendor_change=_allow_vendor_change
 else
   # In standalone mode these defaults are used:
   : ${TESTHEAD:=1}
@@ -21,9 +22,10 @@ else
   : ${quickstart_repo:='https://github.com/suse-cloud/openstack-quickstart.git'}
   : ${quickstart_branch:='stable/ocata'}
   : ${package_repo:=''}
+  : ${allow_vendor_change:=''}
 fi
 
-export TESTHEAD cloudsource automation_repo automation_branch quickstart_repo quickstart_branch package_repo
+export TESTHEAD cloudsource allow_vendor_change automation_repo automation_branch quickstart_repo quickstart_branch package_repo
 
 if [ -n "$package_repo" ]; then
   zypper ar --priority 22 -G -f "$package_repo" extra
@@ -54,12 +56,7 @@ case "$VERSION_ID" in
    ;;
 esac
 
-$zypper install git-core ca-certificates-mozilla
-
-# Make sure these packages are not present. If they present on the system, an
-# upgrade from Devel:Cloud:* would require a vendor change, which causes zypper
-# to abort.
-$zypper remove python-psutil python-backports.ssl_match_hostname
+zypper --non-interactive install git-core ca-certificates-mozilla
 
 # override openstack-quickstart if an alternate repo was specified
 if [ -n "$quickstart_repo" ]; then
