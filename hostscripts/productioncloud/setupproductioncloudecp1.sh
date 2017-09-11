@@ -40,7 +40,7 @@ export want_node_aliases=dashboard=1,c=10
 export want_rootpw=securepassword
 export want_tempest=0
 export want_ipmi_reboot=1
-export ipmi_ip_addrs="192.168.15.250 192.168.15.237 192.168.10.20 192.168.15.29 192.168.15.249 192.168.10.23 192.168.10.24 192.168.15.21 192.168.15.22 192.168.10.29 192.168.10.30 192.168.10.31 192.168.10.32 192.168.10.34"
+export ipmi_ip_addrs="192.168.9.70 192.168.9.71 192.168.9.72 192.168.9.74 192.168.9.75 192.168.9.77 192.168.9.78 192.168.9.79 192.168.11.218 192.168.11.214 192.168.11.213 192.168.11.216 192.168.11.217 192.168.11.215 192.168.10.32 192.168.15.22 192.168.15.29 192.168.10.20 192.168.10.29 192.168.10.24 192.168.15.21 192.168.10.34 192.168.10.30 192.168.15.237 192.168.10.31 192.168.15.250 192.168.15.249 192.168.10.23"
 export want_ipmi_username=ECP
 [[ -e /root/cloud-keys/crowbarsecrets.sh ]] && . /root/cloud-keys/crowbarsecrets.sh # in case of re-runs
 # avoid crashing controller node from ovs+gre (bnc#970720)
