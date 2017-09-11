@@ -198,7 +198,6 @@ proposals:
     keystone_instance: default
     neutron_instance: default
     enabled_drivers:
-    - pxe_ssh
     - pxe_ipmitool
   deployment:
     elements:
