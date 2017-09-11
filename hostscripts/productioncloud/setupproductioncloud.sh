@@ -34,7 +34,7 @@ export want_tempest=0
 # avoid crashing controller node from ovs+gre (bnc#970720)
 # or use ethtool... gso off
 export networkingplugin=openvswitch
-export networkingmode=vlan
+export networkingmode=vxlan
 export want_dvr=1
 # workaround OpteronG3 (bnc#872677) and general SVM nested virt bugs (bnc#946701/946068)
 #TODO: update to SP2 export UPDATEREPOS=http://download.suse.de/ibs/home:/bmwiedemann:/branches:/Devel:/Virt:/SLE-12-SP1/SUSE_SLE-12-SP1_Update_standard/
