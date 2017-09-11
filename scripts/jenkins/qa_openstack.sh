@@ -99,6 +99,14 @@ fi
 
 zypper="zypper --non-interactive"
 
+if test -n "$allow_vendor_change" ; then
+    # Allow vendor change for packages that may already be installed on the image
+    # but have a newer version in Cloud:OpenStack:*
+    # (without a vendor change this scenario would cause zypper to stall deployment
+    # with a prompt)
+    echo 'solver.allowVendorChange = true' >> /etc/zypp/zypp.conf
+fi
+
 zypper rr cloudhead || :
 
 case "$cloudsource" in
