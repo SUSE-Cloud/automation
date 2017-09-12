@@ -2161,6 +2161,10 @@ function custom_configuration
         keystone)
             # set a custom region name
             proposal_set_value keystone default "['attributes']['keystone']['api']['region']" "'CustomRegion'"
+            # speedup the deployment
+            if iscloudver 8plus; then
+                proposal_set_value keystone default "['attributes']['keystone']['identity']['password_hash_rounds']" "4"
+            fi
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value keystone default "['deployment']['keystone']['elements']['keystone-server']" "['cluster:$clusternameservices']"
             fi
