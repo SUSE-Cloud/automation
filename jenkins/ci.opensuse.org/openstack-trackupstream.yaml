@@ -117,6 +117,18 @@
               obs-service-set_version obs-service-refresh_patches obs-service-python_requires python-setuptools
           [ -z "$PROJECTSOURCE" ] && ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
 
+          export automationrepo=~/github.com/SUSE-Cloud/automation
+          export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
+          main_job_name=${JOB_NAME%%/*}
+
+          function jtsync_trap() {
+            $jtsync -ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} 1
+          }
+
+          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
+            trap jtsync_trap EXIT ERR
+          fi
+
           OBS_TYPE=${PROJECTSOURCE%%/*}
           OBS_PROJECT=${PROJECTSOURCE##*/}
 
@@ -173,3 +185,11 @@
             grep -q "<linkinfo" .osc/_files || exit 2
           fi
           timeout 1h ~/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-and-package.pl
+          ret=$?
+
+          # only enable jtsync when build is not manually triggered
+          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
+            trap - EXIT ERR
+            $jtsync --ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} $ret || :
+          fi
+          exit $ret
