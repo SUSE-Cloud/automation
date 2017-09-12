@@ -5388,6 +5388,7 @@ function oncontroller_setupproduction()
     nova flavor-create --ephemeral 20 c8.smaller 32 1024 20 8
     nova flavor-create --ephemeral 20 c8.small   33 2048 20 8
     nova flavor-create --ephemeral 20 c8.medium  34 4096 20 8
+    nova flavor-create --ephemeral 20 m8.xlarge  41 32768 20 8
 
     # create projects, increase quotas
     local tenantid
