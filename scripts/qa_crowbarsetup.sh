@@ -2198,8 +2198,12 @@ function custom_configuration
             if [[ $want_keystone_v3 ]] ; then
                 proposal_set_value keystone default "['attributes']['keystone']['api']['version']" "'3'"
             fi
-            if iscloudver 7plus && [[ $want_keystone_token_type ]]; then
-                proposal_set_value keystone default "['attributes']['keystone']['signing']['token_format']" "'$want_keystone_token_type'"
+            if iscloudver 7plus; then
+                # The default of 8 is a bit too much for our default virtual setup
+                proposal_set_value keystone default "['attributes']['keystone']['api']['processes']" "2"
+                if [[ $want_keystone_token_type ]]; then
+                    proposal_set_value keystone default "['attributes']['keystone']['signing']['token_format']" "'$want_keystone_token_type'"
+                fi
             fi
         ;;
         glance)
