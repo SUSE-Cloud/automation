@@ -1123,6 +1123,9 @@ EOF
     for lnet in admin storage os_sdn public nova_floating nova_fixed; do
         /opt/dell/bin/json-edit -a attributes.network.networks.$lnet.mtu -r -v $want_mtu_size $netfile
     done
+    if [[ $want_network_json_url ]] ; then
+        wget -O$netfile "$want_network_json_url"
+    fi
 
     # to allow integration into external DNS:
     local f=/opt/dell/chef/cookbooks/bind9/templates/default/named.conf.erb
