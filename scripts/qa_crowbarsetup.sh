@@ -1573,7 +1573,7 @@ function reboot_nodes_via_ipmi
                     "default gateway to be active in bmc"
             fi
 
-            $ipmicmd chassis bootdev pxe options=persistent
+            #$ipmicmd chassis bootdev pxe options=persistent
             $ipmicmd power reset
             #wait_for 30 2 "timeout 5 $ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
             $ipmicmd power on
