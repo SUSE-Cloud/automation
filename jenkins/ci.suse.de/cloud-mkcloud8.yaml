@@ -37,6 +37,8 @@
     version: 8
     previous_version: 7
     arch: x86_64
+    nodenumber_compute_ha: 5
+    nodenumber_controller: 3
     tempestoptions: --smoke
     label: openstack-mkcloud-ha-x86_64
     storage_method_ha: swift
