@@ -2317,6 +2317,7 @@ function custom_configuration
             else
                 proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']['ips']" "['10.11.12.13']"
             fi
+            proposal_set_value dns default "['attributes']['dns']['forwarders']" '["10.84.2.20", "10.84.2.21"]'
             proposal_set_value dns default "['deployment']['dns']['elements']['dns-server']" "[$dnsnodes]"
         ;;
         ipmi)
