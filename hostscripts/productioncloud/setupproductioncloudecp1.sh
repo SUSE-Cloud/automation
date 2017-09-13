@@ -8,6 +8,7 @@ cd automation
 git pull --rebase
 cp -a hostscripts/productioncloud/mkcloud.config.ecp1 ~/mkcloud.config
 cd scripts
+. ~/mkcloud.config
 
 ( . qa_crowbarsetup.sh ;
 onadmin_runlist addupdaterepo prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate setup_aliases proposal testsetup
