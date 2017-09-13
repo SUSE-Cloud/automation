@@ -2207,7 +2207,7 @@ function custom_configuration
             fi
             if iscloudver 7plus; then
                 # The default of 8 is a bit too much for our default virtual setup
-                proposal_set_value keystone default "['attributes']['keystone']['api']['processes']" "2"
+                [[ $cloudsource =~ devel ]] && proposal_set_value keystone default "['attributes']['keystone']['api']['processes']" "2"
                 if [[ $want_keystone_token_type ]]; then
                     proposal_set_value keystone default "['attributes']['keystone']['signing']['token_format']" "'$want_keystone_token_type'"
                 fi
