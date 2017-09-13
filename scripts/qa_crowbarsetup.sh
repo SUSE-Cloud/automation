@@ -955,6 +955,8 @@ EOF
     export HOST=$HOSTNAME
     grep -q "$net.*crowbar" /etc/hosts || \
         echo $adminip crowbar.$cloudfqdn crowbar >> /etc/hosts
+    systemctl enable wickedd-nanny
+    rcwickedd-nanny restart
     rcnetwork restart
     hostname -f # make sure it is a FQDN
     ping -c 1 `hostname -f`
