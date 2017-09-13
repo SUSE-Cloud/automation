@@ -40,6 +40,7 @@ fi
 : ${want_tempest:=1}
 : ${want_s390:=''}
 : ${want_horizon_integration_test:=''}
+: ${want_batch_dir:="${SCRIPTS_DIR}/scenarios"}
 if iscloudver 8plus; then
     : ${want_cinder_rbd_flatten_snaps:=1}
 else
@@ -2695,6 +2696,11 @@ function do_one_proposal
     # extract them for the proposal creation, but pass them to update_one_proposal
     local proposaltypemapped=$proposaltype
     proposaltype=${proposaltype%%+*}
+    local batchfile=$want_batch_dir/$proposal-batch.yaml
+    if [[ -e $batchfile ]] ; then
+        crowbar batch build "$batchfile"
+        return 0
+    fi
     crowbar "$proposal" proposal create $proposaltype
     if [[ $? != 0 ]] && [[ $want_reapply_proposal = 0 ]] ; then
         return

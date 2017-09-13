@@ -12,6 +12,9 @@ function qacrowbarsetup_help
         Option to set variable MTU size or select Jumbo Frames for Admin and Storage nodes. 1500 is used if not set.
     want_raidtype (default='raid1')
         The type of RAID to create.
+    want_batch_dir (default='${SCRIPTS_DIR}/scenarios')
+        Allow to use crowbar batch for single proposals by placing
+        \$PROPOSAL-batch.yaml files in this directory
     want_database_sql_engine (default='' which picks cloud default)
         The type of database backend to create (only cloud7; cloud8 can only have mysql)
     want_network_json_url=http://some.server/path/network.json (default='')
