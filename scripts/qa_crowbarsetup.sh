@@ -932,7 +932,7 @@ NAME='eth0'
 STARTMODE='auto'
 BOOTPROTO='static'
 IPADDR='$adminip'
-NETMASK='255.255.255.0'
+NETMASK='255.255.248.0'
 BROADCAST='$net.255'
 EOF
     ifdown br0
@@ -1238,7 +1238,10 @@ EOPYTHON
         /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.start -v 10.86.32.2 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.end -v 10.86.33.250 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.broadcast -v 10.86.33.255 $netfile
-        #/opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.12.7.254 $netfile
+
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.71.63.254 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.broadcast -v 44.71.63.255 $netfile
 
         # floating net is separate from public net:
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.vlan -r -v 1208 $netfile
