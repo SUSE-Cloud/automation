@@ -61,6 +61,12 @@
 
           export automationrepo=~/github.com/SUSE-Cloud/automation
           export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
+          
+          # Workaround to get only the name of the job:
+          # https://issues.jenkins-ci.org/browse/JENKINS-39189
+          # When the JOB_BASE_NAME contains only in ex. "openstack-repocheck", this
+          # workaround can be removed.
+          echo "$JOB_BASE_NAME"
           main_job_name=${JOB_NAME%%/*}
 
           function jtsync_trap() {
