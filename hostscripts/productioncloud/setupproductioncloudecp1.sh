@@ -11,7 +11,7 @@ cd scripts
 . ~/mkcloud.config
 
 ( . qa_crowbarsetup.sh ;
-onadmin_runlist addupdaterepo prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate setup_aliases proposal testsetup
+onadmin_runlist addupdaterepo prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate proposal testsetup
 
 # give read-permissions to the users that will need it
 get_novacontroller

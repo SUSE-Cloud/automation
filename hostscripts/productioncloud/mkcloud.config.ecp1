@@ -26,7 +26,7 @@ export want_ceph=1
 #export want_node_aliases=n1=1,dashboard=1,n2=1
 #export want_node_roles=controller=2,compute=3
 #export want_node_aliases=dashboard=1,n1=1,n2=1
-export want_node_aliases=dashboard=1,c=10
+#export want_node_aliases=dashboard=1,c=10
 export want_rootpw=securepassword
 export want_tempest=0
 export want_ipmi_reboot=1

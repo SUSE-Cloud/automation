@@ -1582,6 +1582,38 @@ function reboot_nodes_via_ipmi
     done
 }
 
+function onadmin_assign_hp_nodes
+{
+    local controllern=0
+    local storagen=0
+    local computen=0
+    for n in `knife node list` ; do
+        type=$(knife node show -a dmi.system.product_name $n | grep -o 'DL[^ ]*')
+        echo $type
+        case "$type" in
+            DL360p)
+                if [[ controllern -lt 8 ]] ; then
+                    set_node_alias_and_role $n controller$controllern controller
+                    let controllern++
+                else
+                    set_node_alias_and_role $n compute$computen compute
+                    let computen++
+                fi
+                ;;
+            DL380p)
+                set_node_alias_and_role $n storage$storagen storage
+                let storagen++
+                ;;
+            DL160)
+                set_node_alias_and_role $n compute$computen compute
+                let computen++
+                ;;
+            *)
+                echo "not setting role for $n of type '$type'"
+        esac
+    done
+}
+
 function onadmin_allocate
 {
     pre_hook $FUNCNAME
@@ -1691,6 +1723,7 @@ function onadmin_allocate
             done
         done
     fi
+    [[ $cloud = ecp1 ]] && onadmin_assign_hp_nodes
 
     # set rootfs for all nodes when want_rootfs is set
     if [ -n "$want_rootfs" ] ; then
