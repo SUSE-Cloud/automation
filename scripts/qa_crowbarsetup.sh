@@ -2705,7 +2705,8 @@ function custom_configuration
             # set default password
             proposal_set_value provisioner default "['attributes']['provisioner']['root_password_hash']" "\"$(openssl passwd -1 $want_rootpw)\""
             # set discovery root password too
-            proposal_set_value provisioner default "['attributes']['provisioner']['discovery']['append']" "\"wicked.timeout=70 netwait=35 DISCOVERY_ROOT_PASSWORD=$want_rootpw\""
+            proposal_set_value provisioner default "['attributes']['provisioner']['discovery']['append']" "\"wicked.timeout=70 netwait=35 nomodeset DISCOVERY_ROOT_PASSWORD=$want_rootpw\""
+            proposal_set_value provisioner default "['attributes']['provisioner']['supported_oses']['suse-12.2']['x86_64']['append']" "\"wicked.timeout=70 netwait=35 nomodeset\""
 
             if [[ $keep_existing_hostname = 1 ]] ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
