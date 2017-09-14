@@ -1,4 +1,6 @@
 #!/bin/bash
+grep -q NumberOfPasswordPrompts ~/.ssh/config || echo NumberOfPasswordPrompts 0 >> ~/.ssh/config
+
 hostname crowbar
 zypper ar http://download.nue.suse.com/ibs/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/ pool
 zypper -n in git-core patch
