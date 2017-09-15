@@ -15,6 +15,12 @@ It requires SLE-12 or openSUSE Leap 42.2 or newer as host OS.
 
 ## Prepare your system
 
+* Install `libvirt` if not present on the system
+
+  ```
+  $ sudo zypper install libvirt
+  ```
+
 * Check if `libvirtd` is running and if it isn't start it.
 
   ```
