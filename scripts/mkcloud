@@ -1469,7 +1469,7 @@ function expand_steps
 steplist=`expand_steps $wantedcmds`
 
 : ${steplist:=help}
-if [[ $steplist =~ ^(cleanup|help|steps)$ ]] ; then
+if [[ $steplist =~ ^(cleanup|help|steps|setuphost)$ ]] ; then
     # skipping sanity checks
     $steplist
     exit $?
