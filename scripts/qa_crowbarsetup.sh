@@ -857,13 +857,6 @@ function onadmin_set_source_variables
             CLOUDTESTISONAME="CLOUD-8-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
-        pikecloud8)
-            # This is scratch and can be removed once working
-            CLOUDISOPATH=/ibs/Devel:/Cloud:/8:/Pike/images/iso
-            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-8-${arch}-Media1.iso"
-            CLOUDTESTISONAME="CLOUD-8-TESTING-${arch}-Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
-        ;;
         susecloud8)
             CLOUDISOPATH=/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/Cloud8/images/iso/
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-8-${arch}*Media1.iso"
