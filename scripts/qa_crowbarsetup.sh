@@ -1897,10 +1897,8 @@ function enable_ssl_generic
             $p "$a['api']['protocol']" "'https'"
         ;;
         ceph)
-            $p "$a['radosgw']['ssl']['enabled']" true
-            $p "$a['radosgw']['ssl']['generate_certs']" true
-            $p "$a['radosgw']['ssl']['insecure']" true
-            return
+            a+="['radosgw']"
+            $p "$a['ssl']['enabled']" true
         ;;
         *)
             $p "$a['api']['protocol']" "'https'"
