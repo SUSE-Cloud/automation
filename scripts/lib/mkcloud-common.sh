@@ -496,6 +496,16 @@ get_nodenumbercontroller()
     echo "$nodenumbercontroller"
 }
 
+find_fastest_clouddata_server()
+{
+    local cache=~/.mkcloud/fastest_clouddata_server
+    if [[ -r $cache ]] && [[ $cache -nt $BASH_SOURCE ]] ; then
+        exec cat $cache || exit 100
+    fi
+    mkdir -p ~/.mkcloud
+    $scripts_lib_dir/find_fastest_server.pl clouddata.nue.suse.com. {,provo-,provo2-}clouddata.cloud.suse.de. | tee $cache
+}
+
 function get_admin_node_dist
 {
     # echo the name of the current dist for the admin node
@@ -598,7 +608,7 @@ fi
 # NOTE: they are not to be used in mkcloud/qa_crowbarsetup
 # Please ONLY use the suffixed variables: '*_ip' or '*_fqdn'
 
-: ${reposerver:=clouddata.nue.suse.com}
+: ${reposerver:=$(find_fastest_clouddata_server)}
 : ${reposerver_ip:=$(to_ip $reposerver)}
 : ${reposerver_fqdn:=$(to_fqdn $reposerver)}
 : ${reposerver_base_path:=/repos}
