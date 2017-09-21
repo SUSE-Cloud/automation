@@ -3160,6 +3160,8 @@ function oncontroller_run_tempest
     # to verify that some tests were executed
     if [ "$tempestret" -eq 0 ]; then
         testr last || complain 96 "Tempest run succeeded but something is wrong"
+        # output the slowest tests from the latest run
+        testr slowest
     fi
     testr last --subunit | subunit-1to2 > tempest.subunit.log
 
