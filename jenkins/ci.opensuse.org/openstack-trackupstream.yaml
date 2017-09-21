@@ -37,7 +37,9 @@
             - openstack-horizon-plugin-designate-ui
             - openstack-horizon-plugin-gbp-ui
             - openstack-horizon-plugin-ironic-ui
+            - openstack-horizon-plugin-neutron-fwaas-ui
             - openstack-horizon-plugin-neutron-lbaas-ui
+            - openstack-horizon-plugin-neutron-vpnaas-ui
             - openstack-horizon-plugin-manila-ui
             - openstack-horizon-plugin-magnum-ui
             - openstack-horizon-plugin-monasca-ui
@@ -101,6 +103,12 @@
               "python-heat-cfntools",
               "openstack-rally",
               "openstack-tempest",
+            ].contains(component)  ||
+            # Pike only
+            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Ocata:Staging", "Cloud:OpenStack:Newton:Staging" ].contains(project) &&
+            [
+              "openstack-horizon-plugin-neutron-fwaas-ui",
+              "openstack-horizon-plugin-neutron-vpnaas-ui",
             ].contains(component)
             )
       sequential: true
