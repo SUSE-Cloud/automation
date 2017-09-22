@@ -1866,6 +1866,14 @@ function enable_ssl_generic
             fi
             return
         ;;
+        database)
+            if iscloudver 7plus && [[ "$want_database_sql_engine" == "mysql" ]] ; then
+                $p "$a['mysql']['ssl']['enabled']" true
+                $p "$a['mysql']['ssl']['generate_certs']" true
+                $p "$a['mysql']['ssl']['insecure']" true
+            fi
+            return
+        ;;
         swift|rabbitmq)
             $p "$a['ssl']['enabled']" true
         ;;
@@ -2064,7 +2072,7 @@ function custom_configuration
     ###       So, only edit the proposal file, and NOT the proposal itself
 
     case "$proposal" in
-        crowbar|rabbitmq|keystone|glance|neutron|cinder|swift|ceph|nova|horizon|nova_dashboard|heat|manila|aodh|barbican|ceilometer)
+        crowbar|database|rabbitmq|keystone|glance|neutron|cinder|swift|ceph|nova|horizon|nova_dashboard|heat|manila|aodh|barbican|ceilometer)
             if [[ $want_all_ssl = 1 ]] || eval [[ \$want_${proposal}_ssl = 1 ]] ; then
                 enable_ssl_generic $proposal
             fi
