@@ -3181,7 +3181,7 @@ function oncontroller_upload_defcore
 {
     pushd /var/lib/openstack-tempest-test
     # get the test list
-    wget "https://refstack.openstack.org/api/v1/guidelines/2017.01/tests?target=platform&type=required&alias=true&flag=false" -O defcore-with-id.txt
+    wget "https://refstack.openstack.org/api/v1/guidelines/2017.09/tests" -O defcore-with-id.txt
     # remove the id in [] or tempest will complain on incorrect regex
     sed -e 's/\[[^][]*\]//g' defcore-with-id.txt > defcore.txt
     # run only the specified tests
