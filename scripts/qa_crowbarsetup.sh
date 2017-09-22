@@ -35,7 +35,7 @@ fi
 : ${crowbar_networkingmode:=single}
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
-: ${want_ipmi_username:=root}
+: ${want_ipmi_username:=HLM102}
 : ${want_multidnstest:=1}
 : ${want_tempest:=1}
 : ${want_s390:=''}
@@ -96,7 +96,7 @@ export want_ipmi=${want_ipmi:-}
 export CROWBAR_EXPERIMENTAL=true
 export CROWBAR_VERIFY_SSL=false
 # export crowbar timeout to have the new timeout also in GM without updates
-export CROWBAR_TIMEOUT=3600
+export CROWBAR_TIMEOUT=7200
 
 [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 
@@ -1390,15 +1390,15 @@ function reboot_nodes_via_ipmi
     local i=0
     for ip in $ipmi_ip_addrs ; do
         let i++
-        local ipmicmd="ipmitool -H $ip -U $want_ipmi_username"
+        local ipmicmd="ipmitool -Ilanplus -H $ip -U $want_ipmi_username"
         local pw
-        for pw in 'cr0wBar!' $extraipmipw ; do
-            if timeout 5 $ipmicmd -P $pw mc info ; then
+        for pw in 'wnfJrcwP' $extraipmipw ; do
+            if timeout 15 $ipmicmd -P $pw mc info ; then
                 ipmicmd+=" -P $pw"
                 break
             fi
         done
-        safely timeout 5 $ipmicmd mc info
+        safely timeout 15 $ipmicmd mc info
 
         if [[ $i -gt $nodenumber ]]; then
             # power off extra nodes
@@ -1414,9 +1414,9 @@ function reboot_nodes_via_ipmi
 
             $ipmicmd chassis bootdev pxe options=persistent
             $ipmicmd power off
-            wait_for 30 2 "timeout 5 $ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
+            wait_for 30 2 "timeout 15 $ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
             $ipmicmd power on
-            wait_for 30 2 "timeout 5 $ipmicmd power status | grep -q 'is on'" "node ($ip) to power on"
+            wait_for 30 2 "timeout 15 $ipmicmd power status | grep -q 'is on'" "node ($ip) to power on"
         fi
     done
 }
@@ -1568,7 +1568,7 @@ function onadmin_wait_tftpd
 function wait_node_ready
 {
     local node=$1
-    wait_for 300 10 \
+    wait_for 300 20 \
         "crowbar machines show $node state | grep -q '^ready$'" \
         "node $node to transition to ready" "exit 12"
     echo "node $node transitioned to \"ready\""
@@ -5113,7 +5113,7 @@ function onadmin_batch
     # and missing packages are added
     [[ $cloudsource = develcloud8 ]] && exclude_magnum="--exclude magnum"
 
-    safely crowbar batch --exclude manila ${exclude_magnum} --timeout 2400 build ${scenario}
+    safely crowbar batch --exclude manila ${exclude_magnum} --timeout 4800 build ${scenario}
     if grep -q "barclamp: manila" ${scenario}; then
         get_novacontroller
         safely oncontroller manila_generic_driver_setup
