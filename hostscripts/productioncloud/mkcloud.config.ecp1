@@ -14,8 +14,8 @@ export TESTHEAD=1 # for unreleased fixes
 export cloud=ecp1
 export nodenumber=12
 export want_mtu_size=9000
-#export hacloud=1
-export clusterconfig='services+data+network=2'
+export hacloud=1
+export clusterconfig='data=2:services=3:network=3'
 export want_ceilometer_proposal=0
 export want_sahara_proposal=0
 export want_barbican_proposal=0
