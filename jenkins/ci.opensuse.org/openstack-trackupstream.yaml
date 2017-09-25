@@ -103,8 +103,7 @@
               "python-heat-cfntools",
               "openstack-rally",
               "openstack-tempest",
-            ].contains(component)  ||
-            # Pike only
+            ].contains(component) ||
             [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Ocata:Staging", "Cloud:OpenStack:Newton:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-neutron-fwaas-ui",
