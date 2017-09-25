@@ -3,9 +3,10 @@
     description: "<b>This job is managed by JJB! Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.opensuse.org/templates/'>git</a></b>"
     node: openstack-rpm-packaging
     concurrent: true
-    build-discarder:
-      num-to-keep: -1
-      days-to-keep: 31
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 60
+
     builders:
       - gerrit-git-prep
       - shell: |
