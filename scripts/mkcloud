@@ -1223,6 +1223,8 @@ Optional
         Default value will be applied from Keystone barclamp proposal.
     want_cd='' | 1  (default='')
         Set up a cloud based on the continuous delivery channel.
+    want_ses_version=5 (default=0)
+        Specify what version of SES you want to use. The value is the SES version (4 = SES4, 5 = SES5)
     want_ironic=1 (default='')
         Prepare (virtualized) environment for ironic.
     ironicnic=1 (default=1)
