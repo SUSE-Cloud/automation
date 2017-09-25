@@ -752,6 +752,24 @@ function instnodes
     safely onadmin post_allocate
 }
 
+function deployexternalceph
+{
+    if [[ $want_external_ceph = 0 ]] ; then
+        echo "\$want_external_ceph not set, skipping"
+        return
+    fi
+    if [[ $(nodes number lonely) = 0 ]] ; then
+        echo "\$nodenumberlonelynode = 0, can't build a ceph cluster of 0 nodes"
+        return
+    fi
+
+    local new_nodes=()
+    for i in $(nodes ids lonely) ; do
+        local mac=$(macfunc $i)
+        new_nodes=(${new_nodes[@]} $(mac_to_nodename $mac))
+    done
+    onadmin external_ceph ${new_nodes[@]}
+}
 
 function proposal
 {
@@ -1048,6 +1066,8 @@ Steps:
     setuplonelynodes: boot a number (defined by nodenumberlonelynode) of non-crowbar registered nodes in the admin network
     setupironicnodes: boot a number of empty nodes to be used by the ironic service
     crowbar_register: register a number (defined by nodenumberlonelynode) of non-crowbar nodes with crowbar (setuplonelynodes needs to have run before)
+    deployexternalceph: Deploy an external SES cluster on a number of crowbar nodes (defined by nodenumberlonelynode),
+                    this step assumes that both setuplonelynodes and crowbar_register have been run first.
     testsetup:      start a VM in the cloud
     addupdaterepo:  addupdate repos defined in UPDATEREPOS= (URLs separated by '+')
     runupdate:      run zypper up on the crowbar node
@@ -1223,6 +1243,10 @@ Optional
         Default value will be applied from Keystone barclamp proposal.
     want_cd='' | 1  (default='')
         Set up a cloud based on the continuous delivery channel.
+    want_ceph=1
+        Setup an internal ceph cluster using the ceph barclamp.
+    want_external_ceph=1 (default=0)
+        Setup an external ceph cluster on a set of recently registered lonely nodes
     want_ses_version=5 (default=0)
         Specify what version of SES you want to use. The value is the SES version (4 = SES4, 5 = SES5)
     want_ironic=1 (default='')
@@ -1383,6 +1407,10 @@ function sanity_checks
         complain 113 "Please increase number of nodes for this setup, minimal nodenumber=3"
     fi
 
+    if [[ $want_ceph = 1 ]] && [[ $want_external_ceph = 1 ]] ; then
+        complain 118 "\$want_ceph and \$want_external_ceph are mutully exclusive. Please choose one or the other"
+    fi
+
     if [[ " ${steplist[*]} " == *" batch "* ]] ; then
         : ${scenario_dir:="${SCRIPTS_DIR}/scenarios/cloud$(getcloudver)"}
         need_scenario=1
@@ -1412,7 +1440,7 @@ allcmds="$step_aliases _test_setuphost \
     lonelynode_nfs_server setupironicnodes\
     restoreadminfromsnapshot createcloudsnapshot restorecloudfromsnapshot \
     cct steps batch setup_aliases onadmin onhost devsetup plain_with_upgrade_test \
-    testpreupgrade testpostupgrade"
+    testpreupgrade testpostupgrade deployexternalceph"
 wantedcmds=$@
 
 function expand_steps

@@ -331,7 +331,7 @@ function add_suse_storage_repo
     # Note no zypper alias parameter here since we don't want
     # to zypper addrepo on the admin node.
     local repo
-    if [ -n "$deployceph" ]; then
+    if [ -n "$deployceph" ] || [[ $want_external_ceph = 1 ]]; then
         for repo in SUSE-Enterprise-Storage-$sesversion-{Pool,Updates}; do
             add_mount "repos/$arch/$repo" "$tftpboot_repos_dir/$repo"
         done
@@ -975,7 +975,7 @@ EOF
 
     [[ $want_cd = 1 ]] && add_sap_repo
 
-    if [ -n "$deployceph" ]; then
+    if [ -n "$deployceph" ] || [[ $want_external_ceph = 1 ]]; then
         add_suse_storage_repo
     fi
 
@@ -2659,6 +2659,10 @@ function set_proposalvars
         *)  deployswift=1
             deployceph=
         ;;
+    esac
+    case "$want_external_ceph" in
+        0)  ;;
+        *)  deployceph= ;;
     esac
 
     ### constraints
@@ -5261,6 +5265,58 @@ function onadmin_runlist
         local TIMEFORMAT="timing for qa_crowbarsetup function 'onadmin_$cmd' real=%R user=%U system=%S"
         time onadmin_$cmd || complain $? "$cmd failed with code $?"
     done
+}
+
+function add_node_to_network
+{
+    local node=$1
+    local network=$2
+    echo "Adding $node to $network"
+    crowbarctl network hostip allocate default $node $network host
+    if [[ $? > 0 ]]
+    then
+        return 1
+    fi
+    ssh $node chef-client
+}
+
+function retry
+{
+    $@
+    if [[ $? > 0 ]]; then
+        safely $@
+    fi
+}
+
+function onadmin_external_ceph
+{
+    set -x
+    local ceph_cluster=($@)
+    local node
+    local i=0
+    local ip_alloc
+    local ses_repo="http://$adminip:8091/suse-$suseversion/$arch/repos/SUSE-Enterprise-Storage-$sesversion"
+    for node in ${ceph_cluster[@]}; do
+        set_node_alias $node ceph$i
+        let "i+=1"
+        ssh $node zypper ar -f ${ses_repo}-Pool/ SUSE-Enterprise-Storage-$sesversion-Pool
+        ssh $node zypper ar -f ${ses_repo}-Updates/ SUSE-Enterprise-Storage-$sesversion-Updates
+        retry add_node_to_network $node storage
+        if [ $want_separate_ceph_network -eq 1 ]; then
+            retry add_node_to_network $node ceph
+        else
+            retry add_node_to_network $node public
+        fi
+    done
+    if [ -z $net_storage ]; then
+        setcloudnetvars $cloud
+    fi
+    echo "== Running SES deployment script =="
+    if [[ $want_separate_ceph_network -eq 1 ]]; then
+        safely ${SCRIPTS_DIR}/build_ses.sh ${net_ceph}.0/24 ${net_storage}.0/24 ${ceph_cluster[@]}
+    else
+        safely ${SCRIPTS_DIR}/build_ses.sh ${net_public}.0/24 ${net_storage}.0/24 ${ceph_cluster[@]}
+    fi
 }
 
 #--
