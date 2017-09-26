@@ -2435,7 +2435,7 @@ function custom_configuration
             fi
         ;;
         swift)
-            [[ $nodenumber -lt 3 ]] && {
+            [[ $nodenumber -le 3 ]] && {
                 proposal_set_value swift default "['attributes']['swift']['zones']" "1"
                 # This should be set for C6 and C5 as well, but currently the swift barclamp
                 # is broken there..
