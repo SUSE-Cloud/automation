@@ -36,7 +36,7 @@
         (
         slave=="cloud-cleanvm" && (
            ( openstack_project=="Newton" && (image=="SLE_12_SP2" || image=="openSUSE-Leap-42.2" ))
-        || ( openstack_project=="Ocata" && (image=="SLE_12_SP2" || image=="SLE_12_SP3" || image=="openSUSE-Leap-42.2" || image=="openSUSE-Leap-42.3"))
+        || ( openstack_project=="Ocata" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
         || ( openstack_project=="Pike" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
         || ( openstack_project=="Master" && (image=="openSUSE-Leap-42.3" || image=="SLE_12_SP3"))
         ))
