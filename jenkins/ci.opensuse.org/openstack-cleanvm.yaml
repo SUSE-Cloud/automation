@@ -47,7 +47,6 @@
     builders:
       - update-automation
       - shell: |
-          #!/bin/bash
           export automationrepo=~/github.com/SUSE-Cloud/automation
           export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
           
