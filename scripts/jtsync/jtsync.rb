@@ -68,6 +68,9 @@ module Job
   class OpenSuseMatrix < Mapping
     def card_name
       card = name.gsub("openstack-", "")
+      if project.include? ":"
+        project = project.split(":")[2]
+      end
       "#{card}: #{project}"
     end
 
