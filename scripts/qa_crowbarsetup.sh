@@ -1542,6 +1542,15 @@ function set_crowbar_ipmi_ip_addrs
     done
 }
 
+# sometimes HPE servers take a while to respond, so we try multiple times over a longer time
+function ipmitool
+{
+    for i in $(seq 10) ; do
+        timeout 6 /usr/bin/ipmitool "$@" && return 0
+    done
+    return $?
+}
+
 # Reboot the nodes with ipmi
 function reboot_nodes_via_ipmi
 {
