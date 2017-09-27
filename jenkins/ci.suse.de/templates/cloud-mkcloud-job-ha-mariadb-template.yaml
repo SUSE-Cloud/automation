@@ -21,7 +21,7 @@
             cloudsource=develcloud{version}
             clusterconfig="data+services+network=3"
             storage_method=swift
-            nodenumber=4
+            nodenumber={nodenumber}
             tempestoptions={tempestoptions}
             hacloud=1
             want_database_sql_engine=mysql

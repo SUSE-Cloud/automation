@@ -19,12 +19,12 @@
           predefined-parameters: |
             TESTHEAD=1
             cloudsource=develcloud{version}
-            nodenumber=5
+            nodenumber={nodenumber}
             storage_method=swift
             hacloud=1
             mkcloudtarget=all
             networkingplugin=linuxbridge
             networkingmode=vxlan
-            want_node_aliases=controller=2,compute=2
+            want_node_aliases=controller={nodenumber_controller},compute=2
             label={label}
             job_name=cloud-mkcloud{version}-job-ha-linuxbridge-{arch}
