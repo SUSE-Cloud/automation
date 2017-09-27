@@ -1,3 +1,4 @@
+#export want_reapply_proposal=0
 export debug_qa_crowbarsetup=1
 export want_ldap=1
 export want_all_ssl=1
