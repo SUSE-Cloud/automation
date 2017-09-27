@@ -29,7 +29,7 @@
     version: 6
     previous_version: 5
     arch: x86_64
-    nodenumber_compute_ha: 4
+    nodenumber: 4
     nodenumber_controller: 2
     tempestoptions: -s -t
     label: openstack-mkcloud-ha-x86_64

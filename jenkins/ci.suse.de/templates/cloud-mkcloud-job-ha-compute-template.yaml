@@ -19,10 +19,10 @@
           predefined-parameters: |
             TESTHEAD=1
             cloudsource=develcloud{version}
-            nodenumber={nodenumber_compute_ha}
+            nodenumber={nodenumber}
             hacloud=1
             mkcloudtarget=all_batch
-            scenario=cloud{version}-{nodenumber_compute_ha}nodes-compute-ha.yml
+            scenario=cloud{version}-{nodenumber}nodes-compute-ha.yml
             want_node_aliases=controller={nodenumber_controller},compute=2
             label={label}
             storage_method=swift
