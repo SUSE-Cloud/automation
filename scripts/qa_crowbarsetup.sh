@@ -1060,6 +1060,58 @@ EOF
         fi
     fi
 
+    if [[ $want_ironic = 1 ]] ; then
+        local conmap_complete=`
+            python - <<EOPYTHON
+import json
+f=open('$netfile')
+j=json.load(f)
+conduit_map=j['attributes']['network']['conduit_map']
+for item in conduit_map:
+    if item['pattern'] == 'single/.*/.*':
+        item['conduit_list']['intf3'] = {'if_list': ['?1g2']}
+    else:
+        item['conduit_list']['intf3'] = item['conduit_list']['intf1']
+print json.dumps(conduit_map, indent=4)
+EOPYTHON
+        `
+        /opt/dell/bin/json-edit -a attributes.network.conduit_map -r -v "$conmap_complete" $netfile
+        local networks_complete=`python - <<EOPYTHON
+import json
+f=open('$netfile')
+j=json.load(f)
+networks=j['attributes']['network']['networks']
+ironic_network={
+    'conduit': 'intf3',
+    'vlan': 100,
+    'use_vlan': False,
+    'add_bridge': False,
+    'add_ovs_bridge': False,
+    'bridge_name': 'br-ironic',
+    'subnet': '$net_ironic.0',
+    'netmask': '$ironicnetmask',
+    'broadcast': '$net_ironic.255',
+    'router': '$net_ironic.1',
+    'router_pref': 50,
+    'ranges': {
+      'admin': {
+        'start': '$net_ironic.10',
+        'end': '$net_ironic.11'
+      },
+      'dhcp': {
+        'start': '$net_ironic.21',
+        'end': '$net_ironic.254'
+      }
+    },
+    'mtu': 1500
+}
+networks['ironic']=ironic_network
+print json.dumps(networks, indent=4)
+EOPYTHON
+        `
+    /opt/dell/bin/json-edit -a attributes.network.networks -r -v "$networks_complete" $netfile
+    fi
+
     if [[ $cloud =~ ^p[0-9]$ ]] ; then
         local pcloudnum=${cloud#p}
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
@@ -2319,6 +2371,11 @@ function custom_configuration
             if iscloudver 7plus ; then
                 proposal_set_value nova default "['attributes']['nova']['metadata']['vendordata']['json']" "'{\"custom-key\": \"custom-value\"}'"
             fi
+
+            if iscloudver 7plus && [[ $want_ironic = 1 ]] ; then
+                get_novacontroller
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-compute-ironic']" "['$novacontroller']"
+            fi
         ;;
         horizon|nova_dashboard)
             [[ $want_ldap = 1 ]] && iscloudver 7plus && proposal_set_value $proposal default "['attributes']['$proposal']['multi_domain_support']" "true"
@@ -2533,7 +2590,9 @@ function custom_configuration
             if [[ $keep_existing_hostname = 1 ]] ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
             fi
-
+        ;;
+        ironic)
+            proposal_set_value ironic default "['attributes']['ironic']['enabled_drivers']" "['pxe_ipmitool', 'pxe_ssh']"
         ;;
         *) echo "No hooks defined for service: $proposal"
         ;;
@@ -2827,6 +2886,13 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        ironic)
+            [[ $want_ironic = 1 ]] || return
+            if ! iscloudver 7plus; then
+                echo "Warning: Ironic is SOC 7+ only. Skipping"
+                return
+            fi
+            ;;
     esac
 
     # create proposal
@@ -2868,7 +2934,7 @@ function onadmin_proposal
     local proposal
     # Deploy all the proposals up through nova normally
     for proposal in nfs_client pacemaker database rabbitmq keystone swift ceph \
-        monasca glance cinder neutron nova ; do
+        monasca glance cinder neutron ironic nova ; do
         deploy_single_proposal $proposal
     done
     # Set the $novacontroller global variable so that we
