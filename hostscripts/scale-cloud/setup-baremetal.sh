@@ -14,15 +14,14 @@ export want_all_ssl=1
 export controller_raid_volumes=2
 export reposerver=provo-clouddata.cloud.suse.de
 export architectures="x86_64"
-export cloudsource=GM7+up
-#export cloudsource=develcloud7
-#export TESTHEAD=1 # for unreleased openstack-keystone and crowbar-openstack LDAP fixes
+export cloudsource=develcloud7
+export TESTHEAD=1 # for unreleased openstack-keystone and crowbar-openstack LDAP fixes
 export virtualcloud=p2
 export cloud=$virtualcloud
-export nodenumber=6
+export nodenumber=12
 export want_mtu_size=9000
 export hacloud=1
-export clusterconfig='services=3:network=3'
+export clusterconfig='services=3:network=3:database=3:rabbitmq=3'
 export want_ceilometer_proposal=0
 export want_sahara_proposal=0
 export want_barbican_proposal=0
@@ -38,3 +37,4 @@ export ipmi_ip_addrs="192.168.10.105 192.168.10.110 192.168.10.111 192.168.10.11
 export networkingplugin=openvswitch
 export networkingmode=vxlan
 export want_dvr=1
+export forcephysicaladmin=1
