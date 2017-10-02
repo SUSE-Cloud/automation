@@ -3,7 +3,7 @@
   <uuid>a03084f0-688e-ed7d-efae-138ce7fadabb</uuid>
   <memory unit='KiB'>31457280</memory>
   <currentMemory unit='KiB'>31457280</currentMemory>
-  <vcpu placement='static'>2</vcpu>
+  <vcpu placement='static'>4</vcpu>
   <os>
     <type arch='x86_64' machine='pc-i440fx-2.0'>hvm</type>
     <boot dev='hd'/>
