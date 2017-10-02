@@ -40,6 +40,13 @@
       - shell: |
           export automationrepo=~/github.com/SUSE-Cloud/automation
           export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
+          
+          # Workaround to get only the name of the job:
+          # https://issues.jenkins-ci.org/browse/JENKINS-39189
+          # When the JOB_BASE_NAME contains only in ex. "cloud-mediacheck", this
+          # workaround can be removed.
+          echo "$JOB_BASE_NAME"
+          main_job_name=${JOB_NAME%%/*}
 
           # automation bootstrapping
           if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
@@ -50,11 +57,11 @@
           ${automationrepo}/scripts/jenkins/update_automation
 
           function jtsync_trap() {
-            $jtsync --ci suse --matrix ${JOB_BASE_NAME},${project},${BUILD_NUMBER} 1 || :
+            $jtsync --ci suse --matrix ${main_job_name},${project},${BUILD_NUMBER} 1 || :
           }
 
           # only enable jtsync when build is not manually triggered
-          if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
+          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
             trap jtsync_trap EXIT ERR
           fi
           if [[ ! -d /mounts/dist ]] ; then
@@ -117,9 +124,9 @@
           RETVAL=$?
 
           # only enable jtsync when build is not manually triggered
-          if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
+          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
             trap - EXIT ERR
-            $jtsync --ci suse --matrix ${project},${subproject},${BUILD_NUMBER} $RETVAL || :
+            $jtsync --ci suse --matrix ${main_job_name},${project},${BUILD_NUMBER} $RETVAL || :
           fi
     publishers:
       - workspace-cleanup:

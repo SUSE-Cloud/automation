@@ -44,7 +44,23 @@
     builders:
       - update-automation
       - shell: |
-          #!/bin/bash
+          export automationrepo=~/github.com/SUSE-Cloud/automation
+          export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
+          
+          # Workaround to get only the name of the job:
+          # https://issues.jenkins-ci.org/browse/JENKINS-39189
+          # When the JOB_BASE_NAME contains only in ex. "openstack-cleanvm", this
+          # workaround can be removed.
+          echo "$JOB_BASE_NAME"
+          main_job_name=${JOB_NAME%%/*}
+
+          function exec_jtsync {
+            # only enable jtsync when build is not manually triggered
+            if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
+              $jtsync -ci opensuse --matrix $1,$2,$3 $4 || :
+            fi
+          }
+
           sudo /usr/local/sbin/freshvm cleanvm $image
           sleep 100
           cloudsource=openstack$(echo $openstack_project | tr '[:upper:]' '[:lower:]')
@@ -65,9 +81,11 @@
             file=/mnt/cleanvmbackup/${BUILD_NUMBER}-${openstack_project}-${image}.raw.gz
             time gzip -c1 /dev/vg0/cleanvm > $file
             du $file
+            exec_jtsync ${main_job_name} ${openstack_project} ${BUILD_NUMBER} 1
             exit 1
           fi
 
+          exec_jtsync ${main_job_name} ${openstack_project} ${BUILD_NUMBER} $ret
           exit $ret
       - trigger-builds:
         - project: openstack-submit
