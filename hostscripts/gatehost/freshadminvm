@@ -19,7 +19,7 @@ rm -f mkcloud.config
 : ${cachedir:=/root/tmp}
 mkdir -p $cachedir
 export mkclouddriver=libvirt
-SCRIPTS_DIR=/usr/src/automation/scripts
+: ${SCRIPTS_DIR:=/usr/src/automation/scripts}
 scripts_lib_dir=${SCRIPTS_DIR}/lib
 common_scripts="mkcloud-onhost.sh mkcloud-common.sh mkcloud-$mkclouddriver.sh"
 for script in $common_scripts; do
