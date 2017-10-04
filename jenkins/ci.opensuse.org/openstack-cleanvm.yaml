@@ -61,7 +61,7 @@
           function exec_jtsync {
             # only enable jtsync when build is not manually triggered
             if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-              $jtsync_fix "$jtsync -ci opensuse --matrix $1,$2,$3 $4" || :
+              $jtsync_fix "$jtsync --ci opensuse --matrix $1,$2,$3 $4" || :
             fi
           }
 
