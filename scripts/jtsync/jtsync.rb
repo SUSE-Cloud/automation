@@ -53,7 +53,7 @@ module Job
 
   class SuseMatrix < Mapping
     def version
-      project.split(":")[2]
+      project.match(/.*Cloud(:)?(\d+).*/)[2]
     end
 
     def card_name
