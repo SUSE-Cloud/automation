@@ -13,6 +13,7 @@ export want_ldap=1
 export want_all_ssl=1
 export controller_raid_volumes=2
 export reposerver=provo-clouddata.cloud.suse.de
+export susedownload=ibs-mirror.prv.suse.net
 export architectures="x86_64"
 export cloudsource=develcloud7
 export TESTHEAD=1 # for unreleased openstack-keystone and crowbar-openstack LDAP fixes
