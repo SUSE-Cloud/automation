@@ -64,7 +64,7 @@
           main_job_name=${JOB_NAME%%/*}
 
           function jtsync_trap() {
-            $jtsync -ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} 1
+            $jtsync --ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} 1
           }
 
           if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
