@@ -86,12 +86,12 @@ module Job
   end
 
   MAPPING = {
-    suse: {
-      normal: SuseNormal,
-      matrix: SuseMatrix
+    :suse => {
+      :normal => SuseNormal,
+      :matrix => SuseMatrix
     },
-    opensuse: {
-      matrix: OpenSuseMatrix
+    :opensuse => {
+      :matrix => OpenSuseMatrix
     }
   }.freeze
 
