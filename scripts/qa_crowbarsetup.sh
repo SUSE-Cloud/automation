@@ -4056,6 +4056,29 @@ function onadmin_test_setuphost
     safely $SCRIPTS_DIR/mkcloud setuphost cleanup prepare setupadmin
 }
 
+function oncontroller_test_keystone_password
+{
+    safely openstack token issue
+}
+
+function update_keystone_password
+{
+    local old_password=$(crowbar keystone proposal show default | rubyjsonparse "puts j['attributes']['keystone']['admin']['password']")
+    local updated_password='barcrow'
+    crowbar batch export keystone | ruby -ryaml -e "
+y = YAML.load(ARGF)
+y['proposals'].first['attributes']['admin'] ||= {}
+y['proposals'].first['attributes']['admin']['updated_password'] = '$updated_password'
+puts y.to_yaml" > /root/keystone-test-pw-update.yaml
+    safely crowbar batch build < /root/keystone-test-pw-update.yaml
+    safely oncontroller test_keystone_password
+    cat /root/keystone-test-pw-update.yaml | ruby -ryaml -e "
+y = YAML.load(ARGF)
+y['proposals'].first['attributes']['admin']['updated_password'] = '$old_password'
+puts y.to_yaml" > /root/keystone-test-pw-reset.yaml
+    safely crowbar batch build < /root/keystone-test-pw-reset.yaml
+}
+
 function onadmin_testsetup
 {
     pre_hook $FUNCNAME
@@ -4080,6 +4103,8 @@ function onadmin_testsetup
     curl -L -m 120 -s -S -k http://$horizonservice | \
         grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
     || complain 101 "simple horizon test failed"
+
+    update_keystone_password
 
     wantcephtestsuite=0
     if [[ $deployceph ]]; then
