@@ -2,7 +2,8 @@
 proposals:
 - barclamp: database
   attributes:
+    sql_engine: mysql
   deployment:
     elements:
       database-server:
-      - "@@database1@@"
+      - cluster:database

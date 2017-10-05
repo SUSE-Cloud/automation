@@ -17,7 +17,7 @@ proposals:
       - "@@controller2@@"
       - "@@controller3@@"
 - barclamp: nfs_client
-  name: Nova
+  name: nova
   attributes:
     exports:
       nova-instances:
@@ -31,7 +31,3 @@ proposals:
       nfs-client:
       - "@@compute1@@"
       - "@@compute2@@"
-      - "@@compute3@@"
-      - "@@compute4@@"
-      - "@@compute5@@"
-      - "@@compute6@@"

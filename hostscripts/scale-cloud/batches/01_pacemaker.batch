@@ -7,16 +7,7 @@ proposals:
       mcast_addr: 239.255.0.2
     stonith:
       mode: ipmi_barclamp
-      per_node:
-        nodes:
-          d8c-dc-d4-b5-7a-0c.p2.cloud.suse.de:
-            params: ''
-          d8c-dc-d4-b5-7e-cc.p2.cloud.suse.de:
-            params: ''
-          d8c-dc-d4-b5-83-90.p2.cloud.suse.de:
-            params: ''
-    drbd:
-      shared_secret: WuskhabCNDIp
+    clone_stateless_services: false
   deployment:
     elements:
       pacemaker-cluster-member:
@@ -27,21 +18,13 @@ proposals:
       - "@@network1@@"
       - "@@network2@@"
       - "@@network3@@"
+
 - barclamp: pacemaker
   name: services
   attributes:
     stonith:
       mode: ipmi_barclamp
-      per_node:
-        nodes:
-          d8c-dc-d4-b5-c3-c8.p2.cloud.suse.de:
-            params: ''
-          d8c-dc-d4-b5-c4-fc.p2.cloud.suse.de:
-            params: ''
-          d8c-dc-d4-b5-c6-58.p2.cloud.suse.de:
-            params: ''
-    drbd:
-      shared_secret: IZhKyq98wbvq
+    clone_stateless_services: false
   deployment:
     elements:
       pacemaker-cluster-member:
@@ -52,3 +35,37 @@ proposals:
       - "@@controller1@@"
       - "@@controller2@@"
       - "@@controller3@@"
+
+- barclamp: pacemaker
+  name: rabbit
+  attributes:
+    stonith:
+      mode: ipmi_barclamp
+    clone_stateless_services: false
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@messagequeue1@@"
+      - "@@messagequeue2@@"
+      - "@@messagequeue3@@"
+      hawk-server:
+      - "@@messagequeue1@@"
+      - "@@messagequeue2@@"
+      - "@@messagequeue3@@"
+
+- barclamp: pacemaker
+  name: database
+  attributes:
+    stonith:
+      mode: ipmi_barclamp
+    clone_stateless_services: false
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@database1@@"
+      - "@@database2@@"
+      - "@@database3@@"
+      hawk-server:
+      - "@@database1@@"
+      - "@@database2@@"
+      - "@@database3@@"
