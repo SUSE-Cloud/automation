@@ -644,4 +644,6 @@ fi
 
 [ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
 
+# mysql (MariaDB actually) is the default option for Cloud8
+iscloudver 8plus && : ${want_database_sql_engine:="mysql"}
 # ---- END: common variables and defaults
