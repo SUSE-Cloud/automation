@@ -213,10 +213,8 @@ function pre_exit_cleanup
     rm $pidfile
 }
 
-function error_exit
+function onhost_supportconfig
 {
-    exitcode=$1
-    message=$2
     if [ -z "$SKIPSUPPORTCONFIG" ] ; then
         ssh $sshopts root@$adminip '
             set -x
@@ -232,7 +230,10 @@ function error_exit
         '
         $scp root@$adminip:/var/log/*tbz $artifacts_dir/
     fi
+}
 
+function onhost_stop_chef_clients_on_nodes
+{
     # stop chef-client on nodes so the env will not be altered after a failure
     ssh $sshopts root@$adminip '
             set -x
@@ -243,6 +244,14 @@ function error_exit
             )
             done
         '
+}
+
+function error_exit
+{
+    exitcode=$1
+    message=$2
+    onhost_supportconfig
+    onhost_stop_chef_clients_on_nodes
     pre_exit_cleanup
     echo $message
     show_environment
