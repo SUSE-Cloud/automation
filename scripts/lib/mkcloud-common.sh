@@ -652,3 +652,4 @@ fi
 # mysql (MariaDB actually) is the default option for Cloud8
 iscloudver 8plus && : ${want_database_sql_engine:="mysql"}
 # ---- END: common variables and defaults
+true
