@@ -1601,7 +1601,7 @@ function onadmin_assign_hp_nodes
         echo $type
         case "$type" in
             DL360p)
-                if [[ controllern -lt 8 ]] ; then
+                if [[ controllern -lt 9 ]] ; then
                     set_node_alias_and_role $n controller$controllern controller
                     if [[ $controller_raid_volumes -gt 1 ]] ; then
                         set_node_raid $n $want_raidtype $controller_raid_volumes
