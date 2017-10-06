@@ -4809,6 +4809,7 @@ function onadmin_upgrade_admin_backup
 
 function onadmin_upgrade_admin_repocheck
 {
+    [[ $clousource =~ GM ]] || return
     if safely crowbarctl upgrade repocheck crowbar --format plain | grep "missing" ; then
         complain 11 "Some repository is missing on admin server. Cannot upgrade."
     fi
