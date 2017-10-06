@@ -210,6 +210,7 @@ class CrowbarTestbuild
               osc_cmd("build") +
               [
                 "--root", File.join(Dir.pwd, build_root),
+                "--keep-pkgs", ptf_dir,
                 bs_repo, "x86_64", package_spec_file
               ]
             )
@@ -220,11 +221,6 @@ class CrowbarTestbuild
         puts e.backtrace
         return false
       else
-        # copy rpms
-        FileUtils.cp(
-          Dir.glob(File.join(package_name, build_root, ".build.packages/RPMS/*/*.rpm")),
-          ptf_dir, :preserve => true
-        ) or raise
         return true
       ensure
         # copy log
