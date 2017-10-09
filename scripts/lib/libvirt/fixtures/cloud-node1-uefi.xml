@@ -1,4 +1,4 @@
-<domain type='kvm'>
+<domain type='kvm' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
   <name>cloud-node1</name>
   <memory>5242880</memory>
   <currentMemory>5242880</currentMemory>
@@ -70,4 +70,5 @@
     </memballoon>
 
   </devices>
+
 </domain>

@@ -583,6 +583,10 @@ function common_set_slesversions
 : ${admin_image_password:='linux'}
 : ${susedownload:=download.nue.suse.com}
 
+# bmc credentials
+: ${bmc_user:=root}
+: ${bmc_password:=cr0wBar!}
+
 # NOTE: $clouddata and similar variables are deprecated
 if [[ $clouddata || $clouddatadns || $clouddata_base_path || $clouddata_nfs || $clouddata_nfs_dir ]] ; then
     echo 'Warning: $clouddata and all related variables are deprecated.'
@@ -634,6 +638,7 @@ fi
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
 : ${architectures:='aarch64 x86_64 s390x'}
+: ${nodenumbertotal:=$nodenumber}
 : ${nodenumberlonelynode:=0}
 : ${nodenumberironicnode:=0}
 : ${want_mtu_size:=1500}

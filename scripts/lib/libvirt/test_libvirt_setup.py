@@ -106,6 +106,7 @@ def default_test_args(args):
     args.firmwaretype = "bios"
     args.localreposrc = None
     args.localrepotgt = None
+    args.ipmi = False
 
 
 class TestLibvirtAdminConfig(unittest.TestCase):

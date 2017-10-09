@@ -2027,7 +2027,7 @@ function hacloud_configure_cluster_defaults
             "['attributes']['pacemaker']['stonith']['mode']" "'sbd'"
         proposal_set_value pacemaker "$clustername" \
             "['attributes']['pacemaker']['stonith']['sbd']['watchdog_module']" "'softdog'"
-    elif [[ $mkclouddriver = "libvirt" ]]; then
+    elif [[ $mkclouddriver = "libvirt" && $want_ipmi != 1 ]]; then
         proposal_set_value pacemaker "$clustername" \
             "['attributes']['pacemaker']['stonith']['mode']" "'libvirt'"
         proposal_set_value pacemaker "$clustername" \
@@ -2209,7 +2209,12 @@ function custom_configuration
             proposal_set_value dns default "['deployment']['dns']['elements']['dns-server']" "[$dnsnodes]"
         ;;
         ipmi)
-            [[ $want_ipmi = 1 ]] && proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
+            if [[ $want_ipmi = 1 ]] ; then
+                proposal_set_value ipmi default "['attributes']['ipmi']['bmc_enable']" true
+                proposal_set_value ipmi default "['attributes']['ipmi']['debug']" true
+                proposal_set_value ipmi default "['attributes']['ipmi']['bmc_user']" "'$bmc_user'"
+                proposal_set_value ipmi default "['attributes']['ipmi']['bmc_password']" "'$bmc_password'"
+            fi
         ;;
         keystone)
             # set a custom region name
