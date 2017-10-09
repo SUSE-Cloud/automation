@@ -1612,7 +1612,8 @@ function check_node_resolvconf
 function onadmin_wait_tftpd
 {
     wait_for 300 2 \
-        "timeout -k 2 2 tftp $adminip 69 -c get /discovery/x86_64/bios/pxelinux.cfg/default /tmp/default"
+        "timeout -k 2 2 tftp $adminip 69 -c get /discovery/x86_64/bios/pxelinux.cfg/default /tmp/default" \
+        "tftpd server ready"
     echo "Crowbar tftp server ready"
 }
 
