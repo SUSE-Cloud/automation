@@ -4109,7 +4109,9 @@ function onadmin_testsetup
         grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
     || complain 101 "simple horizon test failed"
 
-    update_keystone_password
+    if iscloudver 7plus; then
+        update_keystone_password
+    fi
 
     wantcephtestsuite=0
     if [[ $deployceph ]]; then
