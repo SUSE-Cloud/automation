@@ -8,4 +8,4 @@ proposals:
   deployment:
     elements:
       rabbitmq-server:
-      - "@@messagequeue1@@"
+      - cluster:rabbit

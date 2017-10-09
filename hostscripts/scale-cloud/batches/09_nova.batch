@@ -27,9 +27,5 @@ proposals:
       nova-compute-kvm:
       - "@@compute1@@"
       - "@@compute2@@"
-      - "@@compute3@@"
-      - "@@compute4@@"
-      - "@@compute5@@"
-      - "@@compute6@@"
       nova-compute-qemu: []
       nova-compute-xen: []
