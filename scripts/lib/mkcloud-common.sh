@@ -533,8 +533,6 @@ function dist_to_image_name
 {
     # get the name of the image to deploy the admin node
     local image=$1
-    iscloudver 7 && [[ $want_efi ]] && \
-        [[ $arch == x86_64 ]] && image="SLES12-SP2-uefi"
     echo "$image.qcow2"
 }
 

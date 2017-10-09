@@ -16,11 +16,12 @@
           condition: SUCCESS
           block: true
           current-parameters: true
+          # TODO: change back to mkcloudtarget=all !!!
           predefined-parameters: |
             TESTHEAD=1
             cloudsource=develcloud{version}
             nodenumber=2
             want_efi=1
-            mkcloudtarget=all
+            mkcloudtarget=all_noreboot
             label={label}
             job_name=cloud-mkcloud{version}-job-uefi-{arch}
