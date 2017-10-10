@@ -4109,9 +4109,10 @@ function onadmin_testsetup
         grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
     || complain 101 "simple horizon test failed"
 
-    if iscloudver 7plus; then
-        update_keystone_password
-    fi
+#   enable this once https://trello.com/c/iH2KAeIn is fixed
+#    if iscloudver 7plus; then
+#        update_keystone_password
+#    fi
 
     wantcephtestsuite=0
     if [[ $deployceph ]]; then
