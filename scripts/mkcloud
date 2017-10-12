@@ -8,6 +8,8 @@
 # 2012, SUSE LINUX Products GmbH
 #
 
+# this is only a fake PR for testing our tools - please do not merge or close this PR
+
 # Quick introduction:
 #
 # 1. read the usage: mkcloud help
