@@ -6,8 +6,6 @@
         - 'openstack-rpm-packaging-sles12-{release}':
             release: 'Newton'
         - 'openstack-rpm-packaging-sles12-{release}':
-            release: 'Mitaka'
-        - 'openstack-rpm-packaging-sles12-{release}':
             release: 'Ocata'
         - 'openstack-rpm-packaging-sles12-{release}':
             release: 'Pike'
