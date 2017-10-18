@@ -1545,7 +1545,7 @@ function set_crowbar_ipmi_ip_addrs
 # sometimes HPE servers take a while to respond, so we try multiple times over a longer time
 function ipmitool
 {
-    for i in $(seq 10) ; do
+    for i in $(seq 40) ; do
         timeout 6 /usr/bin/ipmitool "$@" && return 0
     done
     return $?
