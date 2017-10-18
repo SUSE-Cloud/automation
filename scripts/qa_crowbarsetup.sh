@@ -2729,7 +2729,7 @@ function update_one_proposal
     proposaltype=${proposaltype%%+*}
 
     echo -n "Starting proposal $proposal($proposaltype) at: "
-    date
+    date '+%Y-%m-%d %H:%M:%S'
     # hook for changing proposals:
     custom_configuration $proposal $proposaltypemapped
     crowbar_proposal_commit "$proposal" $proposaltype
@@ -2741,7 +2741,7 @@ function update_one_proposal
         ret=$?
         echo "Proposal exit code: $ret"
         echo -n "Finished proposal $proposal($proposaltype) at: "
-        date
+        date '+%Y-%m-%d %H:%M:%S'
         sleep 10
     fi
     if [ $ret != 0 ] ; then
