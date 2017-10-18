@@ -44,6 +44,7 @@ export networkingplugin=linuxbridge
 export networkingmode=vxlan
 # allow VMs to be reachable while controller node is down
 export want_dvr=1
+export want_batch_dir=/root/automation/hostscripts/productioncloud/ecp1
 
 # add CA
 # https://github.com/crowbar/crowbar-openstack/pull/1261
