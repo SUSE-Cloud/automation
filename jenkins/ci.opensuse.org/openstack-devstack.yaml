@@ -1,6 +1,11 @@
 - job:
     name: 'openstack-devstack'
-    project-type: matrix
+    node: cloud-cleanvm
+    description: |
+      Job to periodically run devstack against the latest openSUSE release.
+      <b>This job is managed by JJB!</b>
+      Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.opensuse.org/'>git</a>
+
     triggers:
       - timed: 'H 5 * * *'
 
@@ -8,25 +13,10 @@
        numToKeep: 10
        daysToKeep: -1
 
-    axes:
-      - axis:
-          type: user-defined
-          name: image
-          values:
-            - openSUSE-Leap-42.2
-      - axis:
-          type: slave
-          name: slave
-          values:
-            - cloud-cleanvm
-    execution-strategy:
-      combination-filter: |
-        slave == "cloud-cleanvm"
-      sequential: true
     builders:
       - update-automation
       - shell: |
-          sudo /usr/local/sbin/freshvm cleanvm $image
+          sudo /usr/local/sbin/freshvm cleanvm openSUSE-Leap-42.3
           sleep 100
 
           set -u
@@ -42,7 +32,7 @@
               virsh destroy cleanvm
               find /mnt/cleanvmbackup -mtime +5 -type f | xargs --no-run-if-empty rm
               # backup /dev/vg0/cleanvm disk image
-              file=/mnt/cleanvmbackup/${BUILD_NUMBER}-devstack-${image}.raw.gz
+              file=/mnt/cleanvmbackup/${BUILD_NUMBER}-devstack.raw.gz
               time gzip -c1 /dev/vg0/cleanvm > $file
               du $file
               exit 1
