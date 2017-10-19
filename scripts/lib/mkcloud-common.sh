@@ -167,12 +167,12 @@ function is_onhost
 
 function is_onadmin
 {
-    [[ $BASH_SOURCE =~ qa_crowbarsetup.sh$ ]] && [[ ! $is_oncontroller ]]
+    [[ ${BASH_SOURCE[@]} =~ "qa_crowbarsetup.sh" ]] && [[ ! $is_oncontroller ]]
 }
 
 function is_oncontroller
 {
-    [[ $BASH_SOURCE =~ qa_crowbarsetup.sh$ ]] && [[ $is_oncontroller ]]
+    [[ ${BASH_SOURCE[@]} =~ "qa_crowbarsetup.sh" ]] && [[ $is_oncontroller ]]
 }
 
 sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oServerAliveInterval=20"
