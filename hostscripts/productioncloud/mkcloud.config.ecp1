@@ -18,6 +18,7 @@ export cloud=ecp1
 export nodenumber=12
 export want_mtu_size=9000
 export hacloud=1
+export want_crm_failcount_skip=1 # because of ILO network issues
 export clusterconfig='data=3:services=3:network=3'
 # also enables rabbitmq without drbd:
 export want_database_sql_engine=mysql
