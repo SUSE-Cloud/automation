@@ -206,6 +206,8 @@ function show_environment
     echo "-------------------------------"
     env | grep -i "^want_"
     echo "-------------------------------"
+    column -s"," -t $timing_file_host  | tee ${timing_file_host}.byTime.txt
+    sort -t, -k3,3 -k1,1 $timing_file_host | column -s"," -t  | tee ${timing_file_host}.byType.txt
 }
 
 function pre_exit_cleanup
@@ -353,6 +355,10 @@ function onadmin
     shift
     safely sshrun "TIMEFORMAT=\"timing for mkcloud call 'onadmin_$cmd' real=%R user=%U system=%S\" ;" \
         time onadmin_$cmd "$@"
+    local ret=$?
+    # append timing information of admin node to host timing file
+    $ssh root@$adminip "( [ -e $timing_file_admin ] && cat $timing_file_admin && rm -f $timing_file_admin ) || :" >> $timing_file_host
+    return $ret
 }
 
 function onhost
@@ -1508,7 +1514,8 @@ for cmd in `echo $steplist` ; do
     echo "============> MKCLOUD STEP START <============"
     # next line is for jenkins log parser:
     echo "MKCLOUD step: $cmd"
-    echo "step started at `date '+%Y-%m-%d %H:%M:%S'`: $cmd"
+    step_start=$(date +%s)
+    echo "step started at `date '+%Y-%m-%d %H:%M:%S' -d@$step_start`: $cmd"
     echo
     sleep 2
     echo $cmd >> mkcloud.steps.log
@@ -1531,7 +1538,9 @@ for cmd in `echo $steplist` ; do
         error_exit $ret ""
     fi >&2
     echo
-    echo "step finished at `date '+%Y-%m-%d %H:%M:%S'`: $cmd"
+    step_end=$(date +%s)
+    echo "step finished at `date '+%Y-%m-%d %H:%M:%S' -d@$step_end`: $cmd"
+    log_timing "$step_start" "$step_end" "step" "$cmd"
     echo "^^^^^^^^^^^^= MKCLOUD STEP DONE: $cmd =^^^^^^^^^^^^"
     echo
 done

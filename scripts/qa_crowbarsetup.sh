@@ -2728,8 +2728,8 @@ function update_one_proposal
     local proposaltypemapped=$proposaltype
     proposaltype=${proposaltype%%+*}
 
-    echo -n "Starting proposal $proposal($proposaltype) at: "
-    date
+    prop_start=$(date +%s)
+    echo "Starting proposal $proposal($proposaltype) at: $(date -d@$prop_start)"
     # hook for changing proposals:
     custom_configuration $proposal $proposaltypemapped
     crowbar_proposal_commit "$proposal" $proposaltype
@@ -2740,10 +2740,11 @@ function update_one_proposal
         waitnodes proposal $proposal $proposaltype
         ret=$?
         echo "Proposal exit code: $ret"
-        echo -n "Finished proposal $proposal($proposaltype) at: "
-        date
         sleep 10
     fi
+    prop_end=$(date +%s)
+    echo "Finished proposal $proposal($proposaltype) at: $(date -d@$prop_end)"
+    log_timing "$prop_start" "$prop_end" "proposal" "$proposal($proposaltype)"
     if [ $ret != 0 ] ; then
         echofailed
         tail -n 90 /opt/dell/crowbar_framework/log/d*.log /var/log/crowbar/chef-client/d*.log

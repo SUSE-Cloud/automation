@@ -175,6 +175,25 @@ function is_oncontroller
     [[ ${BASH_SOURCE[@]} =~ "qa_crowbarsetup.sh" ]] && [[ $is_oncontroller ]]
 }
 
+timing_file_host=$artifacts_dir/timing_stats.csv
+timing_file_admin=timing_stats_admin.csv
+function log_timing
+{
+    start="$1"
+    end="$2"
+    kind="${3//,/}"
+    item="${4//,/}"
+    logfile=/dev/null
+    if is_onhost ; then
+        logfile="$timing_file_host"
+    elif is_onadmin ; then
+        logfile="$timing_file_admin"
+    fi
+    # csv format example:
+    # 1508410033,1508410048,proposal,crowbar(default),15
+    echo "$start,$end,$kind,$item,$(($end - $start))" >> $logfile
+}
+
 sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oServerAliveInterval=20"
 scp="scp $sshopts"
 ssh="ssh $sshopts"
