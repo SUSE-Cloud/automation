@@ -5439,7 +5439,7 @@ function oncontroller_setupproduction()
         openstack project create $prj
         openstack role add --project $prj --user admin admin
         tenantid=$(getprojectid $prj)
-        nova quota-update --instances 50 --cores 50 --floating-ips 50 --key-pairs 50 --server-groups 50 --ram 40000 $tenantid
+        nova quota-update --instances 50 --cores 50 --key-pairs 50 --server-groups 50 --ram 40000 $tenantid
         neutron quota-update --tenant-id $tenantid --floatingip 50 --security-group 50 --port 50 --network 50 --router 50 --vip 50 --pool 50
         cinder quota-update --gigabytes 150 $tenantid
     done
