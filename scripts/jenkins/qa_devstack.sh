@@ -134,7 +134,12 @@ ADMIN_PASSWORD=test
 RABBIT_PASSWORD=test
 SERVICE_PASSWORD=test
 SWIFT_HASH=f515ae389a20420fa466f27a0779d845
+SWIFT_REPLICAS=1
+SWIFT_START_ALL_SERVICES=False
+FORCE_CONFIG_DRIVE=False
+ENABLE_FILE_INJECTION=True
 
+NOVNC_FROM_PACKAGE=True
 RECLONE=yes
 HOST_IP=127.0.0.1
 LOGFILE=stack.sh.log
@@ -154,8 +159,6 @@ ENABLED_SERVICES=c-api,c-bak,c-sch,c-vol,ceilometer-acentral,ceilometer-acompute
 # enable_service q-fwaas
 enable_service q-lbaas
 
-# for testing
-enable_service tempest
 EOF
 
     chown stack:stack -R $DEVSTACK_DIR
