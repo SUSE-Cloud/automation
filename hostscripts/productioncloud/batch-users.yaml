@@ -11,7 +11,7 @@ proposals:
   attributes:
     users:
       crowbar:
-        #password: securepassword
+        password: securepassword
 - barclamp: horizon
   attributes:
     session_timeout: 1000
