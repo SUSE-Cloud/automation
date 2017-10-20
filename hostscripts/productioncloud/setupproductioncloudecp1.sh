@@ -17,7 +17,7 @@ onadmin_runlist addupdaterepo prepareinstallcrowbar bootstrapcrowbar installcrow
 
 # give read-permissions to the users that will need it
 get_novacontroller
-for controller in "$novacontroller" services1 services2 dashboard ; do
+for controller in "$novacontroller" controller{6,7,8} ; do
 # FIXME: split setupproduction into parts that need to run once per cloud
 # and parts that need to run once per controller node (e.g. local file setup)
 run_on "$controller" 'set -x
