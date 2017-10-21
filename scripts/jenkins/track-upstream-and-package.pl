@@ -230,7 +230,7 @@ sub find_gitrev($)
   my $retval = '';
   for my $PACK (@{$files})
   {
-    if ($PACK =~ /\.([a-f0-9]+)\.tar\.\w+$/) { $retval = $1; }
+    if ($PACK =~ /\.([a-f0-9]+)\.(?:tar\.\w+|obscpio)$/) { $retval = $1; }
   }
 
   return $retval;
@@ -269,7 +269,7 @@ sub osc_checkin()
 
   $xmldom = servicefile_read_xml($xmlfile);
   eval {
-    $gitremote = xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="url"][1]');
+    $gitremote = xml_get_text($xmldom, '/services/service[@name="obs_scm" or @name="tar_scm"][1]/param[@name="url"][1]');
   };
   my $custom_service;
   my $changesgenerate;
@@ -292,21 +292,34 @@ sub osc_checkin()
     $custom_service=xml_get_text($xmldom, '/services/service[@name="python_sdist"][1]/param[@name="basename"][1]');
   };
   eval {
-    $changesgenerate=xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="changesgenerate"][1]');
+    $changesgenerate=xml_get_text($xmldom, '/services/service[@name="obs_scm" or @name="tar_scm"][1]/param[@name="changesgenerate"][1]');
   };
   my $revision = $ENV{GITREV} || '';
 
   my $tarball;
+  my $tarballbase;
+
   if (!$custom_service)
   {
-    my $tarballbase = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="file"][1]');
-    my $tarballext  = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="compression"][1]');
-    $tarball = "$tarballbase.$tarballext";
-    push @oldtarballfiles, glob($tarball);
-    $oldgitrev = find_gitrev(\@oldtarballfiles);
+    eval {
+      $tarballbase = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="file"][1]');
+    };
+    eval {
+      $tarballbase = xml_get_text($xmldom, '/services/service[@name="obs_scm" or @name="tar_scm][1]/param[@name="filename"][1]') . "*";
+    };
 
-    @oldtarballfiles || die "Error: Could not find any current tarball. Please check the state of the osc checkout manually.";
-    system('osc', 'rm', @oldtarballfiles) && die "Error: osc rm failed. Please check manually.";
+    if ($tarballbase) {
+      my $tarballext = "*.obscpio";
+      eval {
+        $tarballext  = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="compression"][1]');
+      };
+      $tarball = "$tarballbase.$tarballext";
+      push @oldtarballfiles, glob($tarball);
+      $oldgitrev = find_gitrev(\@oldtarballfiles);
+
+      @oldtarballfiles || die "Error: Could not find any current tarball. Please check the state of the osc checkout manually.";
+      system('osc', 'rm', @oldtarballfiles) && die "Error: osc rm failed. Please check manually.";
+    }
   }
 
   my $exitcode;
