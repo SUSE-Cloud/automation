@@ -305,7 +305,7 @@ sub osc_checkin()
       $tarballbase = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="file"][1]');
     };
     eval {
-      $tarballbase = xml_get_text($xmldom, '/services/service[@name="obs_scm" or @name="tar_scm][1]/param[@name="filename"][1]') . "*";
+      $tarballbase = xml_get_text($xmldom, '/services/service[@name="obs_scm" or @name="tar_scm"][1]/param[@name="filename"][1]') . "*";
     };
 
     if ($tarballbase) {
