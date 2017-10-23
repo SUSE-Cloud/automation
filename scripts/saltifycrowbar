@@ -1,0 +1,43 @@
+#!/bin/sh
+zypper ar http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Adv-Systems-Management/12/x86_64/product/ salt
+zypper ar http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Adv-Systems-Management/12/x86_64/update/ saltup
+#zypper ar https://download.opensuse.org/repositories/systemsmanagement:/saltstack/SLE_12_SP2/ salt
+#zypper --gpg-auto-import-keys refresh
+#echo "must ignore missing python-pyzmq"
+zypper -n install salt-ssh
+useradd -m saltuser
+cd ~saltuser
+cp -a ~/.ssh .
+mkdir salt;cd $_
+cat > Saltfile <<EOF
+salt-ssh:
+  config_dir: .
+  max_procs: 30
+EOF
+
+cat > master <<EOF
+root_dir: . 
+ssh_log_file: var/log/salt/ssh
+pillar_roots:
+  base:
+  - srv/pillar
+fileserver_backend:
+  - roots
+file_roots:
+  base:
+  - srv/salt
+state_output: changes
+state_verbose: False
+cli_summary: True
+EOF
+mkdir -p var/log/salt srv/pillar srv/salt etc/salt/pki/master/ssh/
+crowbarctl node list --plain |
+    perl -ne '@a=split(" "); print "$a[1]:\n  host: $a[0]\n"' > roster
+cp -a ~/.ssh/id_rsa etc/salt/pki/master/ssh/salt-ssh.rsa
+cp -a ~/.ssh/id_rsa.pub etc/salt/pki/master/ssh/salt-ssh.rsa.pub
+chown saltuser. -R * ~saltuser/.ssh
+echo "to use this cloud, do something like"
+echo "su - saltuser"
+echo "cd salt"
+echo "salt-ssh \* pkg.install salt-minion"
+
