@@ -182,10 +182,6 @@ cd $DEVSTACK_DIR
 FORCE=yes ./stack.sh
 EOF
 h_echo_header "Run tempest"
-# FIXME(toabctl): enable the extensions for tempest
-$zypper in crudini
-crudini --set /opt/stack/tempest/etc/tempest.conf network-feature-enabled api_extensions "provider,security-group,dhcp_agent_scheduler,external-net,ext-gw-mode,binding,agent,quotas,l3_agent_scheduler,multi-provider,router,extra_dhcp_opt,allowed-address-pairs,extraroute,metering,fwaas,service-type,lbaas,lbaas_agent_scheduler"
-
 if [ -z "${DISABLE_TEMPESTRUN}" ]; then
     sudo -u stack -i <<EOF
 cd /opt/stack/tempest
