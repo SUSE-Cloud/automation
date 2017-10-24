@@ -20,7 +20,6 @@
             - ardana-ceilometer
             - ardana-ceph
             - ardana-cephlm
-            - ardana-certifi
             - ardana-ci
             - ardana-cinder
             - ardana-cinderlm
