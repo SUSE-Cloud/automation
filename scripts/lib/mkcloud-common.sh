@@ -591,6 +591,10 @@ function common_set_slesversions
             sesversion=5
         ;;
     esac
+
+    if [ $want_ses_version -gt 0 ]; then
+        sesversion=$want_ses_version
+    fi
 }
 
 # ---- END: functions related to repos and distribution settings
@@ -670,4 +674,6 @@ fi
 
 # mysql (MariaDB actually) is the default option for Cloud8
 iscloudver 8plus && : ${want_database_sql_engine:="mysql"}
+: ${want_external_ceph:=0}
+: ${want_ses_version:=0}
 # ---- END: common variables and defaults

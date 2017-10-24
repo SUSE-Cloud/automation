@@ -424,6 +424,16 @@ function libvirt_do_setuplonelynodes()
         $sudo lvdisplay "$lonely_disk" || \
             _lvcreate "${cloud}.node$i" "${lonelynode_hdd_size}" "$cloudvg"
 
+        local j
+        local lonely_data_disk
+        for j in $(seq $cephvolumenumber); do
+            lonely_data_disk="${lonely_disk}-ceph$j"
+            $sudo lvdisplay "$lonely_data_disk" || \
+                _lvcreate "${cloud}.node$i-ceph$j" "${cephvolume_hdd_size}" "$cloudvg"
+            # make sure the drive is Zapped and ready for use
+            sudo sgdisk -Z $lonely_data_disk
+        done
+
         onhost_deploy_image "lonely" $(get_lonely_node_dist) $lonely_disk
         libvirt_vm_start /tmp/${lonely_node}.xml
     done
