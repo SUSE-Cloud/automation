@@ -5,8 +5,8 @@ proposals:
     ssl:
       generate_certs: false
       insecure: true
-      certfile: "/etc/cloud-keys/combined.crt"
-      keyfile: "/etc/cloud-keys/server.key"
+      certfile: "/etc/cloud-keys/ecp1/combined.crt"
+      keyfile: "/etc/cloud-keys/ecp1/server.key"
     api:
       protocol: https
 - barclamp: glance
@@ -14,8 +14,8 @@ proposals:
     ssl:
       generate_certs: false
       insecure: true
-      certfile: "/etc/cloud-keys/combined.crt"
-      keyfile: "/etc/cloud-keys/server.key"
+      certfile: "/etc/cloud-keys/ecp1/combined.crt"
+      keyfile: "/etc/cloud-keys/ecp1/server.key"
     api:
       protocol: https
 - barclamp: cinder
@@ -23,8 +23,8 @@ proposals:
     ssl:
       generate_certs: false
       insecure: true
-      certfile: "/etc/cloud-keys/combined.crt"
-      keyfile: "/etc/cloud-keys/server.key"
+      certfile: "/etc/cloud-keys/ecp1/combined.crt"
+      keyfile: "/etc/cloud-keys/ecp1/server.key"
     api:
       protocol: https
 - barclamp: neutron
@@ -32,8 +32,8 @@ proposals:
     ssl:
       generate_certs: false
       insecure: true
-      certfile: "/etc/cloud-keys/combined.crt"
-      keyfile: "/etc/cloud-keys/server.key"
+      certfile: "/etc/cloud-keys/ecp1/combined.crt"
+      keyfile: "/etc/cloud-keys/ecp1/server.key"
     api:
       protocol: https
 - barclamp: nova
@@ -42,8 +42,8 @@ proposals:
       enabled: true
       generate_certs: false
       insecure: true
-      certfile: "/etc/cloud-keys/combined.crt"
-      keyfile: "/etc/cloud-keys/server.key"
+      certfile: "/etc/cloud-keys/ecp1/combined.crt"
+      keyfile: "/etc/cloud-keys/ecp1/server.key"
     novnc:
       ssl:
         enabled: true
@@ -52,7 +52,7 @@ proposals:
     apache:
       ssl: true
       generate_certs: false
-      ssl_crt_file: "/etc/cloud-keys/cloud.suse.de.crt"
-      ssl_key_file: "/etc/cloud-keys/server.key"
-      ssl_crt_chain_file: "/etc/cloud-keys/SUSE_CA_suse.com.chain.crt"
+      ssl_crt_file: "/etc/cloud-keys/ecp1/cloud.suse.de.crt"
+      ssl_key_file: "/etc/cloud-keys/ecp1/server.key"
+      ssl_crt_chain_file: "/etc/cloud-keys/ecp1/SUSE_CA_suse.net.chain.crt"
 

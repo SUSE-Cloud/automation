@@ -4,4 +4,4 @@ proposals:
   name: services
   attributes:
     haproxy:
-      public_name: dashboardecp1.cloud.suse.de
+      public_name: engcloud.prv.suse.net

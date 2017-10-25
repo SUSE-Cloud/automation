@@ -23,7 +23,7 @@ for controller in "$novacontroller" controller{6,7,8} ; do
 run_on "$controller" 'set -x
 oncontroller_setupproduction
 for u in keystone glance cinder neutron nova barbican ceph aodh heat manila ; do
-    setfacl -m u:$u:r /etc/cloud-keys/*.key
+    setfacl -m u:$u:r /etc/cloud-keys/*.key /etc/cloud-keys/ecp1/*.key
     done
 cat > /etc/openldap/ldap.conf <<EOF
 TLS_CACERTDIR   /etc/ssl/certs/
