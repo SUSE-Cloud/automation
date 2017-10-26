@@ -4111,7 +4111,12 @@ function onadmin_testsetup
     get_horizon
     echo "openstack horizon server:  $horizonserver"
     echo "openstack horizon service: $horizonservice"
-    curl -L -m 120 -s -S -k http://$horizonservice | \
+    if [ "$want_horizon_ssl" == 1 -o "$want_all_ssl" == 1 ] ; then
+      local protocol=https
+    else
+      local protocol=http
+    fi
+    curl -L -m 120 -s -S -k $protocol://$horizonservice | \
         grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
     || complain 101 "simple horizon test failed"
 
