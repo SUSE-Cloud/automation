@@ -578,7 +578,7 @@ function onadmin_prepare_sles_installmedia
 
 function onadmin_prepare_sles12sp1_other_repos
 {
-    for repo in SLES12-SP1-{Pool,Updates}; do
+    for repo in SLES12-SP1-{Pool,Updates,LTSS-Updates}; do
         add_mount "repos/$arch/$repo" "$tftpboot_repos_dir/$repo"
         if [[ $want_s390 ]] ; then
             add_mount "repos/s390x/$repo" \
@@ -778,6 +778,8 @@ function create_repos_yml
 
     grep -q SLES$slesversion-Updates-test /etc/fstab && \
         additional_repos+=" SLES$slesversion-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-Updates-test"
+    grep -q SLES$slesversion-LTSS-Updates /etc/fstab && \
+        additional_repos+=" SLES$slesversion-LTSS-Updates=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-LTSS-Updates"
     grep -q SLE$slesversion-HA-Updates-test /etc/fstab && \
         additional_repos+=" SLE$slesversion-HA-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLE$slesversion-HA-Updates-test"
     grep -q SUSE-OpenStack-Cloud-$cloudver-Updates-test /etc/fstab && \
