@@ -1,5 +1,4 @@
-#!/bin/bash
-grep -q NumberOfPasswordPrompts ~/.ssh/config || echo NumberOfPasswordPrompts 0 >> ~/.ssh/config
+#!/bin/bash grep -q NumberOfPasswordPrompts ~/.ssh/config || echo NumberOfPasswordPrompts 0 >> ~/.ssh/config
 
 hostname crowbar
 zypper ar http://download.nue.suse.com/ibs/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/ pool
@@ -32,12 +31,9 @@ base    dc=suse,dc=de
 EOF
 
 cat > /srv/www/openstack-dashboard/openstack_dashboard/templates/_login_footer.html <<EOF
-<h1 style="color: #ffffff; text-align: center">
-Use R&D credentials to login here with Domain "ldap_users"
-<span style="color: #aaa">(or "Default" for the few non-LDAP users)</span>
+<h2 style="color: #ffffff; text-align: center">Use SUSE R&D credentials with Domain "SUSE Account"</h2>
 
-<a href="https://wiki.innerweb.novell.com/index.php/Cloud/cloud.suse.de">See wiki how to use the cloud</a>
-</h1>
+<h2 style="color: #ffffff; text-align: center"><a href="https://wiki.innerweb.novell.com/index.php/Cloud/cloud.suse.de">Wiki on how to use cloud</a></h2>
 EOF
     '
 done
