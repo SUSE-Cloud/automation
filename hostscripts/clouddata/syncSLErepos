@@ -140,6 +140,21 @@ for servicepack in 1 2 3; do
 done
 
 
+# LTSS enablement
+for servicepack in 1; do
+
+    version="12-SP$servicepack-LTSS"
+    repo_version="$version"
+    chef_version="12.$servicepack"
+
+    for arch in x86_64; do
+        destdir_sles_updates=/srv/nfs/repos/$arch/SLES$repo_version-Updates/
+        mkdir -p $destdir_sles_updates
+        $rsync ${ibs_source}/SUSE/Updates/SLE-SERVER/$version/$arch/update/ $destdir_sles_updates
+    done
+done
+
+
 ##############
 # Storage
 ##############
