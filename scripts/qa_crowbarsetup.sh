@@ -3250,10 +3250,10 @@ function oncontroller_run_tempest
         testr slowest
     fi
     if iscloudver 7plus; then
-		ostestr last --subunit --no-pretty > tempest.subunit.log
-	else
-		testr last --subunit | subunit-2to1 > tempest.subunit.log
-	fi
+        ostestr last --subunit --no-pretty > tempest.subunit.log
+    else
+        testr last --subunit | subunit-2to1 > tempest.subunit.log
+    fi
 
     oncontroller_tempest_cleanup
     popd
