@@ -2179,16 +2179,18 @@ function custom_configuration
             fi
         ;;
         rabbitmq)
-            if [[ $hacloud = 1 ]] ; then
-                # FIXME: mysql implies 3 node cluster which implies no DRBD
-                # update this check to something rabbitmq related once we get rid of DRBD for good
-                if [[ "$want_database_sql_engine" == "mysql" ]] ; then
-                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['device']" "'$adminfqdn:/srv/nfs/rabbitmq'"
-                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['fstype']" "'nfs'"
-                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['options']" "'rw,async,nofail'"
-                else
-                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
-                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
+            if [[ $hacloud = 1 ]]; then
+                # When clustering is there, it is enabled by default for new installs, so we don't need
+                # to setup shared storage.
+                if ! grep -q cluster /opt/dell/chef/data_bags/crowbar/template-rabbitmq.json; then
+                    if [[ "$want_database_sql_engine" == "mysql" ]] ; then
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['device']" "'$adminfqdn:/srv/nfs/rabbitmq'"
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['fstype']" "'nfs'"
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['options']" "'rw,async,nofail'"
+                    else
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
+                    fi
                 fi
                 proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamedata']"
             fi
