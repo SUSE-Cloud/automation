@@ -2194,7 +2194,9 @@ function custom_configuration
                 fi
                 proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamedata']"
             fi
-            proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
+            if ! [[ $want_trove_proposal = 0 ]]; then
+                proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
+            fi
         ;;
         dns)
             [ "$want_multidnstest" = 1 ] || return 0
