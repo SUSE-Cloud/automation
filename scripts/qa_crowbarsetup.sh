@@ -617,21 +617,21 @@ function onadmin_prepare_cloud_repos
         GM6)
             addcloudpool
             ;;
-        GM6+up)
+        develcloud6|GM6+up)
             addcloudpool
             addcloudmaintupdates
             ;;
         GM7)
             addcloudpool
             ;;
-        GM7+up)
+        develcloud7|GM7+up)
             addcloudpool
             addcloudmaintupdates
             ;;
         GM8)
             addcloudpool
             ;;
-        GM8+up)
+        develcloud8|GM8+up)
             addcloudpool
             addcloudmaintupdates
             ;;
