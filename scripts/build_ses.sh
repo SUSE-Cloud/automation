@@ -240,7 +240,7 @@ function install_ses() {
     do
         echo "Attempting to ssh to $hn"
         ip_good=0
-        for i in $(seq 30)
+        for i in $(seq 60)
         do
             ssh $hn "zypper --gpg-auto-import-keys ref -f"
             if (( $? == 0 ))
