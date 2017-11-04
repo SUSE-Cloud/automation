@@ -3249,7 +3249,11 @@ function oncontroller_run_tempest
         # output the slowest tests from the latest run
         testr slowest
     fi
-    ostestr last --subunit --no-pretty > tempest.subunit.log
+    if iscloudver 7plus; then
+        ostestr last --subunit --no-pretty > tempest.subunit.log
+    else
+        testr last --subunit | subunit-2to1 > tempest.subunit.log
+    fi
 
     oncontroller_tempest_cleanup
     popd
