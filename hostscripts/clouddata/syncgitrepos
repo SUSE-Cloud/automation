@@ -1,0 +1,3 @@
+#!/bin/sh
+#cd /srv/nfs/git/qa-automation.git ; git fetch ; git update-server-info
+cd /srv/nfs/git/automation ; git pull ; git update-server-info
