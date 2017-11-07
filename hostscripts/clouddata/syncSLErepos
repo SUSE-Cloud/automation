@@ -259,4 +259,4 @@ fdupes -q -n -r /srv/nfs/repos/ /srv/nfs/install/ |
         fi
     done
 
-~/bin/syncgitrepos
+timeout 1h ~/bin/syncgitrepos
