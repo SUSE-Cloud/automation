@@ -2369,6 +2369,9 @@ function custom_configuration
                 fi
                 novanodes_json=$(printf "\"%s\"," ${novanodes[@]})
                 novanodes_json="[ ${novanodes_json%,} ]"
+                for lv_type in kvm qemu xen hyperv; do
+                    proposal_set_value nova default "['deployment']['nova']['elements']['nova-compute-${lv_type}']" "[ ]"
+                done
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-compute-${libvirt_type}']" "$novanodes_json"
             fi
 
