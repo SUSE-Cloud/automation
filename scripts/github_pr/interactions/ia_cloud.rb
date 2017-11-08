@@ -13,4 +13,20 @@ module GithubPR
       }
     end
   end
+
+  class JenkinsJobTriggerMkcloudCCTAction < JenkinsJobTriggerMkcloudAction
+    CLOUDSOURCE = {
+      "master" => "develcloud8",
+      "cloud7" => "develcloud7",
+      "cloud6" => "develcloud6",
+    }
+
+    def extra_parameters(pull, build_mode = "")
+      para = super(pull, build_mode)
+      para.merge!({
+        cloudsource: CLOUDSOURCE[pull.base.ref]
+      }) if CLOUDSOURCE.has_key?(pull.base.ref)
+      para
+    end
+  end
 end

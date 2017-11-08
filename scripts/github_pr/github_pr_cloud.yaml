@@ -57,6 +57,28 @@ template:
               job_cmd: "../jenkins/jenkins-job-trigger"
               job_parameters:
                 *mkcloud_automation_parameters
+    suse_cct: &suse_cct
+      - type: Status
+        config:
+          status: unseen
+      - type: TrustedSource
+        config:
+          users:
+            *suse_cloud_user
+          teams:
+            *suse_cloud_team
+        whitelist_handler:
+          - type: SetStatus
+            parameters:
+              status: pending
+              message: Queued cct PR gating
+          - type: JenkinsJobTriggerMkcloudCCT
+            parameters:
+              job_name: openstack-mkcloud
+              job_cmd: "../jenkins/jenkins-job-trigger"
+              job_parameters:
+                standard:
+                  *mkcloud_automation_standard
 pr_processing:
   - config:
       organization: SUSE-Cloud
@@ -64,3 +86,9 @@ pr_processing:
         - automation
       context: suse/mkcloud
     filter: *suse_automation
+  - config:
+      organization: SUSE-Cloud
+      repositories:
+        - cct
+      context: suse/mkcloud
+    filter: *suse_cct
