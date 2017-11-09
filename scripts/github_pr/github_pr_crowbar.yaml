@@ -34,6 +34,31 @@ template:
               job_cmd: "../jenkins/jenkins-job-trigger"
               job_parameters:
                 standard: {}
+    sap-oc_crowbar: &sap-oc_crowbar
+      - type: MergeBranch
+        config:
+          branches:
+            - stable/sap/3.0
+      - type: Status
+        config:
+          status: unseen
+      - type: TrustedSource
+        config:
+          users:
+            *suse_crowbar_user
+          teams:
+            *crowbar_team
+        whitelist_handler:
+          - type: SetStatus
+            parameters:
+              status: pending
+              message: Queued testbuild job
+          - type: JenkinsJobTriggerCrowbarTestbuild
+            parameters:
+              job_name: cloud-crowbar-testbuild-pr
+              job_cmd: "../jenkins/jenkins-job-trigger"
+              job_parameters:
+                standard: {}
 pr_processing:
   - config:
       organization: crowbar
@@ -47,3 +72,14 @@ pr_processing:
         - crowbar-openstack
       context: suse/mkcloud/testbuild
     filter: *suse_crowbar
+  - config:
+      organization: sap-oc
+      repositories:
+        - crowbar
+        - crowbar-ceph
+        - crowbar-core
+        - crowbar-ha
+        - crowbar-openstack
+        - crowbar-monitoring
+      context: suse/mkcloud/testbuild
+    filter: *sap-oc_crowbar
