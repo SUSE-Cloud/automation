@@ -33,7 +33,7 @@ EOF
 cat > /srv/www/openstack-dashboard/openstack_dashboard/templates/_login_footer.html <<EOF
 <h2 style="color: #ffffff; text-align: center">Use SUSE R&D credentials with Domain "SUSE Account"</h2>
 
-<h2 style="color: #ffffff; text-align: center"><a href="https://wiki.innerweb.novell.com/index.php/Cloud/cloud.suse.de">Wiki on how to use cloud</a></h2>
+<h2 style="color: #ffffff; text-align: center"><a href="https://wiki.innerweb.novell.com/index.php/SUSE/ECP">Wiki on how to use cloud</a></h2>
 EOF
     '
 done
