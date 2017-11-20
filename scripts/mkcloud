@@ -955,16 +955,16 @@ function onhost_reset_admin
 function crowbarupgrade_5plus
 {
     if iscloudver 6plus ; then
-        cloudsource=$upgrade_cloudsource onadmin prepare_cloudupgrade_nodes_repos_6_to_7
-        onadmin upgrade_ses_to_4
+        cloudsource=$upgrade_cloudsource onadmin prepare_cloudupgrade_nodes_repos
+        iscloudver 6 && onadmin upgrade_ses_to_4
         onadmin zypper_patch_all
         onadmin upgrade_prechecks
-        if [[ $cloudsource = develcloud6 ]] || [[ $upgrade_cloudsource = develcloud7 ]]; then
+        if [[ $cloudsource =~ devel ]] || [[ $upgrade_cloudsource =~ devel ]]; then
             onadmin allow_vendor_change_at_nodes
         fi
         export cloudsource=$upgrade_cloudsource
         onadmin prepare_crowbar_upgrade
-        onadmin prepare_cloudupgrade_admin_repos_6_to_7
+        onadmin prepare_cloudupgrade_admin_repos
         onadmin addupdaterepo upgrade
         onadmin upgrade_admin_backup
         onadmin upgrade_admin_repocheck

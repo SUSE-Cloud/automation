@@ -4631,8 +4631,8 @@ zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgr
     wait_for 60 5 "ssh ${nodes[0]} ceph health | grep -q HEALTH_OK" "ceph cluster to recover after upgrade"
 }
 
-# This will adapt Cloud6 nodes repositories to Cloud7 ones
-function onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
+# This will adapt nodes repositories to the ones with next cloud version
+function onadmin_prepare_cloudupgrade_nodes_repos
 {
     export_tftpboot_dirs
 
@@ -4653,8 +4653,8 @@ function onadmin_prepare_cloudupgrade_nodes_repos_6_to_7
     fi
 }
 
-# This will adapt Cloud6 admin server repositories to Cloud7 ones
-function onadmin_prepare_cloudupgrade_admin_repos_6_to_7
+# This will adapt admin server repositories to the ones needed by next product version
+function onadmin_prepare_cloudupgrade_admin_repos
 {
     export_tftpboot_dirs
 
@@ -4675,9 +4675,16 @@ function onadmin_prepare_cloudupgrade_admin_repos_6_to_7
     ensure_packages_installed createrepo
     safely createrepo $tftpboot_repos_dir/PTF
 
-    # change system repositories to SP2
-    $zypper rr SLES12-SP1-Pool
-    $zypper rr SLES12-SP1-Updates
+    # remove old repositories
+    # (so that zypper does not have an option to choose from the old ones)
+    if iscloudver 7; then
+        $zypper rr SLES12-SP1-Pool
+        $zypper rr SLES12-SP1-Updates
+    elif iscloudver 8; then
+        $zypper rr SLES12-SP2-Pool
+        $zypper rr SLES12-SP2-Updates
+    fi
+
     onadmin_setup_local_zypper_repositories
 }
 
