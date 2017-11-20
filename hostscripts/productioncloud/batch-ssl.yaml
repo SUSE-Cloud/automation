@@ -47,6 +47,14 @@ proposals:
     novnc:
       ssl:
         enabled: true
+- barclamp: heat
+  attributes:
+    api:
+      protocol: https
+    ssl:
+      certfile: "/etc/cloud-keys/ecp1/combined.crt"
+      keyfile: "/etc/cloud-keys/ecp1/server.key"
+      insecure: true
 - barclamp: horizon
   attributes:
     apache:
