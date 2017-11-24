@@ -16,7 +16,6 @@
           values:
             - ardana-ansible
             - ardana-barbican
-            - ardana-build-config
             - ardana-ceilometer
             - ardana-ceph
             - ardana-cephlm
@@ -59,14 +58,12 @@
             - ardana-service
             - ardana-service-ansible
             - ardana-spark
-            - ardana-storevirtual-installer
             - ardana-swift
             - ardana-swiftlm
             - ardana-tempest
             - ardana-tls
             - ardana-ui-common
             - ardana-vmfactory
-            - ardana-vsa
       - axis:
           type: user-defined
           name: project
