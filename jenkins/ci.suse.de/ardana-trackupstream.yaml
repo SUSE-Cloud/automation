@@ -24,6 +24,7 @@
             - ardana-cinder
             - ardana-cinderlm
             - ardana-cluster
+            - ardana-cobbler
             - ardana-configuration-processor
             - ardana-db
             - ardana-designate
