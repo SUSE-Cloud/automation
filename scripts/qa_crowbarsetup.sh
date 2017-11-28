@@ -5471,7 +5471,7 @@ function oncontroller_import_images
         local image_name=${bimg//.qcow2}
         local params="--disk-format qcow2 --container-format bare "
         openstack image show $image_name > /dev/null && continue
-        [[ $image_name =~ -Build ]] && params+=' --min-ram 300 --min-disk 10'
+        [[ $image_name =~ -Build ]] || [[ $image_name =~ -OpenStack.x86_64 ]] && params+=' --min-ram 300 --min-disk 10'
         [[ $image_name = openSUSE-Leap-42.1 ]] && params+=" --min-disk 9"
         [[ $image_name =~ -altimagebuild ]] && params+=' --min-disk 2'
         curl -s \
