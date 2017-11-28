@@ -5457,6 +5457,8 @@ function oncontroller_setupproduction()
     openstack user create --project cloudfoundry --email thardeck@suse.de cloudfoundry
     openstack role add --project cloudfoundry --user cloudfoundry Member
     openstack role add --project bosh --user cloudfoundry Member
+    openstack user create --project cloud --email Nicolas.Bock@suse.com cloudinfra
+    openstack role add --project cloud --user cloudinfra Member
     /etc/cloud-keys/secrets.sh
     openstack project create demo
     openstack user create --password demo --email ashish.sodhi@suse.com --project demo demo
