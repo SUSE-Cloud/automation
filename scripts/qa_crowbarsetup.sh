@@ -4036,7 +4036,8 @@ function run_on
         export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
         export libvirt_type=\"$libvirt_type\" ;
         export cloud=$cloud ; export TESTHEAD=$TESTHEAD ;
-        export is_oncontroller=yes ;
+        export is_oncontroller=yes ; export want_ceph_ssl=$want_ceph_ssl ;
+        export want_all_ssl=$want_all_ssl ;
         . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ;  source .openrc; onadmin_set_source_variables; $@"
     return $?
 }
@@ -4207,6 +4208,80 @@ function onadmin_testsalt
     test $(crowbar machines list | wc -l) = $(grep "^  *True$" /tmp/salt.test.log | wc -l)
 }
 
+function ceph_test_suite
+{
+    local cephret=0
+    # dependency for the test suite
+    ensure_packages_installed git-core python-PyYAML python-setuptools
+
+    rpm -Uvh http://$susedownload/ibs/SUSE:/SLE-12:/GA/standard/noarch/python-nose-1.3.0-8.4.noarch.rpm
+
+    if test -d qa-automation; then
+        pushd qa-automation
+        git reset --hard
+        git pull
+    else
+        install_suse_ca
+        safely git clone https://gitlab.suse.de/ceph/qa-automation.git
+        safely pushd qa-automation
+    fi
+
+    # configure and run the testsuite
+    if iscloudver 6; then
+        git checkout storage2
+        ceph_testsuite_configure_storage2
+        nosetests testsuites/testcloud_sanity.py
+        cephret=$?
+    elif iscloudver 7plus; then
+        # there is no storage4 branch and storage team uses storage3 branch
+        # for SES3 and SES4
+        git checkout storage3
+        ceph_testsuite_configure_storage3
+        nosetests testsuites/test_validate.py
+        cephret=$?
+    fi
+    return $cephret
+}
+
+function radoswg_s3_test
+{
+    s3radosgwret=0
+    # test S3 access using python API
+    radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
+    if [ "$want_ceph_ssl" == 1 -o "$want_all_ssl" == 1 ] ; then
+        local radosgwport=8081
+        local is_secure=True
+    else
+        local radosgwport=8080
+        local is_secure=False
+    fi
+    ssh $radosgw radosgw-admin user create --uid=rados --display-name=RadosGW --secret="secret" --access-key="access"
+
+    # using curl directly is complicated, see http://ceph.com/docs/master/radosgw/s3/authentication/
+    ensure_packages_installed python-boto
+    python << EOF
+import boto
+import boto.s3.connection
+
+conn = boto.connect_s3(
+    aws_access_key_id = "access",
+    aws_secret_access_key = "secret",
+    host = "$radosgw",
+    port = $radosgwport,
+    is_secure=$is_secure,
+    calling_format = boto.s3.connection.OrdinaryCallingFormat()
+)
+bucket = conn.create_bucket("test-s3-bucket")
+EOF
+
+    # check if test bucket exists using radosgw-admin API
+    if ! ssh $radosgw radosgw-admin bucket list|grep -q test-s3-bucket ; then
+        echo "test-s3-bucket not found"
+        s3radosgwret=1
+    fi
+    return $s3radosgwret
+}
+
 function onadmin_testsetup
 {
     pre_hook $FUNCNAME
@@ -4253,74 +4328,14 @@ function onadmin_testsetup
 
     cephret=0
     if [ -n "$deployceph" -a "$wantcephtestsuite" == 1 ] ; then
-        # dependency for the test suite
-        ensure_packages_installed git-core python-PyYAML python-setuptools
-
-        rpm -Uvh http://$susedownload/ibs/SUSE:/SLE-12:/GA/standard/noarch/python-nose-1.3.0-8.4.noarch.rpm
-
-        if test -d qa-automation; then
-            pushd qa-automation
-            git reset --hard
-            git pull
-        else
-            install_suse_ca
-            safely git clone https://gitlab.suse.de/ceph/qa-automation.git
-            safely pushd qa-automation
-        fi
-
-        # configure and run the testsuite
-        if iscloudver 6; then
-            git checkout storage2
-            ceph_testsuite_configure_storage2
-            nosetests testsuites/testcloud_sanity.py
-            cephret=$?
-        elif iscloudver 7plus; then
-            # there is no storage4 branch and storage team uses storage3 branch
-            # for SES3 and SES4
-            git checkout storage3
-            ceph_testsuite_configure_storage3
-            nosetests testsuites/test_validate.py
-            cephret=$?
-        fi
-
-        popd
+        local mons=($cephmons)
+        run_on ${mons[0]} ceph_test_suite
+        cephret=$?
     fi
 
     s3radosgwret=0
     if [ "$wantradosgwtest" == 1 ] ; then
-        # test S3 access using python API
-        radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
-        if [ "$want_ceph_ssl" == 1 -o "$want_all_ssl" == 1 ] ; then
-            local radosgwport=8081
-            local is_secure=True
-        else
-            local radosgwport=8080
-            local is_secure=False
-        fi
-        ssh $radosgw radosgw-admin user create --uid=rados --display-name=RadosGW --secret="secret" --access-key="access"
-
-        # using curl directly is complicated, see http://ceph.com/docs/master/radosgw/s3/authentication/
-        ensure_packages_installed python-boto
-        python << EOF
-import boto
-import boto.s3.connection
-
-conn = boto.connect_s3(
-        aws_access_key_id = "access",
-        aws_secret_access_key = "secret",
-        host = "$radosgw",
-        port = $radosgwport,
-        is_secure=$is_secure,
-        calling_format = boto.s3.connection.OrdinaryCallingFormat()
-    )
-bucket = conn.create_bucket("test-s3-bucket")
-EOF
-
-        # check if test bucket exists using radosgw-admin API
-        if ! ssh $radosgw radosgw-admin bucket list|grep -q test-s3-bucket ; then
-            echo "test-s3-bucket not found"
-            s3radosgwret=1
-        fi
+        run_on ${cephradosgws[0]} radoswg_s3_test
     fi
 
     # use local cache whenever possible
