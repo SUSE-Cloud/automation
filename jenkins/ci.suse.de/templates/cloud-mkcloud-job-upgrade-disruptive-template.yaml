@@ -24,6 +24,7 @@
             storage_method=swift
             mkcloudtarget=plain_with_upgrade testsetup
             want_nodesupgrade=1
+            want_database_sql_engine={database_engine}
             controller_node_memory=7864320
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-disruptive-{arch}
