@@ -5439,9 +5439,9 @@ function oncontroller_setupproduction()
         openstack project create $prj
         openstack role add --project $prj --user admin admin
         tenantid=$(getprojectid $prj)
-        nova quota-update --instances 50 --cores 50 --key-pairs 50 --server-groups 50 --ram 40000 $tenantid
+        nova quota-update --instances 50 --cores 50 --key-pairs 50 --server-groups 50 --ram 60000 $tenantid
         neutron quota-update --tenant-id $tenantid --floatingip 50 --security-group 50 --port 50 --network 50 --router 50 --vip 50 --pool 50
-        cinder quota-update --gigabytes 150 $tenantid
+        cinder quota-update --gigabytes 600 --volumes=50 --snapshots=50 --backups=50 $tenantid
     done
 
     tenantid=$(getprojectid openstack)
@@ -5449,7 +5449,7 @@ function oncontroller_setupproduction()
     neutron quota-update --floatingip 200 --security-group 400 --port 400 --network 200 --router 100 --vip 100 --pool 100
     OS_TENANT_NAME=qa neutron quota-update --port 100
     nova quota-update --ram 20000 $(getprojectid suse)
-    nova quota-update --ram 55000 $(getprojectid cloudfoundry)
+    nova quota-update --ram 95000 $(getprojectid cloudfoundry)
     nova quota-update --ram 80000 --cores 100 $(getprojectid ses)
     cinder quota-update --gigabytes 8000 $(getprojectid cloud) # for Eric Pendergrass HOS/Ardana/hLinux data backup
     # extra users
