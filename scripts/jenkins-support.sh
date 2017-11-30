@@ -1,11 +1,12 @@
 #!/bin/bash
 function connect_rally_server_run_test
 {
-    # Connect to rally server and run tests
-    ssh -T root@$rally_server "bash -s $cloud $image_name" <<'EOF'
-cloud=$1
-image_name=$2
-
+# Connect to rally server and run tests
+ssh -T root@$rally_server "bash -s" <<'EOF'
+source setenv
+rm rally-failover-test.yml
+wget https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/rally/$task
+sed -i -e "s,##net_id##,$netid," rally-failover-test.yml
 # Check if specific cloud deployemnt already exist
 if ! (rally deployment list | grep -q $cloud); then
     # Creat new cloud deployment env
@@ -24,13 +25,13 @@ if ! openstack image show -c name --format value $image_name; then
 fi
 
 # Run rally test
-rally task start rally-test.json
+rally task start "$task"
 
 # Generate run results output
 out_dir=/root/results
 rm -rf $out_dir
 mkdir -p /root/results
 rally task results > $out_dir/output.json
-rally task report $out_dir/output.json --out $out_dir/output.html
+rally task report --out=$out_dir/output.html
 EOF
 }

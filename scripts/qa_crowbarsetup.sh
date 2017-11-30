@@ -2996,6 +2996,15 @@ function get_first_node_from_cluster
                         ['elements']['pacemaker-cluster-member'].first"
 }
 
+function get_all_nodes_from_cluster
+{
+    local cluster=$1
+    crowbarctl proposal show pacemaker $cluster --json | \
+        rubyjsonparse "
+                    puts j['deployment']['pacemaker']\
+                        ['elements']['pacemaker-cluster-member']"
+}
+
 function get_cluster_vip_hostname
 {
     local cluster=$1
@@ -3023,6 +3032,16 @@ function resolve_element_to_hostname
             echo $name
         ;;
     esac
+}
+
+function get_cluster_name
+{
+    local element=`crowbarctl show nova default --json| \
+        rubyjsonparse "
+                    puts j['deployment']['nova']\
+                        ['elements']['nova-controller']"`
+    local cluster=${element#cluster:}
+    echo $cluster
 }
 
 function get_novacontroller
@@ -3068,6 +3087,11 @@ function get_ceph_nodes
     fi
 }
 
+function oncontroller_get_network_id
+{
+    openstack network show fixed -f value -c id
+}
+
 function oncontroller_manila_service_instance_get_uuid
 {
     local vm_uuid=`openstack --os-project-name manila-service server show manila-service -f value -c id`
@@ -3100,6 +3124,43 @@ function addfloatingip
         floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
         nova add-floating-ip "$instanceid" "$floatingip"
     fi
+}
+
+function ha_services_failover_test
+{
+    #Get cluster name
+    local cluster=`get_cluster_name`
+    read -a nodes <<< `get_all_nodes_from_cluster "$cluster"`
+    #ssh to first node kill services nova-api ,glance-api,pkill mysql
+    ssh ${nodes[0]} 'pkill nova-api; pkill glance-api; pkill mysql'
+    #Start rally tests
+    run_rally_test
+    #ssh to nodes check that services running
+    for((i=1; i<${#nodes[@]}; i++)) ;do
+        ssh ${nodes[$i]} 'pgrep nova-api; pgrep glance-api; pgrep mysql'
+        echo $?
+    done
+    #Check that services recovered
+    ssh ${nodes[0]} 'pgrep nova-api; pgrep glance-api; pgrep mysql'
+    local ret=$?
+    if [ "$ret" = "0" ]; then
+        echo "Services recovered succesfully"
+    else
+        echo "Services fail to recover"
+    fi
+}
+
+function run_rally_test
+{
+    #Get network id
+    get_novacontroller
+    local net_id=`oncontroller get_network_id`
+    . scripts/jenkins-support.sh
+    #Pass parameters to rally server
+    echo -e "cloud=$cloud \nnetid=$net_id \nimage_name=$image_name \ntask=$task" > setenv
+    scp setenv root@$rally_server:/root/
+    #Connect rally server execute tests
+    connect_rally_server_run_test
 }
 
 function oncontroller_nova_evacuate

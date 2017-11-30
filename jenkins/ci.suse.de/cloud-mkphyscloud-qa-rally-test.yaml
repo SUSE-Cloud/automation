@@ -13,7 +13,7 @@
 
     wrappers:
       - build-name:
-          name: '#${BUILD_NUMBER} - ${scenario_name} - qa$hw_number - openstack-rally'
+          name: '#${BUILD_NUMBER} - ${task} - qa$hw_number - openstack-rally'
       - timestamps
     publishers:
       - mkphyscloud-qa-common-publishers
@@ -33,7 +33,7 @@
             Pre condition to have jeos image uploaded before running rally tests
 
       - string:
-          name: scenario_name
+          name: task
           description: Optional; scenario name which typically is an integer with a single letter
 
       - string:
@@ -49,35 +49,92 @@
           default: backup.cloudadm.qa.suse.de
           description: Server hostname where rally is setup
 
+      - bool:
+          name: run_rally_test
+          default: true
+          description: Will execute rally test on given cloud
+
+      - bool:
+          name: run_failover_test
+          default: false
+          description: Will execute failover test on given cloud
+
     builders:
-      - shell: |
-          #!/bin/bash
-          set -x
-          # Create artifacts dir
-          export artifacts_dir=$WORKSPACE/.artifacts
-          rm -rf $artifacts_dir
-          mkdir -p $artifacts_dir
-          touch $artifacts_dir/.ignore
+      - conditional-step:
+          condition-kind: boolean-expression
+          condition-expression: ${ENV,var="run_rally_test"}
+          steps: 
+          - shell: |
+              #!/bin/bash
+              set -x
+              # Create artifacts dir
+              export artifacts_dir=$WORKSPACE/.artifacts
+              rm -rf $artifacts_dir
+              mkdir -p $artifacts_dir
+              touch $artifacts_dir/.ignore
 
-          admin=crowbar$hw_number
-          cloud=qa$hw_number
+              admin=crowbar$hw_number
+              cloud=qa$hw_number
 
-          export rally_server=$rally_server
-          export image_name=$image_name
+              export rally_server=$rally_server
+              export image_name=$image_name
 
-          scp root@$admin:/root/scripts/jenkins-support.sh .
-          scp root@$admin:/root/scripts/scenarios/rally/rally-test.json .
-          scp rally-test.json root@$rally_server:/root/
-          source jenkins-support.sh
-          connect_rally_server_run_test
-          ret=$?
-          # Archive artifacts on rally server
-          buildnumber=${BUILD_NUMBER}
-          ssh -T root@$rally_server "bash -s $buildnumber" <<'EOF'
-          buildnumber=$1
-          mkdir -p /root/rally-results-backup/$buildnumber
-          cp /root/results/* /root/rally-results-backup/$buildnumber/
-          EOF
-          # Copy test run results output to jenkins artifacts
-          scp root@$rally_server:/root/results/* $artifacts_dir
-          exit $ret
+              scp root@$admin:/root/scripts/jenkins-support.sh .
+              scp root@$admin:/root/scripts/scenarios/rally/rally-test.json .
+              scp rally-test.json root@$rally_server:/root/
+              source jenkins-support.sh
+              connect_rally_server_run_test
+              ret=$?
+              # Archive artifacts on rally server
+              buildnumber=${BUILD_NUMBER}
+              ssh -T root@$rally_server "bash -s $buildnumber" <<'EOF'
+              buildnumber=$1
+              mkdir -p /root/rally-results-backup/$buildnumber
+              cp /root/results/* /root/rally-results-backup/$buildnumber/
+              EOF
+              # Copy test run results output to jenkins artifacts
+              scp root@$rally_server:/root/results/* $artifacts_dir
+              exit $ret
+
+      - conditional-step:
+          condition-kind: boolean-expression
+          condition-expression: ${ENV,var="run_failover_test"}
+          steps:
+          - shell: |
+              #!/bin/bash
+              set -x
+              export artifacts_dir=$WORKSPACE/.artifacts
+              rm -rf $artifacts_dir
+              mkdir -p $artifacts_dir
+              touch $artifacts_dir/.ignore
+
+              export admin=crowbar$hw_number
+              export cloud=qa$hw_number
+              export task=$task
+              export rally_server=$rally_server
+              export image_name=$image_name
+
+              ssh -T root@$admin "bash -s $cloud $task $rally_server $image_name" <<'EOF'
+              source scripts/jenkins-support.sh
+              source scripts/qa_crowbarsetup.sh
+
+              export cloud=$1
+              export task=$2
+              export rally_server=$3
+              export image_name=$4
+
+              #Run failover test
+              ha_services_failover_test
+
+              EOF
+
+              # Archive artifacts on rally server
+              buildnumber=${BUILD_NUMBER}
+              ssh -T root@$rally_server "bash -s $buildnumber" <<'EOF'
+              buildnumber=$1
+              mkdir -p /root/rally-results-backup/$buildnumber
+              cp /root/results/* /root/rally-results-backup/$buildnumber/
+              EOF
+              # Copy test run results output to jenkins artifacts
+              scp root@$rally_server:/root/results/* $artifacts_dir
+              exit $ret
