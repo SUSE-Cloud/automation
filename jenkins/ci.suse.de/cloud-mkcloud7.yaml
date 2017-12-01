@@ -13,6 +13,7 @@
     arch: x86_64
     tempestoptions: --smoke
     label: openstack-mkcloud-SLE12-x86_64
+    database_engine: postgresql
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
