@@ -1,0 +1,49 @@
+template:
+  user:
+    suse_crowbar_user: &suse_crowbar_user
+      - crowbar
+  team:
+    crowbar_team: &crowbar_team
+      - name: crowbar/Owners
+        id: 291046
+  filter:
+    suse_crowbar: &suse_crowbar
+      - type: MergeBranch
+        config:
+          branches:
+            - master
+            - stable/3.0
+            - stable/4.0
+      - type: Status
+        config:
+          status: unseen
+      - type: TrustedSource
+        config:
+          users:
+            *suse_crowbar_user
+          teams:
+            *crowbar_team
+        whitelist_handler:
+          - type: SetStatus
+            parameters:
+              status: pending
+              message: Queued testbuild job
+          - type: JenkinsJobTriggerCrowbarTestbuild
+            parameters:
+              job_name: cloud-crowbar-testbuild-pr
+              job_cmd: "../jenkins/jenkins-job-trigger"
+              job_parameters:
+                standard: {}
+pr_processing:
+  - config:
+      organization: crowbar
+      repositories:
+        - crowbar
+        - crowbar-ceph
+        - crowbar-core
+        - crowbar-ha
+        - crowbar-hyperv
+        - crowbar-init
+        - crowbar-openstack
+      context: suse/mkcloud/testbuild
+    filter: *suse_crowbar
