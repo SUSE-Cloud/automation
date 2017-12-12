@@ -3310,11 +3310,7 @@ function oncontroller_run_tempest
         # output the slowest tests from the latest run
         testr slowest
     fi
-    if iscloudver 7plus; then
-        ostestr last --subunit --no-pretty > tempest.subunit.log
-    else
-        testr last --subunit | subunit-2to1 > tempest.subunit.log
-    fi
+    testr last --subunit | subunit-2to1 > tempest.subunit.log
 
     oncontroller_tempest_cleanup
     popd
@@ -3331,7 +3327,7 @@ function oncontroller_upload_defcore
     # run only the specified tests
     tempest run --whitelist-file defcore.txt
     source /root/.openrc
-    ostestr last --subunit --no-pretty | subunit-2to1 > tempest.subunit.log
+    testr last --subunit | subunit-2to1 > tempest.subunit.log
     test -d refstack-client || safely git clone https://github.com/openstack/refstack-client
     yes | refstack-client/refstack-client upload-subunit --keystone-endpoint $OS_AUTH_URL tempest.subunit.log
     popd
