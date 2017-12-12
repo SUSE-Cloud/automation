@@ -589,7 +589,7 @@ function onadmin_prepare_sles12sp1_other_repos
 
 function onadmin_prepare_sles_other_repos
 {
-    for repo in SLES$slesversion-{Pool,Updates}; do
+    for repo in SLES$slesversion-{Pool,Updates,LTSS-Updates}; do
         add_mount "repos/$arch/$repo" "$tftpboot_repos_dir/$repo"
     done
 }
