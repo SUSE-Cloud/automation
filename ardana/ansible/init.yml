@@ -1,0 +1,12 @@
+---
+- name: Download ardana-init
+  get_url:
+    url: https://raw.githubusercontent.com/toabctl/automation/ardana-ci/ardana/ansible/ardana-init.bash
+    dest: /var/lib/ardana/ardana-init.bash
+    mode: 0664
+    owner: ardana
+
+- name: Call ardana-init
+  shell: /var/lib/ardana/ardana-init.bash
+  become: true
+  become_user: ardana
