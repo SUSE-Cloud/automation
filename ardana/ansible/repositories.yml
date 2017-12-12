@@ -1,0 +1,66 @@
+---
+- name: Setup repositories on the deployer node
+  hosts: hosts
+  gather_facts: False
+
+  vars:
+    clouddata_server: clouddata.cloud.suse.de
+    download_suse_server: download.suse.de
+
+  tasks:
+  # SLES repos
+  - name: Add SLES12SP3-Pool zypper repo
+    zypper_repository:
+      repo: "http://{{ clouddata_server }}/repos/x86_64/SLES12-SP3-Pool"
+      name: SLES12SP3-Pool
+
+  - name: Add SLES12SP3-Updates zypper repo
+    zypper_repository:
+      repo: "http://{{ clouddata_server }}/repos/x86_64/SLES12-SP3-Updates"
+      name: SLES12SP3-Updates
+
+  - name: Add SLE12SP3-SDK-Pool zypper repo
+    zypper_repository:
+      repo: "http://{{ clouddata_server }}/repos/x86_64/SLE12-SP3-SDK-Pool"
+      name: SLE12SP3-SDK-Pool
+
+  - name: Add SLE12SP3-SDK-Updates zypper repo
+    zypper_repository:
+      repo: "http://{{ clouddata_server }}/repos/x86_64/SLE12-SP3-SDK-Updates"
+      name: SLE12SP3-SDK-Updates
+
+  # Devel:Cloud:8
+  - name: Add Devel:Cloud:8:Staging
+    zypper_repository:
+      repo: "http://{{ download_suse_server }}/ibs/Devel:/Cloud:/8:/Staging/SLE_12_SP3/"
+      name: DC8S
+
+  - name: Add Devel:Cloud:8:Staging media
+    zypper_repository:
+      repo: "http://{{ clouddata_server }}/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging"
+      name: DC8S-Media
+
+  # FIXME: needs to be removed. we want to use a newer ansible which we use already for monasca
+  - name: Repo for old ansible version
+    zypper_repository:
+      repo: "http://ftp5.gwdg.de/pub/opensuse/discontinued/distribution/leap/42.1/repo/oss/suse/"
+      name: ansible-FIXME
+
+  # Refresh all repos
+  - name: Refresh zypper repositories
+    zypper_repository:
+      repo: '*'
+      auto_import_keys: yes
+      runrefresh: yes
+
+  # FIXME: ardana has to work with ansible 2.x
+  - name: Install ansible 1.9.3
+    zypper:
+      name: 'ansible-1.9.3'
+      state: present
+
+  # NOTE: ansible's zypper extra_args are only supported in >= 2.4 and even if that version,
+  # adding --replacefiles does not work
+  # FIXME: Resolve the file conflicts in the ardana packages and use the zypper module
+  - name: Install ardana pattern
+    command: zypper -n in -f --replacefiles patterns-cloud-ardana
