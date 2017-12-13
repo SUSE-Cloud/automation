@@ -108,6 +108,10 @@
             [
               "openstack-horizon-plugin-neutron-fwaas-ui",
               "openstack-horizon-plugin-neutron-vpnaas-ui",
+            ].contains(component) ||
+            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
+            [
+              "openstack-gnocchi"
             ].contains(component)
             )
       sequential: true
