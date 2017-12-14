@@ -73,7 +73,6 @@ crowbar_init_api=http://localhost:4567/api
 [[ $cloudsource = mitakacloud7 ]] && crowbar_init_api=http://localhost:4567/
 crowbar_lib_dir=/var/lib/crowbar
 crowbar_api_v2_header="Accept: application/vnd.crowbar.v2.0+json"
-upgrade_progress_file=/var/lib/crowbar/upgrade/6-to-7-progress.yml
 declare -a unclustered_nodes
 export magnum_k8s_image_name=openstack-magnum-k8s-image
 
@@ -5014,7 +5013,7 @@ function onadmin_allow_vendor_change_at_nodes
 
 function crowbar_nodeupgrade_finished
 {
-    if [ ! -e /var/lib/crowbar/upgrade/6-to-7-upgrade-running ] ; then
+    if ! ls /var/lib/crowbar/upgrade/*-upgrade-running > /dev/null 2>&1 ; then
         echo "'nodes' step finished successfuly"
         return 0
     fi

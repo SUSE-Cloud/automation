@@ -336,6 +336,7 @@ function sshrun
         export ipmi_ip_addrs=$ipmi_ip_addrs;
         export bmc_user=$bmc_user;
         export bmc_password=$bmc_password;
+        export upgrade_progress_file=$upgrade_progress_file;
 EOF
     # setting these variables within mkcloud does not make them part of the env, so we need to export them
     export nodenumber nodenumberlonelynode nodenumberironicnode clusterconfig ironicnetmask
@@ -985,6 +986,9 @@ function crowbarupgrade_5plus
 function cloudupgrade
 {
     if iscloudver 6plus; then
+        local cloudver=$(getcloudver)
+        # this must be set at the start of upgrade, before we switch to new cloudsource:
+        export upgrade_progress_file="/var/lib/crowbar/upgrade/$cloudver-to-$((cloudver+1))-progress.yml"
         crowbarupgrade_5plus
         if [[ $want_ping_running_instances = 1 ]]; then
             onadmin ping_running_instances
