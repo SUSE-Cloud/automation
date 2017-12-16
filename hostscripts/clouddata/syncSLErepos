@@ -248,20 +248,6 @@ for obsrepo in devel:/languages:/ruby:/extensions/SLE_12 devel:/tools:/building/
     rsync_with_create rsync://rsync.opensuse.org/buildservice-repos/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/
 done
 
-# reduce disk usage
-fdupes -q -n -r /srv/nfs/repos/ /srv/nfs/install/ |
-    while read _file; do
-        if test -z "$_target" ; then
-            _target="$_file";
-        else
-            if test -z "$_file" ; then
-                _target="";
-                continue ;
-            fi
-            ln -f "$_target" "$_file";
-        fi
-    done
-
 if [ $SITE = "nue" ]; then
     timeout 1h ~/bin/syncgitrepos
 fi
