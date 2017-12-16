@@ -1,7 +1,10 @@
 #!/bin/bash
 
+SITE_DEFAULT="nue"
+[[ $(hostname) =~ provo ]] && SITE_DEFAULT="prv"
+
 # SITE to use. Can be "nue" or "prv" (Nuermberg and Provo)
-: ${SITE:="nue"}
+: ${SITE:=$SITE_DEFAULT}
 
 # The IBS source in Nuermberg
 ibs_source_nue="rsync://dist.nue.suse.com/repos/"
@@ -259,4 +262,6 @@ fdupes -q -n -r /srv/nfs/repos/ /srv/nfs/install/ |
         fi
     done
 
-timeout 1h ~/bin/syncgitrepos
+if [ $SITE = "nue" ]; then
+    timeout 1h ~/bin/syncgitrepos
+fi
