@@ -1,0 +1,19 @@
+---
+- name: Initialize the Deployer
+  hosts: hosts
+  gather_facts: False
+
+  tasks:
+  - name: Download ardana-init
+    get_url:
+      url: https://raw.githubusercontent.com/SUSE-Cloud/automation/ardana-ci/ardana/ardana-init.bash
+      dest: /var/lib/ardana/ardana-init.bash
+      mode: 0775
+      owner: ardana
+    become: true
+    become_user: ardana
+
+  - name: Call ardana-init
+    shell: ARDANA_INIT_AUTO=1 /var/lib/ardana/ardana-init.bash
+    become: true
+    become_user: ardana
