@@ -109,11 +109,6 @@ else
 fi
 
 #
-# Set-up Ansible playbooks.
-#
-mkdir -p "${script_ansible}"
-
-#
 # Set up ardana-extensions area
 #
 if false; then
@@ -156,7 +151,7 @@ done
 #
 # Tidy up inputs
 #
-rm -rf "${ardana_staging_dir}" "${SCRIPT_DIR}"
+rm -rf "${ardana_staging_dir}"
 
 set +x
 
