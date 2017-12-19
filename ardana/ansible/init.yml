@@ -10,7 +10,7 @@
   tasks:
   - name: Download ardana-init.bash
     get_url:
-      url: https://raw.githubusercontent.com/SUSE-Cloud/automation/ardana-ci/ardana/ardana-init.bash
+      url: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/ardana/ardana-init.bash
       dest: /var/lib/ardana/ardana-init.bash
       mode: 0775
       owner: ardana
