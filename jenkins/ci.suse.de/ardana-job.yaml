@@ -1,6 +1,7 @@
 - job:
     name: ardana-job
     concurrent: true
+    workspace: "$JOB_NAME-$BUILD_ID"
     # the selected node needs the cloud credentials
     node: cloud-ardana-ci
     wrappers:
