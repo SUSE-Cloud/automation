@@ -13,7 +13,7 @@
           # the name for the cloud defined in ~./config/openstack/clouds.yaml
           CLOUD_CONFIG_NAME=engcloud-cloud-ci
           # FIXME: use the template which is in the automation repo once this is merged!
-          wget -O $HEAT_TEMPLATE_NAME https://raw.githubusercontent.com/SUSE-Cloud/automation/ardana-ci/ardana/heat-template.yaml
+          wget -O $HEAT_TEMPLATE_NAME https://raw.githubusercontent.com/SUSE-Cloud/automation/master/ardana/heat-template.yaml
           openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t $HEAT_TEMPLATE_NAME  $STACK_NAME
           DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-floatingip -c output_value -f value)
 
@@ -25,10 +25,10 @@
           $DEPLOYER_IP ansible_user=root
           EOF
           cat hosts
-          wget -O repositories.yml https://raw.githubusercontent.com/SUSE-Cloud/automation/ardana-ci/ardana/ansible/repositories.yml
+          wget -O repositories.yml https://raw.githubusercontent.com/SUSE-Cloud/automation/master/ardana/ansible/repositories.yml
           export ANSIBLE_HOST_KEY_CHECKING=False
           export ANSIBLE_KEEP_REMOTE_FILES=1
           export ARDANA_DEPLOYER_MEDIA_LEGACY_LAYOUT=False
           ansible-playbook -vvv -i hosts repositories.yml
-          wget -O init.yml https://raw.githubusercontent.com/SUSE-Cloud/automation/ardana-ci/ardana/ansible/init.yml
+          wget -O init.yml https://raw.githubusercontent.com/SUSE-Cloud/automation/master/ardana/ansible/init.yml
           ansible-playbook -vvv -i hosts init.yml
