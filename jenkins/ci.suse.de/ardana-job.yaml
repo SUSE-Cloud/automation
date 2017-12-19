@@ -2,7 +2,7 @@
     name: ardana-job
     concurrent: true
     # the selected node needs the cloud credentials
-    node: openstack-trackupstream
+    node: cloud-ardana-ci
     wrappers:
       - timestamps
     builders:
