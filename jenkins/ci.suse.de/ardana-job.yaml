@@ -17,6 +17,9 @@
           wget -O $HEAT_TEMPLATE_NAME https://raw.githubusercontent.com/SUSE-Cloud/automation/master/ardana/heat-template.yaml
           openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t $HEAT_TEMPLATE_NAME  $STACK_NAME
           DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-ip-floating -c output_value -f value)
+          DEPLOYER_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-net-ardana-ip -c output_value -f value)
+          COMPUTE1_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute1-net-ardana-ip -c output_value -f value)
+          COMPUTE2_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute2-net-ardana-ip -c output_value -f value)
 
           # FIXME: Use cloud-init in the used image
           sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${DEPLOYER_IP}
@@ -26,6 +29,15 @@
           $DEPLOYER_IP ansible_user=root
           EOF
           cat hosts
+
+          cat << EOF > ardana_net_vars.yml
+          ---
+          deployer_ardana_ip: $DEPLOYER_ARDANA_IP
+          compute1_ardana_ip: $COMPUTE1_ARDANA_IP
+          compute2_ardana_ip: $COMPUTE2_ARDANA_IP
+          EOF
+          cat ardana_net_vars.yml
+
           wget -O repositories.yml https://raw.githubusercontent.com/SUSE-Cloud/automation/master/ardana/ansible/repositories.yml
           export ANSIBLE_HOST_KEY_CHECKING=False
           export ANSIBLE_KEEP_REMOTE_FILES=1
