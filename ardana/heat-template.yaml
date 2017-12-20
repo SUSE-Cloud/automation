@@ -48,14 +48,14 @@ resources:
     type: OS::Neutron::Subnet
     properties:
       network_id: { get_resource: network_mgmt }
-      cidr: "192.168.100.0/24"
+      cidr: "192.168.245.0/24"
       ip_version: 4
       gateway_ip: null
   subnet_ardana:
     type: OS::Neutron::Subnet
     properties:
       network_id: { get_resource: network_ardana }
-      cidr: "192.168.200.0/24"
+      cidr: "192.168.110.0/24"
       ip_version: 4
       gateway_ip: null
 
