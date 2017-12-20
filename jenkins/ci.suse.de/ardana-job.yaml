@@ -16,7 +16,7 @@
           # FIXME: use the template which is in the automation repo once this is merged!
           wget -O $HEAT_TEMPLATE_NAME https://raw.githubusercontent.com/SUSE-Cloud/automation/master/ardana/heat-template.yaml
           openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t $HEAT_TEMPLATE_NAME  $STACK_NAME
-          DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-floatingip -c output_value -f value)
+          DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-ip-floating -c output_value -f value)
 
           # FIXME: Use cloud-init in the used image
           sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${DEPLOYER_IP}

@@ -109,6 +109,37 @@ resources:
       port_id: {get_attr: [deployer-controller, addresses, fixed, 0, port]}
 
 outputs:
-  deployer-controller-floatingip:
-    description: IP address of the deployer-controller node
+  # deployer-controller
+  deployer-controller-ip-floating:
+    description: Floating IP address of the deployer-controller node
     value: { get_attr: [deployer-controller-floatingip, floating_ip_address] }
+
+  deployer-controller-net-fixed-ip:
+    description: IP address of the deployer-controller in the fixed network
+    value: { get_attr: [deployer-controller, networks, fixed, 0]}
+
+  deployer-controller-net-ardana-ip:
+    description: IP address of the deployer-controller in the ardana network
+    value: { get_attr: [deployer-controller, networks, { get_resource: network_ardana }, 0]}
+
+  deployer-controller-net-mgmt-ip:
+    description: IP address of the deployer-controller in the mgmt network
+    value: { get_attr: [deployer-controller, networks, { get_resource: network_mgmt }, 0]}
+
+  # compute1
+  compute1-net-ardana-ip:
+    description: IP address of the compute1 node in the ardana network
+    value: { get_attr: [compute1, networks, { get_resource: network_ardana }, 0]}
+
+  compute1-net-mgmt-ip:
+    description: IP address of the compute1 node in the mgmt network
+    value: { get_attr: [compute1, networks, { get_resource: network_mgmt }, 0]}
+
+  # compute2
+  compute2-net-ardana-ip:
+    description: IP address of the compute2 node in the ardana network
+    value: { get_attr: [compute2, networks, { get_resource: network_ardana }, 0]}
+
+  compute2-net-mgmt-ip:
+    description: IP address of the compute2 node in the mgmt network
+    value: { get_attr: [compute2, networks, { get_resource: network_mgmt }, 0]}
