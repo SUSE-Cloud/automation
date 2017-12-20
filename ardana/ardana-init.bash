@@ -36,11 +36,19 @@ script_ansible="${SCRIPT_DIR}/ansible/$deployer_version"
 script_input_model="${SCRIPT_DIR}/input-model/$deployer_version"
 
 #
+# ardana sources installed via RPM packages
+#
+ardana_source=/usr/share/ardana
+ardana_ansible_source=${ardana_source}/ansible
+
+#
 # User output directories.
 #
-ardana_ansible_dir="/usr/share/ardana/ansible"
 ardana_output_dir="/var/lib/ardana/"
 ardana_staging_dir="${ardana_output_dir}/openstack-input"
+ardana_ansible_parent_dir="${ardana_staging_dir}/ardana"
+ardana_ansible_dir="${ardana_ansible_parent_dir}/ansible"
+
 ardana_target_dir="${ardana_output_dir}/openstack"
 ardana_deploy_dir="${ardana_output_dir}/scratch/ansible"
 ardana_packager_dir="/opt/ardana_packager/$deployer_version"
@@ -107,6 +115,12 @@ if [ "${OS,,}" == "sles" ]; then
 else
    echo "Unsupported OS: $OS"
 fi
+
+#
+# Set-up Ansible playbooks.
+#
+mkdir -p "${ardana_ansible_dir}"
+cp -r "${ardana_ansible_source}"/* "${ardana_ansible_dir}"
 
 #
 # Set up ardana-extensions area
