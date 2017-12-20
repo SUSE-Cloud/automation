@@ -43,8 +43,10 @@ fi
 : ${want_batch_dir:="${SCRIPTS_DIR}/scenarios"}
 if iscloudver 8plus; then
     : ${want_cinder_rbd_flatten_snaps:=1}
+    : ${want_clustered_rabbitmq:=1}
 else
     : ${want_cinder_rbd_flatten_snaps:=0}
+    : ${want_clustered_rabbitmq:=0}
 fi
 
 if [[ $arch = "s390x" ]] ; then
@@ -2181,9 +2183,10 @@ function custom_configuration
         ;;
         rabbitmq)
             if [[ $hacloud = 1 ]]; then
-                # When clustering is there, it is enabled by default for new installs, so we don't need
-                # to setup shared storage.
-                if ! grep -q cluster /opt/dell/chef/data_bags/crowbar/template-rabbitmq.json; then
+                # In Cloud 8, clustering is enabled by default, so we don't
+                # need to setup shared storage; in SOC 7, it is available in an
+                # update but disabled by default.
+                if iscloudver 6minus || ( iscloudver 7plus && [[ $want_clustered_rabbitmq = 0 ]] ); then
                     if [[ "$want_database_sql_engine" == "mysql" ]] ; then
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['device']" "'$adminfqdn:/srv/nfs/rabbitmq'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['fstype']" "'nfs'"
@@ -2192,6 +2195,12 @@ function custom_configuration
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
                     fi
+                    if iscloudver 7plus && grep -q cluster /opt/dell/chef/data_bags/crowbar/template-rabbitmq.json; then
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['cluster']" false
+                    fi
+                fi
+                if iscloudver 7plus && [[ $want_clustered_rabbitmq = 1 ]]; then
+                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['cluster']" true
                 fi
                 proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamedata']"
             fi
