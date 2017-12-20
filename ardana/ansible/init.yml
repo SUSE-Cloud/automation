@@ -3,6 +3,9 @@
   hosts: hosts
   gather_facts: False
 
+  vars_files:
+    - ardana_net_vars.yml
+
   environment:
     ARDANA_INIT_AUTO: 1
     ARDANA_DEPLOYER_MEDIA_LEGACY_LAYOUT: False
@@ -21,3 +24,24 @@
     shell: /var/lib/ardana/ardana-init.bash
     become: true
     become_user: ardana
+
+  - name: Initialize target Model from deployerincloud-lite
+    synchronize:
+      src: /var/lib/ardana/openstack/ardana-ci/deployerincloud-lite/
+      dest: /var/lib/ardana/openstack/my_cloud/definition/
+    delegate_to: "{{ inventory_hostname }}"
+    become: true
+    become_user: ardana
+
+  # FIXME this is ugly we need to find a better way to edit the model
+  - name: Update IP Addresses in Model
+    shell: |
+      sed -i "s/192\.168\.110\.3/{{ deployer_ardana_ip }}/; \
+              s/192\.168\.110\.4/{{ compute1_ardana_ip }}/; \
+              s/192\.168\.110\.5/{{ compute2_ardana_ip }}/;" \
+              /var/lib/ardana/openstack/my_cloud/definition/data/servers.yml
+
+  # FIXME: Do we really need this?
+  - name: Remove server-interface line from baremetal in mode
+    shell: |
+      sed -i "/server-interface:/d"  /var/lib/ardana/openstack/my_cloud/definition/data/servers.yml
