@@ -92,6 +92,22 @@
     become: true
     become_user: ardana
 
+  - name: Enable skip_disk_config on controller
+    shell: |
+      touch /etc/openstack/skip_disk_config
+
+  - name: Enable skip_disk_config on computes
+    # Using ardana + sudo here to avoid issues with remote root access after running site.yml
+    # for the first time
+    shell: |
+      ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  {{ item }} sudo mkdir /etc/openstack/
+      ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  {{ item }} sudo touch /etc/openstack/skip_disk_config
+    with_items:
+      - "{{ compute1_ardana_ip }}"
+      - "{{ compute2_ardana_ip }}"
+    become: true
+    become_user: ardana
+
   - name: Run the actual deployment site.yml playbook
     shell: |
       ansible-playbook -vvv -i hosts/verb_hosts site.yml
