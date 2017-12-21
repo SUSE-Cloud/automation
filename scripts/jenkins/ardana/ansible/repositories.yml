@@ -19,16 +19,6 @@
       repo: "http://{{ clouddata_server }}/repos/x86_64/SLES12-SP3-Updates"
       name: SLES12SP3-Updates
 
-  - name: Add SLE12SP3-SDK-Pool zypper repo
-    zypper_repository:
-      repo: "http://{{ clouddata_server }}/repos/x86_64/SLE12-SP3-SDK-Pool"
-      name: SLE12SP3-SDK-Pool
-
-  - name: Add SLE12SP3-SDK-Updates zypper repo
-    zypper_repository:
-      repo: "http://{{ clouddata_server }}/repos/x86_64/SLE12-SP3-SDK-Updates"
-      name: SLE12SP3-SDK-Updates
-
   # Devel:Cloud:8
   - name: Add Devel:Cloud:8:Staging
     zypper_repository:
