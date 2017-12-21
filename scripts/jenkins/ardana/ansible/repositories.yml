@@ -19,6 +19,16 @@
       repo: "http://{{ clouddata_server }}/repos/x86_64/SLES12-SP3-Updates"
       name: SLES12SP3-Updates
 
+  - name: Add SLE12SP3-SDK-Pool zypper repo
+    zypper_repository:
+      repo: "http://{{ clouddata_server }}/repos/x86_64/SLE12-SP3-SDK-Pool"
+      name: SLE12SP3-SDK-Pool
+
+  - name: Add SLE12SP3-SDK-Updates zypper repo
+    zypper_repository:
+      repo: "http://{{ clouddata_server }}/repos/x86_64/SLE12-SP3-SDK-Updates"
+      name: SLE12SP3-SDK-Updates
+
   # Devel:Cloud:8
   - name: Add Devel:Cloud:8:Staging
     zypper_repository:
@@ -36,6 +46,11 @@
       repo: "http://ftp5.gwdg.de/pub/opensuse/discontinued/distribution/leap/42.1/repo/oss/suse/"
       name: ansible-FIXME
 
+  - name: Repo for sshpass
+    zypper_repository:
+      repo: "http://download.suse.de/ibs/QA:/SLE12SP3/update/"
+      name: sshpass
+
   # Refresh all repos
   - name: Refresh zypper repositories
     zypper_repository:
@@ -47,6 +62,11 @@
   - name: Install ansible 1.9.3
     zypper:
       name: 'ansible-1.9.3'
+      state: present
+
+  - name: Install sshpass
+    zypper:
+      name: 'sshpass'
       state: present
 
   # NOTE: ansible's zypper extra_args are only supported in >= 2.4 and even if that version,
