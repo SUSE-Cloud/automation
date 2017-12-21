@@ -36,9 +36,10 @@
   # FIXME this is ugly we need to find a better way to edit the model
   - name: Update IP Addresses in Model
     shell: |
-      sed -i "s/192\.168\.110\.3/{{ deployer_ardana_ip }}/; \
-              s/192\.168\.110\.4/{{ compute1_ardana_ip }}/; \
-              s/192\.168\.110\.5/{{ compute2_ardana_ip }}/;" \
+      sed -i "s/ 192\.168\.110\.3/ x{{ deployer_ardana_ip }}/; \
+              s/ 192\.168\.110\.4/ x{{ compute1_ardana_ip }}/; \
+              s/ 192\.168\.110\.5/ x{{ compute2_ardana_ip }}/; \
+              s/x192/ 192/;" \
               /var/lib/ardana/openstack/my_cloud/definition/data/servers.yml
 
   # FIXME: Do we really need this?
