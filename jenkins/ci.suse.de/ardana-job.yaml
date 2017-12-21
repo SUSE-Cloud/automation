@@ -6,6 +6,11 @@
     node: cloud-ardana-ci
     wrappers:
       - timestamps
+
+    logrotate:
+      numToKeep: 20
+      daysToKeep: 30
+
     builders:
       - shell: |
           set -ex
