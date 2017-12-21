@@ -109,7 +109,7 @@ sudo mkdir -p "${ansible_package_dir}"
 sudo mkdir -p "${ansible_service_dir}"
 # Extract the Ansible venv from the venv tarball.
 if [ "${OS,,}" == "sles" ]; then
-   rpmqpack | grep -qx ansible || {
+   rpmqpack | grep -x ansible > /dev/null || {
        sudo rpm -Uvh http://ftp5.gwdg.de/pub/opensuse/discontinued/distribution/leap/42.1/repo/oss/suse/noarch/ansible-1.9.3-1.1.noarch.rpm
    }
 else
