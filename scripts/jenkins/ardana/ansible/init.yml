@@ -11,17 +11,8 @@
     ARDANA_DEPLOYER_MEDIA_LEGACY_LAYOUT: False
 
   tasks:
-  - name: Download ardana-init.bash
-    get_url:
-      url: https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/ardana/ardana-init.bash
-      dest: /var/lib/ardana/ardana-init.bash
-      mode: 0775
-      owner: ardana
-    become: true
-    become_user: ardana
-
-  - name: Call ardana-init.bash
-    shell: /var/lib/ardana/ardana-init.bash
+  - name: Call ardana-init
+    shell: /usr/bin/ardana-init
     become: true
     become_user: ardana
 
