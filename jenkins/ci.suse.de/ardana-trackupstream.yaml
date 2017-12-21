@@ -35,7 +35,6 @@
             - ardana-heat
             - ardana-horizon
             - ardana-input-model
-            - ardana-input-model-ref
             - ardana-installer-ui
             - ardana-ironic
             - ardana-keystone
