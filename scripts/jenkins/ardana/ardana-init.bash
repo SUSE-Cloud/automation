@@ -171,7 +171,7 @@ set +x
 
 echo
 tp_dirs=$(shopt -s nullglob dotglob; echo ~/third-party/*/)
-if (( {{ '${#tp_dirs}' }} )); then
+if (( ${#tp_dirs} )); then
     RED='\033[0;31m'
     NC='\033[0m'
     echo -e "${RED}Third-party content detected!${NC}"
