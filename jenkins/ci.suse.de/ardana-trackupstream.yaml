@@ -53,8 +53,6 @@
             - ardana-opsconsole-server
             - ardana-osconfig
             - ardana-qa-ansible
-            - ardana-re-osrb
-            - ardana-re-tools
             - ardana-service
             - ardana-service-ansible
             - ardana-spark
