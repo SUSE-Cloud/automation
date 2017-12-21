@@ -18,7 +18,9 @@
 
   - name: Create ssh key for ardana user on deployer
     shell: |
-      [ -f ~/.ssh/id_rsa ] && ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
+      [ -f ~/.ssh/id_rsa ] || ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
+    become: true
+    become_user: ardana
 
   - name: Create ardana user on compute nodes
     shell: |
@@ -85,6 +87,7 @@
 
   - name: Enable skip_disk_config on controller
     shell: |
+      mkdir -p /etc/openstack/
       touch /etc/openstack/skip_disk_config
 
   - name: Enable skip_disk_config on computes
