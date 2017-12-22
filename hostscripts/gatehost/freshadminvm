@@ -7,7 +7,7 @@ if [ -z "$n" ] ; then
         exit 1
 fi
 
-if [[ "$n" != crowbard2 && "$n" != crowbard3 ]] ; then
+if [[ $n != crowbard2 && $n != crowbard3 && $n != $crowbar_vmname ]] ; then
         echo "bad VM name"
         exit 2
 fi
