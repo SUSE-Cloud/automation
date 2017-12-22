@@ -374,8 +374,10 @@ function libvirt_do_onhost_deploy_image()
         fi
     fi
 
+    local qemu_img_extra=""
+    test -b $disk && qemu_img_extra="-t none -S 0" # sparse and cache only if it is not a blockdevice
     echo "Cloning $role node vdisk from $image ..."
-    safely $sudo qemu-img convert -t none -O raw -S 0 -p $image_path $disk
+    safely $sudo qemu-img convert -O raw $qemu_img_extra -p $image_path $disk
 
     if [[ ${resize_admin_node_partition:-1} = 1 ]]; then
         # resize the last partition only if it has id 83
