@@ -50,7 +50,7 @@ resources:
       network_id: { get_resource: network_mgmt }
       cidr: "192.168.245.0/24"
       ip_version: 4
-      gateway_ip: null
+      gateway_ip: 192.168.245.1
   subnet_ardana:
     type: OS::Neutron::Subnet
     properties:
@@ -59,11 +59,26 @@ resources:
       ip_version: 4
       gateway_ip: null
 
+  # router
+  router_mgmt:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network: floating
+
+  router_mgmt_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router_mgmt }
+      subnet_id: { get_resource: subnet_mgmt }
+
+  # floating IPs
   deployer-controller-floatingip:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network: floating
 
+  # instances
   deployer-controller:
     type: OS::Nova::Server
     properties:
