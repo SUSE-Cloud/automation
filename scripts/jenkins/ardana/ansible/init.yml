@@ -33,6 +33,14 @@
       - "{{ compute1_ardana_ip }}"
       - "{{ compute2_ardana_ip }}"
 
+  # FIXME: This is ugly and we do not need all the repos from the deployer on the compute nodes
+  - name: Copy zypper repo setup from deployer-controller to compute nodes
+    shell: |
+      sshpass -p linux scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/zypp/repos.d/* root@{{ item }}:/etc/zypp/repos.d/
+    with_items:
+      - "{{ compute1_ardana_ip }}"
+      - "{{ compute2_ardana_ip }}"
+
   - name: Initialize target Model from deployerincloud-lite
     synchronize:
       src: /var/lib/ardana/openstack/ardana-ci/deployerincloud-lite/
