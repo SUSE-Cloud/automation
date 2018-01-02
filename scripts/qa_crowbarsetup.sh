@@ -1453,7 +1453,8 @@ function reboot_nodes_via_ipmi
     local i=0
     for ip in $ipmi_ip_addrs ; do
         let i++
-        local ipmicmd="ipmitool -H $ip -U $want_ipmi_username"
+        # want_ipmi_extraopts might be useful as "-I lanplus"...
+        local ipmicmd="ipmitool -H $ip -U $want_ipmi_username $want_ipmi_extraopts"
         local pw
         for pw in 'cr0wBar!' $extraipmipw ; do
             if timeout 5 $ipmicmd -P $pw mc info ; then
