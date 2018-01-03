@@ -25,6 +25,7 @@
           DEPLOYER_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-net-ardana-ip -c output_value -f value)
           COMPUTE1_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute1-net-ardana-ip -c output_value -f value)
           COMPUTE2_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute2-net-ardana-ip -c output_value -f value)
+          NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME network-mgmt-id -c output_value -f value)
 
           # FIXME: Use cloud-init in the used image
           sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${DEPLOYER_IP}
@@ -41,6 +42,13 @@
           compute1_ardana_ip: $COMPUTE1_ARDANA_IP
           compute2_ardana_ip: $COMPUTE2_ARDANA_IP
           EOF
+          # Get the IP addresses of the dns servers from the mgmt network
+          echo "mgmt_dnsservers:" >> ardana_net_vars.yml
+          openstack --os-cloud $CLOUD_CONFIG_NAME port list --network $NETWORK_MGMT_ID \
+                    --device-owner network:dhcp -f value -c 'Fixed IP Addresses' | \
+              sed -e "s/^ip_address='\(.*\)', .*$/\1/" | \
+              while read line; do echo "  - $line" >> ardana_net_vars.yml; done;
+
           cat ardana_net_vars.yml
 
           wget -O repositories.yml https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/ardana/ansible/repositories.yml
