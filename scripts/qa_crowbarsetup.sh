@@ -36,6 +36,7 @@ fi
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
 : ${want_ipmi_username:=root}
+: ${want_ipmi_pxeextraopts:=options=persistent}
 : ${want_multidnstest:=1}
 : ${want_tempest:=1}
 : ${want_s390:=''}
@@ -1476,7 +1477,7 @@ function reboot_nodes_via_ipmi
                     "default gateway to be active in bmc"
             fi
 
-            $ipmicmd chassis bootdev pxe options=persistent
+            $ipmicmd chassis bootdev pxe ${want_ipmi_pxeextraopts}
             $ipmicmd power off
             wait_for 30 2 "timeout 5 $ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
             $ipmicmd power on
