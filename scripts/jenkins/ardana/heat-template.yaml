@@ -158,3 +158,8 @@ outputs:
   compute2-net-mgmt-ip:
     description: IP address of the compute2 node in the mgmt network
     value: { get_attr: [compute2, networks, { get_resource: network_mgmt }, 0]}
+
+  # network info
+  network-mgmt-id:
+    description: Neutron Network ID of management network
+    value: { get_resource: network_mgmt }
