@@ -164,8 +164,9 @@ done
 
 for version in 2.1 4 5; do
 
-    for arch in x86_64 aarch64; do
+    for arch in $archs; do
         [ "$arch" != x86_64 -a $version = 2.1 ] && continue
+        [ "$arch" != x86_64 -a "$arch" != aarch64 ] && continue
 
         echo ================== Updating Storage $version
 
