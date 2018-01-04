@@ -285,6 +285,15 @@ function addcloudpool
         "cloudpool"
 }
 
+function add_salt_repo
+{
+    local suffix
+    for suffix in Pool Updates; do
+        add_mount "repos/$arch/SLE12-Module-Adv-Systems-Management-$suffix/" \
+            "$tftpboot_repos_dir/SLE12-Module-Adv-Systems-Management-$suffix/" "salt-$suffix"
+    done
+}
+
 function add_sdk_repo
 {
     local sdk_repo_priority
@@ -4169,9 +4178,31 @@ puts y.to_yaml" > /root/keystone-test-pw-reset.yaml
     safely crowbar batch --timeout 900 build < /root/keystone-test-pw-reset.yaml
 }
 
+function onadmin_have_salt_barclamp
+{
+    test -e /opt/dell/crowbar_framework/barclamps/salt.yml
+}
+
+function onadmin_setupsalt
+{
+    onadmin_have_salt_barclamp || return 0
+    add_salt_repo
+    do_one_proposal salt default
+}
+
+function onadmin_testsalt
+{
+    onadmin_have_salt_barclamp || return 0
+    test -e /etc/salt/roster || onadmin_setupsalt
+    salt-ssh \* test.ping | tee /tmp/salt.test.log
+    # compare successful pings to node number (+1 for crowbar)
+    test $((1 + $(nodes number all))) = $(grep "^  *True$" /tmp/salt.test.log | wc -l)
+}
+
 function onadmin_testsetup
 {
     pre_hook $FUNCNAME
+    safely onadmin_testsalt
 
     local numdnsservers=$(crowbar dns proposal show default | rubyjsonparse "puts j['deployment']['dns']['elements']['dns-server'].length")
     if [ "$want_multidnstest" = 1 ] && [ "$numdnsservers" -gt 1 ]; then
