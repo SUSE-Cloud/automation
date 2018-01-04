@@ -22,13 +22,25 @@
     become: true
     become_user: ardana
 
+  - name: Create ssh key for root user on deployer
+    shell: |
+      [ -f ~/.ssh/id_rsa ] || ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
+
+  - name: Copy root key to compute nodes
+    shell: |
+      sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {{ item }}
+    with_items:
+      - "{{ compute1_ardana_ip }}"
+      - "{{ compute2_ardana_ip }}"
+    ignore_errors: True
+
   - name: Create ardana user on compute nodes
     shell: |
-      sshpass -p linux ssh -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "getent passwd ardana || useradd -m -d /var/lib/ardana -r -s /bin/bash ardana"
-      sshpass -p linux ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} mkdir -p /var/lib/ardana/.ssh/
-      sshpass -p linux scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ~ardana/.ssh/id_rsa.pub root@{{ item }}:/var/lib/ardana/.ssh/authorized_keys
-      sshpass -p linux ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} chown -R ardana: /var/lib/ardana/.ssh/
-      sshpass -p linux scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/sudoers.d/ardana root@{{ item }}:/etc/sudoers.d/ardana
+      ssh -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "getent passwd ardana || useradd -m -d /var/lib/ardana -r -s /bin/bash ardana"
+      ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} mkdir -p /var/lib/ardana/.ssh/
+      scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ~ardana/.ssh/id_rsa.pub root@{{ item }}:/var/lib/ardana/.ssh/authorized_keys
+      ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} chown -R ardana: /var/lib/ardana/.ssh/
+      scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/sudoers.d/ardana root@{{ item }}:/etc/sudoers.d/ardana
     with_items:
       - "{{ compute1_ardana_ip }}"
       - "{{ compute2_ardana_ip }}"
@@ -36,8 +48,8 @@
   # FIXME: This is ugly and we do not need all the repos from the deployer on the compute nodes
   - name: Copy zypper repo setup from deployer-controller to compute nodes
     shell: |
-      sshpass -p linux scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/zypp/repos.d/* root@{{ item }}:/etc/zypp/repos.d/
-      sshpass -p linux ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} zypper -n --gpg-auto-import-keys ref
+      scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/zypp/repos.d/* root@{{ item }}:/etc/zypp/repos.d/
+      ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} zypper -n --gpg-auto-import-keys ref
     with_items:
       - "{{ compute1_ardana_ip }}"
       - "{{ compute2_ardana_ip }}"
