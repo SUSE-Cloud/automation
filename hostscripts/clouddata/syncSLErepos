@@ -49,7 +49,7 @@ M=
 DRY=--dry-run
 DRY=
 
-rsync="$E rsync $DRY --bwlimit 10000 --delay-updates $rsync_delete -aH --no-owner --no-group --exclude=*src.rpm "
+rsync="$E rsync $DRY --bwlimit 10000 --delay-updates $rsync_delete -aH --no-owner --no-group --exclude=*src.rpm --exclude=*-debuginfo-*.rpm --exclude=*-debugsource-*.rpm "
 
 # http://download.suse.de/ibs/Devel:/Cloud:/4/images/*qcow2 -> images/SLES11-SP3-x86_64-cfntools.qcow2
 
