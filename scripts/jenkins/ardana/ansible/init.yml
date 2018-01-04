@@ -64,6 +64,20 @@
     shell: |
       sed -i "/server-interface:/d"  /var/lib/ardana/openstack/my_cloud/definition/data/servers.yml
 
+  - name: Update DNS servers in Model
+    shell: >
+      python -c "
+         import yaml;
+         f = open('cloudConfig.yml');
+         data = yaml.load(f.read());
+         f.close();
+         data['cloud']['dns-settings']['nameservers'] = {{ mgmt_dnsservers }} ;
+         f = open('cloudConfig.yml', 'w');
+         f.write(yaml.safe_dump(data, default_flow_style=False));
+         f.close();"
+    args:
+      chdir: /var/lib/ardana//openstack/my_cloud/definition/
+
   - name: Add my_cloud config to git
     shell: |
       git add -A
