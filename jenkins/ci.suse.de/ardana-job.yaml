@@ -22,9 +22,9 @@
           wget -O $HEAT_TEMPLATE_NAME https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/ardana/heat-template.yaml
           openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t $HEAT_TEMPLATE_NAME  $STACK_NAME
           DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-ip-floating -c output_value -f value)
-          DEPLOYER_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-net-ardana-ip -c output_value -f value)
-          COMPUTE1_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute1-net-ardana-ip -c output_value -f value)
-          COMPUTE2_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute2-net-ardana-ip -c output_value -f value)
+          DEPLOYER_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-net-mgmt-ip -c output_value -f value)
+          COMPUTE1_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute1-net-mgmt-ip -c output_value -f value)
+          COMPUTE2_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute2-net-mgmt-ip -c output_value -f value)
           NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME network-mgmt-id -c output_value -f value)
 
           # FIXME: Use cloud-init in the used image
@@ -38,9 +38,9 @@
 
           cat << EOF > ardana_net_vars.yml
           ---
-          deployer_ardana_ip: $DEPLOYER_ARDANA_IP
-          compute1_ardana_ip: $COMPUTE1_ARDANA_IP
-          compute2_ardana_ip: $COMPUTE2_ARDANA_IP
+          deployer_mgmt_ip: $DEPLOYER_MGMT_IP
+          compute1_mgmt_ip: $COMPUTE1_MGMT_IP
+          compute2_mgmt_ip: $COMPUTE2_MGMT_IP
           EOF
           # Get the IP addresses of the dns servers from the mgmt network
           echo "mgmt_dnsservers:" >> ardana_net_vars.yml
