@@ -56,7 +56,9 @@ rsync="$E rsync $DRY --bwlimit 10000 --delay-updates $rsync_delete -aH --no-owne
 
 # http://download.suse.de/ibs/Devel:/Cloud:/4/images/*qcow2 -> images/SLES11-SP3-x86_64-cfntools.qcow2
 
-ibsmaint=${ibs_source}/SUSE\:/Maintenance\:/Test\:/
+# Always sync the Maintenance test updates from NUE as they are not yet
+# on ibs-mirror.prv.suse.net. change this back when fixed.
+ibsmaint=${ibs_source_nue}/SUSE\:/Maintenance\:/Test\:/
 
 rsync_with_create() {
     local src="$1"
