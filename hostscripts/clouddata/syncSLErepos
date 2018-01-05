@@ -18,20 +18,19 @@ ibs_source_prv="rsync://ibs-mirror.prv.suse.net/dist/ibs/"
 # The install source in Provo
 install_source_prv="rsync://ibs-mirror.prv.suse.net/dist/install/"
 
+rsync_excludes="--exclude=*src.rpm"
+rsync_delete="--delete-delay"
+
 if [ $SITE = "nue" ]; then
     ibs_source=$ibs_source_nue
     install_source=$install_source_nue
     archs="x86_64 s390x aarch64"
-    rsync_delete="--delete-delay"
 elif [ $SITE = "prv" ]; then
     ibs_source=$ibs_source_prv
     install_source=$install_source_prv
     # we do not need anything other that x86_64 in provo currently
     archs=x86_64
-    # We currently do not sync with delete to provo as there is
-    # some stuff not available in the provo ibs mirror and it would
-    # then disappear
-    rsync_delete=""
+    rsync_excludes+=" --exclude=*-untested.qcow2 --exclude=*-debugsource-*.rpm --exclude=*-debuginfo-*.rpm"
 else
     echo "Invalid site $SITE"
     exit 1
@@ -49,11 +48,14 @@ M=
 DRY=--dry-run
 DRY=
 
-rsync="$E rsync $DRY --bwlimit 10000 --delay-updates $rsync_delete -aH --no-owner --no-group --exclude=*src.rpm --exclude=*-debuginfo-*.rpm --exclude=*-debugsource-*.rpm "
+rsync="$E rsync $DRY --timeout=1200 --fuzzy --bwlimit 10000
+    --delay-updates $rsync_delete -aH --no-owner --no-group $rsync_excludes "
 
 # http://download.suse.de/ibs/Devel:/Cloud:/4/images/*qcow2 -> images/SLES11-SP3-x86_64-cfntools.qcow2
 
-ibsmaint=${ibs_source}/SUSE\:/Maintenance\:/Test\:/
+# Always sync the Maintenance test updates from NUE as they are not yet
+# on ibs-mirror.prv.suse.net. change this back when fixed.
+ibsmaint=${ibs_source_nue}/SUSE\:/Maintenance\:/Test\:/
 
 rsync_with_create() {
     local src="$1"
@@ -199,9 +201,6 @@ function mount_and_rsync {
     fi
 }
 
-# mirror aarch64 SP1 builds
-$rsync /mnt/dist/ibs/Devel:/ARM:/SLE-12-SP1:/Update/images/repo/SLE-12-SP1-Server-POOL-aarch64-*-Media1/ /srv/nfs/repos/aarch64/SLES12-SP1-Pool
-
 for version in 6 7 8; do
     # fetch latest code from version in development (not just latest beta)
     sync_from_ibs=
@@ -244,11 +243,11 @@ for arch in $archs ; do
     fi
 done
 
-# repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync, cct)
-for obsrepo in devel:/languages:/ruby:/extensions/SLE_12 devel:/tools:/building/SLE_12_SP1 ; do
-    rsync_with_create rsync://rsync.opensuse.org/buildservice-repos/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/
-done
-
 if [ $SITE = "nue" ]; then
+    # repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync, cct)
+    for obsrepo in devel:/languages:/ruby:/extensions/SLE_12 devel:/tools:/building/SLE_12_SP1 ; do
+        rsync_with_create rsync://rsync.opensuse.org/buildservice-repos/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/
+    done
+
     timeout 1h ~/bin/syncgitrepos
 fi
