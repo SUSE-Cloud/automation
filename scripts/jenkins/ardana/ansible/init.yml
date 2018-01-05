@@ -84,6 +84,7 @@
          data = yaml.load(f.read());
          f.close();
          data['cloud']['dns-settings']['nameservers'] = {{ mgmt_dnsservers }} ;
+         data['cloud']['ntp-servers'] = ['ntp.suse.de'];
          f = open('cloudConfig.yml', 'w');
          f.write(yaml.safe_dump(data, default_flow_style=False));
          f.close();"
