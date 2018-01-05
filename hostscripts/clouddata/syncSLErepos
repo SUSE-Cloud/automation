@@ -19,21 +19,17 @@ ibs_source_prv="rsync://ibs-mirror.prv.suse.net/dist/ibs/"
 install_source_prv="rsync://ibs-mirror.prv.suse.net/dist/install/"
 
 rsync_excludes="--exclude=*src.rpm"
+rsync_delete="--delete-delay"
 
 if [ $SITE = "nue" ]; then
     ibs_source=$ibs_source_nue
     install_source=$install_source_nue
     archs="x86_64 s390x aarch64"
-    rsync_delete="--delete-delay"
 elif [ $SITE = "prv" ]; then
     ibs_source=$ibs_source_prv
     install_source=$install_source_prv
     # we do not need anything other that x86_64 in provo currently
     archs=x86_64
-    # We currently do not sync with delete to provo as there is
-    # some stuff not available in the provo ibs mirror and it would
-    # then disappear
-    rsync_delete=""
     rsync_excludes+=" --exclude=*-untested.qcow2 --exclude=*-debugsource-*.rpm --exclude=*-debuginfo-*.rpm"
 else
     echo "Invalid site $SITE"
