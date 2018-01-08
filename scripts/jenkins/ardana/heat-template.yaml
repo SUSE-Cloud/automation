@@ -43,27 +43,27 @@ resources:
       network_id: { get_resource: network_mgmt }
       cidr: "192.168.245.0/24"
       ip_version: 4
-      gateway_ip: 192.168.245.1
+      gateway_ip: null
   subnet_ardana:
     type: OS::Neutron::Subnet
     properties:
       network_id: { get_resource: network_ardana }
       cidr: "192.168.110.0/24"
       ip_version: 4
-      gateway_ip: null
+      gateway_ip: 192.168.110.1
 
   # router
-  router_mgmt:
+  router_ardana:
     type: OS::Neutron::Router
     properties:
       external_gateway_info:
         network: floating
 
-  router_mgmt_interface:
+  router_ardana_interface:
     type: OS::Neutron::RouterInterface
     properties:
-      router_id: { get_resource: router_mgmt }
-      subnet_id: { get_resource: subnet_mgmt }
+      router_id: { get_resource: router_ardana }
+      subnet_id: { get_resource: subnet_ardana }
 
   # floating IPs
   deployer-controller-floatingip:
@@ -79,8 +79,8 @@ resources:
       image: { get_param: image_id }
       flavor: { get_param: instance_type_controller }
       networks:
-        - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
+        - network: { get_resource: network_mgmt }
 
   compute1:
     type: OS::Nova::Server
@@ -89,8 +89,8 @@ resources:
       image: { get_param: image_id }
       flavor: { get_param: instance_type_compute }
       networks:
-        - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
+        - network: { get_resource: network_mgmt }
 
   compute2:
     type: OS::Nova::Server
@@ -99,15 +99,15 @@ resources:
       image: { get_param: image_id }
       flavor: { get_param: instance_type_compute }
       networks:
-        - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
+        - network: { get_resource: network_mgmt }
 
 
   deployer-controller-floating-assignment:
     type: OS::Neutron::FloatingIPAssociation
     properties:
       floatingip_id: { get_resource: deployer-controller-floatingip }
-      port_id: {get_attr: [deployer-controller, addresses, { get_resource: network_mgmt }, 0, port]}
+      port_id: {get_attr: [deployer-controller, addresses, { get_resource: network_ardana }, 0, port]}
 
 outputs:
   # deployer-controller
@@ -142,6 +142,6 @@ outputs:
     value: { get_attr: [compute2, networks, { get_resource: network_mgmt }, 0]}
 
   # network info
-  network-mgmt-id:
-    description: Neutron Network ID of management network
-    value: { get_resource: network_mgmt }
+  network-ardana-id:
+    description: Neutron Network ID of ardana network
+    value: { get_resource: network_ardana }
