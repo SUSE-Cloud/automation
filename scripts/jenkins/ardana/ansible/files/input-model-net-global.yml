@@ -7,8 +7,6 @@
       vlanid: 101
       tagged-vlan: false
       cidr: 192.168.110.0/24
-      addresses:
-        - 192.168.110.10-192.168.110.200
       gateway-ip: 192.168.110.1
       network-group: ARDANA
 
@@ -16,6 +14,8 @@
       vlanid: 102
       tagged-vlan: false
       cidr: 192.168.245.0/24
+      addresses:
+        - 192.168.245.10-192.168.245.200
       gateway-ip: 192.168.245.1
       network-group: MANAGEMENT
 
