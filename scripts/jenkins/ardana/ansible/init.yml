@@ -96,6 +96,13 @@
     tags:
       - create-ardana-input-model
 
+  - name: Update nic-global in Model
+    copy:
+      src: input-model-net-global.yml
+      dest: /var/lib/ardana/openstack/my_cloud/definition/data/net_global.yml
+    tags:
+      - create-ardana-input-model
+
   - name: Add my_cloud config to git
     shell: |
       git add -A
@@ -145,7 +152,7 @@
 
   - name: Run the actual deployment site.yml playbook
     shell: |
-      ansible-playbook -vvv -i hosts/verb_hosts site.yml
+      ansible-playbook -vvv -i hosts/verb_hosts site.yml 2>&1 | tee site-playbook-run.log
     args:
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true
