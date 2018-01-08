@@ -11,6 +11,19 @@
       numToKeep: 20
       daysToKeep: 30
 
+    parameters:
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
+
     builders:
       - shell: |
           set -ex
@@ -21,7 +34,7 @@
           CLOUD_CONFIG_NAME=engcloud-cloud-ci
 
           # init the git tree
-          git clone https://github.com/SUSE-Cloud/automation.git automation-git
+          git clone $git_automation_repo --branch $git_automation_branch automation-git
           pushd automation-git/scripts/jenkins/ardana/
 
           openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t heat-template.yaml  $STACK_NAME
