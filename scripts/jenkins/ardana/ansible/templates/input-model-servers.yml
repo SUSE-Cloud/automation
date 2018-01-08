@@ -15,7 +15,7 @@
       ilo-ip: 192.168.109.3
       ilo-password: password
       ilo-user: admin
-      nic-mapping: DEPLOYER
+      nic-mapping: HEAT
 
     - id: cpn-0001
       ip-addr:  {{ compute1_mgmt_ip }}
@@ -24,7 +24,7 @@
       ilo-ip: 192.168.109.4
       ilo-password: password
       ilo-user: admin
-      nic-mapping: COMPUTE
+      nic-mapping: HEAT
 
     - id: cpn-0002
       ip-addr:  {{ compute2_mgmt_ip }}
@@ -33,4 +33,4 @@
       ilo-ip: 192.168.109.5
       ilo-password: password
       ilo-user: admin
-      nic-mapping: COMPUTE
+      nic-mapping: HEAT
