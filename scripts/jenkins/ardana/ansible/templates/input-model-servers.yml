@@ -1,0 +1,36 @@
+---
+  product:
+    version: 2
+
+  baremetal:
+    subnet: 192.168.110.0
+    netmask: 255.255.255.0
+
+  servers:
+
+    - id: ccn-0001
+      ip-addr:  {{ deployer_mgmt_ip }}
+      role: LITE-CONTROLLER-ROLE
+      mac-addr: b2:72:8d:ac:7c:6f
+      ilo-ip: 192.168.109.3
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: DEPLOYER
+
+    - id: cpn-0001
+      ip-addr:  {{ compute1_mgmt_ip }}
+      role: LITE-COMPUTE-ROLE
+      mac-addr: d6:70:c1:36:43:f7
+      ilo-ip: 192.168.109.4
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: COMPUTE
+
+    - id: cpn-0002
+      ip-addr:  {{ compute2_mgmt_ip }}
+      role: LITE-COMPUTE-ROLE
+      mac-addr: 8e:8e:62:a6:ce:76
+      ilo-ip: 192.168.109.5
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: COMPUTE
