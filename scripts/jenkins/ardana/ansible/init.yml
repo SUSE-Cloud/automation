@@ -8,7 +8,6 @@
 
   environment:
     ARDANA_INIT_AUTO: 1
-    ARDANA_DEPLOYER_MEDIA_LEGACY_LAYOUT: False
 
   tasks:
   - name: Call ardana-init
@@ -61,20 +60,17 @@
     delegate_to: "{{ inventory_hostname }}"
     become: true
     become_user: ardana
+    tags:
+      - create-ardana-input-model
 
-  # FIXME this is ugly we need to find a better way to edit the model
-  - name: Update IP Addresses in Model
-    shell: |
-      sed -i "s/ 192\.168\.110\.3/ x{{ deployer_mgmt_ip }}/; \
-              s/ 192\.168\.110\.4/ x{{ compute1_mgmt_ip }}/; \
-              s/ 192\.168\.110\.5/ x{{ compute2_mgmt_ip }}/; \
-              s/x192/ 192/;" \
-              /var/lib/ardana/openstack/my_cloud/definition/data/servers.yml
-
-  # FIXME: Do we really need this?
-  - name: Remove server-interface line from baremetal in mode
-    shell: |
-      sed -i "/server-interface:/d"  /var/lib/ardana/openstack/my_cloud/definition/data/servers.yml
+  - name: Update servers in Model
+    template:
+      src: input-model-servers.yml
+      dest: /var/lib/ardana//openstack/my_cloud/definition/data/servers.yml
+      owner: ardana
+      group: ardana
+    tags:
+      - create-ardana-input-model
 
   - name: Update DNS servers in Model
     shell: >
@@ -90,6 +86,15 @@
          f.close();"
     args:
       chdir: /var/lib/ardana//openstack/my_cloud/definition/
+    tags:
+      - create-ardana-input-model
+
+  - name: Update nic-mappings in Model
+    copy:
+      src: input-model-nic-mappings.yml
+      dest: /var/lib/ardana//openstack/my_cloud/definition/data/nic_mappings.yml
+    tags:
+      - create-ardana-input-model
 
   - name: Add my_cloud config to git
     shell: |
@@ -142,6 +147,6 @@
     shell: |
       ansible-playbook -vvv -i hosts/verb_hosts site.yml
     args:
-      chdir: /var/lib/ardana//scratch/ansible/next/ardana/ansible
+      chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true
     become_user: ardana

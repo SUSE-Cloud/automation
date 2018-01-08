@@ -14,22 +14,25 @@
     builders:
       - shell: |
           set -ex
-          HEAT_TEMPLATE_NAME=heat-template.yaml
           STACK_NAME=cloud-ci-$JOB_NAME-$BUILD_ID
+          export ANSIBLE_HOST_KEY_CHECKING=False
+          export ANSIBLE_KEEP_REMOTE_FILES=1
           # the name for the cloud defined in ~./config/openstack/clouds.yaml
           CLOUD_CONFIG_NAME=engcloud-cloud-ci
-          # FIXME: use the template which is in the automation repo once this is merged!
-          wget -O $HEAT_TEMPLATE_NAME https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/ardana/heat-template.yaml
-          openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t $HEAT_TEMPLATE_NAME  $STACK_NAME
+
+          # init the git tree
+          git clone https://github.com/SUSE-Cloud/automation.git automation-git
+          pushd automation-git/scripts/jenkins/ardana/
+
+          openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t heat-template.yaml  $STACK_NAME
           DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-ip-floating -c output_value -f value)
           DEPLOYER_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-net-mgmt-ip -c output_value -f value)
           COMPUTE1_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute1-net-mgmt-ip -c output_value -f value)
           COMPUTE2_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute2-net-mgmt-ip -c output_value -f value)
           NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME network-mgmt-id -c output_value -f value)
-
           # FIXME: Use cloud-init in the used image
           sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${DEPLOYER_IP}
-          pwd
+          pushd ansible
           cat << EOF > hosts
           [hosts]
           $DEPLOYER_IP ansible_user=root
@@ -51,10 +54,5 @@
 
           cat ardana_net_vars.yml
 
-          wget -O repositories.yml https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/ardana/ansible/repositories.yml
-          export ANSIBLE_HOST_KEY_CHECKING=False
-          export ANSIBLE_KEEP_REMOTE_FILES=1
-          export ARDANA_DEPLOYER_MEDIA_LEGACY_LAYOUT=False
           ansible-playbook -vvv -i hosts repositories.yml
-          wget -O init.yml https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/ardana/ansible/init.yml
           ansible-playbook -vvv -i hosts init.yml
