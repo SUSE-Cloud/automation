@@ -8,7 +8,6 @@
 
   environment:
     ARDANA_INIT_AUTO: 1
-    ARDANA_DEPLOYER_MEDIA_LEGACY_LAYOUT: False
 
   tasks:
   - name: Call ardana-init

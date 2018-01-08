@@ -17,7 +17,6 @@
           STACK_NAME=cloud-ci-$JOB_NAME-$BUILD_ID
           export ANSIBLE_HOST_KEY_CHECKING=False
           export ANSIBLE_KEEP_REMOTE_FILES=1
-          export ARDANA_DEPLOYER_MEDIA_LEGACY_LAYOUT=False
           # the name for the cloud defined in ~./config/openstack/clouds.yaml
           CLOUD_CONFIG_NAME=engcloud-cloud-ci
 
