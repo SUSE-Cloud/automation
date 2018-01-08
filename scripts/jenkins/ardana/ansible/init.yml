@@ -145,7 +145,7 @@
 
   - name: Run the actual deployment site.yml playbook
     shell: |
-      ansible-playbook -vvv -i hosts/verb_hosts site.yml
+      ansible-playbook -vvv -i hosts/verb_hosts site.yml 2>&1 | tee site-playbook-run.log
     args:
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true
