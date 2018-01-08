@@ -91,7 +91,6 @@ resources:
       security_groups:
         - { get_resource: security-group-base }
       networks:
-        - network: fixed
         - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
 
@@ -124,17 +123,13 @@ resources:
     type: OS::Neutron::FloatingIPAssociation
     properties:
       floatingip_id: { get_resource: deployer-controller-floatingip }
-      port_id: {get_attr: [deployer-controller, addresses, fixed, 0, port]}
+      port_id: {get_attr: [deployer-controller, addresses, { get_resource: network_mgmt }, 0, port]}
 
 outputs:
   # deployer-controller
   deployer-controller-ip-floating:
     description: Floating IP address of the deployer-controller node
     value: { get_attr: [deployer-controller-floatingip, floating_ip_address] }
-
-  deployer-controller-net-fixed-ip:
-    description: IP address of the deployer-controller in the fixed network
-    value: { get_attr: [deployer-controller, networks, fixed, 0]}
 
   deployer-controller-net-ardana-ip:
     description: IP address of the deployer-controller in the ardana network
