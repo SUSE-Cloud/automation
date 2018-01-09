@@ -4,7 +4,7 @@
   gather_facts: False
 
   vars:
-    clouddata_server: clouddata.cloud.suse.de
+    clouddata_server: provo-clouddata.cloud.suse.de
     download_suse_server: download.suse.de
 
   tasks:
@@ -30,11 +30,6 @@
       name: SLE12SP3-SDK-Updates
 
   # Devel:Cloud:8
-  - name: Add Devel:Cloud:8:Staging
-    zypper_repository:
-      repo: "http://{{ download_suse_server }}/ibs/Devel:/Cloud:/8:/Staging/SLE_12_SP3/"
-      name: DC8S
-
   - name: Add Devel:Cloud:8:Staging media
     zypper_repository:
       repo: "http://{{ clouddata_server }}/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging"
