@@ -3,7 +3,7 @@
     version: 2
 
   baremetal:
-    subnet: 192.168.110.0
+    subnet: 192.168.245.0
     netmask: 255.255.255.0
 
   servers:
