@@ -39,10 +39,10 @@
 
           openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t heat-template.yaml  $STACK_NAME
           DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-ip-floating -c output_value -f value)
-          DEPLOYER_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-net-ardana-ip -c output_value -f value)
-          COMPUTE1_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute1-net-ardana-ip -c output_value -f value)
-          COMPUTE2_ARDANA_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute2-net-ardana-ip -c output_value -f value)
-          NETWORK_ARDANA_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME network-ardana-id -c output_value -f value)
+          DEPLOYER_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-net-mgmt-ip -c output_value -f value)
+          COMPUTE1_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute1-net-mgmt-ip -c output_value -f value)
+          COMPUTE2_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute2-net-mgmt-ip -c output_value -f value)
+          NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME network-mgmt-id -c output_value -f value)
           # FIXME: Use cloud-init in the used image
           sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${DEPLOYER_IP}
           pushd ansible
@@ -54,13 +54,13 @@
 
           cat << EOF > ardana_net_vars.yml
           ---
-          deployer_ardana_ip: $DEPLOYER_ARDANA_IP
-          compute1_ardana_ip: $COMPUTE1_ARDANA_IP
-          compute2_ardana_ip: $COMPUTE2_ARDANA_IP
+          deployer_mgmt_ip: $DEPLOYER_MGMT_IP
+          compute1_mgmt_ip: $COMPUTE1_MGMT_IP
+          compute2_mgmt_ip: $COMPUTE2_MGMT_IP
           EOF
-          # Get the IP addresses of the dns servers from the ardana network
-          echo "ardana_dnsservers:" >> ardana_net_vars.yml
-          openstack --os-cloud $CLOUD_CONFIG_NAME port list --network $NETWORK_ARDANA_ID \
+          # Get the IP addresses of the dns servers from the mgmt network
+          echo "mgmt_dnsservers:" >> ardana_net_vars.yml
+          openstack --os-cloud $CLOUD_CONFIG_NAME port list --network $NETWORK_MGMT_ID \
                     --device-owner network:dhcp -f value -c 'Fixed IP Addresses' | \
               sed -e "s/^ip_address='\(.*\)', .*$/\1/" | \
               while read line; do echo "  - $line" >> ardana_net_vars.yml; done;

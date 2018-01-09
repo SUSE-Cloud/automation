@@ -29,8 +29,8 @@
     shell: |
       sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {{ item }}
     with_items:
-      - "{{ compute1_ardana_ip }}"
-      - "{{ compute2_ardana_ip }}"
+      - "{{ compute1_mgmt_ip }}"
+      - "{{ compute2_mgmt_ip }}"
     ignore_errors: True
 
   - name: Create ardana user on compute nodes
@@ -41,8 +41,8 @@
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} chown -R ardana: /var/lib/ardana/.ssh/
       scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/sudoers.d/ardana root@{{ item }}:/etc/sudoers.d/ardana
     with_items:
-      - "{{ compute1_ardana_ip }}"
-      - "{{ compute2_ardana_ip }}"
+      - "{{ compute1_mgmt_ip }}"
+      - "{{ compute2_mgmt_ip }}"
 
   # FIXME: This is ugly and we do not need all the repos from the deployer on the compute nodes
   - name: Copy zypper repo setup from deployer-controller to compute nodes
@@ -50,8 +50,8 @@
       scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/zypp/repos.d/* root@{{ item }}:/etc/zypp/repos.d/
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} zypper -n --gpg-auto-import-keys ref
     with_items:
-      - "{{ compute1_ardana_ip }}"
-      - "{{ compute2_ardana_ip }}"
+      - "{{ compute1_mgmt_ip }}"
+      - "{{ compute2_mgmt_ip }}"
 
   - name: Initialize target Model from deployerincloud-lite
     synchronize:
@@ -79,7 +79,7 @@
          f = open('cloudConfig.yml');
          data = yaml.load(f.read());
          f.close();
-         data['cloud']['dns-settings']['nameservers'] = {{ ardana_dnsservers }} ;
+         data['cloud']['dns-settings']['nameservers'] = {{ mgmt_dnsservers }} ;
          data['cloud']['ntp-servers'] = ['ntp.suse.de'];
          f = open('cloudConfig.yml', 'w');
          f.write(yaml.safe_dump(data, default_flow_style=False));
@@ -145,8 +145,8 @@
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  {{ item }} sudo mkdir /etc/openstack/
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  {{ item }} sudo touch /etc/openstack/skip_disk_config
     with_items:
-      - "{{ compute1_ardana_ip }}"
-      - "{{ compute2_ardana_ip }}"
+      - "{{ compute1_mgmt_ip }}"
+      - "{{ compute2_mgmt_ip }}"
     become: true
     become_user: ardana
 
