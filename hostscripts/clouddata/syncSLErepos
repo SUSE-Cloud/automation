@@ -243,6 +243,14 @@ for arch in $archs ; do
     fi
 done
 
+# sync modules
+for arch in $archs ; do
+    [ "$arch" == x86_64 ] || continue
+    # for salt:
+    $rsync ${ibs_source}/SUSE/Products/SLE-Module-Adv-Systems-Management/12/x86_64/product/ /srv/nfs/repos/$arch/SLE12-Module-Adv-Systems-Management-Pool
+    $rsync ${ibs_source}/SUSE/Updates/SLE-Module-Adv-Systems-Management/12/x86_64/update/ /srv/nfs/repos/$arch/SLE12-Module-Adv-Systems-Management-Updates
+done
+
 if [ $SITE = "nue" ]; then
     # repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync, cct)
     for obsrepo in devel:/languages:/ruby:/extensions/SLE_12 devel:/tools:/building/SLE_12_SP1 ; do
