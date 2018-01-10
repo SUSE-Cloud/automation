@@ -24,6 +24,12 @@
           description: >-
             The git automation branch
 
+      - string:
+          name: clouddata_server
+          default: provo-clouddata.cloud.suse.de
+          description: >-
+            The clouddata server to use
+
     builders:
       - shell: |
           set -ex
@@ -67,5 +73,5 @@
 
           cat ardana_net_vars.yml
 
-          ansible-playbook -vvv -i hosts repositories.yml
+          ansible-playbook -vvv -i hosts -e "clouddata_server=$clouddata_server" repositories.yml
           ansible-playbook -vvv -i hosts init.yml
