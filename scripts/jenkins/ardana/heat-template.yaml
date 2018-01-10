@@ -108,6 +108,49 @@ resources:
         - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
 
+  # disks
+  controller_vdb:
+    type: OS::Cinder::Volume
+    properties:
+      size: 30
+  controller_vdc:
+    type: OS::Cinder::Volume
+    properties:
+      size: 30
+  controller_vdd:
+    type: OS::Cinder::Volume
+    properties:
+      size: 30
+  controller_vde:
+    type: OS::Cinder::Volume
+    properties:
+      size: 30
+
+  controller_vol_att_vdb:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      instance_uuid: { get_resource: deployer-controller }
+      volume_id: { get_resource: controller_vdb }
+      mountpoint: /dev/vdb
+
+  controller_vol_att_vdc:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      instance_uuid: { get_resource: deployer-controller }
+      volume_id: { get_resource: controller_vdc }
+      mountpoint: /dev/vdc
+  controller_vol_att_vdd:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      instance_uuid: { get_resource: deployer-controller }
+      volume_id: { get_resource: controller_vdd }
+      mountpoint: /dev/vdd
+  controller_vol_att_vde:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      instance_uuid: { get_resource: deployer-controller }
+      volume_id: { get_resource: controller_vde }
+      mountpoint: /dev/vde
 
   deployer-controller-floating-assignment:
     type: OS::Neutron::FloatingIPAssociation

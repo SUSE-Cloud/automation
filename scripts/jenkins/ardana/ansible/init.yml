@@ -103,6 +103,14 @@
     tags:
       - create-ardana-input-model
 
+  - name: Update disk mapping in Model
+    replace:
+      path: /var/lib/ardana/openstack/my_cloud/definition/data/disks_controller.yml
+      regexp: '/dev/sd'
+      replace: '/dev/vd'
+    tags:
+      - create-ardana-input-model
+
   - name: Add my_cloud config to git
     shell: |
       git add -A
