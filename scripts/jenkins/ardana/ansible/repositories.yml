@@ -43,7 +43,7 @@
 
   - name: Repo for sshpass
     zypper_repository:
-      repo: "http://download.suse.de/ibs/QA:/SLE12SP3/update/"
+      repo: "http://{{ download_suse_server }}/ibs/QA:/SLE12SP3/update/"
       name: sshpass
 
   # Refresh all repos
