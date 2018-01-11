@@ -89,6 +89,13 @@
     tags:
       - create-ardana-input-model
 
+  - name: Update network-groups in Model
+    copy:
+      src: input-model-network-groups.yml
+      dest: /var/lib/ardana//openstack/my_cloud/definition/data/network_groups.yml
+    tags:
+      - create-ardana-input-model
+
   - name: Update nic-mappings in Model
     copy:
       src: input-model-nic-mappings.yml
