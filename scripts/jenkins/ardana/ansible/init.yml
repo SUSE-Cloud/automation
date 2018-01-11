@@ -110,11 +110,10 @@
     tags:
       - create-ardana-input-model
 
-  - name: Update disk mapping in Model
-    replace:
+  - name: Update controller disk mapping in Model
+    copy:
+      src: input-model-disks-controller.yml
       dest: /var/lib/ardana/openstack/my_cloud/definition/data/disks_controller.yml
-      regexp: '/dev/sd'
-      replace: '/dev/vd'
     tags:
       - create-ardana-input-model
 
