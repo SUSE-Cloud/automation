@@ -3681,6 +3681,7 @@ function oncontroller_mount_localreposdir
 function oncontroller_testsetup
 {
     . .openrc
+    pre_hook $FUNCNAME
     oncontroller_prepare_functional_tests
     oncontroller_check_crm_failcounts disallowskipfailcount
     # 28 is the overhead of an ICMP(ping) packet
