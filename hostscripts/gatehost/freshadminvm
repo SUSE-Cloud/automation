@@ -25,13 +25,15 @@ common_scripts="mkcloud-onhost.sh mkcloud-common.sh mkcloud-driver-$mkclouddrive
 for script in $common_scripts; do
     source ${scripts_lib_dir}/$script
 done
-admin_node_disk=/dev/system/$n
-[ -e $admin_node_disk ] || admin_node_disk=/dev/gate/$n
-[ -e $admin_node_disk ] || exit 51
+if [[ ! $admin_node_disk ]]; then
+        admin_node_disk=/dev/system/$n
+        [[ -e $admin_node_disk ]] || admin_node_disk=/dev/gate/$n
+        [[ -e $admin_node_disk ]] || exit 51
+fi
 onhost_prepareadmin
 virsh define $SCRIPTS_DIR/../hostscripts/gatehost/$n.xml # is OK to fail if already there
 virsh start $n
 sleep 100 # time for the admin VM to boot
-sshkey=`cat /home/jenkins/.ssh/id_rsa.pub`
+[[ $sshkey ]] || sshkey=`cat /home/jenkins/.ssh/id_rsa.pub`
 ssh_password $n "mkdir -p ~/.ssh ; echo '$sshkey' >> ~/.ssh/authorized_keys"
 
