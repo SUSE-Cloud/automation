@@ -14,7 +14,6 @@
           type: user-defined
           name: project
           values:
-            - Cloud:OpenStack:Newton:Staging
             - Cloud:OpenStack:Ocata:Staging
             - Cloud:OpenStack:Pike:Staging
             - Cloud:OpenStack:Master
@@ -98,13 +97,13 @@
             "python-monasca-common",
             "python-monasca-statsd"
             ].contains(component) ||
-            [ "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Ocata:Staging", "Cloud:OpenStack:Newton:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
               "python-heat-cfntools",
               "openstack-rally",
               "openstack-tempest",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Ocata:Staging", "Cloud:OpenStack:Newton:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-neutron-fwaas-ui",
               "openstack-horizon-plugin-neutron-vpnaas-ui",
@@ -153,10 +152,10 @@
             OBS) OSCAPI="https://api.opensuse.org"
                 OSC_BUILD_ARCH=x86_64
                 case $OBS_PROJECT in
-                    Cloud:OpenStack:Pike*)
+                    Cloud:OpenStack:Master|Cloud:OpenStack:Pike*)
                         OSC_BUILD_DIST=SLE_12_SP3
                         ;;
-                    Cloud:OpenStack:Master|Cloud:OpenStack:Newton*|Cloud:OpenStack:Ocata*)
+                    Cloud:OpenStack:Ocata*)
                         OSC_BUILD_DIST=SLE_12_SP2
                         ;;
                     *)
