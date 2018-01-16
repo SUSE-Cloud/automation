@@ -123,6 +123,7 @@ proposals:
       backend_name: nfs
       nfs:
         nfs_shares: ##cinder-storage-shares##
+        nfs_snapshot: true
     api:
       protocol: https
     ssl:
