@@ -42,6 +42,7 @@
             - openstack-horizon-plugin-manila-ui
             - openstack-horizon-plugin-magnum-ui
             - openstack-horizon-plugin-monasca-ui
+            - openstack-horizon-plugin-murano-ui
             - openstack-horizon-plugin-sahara-ui
             - openstack-horizon-plugin-trove-ui
             - openstack-ironic
@@ -110,6 +111,7 @@
             ].contains(component) ||
             [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
             [
+              "openstack-horizon-plugin-murano-ui",
               "openstack-gnocchi"
             ].contains(component)
             )
