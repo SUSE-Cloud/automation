@@ -190,17 +190,6 @@ done
 # Cloud
 ##############
 
-function mount_and_rsync {
-    local from=$1
-    local to=$2
-    local oneiso=`ls $from | tail -1`
-    if [ -e "$oneiso" ] ; then
-        $M mount -o loop,ro "$oneiso" /mnt/cloud
-        [ $? == 0 ] && $rsync /mnt/cloud/ /srv/nfs/repos/$to/
-        $M umount /mnt/cloud
-    fi
-}
-
 for version in 6 7 8; do
     # fetch latest code from version in development (not just latest beta)
     sync_from_ibs=
