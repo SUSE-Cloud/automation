@@ -130,6 +130,7 @@ proposals:
       backend_name: nfs
       nfs:
         nfs_shares: ##cinder-storage-shares##
+        nfs_snapshot: true
     - backend_driver: vmware
       backend_name: vmware-backend
       vmware:
