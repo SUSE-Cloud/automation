@@ -76,15 +76,15 @@ def get_video_devices():
     return readfile(os.path.join(TEMPLATE_DIR, 'video-default.xml'))
 
 
-# to workaround bnc#946020+bnc#946068+bnc#997358 we use the 2.0 machine type
-# if it is available
+# to workaround bnc#946020+bnc#946068+bnc#997358+1064517 we use the 2.1
+# machine type if it is available
 def get_default_machine(emulator):
     if 'aarch64' in get_machine_arch():
         return "virt"
     elif 's390x' in get_machine_arch():
         return "s390-ccw-virtio"
     else:
-        machine = "pc-i440fx-2.0"
+        machine = "pc-i440fx-2.1"
         if os.system("%(emulator)s -machine help | grep -q %(machine)s" % ({
                      'emulator': emulator, 'machine': machine})) != 0:
             return "pc-0.14"
