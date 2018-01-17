@@ -122,6 +122,16 @@
     tags:
       - create-ardana-input-model
 
+  # FIXME: This can go away when https://suse-jira.dyndns.org/browse/SCRD-2479
+  #        is addressed.
+  - name: Switch designate to use bind in Input Model
+    replace:
+      dest: /var/lib/ardana/openstack/my_cloud/definition/data/control_plane.yml
+      regexp: 'powerdns'
+      replace: 'bind'
+    tags:
+      - create-ardana-input-model
+
   - name: Add my_cloud config to git
     shell: |
       git add -A
