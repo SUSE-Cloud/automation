@@ -10,6 +10,11 @@
     ARDANA_INIT_AUTO: 1
 
   tasks:
+  - name: Grow 1st partition filesystem
+    become: yes
+    shell: |
+      /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
+
   - name: Call ardana-init
     shell: /usr/bin/ardana-init
     become: true
