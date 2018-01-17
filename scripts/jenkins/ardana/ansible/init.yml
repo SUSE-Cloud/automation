@@ -131,6 +131,22 @@
     become: true
     become_user: ardana
 
+  - name: Prepare for cobbler deployment
+    include: cobbler-deploy.yml
+    when: usecobbler is defined and usecobbler|bool == True
+    args:
+      chdir: /var/lib/ardana/openstack/ardana/ansible
+    become: true
+    become_user: ardana
+
+  - name: Rebuild nodes for cobbler deployement
+    include: bm-reimage.yml
+    when: usecobbler is defined and usecobbler|bool == True
+    args:
+      chdir: /var/lib/ardana/openstack/ardana/ansible
+    become: true
+    become_user: ardana
+
   - name: Run config-processor-run.yml playbook
     shell: |
       ansible-playbook -vvv -i hosts/localhost -e encrypt="" -e rekey="" config-processor-run.yml
