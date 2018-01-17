@@ -35,12 +35,6 @@
       repo: "http://{{ clouddata_server }}/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging"
       name: DC8S-Media
 
-  # FIXME: needs to be removed. we want to use a newer ansible which we use already for monasca
-  - name: Repo for old ansible version
-    zypper_repository:
-      repo: "http://ftp5.gwdg.de/pub/opensuse/discontinued/distribution/leap/42.1/repo/oss/suse/"
-      name: ansible-FIXME
-
   - name: Repo for sshpass
     zypper_repository:
       repo: "http://download.suse.de/ibs/QA:/SLE12SP3/update/"
@@ -53,16 +47,16 @@
       auto_import_keys: yes
       runrefresh: yes
 
-  # FIXME: ardana has to work with ansible 2.x
-  - name: Install ansible 1.9.3
-    zypper:
-      name: 'ansible-1.9.3'
-      state: present
-
   - name: Install sshpass
     zypper:
       name: 'sshpass'
       state: present
+
+  - name: Remove Repo for sshpass
+    zypper_repository:
+      repo: "http://download.suse.de/ibs/QA:/SLE12SP3/update/"
+      name: sshpass
+      state: absent
 
   # NOTE: ansible's zypper extra_args are only supported in >= 2.4 and even if that version,
   # adding --replacefiles does not work
