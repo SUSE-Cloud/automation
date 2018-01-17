@@ -133,7 +133,9 @@
     become_user: ardana
 
   - name: Prepare for cobbler deployment
-    include: cobbler-deploy.yml
+    shell: |
+        ansible-playbook -vvv -i hosts/localhost cobbler-deploy.yml -e "ardanauser_password=linux"
+
     when: usecobbler is defined and usecobbler|bool == True
     args:
       chdir: /var/lib/ardana/openstack/ardana/ansible
@@ -141,7 +143,8 @@
     become_user: ardana
 
   - name: Rebuild nodes for cobbler deployement
-    include: bm-reimage.yml
+    shell: |
+        ansible-playbook -vvv -i hosts/localhost bm-reimage.yml  ardanauser_password="linux"
     when: usecobbler is defined and usecobbler|bool == True
     args:
       chdir: /var/lib/ardana/openstack/ardana/ansible
