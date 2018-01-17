@@ -109,9 +109,9 @@ sudo mkdir -p "${ansible_package_dir}"
 sudo mkdir -p "${ansible_service_dir}"
 # Extract the Ansible venv from the venv tarball.
 if [ "${OS,,}" == "sles" ]; then
-   rpmqpack | grep -x ansible > /dev/null || {
-       sudo rpm -Uvh http://ftp5.gwdg.de/pub/opensuse/discontinued/distribution/leap/42.1/repo/oss/suse/noarch/ansible-1.9.3-1.1.noarch.rpm
-   }
+   rpmqpack | grep -x ansible1 > /dev/null || sudo zypper -n install ansible1
+   ansiblever=$(ansible --version | head  -n 1 | cut -d' ' -f2 )
+   echo "Using Ansible $ansiblever"
 else
    echo "Unsupported OS: $OS"
 fi
