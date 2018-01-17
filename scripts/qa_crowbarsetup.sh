@@ -3855,156 +3855,6 @@ function oncontroller_testsetup
         nova flavor-delete m1.smaller
     fi
     nova flavor-create m1.smaller 101 512 8 1
-    instanceid=`openstack server show testvm -f value -c id`
-    if [[ $instanceid ]] ; then
-        nova delete $instanceid
-        wait_for 10 3 "[[ ! \$(nova show $instanceid) ]]" "testvm to be deleted"
-    fi
-    nova keypair-add --pub-key /root/.ssh/id_rsa.pub testkey
-
-    if iscloudver 8plus; then
-        openstack security group delete testvm || :
-        openstack security group create --description testvm testvm
-        openstack security group rule create --protocol icmp testvm
-        openstack security group rule create --protocol tcp --dst-port 1:65535 testvm
-        openstack security group rule create --protocol udp --dst-port 1:65535 testvm
-    else
-        if nova secgroup-list-rules testvm &>/dev/null ; then
-            nova secgroup-delete testvm
-        fi
-        nova secgroup-create testvm testvm
-        nova secgroup-add-rule testvm icmp -1 -1 0.0.0.0/0
-        nova secgroup-add-rule testvm tcp 1 65535 0.0.0.0/0
-        nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
-    fi
-
-    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
-    ret=${PIPESTATUS[0]}
-    [ $ret != 0 ] && complain 43 "nova boot failed"
-    instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
-    nova show "$instanceid"
-    vmip=`nova show "$instanceid" | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
-    echo "VM IP address: $vmip"
-    if [ -z "$vmip" ] ; then
-        echofailed
-        tail -n 90 /var/log/nova/*
-        complain 38 "VM IP is empty. Exiting"
-    fi
-    addfloatingip "$instanceid"
-    vmip=$floatingip
-    wait_for 1000 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm booted and ping returned"
-    wait_for 500  1 "netcat -z $vmip 22" "ssh daemon on testvm is accessible"
-
-    local ssh_target="$ssh_user@$vmip"
-
-    wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
-
-    if ! ssh $ssh_target curl $test_internet_url ; then
-        complain 95 could not reach internet
-    fi
-
-    # The custom-key value is only set during initial deployment of Cloud7 directly from this script
-    # So it is not present when the cloud is upgraded from Cloud6 and we need to skip this test.
-    if iscloudver 7plus && grep -q "custom-value" /etc/nova/suse-vendor-data.json 2>/dev/null ; then
-        wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target curl -s http://169.254.169.254/openstack/latest/vendor_data.json|grep -q custom-key" "Custom vendordata not accessable from VM"
-    fi
-
-    local volumecreateret=0
-    local volumeattachret=0
-    local volumeresult=""
-    local portresult=0
-
-    # Workaround SLE12SP1 regression
-    iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
-    cinder list | grep -q available || cinder create 1
-    wait_for 9 5 "cinder list | grep available" "volume to become available" "volumecreateret=1"
-    volumeid=`cinder list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
-    nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
-    volumeattachret=$?
-    device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
-    wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
-    ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
-    rand=$RANDOM
-    ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
-    nova volume-detach "$instanceid" "$volumeid"
-    wait_for 29 5 "cinder show $volumeid | grep 'status.*available'" "volume to become available after detach" "volumeattachret=55"
-    nova volume-attach "$instanceid" "$volumeid" /dev/vdb
-    wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become reattached" "volumeattachret=56"
-    ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
-    ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
-    volumeresult="$volumecreateret & $volumeattachret"
-
-    # cleanup so that we can run testvm without leaking volumes, IPs etc
-    if iscloudver 7plus; then
-        openstack server remove floating ip "$instanceid" "$floatingip"
-        openstack floating ip delete "$floatingip"
-    else
-        nova remove-floating-ip "$instanceid" "$floatingip"
-        nova floating-ip-delete "$floatingip"
-    fi
-    nova stop "$instanceid"
-    wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
-
-    # run tests for Magnum bay deployment
-    if iscloudver 7plus && [[ $want_magnum_proposal = 1 ]]; then
-
-        # This test will cover simple Kubernetes cluster with TLS disabled and no LoadBalancer
-        if ! magnum cluster-template-show k8s_template_tls_lb_off > /dev/null 2>&1; then
-            safely magnum cluster-template-create --name k8s_template_tls_lb_off \
-                --image-id $magnum_k8s_image_name \
-                --keypair-id default \
-                --external-network-id floating \
-                --flavor-id m1.smaller \
-                --master-flavor-id m2.smaller \
-                --docker-volume-size 5 \
-                --network-driver flannel \
-                --coe kubernetes \
-                --tls-disabled
-        fi
-
-        if ! magnum cluster-show k8s_cluster_one > /dev/null 2>&1; then
-            safely magnum cluster-create --name k8s_cluster_one --cluster-template k8s_template_tls_lb_off --master-count 1 --node-count 2
-            wait_for 500 3 'magnum cluster-show k8s_cluster_one | grep -q "status.*CREATE_COMPLETE"' "Magnum is creating Kubernetes cluster" "complain 130 'Magnum could not create Kubernetes cluster'"
-
-            echo "Magnum finished creating Kubernetes cluster"
-            safely magnum cluster-show k8s_cluster_one
-
-            # cleanup Magnum deployment
-            safely magnum cluster-delete k8s_cluster_one
-            wait_for 300 3 'magnum cluster-show k8s_cluster_one > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster" "complain 131 'Magnum could not remove Kubernetes cluster'"
-            safely magnum cluster-template-delete k8s_template_tls_lb_off;
-            wait_for 300 3 'magnum cluster-template-show k8s_template_tls_lb_off > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster template" "complain 131 'Magnum could not remove Kubernetes cluster template'"
-        fi
-
-        # This test will cover advanced Kubernetes cluster with TLS enabled and with LoadBalancer for multi master
-        if ! magnum cluster-template-show k8s_template_tls_lb_on > /dev/null 2>&1; then
-            safely magnum cluster-template-create --name k8s_template_tls_lb_on \
-                --image-id $magnum_k8s_image_name \
-                --keypair-id default \
-                --external-network-id floating \
-                --flavor-id m1.smaller \
-                --master-flavor-id m2.smaller \
-                --docker-volume-size 5 \
-                --network-driver flannel \
-                --coe kubernetes \
-                --floating-ip-enabled \
-                --master-lb-enabled
-        fi
-
-        if ! magnum cluster-show k8s_cluster_two > /dev/null 2>&1; then
-            safely magnum cluster-create --name k8s_cluster_two --cluster-template k8s_template_tls_lb_on --master-count 2 --node-count 1
-            wait_for 500 3 'magnum cluster-show k8s_cluster_two | grep -q "status.*CREATE_COMPLETE"' "Magnum is creating Kubernetes cluster" "complain 130 'Magnum could not create Kubernetes cluster'"
-
-            echo "Magnum finished creating Kubernetes cluster"
-            safely magnum cluster-show k8s_cluster_two
-
-            # cleanup Magnum deployment
-            safely magnum cluster-delete k8s_cluster_two
-            wait_for 300 3 'magnum cluster-show k8s_cluster_two > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster" "complain 131 'Magnum could not remove Kubernetes cluster'"
-            safely magnum cluster-template-delete k8s_template_tls_lb_on;
-            wait_for 300 3 'magnum cluster-template-show k8s_template_tls_lb_on > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster template" "complain 131 'Magnum could not remove Kubernetes cluster template'"
-        fi
-    fi
 
     # check that no port is in binding_failed state
     for p in $(neutron port-list -f csv -c id --quote none | grep -v id); do
@@ -4344,14 +4194,6 @@ EOF
     exit $ret
 }
 
-function ping_fips
-{
-    local fips=$(openstack ip floating list -f value -c IP)
-    for fip in $fips; do
-        ping -c 1 -w 60 $fip || complain 120 "cannot reach test VM at $fip."
-    done
-}
-
 # Use $heat_stack_params to provide parameters to heat template
 function oncontroller_testpreupgrade
 {
@@ -4642,6 +4484,177 @@ function onadmin_rebootcloud
     local ret=$?
     echo "ret:$ret"
     exit $ret
+}
+
+function oncontroller_magnumcluster
+{
+    # run tests for Magnum bay deployment
+    if iscloudver 7plus && [[ $want_magnum_proposal = 1 ]]; then
+        . .openrc
+        # This test will cover simple Kubernetes cluster with TLS disabled and no LoadBalancer
+        if ! magnum cluster-template-show k8s_template_tls_lb_off > /dev/null 2>&1; then
+            safely magnum cluster-template-create --name k8s_template_tls_lb_off \
+                --image-id $magnum_k8s_image_name \
+                --keypair-id default \
+                --external-network-id floating \
+                --flavor-id m1.smaller \
+                --master-flavor-id m2.smaller \
+                --docker-volume-size 5 \
+                --network-driver flannel \
+                --coe kubernetes \
+                --tls-disabled
+        fi
+
+        if ! magnum cluster-show k8s_cluster_one > /dev/null 2>&1; then
+            safely magnum cluster-create --name k8s_cluster_one --cluster-template k8s_template_tls_lb_off --master-count 1 --node-count 2
+            wait_for 500 3 'magnum cluster-show k8s_cluster_one | grep -q "status.*CREATE_COMPLETE"' "Magnum is creating Kubernetes cluster" "complain 130 'Magnum could not create Kubernetes cluster'"
+
+            echo "Magnum finished creating Kubernetes cluster"
+            safely magnum cluster-show k8s_cluster_one
+
+            # cleanup Magnum deployment
+            safely magnum cluster-delete k8s_cluster_one
+            wait_for 300 3 'magnum cluster-show k8s_cluster_one > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster" "complain 131 'Magnum could not remove Kubernetes cluster'"
+            safely magnum cluster-template-delete k8s_template_tls_lb_off;
+            wait_for 300 3 'magnum cluster-template-show k8s_template_tls_lb_off > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster template" "complain 131 'Magnum could not remove Kubernetes cluster template'"
+        fi
+
+        # This test will cover advanced Kubernetes cluster with TLS enabled and with LoadBalancer for multi master
+        if ! magnum cluster-template-show k8s_template_tls_lb_on > /dev/null 2>&1; then
+            safely magnum cluster-template-create --name k8s_template_tls_lb_on \
+                --image-id $magnum_k8s_image_name \
+                --keypair-id default \
+                --external-network-id floating \
+                --flavor-id m1.smaller \
+                --master-flavor-id m2.smaller \
+                --docker-volume-size 5 \
+                --network-driver flannel \
+                --coe kubernetes \
+                --floating-ip-enabled \
+                --master-lb-enabled
+        fi
+
+        if ! magnum cluster-show k8s_cluster_two > /dev/null 2>&1; then
+            safely magnum cluster-create --name k8s_cluster_two --cluster-template k8s_template_tls_lb_on --master-count 2 --node-count 1
+            wait_for 500 3 'magnum cluster-show k8s_cluster_two | grep -q "status.*CREATE_COMPLETE"' "Magnum is creating Kubernetes cluster" "complain 130 'Magnum could not create Kubernetes cluster'"
+
+            echo "Magnum finished creating Kubernetes cluster"
+            safely magnum cluster-show k8s_cluster_two
+
+            # cleanup Magnum deployment
+            safely magnum cluster-delete k8s_cluster_two
+            wait_for 300 3 'magnum cluster-show k8s_cluster_two > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster" "complain 131 'Magnum could not remove Kubernetes cluster'"
+            safely magnum cluster-template-delete k8s_template_tls_lb_on;
+            wait_for 300 3 'magnum cluster-template-show k8s_template_tls_lb_on > /dev/null 2>&1; [[ $? == 1 ]]' "Magnum is removing Kubernetes cluster template" "complain 131 'Magnum could not remove Kubernetes cluster template'"
+        fi
+    fi
+}
+
+function oncontroller_instance
+{
+    local image_name="jeos"
+    local flavor="m1.smaller"
+    local ssh_user="root"
+
+    . .openrc
+    instanceid=`openstack server show testvm -f value -c id`
+    if [[ $instanceid ]] ; then
+        nova delete $instanceid
+        wait_for 10 3 "[[ ! \$(nova show $instanceid) ]]" "testvm to be deleted"
+    fi
+
+    nova keypair-add --pub-key /root/.ssh/id_rsa.pub testkey
+
+    if iscloudver 8plus; then
+        openstack security group delete testvm || :
+        openstack security group create --description testvm testvm
+        openstack security group rule create --protocol icmp testvm
+        openstack security group rule create --protocol tcp --dst-port 1:65535 testvm
+        openstack security group rule create --protocol udp --dst-port 1:65535 testvm
+    else
+        if nova secgroup-list-rules testvm &>/dev/null ; then
+            nova secgroup-delete testvm
+        fi
+        nova secgroup-create testvm testvm
+        nova secgroup-add-rule testvm icmp -1 -1 0.0.0.0/0
+        nova secgroup-add-rule testvm tcp 1 65535 0.0.0.0/0
+        nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
+    fi
+
+    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
+    ret=${PIPESTATUS[0]}
+    [ $ret != 0 ] && complain 43 "nova boot failed"
+    instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
+    nova show "$instanceid"
+    vmip=`nova show "$instanceid" | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
+    echo "VM IP address: $vmip"
+    if [ -z "$vmip" ] ; then
+        echofailed
+        tail -n 90 /var/log/nova/*
+        complain 38 "VM IP is empty. Exiting"
+    fi
+    addfloatingip "$instanceid"
+    vmip=$floatingip
+    wait_for 1000 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm booted and ping returned"
+    wait_for 500  1 "netcat -z $vmip 22" "ssh daemon on testvm is accessible"
+
+    local ssh_target="$ssh_user@$vmip"
+
+    wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
+
+    if ! ssh $ssh_target curl $test_internet_url ; then
+        complain 95 could not reach internet
+    fi
+
+    # The custom-key value is only set during initial deployment of Cloud7 directly from this script
+    # So it is not present when the cloud is upgraded from Cloud6 and we need to skip this test.
+    if iscloudver 7plus && grep -q "custom-value" /etc/nova/suse-vendor-data.json 2>/dev/null ; then
+        wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target curl -s http://169.254.169.254/openstack/latest/vendor_data.json|grep -q custom-key" "Custom vendordata not accessable from VM"
+    fi
+
+    local volumecreateret=0
+    local volumeattachret=0
+    local volumeresult=""
+    local portresult=0
+
+    # Workaround SLE12SP1 regression
+    iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
+    cinder list | grep -q available || cinder create 1
+    wait_for 9 5 "cinder list | grep available" "volume to become available" "volumecreateret=1"
+    volumeid=`cinder list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
+    nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
+    volumeattachret=$?
+    device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
+    wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
+    ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
+    rand=$RANDOM
+    ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
+    nova volume-detach "$instanceid" "$volumeid"
+    wait_for 29 5 "cinder show $volumeid | grep 'status.*available'" "volume to become available after detach" "volumeattachret=55"
+    nova volume-attach "$instanceid" "$volumeid" /dev/vdb
+    wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become reattached" "volumeattachret=56"
+    ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
+    ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
+    volumeresult="$volumecreateret & $volumeattachret"
+
+    # cleanup so that we can run testvm without leaking volumes, IPs etc
+    if iscloudver 7plus; then
+        openstack server remove floating ip "$instanceid" "$floatingip"
+        openstack floating ip delete "$floatingip"
+    else
+        nova remove-floating-ip "$instanceid" "$floatingip"
+        nova floating-ip-delete "$floatingip"
+    fi
+    nova stop "$instanceid"
+    wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
+}
+
+function ping_fips
+{
+    local fips=$(openstack ip floating list -f value -c IP)
+    for fip in $fips; do
+        ping -c 1 -w 60 $fip || complain 120 "cannot reach test VM at $fip."
+    done
 }
 
 # make sure that testvm is up and reachable
