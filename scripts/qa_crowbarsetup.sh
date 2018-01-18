@@ -5489,6 +5489,10 @@ function oncontroller_import_images
             OS_PROJECT_NAME=admin OS_TENANT_NAME=admin openstack image create --public --property hypervisor_type=kvm \
             $params $image_name
     done
+    openstack image set --min-disk 2 --min-ram 500 SLES12-SP3
+    openstack image set --min-disk 8 SLES12-SP2
+    openstack image set --min-disk 8 SLES12-SP1
+    openstack image set --min-disk 8 SLES12
 }
 
 function onadmin_setupproduction()
