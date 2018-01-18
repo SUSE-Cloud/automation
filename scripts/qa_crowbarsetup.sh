@@ -5463,6 +5463,8 @@ function oncontroller_setupproduction()
     openstack role add --project cloud --user cloudinfra Member
     openstack user create --project cloud --email tbechtold@suse.com cloud-ci
     openstack role add --project cloud --user cloud-ci Member
+    openstack user create --project ses --email kyrylo.shatskyy@suse.com ses-ci
+    openstack role add --project ses --user ses-ci Member
     openstack user create --project container-ci --email KMacInnes@suse.com container-ci
     openstack role add --project container-ci --user container-ci Member
     /etc/cloud-keys/secrets.sh
