@@ -14,6 +14,7 @@
     become: yes
     shell: |
       /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
+    ignore_errors: True
 
   - name: Call ardana-init
     shell: /usr/bin/ardana-init
