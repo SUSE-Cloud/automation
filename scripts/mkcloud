@@ -409,7 +409,7 @@ function prepare
 
 function wait_for_crowbar_ssh
 {
-    wait_for 150 1 "nc -w 1 -z $adminip 22" 'admin node to start ssh daemon'
+    wait_for 240 1 "nc -w 1 -z $adminip 22" 'admin node to start ssh daemon'
 }
 
 function wait_for_crowbar_ntpd
