@@ -192,3 +192,19 @@
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true
     become_user: ardana
+
+  - name: Upload Glance images for Tempest
+    shell: |
+      ansible-playbook -vvv -i hosts/verb_hosts glance-cloud-configure.yml
+    args:
+      chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
+    become: true
+    become_user: ardana
+
+  - name: Run tempest
+    shell: |
+      ansible-playbook -vvv -i hosts/verb_hosts tempest-run.yml
+    args:
+      chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
+    become: true
+    become_user: ardana
