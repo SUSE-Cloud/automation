@@ -5435,7 +5435,7 @@ function oncontroller_setupproduction()
 
     # create projects, increase quotas
     local tenantid
-    for prj in $(curl https://w3.suse.de/~bwiedemann/cloud/projects.txt) ; do
+    for prj in $(curl https://w3.suse.de/~bwiedemann/cloud/projects.txt) container-ci ; do
         openstack project create $prj
         openstack role add --project $prj --user admin admin
         tenantid=$(getprojectid $prj)
@@ -5450,6 +5450,7 @@ function oncontroller_setupproduction()
     OS_TENANT_NAME=qa neutron quota-update --port 100
     nova quota-update --ram 20000 $(getprojectid suse)
     nova quota-update --ram 95000 $(getprojectid cloudfoundry)
+    nova quota-update --ram 69000 $(getprojectid container-ci)
     nova quota-update --ram 80000 --cores 100 $(getprojectid ses)
     cinder quota-update --gigabytes 8000 $(getprojectid cloud) # for Eric Pendergrass HOS/Ardana/hLinux data backup
     # extra users
@@ -5462,6 +5463,8 @@ function oncontroller_setupproduction()
     openstack role add --project cloud --user cloudinfra Member
     openstack user create --project cloud --email tbechtold@suse.com cloud-ci
     openstack role add --project cloud --user cloud-ci Member
+    openstack user create --project container-ci --email KMacInnes@suse.com container-ci
+    openstack role add --project container-ci --user container-ci Member
     /etc/cloud-keys/secrets.sh
     openstack project create demo
     openstack user create --password demo --email ashish.sodhi@suse.com --project demo demo
