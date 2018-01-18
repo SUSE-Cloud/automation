@@ -68,4 +68,4 @@
           cat ardana_net_vars.yml
 
           ansible-playbook -vvv -i hosts repositories.yml
-          ansible-playbook -vvv -i hosts init.yml
+          ansible-playbook -vvv -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" init.yml
