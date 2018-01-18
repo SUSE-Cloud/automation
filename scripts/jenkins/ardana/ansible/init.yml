@@ -135,7 +135,6 @@
   - name: Prepare for cobbler deployment
     shell: |
         ansible-playbook -vvv -i hosts/localhost cobbler-deploy.yml -e "ardanauser_password=linux"
-
     when: usecobbler is defined and usecobbler|bool == True
     args:
       chdir: /var/lib/ardana/openstack/ardana/ansible
@@ -144,7 +143,7 @@
 
   - name: Rebuild nodes for cobbler deployement
     shell: |
-        ansible-playbook -vvv -i hosts/localhost bm-reimage.yml  ardanauser_password="linux"
+        ansible-playbook -vvv -i hosts/localhost bm-reimage.yml -e  "ardanauser_password=linux"
     when: usecobbler is defined and usecobbler|bool == True
     args:
       chdir: /var/lib/ardana/openstack/ardana/ansible
