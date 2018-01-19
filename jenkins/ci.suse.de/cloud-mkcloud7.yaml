@@ -11,7 +11,7 @@
     version: 7
     previous_version: 6
     arch: x86_64
-    tempestoptions: --smoke
+    tempestoptions: --smoke --serial
     label: openstack-mkcloud-SLE12-x86_64
     database_engine: postgresql
     jobs:
@@ -37,7 +37,7 @@
     arch: x86_64
     nodenumber: 4
     nodenumber_controller: 2
-    tempestoptions: --smoke
+    tempestoptions: --smoke --serial
     label: openstack-mkcloud-ha-x86_64
     storage_method_ha: ceph
     jobs:
