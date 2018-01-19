@@ -1,11 +1,19 @@
 - job:
     name: ardana-job
     concurrent: true
-    workspace: "$JOB_NAME-$BUILD_ID"
+    workspace: "ardana-job-$BUILD_ID"
     # the selected node needs the cloud credentials
     node: cloud-ardana-ci
     wrappers:
       - timestamps
+      - build-name:
+          name: '#${BUILD_NUMBER}: ${ENV,var="job_name"}/${ENV,var="model"}'
+
+      - timeout:
+          timeout: 60
+          type: no-activity
+          abort: true
+          write-description: "Job aborted due to 60 minutes of inactivity"
 
     logrotate:
       numToKeep: 20
@@ -24,10 +32,22 @@
           description: >-
             The git automation branch
 
+      - string:
+          name: model
+          default: deployerincloud-lite
+          description: >-
+            The Input Model to use
+
+      - string:
+          name: job_name
+          default: ''
+          description: >-
+            This name will become the build name of the job.
+
     builders:
       - shell: |
           set -ex
-          STACK_NAME=cloud-ci-$JOB_NAME-$BUILD_ID
+          STACK_NAME=cloud-ci-ardana-job-$BUILD_NUMBER
           export ANSIBLE_HOST_KEY_CHECKING=False
           export ANSIBLE_KEEP_REMOTE_FILES=1
           # the name for the cloud defined in ~./config/openstack/clouds.yaml
@@ -37,7 +57,7 @@
           git clone $git_automation_repo --branch $git_automation_branch automation-git
           pushd automation-git/scripts/jenkins/ardana/
 
-          openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t heat-template.yaml  $STACK_NAME
+          openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t heat-ardana-${model}.yaml  $STACK_NAME
           DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-ip-floating -c output_value -f value)
           DEPLOYER_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-net-mgmt-ip -c output_value -f value)
           COMPUTE1_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute1-net-mgmt-ip -c output_value -f value)
