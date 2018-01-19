@@ -18,7 +18,7 @@ parameters:
     type: string
     label: Instance Type
     description: Type of instance (flavor) to be used for the controller
-    default: m1.xlarge
+    default: m1.xxlarge
   instance_type_compute:
     type: string
     label: Instance Type
