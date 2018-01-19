@@ -6,6 +6,9 @@
   vars_files:
     - ardana_net_vars.yml
 
+  vars:
+    deployer_model: deployerincloud-lite
+
   environment:
     ARDANA_INIT_AUTO: 1
 
@@ -73,9 +76,9 @@
       - "{{ compute1_mgmt_ip }}"
       - "{{ compute2_mgmt_ip }}"
 
-  - name: Initialize target Model from deployerincloud-lite
+  - name: Initialize target Model from "{{ deployer_model }}"
     synchronize:
-      src: /var/lib/ardana/openstack/ardana-ci/deployerincloud-lite/
+      src: "/var/lib/ardana/openstack/ardana-ci/{{ deployer_model}}/"
       dest: /var/lib/ardana/openstack/my_cloud/definition/
     delegate_to: "{{ inventory_hostname }}"
     become: true
@@ -85,7 +88,7 @@
 
   - name: Update servers in Model
     template:
-      src: input-model-servers.yml
+      src: "{{ deployer_model }}/input-model-servers.yml"
       dest: /var/lib/ardana//openstack/my_cloud/definition/data/servers.yml
       owner: ardana
       group: ardana

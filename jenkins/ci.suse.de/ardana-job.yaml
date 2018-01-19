@@ -44,6 +44,12 @@
           description: >-
             This name will become the build name of the job.
 
+      - string:
+          name: cloudsource
+          default: 'SUSE-OpenStack-Cloud-8-devel-staging'
+          description: >-
+            This is used as input repository (from provo-clouddata) for testing
+
     builders:
       - shell: |
           set -ex
@@ -87,5 +93,5 @@
 
           cat ardana_net_vars.yml
 
-          ansible-playbook -vvv -i hosts repositories.yml
-          ansible-playbook -vvv -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" init.yml
+          ansible-playbook -vvv -i hosts -e "cloudsource=${cloudsource}" repositories.yml
+          ansible-playbook -vvv -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" -e "deployer_model=${model}" init.yml
