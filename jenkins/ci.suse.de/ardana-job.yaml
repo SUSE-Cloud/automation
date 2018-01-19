@@ -10,10 +10,10 @@
           name: '#${BUILD_NUMBER}: ${ENV,var="job_name"}/${ENV,var="model"}'
 
       - timeout:
-          timeout: 60
+          timeout: 120
           type: no-activity
           abort: true
-          write-description: "Job aborted due to 60 minutes of inactivity"
+          write-description: "Job aborted due to 120 minutes of inactivity"
 
     logrotate:
       numToKeep: 20
