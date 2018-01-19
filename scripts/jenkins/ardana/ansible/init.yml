@@ -193,9 +193,9 @@
     become: true
     become_user: ardana
 
-  - name: Upload Glance images for Tempest
+  - name: Configure Cloud for Tempest run
     shell: |
-      ansible-playbook -vvv -i hosts/verb_hosts glance-cloud-configure.yml
+      ansible-playbook -vvv -i hosts/verb_hosts ardana-cloud-configure.yml
     args:
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true
