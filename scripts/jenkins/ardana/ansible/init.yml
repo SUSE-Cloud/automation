@@ -82,6 +82,19 @@
     become_user: ardana
     tags:
       - create-ardana-input-model
+    when: usecobbler is not defined or usecobbler|bool == False
+
+  - name: Initialize target Model from cobblerdeployement
+    shell: |
+        wget --no-clobber --no-parent --recursive -A '*.yml' -nH --cut-dirs=2  http://10.84.144.252/susefication/input_model
+    args:
+      chdir: /var/lib/ardana/openstack/my_cloud/definition/
+    delegate_to: "{{ inventory_hostname }}"
+    become: true
+    become_user: ardana
+    tags:
+      - create-ardana-input-model
+    when: usecobbler is defined or usecobbler|bool == True
 
   - name: Update servers in Model
     template:
@@ -153,6 +166,24 @@
       git commit -q -m "Add custom config to git" || true
     args:
       chdir: /var/lib/ardana//openstack/ardana/ansible
+    become: true
+    become_user: ardana
+
+  - name: Prepare for cobbler deployment
+    shell: |
+        ansible-playbook -vvv -i hosts/localhost cobbler-deploy.yml -e "ardanauser_password=linux"
+    when: usecobbler is defined and usecobbler|bool == True
+    args:
+      chdir: /var/lib/ardana/openstack/ardana/ansible
+    become: true
+    become_user: ardana
+
+  - name: Rebuild nodes for cobbler deployement
+    shell: |
+        ansible-playbook -vvv -i hosts/localhost bm-reimage.yml -e  "ardanauser_password=linux"
+    when: usecobbler is defined and usecobbler|bool == True
+    args:
+      chdir: /var/lib/ardana/openstack/ardana/ansible
     become: true
     become_user: ardana
 

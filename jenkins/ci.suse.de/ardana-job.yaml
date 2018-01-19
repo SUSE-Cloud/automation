@@ -24,6 +24,12 @@
           description: >-
             The git automation branch
 
+      - bool:
+          name: usecobbler
+          default: False
+          description: >-
+            use cobbler for deployement
+
     builders:
       - shell: |
           set -ex
@@ -57,6 +63,7 @@
           deployer_mgmt_ip: $DEPLOYER_MGMT_IP
           compute1_mgmt_ip: $COMPUTE1_MGMT_IP
           compute2_mgmt_ip: $COMPUTE2_MGMT_IP
+          usecobbler: $usecobbler
           EOF
           # Get the IP addresses of the dns servers from the mgmt network
           echo "mgmt_dnsservers:" >> ardana_net_vars.yml
