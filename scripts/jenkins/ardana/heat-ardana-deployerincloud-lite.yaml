@@ -35,6 +35,10 @@ resources:
     type: OS::Neutron::Net
     properties:
       port_security_enabled: False
+  network_external:
+    type: OS::Neutron::Net
+    properties:
+      port_security_enabled: False
 
   # subnet
   subnet_mgmt:
@@ -57,6 +61,16 @@ resources:
             end: "192.168.110.100"
       ip_version: 4
       gateway_ip: null
+  subnet_external:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: network_external }
+      allocation_pools:
+          - start: "172.31.0.2"
+            end: "172.31.255.154"
+      cidr: "172.31.0.0/16"
+      enable_dhcp: False
+      gateway_ip: 172.31.0.1
 
   # router
   router_mgmt:
@@ -70,6 +84,12 @@ resources:
     properties:
       router_id: { get_resource: router_mgmt }
       subnet_id: { get_resource: subnet_mgmt }
+
+  router_external_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router_mgmt }
+      subnet_id: { get_resource: subnet_external }
 
   # floating IPs
   deployer-controller-floatingip:
@@ -87,6 +107,7 @@ resources:
       networks:
         - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
+        - network: { get_resource: network_external }
 
   compute1:
     type: OS::Nova::Server
@@ -97,6 +118,7 @@ resources:
       networks:
         - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
+        - network: { get_resource: network_external }
 
   compute2:
     type: OS::Nova::Server
@@ -107,6 +129,7 @@ resources:
       networks:
         - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
+        - network: { get_resource: network_external }
 
   # disks
   controller_vdb:
