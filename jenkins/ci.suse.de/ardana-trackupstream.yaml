@@ -48,7 +48,6 @@
             - ardana-octavia
             - ardana-opsconsole
             - ardana-opsconsole-ui
-            - ardana-opsconsole-server
             - ardana-osconfig
             - ardana-qa-ansible
             - ardana-service
