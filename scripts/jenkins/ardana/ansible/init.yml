@@ -25,6 +25,23 @@
       /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
     ignore_errors: True
 
+  - name: Install the patch command
+    zypper:
+        name: patch
+        state: preset
+    # https://gist.github.com/marcusphi/6791404
+    when: patches is defined and (not patches|trim == '')
+
+  - name: Curl the patches and apply them
+    become: true
+    become_user: ardana
+    shell: |
+        curl -k '{{ item }}' | patch -p1
+    args:
+      chdir: /usr/share/ardana/ansible
+    with_items: "{{ patches.split(',')}}"
+    when: patches is defined and (not patches|trim == '')
+
   - name: Call ardana-init
     shell: /usr/bin/ardana-init
     become: true

@@ -59,6 +59,12 @@
             periodic-virtual, refstack, smoke, swift, tests2skip, tests-ci,
             upgrade-ci or upgrade
 
+      - string:
+          name: patches
+          default: ''
+          description: >-
+            Comma separated list of raw patch urls
+
     builders:
       - shell: |
           set -ex
@@ -110,4 +116,5 @@
           ansible-playbook -vvv -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
                                          -e "deployer_model=${model}" \
                                          -e "tempest_run_filter=${tempest_run_filter}" \
+                                         -e "patches=${patches}"
                                          init.yml
