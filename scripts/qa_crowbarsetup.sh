@@ -1016,8 +1016,10 @@ EOF
 
     if [ -z "$NOINSTALLCLOUDPATTERN" ] ; then
         safely $zypper in -l -t pattern cloud_admin
+        $zypper al kernel-default # dup below breaks for kernel-default so skip it
         # make sure to use packages from PTF repo (needs zypper dup)
         $zypper mr -G -e cloud-ptf && safely $zypper dup --no-recommends --from cloud-ptf
+        $zypper rl kernel-default
     fi
 
     cd /tmp
