@@ -46,6 +46,7 @@
             - openstack-horizon-plugin-sahara-ui
             - openstack-horizon-plugin-trove-ui
             - openstack-ironic
+            - openstack-ironic-python-agent
             - openstack-keystone
             - openstack-manila
             - openstack-magnum
@@ -97,6 +98,10 @@
             "openstack-monasca-persister",
             "python-monasca-common",
             "python-monasca-statsd"
+            ].contains(component) ||
+            [ "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
+            [
+              "openstack-ironic-python-agent"
             ].contains(component) ||
             [ "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
