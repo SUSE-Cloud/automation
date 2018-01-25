@@ -18,7 +18,7 @@
       nic-mapping: HEAT
 
     - id: cpn-0001
-      ip-addr:  {{ compute1_mgmt_ip }}
+      ip-addr:  {{ compute_mgmt_ips[0] }}
       role: COMPUTE-ROLE
       mac-addr: d6:70:c1:36:43:f7
       ilo-ip: 192.168.109.4
@@ -27,7 +27,7 @@
       nic-mapping: HEAT
 
     - id: cpn-0002
-      ip-addr:  {{ compute2_mgmt_ip }}
+      ip-addr:  {{ compute_mgmt_ips[1] }}
       role: COMPUTE-ROLE
       mac-addr: 8e:8e:62:a6:ce:76
       ilo-ip: 192.168.109.5

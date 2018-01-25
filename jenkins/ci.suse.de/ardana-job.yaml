@@ -75,11 +75,29 @@
           git clone $git_automation_repo --branch $git_automation_branch automation-git
           pushd automation-git/scripts/jenkins/ardana/
 
-          openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t heat-ardana-${model}.yaml  $STACK_NAME
+
+          case $model in
+              std*)
+                  num_controller=2
+                  num_compute=1
+                  ;;
+              deployerincloud*)
+                  num_controller=0
+                  num_compute=2
+                  ;;
+              *)
+                  num_controller=1
+                  num_compute=2
+                  ;;
+          esac
+
+          openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait \
+              -t heat-ardana-${model}.yaml  \
+              --parameter number_of_computes=$num_compute \
+              --parameter number_of_controllers=$num_controller \
+              $STACK_NAME
+
           DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-ip-floating -c output_value -f value)
-          DEPLOYER_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-net-mgmt-ip -c output_value -f value)
-          COMPUTE1_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute1-net-mgmt-ip -c output_value -f value)
-          COMPUTE2_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute2-net-mgmt-ip -c output_value -f value)
           NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME network-mgmt-id -c output_value -f value)
           # FIXME: Use cloud-init in the used image
           sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${DEPLOYER_IP}
@@ -88,14 +106,28 @@
           [hosts]
           $DEPLOYER_IP ansible_user=root
           EOF
+
           cat hosts
 
           cat << EOF > ardana_net_vars.yml
           ---
-          deployer_mgmt_ip: $DEPLOYER_MGMT_IP
-          compute1_mgmt_ip: $COMPUTE1_MGMT_IP
-          compute2_mgmt_ip: $COMPUTE2_MGMT_IP
+          deployer_mgmt_ip: $(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-net-mgmt-ip -c output_value -f value)
           EOF
+
+          echo "controller_mgmt_ips:" >> ardana_net_vars.yml
+          for ip in $(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME controllers-net-mgmt-ips -c output_value -f value); do
+              cat << EOF >> ardana_net_vars.yml
+              - $ip
+          EOF
+          done
+
+          echo "compute_mgmt_ips:" >> ardana_net_vars.yml
+          for ip in $(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME computes-net-mgmt-ips -c output_value -f value); do
+              cat << EOF >> ardana_net_vars.yml
+              - $ip
+          EOF
+          done
+
           # Get the IP addresses of the dns servers from the mgmt network
           echo "mgmt_dnsservers:" >> ardana_net_vars.yml
           openstack --os-cloud $CLOUD_CONFIG_NAME port list --network $NETWORK_MGMT_ID \

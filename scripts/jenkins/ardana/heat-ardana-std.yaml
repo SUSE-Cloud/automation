@@ -47,6 +47,26 @@ resources:
     type: OS::Neutron::Net
     properties:
       port_security_enabled: False
+  network_unused:
+    type: OS::Neutron::Net
+    properties:
+      port_security_enabled: False
+  network_guest:
+    type: OS::Neutron::Net
+    properties:
+      port_security_enabled: False
+  network_iscsi:
+    type: OS::Neutron::Net
+    properties:
+      port_security_enabled: False
+  network_tenant:
+    type: OS::Neutron::Net
+    properties:
+      port_security_enabled: False
+  network_hostname:
+    type: OS::Neutron::Net
+    properties:
+      port_security_enabled: False
 
   # subnet
   subnet_mgmt:
@@ -79,6 +99,57 @@ resources:
       cidr: "172.31.0.0/16"
       enable_dhcp: False
       gateway_ip: 172.31.0.1
+  subnet_unused:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: network_unused }
+      allocation_pools:
+          - start: "172.32.0.2"
+            end: "172.32.0.127"
+      cidr: "172.32.0.0/24"
+      enable_dhcp: False
+  subnet_guest:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: network_guest }
+      enable_dhcp: False
+      allocation_pools:
+          - start: "192.168.115.2"
+            end: "192.168.115.250"
+      cidr: "192.168.115.0/24"
+      enable_dhcp: False
+      gateway_ip: 192.168.115.1
+  subnet_iscsi:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: network_iscsi }
+      enable_dhcp: False
+      allocation_pools:
+          - start: "192.168.113.2"
+            end: "192.168.113.250"
+      cidr: "192.168.113.0/24"
+      enable_dhcp: False
+      gateway_ip: 192.168.113.1
+  subnet_tenant:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: network_tenant }
+      allocation_pools:
+          - start: "172.30.0.2"
+            end: "172.30.0.127"
+      cidr: "172.30.0.0/24"
+      enable_dhcp: False
+  subnet_hostname:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: network_hostname }
+      enable_dhcp: False
+      allocation_pools:
+          - start: "192.168.111.2"
+            end: "192.168.111.250"
+      cidr: "192.168.111.0/24"
+      enable_dhcp: False
+      gateway_ip: 192.168.111.1
 
   # router
   router_mgmt:
@@ -100,13 +171,12 @@ resources:
       subnet_id: { get_resource: subnet_external }
 
   # floating IPs
-  deployer-controller-floatingip:
+  deployer-floatingip:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network: floating
-
   # instances
-  deployer-controller:
+  deployer:
     type: OS::Nova::Server
     properties:
       key_name: { get_param: key_name }
@@ -116,7 +186,32 @@ resources:
         - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
         - network: { get_resource: network_external }
+        - network: { get_resource: network_guest }
+        - network: { get_resource: network_unused }
+        - network: { get_resource: network_iscsi }
+        - network: { get_resource: network_tenant }
+        - network: { get_resource: network_hostname }
 
+  controllers:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: number_of_controllers }
+      resource_def:
+        type: heat-ardana-std-controller.yaml
+        properties:
+          key_name: { get_param: key_name }
+          index: "%index%"
+          image_id: { get_param: image_id }
+          instance_type_controller: { get_param: instance_type_controller }
+          networks:
+              - network: { get_resource: network_mgmt }
+              - network: { get_resource: network_ardana }
+              - network: { get_resource: network_external }
+              - network: { get_resource: network_guest }
+              - network: { get_resource: network_unused }
+              - network: { get_resource: network_iscsi }
+              - network: { get_resource: network_tenant }
+              - network: { get_resource: network_hostname }
   computes:
     type: OS::Heat::ResourceGroup
     properties:
@@ -132,71 +227,32 @@ resources:
             - network: { get_resource: network_mgmt }
             - network: { get_resource: network_ardana }
             - network: { get_resource: network_external }
+            - network: { get_resource: network_guest }
+            - network: { get_resource: network_unused }
+            - network: { get_resource: network_iscsi }
+            - network: { get_resource: network_tenant }
+            - network: { get_resource: network_hostname }
 
-  # disks
-  controller_vdb:
-    type: OS::Cinder::Volume
-    properties:
-      size: 30
-  controller_vdc:
-    type: OS::Cinder::Volume
-    properties:
-      size: 30
-  controller_vdd:
-    type: OS::Cinder::Volume
-    properties:
-      size: 30
-  controller_vde:
-    type: OS::Cinder::Volume
-    properties:
-      size: 30
-
-  controller_vol_att_vdb:
-    type: OS::Cinder::VolumeAttachment
-    properties:
-      instance_uuid: { get_resource: deployer-controller }
-      volume_id: { get_resource: controller_vdb }
-      mountpoint: /dev/vdb
-
-  controller_vol_att_vdc:
-    type: OS::Cinder::VolumeAttachment
-    properties:
-      instance_uuid: { get_resource: deployer-controller }
-      volume_id: { get_resource: controller_vdc }
-      mountpoint: /dev/vdc
-  controller_vol_att_vdd:
-    type: OS::Cinder::VolumeAttachment
-    properties:
-      instance_uuid: { get_resource: deployer-controller }
-      volume_id: { get_resource: controller_vdd }
-      mountpoint: /dev/vdd
-  controller_vol_att_vde:
-    type: OS::Cinder::VolumeAttachment
-    properties:
-      instance_uuid: { get_resource: deployer-controller }
-      volume_id: { get_resource: controller_vde }
-      mountpoint: /dev/vde
-
-  deployer-controller-floating-assignment:
+  deployer-floating-assignment:
     type: OS::Neutron::FloatingIPAssociation
     properties:
-      floatingip_id: { get_resource: deployer-controller-floatingip }
-      port_id: {get_attr: [deployer-controller, addresses, { get_resource: network_mgmt }, 0, port]}
+      floatingip_id: { get_resource: deployer-floatingip }
+      port_id: {get_attr: [deployer, addresses, { get_resource: network_mgmt }, 0, port]}
 
 outputs:
-  # deployer-controller
+  # deployer
   deployer-ip-floating:
-    description: Floating IP address of the deployer-controller node
-    value: { get_attr: [deployer-controller-floatingip, floating_ip_address] }
+    description: Floating IP address of the deployer node
+    value: { get_attr: [deployer-floatingip, floating_ip_address] }
 
   deployer-net-mgmt-ip:
-    description: IP address of the deployer-controller in the mgmt network
-    value: { get_attr: [deployer-controller, networks, { get_resource: network_mgmt }, 0]}
+    description: IP address of the deployer in the mgmt network
+    value: { get_attr: [deployer, networks, { get_resource: network_mgmt }, 0]}
 
   # controller
   controllers-net-mgmt-ips:
-    description: List of Non-deployer controllers IPs in the mgmt network (empty for deployerincloud)
-    value: ""
+    description: List of IPs of the controllers in the mgmt network
+    value: { list_join: ["\n", { get_attr: [controllers, networks, { get_resource: network_mgmt }, 0]} ]}
 
   # computes
   computes-net-mgmt-ips:

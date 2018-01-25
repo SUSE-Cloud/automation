@@ -40,42 +40,47 @@
     shell: |
       [ -f ~/.ssh/id_rsa ] || ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
 
-  - name: Copy root key to compute nodes
+  - name: Copy root key to non-deployer nodes
     shell: |
       sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {{ item }}
     with_items:
-      - "{{ compute1_mgmt_ip }}"
-      - "{{ compute2_mgmt_ip }}"
+      - "{{ controller_mgmt_ips|default([]) }}"
+      - "{{ compute_mgmt_ips }}"
     ignore_errors: True
+    when: item != "" and item != deployer_mgmt_ip
 
-  - name: Create ardana user on compute nodes
+  - name: Create ardana user/group on non-deployer nodes
     shell: |
-      ssh -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "getent passwd ardana || useradd -m -d /var/lib/ardana -r -s /bin/bash ardana"
+      ssh -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "getent group ardana || groupadd -r ardana"
+      ssh -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "getent passwd ardana || useradd -m -g ardana -d /var/lib/ardana -c 'Ardana Home' -r -s /bin/bash ardana"
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} mkdir -p /var/lib/ardana/.ssh/
       scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ~ardana/.ssh/id_rsa.pub root@{{ item }}:/var/lib/ardana/.ssh/authorized_keys
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} chown -R ardana: /var/lib/ardana/.ssh/
       scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/sudoers.d/ardana root@{{ item }}:/etc/sudoers.d/ardana
     with_items:
-      - "{{ compute1_mgmt_ip }}"
-      - "{{ compute2_mgmt_ip }}"
+      - "{{ controller_mgmt_ips|default([]) }}"
+      - "{{ compute_mgmt_ips }}"
+    when: item != "" and item != deployer_mgmt_ip
 
   # FIXME: This is ugly and we do not need all the repos from the deployer on the compute nodes
-  - name: Copy zypper repo setup from deployer-controller to compute nodes
+  - name: Copy zypper repo setup from deployer to other nodes
     shell: |
       scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/zypp/repos.d/* root@{{ item }}:/etc/zypp/repos.d/
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} zypper -n --gpg-auto-import-keys ref
     with_items:
-      - "{{ compute1_mgmt_ip }}"
-      - "{{ compute2_mgmt_ip }}"
+      - "{{ controller_mgmt_ips|default([]) }}"
+      - "{{ compute_mgmt_ips }}"
+    when: item != "" and item != deployer_mgmt_ip
 
-  - name: Grow 1st partition filesystem on Compute nodes
+  - name: Grow 1st partition filesystem on non-deployer nodes
     become: yes
     shell: |
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} "/usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1"
     ignore_errors: True
     with_items:
-      - "{{ compute1_mgmt_ip }}"
-      - "{{ compute2_mgmt_ip }}"
+      - "{{ controller_mgmt_ips|default([]) }}"
+      - "{{ compute_mgmt_ips }}"
+    when: item != "" and item != deployer_mgmt_ip
 
   - name: Initialize target Model from "{{ deployer_model }}"
     synchronize:
@@ -115,28 +120,28 @@
 
   - name: Update network-groups in Model
     copy:
-      src: input-model-network-groups.yml
+      src: "{{ deployer_model }}/input-model-network-groups.yml"
       dest: /var/lib/ardana//openstack/my_cloud/definition/data/network_groups.yml
     tags:
       - create-ardana-input-model
 
   - name: Update nic-mappings in Model
     copy:
-      src: input-model-nic-mappings.yml
+      src: "{{ deployer_model }}/input-model-nic-mappings.yml"
       dest: /var/lib/ardana//openstack/my_cloud/definition/data/nic_mappings.yml
     tags:
       - create-ardana-input-model
 
   - name: Update nic-global in Model
     copy:
-      src: input-model-net-global.yml
+      src: "{{ deployer_model }}/input-model-net-global.yml"
       dest: /var/lib/ardana/openstack/my_cloud/definition/data/net_global.yml
     tags:
       - create-ardana-input-model
 
   - name: Update controller disk mapping in Model
     copy:
-      src: input-model-disks-controller.yml
+      src: "{{ deployer_model }}/input-model-disks-controller.yml"
       dest: /var/lib/ardana/openstack/my_cloud/definition/data/disks_controller.yml
     tags:
       - create-ardana-input-model
@@ -198,9 +203,10 @@
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  {{ item }} sudo mkdir /etc/openstack/
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  {{ item }} sudo touch /etc/openstack/skip_disk_config
     with_items:
-      - "{{ compute1_mgmt_ip }}"
-      - "{{ compute2_mgmt_ip }}"
+      - "{{ controller_mgmt_ips|default([]) }}"
+      - "{{ compute_mgmt_ips }}"
     become: true
+    when: item != "" and item != deployer_mgmt_ip
     become_user: ardana
 
   - name: Run the actual deployment site.yml playbook
