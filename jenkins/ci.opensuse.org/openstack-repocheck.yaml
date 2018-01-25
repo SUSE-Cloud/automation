@@ -28,7 +28,6 @@
           values:
             - SLE_12_SP2
             - SLE_12_SP3
-            - openSUSE_Leap_42.2
             - openSUSE_Leap_42.3
       - axis:
           type: slave
@@ -37,9 +36,9 @@
             - cloud-trackupstream
     execution-strategy:
       combination-filter: |
-       !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_12_SP2", "openSUSE_Leap_42.2"].contains(repository) ||
+       !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_12_SP2"].contains(repository) ||
          ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["openSUSE_Leap_42.3"].contains(repository) ||
-         ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["SLE_12_SP2", "openSUSE_Leap_42.2"].contains(repository)
+         ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["SLE_12_SP2"].contains(repository)
        )
       sequential: true
     builders:
