@@ -8,6 +8,7 @@
 
   vars:
     deployer_model: deployerincloud-lite
+    tempest_run_filter: smoke
 
   environment:
     ARDANA_INIT_AUTO: 1
@@ -215,7 +216,8 @@
 
   - name: Run tempest
     shell: |
-      ansible-playbook -vvv -i hosts/verb_hosts tempest-run.yml
+      ansible-playbook -vvv -i hosts/verb_hosts tempest-run.yml \
+                       -e run_filter="{{ tempest_run_filter }}"
     args:
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true
