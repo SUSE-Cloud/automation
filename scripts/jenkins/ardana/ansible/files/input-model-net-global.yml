@@ -23,4 +23,5 @@
 
     - name: EXTERNAL-VM-NET
       vlanid: 103
+      tagged-vlan: false
       network-group: EXTERNAL-VM

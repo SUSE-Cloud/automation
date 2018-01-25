@@ -15,7 +15,7 @@
 
         - logical-name: hed3
           type: simple-port
-          bus-address: "0000:00:08.0"
+          bus-address: "0000:00:05.0"
 
         - logical-name: hed4
           type: simple-port
