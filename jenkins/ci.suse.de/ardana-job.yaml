@@ -73,8 +73,8 @@
           pushd automation-git/scripts/jenkins/ardana/
 
           openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait -t heat-ardana-${model}.yaml  $STACK_NAME
-          DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-ip-floating -c output_value -f value)
-          DEPLOYER_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-controller-net-mgmt-ip -c output_value -f value)
+          DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-ip-floating -c output_value -f value)
+          DEPLOYER_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-net-mgmt-ip -c output_value -f value)
           COMPUTE1_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute1-net-mgmt-ip -c output_value -f value)
           COMPUTE2_MGMT_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute2-net-mgmt-ip -c output_value -f value)
           NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME network-mgmt-id -c output_value -f value)
