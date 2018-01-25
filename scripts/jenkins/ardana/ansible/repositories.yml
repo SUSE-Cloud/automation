@@ -6,6 +6,7 @@
   vars:
     clouddata_server: provo-clouddata.cloud.suse.de
     download_suse_server: download.suse.de
+    cloudsource: SUSE-OpenStack-Cloud-8-devel-staging
 
   tasks:
   # SLES repos
@@ -20,9 +21,9 @@
       name: SLES12SP3-Updates
 
   # Devel:Cloud:8
-  - name: Add Devel:Cloud:8:Staging media
+  - name: "Add {{ cloudsource }} media"
     zypper_repository:
-      repo: "http://{{ clouddata_server }}/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging"
+      repo: "http://{{ clouddata_server }}/repos/x86_64/{{ cloudsource }}"
       name: DC8S-Media
 
   - name: Repo for sshpass
