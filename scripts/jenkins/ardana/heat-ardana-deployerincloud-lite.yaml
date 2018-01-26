@@ -183,15 +183,15 @@ resources:
 
 outputs:
   # deployer-controller
-  deployer-controller-ip-floating:
+  deployer-ip-floating:
     description: Floating IP address of the deployer-controller node
     value: { get_attr: [deployer-controller-floatingip, floating_ip_address] }
 
-  deployer-controller-net-ardana-ip:
+  deployer-net-ardana-ip:
     description: IP address of the deployer-controller in the ardana network
     value: { get_attr: [deployer-controller, networks, { get_resource: network_ardana }, 0]}
 
-  deployer-controller-net-mgmt-ip:
+  deployer-net-mgmt-ip:
     description: IP address of the deployer-controller in the mgmt network
     value: { get_attr: [deployer-controller, networks, { get_resource: network_mgmt }, 0]}
 
