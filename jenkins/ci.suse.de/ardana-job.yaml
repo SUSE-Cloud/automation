@@ -102,6 +102,7 @@
 
           cat ardana_net_vars.yml
 
+          ansible-playbook -vvv -i hosts ssh-keys.yml
           ansible-playbook -vvv -i hosts -e "cloudsource=${cloudsource}" repositories.yml
           ansible-playbook -vvv -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
                                          -e "deployer_model=${model}" \
