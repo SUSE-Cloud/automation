@@ -14,6 +14,7 @@
 
 declare -a needed_repos=(
     github.com/SUSE-Cloud/automation
+    github.com/openSUSE/github-pr
 )
 
 function get_archive_url
