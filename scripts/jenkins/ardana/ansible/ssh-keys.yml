@@ -10,6 +10,8 @@
       dest: /root/.ssh/authorized_keys
       line: "{{ item }}"
     with_items:
+      # aplanas
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdP6oez825gnOLVZu70KqJXpqL4fGfaFNk87GSk3xLRjixGtr013+hcN03ZRKU0/2S7J0T/dICc2dhG9xAqa/A31QachQeg2RhPxM2SL+wgzx0geDmf6XDhhe8reos5jgzw6Pq59gyWfurlZaMEZAoOYkfNb5OG4vQQN8Z7hldx+DBANPbylApurVz6h5vvRrkPfuRVN5ZxOkI+LeWhpovX5XK3eTjetAwWEro6AAXpGoQQQDjSOoYHCUmXzcZkmIWEubCZvAI4RZ+XCZs+wTeO2RIRsunqP8J+XW4cZ28RZBc9K4I1BV8C6wBxN328LRQcilzw+Me+LfreeDPglqx aplanas@g227
       # tbechtold
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC2mEyxfkW1u84u5BocLCAXESj2qObWkxUd20cmPolhJYlIWLOafa69Dw5A9CjFBp0U6Jx5d0JWcwmAc5ZeffQ7t7vzmtHCZnpKkyZhN9bu6vuCh4N+I643SI/K7tdbB2E8ZE6uI7ORMAan5+t0bNSVolUVq6X1w7dIA5El54K10WNdiwgRKW6e3anNbJ3rBLGEk7gawZqDDOqTvVQmOBGWek3BjSReDvg3rkmTQLxJkiKdxnx4/s7gzH1xTpsS/OludIuSxF0BK064ZcT1t09qcjnT4Os1inV2GfYswt+UhpgqrHqXjEs0Z3y4Oy77QBKL1rDf93CP4a4+eJjqXe+v tbechtold@suse.com
       # jtomasiak
