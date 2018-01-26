@@ -1,0 +1,14 @@
+---
+- name: Setup SSH keys
+  hosts: hosts
+  gather_facts: False
+
+  tasks:
+  - name:  Write available ssh keys to people can login
+    become: yes
+    lineinfile:
+      dest: /root/.ssh/authorized_keys
+      line: "{{ item }}"
+    with_items:
+      # tbechtold
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC2mEyxfkW1u84u5BocLCAXESj2qObWkxUd20cmPolhJYlIWLOafa69Dw5A9CjFBp0U6Jx5d0JWcwmAc5ZeffQ7t7vzmtHCZnpKkyZhN9bu6vuCh4N+I643SI/K7tdbB2E8ZE6uI7ORMAan5+t0bNSVolUVq6X1w7dIA5El54K10WNdiwgRKW6e3anNbJ3rBLGEk7gawZqDDOqTvVQmOBGWek3BjSReDvg3rkmTQLxJkiKdxnx4/s7gzH1xTpsS/OludIuSxF0BK064ZcT1t09qcjnT4Os1inV2GfYswt+UhpgqrHqXjEs0Z3y4Oy77QBKL1rDf93CP4a4+eJjqXe+v tbechtold@suse.com
