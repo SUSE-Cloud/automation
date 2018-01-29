@@ -22,7 +22,7 @@ To be able to use the Jenkins job and login to a deployed env, you need:
  * you public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/ssh-keys.yml) (via normal github pull requests)
 
 ## Create a new environment
-Start the deployment via [Build with parameters](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/ssh-keys.yml). The available parameters should be self-descriptive. Here are some best practices:
+Start the deployment via [Build with parameters](https://ci.suse.de/job/ardana-job/build). The available parameters should be self-descriptive. Here are some best practices:
 
  * use your Rocket/irc nickname as ```job_name```
  * To test a custom automation repo, push to your fork and adjust ```git_automation_repo``` and ```git_automation_branch```
