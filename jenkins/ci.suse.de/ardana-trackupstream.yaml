@@ -16,6 +16,7 @@
           values:
             - ardana-ansible
             - ardana-barbican
+            - ardana-cassandra
             - ardana-ceilometer
             - ardana-ceph
             - ardana-cephlm
