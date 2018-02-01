@@ -151,6 +151,11 @@
     tags:
       - create-ardana-input-model
 
+  - name: Allow ICMP in Model
+    copy:
+      src: input-model-firewall-rules.yml
+      dest: /var/lib/ardana/openstack/my_cloud/definition/data/firewall_rules.yml
+
   - name: Add my_cloud config to git
     shell: |
       git add -A
