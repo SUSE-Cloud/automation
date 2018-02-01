@@ -62,7 +62,10 @@
     builders:
       - shell: |
           set -ex
-          STACK_NAME=cloud-ci-ardana-job-$BUILD_NUMBER
+          STACK_NAME=cloud-ci-ardana-job-${BUILD_NUMBER}
+          if [ -n "${JOB_NAME}" ]; then
+              STACK_NAME=${STACK_NAME}-${JOB_NAME}
+          fi
           export ANSIBLE_HOST_KEY_CHECKING=False
           export ANSIBLE_KEEP_REMOTE_FILES=1
           # the name for the cloud defined in ~./config/openstack/clouds.yaml
