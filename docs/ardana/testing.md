@@ -8,7 +8,7 @@ Ardana environment up and running.
 
 # Setup a custom enviroment
 We currently have a [Jenkins job](https://ci.nue.suse.com/job/ardana-job/) (defined
-in the [automation git](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.nue.suse.com/ardana-job.yaml)
+in the [automation git](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/ardana-job.yaml)
 which can be used to create a new environment in the [engineering cloud](https://engcloud.prv.suse.net/).
 The deployment can then be accessed via the floating IP and used for debugging.
 
