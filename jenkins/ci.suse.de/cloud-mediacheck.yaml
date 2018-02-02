@@ -19,9 +19,13 @@
             - Devel:Cloud:6:Appliances/SLE_12_SP1
             - Devel:Cloud:7/SLE_12_SP2
             - Devel:Cloud:7:Mitaka/SLE_12_SP2
-            - Devel:Cloud:8/SLE_12_SP3
+            - Devel:Cloud:8/SLE_12_SP3/SOC
+            - Devel:Cloud:8/SLE_12_SP3/HOS
+            - Devel:Cloud:8/SLE_12_SP3/CROWBAR
             - Devel:Cloud:8:Ocata/SLE_12_SP3
-            - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3
+            - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3/SOC
+            - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3/HOS
+            - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3/CROWBAR
       - axis:
           type: user-defined
           name: subproject
@@ -35,12 +39,22 @@
             - cloud-mediacheck
     execution-strategy:
       combination-filter: |
-        (["Devel:Cloud:6", "Devel:Cloud:6/SLE_12_SP1", "Devel:Cloud:7/SLE_12_SP2", "Devel:Cloud:8/SLE_12_SP3" ].contains(project) || subproject == ":")
+        (
+          [
+            "Devel:Cloud:6",
+            "Devel:Cloud:6/SLE_12_SP1",
+            "Devel:Cloud:7/SLE_12_SP2",
+            "Devel:Cloud:8/SLE_12_SP3/SOC",
+            "Devel:Cloud:8/SLE_12_SP3/HOS",
+            "Devel:Cloud:8/SLE_12_SP3/CROWBAR"
+          ].contains(project)
+          || subproject == ":"
+        )
     builders:
       - shell: |
           export automationrepo=~/github.com/SUSE-Cloud/automation
           export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
-          
+
           # Workaround to get only the name of the job:
           # https://issues.jenkins-ci.org/browse/JENKINS-39189
           # When the JOB_BASE_NAME contains only in ex. "cloud-mediacheck", this
