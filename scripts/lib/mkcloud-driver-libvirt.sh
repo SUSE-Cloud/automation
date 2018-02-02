@@ -115,7 +115,7 @@ function libvirt_do_setuphost()
     fi
     zypper_override_params="--non-interactive" extra_zypper_install_params="--no-recommends" ensure_packages_installed \
         libvirt libvirt-python $kvmpkg $extra_packages \
-        lvm2 curl wget bridge-utils \
+        lvm2 curl wget iputils bridge-utils \
         dnsmasq netcat-openbsd ebtables iproute2 sudo kpartx rsync
 
     sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
