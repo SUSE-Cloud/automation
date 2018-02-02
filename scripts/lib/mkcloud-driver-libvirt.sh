@@ -115,12 +115,13 @@ function libvirt_do_setuphost()
     fi
     zypper_override_params="--non-interactive" extra_zypper_install_params="--no-recommends" ensure_packages_installed \
         libvirt libvirt-python $kvmpkg $extra_packages \
-        lvm2 curl wget bridge-utils \
+        lvm2 curl wget iputils bridge-utils \
         dnsmasq netcat-openbsd ebtables iproute2 sudo kpartx rsync
 
     sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
     echo "net.ipv4.conf.all.rp_filter = 0" > /etc/sysctl.d/90-cloudrpfilter.conf
     echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
+    libvirt_do_sanity_checks
     if [ -n "$needcvol" ] ; then
         safely pvcreate "$cloudpv"
         safely vgcreate "$cloudvg" "$cloudpv"
