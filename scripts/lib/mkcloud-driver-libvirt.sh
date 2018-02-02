@@ -121,6 +121,7 @@ function libvirt_do_setuphost()
     sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
     echo "net.ipv4.conf.all.rp_filter = 0" > /etc/sysctl.d/90-cloudrpfilter.conf
     echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
+    libvirt_do_sanity_checks
     if [ -n "$needcvol" ] ; then
         safely pvcreate "$cloudpv"
         safely vgcreate "$cloudvg" "$cloudpv"
