@@ -631,7 +631,8 @@ function mkvlan
     local DEFVLAN=$1 ; shift
     local IP=$1 ; shift
     $sudo ip link add link $cloudbr name $cloudbr.$DEFVLAN type vlan id $DEFVLAN
-    safely $sudo ifconfig $cloudbr.$DEFVLAN $IP/24
+    safely $sudo ip link set $cloudbr.$DEFVLAN up
+    safely $sudo ip addr add $IP/24 dev $cloudbr.$DEFVLAN
 }
 
 function setuppublicnet
