@@ -220,6 +220,14 @@ for version in 6 7 8; do
         rsync_with_create ${ibs_source}/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Pool/
         rsync_with_create ${ibs_source}/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates/
         rsync_with_create $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
+
+        if [ "$version" == "8" ]; then
+            rsync_with_create ${ibs_source}/SUSE/Products/OpenStack-Cloud-Crowbar/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Pool/
+            rsync_with_create ${ibs_source}/SUSE/Updates/OpenStack-Cloud-Crowbar/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Updates/
+
+            rsync_with_create ${ibs_source}/SUSE/Products/HPE-Helion-OpenStack-Cloud/$version/$arch/product/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-Cloud-$version-Pool/
+            rsync_with_create ${ibs_source}/SUSE/Updates/HPE-Helion-OpenStack-Cloud/$version/$arch/update/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-Cloud-$version-Updates/
+        fi
     done
 done
 
