@@ -388,7 +388,7 @@ function libvirt_do_onhost_deploy_image()
             local part=$($sudo kpartx -asv $disk|perl -ne 'm/add map (\S+'"$last_part"') / && print $1')
             test -n "$part" || complain 31 "failed to find partition #$last_part"
             local bdev=/dev/mapper/$part
-            safely $sudo fsck -y -f $bdev
+            safely $sudo e2fsck -y -f $bdev
             safely $sudo resize2fs $bdev
             time $sudo udevadm settle
             sleep 1 # time for dev to become unused
