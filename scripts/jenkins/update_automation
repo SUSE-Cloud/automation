@@ -2,8 +2,7 @@
 
 #
 # update the automation scripts on jenkins nodes
-# it will pull the latest changes from the git repo
-# and update the symlinks in ~/bin for the wanted scripts
+# it will pull the latest changes from the git repos
 #
 # it can be called from within the jenkins job itself
 #
@@ -13,27 +12,40 @@
 # Bernhard M. Wiedemann <bwiedemann suse.de>
 #
 
-: ${automation_repo:="https://github.com/SUSE-Cloud/automation.git"}
-: ${branch:=master}
+declare -a needed_repos=(
+    github.com/SUSE-Cloud/automation
+    github.com/openSUSE/github-pr
+)
 
-a_dir=${automation_repo#*git://}
-a_dir=${a_dir#*https://}
-a_dir=${a_dir%.git}
-p_dir=${a_dir%/*}
+function get_archive_url
+{
+    echo -n https://${1}/archive/${2}.tar.gz
+}
+
+function get_repo_url
+{
+    echo -n https://${1}.git
+}
 
 function do_wget
 {
-    wget -O- https://${a_dir}/archive/${branch}.tar.gz | tar xz
-    rm -rf $a_dir
-    mv automation-$branch $a_dir
+    local url_dir=$1
+    local branch=$2
+    #wget -O- https://${url_dir}/archive/${branch}.tar.gz | tar xz
+    wget -O- `get_archive_url "$url_dir" "$branch"` | tar xz
+    rm -rf $url_dir
+    local repo_name=${url_dir##*/}
+    mv $repo_name-$branch $url_dir
 }
 
 function do_git
 {
+    local url_dir=$1
+    local branch=$2
     rpm -q git-core >/dev/null || zypper --non-interactive in git-core || return 24
 
-    if [ -d $a_dir/.git ] ; then
-        pushd $a_dir > /dev/null
+    if [ -d $url_dir/.git ] ; then
+        pushd $url_dir > /dev/null
             local n=100
             # check counter before mkdir to be sure that we did not get the lock when it is 0
             while [[ $n -gt 0 ]] && ! mkdir .git/lock.update-automation ; do
@@ -59,15 +71,23 @@ function do_git
             git reset --hard origin/$branch
         popd > /dev/null
     else
-        rm -rf ~/$a_dir
-        pushd $p_dir > /dev/null
-            git clone ${automation_repo}
+        rm -rf ~/$url_dir
+        local checkout_base_dir=${url_dir%/*}
+        pushd $checkout_base_dir > /dev/null
+            git clone `get_repo_url "$url_dir"`
         popd > /dev/null
-        ( cd $a_dir && ( git checkout $branch || git checkout -b $branch origin/$branch ))
+        ( cd $url_dir && ( git checkout $branch || git checkout -b $branch origin/$branch ))
     fi
 }
 
+: ${branch:=master}
+
 pushd ~ > /dev/null
-mkdir -p $p_dir
-do_git || do_wget
+for repo_url_dir in "${needed_repos[@]}" ; do
+    checkout_base_dir=${repo_url_dir%/*}
+    mkdir -p $checkout_base_dir
+    do_git "$repo_url_dir" "$branch" || do_wget "$repo_url_dir" "$branch"
+    # branch variable only overrides branch for 1st repo, so switch back to master now
+    branch="master"
+done
 popd > /dev/null
