@@ -128,7 +128,7 @@
 
           if [ -n "$stage" ]; then
               if [ "${OBS_PROJECT##*\/}" != "${OBS_PROJECT}" ]; then
-                  OBS_PROJECT=${OBS_PROJECT%%\/*}$stage/${OBS_PROJECT##*\/}
+                  OBS_PROJECT=${OBS_PROJECT%%\/*}$stage/${OBS_PROJECT#*\/}
               else
                   OBS_PROJECT=${OBS_PROJECT%%\/*}$stage
               fi
