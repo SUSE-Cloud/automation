@@ -13,12 +13,12 @@ The deployment can then be accessed via the floating IP and used for debugging.
 
 **PLEASE DELETE YOUR ENVIRONMENT IN THE ENGCLOUD AFTER YOU ARE DONE (Jenkins job ID is in the Heat stack name)**
 Otherwise we'll run into Quotas in our project.
+## Prerequisites
 
-## Prerequisite
 To be able to use the Jenkins job and login to a deployed env, you need:
 
- * the login creds for ci.nue.suse.com
- * you public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/ssh-keys.yml) (via normal github pull requests)
+* the login creds for https://ci.nue.suse.com
+* your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/ssh-keys.yml) (via normal github pull requests)
 
 ## Create a new environment
 Start the deployment via [Build with parameters](https://ci.nue.suse.com/job/ardana-job/build). The available parameters should be self-descriptive. Here are some best practices:
