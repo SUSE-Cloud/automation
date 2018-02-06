@@ -56,7 +56,7 @@ function do_git
                 echo "Error: Failed to get .git/lock.update-automation"
                 exit 39
             fi
-            trap "rmdir `pwd`/.git/lock.update-automation" SIGINT SIGTERM ERR
+            trap "rmdir `pwd`/.git/lock.update-automation" EXIT SIGINT SIGTERM
             while [[ $(find .git -name "*.lock") ]] && [[ $n -gt 0 ]] ; do
                 sleep $((3+RANDOM%10))
                 n=$((n-1))
@@ -70,7 +70,7 @@ function do_git
             git fetch origin
             git reset --hard origin/$branch
             rmdir .git/lock.update-automation
-            trap "-" SIGINT SIGTERM ERR
+            trap "-" EXIT SIGINT SIGTERM
         popd > /dev/null
     else
         rm -rf ~/$url_dir
