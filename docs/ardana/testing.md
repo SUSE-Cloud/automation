@@ -6,7 +6,6 @@ The current testing is far away from perfect and a lot of things are missing
 (eg pull request/changeset testing) but it's a first start to get a SUSEfied
 Ardana environment up and running.
 
-# Setup a custom enviroment
 We currently have a [Jenkins job](https://ci.nue.suse.com/job/ardana-job/) (defined
 in the [automation git](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/ardana-job.yaml)
 which can be used to create a new environment in the [engineering cloud](https://engcloud.prv.suse.net/).
