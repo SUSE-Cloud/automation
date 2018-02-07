@@ -859,8 +859,8 @@ function onadmin_set_source_variables
         develcloud8)
             CLOUDISOPATH=/ibs/Devel:/Cloud:/8/images/iso
             [ -n "$TESTHEAD" ] && CLOUDISOPATH=/ibs/Devel:/Cloud:/8:/Staging/images/iso
-            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-8-${arch}-Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-devel"
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-8-${arch}-Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-devel"
         ;;
         ocatacloud8)
             # This is used by the CloudFoundry team. Do not remove!
@@ -871,8 +871,8 @@ function onadmin_set_source_variables
         ;;
         susecloud8)
             CLOUDISOPATH=/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/Cloud8/images/iso/
-            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-8-${arch}*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-8-${arch}*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-official"
         ;;
         GM6|GM6+up)
             cs=$cloudsource
@@ -888,11 +888,17 @@ function onadmin_set_source_variables
             CLOUDISONAME=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
-        GMC*|M?)
+        M[1-4])
             cs=${cloudsource/#M/Milestone}
             CLOUDISOPATH=${want_cloud8_iso_path:="/install/SLE-12-SP3-Cloud8-$cs/"}
             CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-8-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
+        ;;
+        GMC*|M?)
+            cs=${cloudsource/#M/Milestone}
+            CLOUDISOPATH=${want_cloud8_iso_path:="/install/SLE-12-SP3-Cloud8-$cs/"}
+            CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-8-${arch}*1.iso"}
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-official"
         ;;
         *)
             complain 76 "You must set environment variable cloudsource=develcloud6|develcloud7|develcloud8|Mx|GM6|GM7"
