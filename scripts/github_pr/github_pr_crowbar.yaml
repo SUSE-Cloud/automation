@@ -34,6 +34,7 @@ template:
               job_cmd: "../jenkins/jenkins-job-trigger"
               job_parameters:
                 standard: {}
+          - type: LogPullRequestDetails
     sap-oc_crowbar: &sap-oc_crowbar
       - type: MergeBranch
         config:
@@ -59,6 +60,7 @@ template:
               job_cmd: "../jenkins/jenkins-job-trigger"
               job_parameters:
                 standard: {}
+          - type: LogPullRequestDetails
 pr_processing:
   - config:
       organization: crowbar
