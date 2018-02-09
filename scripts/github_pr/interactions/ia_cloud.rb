@@ -5,7 +5,7 @@ module GithubPR
     def action(pull)
       base_cmd = command("job_cmd")
       job_parameters(pull).each do |build_mode, job_paras|
-        one_cmd = base_cmd + job_paras
+        one_cmd = base_cmd + [@c["job_name"]] + job_paras
         system(*one_cmd) or raise
         puts "Triggering jenkins job for PR #{pull.number} in #{build_mode} mode"
       end
