@@ -73,6 +73,8 @@ def _config_get():
     if not conf.has_option(CONFIG_SECTION, "artifacts_dir"):
         conf.set(CONFIG_SECTION, "artifacts_dir",
                  os.path.expanduser('~/.soc-ci/artifacts/'))
+    if not conf.has_option(CONFIG_SECTION, "ssl_verify"):
+        conf.set(CONFIG_SECTION, "ssl_verify", "True")
 
     # create things where needed
     if not os.path.exists(conf.get(CONFIG_SECTION, "artifacts_dir")):
@@ -86,7 +88,8 @@ def _get_jenkins_job(conf=None):
         conf = _config_get()
     server = Jenkins(conf.get(CONFIG_SECTION, 'url'),
                      username=conf.get(CONFIG_SECTION, 'user'),
-                     password=conf.get(CONFIG_SECTION, 'password'))
+                     password=conf.get(CONFIG_SECTION, 'password'),
+                     ssl_verify=conf.getboolean(CONFIG_SECTION, 'ssl_verify'))
     return server['openstack-mkcloud']
 
 

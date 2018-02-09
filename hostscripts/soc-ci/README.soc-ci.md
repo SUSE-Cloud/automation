@@ -102,3 +102,6 @@ config:
 
 * ```artifacts_dir```
 The directory path where to store the Jenkins artifacts.
+
+* ```ssl_verify```
+Turn verification of SSL certificates on or off.
