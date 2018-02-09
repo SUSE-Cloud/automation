@@ -12,15 +12,18 @@ popd
 #TODO make clean image - initial setup of image used ssh -C gate dd if=/dev/system/jenkins-tu-sle12 bs=64k | dd of=/dev/gate/jenkins-tu-sle12 bs=64k
 
 for vm in gatevm clouddata jenkins-tu-sle12 ; do
-  virsh define $vm.xml
-  virsh start $vm
-  virsh autostart $vm
+    virsh define $vm.xml
+    virsh start $vm
+    virsh autostart $vm
 done
 
 sleep 100 # TODO waitfor ssh
 echo "default root password is linux"
-ssh gatevm mkdir -p ~/.ssh/
-scp ~/.ssh/authorized_keys gatevm:.ssh/
-scp -r /etc/zypp/repos.d gatevm:/etc/zypp/
-ssh gatevm zypper -n in python-pyOpenSSL python-xml # for salt to work
-echo "now use salt-ssh gatevm state.highstate"
+: ${sshhosts:="gatevm"}
+for host in $sshhosts ; do
+    ssh $host mkdir -p ~/.ssh/
+    scp ~/.ssh/authorized_keys $host:.ssh/
+    scp -r /etc/zypp/repos.d $host:/etc/zypp/
+    ssh $host zypper -n in python-pyOpenSSL python-xml # for salt to work
+    echo "now use salt-ssh $host state.highstate"
+done
