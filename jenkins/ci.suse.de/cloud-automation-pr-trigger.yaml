@@ -9,12 +9,22 @@
             - normal
             - rebuild
             - forcerebuild
-            - forceall
+            - all
           description: |
               normal: trigger unseen PRs
               rebuild: trigger unseend and pending PRs
               forcerebuild: trigger unseen, pending and failed PRs
-              forceall: trigger rebuild for all open PRs
+              all: trigger rebuild for all open PRs (even if status is successful)
+      - choice:
+          name: repositories
+          choices:
+            - "all"
+            - "SUSE-Cloud/automation"
+            - "SUSE-Cloud/cct"
+          description: |
+            Only process the PRs of the selected repositories or all.
+            This can be useful for PR rebuilds (see 'mode' parameter).
+            Default is to process all repositories of the config file.
 
     triggers:
       - timed: 'H/10 * * * *'
@@ -34,7 +44,6 @@
           set -x
 
           export automationrepo=~/github.com/SUSE-Cloud/automation
-
           # automation bootstrapping
           if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
             rm -rf ${automationrepo}
@@ -43,60 +52,27 @@
           # fetch the latest automation updates
           ${automationrepo}/scripts/jenkins/update_automation
 
+          export ghprrepo=~/github.com/openSUSE/github-pr
+          export ghpr=${ghprrepo}/github_pr.rb
 
-          action=list-unseen-prs
+          buildmode=$mode
           case $mode in
-            rebuild) action=list-rebuild-prs
+            # mapping normal to unseen
+            normal|unseen) buildmode=unseen
             ;;
-            forcerebuild) action=list-forcerebuild-prs
-            ;;
-            forceall) action=list-open-prs
+            # for backward compatibility
+            forcerebuildall) buildmode=all
             ;;
           esac
 
-          ghs=${automationrepo}/scripts/github-status/github-status.rb
+          repos=
+          case $repositories in
+            all)
+              repos=
+              ;;
+            *)
+              repos="--only --org ${repositories%/*} --repo ${repositories##*/}"
+              ;;
+          esac
 
-          declare -a cloud_repos=(
-              SUSE-Cloud/automation
-          )
-
-          for repo in ${cloud_repos[@]}; do
-              for github_pr in $(timeout 2m $ghs -r $repo -a $action); do
-                  github_pr_opts=(${github_pr//:/ })
-                  github_pr_id=${github_pr_opts[0]}
-                  github_pr_sha=${github_pr_opts[1]}
-                  github_pr_sha_short=${github_pr_sha:0:8}
-                  github_pr_branch=${github_pr_opts[2]}
-
-                  if [ "$github_pr_branch" = "master" ]; then
-                      # default config / may be overridden by tags from PR message
-                      mkcloudtarget=all_noreboot
-                      cloudsource=develcloud8
-                      cloudsource_stable=GM7+up
-                      nodenumber=2
-                      networkingplugin=openvswitch
-                      #echo eval `$ghs -a get-pr-config -p $github_pr_sha` # not yet implemented
-
-                      common_parameters="
-                          openstack-mkcloud
-                          label=openstack-mkcloud
-                          mkcloudtarget=${mkcloudtarget}
-                          nodenumber=${nodenumber}
-                          networkingplugin=${networkingplugin}
-                          "
-                      ${automationrepo}/scripts/jenkins/jenkins-job-trigger \
-                          $common_parameters \
-                          github_pr=${repo}:${github_pr} \
-                          cloudsource="${cloudsource}" \
-                          job_name="automation PR ${github_pr_id} ${github_pr_sha_short}"
-                      $ghs -r $repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud" -m "Queued automation PR gating"
-
-                      ${automationrepo}/scripts/jenkins/jenkins-job-trigger \
-                          $common_parameters \
-                          github_pr=${repo}:${github_pr}:stable \
-                          cloudsource="${cloudsource_stable}"
-                          job_name="automation PR ${github_pr_id} ${github_pr_sha_short} stable"
-                      $ghs -r $repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/stable" -m "Queued automation PR gating"
-                  fi
-              done
-          done
+          ${ghpr} -a trigger-prs $repos --mode "$buildmode" --debugratelimit --config ${automationrepo}/scripts/github_pr/github_pr_cloud.yaml
