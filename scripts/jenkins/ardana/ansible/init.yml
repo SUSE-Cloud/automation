@@ -205,6 +205,7 @@
 
   - name: Run the actual deployment site.yml playbook
     shell: |
+      export ANSIBLE_DEBUG=1
       ansible-playbook -vvv -i hosts/verb_hosts site.yml
     args:
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible

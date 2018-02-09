@@ -68,6 +68,7 @@
           fi
           export ANSIBLE_HOST_KEY_CHECKING=False
           export ANSIBLE_KEEP_REMOTE_FILES=1
+          export ANSIBLE_DEBUG=1
           # the name for the cloud defined in ~./config/openstack/clouds.yaml
           CLOUD_CONFIG_NAME=engcloud-cloud-ci
 
