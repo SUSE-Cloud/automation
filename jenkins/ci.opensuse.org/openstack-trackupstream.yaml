@@ -56,6 +56,7 @@
             - openstack-monasca-log-api
             - openstack-monasca-notification
             - openstack-monasca-persister
+            - openstack-monasca-transform
             - openstack-murano
             - openstack-neutron
             - openstack-neutron-fwaas
@@ -117,7 +118,8 @@
             [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-murano-ui",
-              "openstack-gnocchi"
+              "openstack-gnocchi",
+              "openstack-monasca-transform"
             ].contains(component)
             )
       sequential: true
