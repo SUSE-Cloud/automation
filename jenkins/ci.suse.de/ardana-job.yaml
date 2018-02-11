@@ -77,8 +77,24 @@
 
 
           case $model in
-              std*)
+              standard)
+                  num_controller=3
+                  num_compute=3
+                  ;;
+              std-split|std-3cp)
+                  num_controller=3
+                  num_compute=1
+                  ;;
+              std-min)
                   num_controller=2
+                  num_compute=1
+                  ;;
+              std-3cm)
+                  num_controller=1
+                  num_compute=3
+                  ;;
+              dac-min*)
+                  num_controller=0
                   num_compute=1
                   ;;
               deployerincloud*)

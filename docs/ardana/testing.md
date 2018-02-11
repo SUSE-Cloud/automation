@@ -30,6 +30,7 @@ To be able to use the Jenkins job and login to a deployed env, you need:
 Start the deployment via [Build with parameters](https://ci.nue.suse.com/job/ardana-job/build). The available parameters should be self-descriptive. Here are some best practices:
 
 * use your Rocket/irc nickname as ```job_name```
+* To test a different than the default model, adjust the ```model``` parameter in the deployment.
 * To test a custom automation repo, push to your fork and adjust ```git_automation_repo``` and ```git_automation_branch```
 
 In the Jenkins log (also available as output in the Heat stack), the variable
