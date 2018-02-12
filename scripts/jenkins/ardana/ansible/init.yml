@@ -62,11 +62,29 @@
       - "{{ compute_mgmt_ips }}"
     when: item != "" and item != deployer_mgmt_ip
 
-  # FIXME: This is ugly and we do not need all the repos from the deployer on the compute nodes
+  # Ardana creates directory /opt/ardana_packager and serves content from it
+  # (with symlinks followed). Ensure it can serve required SLES and Cloud media.
+  - name: Link maintenance repos to PACKAGE_CONSTANTS.REPO_DIR
+    file:
+      state: link
+      path: /opt/ardana_packager/ardana/sles12/zypper/suse
+      src: /srv/www/suse-12.3/x86_64/repos
+
+  # FIXME(colleen): This can go away when https://gerrit.suse.provo.cloud/3061 merges
   - name: Copy zypper repo setup from deployer to other nodes
     shell: |
-      scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/zypp/repos.d/* root@{{ item }}:/etc/zypp/repos.d/
+      scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/zypp/repos.d/*-http.repo root@{{ item }}:/etc/zypp/repos.d/
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} zypper -n --gpg-auto-import-keys ref
+    with_items:
+      - "{{ controller_mgmt_ips|default([]) }}"
+      - "{{ compute_mgmt_ips }}"
+    when: item != "" and item != deployer_mgmt_ip
+
+  # osconfig-ansible should take care of installing the repositories itself,
+  # it's just that it won't auto accept the Devel key, so do that now
+  - name: Import Devel:Cloud:8 key
+    shell: |
+      cat /srv/www/suse-12.3/x86_64/repos/Cloud/repodata/repomd.xml.key | ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "cat >/tmp/cloud.key && rpm --import /tmp/cloud.key && rm /tmp/cloud.key"
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
       - "{{ compute_mgmt_ips }}"
