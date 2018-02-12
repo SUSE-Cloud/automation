@@ -19,20 +19,20 @@
 
         - logical-name: hed4
           type: simple-port
-          bus-address: "0000:00:09.0"
+          bus-address: "0000:00:06.0"
 
         - logical-name: hed5
           type: simple-port
-          bus-address: "0000:00:0a.0"
+          bus-address: "0000:00:07.0"
 
         - logical-name: hed6
           type: simple-port
-          bus-address: "0000:00:0b.0"
+          bus-address: "0000:00:08.0"
 
         - logical-name: hed7
           type: simple-port
-          bus-address: "0000:00:0c.0"
+          bus-address: "0000:00:09.0"
 
         - logical-name: hed8
           type: simple-port
-          bus-address: "0000:00:0d.0"
+          bus-address: "0000:00:0a.0"
