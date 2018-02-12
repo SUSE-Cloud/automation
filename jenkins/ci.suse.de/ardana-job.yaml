@@ -34,7 +34,7 @@
 
       - string:
           name: model
-          default: deployerincloud-lite
+          default: std-min
           description: >-
             The Input Model to use
 
