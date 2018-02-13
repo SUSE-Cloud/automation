@@ -7,28 +7,31 @@
     clouddata_server: provo-clouddata.cloud.suse.de
     download_suse_server: download.suse.de
     cloudsource: SUSE-OpenStack-Cloud-8-devel-staging
+    arch: x86_64
+    repos_url: "http://{{ clouddata_server }}/repos/{{ arch }}"
+    sshpass_repo: "http://download.suse.de/ibs/QA:/SLE12SP3/update/"
 
   tasks:
   # SLES repos
   - name: Add SLES12SP3-Pool zypper repo
     zypper_repository:
-      repo: "http://{{ clouddata_server }}/repos/x86_64/SLES12-SP3-Pool"
+      repo: "{{ repos_url }}/SLES12-SP3-Pool"
       name: SLES12SP3-Pool
 
   - name: Add SLES12SP3-Updates zypper repo
     zypper_repository:
-      repo: "http://{{ clouddata_server }}/repos/x86_64/SLES12-SP3-Updates"
+      repo: "{{ repos_url }}/SLES12-SP3-Updates"
       name: SLES12SP3-Updates
 
   # Devel:Cloud:8
   - name: "Add {{ cloudsource }} media"
     zypper_repository:
-      repo: "http://{{ clouddata_server }}/repos/x86_64/{{ cloudsource }}"
+      repo: "{{ repos_url }}/{{ cloudsource }}"
       name: DC8S-Media
 
   - name: Repo for sshpass
     zypper_repository:
-      repo: "http://download.suse.de/ibs/QA:/SLE12SP3/update/"
+      repo: "{{ sshpass_repo }}"
       name: sshpass
 
   # Refresh all repos
@@ -45,7 +48,7 @@
 
   - name: Remove Repo for sshpass
     zypper_repository:
-      repo: "http://download.suse.de/ibs/QA:/SLE12SP3/update/"
+      repo: "{{ sshpass_repo }}"
       name: sshpass
       state: absent
 
