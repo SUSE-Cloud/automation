@@ -122,6 +122,9 @@ fi
 mkdir -p "${ardana_ansible_dir}"
 cp -r "${ardana_ansible_source}"/* "${ardana_ansible_dir}"
 
+# Create CP credentials change directory
+mkdir -p "${ardana_target_dir}/change_credentials"
+
 #
 # Set up ardana-extensions area
 #
