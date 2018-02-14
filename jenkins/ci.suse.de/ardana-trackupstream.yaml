@@ -48,6 +48,7 @@
             - ardana-nova
             - ardana-octavia
             - ardana-opsconsole
+            - ardana-opsconsole-server
             - ardana-opsconsole-ui
             - ardana-osconfig
             - ardana-qa-ansible
