@@ -1,3 +1,5 @@
+interaction_dirs:
+  - ./interactions
 template:
   user:
     suse_crowbar_user: &suse_crowbar_user
