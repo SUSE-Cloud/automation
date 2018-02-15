@@ -9,6 +9,7 @@
   vars:
     deployer_model: deployerincloud-lite
     tempest_run_filter: smoke
+    playbook_changes: ''
 
   environment:
     ARDANA_INIT_AUTO: 1
@@ -25,10 +26,20 @@
       /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
     ignore_errors: True
 
+  - name: Install patch package
+    zypper:
+      name: patch
+
   - name: Call ardana-init
     shell: /usr/bin/ardana-init
     become: true
     become_user: ardana
+
+  - name: Prepare playbook changes to test
+    include: checkout-playbook-changes.yml
+    vars:
+      changes: "{{ playbook_changes.split() }}"
+    when: playbook_changes != ''
 
   - name: Create ssh key for ardana user on deployer
     shell: |
