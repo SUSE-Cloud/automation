@@ -81,6 +81,15 @@ def _config_get():
     return conf
 
 
+def _get_jenkins_job(conf=None):
+    if conf is None:
+        conf = _config_get()
+    server = Jenkins(conf.get(CONFIG_SECTION, 'url'),
+                     username=conf.get(CONFIG_SECTION, 'user'),
+                     password=conf.get(CONFIG_SECTION, 'password'))
+    return server['openstack-mkcloud']
+
+
 ###############################################################################
 @contextlib.contextmanager
 def changedir(newdir):
@@ -99,11 +108,7 @@ def _ssh_get_client():
 
 
 def _os_mkcloud_where(job_id):
-    conf = _config_get()
-    server = Jenkins(conf.get(CONFIG_SECTION, 'url'),
-                     username=conf.get(CONFIG_SECTION, 'user'),
-                     password=conf.get(CONFIG_SECTION, 'password'))
-    job = server['openstack-mkcloud']
+    job = _get_jenkins_job()
 
     build = job.get_build(job_id)
     console = build.get_console()
@@ -122,11 +127,7 @@ def os_mkcloud_where(args):
 
 
 def os_mkcloud_console_log(args):
-    conf = _config_get()
-    server = Jenkins(conf.get(CONFIG_SECTION, 'url'),
-                     username=conf.get(CONFIG_SECTION, 'user'),
-                     password=conf.get(CONFIG_SECTION, 'password'))
-    job = server['openstack-mkcloud']
+    job = _get_jenkins_job()
 
     build = job.get_build(args.job_id)
     print(build.get_console())
@@ -173,14 +174,11 @@ def _unpack_supportconfigs(cwd):
 def os_mkcloud_artifacts(args):
     """download artifacts for the given job"""
     conf = _config_get()
-    server = Jenkins(conf.get(CONFIG_SECTION, 'url'),
-                     username=conf.get(CONFIG_SECTION, 'user'),
-                     password=conf.get(CONFIG_SECTION, 'password'))
-    job = server['openstack-mkcloud']
+    job = _get_jenkins_job(conf=conf)
 
     build = job.get_build(args.job_id)
-    dest_dir = os.path.join(conf['artifacts_dir'], 'os-mkcloud',
-                            '%s' % args.job_id)
+    dest_dir = os.path.join(conf.get(CONFIG_SECTION, 'artifacts_dir'),
+                            'os-mkcloud', '%s' % args.job_id)
     if os.path.exists(dest_dir):
         if not args.force:
             print('Artifacts already available under %s' % dest_dir)
