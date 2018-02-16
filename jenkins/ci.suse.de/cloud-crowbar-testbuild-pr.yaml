@@ -61,7 +61,7 @@
         #####
         # THIS JOB JUST BUILD ONE CROWBAR PR AND HANDS IT OVER TO MKCLOUD (IMPLICITLY VIA THE crowbar-testbuild.rb)
         # The corresponding trigger job will (by default) only trigger builds for "unseen" PRs
-        #  (unseen PR = no status reported from github-status on last commit of this PR)
+        #  (unseen PR = no status reported from github_pr on last commit of this PR)
         echo "Example how to call this job locally:"
         echo "   crowbar-testbuild.rb --org $crowbar_org --repo $crowbar_repo --pr $crowbar_github_pr"
         echo "This requires a valid config yaml however. See the automation repo for an example."
@@ -76,30 +76,31 @@
         fi
         # fetch the latest automation updates
         ${automationrepo}/scripts/jenkins/update_automation
-
-        ghs=${automationrepo}/scripts/github-status/github-status.rb
+        export ghprrepo=~/github.com/openSUSE/github-pr
+        export ghpr=${ghprrepo}/github_pr.rb
 
         github_opts=(${crowbar_github_pr//:/ })
         github_pr_id=${github_opts[0]}
         github_pr_sha=${github_opts[1]}
         github_pr_branch=${github_opts[2]}
+        ghpr_paras="--org ${crowbar_org} --repo ${crowbar_repo} --sha ${github_pr_sha}"
 
         function crowbargating_trap()
         {
-            $ghs -a set-status -s "failure" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "testbuild job failed"
+            $ghpr --action set-status $ghpr_paras --status "failure" --targeturl ${BUILD_URL} --context "suse/mkcloud/testbuild" --message "testbuild job failed" --debugratelimit
         }
 
         # using a trap to catch all errors of the following commands
         trap "crowbargating_trap" ERR
 
         # report that the job has started (status "pending")
-        $ghs -a set-status -s "pending" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "Started testbuild job"
+        $ghpr --action set-status $ghpr_paras --status "pending" --targeturl ${BUILD_URL} --context "suse/mkcloud/testbuild" --message "Started testbuild job"
 
         # do the build
         ${automationrepo}/scripts/crowbar-testbuild.rb --org $crowbar_org --repo $crowbar_repo --pr $crowbar_github_pr --trigger-gating
 
         # update the status
-        $ghs -a set-status -s "pending" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud" -m "Queued testbuild PR gating"
-        $ghs -a set-status -s "success" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "testbuild job succeeded"
+        $ghpr --action set-status $ghpr_paras --status "pending" --targeturl ${BUILD_URL} --context "suse/mkcloud" --message "Queued testbuild PR gating"
+        $ghpr --action set-status $ghpr_paras --status "success" --targeturl ${BUILD_URL} --context "suse/mkcloud/testbuild" --message "testbuild job succeeded" --debugratelimit
 
         trap "-" ERR
