@@ -61,6 +61,14 @@
 
     builders:
       - shell: |
+          set +x
+          cloudsource_url=http://provo-clouddata.cloud.suse.de/repos/x86_64/$cloudsource
+          cloudsource_media_build=$( curl -s $cloudsource_url/media.1/build )
+          echo cloudsource=$cloudsource
+          echo cloudsource URL is $cloudsource_url
+          echo media build version is $cloudsource_media_build
+          echo
+
           set -ex
           STACK_NAME=cloud-ci-ardana-job-${BUILD_NUMBER}
           if [ -n "${JOB_NAME}" ]; then

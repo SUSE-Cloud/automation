@@ -17,7 +17,7 @@
   - name: Write deployer info to /etc/motd
     become: yes
     shell: |
-      echo "DEPLOYER_IP={{ deployer_floating_ip | default(None) }}" > /etc/motd
+      echo "DEPLOYER_IP={{ deployer_floating_ip | default(None) }}" >> /etc/motd
 
   - name: Grow 1st partition filesystem
     become: yes
