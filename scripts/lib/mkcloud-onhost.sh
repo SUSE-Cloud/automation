@@ -112,7 +112,7 @@ function onhost_cacheclouddata
 {
     [[ "$cache_clouddata" = 1 ]] || return
 
-    common_set_slesversions
+    common_set_versions
 
     local include=$(mktemp)
     (

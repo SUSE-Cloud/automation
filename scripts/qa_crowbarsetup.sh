@@ -265,24 +265,21 @@ function addslestestupdates
 
 function addcloudmaintupdates
 {
-    local cloudver=$(getcloudver)
-    add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Updates/" \
-        "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Updates/" \
+    add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudrepover-Updates/" \
+        "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudrepover-Updates/" \
         "cloudmaintup"
 }
 
 function addcloudtestupdates
 {
-    local cloudver=$(getcloudver)
-    add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Updates-test/" \
-        "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Updates-test/" "cloudtup"
+    add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test/" \
+        "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test/" "cloudtup"
 }
 
 function addcloudpool
 {
-    local cloudver=$(getcloudver)
-    add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudver-Pool/" \
-        "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudver-Pool/" \
+    add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudrepover-Pool/" \
+        "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudrepover-Pool/" \
         "cloudpool"
 }
 
@@ -565,8 +562,7 @@ function onadmin_prepare_sles12plus_cloud_repos
     #  create empty repository when there is none yet
     ensure_packages_installed createrepo
 
-    local cloudver=$(getcloudver)
-    for repo in SUSE-OpenStack-Cloud-$cloudver-{Pool,Updates}; do
+    for repo in SUSE-OpenStack-Cloud-$cloudrepover-{Pool,Updates}; do
         if [ ! -e "$tftpboot_repos_dir/$repo/repodata/" ] ; then
             mkdir -p "$tftpboot_repos_dir/$repo"
             safely createrepo "$tftpboot_repos_dir/$repo"
@@ -743,7 +739,7 @@ function do_set_repos_skip_checks
 {
     # We don't use the proper pool/updates repos when using a devel build
     if iscloudver 5plus && [[ $cloudsource =~ (develcloud|GM5$|GM6$) ]]; then
-        export REPOS_SKIP_CHECKS+=" SUSE-Cloud-$(getcloudver)-Pool SUSE-Cloud-$(getcloudver)-Updates"
+        export REPOS_SKIP_CHECKS+=" SUSE-Cloud-$cloudrepover-Pool SUSE-Cloud-$cloudrepover-Updates"
     fi
 }
 
@@ -781,11 +777,10 @@ function create_repos_yml
 
     echo --- > $tmp_yml
 
-    common_set_slesversions
+    common_set_versions
 
     # Clone test updates from admin node
     local baseurl=http://crowbar.$cloudfqdn:8091/
-    local cloudver=$(getcloudver)
 
     grep -q SLES$slesversion-Updates-test /etc/fstab && \
         additional_repos+=" SLES$slesversion-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-Updates-test"
@@ -793,8 +788,8 @@ function create_repos_yml
         additional_repos+=" SLES$slesversion-LTSS-Updates=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-LTSS-Updates"
     grep -q SLE$slesversion-HA-Updates-test /etc/fstab && \
         additional_repos+=" SLE$slesversion-HA-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLE$slesversion-HA-Updates-test"
-    grep -q SUSE-OpenStack-Cloud-$cloudver-Updates-test /etc/fstab && \
-        additional_repos+=" SUSE-OpenStack-Cloud-$cloudver-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SUSE-OpenStack-Cloud-$cloudver-Updates-test"
+    grep -q SUSE-OpenStack-Cloud-$cloudrepover-Updates-test /etc/fstab && \
+        additional_repos+=" SUSE-OpenStack-Cloud-$cloudrepover-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test"
     grep -q SUSE-Enterprise-Storage-$sesversion-Updates-test /etc/fstab && \
         additional_repos+=" SUSE-Enterprise-Storage-$sesversion-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SUSE-Enterprise-Storage-$sesversion-Updates-test"
 
@@ -909,7 +904,7 @@ function onadmin_set_source_variables
         CLOUDLOCALREPOS="$CLOUDLOCALREPOS-staging"
     fi
 
-    common_set_slesversions
+    common_set_versions
 }
 
 # replace zypper repos from the image with user-specified ones
@@ -974,7 +969,7 @@ EOF
     fi
 
     onadmin_set_source_variables
-    common_set_slesversions
+    common_set_versions
     onadmin_setup_local_zypper_repositories
 
     if iscloudver 6 ; then
@@ -1517,7 +1512,7 @@ function onadmin_allocate
 
     local controllernodes=($(get_all_discovered_nodes | head -n 2))
 
-    common_set_slesversions
+    common_set_versions
     controller_os="suse-$suseversion"
 
     echo "Setting first node to controller..."
@@ -5450,7 +5445,7 @@ function onadmin_external_ceph
 
 #--
 
-common_set_slesversions
+common_set_versions
 export_tftpboot_dirs
 set_proposalvars
 set_noproxyvar

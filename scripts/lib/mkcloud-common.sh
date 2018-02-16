@@ -562,14 +562,17 @@ function run_zypper
     $sudo zypper $params "$@"
 }
 
-function common_set_slesversions
+function common_set_versions
 {
     if iscloudver 7; then
         suseversion=12.2
+        cloudrepover=7
     elif iscloudver 6; then
         suseversion=12.1
+        cloudrepover=6
     else
         suseversion=12.3
+        cloudrepover="Crowbar-8"
     fi
 
     case "$suseversion" in
