@@ -6,8 +6,12 @@ template:
       - crowbar
   team:
     crowbar_team: &crowbar_team
-      - name: crowbar/Owners
+      - name: crowbar/Maintainers
         id: 291046
+      - name: crowbar/SUSE
+        id: 294160
+      - name: crowbar/Admins
+        id: 1990312
   filter:
     suse_crowbar: &suse_crowbar
       - type: MergeBranch
