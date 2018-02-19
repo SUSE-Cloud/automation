@@ -15,6 +15,16 @@
           abort: true
           write-description: "Job aborted due to 120 minutes of inactivity"
 
+    triggers:
+      - timed: 'H H */2 * *'
+      - pollurl:
+          cron: 'H/5 * * * *'
+          polling-node: cloud-trigger
+          urls:
+            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/Devel:/Cloud:/8:/Staging/images/iso/\?regexp=x86_64'
+              check-content:
+                - simple: true
+
     logrotate:
       numToKeep: 20
       daysToKeep: 30
@@ -42,7 +52,7 @@
           name: job_name
           default: ''
           description: >-
-            This name will become the build name of the job.
+            This name reserves job environment and prevents deletion at the end.
 
       - string:
           name: cloudsource
@@ -74,10 +84,16 @@
           if [ -n "${JOB_NAME}" ]; then
               STACK_NAME=${STACK_NAME}-${JOB_NAME}
           fi
+          CLOUD_CONFIG_NAME=engcloud-cloud-ci
+          cat - > stack_env <<EOF
+          JOB_NAME="$JOB_NAME"
+          STACK_NAME="$STACK_NAME"
+          CLOUD_CONFIG_NAME="$CLOUD_CONFIG_NAME"
+          EOF
+
           export ANSIBLE_HOST_KEY_CHECKING=False
           export ANSIBLE_KEEP_REMOTE_FILES=1
           # the name for the cloud defined in ~./config/openstack/clouds.yaml
-          CLOUD_CONFIG_NAME=engcloud-cloud-ci
 
           # init the git tree
           git clone $git_automation_repo --branch $git_automation_branch automation-git
@@ -167,3 +183,17 @@
                                          -e "deployer_model=${model}" \
                                          -e "tempest_run_filter=${tempest_run_filter}" \
                                          init.yml
+
+
+    publishers:
+      - post-tasks:
+        - matches:
+          - log-text: heat-ardana-
+          script: |
+            set -x
+            . $WORKSPACE/stack_env
+            if [ -z "${JOB_NAME}" ]; then
+                openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait \
+                      $STACK_NAME || :
+            fi
+      - workspace-cleanup
