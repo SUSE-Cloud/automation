@@ -10,10 +10,10 @@
           name: '#${BUILD_NUMBER}: ${ENV,var="job_name"}/${ENV,var="model"}'
 
       - timeout:
-          timeout: 120
+          timeout: 180
           type: no-activity
           abort: true
-          write-description: "Job aborted due to 120 minutes of inactivity"
+          write-description: "Job aborted due to 180 minutes of inactivity"
 
     triggers:
       - timed: 'H H */2 * *'
@@ -21,7 +21,7 @@
           cron: 'H/5 * * * *'
           polling-node: cloud-trigger
           urls:
-            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/Devel:/Cloud:/8:/Staging/images/iso/\?regexp=x86_64'
+            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/Devel:/Cloud:/8:/Staging/images/iso/?regexp=x86_64'
               check-content:
                 - simple: true
 
