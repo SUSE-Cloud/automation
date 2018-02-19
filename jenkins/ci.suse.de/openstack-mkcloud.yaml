@@ -431,6 +431,9 @@
 
           export automationrepo=~/github.com/SUSE-Cloud/automation
           jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
+          export ghprrepo=~/github.com/openSUSE/github-pr
+          export ghpr=${ghprrepo}/github_pr.rb
+
           export want_neutronsles12=1
           export want_mtu_size=8900
           [[ $libvirt_type = hyperv ]] && want_mtu_size=1500 # windows-PXE-bootloader seems to not like jumbo-packets
@@ -537,7 +540,7 @@
 
           function mkcloudgating_trap()
           {
-              $ghs -a set-status -s "failure" -r $github_pr_repo -t ${BUILD_URL}parsed_console/ -c $github_pr_sha --context $ghs_context
+              $ghpr --action set-status --debugratelimit $ghpr_paras --status "failure" --targeturl ${BUILD_URL}parsed_console/
           }
 
           ## mkcloud github PR gating
@@ -547,17 +550,19 @@
               github_pr_id=${github_opts[1]}
               github_pr_sha=${github_opts[2]}
               github_pr_context=${github_opts[4]}
-              ghs_context=suse/mkcloud
+              github_context=suse/mkcloud
               if [[ $github_pr_context ]] ; then
-                ghs_context=$ghs_context/$github_pr_context
+                github_context=$github_context/$github_pr_context
               fi
+              github_org=${github_pr_repo%/*}
+              github_repo=${github_pr_repo##*/}
+              ghpr_paras="--org ${github_org} --repo ${github_repo} --sha $github_pr_sha --context $github_context"
 
               echo "testing PR: https://github.com/$github_pr_repo/pull/$github_pr_id"
-              ghs=${automationrepo}/scripts/github-status/github-status.rb
               sudo ZYPP_LOCK_TIMEOUT=$ZYPP_LOCK_TIMEOUT zypper -n install "rubygem(netrc)" "rubygem(octokit)"
 
-              if ! $ghs -r $github_pr_repo -a is-latest-sha -p $github_pr_id -c $github_pr_sha ; then
-                  $ghs -a set-status -s "error" -t $BUILD_URL -r $github_pr_repo -c $github_pr_sha -m "SHA1 mismatch, newer commit exists" --context $ghs_context
+              if ! $ghpr --action is-latest-sha $ghpr_paras --pr $github_pr_id ; then
+                  $ghpr --action set-status $ghpr_paras --status "error" --targeturl $BUILD_URL --message "SHA1 mismatch, newer commit exists"
                   exit 1
               fi
 
@@ -590,7 +595,7 @@
                   export want_cct_pr=$github_pr_id
               fi
 
-              $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha --context $ghs_context -m "Started PR gating"
+              $ghpr --action set-status $ghpr_paras --status "pending" --targeturl $BUILD_URL --message "Started PR gating"
 
           fi
 
@@ -655,7 +660,7 @@
 
           # report mkcloud-gating status or jenkins trello status
           if [[ $github_pr_sha ]] ; then
-            $ghs -r $github_pr_repo -a set-status -s "success" -t $BUILD_URL -c $github_pr_sha --context $ghs_context -m "PR gating succeeded"
+            $ghpr --action set-status --debugratelimit $ghpr_paras --status "success" --targeturl $BUILD_URL --message "PR gating succeeded"
             trap "-" ERR
           else
             $jtsync --ci suse --job $JOB_NAME 0
