@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -27,9 +27,7 @@ SCRIPT_DIR="$(readlink -e $(dirname "${BASH_SOURCE}"))"
 owner="$(stat -c '%U' "$SCRIPT_DIR")"
 group="$(stat -c '%G' "$SCRIPT_DIR")"
 
-deployer_version="ardana-0.9.0"
-ansible_package_dir="/opt/stack/venv/ansible-1.9.3"
-ansible_service_dir="/opt/stack/service/ansible-1.9.3"
+deployer_version="ardana-8"
 ansible_generic_service_dir="/opt/stack/service/ansible"
 
 script_ansible="${SCRIPT_DIR}/ansible/$deployer_version"
@@ -90,8 +88,7 @@ ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no localhost date
 #
 # Clean-up any old deploys first.
 #
-sudo rm -rf "${ansible_package_dir}" \
-  "${ansible_service_dir}" \
+sudo rm -rf  \
   "${script_ansible}" \
   "${ardana_staging_dir}"
 
@@ -105,8 +102,6 @@ fi
 #
 # Get an Ansible venv set-up (bootstrap Ansible)
 #
-sudo mkdir -p "${ansible_package_dir}"
-sudo mkdir -p "${ansible_service_dir}"
 # Extract the Ansible venv from the venv tarball.
 if [ "${OS,,}" == "sles" ]; then
    rpmqpack | grep -x ansible1 > /dev/null || sudo zypper -n install ansible1
@@ -124,17 +119,6 @@ cp -r "${ardana_ansible_source}"/* "${ardana_ansible_dir}"
 
 # Create CP credentials change directory
 mkdir -p "${ardana_target_dir}/change_credentials"
-
-#
-# Set up ardana-extensions area
-#
-if false; then
-mkdir -p "${ardana_extensions_dir}"
-tar xf "${ardana_output_dir}/{{ deployer_ardana_extensions_tarball }}" \
-  --owner "${owner}" --group "${group}" \
-  -C "${ardana_extensions_dir}"
-fi
-
 
 #
 # Set-up default Ansible config.
