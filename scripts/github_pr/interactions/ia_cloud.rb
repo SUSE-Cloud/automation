@@ -2,13 +2,24 @@
 
 module GithubPR
   class JenkinsJobTriggerAction < RunCommandAction
+    def logging?
+      @c.has_key?("detail_logging") && @c["detail_logging"]
+    end
+
     def action(pull)
+      if logging? then
+        LogPullRequestDetailsAction.new(@metadata).run([pull])
+      end
       base_cmd = command("job_cmd")
       job_parameters(pull).each do |build_mode, job_paras|
-        one_cmd = base_cmd + [@c["job_name"]] + job_paras
+        one_cmd = base_cmd + [@c["job_name"]] + parameters_to_cmd_paras(job_paras)
         system(*one_cmd) or raise
         puts "Triggering jenkins job for PR #{pull.number} in #{build_mode} mode"
       end
+    end
+
+    def parameters_to_cmd_paras(paras)
+      paras.map{ |k,v| "#{k}=#{v}" }
     end
 
     def job_parameters(pull)
@@ -17,7 +28,7 @@ module GithubPR
         if self.respond_to?(:extra_parameters) then
           job_paras.merge!(extra_parameters(pull, build_mode))
         end
-        [ build_mode, job_paras.map { |k,v| "#{k}=#{v}" } ]
+        [ build_mode, job_paras ]
       end.to_h
     end
   end
