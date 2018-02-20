@@ -196,4 +196,8 @@
                 openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait \
                       $STACK_NAME || :
             fi
-      - workspace-cleanup
+      - workspace-cleanup:
+          clean-if:
+            - failure: false
+            - aborted: false
+            - unstable: false
