@@ -21,7 +21,7 @@
           cron: 'H/5 * * * *'
           polling-node: cloud-trigger
           urls:
-            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging/repodata/?regexp=xml.gz'
+            - url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging/media.1/build'
               check-content:
                 - simple: true
 
