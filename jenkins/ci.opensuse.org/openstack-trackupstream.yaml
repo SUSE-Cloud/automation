@@ -81,6 +81,8 @@
             - python-monasca-statsd
             - python-networking-cisco
             - python-networking-hyperv
+            - python-vmware-nsxlib
+            - python-vmware-nsx
       - axis:
           type: slave
           name: slave
@@ -102,7 +104,9 @@
             ].contains(component) ||
             [ "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
-              "openstack-ironic-python-agent"
+              "openstack-ironic-python-agent",
+              "python-vmware-nsxlib",
+              "python-vmware-nsx",
             ].contains(component) ||
             [ "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
