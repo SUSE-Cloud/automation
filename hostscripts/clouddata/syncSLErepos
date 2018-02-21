@@ -53,6 +53,12 @@ rsync="$E rsync $DRY --timeout=1200 --fuzzy
 
 # http://download.suse.de/ibs/Devel:/Cloud:/4/images/*qcow2 -> images/SLES11-SP3-x86_64-cfntools.qcow2
 
+# prevent concurrent runs
+lockf=/srv/nfs/last-update.txt.lock
+
+lockfile -l $((4 * 60 * 60)) $lockf || exit 1
+date > /srv/nfs/last-update.txt
+
 # Always sync the Maintenance test updates from NUE as they are not yet
 # on ibs-mirror.prv.suse.net. change this back when fixed.
 ibsmaint=${ibs_source_nue}/SUSE\:/Maintenance\:/Test\:/
@@ -283,3 +289,5 @@ if [ $SITE = "nue" ]; then
 
     timeout 1h ~/bin/syncgitrepos
 fi
+
+rm -f $lockf
