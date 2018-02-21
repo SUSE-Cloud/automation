@@ -5471,6 +5471,8 @@ function oncontroller_setupproduction()
     openstack role add --project engineering --user obs-ci Member
     openstack user create --project container-ci --email KMacInnes@suse.com container-ci
     openstack role add --project container-ci --user container-ci Member
+    openstack user create --project susemanager --email DMaiocchi@suse.com susemanager-ci
+    openstack role add --project susemanager --user susemanager-ci Member
     /etc/cloud-keys/secrets.sh
     openstack project create demo
     openstack user create --password demo --email ashish.sodhi@suse.com --project demo demo
