@@ -124,5 +124,6 @@
   - name: Add build information to /etc/motd
     shell: |
       media_build_version=$(cat /etc/ardana/media-build-version)
+      echo "Build job:  {{ build_url }}" >>/etc/motd
       echo "Built from: {{ cloudsource_url }}" >>/etc/motd
       echo "Media build version: $media_build_version" >>/etc/motd

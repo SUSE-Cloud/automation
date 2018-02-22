@@ -178,7 +178,8 @@
           cat ardana_net_vars.yml
 
           ansible-playbook -vvv -i hosts ssh-keys.yml
-          ansible-playbook -vvv -i hosts -e "cloudsource=${cloudsource}" repositories.yml
+          ansible-playbook -vvv -i hosts -e "build_url=$BUILD_URL" \
+                                         -e "cloudsource=${cloudsource}" repositories.yml
           ansible-playbook -vvv -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
                                          -e "deployer_model=${model}" \
                                          -e "tempest_run_filter=${tempest_run_filter}" \
