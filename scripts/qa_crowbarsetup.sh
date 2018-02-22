@@ -5432,6 +5432,7 @@ function oncontroller_setupproduction()
     nova flavor-create --ephemeral 20 c8.small   33 2048 20 8
     nova flavor-create --ephemeral 20 c8.medium  34 4096 20 8
     nova flavor-create --ephemeral 20 c4.medium  35 4096 20 4
+    nova flavor-create                c8.large   50 8192 160 8
     nova flavor-create --ephemeral 80 d4.xlarge  40 16384 40 4
     nova flavor-create --ephemeral 20 m8.xlarge  41 32768 20 8
 
