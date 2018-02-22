@@ -49,7 +49,7 @@ DRY=--dry-run
 DRY=
 
 rsync="$E rsync $DRY --timeout=1200 --fuzzy
-    --delay-updates $rsync_delete -aH --no-owner --no-group $rsync_excludes "
+    --delay-updates $rsync_delete -aPH --no-owner --no-group $rsync_excludes "
 
 # http://download.suse.de/ibs/Devel:/Cloud:/4/images/*qcow2 -> images/SLES11-SP3-x86_64-cfntools.qcow2
 
