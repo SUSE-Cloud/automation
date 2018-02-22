@@ -84,7 +84,9 @@
   # it's just that it won't auto accept the Devel key, so do that now
   - name: Import Devel:Cloud:8 key
     shell: |
-      cat /srv/www/suse-12.3/x86_64/repos/Cloud/repodata/repomd.xml.key | ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "cat >/tmp/cloud.key && rpm --import /tmp/cloud.key && rm /tmp/cloud.key"
+      kf=/srv/www/suse-12.3/x86_64/repos/Cloud/repodata/repomd.xml.key
+      [ -r $kf ] || kf=/srv/www/suse-12.3/x86_64/repos/Cloud/content.key
+      ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "cat >/tmp/cloud.key && rpm --import /tmp/cloud.key && rm /tmp/cloud.key" < $kf
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
       - "{{ compute_mgmt_ips }}"
