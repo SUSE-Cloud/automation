@@ -29,6 +29,7 @@
             - ardana-extensions-dcn
             - ardana-extensions-example
             - ardana-extensions-nsx
+            - ardana-extensions-ses
             - ardana-freezer
             - ardana-glance
             - ardana-heat
