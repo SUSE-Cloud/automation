@@ -38,7 +38,7 @@
               submitcmd="$OSC copypac -K -e"
               OSCBUILDDIST=SLE_12_SP2
             ;;
-            Cloud:OpenStack:[OP]*)
+            Cloud:OpenStack:[OPQ]*)
               submitcmd="$OSC copypac -K -e"
               OSCBUILDDIST=SLE_12_SP3
             ;;

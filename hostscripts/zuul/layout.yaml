@@ -34,27 +34,22 @@ projects:
   - name: openstack/rpm-packaging
     rpm-packaging:
       - openstack-rpm-packaging-sles12-Master
-      - openstack-rpm-packaging-sles12-Mitaka
       - openstack-rpm-packaging-sles12-Newton
       - openstack-rpm-packaging-sles12-Ocata
       - openstack-rpm-packaging-sles12-Pike
+      - openstack-rpm-packaging-sles12-Queens
     post-rpm-packaging:
       - openstack-rpm-packaging-update-Master
-      - openstack-rpm-packaging-update-Mitaka
       - openstack-rpm-packaging-update-Newton
       - openstack-rpm-packaging-update-Ocata
       - openstack-rpm-packaging-update-Pike
+      - openstack-rpm-packaging-update-Queens
 
 jobs:
   - name: openstack-rpm-packaging-sles12-Master
     branch: master
     failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Master-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Master-{build.build_set.commit}
-
-  - name: openstack-rpm-packaging-sles12-Mitaka
-    branch: stable/mitaka
-    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Mitaka-{build.build_set.commit}
-    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Mitaka-{build.build_set.commit}
 
   - name: openstack-rpm-packaging-sles12-Newton
     branch: stable/newton
@@ -71,6 +66,11 @@ jobs:
     failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Pike-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Pike-{build.build_set.commit}
 
+  - name: openstack-rpm-packaging-sles12-Queens
+    branch: stable/queens
+    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Queens-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Queens-{build.build_set.commit}
+
   - name: openstack-rpm-packaging-update-Master
     branch: master
 
@@ -85,3 +85,6 @@ jobs:
 
   - name: openstack-rpm-packaging-update-Pike
     branch: stable/pike
+
+  - name: openstack-rpm-packaging-update-Queens
+    branch: stable/queens

@@ -16,6 +16,7 @@
           values:
             - Cloud:OpenStack:Ocata:Staging
             - Cloud:OpenStack:Pike:Staging
+            - Cloud:OpenStack:Queens:Staging
             - Cloud:OpenStack:Master
       - axis:
           type: user-defined
@@ -108,7 +109,7 @@
               "python-vmware-nsxlib",
               "python-vmware-nsx",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
               "python-heat-cfntools",
               "openstack-rally",
@@ -119,7 +120,7 @@
               "openstack-horizon-plugin-neutron-fwaas-ui",
               "openstack-horizon-plugin-neutron-vpnaas-ui",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Queens:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-murano-ui",
               "openstack-gnocchi",
@@ -165,7 +166,7 @@
             OBS) OSCAPI="https://api.opensuse.org"
                 OSC_BUILD_ARCH=x86_64
                 case $OBS_PROJECT in
-                    Cloud:OpenStack:Master|Cloud:OpenStack:Pike*)
+                Cloud:OpenStack:Master|Cloud:OpenStack:Pike*|Cloud:OpenStack:Queens*)
                         OSC_BUILD_DIST=SLE_12_SP3
                         ;;
                     Cloud:OpenStack:Ocata*)
