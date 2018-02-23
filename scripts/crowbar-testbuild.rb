@@ -20,6 +20,7 @@ require "yaml"
 require "optparse"
 require "fileutils"
 require "tmpdir"
+require "open-uri"
 
 class CrowbarTestbuild
   def initialize(options, config)
@@ -118,10 +119,12 @@ class CrowbarTestbuild
       job_name: job_name
     }
     para_extra = extra_build_parameters(mode)
-    p = para_default.merge(para_extra).map { |k,v| "#{k}=#{v}" }
-    jcmd += p
-    puts "Triggering jenkins job with url #{ptf_url} and directory #{ptf_dir}"
+    all_paras = para_default.merge(para_extra)
+    jcmd += all_paras.map{ |k,v| "#{k}=#{v}" }
     system(*jcmd) or raise
+    puts "Triggered jenkins job with url #{ptf_url} and directory #{ptf_dir}"
+    puts "   Rebuild Link: https://ci.suse.de/job/#{mkcloud_job_name}/parambuild/?#{URI.encode_www_form(all_paras)}"
+    puts "   => NOTE: Job already triggered. Make sure there are no identical parallel jobs!"
   end
 
   def jenkins_jobs_scenarios
