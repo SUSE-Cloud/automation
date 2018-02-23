@@ -48,10 +48,16 @@ M=
 DRY=--dry-run
 DRY=
 
-rsync="$E rsync $DRY --timeout=1200 --fuzzy --bwlimit 10000
-    --delay-updates $rsync_delete -aH --no-owner --no-group $rsync_excludes "
+rsync="$E rsync $DRY --timeout=1200 --fuzzy
+    --delay-updates $rsync_delete -aPH --no-owner --no-group $rsync_excludes "
 
 # http://download.suse.de/ibs/Devel:/Cloud:/4/images/*qcow2 -> images/SLES11-SP3-x86_64-cfntools.qcow2
+
+# prevent concurrent runs
+lockf=/srv/nfs/last-update.txt.lock
+
+lockfile -l $((4 * 60 * 60)) $lockf || exit 1
+date > /srv/nfs/last-update.txt
 
 # Always sync the Maintenance test updates from NUE as they are not yet
 # on ibs-mirror.prv.suse.net. change this back when fixed.
@@ -63,6 +69,29 @@ rsync_with_create() {
 
     mkdir -p "$dst"
     $rsync "$src" "$dst"
+}
+
+mount_and_rsync()
+{
+    local from=$1
+    local to=$2
+    local oneiso=`ls $from | tail -1`
+    if [ -e "$oneiso" ] ; then
+        $M mount -o loop,ro "$oneiso" /mnt/cloud
+        [ $? == 0 ] && $rsync /mnt/cloud/ $to
+        $M umount /mnt/cloud
+    fi
+}
+
+rsync_and_unpack_iso()
+{
+    local iso="$1"
+    local dst="$2"
+
+    # need smaller than normal block size to circumvent ISO data alignment issues
+    # and speed up the sync
+    $rsync --checksum --block-size=2048 --copy-links "$iso" $dst.iso
+    mount_and_rsync $dst.iso $dst
 }
 
 ##############
@@ -118,7 +147,7 @@ for servicepack in 1 2 3; do
             if [ -z "$sync_from_ibs" ]; then
                 $rsync ${ibs_source}/SUSE/Products/SLE-HA/$version/$arch/product/ $destdir_ha_pool
             else
-                $rsync ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-HA-POOL-$arch-Media1/ $destdir_ha_pool
+                rsync_with_create ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-HA-POOL-$arch-Media1/ $destdir_ha_pool
             fi
             # HA updates
             rsync_with_create ${ibs_source}/SUSE/Updates/SLE-HA/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates/
@@ -132,9 +161,9 @@ for servicepack in 1 2 3; do
             destdir_sdk_pool=/srv/nfs/repos/$arch/SLE$repo_version-SDK-Pool/
             mkdir -p $destdir_sdk_pool
             if [ -z "$sync_from_ibs" ]; then
-                $rsync ${ibs_source}/SUSE/Products/SLE-SDK/$version/$arch/product/ $destdir_sdk_pool
+                rsync_with_create ${ibs_source}/SUSE/Products/SLE-SDK/$version/$arch/product/ $destdir_sdk_pool
             else
-                $rsync ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-SDK-POOL-$arch-Media1/ $destdir_sdk_pool
+                rsync_with_create ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-SDK-POOL-$arch-Media1/ $destdir_sdk_pool
             fi
             # SDK updates
             rsync_with_create ${ibs_source}/SUSE/Updates/SLE-SDK/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates/
@@ -207,26 +236,30 @@ for version in 6 7 8; do
         if [ -z "$sync_from_ibs" ]; then
             $rsync /mnt/dist/install/SLP/SLE-12-SP$servicepack-Cloud$version-GM/$arch/DVD1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
         else
-            rsync_with_create ${ibs_source}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/repo/SUSE-OPENSTACK-CLOUD-$version-POOL-$arch-Media1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
+            rsync_and_unpack_iso ${ibs_source}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
         fi
 
         if [ -z "$sync_from_ibs" ]; then
-            rsync_with_create ${ibs_source}/Devel\:/Cloud\:/$version/images/repo/SUSE-OPENSTACK-CLOUD-$version-POOL-$arch-Media1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel
-            rsync_with_create ${ibs_source}/Devel\:/Cloud\:/$version\:/Staging/images/repo/SUSE-OPENSTACK-CLOUD-$version-POOL-$arch-Media1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel-staging
+            rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel
+            rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel-staging
         else
-            rsync_with_create ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/repo/SUSE-OPENSTACK-CLOUD-$version-POOL-$arch-Media1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel
-            rsync_with_create ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/repo/SUSE-OPENSTACK-CLOUD-$version-POOL-$arch-Media1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel-staging
+            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel
+            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel-staging
         fi
         rsync_with_create ${ibs_source}/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Pool/
         rsync_with_create ${ibs_source}/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates/
         rsync_with_create $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
 
         if [ "$version" == "8" ]; then
+            if [ "$arch" = "x86_64" ]; then
+                rsync_and_unpack_iso ${ibs_source_nue}/Devel:/Cloud:/$version/images/iso/HPE-HELION-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/HPE-Helion-OpenStack-Cloud-$version-devel
+                rsync_with_create ${ibs_source}/SUSE/Products/HPE-Helion-OpenStack-Cloud/$version/$arch/product/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-Cloud-$version-Pool/
+                rsync_with_create ${ibs_source}/SUSE/Updates/HPE-Helion-OpenStack-Cloud/$version/$arch/update/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-Cloud-$version-Updates/
+            fi
+
             rsync_with_create ${ibs_source}/SUSE/Products/OpenStack-Cloud-Crowbar/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Pool/
             rsync_with_create ${ibs_source}/SUSE/Updates/OpenStack-Cloud-Crowbar/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Updates/
 
-            rsync_with_create ${ibs_source}/SUSE/Products/HPE-Helion-OpenStack-Cloud/$version/$arch/product/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-Cloud-$version-Pool/
-            rsync_with_create ${ibs_source}/SUSE/Updates/HPE-Helion-OpenStack-Cloud/$version/$arch/update/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-Cloud-$version-Updates/
         fi
     done
 done
@@ -260,3 +293,5 @@ if [ $SITE = "nue" ]; then
 
     timeout 1h ~/bin/syncgitrepos
 fi
+
+rm -f $lockf
