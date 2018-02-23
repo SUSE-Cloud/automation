@@ -1,14 +1,36 @@
 # Github_PR interactions (filter and action classes)
+require "open-uri"
 
 module GithubPR
   class JenkinsJobTriggerAction < RunCommandAction
+    JENKINS_URL="https://ci.suse.de"
+
+    def logging?
+      @c.has_key?("detail_logging") && @c["detail_logging"]
+    end
+
     def action(pull)
+      if logging? then
+        LogPullRequestDetailsAction.new(@metadata).run([pull])
+      end
       base_cmd = command("job_cmd")
       job_parameters(pull).each do |build_mode, job_paras|
-        one_cmd = base_cmd + [@c["job_name"]] + job_paras
+        one_cmd = base_cmd + [@c["job_name"]] + parameters_to_cmd_paras(job_paras)
         system(*one_cmd) or raise
-        puts "Triggering jenkins job for PR #{pull.number} in #{build_mode} mode"
+        if logging? then
+          puts "  Triggered jenkins job in mode: #{build_mode}"
+          puts "  Rebuild Link: #{JENKINS_URL}/job/#{@c["job_name"]}/parambuild/?#{parameters_to_uri(job_paras)}"
+          puts "  => NOTE: Job already triggered. Make sure there are no identical parallel jobs!"
+        end
       end
+    end
+
+    def parameters_to_cmd_paras(paras)
+      paras.map{ |k,v| "#{k}=#{v}" }
+    end
+
+    def parameters_to_uri(paras)
+      URI.encode_www_form(paras)
     end
 
     def job_parameters(pull)
@@ -17,7 +39,7 @@ module GithubPR
         if self.respond_to?(:extra_parameters) then
           job_paras.merge!(extra_parameters(pull, build_mode))
         end
-        [ build_mode, job_paras.map { |k,v| "#{k}=#{v}" } ]
+        [ build_mode, job_paras ]
       end.to_h
     end
   end

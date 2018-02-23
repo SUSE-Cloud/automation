@@ -36,11 +36,11 @@ template:
               message: Queued testbuild job
           - type: JenkinsJobTriggerCrowbarTestbuild
             parameters:
+              detail_logging: true
               job_name: cloud-crowbar-testbuild-pr
               job_cmd: "../jenkins/jenkins-job-trigger"
               job_parameters:
                 standard: {}
-          - type: LogPullRequestDetails
     sap-oc_crowbar: &sap-oc_crowbar
       - type: MergeBranch
         config:
@@ -62,11 +62,11 @@ template:
               message: Queued testbuild job
           - type: JenkinsJobTriggerCrowbarTestbuild
             parameters:
+              detail_logging: true
               job_name: cloud-crowbar-testbuild-pr
               job_cmd: "../jenkins/jenkins-job-trigger"
               job_parameters:
                 standard: {}
-          - type: LogPullRequestDetails
 pr_processing:
   - config:
       organization: crowbar

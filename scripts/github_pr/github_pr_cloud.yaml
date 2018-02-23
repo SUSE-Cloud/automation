@@ -55,11 +55,11 @@ template:
               message: Queued automation PR gating
           - type: JenkinsJobTriggerMkcloud
             parameters:
+              detail_logging: true
               job_name: openstack-mkcloud
               job_cmd: "../jenkins/jenkins-job-trigger"
               job_parameters:
                 *mkcloud_automation_parameters
-          - type: LogPullRequestDetails
     suse_cct: &suse_cct
       - type: Status
         config:
@@ -77,12 +77,12 @@ template:
               message: Queued cct PR gating
           - type: JenkinsJobTriggerMkcloudCCT
             parameters:
+              detail_logging: true
               job_name: openstack-mkcloud
               job_cmd: "../jenkins/jenkins-job-trigger"
               job_parameters:
                 standard:
                   *mkcloud_automation_standard
-          - type: LogPullRequestDetails
 pr_processing:
   - config:
       organization: SUSE-Cloud
