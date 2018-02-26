@@ -60,6 +60,12 @@
             upgrade-ci or upgrade
 
       - string:
+          name: gerrit_ids
+          default: ''
+          description: >-
+            Comma separated list of gerrit review ids
+
+      - string:
           name: patches
           default: ''
           description: >-
@@ -108,6 +114,13 @@
                     --device-owner network:dhcp -f value -c 'Fixed IP Addresses' | \
               sed -e "s/^ip_address='\(.*\)', .*$/\1/" | \
               while read line; do echo "  - $line" >> ardana_net_vars.yml; done;
+
+          for i in $(echo $gerrit_ids| tr ',' '\n'); do
+              gerritpatches=${gerritpatches}"https://gerrit.suse.provo.cloud/changes/$i/revisions/current/patch?zip | zcat,"
+              # the command at the end helps in defining patches below
+          done;
+
+          patches=${gerritpatches}${patches}
 
           cat ardana_net_vars.yml
 
