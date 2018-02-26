@@ -44,6 +44,7 @@ pythoncheck:
 
 rounduptest:
 	cd scripts && roundup
+	cd scripts/jenkins && roundup
 
 flake8:
 	flake8 scripts/ hostscripts/soc-ci/soc-ci

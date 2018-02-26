@@ -12,9 +12,23 @@
 # Bernhard M. Wiedemann <bwiedemann suse.de>
 #
 
+declare -a must_have_repos=(
+    github.com/openSUSE/github-pr#master
+)
+
+# allow to override the automation repo
+: ${automation_repo:="github.com/SUSE-Cloud/automation#master"}
+
+if [[ $automation_repo =~ ^(https?|git): || $automation_repo =~ \.git ]] ; then
+    echo "Syntax error with automation repo definition."
+    echo "Please use this pattern: <domain>/<owner>/<repo>#<branch>"
+    echo "  eg.: github.com/SUSE-Cloud/automation#master"
+    exit 1
+fi
+
 declare -a needed_repos=(
-    github.com/SUSE-Cloud/automation
-    github.com/openSUSE/github-pr
+    $automation_repo
+    ${must_have_repos[@]}
 )
 
 function get_archive_url
@@ -25,6 +39,11 @@ function get_archive_url
 function get_repo_url
 {
     echo -n https://${1}.git
+}
+
+function echo_info
+{
+    echo "Handling repo: $1 with branch: $2"
 }
 
 function do_wget
@@ -82,14 +101,16 @@ function do_git
     fi
 }
 
-: ${branch:=master}
-
 pushd ~ > /dev/null
-for repo_url_dir in "${needed_repos[@]}" ; do
+for repo_str in "${needed_repos[@]}" ; do
+    IFS='#' read -r -a repo_arr <<< "$repo_str"
+    repo_url_dir=${repo_arr[0]}
+    branch=${repo_arr[1]:-master}
     checkout_base_dir=${repo_url_dir%/*}
     mkdir -p $checkout_base_dir
-    do_git "$repo_url_dir" "$branch" || do_wget "$repo_url_dir" "$branch"
-    # branch variable only overrides branch for 1st repo, so switch back to master now
-    branch="master"
+    echo_info "$repo_url_dir" "$branch"
+    if [[ ! $dryrun_update_automation ]] ; then
+        do_git "$repo_url_dir" "$branch" || do_wget "$repo_url_dir" "$branch"
+    fi
 done
 popd > /dev/null
