@@ -46,11 +46,12 @@
           osc="osc -A https://api.suse.de"
 
           cos=$project
-          ecos=
           coss=$cos:$subproject
+          ecos=
+          eard=
+          oscbuilddist=SLE_12_SP1
           bs_checkout=/home/jenkins/${bs}_CHECKOUT/$coss
           submitcmd="$osc copypac -K -e"
-          oscbuilddist=SLE_12_SP1
 
           case $project in
               Devel:Cloud:6)
@@ -66,6 +67,7 @@
               Devel:Cloud:8)
                   oscbuilddist=SLE_12_SP3
                   ecos=systemsmanagement:crowbar:5.0
+                  eard=systemsmanagement:Ardana:8
               ;;
               *) echo "Please add support for the project: $project"
                   exit 1
@@ -95,6 +97,7 @@
               if $osc rdiff $cos $component $coss | grep .  && ( [ "$component" = "_product" ] || $osc r $coss $component -r $oscbuilddist -a x86_64 | grep 'succeeded' )
               then
                   if [[ "$component" =~ -doc$ ]] ; then
+                      echo "Skipping *-doc package: $component"
                       continue
                   fi
 
@@ -102,6 +105,9 @@
                   $E $submitcmd $coss $component $cos || :
                   if [[ $ecos && $component =~ ^crowbar ]] ; then
                       $E $submitcmd $coss $component -t https://api.opensuse.org/ $ecos || :
+                  fi
+                  if [[ $eard && $component =~ ^ardana ]] ; then
+                      $E $submitcmd $coss $component -t https://api.opensuse.org/ $eard || :
                   fi
               fi
           done
