@@ -312,10 +312,13 @@ for i in $(seq 1 60); do
 done
 
 # cinder
-cinder create 1 ; sleep 10
-vol_id=$(cinder list | grep available | cut -d' ' -f2)
-cinder list
-cinder delete $vol_id
+openstack volume create --size 1 testvolume1; sleep 10
+if [ "$(openstack volume show testvolume1 -c status -f value)" != "available" ]; then
+    echo "cinder testvolume not available";
+    openstack volume show testvolume1
+    exit 5
+fi
+openstack volume delete testvolume1
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
 ssh_user="root"
