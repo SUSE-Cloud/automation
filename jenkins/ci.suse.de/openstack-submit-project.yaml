@@ -42,30 +42,30 @@
               ;;
           esac
 
-          BS=IBS
-          OSC="osc -A https://api.suse.de"
+          bs=IBS
+          osc="osc -A https://api.suse.de"
 
-          COS=$project
-          ECOS=""
-          COSS=$COS:$subproject
-          BS_CHECKOUT=/home/jenkins/${BS}_CHECKOUT/$COSS
-          submitcmd="$OSC copypac -K -e"
-          OSCBUILDDIST=SLE_12_SP1
+          cos=$project
+          ecos=
+          coss=$cos:$subproject
+          bs_checkout=/home/jenkins/${bs}_CHECKOUT/$coss
+          submitcmd="$osc copypac -K -e"
+          oscbuilddist=SLE_12_SP1
 
           case $project in
               Devel:Cloud:6)
-                  ECOS=systemsmanagement:crowbar:3.0
+                  ecos=systemsmanagement:crowbar:3.0
               ;;
               Devel:Cloud:6:SAP)
-                  ECOS=systemsmanagement:crowbar:3.1
+                  ecos=systemsmanagement:crowbar:3.1
               ;;
               Devel:Cloud:7)
-                  OSCBUILDDIST=SLE_12_SP2
-                  ECOS=systemsmanagement:crowbar:4.0
+                  oscbuilddist=SLE_12_SP2
+                  ecos=systemsmanagement:crowbar:4.0
               ;;
               Devel:Cloud:8)
-                  OSCBUILDDIST=SLE_12_SP3
-                  ECOS=systemsmanagement:crowbar:5.0
+                  oscbuilddist=SLE_12_SP3
+                  ecos=systemsmanagement:crowbar:5.0
               ;;
               *) echo "Please add support for the project: $project"
                   exit 1
@@ -73,10 +73,10 @@
 
           pkg_filter=$(awk '$1=$1' <<< "${packagefilter}")
           pkg_filter="${pkg_filter// /|}"
-          for component in `$OSC ls $COSS 2>/dev/null | grep -E "^(${pkg_filter})" | grep -v "^_product."` ; do
-              cd $BS_CHECKOUT
+          for component in `$osc ls $coss 2>/dev/null | grep -E "^(${pkg_filter})" | grep -v "^_product."` ; do
+              cd $bs_checkout
               if [[ ! -d $component ]] ; then
-                  $OSC co -o $component $COSS $component
+                  $osc co -o $component $coss $component
               fi
               cd $component
 
@@ -86,22 +86,22 @@
               fi
 
               # avoid copying untested versions
-              lastchange=$($OSC api "source/$COSS/$component/_history" | perl -ne 'if(m/<time>(\d+)</) {print $1; exit 0}')
+              lastchange=$($osc api "source/$coss/$component/_history" | perl -ne 'if(m/<time>(\d+)</) {print $1; exit 0}')
               if [[ $lastchange -gt $starttime ]] ; then
                   echo "Skipping $component due to a change after the test in the previous job started. test start time: $starttime :: last change: $lastchange"
                   continue
               fi
 
-              if $OSC rdiff $COS $component $COSS | grep .  && ( [ "$component" = "_product" ] || $OSC r $COSS $component -r $OSCBUILDDIST -a x86_64 | grep 'succeeded' )
+              if $osc rdiff $cos $component $coss | grep .  && ( [ "$component" = "_product" ] || $osc r $coss $component -r $oscbuilddist -a x86_64 | grep 'succeeded' )
               then
                   if [[ "$component" =~ -doc$ ]] ; then
                       continue
                   fi
 
                   # submit package
-                  $E $submitcmd $COSS $component $COS || :
-                  if [[ $ECOS && $component =~ ^crowbar ]] ; then
-                      $E $submitcmd $COSS $component -t https://api.opensuse.org/ $ECOS || :
+                  $E $submitcmd $coss $component $cos || :
+                  if [[ $ecos && $component =~ ^crowbar ]] ; then
+                      $E $submitcmd $coss $component -t https://api.opensuse.org/ $ecos || :
                   fi
               fi
           done
