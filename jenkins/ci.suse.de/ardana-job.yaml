@@ -10,7 +10,7 @@
           name: '#${BUILD_NUMBER}: ${ENV,var="job_name"}/${ENV,var="model"}'
 
       - timeout:
-          timeout: 180
+          timeout: 300
           type: no-activity
           abort: true
           write-description: "Job aborted due to 180 minutes of inactivity"
