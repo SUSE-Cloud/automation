@@ -47,14 +47,14 @@
           description: Mandatory, automation repo owner/organization
 
       - string:
-          name: automation_repo
-          default: git://github.com/$repo_owner/automation.git
-          description: Mandatory, automation repo URL
-
-      - string:
           name: branch
           default: master
           description: Mandatory, automation repo branch
+
+      - string:
+          name: automation_repo
+          default: github.com/$repo_owner/automation#$branch
+          description: Mandatory, automation repo URL
 
       - string:
           name: netapp_server
