@@ -44,4 +44,3 @@
           predefined-parameters: |
             project=Devel:Cloud:{version}
             subproject=Staging
-            packagefilter=crowbar python openstack patterns release-notes-suse-openstack-cloud suse-cloud-upgrade
