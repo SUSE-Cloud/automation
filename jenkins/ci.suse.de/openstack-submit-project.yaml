@@ -13,7 +13,7 @@
           description: Name of the subproject that acts as staging project.
       - string:
           name: packagefilter
-          default: None
+          default: ""
           description: space separated strings to filter the packages by their names (from the beginning)
       - string:
           name: starttime
