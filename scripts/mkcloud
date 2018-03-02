@@ -206,8 +206,10 @@ function show_environment
     echo "-------------------------------"
     env | grep -i "^want_"
     echo "-------------------------------"
-    column -s"," -t $timing_file_host  | tee ${timing_file_host}.byTime.txt
-    sort -t, -k3,3 -k1,1 $timing_file_host | column -s"," -t  | tee ${timing_file_host}.byType.txt
+    if [[ $CI_RUN = 1 ]]; then
+        column -s"," -t $timing_file_host  | tee ${timing_file_host}.byTime.txt
+        sort -t, -k3,3 -k1,1 $timing_file_host | column -s"," -t  | tee ${timing_file_host}.byType.txt
+    fi
 }
 
 function pre_exit_cleanup
