@@ -75,7 +75,7 @@
 
           pkg_filter=$(awk '$1=$1' <<< "${packagefilter}")
           pkg_filter="${pkg_filter// /|}"
-          for component in `$osc ls $coss 2>/dev/null | grep -E "^(${pkg_filter})" | grep -v "^_product."` ; do
+          for component in `$osc ls $coss 2>/dev/null | grep -E "^(${pkg_filter})" | grep -v "^_product"` ; do
               cd $bs_checkout
               if [[ ! -d $component ]] ; then
                   $osc co -o $component $coss $component
