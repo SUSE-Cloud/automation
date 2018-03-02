@@ -480,10 +480,20 @@ if [ -e /etc/tempest/tempest.conf ]; then
     pushd /var/lib/openstack-tempest-test/
     # check that test listing works - otherwise we run 0 tests and everything seems to be fine
     # because run_tempest.sh doesn't catch the error
-    if ! [ -d ".testrepository" ]; then
-        testr init
+    if [ -f ".testr.conf" ]; then
+        if ! [ -d ".testrepository" ]; then
+            testr init
+        fi
+        testr list-tests >/dev/null
+    elif [ -f ".stestr.conf" ]; then
+        if ! [ -d ".stestr" ]; then
+            stestr init
+        fi
+        stestr list >/dev/null
+    else
+        echo "No .testr.conf or .stestr.conf in $(pwd)"
+        exit 5
     fi
-    testr list-tests >/dev/null
 
     if tempest help cleanup; then
         tempest cleanup --init-saved-state
