@@ -190,6 +190,11 @@ if [ -z "$skip_reposetup" ]; then
         $zypper ar "$repomirror/distribution/leap/42.3/repo/oss/" Leap-42.3-oss
         $zypper ar "$repomirror/update/leap/42.3/oss/" Leap-42.3-oss-update
     fi
+
+    if [ "$VERSION" = "15.0" ]; then
+        $zypper ar "$repomirror/distribution/leap/15.0/repo/oss/" Leap-15.0-oss
+        $zypper ar "$repomirror/update/leap/15.0/oss/" Leap-15.0-oss-update
+    fi
 fi
 
 # install maintenance updates
