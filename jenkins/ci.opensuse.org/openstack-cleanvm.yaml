@@ -17,6 +17,7 @@
             - SLE_12_SP2
             - SLE_12_SP3
             - openSUSE-Leap-42.3
+            - openSUSE-Leap-15.0
       - axis:
           type: user-defined
           name: openstack_project
@@ -38,8 +39,8 @@
            ( openstack_project=="Newton" && (image=="SLE_12_SP2" ))
         || ( openstack_project=="Ocata" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
         || ( openstack_project=="Pike" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
-        || ( openstack_project=="Queens" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
-        || ( openstack_project=="Master" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
+        || ( openstack_project=="Queens" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3" || image=="openSUSE-Leap-15.0"))
+        || ( openstack_project=="Master" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3" || image=="openSUSE-Leap-15.0"))
         ))
       sequential: true
     builders:
