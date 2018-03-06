@@ -84,10 +84,12 @@ To use mkcloud the following additional steps are needed:
     ```
 
 * Prepare the system with an initial mkcloud run which installs a few required
-  packages and sets up the lvm volume.
+  packages and sets up the lvm volume. Additionally one of the following
+  variables should be set: cloudpv or cloudvg
 
   ```
-  $ sudo /path/to/mkcloud setuphost
+  $ export cloudpv=/dev/loopX
+  $ sudo -E /path/to/mkcloud setuphost
   ```
 
 
@@ -103,9 +105,12 @@ To get a complete list run: `./mkcloud help`
 
 ### Additional Information
 
-* `cloudpv`, block device used by mkcloud to put LVM partitions, these partitions
-  are used to host the virtual machines. In development environments this is
-  usually a loop device (e.g. `/dev/loop0`)
+* `cloudpv`, block device used by mkcloud to create a volume group. This will
+  be used as cloudvg later.  In development environments this can be a loop
+  device (e.g. `/dev/loop0`) or an unused disk or partition.
+* `cloudvg`, volume group used by mkcloud to put LVM partitions, these
+  partitions are used to host the virtual machines. If defined, cloudpv is
+  ignored.
 * `cloudsource`, defines what version of SUSE Cloud will be deployed (e.g. `susecloud4`)
   The latest version always is in development. So do not expect it to work out of the box.
   If you need a stable/working version use <latest-version>-1.
