@@ -87,7 +87,7 @@ To use mkcloud the following additional steps are needed:
   packages and sets up the lvm volume.
 
   ```
-  $ sudo /path/to/mkcloud setuphost
+  $ sudo -E /path/to/mkcloud setuphost
   ```
 
 
