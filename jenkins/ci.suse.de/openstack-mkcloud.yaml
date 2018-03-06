@@ -441,6 +441,9 @@
           # to not fail when two concurrent zypper runs happen:
           export ZYPP_LOCK_TIMEOUT=120
 
+          # enable mkcloud options specific for CI runs
+          export CI_RUN=1
+
           case $cloudsource in
               develcloud6)
                   if [[ $mkcloudtarget =~ upgrade ]]; then
