@@ -87,11 +87,8 @@ if [ -f "/etc/os-release" ]; then
             ;;
     esac
 else
-    # old style for SLES11
-    if grep "^VERSION = 1[2-4]\\.[0-5]" /etc/SuSE-release ; then
-        VERSION=$(awk -e '/^VERSION = 1[2-4]\./{print $3}' /etc/SuSE-release)
-        REPO=openSUSE_$VERSION
-    fi
+    echo unsupported OS
+    exit 54
 fi
 
 zypper="zypper --non-interactive"
