@@ -81,9 +81,6 @@ if [ -f "/etc/os-release" ]; then
         "openSUSE Leap")
             REPO="openSUSE_Leap_${VERSION}"
         ;;
-        "openSUSE")
-            REPO="openSUSE_${VERSION}"
-        ;;
         *)
             echo "Switch to a useful distribution!"
             exit 1
