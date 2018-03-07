@@ -731,7 +731,7 @@ function setupnodes
                         --firmwaretype "$firmware_type" \
                         --controller-raid-volumes $controller_raid_volumes > /tmp/$cloud-node$i.xml
 
-        libvirt_vm_start /tmp/$cloud-node$i.xml
+        safely libvirt_vm_start /tmp/$cloud-node$i.xml
     done
 
     echo "========================================================"
