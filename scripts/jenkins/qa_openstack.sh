@@ -116,46 +116,18 @@ fi
 zypper rr cloudhead || :
 
 case "$cloudsource" in
-    openstackliberty)
-        $zypper ar -G -f $cloudopenstackmirror/Liberty/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Liberty:/Staging/$REPO/ cloudhead
-        fi
-    ;;
-    openstackmitaka)
-        $zypper ar -G -f $cloudopenstackmirror/Mitaka/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Mitaka:/Staging/$REPO/ cloudhead
-        fi
-    ;;
-    openstacknewton)
-        $zypper ar -G -f $cloudopenstackmirror/Newton/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Newton:/Staging/$REPO/ cloudhead
-        fi
-    ;;
-    openstackocata)
-        $zypper ar -G -f $cloudopenstackmirror/Ocata/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Ocata:/Staging/$REPO/ cloudhead
-        fi
-    ;;
-    openstackpike)
-        $zypper ar -G -f $cloudopenstackmirror/Pike/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Pike:/Staging/$REPO/ cloudhead
-        fi
-    ;;
-    openstackqueens)
-        $zypper ar -G -f $cloudopenstackmirror/Queens/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Queens:/Staging/$REPO/ cloudhead
-        fi
-    ;;
     openstackmaster)
         $zypper ar -G -f $cloudopenstackmirror/Master/$REPO/ cloud || :
         # no staging for master
         $zypper mr --priority 22 cloud
+    ;;
+    openstack?*)
+        osrelease=${cloudsource#openstack}
+        osrelease=${osrelease^}
+        $zypper ar -G -f $cloudopenstackmirror/$osrelease/$REPO/ cloud
+        if test -n "$OSHEAD" ; then
+            $zypper ar -G -f $cloudopenstackmirror/$osrelease:/Staging/$REPO/ cloudhead
+        fi
     ;;
     *)
         echo "unknown cloudsource"
