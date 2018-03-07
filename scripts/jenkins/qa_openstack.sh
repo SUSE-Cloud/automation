@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # usage:
 # curl http://openqa.suse.de/sle/qatests/qa_openstack.sh | sh -x
 # needs 2.1GB space for /var/lib/{glance,nova}
@@ -63,6 +63,16 @@ function get_dist_version() {
     echo $VERSION_ID
 }
 
+function addslesrepos {
+    $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/$REPOVER/x86_64/product/" SLES$VERSION-Pool
+    $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER/x86_64/update/" SLES$VERSION-Updates
+}
+
+function addopensuseleaprepos {
+    $zypper ar "$repomirror/distribution/leap/$VERSION/repo/oss/" Leap-$VERSION-oss
+    $zypper ar --refresh "$repomirror/update/leap/$VERSION/oss/" Leap-$VERSION-oss-update
+}
+
 # setup repos
 VERSION=11
 REPO=SLE_11_SP3
@@ -73,16 +83,15 @@ if [ -f "/etc/os-release" ]; then
 
     case "$DIST_NAME" in
         "SLES")
-            REPO="SLE_12"
-            [ "$VERSION" = "12.1" ] && REPO="SLE_12_SP1"
-            [ "$VERSION" = "12.2" ] && REPO="SLE_12_SP2"
-            [ "$VERSION" = "12.3" ] && REPO="SLE_12_SP3"
+            IFS=. read major minor <<< $VERSION
+            REPO="SLE_${major}_SP${minor}"
+            REPOVER="${major}-SP${minor}"
+            # FIXME for SLE15 to not have SP0
+            addrepofunc=addslesrepos
         ;;
         "openSUSE Leap")
             REPO="openSUSE_Leap_${VERSION}"
-        ;;
-        "openSUSE")
-            REPO="openSUSE_${VERSION}"
+            addrepofunc=addopensuseleaprepos
         ;;
         *)
             echo "Switch to a useful distribution!"
@@ -90,11 +99,8 @@ if [ -f "/etc/os-release" ]; then
             ;;
     esac
 else
-    # old style for SLES11
-    if grep "^VERSION = 1[2-4]\\.[0-5]" /etc/SuSE-release ; then
-        VERSION=$(awk -e '/^VERSION = 1[2-4]\./{print $3}' /etc/SuSE-release)
-        REPO=openSUSE_$VERSION
-    fi
+    echo unsupported OS
+    exit 54
 fi
 
 zypper="zypper --non-interactive"
@@ -165,36 +171,7 @@ if [ -n "$OSHEAD" ]; then
 fi
 
 if [ -z "$skip_reposetup" ]; then
-    if [ "$VERSION" = "12.1" ]; then
-        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
-        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
-    fi
-
-    if [ "$VERSION" = "12.2" ]; then
-        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/' SLE12-SP2-Pool
-        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/' SLES12-SP2-Updates
-    fi
-
-    if [ "$VERSION" = "12.3" ]; then
-        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/' SLE12-SP3-Pool
-        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP3/x86_64/update/' SLES12-SP3-Updates
-    fi
-
-    # openSUSE Leap versions
-    if [ "$VERSION" = "42.2" ]; then
-        $zypper ar "$repomirror/distribution/leap/42.2/repo/oss/" Leap-42.2-oss
-        $zypper ar "$repomirror/update/leap/42.2/oss/" Leap-42.2-oss-update
-    fi
-
-    if [ "$VERSION" = "42.3" ]; then
-        $zypper ar "$repomirror/distribution/leap/42.3/repo/oss/" Leap-42.3-oss
-        $zypper ar "$repomirror/update/leap/42.3/oss/" Leap-42.3-oss-update
-    fi
-
-    if [ "$VERSION" = "15.0" ]; then
-        $zypper ar "$repomirror/distribution/leap/15.0/repo/oss/" Leap-15.0-oss
-        $zypper ar "$repomirror/update/leap/15.0/oss/" Leap-15.0-oss-update
-    fi
+    $addrepofunc
 fi
 
 # install maintenance updates
