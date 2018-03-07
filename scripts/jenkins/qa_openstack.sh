@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # usage:
 # curl http://openqa.suse.de/sle/qatests/qa_openstack.sh | sh -x
 # needs 2.1GB space for /var/lib/{glance,nova}
@@ -83,10 +83,10 @@ if [ -f "/etc/os-release" ]; then
 
     case "$DIST_NAME" in
         "SLES")
-            REPO="SLE_12"
-            [ "$VERSION" = "12.1" ] && REPO="SLE_12_SP1" && REPOVER=12-SP1
-            [ "$VERSION" = "12.2" ] && REPO="SLE_12_SP2" && REPOVER=12-SP2
-            [ "$VERSION" = "12.3" ] && REPO="SLE_12_SP3" && REPOVER=12-SP3
+            IFS=. read major minor <<< $VERSION
+            REPO="SLE_${major}_SP${minor}"
+            REPOVER="${major}-SP${minor}"
+            # FIXME for SLE15 to not have SP0
             addrepofunc=addslesrepos
         ;;
         "openSUSE Leap")
