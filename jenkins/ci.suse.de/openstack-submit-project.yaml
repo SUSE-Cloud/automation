@@ -102,12 +102,20 @@
                   fi
 
                   # submit package
-                  $E $submitcmd $coss $component $cos || :
-                  if [[ $ecos && $component =~ ^crowbar ]] ; then
-                      $E $submitcmd $coss $component -t https://api.opensuse.org/ $ecos || :
-                  fi
-                  if [[ $eard && $component =~ ^ardana ]] ; then
-                      $E $submitcmd $coss $component -t https://api.opensuse.org/ $eard || :
-                  fi
+                  case $component in
+                      crowbar*)
+                          # submit to non-Staging project
+                          $E $submitcmd $coss $component $cos || :
+                          # submit to OBS
+                          [[ $ecos ]] && $E $submitcmd $coss $component -t https://api.opensuse.org/ $ecos || :
+                      ;;
+                      ardana*)
+                          # submit to OBS
+                          [[ $eard ]] && $E $submitcmd $coss $component -t https://api.opensuse.org/ $eard || :
+                      ;;
+                      *)
+                          echo "INFO: package $component is not submitted to another repo."
+                      ;;
+                  esac
               fi
           done
