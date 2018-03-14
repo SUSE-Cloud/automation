@@ -12,9 +12,13 @@
           default: None
           description: Name of the subproject that acts as staging project.
       - string:
-          name: packagefilter
+          name: package_whitelist
           default: ""
-          description: space separated strings to filter the packages by their names (from the beginning)
+          description: space separated strings to white list filter the package names (strings are prefixes)
+      - string:
+          name: package_blacklist
+          default: ""
+          description: space separated strings to black list filter the package names (strings are prefixes)
       - string:
           name: starttime
           default: None
@@ -73,9 +77,10 @@
                   exit 1
           esac
 
-          pkg_filter=$(awk '$1=$1' <<< "${packagefilter}")
-          pkg_filter="${pkg_filter// /|}"
-          for component in `$osc ls $coss 2>/dev/null | grep -E "^(${pkg_filter})" | grep -v "^_product"` ; do
+          pkg_white=$(awk '{$1=$1};1 {gsub(" ", "|");}1' <<< "${package_whitelist}")
+          pkg_black=$(awk '{$1=$1};1 {gsub(" ", "|");}1' <<< "${package_blacklist}")
+
+          for component in `$osc ls $coss 2>/dev/null | grep -E "^(${pkg_white})" | grep -Ev "^(${pkg_black})" | grep -v "^_product"` ; do
               cd $bs_checkout
               if [[ ! -d $component ]] ; then
                   $osc co -o $component $coss $component
