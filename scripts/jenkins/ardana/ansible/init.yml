@@ -10,9 +10,6 @@
     deployer_model: deployerincloud-lite
     tempest_run_filter: smoke
 
-  environment:
-    ARDANA_INIT_AUTO: 1
-
   tasks:
   - name: Write deployer info to /etc/motd
     become: yes
@@ -27,6 +24,8 @@
 
   - name: Call ardana-init
     shell: /usr/bin/ardana-init
+    environment:
+      ARDANA_INIT_AUTO: 1
     become: true
     become_user: ardana
 
