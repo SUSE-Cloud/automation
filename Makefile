@@ -80,3 +80,5 @@ genericinstall:
 	make && \
 	sudo make install
 
+shellcheck:
+	shellcheck `grep -Erl '^#! ?/bin/b?a?sh'`

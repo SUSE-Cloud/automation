@@ -77,6 +77,25 @@ jenkins/openstack-unittest-testconfig.pl syntax OK
 jenkins/track-upstream-and-package.pl syntax OK
 ```
 
+# shellcheck
+
+You can run [shellcheck](https://github.com/koalaman/shellcheck) locally to check for warnings and suggestions for shell scripts.
+
+First install it:
+
+```
+$ zypper in ShellCheck
+```
+
+Then run it with:
+```
+$ make shellcheck
+```
+
+> Note that there is currently a high number of warnings and errors discovered by shellcheck so the check is supposed to fail until
+we can fix all those issues
+
+
 # jenkins jobs
 There are manually maintained jobs, and some jobs are now using
 [jenkins-job-builder](http://docs.openstack.org/infra/jenkins-job-builder/)
