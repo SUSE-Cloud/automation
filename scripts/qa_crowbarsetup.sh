@@ -4201,7 +4201,10 @@ function onadmin_testsalt
     test -e /etc/salt/roster || onadmin_setupsalt
     salt-ssh \* test.ping | tee /tmp/salt.test.log
     # compare successful pings to node number (+1 for crowbar)
-    test $((1 + $(nodes number all))) = $(grep "^  *True$" /tmp/salt.test.log | wc -l)
+    # FIX ME #jdsn please add the correct distiction between virtual and
+    # physical nodes in the function nodes
+    # test $((1 + $(nodes number all))) = $(grep "^  *True$" /tmp/salt.test.log | wc -l)
+    test $(crowbar machines list | wc -l) = $(grep "^  *True$" /tmp/salt.test.log | wc -l)
 }
 
 function onadmin_testsetup
