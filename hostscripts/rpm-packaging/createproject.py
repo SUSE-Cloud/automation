@@ -280,6 +280,7 @@ def main():
 
     args = parser.parse_args()
 
+    sh.ErrorReturnCode.truncate_cap = 9000
     create_project(args.worktree, args.project, args.linkproject)
 
 
