@@ -36,7 +36,7 @@
   - name: Create srv directories
     file:
       state: directory
-      path: /srv/www/suse-12.3/x86_64/repos/{{ item }}
+      path: /srv/www/suse-12.3/{{ item }}
       mode: 0755
     with_items:
       - Cloud
@@ -50,7 +50,7 @@
       state: mounted
       fstype: nfs
       opts: ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock
-      name: /srv/www/suse-12.3/x86_64/repos/{{ item.name }}
+      name: /srv/www/suse-12.3/{{ item.name }}
       src: "{{ clouddata_server }}:/srv/nfs/repos/x86_64/{{ item.src }}"
     with_items:
       # Use a consistent name for the Cloud media install repo so that we
@@ -69,7 +69,7 @@
 
   - name: Add zypper repos
     zypper_repository:
-      repo: "/srv/www/suse-12.3/x86_64/repos/{{ item }}"
+      repo: "/srv/www/suse-12.3/{{ item }}"
       name: "{{ item }}"
     with_items:
       - Cloud
