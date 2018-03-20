@@ -919,7 +919,7 @@ function onadmin_setup_local_zypper_repositories
 
     [ -n "${localreposdir_target}" ] && mount_localreposdir_target
     mkdir -p /hostmirror
-    for repo in SLES$slesversion-{Pool,Updates}; do
+    for repo in SLES$slesversion-{Pool,Updates,LTSS-Updates}; do
         add_mount "repos/$arch/$repo" "/hostmirror/$repo" $repo
     done
 }
