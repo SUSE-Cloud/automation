@@ -140,7 +140,7 @@
           DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-ip-floating -c output_value -f value)
           NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME network-mgmt-id -c output_value -f value)
           # FIXME: Use cloud-init in the used image
-          sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${DEPLOYER_IP}
+          sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@${DEPLOYER_IP}
           pushd ansible
           cat << EOF > hosts
           [hosts]
