@@ -108,9 +108,8 @@ for servicepack in 1 2 3; do
     chef_version="12.$servicepack"
 
     for arch in $archs; do
-        # only x86_64 for SP0
-        [ "$arch" != x86_64 -a $servicepack -eq 0 ] && continue
-        [ "$arch" = "aarch64" -a $servicepack -eq 1 ] && continue
+        # only x86_64 for SP1
+        [ "$arch" != x86_64 -a $servicepack -le 1 ] && continue
 
         echo ================== Updating SLE 12 SP$servicepack for $arch
 
@@ -155,8 +154,8 @@ for servicepack in 1 2 3; do
             rsync_with_create $ibsmaint/SLE-HA\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates-test/
         fi
 
-        # SDK is not for ARM
-        if [ "$arch" != aarch64 ]; then
+        # SDK only for x86_64
+        if [ "$arch" = x86_64 ]; then
             # SDK pool
             destdir_sdk_pool=/srv/nfs/repos/$arch/SLE$repo_version-SDK-Pool/
             mkdir -p $destdir_sdk_pool
@@ -230,6 +229,8 @@ for version in 6 7 8; do
     for arch in $archs; do
         # no ARM for Cloud <= 6
         [ "$arch" == aarch64 -a $version -le 6 ] && continue
+        # no s390x for Cloud <= 6
+        [ "$arch" == s390x -a $version -le 6 ] && continue
 
         echo ================== Updating Cloud $version for $arch
 
