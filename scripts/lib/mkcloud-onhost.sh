@@ -116,7 +116,6 @@ function onhost_cacheclouddata
 
     local include=$(mktemp)
     (
-        local cloudver=$(getcloudver)
         local a
         for a in $architectures; do
             local suffix
@@ -124,7 +123,7 @@ function onhost_cacheclouddata
             for suffix in Pool Updates; do
                 echo "repos/$a/SLES$slesversion-$suffix/***"
                 [[ $hacloud = 1 ]] && echo "repos/$a/SLE$slesversion-HA-$suffix/***"
-                echo "repos/$a/SUSE-OpenStack-Cloud-$cloudver-$suffix/***"
+                echo "repos/$a/SUSE-OpenStack-Cloud-$cloudrepover-$suffix/***"
                 echo "repos/$a/SUSE-Enterprise-Storage-$sesversion-$suffix/***"
             done
             echo "repos/$a/SLES$slesversion-LTSS-Updates/***"
@@ -141,7 +140,7 @@ function onhost_cacheclouddata
                 suffix="devel"
                 [ -n "$TESTHEAD" ] && suffix+="-staging"
             fi
-            echo "repos/$a/SUSE-OpenStack-Cloud-$cloudver-$suffix/***"
+            echo "repos/$a/SUSE-OpenStack-Cloud-$cloudrepover-$suffix/***"
 
             # Now the various test images
             # NOTE: looks like these images are only availabe on x86_64
