@@ -296,7 +296,8 @@ if [ $SITE = "nue" ]; then
         rsync_with_create rsync://rsync.opensuse.org/buildservice-repos/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/
     done
 
-    timeout 1h ~/bin/syncgitrepos
+    # this one is always failing - we need to ignore that otherwise the lock file remains stuck
+    timeout 1h ~/bin/syncgitrepos || :
 fi
 
 rm -f $lockf
