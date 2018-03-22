@@ -65,6 +65,7 @@
             - openstack-neutron-lbaas
             - openstack-neutron-vpnaas
             - openstack-neutron-zvm-agent
+            - openstack-neutron-vsphere
             - openstack-nova
             - openstack-nova-virt-zvm
             - openstack-octavia
@@ -119,6 +120,7 @@
             [
               "openstack-horizon-plugin-neutron-fwaas-ui",
               "openstack-horizon-plugin-neutron-vpnaas-ui",
+              "openstack-neutron-vsphere",
             ].contains(component) ||
             [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Queens:Staging" ].contains(project) &&
             [
