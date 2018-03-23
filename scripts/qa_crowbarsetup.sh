@@ -3535,7 +3535,7 @@ function oncontroller_manila_generic_driver_setup()
     fi
 
     if iscloudver 8plus; then
-        if ! openstack security group show $sec_group; then
+        if ! openstack security group show $sec_group 2>/dev/null ; then
             openstack security group create --description "$sec_group description" $sec_group
             openstack security group rule create --protocol icmp $sec_group
             openstack security group rule create --protocol tcp --dst-port 22 $sec_group
