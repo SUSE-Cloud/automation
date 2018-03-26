@@ -171,9 +171,6 @@
     become: true
     become_user: ardana
 
-  #- name: Output of config-processor-run.yml playbook
-  #  debug: var
-
   - name: Run ready-deployment.yml playbook
     shell: |
       ansible-playbook -vvv -i hosts/localhost ready-deployment.yml
