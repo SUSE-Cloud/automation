@@ -102,11 +102,6 @@ proposals:
   attributes:
     trove:
       enabled: true
-    ha:
-      storage:
-        shared:
-          device: ##shared_nfs_for_rabbitmq##
-          fstype: nfs
   deployment:
     elements:
       rabbitmq-server:
