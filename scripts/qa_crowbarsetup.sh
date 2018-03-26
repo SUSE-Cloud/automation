@@ -3945,7 +3945,7 @@ function oncontroller_testsetup
     wait_for 100 1 "test \"x\$(nova show \"$instanceid\" | perl -ne 'm/ status [ |]*([a-zA-Z]+)/ && print \$1')\" == xSHUTOFF" "testvm to stop"
 
     # run tests for Magnum bay deployment
-    if iscloudver 7plus && [[ $want_magnum_proposal = 1 ]]; then
+    if iscloudver 7 && [[ $want_magnum_proposal = 1 ]]; then
 
         # This test will cover simple Kubernetes cluster with TLS disabled and no LoadBalancer
         if ! magnum cluster-template-show k8s_template_tls_lb_off > /dev/null 2>&1; then
