@@ -61,16 +61,6 @@
       - "{{ compute_mgmt_ips }}"
     when: item != "" and item != deployer_mgmt_ip
 
-  # FIXME(colleen): This can go away when https://gerrit.suse.provo.cloud/3061 merges
-  - name: Copy zypper repo setup from deployer to other nodes
-    shell: |
-      scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/zypp/repos.d/*-http.repo root@{{ item }}:/etc/zypp/repos.d/
-      ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} zypper -n --gpg-auto-import-keys ref
-    with_items:
-      - "{{ controller_mgmt_ips|default([]) }}"
-      - "{{ compute_mgmt_ips }}"
-    when: item != "" and item != deployer_mgmt_ip
-
   # osconfig-ansible should take care of installing the repositories itself,
   # it's just that it won't auto accept the Devel key, so do that now
   - name: Import Devel:Cloud:8 key

@@ -13,26 +13,6 @@
     sshpass_repo: "http://download.suse.de/ibs/QA:/SLE12SP3/update/"
 
   tasks:
-  # SLES repos
-  # FIXME(colleen): This can go away once https://gerrit.suse.provo.cloud/3061 merges
-  - name: Add SLES12SP3-Pool zypper repo
-    zypper_repository:
-      repo: "{{ repos_url }}/SLES12-SP3-Pool"
-      name: SLES12SP3-Pool-http
-
-  # FIXME(colleen): This can go away once https://gerrit.suse.provo.cloud/3061 merges
-  - name: Add SLES12SP3-Updates zypper repo
-    zypper_repository:
-      repo: "{{ repos_url }}/SLES12-SP3-Updates"
-      name: SLES12SP3-Updates-http
-
-  # FIXME(colleen): This can go away once https://gerrit.suse.provo.cloud/3061 merges
-  # Devel:Cloud:8
-  - name: "Add {{ cloudsource }} media"
-    zypper_repository:
-      repo: "{{ cloudsource_url }}"
-      name: DC8S-Media-http
-
   - name: Create srv directories
     file:
       state: directory
@@ -62,10 +42,11 @@
         src: SLES12-SP3-Pool
       - name: SLES12-SP3-Updates
         src:  SLES12-SP3-Updates
-      - name: SUSE-OpenStack-Cloud-8-Pool
-        src: SUSE-OpenStack-Cloud-8-Pool
-      - name: SUSE-OpenStack-Cloud-8-Updates
-        src: SUSE-OpenStack-Cloud-8-Updates
+        #TODO Add these only if not develcloud media is used
+        # - name: SUSE-OpenStack-Cloud-8-Pool
+        # src: SUSE-OpenStack-Cloud-8-Pool
+        # - name: SUSE-OpenStack-Cloud-8-Updates
+        # src: SUSE-OpenStack-Cloud-8-Updates
 
   - name: Add zypper repos
     zypper_repository:
@@ -75,8 +56,9 @@
       - Cloud
       - SLES12-SP3-Pool
       - SLES12-SP3-Updates
-      - SUSE-OpenStack-Cloud-8-Pool
-      - SUSE-OpenStack-Cloud-8-Updates
+        #TODO Add these only if not develcloud media is used
+        # - SUSE-OpenStack-Cloud-8-Pool
+        # - SUSE-OpenStack-Cloud-8-Updates
 
   - name: Repo for sshpass
     zypper_repository:
