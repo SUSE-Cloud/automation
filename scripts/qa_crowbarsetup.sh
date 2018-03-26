@@ -5344,13 +5344,7 @@ function onadmin_batch
     sed -i "s/##ironic_net_prefix##/$net_ironic/g" ${scenario}
     sed -i "s/##ironic_netmask##/$ironicnetmask/g" ${scenario}
 
-    # temporarily disabling magnum in develcloud8 due to
-    # missing packages python-kubernetes and python-marathon
-    # This needs to be re-enabled when Devel:Cloud:8 is switched to pike
-    # and missing packages are added
-    [[ $cloudsource = develcloud8 ]] && exclude_magnum="--exclude magnum"
-
-    safely crowbar batch --exclude manila ${exclude_magnum} --timeout 2400 build ${scenario}
+    safely crowbar batch --exclude manila --timeout 2400 build ${scenario}
     if grep -q "barclamp: manila" ${scenario}; then
         get_novacontroller
         safely oncontroller manila_generic_driver_setup
