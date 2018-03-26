@@ -61,14 +61,6 @@
       - "{{ compute_mgmt_ips }}"
     when: item != "" and item != deployer_mgmt_ip
 
-  # Ardana creates directory /opt/ardana_packager and serves content from it
-  # (with symlinks followed). Ensure it can serve required SLES and Cloud media.
-  - name: Link maintenance repos to PACKAGE_CONSTANTS.REPO_DIR
-    file:
-      state: link
-      path: /opt/ardana_packager/ardana/sles12/zypper/suse
-      src: /srv/www/suse-12.3/x86_64/repos
-
   # FIXME(colleen): This can go away when https://gerrit.suse.provo.cloud/3061 merges
   - name: Copy zypper repo setup from deployer to other nodes
     shell: |
