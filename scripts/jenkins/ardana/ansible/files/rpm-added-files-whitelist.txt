@@ -40,3 +40,8 @@
 
 # From tls-ansible/roles/tls-trust/tasks/install.yml
 /usr/share/pki/trust/anchors/ardana
+
+# Standard (upstream) path for custom detection plugins for
+# monasca-agent i.e. if you've got agent plugins local to your site
+# you drop them in this directory.
+/usr/lib/monasca/agent/custom_detect.d/.*.pyc?
