@@ -22,6 +22,7 @@ parameters:
   index:
     type: number
     description: controller index suffix
+    default: 1
 
   networks:
     type: json
@@ -31,7 +32,11 @@ resources:
   controller:
     type: OS::Nova::Server
     properties:
-      name: controller%index%
+      name:
+        str_replace:
+          template: controller$index
+          params:
+            $index: {get_param: index}
       key_name: { get_param: key_name }
       image: { get_param: image_id }
       flavor: { get_param: instance_type_controller }
