@@ -8,28 +8,28 @@
 ## Ideally comments should be used to indicate which exceptions are
 ## FIXMEs and which are considered acceptable.
 
-S.5....T.  c /etc/logrotate.conf
-S.5....T.    /usr/lib/systemd/system/rabbitmq-server.service
-.M.......    /var/lib/elasticsearch
-.M.......    /var/log/logstash
-S.5....T.    /usr/lib/systemd/system/apache2.service
-SM5....T.    /usr/share/ardana-opsconsole-ui/opscon_config.json
-......G..    /var/log/shibboleth
-.....UG..    /var/log/shibboleth-www
-S.5....T.    /usr/share/ardana/ardana-installer-ui/web/config.json
 .M.......    /etc/ardana
 SM5..U.T.  c /etc/kafka/log4j.properties
 S.5..U.T.  c /etc/kafka/server.properties
-.M.......    /var/cache/swift
-......G..    /var/lib/swift
-.M...UG..    /var/log/swift
 S.5....T.  c /etc/kibana/kibana.yml
-.....UG..    /opt/kibana/optimize
-......G..    /var/log/kibana
-.M.......    /var/log/ops-console
-.M.......    /var/log/beaver
+S.5....T.  c /etc/logrotate.conf
 ......G..    /etc/monasca
 .M...UG..    /etc/monasca/agent
 .M...UG..    /etc/monasca/agent/conf.d
+.....UG..    /opt/kibana/optimize
 .M.......    /usr/lib/monasca/agent/custom_checks.d
 .M.......    /usr/lib/monasca/agent/custom_detect.d
+S.5....T.    /usr/lib/systemd/system/apache2.service
+S.5....T.    /usr/lib/systemd/system/rabbitmq-server.service
+S.5....T.    /usr/share/ardana/ardana-installer-ui/web/config.json
+SM5....T.    /usr/share/ardana-opsconsole-ui/opscon_config.json
+.M.......    /var/cache/swift
+.M.......    /var/lib/elasticsearch
+......G..    /var/lib/swift
+.M.......    /var/log/beaver
+......G..    /var/log/kibana
+.M.......    /var/log/logstash
+.M.......    /var/log/ops-console
+......G..    /var/log/shibboleth
+.....UG..    /var/log/shibboleth-www
+.M...UG..    /var/log/swift
