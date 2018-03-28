@@ -1,0 +1,47 @@
+## Whitelist of files and symlinks for which it is either acceptable
+## to be added to /usr, or which need to be fixed so that they are
+## no longer added.
+##
+## Symlinks can be optionally whitelisted only if they point to
+## a given destination, via the format:
+##
+##    /path/to/symlink -> /other/path/to/symlink/target
+##
+## It's just a substring match, so either side can be omitted.
+##
+## Comments and blank lines are stripped from this file before
+## usage.
+
+# alternatives system is expected to change stuff under /usr
+-> /etc/alternatives/.
+
+# Installed by osconfig/ansible/role/udev/tasks/configure.yml
+/usr/lib/systemd/system/ardana-udev\.service
+
+# Created by java-1_8_0-openjdk-headless %posttrans scriptlet
+/usr/lib64/jvm/java-1.8.0-openjdk-1.8.0/jre/lib/security/cacerts -> /var/lib/ca-certificates/java-cacerts
+
+# Created when python-selinux rpm is installed
+/usr/lib64/python2.7/site-packages/selinux/__init__.pyc
+
+# Ardana installs stuff in here, e.g. links to /opt/stack/service/.../venv/bin/...
+/usr/local/bin/.
+
+/usr/sbin/httpd -> /usr/sbin/httpd-prefork
+
+# Seems to be an issue with SLE12 packaging of libsnappy1
+/usr/share/doc/packages/snappy
+
+# Nothing to do with Ardana
+/usr/share/icons/hicolor
+
+# From neutron-ansible/roles/neutron-common/tasks/_create_user_and_group.yml
+/usr/share/neutron
+
+# From tls-ansible/roles/tls-trust/tasks/install.yml
+/usr/share/pki/trust/anchors/ardana
+
+# Standard (upstream) path for custom detection plugins for
+# monasca-agent i.e. if you've got agent plugins local to your site
+# you drop them in this directory.
+/usr/lib/monasca/agent/custom_detect.d/.*.pyc?

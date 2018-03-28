@@ -22,6 +22,8 @@
       /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
     ignore_errors: True
 
+  - include: pre-deploy-checks.yml
+
   - name: Call ardana-init
     shell: /usr/bin/ardana-init
     environment:
@@ -203,6 +205,10 @@
     when: item != "" and item != deployer_mgmt_ip
     become_user: ardana
 
+  - name: Initialise array tracking failures
+    set_fact:
+      failures: []
+
   - name: Run the actual deployment site.yml playbook
     shell: |
       ansible-playbook -vvv -i hosts/verb_hosts site.yml
@@ -210,6 +216,13 @@
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true
     become_user: ardana
+    register: site_result
+    ignore_errors: true
+
+  - name: Record any failure of site.yml
+    set_fact:
+      failures: "{{ failures + ['site.yml'] }}"
+    when: site_result|failed
 
   - name: Configure Cloud for Tempest run
     shell: |
@@ -218,6 +231,7 @@
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true
     become_user: ardana
+    when: site_result|succeeded
 
   - name: Run tempest
     shell: |
@@ -227,3 +241,28 @@
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true
     become_user: ardana
+    register: tempest_run_result
+    ignore_errors: true
+    when: site_result|succeeded
+
+  - name: Record any failure of tempest
+    set_fact:
+      failures: "{{ failures + ['tempest'] }}"
+    when: tempest_run_result|failed
+
+  - include: post-deploy-checks.yml
+
+  # If you change the below, also change test-post-deployment-checks.yml to match!
+
+  - name: Record any failures of post-deployment checks
+    set_fact:
+      failures: "{{ failures + post_deploy_checks_failures }}"
+
+  - name: Report any failures
+    fail:
+      msg: |
+        {{failures|length}} failures:
+        {% for failure in failures %}
+        {{ failure }}
+        {% endfor %}
+    when: failures|length > 0
