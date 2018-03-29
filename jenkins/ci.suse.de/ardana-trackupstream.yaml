@@ -18,9 +18,6 @@
             - ardana-barbican
             - ardana-cassandra
             - ardana-ceilometer
-            - ardana-ceph
-            - ardana-cephlm
-            - ardana-ci
             - ardana-cinder
             - ardana-cluster
             - ardana-cobbler
