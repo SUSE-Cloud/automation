@@ -643,6 +643,8 @@ function setuppublicnet
 
 function shutdowncloud
 {
+    echo "Shutting down: $cloud"
+    echo
     ${mkclouddriver}_do_shutdowncloud
 }
 
