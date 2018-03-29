@@ -40,7 +40,7 @@
 
   - name: Copy authorized keys from root to ardana user on deployer
     shell: |
-      cat ~root/.ssh/authorized_keys ~ardana/.ssh/authorized_keys | sort -u  > ~ardana/.ssh/authorized_keys
+      cat ~root/.ssh/authorized_keys ~ardana/.ssh/authorized_keys | sort -u -o ~ardana/.ssh/authorized_keys
     become: true
 
   - name: Create ssh key for root user on deployer
