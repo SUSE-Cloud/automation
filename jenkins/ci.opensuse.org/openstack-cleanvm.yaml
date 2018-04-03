@@ -1,8 +1,6 @@
 - job:
     name: 'openstack-cleanvm'
     project-type: matrix
-    description: temporarily disabled by jdsn due to issues in backend
-    disabled: true
 
     triggers:
       - timed: 'H 4 * * *'
