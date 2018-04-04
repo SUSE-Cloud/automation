@@ -388,7 +388,7 @@ function onhost_add_etchosts_entries
 
 function setuphost
 {
-    SKIPSUPPORTCONFIG=1 ${mkclouddriver}_do_setuphost
+    ${mkclouddriver}_do_setuphost
 }
 
 function prepare

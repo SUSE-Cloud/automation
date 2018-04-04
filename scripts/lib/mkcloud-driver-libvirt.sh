@@ -123,8 +123,8 @@ function libvirt_do_setuphost()
     echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
     libvirt_do_sanity_checks
     if [ -n "$needcvol" ] ; then
-        safely pvcreate "$cloudpv"
-        safely vgcreate "$cloudvg" "$cloudpv"
+        safely_skip_support pvcreate "$cloudpv"
+        safely_skip_support vgcreate "$cloudvg" "$cloudpv"
     fi
 
     if is_debian ; then
