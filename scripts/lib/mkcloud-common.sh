@@ -115,6 +115,11 @@ function safely
     fi
 }
 
+function safely_skip_support
+{
+    SKIPSUPPORTCONFIG=1 safely "$@"
+}
+
 function rubyjsonparse
 {
     ruby -e "
