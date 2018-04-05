@@ -199,7 +199,7 @@ function log_timing
     echo "$start,$end,$kind,$item,$(($end - $start))" >> $logfile
 }
 
-sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oServerAliveInterval=20"
+sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oServerAliveInterval=20 -oConnectTimeout=5"
 scp="scp $sshopts"
 ssh="ssh $sshopts"
 function ssh_password
