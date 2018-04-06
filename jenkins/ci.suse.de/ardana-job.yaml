@@ -139,8 +139,9 @@
 
           DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-ip-floating -c output_value -f value)
           NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME network-mgmt-id -c output_value -f value)
+          sshargs="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
           # FIXME: Use cloud-init in the used image
-          sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@${DEPLOYER_IP}
+          sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 $sshargs root@${DEPLOYER_IP}
           pushd ansible
           cat << EOF > hosts
           [hosts]
@@ -177,14 +178,22 @@
 
           cat ardana_net_vars.yml
 
-          ansible-playbook -vvv -i hosts ssh-keys.yml
-          ansible-playbook -vvv -i hosts -e "build_url=$BUILD_URL" \
-                                         -e "cloudsource=${cloudsource}" repositories.yml
-          ansible-playbook -vvv -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
-                                         -e "deployer_model=${model}" \
-                                         -e "tempest_run_filter=${tempest_run_filter}" \
-                                         init.yml
+          ansible-playbook -v -i hosts ssh-keys.yml
+          ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
+                                       -e "cloudsource=${cloudsource}" repositories.yml
+          verification_temp_dir=$(ssh $sshargs root@$DEPLOYER_IP \
+                                    "mktemp -d /tmp/ardana-job-rpm-verification.XXXXXXXX")
+          ansible-playbook -v -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
+                                       -e "deployer_model=${model}" \
+                                       -e "verification_temp_dir=$verification_temp_dir" \
+                                       init.yml
+          # Run site.yml outside ansible for output streaming
+          ssh $sshargs ardana@$DEPLOYER_IP "cd ~/scratch/ansible/next/ardana/ansible ; \
+               ansible-playbook -vvv -i hosts/verb_hosts site.yml"
 
+          ansible-playbook -v -i hosts -e "tempest_run_filter=${tempest_run_filter}" \
+                                       -e "verification_temp_dir=$verification_temp_dir" \
+                                       post-deploy-checks.yml
 
     publishers:
       - post-tasks:

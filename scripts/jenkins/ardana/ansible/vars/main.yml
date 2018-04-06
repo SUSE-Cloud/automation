@@ -1,0 +1,10 @@
+---
+
+pre_deploy_unowned_files: "{{ verification_temp_dir }}/rpm-qf-pre.out"
+pre_deploy_rpm_verification: "{{ verification_temp_dir }}/rpm-verify-pre.out"
+
+post_deploy_rpm_verification: "{{ verification_temp_dir }}/rpm-verify-post.out"
+rpm_verification_fixmes: "{{ verification_temp_dir }}/rpm-verify-modification-whitelist.txt"
+rpm_modifiable_config_files: "{{ verification_temp_dir }}/rpm-modifiable-config-files.txt"
+rpm_modifiable_config_file_regexps: "{{ verification_temp_dir }}/rpm-modifiable-config-file-regexps.txt"
+rpm_added_files_whitelist: "{{ verification_temp_dir }}/rpm-added-files-whitelist.txt"
