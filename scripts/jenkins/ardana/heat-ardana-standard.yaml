@@ -47,7 +47,7 @@ resources:
     type: OS::Neutron::Net
     properties:
       port_security_enabled: False
-  network_unused:
+  network_mgmt2:
     type: OS::Neutron::Net
     properties:
       port_security_enabled: False
@@ -94,15 +94,15 @@ resources:
     properties:
       network_id: { get_resource: network_external }
       allocation_pools:
-          - start: "172.31.0.2"
-            end: "172.31.255.154"
-      cidr: "172.31.0.0/16"
+          - start: "192.168.114.100"
+            end: "192.168.114.200"
+      cidr: "192.168.114.0/24"
       enable_dhcp: False
-      gateway_ip: 172.31.0.1
-  subnet_unused:
+      gateway_ip: 192.168.114.1
+  subnet_mgmt2:
     type: OS::Neutron::Subnet
     properties:
-      network_id: { get_resource: network_unused }
+      network_id: { get_resource: network_mgmt2 }
       allocation_pools:
           - start: "172.32.0.2"
             end: "172.32.0.127"
@@ -185,9 +185,9 @@ resources:
       networks:
         - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
+        - network: { get_resource: network_mgmt2 }
         - network: { get_resource: network_external }
         - network: { get_resource: network_guest }
-        - network: { get_resource: network_unused }
         - network: { get_resource: network_iscsi }
         - network: { get_resource: network_tenant }
         - network: { get_resource: network_hostname }
@@ -206,9 +206,9 @@ resources:
           networks:
               - network: { get_resource: network_mgmt }
               - network: { get_resource: network_ardana }
+              - network: { get_resource: network_mgmt2 }
               - network: { get_resource: network_external }
               - network: { get_resource: network_guest }
-              - network: { get_resource: network_unused }
               - network: { get_resource: network_iscsi }
               - network: { get_resource: network_tenant }
               - network: { get_resource: network_hostname }
@@ -226,9 +226,9 @@ resources:
           networks:
             - network: { get_resource: network_mgmt }
             - network: { get_resource: network_ardana }
+            - network: { get_resource: network_mgmt2 }
             - network: { get_resource: network_external }
             - network: { get_resource: network_guest }
-            - network: { get_resource: network_unused }
             - network: { get_resource: network_iscsi }
             - network: { get_resource: network_tenant }
             - network: { get_resource: network_hostname }
