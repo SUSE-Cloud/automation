@@ -20,6 +20,16 @@
     become: true
     become_user: ardana
 
+  - name: Stop irrelevant services to survive tempest
+    shell: |
+      ansible-playbook -v -i hosts/verb_hosts logging-stop.yml
+      ansible-playbook -v -i hosts/verb_hosts monasca-transform-stop.yml
+    args:
+      chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
+    become: true
+    become_user: ardana
+    when: tempest_run_filter != ""
+
   - name: Run tempest
     shell: |
       ansible-playbook -v -i hosts/verb_hosts tempest-run.yml \
