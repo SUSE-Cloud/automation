@@ -30,6 +30,7 @@
     become_user: ardana
     register: tempest_run_result
     ignore_errors: true
+    when: tempest_run_filter != ""
 
   - name: Record any failure of tempest
     set_fact:

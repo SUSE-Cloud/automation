@@ -62,7 +62,7 @@
 
       - string:
           name: tempest_run_filter
-          default: smoke
+          default: ''
           description: >-
             Name of the filter file to use for tempest. Possible values:
             ci, compute, designate, lbaas, network, neutron-api, periodic,
