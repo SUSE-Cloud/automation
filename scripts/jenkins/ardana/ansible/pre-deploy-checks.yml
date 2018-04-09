@@ -1,22 +1,3 @@
-- name: Create a temporary directory to store pre-deployment verification state
-  become: yes
-  shell: mktemp -d /tmp/ardana-job-rpm-verification.XXXXXXXX
-  register: verification_mktemp_dir
-
-# This allows us to easily pass a value for the temporary directory
-# in to the test-post-deployment-checks.yml playbook when testing.
-- name: Store path to temporary directory
-  set_fact:
-    verification_temp_dir:
-      "{{ verification_mktemp_dir.stdout }}"
-
-- name: Set files to contain output of rpm -qf and -Va pre-deployment
-  set_fact:
-    pre_deploy_unowned_files:
-      "{{ verification_temp_dir }}/rpm-qf-pre.out"
-    pre_deploy_rpm_verification:
-      "{{ verification_temp_dir }}/rpm-verify-pre.out"
-
 - name: Take snapshot of files not owned by a package prior to deployment
   become: yes
   failed_when: false
