@@ -27,6 +27,9 @@
 # Ardana installs stuff in here, e.g. links to /opt/stack/service/.../venv/bin/...
 /usr/local/bin/.
 
+# Ardana installs stuff in here, e.g. root only admin scripts
+/usr/local/sbin/.
+
 /usr/sbin/httpd -> /usr/sbin/httpd-prefork
 
 # Seems to be an issue with SLE12 packaging of libsnappy1
