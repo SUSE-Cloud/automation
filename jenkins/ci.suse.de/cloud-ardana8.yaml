@@ -1,0 +1,15 @@
+- project:
+    name: cloud-ardana8-gating
+    version: 8
+    label: cloud-trigger
+    jobs:
+        - 'cloud-ardana{version}-gating'
+
+- project:
+    name: cloud-ardana8-x86_64
+    disabled: false
+    version: 8
+    arch: x86_64
+    tempestoptions: ci
+    jobs:
+        - 'cloud-ardana{version}-job-std-min-{arch}'

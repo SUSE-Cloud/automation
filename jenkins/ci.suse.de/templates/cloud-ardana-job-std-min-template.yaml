@@ -1,0 +1,20 @@
+- job-template:
+    name: 'cloud-ardana{version}-job-std-min-{arch}'
+    node: cloud-trigger
+    disabled: '{obj:disabled}'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 7
+
+    builders:
+      - trigger-builds:
+        - project: openstack-ardana
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            model=std-min
+            cloudsource=SUSE-OpenStack-Cloud-8-devel-staging
+            tempest_run_filter=ci
+

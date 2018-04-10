@@ -1,7 +1,7 @@
 - job:
-    name: ardana-job
+    name: openstack-ardana
     concurrent: true
-    workspace: "ardana-job-$BUILD_ID"
+    workspace: "openstack-ardana-$BUILD_ID"
     # the selected node needs the cloud credentials
     node: cloud-ardana-ci
     wrappers:
@@ -14,16 +14,6 @@
           type: no-activity
           abort: true
           write-description: "Job aborted due to 180 minutes of inactivity"
-
-    triggers:
-      - timed: 'H H */2 * *'
-      - pollurl:
-          cron: 'H/5 * * * *'
-          polling-node: cloud-trigger
-          urls:
-            - url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging/media.1/build'
-              check-content:
-                - simple: true
 
     logrotate:
       numToKeep: 20
@@ -205,6 +195,13 @@
             if [ -z "${JOB_NAME}" ]; then
                 openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait \
                       $STACK_NAME || :
+            else
+                DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-ip-floating -c output_value -f value)
+                echo "*****************************************************************"
+                echo ""
+                echo "** Installation is remaining available at ssh ardana@$DEPLOYER_IP"
+                echo ""
+                echo "*****************************************************************"
             fi
       - workspace-cleanup:
           clean-if:
