@@ -205,6 +205,13 @@
             if [ -z "${JOB_NAME}" ]; then
                 openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait \
                       $STACK_NAME || :
+            else
+                DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-ip-floating -c output_value -f value)
+                echo "*****************************************************************"
+                echo ""
+                echo "** Installation is remaining available at ssh ardana@$DEPLOYER_IP"
+                echo ""
+                echo "*****************************************************************"
             fi
       - workspace-cleanup:
           clean-if:
