@@ -21,6 +21,7 @@
             - crowbar-ceph
             - crowbar-ha
             - crowbar-init
+            - openstack-dashboard-theme-HPE
             - openstack-dashboard-theme-SUSE
             - release-notes-suse-openstack-cloud
       - axis:
@@ -44,7 +45,8 @@
               "Devel:Cloud:6:Staging"
             ].contains(project) &&
             [
-              "crowbar-init"
+              "crowbar-init",
+              "openstack-dashboard-theme-HPE"
             ].contains(component)
           )
           ||
@@ -56,8 +58,18 @@
               "crowbar-ui",
               "crowbar-hyperv",
               "crowbar-init",
+              "openstack-dashboard-theme-HPE",
               "openstack-dashboard-theme-SUSE",
               "release-notes-suse-openstack-cloud"
+            ].contains(component)
+          )
+          ||
+          (
+            [
+              "Devel:Cloud:7:Staging"
+            ].contains(project) &&
+            [
+              "openstack-dashboard-theme-HPE"
             ].contains(component)
           )
           ||
