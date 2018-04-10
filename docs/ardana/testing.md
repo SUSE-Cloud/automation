@@ -7,8 +7,8 @@ The current testing is far away from perfect and a lot of things are missing
 Ardana environment up and running.
 
 We currently have a [Jenkins job called
-`ardana-job`](https://ci.nue.suse.com/job/ardana-job/) (defined in the
-[`automation` git repo](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/ardana-job.yaml))
+`openstack-ardana`](https://ci.nue.suse.com/job/openstack-ardana/) (defined in the
+[`automation` git repo](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/openstack-ardana.yaml))
 which can be used to create a new environment in the [engineering
 cloud](https://engcloud.prv.suse.net/).  The deployment can then be
 accessed via the floating IP and used for debugging.
@@ -28,7 +28,7 @@ To be able to use the Jenkins job and login to a deployed env, you need:
 ## Create a new environment
 
 Start the deployment via [Build with
-parameters](https://ci.nue.suse.com/job/ardana-job/build). The
+parameters](https://ci.nue.suse.com/job/openstack-ardana/build). The
 available parameters should be self-descriptive. Here are some best
 practices:
 
