@@ -12,7 +12,6 @@
 SM5..U.T.  c /etc/kafka/log4j.properties
 S.5..U.T.  c /etc/kafka/server.properties
 S.5....T.  c /etc/kibana/kibana.yml
-S.5....T.  c /etc/logrotate.conf
 ......G..    /etc/monasca
 .M...UG..    /etc/monasca/agent
 .M...UG..    /etc/monasca/agent/conf.d
