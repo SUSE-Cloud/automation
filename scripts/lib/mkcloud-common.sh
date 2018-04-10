@@ -527,7 +527,7 @@ find_fastest_clouddata_server()
         exec cat $cache || exit 100
     fi
     mkdir -p ~/.mkcloud
-    $scripts_lib_dir/find_fastest_server.pl clouddata.nue.suse.com. {,provo-,provo2-}clouddata.cloud.suse.de. | tee $cache
+    $scripts_lib_dir/find_fastest_server.pl clouddata.nue.suse.com. provo-clouddata.cloud.suse.de. | tee $cache
 }
 
 function get_admin_node_dist
@@ -666,7 +666,11 @@ if [[ $UID != 0 ]] ; then
 fi
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
-: ${architectures:='aarch64 x86_64 s390x'}
+if [[ "$reposerver" =~ nue.suse.com ]]; then
+    : ${architectures:='aarch64 x86_64 s390x'}
+else
+    : ${architectures:='x86_64'}
+fi
 : ${nodenumbertotal:=$nodenumber}
 : ${nodenumberlonelynode:=0}
 : ${nodenumberironicnode:=0}
