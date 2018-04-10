@@ -48,17 +48,22 @@
         # - name: SUSE-OpenStack-Cloud-8-Updates
         # src: SUSE-OpenStack-Cloud-8-Updates
 
-  - name: Add zypper repos
+  - name: Add SLES repos
     zypper_repository:
       repo: "/srv/www/suse-12.3/x86_64/repos/{{ item }}"
       name: "{{ item }}"
     with_items:
-      - Cloud
       - SLES12-SP3-Pool
       - SLES12-SP3-Updates
         #TODO Add these only if not develcloud media is used
         # - SUSE-OpenStack-Cloud-8-Pool
         # - SUSE-OpenStack-Cloud-8-Updates
+
+  # Need to add Cloud repo as repo-md not as the default "yast2" type as that
+  # one refuses to install packages if the media build number changes
+  - name: Add Cloud repo
+    shell: |
+      zypper ar -c -K -f -t rpm-md /srv/www/suse-12.3/x86_64/repos/Cloud Cloud
 
   - name: Repo for sshpass
     zypper_repository:
