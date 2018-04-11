@@ -18,12 +18,12 @@ parameters:
     type: string
     label: Instance Type
     description: Type of instance (flavor) to be used for the controller
-    default: m1.xxlarge
+    default: cloud-ardana-job-controller
   instance_type_compute:
     type: string
     label: Instance Type
     description: Type of instance (flavor) to be used for compute nodes
-    default: m1.large
+    default: cloud-ardana-job-compute
   number_of_computes:
     type: number
     description: Count of compute nodes to create
@@ -181,7 +181,7 @@ resources:
     properties:
       key_name: { get_param: key_name }
       image: { get_param: image_id }
-      flavor: { get_param: instance_type_controller }
+      flavor: { get_param: instance_type_compute }
       networks:
         - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
