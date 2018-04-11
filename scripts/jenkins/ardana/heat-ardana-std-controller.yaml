@@ -18,7 +18,7 @@ parameters:
     type: string
     label: Instance Type
     description: Type of instance (flavor) to be used for the controller
-    default: m1.xxlarge
+    default: cloud-ardana-job-controller
   index:
     type: number
     description: controller index suffix
