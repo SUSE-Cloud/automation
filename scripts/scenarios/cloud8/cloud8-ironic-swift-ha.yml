@@ -218,7 +218,6 @@ proposals:
     keystone_instance: default
     neutron_instance: default
     enabled_drivers:
-    - agent_ssh
     - agent_ipmitool
   deployment:
     elements:
