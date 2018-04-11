@@ -181,7 +181,7 @@ resources:
     properties:
       key_name: { get_param: key_name }
       image: { get_param: image_id }
-      flavor: { get_param: instance_type_controller }
+      flavor: { get_param: instance_type_compute }
       networks:
         - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
