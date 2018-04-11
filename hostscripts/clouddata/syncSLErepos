@@ -9,7 +9,7 @@ SITE_DEFAULT="nue"
 # The IBS source in Nuermberg
 ibs_source_nue="rsync://dist.nue.suse.com/repos/"
 # The install source in Nuermberg
-install_source_nue="rsync://dist.nue.suse.com/distinstall/
+install_source_nue="rsync://dist.nue.suse.com/distinstall/"
 
 # The IBS source for Provo (NFS not provided - see https://infra.nue.suse.com/SelfService/Display.html?id=90350
 ibs_source_prv="rsync://ibs-mirror.prv.suse.net/dist/ibs/"
@@ -234,7 +234,7 @@ for version in 6 7 8; do
         if [ -z "$sync_from_ibs" ]; then
             $rsync $install_source/SLP/SLE-12-SP$servicepack-Cloud$version-GM/$arch/DVD1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
         else
-            rsync_and_unpack_iso ${ibs_source}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
+            rsync_and_unpack_iso ${ibs_source_nue}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
         fi
 
         if [ "$version" != "8" ] || [ "$arch" = "x86_64" ]; then
