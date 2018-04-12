@@ -70,7 +70,7 @@
           echo
 
           set -ex
-          STACK_NAME=cloud-ci-ardana-job-${BUILD_NUMBER}
+          STACK_NAME=cloud-ci-openstack-ardana-${BUILD_NUMBER}
           if [ -n "${JOB_NAME}" ]; then
               STACK_NAME=${STACK_NAME}-${JOB_NAME}
           fi
