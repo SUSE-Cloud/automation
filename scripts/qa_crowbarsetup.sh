@@ -4800,7 +4800,7 @@ function onadmin_prepare_cloudupgrade_admin_repos
     # during installation, this would be done by install-suse-cloud
     mkdir -p $tftpboot_repos_dir/PTF
     ensure_packages_installed createrepo
-    safely createrepo $tftpboot_repos_dir/PTF
+    createrepo-cloud-ptf || createrepo $tftpboot_repos_dir/PTF
 
     # remove old repositories
     # (so that zypper does not have an option to choose from the old ones)
