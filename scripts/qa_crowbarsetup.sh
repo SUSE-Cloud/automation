@@ -1930,6 +1930,7 @@ function enable_ssl_generic
             if iscloudver 7plus ; then
                 $p "$a['apache']['ssl']" true
                 $p "$a['apache']['generate_certs']" true
+                $p "$a['apache']['insecure']" true
             fi
             return
         ;;
