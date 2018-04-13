@@ -13,3 +13,12 @@
     tempestoptions: ci
     jobs:
         - 'cloud-ardana{version}-job-std-min-{arch}'
+
+- project:
+    name: cloud-ardana8-centos-x86_64
+    disabled: false
+    version: 8
+    arch: x86_64
+    tempestoptions: ci
+    jobs:
+        - 'cloud-ardana{version}-job-std-min-centos-{arch}'

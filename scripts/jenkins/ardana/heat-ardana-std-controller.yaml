@@ -9,10 +9,10 @@ parameters:
     label: Key Name
     description: Name of key-pair to be used for compute instance
     default: engcloud-cloud-ci
-  image_id:
+  image_id_controller:
     type: string
     label: Image ID
-    description: Image to be used for compute instance
+    description: Image to be used for compute instance (controller)
     default: cleanvm-jeos-SLE12SP3
   instance_type_controller:
     type: string
@@ -38,7 +38,7 @@ resources:
           params:
             $index: {get_param: index}
       key_name: { get_param: key_name }
-      image: { get_param: image_id }
+      image: { get_param: image_id_controller }
       flavor: { get_param: instance_type_controller }
       networks: { get_param: networks }
 
