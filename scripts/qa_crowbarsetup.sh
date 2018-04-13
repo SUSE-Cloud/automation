@@ -3604,9 +3604,6 @@ function oncontroller_manila_generic_driver_setup()
 
 function oncontroller_magnum_service_setup
 {
-    # (mjura): https://bugs.launchpad.net/magnum/+bug/1622468
-    # Magnum functional tests have hardcoded swarm as coe backend, until then this will
-    # not be fixed, we are going to have our own integration tests with SLES Magnum image
     local service_image_name="magnum-service-image"
     local service_image_filename=${service_image_name}.qcow2
     local service_image_url=$imageserver_url/$arch/other/$service_image_filename
