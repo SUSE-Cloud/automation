@@ -207,7 +207,6 @@ resources:
           key_name: { get_param: key_name }
           index: "%index%"
           image_id_controller: { get_param: image_id_controller }
-          image_id_compute: { get_param: image_id_compute }
           instance_type_controller: { get_param: instance_type_controller }
           networks:
               - network: { get_resource: network_mgmt }
