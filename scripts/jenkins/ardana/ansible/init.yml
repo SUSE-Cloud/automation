@@ -127,38 +127,17 @@
     tags:
       - create-ardana-input-model
 
-  - name: Update network-groups in Model
-    copy:
-      src: "{{ deployer_model }}/input-model-network-groups.yml"
-      dest: /var/lib/ardana//openstack/my_cloud/definition/data/network_groups.yml
+  - name: Apply HEAT ci specific changes to Model
+    synchronize:
+      src: "files/{{ deployer_model }}/input-model/"
+      dest: /var/lib/ardana//openstack/my_cloud/definition/data/
+      copy_links: yes
+      archive: no
+      recursive: yes
+    become: true
+    become_user: ardana
     tags:
       - create-ardana-input-model
-
-  - name: Update nic-mappings in Model
-    copy:
-      src: "{{ deployer_model }}/input-model-nic-mappings.yml"
-      dest: /var/lib/ardana//openstack/my_cloud/definition/data/nic_mappings.yml
-    tags:
-      - create-ardana-input-model
-
-  - name: Update nic-global in Model
-    copy:
-      src: "{{ deployer_model }}/input-model-net-global.yml"
-      dest: /var/lib/ardana/openstack/my_cloud/definition/data/net_global.yml
-    tags:
-      - create-ardana-input-model
-
-  - name: Update controller disk mapping in Model
-    copy:
-      src: "{{ deployer_model }}/input-model-disks-controller.yml"
-      dest: /var/lib/ardana/openstack/my_cloud/definition/data/disks_controller.yml
-    tags:
-      - create-ardana-input-model
-
-  - name: Allow ICMP in Model
-    copy:
-      src: input-model-firewall-rules.yml
-      dest: /var/lib/ardana/openstack/my_cloud/definition/data/firewall_rules.yml
 
   - name: Add my_cloud config to git
     shell: |
