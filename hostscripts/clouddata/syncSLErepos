@@ -9,9 +9,7 @@ SITE_DEFAULT="nue"
 # The IBS source in Nuermberg
 ibs_source_nue="rsync://dist.nue.suse.com/repos/"
 # The install source in Nuermberg
-# ("mount dist.nue.suse.com:/dist /mnt/dist/")
-# For rsync, needs https://infra.nue.suse.com/SelfService/Display.html?id=90326
-install_source_nue="/mnt/dist/install/"
+install_source_nue="rsync://dist.nue.suse.com/distinstall/"
 
 # The IBS source for Provo (NFS not provided - see https://infra.nue.suse.com/SelfService/Display.html?id=90350
 ibs_source_prv="rsync://ibs-mirror.prv.suse.net/dist/ibs/"
@@ -114,11 +112,10 @@ for servicepack in 1 2 3; do
         echo ================== Updating SLE 12 SP$servicepack for $arch
 
         destdir_install=/srv/nfs/install/suse-${chef_version}/$arch/install/
-        mkdir -p $destdir_install
-        if test -d /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ ; then
-            $rsync /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ $destdir_install
+        if [ -z "$sync_from_ibs" ]; then
+            $rsync $install_source/SLP/SLE-$version-Server-GM/$arch/DVD1/ $destdir_install
         else
-            $rsync /mnt/dist/install/SLP/SLE-$version-Server-TEST/$arch/DVD1/ $destdir_install
+            $rsync $install_source/SLP/SLE-$version-Server-TEST/$arch/DVD1/ $destdir_install
         fi
 
         # SLES pool
@@ -235,9 +232,9 @@ for version in 6 7 8; do
         echo ================== Updating Cloud $version for $arch
 
         if [ -z "$sync_from_ibs" ]; then
-            $rsync /mnt/dist/install/SLP/SLE-12-SP$servicepack-Cloud$version-GM/$arch/DVD1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
+            $rsync $install_source/SLP/SLE-12-SP$servicepack-Cloud$version-GM/$arch/DVD1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
         else
-            rsync_and_unpack_iso ${ibs_source}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
+            rsync_and_unpack_iso ${ibs_source_nue}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
         fi
 
         if [ "$version" != "8" ] || [ "$arch" = "x86_64" ]; then
