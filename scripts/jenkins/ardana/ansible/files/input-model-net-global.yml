@@ -1,0 +1,83 @@
+#
+# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+  product:
+    version: 2
+
+  networks:
+    - name: ARDANA-NET
+      vlanid: 101
+      tagged-vlan: false
+      cidr: 192.168.110.0/24
+      addresses:
+        - 192.168.110.5-192.168.110.200
+      gateway-ip: 192.168.110.1
+      network-group: ARDANA
+
+    - name: MANAGEMENT-NET
+      vlanid: 102
+      tagged-vlan: false
+      cidr: 192.168.245.0/24
+      addresses:
+        - 192.168.245.5-192.168.245.200
+      gateway-ip: 192.168.245.1
+      network-group: MANAGEMENT
+
+    - name: EXTERNAL-VM-NET
+      vlanid: 103
+      tagged-vlan: false
+      network-group: EXTERNAL-VM
+
+    - name: TENANT-VLAN-NET
+      vlanid: 104
+      tagged-vlan: false
+      network-group: TENANT-VLAN
+
+    - name: HOSTNAME-NET
+      vlanid: 105
+      tagged-vlan: true
+      cidr: 192.168.111.0/24
+      gateway-ip: 192.168.111.1
+      network-group: HOSTNAME
+
+    - name: SWIFT-NET
+      vlanid: 106
+      tagged-vlan: true
+      cidr: 192.168.112.0/24
+      gateway-ip: 192.168.112.1
+      network-group: SWIFT
+
+    - name: ISCSI-NET
+      vlanid: 107
+      tagged-vlan: true
+      cidr: 192.168.113.0/24
+      gateway-ip: 192.168.113.1
+      network-group: ISCSI
+
+    - name: EXTERNAL-API-NET
+      vlanid: 108
+      tagged-vlan: false
+      cidr: 192.168.114.0/24
+      gateway-ip: 192.168.114.1
+      network-group: EXTERNAL-API
+
+    - name: GUEST-NET
+      vlanid: 109
+      tagged-vlan: true
+      cidr: 192.168.115.0/24
+      gateway-ip: 192.168.115.1
+      network-group: GUEST
