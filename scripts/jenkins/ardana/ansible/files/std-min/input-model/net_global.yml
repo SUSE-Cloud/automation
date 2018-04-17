@@ -39,6 +39,7 @@
 
     - name: EXTERNAL-VM-NET
       vlanid: 103
+      tagged-vlan: false
       network-group: EXTERNAL-VM
 
     - name: TENANT-VLAN-NET
@@ -69,7 +70,7 @@
 
     - name: EXTERNAL-API-NET
       vlanid: 108
-      tagged-vlan: true
+      tagged-vlan: false
       cidr: 192.168.114.0/24
       gateway-ip: 192.168.114.1
       network-group: EXTERNAL-API

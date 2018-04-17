@@ -48,7 +48,7 @@ resources:
     type: OS::Neutron::Net
     properties:
       port_security_enabled: False
-  network_external:
+  network_external_vm:
     type: OS::Neutron::Net
     properties:
       port_security_enabled: False
@@ -68,7 +68,7 @@ resources:
     type: OS::Neutron::Net
     properties:
       port_security_enabled: False
-  network_hostname:
+  network_hostname_and_external_api:
     type: OS::Neutron::Net
     properties:
       port_security_enabled: False
@@ -94,16 +94,26 @@ resources:
             end: "192.168.110.100"
       ip_version: 4
       gateway_ip: null
-  subnet_external:
+  subnet_external_api:
     type: OS::Neutron::Subnet
     properties:
-      network_id: { get_resource: network_external }
+      network_id: { get_resource: network_hostname_and_external_api }
       allocation_pools:
           - start: "192.168.114.100"
             end: "192.168.114.200"
       cidr: "192.168.114.0/24"
       enable_dhcp: False
       gateway_ip: 192.168.114.1
+  subnet_external_vm:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: network_external_vm }
+      allocation_pools:
+          - start: "172.31.0.2"
+            end: "172.31.255.154"
+      cidr: "172.31.0.0/16"
+      enable_dhcp: False
+      gateway_ip: 172.31.0.1
   subnet_mgmt2:
     type: OS::Neutron::Subnet
     properties:
@@ -144,17 +154,6 @@ resources:
             end: "172.30.0.127"
       cidr: "172.30.0.0/24"
       enable_dhcp: False
-  subnet_hostname:
-    type: OS::Neutron::Subnet
-    properties:
-      network_id: { get_resource: network_hostname }
-      enable_dhcp: False
-      allocation_pools:
-          - start: "192.168.111.2"
-            end: "192.168.111.250"
-      cidr: "192.168.111.0/24"
-      enable_dhcp: False
-      gateway_ip: 192.168.111.1
 
   # router
   router_mgmt:
@@ -169,11 +168,17 @@ resources:
       router_id: { get_resource: router_mgmt }
       subnet_id: { get_resource: subnet_mgmt }
 
-  router_external_interface:
+  router_external_api_interface:
     type: OS::Neutron::RouterInterface
     properties:
       router_id: { get_resource: router_mgmt }
-      subnet_id: { get_resource: subnet_external }
+      subnet_id: { get_resource: subnet_external_api }
+
+  router_external_vm_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router_mgmt }
+      subnet_id: { get_resource: subnet_external_vm }
 
   # floating IPs
   deployer-floatingip:
@@ -191,11 +196,11 @@ resources:
         - network: { get_resource: network_mgmt }
         - network: { get_resource: network_ardana }
         - network: { get_resource: network_mgmt2 }
-        - network: { get_resource: network_external }
+        - network: { get_resource: network_external_vm }
         - network: { get_resource: network_guest }
         - network: { get_resource: network_iscsi }
         - network: { get_resource: network_tenant }
-        - network: { get_resource: network_hostname }
+        - network: { get_resource: network_hostname_and_external_api }
 
   controllers:
     type: OS::Heat::ResourceGroup
@@ -212,11 +217,11 @@ resources:
               - network: { get_resource: network_mgmt }
               - network: { get_resource: network_ardana }
               - network: { get_resource: network_mgmt2 }
-              - network: { get_resource: network_external }
+              - network: { get_resource: network_external_vm }
               - network: { get_resource: network_guest }
               - network: { get_resource: network_iscsi }
               - network: { get_resource: network_tenant }
-              - network: { get_resource: network_hostname }
+              - network: { get_resource: network_hostname_and_external_api }
   computes:
     type: OS::Heat::ResourceGroup
     properties:
@@ -232,11 +237,11 @@ resources:
             - network: { get_resource: network_mgmt }
             - network: { get_resource: network_ardana }
             - network: { get_resource: network_mgmt2 }
-            - network: { get_resource: network_external }
+            - network: { get_resource: network_external_vm }
             - network: { get_resource: network_guest }
             - network: { get_resource: network_iscsi }
             - network: { get_resource: network_tenant }
-            - network: { get_resource: network_hostname }
+            - network: { get_resource: network_hostname_and_external_api }
 
   deployer-floating-assignment:
     type: OS::Neutron::FloatingIPAssociation
