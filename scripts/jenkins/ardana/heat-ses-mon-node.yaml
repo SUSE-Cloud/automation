@@ -1,0 +1,51 @@
+heat_template_version: 2016-10-14
+
+description: >
+  Template for deploying a SES MON node
+
+parameters:
+  ses_key_name:
+    type: string
+    label: Key Name
+    description: Name of key-pair to be used for MON instance
+  ses_image_id:
+    type: string
+    label: Image ID
+    description: Image to be used for MON instance
+  ses_instance_type:
+    type: string
+    label: Instance Type
+    description: Type of instance (flavor) to be used for MON instance
+  ses_index:
+    type: number
+    description: MON index suffix
+    default: 1
+  ses_networks:
+    type: json
+    description: Networks to configure on MON
+  ses_user_data:
+    type: string
+    label: User data
+    description: User data
+
+resources:
+  ses_mon:
+    type: OS::Nova::Server
+    properties:
+      name:
+        str_replace:
+          template: ses-mon$index
+          params:
+            $index: {get_param: ses_index}
+      key_name: { get_param: ses_key_name }
+      image: { get_param: ses_image_id }
+      flavor: { get_param: ses_instance_type }
+      networks: { get_param: ses_networks }
+      user_data_format: RAW
+      user_data: { get_param: ses_user_data }
+
+outputs:
+  # networks
+  networks:
+    description: networks
+    value: { get_attr: [ ses_mon, networks] }
