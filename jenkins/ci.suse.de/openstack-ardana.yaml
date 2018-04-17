@@ -206,7 +206,10 @@
                 DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-ip-floating -c output_value -f value)
                 echo "*****************************************************************"
                 echo ""
-                echo "** Installation is remaining available at ssh ardana@$DEPLOYER_IP"
+                echo "** Installation remains available at                             "
+                echo "             ssh ardana@$DEPLOYER_IP                             "
+                echo ""
+                echo "** Please do openstack stack delete $STACK_NAME when you're done."
                 echo ""
                 echo "*****************************************************************"
             fi
