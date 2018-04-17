@@ -136,6 +136,19 @@
       recursive: yes
     become: true
     become_user: ardana
+
+  - name: Replace disks to accomodate virtio_blk
+    replace:
+      dest: "/var/lib/ardana//openstack/my_cloud/definition/data/{{ item }}"
+      regexp: '/dev/sd([a-f]) *$'
+      replace: '/dev/vd\1'
+    with_items:
+      - disks_ardana.yml
+      - disks_compute.yml
+      - disks_dbmq.yml
+      - disks_mml.yml
+      - disks_osc.yml
+    ignore_errors: True
     tags:
       - create-ardana-input-model
 
