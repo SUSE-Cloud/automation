@@ -39,6 +39,12 @@
             The Input Model to use
 
       - string:
+          name: image_id_compute
+          default: cleanvm-jeos-SLE12SP3
+          description: >-
+            Compute nodes image name (e.g. centos73)
+
+      - string:
           name: job_name
           default: ''
           description: >-
@@ -67,6 +73,7 @@
           echo cloudsource=$cloudsource
           echo cloudsource URL is $cloudsource_url
           echo media build version is $cloudsource_media_build
+          echo compute node image $image_id_compute
           echo
 
           set -ex
@@ -88,7 +95,6 @@
           # init the git tree
           git clone $git_automation_repo --branch $git_automation_branch automation-git
           pushd automation-git/scripts/jenkins/ardana/
-
 
           case $model in
               standard)
@@ -123,6 +129,7 @@
 
           openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait \
               -t heat-ardana-${model}.yaml  \
+              --parameter image_id_compute=$image_id_compute \
               --parameter number_of_computes=$num_compute \
               --parameter number_of_controllers=$num_controller \
               $STACK_NAME
