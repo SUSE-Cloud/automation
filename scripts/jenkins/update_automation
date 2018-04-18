@@ -22,6 +22,12 @@ declare -a must_have_repos=(
 # keeping support for lower case for backward compatibility
 : ${automation_repo:="$AUTOMATION_REPO"}
 
+# Note: Additional repos can be added this way:
+#
+# export EXTRA_REPOS="github.com/org1/repo1#master
+# github.com/org2/repo2#master"
+
+
 if [[ $automation_repo =~ ^(https?|git): || $automation_repo =~ \.git ]] ; then
     echo "Syntax error with automation repo definition."
     echo "Please use this pattern: <domain>/<owner>/<repo>#<branch>"
@@ -32,6 +38,7 @@ fi
 declare -a needed_repos=(
     $automation_repo
     ${must_have_repos[@]}
+    ${EXTRA_REPOS}
 )
 
 function get_archive_url
