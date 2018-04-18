@@ -17,7 +17,10 @@ declare -a must_have_repos=(
 )
 
 # allow to override the automation repo
-: ${automation_repo:="github.com/SUSE-Cloud/automation#master"}
+# upper case var should be used by caller
+: ${AUTOMATION_REPO:="github.com/SUSE-Cloud/automation#master"}
+# keeping support for lower case for backward compatibility
+: ${automation_repo:="$AUTOMATION_REPO"}
 
 if [[ $automation_repo =~ ^(https?|git): || $automation_repo =~ \.git ]] ; then
     echo "Syntax error with automation repo definition."
