@@ -4075,51 +4075,6 @@ function ceph_testsuite_configure_storage3
     export YAMLDATA_FILE=templates/template.yml.new
 }
 
-function ceph_testsuite_configure_storage2
-{
-    # this is the configuration for the tests from the storage2 branch
-
-    # write configuration files that we need
-    cat > setup.cfg <<EOH
-[env]
-loglevel = debug
-EOH
-    # test suite will expect node names without domain, and in the right
-    # order; since we will write them in reverse order, use a sort -r here
-    yaml_allnodes=`echo $cephmons $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-    yaml_mons=`echo $cephmons | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-    yaml_osds=`echo $cephosds | sed "s/ /\n/g" | sed "s/\..*//g" | sort -ru`
-    # for radosgw, we only want one node, so enforce that
-    yaml_radosgw=`echo $cephradosgws | sed "s/ .*//g" | sed "s/\..*//g"`
-
-    set -- $yaml_mons
-    first_mon_node=$1
-    # Because of bsc#1005884 and bsc#1005885 we need to set the
-    # ceph version number from the client.
-    # Once the bug are fixed, we need to revert the workarround.
-    # ceph_version=$(ssh $first_mon_node "rpm -q --qf %{version} ceph | sed 's/+.*//g'")
-    ceph_version=$(ssh $first_mon_node "ceph --version | cut -f3 -d' ' | sed 's/-.*//g'")
-
-    sed -i "s/^ceph_version:.*/ceph_version: $ceph_version/g" yamldata/testcloud_sanity.yaml
-    sed -i "s/^radosgw_node:.*/radosgw_node: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
-    # client node is the same as the rados gw node, to make our life easier
-    sed -i "s/^clientnode:.*/clientnode: $yaml_radosgw/g" yamldata/testcloud_sanity.yaml
-
-    sed -i "/teuthida-4/d" yamldata/testcloud_sanity.yaml
-    for node in $yaml_allnodes; do
-        sed -i "/^allnodes:$/a - $node" yamldata/testcloud_sanity.yaml
-    done
-    for node in $yaml_mons; do
-        sed -i "/^initmons:$/a - $node" yamldata/testcloud_sanity.yaml
-    done
-    for node in $yaml_osds; do
-        nodename=(vda1 vdb1 vdc1 vdd1 vde1)
-        for i in $(seq $cephvolumenumber); do
-            sed -i "/^osds:$/a - $node:${nodename[$i]}" yamldata/testcloud_sanity.yaml
-        done
-    done
-}
-
 function oncontroller_prepare_functional_tests
 {
     local mount_dir="/var/lib/Cloud-Testing"
@@ -4225,12 +4180,7 @@ function ceph_test_suite
     fi
 
     # configure and run the testsuite
-    if iscloudver 6; then
-        git checkout storage2
-        ceph_testsuite_configure_storage2
-        nosetests testsuites/testcloud_sanity.py
-        cephret=$?
-    elif iscloudver 7plus; then
+    if iscloudver 7plus; then
         # there is no storage4 branch and storage team uses storage3 branch
         # for SES3 and SES4
         git checkout storage3
