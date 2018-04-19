@@ -101,7 +101,7 @@
                   num_controller=3
                   num_compute=3
                   ;;
-              std-split|std-3cp)
+              std-split|std-3cp|dac-3cp)
                   num_controller=3
                   num_compute=1
                   ;;

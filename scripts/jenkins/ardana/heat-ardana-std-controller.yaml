@@ -101,3 +101,7 @@ outputs:
   networks:
     description: networks
     value: { get_attr: [ controller, networks] }
+  # addresses
+  addresses:
+    description: addresses
+    value: { get_attr: [ controller, addresses] }
