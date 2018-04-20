@@ -1,0 +1,34 @@
+interaction_dirs:
+  - ./interactions
+template:
+  team:
+    suse_cloud_specs_team: &suse_cloud_specs_team
+      - name: SUSE/SUSE OpenStack Cloud Team
+        id: 130434
+      #- name: SUSE-Cloud/SUSE Employees
+      #  id: 158157
+  filter:
+    cloud_specs: &cloud_specs
+      - type: MergeBranch
+        config:
+          branches:
+            - master
+      - type: Status
+        config:
+          status: unseen
+      - type: TrustedSource
+        config:
+          teams:
+            *suse_cloud_specs_team
+        whitelist_handler:
+          - type: RunHelperAndSetStatus
+            parameters:
+              command: "./suse.cloud-specs.helper.sh"
+
+pr_processing:
+  - config:
+      organization: SUSE
+      repositories:
+        - cloud-specs
+      context: suse/specs
+    filter: *cloud_specs
