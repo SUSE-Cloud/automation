@@ -57,6 +57,12 @@
             This is used as input repository (from provo-clouddata) for testing
 
       - string:
+          name: update_cloudsource
+          default: ''
+          description: >-
+            If set, this is used for update testing
+
+      - string:
           name: tempest_run_filter
           default: ''
           description: >-
@@ -177,17 +183,31 @@
 
           ansible-playbook -v -i hosts ssh-keys.yml
           ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
-                                       -e "cloudsource=${cloudsource}" repositories.yml
+                                       -e "cloudsource=${cloudsource}" \
+                                       repositories.yml
           verification_temp_dir=$(ssh $sshargs root@$DEPLOYER_IP \
                                     "mktemp -d /tmp/ardana-job-rpm-verification.XXXXXXXX")
           ansible-playbook -v -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
                                        -e "deployer_model=${model}" \
                                        -e "verification_temp_dir=$verification_temp_dir" \
                                        init.yml
+
           # Run site.yml outside ansible for output streaming
           ssh $sshargs ardana@$DEPLOYER_IP "cd ~/scratch/ansible/next/ardana/ansible ; \
                ansible-playbook -vvv -i hosts/verb_hosts site.yml"
 
+          # Run Update if required
+          if [ -n "$update_cloudsource" -a "$update_cloudsource" != "$cloudsource" ]; then
+              ansible-playbook -v -i hosts \
+                  -e "build_url=$BUILD_URL" -e "cloudsource=${update_cloudsource}" \
+                  repositories.yml
+
+              ansible-playbook -v -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
+                                        -e "deployer_model=${model}" \
+                                        update.yml
+          fi
+
+          # Run post-deploy checks
           ansible-playbook -v -i hosts -e "tempest_run_filter=${tempest_run_filter}" \
                                        -e "verification_temp_dir=$verification_temp_dir" \
                                        post-deploy-checks.yml

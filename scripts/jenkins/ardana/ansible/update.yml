@@ -1,0 +1,16 @@
+---
+- name: Update the deployed nodes
+  hosts: hosts
+  gather_facts: False
+
+  vars_files:
+    - ardana_net_vars.yml
+    - vars/main.yml
+
+  tasks:
+  - name: Here comes magic
+    become: yes
+    shell: |
+      echo "Update was run.." >> /etc/motd
+
+

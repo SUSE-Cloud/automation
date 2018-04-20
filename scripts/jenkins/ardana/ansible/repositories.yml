@@ -13,17 +13,25 @@
     sshpass_repo: "http://download.suse.de/ibs/QA:/SLE12SP3/update/"
 
   tasks:
-  - name: Create srv directories
-    file:
-      state: directory
-      path: /srv/www/suse-12.3/x86_64/repos/{{ item }}
-      mode: 0755
+  - name: Check srv directories
+    stat:
+      path: "/srv/www/suse-12.3/x86_64/repos/{{ item }}"
+    register: srv_dir_stats
     with_items:
       - Cloud
       - SLES12-SP3-Pool
       - SLES12-SP3-Updates
       - SUSE-OpenStack-Cloud-8-Pool
       - SUSE-OpenStack-Cloud-8-Updates
+
+  - name: Create srv directories
+    file:
+      state: directory
+      path: "/srv/www/suse-12.3/x86_64/repos/{{ item.item }}"
+      mode: 0755
+    when: not item.stat.exists
+    with_items:
+      - "{{ srv_dir_stats.results }}"
 
   - name: Mount zypper repos
     mount:
@@ -63,7 +71,7 @@
   # one refuses to install packages if the media build number changes
   - name: Add Cloud repo
     shell: |
-      zypper ar -c -K -f -t rpm-md /srv/www/suse-12.3/x86_64/repos/Cloud Cloud
+      zypper -n lr Cloud || zypper -n ar -c -K -f -t rpm-md /srv/www/suse-12.3/x86_64/repos/Cloud Cloud
 
   - name: Repo for sshpass
     zypper_repository:
@@ -88,11 +96,10 @@
       name: sshpass
       state: absent
 
-  # NOTE: ansible's zypper extra_args are only supported in >= 2.4 and even if that version,
-  # adding --replacefiles does not work
-  # FIXME: Resolve the file conflicts in the ardana packages and use the zypper module
-  - name: Install ardana pattern
-    command: zypper -n in patterns-cloud-ardana
+  - name: Install/Update ardana pattern
+    zypper:
+      name: "patterns-cloud-ardana"
+      state: latest
 
   # This can't happen earlier because we rely on the ardana pattern for creating
   # the ardana user/group
