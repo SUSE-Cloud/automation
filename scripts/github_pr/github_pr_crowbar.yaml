@@ -18,7 +18,6 @@ template:
         config:
           branches:
             - master
-            - stable/3.0
             - stable/4.0
       - type: Status
         config:
