@@ -171,14 +171,20 @@ adjust accordingly.
 
 Note that you will need to run the "prepare" step again (with VPN access) if
 your `$cloudsource` environment variable had changed. For example, if you are
-developing on "devcloud8" and "devcloud7" in parallel, you will need to run the
+developing on "develcloud8" and "develcloud7" in parallel, you will need to run the
 "prepare" step for each separately.
 
-Here's an example script you can execute to create a full cloud:
+Here's an example wrapper script you can use instead of executing mkcloud directly
+which will enable caching and create a loopback LVM volume group which is used
+by mkcloud then for installation of a virtualized cloud:
 
 ```
 #!/bin/bash
 
+# tell mkcloud to cache all repositories it will pass into the VMs locally
+# on the host that mkcloud is being invoked on during "prepare" step.
+#
+# This allows running mkcloud without VPN being used.
 export cache_clouddata=1
 
 # path to the locally available repositories. By default, cache_dir is set
@@ -188,7 +194,7 @@ export cache_clouddata=1
 #export cache_dir=<some other dir>
 
 # setup/create lvm disk
-cloud_lvm_disk=/home/tom/devel/libvirt-images/develcloud7-lvm.raw
+cloud_lvm_disk=$HOME/develcloud-lvm.raw
 if ! [ -f $cloud_lvm_disk ] ; then
     qemu-img create -f raw $cloud_lvm_disk 100G
 fi
