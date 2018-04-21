@@ -24,6 +24,10 @@
 # Created when python-selinux rpm is installed
 /usr/lib64/python2.7/site-packages/selinux/__init__.pyc
 
+# created by deltarpm
+/usr/lib64/python2.7/site-packages/deltarpm.pyca
+/usr/include/python3.4m
+
 # Ardana installs stuff in here, e.g. links to /opt/stack/service/.../venv/bin/...
 /usr/local/bin/.
 
