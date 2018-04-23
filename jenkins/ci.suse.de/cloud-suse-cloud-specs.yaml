@@ -19,6 +19,10 @@
     triggers:
       - timed: 'H H/12 * * *'
 
+    wrappers:
+      - workspace-cleanup:
+          dirmatch: true
+
     logrotate:
       numToKeep: 300
       daysToKeep: -1
