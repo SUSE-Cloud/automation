@@ -40,4 +40,10 @@
           export ghprrepo=~/github.com/openSUSE/github-pr
           export ghpr=${ghprrepo}/github_pr.rb
 
-          ${ghpr} -a trigger-prs --mode "$buildmode" --debugratelimit --config ${automationrepo}/scripts/github_pr/github_cloud-specs.yaml
+          case $mode in
+            # mapping normal to unseen
+            normal|unseen) mode=unseen
+            ;;
+          esac
+
+          ${ghpr} -a trigger-prs --mode "$mode" --debugratelimit --config ${automationrepo}/scripts/github_pr/github_cloud-specs.yaml
