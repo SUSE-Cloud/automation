@@ -38,3 +38,9 @@ git --no-pager show | sed 's/^/|@| /'
 
 ### run tox
 tox -e docs
+ret=$?
+
+# cleanup
+popd
+rm -rf "$pr_dir"
+exit "$ret"
