@@ -25,7 +25,7 @@
 /usr/lib64/python2.7/site-packages/selinux/__init__.pyc
 
 # created by deltarpm
-/usr/lib64/python2.7/site-packages/deltarpm.pyca
+/usr/lib64/python2.7/site-packages/deltarpm.pyc
 /usr/include/python3.4m
 
 # Ardana installs stuff in here, e.g. links to /opt/stack/service/.../venv/bin/...
