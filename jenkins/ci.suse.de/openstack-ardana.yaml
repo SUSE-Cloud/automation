@@ -62,6 +62,15 @@
           description: >-
             If set, this is used for update testing
 
+      - choice:
+          name: update_method
+          choices:
+            - update
+            - patch
+            - dist-upgrade
+          description: >-
+            The update method used for update testing
+
       - string:
           name: tempest_run_filter
           default: ''
@@ -202,8 +211,9 @@
                   -e "build_url=$BUILD_URL" -e "cloudsource=${update_cloudsource}" \
                   repositories.yml
 
-              ansible-playbook -v -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
-                                        -e "deployer_model=${model}" \
+              ansible-playbook -v -i hosts \
+                  -e "cloudsource=${update_cloudsource}" \
+                  -e "update_method=${update_method}" \
                                         update.yml
           fi
 

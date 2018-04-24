@@ -1,0 +1,22 @@
+---
+
+- name: Call ardana-init
+  shell: /usr/bin/ardana-init
+  become: true
+  become_user: ardana
+
+- name: Run config-processor-run.yml playbook
+  shell: |
+    ansible-playbook -vvv -i hosts/localhost -e encrypt="" -e rekey="" config-processor-run.yml
+  args:
+    chdir: /var/lib/ardana/openstack/ardana/ansible
+  become: true
+  become_user: ardana
+
+- name: Run ready-deployment.yml playbook
+  shell: |
+    ansible-playbook -vvv -i hosts/localhost ready-deployment.yml
+  args:
+    chdir: /var/lib/ardana/openstack/ardana/ansible
+  become: true
+  become_user: ardana
