@@ -1,0 +1,64 @@
+heat_template_version: 2016-10-14
+
+description: >
+  Template for deploying a SES OSD node
+
+parameters:
+  ses_key_name:
+    type: string
+    label: Key Name
+    description: Name of key-pair to be used for OSD instance
+  ses_image_id:
+    type: string
+    label: Image ID
+    description: Image to be used for OSD instance
+  ses_instance_type:
+    type: string
+    label: Instance Type
+    description: Type of instance (flavor) to be used for OSD instance
+  ses_index:
+    type: number
+    description: OSD index suffix
+    default: 1
+  ses_networks:
+    type: json
+    description: Networks to configure on OSD
+  ses_user_data:
+    type: string
+    label: User data
+    description: User data
+
+resources:
+  ses_osd:
+    type: OS::Nova::Server
+    properties:
+      name:
+        str_replace:
+          template: ses-osd$index
+          params:
+            $index: {get_param: ses_index}
+      key_name: { get_param: ses_key_name }
+      image: { get_param: ses_image_id }
+      flavor: { get_param: ses_instance_type }
+      networks: { get_param: ses_networks }
+      user_data_format: RAW
+      user_data: { get_param: ses_user_data }
+
+  # disks
+  ses_osd_vdb:
+    type: OS::Cinder::Volume
+    properties:
+      size: 30
+
+  ses_osd_vol_att_vdb:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      instance_uuid: { get_resource: ses_osd }
+      volume_id: { get_resource: ses_osd_vdb }
+      mountpoint: /dev/vdb
+
+outputs:
+  # networks
+  networks:
+    description: networks
+    value: { get_attr: [ ses_osd, networks] }

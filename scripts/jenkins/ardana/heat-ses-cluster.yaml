@@ -1,0 +1,353 @@
+ heat_template_version: 2016-10-14
+
+description: >
+  Template for deploying a SES cluster
+
+parameters:
+  # SLES repositories
+  sles_pool_repo:
+    type: string
+    label: SLES Pool repository
+    description: Path to the SLES pool repository
+    default: http://provo-clouddata.cloud.suse.de/repos/x86_64/SLES12-SP3-Pool/
+  sles_updates_repo:
+    type: string
+    label: SLES updates repository
+    description: Path to the SLES updates repository
+    default: http://provo-clouddata.cloud.suse.de/repos/x86_64/SLES12-SP3-Updates/
+  # SES (Storage) repositories
+  ses_pool_repo:
+    type: string
+    label: SLES Pool repository
+    description: Path to the SLES pool repository
+    default: http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-Enterprise-Storage-5-Pool/
+  ses_updates_repo:
+    type: string
+    label: SES Pool repository
+    description: Path to the SES pool repository
+    default: http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-Enterprise-Storage-5-Updates/
+
+  ses_key_name:
+    type: string
+    label: Key Name
+    description: Name of key-pair to be used for the instances
+    default: engcloud-cloud-ci
+  ses_image_id:
+    type: string
+    label: Image ID
+    description: Image to be used for SES instances (including saltmaster, osds and mons). The image must support cloud-init!
+    default: jeos-SLE12SP3
+  ses_instance_type_admin:
+    type: string
+    label: Instance Type
+    description: Type of instance (flavor) to be used for the admin (saltmaster)
+    default: cloud-ardana-job-compute
+  ses_instance_type_osd:
+    type: string
+    label: Instance Type
+    description: Type of instance (flavor) to be used for Ceph OSDs
+    default: cloud-ardana-job-compute
+  ses_instance_type_mon:
+    type: string
+    label: Instance Type
+    description: Type of instance (flavor) to be used for Ceph MONs
+    default: cloud-ardana-job-compute
+  ses_number_of_osd:
+    type: number
+    description: Count of OSD nodes
+    default: 4
+  ses_number_of_mon:
+    type: number
+    description: Count of MON nodes
+    default: 3
+  ses_external_network:
+    type: string
+    description: the name or ID of the external network (that can assign floating IPs)
+    default: floating
+  ses_extra_network:
+    type: string
+    description: An extra Neutron network that every node gets connected to.
+    constraints:
+      - custom_constraint: neutron.network
+
+resources:
+  # software config
+  ses_config_repos:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config:
+        str_replace:
+          params:
+            $sles_pool: { get_param: sles_pool_repo }
+            $sles_updates: { get_param: sles_updates_repo }
+            $ses_pool: { get_param: ses_pool_repo }
+            $ses_updates: { get_param: ses_updates_repo }
+          template: |
+            #!/bin/bash
+            set -e
+            zypper --non-interactive --quiet --gpg-auto-import-keys ar -f $sles_pool SLES-Pool
+            zypper --non-interactive --quiet --gpg-auto-import-keys ar -f $sles_updates SLES-Updates
+            zypper --non-interactive --quiet --gpg-auto-import-keys ar -f $ses_pool SES-Pool
+            zypper --non-interactive --quiet --gpg-auto-import-keys ar -f $ses_updates SES-Updates
+
+  ses_config_salt_master:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config: |
+        #!/bin/bash
+        set -e
+        # ntp
+        zypper -n in -l ntp
+        cat <<EOF > /etc/ntp.conf
+        server ntp1.suse.de
+        server ntp2.suse.de
+        server ntp3.suse.de
+        EOF
+        systemctl enable ntpd.service
+        systemctl start ntpd.service
+
+        # salt-minion
+        zypper -n in -l salt-minion hwinfo iptables
+        cat <<EOF > /etc/salt/minion.d/master.conf
+        master: localhost
+        EOF
+        systemctl enable salt-minion.service
+        systemctl start salt-minion.service
+
+        # salt-master
+        zypper -n in -l salt-master
+        cat <<EOF > /etc/salt/master.d/auto_accept.conf
+        auto_accept: True
+        EOF
+
+        systemctl enable salt-master.service
+        systemctl start salt-master.service
+
+  ses_config_salt_minion:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config:
+        str_replace:
+          params:
+            $salt_master_ip: { get_attr: [ses-admin, networks, { get_resource: ses_network }, 0]} 
+          template: |
+            #!/bin/bash
+            set -e
+            # ntp
+            zypper -n in -l ntp
+            cat <<EOF > /etc/ntp.conf
+            server ntp1.suse.de
+            server ntp2.suse.de
+            server ntp3.suse.de
+            EOF
+            /usr/bin/systemctl enable --now ntpd.service
+
+            # salt-minion
+            zypper -n in -l salt-minion hwinfo iptables
+            cat <<EOF > /etc/salt/minion.d/master.conf
+            master: $salt_master_ip
+            EOF
+            systemctl enable salt-minion.service
+            systemctl start salt-minion.service
+
+  ses_config_deepsea:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config: |
+        #!/bin/bash
+        set -e
+        # wait a bit so the minions can connect
+        sleep 2m
+        salt-key --list-all
+        master_minion=$(hostname -f)
+        zypper -n in -l deepsea
+        cat <<EOF > /srv/pillar/ceph/stack/global.yml
+        stage_prep_master: default-no-update-no-reboot
+        stage_prep_minion: default-no-update-no-reboot
+        EOF
+
+        cat <<EOF > /srv/pillar/ceph/master_minion.sls
+        master_minion: $master_minion
+        EOF
+
+        cat <<EOF > /srv/pillar/ceph/deepsea_minions.sls
+        deepsea_minions: '*'
+        EOF
+
+        salt '*' saltutil.sync_all
+
+        echo "Running deepsea stage 0 (prep)"
+        deepsea stage run ceph.stage.0
+
+        echo "Running deepsea stage 1 (discovery)"
+        deepsea stage run ceph.stage.1
+
+        # the policy (see https://www.suse.com/documentation/suse-enterprise-storage-5/singlehtml/book_storage_deployment/book_storage_deployment.html#policy.configuration )
+        cat <<EOF > /srv/pillar/ceph/proposals/policy.cfg
+        ## Cluster Assignment
+        cluster-ceph/cluster/*.sls
+        ## Roles
+        # ADMIN
+        role-master/cluster/*ses-admin*.sls
+        role-admin/cluster/*ses-admin*.sls
+        # MON
+        role-mon/stack/default/ceph/minions/*ses-mon*.yml
+        role-mon/cluster/*ses-mon*.sls
+        role-mgr/cluster/*ses-mon*.sls
+        # role-mds/cluster/*ses-mon*.sls
+        # Rados Gateway
+        role-rgw/cluster/*ses-admin*.sls
+        # OpenAttic (port 80 is used by radosgw so disable openattic for now)
+        # see https://www.suse.com/documentation/suse-enterprise-storage-5/singlehtml/book_storage_deployment/book_storage_deployment.html#rgw.installation
+        # role-openattic/cluster/*ses-admin*.sls
+
+        # COMMON
+        config/stack/default/global.yml
+        config/stack/default/ceph/cluster.yml
+
+        ## Profiles
+        profile-default/cluster/*.sls
+        profile-default/stack/default/ceph/minions/*.yml
+        EOF
+
+        echo "Running deepsea stage 2 (configure)"
+        deepsea stage run ceph.stage.2
+
+        echo "Running deepsea stage 3 (deploy)"
+        deepsea stage run ceph.stage.3
+
+        echo "Running deepsea stage 4 (services)"
+        deepsea stage run ceph.stage.4
+
+  # user-data scripts for cloud-init
+  ses_init_admin:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: {get_resource: ses_config_repos}
+      - config: {get_resource: ses_config_salt_master}
+      - config: {get_resource: ses_config_deepsea}
+
+  ses_init_osd:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: {get_resource: ses_config_repos}
+      - config: {get_resource: ses_config_salt_minion}
+
+  ses_init_mon:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: {get_resource: ses_config_repos}
+      - config: {get_resource: ses_config_salt_minion}
+
+  # networks
+  ses_network:
+    type: OS::Neutron::Net
+    properties:
+      port_security_enabled: False
+
+  # subnet
+  ses_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: ses_network }
+      cidr: "192.168.222.0/24"
+      allocation_pools:
+          - start: "192.168.222.2"
+            end: "192.168.222.100"
+      ip_version: 4
+      gateway_ip: 192.168.222.1
+
+  # router
+  ses_router:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network: { get_param: ses_external_network }
+
+  ses_router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: ses_router }
+      subnet_id: { get_resource: ses_subnet }
+
+  # floating IPs
+  ses-admin-floatingip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: ses_external_network }
+
+  # instances
+  ses-admin:
+    type: OS::Nova::Server
+    properties:
+      key_name: { get_param: ses_key_name }
+      image: { get_param: ses_image_id }
+      flavor: { get_param: ses_instance_type_admin }
+      networks:
+        - network: { get_resource: ses_network }
+        - network: { get_param: ses_extra_network }
+      user_data_format: RAW
+      user_data:
+        get_resource: ses_init_admin
+
+  ses-osds:
+    type: OS::Heat::ResourceGroup
+    depends_on: ses-admin
+    properties:
+      count: { get_param: ses_number_of_osd }
+      resource_def:
+        type: heat-ses-osd-node.yaml
+        properties:
+          ses_key_name: { get_param: ses_key_name }
+          ses_index: "%index%"
+          ses_image_id: { get_param: ses_image_id }
+          ses_instance_type: { get_param: ses_instance_type_osd }
+          ses_networks:
+              - network: { get_resource: ses_network }
+              - network: { get_param: ses_extra_network }
+          ses_user_data: { get_resource: ses_init_osd }
+
+  ses-mons:
+    type: OS::Heat::ResourceGroup
+    depends_on: ses-admin
+    properties:
+      count: { get_param: ses_number_of_mon }
+      resource_def:
+        type: heat-ses-mon-node.yaml
+        properties:
+          ses_key_name: { get_param: ses_key_name }
+          ses_index: "%index%"
+          ses_image_id: { get_param: ses_image_id }
+          ses_instance_type: { get_param: ses_instance_type_mon }
+          ses_networks:
+              - network: { get_resource: ses_network }
+              - network: { get_param: ses_extra_network }
+          ses_user_data: { get_resource: ses_init_mon }
+
+  ses-admin-floating-assignment:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: ses-admin-floatingip }
+      port_id: {get_attr: [ses-admin, addresses, { get_resource: ses_network }, 0, port]}
+
+outputs:
+  # SES admin
+  ses-admin-floating-network-ip:
+    description: Floating IP address of the SES admin node
+    value: { get_attr: [ses-admin-floatingip, floating_ip_address] }
+  ses-admin-ses-network-ip:
+    description: IP address of the SES admin in the ses network
+    value: { get_attr: [ses-admin, networks, { get_resource: ses_network }, 0]}
+  # IP addresses of the nodes in the ses_extra_network
+  ses-admin-extra-network-ip:
+    description: IP address of the SES admin in the ses extra network
+    value: { get_attr: [ses-admin, networks, { get_resource: ses_extra_network }, 0]}
+  ses-osds-extra-network-ips:
+    description: IP addresses of the OSD nodes in the ses_extra_network
+    value: { get_attr: [ses-osds, networks, { get_param: ses_extra_network }, 0]}
+  ses-mons-extra-network-ips:
+    description: IP addresses of the MON nodes in the ses_extra_network
+    value: { get_attr: [ses-mons, networks, { get_param: ses_extra_network }, 0]}
