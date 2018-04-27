@@ -28,8 +28,8 @@ It requires SLE-12 or openSUSE Leap 42.2 or newer as host OS.
   $ sudo service libvirtd start  # to start the daemon
   ```
 
-  If you are using `libvirtd >= 1.3.0` then you should also start the
-  `virtlogd` service.
+  If you are using `libvirtd >= 1.3.0` then you should also start and
+  enable the `virtlogd` service.
 
   ```
   $ sudo service virtlogd status # to check the status
@@ -47,13 +47,26 @@ It requires SLE-12 or openSUSE Leap 42.2 or newer as host OS.
     ```
     $ sudo chkconfig libvirtd on
     ```
+* /etc/lvm/lvm.conf also needs to be edited to filter mkcloud logical volumes.
+
+  * Add the following regular expressions to the filter value in the devices
+    { } block before "a/.*/":
+
+    "r|/dev/mapper/cloud-|", "r|/dev/cloud/|", "r|/dev/disk/by-id/|"
+
+    The filter should also include something like "r|/dev/dm-|" or
+    "r|/dev/dm-1[56]|", but the exact values depend on your local
+    system setup and could change over time or have side-effects
+    (on lvm in dm-crypt or lvm in lvm), so please add/modify it manually.
+
 
 ### mkcloud
 
 To use mkcloud the following additional steps are needed:
 
 * Create a disk file where the virtual machines are going to be stored. The
-  minimum recommended is 80 GB.
+  minimum recommended is 80 GB. A cloud created using the plain option will
+  require 102 GB.
 
   ```
   $ fallocate -l 80G mkcloud.disk
@@ -120,8 +133,12 @@ To get a complete list run: `./mkcloud help`
 * `admin_node_memory` and `compute_node_memory` define the amount of memory in
   KB assigned to the admin node and the compute nodes respectively, by default
   both variables are set to 2 GB.
-* `controller_node_memory` define the amount of memory in KB assigned to the controller
+* `controller_node_memory` define the amount of memory in KB assigned to the
+   controller
   node, by default are set to 4 GB.
+* `user_keyfile` may be specified to provide an ssh key used to login to the
+   cloud nodes (as root). If this is not provided, password login with
+   root/linux should work.
 
 # Usage
 
@@ -166,13 +183,17 @@ you can run the "prepare" step in mkcloud using the `cache_clouddata=1`
 environment variable set. This will create a cache under `$cache_dir` (set to
 `/var/cache/mkcloud` by default) of images and repositories needed during
 deployment. Make sure your `$cache_dir` partition has enough free space to
-store all the repos. You should always monitor the space on that partition and
-adjust accordingly.
+store all the repos. At this time, the cache will require around 23G. You
+should always monitor the space on that partition and adjust accordingly.
 
 Note that you will need to run the "prepare" step again (with VPN access) if
 your `$cloudsource` environment variable had changed. For example, if you are
-developing on "develcloud8" and "develcloud7" in parallel, you will need to run the
-"prepare" step for each separately.
+developing on "develcloud8" and "develcloud7" in parallel, you will need to run
+the "prepare" step for each separately.
+
+US-based employees will experience far better performance when building the
+cache initially if they use the SUSE R&D VPN Provo endpoint (or the Micro Focus
+VPN) rather than the SUSE R&D Nuremberg one.
 
 Here's an example wrapper script you can use instead of executing mkcloud directly
 which will enable caching and create a loopback LVM volume group which is used
@@ -196,7 +217,7 @@ export cache_clouddata=1
 # setup/create lvm disk
 cloud_lvm_disk=$HOME/develcloud-lvm.raw
 if ! [ -f $cloud_lvm_disk ] ; then
-    qemu-img create -f raw $cloud_lvm_disk 100G
+    qemu-img create -f raw $cloud_lvm_disk 102G
 fi
 
 if ! losetup -l|grep $cloud_lvm_disk; then
@@ -208,7 +229,9 @@ fi
 
 export cloudpv=${loused}
 export cloudsource=develcloud7
-export cloud=$cloudsource
+# CAUTION! You will need to set this yourself. Make sure you use a unique
+# name or you could overwrite another cloud on the same system!
+# export cloud=${cloudsource/cloud/}
 export net_fixed=192.168.150
 export net_public=192.168.151
 export net_admin=192.168.152
