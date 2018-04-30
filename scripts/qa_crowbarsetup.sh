@@ -766,6 +766,21 @@ function create_repos_yml_for_platform
 
         echo "    $repo_name:"
         echo "      url: '$repo_url'"
+        case "$repo_name" in
+            SLES*)
+                echo "      features: ['os']"
+                ;;
+            *HA*)
+                echo "      features: ['ha']"
+                ;;
+            *Storage*)
+                echo "      features: ['ceph']"
+                ;;
+            *OpenStack*)
+                echo "      features: ['openstack']"
+                ;;
+        esac
+
     done
 }
 
