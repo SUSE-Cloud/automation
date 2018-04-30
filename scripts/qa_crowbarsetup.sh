@@ -4761,6 +4761,7 @@ function onadmin_prepare_cloudupgrade_admin_repos
     fi
 
     onadmin_setup_local_zypper_repositories
+    create_repos_yml
 }
 
 function onadmin_prepare_cloudupgrade
