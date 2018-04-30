@@ -784,8 +784,11 @@ function create_repos_yml
 
     grep -q SLES$slesversion-Updates-test /etc/fstab && \
         additional_repos+=" SLES$slesversion-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-Updates-test"
-    grep -q SLES$slesversion-LTSS-Updates /etc/fstab && \
-        additional_repos+=" SLES$slesversion-LTSS-Updates=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-LTSS-Updates"
+    # FIXME LTSS repo is still empty for SOC8, do not add it as zypper does not like empty repos
+    if iscloudver 7minus ; then
+        grep -q SLES$slesversion-LTSS-Updates /etc/fstab && \
+            additional_repos+=" SLES$slesversion-LTSS-Updates=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-LTSS-Updates"
+    fi
     grep -q SLE$slesversion-HA-Updates-test /etc/fstab && \
         additional_repos+=" SLE$slesversion-HA-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLE$slesversion-HA-Updates-test"
     grep -q SUSE-OpenStack-Cloud-$cloudrepover-Updates-test /etc/fstab && \
