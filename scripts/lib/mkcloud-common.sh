@@ -475,7 +475,10 @@ function getcloudver
 }
 
 # return if cloudsource is referring a certain SUSE Cloud version
-# input1: version - 6plus refers to version 6 or later ; only a number refers to one exact version
+# input1: version
+#   6plus refers to version 6 or later
+#   6minus refers to version 6 or earlier
+#   6 refers to exactly version 6
 function iscloudver
 {
     [[ $cloudsource ]] || return 1
