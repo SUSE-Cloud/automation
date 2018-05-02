@@ -4311,7 +4311,12 @@ function onadmin_testsetup
 
 function ping_fips
 {
-    local fips=$(openstack ip floating list -f value -c IP)
+    local fips
+    if iscloudver 7plus; then
+        fips=$(openstack floating ip list -f value -c 'Floating IP Address')
+    else
+        fips=$(openstack ip floating list -f value -c IP)
+    fi
     for fip in $fips; do
         ping -c 1 -w 60 $fip || complain 120 "cannot reach test VM at $fip."
     done
@@ -4320,8 +4325,14 @@ function ping_fips
 # Use $heat_stack_params to provide parameters to heat template
 function oncontroller_testpreupgrade
 {
-    heat --insecure stack-create upgrade_test -f /root/scripts/heat/2-instances-cinder.yaml $heat_stack_params
-    wait_for 15 20 "heat --insecure stack-list | grep upgrade_test | grep CREATE_COMPLETE" \
+    create_cmd="heat --insecure stack-create upgrade_test -f "
+    list_cmd="heat --insecure stack-list"
+    if iscloudver 7plus; then
+        create_cmd="openstack --insecure stack create upgrade_test -t "
+        list_cmd="openstack --insecure stack list"
+    fi
+    $create_cmd /root/scripts/heat/2-instances-cinder.yaml $heat_stack_params
+    wait_for 15 20 "$list_cmd | grep upgrade_test | grep CREATE_COMPLETE" \
              "heat stack for upgrade tests to complete"
     ping_fips && \
     echo "test pre-upgrade successful."
