@@ -60,8 +60,6 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
   deployment:
     elements:
       rabbitmq-server:
@@ -160,12 +158,6 @@ proposals:
       - cluster:services
       ceilometer-server:
       - cluster:services
-
-- barclamp: trove
-  deployment:
-    elements:
-      trove-server:
-      - "@@controller1@@"
 
 - barclamp: magnum
   attributes:

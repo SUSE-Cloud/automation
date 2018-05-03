@@ -72,8 +72,6 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
     ha:
       storage:
         shared:
@@ -236,13 +234,6 @@ proposals:
       - @@controller1@@
       - @@controller2@@
       - @@controller3@@
-
-- barclamp: trove
-  attributes:
-  deployment:
-    elements:
-      trove-server:
-      - @@controller1@@
 
 - barclamp: tempest
   attributes:

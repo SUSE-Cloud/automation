@@ -100,8 +100,6 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
   deployment:
     elements:
       rabbitmq-server:
@@ -256,14 +254,6 @@ proposals:
       manila-share:
       - "@@data1@@"
       - "@@data2@@"
-
-- barclamp: trove
-  attributes:
-    volume_support: true
-  deployment:
-    elements:
-      trove-server:
-      - "@@controller1@@"
 
 - barclamp: tempest
   attributes:
