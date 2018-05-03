@@ -100,8 +100,6 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
     ha:
       storage:
         shared:
@@ -296,15 +294,6 @@ proposals:
       manila-share:
       - "@@data1@@"
       - "@@data2@@"
-
-# FIXME: disabled due to issues in trove with insecure SSL (https://bugs.launchpad.net/trove/+bug/1535895)
-#- barclamp: trove
-#  attributes:
-#    volume_support: true
-#  deployment:
-#    elements:
-#      trove-server:
-#        - cluster:services
 
 - barclamp: tempest
   attributes:

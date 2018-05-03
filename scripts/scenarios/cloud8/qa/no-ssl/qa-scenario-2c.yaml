@@ -44,8 +44,6 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
   deployment:
     elements:
       rabbitmq-server:
@@ -169,12 +167,6 @@ proposals:
       - cluster:services
       manila-share:
       - cluster:services
-
-- barclamp: trove
-  deployment:
-    elements:
-      trove-server:
-      - @@controller1@@
 
 - barclamp: tempest
   attributes:

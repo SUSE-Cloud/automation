@@ -45,8 +45,6 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
     ha:
       storage:
         mode: drbd
@@ -170,12 +168,6 @@ proposals:
       ceilometer-server:
       - cluster:services
       ceilometer-swift-proxy-middleware: []
-
-- barclamp: trove
-  deployment:
-    elements:
-      trove-server:
-      - "@@controller1@@"
 
 - barclamp: tempest
   deployment:
