@@ -166,6 +166,23 @@ proposals:
       - "@@controller1@@"
       - "@@controller2@@"
       - "@@controller3@@"
+- barclamp: aodh
+  deployment:
+    elements:
+      aodh-server:
+      - "@@controller1@@"
+- barclamp: barbican
+  attributes:
+  deployment:
+    elements:
+      barbican-controller:
+      - "@@controller1@@"
+- barclamp: sahara
+  attributes:
+  deployment:
+    elements:
+      sahara-server:
+      - "@@controller1@@"
 - barclamp: tempest
   attributes:
   deployment:
