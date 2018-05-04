@@ -33,6 +33,11 @@
     with_items:
       - "{{ srv_dir_stats.results }}"
 
+  - name: Unmount the Cloud repo, if already present
+    mount:
+      state: unmounted
+      name: /srv/www/suse-12.3/x86_64/repos/Cloud
+
   - name: Mount zypper repos
     mount:
       state: mounted
