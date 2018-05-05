@@ -4383,7 +4383,7 @@ function oncontroller_testpostupgrade
     done
 
     openstack --insecure stack delete --yes upgrade_test
-    wait_for 15 20 "! heat --insecure stack-show upgrade_test" \
+    wait_for 15 20 "! openstack --insecure stack show upgrade_test" \
              "heat stack for upgrade tests to be deleted"
     echo "test post-upgrade successful."
 }
