@@ -1,6 +1,9 @@
 interaction_dirs:
   - ./interactions
 template:
+  user:
+    suse_user: &suse_user
+      - SUSE
   team:
     suse_cloud_specs_team: &suse_cloud_specs_team
       - name: SUSE/SUSE OpenStack Cloud Team
@@ -18,6 +21,8 @@ template:
           status: unseen
       - type: TrustedSource
         config:
+          users:
+            *suse_user
           teams:
             *suse_cloud_specs_team
         whitelist_handler:
