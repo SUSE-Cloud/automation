@@ -42,6 +42,7 @@
     tempestoptions: --smoke
     label: openstack-mkcloud-ha-x86_64
     storage_method_ha: swift
+    database_engine: mysql
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'
@@ -49,6 +50,8 @@
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-disruptive-ha-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-{arch}'
 - project:
     name: cloud-mkcloud8-tempestfull-x86_64
     disabled: false
