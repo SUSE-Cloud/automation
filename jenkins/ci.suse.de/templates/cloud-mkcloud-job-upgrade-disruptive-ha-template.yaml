@@ -25,6 +25,7 @@
             want_nodesupgrade=1
             want_database_sql_engine={database_engine}
             hacloud=1
+            clusterconfig=data+services+network={nodenumber_controller}
             storage_method=swift
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-disruptive-ha-{arch}
