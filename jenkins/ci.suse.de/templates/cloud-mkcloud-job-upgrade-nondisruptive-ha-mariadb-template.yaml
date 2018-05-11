@@ -22,6 +22,7 @@
             upgrade_cloudsource=develcloud{version}
             ### 3 nodes for HA cluster, 2 compute nodes, 1 lonelynode for nfs server
             nodenumber=6
+            clusterconfig=data+services+network={nodenumber_controller}
             hacloud=1
             storage_method=swift
             cinder_backend=nfs
@@ -30,4 +31,4 @@
             want_ping_running_instances=1
             mkcloudtarget=instonly setuplonelynodes lonelynode_nfs_server proposal testpreupgrade addupdaterepo runupdate cloudupgrade testpostupgrade testsetup
             label={label}
-            job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}
+            job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-{arch}
