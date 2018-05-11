@@ -29,6 +29,7 @@
             want_nodesupgrade=1
             want_database_sql_engine={database_engine}
             want_ping_running_instances=1
+            want_clustered_rabbitmq=1
             mkcloudtarget=instonly setuplonelynodes lonelynode_nfs_server proposal testpreupgrade addupdaterepo runupdate cloudupgrade testpostupgrade testsetup
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-{arch}
