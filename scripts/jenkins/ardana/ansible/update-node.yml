@@ -123,7 +123,7 @@
 
 - name: Update CLM services
   include: _update-clm.yml
-  when: pending_clm_update
+  when: node_is_deployer and pending_clm_update
 
 - name: Update services
   shell: |
