@@ -3668,7 +3668,7 @@ function oncontroller_magnum_service_setup
 function nova_services_up
 {
     if iscloudver 7plus; then
-        test $(nova service-list | fgrep -cv -- \ up\ ) -lt 5
+        test $(openstack compute service list -f value -c State | grep -c down) -eq 0
     else
         test $(nova-manage service list  | fgrep -cv -- \:\-\)) -lt 2
     fi
