@@ -4140,13 +4140,13 @@ function update_keystone_password
     crowbar batch export keystone | ruby -ryaml -e "
 y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin'] ||= {}
-y['proposals'].first['attributes']['admin']['updated_password'] = '$updated_password'
+y['proposals'].first['attributes']['admin']['password'] = '$updated_password'
 puts y.to_yaml" > /root/keystone-test-pw-update.yaml
     safely crowbar batch --timeout 900 build < /root/keystone-test-pw-update.yaml
     safely oncontroller test_keystone_password
     cat /root/keystone-test-pw-update.yaml | ruby -ryaml -e "
 y = YAML.load(ARGF)
-y['proposals'].first['attributes']['admin']['updated_password'] = '$old_password'
+y['proposals'].first['attributes']['admin']['password'] = '$old_password'
 puts y.to_yaml" > /root/keystone-test-pw-reset.yaml
     safely crowbar batch --timeout 900 build < /root/keystone-test-pw-reset.yaml
 }
@@ -4270,10 +4270,9 @@ function onadmin_testsetup
         grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
     || complain 101 "simple horizon test failed"
 
-#   enable this once https://trello.com/c/iH2KAeIn is fixed
-#    if iscloudver 7plus; then
-#        update_keystone_password
-#    fi
+    if iscloudver 7plus; then
+        update_keystone_password
+    fi
 
     wantcephtestsuite=0
     if [[ $deployceph ]]; then
