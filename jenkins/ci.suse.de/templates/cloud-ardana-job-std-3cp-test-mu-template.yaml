@@ -1,0 +1,22 @@
+- job-template:
+    name: 'cloud-ardana{version}-job-std-3cp-test-mu-{arch}'
+    node: cloud-trigger
+    disabled: '{obj:disabled}'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 7
+
+    builders:
+      - trigger-builds:
+        - project: openstack-ardana
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            model=std-3cp
+            cloudsource=SUSE-OpenStack-Cloud-8-Pool
+            repositories=SLES12-SP3-Pool,SLES12-SP3-Updates,SUSE-OpenStack-Cloud-8-Pool,SUSE-OpenStack-Cloud-8-Updates
+            update_repositories=SLES12-SP3-Updates-test,SUSE-OpenStack-Cloud-8-Updates-test
+            tempest_run_filter=ci
+
