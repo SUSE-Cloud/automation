@@ -61,10 +61,11 @@
     timeout: 300
   when: node_is_deployer
 
-  # Sometimes¸ if the deployer is also a controller node, there are problems
-  # mounting the NFS zypper repositories during boot, probably because there
-  # is a race condition with the neutron-openvswitch-agent service or the
-  # Neutron OVS Cleanup Service, which temporarily disrupts connectivity.
+  # Workaround for bsc#1091226: Sometimes¸if the deployer is also a controller
+  # node, there are problems mounting the NFS zypper repositories during boot,
+  # probably because there is a race condition with the neutron-openvswitch-agent
+  # service or the Neutron OVS Cleanup Service, which temporarily disrupts
+  # connectivity. Remounting repositories fixes that.
 - name: Remount zypper repositories on deployer
   shell: |
     mount --all
@@ -80,3 +81,12 @@
   become: true
   become_user: ardana
   when: node_is_deployer
+
+  # Workaround for bsc#1091479 - start spark on all nodes after rebooting one node
+- name: Restart spark on all nodes to correct for bsc#1091479
+  shell: |
+    ansible-playbook -vvv -i hosts/verb_hosts spark-start.yml
+  args:
+    chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
+  become: true
+  become_user: ardana
