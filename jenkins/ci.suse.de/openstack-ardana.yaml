@@ -56,11 +56,33 @@
           description: >-
             This is used as input repository (from provo-clouddata) for testing
 
+      - extended-choice:
+          name: repositories
+          type: multi-select
+          value: SLES12-SP3-Pool,SLES12-SP3-Updates,SLES12-SP3-Updates-test,SUSE-OpenStack-Cloud-8-Pool,SUSE-OpenStack-Cloud-8-Updates,SUSE-OpenStack-Cloud-8-Updates-test
+          visible-items: 6
+          multi-select-delimiter: ','
+          default-value: SLES12-SP3-Pool,SLES12-SP3-Updates
+          description: >-
+            Set of zypper repositories (from provo-clouddata) to be used during installation
+
       - string:
           name: update_cloudsource
           default: ''
           description: >-
-            If set, this is used for update testing
+            Repository to be used for update testing. Use a value different than
+            cloudsource to enable update testing.
+
+      - extended-choice:
+          name: update_repositories
+          type: multi-select
+          value: SLES12-SP3-Pool,SLES12-SP3-Updates,SLES12-SP3-Updates-test,SUSE-OpenStack-Cloud-8-Pool,SUSE-OpenStack-Cloud-8-Updates,SUSE-OpenStack-Cloud-8-Updates-test
+          visible-items: 6
+          multi-select-delimiter: ','
+          default-value: ''
+          description: >-
+            Set of repositories to be added after the initial installation and used
+            during update testing. Select one or more repositories to enable update testing.
 
       - choice:
           name: update_method
@@ -69,7 +91,7 @@
             - patch
             - dist-upgrade
           description: >-
-            The update method used for update testing
+            The update method used for update testing.
 
       - string:
           name: tempest_run_filter
@@ -193,6 +215,7 @@
           ansible-playbook -v -i hosts ssh-keys.yml
           ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
                                        -e "cloudsource=${cloudsource}" \
+                                       -e "repositories='${repositories}'" \
                                        repositories.yml
           verification_temp_dir=$(ssh $sshargs root@$DEPLOYER_IP \
                                     "mktemp -d /tmp/ardana-job-rpm-verification.XXXXXXXX")
@@ -206,10 +229,17 @@
                ansible-playbook -vvv -i hosts/verb_hosts site.yml"
 
           # Run Update if required
-          if [ -n "$update_cloudsource" -a "$update_cloudsource" != "$cloudsource" ]; then
+          if [ -n "$update_cloudsource" -a "$update_cloudsource" != "$cloudsource" -o -n "$update_repositories" ]; then
+
+              # Run pre-update checks
+              ansible-playbook -v -i hosts -e "tempest_run_filter=${tempest_run_filter}" \
+                                           pre-update-checks.yml
+
               ansible-playbook -v -i hosts \
-                  -e "build_url=$BUILD_URL" -e "cloudsource=${update_cloudsource}" \
-                  repositories.yml
+                  -e "build_url=$BUILD_URL" \
+                  -e "cloudsource=${update_cloudsource}" \
+                  -e "repositories='${update_repositories}'" \
+                                        repositories.yml
 
               ansible-playbook -v -i hosts \
                   -e "cloudsource=${update_cloudsource}" \
