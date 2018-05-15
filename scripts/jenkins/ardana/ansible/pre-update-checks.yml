@@ -1,0 +1,29 @@
+---
+- name: Pre update checks
+  hosts: hosts
+  gather_facts: False
+
+  vars_files:
+    - ardana_net_vars.yml
+    - vars/main.yml
+
+  tasks:
+
+  - name: Configure Cloud for Tempest run
+    shell: |
+      ansible-playbook -v -i hosts/verb_hosts ardana-cloud-configure.yml
+    args:
+      chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
+    become: true
+    become_user: ardana
+
+  - name: Run tempest
+    shell: |
+      ansible-playbook -v -i hosts/verb_hosts tempest-run.yml \
+                       -e run_filter="{{ tempest_run_filter }}"
+    args:
+      chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
+    become: true
+    become_user: ardana
+    register: tempest_run_result
+    when: tempest_run_filter != ""
