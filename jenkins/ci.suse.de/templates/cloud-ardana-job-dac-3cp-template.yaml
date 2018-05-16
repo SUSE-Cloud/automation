@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-ardana{version}-job-std-min-{arch}'
+    name: 'cloud-ardana{version}-job-dac-3cp-{arch}'
     node: cloud-trigger
     disabled: '{obj:disabled}'
 
@@ -14,6 +14,6 @@
           block: true
           current-parameters: true
           predefined-parameters: |
-            model=std-min
+            model=dac-3cp
             cloudsource=SUSE-OpenStack-Cloud-{version}-devel-staging
             tempest_run_filter=ci

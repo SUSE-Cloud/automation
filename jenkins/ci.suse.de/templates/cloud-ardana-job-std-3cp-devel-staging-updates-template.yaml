@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-ardana{version}-job-std-3cp-test-mu-{arch}'
+    name: 'cloud-ardana{version}-job-std-3cp-devel-staging-updates-{arch}'
     node: cloud-trigger
     disabled: '{obj:disabled}'
 
@@ -15,8 +15,6 @@
           current-parameters: true
           predefined-parameters: |
             model=std-3cp
-            cloudsource=SUSE-OpenStack-Cloud-8-Pool
-            repositories=SLES12-SP3-Pool,SLES12-SP3-Updates,SUSE-OpenStack-Cloud-8-Pool,SUSE-OpenStack-Cloud-8-Updates
-            update_repositories=SLES12-SP3-Updates-test,SUSE-OpenStack-Cloud-8-Updates-test
+            cloudsource=SUSE-OpenStack-Cloud-{version}-devel
+            update_cloudsource=SUSE-OpenStack-Cloud-{version}-devel-staging
             tempest_run_filter=ci
-
