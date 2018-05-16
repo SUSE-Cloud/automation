@@ -3,6 +3,9 @@
     node: cloud-trigger
     disabled: '{obj:disabled}'
 
+    triggers:
+     - timed: 'H H * * *'
+
     logrotate:
       numToKeep: -1
       daysToKeep: 7
