@@ -6,7 +6,25 @@
         - 'cloud-ardana{version}-gating'
 
 - project:
-    name: cloud-ardana8-x86_64
+    name: cloud-ardana8-std-3cp-x86_64
+    disabled: false
+    version: 8
+    arch: x86_64
+    tempestoptions: ci
+    jobs:
+        - 'cloud-ardana{version}-job-std-3cp-{arch}'
+
+- project:
+    name: cloud-ardana8-dac-3cp-x86_64
+    disabled: false
+    version: 8
+    arch: x86_64
+    tempestoptions: ci
+    jobs:
+        - 'cloud-ardana{version}-job-dac-3cp-{arch}'
+
+- project:
+    name: cloud-ardana8-std-min-x86_64
     disabled: false
     version: 8
     arch: x86_64
