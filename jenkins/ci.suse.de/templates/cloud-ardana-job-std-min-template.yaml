@@ -15,6 +15,5 @@
           current-parameters: true
           predefined-parameters: |
             model=std-min
-            cloudsource=SUSE-OpenStack-Cloud-8-devel-staging
+            cloudsource=SUSE-OpenStack-Cloud-{version}-devel-staging
             tempest_run_filter=ci
-
