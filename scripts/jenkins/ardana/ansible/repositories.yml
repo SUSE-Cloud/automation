@@ -15,10 +15,15 @@
 
   tasks:
 
+  - name: Initialize repositories
+    set_fact:
+      repos_dict: {}
+
   - name: Parse repositories
     set_fact:
       repos_dict: "{{ repos_dict|default({})|combine({item: item}) }}"
     with_items: "{{ repositories.split(',')|unique|list }}"
+    when: repositories != ''
 
   - name: Add Cloud to repository list
     set_fact:
@@ -43,10 +48,17 @@
     with_items:
       - "{{ srv_dir_stats.results }}"
 
-  - name: Unmount the Cloud repo, if cloudsource was changed
-    mount:
-      state: unmounted
-      name: /srv/www/suse-12.3/x86_64/repos/Cloud
+  - name: Rsync Cloud repo contents
+    command: >
+      rsync
+        --archive
+        --sparse
+        --hard-links
+        --fuzzy
+        --delay-updates
+        --delete-delay
+        'rsync://{{ clouddata_server }}/cloud/repos/x86_64/{{ cloudsource }}/'
+        '/srv/www/suse-12.3/x86_64/repos/Cloud/'
     when: cloudsource != ''
 
   - name: Mount zypper repos
@@ -56,24 +68,17 @@
       opts: ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock
       name: /srv/www/suse-12.3/x86_64/repos/{{ item.item.key }}
       src: "{{ clouddata_server }}:/srv/nfs/repos/x86_64/{{ item.item.value }}"
+    when: item.item.key != 'Cloud'
     with_items:
       - "{{ srv_dir_stats.results }}"
 
   - name: Add zypper repos
     zypper_repository:
-      repo: "/srv/www/suse-12.3/x86_64/repos/{{ item.item.value }}"
+      repo: "/srv/www/suse-12.3/x86_64/repos/{{ item.item.key }}"
       name: "{{ item.item.key }}"
     register: added_repos
-    when: item.item.key != 'Cloud'
     with_items:
       - "{{ srv_dir_stats.results }}"
-
-  # Need to add Cloud repo as repo-md not as the default "yast2" type as that
-  # one refuses to install packages if the media build number changes
-  - name: Add Cloud repo
-    shell: |
-      zypper -n lr Cloud || zypper -n ar -c -K -f -t rpm-md /srv/www/suse-12.3/x86_64/repos/Cloud Cloud
-    when: cloudsource != ''
 
   - name: Repo for sshpass
     zypper_repository:
