@@ -16,8 +16,8 @@
           write-description: "Job aborted due to 180 minutes of inactivity"
 
     logrotate:
-      numToKeep: 20
-      daysToKeep: 30
+      numToKeep: 2000
+      daysToKeep: 300
 
     parameters:
       - string:
