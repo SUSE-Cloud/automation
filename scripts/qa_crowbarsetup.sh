@@ -5436,6 +5436,13 @@ function oncontroller_setupproduction()
     nova flavor-create --ephemeral 80 d4.xlarge  40 16384 40 4
     nova flavor-create --ephemeral 20 m8.xlarge  41 32768 20 8
 
+    # for aduffek/bosh/cloudfoundry
+    nova flavor-create --ephemeral 10 cf-minimal  160 3840 3 1
+    nova flavor-create --ephemeral 14 cf-small    161 7680 3 2
+    nova flavor-create --ephemeral 50 cf-small-50GB-ephemeral-disk           162 7680 3 2
+    nova flavor-create --ephemeral 10 cf-small-highmem                       163 31232 3 4
+    nova flavor-create --ephemeral 100 cf-small-highmem-100GB-ephemeral-disk 164 31232 3 4
+
     # create projects, increase quotas
     local tenantid
     for prj in $(curl https://w3.suse.de/~bwiedemann/cloud/projects.txt) container-ci ; do
