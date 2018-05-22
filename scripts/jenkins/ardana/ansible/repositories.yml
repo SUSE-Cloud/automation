@@ -65,7 +65,7 @@
     mount:
       state: mounted
       fstype: nfs
-      opts: ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock
+      opts: ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock,x-systemd.automount,noauto
       name: /srv/www/suse-12.3/x86_64/repos/{{ item.item.key }}
       src: "{{ clouddata_server }}:/srv/nfs/repos/x86_64/{{ item.item.value }}"
     when: item.item.key != 'Cloud'
