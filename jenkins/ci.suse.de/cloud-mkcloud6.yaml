@@ -18,9 +18,7 @@
         - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
         - 'cloud-mkcloud{version}-job-dvr-{arch}'
-        - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
-        - 'cloud-mkcloud{version}-job-xen-{arch}'
 - project:
     name: cloud-mkcloud6-ha-x86_64
     disabled: false
