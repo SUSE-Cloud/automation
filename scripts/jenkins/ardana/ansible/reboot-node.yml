@@ -61,17 +61,6 @@
     timeout: 300
   when: node_is_deployer
 
-  # Workaround for bsc#1091226: Sometimes¸if the deployer is also a controller
-  # node, there are problems mounting the NFS zypper repositories during boot,
-  # probably because there is a race condition with the neutron-openvswitch-agent
-  # service or the Neutron OVS Cleanup Service, which temporarily disrupts
-  # connectivity. Remounting repositories fixes that.
-- name: Remount zypper repositories on deployer
-  shell: |
-    mount --all
-  become: true
-  when: node_is_deployer
-
 - name: Run post-reboot actions on deployer
   shell: |
     ansible-playbook -vvv -i hosts/verb_hosts _ardana-post-reboot.yml \
