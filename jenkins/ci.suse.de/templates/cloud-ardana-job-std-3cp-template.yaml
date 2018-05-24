@@ -19,4 +19,6 @@
           predefined-parameters: |
             model=std-3cp
             cloudsource=SUSE-OpenStack-Cloud-{version}-devel-staging
-            tempest_run_filter=ci
+            tempest_run_filter={tempest_run_filter}
+            build_pool_name={build_pool_name}
+            build_pool_size={build_pool_size}

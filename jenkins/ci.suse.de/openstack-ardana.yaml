@@ -102,6 +102,22 @@
             periodic-virtual, refstack, smoke, swift, tests2skip, tests-ci,
             upgrade-ci or upgrade
 
+      - string:
+          name: build_pool_name
+          default: ''
+          description: >-
+            Name of the build resource pool to be used for this job. When
+            supplied, the heat stack created by this job will be added to the
+            build pool and will be cleaned up automatically when the pool fills up.
+
+      - string:
+          name: build_pool_size
+          default: 0
+          description: >-
+            The maximum number of heat stacks in the build_pool_name build pool
+            that can be kept running at any given time. When this number is exceeded,
+            older stacks in the pool will be deleted to make place for new ones.
+
     builders:
       - shell: |
           set +x
@@ -120,7 +136,8 @@
           fi
           CLOUD_CONFIG_NAME=engcloud-cloud-ci
           cat - > stack_env <<EOF
-          JOB_NAME="$JOB_NAME"
+          BUILD_POOL_NAME="$build_pool_name"
+          BUILD_POOL_SIZE="$build_pool_size"
           STACK_NAME="$STACK_NAME"
           CLOUD_CONFIG_NAME="$CLOUD_CONFIG_NAME"
           EOF
@@ -164,8 +181,30 @@
                   ;;
           esac
 
+          # Simple build pool management
+          if [[ -n $build_pool_name ]]; then
+              tail_no_old_stacks=$(( 1-build_pool_size ))
+              (( $tail_no_old_stacks >= 0 )) && tail_no_old_stacks='+0'
+              # NOTE: cannot use --property status=SUSPEND_COMPLETE as a filter when --tags is also present
+              old_stacks_to_delete=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack list \
+                                      --tags "$build_pool_name" \
+                                      -f value -c 'Stack Name' -c 'Stack Status' \
+                                      --sort 'creation_time:desc' |
+                                      grep SUSPEND_COMPLETE | cut -d' ' -f1 |
+                                      tail -n $tail_no_old_stacks)
+              if [[ -n $old_stacks_to_delete ]]; then
+                  for old_stack in $old_stacks_to_delete
+                  do
+                      # Need to resume the stack before deleting it, otherwise deletion will fail
+                      openstack --os-cloud $CLOUD_CONFIG_NAME stack resume --wait $old_stack
+                      openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait $old_stack
+                  done
+              fi
+          fi
+
           openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait \
               -t heat-ardana-${model}.yaml  \
+              --tags "$build_pool_name" \
               --parameter image_id_compute=$image_id_compute \
               --parameter number_of_computes=$num_compute \
               --parameter number_of_controllers=$num_controller \
@@ -259,17 +298,35 @@
           script: |
             set -x
             . $WORKSPACE/stack_env
-            if [ -z "${JOB_NAME}" ]; then
+            if [[ -n $BUILD_POOL_NAME ]] && (( $BUILD_POOL_SIZE == 0 )); then
                 openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait \
                       $STACK_NAME || :
             else
                 DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-ip-floating -c output_value -f value)
+                if [[ -n $BUILD_POOL_NAME ]]; then
+                    openstack --os-cloud $CLOUD_CONFIG_NAME stack suspend --wait \
+                          $STACK_NAME || :
+                fi
+                set +x
                 echo "*****************************************************************"
                 echo ""
-                echo "** Installation remains available at                             "
-                echo "             ssh ardana@$DEPLOYER_IP                             "
-                echo ""
-                echo "** Please do openstack stack delete $STACK_NAME when you're done."
+                if [[ -n $BUILD_POOL_NAME ]]; then
+                  echo "** The installation stack has been suspended and will be removed "
+                  echo "** automatically by one of the future job runs that is using the "
+                  echo "** same '$BUILD_POOL_NAME' build pool.                           "
+                  echo ""
+                  echo "** To prevent future jobs from removing the installation, either "
+                  echo "** resume the stack or remove the '$BUILD_POOL_NAME' tag from it "
+                  echo "** by running:                                                   "
+                  echo ""
+                  echo "**   openstack stack update --tags '' $STACK_NAME                "
+                  echo ""
+                else
+                  echo "** Installation remains available at                             "
+                  echo "             ssh ardana@$DEPLOYER_IP                             "
+                  echo ""
+                  echo "** Please do openstack stack delete $STACK_NAME when you're done."
+                fi
                 echo ""
                 echo "*****************************************************************"
             fi
