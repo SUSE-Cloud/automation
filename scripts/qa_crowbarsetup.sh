@@ -5462,6 +5462,7 @@ function oncontroller_setupproduction()
     nova quota-update --ram 95000 $(getprojectid cloudfoundry)
     nova quota-update --ram 69000 $(getprojectid container-ci)
     nova quota-update --ram 80000 --cores 100 $(getprojectid ses)
+    openstack quota set --cores 100 --ram 500000 bosh
     cinder quota-update --gigabytes 8000 $(getprojectid cloud) # for Eric Pendergrass HOS/Ardana/hLinux data backup
     # extra users
     openstack user create --project ses --email jschmid.suse.de ses-jenkins
