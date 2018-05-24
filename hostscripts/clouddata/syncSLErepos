@@ -147,6 +147,8 @@ for version in 8 7 6; do
     done
 done
 
+rsync_with_create ${ibs_source_nue}/Devel:/Cloud:/8:/HOS5Migration/SLE_12_SP3/ /srv/nfs/repos/x86_64/SUSE-OpenStack-Cloud-Crowbar-8-devel-HOS5Migration/
+
 ##############
 # SLE 12
 ##############
