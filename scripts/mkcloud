@@ -971,8 +971,8 @@ function crowbarupgrade_5plus
         wait_for 400 3 "! nc -w 1 -z $adminip 22" 'crowbar to go down after upgrade'
         wait_for_crowbar_ssh
         onadmin check_admin_server_upgraded
-        # use crowbar-init to bootstrap crowbar
-        onadmin bootstrapcrowbar "with_upgrade"
+        # use crowbar-init to bootstrap crowbar (only for 6-7 upgrade)
+        iscloudver 7 && onadmin bootstrapcrowbar "with_upgrade"
     else
         onadmin prepare_crowbar_upgrade
         crowbarbackup "with_upgrade"
