@@ -13,8 +13,11 @@ SM5..U.T.  c /etc/kafka/log4j.properties
 S.5..U.T.  c /etc/kafka/server.properties
 S.5....T.  c /etc/kibana/kibana.yml
 ......G..    /etc/monasca
-.M...UG..    /etc/monasca/agent
-.M...UG..    /etc/monasca/agent/conf.d
+# permissions changed by Monasca playbooks (bsc#1094873)
+.M...U...    /etc/monasca/agent
+.M...U...    /etc/monasca/agent/conf.d
+# permissions and owner changed by Monasca playbooks (bsc#1094971)
+SM5..U.T.  c /etc/storm/storm.yaml
 .....UG..    /opt/kibana/optimize
 .M.......    /usr/lib/monasca/agent/custom_checks.d
 .M.......    /usr/lib/monasca/agent/custom_detect.d
@@ -26,9 +29,15 @@ SM5....T.    /usr/share/ardana-opsconsole-ui/opscon_config.json
 .M.......    /var/lib/elasticsearch
 ......G..    /var/lib/swift
 .M.......    /var/log/beaver
+# owner changed by Cassandra playbooks (bsc#1094850)
+.M....G..    /var/log/cassandra
 ......G..    /var/log/kibana
 .M.......    /var/log/logstash
+# permissions changed by Monasca playbooks (bsc#1094873)
+.M.......    /var/log/monasca
 .M.......    /var/log/ops-console
 ......G..    /var/log/shibboleth
 .....UG..    /var/log/shibboleth-www
+# permissions changed by Spark playbooks (bsc#1094851)
+.M.......    /var/log/spark
 .M...UG..    /var/log/swift
