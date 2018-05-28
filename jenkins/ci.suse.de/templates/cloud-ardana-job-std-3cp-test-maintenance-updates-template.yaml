@@ -21,4 +21,6 @@
             cloudsource=SUSE-OpenStack-Cloud-{version}-Pool
             repositories=SLES12-SP3-Pool,SLES12-SP3-Updates,SUSE-OpenStack-Cloud-{version}-Pool,SUSE-OpenStack-Cloud-{version}-Updates
             update_repositories=SLES12-SP3-Updates-test,SUSE-OpenStack-Cloud-{version}-Updates-test
-            tempest_run_filter=ci
+            tempest_run_filter={tempest_run_filter}
+            build_pool_name={build_pool_name}
+            build_pool_size={build_pool_size}
