@@ -11,7 +11,8 @@
 
   - name: Configure Cloud for Tempest run
     shell: |
-      ansible-playbook -v -i hosts/verb_hosts ardana-cloud-configure.yml
+      ansible-playbook -v -i hosts/verb_hosts ardana-cloud-configure.yml \
+        -e local_image_mirror_url="{{ image_mirror_url }}"
     args:
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true

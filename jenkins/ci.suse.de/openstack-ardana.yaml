@@ -112,7 +112,7 @@
 
       - string:
           name: build_pool_size
-          default: 0
+          default: '0'
           description: >-
             The maximum number of heat stacks in the build_pool_name build pool
             that can be kept running at any given time. When this number is exceeded,
@@ -123,6 +123,7 @@
           set +x
           cloudsource_url=http://provo-clouddata.cloud.suse.de/repos/x86_64/$cloudsource
           cloudsource_media_build=$( curl -s $cloudsource_url/media.1/build )
+          image_mirror_url=http://provo-clouddata.cloud.suse.de/images/openstack/x86_64
           echo cloudsource=$cloudsource
           echo cloudsource URL is $cloudsource_url
           echo media build version is $cloudsource_media_build
@@ -271,25 +272,29 @@
           if [ -n "$update_cloudsource" -a "$update_cloudsource" != "$cloudsource" -o -n "$update_repositories" ]; then
 
               # Run pre-update checks
-              ansible-playbook -v -i hosts -e "tempest_run_filter=${tempest_run_filter}" \
-                                           pre-update-checks.yml
+              ansible-playbook -v -i hosts \
+                  -e "image_mirror_url=${image_mirror_url}" \
+                  -e "tempest_run_filter=${tempest_run_filter}" \
+                  pre-update-checks.yml
 
               ansible-playbook -v -i hosts \
                   -e "build_url=$BUILD_URL" \
                   -e "cloudsource=${update_cloudsource}" \
                   -e "repositories='${update_repositories}'" \
-                                        repositories.yml
+                  repositories.yml
 
               ansible-playbook -v -i hosts \
                   -e "cloudsource=${update_cloudsource}" \
                   -e "update_method=${update_method}" \
-                                        update.yml
+                  update.yml
           fi
 
           # Run post-deploy checks
-          ansible-playbook -v -i hosts -e "tempest_run_filter=${tempest_run_filter}" \
-                                       -e "verification_temp_dir=$verification_temp_dir" \
-                                       post-deploy-checks.yml
+          ansible-playbook -v -i hosts \
+              -e "image_mirror_url=${image_mirror_url}" \
+              -e "tempest_run_filter=${tempest_run_filter}" \
+              -e "verification_temp_dir=$verification_temp_dir" \
+              post-deploy-checks.yml
 
     publishers:
       - post-tasks:
