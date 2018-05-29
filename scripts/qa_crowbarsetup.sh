@@ -2595,7 +2595,7 @@ function custom_configuration
             if [[ $hacloud = 1 ]] ; then
                 # fetch one of the compute nodes as cinder_volume
                 local cinder_volume=("${unclustered_nodes[@]}")
-                if [[ "$deployceph" ]] && iscloudver 7plus ; then
+                if [[ "$deployceph" || $cinder_backend = "nfs" ]] && iscloudver 7plus ; then
                     cinder_volume=("cluster:$clusternameservices")
                 fi
                 if [[ ${#cinder_volume[@]} -eq 0 ]]; then
