@@ -51,4 +51,27 @@
 # Standard (upstream) path for custom detection plugins for
 # monasca-agent i.e. if you've got agent plugins local to your site
 # you drop them in this directory.
-/usr/lib/monasca/agent/custom_detect.d/.*.pyc?
+/usr/lib/monasca/agent/custom_detect\.d/.*\.pyc?
+
+# Standard (upstream) path for custom check plugins for
+# monasca-agent i.e. if you've got agent plugins local to your site
+# you drop them in this directory.
+/usr/lib/monasca/agent/custom_checks\.d/.*\.pyc?
+
+# From monasca-ansible/roles/storm/tasks/install.yml, links to /usr/share/java/mysql-connector-java.jar
+/usr/lib64/storm/extlib/mysql-connector-java\.jar
+
+# From spark-ansible/roles/FND-SPA/tasks/install.yml, links to /usr/share/java/mysql-connector-java.jar
+/usr/share/spark/lib/mysql-connector-java\.jar
+
+# From monasca-transform-ansible/roles/MON-TRA/configure.yml
+/usr/lib/tmpfiles\.d/monasca-transform\.conf
+
+# Octavia service files created by playbooks (bsc#1094847)
+/usr/lib/systemd/system/octavia-.*\.service
+
+# created by Octavia playbooks (bsc#1094847)
+/usr/share/octavia
+
+# left over after installing maintenance updates (bsc#1094401)
+/usr/lib64/libreiserfscore\.so\.0
