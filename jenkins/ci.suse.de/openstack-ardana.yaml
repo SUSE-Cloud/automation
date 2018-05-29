@@ -184,15 +184,14 @@
 
           # Simple build pool management
           if [[ -n $build_pool_name ]]; then
-              tail_no_old_stacks=$(( 1-build_pool_size ))
-              (( $tail_no_old_stacks >= 0 )) && tail_no_old_stacks='+0'
+              keep_no_old_stacks=$(( build_pool_size-1 ))
               # NOTE: cannot use --property status=SUSPEND_COMPLETE as a filter when --tags is also present
               old_stacks_to_delete=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack list \
                                       --tags "$build_pool_name" \
                                       -f value -c 'Stack Name' -c 'Stack Status' \
                                       --sort 'creation_time:desc' |
                                       grep SUSPEND_COMPLETE | cut -d' ' -f1 |
-                                      tail -n $tail_no_old_stacks)
+                                      awk 'NR > '$keep_no_old_stacks' {print $1}')
               if [[ -n $old_stacks_to_delete ]]; then
                   for old_stack in $old_stacks_to_delete
                   do
