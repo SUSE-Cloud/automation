@@ -28,5 +28,6 @@
             want_trove_proposal=0
             want_barbican_proposal=0
             want_sahara_proposal=0
+            want_database_sql_engine={database_engine}
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}
