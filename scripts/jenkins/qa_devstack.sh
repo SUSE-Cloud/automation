@@ -39,10 +39,14 @@ function h_setup_base_repos {
             DIST_VERSION="Tumbleweed"
         fi
     fi
+    USE_PYTHON3=False
 
     if [[ $DIST_NAME == "openSUSE_Leap" ]]; then
         $zypper ar -f http://download.opensuse.org/distribution/leap/${DIST_VERSION}/repo/oss/ Base || true
         $zypper ar -f http://download.opensuse.org/update/leap/${DIST_VERSION}/oss/openSUSE:Leap:${DIST_VERSION}:Update.repo || true
+        if [[ $DIST_VERSION == "15.0" ]]; then
+            USE_PYTHON3=True
+        fi
     fi
 
     if [[ $DIST_NAME == "openSUSE" ]]; then
@@ -111,6 +115,7 @@ LOG_COLOR=False
 API_RATE_LIMIT=False
 TEMPEST_ALLOW_TENANT_ISOLATION=True
 
+USE_PYTHON3=$USE_PYTHON3
 ENABLED_SERVICES=c-api,c-bak,c-sch,c-vol,ceilometer-acentral,ceilometer-acompute,ceilometer-alarm-evaluator,ceilometer-alarm-notifier,ceilometer-anotification,ceilometer-api,ceilometer-collector,cinder,dstat,etcd3,g-api,g-reg,horizon,key,mysql,n-api,n-api-meta,n-cauth,n-cond,n-cpu,n-novnc,n-obj,n-sch,peakmem_tracker,placement-api,q-agt,q-dhcp,q-l3,q-meta,q-metering,q-svc,rabbit,s-account,s-container,s-object,s-proxy,tempest,tls-proxy
 
 # use postgres instead of mysql as database
