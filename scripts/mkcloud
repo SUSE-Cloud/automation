@@ -973,6 +973,7 @@ function crowbarupgrade_5plus
         onadmin check_admin_server_upgraded
         # use crowbar-init to bootstrap crowbar (only for 6-7 upgrade)
         iscloudver 7 && onadmin bootstrapcrowbar "with_upgrade"
+        onadmin wait_for_crowbar_api
     else
         onadmin prepare_crowbar_upgrade
         crowbarbackup "with_upgrade"
