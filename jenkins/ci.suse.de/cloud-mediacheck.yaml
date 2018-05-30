@@ -22,6 +22,9 @@
             - Devel:Cloud:8/SLE_12_SP3/SOC
             - Devel:Cloud:8/SLE_12_SP3/HOS
             - Devel:Cloud:8/SLE_12_SP3/CROWBAR
+            - Devel:Cloud:9/SLE_12_SP3/SOC
+            - Devel:Cloud:9/SLE_12_SP3/HOS
+            - Devel:Cloud:9/SLE_12_SP3/CROWBAR
             - Devel:Cloud:8:Ocata/SLE_12_SP3
             - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3/SOC
             - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3/HOS
@@ -46,7 +49,10 @@
             "Devel:Cloud:7/SLE_12_SP2",
             "Devel:Cloud:8/SLE_12_SP3/SOC",
             "Devel:Cloud:8/SLE_12_SP3/HOS",
-            "Devel:Cloud:8/SLE_12_SP3/CROWBAR"
+            "Devel:Cloud:8/SLE_12_SP3/CROWBAR",
+            "Devel:Cloud:9/SLE_12_SP3/SOC",
+            "Devel:Cloud:9/SLE_12_SP3/HOS",
+            "Devel:Cloud:9/SLE_12_SP3/CROWBAR"
           ].contains(project)
           || subproject == ":"
         )
