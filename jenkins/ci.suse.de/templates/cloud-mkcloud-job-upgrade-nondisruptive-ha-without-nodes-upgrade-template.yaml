@@ -20,7 +20,8 @@
             TESTHEAD=1
             cloudsource=develcloud{previous_version}
             upgrade_cloudsource=develcloud{version}
-            nodenumber=4
+            nodenumber={nodenumber}
+            clusterconfig=data+services+network={nodenumber_controller}
             hacloud=1
             storage_method=swift
             mkcloudtarget=plain_with_upgrade
