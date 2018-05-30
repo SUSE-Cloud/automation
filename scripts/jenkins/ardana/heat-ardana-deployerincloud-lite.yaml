@@ -110,6 +110,13 @@ resources:
     properties:
       floating_network: floating
 
+  deployer_controller_mgmt_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_resource: network_mgmt }
+      fixed_ips:
+        - subnet_id: { get_resource: subnet_mgmt }
+
   # instances
   deployer-controller:
     type: OS::Nova::Server
@@ -118,9 +125,9 @@ resources:
       image: { get_param: image_id_controller }
       flavor: { get_param: instance_type_controller }
       networks:
-        - network: { get_resource: network_mgmt }
-        - network: { get_resource: network_ardana }
-        - network: { get_resource: network_external }
+        - port: { get_resource: deployer_controller_mgmt_port }
+        - subnet: { get_resource: subnet_ardana }
+        - subnet: { get_resource: subnet_external }
 
   computes:
     type: OS::Heat::ResourceGroup
@@ -134,9 +141,9 @@ resources:
           image: { get_param: image_id_compute }
           flavor: { get_param: instance_type_compute }
           networks:
-            - network: { get_resource: network_mgmt }
-            - network: { get_resource: network_ardana }
-            - network: { get_resource: network_external }
+            - subnet: { get_resource: subnet_mgmt }
+            - subnet: { get_resource: subnet_ardana }
+            - subnet: { get_resource: subnet_external }
 
   # disks
   controller_vdb:
@@ -186,7 +193,7 @@ resources:
     type: OS::Neutron::FloatingIPAssociation
     properties:
       floatingip_id: { get_resource: deployer-controller-floatingip }
-      port_id: {get_attr: [deployer-controller, addresses, { get_resource: network_mgmt }, 0, port]}
+      port_id: { get_resource: deployer_controller_mgmt_port }
 
 outputs:
   # deployer-controller

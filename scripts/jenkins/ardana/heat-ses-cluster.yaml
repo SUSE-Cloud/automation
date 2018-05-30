@@ -279,6 +279,13 @@ resources:
     properties:
       floating_network: { get_param: ses_external_network }
 
+  ses_admin_mgmt_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_resource: ses_network }
+      fixed_ips:
+        - subnet_id: { get_resource: ses_subnet }
+
   # instances
   ses-admin:
     type: OS::Nova::Server
@@ -287,7 +294,7 @@ resources:
       image: { get_param: ses_image_id }
       flavor: { get_param: ses_instance_type_admin }
       networks:
-        - network: { get_resource: ses_network }
+        - port: { get_resource: ses_admin_mgmt_port }
         - network: { get_param: ses_extra_network }
       user_data_format: RAW
       user_data:
@@ -306,7 +313,7 @@ resources:
           ses_image_id: { get_param: ses_image_id }
           ses_instance_type: { get_param: ses_instance_type_osd }
           ses_networks:
-              - network: { get_resource: ses_network }
+              - subnet: { get_resource: ses_subnet }
               - network: { get_param: ses_extra_network }
           ses_user_data: { get_resource: ses_init_osd }
 
@@ -323,7 +330,7 @@ resources:
           ses_image_id: { get_param: ses_image_id }
           ses_instance_type: { get_param: ses_instance_type_mon }
           ses_networks:
-              - network: { get_resource: ses_network }
+              - subnet: { get_resource: ses_subnet }
               - network: { get_param: ses_extra_network }
           ses_user_data: { get_resource: ses_init_mon }
 
@@ -331,7 +338,7 @@ resources:
     type: OS::Neutron::FloatingIPAssociation
     properties:
       floatingip_id: { get_resource: ses-admin-floatingip }
-      port_id: {get_attr: [ses-admin, addresses, { get_resource: ses_network }, 0, port]}
+      port_id: { get_resource: ses_admin_mgmt_port }
 
 outputs:
   # SES admin
@@ -344,7 +351,7 @@ outputs:
   # IP addresses of the nodes in the ses_extra_network
   ses-admin-extra-network-ip:
     description: IP address of the SES admin in the ses extra network
-    value: { get_attr: [ses-admin, networks, { get_resource: ses_extra_network }, 0]}
+    value: { get_attr: [ses-admin, networks, { get_param: ses_extra_network }, 0]}
   ses-osds-extra-network-ips:
     description: IP addresses of the OSD nodes in the ses_extra_network
     value: { get_attr: [ses-osds, networks, { get_param: ses_extra_network }, 0]}
