@@ -13,6 +13,13 @@
        numToKeep: 10
        daysToKeep: -1
 
+    wrappers:
+      - timeout:
+          timeout: 60
+          type: no-activity
+          abort: true
+          write-description: "Job aborted due to 60 minutes of inactivity."
+
     builders:
       - update-automation
       - shell: |
