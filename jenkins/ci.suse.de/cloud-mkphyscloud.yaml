@@ -58,6 +58,10 @@
 
     triggers: []
 
+    logrotate:
+      numToKeep: 50
+      daysToKeep: -1
+
     wrappers:
       - timestamps:
       - build-name:
