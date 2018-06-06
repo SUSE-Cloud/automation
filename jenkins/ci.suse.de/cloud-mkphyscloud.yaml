@@ -1,0 +1,112 @@
+- job:
+    name: 'cloud-mkphyscloud'
+    node: cloud-mkphyscloud
+    description: >-
+        This job will redeploy the d3.cloud - it will wipe all (three) d3 machines.
+
+    parameters:
+      - bool:
+          name: WITHREBOOT
+          default: false
+          description: >-
+              Enable reboots during the mkcloud run (incl. crowbar and compute node).
+      - text:
+          name: UPDATEREPOS
+          default: http://download.suse.de/ibs/home:/bmwiedemann:/branches:/SUSE:/SLE-11-SP3:/Update:/Test/standard/
+          description: >-
+              Update repositories (one URL per line)
+      - bool:
+          name: UPDATEBEFOREINSTALL
+          default: false
+          description: >-
+              add update repos before crowbar install
+      - string:
+          name: cloudsource
+          default: develcloud7
+      - string:
+          name: TESTHEAD
+          default:
+          description: >-
+              if non-empty, test latest version from Devel:Cloud Staging
+      - string:
+          name: libvirt_type
+          default: kvm
+          description: >-
+              possible values: kvm, xen, hyperv, [ lxc, qemu ]
+      - string:
+          name: networkingplugin
+          default: openvswitch
+          description: |
+              neutron networking plugin: openvswitch|linuxbridge
+              Default: openvswitch
+      - string:
+          name: networkingmode
+          default:
+          description: >-
+            gre|vlan|vxlan
+      - string:
+          name: automation_branch
+          default: master
+          description: >-
+              automation git repo branch to run from
+      - choice:
+          name: cloud
+          choices:
+            - d3
+          description: >-
+              which cloud to redeploy
+
+    triggers: []
+
+    wrappers:
+      - timestamps:
+      - build-name:
+          name: '#${BUILD_NUMBER}: ${ENV,var="libvirt_type"}'
+
+    publishers:
+      - archive:
+          artifacts: .artifacts/**
+          allow-empty: false
+          only-if-success: false
+          fingerprint: false
+          default-excludes: true
+
+    builders:
+      - shell: |
+          true
+          admin=crowbar$cloud
+          nodenumber=2
+          tempestoptions="-t"
+          sshopt="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -4"
+
+          if [ ! -z "$UPDATEREPOS" ] ; then
+            # testing update only makes sense with GMx and without TESTHEAD
+            unset TESTHEAD
+            export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
+          fi
+
+          export artifacts_dir=$WORKSPACE/.artifacts
+          rm -rf $artifacts_dir
+          mkdir -p $artifacts_dir
+          touch $artifacts_dir/.ignore
+          cd /home/jenkins
+          freshadminvm "$admin" "$cloudsource"
+
+          # rest of code runs on admin node:
+          env | grep -e networking -e libvirt -e cloud > mkcloud.config
+          scp $sshopt mkcloud.config root@$admin:
+          ret=0
+          ssh $sshopt root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL;
+            export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ; export cloudsource=$cloudsource ;
+            export libvirt_type=$libvirt_type ; export nodenumber=$nodenumber ;
+            export branch=$automation_branch ;"'
+            curl http://clouddata.cloud.suse.de/git/automation/scripts/jenkins/update_automation | bash -x
+            export debug_qa_crowbarsetup=1
+
+            [ $WITHREBOOT == "true" ] && export rebootsteps="rebootcloud"
+            [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="runupdate"
+            timeout --signal=ALRM 150m bash -x -c ". ~/github.com/SUSE-Cloud/automation/scripts/qa_crowbarsetup.sh ; onadmin_runlist addupdaterepo $updatesteps prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud proposal testsetup $rebootsteps"
+          ' || ret=$?
+          echo "mkphyscloud ret=$ret"
+          exit $ret
+
