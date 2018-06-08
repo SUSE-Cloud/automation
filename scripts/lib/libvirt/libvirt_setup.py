@@ -275,7 +275,7 @@ def compute_config(args, cpu_flags=cpuflags()):
                 args.cloud,
                 args.nodecounter,
                 i),
-            'target_dev': targetdevprefix + ''.join(alldevices.next()),
+            'target_dev': targetdevprefix + ''.join(next(alldevices)),
             'target_address': target_address.format(hex(0x10 + i)),
         }, configopts))
 
@@ -294,7 +294,7 @@ def compute_config(args, cpu_flags=cpuflags()):
                     args.cloud,
                     args.nodecounter,
                     i),
-                'target_dev': targetdevprefix + ''.join(alldevices.next()),
+                'target_dev': targetdevprefix + ''.join(next(alldevices)),
                 'target_address': target_address.format(hex(0x16 + i)),
             }, configopts))
 
@@ -308,7 +308,7 @@ def compute_config(args, cpu_flags=cpuflags()):
                 args.vdiskdir,
                 args.cloud,
                 args.nodecounter),
-            'target_dev': targetdevprefix + ''.join(alldevices.next()),
+            'target_dev': targetdevprefix + ''.join(next(alldevices)),
             'target_address': target_address.format('0x1f')},
             configopts))
 
