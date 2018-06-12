@@ -209,7 +209,7 @@ function ssh_password
 #!/bin/sh
 echo $admin_image_password
 EOSSHASK
-    chmod +x $SSH_ASKPASS
+    chmod 0700 $SSH_ASKPASS
     DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid $ssh -oNumberOfPasswordPrompts=1 "$@"
 }
 
