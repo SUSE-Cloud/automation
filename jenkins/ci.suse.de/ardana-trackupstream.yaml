@@ -26,7 +26,6 @@
             - ardana-extensions-dcn
             - ardana-extensions-example
             - ardana-extensions-nsx
-            - ardana-extensions-ses
             - ardana-freezer
             - ardana-glance
             - ardana-heat
@@ -51,6 +50,7 @@
             - ardana-qa-ansible
             - ardana-service
             - ardana-service-ansible
+            - ardana-ses
             - ardana-spark
             - ardana-swift
             - ardana-tempest
