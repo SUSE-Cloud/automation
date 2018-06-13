@@ -628,7 +628,9 @@ function mkvlan
     local intf=$cloudbr.$defvlan
     $sudo ip link add link $cloudbr name $intf type vlan id $defvlan
     safely $sudo ip link set $intf up
-    safely $sudo ip addr add $ip/24 dev $intf
+    if ! ip addr show $intf | grep -q $ip/24; then
+        safely $sudo ip addr add $ip/24 dev $intf
+    fi
 }
 
 function setuppublicnet
