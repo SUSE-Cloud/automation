@@ -623,11 +623,11 @@ function instcrowbarfromgit
 
 function mkvlan
 {
-    local DEFVLAN=$1 ; shift
-    local IP=$1 ; shift
-    $sudo ip link add link $cloudbr name $cloudbr.$DEFVLAN type vlan id $DEFVLAN
-    safely $sudo ip link set $cloudbr.$DEFVLAN up
-    safely $sudo ip addr add $IP/24 dev $cloudbr.$DEFVLAN
+    local defvlan=$1 ; shift
+    local ip=$1 ; shift
+    $sudo ip link add link $cloudbr name $cloudbr.$defvlan type vlan id $defvlan
+    safely $sudo ip link set $cloudbr.$defvlan up
+    safely $sudo ip addr add $ip/24 dev $cloudbr.$defvlan
 }
 
 function setuppublicnet
