@@ -8,7 +8,7 @@
 
     logrotate:
       numToKeep: -1
-      daysToKeep: 7
+      daysToKeep: 14
 
     builders:
       - trigger-builds:
