@@ -247,7 +247,9 @@ function error_exit
 {
     exitcode=$1
     message=$2
-    onhost_supportconfig
+    if [[ -n $BUILD_NUMBER ]]; then
+        onhost_supportconfig
+    fi
     onhost_stop_chef_clients_on_nodes
     pre_exit_cleanup
     echo $message
