@@ -540,10 +540,13 @@ function rsync_iso
     mkdir -p /mnt/cloud "$targetdir"
     (
         cd "$targetdir"
-        wget --progress=dot:mega -r -np -nc -e robots=off -A "$distiso" \
-            http://$susedownload$distpath/ \
+        url=http://$susedownload$distpath/
+        wget --progress=dot:mega -r -np -nc -e robots=off -A "$distiso" $url \
         || complain 71 "iso not found"
         local cloudiso=$(ls */$distpath/*.iso | tail -1)
+        if [ -z "$cloudiso" ]; then
+            complain 75 "failed to download $distiso from $url"
+        fi
         safely mount -o loop,ro -t iso9660 $cloudiso /mnt/cloud
         safely rsync -av --delete-after /mnt/cloud/ .
         safely umount /mnt/cloud
