@@ -243,6 +243,20 @@ function onhost_stop_chef_clients_on_nodes
         '
 }
 
+function onhost_start_chef_clients_on_nodes
+{
+    # Reverse effects of onhost_stop_chef_clients_on_nodes
+    ssh $sshopts root@$adminip '
+            set -x
+            for node in $(crowbar machines list | grep ^d) ; do
+            (
+                echo "Starting chef-client on $node"
+                timeout 30 ssh $node rcchef-client start
+            )
+            done
+        '
+}
+
 function error_exit
 {
     exitcode=$1
