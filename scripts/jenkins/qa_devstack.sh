@@ -140,7 +140,7 @@ h_echo_header "Setup"
 h_setup_base_repos
 $zypper ref
 h_setup_screen
-trap 'killall swift-{proxy,object,container,account}-{server,updater,reconstructor,sync,reaper,replicator,auditor} 2>/dev/null || :' EXIT
+trap 'killall swift-{proxy,object,container,account}-{server,updater,reconstructor,sync,reaper,replicator,auditor,sharder} 2>/dev/null || :' EXIT
 # setup extra disk if parameters given
 if [ -e "/dev/vdb" ]; then
     h_setup_extra_disk
