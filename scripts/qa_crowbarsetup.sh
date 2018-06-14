@@ -5335,7 +5335,19 @@ function onadmin_batch
     sed -i "s/##ironic_net_prefix##/$net_ironic/g" ${scenario}
     sed -i "s/##ironic_netmask##/$ironicnetmask/g" ${scenario}
 
-    safely crowbar batch --exclude manila --timeout 2400 build ${scenario}
+    local exclude="--exclude manila"
+
+    if [[ -z $deployswift ]]; then
+        echo "Excluding any swift proposal from batch run"
+        exclude="$exclude --exclude swift"
+    fi
+
+    if [[ -z $deployceph ]]; then
+        echo "Excluding any ceph proposal from batch run"
+        exclude="$exclude --exclude ceph"
+    fi
+
+    safely crowbar batch $exclude --timeout 2400 build ${scenario}
     if grep -q "barclamp: manila" ${scenario}; then
         get_novacontroller
         safely oncontroller manila_generic_driver_setup
