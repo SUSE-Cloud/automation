@@ -16,7 +16,7 @@ module GithubPR
       base_cmd = command("job_cmd")
       job_parameters(pull).each do |build_mode, job_paras|
         one_cmd = base_cmd + [@c["job_name"]] + parameters_to_cmd_paras(job_paras)
-        system(*one_cmd) or raise
+        system_cmd(one_cmd)
         if logging? then
           puts "  Triggered jenkins job in mode: #{build_mode}"
           puts "  Rebuild Link: #{JENKINS_URL}/job/#{@c["job_name"]}/parambuild/?#{parameters_to_uri(job_paras)}"
