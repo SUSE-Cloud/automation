@@ -24,6 +24,9 @@
             mkcloudtarget=plain_with_upgrade testsetup
             want_nodesupgrade=1
             want_database_sql_engine={database_engine}
+            want_trove_proposal=0
+            want_barbican_proposal=0
+            want_sahara_proposal=0
             hacloud=1
             clusterconfig=data+services+network={nodenumber_controller}
             storage_method=swift
