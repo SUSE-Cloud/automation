@@ -2323,6 +2323,9 @@ function custom_configuration
                 proposal_set_value glance default "['attributes']['glance']['default_store']" "'rbd'"
             fi
             if [[ $hacloud = 1 ]] ; then
+                if [[ $deployswift ]]; then
+                    proposal_set_value glance default "['attributes']['glance']['default_store']" "'swift'"
+                fi
                 proposal_set_value glance default "['deployment']['glance']['elements']['glance-server']" "['cluster:$clusternameservices']"
             fi
         ;;
@@ -2881,7 +2884,9 @@ function deploy_single_proposal
             fi
             ;;
         nfs_client)
-            [[ $hacloud = 1 ]] || return
+            # nfs client (used by glance) is needed for ha setups but only when
+            # neither swift nor ceph are deployed
+            [[ $hacloud = 1 && -z "$deployceph"  && -z "$deployswift" ]] || return
             ;;
         pacemaker)
             [[ $hacloud = 1 ]] || return
