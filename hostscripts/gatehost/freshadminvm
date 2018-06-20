@@ -33,7 +33,8 @@ fi
 onhost_prepareadmin
 virsh define $SCRIPTS_DIR/../hostscripts/gatehost/$n.xml # is OK to fail if already there
 virsh start $n
-sleep 100 # time for the admin VM to boot
+# a constant sleep is either too long or too short, just wait max 5 minutes for the ssh port
+wait_for 150 2 "nc -w 1 -z $n 22" 'admin node to start ssh daemon'
 [[ $sshkey ]] || sshkey=`cat /home/jenkins/.ssh/id_rsa.pub`
 ssh_password $n "mkdir -p ~/.ssh ; echo '$sshkey' >> ~/.ssh/authorized_keys"
 

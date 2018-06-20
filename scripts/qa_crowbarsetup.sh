@@ -33,6 +33,7 @@ fi
 : ${cinder_netapp_password:=''}
 : ${want_separate_ceph_network:=0}
 : ${crowbar_networkingmode:=single}
+: ${crowbar_name:=crowbar}
 : ${want_rootpw:=linux}
 : ${want_raidtype:="raid1"}
 : ${want_ipmi_username:=root}
@@ -220,7 +221,7 @@ function add_mount
 function issusenode
 {
     local machine=$1
-    [[ $machine =~ ^crowbar\. ]] && return 0
+    [[ $machine =~ ^${crowbar_name}\. ]] && return 0
     knife node show $machine -a node.target_platform | grep -q suse-
 }
 
@@ -798,7 +799,7 @@ function create_repos_yml
     common_set_versions
 
     # Clone test updates from admin node
-    local baseurl=http://crowbar.$cloudfqdn:8091/
+    local baseurl=http://${crowbar_name}.$cloudfqdn:8091/
 
     grep -q SLES$slesversion-Updates-test /etc/fstab && \
         additional_repos+=" SLES$slesversion-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-Updates-test"
@@ -947,7 +948,7 @@ function onadmin_prepareinstallcrowbar
     [[ $forcephysicaladmin ]] || lsmod | grep -q ^virtio_blk || complain 25 "this script should be run in the crowbar admin VM"
     [[ $want_ssl_keys ]] && ! [[ -e /root/cloud-keys/ ]] && rsync -a "$want_ssl_keys/" /root/cloud-keys/
     [[ $want_rootpw = linux ]] || echo -e "$want_rootpw\n$want_rootpw" | passwd
-    echo configure static IP and absolute + resolvable hostname crowbar.$cloudfqdn gw:$net.1
+    echo configure static IP and absolute + resolvable hostname ${crowbar_name}.$cloudfqdn gw:$net.1
     # We want to use static networking which needs a static resolv.conf .
     # The SUSE sysconfig/ifup scripts drop DNS-servers received from DHCP
     # when switching from DHCP to static.
@@ -967,13 +968,13 @@ EOF
     if ! [ -e $routes_file ] || ! grep -q "^default" $routes_file; then
         echo "default $net.1 - -" > $routes_file
     fi
-    echo "crowbar.$cloudfqdn" > /etc/HOSTNAME
+    echo "${crowbar_name}.$cloudfqdn" > /etc/HOSTNAME
     hostname `cat /etc/HOSTNAME`
     # these vars are used by rabbitmq
     export HOSTNAME=`cat /etc/HOSTNAME`
     export HOST=$HOSTNAME
-    grep -q "$net.*crowbar" /etc/hosts || \
-        echo $adminip crowbar.$cloudfqdn crowbar >> /etc/hosts
+    grep -q "$net.*${crowbar_name}" /etc/hosts || \
+        echo $adminip ${crowbar_name}.$cloudfqdn ${crowbar_name} >> /etc/hosts
     rcnetwork restart
     hostname -f # make sure it is a FQDN
     ping -c 1 `hostname -f`
@@ -1335,7 +1336,7 @@ EOF
 
     wait_for 30 5 "onadmin_is_crowbar_api_available" "crowbar service to start" "echofailed ; tail -n 90 $crowbar_install_log ; exit 11"
 
-    if ! get_all_nodes | grep -q crowbar.$cloudfqdn ; then
+    if ! get_all_nodes | grep -q ${crowbar_name}.$cloudfqdn ; then
         echofailed
         tail -n 90 $crowbar_install_log
         complain 85 "crowbar 2nd self-test failed"
@@ -1624,7 +1625,7 @@ function onadmin_allocate
     for m in `get_all_discovered_nodes` ; do
         crowbar machines allocate $m
         local i=$(echo $m | sed "s/.*-0\?\([^-\.]*\)\..*/\1/g")
-        cat >> .ssh/config <<EOF
+        cat >> ~/.ssh/config <<EOF
 Host node$i
     HostName $m
 EOF
