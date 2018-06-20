@@ -50,7 +50,7 @@
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
-        - 'cloud-mkcloud{version}-job-upgrade-disruptive-ha-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-disruptive-ha-mariadb-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}'
 - project:
