@@ -1767,7 +1767,9 @@ function onadmin_setup_nfs_server
         zypper -n in nfs-kernel-server
         mkdir -p /srv/nfs/cinder
         chmod 0777 /srv/nfs/cinder
-        echo '/srv/nfs/cinder *(rw,async,no_root_squash,no_subtree_check)' >> /etc/exports
+        mkdir -p /srv/nfs/rabbitmq
+        chown -R 91:91 /srv/nfs/rabbitmq
+        echo '/srv/nfs *(rw,async,no_root_squash,no_subtree_check)' >> /etc/exports
         systemctl enable nfs-server
         systemctl start nfs-server
     "
@@ -2217,7 +2219,11 @@ function custom_configuration
                 # update but disabled by default.
                 if iscloudver 6minus || ( iscloudver 7plus && [[ $want_clustered_rabbitmq = 0 ]] ); then
                     if [[ "$want_database_sql_engine" == "mysql" ]] ; then
-                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['device']" "'$adminfqdn:/srv/nfs/rabbitmq'"
+                        local nfs_server=$adminfqdn
+                        if ping -c1 -w1 nfsserver > /dev/null ; then
+                            nfs_server="nfsserver"
+                        fi
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['device']" "'$nfs_server:/srv/nfs/rabbitmq'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['fstype']" "'nfs'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['options']" "'rw,async,nofail'"
                     else
