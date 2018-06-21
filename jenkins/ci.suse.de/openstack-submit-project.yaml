@@ -73,6 +73,11 @@
                   ecos=systemsmanagement:crowbar:5.0
                   eard=systemsmanagement:Ardana:8
               ;;
+              Devel:Cloud:9)
+                  oscbuilddist=SLE_12_SP4
+                  ecos=systemsmanagement:crowbar:6.0
+                  eard=systemsmanagement:Ardana:9
+              ;;
               *) echo "Please add support for the project: $project"
                   exit 1
           esac

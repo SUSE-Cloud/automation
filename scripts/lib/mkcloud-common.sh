@@ -467,8 +467,10 @@ function getcloudver
         echo -n 6
     elif [[ $cloudsource =~ ^.*(cloud|GM)7(\+up)?$ ]] ; then
         echo -n 7
-    elif [[ $cloudsource =~ ^(.+8|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM8?(\+up)?)$ ]] ; then
+    elif [[ $cloudsource =~ ^.*(cloud|GM)8(\+up)?$ ]] ; then
         echo -n 8
+    elif [[ $cloudsource =~ ^(.+9|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM9?(\+up)?)$ ]] ; then
+        echo -n 9
     else
         complain 11 "unknown cloudsource version"
     fi

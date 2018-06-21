@@ -886,10 +886,10 @@ function onadmin_set_source_variables
             CLOUDTESTISONAME="CLOUD-8-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
-        susecloud8)
-            CLOUDISOPATH=/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/Cloud8/images/iso/
-            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-8-${arch}*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-official"
+        susecloud9)
+            CLOUDISOPATH=/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-official"
         ;;
         GM6|GM6+up)
             cs=$cloudsource
