@@ -21,7 +21,7 @@
             cloudsource=develcloud{previous_version}
             upgrade_cloudsource=develcloud{version}
             ### 3 nodes for HA cluster, 2 compute nodes
-            nodenumber=6
+            nodenumber={nodenumber}
             ### 1 lonelynode for nfs server
             nodenumberlonelynode=1
             want_nodesupgrade=1
