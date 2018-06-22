@@ -33,5 +33,5 @@
             clusterconfig=data+services+network={nodenumber_controller}
             storage_method=swift
             label={label}
-            mkcloudtarget=instonly setuplonelynodes lonelynode_nfs_server proposal testpreupgrade addupdaterepo runupdate cloudupgrade testpostupgrade testsetup
+            mkcloudtarget=instonly setuplonelynodes lonelynode_nfs_server proposal addupdaterepo runupdate cloudupgrade testsetup
             job_name=cloud-mkcloud{version}-job-upgrade-disruptive-ha-mariadb-{arch}
