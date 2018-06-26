@@ -65,9 +65,11 @@ clusternodesdrbd=
 clusternodesdata=
 clusternodesnetwork=
 clusternodesservices=
+clusternodesrabbit=
 clusternamedata="data"
 clusternameservices="services"
 clusternamenetwork="network"
+clusternamerabbit="data" # default to database nodes
 wanthyperv=
 crowbar_api=http://localhost:3000
 crowbar_api_installer_path=/installer/installer
@@ -505,19 +507,32 @@ function cluster_node_assignment
                 clusternodesdata="$nodes"
                 [[ $group =~ "+services" ]] && clusternameservices=$clustername
                 [[ $group =~ "+network" ]]  && clusternamenetwork=$clustername
+                [[ $group =~ "+rabbit" ]]   && clusternamerabbit=$clustername
             ;;
             services)
                 clusternodesservices="$nodes"
                 [[ $group =~ "+data" ]]     && clusternamedata=$clustername
                 [[ $group =~ "+network" ]]  && clusternamenetwork=$clustername
+                [[ $group =~ "+rabbit" ]]   && clusternamerabbit=$clustername
             ;;
             network)
                 clusternodesnetwork="$nodes"
                 [[ $group =~ "+data" ]]     && clusternamedata=$clustername
                 [[ $group =~ "+services" ]] && clusternameservices=$clustername
+                [[ $group =~ "+rabbit" ]]   && clusternamerabbit=$clustername
+            ;;
+            rabbit)
+                clusternamerabbit="$clustername" # defaults to data cluster
+                clusternodesrabbit="$nodes"
+                [[ $group =~ "+services" ]] && clusternameservices=$clustername
+                [[ $group =~ "+network" ]]  && clusternamenetwork=$clustername
+                [[ $group =~ "+data" ]]     && clusternamedata=$clustername
             ;;
         esac
     done
+    if [[ $clusternamerabbit = data ]]; then
+        clusternodesrabbit=$clusternodesdata
+    fi
     unclustered_nodes=($nodesavailable)
 
     echo "............................................................"
@@ -528,6 +543,8 @@ function cluster_node_assignment
     printf "   %s\n" $clusternodesnetwork
     echo "services cluster:"
     printf "   %s\n" $clusternodesservices
+    echo "rabbitmq cluster:"
+    printf "   %s\n" $clusternodesrabbit
     echo "other non-clustered nodes (free for compute / storage):"
     printf "   %s\n" ${unclustered_nodes[@]}
     echo "............................................................"
@@ -2053,6 +2070,7 @@ function hacloud_configure_cluster_defaults
             data)     cnodes="$clusternodesdata"     ;;
             services) cnodes="$clusternodesservices" ;;
             network)  cnodes="$clusternodesnetwork"  ;;
+            rabbit)   cnodes="$clusternodesrabbit"   ;;
         esac
         hacloud_configure_cluster_members $clustername "$cnodes"
     fi
@@ -2237,7 +2255,7 @@ function custom_configuration
                 if iscloudver 7plus && [[ $want_clustered_rabbitmq = 1 ]]; then
                     proposal_set_value rabbitmq default "['attributes']['rabbitmq']['cluster']" true
                 fi
-                proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamedata']"
+                proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamerabbit']"
             fi
             if ! [[ $want_trove_proposal = 0 ]]; then
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
