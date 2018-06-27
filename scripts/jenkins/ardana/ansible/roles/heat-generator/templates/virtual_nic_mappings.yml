@@ -1,0 +1,8 @@
+---
+  product:
+    version: 2
+
+  nic-mappings:
+{% for nic_mapping in input_model['nic-mappings'] if nic_mapping['name'].startswith('HEAT-') %}
+    - {{ nic_mapping | to_nice_yaml( width=50, explicit_start=False, explicit_end=False) | indent(width=6, indentfirst=False) }}
+{% endfor %}
