@@ -1784,8 +1784,12 @@ function onadmin_setup_nfs_server
         zypper -n in nfs-kernel-server
         mkdir -p /srv/nfs/cinder
         chmod 0777 /srv/nfs/cinder
+        mkdir -p /srv/nfs/glance
+        chmod 0777 /srv/nfs/glance
         mkdir -p /srv/nfs/rabbitmq
         chown -R 91:91 /srv/nfs/rabbitmq
+        mkdir -p /srv/nfs/database
+        chown -R 26:26 /srv/nfs/database
         echo '/srv/nfs *(rw,async,no_root_squash,no_subtree_check)' >> /etc/exports
         systemctl enable nfs-server
         systemctl start nfs-server
