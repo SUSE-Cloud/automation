@@ -131,7 +131,7 @@ def create_new_build_project(workdir, project, linkproject):
         os.chdir(olddir)
 
 
-def generate_pkgspec(pkgoutdir, global_requirements, spectemplate, pkgname):
+def generate_pkgspec(pkgoutdir, spectemplate, pkgname):
 
     obsservicedir = '/usr/lib/obs/service/'
     outdir = ('--outdir', pkgoutdir)
@@ -143,7 +143,6 @@ def generate_pkgspec(pkgoutdir, global_requirements, spectemplate, pkgname):
 
         renderspec(
             '--input-template', os.path.join(olddir, spectemplate),
-            '--requirements', os.path.join(olddir, global_requirements),
             '--output-name', pkgname + '.spec', *outdir)
 
         format_spec_file = Command(
@@ -248,7 +247,6 @@ def create_project(worktree, project, linkproject):
         copy_extra_sources(os.path.dirname(spectemplate), pkgoutdir)
         generate_pkgspec(
             pkgoutdir,
-            os.path.join(worktree, 'global-requirements.txt'),
             spectemplate, pkgname)
 
         if pkgname in existing_pkgs:
