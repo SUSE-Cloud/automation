@@ -94,29 +94,4 @@
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
 
-- project:
-    name: cloud-mkcloud7-s390x-all
-    disabled: true
-    version: 7
-    previous_version: 6
-    arch: s390x
-    label: openstack-mkcloud-SLE12-{arch}
-    tempestoptions: --smoke
-    jobs:
-        - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
-        - 'cloud-mkcloud{version}-job-btrfs-{arch}'
-        - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
-        - 'cloud-mkcloud{version}-job-raid-{arch}'
-        - 'cloud-mkcloud{version}-job-ssl-{arch}'
-        - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
 
-- project:
-    name: cloud-mkcloud7-s390x
-    disabled: false
-    version: 7
-    previous_version: 6
-    arch: s390x
-    label: openstack-mkcloud-SLE12-{arch}
-    tempestoptions: --smoke
-    jobs:
-        - cloud-mkcloud7-job-simpletest-s390x
