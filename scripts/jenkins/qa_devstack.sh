@@ -126,9 +126,12 @@ enable_service postgresql
 # enable_service q-vpn
 # enable_service q-fwaas
 enable_service q-lbaas
-
+enable_plugin magnum https://git.openstack.org/openstack/magnum master
 # for testing
-enable_service tempest
+#enable_service tempest
+ENABLED_SERVICES+=,heat,h-api,h-api-cfn,h-api-cw,h-eng
+IMAGE_URLS+=https://fedorapeople.org/groups/magnum/fedora-atomic-latest.qcow2
+enable_plugin barbican https://git.openstack.org/openstack/barbican
 EOF
 
     chown stack:stack -R $DEVSTACK_DIR
