@@ -1,6 +1,8 @@
 - job:
-    name: 'cloud-mkcloud7-job-simpletest-s390x'
+    name: 'cloud-mkcloud8-job-simpletest-s390x'
     node: cloud-trigger
+    # s390pc worker is unavailable
+    disabled: true
 
     triggers:
       - timed: 'H 22 * * *'
@@ -17,11 +19,11 @@
           current-parameters: true
           predefined-parameters: |
             TESTHEAD=1
-            cloudsource=develcloud7
+            cloudsource=develcloud8
             nodenumber=2
             mkcloudtarget=cleanup prepare setupadmin addupdaterepo prepareinstcrowbar runupdate bootstrapcrowbar instcrowbar setuplonelynodes crowbar_register onadmin+cloudupgrade_clients proposal crowbarbackup crowbarrestore
             label=openstack-mkcloud-SLE12-s390x
-            job_name=cloud-mkcloud7-job-simpletest-s390x
+            job_name=cloud-mkcloud8-job-simpletest-s390x
             want_ceilometer_proposal=0
             want_manila_proposal=0
             want_trove_proposal=0

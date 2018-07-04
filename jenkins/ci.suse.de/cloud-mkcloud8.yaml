@@ -89,3 +89,14 @@
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
+
+- project:
+    name: cloud-mkcloud8-s390x
+    disabled: true
+    version: 8
+    previous_version: 7
+    arch: s390x
+    label: openstack-mkcloud-SLE12-{arch}
+    tempestoptions: --smoke
+    jobs:
+        - cloud-mkcloud8-job-simpletest-s390x
