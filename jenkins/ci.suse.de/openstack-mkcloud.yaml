@@ -397,6 +397,12 @@
           default:
           description: set to 1 to ping running instances during the upgrade
 
+      - string:
+          name: SUPPORTCONFIG_OPTIONS
+          default: '-l -I 5000'
+          description: >-
+            Options to be passed to supportconfig if the job fails.
+
       - text:
           name: custom_settings
           default:

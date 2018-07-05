@@ -213,16 +213,19 @@ function pre_exit_cleanup
 function onhost_supportconfig
 {
     if [ -z "$SKIPSUPPORTCONFIG" ] ; then
+        local defaults="-l -I 5000"
+        local sc_cmd="supportconfig ${SUPPORTCONFIG_OPTIONS:-$defaults} | wc"
+
         ssh $sshopts root@$adminip '
             set -x
             for node in $(crowbar machines list | grep ^d) ; do
             (
                 echo "Collecting supportconfig from $node"
-                timeout 400 ssh $node supportconfig | wc
+                timeout 400 ssh $node '"$sc_cmd"'
                 timeout 300 scp $node:/var/log/\*tbz /var/log/
             )&
             done
-            timeout 500 supportconfig | wc &
+            timeout 500 '"$sc_cmd"' &
             wait
         '
         $scp root@$adminip:/var/log/*tbz $artifacts_dir/
