@@ -52,6 +52,7 @@
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-disruptive-ha-mariadb-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-debug-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}'
 - project:
     name: cloud-mkcloud8-tempestfull-x86_64
