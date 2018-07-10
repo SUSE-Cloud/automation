@@ -143,6 +143,7 @@ for version in 9 8 7 6; do
             rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
             rsync_with_create ${ibs_source}/SUSE/Products/OpenStack-Cloud-Crowbar/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Pool/
             rsync_with_create ${ibs_source}/SUSE/Updates/OpenStack-Cloud-Crowbar/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Updates/
+            rsync_with_create $ibsmaint/OpenStack-Cloud-Crowbar\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Updates-test/
 
         fi
     done
