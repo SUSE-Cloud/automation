@@ -27,9 +27,6 @@
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
-        # NOTE: we keep the Ocata job because we need to maintain
-        # Devel:Cloud:8:Ocata for CloudFoundry CI
-        - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-ocata'
         - 'cloud-mkcloud{version}-job-upgrade-disruptive-{arch}'
 - project:
     name: cloud-mkcloud8-ha-x86_64
