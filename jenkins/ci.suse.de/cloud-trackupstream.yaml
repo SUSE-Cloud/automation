@@ -24,6 +24,7 @@
             - openstack-dashboard-theme-HPE
             - openstack-dashboard-theme-SUSE
             - release-notes-suse-openstack-cloud
+            - documentation-suse-openstack-cloud
       - axis:
           type: user-defined
           name: project
@@ -46,7 +47,8 @@
             ].contains(project) &&
             [
               "crowbar-init",
-              "openstack-dashboard-theme-HPE"
+              "openstack-dashboard-theme-HPE",
+              "documentation-suse-openstack-cloud"
             ].contains(component)
           )
           ||
@@ -60,7 +62,8 @@
               "crowbar-init",
               "openstack-dashboard-theme-HPE",
               "openstack-dashboard-theme-SUSE",
-              "release-notes-suse-openstack-cloud"
+              "release-notes-suse-openstack-cloud",
+              "documentation-suse-openstack-cloud"
             ].contains(component)
           )
           ||
@@ -69,7 +72,8 @@
               "Devel:Cloud:7:Staging"
             ].contains(project) &&
             [
-              "openstack-dashboard-theme-HPE"
+              "openstack-dashboard-theme-HPE",
+              "documentation-suse-openstack-cloud"
             ].contains(component)
           )
           ||
