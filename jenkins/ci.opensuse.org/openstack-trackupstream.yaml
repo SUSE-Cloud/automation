@@ -35,6 +35,7 @@
             - openstack-heat-gbp
             - openstack-heat-templates
             - openstack-horizon-plugin-designate-ui
+            - openstack-horizon-plugin-freezer-ui
             - openstack-horizon-plugin-gbp-ui
             - openstack-horizon-plugin-ironic-ui
             - openstack-horizon-plugin-neutron-fwaas-ui
@@ -118,6 +119,7 @@
             ].contains(component) ||
             [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
+              "openstack-horizon-plugin-freezer-ui",
               "openstack-horizon-plugin-neutron-fwaas-ui",
               "openstack-horizon-plugin-neutron-vpnaas-ui",
               "openstack-neutron-vsphere",
