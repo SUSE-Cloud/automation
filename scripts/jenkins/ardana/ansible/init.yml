@@ -7,9 +7,6 @@
     - ardana_net_vars.yml
     - vars/main.yml
 
-  vars:
-    deployer_model: deployerincloud-lite
-
   tasks:
   - name: Write deployer info to /etc/motd
     become: yes
@@ -91,22 +88,12 @@
       - "{{ compute_mgmt_ips }}"
     when: item != "" and item != deployer_mgmt_ip
 
-  - name: Initialize target Model from "{{ deployer_model }}"
+  - name: Initialize target Model from "{{ input_model_path }}"
     synchronize:
-      src: "/var/lib/ardana/openstack/ardana-ci/{{ deployer_model}}/"
+      src: "{{ input_model_path }}/"
       dest: /var/lib/ardana/openstack/my_cloud/definition/
-    delegate_to: "{{ inventory_hostname }}"
     become: true
     become_user: ardana
-    tags:
-      - create-ardana-input-model
-
-  - name: Update servers in Model
-    template:
-      src: "{{ deployer_model }}/input-model-servers.yml"
-      dest: /var/lib/ardana//openstack/my_cloud/definition/data/servers.yml
-      owner: ardana
-      group: ardana
     tags:
       - create-ardana-input-model
 
@@ -124,31 +111,6 @@
          f.close();"
     args:
       chdir: /var/lib/ardana//openstack/my_cloud/definition/
-    tags:
-      - create-ardana-input-model
-
-  - name: Apply HEAT ci specific changes to Model
-    synchronize:
-      src: "files/{{ deployer_model }}/input-model/"
-      dest: /var/lib/ardana//openstack/my_cloud/definition/data/
-      copy_links: yes
-      archive: no
-      recursive: yes
-    become: true
-    become_user: ardana
-
-  - name: Replace disks to accomodate virtio_blk
-    replace:
-      dest: "/var/lib/ardana//openstack/my_cloud/definition/data/{{ item }}"
-      regexp: '/dev/sd([a-f]) *$'
-      replace: '/dev/vd\1'
-    with_items:
-      - disks_ardana.yml
-      - disks_compute.yml
-      - disks_dbmq.yml
-      - disks_mml.yml
-      - disks_osc.yml
-    ignore_errors: True
     tags:
       - create-ardana-input-model
 
