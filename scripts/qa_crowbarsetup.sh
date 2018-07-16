@@ -5477,6 +5477,8 @@ function oncontroller_setupproduction()
     openstack role add --project cloud --user cloudinfra Member
     openstack user create --project cloud --email tbechtold@suse.com cloud-ci
     openstack role add --project cloud --user cloud-ci Member
+    openstack user create --project ses --email jpupava@suse.cz ses-qam
+    openstack role add --project ses --user ses-qam Member
     openstack user create --project ses --email kyrylo.shatskyy@suse.com ses-ci
     openstack role add --project ses --user ses-ci Member
     openstack role add --project ses-ci --user ses-ci Member
