@@ -25,6 +25,7 @@
             - openstack-dashboard-theme-SUSE
             - release-notes-suse-openstack-cloud
             - documentation-suse-openstack-cloud
+            - caasp-openstack-heat-templates
       - axis:
           type: user-defined
           name: project
@@ -48,7 +49,8 @@
             [
               "crowbar-init",
               "openstack-dashboard-theme-HPE",
-              "documentation-suse-openstack-cloud"
+              "documentation-suse-openstack-cloud",
+              "caasp-openstack-heat-templates"
             ].contains(component)
           )
           ||
@@ -63,7 +65,8 @@
               "openstack-dashboard-theme-HPE",
               "openstack-dashboard-theme-SUSE",
               "release-notes-suse-openstack-cloud",
-              "documentation-suse-openstack-cloud"
+              "documentation-suse-openstack-cloud",
+              "caasp-openstack-heat-templates"
             ].contains(component)
           )
           ||
@@ -73,7 +76,8 @@
             ].contains(project) &&
             [
               "openstack-dashboard-theme-HPE",
-              "documentation-suse-openstack-cloud"
+              "documentation-suse-openstack-cloud",
+              "caasp-openstack-heat-templates"
             ].contains(component)
           )
           ||
