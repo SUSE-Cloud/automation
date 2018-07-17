@@ -1793,6 +1793,7 @@ function onadmin_setup_nfs_server
         echo '/srv/nfs *(rw,async,no_root_squash,no_subtree_check)' >> /etc/exports
         systemctl enable nfs-server
         systemctl start nfs-server
+        rpcdebug -m nfsd -s all
     "
     $ssh $nfs_server_node_ip "$inject"
 }
