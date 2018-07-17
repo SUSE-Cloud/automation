@@ -12,6 +12,7 @@
     repos_url: "http://{{ clouddata_server }}/repos/{{ arch }}"
     cloudsource_url: "{{ repos_url }}/{{ cloudsource }}"
     sshpass_repo: "http://download.suse.de/ibs/NON_Public:/infrastructure/SUSE_SLE_12_SP3_Update/"
+    test_repository_url: ''
 
   tasks:
 
@@ -79,6 +80,12 @@
     register: added_repos
     with_items:
       - "{{ srv_dir_stats.results }}"
+
+  - name: Add test repo
+    zypper_repository:
+      repo: "{{ test_repository_url }}"
+      name: "Cloud-Test"
+    when: test_repository_url != ''
 
   - name: Repo for sshpass
     zypper_repository:

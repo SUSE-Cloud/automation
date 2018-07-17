@@ -118,7 +118,43 @@
             that can be kept running at any given time. When this number is exceeded,
             older stacks in the pool will be deleted to make place for new ones.
 
+      - string:
+          name: gerrit_change_id
+          default: ''
+          description: >-
+            ID of the change in gerrit.suse.provo.cloud to test. It is expected
+            that the package is already built and available in a repository on
+            build.suse.de identifiable by this ID.
+
+      - string:
+          name: develproject
+          default: 'Devel:Cloud:8'
+          description: >-
+            Project in IBS to link against when creating a test project for a
+            change proposal.
+
+      - string:
+          name: homeproject
+          default: 'home:opensuseapibmw'
+          description: >-
+            Project in IBS that will act as the parent project for the newly
+            generated test project.
+
     builders:
+      - conditional-step:
+          condition-kind: shell
+          condition-command: |
+            test -n "${gerrit_change_id}"
+          steps:
+              - trigger-builds:
+                - project: cloud-ardana-testbuild-gerrit
+                  predefined-parameters: |
+                    gerrit_change_id=${gerrit_change_id}
+                    develproject=${develproject}
+                    homeproject=${homeproject}
+                    git_automation_repo=${git_automation_repo}
+                    git_automation_branch=${git_automation_branch}
+                  block: true
       - shell: |
           set +x
           cloudsource_url=http://provo-clouddata.cloud.suse.de/repos/x86_64/$cloudsource
@@ -252,10 +288,19 @@
           cat ardana_net_vars.yml
 
           ansible-playbook -v -i hosts ssh-keys.yml
-          ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
-                                       -e "cloudsource=${cloudsource}" \
-                                       -e "repositories='${repositories}'" \
-                                       repositories.yml
+          if [ -n "$gerrit_change_id" ] ; then
+              test_repository=http://download.suse.de/ibs/${homeproject//:/:\/}:/ardana-ci-${gerrit_change_id}/standard
+              ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
+                                           -e "cloudsource=${cloudsource}" \
+                                           -e "repositories='${repositories}'" \
+                                           -e "test_repository_url=${test_repository}" \
+                                           repositories.yml
+          else
+              ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
+                                           -e "cloudsource=${cloudsource}" \
+                                           -e "repositories='${repositories}'" \
+                                           repositories.yml
+          fi
           verification_temp_dir=$(ssh $sshargs root@$DEPLOYER_IP \
                                     "mktemp -d /tmp/ardana-job-rpm-verification.XXXXXXXX")
           ansible-playbook -v -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
