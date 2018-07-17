@@ -31,7 +31,6 @@
           name: project
           values:
             - Devel:Cloud:6:Staging
-            - Devel:Cloud:6:SAP:Staging
             - Devel:Cloud:7:Staging
             - Devel:Cloud:8:Staging
       - axis:
@@ -49,22 +48,6 @@
             [
               "crowbar-init",
               "openstack-dashboard-theme-HPE",
-              "documentation-suse-openstack-cloud",
-              "caasp-openstack-heat-templates"
-            ].contains(component)
-          )
-          ||
-          (
-            [
-              "Devel:Cloud:6:SAP:Staging"
-            ].contains(project) &&
-            [
-              "crowbar-ui",
-              "crowbar-hyperv",
-              "crowbar-init",
-              "openstack-dashboard-theme-HPE",
-              "openstack-dashboard-theme-SUSE",
-              "release-notes-suse-openstack-cloud",
               "documentation-suse-openstack-cloud",
               "caasp-openstack-heat-templates"
             ].contains(component)
