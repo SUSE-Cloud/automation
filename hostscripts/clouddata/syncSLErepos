@@ -132,13 +132,13 @@ for version in 9 8 7 6; do
             rsync_with_create $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
         fi
 
-        if [ "$version" == "8" ]; then
-            if [ "$arch" = "x86_64" ]; then
-                rsync_and_unpack_iso ${ibs_source_nue}/Devel:/Cloud:/$version/images/iso/HPE-HELION-OPENSTACK-$version-$arch-Media1.iso /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-devel
-                rsync_with_create ${ibs_source}/SUSE/Products/HPE-Helion-OpenStack/$version/$arch/product/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Pool/
-                rsync_with_create ${ibs_source}/SUSE/Updates/HPE-Helion-OpenStack/$version/$arch/update/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Updates/
-            fi
+        if [ "$version" = "8" -a "$arch" = "x86_64" ]; then
+            rsync_and_unpack_iso ${ibs_source_nue}/Devel:/Cloud:/$version/images/iso/HPE-HELION-OPENSTACK-$version-$arch-Media1.iso /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-devel
+            rsync_with_create ${ibs_source}/SUSE/Products/HPE-Helion-OpenStack/$version/$arch/product/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Pool/
+            rsync_with_create ${ibs_source}/SUSE/Updates/HPE-Helion-OpenStack/$version/$arch/update/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Updates/
+        fi
 
+        if [ "$version" = "8" -o "$version" = "9" ]; then
             rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel
             rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
             rsync_with_create ${ibs_source}/SUSE/Products/OpenStack-Cloud-Crowbar/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Pool/
