@@ -75,7 +75,7 @@
 
 - project:
     name: cloud-ardana8-centos-x86_64
-    disabled: false
+    disabled: true
     version: 8
     arch: x86_64
     tempest_run_filter: ci
