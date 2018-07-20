@@ -40,7 +40,9 @@ class GerritChange:
         self.id = change_id
         query_url = '%(gerrit)s/changes/%(change_id)s/?o=CURRENT_REVISION' % {
             'gerrit': self.GERRIT, 'change_id': self.id}
+        print("Retrieving change %s" % change_id)
         response = requests.get(query_url)
+        print("Got response: %s" % response)
         self._change_object = json.loads(response.text.replace(")]}'", ''))
         self.project = self._change_object['project'].split('/')[1]
         current_revision = self._change_object['current_revision']
@@ -54,6 +56,7 @@ class GerritChange:
             os.mkdir('source')
         with cd('source'):
             if not os.path.exists('%s.git/.git' % self.project):
+                print("Cloning project %s" % self.project)
                 sh.git('clone', self.url, '%s.git' % self.project)
             with cd('%s.git' % self.project):
                 # If another change is already checked out on this branch,
@@ -62,6 +65,7 @@ class GerritChange:
                     sh.git('checkout', 'test-merge')
                 except sh.ErrorReturnCode_1:
                     sh.git('checkout', '-b', 'test-merge', self.target)
+                print("Fetching ref %s" % self.ref)
                 sh.git('fetch', self.url, self.ref)
                 sh.git('merge', '--no-edit', 'FETCH_HEAD')
 
@@ -91,6 +95,8 @@ def create_test_project(develproject, testproject):
     with tempfile.NamedTemporaryFile() as meta:
         meta.write(repo_metadata)
         meta.flush()
+        print("Creating test project %s linked to devel project %s" %
+              (testproject, develproject))
         sh.osc('-A', 'https://api.suse.de', 'api', '-T', meta.name,
                '/source/%s/_meta' % testproject)
 
@@ -98,17 +104,20 @@ def create_test_project(develproject, testproject):
 
 
 def wait_for_build():
-    # Wait for build to be scheduled
+    print("Waiting for build to be scheduled")
     while 'unknown' in sh.osc('results'):
         time.sleep(3)
+    print("Waiting for build results")
     results = sh.osc('results', '--watch')
     if 'succeeded' not in results:
+        print("Build results: %s" % results)
         print("Package build failed.")
         sys.exit(1)
 
 
 def create_test_package(change, develproject, testproject):
     package_name = project_map()[change.project]
+    print("Creating test package %s" % package_name)
     sh.osc('-A', 'https://api.suse.de', 'copypac', '--keep-link',
            develproject, package_name, testproject)
     sh.osc('-A', 'https://api.suse.de', 'checkout', testproject, package_name)
