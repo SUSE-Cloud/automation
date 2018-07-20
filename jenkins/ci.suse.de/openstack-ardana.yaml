@@ -119,12 +119,11 @@
             older stacks in the pool will be deleted to make place for new ones.
 
       - string:
-          name: gerrit_change_id
+          name: gerrit_change_ids
           default: ''
           description: >-
-            ID of the change in gerrit.suse.provo.cloud to test. It is expected
-            that the package is already built and available in a repository on
-            build.suse.de identifiable by this ID.
+            A comma separated list of IDs for changes in
+            gerrit.suse.provo.cloud to test.
 
       - string:
           name: develproject
@@ -144,12 +143,12 @@
       - conditional-step:
           condition-kind: shell
           condition-command: |
-            test -n "${gerrit_change_id}"
+            test -n "${gerrit_change_ids}"
           steps:
               - trigger-builds:
                 - project: cloud-ardana-testbuild-gerrit
                   predefined-parameters: |
-                    gerrit_change_id=${gerrit_change_id}
+                    gerrit_change_ids=${gerrit_change_ids}
                     develproject=${develproject}
                     homeproject=${homeproject}
                     git_automation_repo=${git_automation_repo}
@@ -289,7 +288,7 @@
 
           ansible-playbook -v -i hosts ssh-keys.yml
           if [ -n "$gerrit_change_id" ] ; then
-              test_repository=http://download.suse.de/ibs/${homeproject//:/:\/}:/ardana-ci-${gerrit_change_id}/standard
+              test_repository=http://download.suse.de/ibs/${homeproject//:/:\/}:/ardana-ci-${gerrit_change_ids//,/-}/standard
               ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
                                            -e "cloudsource=${cloudsource}" \
                                            -e "repositories='${repositories}'" \

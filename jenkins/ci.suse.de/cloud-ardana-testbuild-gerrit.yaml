@@ -27,9 +27,11 @@
 
     parameters:
      - string:
-        name: gerrit_change_id
+        name: gerrit_change_ids
         default:
-        description: The change ID on gerrit.suse.provo.cloud to check out and build.
+        description: >-
+          A comma separated list of IDs for changes in gerrit.suse.provo.cloud
+          to test.
 
      - string:
         name: develproject
