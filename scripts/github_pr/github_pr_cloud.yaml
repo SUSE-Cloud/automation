@@ -33,6 +33,7 @@ template:
         config:
           status: unseen
       - type: TrustedSource
+        skippable: true
         config:
           users:
             *suse_cloud_user
