@@ -4390,11 +4390,6 @@ function oncontroller_testpreupgrade
 
 function oncontroller_testpostupgrade
 {
-
-    if ! grep non_disruptive /var/lib/crowbar/upgrade/*-progress.yml ; then
-        complain 11 "The testpostupgrade step is only valid for non-disruptive upgrade mode!"
-    fi
-
     # retrieve the ping results
     local fips=$(openstack --insecure floating ip list -f value -c "Floating IP Address")
 
