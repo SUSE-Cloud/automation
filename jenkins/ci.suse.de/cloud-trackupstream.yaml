@@ -60,7 +60,6 @@
             ].contains(project) &&
             [
               "crowbar-ui",
-              "crowbar-hyperv",
               "crowbar-init",
               "openstack-dashboard-theme-HPE",
               "openstack-dashboard-theme-SUSE",
@@ -80,16 +79,6 @@
               "caasp-openstack-heat-templates"
             ].contains(component)
           )
-          ||
-          (
-            [
-              "Devel:Cloud:8:Staging"
-            ].contains(project) &&
-            [
-              "crowbar-hyperv"
-            ].contains(component)
-          )
-
         )
       sequential: true
     builders:
