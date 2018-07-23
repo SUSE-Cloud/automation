@@ -11,7 +11,7 @@
     arch: x86_64
     repos_url: "http://{{ clouddata_server }}/repos/{{ arch }}"
     cloudsource_url: "{{ repos_url }}/{{ cloudsource }}"
-    sshpass_repo: "http://download.suse.de/ibs/QA:/SLE12SP3/update/"
+    sshpass_repo: "http://download.suse.de/ibs/NON_Public:/infrastructure/SUSE_SLE_12_SP3_Update/"
 
   tasks:
 
