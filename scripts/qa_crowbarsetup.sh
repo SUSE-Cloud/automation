@@ -2225,8 +2225,15 @@ function custom_configuration
         database)
             if [[ $hacloud = 1 ]] ; then
                 if [[ "$want_database_sql_engine" != "mysql" ]] ; then
-                    proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
-                    proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
+                    # migration 109 in SOC7 brings a change in schema, we need a different way to access to ha values
+                    # FIXME remove this after 109 is merged
+                    if [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
+                        proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['mode']" "'drbd'"
+                        proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['drbd']['size']" "$drbd_database_size"
+                    else
+                        proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
+                        proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
+                    fi
                 fi
                 proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
             fi
