@@ -28,8 +28,10 @@ foreach my $d (@dirs) {
                 my $signalled=kill(0, $num);
                 diag "PID file had $num";
                 if($signalled) {
-                        diag "someone else owns $a and is alive";
-                        next;
+                        if(!$ENV{CHECKPROC} || `grep $ENV{CHECKPROC} /proc/$num/cmdline` == 0) {
+                                diag "someone else owns $a and is alive";
+                                next;
+                        }
                 }
         }
         # process is dead => cleanup
