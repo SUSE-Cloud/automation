@@ -57,6 +57,7 @@
             - ardana-tls
             - python-ardana-opsconsole-server
             - python-cinderlm
+            - python-swiftlm
       - axis:
           type: user-defined
           name: project
