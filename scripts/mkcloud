@@ -76,6 +76,7 @@ setcloudnetvars $virtualcloud
 : ${vcpus:=2}
 nicsdefault=1
 [[ $want_ironic ]] && nicsdefault=2
+[[ $want_aci ]] && nicsdefault=2
 [[ $crowbar_networkingmode = team ]] && nicsdefault=$((nicsdefault + 1))
 [[ $want_separate_ceph_network ]] && crowbar_networkingmode="team"
 [[ $want_separate_ceph_network ]] && nicsdefault=4
@@ -108,6 +109,8 @@ iscloudver 7plus && : ${controller_node_memory:=12582912}
 : ${controller_ceph_hdd_size:=25}
 : ${lonelynode_hdd_size:=20}
 : ${ironicnode_hdd_size:=20}
+: ${acinode_hdd_size:=20}
+: ${acinicmodel:="i40e"}
 
 if [[ $hacloud ]] && [[ "$want_database_sql_engine" != "mysql" ]]; then
     : ${drbd_hdd_size:=15}
@@ -574,6 +577,16 @@ function setupironicnodes
     fi
 
     ${mkclouddriver}_do_setupironicnodes
+}
+
+# bring up ACI nodes attached to the ACI Fabric
+function setupacinodes
+{
+    if [[ $(nodes number aci) -lt 1 ]] ; then
+        complain 80 "Please set nodenumberacinode."
+        return
+    fi
+    ${mkclouddriver}_do_setupacinodes
 }
 
 # register lonely_node against crowbar
@@ -1093,6 +1106,7 @@ Steps:
     batch:          build proposals from exported crowbar_batch YAML file
     setuplonelynodes: boot a number (defined by nodenumberlonelynode) of non-crowbar registered nodes in the admin network
     setupironicnodes: boot a number of empty nodes to be used by the ironic service
+    setupacinodes:    boot a number of nodes that are attached to an ACI Fabric
     crowbar_register: register a number (defined by nodenumberlonelynode) of non-crowbar nodes with crowbar (setuplonelynodes needs to have run before)
     deployexternalceph: Deploy an external SES cluster on a number of crowbar nodes (defined by nodenumberlonelynode),
                     this step assumes that both setuplonelynodes and crowbar_register have been run first.
@@ -1191,6 +1205,8 @@ Optional
         Set the size in GB of data disk for lonely node.
     ironicnode_hdd_size (default 20)
         Set the size in GB of data disk for ironic node.
+    acinode_hdd_size (default 20)
+        Set the size in GB of data disk for lonely node.
     nodenumber=2    (default 2)
         set the number of nodes to be created for the cloud (excluding admin node)
         In HA mode (hacloud=1) the nodes needed for clusters are subtracted from nodenumber; the
@@ -1199,6 +1215,8 @@ Optional
         set the number of non-crowbar registered nodes to be created in the admin network
     nodenumberironicnode=2    (default 0)
         set the number of empty nodes to be used by the ironic service
+    nodenumberacinode=2    (default 0)
+        set the number of empty nodes that are attached to the ACI Fabric
     vcpus=1         (default $vcpus)
         set the number of CPU cores per compute node
     nics=1         (default $nics)
@@ -1282,6 +1300,8 @@ Optional
         Specify what version of SES you want to use. The value is the SES version (4 = SES4, 5 = SES5)
     want_ironic=1 (default='')
         Prepare (virtualized) environment for ironic.
+    want_aci=1 (default='')
+        Prepare (virtualized) environment for testing with ACI fabric.
     ironicnic=1 (default=1)
         Index of network card to be used for ironic.
     install_chef_suse_override='path/to/script'
@@ -1468,7 +1488,7 @@ allcmds="$step_aliases _test_setuphost \
     crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help \
     rebootneutron cloudupgrade \
     setuplonelynodes crowbar_register createadminsnapshot \
-    lonelynode_nfs_server setupironicnodes\
+    lonelynode_nfs_server setupironicnodes setupacinodes\
     restoreadminfromsnapshot createcloudsnapshot restorecloudfromsnapshot \
     cct steps batch setup_aliases onadmin onhost devsetup plain_with_upgrade_test \
     testpreupgrade testpostupgrade deployexternalceph"

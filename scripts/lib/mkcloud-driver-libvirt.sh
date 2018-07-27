@@ -65,6 +65,16 @@ function libvirt_net_start()
     onhost_setup_portforwarding
 }
 
+function libvirt_aci_vm_prepare()
+{
+    for ifs in eth4 eth5; do
+        domain="0x0000"
+        bus="0x$(ethtool -i $ifs | grep "bus-info" | cut -d ':' -f3 )"
+        slot="0x$(ethtool -i $ifs | grep "bus-info" | cut -d ':' -f4 | cut -d '.' -f1)"
+        function="0x$(ethtool -i $ifs | grep "bus-info" | cut -d ':' -f4 | cut -d '.' -f2)"
+    done
+}
+
 function libvirt_prepare()
 {
     # libvirt
@@ -399,6 +409,49 @@ function libvirt_do_onhost_deploy_image()
     tune2fs -l $disk > /dev/null 2>&1 && safely resize2fs $disk
     true
 }
+
+function libvirt_do_setupacinodes()
+{
+    local i
+    for i in $(nodes ids aci); do
+        local mac=( $(macfunc $i) $(macfunc ($i+4)) )
+        local aci_node=$cloud-node$i
+        safely ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
+               --acifabric 1 \
+               --acinicmodel "$acinicmodel" \
+               --macaddress $mac \
+               --cephvolumenumber "$cephvolumenumber" \
+               --drbdserial "$drbdvolume" \
+               --computenodememory $compute_node_memory\
+               --controllernodememory $controller_node_memory \
+               --libvirttype $libvirt_type \
+               --vcpus $vcpus \
+               --emulator $(get_emulator) \
+               --vdiskdir $vdisk_dir \
+               --bootorder 1 \
+               --numcontrollers 1 \
+               --firmwaretype "$firmware_type" > /tmp/$cloud-node$i.xml
+
+        local aci_disk
+        aci_disk="$vdisk_dir/${cloud}.node$i"
+        $sudo lvdisplay "$aci_disk" || \
+            _lvcreate "${cloud}.node$i" "${acinode_hdd_size}" "$cloudvg"
+
+        local j
+        local lonely_data_disk
+        for j in $(seq $cephvolumenumber); do
+            lonely_data_disk="${aci_disk}-ceph$j"
+            $sudo lvdisplay "$aci_data_disk" || \
+                _lvcreate "${cloud}.node$i-ceph$j" "${cephvolume_hdd_size}" "$cloudvg"
+            # make sure the drive is Zapped and ready for use
+            sudo sgdisk -Z $aci_data_disk
+        done
+
+        onhost_deploy_image "aci" $(get_aci_node_dist) $aci_disk
+        safely libvirt_vm_start /tmp/${aci_node}.xml
+    done
+}
+
 
 function libvirt_do_setuplonelynodes()
 {

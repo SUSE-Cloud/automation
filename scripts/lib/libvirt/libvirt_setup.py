@@ -125,6 +125,11 @@ def get_mainnic_address(index):
             (hex(index + 0x1))
     return mainnicaddress
 
+def get_acinic_address(index):
+    acinicaddress = "<address type='pci' bus='0x81' slot='%s'/>" % \
+        (hex(index + 0x1))
+    return acinicaddress
+
 
 def get_maindisk_address():
     maindiskaddress = "<address type='pci' slot='0x04'/>"
@@ -181,7 +186,10 @@ def net_interfaces_config(args, nicmodel):
     nic_configs = []
     bootorderoffset = 2
     for index, mac in enumerate(args.macaddress):
-        mainnicaddress = get_mainnic_address(index)
+        if args.acifabric:
+            nicaddress = get_acinic_address(index)
+        else:
+            nicaddress = get_mainnic_address(index)
         values = dict(
             cloud=args.cloud,
             nodecounter=args.nodecounter,
@@ -190,7 +198,7 @@ def net_interfaces_config(args, nicmodel):
             macaddress=mac,
             nicmodel=nicmodel,
             bootorder=bootorderoffset + (index * 10),
-            mainnicaddress=mainnicaddress)
+            mainnicaddress=nicaddress)
         nic_configs.append(
             get_config(values, os.path.join(TEMPLATE_DIR,
                                             "net-interface.xml")))
@@ -251,6 +259,14 @@ def compute_config(args, cpu_flags=cpuflags()):
     # override nic model for ironic setups
     if args.ironicnic >= 0:
         configopts['nicmodel'] = 'e1000'
+
+    if args.acifabric:
+        aci_configopts = {
+             'nicmodel': args.acinicmodel,
+             'emulator': args.emulator,
+             'vdisk_dir': args.vdiskdir,
+             'memballoon': get_memballoon_type()
+        }
 
     controller_raid_volumes = args.controller_raid_volumes
     if args.nodecounter > args.numcontrollers:
@@ -334,7 +350,7 @@ def compute_config(args, cpu_flags=cpuflags()):
         raidvolume=raidvolume,
         cephvolume=cephvolume,
         drbdvolume=drbdvolume,
-        nics=net_interfaces_config(args, configopts["nicmodel"]),
+        nics=net_interfaces_config(args, configopts['nicmodel']),
         maindiskaddress=get_maindisk_address(),
         videodevices=get_video_devices(),
         target_dev=targetdevprefix + 'a',
@@ -344,8 +360,18 @@ def compute_config(args, cpu_flags=cpuflags()):
         bootorder=args.bootorder,
         local_repository_mount=localrepomount)
 
-    return get_config(merge_dicts(values, configopts),
-                      os.path.join(TEMPLATE_DIR, "compute-node.xml"))
+
+    if args.acifabric:
+        values['acinic']=net_interfaces_config(args, aci_configopts['nicmodel'])
+        compute_config = get_config(merge_dicts(values, configopts, aci_configopts),
+                      os.path.join(TEMPLATE_DIR, "aci-compute-node.xml"))
+    else:
+        compute_config =  get_config(merge_dicts(values, configopts),
+                          os.path.join(TEMPLATE_DIR, "compute-node.xml"))
+
+
+    return compute_config
+
 
 
 def domain_cleanup(dom):

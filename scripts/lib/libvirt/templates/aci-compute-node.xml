@@ -1,0 +1,40 @@
+<domain type='kvm' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
+  <name>$cloud-node$nodecounter</name>
+  <memory>$nodememory</memory>
+  <currentMemory>$nodememory</currentMemory>
+  <vcpu>$vcpus</vcpu>
+  <os>
+    <type arch='$march' machine='$machine'>hvm</type>
+$osloader
+    <nvram>/var/lib/libvirt/$cloud-node${nodecounter}_VARS.fd</nvram>
+  </os>
+$cpuflags
+  <clock offset='utc'/>
+  <on_poweroff>preserve</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>preserve</on_crash>
+  <devices>
+    <emulator>$emulator</emulator>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='unsafe'/>
+      <source dev='$vdisk_dir/$cloud.node$nodecounter'/>
+      <target dev='$target_dev' bus='$target_bus'/>
+      $target_address
+      <boot order='$bootorder'/>
+    </disk>
+$raidvolume
+$cephvolume
+$drbdvolume
+$nics
+$acinic
+$serialdevice
+    <console type='pty'>
+      <target type='$consoletype' port='0'/>
+    </console>
+    <input type='mouse' bus='ps2'/>
+$videodevices
+$memballoon
+$local_repository_mount
+  </devices>
+$ipmidevice
+</domain>

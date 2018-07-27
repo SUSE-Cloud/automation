@@ -15,6 +15,10 @@ def main():
     parser.add_argument("--macaddress", help="MAC Address(es)", action="append")
     parser.add_argument("--ironicnic", type=int, default=-1,
                         help="Index of network card for ironic")
+    parser.add_argument("--acifabric", type=int, default=0,
+                        help="Set to 1 if node connected to ACI Fabric"),
+    parser.add_argument("--acinicmodel", default="i40e",
+                        help="Compute Node NIC model attached to the ACI Fabric"),
     parser.add_argument("--controller-raid-volumes", type=int, default=0,
                         help="Number of disks for RAID on controller node. "
                         "Default: %(default)s")
