@@ -196,8 +196,8 @@
                   for old_stack in $old_stacks_to_delete
                   do
                       # Need to resume the stack before deleting it, otherwise deletion will fail
-                      openstack --os-cloud $CLOUD_CONFIG_NAME stack resume --wait $old_stack
-                      openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait $old_stack
+                      openstack --os-cloud $CLOUD_CONFIG_NAME stack resume --wait $old_stack || :
+                      openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait $old_stack || :
                   done
               fi
           fi
