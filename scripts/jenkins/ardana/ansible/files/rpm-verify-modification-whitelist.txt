@@ -17,7 +17,7 @@ S.5....T.  c /etc/kibana/kibana.yml
 .M...U...    /etc/monasca/agent
 .M...U...    /etc/monasca/agent/conf.d
 # permissions and owner changed by Monasca playbooks (bsc#1094971)
-SM5..U.T.  c /etc/storm/storm.yaml
+SM5....T.  c /etc/storm/storm.yaml
 .....UG..    /opt/kibana/optimize
 .M.......    /usr/lib/monasca/agent/custom_checks.d
 .M.......    /usr/lib/monasca/agent/custom_detect.d
