@@ -25,7 +25,7 @@
   register: _ansible_hostname_result
   failed_when: _ansible_hostname_result.rc != 0 or
              _ansible_hostname_result.stdout | trim == ''
-  with_items: "{{ controller_mgmt_ips }}"
+  with_items: "{{ controller_mgmt_ips|default([]) }}"
 
 - name: Set ansible controller hostnames fact
   set_fact:

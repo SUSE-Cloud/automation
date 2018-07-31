@@ -49,7 +49,7 @@
       sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {{ item }}
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
-      - "{{ compute_mgmt_ips }}"
+      - "{{ compute_mgmt_ips|default([]) }}"
     ignore_errors: True
     when: item != "" and item != deployer_mgmt_ip
 
@@ -63,7 +63,7 @@
       scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/sudoers.d/ardana root@{{ item }}:/etc/sudoers.d/ardana
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
-      - "{{ compute_mgmt_ips }}"
+      - "{{ compute_mgmt_ips|default([]) }}"
     when: item != "" and item != deployer_mgmt_ip
 
   # osconfig-ansible should take care of installing the repositories itself,
@@ -75,7 +75,7 @@
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "cat >/tmp/cloud.key && rpm --import /tmp/cloud.key && rm /tmp/cloud.key" < $kf
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
-      - "{{ compute_mgmt_ips }}"
+      - "{{ compute_mgmt_ips|default([]) }}"
     when: item != "" and item != deployer_mgmt_ip
 
   - name: Grow 1st partition filesystem on non-deployer nodes
@@ -85,7 +85,7 @@
     ignore_errors: True
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
-      - "{{ compute_mgmt_ips }}"
+      - "{{ compute_mgmt_ips|default([]) }}"
     when: item != "" and item != deployer_mgmt_ip
 
   - name: Initialize target Model from "{{ input_model_path }}"
@@ -154,7 +154,7 @@
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  {{ item }} sudo touch /etc/openstack/skip_disk_config
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
-      - "{{ compute_mgmt_ips }}"
+      - "{{ compute_mgmt_ips|default([]) }}"
     become: true
     when: item != "" and item != deployer_mgmt_ip
     become_user: ardana

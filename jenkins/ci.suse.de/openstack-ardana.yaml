@@ -218,19 +218,25 @@
           deployer_mgmt_ip: $(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME admin-mgmt-ip -c output_value -f value)
           EOF
 
-          echo "controller_mgmt_ips:" >> ardana_net_vars.yml
-          for ip in $(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME controller-mgmt-ips -c output_value -f value|grep -o '[0-9.]*'); do
-              cat << EOF >> ardana_net_vars.yml
+          controller_mgmt_ips=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME controller-mgmt-ips -c output_value -f value|grep -o '[0-9.]*')
+          if [ -n "$controller_mgmt_ips" ]; then
+            echo "controller_mgmt_ips:" >> ardana_net_vars.yml
+            for ip in $controller_mgmt_ips; do
+                cat << EOF >> ardana_net_vars.yml
               - $ip
           EOF
-          done
+            done
+          fi
 
-          echo "compute_mgmt_ips:" >> ardana_net_vars.yml
-          for ip in $(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute-mgmt-ips -c output_value -f value|grep -o '[0-9.]*'); do
-              cat << EOF >> ardana_net_vars.yml
+          compute_mgmt_ips=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute-mgmt-ips -c output_value -f value|grep -o '[0-9.]*')
+          if [ -n "$compute_mgmt_ips" ]; then
+            echo "compute_mgmt_ips:" >> ardana_net_vars.yml
+            for ip in $compute_mgmt_ips; do
+                cat << EOF >> ardana_net_vars.yml
               - $ip
           EOF
-          done
+            done
+          fi
 
           # Get the IP addresses of the dns servers from the mgmt network
           echo "mgmt_dnsservers:" >> ardana_net_vars.yml
