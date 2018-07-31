@@ -178,7 +178,6 @@
           CLOUD_CONFIG_NAME="$CLOUD_CONFIG_NAME"
           EOF
 
-          export ANSIBLE_HOST_KEY_CHECKING=False
           export ANSIBLE_KEEP_REMOTE_FILES=1
           # the name for the cloud defined in ~./config/openstack/clouds.yaml
 
@@ -285,6 +284,8 @@
               while read line; do echo "  - $line" >> ardana_net_vars.yml; done;
 
           cat ardana_net_vars.yml
+
+          source /opt/ansible/bin/activate
 
           ansible-playbook -v -i hosts ssh-keys.yml
           if [ -n "$gerrit_change_id" ] ; then
