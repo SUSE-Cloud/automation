@@ -174,6 +174,12 @@
           description: >-
             Name of the repository in IBS against which to build the test packages.
 
+      - string:
+          name: want_caasp
+          default:
+          description: >-
+            Set to 1 to deploy CaaSP using the caasp-openstack-heat-templates.
+
     builders:
       - conditional-step:
           condition-kind: shell
@@ -217,11 +223,16 @@
           pushd automation-git/scripts/jenkins/ardana/ansible
           source /opt/ansible/bin/activate
 
+          if [ $want_caasp == '1' ]; then
+            virt_config_file="caasp.yml"
+          fi
+
           # generate the heat template
           ansible-playbook -v generate-heat.yml \
             -e cloudsource="${cloudsource}" \
             -e input_model_path="$WORKSPACE/input-model" \
             -e heat_template_file="$WORKSPACE/heat-ardana-${model}.yaml" \
+            -e virt_config_file="$virt_config_file"
 
           # generate properties file
           cat - > $WORKSPACE/heat_stack_env <<EOF
@@ -362,6 +373,12 @@
               -e "tempest_run_filter=${tempest_run_filter}" \
               -e "verification_temp_dir=$verification_temp_dir" \
               post-deploy-checks.yml
+
+          # Deploy CaaSP
+          if [ $want_caasp == '1' ]; then
+            ansible-playbook -v -i hosts \
+                deploy-caasp.yml
+          fi
 
     publishers:
       - trigger-parameterized-builds:
