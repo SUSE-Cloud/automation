@@ -30,14 +30,13 @@
           while $osc_timed api /build/${{OBS_TEST_PROJECT}} > /dev/null; do
               sleep $((RANDOM%10+5))
           done
-
-          mkdir -p ~/.cache/download_files/file  ~/.cache/download_files/filename
-          /usr/local/bin/createproject.py --linkproject ${{OBS_BASE_SRC_PROJECT}} . ${{OBS_TEST_PROJECT}}
-
-          pushd ./out
           echo "#################################"
           echo "https://build.opensuse.org/project/show/${{OBS_TEST_PROJECT}}"
           echo "#################################"
+
+          mkdir -p ~/.cache/download_files/file  ~/.cache/download_files/filename
+          /usr/local/bin/createproject.py --linkproject ${{OBS_BASE_SRC_PROJECT}} . ${{OBS_TEST_PROJECT}}
+          pushd ./out
           sleep 5
 
           # Check if there is no change, then pretent success
