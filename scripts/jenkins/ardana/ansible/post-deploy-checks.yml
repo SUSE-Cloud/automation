@@ -46,7 +46,7 @@
   - name: Record any failure of tempest
     set_fact:
       failures: "{{ failures + ['tempest'] }}"
-    when: tempest_run_result|failed
+    when: tempest_run_result is failed
 
   - name: Initialise array tracking post-deployment checks failures
     set_fact:
@@ -109,7 +109,7 @@
   - name: Check no rpm-owned files removed by deployment
     fail: msg="Found files removed by deployment:\n{{ rpm_verify_removed_files.stdout }}"
     when:
-      - "rpm_verify_removed_files.stdout | match('^missing ')"
+      - "rpm_verify_removed_files.stdout is match('^missing ')"
     ignore_errors: true
 
   - name: Record failure if rpm-owned files removed by deployment
@@ -117,7 +117,7 @@
       post_deploy_checks_failures:
         "{{ post_deploy_checks_failures + [ 'rpm-owned files removed by deployment' ] }}"
     when:
-      - "rpm_verify_removed_files.stdout | match('^missing ')"
+      - "rpm_verify_removed_files.stdout is match('^missing ')"
 
   - name: Check no rpm-owned files modified by deployment
     fail: msg="Found files modified by deployment:\n{{ rpm_verify_modified_files.stdout }}"
@@ -159,7 +159,7 @@
       post_deploy_checks_failures:
         "{{ post_deploy_checks_failures + [ 'Rogue files introduced by deployment' ] }}"
     when:
-      - rogue_files | failed
+      - rogue_files is failed
 
   - name: Remove temporary directory if not running in test mode and all checks succeeded
     become: yes
