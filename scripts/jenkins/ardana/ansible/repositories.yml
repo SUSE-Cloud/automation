@@ -90,6 +90,7 @@
   - name: Repo for sshpass
     zypper_repository:
       repo: "{{ sshpass_repo }}"
+      disable_gpg_check: yes
       name: sshpass
 
   # Refresh all repos
