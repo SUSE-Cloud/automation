@@ -1,6 +1,6 @@
 ---
 - name: Install package updates on all nodes
-  hosts: ardana-virt
+  hosts: ardana-{{ clm_env }}
   remote_user: root
   gather_facts: False
 

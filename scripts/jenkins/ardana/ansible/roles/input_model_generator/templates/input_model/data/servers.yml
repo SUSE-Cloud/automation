@@ -47,6 +47,11 @@
       ilo-password: {{ bm_info.servers[ns.server_idx].ilo_password }}
       ilo-ip: {{ bm_info.servers[ns.server_idx].ilo_ip }}
       mac-addr: {{ bm_info.servers[ns.server_idx].mac_addr }}
+{% else %}
+      # Generate dummy iLO credentials until bsc#1091459 is fixed
+      ilo-user: 'ilouser'
+      ilo-password: 'ilopasswd'
+      ilo-ip: 10.1.1.{{ ns.server_idx + 100 }}
 {% endif %}
 {% if service_group.distro_id is defined and 'sles' not in service_group.distro_id %}
       distro-id: {{ service_group.distro_id }}

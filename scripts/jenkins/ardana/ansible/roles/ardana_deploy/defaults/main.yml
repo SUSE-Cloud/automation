@@ -16,7 +16,6 @@
 ---
 
 ardana_input_model: "entry-scale-kvm"
-ardana_input_model_path: "/tmp/ardana-im/{{ ardana_input_model }}"
 vrrp_offset: 50
 
 ardana_openstack_path: "~/openstack/ardana/ansible"

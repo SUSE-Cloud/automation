@@ -45,8 +45,3 @@
         title_link: "{{ lookup('env', 'BUILD_URL') }}console"
         text:
         fields: "{{ rc_msg_fields_started if rc_action == 'started' else rc_msg_fields_finished }}"
-
-- name: Stop if something failed
-  fail:
-    msg: "{{ rc_task }} failed."
-  when: rc_state == 'Failed'
