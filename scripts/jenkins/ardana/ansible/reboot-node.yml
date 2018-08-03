@@ -17,7 +17,7 @@
 
 - name: Reboot node
   shell: |
-    ansible-playbook -vvv -i hosts/verb_hosts ardana-reboot.yml \
+    ansible-playbook -v -i hosts/verb_hosts ardana-reboot.yml \
       --limit {{ ansible_node }}
   args:
     chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
@@ -63,7 +63,7 @@
 
 - name: Run post-reboot actions on deployer
   shell: |
-    ansible-playbook -vvv -i hosts/verb_hosts _ardana-post-reboot.yml \
+    ansible-playbook -v -i hosts/verb_hosts _ardana-post-reboot.yml \
       --limit {{ ansible_node }}
   args:
     chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
@@ -74,7 +74,7 @@
   # Workaround for bsc#1091479 - start spark on all nodes after rebooting one node
 - name: Restart spark on all nodes to correct for bsc#1091479
   shell: |
-    ansible-playbook -vvv -i hosts/verb_hosts spark-start.yml
+    ansible-playbook -v -i hosts/verb_hosts spark-start.yml
   args:
     chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
   become: true

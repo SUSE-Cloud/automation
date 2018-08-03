@@ -81,7 +81,7 @@
 
 - name: Update packages on the target node
   shell: |
-    ansible-playbook -vvv -i hosts/verb_hosts ardana-update-pkgs.yml \
+    ansible-playbook -v -i hosts/verb_hosts ardana-update-pkgs.yml \
       --limit {{ ansible_node }} \
       -e \
         "zypper_update_method={{ update_method }}
@@ -97,7 +97,7 @@
 
 - name: Get update status on the target node
   shell: |
-    ansible-playbook -vvv -i hosts/verb_hosts ardana-update-status.yml \
+    ansible-playbook -v -i hosts/verb_hosts ardana-update-status.yml \
       --limit {{ ansible_node }} \
       -e update_status_brief=true | grep "Pending update actions:"
   args:
@@ -127,7 +127,7 @@
 
 - name: Update services
   shell: |
-    ansible-playbook -vvv -i hosts/verb_hosts ardana-update.yml \
+    ansible-playbook -v -i hosts/verb_hosts ardana-update.yml \
       --limit {{ ansible_node }}
   args:
     chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible

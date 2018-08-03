@@ -45,11 +45,6 @@
     virt_config: '{{ virt_config }}'
   register: heat_result
 
-- name: Print generated heat model
-  debug:
-    msg: '{{ heat_result.heat_template }}'
-    verbosity: 1
-
 - name: Generate heat orchestration template
   template:
     src: "heat-template.yaml"

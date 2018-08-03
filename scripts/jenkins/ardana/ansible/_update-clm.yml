@@ -7,7 +7,7 @@
 
 - name: Run config-processor-run.yml playbook
   shell: |
-    ansible-playbook -vvv -i hosts/localhost -e encrypt="" -e rekey="" config-processor-run.yml
+    ansible-playbook -v -i hosts/localhost -e encrypt="" -e rekey="" config-processor-run.yml
   args:
     chdir: /var/lib/ardana/openstack/ardana/ansible
   become: true
@@ -15,7 +15,7 @@
 
 - name: Run ready-deployment.yml playbook
   shell: |
-    ansible-playbook -vvv -i hosts/localhost ready-deployment.yml
+    ansible-playbook -v -i hosts/localhost ready-deployment.yml
   args:
     chdir: /var/lib/ardana/openstack/ardana/ansible
   become: true
