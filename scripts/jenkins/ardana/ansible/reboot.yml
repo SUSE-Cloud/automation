@@ -35,7 +35,7 @@
 
   - name: Run a global service status check
     shell: |
-      ansible-playbook -vvv -i hosts/verb_hosts ardana-status.yml
+      ansible-playbook -v -i hosts/verb_hosts ardana-status.yml
     args:
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true
