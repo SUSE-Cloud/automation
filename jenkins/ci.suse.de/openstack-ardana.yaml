@@ -203,6 +203,7 @@
           fi
 
           pushd automation-git/scripts/jenkins/ardana/ansible
+          source /opt/ansible/bin/activate
 
           # generate the heat template
           ansible-playbook -v generate-heat.yml \
@@ -280,8 +281,6 @@
               while read line; do echo "  - $line" >> ardana_net_vars.yml; done;
 
           cat ardana_net_vars.yml
-
-          source /opt/ansible/bin/activate
 
           ansible-playbook -v -i hosts ssh-keys.yml
           if [ -n "$gerrit_change_id" ] ; then
