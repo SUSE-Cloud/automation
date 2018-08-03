@@ -340,7 +340,6 @@
         - matches:
           - log-text: heat-ardana-
           script: |
-            set -x
             . $WORKSPACE/stack_env
             if [[ -n $BUILD_POOL_NAME ]] && (( $BUILD_POOL_SIZE == 0 )); then
                 openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait \
@@ -351,7 +350,6 @@
                     openstack --os-cloud $CLOUD_CONFIG_NAME stack suspend --wait \
                           $STACK_NAME || :
                 fi
-                set +x
                 echo "*****************************************************************"
                 echo ""
                 if [[ -n $BUILD_POOL_NAME ]]; then
