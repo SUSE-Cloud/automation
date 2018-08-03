@@ -7,9 +7,6 @@
     - ardana_net_vars.yml
     - vars/main.yml
 
-  vars:
-    deployer_model: deployerincloud-lite
-
   tasks:
   - name: Write deployer info to /etc/motd
     become: yes
@@ -52,7 +49,7 @@
       sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {{ item }}
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
-      - "{{ compute_mgmt_ips }}"
+      - "{{ compute_mgmt_ips|default([]) }}"
     ignore_errors: True
     when: item != "" and item != deployer_mgmt_ip
 
@@ -66,7 +63,7 @@
       scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  /etc/sudoers.d/ardana root@{{ item }}:/etc/sudoers.d/ardana
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
-      - "{{ compute_mgmt_ips }}"
+      - "{{ compute_mgmt_ips|default([]) }}"
     when: item != "" and item != deployer_mgmt_ip
 
   # osconfig-ansible should take care of installing the repositories itself,
@@ -78,7 +75,7 @@
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "cat >/tmp/cloud.key && rpm --import /tmp/cloud.key && rm /tmp/cloud.key" < $kf
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
-      - "{{ compute_mgmt_ips }}"
+      - "{{ compute_mgmt_ips|default([]) }}"
     when: item != "" and item != deployer_mgmt_ip
 
   - name: Grow 1st partition filesystem on non-deployer nodes
@@ -88,25 +85,15 @@
     ignore_errors: True
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
-      - "{{ compute_mgmt_ips }}"
+      - "{{ compute_mgmt_ips|default([]) }}"
     when: item != "" and item != deployer_mgmt_ip
 
-  - name: Initialize target Model from "{{ deployer_model }}"
+  - name: Initialize target Model from "{{ input_model_path }}"
     synchronize:
-      src: "/var/lib/ardana/openstack/ardana-ci/{{ deployer_model}}/"
+      src: "{{ input_model_path }}/"
       dest: /var/lib/ardana/openstack/my_cloud/definition/
-    delegate_to: "{{ inventory_hostname }}"
     become: true
     become_user: ardana
-    tags:
-      - create-ardana-input-model
-
-  - name: Update servers in Model
-    template:
-      src: "{{ deployer_model }}/input-model-servers.yml"
-      dest: /var/lib/ardana//openstack/my_cloud/definition/data/servers.yml
-      owner: ardana
-      group: ardana
     tags:
       - create-ardana-input-model
 
@@ -117,38 +104,13 @@
          f = open('cloudConfig.yml');
          data = yaml.load(f.read());
          f.close();
-         data['cloud']['dns-settings']['nameservers'] = {{ mgmt_dnsservers }} ;
+         data['cloud']['dns-settings']=dict(nameservers = {{ mgmt_dnsservers }});
          data['cloud']['ntp-servers'] = ['ntp.suse.de'];
          f = open('cloudConfig.yml', 'w');
          f.write(yaml.safe_dump(data, default_flow_style=False));
          f.close();"
     args:
       chdir: /var/lib/ardana//openstack/my_cloud/definition/
-    tags:
-      - create-ardana-input-model
-
-  - name: Apply HEAT ci specific changes to Model
-    synchronize:
-      src: "files/{{ deployer_model }}/input-model/"
-      dest: /var/lib/ardana//openstack/my_cloud/definition/data/
-      copy_links: yes
-      archive: no
-      recursive: yes
-    become: true
-    become_user: ardana
-
-  - name: Replace disks to accomodate virtio_blk
-    replace:
-      dest: "/var/lib/ardana//openstack/my_cloud/definition/data/{{ item }}"
-      regexp: '/dev/sd([a-f]) *$'
-      replace: '/dev/vd\1'
-    with_items:
-      - disks_ardana.yml
-      - disks_compute.yml
-      - disks_dbmq.yml
-      - disks_mml.yml
-      - disks_osc.yml
-    ignore_errors: True
     tags:
       - create-ardana-input-model
 
@@ -192,7 +154,7 @@
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  {{ item }} sudo touch /etc/openstack/skip_disk_config
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
-      - "{{ compute_mgmt_ips }}"
+      - "{{ compute_mgmt_ips|default([]) }}"
     become: true
     when: item != "" and item != deployer_mgmt_ip
     become_user: ardana
