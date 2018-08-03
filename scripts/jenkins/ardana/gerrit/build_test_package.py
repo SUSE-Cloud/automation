@@ -110,9 +110,18 @@ def wait_for_build():
     while 'unknown' in sh.osc('results'):
         time.sleep(3)
     print("Waiting for build results")
-    results = sh.osc('results', '--watch')
-    if 'succeeded' not in results:
+    for attempt in range(3):
+        results = sh.osc('results', '--watch')
         print("Build results: %s" % results)
+        if 'broken' in results:
+            # Sometimes results --watch ends too soon, give it a few retries
+            # before actually failing
+            print("Sleeping for 10s before rechecking")
+            time.sleep(10)
+            continue
+        else:
+            break
+    if 'succeeded' not in results:
         print("Package build failed.")
         sys.exit(1)
 
