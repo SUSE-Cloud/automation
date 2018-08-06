@@ -1,0 +1,46 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Get required info from Cloud
+  shell: awk -n -F '=' {{ item }} ~/keystone.osrc
+  delegate_to: "ardana-{{ qe_env }}"
+  remote_user: "ardana"
+  register: osrc
+  with_items:
+    - "'/AUTH/ { print substr($2, 0, length($2)-3) }'"
+    - "'/PASSWORD/ { print $2 }'"
+
+- name: Add environment radosgw config to ceph conf
+  blockinfile:
+   path: /etc/ceph/ceph.conf
+   marker: "# {mark} ANSIBLE MANAGED BLOCK {{ qe_env }}"
+   block: |
+     [client.rgw.ses-{{ qe_env }}]
+     keyring = /etc/ceph/ceph.client.rgw.ses-{{ qe_env }}.keyring
+     rgw frontends = "civetweb port=808{{ qe_env[-1] }}"
+     rgw dns name = ses-{{ qe_env }}
+     rgw enable usage log = true
+     rgw keystone url = {{ osrc.results.0.stdout }}
+     rgw keystone admin user = admin
+     rgw keystone admin password = {{ osrc.results.1.stdout }}
+     rgw keystone admin project = admin
+     rgw keystone admin domain = Default
+     rgw keystone api version = 3
+     rgw keystone accepted roles = admin,Member,_member_
+     rgw keystone accepted admin roles = admin
+     rgw keystone verify ssl = false
+  notify: Restart radosgw

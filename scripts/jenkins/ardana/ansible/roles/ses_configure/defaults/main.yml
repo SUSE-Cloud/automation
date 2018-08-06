@@ -1,0 +1,44 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+ardana_ses_post_deploy: False
+ses_osd_pool_default_pg_num: 64
+
+ses_openstack_glance_pool:
+  name: "glance-{{ qe_env }}"
+  pg_num: "{{ ses_osd_pool_default_pg_num }}"
+ses_openstack_cinder_pool:
+  name: "cinder-{{ qe_env }}"
+  pg_num: "{{ ses_osd_pool_default_pg_num }}"
+ses_openstack_nova_pool:
+  name: "nova-{{ qe_env }}"
+  pg_num: "{{ ses_osd_pool_default_pg_num }}"
+ses_openstack_cinder_backup_pool:
+  name: "backups-{{ qe_env }}"
+  pg_num: "{{ ses_osd_pool_default_pg_num }}"
+
+ses_openstack_pools:
+  - "{{ ses_openstack_glance_pool }}"
+  - "{{ ses_openstack_cinder_pool }}"
+  - "{{ ses_openstack_nova_pool }}"
+  - "{{ ses_openstack_cinder_backup_pool }}"
+
+ses_openstack_keys:
+  - { name: "client.glance-{{ qe_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_glance_pool.name }}", mode: "0600", acls: [] }
+  - { name: "client.cinder-{{ qe_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_cinder_pool.name }}, allow rwx pool={{ ses_openstack_nova_pool.name }}, allow rwx pool={{ ses_openstack_glance_pool.name }}", mode: "0600", acls: []  }
+  - { name: "client.cinder_backup-{{ qe_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_cinder_backup_pool.name }}", mode: "0600", acls: [] }
+  - { name: "client.rgw.ses-{{ qe_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow rwx", osd_cap: "allow rwx", mgr_cap: "allow r", mode: "0600", acls: [] }

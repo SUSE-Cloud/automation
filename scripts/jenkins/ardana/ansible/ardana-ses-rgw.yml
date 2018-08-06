@@ -1,0 +1,90 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+
+---
+
+- name: Configure SES RGW for {{ qe_env }}
+  hosts: ses-{{ 'nue' if qe_env.startswith('qa') else 'provo' }}
+  remote_user: root
+  gather_facts: no
+  vars:
+    task: "ses rgw"
+
+  vars_prompt:
+    - name: "qe_env"
+      prompt: "Target environment to configure RGW"
+      private: no
+      when: qe_env not defined
+
+  pre_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "started"
+        rc_state: "Started"
+      when: rc_notify
+
+  tasks:
+    - block:
+        - include_role:
+            name: ses_configure
+            tasks_from: configure_rgw
+
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when:
+            - rc_notify
+
+
+- name: Reconfigure swift
+  hosts: ardana-{{ qe_env }}
+  remote_user: ardana
+  gather_facts: no
+  vars:
+    task: "ses rgw"
+
+  tasks:
+    - block:
+        - name: Add RGW endpoint on SES config
+          lineinfile:
+            path: "/tmp/ses_config/ses_config.yml"
+            insertafter: ".*ses_cluster_name.*"
+            line: "  ses_radosgw_url: http://{{ hostvars['ses-nue' if qe_env.startswith('qa') else 'ses-provo'].ansible_host }}:808{{ qe_env[-1] }}/swift/v1"
+
+        - name: Run ardana-reconfigure playbook
+          command: "ansible-playbook swift-reconfigure.yml"
+          args:
+            chdir: "~/scratch/ansible/next/ardana/ansible"
+
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+  post_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "finished"
+        rc_state: "Success"
+      when: rc_notify

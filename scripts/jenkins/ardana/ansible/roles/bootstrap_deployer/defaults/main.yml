@@ -1,0 +1,57 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+cloud_brand: "SUSE"
+cloudsource: "GM"
+
+cloud_brand_sufix: "{{ '-OpenStack-8' if cloud_brand == 'HPE-Helion' else '-OpenStack-Cloud-8' }}"
+
+develcloudsources:
+  - "devel"
+  - "devel-staging"
+
+cloud_media_type: "{{ 'devel' if cloudsource in develcloudsources else 'gm' }}"
+clouddata_server: "provo-clouddata.cloud.suse.de"
+
+sles_media_server: "ibs-mirror.prv.suse.net"
+sles_media_name: "SLE-12-SP3-Server-DVD-x86_64-GM-DVD1"
+sles_media:
+  url: "http://{{ sles_media_server }}/install/SLE-12-SP3-Server-GM/{{ sles_media_name }}.iso"
+  dest: "/root"
+  repo_name: "SLES12-SP3-MEDIA"
+
+rhel_media_url: "http://10.84.144.252/compute_iso/RHEL-7.3-20170728-Server-x86_64-dvd.iso"
+rhel_yum_packages_url: "http://ardana.suse.provo.cloud/yum-extras/yum-internal-rhel73-20180118-1320.tgz"
+
+sles_repos:
+  - "SLES12-SP3-Pool"
+  - "SLES12-SP3-Updates"
+
+cloud_update_repos:
+  - "{{ cloud_brand }}{{ cloud_brand_sufix }}-Pool"
+  - "{{ cloud_brand }}{{ cloud_brand_sufix }}-Updates"
+
+cloud_maint_updates_list: "{{ cloud_maint_updates.split(',') if cloud_maint_updates is defined and cloud_maint_updates | length > 0 else [] }}"
+sles_maint_updates_list: "{{ sles_maint_updates.split(',') if sles_maint_updates is defined and sles_maint_updates | length > 0 else [] }}"
+
+update_nfs_repo_server: "{{ cloud_media_server }}:/dist/ibs/SUSE:/Maintenance:/"
+nfs_repo_server: "{{ clouddata_server }}:/srv/nfs/repos/x86_64"
+local_repos_base_dir: "/srv/www/suse-12.3/x86_64/repos"
+
+ardana_im_extras: []
+rhel_enabled: "{{ ardana_im_extras[ardana_input_model] is defined and 'rhel-compute' in ardana_im_extras[ardana_input_model] }}"
+ses_enabled: "{{ ardana_im_extras[ardana_input_model] is defined and 'ses' in ardana_im_extras[ardana_input_model] }}"

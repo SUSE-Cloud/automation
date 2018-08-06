@@ -1,0 +1,75 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+
+# TODO: Add support for creating more OpenStack resources, at this time it
+# supports creating:
+#   - project
+#   - user
+
+# NOTE: this tasks are also used for cleanup, calling them with
+# os_resource_state: "absent" (see: main.yml:16)
+---
+
+- name: Collect values from keystone.osrc
+  shell: "source ~/keystone.osrc; echo ${{ item }}"
+  register: osrc
+  loop: "{{ ardana_qe_tests_admin_osrc_values }}"
+  changed_when: false
+
+- name: Store values from keystone.osrc
+  set_fact:
+    os_admin_osrc: "{{ os_admin_osrc | default({}) | combine({item.item: item.stdout}) }}"
+  loop: "{{ osrc.results }}"
+  loop_control:
+    label: "{{ item.item }}: {{ item.stdout }}"
+
+- name: Use python from test venv to run following tasks
+  set_fact:
+    ansible_python_interpreter: "{{ ardana_qe_test_venv }}/bin/python"
+
+- name: Ensure project for '{{ test_name }}' test is {{ os_resource_state }}
+  environment: "{{ os_admin_osrc }}"
+  os_project:
+    state: "{{ os_resource_state }}"
+    name: "{{ os_resource_test_auth.project }}"
+    domain: "default"
+  when: "'project' in os_resources_requires"
+
+- name: Ensure user for '{{ test_name }}' test is {{ os_resource_state }}
+  environment: "{{ os_admin_osrc }}"
+  os_user:
+    state: "{{ os_resource_state }}"
+    name: "{{ os_resource_test_auth.username }}"
+    password: "{{ os_resource_test_auth.password }}"
+    domain: "default"
+  when: "'user' in os_resources_requires"
+
+- name: Ensure user role '{{ os_resource_test_auth.role }}' on project
+  environment: "{{ os_admin_osrc }}"
+  os_user_role:
+    state: "{{ os_resource_state }}"
+    user: "{{ os_resource_test_auth.username }}"
+    project: "{{ os_resource_test_auth.project }}"
+    role: "{{ os_resource_test_auth.role }}"
+  when:
+    - "'user' in os_resources_requires "
+    - "os_resource_state == 'present'"
+
+- name: Drop osrc for test user
+  template:
+    src: "test-user.osrc.j2"
+    dest: "{{ ardana_qe_test_work_dir }}/test-user.osrc"
+  when: "os_resource_state == 'present'"

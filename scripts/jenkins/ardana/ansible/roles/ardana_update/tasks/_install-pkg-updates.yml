@@ -1,0 +1,95 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Install available zypper package updates
+#
+# The behavior can be customized with the following parameters:
+#
+#   * zypper_update_method: define which zypper subcommand to use for
+#     updating. Valid values are:
+#
+#     'patch' (default) - will install all patches applying to
+#     the system from the configured update repositories that are available.
+#
+#     'update' - will update packages from all configured repositories
+#     (not just the update repositories) that have a higher version
+#     number than the installed packages.
+#
+#     'dist-upgrade' - replaces each package installed with the version
+#     from the repository and deletes packages not available in the
+#     repositories.
+#
+#   * zypper_update_gpg_checks (default: true): enable GPG checks.
+#     If set to true, checks if packages are correctly signed.
+#
+#   * zypper_update_licenses_agree (default: false): automatically agree
+#     with licenses. If set to true, zypper automatically accepts third
+#     party licenses.
+#
+#   * zypper_update_include_reboot_patches (default: false): include patches
+#     that need reboots (e.g. kernel). Installs patches that require a reboot
+#     (for example kernel or glibc updates).
+#
+---
+
+- name: Refresh zypper repos
+  zypper_repository:
+    repo: '*'
+    auto_import_keys: yes
+    runrefresh: yes
+  become: yes
+
+- name: Generate zypper update command args
+  set_fact:
+    _zypper_args: >
+      {%- set _args = ["--non-interactive"] -%}
+      {%- if not zypper_update_gpg_checks | bool -%}
+      {%-   set _ = _args.append("--no-gpg-checks") -%}
+      {%- endif -%}
+      {%- if zypper_update_method == "patch" and zypper_update_include_reboot_patches | bool -%}
+      {%-   set _ = _args.append("--non-interactive-include-reboot-patches") -%}
+      {%- endif -%}
+      {%- set _ = _args.append(zypper_update_method) -%}
+      {%- if zypper_update_licenses_agree | bool -%}
+      {%-   set _ = _args.append("--auto-agree-with-licenses") -%}
+      {%- endif -%}
+      {{ _args }}
+
+# Sometimes zypper needs to go through several iterations when installing
+# patches, e.g. when those patches include updates to the zypper packages
+# themselves. This will be indicated by a 103 return code.
+- name: Download and install package updates
+  become: yes
+  command: zypper {{ _zypper_args | join(' ') }} --download in-advance
+  args:
+    warn: False
+  register: zypper_update_result
+  until: zypper_update_result.rc != 103 # ZYPPER_EXIT_INF_RESTART_NEEDED
+  retries: 5
+  ignore_errors: yes
+
+
+- name: Check update result
+  fail:
+    msg:
+      "zypper {{ zypper_update_method }} command returned {{ zypper_update_result.rc }}."
+  when: zypper_update_result.rc not in [0, 100, 101, 102, 103, 104, 105]
+
+- name: Check number of zypper restart cycles
+  fail:
+    msg:
+      "Ran zypper {{ zypper_update_method }} more than five times,
+      and it still requires more runs."
+  when: zypper_update_result.rc == 103 # ZYPPER_EXIT_INF_RESTART_NEEDED

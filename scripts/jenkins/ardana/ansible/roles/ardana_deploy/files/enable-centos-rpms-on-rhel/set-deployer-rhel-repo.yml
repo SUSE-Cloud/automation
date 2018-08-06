@@ -1,0 +1,70 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Add optional centos rpms repo support for RHEL compute nodes
+---
+
+- hosts: localhost
+  connection: local
+  roles:
+    - deployer-setup
+    - deployer-rhel-repo
+  vars_files:
+    - roles/deployer-rhel-repo/vars/main.yml
+  tasks:
+
+    - include: roles/deployer-rhel-repo/tasks/main.yml
+
+    - name: set-deployer-rhel-repo | Modify rhel optional repo flag,
+            yum_optional_loc and yum_optional_dir variables in
+            deployer-setup defaults/main.yml
+      lineinfile:
+        dest: "{{ ardanauser_home }}/openstack/ardana/ansible/roles/deployer-setup/defaults/main.yml"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      register: _rhel_defaults_update_result
+      with_items:
+        - { regexp: "^rhel_optional_repo_enabled:", line: "rhel_optional_repo_enabled: true"}
+        - { regexp: "^yum_optional_loc:", line: "yum_optional_loc: {{ yum_optional_loc }}" }
+        - { regexp: "^yum_optional_dir:", line: "yum_optional_dir: {{ yum_optional_dir }}" }
+      when: rhel_optional_repo_enabled | bool
+
+    - name: set-deployer-rhel-repo | Commit the rhel optional repo support changes
+      shell: |
+        set -eux
+        git add -A
+        git commit --allow-empty -m "Enabled RHEL optional package repository support"
+      when: rhel_optional_repo_enabled | bool and
+            {{ item.changed == true }}
+      with_items: "{{ _rhel_defaults_update_result.results }}"
+
+    # Persisting enable flag indicating that selinux policy updates need to be
+    # applied on RHEL compute nodes which are using centos rpms for qemu-kvm-ev
+    - name: set-deployer-rhel-repo | Set apply selinux updates flag for NOV-CMP-KVM
+      lineinfile:
+        dest: "{{ ardanauser_home }}/openstack/ardana/ansible/roles/NOV-CMP-KVM/defaults/main.yml"
+        regexp: "^nova_rhel_compute_apply_selinux_policy_updates"
+        line: "nova_rhel_compute_apply_selinux_policy_updates: true"
+        state: present
+      register: _rhel_apply_seliunx_updates_result
+      when: rhel_optional_repo_enabled | bool
+
+    - name: set-deployer-rhel-repo | Commit the selinux policy update flag change
+      shell: |
+        set -eux
+        git add -A
+        git commit --allow-empty -m "Enabled selinux policy updates for RHEL compute nodes"
+      when: _rhel_apply_seliunx_updates_result.changed

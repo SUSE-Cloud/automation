@@ -1,0 +1,37 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+target_node: "ARD-SVC--first-member"
+node_is_deployer: "{{ target_node == 'ARD-SVC--first-member' }}"
+deployer_ip: "{{ ansible_all_ipv4_addresses | ipaddr(ardana_mgmt_subnet) | first }}"
+update_method: "patch"
+update_gpg_checks: true
+update_licenses_agree: true
+update_include_reboot_patches: true
+
+cloud_maint_updates_list: "{{ cloud_maint_updates.split(',') if cloud_maint_updates is defined and cloud_maint_updates | length > 0 else [] }}"
+sles_maint_updates_list: "{{ sles_maint_updates.split(',') if sles_maint_updates is defined and sles_maint_updates | length > 0 else [] }}"
+
+update_nfs_repo_server: "{{ cloud_media_server }}:/dist/ibs/SUSE:/Maintenance:/"
+local_repos_base_dir: "/srv/www/suse-12.3/x86_64/repos"
+
+ardana_openstack_path: "~/openstack/ardana/ansible"
+ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
+
+ardana_openstack_playbooks:
+  - "config-processor-run.yml -e encrypt='' -e rekey=''"
+  - "ready-deployment.yml"

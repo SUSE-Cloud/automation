@@ -1,0 +1,53 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Gather variables for '{{ task }}'
+  include_vars: "{{ task }}.yml"
+
+- name: Ensure SLES-SDK repo
+  zypper_repository:
+    name: "{{ item }}"
+    repo: "http://{{ clouddata_server }}/repos/x86_64/{{ item }}/"
+    runrefresh: yes
+    priority: 9999
+  loop:
+    - "SLE12-SP3-SDK-Pool"
+    - "SLE12-SP3-SDK-Updates"
+  become: yes
+
+- name: Ensure requirements for subunit2sql installed
+  zypper:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "gcc"
+    - "python-devel"
+  become: yes
+
+- name: Setup subunit2sql
+  pip:
+    name: "{{ item }}"
+    virtualenv: "{{ subunit2sql_venv }}"
+  with_items:
+    - "subunit2sql"
+    - "pymysql"
+  become: yes
+
+- name: Send results to OpenStack-Health
+  shell: |
+    {{ subunit2sql_venv }}/bin/subunit2sql --database-connection mysql+pymysql://subunit:subunit@{{ os_health_server }}/subunit \
+      --run_meta "{{ os_health_metadata | join(',') }}" --artifacts "{{ jenkins_artifacts_url }}" {{ test_results_subunit }}

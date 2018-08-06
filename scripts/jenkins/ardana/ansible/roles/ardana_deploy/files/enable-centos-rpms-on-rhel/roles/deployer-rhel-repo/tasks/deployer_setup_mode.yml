@@ -1,0 +1,66 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Limited to the deployer
+---
+
+
+- name: deployer-rhel-repo | deployer_setup_mode | Check if c8 repo mirror
+        or other mode detection path(s) exist
+  become: yes
+  stat:
+    path: "{{ item }}"
+  with_items:
+    - "{{ c8setup_mode_detection_paths }}"
+  register: _c8setup_mode_detection_paths_result
+
+- name: deployer-rhel-repo | deployer_setup_mode | Set fact if any c8 repo
+        mirror or mode detection path exists
+  set_fact:
+    _c8setup_mode_path_exists: true
+  with_items: _c8setup_mode_detection_paths_result.results
+  when:
+    - item.stat is defined
+    - item.stat.exists
+
+- debug:
+    var: devtools_rhel_setup
+
+- name: deployer-rhel-repo | deployer_setup_mode | Set fact for cloud setup
+        via devtools in non legacy mode
+  set_fact:
+    cloudsetup_legacy_mode: false
+  when:
+    - _c8setup_mode_path_exists | bool
+    - devtools_rhel_setup | bool
+
+- name: deployer-rhel-repo | deployer_setup_mode | Set fact for cloud setup
+        via devtools in legacy mode
+  set_fact:
+    cloudsetup_legacy_mode: true
+  when:
+    - not ( _c8setup_mode_path_exists | bool )
+    - devtools_rhel_setup | bool
+
+- name: deployer-rhel-repo | deployer_setup_mode | Set fact for cloud setup in
+        non legacy mode when devtools not used
+  set_fact:
+    cloudsetup_legacy_mode: false
+  when:
+    - not ( _c8setup_mode_path_exists | bool )
+    - not ( devtools_rhel_setup | bool )
+
+- debug:
+    var: cloudsetup_legacy_mode

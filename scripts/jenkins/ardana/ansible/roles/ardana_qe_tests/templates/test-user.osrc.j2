@@ -1,0 +1,8 @@
+
+export OS_USERNAME={{ os_resource_test_auth.username }}
+export OS_PASSWORD={{ os_resource_test_auth.password }}
+export OS_PROJECT_NAME={{ os_resource_test_auth.project }}
+export OS_USER_DOMAIN_NAME=Default
+export OS_PROJECT_DOMAIN_NAME=Default
+export OS_BASE_AUTH_URL={{ os_admin_osrc.OS_AUTH_URL | replace('/v3', '') }}
+export OS_CACERT={{ os_admin_osrc.OS_CACERT }}

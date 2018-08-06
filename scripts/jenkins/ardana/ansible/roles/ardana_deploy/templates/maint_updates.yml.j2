@@ -1,0 +1,80 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Apply maintenance updates
+  hosts: resources
+  become: yes
+  vars:
+    cloud_maint_updates_list: {{ cloud_maint_updates_list | to_yaml if cloud_maint_updates | length else [] }}
+    sles_maint_updates_list: {{ sles_maint_updates_list | to_yaml if sles_maint_updates | length else [] }}
+    deployer_ip: {{ ansible_all_ipv4_addresses | ipaddr(ardana_mgmt_subnet) | first }}
+
+{% raw %}
+  tasks:
+    - name: Ensure cloud maint update zypper repositories
+      zypper_repository:
+        name: "Cloud-Maint-Update-{{ item }}"
+        repo: "http://{{ deployer_ip }}:79/SUSE-12-3/x86_64/repos/{{ item }}/SUSE_SLE-12-SP3_Update_Products_Cloud8_Update/"
+        state: present
+      with_items: "{{ cloud_maint_updates_list }}"
+      when: ansible_distribution == 'SLES'
+      become: yes
+
+    - name: Ensure SLES maint update zypper repositories
+      zypper_repository:
+        name: "SLES-Maint-Update-{{ item }}"
+        repo: "http://{{ deployer_ip }}:79/SUSE-12-3/x86_64/repos/{{ item }}/SUSE_Updates_SLE-SERVER_12-SP3_x86_64/"
+        state: present
+      with_items: "{{ sles_maint_updates_list }}"
+      when: ansible_distribution == 'SLES'
+      become: yes
+
+    - name: Run zypper update
+      zypper:
+        name: "*"
+        state: latest
+      when: ansible_distribution == 'SLES'
+
+    - name: Check if reboot required
+      shell: |
+        LAST_KERNEL=$(ls -t /boot/vmlinuz-* | sed "s/\/boot\/vmlinuz-//g" | head -n1)
+        CURRENT_KERNEL=$(uname -r)
+        test $LAST_KERNEL = $CURRENT_KERNEL || echo True
+      register: reboot
+      when: ansible_distribution == 'SLES'
+
+    - name: Reboot nodes
+      shell: sleep 2 && shutdown -r now "Ansible updates triggered"
+      async: 1
+      poll: 0
+      failed_when: false
+      when:
+        - ansible_distribution == 'SLES'
+        - reboot.stdout == 'True'
+
+    - name: Wait for nodes to come back after reboot
+      wait_for:
+        host: "{{ ansible_ssh_host }}"
+        search_regex: OpenSSH
+        port: 22
+        delay: 30
+      when:
+        - ansible_distribution == 'SLES'
+        - reboot.stdout == 'True'
+      connection: local
+
+{% endraw %}

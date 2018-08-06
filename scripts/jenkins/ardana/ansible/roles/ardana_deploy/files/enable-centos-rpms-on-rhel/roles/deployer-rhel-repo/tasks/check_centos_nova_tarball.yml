@@ -1,0 +1,53 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Limited to the deployer
+---
+
+- name: deployer-setup | check_centos_nova_tarball | Check if yum centos optional
+        tarball is specified via env variable
+  stat:
+    path: "{{ env_yum_optional_tarball_location }}"
+  register: _env_yum_optional_tarball_present_result
+
+- name: deployer-setup | check_centos_nova_tarball | Copy yum centos optional
+        tarball to expected location
+  copy:
+    src: "{{ env_yum_optional_tarball_location }}"
+    dest: "{{ ardanauser_home }}/{{ deployer_rhel7_yum_optional_tarball }}"
+  register: _env_yum_optional_tarball_present_result
+  when:
+    - _env_yum_optional_tarball_present_result.stat is defined
+    - _env_yum_optional_tarball_present_result.stat.exists
+
+- name: deployer-setup | check_centos_nova_tarball | Check existence of yum
+        centos optional tarball
+  stat:
+    path: "{{ ardanauser_home }}/{{ deployer_rhel7_yum_optional_tarball }}"
+  register: _rhel_yum_optional_tarball_present_result
+
+- name: deployer-setup | check_centos_nova_tarball | Error out if missing
+        optional centros rpms tarball file
+  fail:
+    msg: "RHEL optional repo tarball missing. Specify its location via env variable ARDANA_RHEL_OPTIONAL_TARBALL_LOCATION"
+  when:
+    - _rhel_yum_optional_tarball_present_result.stat is defined
+    - _rhel_yum_optional_tarball_present_result.stat.exists == false
+
+- name: deployer-setup | check_centos_nova_tarball | Copy yum centos optional
+        tarball to expected location (only in legacy mode)
+  copy:
+    src: "{{ ardanauser_home }}/{{ deployer_rhel7_yum_optional_tarball }}"
+    dest: "{{ ardanauser_home }}/{{ centos_repo_tarball_name }}"

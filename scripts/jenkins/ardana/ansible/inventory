@@ -1,0 +1,23 @@
+[provo]
+gate-qe002      ansible_host=10.84.65.1
+ardana-qe002    ansible_host=10.84.65.2
+gate-qe007      ansible_host=10.84.83.1
+ardana-qe007    ansible_host=10.84.81.17
+gate-qe101      ansible_host=10.84.68.2
+ardana-qe101    ansible_host=10.84.43.120
+gate-qe102      ansible_host=10.84.84.55
+ardana-qe102    ansible_host=10.84.81.113
+gate-qe201      ansible_host=10.84.88.2
+ardana-qe201    ansible_host=10.84.88.1
+gate-qe202      ansible_host=10.84.89.51
+ardana-qe202    ansible_host=10.84.81.49
+gate-qe2023     ansible_host=10.84.89.150
+ardana-qe2023   ansible_host=10.84.89.151
+gate-scale      ansible_host=10.84.48.50
+ardana-scale    ansible_host=10.84.48.51
+ses-provo       ansible_host=10.84.88.251
+
+[nue]
+gate-qa4        ansible_host=10.162.66.1
+ardana-qa4      ansible_host=10.162.66.12
+ses-nue         ansible_host=10.162.66.56

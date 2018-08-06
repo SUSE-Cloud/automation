@@ -1,0 +1,143 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Ensure cloud maintenance update repos on {{ target_node }}
+  shell: |
+    ansible -b -m zypper_repository -a "name=Cloud-Maint-Update-{{ item }} \
+      repo=http://{{ deployer_ip }}:79/SUSE-12-3/x86_64/repos/{{ item }}/SUSE_SLE-12-SP3_Update_Products_Cloud8_Update/ \
+      state=present" {{ target_node }}
+  with_items: "{{ cloud_maint_updates_list }}"
+  when: "'rhel' not in target_node"
+
+- name: Ensure sles maintenance update repos on {{ target_node }}
+  shell: |
+    ansible -b -m zypper_repository -a "name=SLES-Maint-Update-{{ item }} \
+      repo=http://{{ deployer_ip }}:79/SUSE-12-3/x86_64/repos/{{ item }}/SUSE_Updates_SLE-SERVER_12-SP3_x86_64/ \
+      state=present" {{ target_node }}
+  with_items: "{{ sles_maint_updates_list }}"
+  when: "'rhel' not in target_node"
+
+# Refresh zypper repositories
+- name: Refresh repos on {{ target_node }}
+  shell: |
+    ansible -b -a "zypper --non-interactive --gpg-auto-import-keys refresh" {{ target_node }}
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  when: "'rhel' not in target_node"
+
+# Accounting for the update scenario which starts from a point
+# where the update helper playbooks are not yet present (i.e.
+# have not yet been installed via ardana-ansible package updates).
+# In this case, the ardana-update-pkgs.yml playbook cannot be used
+# to update the target node, we need to update the CLM packages
+# first, directly with zypper.
+- name: Check that the update helper playbooks exist
+  stat:
+    path: "{{ ardana_scratch_path }}/ardana-update-pkgs.yml"
+  register: _helper_playbooks_stat_result
+
+- name: Set fact to update the CLM
+  set_fact:
+    update_clm: "{{ not _helper_playbooks_stat_result.stat.exists | bool }}"
+
+- name: Set fact to enforce a service update for all nodes
+  set_fact:
+    enforce_service_update: true
+  when: update_clm
+
+- name: Update packages on the deployer
+  include_tasks: _install-pkg-updates.yml
+  vars:
+    zypper_update_method: "{{ update_method }}"
+    zypper_update_gpg_checks: "{{ update_gpg_checks }}"
+    zypper_update_licenses_agree: "{{ update_gpg_checks }}"
+    zypper_update_include_reboot_patches: "{{ update_include_reboot_patches }}"
+  when: update_clm
+
+- name: Update CLM services
+  include_tasks: _update-clm.yml
+  when: update_clm
+
+- name: Check that the update helper playbooks have been installed
+  stat:
+    path: "{{ ardana_scratch_path }}/ardana-update-pkgs.yml"
+  register: _helper_playbooks_stat_result
+  when: update_clm
+
+- name: Fail if the update helper playbooks have not yet been installed
+  fail:
+    msg: |
+      The update helper playbooks (e.g. ardana-update-pkgs.yml) have not
+      been installed on the deployer. These playbooks are required to
+      continue testing the update workflow.
+  when: update_clm and
+        not _helper_playbooks_stat_result.stat.exists | bool
+
+- name: Update packages on {{ target_node }}
+  shell: |
+    ansible-playbook -i hosts/verb_hosts ardana-update-pkgs.yml \
+      --limit {{ target_node }} \
+      -e \
+        "zypper_update_method={{ update_method }}
+         zypper_update_gpg_checks={{ update_gpg_checks }}
+         zypper_update_licenses_agree={{ update_gpg_checks }}
+         zypper_update_include_reboot_patches={{ update_include_reboot_patches }}"
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  environment:
+    SKIP_REPO_CHECKS: 1
+
+- name: Get update status on {{ target_node }}
+  shell: |
+    ansible-playbook -i hosts/verb_hosts ardana-update-status.yml \
+      --limit {{ target_node }} \
+      -e update_status_brief=true | grep "Pending update actions:"
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  register: _ardana_update_status
+
+- name: Check if CLM needs to be updated
+  set_fact:
+    pending_clm_update: "{{ 'CLM update' in _ardana_update_status.stdout }}"
+  when: node_is_deployer
+
+- name: Check if services need to be updated
+  set_fact:
+    pending_service_update: "{{ 'service update' in _ardana_update_status.stdout or
+                                enforce_service_update | default(false) | bool }}"
+
+- name: Check if node needs to be rebooted
+  set_fact:
+    pending_system_reboot: "{{ 'system reboot' in _ardana_update_status.stdout or
+                               (node_is_deployer and update_clm) }}"
+
+- name: Update CLM services
+  include: _update-clm.yml
+  when: node_is_deployer and pending_clm_update
+
+- name: Update services on {{ target_node }}
+  shell: |
+    ansible-playbook -i hosts/verb_hosts ardana-update.yml \
+      --limit {{ target_node }}
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  environment:
+    SKIP_REPO_CHECKS: 1
+  when: pending_service_update
+
+- include: _reboot-node.yml
+  when: pending_system_reboot

@@ -1,0 +1,39 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Limited to the deployer
+---
+
+
+- name: deployer-rhel-repo | setup_suse_centos_repo | Check if centos rpms repo
+        configured
+  become: yes
+  stat:
+    path: "/etc/zypp/repos.d/{{ centos_repo_setup_name }}.repo"
+  register: _centos_repo_existence_result
+
+# zypper_repository module 'priority' param support is from ansible 2.1 onwards
+- name: deployer-rhel-repo | setup_suse_centos_repo | Configure lower priority
+        centos rpms zypper repo
+  become: yes
+  command: >
+    zypper addrepo --name {{ centos_repo_setup_name }} --priority 999
+    --no-gpgcheck {{ centos_repo_setup_url }} {{ centos_repo_setup_name }}
+  when: _centos_repo_existence_result.stat.exists == false
+
+- name: deployer-rhel-repo | setup_suse_centos_repo | Set centos repository name
+        fact repo
+  set_fact:
+    centos_repository_name: "{{ centos_repo_setup_name }}"
