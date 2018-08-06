@@ -893,6 +893,12 @@ function onadmin_set_source_variables
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
         ;;
+        develcloud9)
+            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9/images/iso"
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Staging/images/iso"
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
+        ;;
         susecloud9)
             CLOUDISOURL="$susedownload/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/"
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*Media1.iso"
@@ -921,7 +927,7 @@ function onadmin_set_source_variables
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud6|develcloud7|develcloud8|Mx|GM6|GM7"
+            complain 76 "You must set environment variable cloudsource=develcloud6|develcloud7|develcloud8|develcloud9|Mx|GM6|GM7"
         ;;
     esac
 
