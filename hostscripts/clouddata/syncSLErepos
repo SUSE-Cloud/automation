@@ -155,7 +155,7 @@ rsync_with_create ${ibs_source_nue}/Devel:/Cloud:/8:/HOS5Migration/SLE_12_SP3/ /
 # SLE 12
 ##############
 
-for servicepack in 3 2 1; do
+for servicepack in 4 3 2 1; do
     # fetch latest code from service pack in development (not just latest beta)
     sync_from_ibs=
     [ $servicepack -eq 4 ] && sync_from_ibs=1
@@ -274,8 +274,8 @@ for arch in $archs ; do
     destdir_admin_images=/srv/nfs/images/$arch/
     mkdir -p $destdir_admin_images
     $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-untested.qcow2
-
     $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP3/mkcloud-admin-node-SLE12SP3.${arch}.qcow2 $destdir_admin_images/SLES12-SP3-untested.qcow2
+    $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP4/mkcloud-admin-node-SLE12SP4.${arch}.qcow2 $destdir_admin_images/SLES12-SP4-untested.qcow2
 
     if [ "$arch" == x86_64 ]; then
         $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2-uefi.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-uefi.qcow2
