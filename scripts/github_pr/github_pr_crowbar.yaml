@@ -20,6 +20,7 @@ template:
             - master
             - stable/3.0
             - stable/4.0
+            - stable/5.0-pike
       - type: Status
         config:
           status: unseen
