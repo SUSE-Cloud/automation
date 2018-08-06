@@ -15,4 +15,4 @@
 #
 ---
 
-ses_enabled: "{{ hostvars['ardana-' + qe_env].ses_enabled }}"
+ses_rgw_port: "{{ hostvars['ardana-' + qe_env].ses_rgw_port }}"

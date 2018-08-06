@@ -16,7 +16,4 @@
 ---
 
 vrrp_offset: 202
-
-ardana_im_extras:
-  entry-scale-kvm:
-    - 'ses'
+ses_rgw_port: 8202

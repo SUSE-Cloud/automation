@@ -18,9 +18,9 @@
 - name: Create openstack key(s)
   shell: |
     ceph-authtool -C /etc/ceph/ceph.{{ item.name }}.keyring --name {{ item.name }} \
-      --add-key {{ item.key }} --cap mon \"{{ item.mon_cap|default('') }}\" --cap osd \
-      \"{{ item.osd_cap|default('') }}\" --cap mds \"{{ item.mds_cap|default('') }}\"  \
-      --cap mgr \"{{ item.mgr_cap|default('') }}\"
+      --add-key {{ item.key }} --cap mon "{{ item.mon_cap|default('') }}" --cap osd \
+      "{{ item.osd_cap|default('') }}" --cap mds "{{ item.mds_cap|default('') }}"  \
+      --cap mgr "{{ item.mgr_cap|default('') }}"
   args:
     creates: "/etc/ceph/ceph.{{ item.name }}.keyring"
   with_items: "{{ ses_openstack_keys }}"

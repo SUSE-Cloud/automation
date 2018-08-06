@@ -1,0 +1,67 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+network_groups:
+  - name: ARDANA
+    hostname_suffix: ardana
+    tagged_vlan: false
+    component_endpoints:
+      - CLM
+
+  - name: MANAGEMENT
+    hostname_suffix: mgmt
+    tagged_vlan: false
+    component_endpoints:
+      - MANAGEMENT
+      - INTERNAL-API
+      - NEUTRON-VLAN
+      - DEFAULT-ROUTE
+
+  - name: EXTERNAL-API
+    hostname_suffix: extapi
+    tagged_vlan: true
+    component_endpoints:
+      - EXTERNAL-API
+
+  - name: EXTERNAL-VM
+    hostname_suffix: extvm
+    tagged_vlan: false
+    component_endpoints:
+      - NEUTRON-EXT
+
+  - name: TENANT-VLAN
+    hostname_suffix: tvlan
+    tagged_vlan: false
+    component_endpoints:
+      - NEUTRON-VLAN
+
+  - name: GUEST
+    hostname_suffix: guest
+    tagged_vlan: true
+    component_endpoints:
+      - NEUTRON-VXLAN
+
+  - name: SWIFT
+    hostname_suffix: swift
+    tagged_vlan: true
+    component_endpoints:
+      - SWIFT
+
+  - name: STORAGE
+    hostname_suffix: storage
+    tagged_vlan: true
+    component_endpoints: []

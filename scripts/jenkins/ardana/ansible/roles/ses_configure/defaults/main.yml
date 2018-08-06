@@ -18,6 +18,8 @@
 ardana_ses_post_deploy: False
 ses_osd_pool_default_pg_num: 64
 
+ses_rgw_port: 8080
+
 ses_openstack_glance_pool:
   name: "glance-{{ qe_env }}"
   pg_num: "{{ ses_osd_pool_default_pg_num }}"

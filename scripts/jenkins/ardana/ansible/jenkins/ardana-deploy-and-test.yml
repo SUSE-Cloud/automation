@@ -42,7 +42,7 @@
             - devel
             - devel-staging
           description: From which release ardana will be installed.
-          name: cloudsource
+          name: cloud_source
       - choice:
           choices:
             - SUSE

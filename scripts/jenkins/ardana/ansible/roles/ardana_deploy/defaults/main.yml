@@ -38,7 +38,3 @@ ardana_openstack_rhel_repo_playbooks:
 
 cloud_maint_updates_list: "{{ cloud_maint_updates.split(',') if cloud_maint_updates is defined and cloud_maint_updates | length else [] }}"
 sles_maint_updates_list: "{{ sles_maint_updates.split(',') if sles_maint_updates is defined and sles_maint_updates | length else [] }}"
-
-ardana_im_extras: []
-rhel_enabled: "{{ ardana_im_extras[ardana_input_model] is defined and 'rhel-compute' in ardana_im_extras[ardana_input_model] }}"
-ses_enabled: "{{ ardana_im_extras[ardana_input_model] is defined and 'ses' in ardana_im_extras[ardana_input_model] }}"

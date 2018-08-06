@@ -16,15 +16,15 @@
 ---
 
 cloud_brand: "SUSE"
-cloudsource: "GM"
+cloud_source: "GM"
 
 cloud_brand_sufix: "{{ '-OpenStack-8' if cloud_brand == 'HPE-Helion' else '-OpenStack-Cloud-8' }}"
 
-develcloudsources:
+devel_cloud_sources:
   - "devel"
   - "devel-staging"
 
-cloud_media_type: "{{ 'devel' if cloudsource in develcloudsources else 'gm' }}"
+cloud_media_type: "{{ 'devel' if cloud_source in devel_cloud_sources else 'gm' }}"
 clouddata_server: "provo-clouddata.cloud.suse.de"
 
 sles_media_server: "ibs-mirror.prv.suse.net"
@@ -51,7 +51,3 @@ sles_maint_updates_list: "{{ sles_maint_updates.split(',') if sles_maint_updates
 update_nfs_repo_server: "{{ cloud_media_server }}:/dist/ibs/SUSE:/Maintenance:/"
 nfs_repo_server: "{{ clouddata_server }}:/srv/nfs/repos/x86_64"
 local_repos_base_dir: "/srv/www/suse-12.3/x86_64/repos"
-
-ardana_im_extras: []
-rhel_enabled: "{{ ardana_im_extras[ardana_input_model] is defined and 'rhel-compute' in ardana_im_extras[ardana_input_model] }}"
-ses_enabled: "{{ ardana_im_extras[ardana_input_model] is defined and 'ses' in ardana_im_extras[ardana_input_model] }}"

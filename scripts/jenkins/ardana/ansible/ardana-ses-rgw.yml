@@ -17,7 +17,7 @@
 ---
 
 - name: Configure SES RGW for {{ qe_env }}
-  hosts: ses-{{ 'nue' if qe_env.startswith('qa') else 'provo' }}
+  hosts: ses-{{ 'nue' if qe_env.startswith('qa') else 'prv' }}
   remote_user: root
   gather_facts: no
   vars:
@@ -66,7 +66,7 @@
           lineinfile:
             path: "/tmp/ses_config/ses_config.yml"
             insertafter: ".*ses_cluster_name.*"
-            line: "  ses_radosgw_url: http://{{ hostvars['ses-nue' if qe_env.startswith('qa') else 'ses-provo'].ansible_host }}:808{{ qe_env[-1] }}/swift/v1"
+            line: "  ses_radosgw_url: http://{{ hostvars['ses-nue' if qe_env.startswith('qa') else 'ses-prv'].ansible_host }}:{{ ses_rgw_port }}/swift/v1"
 
         - name: Run ardana-reconfigure playbook
           command: "ansible-playbook swift-reconfigure.yml"

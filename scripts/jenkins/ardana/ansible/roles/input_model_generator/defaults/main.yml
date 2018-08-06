@@ -1,0 +1,285 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+qe_ardana_bm_info_git_url: "https://gitlab.suse.de/cloud-qe/ardana-bm-info.git"
+qe_ardana_bm_info_dir: "/tmp/ardana-bm-info"
+
+template_file_name: "{{ scenario[item ~ '_template'] }}.yml"
+input_model_dir: "/tmp/ardana-im/{{ scenario_name }}"
+
+service_component_groups:
+  CLM:
+    - lifecycle-manager
+    - tempest
+    # Required for testing in (run-test.sh)
+    - openstack-client
+    - barbican-client
+    - ceilometer-client
+    - cinder-client
+    - designate-client
+    - glance-client
+    - heat-client
+    - ironic-client
+    - keystone-client
+    - magnum-client
+    - monasca-client
+    - neutron-client
+    - nova-client
+    - swift-client
+  CORE:
+    - ntp-server
+    - ip-cluster
+    - bind
+    - memcached
+    - barbican-api
+    - barbican-worker
+    - cinder-api
+    - cinder-scheduler
+    - cinder-volume
+    - cinder-backup
+    - designate-api
+    - designate-central
+    - designate-pool-manager
+    - designate-zone-manager
+    - designate-mdns
+    - glance-api
+    #- glance-api:
+    #    ha_mode: false
+    #    glance_stores: 'file'
+    #    glance_default_store: 'file'
+    - glance-registry
+    - horizon
+    - heat-api
+    - heat-api-cfn
+    - heat-api-cloudwatch
+    - heat-engine
+    - keystone-api
+    - keystone-client
+    - magnum-api
+    - magnum-conductor
+    - nova-api
+    - nova-placement-api
+    - nova-scheduler
+    - nova-conductor
+    - nova-console-auth
+    - nova-novncproxy
+    - neutron-server
+    - neutron-ml2-plugin
+    - octavia-api
+    - octavia-health-manager
+    - ops-console-web
+  DBMQ:
+    - mysql
+    - rabbitmq
+  NEUTRON:
+    - neutron-vpn-agent
+    - neutron-dhcp-agent
+    - neutron-metadata-agent
+    - neutron-openvswitch-agent
+  LMM:
+    - ntp-client
+    - ceilometer-api
+    - ceilometer-polling
+    - ceilometer-agent-notification
+    - ceilometer-common
+    #- ceilometer-client
+    - cassandra
+    - kafka
+    - spark
+
+    # Freezer-api need to be installed on same node as logging-server
+    # as they share elasticsearch
+    - freezer-api
+    - logging-server
+
+    - storm
+    - monasca-api
+    - monasca-persister
+    - monasca-notifier
+    - monasca-threshold
+    #- monasca-client
+    - monasca-transform
+    - zookeeper
+  SWPAC:
+    - swift-proxy
+    - swift-account
+    - swift-container
+    - swift-ring-builder
+    #- swift-client
+  SWOBJ:
+    - swift-object
+  COMPUTE:
+    - nova-compute-kvm
+    - nova-compute
+    - neutron-l3-agent
+    - neutron-metadata-agent
+    - neutron-openvswitch-agent
+    - neutron-lbaasv2-agent
+
+
+
+disk_component_groups:
+  OS:
+    logical-volumes:
+      # The policy is not to consume 100% of the space of each volume group.
+      # At least 5% should be left free for snapshots.
+
+      - name: root
+        size: 65%
+        fstype: ext4
+        mount: /
+
+      # Reserved space for kernel crash dumps
+      # Should evaluate to a value that is slightly larger than
+      # the memory size of your server
+      - name: crash
+        size: 15%
+        mount: /var/crash
+        fstype: ext4
+        mkfs-opts: -O large_file
+
+      # Local Log files.
+      - name: log
+        size: 15%
+        mount: /var/log
+        fstype: ext4
+        mkfs-opts: -O large_file
+
+    consumer:
+       name: os
+
+  CINDER-IMAGE:
+    logical-volumes:
+      - name: cinder_image
+        size: 95%
+        mount: /var/lib/cinder
+        fstype: ext4
+
+  GLANCE-CACHE:
+    logical-volumes:
+      - name: glance-cache
+        size: 95%
+        mount: /var/lib/glance/cache
+        fstype: ext4
+        mkfs-opts: -O large_file
+        consumer:
+          name: glance-api
+          usage: glance-cache
+  DBMQ:
+    logical-volumes:
+
+      # Mysql Database.  All persistent state from OpenStack services
+      # is saved here.  Although the individual objects are small the
+      # accumulated data can grow over time
+      - name: mysql
+        size: 45%
+        mount: /var/lib/mysql
+        fstype: ext4
+        mkfs-opts: -O large_file
+        consumer:
+          name: mysql
+
+      # Rabbitmq works mostly in memory, but needs to be able to persist
+      # messages to disc under high load. This area should evaluate to a value
+      # that is slightly larger than the memory size of your server
+      - name: rabbitmq
+        size: 45%
+        mount: /var/lib/rabbitmq
+        fstype: ext4
+        mkfs-opts: -O large_file
+        consumer:
+          name: rabbitmq
+          rabbitmq_env: home
+
+  LMM:
+    logical-volumes:
+
+      # Database storage for event monitoring (Monasca).  Events are generally
+      # small data objects.
+      - name: cassandra_db
+        size: 25%
+        mount: /var/cassandra/data
+        fstype: ext4
+        mkfs-opts: -O large_file
+        consumer:
+          name: cassandra
+
+      - name: cassandra_log
+        size: 5%
+        mount: /var/cassandra/commitlog
+        fstype: ext4
+        mkfs-opts: -O large_file
+        consumer:
+          name: cassandra
+
+      # Messaging system for monitoring.
+      - name: kafka
+        size: 20%
+        mount: /var/kafka
+        fstype: ext4
+        mkfs-opts: -O large_file
+        consumer:
+          name: kafka
+
+      # Data storage for centralized logging. This holds log entries from all
+      # servers in the cloud and hence can require a lot of disk space.
+      - name: elasticsearch
+        size: 40%
+        mount: /var/lib/elasticsearch
+        fstype: ext4
+
+      # Zookeeper is used to provide cluster co-ordination in the monitoring
+      # system.  Although not a high user of disc space we have seen issues
+      # with zookeeper snapshots filling up filesystems so we keep it in its
+      # own space for stability
+      - name: zookeeper
+        size: 5%
+        mount: /var/lib/zookeeper
+        fstype: ext4
+
+  SWPAC:
+      consumer:
+        name: swift
+        attrs:
+          rings:
+            - account
+            - container
+  SWOBJ:
+      consumer:
+        name: swift
+        attrs:
+          rings:
+            - object-0
+
+
+firewall_rule_groups:
+  PING:
+    # open ICMP echo request (ping)
+    - type: allow
+      remote-ip-prefix:  0.0.0.0/0
+      # icmp type
+      port-range-min: 8
+      # icmp code
+      port-range-max: 0
+      protocol: icmp
+
+  NETCAT:
+    - type: allow
+      remote-ip-prefix:  0.0.0.0/0
+      port-range-min: 11382
+      port-range-max: 11382
+      protocol: tcp

@@ -16,3 +16,4 @@
 ---
 
 vrrp_offset: 101
+ses_rgw_port: 8101

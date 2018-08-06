@@ -15,10 +15,10 @@
 #
 ---
 
-cloud_media_name: "{{ cloud_brand | upper }}{{ cloud_brand_sufix | upper }}-x86_64-{{ cloudsource | upper }}-DVD1"
+cloud_media_name: "{{ cloud_brand | upper }}{{ cloud_brand_sufix | upper }}-x86_64-{{ cloud_source | upper }}-DVD1"
 cloud_media:
-  url: "http://{{ cloud_media_server }}/install/SLE-12-SP3-Cloud8-{{ cloudsource | upper }}/{{ cloud_media_name }}.iso"
+  url: "http://{{ cloud_media_server }}/install/SLE-12-SP3-Cloud8-{{ cloud_source | upper }}/{{ cloud_media_name }}.iso"
   dest: "/root"
-  repo_name: "CLOUD-{{ cloudsource }}-MEDIA"
+  repo_name: "CLOUD-{{ cloud_source }}-MEDIA"
 
 repos_to_add: "{{ sles_repos + cloud_update_repos }}"

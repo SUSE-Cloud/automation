@@ -16,7 +16,4 @@
 ---
 
 vrrp_offset: 201
-
-ardana_im_extras:
-  entry-scale-kvm:
-    - 'rhel-compute'
+ses_rgw_port: 8201
