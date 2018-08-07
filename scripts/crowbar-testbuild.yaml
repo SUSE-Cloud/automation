@@ -11,6 +11,10 @@ branches:
     bs_project:  Devel:Cloud:7:Staging
     bs_repo:     SLE_12_SP2
     cloudsource: develcloud7
+  stable/5.0-pike:
+    bs_project:  Devel:Cloud:8:Staging
+    bs_repo:     SLE_12_SP3
+    cloudsource: develcloud8
   master:
     bs_project:  Devel:Cloud:8:Staging
     bs_repo:     SLE_12_SP3
