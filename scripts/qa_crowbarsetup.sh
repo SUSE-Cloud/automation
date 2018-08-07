@@ -400,7 +400,8 @@ function get_unclustered_sles12plus_nodes
     local target="suse-12.0"
     iscloudver 6 && target="suse-12.1"
     iscloudver 7 && target="suse-12.2"
-    iscloudver 8plus && target="suse-12.3"
+    iscloudver 8 && target="suse-12.3"
+    iscloudver 9plus && target="suse-12.4"
 
     local sles12plusnodes=($(knife search node "target_platform:$target AND \
         NOT crowbar_admin_node:true" -a name | grep ^name: | cut -d : -f 2 | \
@@ -1813,8 +1814,10 @@ function onadmin_crowbar_register
         image="suse-12.1/x86_64/"
     elif iscloudver 7; then
         image="suse-12.2/$arch/"
-    elif iscloudver 8plus; then
+    elif iscloudver 8; then
         image="suse-12.3/$arch/"
+    elif iscloudver 9plus; then
+        image="suse-12.4/$arch/"
     fi
 
     local adminfqdn=`get_crowbar_node`
