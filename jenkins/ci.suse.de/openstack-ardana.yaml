@@ -365,7 +365,7 @@
             CLOUD_CONFIG_NAME=engcloud-cloud-ci
 
             if [[ -z $build_pool_name ]] || (( $build_pool_size != 0 )); then
-                DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name admin-mgmt-ip -c output_value -f value)
+                DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name admin-floating-ip -c output_value -f value)
                 echo "*****************************************************************"
                 echo ""
                 if [[ -n $build_pool_name ]]; then
