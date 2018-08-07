@@ -183,7 +183,7 @@ for servicepack in 4 3 2 1; do
         if [ -z "$sync_from_ibs" ]; then
             $rsync --link-dest /srv/nfs/install/suse-${chef_version}/$arch/install/suse/ ${ibs_source}/SUSE/Products/SLE-SERVER/$version/$arch/product/ $destdir_sles_pool
         else
-            $rsync --link-dest /srv/nfs/install/suse-${chef_version}/$arch/install/suse/ ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-Server-POOL-$arch-Media1/ $destdir_sles_pool
+            $rsync --link-dest /srv/nfs/install/suse-${chef_version}/$arch/install/suse/ ${ibs_source}/SUSE\:/SLE-$version\:/GA\:/TEST/images/repo/SLE-$version-Server-POOL-$arch-Media1/ $destdir_sles_pool
         fi
         # SLES updates
         destdir_sles_updates=/srv/nfs/repos/$arch/SLES$repo_version-Updates/
