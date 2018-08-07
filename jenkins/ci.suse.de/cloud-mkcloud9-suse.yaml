@@ -18,7 +18,7 @@
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
-                cloudsource=susecloud
+                cloudsource=susecloud9
                 TESTHEAD=
                 want_test_updates=1
                 nodenumber=2
