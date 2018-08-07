@@ -694,10 +694,13 @@ function onadmin_prepare_cloud_repos
             develcloud6)
                 addslestestupdates
                 ;;
-            *cloud7)
+            develcloud7)
                 addslestestupdates
                 ;;
-            *cloud8|M?|Beta*|RC*|GMC*)
+            develcloud8)
+                addslestestupdates
+                ;;
+            *cloud9|M?|Beta*|RC*|GMC*)
                 addslestestupdates
                 ;;
             *)
