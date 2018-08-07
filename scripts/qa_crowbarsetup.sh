@@ -615,9 +615,13 @@ function onadmin_prepare_sles12sp1_other_repos
 
 function onadmin_prepare_sles_other_repos
 {
-    for repo in SLES$slesversion-{Pool,Updates,LTSS-Updates}; do
+    for repo in SLES$slesversion-{Pool,Updates}; do
         add_mount "repos/$arch/$repo" "$tftpboot_repos_dir/$repo"
     done
+    # FIXME LTSS repo empty for SLE12-SP3/SP4, do not add it as zypper does not like empty repos
+    if iscloudver 7minus ; then
+        add_mount "repos/$arch/SLES$slesversion-LTSS-Updates" "$tftpboot_repos_dir/SLES$slesversion-LTSS-Updates"
+    fi
 }
 
 function onadmin_prepare_cloud_repos
@@ -818,7 +822,7 @@ function create_repos_yml
 
     grep -q SLES$slesversion-Updates-test /etc/fstab && \
         additional_repos+=" SLES$slesversion-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-Updates-test"
-    # FIXME LTSS repo is still empty for SOC8, do not add it as zypper does not like empty repos
+    # FIXME LTSS repo empty for SLE12-SP3/SP4, do not add it as zypper does not like empty repos
     if iscloudver 7minus ; then
         grep -q SLES$slesversion-LTSS-Updates /etc/fstab && \
             additional_repos+=" SLES$slesversion-LTSS-Updates=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-LTSS-Updates"
