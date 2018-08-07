@@ -314,12 +314,12 @@ function add_sdk_repo
     fi
 }
 
-function add_sap_repo
+function add_continuousdelivery_repo
 {
     local stage=
     [[ $TESTHEAD ]] && stage=":/Staging"
     # priority required to overwrite the default cloud6 packages
-    $zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/SAP${stage}/SLE_12_SP1/ dc6sap
+    $zypper ar -p 92 -f http://$susedownload/ibs/Devel:/Cloud:/6:/SAP${stage}/SLE_12_SP1/ dc6cd
 }
 
 function add_ha_repo
@@ -1018,7 +1018,7 @@ EOF
         add_ha_repo
     fi
 
-    [[ $want_cd = 1 ]] && add_sap_repo
+    [[ $want_cd = 1 ]] && add_continuousdelivery_repo
 
     if [ -n "$deployceph" ] || [[ $want_external_ceph = 1 ]]; then
         add_suse_storage_repo
