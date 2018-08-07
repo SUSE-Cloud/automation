@@ -640,9 +640,6 @@
           export CHECKPROC=mkcloud
           mkcloudwrapper="${automationrepo}/scripts/mkcloudhost/allocpool ${automationrepo}/scripts/mkcloudhost/mkcloude"
 
-          # Shut down the cloud to save resources
-          ##MKCLOUDTARGET+=" cleanup"
-
           export clouddescription="Jenkins Build: $BUILD_NUMBER / $JOB_NAME"
 
           $custom_settings
