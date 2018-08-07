@@ -639,13 +639,6 @@
           # CHECKPROC in env tells 'allocpool' the process name to compare
           export CHECKPROC=mkcloud
           mkcloudwrapper="${automationrepo}/scripts/mkcloudhost/allocpool ${automationrepo}/scripts/mkcloudhost/mkcloude"
-          #FIXME - drop next 3 lines once the change in allocpool is merged
-          if grep -q "exec.*mkcloude" ${automationrepo}/scripts/mkcloudhost/allocpool ; then
-              mkcloudwrapper=${automationrepo}/scripts/mkcloudhost/allocpool
-          fi
-
-          # Shut down the cloud to save resources
-          ##MKCLOUDTARGET+=" cleanup"
 
           export clouddescription="Jenkins Build: $BUILD_NUMBER / $JOB_NAME"
 
