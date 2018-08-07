@@ -645,13 +645,6 @@ function onadmin_prepare_cloud_repos
     fi
 
     case "$cloudsource" in
-        GM6)
-            addcloudpool
-            ;;
-        GM6+up)
-            addcloudpool
-            addcloudmaintupdates
-            ;;
         GM7)
             addcloudpool
             ;;
@@ -670,13 +663,6 @@ function onadmin_prepare_cloud_repos
 
     if [[ "$want_test_updates" = 1 ]] ; then
         case "$cloudsource" in
-            GM6)
-                addslestestupdates
-                ;;
-            GM6+up)
-                addslestestupdates
-                addcloudtestupdates
-                ;;
             GM7)
                 addslestestupdates
                 ;;
@@ -690,9 +676,6 @@ function onadmin_prepare_cloud_repos
             GM8+up)
                 addslestestupdates
                 addcloudtestupdates
-                ;;
-            develcloud6)
-                addslestestupdates
                 ;;
             develcloud7)
                 addslestestupdates
@@ -875,13 +858,6 @@ function create_repos_yml
 function onadmin_set_source_variables
 {
     case "$cloudsource" in
-        develcloud6)
-            CLOUDISOURL=${want_cloud6_iso_url:="$susedownload/ibs/Devel:/Cloud:/6/images/iso"}
-            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/6:/Staging/images/iso"
-            CLOUDISONAME=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}-Media1.iso"}
-            CLOUDTESTISONAME="CLOUD-6-TESTING-$arch*Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
-        ;;
         develcloud7)
             CLOUDISOURL=${want_cloud7_iso_url:="$susedownload/ibs/Devel:/Cloud:/7/images/iso"}
             [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/7:/Staging/images/iso"
@@ -912,13 +888,6 @@ function onadmin_set_source_variables
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-official"
         ;;
-        GM6|GM6+up)
-            cs=$cloudsource
-            [[ $cs =~ GM6 ]] && cs=GM
-            CLOUDISOURL="${want_cloud6_iso_url:=$reposerver/install/SLE-12-SP1-Cloud6-$cs/}"
-            CLOUDISONAME=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}*1.iso"}
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
-        ;;
         GM7|GM7+up)
             cs=$cloudsource
             [[ $cs =~ GM7 ]] && cs=GM
@@ -935,7 +904,7 @@ function onadmin_set_source_variables
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud6|develcloud7|develcloud8|develcloud9|Mx|GM6|GM7"
+            complain 76 "You must set environment variable cloudsource=develcloud7|develcloud8|develcloud9|Mx|GM7|GM8"
         ;;
     esac
 
@@ -1290,14 +1259,13 @@ function crowbar_restore_status
     fi
 }
 
-function do_installcrowbar_cloud6plus
+function do_installcrowbar
 {
-    if iscloudver 6minus; then
-        service crowbar status || service crowbar stop
-        service crowbar start
+    intercept "crowbar-installation"
+    pre_hook $FUNCNAME
+    do_set_repos_skip_checks
 
-        wait_for 30 10 "onadmin_is_crowbar_api_available" "crowbar service to start"
-    fi
+    rpm -Va crowbar\*
 
     if crowbar_install_status | grep -q '"success": *true' ; then
         echo "Crowbar is already installed. The current crowbar install status is:"
@@ -1316,17 +1284,7 @@ function do_installcrowbar_cloud6plus
         crowbar_install_status
         complain 90 "Crowbar installation failed"
     fi
-}
 
-
-function do_installcrowbar
-{
-    intercept "crowbar-installation"
-    pre_hook $FUNCNAME
-    do_set_repos_skip_checks
-
-    rpm -Va crowbar\*
-    do_installcrowbar_cloud6plus
     rpm -Va crowbar\*
 
     ## common code - installer agnostic
@@ -2487,9 +2445,6 @@ function custom_configuration
         ceilometer)
             local ceilometerservice="ceilometer-cagent"
             ceilometerservice="ceilometer-central"
-            if [[ $cloudsource = GM6 ]] ; then
-                ceilometerservice="ceilometer-polling"
-            fi
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-server']" "['cluster:$clusternameservices']"
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['$ceilometerservice']" "['cluster:$clusternameservices']"
@@ -2804,7 +2759,7 @@ function set_noproxyvar
     no_proxy="${no_proxy%,}";
 }
 
-# commit a proposal, but use crowbarctl from cloud6 on
+# commit a proposal
 function crowbar_proposal_commit
 {
     local proposal="$1"
@@ -5202,10 +5157,10 @@ function onadmin_run_cct
             checkout_branch=$cct_checkout_branch
         else
             # checkout branches if needed, otherwise use master
-            if iscloudver 6; then
-                checkout_branch=cloud6
-            elif iscloudver 7; then
+            if iscloudver 7; then
                 checkout_branch=cloud7
+            elif iscloudver 8; then
+                checkout_branch=cloud8
             fi
         fi
 

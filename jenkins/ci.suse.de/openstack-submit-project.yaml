@@ -58,9 +58,6 @@
           submitcmd="$osc copypac -K -e"
 
           case $project in
-              Devel:Cloud:6)
-                  ecos=systemsmanagement:crowbar:3.0
-              ;;
               Devel:Cloud:6:SAP)
                   ecos=systemsmanagement:crowbar:3.1
               ;;

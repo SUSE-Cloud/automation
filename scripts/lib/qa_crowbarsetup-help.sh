@@ -52,9 +52,6 @@ function qacrowbarsetup_help
         Example:
             want_devel_repos=storage,virt
         Valid values: ha, storage, virt
-    want_cloud6_iso_url=URL to use for downloading Cloud 6 ISO image
-    want_cloud6_iso=ISO filename
-        Name of Cloud 6 ISO image file.
     want_cloud7_iso_url=URL to use for downloading Cloud 7 ISO image
     want_cloud7_iso=ISO filename
         Name of Cloud 7 ISO image file.
