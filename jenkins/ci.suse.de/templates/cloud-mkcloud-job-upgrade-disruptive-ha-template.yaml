@@ -21,6 +21,7 @@
             cloudsource=develcloud{previous_version}
             upgrade_cloudsource=develcloud{version}
             nodenumber={nodenumber}
+            nodenumberlonelynode=1
             want_nodesupgrade=1
             want_database_sql_engine={database_engine}
             want_trove_proposal=0
