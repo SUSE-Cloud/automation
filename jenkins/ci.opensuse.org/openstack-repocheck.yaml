@@ -30,6 +30,7 @@
           values:
             - SLE_12_SP2
             - SLE_12_SP3
+            - SLE_12_SP4
             - openSUSE_Leap_42.3
             - openSUSE_Leap_15.0
       - axis:
@@ -38,12 +39,14 @@
           values:
             - cloud-trackupstream
     execution-strategy:
+      # NOTE: Be careful! These are "reversed" filters. i.e. add a platform
+      # to a branch here only if you want to "exclude" it for the given branch.
       combination-filter: |
        !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_12_SP2"].contains(repository) ||
-         ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["openSUSE_Leap_42.3", "openSUSE_Leap_15.0"].contains(repository) ||
-         ["Cloud:OpenStack:Ocata", "Cloud:OpenStack:Ocata:Staging"].contains(project) && ["openSUSE_Leap_15.0"].contains(repository) ||
-         ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["SLE_12_SP2", "openSUSE_Leap_15.0"].contains(repository) ||
-         ["Cloud:OpenStack:Queens", "Cloud:OpenStack:Queens:Staging"].contains(project) && ["SLE_12_SP2"].contains(repository)
+         ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["openSUSE_Leap_42.3", "openSUSE_Leap_15.0", "SLE_12_SP4"].contains(repository) ||
+         ["Cloud:OpenStack:Ocata", "Cloud:OpenStack:Ocata:Staging"].contains(project) && ["openSUSE_Leap_15.0", "SLE_12_SP4"].contains(repository) ||
+         ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["SLE_12_SP2", "openSUSE_Leap_15.0", "SLE_12_SP4"].contains(repository) ||
+         ["Cloud:OpenStack:Queens", "Cloud:OpenStack:Queens:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP4"].contains(repository)
        )
       sequential: true
     builders:
