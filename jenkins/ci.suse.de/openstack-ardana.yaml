@@ -171,75 +171,76 @@
 
           cloudsource_url=http://provo-clouddata.cloud.suse.de/repos/x86_64/$cloudsource
           cloudsource_media_build=$( curl -s $cloudsource_url/media.1/build )
-          image_mirror_url=http://provo-clouddata.cloud.suse.de/images/openstack/x86_64
           echo cloudsource=$cloudsource
           echo cloudsource URL is $cloudsource_url
           echo media build version is $cloudsource_media_build
           echo
 
           set -ex
-          STACK_NAME=cloud-ci-openstack-ardana-${BUILD_NUMBER}
+          heat_stack_name=cloud-ci-openstack-ardana-${BUILD_NUMBER}
           if [ -n "${JOB_NAME}" ]; then
-              STACK_NAME=${STACK_NAME}-${JOB_NAME}
+              heat_stack_name=${heat_stack_name}-${JOB_NAME}
           fi
-          CLOUD_CONFIG_NAME=engcloud-cloud-ci
-          cat - > stack_env <<EOF
-          BUILD_POOL_NAME="$build_pool_name"
-          BUILD_POOL_SIZE="$build_pool_size"
-          STACK_NAME="$STACK_NAME"
-          CLOUD_CONFIG_NAME="$CLOUD_CONFIG_NAME"
-          EOF
 
           export ANSIBLE_KEEP_REMOTE_FILES=1
-          # the name for the cloud defined in ~./config/openstack/clouds.yaml
 
           # init the git tree
           git clone $git_automation_repo --branch $git_automation_branch automation-git
           if [ "$git_automation_repo" != "$git_input_model_repo" ]; then
               git clone $git_input_model_repo --branch $git_input_model_branch ardana-input-model-git
-              input_model_path="$PWD/ardana-input-model-git/${git_input_model_path}/${model}"
+              input_model_path="$WORKSPACE/ardana-input-model-git/${git_input_model_path}/${model}"
           else
-              input_model_path="$PWD/automation-git/${git_input_model_path}/${model}"
+              input_model_path="$WORKSPACE/automation-git/${git_input_model_path}/${model}"
           fi
+          rsync -av $input_model_path/* $WORKSPACE/input-model
 
           pushd automation-git/scripts/jenkins/ardana/ansible
           source /opt/ansible/bin/activate
 
           # generate the heat template
           ansible-playbook -v generate-heat.yml \
-            -e input_model_path="$input_model_path" \
-            -e heat_template_file="./heat-ardana-${model}.yaml"
+            -e input_model_path="$WORKSPACE/input-model" \
+            -e heat_template_file="$WORKSPACE/heat-ardana-${model}.yaml"
 
-          # Simple build pool management
-          if [[ -n $build_pool_name ]]; then
-              keep_no_old_stacks=$(( build_pool_size-1 ))
-              # NOTE: cannot use --property status=SUSPEND_COMPLETE as a filter when --tags is also present
-              old_stacks_to_delete=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack list \
-                                      --tags "$build_pool_name" \
-                                      -f value -c 'Stack Name' -c 'Stack Status' \
-                                      --sort 'creation_time:desc' |
-                                      grep SUSPEND_COMPLETE | cut -d' ' -f1 |
-                                      awk 'NR > '$keep_no_old_stacks' {print $1}')
-              if [[ -n $old_stacks_to_delete ]]; then
-                  for old_stack in $old_stacks_to_delete
-                  do
-                      # Need to resume the stack before deleting it, otherwise deletion will fail
-                      openstack --os-cloud $CLOUD_CONFIG_NAME stack resume --wait $old_stack || :
-                      openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait $old_stack || :
-                  done
-              fi
-          fi
+          # generate properties file
+          cat - > $WORKSPACE/heat_stack_env <<EOF
+          build_pool_name=$build_pool_name
+          build_pool_size=$build_pool_size
+          heat_stack_name=$heat_stack_name
+          heat_template_file=$WORKSPACE/heat-ardana-${model}.yaml
+          input_model_path=$WORKSPACE/input-model
+          EOF
 
-          openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait \
-              -t heat-ardana-${model}.yaml  \
-              --tags "$build_pool_name" \
-              $STACK_NAME
+      - trigger-builds:
+        - project: openstack-ardana-heat
+          predefined-parameters: |
+            action=create
+          property-file: heat_stack_env
+          block: true
 
-          DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME admin-floating-ip -c output_value -f value)
-          NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME mgmt-network-id -c output_value -f value)
-          sshargs="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-          # FIXME: Use cloud-init in the used image
-          sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 $sshargs root@${DEPLOYER_IP}
+      - trigger-builds:
+        - project: openstack-ardana-heat
+          predefined-parameters: |
+            action=cleanup
+            build_pool_name=$build_pool_name
+            build_pool_size=$build_pool_size
+          block: false
+
+      - shell: |
+          set +x
+          . $WORKSPACE/heat_stack_env
+
+          # the name for the cloud defined in ~./config/openstack/clouds.yaml
+          CLOUD_CONFIG_NAME=engcloud-cloud-ci
+          # mirror used to download images
+          image_mirror_url=http://provo-clouddata.cloud.suse.de/images/openstack/x86_64
+
+          set -ex
+
+          pushd automation-git/scripts/jenkins/ardana/ansible
+
+          DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name admin-floating-ip -c output_value -f value)
+          NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name mgmt-network-id -c output_value -f value)
           cat << EOF > hosts
           [hosts]
           $DEPLOYER_IP ansible_user=root
@@ -250,10 +251,10 @@
           cat << EOF > ardana_net_vars.yml
           ---
           input_model_path: "$input_model_path"
-          deployer_mgmt_ip: $(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME admin-mgmt-ip -c output_value -f value)
+          deployer_mgmt_ip: $(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name admin-mgmt-ip -c output_value -f value)
           EOF
 
-          controller_mgmt_ips=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME controller-mgmt-ips -c output_value -f value|grep -o '[0-9.]*')
+          controller_mgmt_ips=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name controller-mgmt-ips -c output_value -f value|grep -o '[0-9.]*')
           if [ -n "$controller_mgmt_ips" ]; then
             echo "controller_mgmt_ips:" >> ardana_net_vars.yml
             for ip in $controller_mgmt_ips; do
@@ -263,7 +264,7 @@
             done
           fi
 
-          compute_mgmt_ips=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute-mgmt-ips -c output_value -f value|grep -o '[0-9.]*')
+          compute_mgmt_ips=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name compute-mgmt-ips -c output_value -f value|grep -o '[0-9.]*')
           if [ -n "$compute_mgmt_ips" ]; then
             echo "compute_mgmt_ips:" >> ardana_net_vars.yml
             for ip in $compute_mgmt_ips; do
@@ -281,6 +282,12 @@
               while read line; do echo "  - $line" >> ardana_net_vars.yml; done;
 
           cat ardana_net_vars.yml
+
+          sshargs="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+          # FIXME: Use cloud-init in the used image
+          sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 $sshargs root@${DEPLOYER_IP}
+
+          source /opt/ansible/bin/activate
 
           ansible-playbook -v -i hosts ssh-keys.yml
           if [ -n "$gerrit_change_id" ] ; then
@@ -335,38 +342,47 @@
               post-deploy-checks.yml
 
     publishers:
+      - trigger-parameterized-builds:
+        - project: openstack-ardana-heat
+          predefined-parameters: |
+            action=cleanup
+          property-file: heat_stack_env
+          condition: ALWAYS
+        - project: openstack-ardana-heat
+          predefined-parameters: |
+            action=cleanup
+            build_pool_name=$build_pool_name
+            build_pool_size=$build_pool_size
+          condition: ALWAYS
+
       - post-tasks:
         - matches:
-          - log-text: heat-ardana-
+          - log-text: DEPLOYER_IP
           script: |
-            . $WORKSPACE/stack_env
-            if [[ -n $BUILD_POOL_NAME ]] && (( $BUILD_POOL_SIZE == 0 )); then
-                openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait \
-                      $STACK_NAME || :
-            else
-                DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-ip-floating -c output_value -f value)
-                if [[ -n $BUILD_POOL_NAME ]]; then
-                    openstack --os-cloud $CLOUD_CONFIG_NAME stack suspend --wait \
-                          $STACK_NAME || :
-                fi
+            set +x
+            . $WORKSPACE/heat_stack_env
+            # the name for the cloud defined in ~./config/openstack/clouds.yaml
+            CLOUD_CONFIG_NAME=engcloud-cloud-ci
+
+            if [[ -z $build_pool_name ]] || (( $build_pool_size != 0 )); then
+                DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name admin-mgmt-ip -c output_value -f value)
                 echo "*****************************************************************"
                 echo ""
-                if [[ -n $BUILD_POOL_NAME ]]; then
-                  echo "** The installation stack has been suspended and will be removed "
+                if [[ -n $build_pool_name ]]; then
+                  echo "** The installation stack will be suspended and will be removed  "
                   echo "** automatically by one of the future job runs that is using the "
-                  echo "** same '$BUILD_POOL_NAME' build pool.                           "
+                  echo "** same '$build_pool_name' build pool.                           "
                   echo ""
                   echo "** To prevent future jobs from removing the installation, either "
-                  echo "** resume the stack or remove the '$BUILD_POOL_NAME' tag from it "
-                  echo "** by running:                                                   "
-                  echo ""
-                  echo "**   openstack stack update --tags '' $STACK_NAME                "
+                  echo "** resume the stack or take the stack out of the '$build_pool_name' "
+                  echo "** build pool by rebuilding the 'openstack-ardana-heat' job that "
+                  echo "** created it with the 'action' parameter set to 'exclude'.      "
                   echo ""
                 else
                   echo "** Installation remains available at                             "
                   echo "             ssh ardana@$DEPLOYER_IP                             "
                   echo ""
-                  echo "** Please do openstack stack delete $STACK_NAME when you're done."
+                  echo "** Please delete the $heat_stack_name stack manually when you're done."
                 fi
                 echo ""
                 echo "*****************************************************************"
