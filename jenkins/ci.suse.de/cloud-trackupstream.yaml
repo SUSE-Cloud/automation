@@ -34,6 +34,7 @@
             - Devel:Cloud:6:SAP:Staging
             - Devel:Cloud:7:Staging
             - Devel:Cloud:8:Staging
+            - Devel:Cloud:9:Staging
       - axis:
           type: slave
           name: label
@@ -79,6 +80,16 @@
               "caasp-openstack-heat-templates"
             ].contains(component)
           )
+          ||
+          (
+            [
+              "Devel:Cloud:9:Staging"
+            ].contains(project) &&
+            [
+              "openstack-dashboard-theme-HPE"
+            ].contains(component)
+          )
+
         )
       sequential: true
     builders:
