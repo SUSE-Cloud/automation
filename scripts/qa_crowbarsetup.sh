@@ -550,20 +550,19 @@ function cluster_node_assignment
     echo "............................................................"
 }
 
-function rsync_iso
+function wget_iso_and_unpack_to
 {
-    local distpath="$1"
+    local isourl="$1"
     local distiso="$2"
     local targetdir="$3"
     mkdir -p /mnt/cloud "$targetdir"
     (
         cd "$targetdir"
-        url=http://$susedownload$distpath/
-        wget --progress=dot:mega -r -np -nc -e robots=off -A "$distiso" $url \
+        wget --progress=dot:mega -r -np -nc -e robots=off -A "$distiso" http://$isourl \
         || complain 71 "iso not found"
-        local cloudiso=$(ls */$distpath/*.iso | tail -1)
+        local cloudiso=$(ls $isourl/*.iso | tail -1)
         if [ -z "$cloudiso" ]; then
-            complain 75 "failed to download $distiso from $url"
+            complain 75 "failed to download $distiso from http://$isourl"
         fi
         safely mount -o loop,ro -t iso9660 $cloudiso /mnt/cloud
         safely rsync -av --delete-after /mnt/cloud/ .
@@ -631,9 +630,9 @@ function onadmin_prepare_cloud_repos
         add_mount "repos/$arch/${CLOUDLOCALREPOS}/" \
                 "$targetdir"
     else
-        rsync_iso "$CLOUDISOPATH" "$CLOUDISONAME" "$targetdir"
+        wget_iso_and_unpack_to "$CLOUDISOURL" "$CLOUDISONAME" "$targetdir"
         if [[ $want_s390 ]] ; then
-            rsync_iso "$CLOUDISOPATH" "${CLOUDISONAME/$arch/s390x}" "${targetdir/$arch/s390x}"
+            wget_iso_and_unpack_to "$CLOUDISOURL" "${CLOUDISONAME/$arch/s390x}" "${targetdir/$arch/s390x}"
         fi
     fi
 
@@ -870,15 +869,15 @@ function onadmin_set_source_variables
 {
     case "$cloudsource" in
         develcloud6)
-            CLOUDISOPATH=${want_cloud6_iso_path:='/ibs/Devel:/Cloud:/6/images/iso'}
-            [ -n "$TESTHEAD" ] && CLOUDISOPATH=/ibs/Devel:/Cloud:/6:/Staging/images/iso
+            CLOUDISOURL=${want_cloud6_iso_url:="$susedownload/ibs/Devel:/Cloud:/6/images/iso"}
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/6:/Staging/images/iso"
             CLOUDISONAME=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}-Media1.iso"}
             CLOUDTESTISONAME="CLOUD-6-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         develcloud7)
-            CLOUDISOPATH=${want_cloud7_iso_path:='/ibs/Devel:/Cloud:/7/images/iso'}
-            [ -n "$TESTHEAD" ] && CLOUDISOPATH=/ibs/Devel:/Cloud:/7:/Staging/images/iso
+            CLOUDISOURL=${want_cloud7_iso_url:="$susedownload/ibs/Devel:/Cloud:/7/images/iso"}
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/7:/Staging/images/iso"
             CLOUDISONAME=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"}
             CLOUDTESTISONAME="CLOUD-7-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
@@ -891,8 +890,8 @@ function onadmin_set_source_variables
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
         develcloud8)
-            CLOUDISOPATH=/ibs/Devel:/Cloud:/8/images/iso
-            [ -n "$TESTHEAD" ] && CLOUDISOPATH=/ibs/Devel:/Cloud:/8:/Staging/images/iso
+            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/8/images/iso"
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/8:/Staging/images/iso"
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-8-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-devel"
         ;;
@@ -904,28 +903,29 @@ function onadmin_set_source_variables
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
         susecloud9)
-            CLOUDISOPATH=/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/
+            CLOUDISOURL="$susedownload/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/"
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-official"
         ;;
         GM6|GM6+up)
             cs=$cloudsource
             [[ $cs =~ GM6 ]] && cs=GM
-            CLOUDISOPATH=${want_cloud6_iso_path:="/install/SLE-12-SP1-Cloud6-$cs/"}
+            CLOUDISOURL="${want_cloud6_iso_url:=$reposerver/install/SLE-12-SP1-Cloud6-$cs/}"
             CLOUDISONAME=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-official"
         ;;
         GM7|GM7+up)
             cs=$cloudsource
             [[ $cs =~ GM7 ]] && cs=GM
-            CLOUDISOPATH=${want_cloud7_iso_path:="/install/SLE-12-SP2-Cloud7-$cs/"}
+            CLOUDISOURL="${want_cloud7_iso_url:=$reposerver/install/SLE-12-SP2-Cloud7-$cs/}"
             CLOUDISONAME=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
         ;;
         GM8|GM8+up)
             cs=$cloudsource
             [[ $cs =~ GM8 ]] && cs=GM
-            CLOUDISOPATH=${want_cloud8_iso_path:="/install/SLE-12-SP3-Cloud8-$cs/"}
+            # TODO: Switch to clouddata when released
+            CLOUDISOURL="${want_cloud8_iso_url:=$susedownload/install/SLE-12-SP3-Cloud8-$cs/}"
             CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-8-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
@@ -4142,7 +4142,7 @@ function oncontroller_prepare_functional_tests
         echo "Warning: Testing ISO for $cloudsource is not defined, functional tests are not available"
     else
         if ! $zypper lr "$repo_name" ; then
-            rsync_iso "$CLOUDISOPATH" "$CLOUDTESTISONAME" "$mount_dir"
+            wget_iso_and_unpack_to "$CLOUDISOURL" "$CLOUDTESTISONAME" "$mount_dir"
             $zypper ar --refresh -c -G -f "$mount_dir" "$repo_name"
             zypper_refresh
             ensure_packages_installed python-novaclient-test python-manilaclient-test
@@ -4779,7 +4779,7 @@ function onadmin_prepare_cloudupgrade_nodes_repos
 {
     export_tftpboot_dirs
 
-    # change CLOUDISONAME/CLOUDISOPATH according to the new cloudsource
+    # change CLOUDISONAME/CLOUDISOURL according to the new cloudsource
     onadmin_set_source_variables
 
     # prepare installation repositories for nodes
@@ -4801,7 +4801,7 @@ function onadmin_prepare_cloudupgrade_admin_repos
 {
     export_tftpboot_dirs
 
-    # change CLOUDISONAME/CLOUDISOPATH according to the new cloudsource
+    # change CLOUDISONAME/CLOUDISOURL according to the new cloudsource
     onadmin_set_source_variables
 
     # recreate the SUSE-Cloud Repo with the latest iso
@@ -4849,7 +4849,7 @@ function onadmin_prepare_cloudupgrade
     # Client nodes need to be up to date
     onadmin_cloudupgrade_clients
 
-    # change CLOUDISONAME/CLOUDISOPATH according to the new cloudsource
+    # change CLOUDISONAME/CLOUDISOURL according to the new cloudsource
     onadmin_set_source_variables
 
     # recreate the SUSE-Cloud Repo with the latest iso
