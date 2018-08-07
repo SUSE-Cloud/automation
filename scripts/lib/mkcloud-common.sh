@@ -540,6 +540,8 @@ function get_admin_node_dist
     # echo the name of the current dist for the admin node
     local dist=
     case $(getcloudver) in
+        9)  dist=SLES12-SP4
+            ;;
         8)  dist=SLES12-SP3
             ;;
         7)  dist=SLES12-SP2
@@ -574,15 +576,18 @@ function run_zypper
 
 function common_set_versions
 {
-    if iscloudver 7; then
+    if iscloudver 8; then
+        suseversion=12.3
+        cloudrepover="Crowbar-8"
+    elif iscloudver 7; then
         suseversion=12.2
         cloudrepover=7
     elif iscloudver 6; then
         suseversion=12.1
         cloudrepover=6
     else
-        suseversion=12.3
-        cloudrepover="Crowbar-8"
+        suseversion=12.4
+        cloudrepover="Crowbar-9"
     fi
 
     case "$suseversion" in
@@ -599,6 +604,11 @@ function common_set_versions
         12.3)
             slesversion=12-SP3
             slesdist=SLE_12_SP3
+            sesversion=5
+        ;;
+        12.4)
+            slesversion=12-SP4
+            slesdist=SLE_12_SP4
             sesversion=5
         ;;
     esac

@@ -76,7 +76,6 @@ crowbar_api_installer_path=/installer/installer
 crowbar_api_digest="--digest -u crowbar:crowbar"
 crowbar_install_log=/var/log/crowbar/install.log
 crowbar_init_api=http://localhost:4567/api
-[[ $cloudsource = mitakacloud7 ]] && crowbar_init_api=http://localhost:4567/
 crowbar_lib_dir=/var/lib/crowbar
 crowbar_api_v2_header="Accept: application/vnd.crowbar.v2.0+json"
 declare -a unclustered_nodes
@@ -401,7 +400,8 @@ function get_unclustered_sles12plus_nodes
     local target="suse-12.0"
     iscloudver 6 && target="suse-12.1"
     iscloudver 7 && target="suse-12.2"
-    iscloudver 8plus && target="suse-12.3"
+    iscloudver 8 && target="suse-12.3"
+    iscloudver 9plus && target="suse-12.4"
 
     local sles12plusnodes=($(knife search node "target_platform:$target AND \
         NOT crowbar_admin_node:true" -a name | grep ^name: | cut -d : -f 2 | \
@@ -616,9 +616,13 @@ function onadmin_prepare_sles12sp1_other_repos
 
 function onadmin_prepare_sles_other_repos
 {
-    for repo in SLES$slesversion-{Pool,Updates,LTSS-Updates}; do
+    for repo in SLES$slesversion-{Pool,Updates}; do
         add_mount "repos/$arch/$repo" "$tftpboot_repos_dir/$repo"
     done
+    # FIXME LTSS repo empty for SLE12-SP3/SP4, do not add it as zypper does not like empty repos
+    if iscloudver 7minus ; then
+        add_mount "repos/$arch/SLES$slesversion-LTSS-Updates" "$tftpboot_repos_dir/SLES$slesversion-LTSS-Updates"
+    fi
 }
 
 function onadmin_prepare_cloud_repos
@@ -690,10 +694,13 @@ function onadmin_prepare_cloud_repos
             develcloud6)
                 addslestestupdates
                 ;;
-            *cloud7)
+            develcloud7)
                 addslestestupdates
                 ;;
-            *cloud8|M?|Beta*|RC*|GMC*)
+            develcloud8)
+                addslestestupdates
+                ;;
+            *cloud9|M?|Beta*|RC*|GMC*)
                 addslestestupdates
                 ;;
             *)
@@ -819,7 +826,7 @@ function create_repos_yml
 
     grep -q SLES$slesversion-Updates-test /etc/fstab && \
         additional_repos+=" SLES$slesversion-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-Updates-test"
-    # FIXME LTSS repo is still empty for SOC8, do not add it as zypper does not like empty repos
+    # FIXME LTSS repo empty for SLE12-SP3/SP4, do not add it as zypper does not like empty repos
     if iscloudver 7minus ; then
         grep -q SLES$slesversion-LTSS-Updates /etc/fstab && \
             additional_repos+=" SLES$slesversion-LTSS-Updates=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-LTSS-Updates"
@@ -882,25 +889,23 @@ function onadmin_set_source_variables
             CLOUDTESTISONAME="CLOUD-7-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
         ;;
-        mitakacloud7)
-            # This is used by the CloudFoundry team. Do not remove!
-            CLOUDISOPATH=/ibs/Devel:/Cloud:/7:/Mitaka/images/iso
-            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"
-            CLOUDTESTISONAME="CLOUD-7-TESTING-${arch}-Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-official"
-        ;;
         develcloud8)
             CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/8/images/iso"
             [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/8:/Staging/images/iso"
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-8-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-devel"
         ;;
-        ocatacloud8)
-            # This is used by the CloudFoundry team. Do not remove!
-            CLOUDISOPATH=/ibs/Devel:/Cloud:/8:/Ocata/images/iso
-            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-8-${arch}-Media1.iso"
-            CLOUDTESTISONAME="CLOUD-8-TESTING-${arch}-Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
+        develcloud9)
+            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9/images/iso"
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Staging/images/iso"
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
+        ;;
+        develcloud9)
+            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9/images/iso"
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Staging/images/iso"
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
         ;;
         susecloud9)
             CLOUDISOURL="$susedownload/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/"
@@ -930,7 +935,7 @@ function onadmin_set_source_variables
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
         ;;
         *)
-            complain 76 "You must set environment variable cloudsource=develcloud6|develcloud7|develcloud8|Mx|GM6|GM7"
+            complain 76 "You must set environment variable cloudsource=develcloud6|develcloud7|develcloud8|develcloud9|Mx|GM6|GM7"
         ;;
     esac
 
@@ -1254,13 +1259,7 @@ function onadmin_bootstrapcrowbar
         if [[ $upgrademode = "with_upgrade" ]] ; then
             safely crowbarctl upgrade database new
         else
-            if iscloudver 7M6minus || [[ $cloudsource = mitakacloud7 ]] ; then
-                safely crowbar_api_request POST $crowbar_init_api /database/new \
-                    '--data username=crowbar&password=crowbar' "$crowbar_api_v2_header"
-                safely crowbar_api_request POST $crowbar_init_api /init "" "$crowbar_api_v2_header"
-            else
-                safely crowbarctl database create
-            fi
+            safely crowbarctl database create
         fi
     fi
 }
@@ -1818,8 +1817,10 @@ function onadmin_crowbar_register
         image="suse-12.1/x86_64/"
     elif iscloudver 7; then
         image="suse-12.2/$arch/"
-    elif iscloudver 8plus; then
+    elif iscloudver 8; then
         image="suse-12.3/$arch/"
+    elif iscloudver 9plus; then
+        image="suse-12.4/$arch/"
     fi
 
     local adminfqdn=`get_crowbar_node`
@@ -2302,7 +2303,7 @@ function custom_configuration
             # set a custom region name
             proposal_set_value keystone default "['attributes']['keystone']['api']['region']" "'CustomRegion'"
             # speedup the deployment
-            if iscloudver 8M3plus && ! [[ $cloudsource =~ ocatacloud ]] ; then
+            if iscloudver 8M3plus ; then
                 proposal_set_value keystone default "['attributes']['keystone']['identity']['password_hash_rounds']" "4"
             fi
             if [[ $hacloud = 1 ]] ; then
