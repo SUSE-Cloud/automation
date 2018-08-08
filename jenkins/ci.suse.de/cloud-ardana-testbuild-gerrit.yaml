@@ -76,7 +76,7 @@
           set -eux
           rm -rf ./automation-git
           git clone $git_automation_repo --branch $git_automation_branch automation-git
-          python automation-git/scripts/jenkins/ardana/gerrit/build_test_package.py
+          python -u automation-git/scripts/jenkins/ardana/gerrit/build_test_package.py
 
     publishers:
       - workspace-cleanup:
