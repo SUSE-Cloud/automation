@@ -3,26 +3,27 @@
   hosts: hosts
   gather_facts: False
 
-  vars:
-    clouddata_server: provo-clouddata.cloud.suse.de
-    download_suse_server: download.suse.de
-    cloudsource: SUSE-OpenStack-Cloud-8-devel-staging
-    repositories: SLES12-SP3-Pool,SLES12-SP3-Updates
-    arch: x86_64
-    repos_url: "http://{{ clouddata_server }}/repos/{{ arch }}"
-    cloudsource_url: "{{ repos_url }}/{{ cloudsource }}"
-    test_repository_url: ''
+  roles:
+  - cloud-common
 
   tasks:
 
-  - name: Initialize repositories
+  - name: Initialize repository variables
     set_fact:
       repos_dict: {}
+      repository_list: []
+
+  - name: Replace repository mnemonics
+    set_fact:
+      repository_list: "{{ repository_list+
+        [repository_mnemonics[cloud_release][item]|default(item)] }}"
+    with_items: "{{ repositories.split(',')|unique|list }}"
+    when: repositories != ''
 
   - name: Parse repositories
     set_fact:
       repos_dict: "{{ repos_dict|default({})|combine({item: item}) }}"
-    with_items: "{{ repositories.split(',')|unique|list }}"
+    with_items: "{{ repository_list }}"
     when: repositories != ''
 
   - name: Add Cloud to repository list
@@ -30,24 +31,30 @@
       # Use a consistent name for the Cloud media install repo so that we
       # don't have to account for development versus production repos in the
       # playbooks
-      repos_dict: "{{ {'Cloud': cloudsource}|combine(repos_dict) }}"
-    when: cloudsource != ''
+      repos_dict: "{{ {'Cloud': cloud_repository}|combine(repos_dict) }}"
+
+  - name: Check cloud srv directory
+    stat:
+      path: "{{ repository_path[cloud_release] }}/x86_64/repos/Cloud/"
+    register: cloud_srv_dir_stats
 
   - name: Check srv directories
     stat:
-      path: "/srv/www/suse-12.3/x86_64/repos/{{ item.key }}"
+      path: "{{ repository_path[cloud_release] }}/x86_64/repos/{{ item.key }}"
     register: srv_dir_stats
     with_dict: "{{ repos_dict }}"
 
   - name: Create srv directories
     file:
       state: directory
-      path: "/srv/www/suse-12.3/x86_64/repos/{{ item.item.key }}"
+      path: "{{ repository_path[cloud_release] }}/x86_64/repos/{{ item.item.key }}"
       mode: 0755
     when: not item.stat.exists
     with_items:
       - "{{ srv_dir_stats.results }}"
 
+  # NOTE: we rsync only once, to avoid bringing in new cloudsource media contents
+  # during subsequent runs
   - name: Rsync Cloud repo contents
     command: >
       rsync
@@ -57,16 +64,16 @@
         --fuzzy
         --delay-updates
         --delete-delay
-        'rsync://{{ clouddata_server }}/cloud/repos/x86_64/{{ cloudsource }}/'
-        '/srv/www/suse-12.3/x86_64/repos/Cloud/'
-    when: cloudsource != ''
+        'rsync://{{ clouddata_server }}/cloud/repos/x86_64/{{ cloud_repository }}/'
+        '{{ repository_path[cloud_release] }}/x86_64/repos/Cloud/'
+    when: not cloud_srv_dir_stats.stat.exists
 
   - name: Mount zypper repos
     mount:
       state: mounted
       fstype: nfs
       opts: ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock,x-systemd.automount,noauto
-      name: /srv/www/suse-12.3/x86_64/repos/{{ item.item.key }}
+      name: "{{ repository_path[cloud_release] }}//x86_64/repos/{{ item.item.key }}"
       src: "{{ clouddata_server }}:/srv/nfs/repos/x86_64/{{ item.item.value }}"
     when: item.item.key != 'Cloud'
     with_items:
@@ -74,7 +81,7 @@
 
   - name: Add zypper repos
     zypper_repository:
-      repo: "/srv/www/suse-12.3/x86_64/repos/{{ item.item.key }}"
+      repo: "{{ repository_path[cloud_release] }}/x86_64/repos/{{ item.item.key }}"
       name: "{{ item.item.key }}"
     register: added_repos
     with_items:
@@ -111,7 +118,6 @@
     get_url:
       url: "{{ cloudsource_url }}/media.1/build"
       dest: /etc/ardana/media-build-version
-    when: cloudsource != ''
 
   - name: Add build information to /etc/motd
     shell: |
@@ -122,9 +128,8 @@
       media_build_version=$(cat /etc/ardana/media-build-version)
       echo "Built from: {{ cloudsource_url }}" >>/etc/motd
       echo "Media build version: $media_build_version" >>/etc/motd
-    when: cloudsource != ''
 
   - name: Add repos information to /etc/motd
     shell: |
-      echo "Configured repositories: {{ repositories }}" >>/etc/motd
+      echo "Configured repositories: {{ repository_list|join(', ') }}" >>/etc/motd
     when: repositories != ''

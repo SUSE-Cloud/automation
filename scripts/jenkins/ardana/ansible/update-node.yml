@@ -1,5 +1,5 @@
 ---
-# Need to enable allowVendorChange to allow packages to be updated to D:C:8 and D:C:8:S
+# Need to enable allowVendorChange to allow packages to be updated to D:C:X and D:C:X:S
 - name: Enable allowVendorChange on the host
   shell: |
     ansible '{{ ansible_node }}' -b -a \
@@ -8,9 +8,9 @@
     chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
   become: true
   become_user: ardana
-  when: cloudsource in ['SUSE-OpenStack-Cloud-8-devel', 'SUSE-OpenStack-Cloud-8-devel-staging']
+  when: cloudsource is search("stagingcloud.*") or cloudsource is search("develcloud.*")
 
-# Need to change repo type to yast2 to allow packages to be updated to D:C:8 and D:C:8:S
+# Need to change repo type to yast2 to allow packages to be updated to D:C:X and D:C:X:S
 - name: Change Cloud repo type to yast2
   shell: |
     ansible '{{ ansible_node }}' -b -a \
@@ -19,7 +19,7 @@
     chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
   become: true
   become_user: ardana
-  when: cloudsource in ['SUSE-OpenStack-Cloud-8-devel', 'SUSE-OpenStack-Cloud-8-devel-staging']
+  when: cloudsource is search("stagingcloud.*") or cloudsource is search("develcloud.*")
 
 # Accounting for the update scenario which starts from a point
 # where the update helper playbooks are not yet present (i.e.
