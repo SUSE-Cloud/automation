@@ -1,0 +1,29 @@
+- job:
+    name: 'cloud-ardana8-suse-x86_64'
+    project-type: multijob
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H H * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 7
+
+    builders:
+      - shell: |
+          echo starttime=$(date +%s) > build_start_time
+
+      - multijob:
+          name: 'Standard Gate Checks'
+          condition: SUCCESSFUL
+          current-parameters: true
+          projects:
+            - name: openstack-ardana
+              predefined-parameters: |
+                model=std-min
+                cloudsource=SUSE-OpenStack-Cloud-8-Pool
+                repositories=SLES12-SP3-Pool,SLES12-SP3-Updates,SUSE-OpenStack-Cloud-8-Pool,SUSE-OpenStack-Cloud-8-Updates
+                tempest_run_filter=ci
+                build_pool_name=cloud-ardana-ci
+                build_pool_size=5
