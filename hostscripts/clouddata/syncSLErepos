@@ -202,7 +202,7 @@ for servicepack in 4 3 2 1; do
             if [ -z "$sync_from_ibs" ]; then
                 $rsync ${ibs_source}/SUSE/Products/SLE-HA/$version/$arch/product/ $destdir_ha_pool
             else
-                rsync_with_create ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-HA-POOL-$arch-Media1/ $destdir_ha_pool
+                rsync_with_create ${ibs_source}/SUSE\:/SLE-$version\:/GA\:/TEST/images/repo/SLE-$version-HA-POOL-$arch-Media1/ $destdir_ha_pool
             fi
             # HA updates
             rsync_with_create ${ibs_source}/SUSE/Updates/SLE-HA/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates/
@@ -218,7 +218,7 @@ for servicepack in 4 3 2 1; do
             if [ -z "$sync_from_ibs" ]; then
                 rsync_with_create ${ibs_source}/SUSE/Products/SLE-SDK/$version/$arch/product/ $destdir_sdk_pool
             else
-                rsync_with_create ${ibs_source}/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-SDK-POOL-$arch-Media1/ $destdir_sdk_pool
+                rsync_with_create ${ibs_source}/SUSE\:/SLE-$version\:/GA\:/TEST/images/repo/SLE-$version-SDK-POOL-$arch-Media1/ $destdir_sdk_pool
             fi
             # SDK updates
             rsync_with_create ${ibs_source}/SUSE/Updates/SLE-SDK/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates/
