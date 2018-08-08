@@ -22,8 +22,8 @@
             - name: openstack-ardana
               predefined-parameters: |
                 model=std-min
-                cloudsource=SUSE-OpenStack-Cloud-8-Pool
-                repositories=SLES12-SP3-Pool,SLES12-SP3-Updates,SUSE-OpenStack-Cloud-8-Pool,SUSE-OpenStack-Cloud-8-Updates
+                cloudsource=GM8
+                repositories=SLES-Pool,SLES-Updates,Cloud-Pool,Cloud-Updates
                 tempest_run_filter=ci
                 build_pool_name=cloud-ardana-ci
                 build_pool_size=5
