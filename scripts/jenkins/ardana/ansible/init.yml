@@ -45,13 +45,14 @@
       [ -f ~/.ssh/id_rsa ] || ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
 
   - name: Copy root key to non-deployer nodes
-    shell: |
-      sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {{ item }}
+    script: files/sshpass.sh ssh-copy-id {{ item }}
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"
       - "{{ compute_mgmt_ips|default([]) }}"
     ignore_errors: True
     when: item != "" and item != deployer_mgmt_ip
+    environment:
+      SSHPASS: linux
 
   - name: Create ardana user/group on non-deployer nodes
     shell: |
