@@ -8,7 +8,7 @@
         - 'cloud-ardana{version}-gating'
 
 - project:
-    name: cloud-ardana8-std-3cp-x86_64
+    name: cloud-ardana8-x86_64
     disabled: false
     version: 8
     arch: x86_64
@@ -17,60 +17,10 @@
     build_pool_size: 5
     jobs:
         - 'cloud-ardana{version}-job-std-3cp-{arch}'
-
-- project:
-    name: cloud-ardana8-dac-3cp-x86_64
-    disabled: false
-    version: 8
-    arch: x86_64
-    tempest_run_filter: ci
-    build_pool_name: cloud-ardana-ci
-    build_pool_size: 5
-    jobs:
         - 'cloud-ardana{version}-job-dac-3cp-{arch}'
-
-- project:
-    name: cloud-ardana8-std-min-x86_64
-    disabled: false
-    version: 8
-    arch: x86_64
-    tempest_run_filter: ci
-    build_pool_name: cloud-ardana-ci
-    build_pool_size: 5
-    jobs:
         - 'cloud-ardana{version}-job-std-min-{arch}'
-
-- project:
-    name: cloud-ardana8-std-split-x86_64
-    disabled: false
-    version: 8
-    arch: x86_64
-    tempest_run_filter: ci
-    build_pool_name: cloud-ardana-ci
-    build_pool_size: 5
-    jobs:
         - 'cloud-ardana{version}-job-std-split-{arch}'
-
-- project:
-    name: cloud-ardana8-devel-staging-updates-x86_64
-    disabled: false
-    version: 8
-    arch: x86_64
-    tempest_run_filter: ci
-    build_pool_name: cloud-ardana-ci
-    build_pool_size: 5
-    jobs:
         - 'cloud-ardana{version}-job-std-3cp-devel-staging-updates-{arch}'
-
-- project:
-    name: cloud-ardana8-test-maintenance-updates-x86_64
-    disabled: false
-    version: 8
-    arch: x86_64
-    tempest_run_filter: ci
-    build_pool_name: cloud-ardana-ci
-    build_pool_size: 5
-    jobs:
         - 'cloud-ardana{version}-job-std-3cp-test-maintenance-updates-{arch}'
 
 - project:
