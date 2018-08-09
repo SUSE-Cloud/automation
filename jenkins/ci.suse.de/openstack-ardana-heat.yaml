@@ -79,6 +79,7 @@
 
           delete_heat_stack() {
               stack_name=$1
+              delete_rc=0
 
               # Resume stack before deletion, otherwise deleting it results in failure
               openstack --os-cloud $CLOUD_CONFIG_NAME stack resume --wait $stack_name || :
@@ -96,10 +97,11 @@
                       # Usually, retrying after a short break works
                       sleep 20
                       openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait $stack_name && rc=$? || rc=$?
+                      delete_rc=$rc
                   fi
               fi
 
-              return $rc
+              return $delete_rc
           }
 
           get_heat_stacks() {
@@ -114,7 +116,7 @@
 
           cleanup_heat_stacks() {
               keep_no_old_stacks=$1
-              retcode=0
+              cleanup_rc=0
 
               old_stacks_to_delete=$(get_heat_stacks SUSPEND_COMPLETE | cut -d' ' -f1 |
                                      awk 'NR > '$keep_no_old_stacks' {print $1}')
@@ -123,7 +125,7 @@
                   do
                       delete_heat_stack $old_stack && rc=$? || rc=$?
                       if [[ $rc != 0 ]]; then
-                          retcode=$rc
+                          cleanup_rc=$rc
                       fi
                   done
               fi
@@ -136,7 +138,7 @@
                   done
               fi
 
-              return $rc
+              return $cleanup_rc
           }
 
           if [[ $action == "cleanup" ]]; then
@@ -147,12 +149,14 @@
                       # First, check if the stack is hasn't been taken out of the build pool
                       if [[ -n $(get_heat_stacks $heat_stack_name) ]]; then
                           if (( $build_pool_size > 0 )); then
+                              exit_rc=0
                               openstack --os-cloud $CLOUD_CONFIG_NAME stack suspend --wait $heat_stack_name && rc=$? || rc=$?
                               # If the suspend operation failed, try to delete the heat stack
                               if [[ $rc != 0 ]]; then
+                                  exit_rc=$rc
                                   delete_heat_stack $heat_stack_name
                               fi
-                              exit $rc
+                              exit $exit_rc
                           else
                               delete_heat_stack $heat_stack_name
                           fi
@@ -163,13 +167,15 @@
                   fi
               fi
           elif [[ $action == "create" ]]; then
+              exit_rc=0
               openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 10 --wait \
                   -t "$heat_template_file"  \
                   --tags "$build_pool_name" \
                   $heat_stack_name && rc=$? || rc=$?
               if [[ $rc != 0 ]]; then
+                  exit_rc=$rc
                   delete_heat_stack $heat_stack_name || :
-                  exit $rc
+                  exit $exit_rc
               fi
           elif [[ $action == "delete" ]]; then
               delete_heat_stack $heat_stack_name
