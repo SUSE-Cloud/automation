@@ -311,7 +311,7 @@
           source /opt/ansible/bin/activate
 
           ansible-playbook -v -i hosts ssh-keys.yml
-          if [ -n "$gerrit_change_id" ] ; then
+          if [ -n "$gerrit_change_ids" ] ; then
               test_repository=http://download.suse.de/ibs/${homeproject//:/:\/}:/ardana-ci-${gerrit_change_ids//,/-}/standard
               ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
                                            -e "cloudsource=${cloudsource}" \
