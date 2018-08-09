@@ -39,6 +39,12 @@
         description: The IBS development project that will be linked against.
 
      - string:
+         name: repository
+         default: SLE_12_SP3
+         description: >-
+           Name of the repository in IBS against which to build the test packages.
+
+     - string:
          name: homeproject
          default: 'home:opensuseapibmw'
          description: >-

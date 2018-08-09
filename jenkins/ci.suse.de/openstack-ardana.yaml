@@ -168,6 +168,12 @@
             Project in IBS that will act as the parent project for the newly
             generated test project.
 
+      - string:
+          name: repository
+          default: 'SLE_12_SP3'
+          description: >-
+            Name of the repository in IBS against which to build the test packages.
+
     builders:
       - conditional-step:
           condition-kind: shell
@@ -180,6 +186,7 @@
                     gerrit_change_ids=${gerrit_change_ids}
                     develproject=${develproject}
                     homeproject=${homeproject}
+                    repository=${repository}
                     git_automation_repo=${git_automation_repo}
                     git_automation_branch=${git_automation_branch}
                   block: true
