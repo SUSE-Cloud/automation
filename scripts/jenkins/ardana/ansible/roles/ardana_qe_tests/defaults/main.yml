@@ -1,0 +1,49 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+ardana_qe_base_dir: "{{ ansible_user_dir }}/ardana-qe"
+ardana_qe_test_work_dir: "{{ ardana_qe_base_dir }}/{{ test_name }}"
+ardana_qe_tests_dir: "{{ ardana_qe_base_dir }}/ardana-qa-tests"
+ardana_qe_tests_git_url: "http://git.suse.provo.cloud/ardana/ardana-qa-tests.git"
+
+ardana_qe_test_log: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.log"
+ardana_qe_test_subunit: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit"
+ardana_qe_test_script: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.sh"
+
+ardana_qe_test_venv: "{{ ardana_qe_base_dir }}/{{ test_name }}/venv"
+ardana_qe_test_venv_requires: []
+
+ardana_qe_test_run_filters: "{{ role_path }}/files/run_filters/{{ test_name }}"
+
+ardana_qe_tests_admin_osrc_values:
+  - "OS_IDENTITY_API_VERSION"
+  - "OS_USERNAME"
+  - "OS_USER_DOMAIN_NAME"
+  - "OS_PASSWORD"
+  - "OS_DOMAIN_NAME"
+  - "OS_AUTH_URL"
+  - "OS_INTERFACE"
+  - "OS_CACERT"
+
+os_resource_state: present
+os_resource_prefix: "ansible-qe-tests-{{ test_name }}"
+os_resources_requires: []
+os_resource_test_auth:
+  username: "{{ os_resource_prefix }}-user"
+  password: "secret"
+  project: "{{ os_resource_prefix }}-project"
+  role: "Member"

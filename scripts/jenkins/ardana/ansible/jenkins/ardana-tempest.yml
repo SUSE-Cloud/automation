@@ -1,0 +1,90 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- job:
+    name: ardana-tempest
+    description: |
+      Run tempest against the specified QE environment
+    wrappers:
+      - workspace-cleanup:
+          dirmatch: false
+          include: .artifacts/**
+      - ansicolor:
+          colormap: xterm
+      - build-name:
+          name: ${qe_env}-${JOB_NAME}-${tempest_run_filter}
+    publishers:
+      - archive:
+          artifacts: .artifacts/**
+          allow-empty: true
+    scm:
+      - git:
+          branches:
+            - ${ardana_deploy_branch}
+          browser: auto
+          url: ${ardana_deploy_repo}
+    parameters:
+      - label:
+          name: qe_env
+          description: Target QE environment to run tempest
+          matching-label: allCases
+      - choice:
+          choices:
+            - smoke
+            - smoke-upstream
+            - defcore
+            - full
+            - ci
+            - compute
+            - designate
+            - identity
+            - lbaas
+            - monasca
+            - network
+            - neutron-api
+            - periodic
+            - periodic-virtual
+            - refstack
+            - swift
+            - tests2skip
+            - tests-ci
+            - upgrade-ci
+            - upgrade
+          description: Test filter for tempest
+          name: tempest_run_filter
+      - string:
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: Git repository used for the deployment automation.
+          name: ardana_deploy_repo
+      - string:
+          default: master
+          description: Branch of the repository used for the deployment automation.
+          name: ardana_deploy_branch
+      - bool:
+          default: true
+          description: Notify RocketChat when deployment starts/finishes.
+          name: rc_notify
+    builders:
+      - shell: |-
+          #!/bin/bash
+
+          export ANSIBLE_FORCE_COLOR=true
+          
+          source /opt/ansible/bin/activate
+          cd scripts/jenkins/ardana/ansible
+          ansible-playbook run-ardana-tempest.yml -e "qe_env=$qe_env rc_notify=$rc_notify \
+            tempest_run_filter=$tempest_run_filter"

@@ -1,0 +1,74 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+# Announcement
+rc_announcement_started: "Update in PROGRESS {{ _announcement_mu }}"
+rc_announcement_finished: "{{ _announcement_success if rc_state == 'Success' else _announcement_failed }}"
+
+_announcement_success: "{{ _announcement_data | regex_replace('^Update FAILED', 'READY FOR TESTING') if rc_previous_announcement.content is defined else 'NA' }}"
+_announcement_failed: "{{ _announcement_data | regex_replace('^READY FOR TESTING', 'Update FAILED') if rc_previous_announcement.content is defined else 'NA' }}"
+
+_previous_announcement: "{{ rc_previous_announcement.content | b64decode }}"
+_announcement_data: "{{ _previous_announcement | regex_replace('.- SLES_MU.*|.- Cloud_MU.*', _announcement_mu) if 'MU' in _previous_announcement else _previous_announcement + _announcement_mu }}"
+
+_announcement_cloud_mu: "{{ ' - Cloud_MU: ' + cloud_maint_updates if _cloud_mu_available else '' }}"
+_announcement_mu: "{{ _announcement_cloud_mu + ' - SLES_MU: ' + sles_maint_updates if _sles_mu_available else _announcement_cloud_mu }}"
+
+# Chat message
+rc_msg_fields_started: "{{ _msg_fields_started + _msg_field_mu }}"
+rc_msg_fields_finished: "{{ _msg_fields_finished + _msg_field_mu }}"
+
+_msg_fields_started:
+  - title: Deployer
+    value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
+    short: True
+  - title: Started by
+    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    short: False
+  - title: Ardana log stream
+    value: "http://{{ hostvars['ardana-' + qe_env].ansible_host }}:9091/"
+    short: True
+
+
+_msg_fields_finished:
+  - title: Deployer
+    value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
+    short: True
+  - title: Status
+    value: "{{ rc_state }}"
+    short: True
+  - title: Built by
+    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    short: False
+  - title: Log
+    value: "{{ ansible_log_url if lookup('env', 'BUILD_URL') else 'Not available' }}"
+    short: False
+
+_field_cloud_mu:
+  - title: Cloud MU
+    value: "{{ cloud_maint_updates | default('') }}"
+    short: True
+_field_sles_mu:
+  - title: SLES MU
+    value: "{{ sles_maint_updates | default('') }}"
+    short: True
+
+_cloud_mu_available: "{{ cloud_maint_updates is defined and cloud_maint_updates | length > 0 }}"
+_sles_mu_available: "{{ sles_maint_updates is defined and sles_maint_updates | length > 0 }}"
+
+_msg_field_cloud_mu: "{{ _field_cloud_mu if _cloud_mu_available else [] }}"
+_msg_field_mu: "{{ _msg_field_cloud_mu + _field_sles_mu if _sles_mu_available else _msg_field_cloud_mu }}"

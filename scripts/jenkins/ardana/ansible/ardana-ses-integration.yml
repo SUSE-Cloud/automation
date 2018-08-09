@@ -1,0 +1,115 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+
+---
+
+- name: Configure SES for Ardana when SES enabled
+  hosts: ses-{{ 'nue' if qe_env.startswith('qa') else 'provo' }}
+  remote_user: root
+  gather_facts: no
+  vars:
+    task: "ses integration"
+
+  vars_prompt:
+    - name: "qe_env"
+      prompt: "Target environment to configure SES for"
+      private: no
+      when: qe_env not defined
+
+  pre_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "started"
+        rc_state: "Started"
+      when:
+        - rc_notify
+        - ardana_ses_post_deploy
+
+  tasks:
+    - block:
+        - include_role:
+            name: ses_configure
+      rescue:
+        # This will be triggered only when SES Integration
+        # is part of the deployment
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_task: "deploy"
+            rc_action: "finished"
+            rc_state: "Failed"
+          when:
+            - rc_notify
+            - not ardana_ses_post_deploy
+
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when:
+            - rc_notify
+            - ardana_ses_post_deploy
+
+- name: Configure ardana with SES backend when SES enabled
+  hosts: ardana-{{ qe_env }}
+  remote_user: ardana
+  gather_facts: no
+  vars:
+    task: "ses integration"
+
+  tasks:
+    - block:
+        - include_role:
+            name: ses_ardana_integration
+      rescue:
+        # This will be triggered only when SES Integration
+        # is part of the deployment
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_task: "deploy"
+            rc_action: "finished"
+            rc_state: "Failed"
+          when:
+            - rc_notify
+            - not ardana_ses_post_deploy
+
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when:
+            - rc_notify
+            - ardana_ses_post_deploy
+      always:
+        - include_role:
+            name: jenkins_artifacts
+          when:
+            - lookup("env", "WORKSPACE")
+            - ardana_ses_post_deploy
+
+  post_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "finished"
+        rc_state: "Success"
+      when:
+        - rc_notify
+        - ardana_ses_post_deploy

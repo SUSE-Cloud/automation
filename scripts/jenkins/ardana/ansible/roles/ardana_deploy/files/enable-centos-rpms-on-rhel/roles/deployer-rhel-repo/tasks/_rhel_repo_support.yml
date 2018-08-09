@@ -1,0 +1,56 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Limited to the deployer
+---
+
+- include: setup_suse_centos_repo.yml
+  when:
+    - disable_suse_centos_repo_auto_setup | bool == false
+
+- name: deployer-rhel-repo | _rhel_repo_support | Create temporary work directory
+  shell: "mktemp -d"
+  register: _centos_temp_loc_result
+
+- name: deployer-rhel-repo | _rhel_repo_support | Check if centos rpms repo configured
+  become: yes
+  command: zypper repos {{ centos_repository_name }}
+  register: _centos_repo_lookup_result
+  ignore_errors: yes
+  when: centos_repository_name | length > 0
+
+- include: download_suse_centos_artifacts.yml
+  vars:
+    centos_rpms_download_location: "{{ _centos_temp_loc_result.stdout }}/downloaded"
+    centos_all_rpms_location: "{{ _centos_temp_loc_result.stdout }}/{{ centos_all_rpms_dir }}"
+  when:
+    - centos_repository_name | length > 0
+    - _centos_repo_lookup_result.rc == 0
+
+- include: extract_centos_nova_tarball.yml
+  vars:
+    optional_rpms_location: "{{ _centos_temp_loc_result.stdout }}/optional"
+    centos_all_rpms_location: "{{ _centos_temp_loc_result.stdout }}/{{ centos_all_rpms_dir }}"
+
+- include: create_target_repo_tarball.yml
+  vars:
+    centos_rpms_workdir: "{{ _centos_temp_loc_result.stdout }}"
+
+- name: deployer-rhel-repo | _rhel_repo_support | Delete temporary work directory
+  become: yes
+  file:
+    state: absent
+    path: "{{ _centos_temp_loc_result.stdout }}"
+

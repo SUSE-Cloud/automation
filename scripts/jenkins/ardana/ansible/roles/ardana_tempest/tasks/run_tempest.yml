@@ -1,0 +1,44 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- block:
+    - name: Drop QE run filters
+      copy:
+        src: "{{ item }}.txt.j2"
+        dest: "/opt/stack/tempest/run_filters/{{ item }}.txt.j2"
+        owner: tempest
+        group: tempest
+        mode: 0644
+      become: yes
+      with_items: "{{ tempest_qe_run_filters }}"
+      when: tempest_run_filter in tempest_qe_run_filters
+
+    - name: Run tempest
+      shell: |
+        ansible-playbook -i hosts/verb_hosts tempest-run.yml \
+                     -e run_filter="{{ tempest_run_filter }}"
+      args:
+        chdir: "{{ ardana_scratch_path }}"
+  rescue:
+    - name: Get list of failed tempest tests
+      shell: "grep -B1 -- '------' {{ tempest_results_log }} | awk -F '\n' 'ln ~ /^$/ { ln = \"matched\"; print $1 } $1 ~ /^--$/ { ln = \"\" }'"
+      register: tempest_failed_tests
+  always:
+    - name: Process tempest result
+      shell: "awk {{ item }} {{ tempest_results_log }}"
+      with_items: "{{ tempest_results_awk_collect }}"
+      register: tempest_results_processed
