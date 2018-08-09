@@ -61,7 +61,7 @@
           OBS_TYPE=${PROJECTSOURCE%%/*}
           OBS_PROJECT=${PROJECTSOURCE##*/}
 
-          BUILD_DIST=SLE_12_SP3
+          BUILD_DIST=SLE_12_SP4
           OSC_BUILD_ARCH=x86_64
 
           case $project in
@@ -70,6 +70,9 @@
                   ;;
               Devel:Cloud:7*)
                   BUILD_DIST=SLE_12_SP2
+                  ;;
+              Devel:Cloud:8*)
+                  BUILD_DIST=SLE_12_SP3
                   ;;
           esac
 
