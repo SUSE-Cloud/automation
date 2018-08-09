@@ -37,18 +37,23 @@ clm_service_components:
 clm_flavor: cloud-ardana-job-compute
 controller_flavor: cloud-ardana-job-controller
 compute_flavor: cloud-ardana-job-compute
-sles_image: cleanvm-jeos-SLE12SP3
-rhel_image: centos75
+sles_images:
+  cloud8: cleanvm-jeos-SLE12SP3
+  cloud9: cleanvm-jeos-SLE12SP4
+sles_image: "{{ sles_images[cloud_release] }}"
+rhel_image: centos73
 disk_size: 30
 
 images:
   CONTROLLER-ROLE: '{{ sles_image }}'
   STD-CONTROLLER-ROLE: '{{ sles_image }}'
   STD-COMPUTE-ROLE:
-      sles12sp3-x86_64: '{{ sles_image }}'
+      sles12sp3-x86_64: '{{ sles_images["cloud8"] }}'
+      sles12sp4-x86_64: '{{ sles_images["cloud9"] }}'
       rhel73-x86_64: '{{ rhel_image }}'
   COMPUTE-ROLE:
-      sles12sp3-x86_64: '{{ sles_image }}'
+      sles12sp3-x86_64: '{{ sles_images["cloud8"] }}'
+      sles12sp4-x86_64: '{{ sles_images["cloud9"] }}'
       rhel73-x86_64: '{{ rhel_image }}'
 
 flavors:

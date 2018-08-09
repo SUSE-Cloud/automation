@@ -2,6 +2,8 @@
 - name: Initialize the Deployer
   hosts: hosts
   gather_facts: False
+  roles:
+    - cloud-common
 
   vars_files:
     - ardana_net_vars.yml
@@ -69,10 +71,10 @@
 
   # osconfig-ansible should take care of installing the repositories itself,
   # it's just that it won't auto accept the Devel key, so do that now
-  - name: Import Devel:Cloud:8 key
+  - name: Import Devel:Cloud:X key
     shell: |
-      kf=/srv/www/suse-12.3/x86_64/repos/Cloud/repodata/repomd.xml.key
-      [ -r $kf ] || kf=/srv/www/suse-12.3/x86_64/repos/Cloud/content.key
+      kf={{ repository_path[cloud_release] }}/x86_64/repos/Cloud/repodata/repomd.xml.key
+      [ -r $kf ] || kf={{ repository_path[cloud_release] }}/x86_64/repos/Cloud/content.key
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "cat >/tmp/cloud.key && rpm --import /tmp/cloud.key && rm /tmp/cloud.key" < $kf
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"

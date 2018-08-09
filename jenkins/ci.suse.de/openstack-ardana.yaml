@@ -62,33 +62,50 @@
           description: >-
             This name reserves job environment and prevents deletion at the end.
 
-      - string:
+      - choice:
           name: cloudsource
-          default: 'SUSE-OpenStack-Cloud-8-devel-staging'
+          choices:
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - stagingcloud9
+            - develcloud9
           description: >-
-            This is used as input repository (from provo-clouddata) for testing
+            The cloud repository (from provo-clouddata) to be used for testing.
+            This value can take the following form:
+
+               stagingcloud<X> (Devel:Cloud:X:Staging)
+               develcloud<X> (Devel:Cloud:X)
+               GM<X> (official GM)
 
       - extended-choice:
           name: repositories
           type: multi-select
-          value: SLES12-SP3-Pool,SLES12-SP3-Updates,SLES12-SP3-Updates-test,SUSE-OpenStack-Cloud-8-Pool,SUSE-OpenStack-Cloud-8-Updates,SUSE-OpenStack-Cloud-8-Updates-test
+          value: SLES-Pool,SLES-Updates,SLES-Updates-test,Cloud-Pool,Cloud-Updates,Cloud-Updates-test
           visible-items: 6
           multi-select-delimiter: ','
-          default-value: SLES12-SP3-Pool,SLES12-SP3-Updates
+          default-value: SLES-Pool,SLES-Updates
           description: >-
-            Set of zypper repositories (from provo-clouddata) to be used during installation
+            Set of zypper repositories (from provo-clouddata) to be configured during installation
+            in addition to that indicated by the cloudsource parameter.
 
-      - string:
+      - choice:
           name: update_cloudsource
-          default: ''
+          choices:
+            -
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - stagingcloud9
+            - develcloud9
           description: >-
-            Repository to be used for update testing. Use a value different than
+            The cloud media (from provo-clouddata) to be used for update testing. Use a value different than
             cloudsource to enable update testing.
 
       - extended-choice:
           name: update_repositories
           type: multi-select
-          value: SLES12-SP3-Pool,SLES12-SP3-Updates,SLES12-SP3-Updates-test,SUSE-OpenStack-Cloud-8-Pool,SUSE-OpenStack-Cloud-8-Updates,SUSE-OpenStack-Cloud-8-Updates-test
+          value: SLES-Pool,SLES-Updates,SLES-Updates-test,Cloud-Pool,Cloud-Updates,Cloud-Updates-test
           visible-items: 6
           multi-select-delimiter: ','
           default-value: ''
@@ -169,11 +186,7 @@
       - shell: |
           set +x
 
-          cloudsource_url=http://provo-clouddata.cloud.suse.de/repos/x86_64/$cloudsource
-          cloudsource_media_build=$( curl -s $cloudsource_url/media.1/build )
           echo cloudsource=$cloudsource
-          echo cloudsource URL is $cloudsource_url
-          echo media build version is $cloudsource_media_build
           echo
 
           set -ex
@@ -199,8 +212,9 @@
 
           # generate the heat template
           ansible-playbook -v generate-heat.yml \
+            -e cloudsource="${cloudsource}" \
             -e input_model_path="$WORKSPACE/input-model" \
-            -e heat_template_file="$WORKSPACE/heat-ardana-${model}.yaml"
+            -e heat_template_file="$WORKSPACE/heat-ardana-${model}.yaml" \
 
           # generate properties file
           cat - > $WORKSPACE/heat_stack_env <<EOF
@@ -307,6 +321,7 @@
                                     "mktemp -d /tmp/ardana-job-rpm-verification.XXXXXXXX")
           ansible-playbook -v -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
                                        -e "verification_temp_dir=$verification_temp_dir" \
+                                       -e cloudsource="${cloudsource}" \
                                        init.yml
 
           # Run site.yml outside ansible for output streaming
