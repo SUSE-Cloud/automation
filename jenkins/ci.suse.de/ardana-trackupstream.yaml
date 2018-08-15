@@ -37,6 +37,7 @@
             - ardana-keystone
             - ardana-logging
             - ardana-magnum
+            - ardana-manila
             - ardana-memcached
             - ardana-monasca
             - ardana-monasca-transform
