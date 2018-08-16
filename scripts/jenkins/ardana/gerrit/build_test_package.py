@@ -105,16 +105,28 @@ def create_test_project(develproject, testproject, repository):
     return testproject
 
 
-def wait_for_build():
-    print("Waiting for build to be scheduled")
-    while 'unknown' in sh.osc('results'):
-        time.sleep(3)
-    print("Waiting for build results")
-    results = sh.osc('results', '--watch')
-    if 'succeeded' not in results:
-        print("Build results: %s" % results)
-        print("Package build failed.")
-        sys.exit(1)
+def wait_for_build(change, testproject):
+    package_name = project_map()[change.project]
+    print("Waiting for %s to build" % package_name)
+    with cd('%s/%s' % (testproject, package_name)):
+        while 'unknown' in sh.osc('results'):
+            print("Waiting for build to be scheduled")
+            time.sleep(3)
+        print("Waiting for build results")
+        for attempt in range(3):
+            results = sh.osc('results', '--watch')
+            print("Build results: %s" % results)
+            if 'broken' in results:
+                # Sometimes results --watch ends too soon, give it a few
+                # retries before actually failing
+                print("Sleeping for 10s before rechecking")
+                time.sleep(10)
+                continue
+            else:
+                break
+        if 'succeeded' not in results:
+            print("Package build failed.")
+            sys.exit(1)
 
 
 def create_test_package(change, develproject, testproject):
@@ -140,7 +152,6 @@ def create_test_package(change, develproject, testproject):
         sh.osc('service', 'disabledrun')
         sh.osc('add', glob.glob('%s*.obscpio' % package_name))
         sh.osc('commit', '-m', 'Testing change %s' % change.id)
-        wait_for_build()
 
 
 def cleanup(testproject):
@@ -159,9 +170,22 @@ def main():
     changes = [GerritChange(id) for id in change_ids]
     cleanup(testproject)
     testproject = create_test_project(develproject, testproject, repository)
+
+    # Create the test packages to be built
+    # NOTE(jhesketh): If necessary this could be done in a threadpool
     for change in changes:
         change.prep_workspace()
         create_test_package(change, develproject, testproject)
+
+    # Check all packages are built
+    # NOTE(jhesketh): this could be optimised to check packages in parallel,
+    # however the worst case scenario at the moment is
+    # "time for longest package" + "time for num_of_package checks" which isn't
+    # too much more than the minimum
+    # ("time for longest package" + "time for one check")
+    for change in changes:
+        wait_for_build(change,  testproject)
+
     cleanup(testproject)
 
 
