@@ -62,6 +62,7 @@
           name: project
           values:
             - Devel:Cloud:8:Staging
+            - Devel:Cloud:9:Staging
       - axis:
           type: slave
           name: label
