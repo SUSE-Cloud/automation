@@ -3864,7 +3864,9 @@ function oncontroller_testsetup
         iscloudver 6plus && configargs=""
         su - glance -s /bin/sh -c "/usr/bin/glance-scrubber $configargs" \
             || complain 113 "Glance scrubber doesn't work properly"
-        grep -v glance_store /var/log/glance/scrubber.log | grep ERROR \
+        # ERROR_FOR_DIVISION_BY_ZERO is part of MySQL server mode
+        # this is logged into glance/scrubber.log if DEBUG is enabled
+        grep -v glance_store /var/log/glance/scrubber.log | grep -v ERROR_FOR_DIVISION_BY_ZERO | grep ERROR \
             && complain 114 "Unexpected errors in glance-scrubber logs"
     fi
 
