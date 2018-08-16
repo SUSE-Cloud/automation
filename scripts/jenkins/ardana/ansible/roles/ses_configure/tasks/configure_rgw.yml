@@ -31,7 +31,7 @@
    block: |
      [client.rgw.ses-{{ qe_env }}]
      keyring = /etc/ceph/ceph.client.rgw.ses-{{ qe_env }}.keyring
-     rgw frontends = "civetweb port=808{{ qe_env[-1] }}"
+     rgw frontends = "civetweb port={{ ses_rgw_port }}"
      rgw dns name = ses-{{ qe_env }}
      rgw enable usage log = true
      rgw keystone url = {{ osrc.results.0.stdout }}

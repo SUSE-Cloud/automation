@@ -18,6 +18,8 @@
 - name: Gather variables for RC notification type '{{ rc_task }}'
   include_vars: "{{ rc_task }}.yml"
 
+- include_tasks: get_rc_auth_info.yml
+
 - include_tasks: set_announcement.yml
 
 - name: Get media build version

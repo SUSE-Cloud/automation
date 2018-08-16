@@ -18,7 +18,7 @@
 ses_cluster_configuration:
   ses_cluster_name: ceph
 {% if ardana_ses_post_deploy %}
-  ses_radosgw_url: "http://{{ hostvars['ses-' + ses_cluster_id].ansible_host }}:808{{ qe_env[-1] }}/swift/v1"
+  ses_radosgw_url: "http://{{ hostvars['ses-' + ses_cluster_id].ansible_host }}:{{ ses_rgw_port }}/swift/v1"
 {% endif %}
 
   conf_options:

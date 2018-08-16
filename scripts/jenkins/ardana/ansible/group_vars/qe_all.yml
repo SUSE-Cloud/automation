@@ -15,16 +15,22 @@
 #
 ---
 
+## Variables overriden by ardana-deploy jenkins job
 cloud_brand: "SUSE"
-cloudsource: "GM"
-
+cloud_source: "GM"
 ardana_input_model: "entry-scale-kvm"
-ardana_im_extras: []
-rhel_enabled: "{{ ardana_im_extras[ardana_input_model] is defined and 'rhel-compute' in ardana_im_extras[ardana_input_model] }}"
-ses_enabled: "{{ ardana_im_extras[ardana_input_model] is defined and 'ses' in ardana_im_extras[ardana_input_model] }}"
-ardana_ses_post_deploy: False
-
+clm_model: "standalone"
+controllers: 3
+sles_computes: 2
+rhel_computes: 0
+ses_enabled: False
+cloud_maint_updates: ""
+sles_maint_updates: ""
 rc_notify: True
+
+ardana_ses_post_deploy: False
+rhel_enabled: "{{ rhel_computes is defined and rhel_computes > 0 }}"
+
 rc_channels:
   qe002: "cloud-qe-hlm002"
   qe007: "cloud-qe-hlm007"

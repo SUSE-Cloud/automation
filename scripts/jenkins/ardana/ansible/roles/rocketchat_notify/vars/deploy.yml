@@ -21,11 +21,11 @@ rc_announcement_finished: "{{ 'READY FOR TESTING: ' if rc_state == 'Success' els
 
 _announcement_full: "{{ _announcement_data + _announcement_mu if _cloud_mu_available or _sles_mu_available else _announcement_data }}"
 
-_announcement_data: "{{ cloudsource }} - {{ cloud_brand }} - {{ ardana_input_model }}{{ _announcement_ses }}"
+_announcement_data: "{{ cloud_source }} - {{ cloud_brand }} - {{ ardana_input_model }}{{ _announcement_ses }}"
 _announcement_cloud_mu: "{{ ' - Cloud_MU: ' + cloud_maint_updates if _cloud_mu_available else '' }}"
 _announcement_mu: "{{ _announcement_cloud_mu + ' - SLES_MU: ' + sles_maint_updates if _sles_mu_available else _announcement_cloud_mu }}"
 
-_announcement_ses: "{{ '-ses' if ses_enabled else '' }}"
+_announcement_ses: "{{ '-SES' if ses_enabled else '' }}"
 
 # Chat message
 rc_msg_fields_started: "{{ _msg_fields_started + _msg_field_mu }}"
@@ -36,7 +36,7 @@ _msg_fields_started:
     value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
     short: True
   - title: Source
-    value: "{{ cloudsource }}"
+    value: "{{ cloud_source }}"
     short: True
   - title: Brand
     value: "{{ cloud_brand }}"
@@ -44,25 +44,43 @@ _msg_fields_started:
   - title: Input model
     value: "{{ hostvars['ardana-' + qe_env].ardana_input_model }}"
     short: True
+  - title: CLM
+    value: "{{ clm_model | title }}"
+    short: True
+  - title: SES enabled
+    value: "{{ 'Yes' if ses_enabled else 'No' }}"
+    short: True
   - title: Started by
     value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
     short: False
   - title: Ardana log stream
     value: "http://{{ hostvars['ardana-' + qe_env].ansible_host }}:9091/"
-    short: True
+    short: False
+  - title: Nodes
+    value: |
+      Controllers: {{ controllers }}
+      SLES-computes: {{ sles_computes }}
+      RHEL-computes: {{ rhel_computes }}
+    short: False
 
 _msg_fields_finished:
   - title: Deployer
     value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
     short: True
   - title: Source
-    value: "{{ cloudsource }}"
+    value: "{{ cloud_source }}"
     short: True
   - title: Brand
     value: "{{ cloud_brand }}"
     short: True
   - title: Input model
     value: "{{ ardana_input_model }}"
+    short: True
+  - title: CLM
+    value: "{{ clm_model | title }}"
+    short: True
+  - title: SES enabled
+    value: "{{ 'Yes' if ses_enabled else 'No' }}"
     short: True
   - title: Status
     value: "{{ rc_state }}"
@@ -75,6 +93,12 @@ _msg_fields_finished:
     short: False
   - title: Log
     value: "{{ ansible_log_url if lookup('env', 'BUILD_URL') else 'Not available' }}"
+    short: False
+  - title: Nodes
+    value: |
+      Controllers: {{ controllers }}
+      SLES-computes: {{ sles_computes }}
+      RHEL-computes: {{ rhel_computes }}
     short: False
 
 _field_cloud_mu:

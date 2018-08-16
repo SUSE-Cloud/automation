@@ -158,7 +158,7 @@
   with_items:
     - "-m copy -a 'src=/srv/www/suse-12.3/x86_64/repos/Cloud/content.key dest=/tmp/'"
     - "-b -a 'rpm --import /tmp/content.key'"
-  when: "'devel' in cloudsource"
+  when: "'devel' in cloud_source"
 
 - name: Drop maintenance update playbook when MU available
   template:

@@ -16,10 +16,10 @@
 ---
 
 cloud_media_server: "{{ clouddata_server }}"
-cloud_media_name: "{{ cloud_brand }}-OpenStack-Cloud-8-{{ cloudsource }}"
+cloud_media_name: "{{ cloud_brand }}-OpenStack-Cloud-8-{{ cloud_source }}"
 cloud_media:
   url: "http://{{ cloud_media_server }}/repos/x86_64/{{ cloud_media_name }}.iso"
   dest: "/root"
-  repo_name: "CLOUD-{{ cloudsource }}-MEDIA"
+  repo_name: "CLOUD-{{ cloud_source }}-MEDIA"
 
 repos_to_add: "{{ sles_repos }}"

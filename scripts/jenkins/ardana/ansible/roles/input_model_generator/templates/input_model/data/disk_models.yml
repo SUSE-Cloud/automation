@@ -1,0 +1,243 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+  product:
+    version: 2
+
+  disk-models:
+{% if bm_info is defined %}
+{%   include 'baremetal/disks.yml.j2' %}
+{% else %}
+{% set drive_letters = 'abcdefghijklmnopqrstuvwxyz' %}
+{% for service_group in scenario['service_groups'] if service_group['member_count']|int %}
+{%   set ns = namespace(drive_idx=0) %}
+  - name: {{ service_group.name|upper }}-DISKS
+    volume-groups:
+      - name: ardana-vg
+        physical-volumes:
+
+          # NOTE: 'sda_root' is a templated value. This value is checked in
+          # os-config and replaced by the partition actually used on sda
+          #e.g. sda1 or sda5
+          - /dev/sda_root
+
+        logical-volumes:
+          # The policy is not to consume 100% of the space of each volume group.
+          # At least 5% should be left free for snapshots.
+
+          - name: root
+            size: 65%
+            fstype: ext4
+            mount: /
+
+          # Reserved space for kernel crash dumps
+          # Should evaluate to a value that is slightly larger than
+          # the memory size of your server
+          - name: crash
+            size: 15%
+            mount: /var/crash
+            fstype: ext4
+            mkfs-opts: -O large_file
+
+          # Local Log files.
+          - name: log
+            size: 15%
+            mount: /var/log
+            fstype: ext4
+            mkfs-opts: -O large_file
+
+        consumer:
+           name: os
+{%   for service_component in service_group['service_components'] %}
+{%     if service_component == 'CORE' %}
+
+{%       if scenario['use_cinder_volume_disk'] %}
+{%         set ns.drive_idx = ns.drive_idx+1 %}
+
+      # Cinder: cinder volume needs temporary local filesystem space to convert
+      # images to raw when creating bootable volumes. Using a separate volume
+      # will both ringfence this space and avoid filling /
+      # The size should represent the raw size of the largest image times
+      # the number of concurrent bootable volume creations.
+      # The logical volume can be part of an existing volume group or a
+      # dedicated volume group.
+      - name: cinder-vg
+        physical-volumes:
+          - /dev/sd{{ drive_letters[ns.drive_idx] }}
+        logical-volumes:
+         - name: cinder_image
+           size: 95%
+           mount: /var/lib/cinder
+           fstype: ext4
+
+{%       endif %}
+{%       if scenario['use_glance_cache_disk'] %}
+{%         set ns.drive_idx = ns.drive_idx+1 %}
+
+      #  Glance cache: if a logical volume with consumer usage 'glance-cache'
+      #  is defined Glance caching will be enabled. The logical volume can be
+      #  part of an existing volume group or a dedicated volume group.
+      - name: glance-vg
+        physical-volumes:
+          - /dev/sd{{ drive_letters[ns.drive_idx] }}
+        logical-volumes:
+         - name: glance-cache
+           size: 95%
+           mount: /var/lib/glance/cache
+           fstype: ext4
+           mkfs-opts: -O large_file
+           consumer:
+             name: glance-api
+             usage: glance-cache
+
+{%       endif %}
+
+{%   elif service_component == 'COMPUTE' %}
+{%     set ns.drive_idx = ns.drive_idx+1 %}
+
+      - name: vg-comp
+        # this VG is dedicated to Nova Compute to keep VM IOPS off the OS disk
+        physical-volumes:
+          - /dev/sd{{ drive_letters[ns.drive_idx] }}
+        logical-volumes:
+          - name: compute
+            size: 95%
+            mount: /var/lib/nova
+            fstype: ext4
+            mkfs-opts: -O large_file
+
+{%     elif service_component == 'DBMQ' %}
+{%       set ns.drive_idx = ns.drive_idx+1 %}
+
+      - name: ardana-dbmq
+        physical-volumes:
+          - /dev/sd{{ drive_letters[ns.drive_idx] }}
+        logical-volumes:
+
+          # Mysql Database.  All persistent state from OpenStack services
+          # is saved here.  Although the individual objects are small the
+          # accumulated data can grow over time
+          - name: mysql
+            size: 45%
+            mount: /var/lib/mysql
+            fstype: ext4
+            mkfs-opts: -O large_file
+            consumer:
+              name: mysql
+
+          # Rabbitmq works mostly in memory, but needs to be able to persist
+          # messages to disc under high load. This area should evaluate to a value
+          # that is slightly larger than the memory size of your server
+          - name: rabbitmq
+            size: 45%
+            mount: /var/lib/rabbitmq
+            fstype: ext4
+            mkfs-opts: -O large_file
+            consumer:
+              name: rabbitmq
+              rabbitmq_env: home
+
+{%     elif service_component == 'LMM' %}
+{%       set ns.drive_idx = ns.drive_idx+1 %}
+
+      - name: ardana-lmm
+        physical-volumes:
+          - /dev/sd{{ drive_letters[ns.drive_idx] }}
+        logical-volumes:
+
+          # Database storage for event monitoring (Monasca).  Events are generally
+          # small data objects.
+          - name: cassandra_db
+            size: 25%
+            mount: /var/cassandra/data
+            fstype: ext4
+            mkfs-opts: -O large_file
+            consumer:
+              name: cassandra
+
+          - name: cassandra_log
+            size: 5%
+            mount: /var/cassandra/commitlog
+            fstype: ext4
+            mkfs-opts: -O large_file
+            consumer:
+              name: cassandra
+
+          # Messaging system for monitoring.
+          - name: kafka
+            size: 20%
+            mount: /var/kafka
+            fstype: ext4
+            mkfs-opts: -O large_file
+            consumer:
+              name: kafka
+
+          # Data storage for centralized logging. This holds log entries from all
+          # servers in the cloud and hence can require a lot of disk space.
+          - name: elasticsearch
+            size: 40%
+            mount: /var/lib/elasticsearch
+            fstype: ext4
+
+          # Zookeeper is used to provide cluster co-ordination in the monitoring
+          # system.  Although not a high user of disc space we have seen issues
+          # with zookeeper snapshots filling up filesystems so we keep it in its
+          # own space for stability
+          - name: zookeeper
+            size: 5%
+            mount: /var/lib/zookeeper
+            fstype: ext4
+{%     endif %}
+{%   endfor %}
+
+{%  if 'SWPAC' in service_group.service_components or 'SWOBJ' in service_group.service_components %}
+    device-groups:
+{%   for service_component in service_group['service_components'] %}
+{%     if service_component == 'SWPAC' %}
+{%       set ns.drive_idx = ns.drive_idx+1 %}
+
+      # Additional disk group defined for Swift
+      # If available, you can add additional disks to the "devices" list.
+      # Only list disks that are present at deployment time.
+      - name: swiftpac
+        devices:
+          - name: /dev/sd{{ drive_letters[ns.drive_idx] }}
+        consumer:
+          name: swift
+          attrs:
+            rings:
+              - account
+              - container
+{%     elif service_component == 'SWOBJ' %}
+{%       set ns.drive_idx = ns.drive_idx+1 %}
+
+      # Additional disk group defined for Swift
+      # If available, you can add additional disks to the "devices" list.
+      # Only list disks that are present at deployment time.
+      - name: swiftobj
+        devices:
+          - name: /dev/sd{{ drive_letters[ns.drive_idx] }}
+        consumer:
+          name: swift
+          attrs:
+            rings:
+              - object-0
+{%     endif %}
+{%   endfor %}
+{%  endif %}
+
+{% endfor %}
+{% endif %}

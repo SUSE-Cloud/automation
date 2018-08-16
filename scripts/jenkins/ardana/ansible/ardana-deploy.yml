@@ -25,6 +25,8 @@
 - import_playbook: ardana-ses-integration.yml
   when: ses_enabled
 
+- import_playbook: shutdown-bm-nodes.yml
+
 - import_playbook: run-ardana-deploy-plays.yml
 
 - import_playbook: ardana-ses-rgw.yml

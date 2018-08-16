@@ -1,0 +1,140 @@
+{% for service_group in scenario['service_groups'] if service_group['member_count']|int %}
+    - name: {{ service_group.name|upper }}-DISKS
+      volume-groups:
+{%   if service_group.name == 'clm' %}
+        - name: ardana-vg
+          consumer:
+            name: os
+          physical-volumes:
+            - /dev/sda_root
+          logical-volumes:
+            - name: root
+              size: 65%
+              fstype: ext4
+              mount: /
+            - name: crash
+              size: 15%
+              mount: /var/crash
+              fstype: ext4
+              mkfs-opts: -O large_file
+            - name: log
+              size: 15%
+              mount: /var/log
+              fstype: ext4
+              mkfs-opts: -O large_file
+
+{%   elif service_group.name == 'controller' %}
+        - name: ardana-vg
+          physical-volumes:
+            - /dev/sda_root
+          consumer:
+             name: os
+          logical-volumes:
+            - name: root
+              size: 12%
+              fstype: ext4
+              mount: /
+            - name: crash
+              size: 10%
+              mount: /var/crash
+              fstype: ext4
+              mkfs-opts: -O large_file
+            - name: log
+              size: 10%
+              mount: /var/log
+              fstype: ext4
+              mkfs-opts: -O large_file
+            - name: mysql
+              size: 10%
+              mount: /var/lib/mysql
+              fstype: ext4
+              mkfs-opts: -O large_file
+              consumer:
+                name: mysql
+            - name: rabbitmq
+              size: 4%
+              mount: /var/lib/rabbitmq
+              fstype: ext4
+              mkfs-opts: -O large_file
+              consumer:
+                name: rabbitmq
+                rabbitmq_env: home
+            - name: cassandra_db
+              size: 13%
+              mount: /var/cassandra/data
+              fstype: ext4
+              mkfs-opts: -O large_file
+              consumer:
+                name: cassandra
+            - name: cassandra_log
+              size: 2%
+              mount: /var/cassandra/commitlog
+              fstype: ext4
+              mkfs-opts: -O large_file
+              consumer:
+                name: cassandra
+            - name: kafka
+              size: 11%
+              mount: /var/kafka
+              fstype: ext4
+              mkfs-opts: -O large_file
+              consumer:
+                name: kafka
+            - name: elasticsearch
+              size: 21%
+              mount: /var/lib/elasticsearch
+              fstype: ext4
+            - name: zookeeper
+              size: 1%
+              mount: /var/lib/zookeeper
+              fstype: ext4
+
+      device-groups:
+        - name: swiftobj
+          devices:
+            - name: /dev/sdb
+          consumer:
+            name: swift
+            attrs:
+              rings:
+                - account
+                - container
+                - object-0
+        - name: cinder-volume
+          devices:
+            - name: /dev/sdc
+          consumer:
+            name: cinder
+
+{%   elif 'compute' in service_group.name %}
+        - name: ardana-vg
+          consumer:
+            name: os
+          physical-volumes:
+            - /dev/sda_root
+          logical-volumes:
+            - name: root
+              size: 35%
+              fstype: ext4
+              mount: /
+            - name: log
+              size: 50%
+              mount: /var/log
+              fstype: ext4
+              mkfs-opts: -O large_file
+            - name: crash
+              size: 10%
+              mount: /var/crash
+              fstype: ext4
+              mkfs-opts: -O large_file
+        - name: vg-comp
+          physical-volumes:
+            - /dev/sdb
+          logical-volumes:
+            - name: compute
+              size: 95%
+              mount: /var/lib/nova
+              fstype: ext4
+              mkfs-opts: -O large_file
+{%   endif %}
+{% endfor %}

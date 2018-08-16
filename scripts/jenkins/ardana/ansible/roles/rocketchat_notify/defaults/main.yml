@@ -23,7 +23,10 @@ rc_token: ""
 rc_bot:
   username: ""
   password: ""
-  
+
+rc_auth_info_git_url: "https://gitlab.suse.de/cloud-qe/ardana-bm-info.git"
+rc_auth_info_dir: "/tmp/ardana-bm-info"
+
 rc_channel_id_query: "json.channels[?name=='{{ rc_channels[qe_env] }}']._id"
 
 rc_deploy_announcement_file: "~/deploy_finished-{{ qe_env }}.rc"
