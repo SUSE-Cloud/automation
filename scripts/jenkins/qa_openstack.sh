@@ -73,6 +73,11 @@ function addopensuseleaprepos {
     $zypper ar --refresh "$repomirror/update/leap/$VERSION/oss/" Leap-$VERSION-oss-update
 }
 
+function distribution_upgrade {
+    $zypper dist-upgrade --auto-agree-with-licenses
+}
+
+
 # setup repos
 VERSION=11
 REPO=SLE_11_SP3
@@ -144,6 +149,8 @@ fi
 
 if [ -z "$skip_reposetup" ]; then
     $addrepofunc
+    # Upgrade the distribution after adding the repositories
+    distribution_upgrade
 fi
 
 # install maintenance updates
