@@ -3637,7 +3637,7 @@ function oncontroller_manila_generic_driver_setup()
         manila_tenant_vm_ip=`oncontroller_manila_service_instance_get_floating_ip`
     else
         fixed_net_id=`neutron net-show fixed -f value -c id`
-        timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
+        timeout 10m nova --insecure boot --poll --flavor 100 --image manila-service-image \
             --security-groups $sec_group,default \
             --nic net-id=$fixed_net_id manila-service
 
@@ -3934,7 +3934,7 @@ function oncontroller_testsetup
         nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
     fi
 
-    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
+    timeout 10m nova --insecure boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
