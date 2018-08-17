@@ -31,8 +31,7 @@ scenario:
   ses_enabled: "{{ ses_enabled | default(False) }}"
   use_cinder_volume_disk: True
   use_glance_cache_disk: False
-  ntp_servers:
-    - 'ntp.suse.de'
+  ntp_servers: "{{ ntp_servers }}"
   nameservers:
     - 147.2.2.2
 
