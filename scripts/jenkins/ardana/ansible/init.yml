@@ -108,12 +108,12 @@
          data = yaml.load(f.read());
          f.close();
          data['cloud']['dns-settings']=dict(nameservers = {{ mgmt_dnsservers }});
-         data['cloud']['ntp-servers'] = ['ntp.suse.de'];
+         data['cloud']['ntp-servers'] = {{ ntp_servers }};
          f = open('cloudConfig.yml', 'w');
          f.write(yaml.safe_dump(data, default_flow_style=False));
          f.close();"
     args:
-      chdir: /var/lib/ardana//openstack/my_cloud/definition/
+      chdir: /var/lib/ardana/openstack/my_cloud/definition/
     tags:
       - create-ardana-input-model
 
