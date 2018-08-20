@@ -16,7 +16,8 @@
 
 ---
 - name: Test post-deployment checks
-  hosts: hosts
+  hosts: ardana-virt
+  remote_user: root
   gather_facts: False
   vars:
     rpm_verification_test_mode:

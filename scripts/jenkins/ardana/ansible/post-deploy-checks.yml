@@ -1,10 +1,10 @@
 ---
 - name: Post deployment checks
-  hosts: hosts
+  hosts: ardana-virt
+  remote_user: root
   gather_facts: False
 
   vars_files:
-    - ardana_net_vars.yml
     - vars/main.yml
 
   tasks:
@@ -20,16 +20,6 @@
       chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
     become: true
     become_user: ardana
-
-  - name: Stop irrelevant services to survive tempest
-    shell: |
-      ansible-playbook -v -i hosts/verb_hosts logging-stop.yml
-      ansible-playbook -v -i hosts/verb_hosts monasca-transform-stop.yml
-    args:
-      chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
-    become: true
-    become_user: ardana
-    when: tempest_run_filter != ""
 
   - name: Run tempest
     shell: |
