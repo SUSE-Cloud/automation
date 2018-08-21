@@ -39,6 +39,11 @@ template:
             *suse_cloud_user
           teams:
             *suse_cloud_team
+        blacklist_handler:
+          - type: SetStatus
+            parameters:
+              status: error
+              message: Owner of the source repo for this PR lacks permission
       - type: FileMatch
         config:
           paths:
@@ -71,6 +76,11 @@ template:
             *suse_cloud_user
           teams:
             *suse_cloud_team
+        blacklist_handler:
+          - type: SetStatus
+            parameters:
+              status: error
+              message: Owner of the source repo for this PR lacks permission
         whitelist_handler:
           - type: SetStatus
             parameters:

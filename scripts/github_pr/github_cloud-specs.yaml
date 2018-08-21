@@ -25,6 +25,11 @@ template:
             *suse_user
           teams:
             *suse_cloud_specs_team
+        blacklist_handler:
+          - type: SetStatus
+            parameters:
+              status: error
+              message: Owner of the source repo for this PR lacks permission
         whitelist_handler:
           - type: RunHelperAndSetStatus
             parameters:
