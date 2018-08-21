@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Wrapper script to execute the neutron tests
+# within the venv
+#
+# Usage: neutron.sh
+
+set -o pipefail
+
+VENV={{ ardana_qe_test_venv }}
+STESTR={{  ardana_qe_test_venv }}/bin/stestr
+DPDK={{ dpdk }}
+DPDKBR={{ dpdk_br }}
+OCTAVIA={{ octavia }}
+
+# Activate the virtual environment
+source ${VENV}/bin/activate
+
+# Run neutron tests.
+source ~/service.osrc
+if $DPDK;then
+    export DPDK=true
+    export DPDK_BR=$DPDKBR
+fi
+if $OCTAVIA; then
+    export OCTAVIA=true
+fi
+cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/neutron/sdk_scripts/
+${STESTR} init
+${STESTR} run -t ./ --concurrency=1 | tee {{ ardana_qe_test_log }}
+${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
