@@ -14,6 +14,8 @@ import requests
 
 import sh
 
+DEPENDS_ON_RE = re.compile(r"^Depends-On: (I[0-9a-f]{40})\s*$",
+                           re.MULTILINE | re.IGNORECASE)
 
 def project_map():
     map_file = os.path.join(os.path.dirname(__file__), 'project-map.json')
@@ -38,18 +40,28 @@ class GerritChange:
 
     def __init__(self, change_id):
         self.id = change_id
-        query_url = '%(gerrit)s/changes/%(change_id)s/?o=CURRENT_REVISION' % {
+        query_url = '%(gerrit)s/changes/%(change_id)s/' % {
             'gerrit': self.GERRIT, 'change_id': self.id}
+        query_url += '?o=CURRENT_REVISION&o=CURRENT_COMMIT'
         print("Retrieving change %s" % change_id)
         response = requests.get(query_url)
         print("Got response: %s" % response)
         self._change_object = json.loads(response.text.replace(")]}'", ''))
+        self.change_id = self._change_object['change_id']
         self.project = self._change_object['project'].split('/')[1]
         current_revision = self._change_object['current_revision']
-        fetch_obj = self._change_object['revisions'][current_revision]['fetch']
-        self.url = fetch_obj['anonymous http']['url']
-        self.ref = fetch_obj['anonymous http']['ref']
+        revision_obj = self._change_object['revisions'][current_revision]
+        self.url = revision_obj['fetch']['anonymous http']['url']
+        self.ref = revision_obj['fetch']['anonymous http']['ref']
         self.target = self._change_object['branch']
+        self.subject = revision_obj['commit']['subject']
+        self.commit_message = revision_obj['commit']['message']
+
+    def get_depends_on_changes(self):
+        # For now only check this change's depends-on
+        # This will miss any depends-on on commits between the supplied ones
+        # and the branch.
+        return DEPENDS_ON_RE.findall(self.commit_message)
 
     def prep_workspace(self):
         if not os.path.exists('./source'):
@@ -102,11 +114,9 @@ def create_test_project(develproject, testproject, repository):
         sh.osc('-A', 'https://api.suse.de', 'api', '-T', meta.name,
                '/source/%s/_meta' % testproject)
 
-    return testproject
 
-
-def wait_for_build(change, testproject):
-    package_name = project_map()[change.project]
+def wait_for_build(project, testproject):
+    package_name = project_map()[project]
     print("Waiting for %s to build" % package_name)
     with cd('%s/%s' % (testproject, package_name)):
         while 'unknown' in sh.osc('results'):
@@ -129,13 +139,13 @@ def wait_for_build(change, testproject):
             sys.exit(1)
 
 
-def create_test_package(change, develproject, testproject):
-    package_name = project_map()[change.project]
+def create_test_package(project, develproject, testproject):
+    package_name = project_map()[project]
     print("Creating test package %s" % package_name)
     sh.osc('-A', 'https://api.suse.de', 'copypac', '--keep-link',
            develproject, package_name, testproject)
     sh.osc('-A', 'https://api.suse.de', 'checkout', testproject, package_name)
-    source_dir = '%s/source/%s.git' % (os.getcwd(), change.project)
+    source_dir = '%s/source/%s.git' % (os.getcwd(), project)
     with cd('%s/%s' % (testproject, package_name)):
         with open('_service', 'r+') as service_file:
             service_def = service_file.read()
@@ -151,7 +161,7 @@ def create_test_package(change, develproject, testproject):
         sh.osc('rm', glob.glob('%s*.obscpio' % package_name))
         sh.osc('service', 'disabledrun')
         sh.osc('add', glob.glob('%s*.obscpio' % package_name))
-        sh.osc('commit', '-m', 'Testing change %s' % change.id)
+        sh.osc('commit', '-m', 'Testing changes from %s' % testproject)
 
 
 def cleanup(testproject):
@@ -161,21 +171,32 @@ def cleanup(testproject):
         shutil.rmtree('./%s' % testproject)
 
 
-def main():
-    change_ids = os.environ['gerrit_change_ids'].split(',')
-    develproject = os.environ['develproject']
-    homeproject = os.environ['homeproject']
-    repository = os.environ['repository']
+def main(change_ids, develproject, homeproject, repository):
     testproject = test_project_name(change_ids, homeproject)
-    changes = [GerritChange(id) for id in change_ids]
     cleanup(testproject)
-    testproject = create_test_project(develproject, testproject, repository)
+    create_test_project(develproject, testproject, repository)
 
-    # Create the test packages to be built
-    # NOTE(jhesketh): If necessary this could be done in a threadpool
-    for change in changes:
+    # Changes is dict of 'gerrit_id': GerritChange.
+    changes = {}
+    # Keep track of the list of projects to finally build
+    projects = set()
+    # Grab the changes
+    for id in change_ids:
+        if id in changes:
+            # Duplicate dependency, skipping..
+            continue
+        c = GerritChange(id)
+        changes[c.change_id] = c
+        projects.add(c.project)
+        dependent_changes = c.get_depends_on_changes()
+        change_ids.extend(dependent_changes)
+
+    for change in changes.values():
+        # This merges the particular gerrit change into the workspace
         change.prep_workspace()
-        create_test_package(change, develproject, testproject)
+
+    for project in projects:
+        create_test_package(project, develproject, testproject)
 
     # Check all packages are built
     # NOTE(jhesketh): this could be optimised to check packages in parallel,
@@ -183,11 +204,16 @@ def main():
     # "time for longest package" + "time for num_of_package checks" which isn't
     # too much more than the minimum
     # ("time for longest package" + "time for one check")
-    for change in changes:
-        wait_for_build(change,  testproject)
+    for project in projects:
+        wait_for_build(project,  testproject)
 
     cleanup(testproject)
 
 
 if __name__ == '__main__':
-    main()
+    change_ids = os.environ['gerrit_change_ids'].split(',')
+    develproject = os.environ['develproject']
+    homeproject = os.environ['homeproject']
+    repository = os.environ['repository']
+
+    main(change_ids, develproject, homeproject, repository)
