@@ -51,6 +51,7 @@ warning /This is not necessarily an error/
 warning /(?i)warning/
 
 ok /^\+ \/\S+\/github-status\.rb /
+ok /^\+ \/\S+\/github_pr\.rb /
 ok /Loading robots.txt; please ignore errors/
 ok /update-alternatives: .*ruby_parse_extract_error/
 
