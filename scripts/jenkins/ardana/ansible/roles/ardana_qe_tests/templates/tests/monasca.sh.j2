@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Wrapper script to execute the example test
+# within the venv
+#
+# Usage: template.sh run_filter_filename
+
+set -o pipefail
+
+WORK_HOME={{ ardana_qe_test_work_dir }}
+
+# Activate the virtual environment
+source ~/service.osrc
+
+# Run the test
+python {{ ardana_qe_tests_dir }}/ardana-qa-tests/monasca/python-monasca-client-tests/test_monasca_client_details.py 2>&1 | tee ${WORK_HOME}/monasca.log
