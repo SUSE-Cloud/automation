@@ -50,4 +50,4 @@
             ;;
           esac
 
-          ${ghpr} -a trigger-prs --mode "$mode" --debugratelimit --config ${automationrepo}/scripts/github_pr/github_cloud-specs.yaml
+          ${ghpr} -a trigger-prs --mode "$mode" --debugfilterchain --debugratelimit --config ${automationrepo}/scripts/github_pr/github_cloud-specs.yaml
