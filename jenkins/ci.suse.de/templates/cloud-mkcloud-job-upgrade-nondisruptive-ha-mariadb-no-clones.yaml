@@ -31,6 +31,6 @@
             want_database_sql_engine={database_engine}
             want_ping_running_instances=1
             mkcloudtarget=instonly setuplonelynodes lonelynode_nfs_server batch testpreupgrade addupdaterepo runupdate cloudupgrade testpostupgrade testsetup
-            scenario=cloud{version}-upgrade-non-disruptive-no-clones.yml.yml
+            scenario=cloud{version}-upgrade-non-disruptive-no-clones.yml
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-no-clones-{arch}
