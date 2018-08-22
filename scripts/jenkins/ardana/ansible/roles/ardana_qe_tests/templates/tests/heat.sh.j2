@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Wrapper script to execute iverify
+# within the venv
+#
+# Usage: python HeatCluster.py
+
+set -o pipefail
+
+
+WORK_HOME={{ ardana_qe_test_work_dir }}
+
+AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
+
+source ~/service.osrc
+
+cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/heat/new-tests/
+
+# Run the test
+python HeatCluster.py  > heat.log
+
+
+# Save subunit output
+#cp ~/iverify_test$AUTO_ID/subunit_output ${WORK_HOME}/iverify.subunit
+
+
+# Run cleanup
+
