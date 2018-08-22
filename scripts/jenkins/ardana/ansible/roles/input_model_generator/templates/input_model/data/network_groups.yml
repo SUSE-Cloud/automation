@@ -111,7 +111,6 @@
             - default
           components:
           # These services do not currently support TLS
-            - rabbitmq
             - nova-metadata
           roles:
             - internal
