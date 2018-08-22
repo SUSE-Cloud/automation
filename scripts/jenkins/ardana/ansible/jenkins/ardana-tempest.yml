@@ -64,6 +64,7 @@
             - tests-ci
             - upgrade-ci
             - upgrade
+            - barbican
           description: Test filter for tempest
           name: tempest_run_filter
       - string:

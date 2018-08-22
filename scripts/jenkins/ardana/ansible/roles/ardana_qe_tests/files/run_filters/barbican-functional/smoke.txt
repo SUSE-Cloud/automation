@@ -1,0 +1,1 @@
++functionaltests\.api\.v1\.smoke
