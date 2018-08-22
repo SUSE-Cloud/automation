@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Wrapper script to execute cinder-tests-all
+# within the venv
+#
+# Usage: nova-attach-and-move.py PLUS too many options to list
+
+test_name="cinder-parallel"
+work_dir={{ ardana_qe_test_work_dir }}
+test_dir={{ ardana_qe_tests_dir }}/ardana-qa-tests/cinder-new
+test_log="$work_dir/${test_name}.log"
+subunit_log="$work_dir/${test_name}.subunit:mjsvenv"
+
+source $HOME/service.osrc
+cd $test_dir
+rm $test_log
+$test_dir/cinder-parallel.py --oper c --sulog $subunit_log | tee -a $test_log
+$test_dir/cinder-parallel.py --oper d --sulog $subunit_log | tee -a $test_log
+
