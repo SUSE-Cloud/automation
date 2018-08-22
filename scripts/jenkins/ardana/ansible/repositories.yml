@@ -1,10 +1,8 @@
 ---
 - name: Setup repositories on the deployer node
-  hosts: hosts
+  hosts: ardana-virt
+  remote_user: root
   gather_facts: False
-
-  roles:
-  - cloud-common
 
   tasks:
 

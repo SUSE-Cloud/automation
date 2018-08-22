@@ -1,11 +1,9 @@
 - name: Take snapshot of files not owned by a package prior to deployment
-  become: yes
   failed_when: false
   shell: |
     find /usr -print0 | xargs -0 rpm -qf | grep "is not owned" \
       > "{{ pre_deploy_unowned_files }}"
 
 - name: Take snapshot of modified/deleted rpm-owned files prior to deployment
-  become: yes
   shell: rpm -Va > "{{ pre_deploy_rpm_verification }}"
   failed_when: false

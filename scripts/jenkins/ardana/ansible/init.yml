@@ -1,22 +1,18 @@
 ---
 - name: Initialize the Deployer
-  hosts: hosts
+  hosts: ardana-virt
+  remote_user: root
   gather_facts: False
-  roles:
-    - cloud-common
 
   vars_files:
-    - ardana_net_vars.yml
     - vars/main.yml
 
   tasks:
   - name: Write deployer info to /etc/motd
-    become: yes
     shell: |
       echo "DEPLOYER_IP={{ deployer_floating_ip | default(None) }}" >> /etc/motd
 
   - name: Grow 1st partition filesystem
-    become: yes
     shell: |
       /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
     ignore_errors: True
@@ -82,7 +78,6 @@
     when: item != "" and item != deployer_mgmt_ip
 
   - name: Grow 1st partition filesystem on non-deployer nodes
-    become: yes
     shell: |
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} "/usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1"
     ignore_errors: True
