@@ -89,7 +89,6 @@ proposals:
       backend_name: nfs
       nfs:
         nfs_shares: nfsserver:/srv/nfs/cinder -o rw,async,nofail
-        nfs_snapshot: false
     db:
       password: idRll2gJPodv
   deployment:
