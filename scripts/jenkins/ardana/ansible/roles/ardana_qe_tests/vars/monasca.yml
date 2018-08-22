@@ -17,6 +17,6 @@
 
 ardana_qe_test_get_failed_cmd: "grep FAILED {{ ardana_qe_test_log }} || echo 'None'"
 ardana_qe_test_get_results_cmds:
-  failed: 'grep FAIL: {{ ardana_qe_test_log }} | wc -l'
-  ran: 'grep Ran {{ ardana_qe_test_log }} | cut -c5-6'
-  passed: '$((ran - failed))'
+  failed: "grep FAIL: {{ ardana_qe_test_log }} | wc -l"
+  ran: "grep Ran {{ ardana_qe_test_log }} | cut -c5-6"
+  passed: "expr `grep Ran {{ ardana_qe_test_log }} | cut -c5-6` - `grep FAIL: {{ ardana_qe_test_log }} | wc -l`"
