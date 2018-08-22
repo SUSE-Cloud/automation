@@ -89,7 +89,6 @@ proposals:
       backend_name: nfs
       nfs:
         nfs_shares: nfsserver:/srv/nfs/cinder -o rw,async,nofail
-        nfs_snapshot: false
     db:
       password: idRll2gJPodv
   deployment:
@@ -138,3 +137,16 @@ proposals:
       - "@@compute2@@"
       nova-compute-qemu: []
       nova-compute-xen: []
+- barclamp: heat
+  attributes:
+    db:
+  deployment:
+    elements:
+      heat-server:
+      - cluster:data
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - "@@data2@@"
