@@ -137,3 +137,16 @@ proposals:
       - "@@compute2@@"
       nova-compute-qemu: []
       nova-compute-xen: []
+- barclamp: heat
+  attributes:
+    db:
+  deployment:
+    elements:
+      heat-server:
+      - cluster:data
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - "@@data2@@"
