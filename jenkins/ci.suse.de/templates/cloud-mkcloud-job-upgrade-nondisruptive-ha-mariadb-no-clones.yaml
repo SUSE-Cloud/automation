@@ -22,13 +22,14 @@
             cloudsource=develcloud{previous_version}
             upgrade_cloudsource=develcloud{version}
             ### 3 nodes for HA cluster, 2 compute nodes, 1 lonelynode for nfs server
-            nodenumber=6
+            nodenumber=5
+            nodenumberlonelynode=1
+            want_node_aliases=data=3,compute=2
             clusterconfig=data+services+network={nodenumber_controller}
             hacloud=1
             want_nodesupgrade=1
             want_database_sql_engine={database_engine}
             want_ping_running_instances=1
-            want_node_aliases=data=3,compute=2
             mkcloudtarget=instonly setuplonelynodes lonelynode_nfs_server batch testpreupgrade addupdaterepo runupdate cloudupgrade testpostupgrade testsetup
             scenario=cloud{version}-upgrade-non-disruptive-no-clones.yml.yml
             label={label}
