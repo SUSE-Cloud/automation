@@ -13,4 +13,4 @@ WORK_HOME={{ ardana_qe_test_work_dir }}
 source ~/service.osrc
 
 # Run the test
-python {{ ardana_qe_tests_dir }}/ardana-qa-tests/monasca/python-monasca-client-tests/test_monasca_client_details.py 2>&1 | tee ${WORK_HOME}/monasca.log
+python {{ ardana_qe_tests_dir }}/ardana-qa-tests/monasca/python-monasca-client-tests/test_monasca_client_details.py 2>&1 | tee ${WORK_HOME}/{{ ardana_qe_test_log }}
