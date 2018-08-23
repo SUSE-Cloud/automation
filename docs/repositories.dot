@@ -118,6 +118,11 @@ digraph G {
     ];
 
     // Rocky
+    COMSP4 -> CORSP4[
+      label="<link>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Rocky",
+      fontcolor="blue"
+    ];
     SP4GA -> CORSP4[
       label="<path>",
       URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Rocky",
