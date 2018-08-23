@@ -11,3 +11,15 @@ source ~/service.osrc
 
 # Run the test
 python {{ ardana_qe_tests_dir }}/ardana-qa-tests/monasca/python-monasca-client-tests/test_monasca_client_details.py 2>&1 | tee {{ ardana_qe_test_log }}
+
+res=$?
+
+# Cleanup all notifications and alarm definitions leftover if test fails
+for id in $(monasca notification-list | grep notification_ | cut -d'|' -f3); do
+  monasca notification-delete $id
+done
+for id in $(monasca alarm-definition-list | grep alarm_name | cut -d'|' -f3); do
+  monasca alarm-definition-delete $id
+done
+
+exit $res
