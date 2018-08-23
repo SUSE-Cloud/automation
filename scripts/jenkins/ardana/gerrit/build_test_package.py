@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+"""
+This file takes in a list of gerrit changes to build into the supplied OBS
+project.
+"""
+
 import contextlib
 import glob
 import json
@@ -17,7 +22,8 @@ import sh
 DEPENDS_ON_RE = re.compile(r"^Depends-On: (I[0-9a-f]{40})\s*$",
                            re.MULTILINE | re.IGNORECASE)
 
-def project_map():
+def gerrit_project_map():
+    # Used for mapping gerrit project names onto OBS package names
     map_file = os.path.join(os.path.dirname(__file__), 'project-map.json')
     with open(map_file) as map:
         project_map = json.load(map)
@@ -34,21 +40,33 @@ def cd(dir):
         os.chdir(pwd)
 
 
+def cleanup_path(path):
+    if os.path.exists(path):
+        shutil.rmtree(path)
+
+
 class GerritChange:
+    """
+    Holds the state of a gerrit change
+    """
 
     GERRIT = 'https://gerrit.suse.provo.cloud'
 
     def __init__(self, change_id):
+        # TODO:
+        # Check the change_id for correct format
+        # Handle multiple changes with the same gerrit change_id
+        # Handle branches appropriately
         self.id = change_id
         query_url = '%(gerrit)s/changes/%(change_id)s/' % {
             'gerrit': self.GERRIT, 'change_id': self.id}
         query_url += '?o=CURRENT_REVISION&o=CURRENT_COMMIT'
-        print("Retrieving change %s" % change_id)
+        print("Retrieving gerrit change %s" % change_id)
         response = requests.get(query_url)
         print("Got response: %s" % response)
         self._change_object = json.loads(response.text.replace(")]}'", ''))
         self.change_id = self._change_object['change_id']
-        self.project = self._change_object['project'].split('/')[1]
+        self.gerrit_project = self._change_object['project'].split('/')[1]
         current_revision = self._change_object['current_revision']
         revision_obj = self._change_object['revisions'][current_revision]
         self.url = revision_obj['fetch']['anonymous http']['url']
@@ -63,157 +81,273 @@ class GerritChange:
         # and the branch.
         return DEPENDS_ON_RE.findall(self.commit_message)
 
-    def prep_workspace(self):
-        if not os.path.exists('./source'):
-            os.mkdir('source')
-        with cd('source'):
-            if not os.path.exists('%s.git/.git' % self.project):
-                print("Cloning project %s" % self.project)
-                sh.git('clone', self.url, '%s.git' % self.project)
-            with cd('%s.git' % self.project):
-                # If another change is already checked out on this branch,
-                # don't clobber it.
-                try:
-                    sh.git('checkout', 'test-merge')
-                except sh.ErrorReturnCode_1:
-                    sh.git('checkout', '-b', 'test-merge', self.target)
-                print("Fetching ref %s" % self.ref)
-                sh.git('fetch', self.url, self.ref)
-                sh.git('merge', '--no-edit', 'FETCH_HEAD')
+
+class OBSPackage:
+    """
+    Manage the workspace of a package.
+    """
+
+    def __init__(self, gerrit_project, url, target_branch, source_workspace):
+        self.gerrit_project = gerrit_project
+        self.name = gerrit_project_map()[gerrit_project]
+        self.url = url
+        self.target_branch = target_branch
+        self.test_branch = 'test-merge'
+        self.source_workspace = source_workspace
+        self.source_dir = os.path.join(
+            self.source_workspace, '%s.git' % self.gerrit_project)
+        self._prep_workspace()
+        self._applied_changes = []
+
+    def _prep_workspace(self):
+        with cd(self.source_workspace):
+            if not os.path.exists('%s.git/.git' % self.gerrit_project):
+                print("Cloning gerrit project %s" % self.gerrit_project)
+                sh.git('clone', self.url, '%s.git' % self.gerrit_project)
+
+        with cd(self.source_dir):
+            # If another change is already checked out on this branch,
+            # don't clobber it. This shouldn't happen when building in a clean
+            # workspace so long as there is only one Package per
+            # gerrit_project.
+            try:
+                sh.git('checkout', self.test_branch)
+            except sh.ErrorReturnCode_1:
+                sh.git('checkout', '-b', self.test_branch, self.target_branch)
+
+    def merge_change(self, change):
+        """
+        Merge a given GerritChange into the git source_workspace
+        """
+        with cd(self.source_dir):
+            # Check change isn't already merged
+            # Check change is on the right branch
+            # Check change is open
+            print("Fetching ref %s" % change.ref)
+            sh.git('fetch', self.url, change.ref)
+            sh.git('merge', '--no-edit', 'FETCH_HEAD')
+            self._applied_changes.append(change)
+
+    def applied_change_numbers(self):
+        ", ".join([change.id for change in self._applied_changes])
 
 
-def test_project_name(change_ids, homeproject):
-    return '%s:ardana-ci-%s' % (homeproject, '-'.join(change_ids))
+class OBSProject:
+    """
+    Manage the OBS Project
+    """
 
+    def __init__(self, obs_test_project_name, obs_linked_project,
+                 obs_repository):
+        self.obs_test_project_name = obs_test_project_name
+        self.obs_linked_project = obs_linked_project
+        self.obs_repository = obs_repository
+        self._create_test_project()
+        self.packages = set()
 
-def create_test_project(develproject, testproject, repository):
-    repo_metadata = """
-<project name="%(testproject)s">
-  <title>Autogenerated CI project</title>
-  <description/>
-  <link project="%(develproject)s"/>
-  <person userid="opensuseapibmw" role="maintainer"/>
-  <publish>
+    def _create_test_project(self):
+        repo_metadata = """
+<project name="%(obs_test_project_name)s">
+<title>Autogenerated CI project</title>
+<description/>
+<link project="%(obs_linked_project)s"/>
+<person userid="opensuseapibmw" role="maintainer"/>
+<publish>
     <enable repository="standard"/>
-  </publish>
-  <repository name="standard" rebuild="direct" block="local"
-      linkedbuild="localdep">
-    <path project="%(develproject)s" repository="%(repository)s"/>
+</publish>
+<repository name="standard" rebuild="direct" block="local"
+    linkedbuild="localdep">
+    <path project="%(obs_linked_project)s" repository="%(obs_repository)s"/>
     <arch>x86_64</arch>
-  </repository>
+</repository>
 </project>
-""" % {'testproject': testproject,
-       'develproject': develproject,
-       'repository': repository}
+""" % {'obs_test_project_name': self.obs_test_project_name,
+       'obs_linked_project': self.obs_linked_project,
+       'obs_repository': self.obs_repository}
 
-    with tempfile.NamedTemporaryFile() as meta:
-        meta.write(repo_metadata)
-        meta.flush()
-        print("Creating test project %s linked to devel project %s" %
-              (testproject, develproject))
-        sh.osc('-A', 'https://api.suse.de', 'api', '-T', meta.name,
-               '/source/%s/_meta' % testproject)
+        with tempfile.NamedTemporaryFile() as meta:
+            meta.write(repo_metadata)
+            meta.flush()
+            print("Creating test project %s linked to project %s" %
+                  (self.obs_test_project_name, self.obs_linked_project))
+            sh.osc('-A', 'https://api.suse.de', 'api', '-T', meta.name,
+                   '/source/%s/_meta' % self.obs_test_project_name)
 
+    def add_test_package(self, package):
+        """
+        Create a package in the OBS Project
+         - Copy the given package into the OBS Project
+         - Update the service file to use the local git checkout of the package
+           source
+         - Grab the local source
+         - Commit the package to be built into the project
+        """
 
-def wait_for_build(project, testproject):
-    package_name = project_map()[project]
-    print("Waiting for %s to build" % package_name)
-    with cd('%s/%s' % (testproject, package_name)):
-        while 'unknown' in sh.osc('results'):
-            print("Waiting for build to be scheduled")
-            time.sleep(3)
-        print("Waiting for build results")
-        for attempt in range(3):
-            results = sh.osc('results', '--watch')
-            print("Build results: %s" % results)
-            if 'broken' in results:
-                # Sometimes results --watch ends too soon, give it a few
-                # retries before actually failing
-                print("Sleeping for 10s before rechecking")
-                time.sleep(10)
-                continue
-            else:
-                break
+        print("Creating test package %s" % package.name)
+
+        # Clean up any checkouts from previous builds
+        cleanup_path(os.path.join(self.obs_test_project_name, package.name))
+
+        # Copy the package from the upstream project into our teste project
+        sh.osc('-A', 'https://api.suse.de', 'copypac', '--keep-link',
+               self.obs_linked_project, package.name,
+               self.obs_test_project_name)
+        # Checkout the package from obs
+        sh.osc('-A', 'https://api.suse.de', 'checkout',
+               self.obs_test_project_name, package.name)
+
+        # cd into the checked out package
+        with cd(os.path.join(self.obs_test_project_name, package.name)):
+            with open('_service', 'r+') as service_file:
+                # Update the service file to use the git state in our workspace
+                service_def = service_file.read()
+                service_def = re.sub(
+                    r'<param name="url">.*</param>',
+                    '<param name="url">%s</param>' % package.source_dir,
+                    service_def)
+                service_def = re.sub(
+                    r'<param name="revision">.*</param>',
+                    '<param name="revision">%s</param>' % package.test_branch,
+                    service_def)
+                service_file.seek(0)
+                service_file.write(service_def)
+                service_file.truncate()
+            # Run the osc service and commit the changes to OBS
+            sh.osc('rm', glob.glob('%s*.obscpio' % package.name))
+            sh.osc('service', 'disabledrun')
+            sh.osc('add', glob.glob('%s*.obscpio' % package.name))
+            sh.osc('commit', '-m',
+                   'Testing gerrit changes applied to %s'
+                   % package.applied_change_numbers())
+        self.packages.add(package)
+
+    def wait_for_package(self, package):
+        """
+        Wait for a particular package to complete building
+        """
+
+        print("Waiting for %s to build" % package.name)
+        # cd into the checked out package
+        with cd(os.path.join(self.obs_test_project_name, package.name)):
+            while 'unknown' in sh.osc('results'):
+                print("Waiting for build to be scheduled")
+                time.sleep(3)
+            print("Waiting for build results")
+            for attempt in range(3):
+                results = sh.osc('results', '--watch')
+                print("Build results: %s" % results)
+                if 'broken' in results:
+                    # Sometimes results --watch ends too soon, give it a few
+                    # retries before actually failing
+                    print("Sleeping for 10s before rechecking")
+                    time.sleep(10)
+                    continue
+                else:
+                    break
+
         if 'succeeded' not in results:
             print("Package build failed.")
-            sys.exit(1)
+            return False
+        return True
+
+    def wait_for_all_results(self):
+        """
+        Wait for all the project to complete building
+        """
+
+        # Check all packages are built
+        # NOTE(jhesketh): this could be optimised to check packages in
+        # parallel. However, the worst case scenario at the moment is
+        # "time for longest package" + "time for num_of_package checks" which
+        # isn't too much more than the minimum
+        # ("time for longest package" + "time for one check")
+        for package in self.packages:
+            result = self.wait_for_package(package)
+            if not result:
+                return False
+        return True
 
 
-def create_test_package(project, develproject, testproject):
-    package_name = project_map()[project]
-    print("Creating test package %s" % package_name)
-    sh.osc('-A', 'https://api.suse.de', 'copypac', '--keep-link',
-           develproject, package_name, testproject)
-    sh.osc('-A', 'https://api.suse.de', 'checkout', testproject, package_name)
-    source_dir = '%s/source/%s.git' % (os.getcwd(), project)
-    with cd('%s/%s' % (testproject, package_name)):
-        with open('_service', 'r+') as service_file:
-            service_def = service_file.read()
-            service_def = re.sub(r'<param name="url">.*</param>',
-                                 '<param name="url">%s</param>' % source_dir,
-                                 service_def)
-            service_def = re.sub(r'<param name="revision">.*</param>',
-                                 '<param name="revision">test-merge</param>',
-                                 service_def)
-            service_file.seek(0)
-            service_file.write(service_def)
-            service_file.truncate()
-        sh.osc('rm', glob.glob('%s*.obscpio' % package_name))
-        sh.osc('service', 'disabledrun')
-        sh.osc('add', glob.glob('%s*.obscpio' % package_name))
-        sh.osc('commit', '-m', 'Testing changes from %s' % testproject)
+def test_project_name(change_ids, home_project):
+    return '%s:ardana-ci-%s' % (home_project, '-'.join(change_ids))
 
 
-def cleanup(testproject):
-    if os.path.exists('./source'):
-        shutil.rmtree('./source')
-    if os.path.exists('./%s' % testproject):
-        shutil.rmtree('./%s' % testproject)
+def build_test_packages(change_ids, obs_linked_project, home_project,
+                        obs_repository):
 
+    # The Jenkins workspace we are building in
+    workspace = os.getcwd()
+    # The location for package sources
+    source_workspace = os.path.join(workspace, 'source')
+    cleanup_path(source_workspace)
 
-def main(change_ids, develproject, homeproject, repository):
-    testproject = test_project_name(change_ids, homeproject)
-    cleanup(testproject)
-    create_test_project(develproject, testproject, repository)
+    if not os.path.exists(source_workspace):
+        os.mkdir(source_workspace)
 
-    # Changes is dict of 'gerrit_id': GerritChange.
-    changes = {}
-    # Keep track of the list of projects to finally build
-    projects = set()
-    # Grab the changes
+    obs_test_project_name = test_project_name(change_ids, home_project)
+
+    obs_project = OBSProject(
+        obs_test_project_name, obs_linked_project, obs_repository)
+
+    # Keep track of processed changes
+    processed_changes = []
+    # Keep track of the packages to build as a dict of
+    # 'gerrit_project': Package()
+    packages = {}
+
+    # Grab each change for the supplied change_ids. As we go through the
+    # changes the change_ids list may expand with dependencies. These are also
+    # processed. If a change has already been processed we skip it to avoid
+    # circular dependencies.
     for id in change_ids:
-        if id in changes:
+        if id in processed_changes:
             # Duplicate dependency, skipping..
             continue
         c = GerritChange(id)
-        changes[c.change_id] = c
-        projects.add(c.project)
-        dependent_changes = c.get_depends_on_changes()
-        change_ids.extend(dependent_changes)
+        processed_changes.append(c.change_id)
 
-    for change in changes.values():
-        # This merges the particular gerrit change into the workspace
-        change.prep_workspace()
+        # Create the package if it doesn't exist already
+        if c.gerrit_project not in packages:
+            # TODO:
+            #  - Handle seeing a change from an existing package with a
+            #    different url or target branch
+            #  - Cleanup existing Package checkouts
+            packages[c.gerrit_project] = OBSPackage(
+                c.gerrit_project, c.url, c.target, source_workspace)
 
-    for project in projects:
-        create_test_package(project, develproject, testproject)
+        # Merge the change into the package
+        packages[c.gerrit_project].merge_change(c)
 
-    # Check all packages are built
-    # NOTE(jhesketh): this could be optimised to check packages in parallel,
-    # however the worst case scenario at the moment is
-    # "time for longest package" + "time for num_of_package checks" which isn't
-    # too much more than the minimum
-    # ("time for longest package" + "time for one check")
-    for project in projects:
-        wait_for_build(project,  testproject)
+        # Add the dependent changes to the change_ids to process
+        change_ids.extend(c.get_depends_on_changes())
 
-    cleanup(testproject)
+    # Add the package into the obs project and begin building them
+    for project_name, package in packages.items():
+        obs_project.add_test_package(package)
+
+    results = obs_project.wait_for_all_results()
+    cleanup_path(source_workspace)
+    # TODO: Cleanup OBS project checkouts
+    return results
+
+
+def main():
+    # A list of change id's to apply to packages
+    change_ids = os.environ['gerrit_change_ids'].split(',')
+    # The OBS project to link from
+    obs_linked_project = os.environ['develproject']
+    # The home project to build in
+    home_project = os.environ['homeproject']
+    # The target repository
+    obs_repository = os.environ['repository']
+
+    results = build_test_packages(
+        change_ids, obs_linked_project, home_project, obs_repository)
+
+    if not results:
+        sys.exit(1)
+    sys.exit(0)
 
 
 if __name__ == '__main__':
-    change_ids = os.environ['gerrit_change_ids'].split(',')
-    develproject = os.environ['develproject']
-    homeproject = os.environ['homeproject']
-    repository = os.environ['repository']
-
-    main(change_ids, develproject, homeproject, repository)
+    main()
