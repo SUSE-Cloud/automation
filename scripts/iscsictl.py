@@ -79,8 +79,8 @@ class Key(object):
         if not os.path.exists(self.name):
             sh.ssh_keygen('-t', 'dsa', '-f', self.name, '-N', '')
 
-        os.chmod(self.key(), 0600)
-        os.chmod(self.pub_key(), 0600)
+        os.chmod(self.key(), 0o600)
+        os.chmod(self.pub_key(), 0o600)
 
     def key(self):
         """Return the private key filename."""
