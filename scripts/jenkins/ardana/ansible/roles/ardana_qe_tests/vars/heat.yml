@@ -19,4 +19,4 @@ ardana_qe_test_get_failed_cmd: "grep -e '^Stack.*\\.\\.\\..*FAIL' {{ ardana_qe_t
 ardana_qe_test_get_results_cmds:
   passed: "grep -e '^Stack.*\\.\\.\\..*PASS' {{ ardana_qe_test_log }} | wc -l"
   failed: "grep -e '^Stack.*\\.\\.\\..*FAIL' {{ ardana_qe_test_log }} | wc -l"
-  ran: "grep TOTAL  {{ ardana_qe_test_log }} | awk \' {print $4}\' "
+  ran: "grep TOTAL  {{ ardana_qe_test_log }} | awk '{print $4}' "
