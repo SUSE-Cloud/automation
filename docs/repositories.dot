@@ -1,40 +1,145 @@
 digraph G {
-    dlpb[label="devel:languages:python:backports"];
-    SP3GA[label="SUSE:SLE-12-SP3:GA\nstandard"];
-    SP4GA[label="SUSE:SLE-12-SP4:GA\nstandard"];
-    COUMs[label="Cloud:OpenStack:Upstream:Master\nstandard"];
-    COUMSP3[label="Cloud:OpenStack:Upstream:Master:SLE_12_SP3"];
-    COMSP3[label="Cloud:OpenStack:Master\nSLE_12_SP3"];
-    COMSP4[label="Cloud:OpenStack:Master\nSLE_12_SP4"];
-    //COF[label="Cloud:OpenStack:Factory"];
-    COP[label="Cloud:OpenStack:Pike\nSLE_12_SP3"];
-    COPv[label="Cloud:OpenStack:Pike:venv\nSLE_12_SP3"];
-    COPS[label="Cloud:OpenStack:Pike:Staging\nSLE_12_SP3"];
-    CORSP4[label="Cloud:OpenStack:Rocky\nSLE_12_SP4"];
-    //CORS[label="Cloud:OpenStack:Rocky:Staging"];
-    rp[label="rpm-packaging"];
+    dlpb[
+      label="devel:languages:python:backports",
+      URL="https://build.opensuse.org/project/show/devel:languages:python:backports",
+      fontcolor="blue"
+    ];
+    SP3GA[
+      label="SUSE:SLE-12-SP3:GA\nstandard",
+      URL="https://build.opensuse.org/project/show/SUSE:SLE-12-SP3:GA",
+      fontcolor="blue"
+    ];
+    SP4GA[
+      label="SUSE:SLE-12-SP4:GA\nstandard",
+      URL="https://build.opensuse.org/project/show/SUSE:SLE-12-SP4:GA",
+      fontcolor="blue"
+    ];
+    COUMs[
+      label="Cloud:OpenStack:Upstream:Master\nstandard",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Upstream:Master",
+      fontcolor="blue"
+    ];
+    COUMSP3[
+      label="Cloud:OpenStack:Upstream:Master:SLE_12_SP3",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Upstream:Master:SLE_12_SP3",
+      fontcolor="blue"
+    ];
+    COMSP3[
+      label="Cloud:OpenStack:Master\nSLE_12_SP3",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+    COMSP4[
+      label="Cloud:OpenStack:Master\nSLE_12_SP4",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+//    COF[
+//      label="Cloud:OpenStack:Factory",
+//      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Factory",
+//      fontcolor="blue"
+//    ];
+    COP[
+      label="Cloud:OpenStack:Pike\nSLE_12_SP3",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Pike",
+      fontcolor="blue"
+    ];
+    COPv[
+      label="Cloud:OpenStack:Pike:venv\nSLE_12_SP3",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Pike:venv",
+      fontcolor="blue"
+    ];
+    COPS[
+      label="Cloud:OpenStack:Pike:Staging\nSLE_12_SP3",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Pike:Staging",
+      fontcolor="blue"
+    ];
+    CORSP4[
+      label="Cloud:OpenStack:Rocky\nSLE_12_SP4",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Rocky",
+      fontcolor="blue"
+    ];
+//    CORS[
+//      label="Cloud:OpenStack:Rocky:Staging",
+//      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Rocky:Staging",
+//      fontcolor="blue"
+//    ];
+    rp[
+      label="rpm-packaging",
+      URL="https://wiki.openstack.org/wiki/Rpm-packaging",
+      fontcolor="blue"
+    ];
 
     // Upstream
-    dlpb -> COUMs[label="<path>"];
-    COUMSP3 -> COUMs[label="<path>"];
+    dlpb -> COUMs[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Upstream:Master",
+      fontcolor="blue"
+    ];
+    COUMSP3 -> COUMs[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Upstream:Master",
+      fontcolor="blue"
+    ];
 
     // Master SP3
-    COUMSP3 -> COMSP3[label="<path>"];
-    dlpb -> COMSP3[label="<path>"];
-    SP3GA -> COMSP3[label="<path>"];
+    COUMSP3 -> COMSP3[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+    dlpb -> COMSP3[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+    SP3GA -> COMSP3[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
 
     // Master SP4
-    COUMSP3 -> COMSP4[label="<path>", color="red"];
-    dlpb -> COMSP4[label="<path>"];
-    SP4GA -> COMSP4[label="<path>"];
+    COUMSP3 -> COMSP4[
+      label="<path>",
+      color="red",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+    dlpb -> COMSP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+    SP4GA -> COMSP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
 
     // Rocky
-    SP4GA -> CORSP4[label="<path>"];
+    SP4GA -> CORSP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Rocky",
+      fontcolor="blue"
+    ];
 
     // Pike
-    COP -> COPS[label="<path>"];
-    SP3GA -> COP[label="<path>"];
-    COP -> COPv[label="<path>"];
+    COP -> COPS[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Pike",
+      fontcolor="blue"
+    ];
+    SP3GA -> COP[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Pike",
+      fontcolor="blue"
+    ];
+    COP -> COPv[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Pike:venv",
+      fontcolor="blue"
+    ];
 
     rp-> COUMs;
 }
