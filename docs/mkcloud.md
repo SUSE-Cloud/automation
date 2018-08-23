@@ -147,6 +147,27 @@ compute, 1 for controller).
 If you want to run `tempest` in an already created cloud you can run the
 following command:
 
+
+Running mkcloud on mkcloud.cloud.suse.de host
+
+* ssh to mkcloud.cloud.suse.de, user root with default password.
+
+* To create a new virtual cloud you can use the template: (These instructions
+are also available in the manual file on the host)
+
+  * cp -a manual.TEMPLATE/ manual.<mylogin>
+  * cd manual.<my_login>
+  * mv runtest.c11 runtest.c<your_allocated_cloud>
+  * vi runtest.c<your_allocated_cloud>
+  * set the variable  allocated_cloud=<your_allocated_cloud>
+
+* The automation repository can also be cloned inside this directory and
+config can be changed to point to the local changes.
+
+* Once this is setup you can run the runtest.c<your_allocated_cloud>
+script as you would run mkcloud and can find crowbar deployed at
+crowbar.c<your_allocated_cloud>.cloud.suse.de if deployment is successfull.
+
 ```
 $ sudo /path/to/mkcloud testsetup
 ```
