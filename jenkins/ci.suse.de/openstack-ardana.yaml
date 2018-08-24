@@ -285,7 +285,7 @@
           if [ -n "$controller_mgmt_ips" ]; then
             echo "controller_mgmt_ips:" >> host_vars/ardana-virt.yml
             for ip in $controller_mgmt_ips; do
-                cat << EOF >> ardana_net_vars.yml
+                cat << EOF >> host_vars/ardana-virt.yml
               - $ip
           EOF
             done
