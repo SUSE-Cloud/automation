@@ -104,7 +104,9 @@
             "openstack-monasca-persister",
             "openstack-trove",
             "python-monasca-common",
-            "python-monasca-statsd"
+            "python-monasca-statsd",
+            "python-vmware-nsxlib",
+            "python-vmware-nsx"
             ].contains(component) ||
             [ "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
