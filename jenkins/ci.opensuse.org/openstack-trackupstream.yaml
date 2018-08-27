@@ -102,8 +102,11 @@
             "openstack-monasca-log-api",
             "openstack-monasca-notification",
             "openstack-monasca-persister",
+            "openstack-trove",
             "python-monasca-common",
-            "python-monasca-statsd"
+            "python-monasca-statsd",
+            "python-vmware-nsxlib",
+            "python-vmware-nsx"
             ].contains(component) ||
             [ "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
@@ -147,7 +150,7 @@
 
           export automationrepo=~/github.com/SUSE-Cloud/automation
           export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
-          
+
           # Workaround to get only the name of the job:
           # https://issues.jenkins-ci.org/browse/JENKINS-39189
           # When the JOB_BASE_NAME contains only in ex. "openstack-trackupstream", this
