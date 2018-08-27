@@ -137,6 +137,12 @@ proposals:
       - "@@compute2@@"
       nova-compute-qemu: []
       nova-compute-xen: []
+- barclamp: horizon
+  attributes:
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:data
 - barclamp: heat
   attributes:
     db:
