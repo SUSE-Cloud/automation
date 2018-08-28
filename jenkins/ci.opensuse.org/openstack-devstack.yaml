@@ -23,7 +23,7 @@
     builders:
       - update-automation
       - shell: |
-          sudo /usr/local/sbin/freshvm cleanvm openSUSE-Leap-42.3
+          sudo /usr/local/sbin/freshvm cleanvm openSUSE-Leap-15.0
           sleep 100
 
           set -u
