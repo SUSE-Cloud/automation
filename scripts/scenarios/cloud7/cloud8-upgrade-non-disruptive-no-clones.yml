@@ -155,4 +155,4 @@ proposals:
   deployment:
     elements:
       tempest:
-      - "@@data2@@"
+      - "@@data1@@"
