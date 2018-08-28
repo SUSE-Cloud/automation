@@ -22,25 +22,24 @@
           COS="Cloud:OpenStack:$openstack_project"
           COSS="$COS:Staging"
           export BS_CHECKOUT=/home/jenkins/OBS_CHECKOUT/$COSS
-          submitcmd="echo no submit for project=$COS"
+          submitcmd="$OSC copypac -K -e"
           OSCBUILDDIST=SLE_11_SP3
 
           case $COS in
             Cloud:OpenStack:[L]*)
-              submitcmd="$OSC copypac -K -e"
               OSCBUILDDIST=SLE_12
             ;;
             Cloud:OpenStack:[M]*)
-              submitcmd="$OSC copypac -K -e"
               OSCBUILDDIST=SLE_12_SP1
             ;;
             Cloud:OpenStack:[N]*)
-              submitcmd="$OSC copypac -K -e"
               OSCBUILDDIST=SLE_12_SP2
             ;;
             Cloud:OpenStack:[OPQ]*)
-              submitcmd="$OSC copypac -K -e"
               OSCBUILDDIST=SLE_12_SP3
+            ;;
+            Cloud:OpenStack:[R]*)
+              OSCBUILDDIST=SLE_12_SP4
             ;;
             *) echo "Please add support for the project: $openstack_project"
               exit 1
