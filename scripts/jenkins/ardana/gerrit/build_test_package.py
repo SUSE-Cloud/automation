@@ -11,6 +11,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 import time
@@ -19,8 +20,28 @@ import requests
 
 import sh
 
-DEPENDS_ON_RE = re.compile(r"^Depends-On: (I[0-9a-f]{40})\s*$",
-                           re.MULTILINE | re.IGNORECASE)
+GERRIT_URL = 'https://gerrit.suse.provo.cloud'
+
+DEPENDS_ON_RE = re.compile(
+    r"^\W*Depends-On: "
+    r"((http(s)?:\/\/)?gerrit\.suse\.provo\.cloud\/(\/)?(\#\/c\/)?(\d+).*?)"
+    r"\s*$",
+    re.MULTILINE | re.IGNORECASE)
+
+
+def find_dependency_headers(message):
+    # Search for Depends-On headers
+    dependencies = []
+    for match in DEPENDS_ON_RE.findall(message):
+        # Grab out the change-id
+        # NOTE: Because we only pull out the change-id here, if a patchset was
+        #       included in the URL it will be ignored at this point. The check
+        #       later on will be missed and thus no warning is raised.
+        dependencies.append(match[5])
+    # Reverse the order so that we process the oldest Depends-On first
+    dependencies.reverse()
+    return dependencies
+
 
 def gerrit_project_map():
     # Used for mapping gerrit project names onto OBS package names
@@ -50,23 +71,40 @@ class GerritChange:
     Holds the state of a gerrit change
     """
 
-    GERRIT = 'https://gerrit.suse.provo.cloud'
-
     def __init__(self, change_id):
-        # TODO:
-        # Check the change_id for correct format
-        # Handle multiple changes with the same gerrit change_id
-        # Handle branches appropriately
-        self.id = change_id
+        if change_id.isdigit():
+            self.id = change_id
+            self._get_numeric_change()
+        elif change_id.split(',')[0].isdigit():
+            print("Warning: Ignoring given patchset number for change %s."
+                  " Latest patchset will be used." % change_id)
+            self.id = change_id.split(',')[0]
+            self._get_numeric_change()
+        elif change_id.startswith('I'):
+            # TODO:
+            # Consider if we want to handle applying changes in the gerrit
+            # change-id format. If we do, we need to handle the potential for
+            # multiple changes to match the given ID across multiple projects
+            # and branches.
+            # For now, require explicit change-id's in numeric format that
+            # uniquely identifies only one change.
+            raise Exception(
+                "This script only supports numeric change numbers")
+        else:
+            raise Exception("Unknown change id format (%s)" % change_id)
+
+    def _get_numeric_change(self):
         query_url = '%(gerrit)s/changes/%(change_id)s/' % {
-            'gerrit': self.GERRIT, 'change_id': self.id}
+            'gerrit': GERRIT_URL, 'change_id': self.id}
         query_url += '?o=CURRENT_REVISION&o=CURRENT_COMMIT'
-        print("Retrieving gerrit change %s" % change_id)
+        print("Retrieving gerrit change %s" % self.id)
         response = requests.get(query_url)
         print("Got response: %s" % response)
+
         self._change_object = json.loads(response.text.replace(")]}'", ''))
         self.change_id = self._change_object['change_id']
         self.gerrit_project = self._change_object['project'].split('/')[1]
+        self.status = self._change_object['status']
         current_revision = self._change_object['current_revision']
         revision_obj = self._change_object['revisions'][current_revision]
         self.url = revision_obj['fetch']['anonymous http']['url']
@@ -75,11 +113,8 @@ class GerritChange:
         self.subject = revision_obj['commit']['subject']
         self.commit_message = revision_obj['commit']['message']
 
-    def get_depends_on_changes(self):
-        # For now only check this change's depends-on
-        # This will miss any depends-on on commits between the supplied ones
-        # and the branch.
-        return DEPENDS_ON_RE.findall(self.commit_message)
+    def __repr__(self):
+        return "<GerritChange %s>" % self.id
 
 
 class OBSPackage:
@@ -97,7 +132,7 @@ class OBSPackage:
         self.source_dir = os.path.join(
             self.source_workspace, '%s.git' % self.gerrit_project)
         self._prep_workspace()
-        self._applied_changes = []
+        self._applied_changes = set()
 
     def _prep_workspace(self):
         with cd(self.source_workspace):
@@ -113,23 +148,65 @@ class OBSPackage:
             try:
                 sh.git('checkout', self.test_branch)
             except sh.ErrorReturnCode_1:
-                sh.git('checkout', '-b', self.test_branch, self.target_branch)
+                sh.git('checkout', '-b', self.test_branch,
+                       'origin/%s' % self.target_branch)
 
-    def merge_change(self, change):
+    def add_change(self, change):
         """
-        Merge a given GerritChange into the git source_workspace
+        Merge a given GerritChange into the git source_workspace if possible
         """
+        print("Attempting to add %s to %s" % (change, self))
+        if change in self._applied_changes:
+            print("Change %s has already been applied" % change)
+            return
+        if change.target != self.target_branch:
+            raise Exception(
+                "Cannot merge change %s from branch %s onto target branch %s "
+                "in package %s" %
+                (change, change.target, self.target_branch, self))
+        # Check change isn't already merged.
+        if change.status == "MERGED":
+            print("Change %s has already been merged in gerrit" % change)
+            return
+        elif change.status == "ABANDONED":
+            raise Exception("Can not merge abandoned change %s" % change)
+
         with cd(self.source_dir):
-            # Check change isn't already merged
-            # Check change is on the right branch
-            # Check change is open
+            # If another change has already applied this change by having it as
+            # one of its ancestry commits then the following merge will do a
+            # harmless null operation
             print("Fetching ref %s" % change.ref)
             sh.git('fetch', self.url, change.ref)
             sh.git('merge', '--no-edit', 'FETCH_HEAD')
-            self._applied_changes.append(change)
+            self._applied_changes.add(change)
+
+    def get_depends_on_changes(self):
+        """
+        Return a list of numeric change_id's that are dependencies of the
+        current repo state
+        """
+        # NOTE: Because a given gerrit change may be at the bottom of a tail of
+        #       commits we can't just check the changes as they merge. Instead
+        #       we must also check for any "Depends-On" strings in any commits
+        #       that may have also been merged on top of the target branch
+
+        with cd(self.source_dir):
+            log_messages = subprocess.check_output(
+                ["git", "log", "origin/%s..HEAD" % self.target_branch]).decode(
+                    'utf-8')
+
+        dependencies = find_dependency_headers(log_messages)
+        if dependencies:
+            print("Found the following dependencies between %s..HEAD:"
+                  % self.target_branch)
+            print(dependencies)
+        return dependencies
 
     def applied_change_numbers(self):
-        ", ".join([change.id for change in self._applied_changes])
+        return ", ".join([change.id for change in self._applied_changes])
+
+    def __repr__(self):
+        return "<OBSPackage %s>" % self.name
 
 
 class OBSProject:
@@ -161,9 +238,11 @@ class OBSProject:
     <arch>x86_64</arch>
 </repository>
 </project>
-""" % {'obs_test_project_name': self.obs_test_project_name,
-       'obs_linked_project': self.obs_linked_project,
-       'obs_repository': self.obs_repository}
+""" % {
+            'obs_test_project_name': self.obs_test_project_name,
+            'obs_linked_project': self.obs_linked_project,
+            'obs_repository': self.obs_repository
+        }
 
         with tempfile.NamedTemporaryFile() as meta:
             meta.write(repo_metadata)
@@ -252,7 +331,7 @@ class OBSProject:
 
     def wait_for_all_results(self):
         """
-        Wait for all the project to complete building
+        Wait for all the packages to complete building
         """
 
         # Check all packages are built
@@ -266,6 +345,14 @@ class OBSProject:
             if not result:
                 return False
         return True
+
+    def cleanup_test_packages(self):
+        """
+        Removes from disk the osc copies of any packages
+        """
+        for package in self.packages:
+            cleanup_path(
+                os.path.join(self.obs_test_project_name, package.name))
 
 
 def test_project_name(change_ids, home_project):
@@ -308,26 +395,29 @@ def build_test_packages(change_ids, obs_linked_project, home_project,
 
         # Create the package if it doesn't exist already
         if c.gerrit_project not in packages:
-            # TODO:
-            #  - Handle seeing a change from an existing package with a
-            #    different url or target branch
-            #  - Cleanup existing Package checkouts
+            # NOTE: The first change processed for a package determines the
+            #       target branch for that package. All subsquent changes must
+            #       match the target branch.
             packages[c.gerrit_project] = OBSPackage(
                 c.gerrit_project, c.url, c.target, source_workspace)
 
         # Merge the change into the package
-        packages[c.gerrit_project].merge_change(c)
+        packages[c.gerrit_project].add_change(c)
 
         # Add the dependent changes to the change_ids to process
-        change_ids.extend(c.get_depends_on_changes())
+        change_ids.extend(packages[c.gerrit_project].get_depends_on_changes())
 
-    # Add the package into the obs project and begin building them
+    # Add the packages into the obs project and begin building them
     for project_name, package in packages.items():
         obs_project.add_test_package(package)
 
+    # Wait for, and grab, the obs results
     results = obs_project.wait_for_all_results()
+
+    # Cleanup created files
+    obs_project.cleanup_test_packages()
     cleanup_path(source_workspace)
-    # TODO: Cleanup OBS project checkouts
+
     return results
 
 
