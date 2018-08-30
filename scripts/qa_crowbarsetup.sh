@@ -2236,7 +2236,18 @@ function custom_configuration
                         proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
                     fi
                 fi
-                proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
+                # For SOC7 we introduced transitional role called mysql-server that's gonna be used during the upgrade
+                # Users deploying SOC7 with MariaDB must use this one and not database-server
+                if iscloudver 7 && [[ "$want_database_sql_engine" == "mysql" ]] && \
+                    [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
+                    proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "['cluster:$clusternamedata']"
+                else
+                    proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
+                    if iscloudver 7 && [[ "$want_database_sql_engine" != "mysql" ]] ; then
+                        # explicitely set sql_engine to override the default
+                        proposal_set_value database default "['attributes']['database']['sql_engine']" "'postgresql'"
+                    fi
+                fi
             fi
             if iscloudver 7plus && [[ $want_database_sql_engine ]] ; then
                 proposal_set_value database default "['attributes']['database']['sql_engine']" "'$want_database_sql_engine'"
