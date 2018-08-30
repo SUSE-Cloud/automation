@@ -15,6 +15,10 @@
 #
 ---
 
+ardana_qe_test_venv_requires:
+  - 'python-subunit'
+  - 'stestr'
+
 ardana_qe_test_get_failed_cmd: "grep FAILED {{ ardana_qe_test_log }} || echo 'None'"
 ardana_qe_test_get_results_cmds:
   failed: "grep FAIL: {{ ardana_qe_test_log }} | wc -l"
