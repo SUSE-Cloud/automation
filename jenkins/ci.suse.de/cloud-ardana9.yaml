@@ -2,8 +2,7 @@
     name: cloud-ardana9-gating
     version: 9
     label: cloud-trigger
-    build_pool_name: cloud-ardana-ci
-    build_pool_size: 5
+    build_pool: cloud-ardana-ci-slot
     jobs:
         - 'cloud-ardana{version}-gating'
 
@@ -13,23 +12,19 @@
     version: 9
     arch: x86_64
     tempest_run_filter: ci
-    build_pool_name: cloud-ardana-ci
-    build_pool_size: 5
+    build_pool: cloud-ardana-ci-slot
     jobs:
         - 'cloud-ardana{version}-job-std-3cp-{arch}'
         - 'cloud-ardana{version}-job-dac-3cp-{arch}'
         - 'cloud-ardana{version}-job-std-min-{arch}'
         - 'cloud-ardana{version}-job-std-split-{arch}'
-        - 'cloud-ardana{version}-job-std-3cp-devel-staging-updates-{arch}'
-        - 'cloud-ardana{version}-job-std-3cp-test-maintenance-updates-{arch}'
 
 - project:
-    name: cloud-ardana9-centos-x86_64
+    name: cloud-ardana9-update-x86_64
     disabled: true
     version: 9
     arch: x86_64
     tempest_run_filter: ci
-    build_pool_name: cloud-ardana-ci
-    build_pool_size: 5
+    build_pool: cloud-ardana-ci-slot
     jobs:
-        - 'cloud-ardana{version}-job-std-min-centos-{arch}'
+        - 'cloud-ardana{version}-job-std-3cp-devel-staging-updates-{arch}'

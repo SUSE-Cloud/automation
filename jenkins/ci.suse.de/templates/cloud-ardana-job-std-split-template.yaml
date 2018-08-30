@@ -1,5 +1,10 @@
 - job-template:
     name: 'cloud-ardana{version}-job-std-split-{arch}'
+    properties:
+      - lockable-resources:
+          label: "{build_pool}"
+          var-name: "clm_env"
+          number: 1
     node: cloud-trigger
     disabled: '{obj:disabled}'
 
@@ -17,8 +22,8 @@
           block: true
           current-parameters: true
           predefined-parameters: |
+            clm_env=${{clm_env}}
+            cleanup=on success
             model=std-split
             cloudsource=stagingcloud{version}
             tempest_run_filter={tempest_run_filter}
-            build_pool_name={build_pool_name}
-            build_pool_size={build_pool_size}
