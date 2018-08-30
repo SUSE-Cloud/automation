@@ -2,6 +2,7 @@
 proposals:
 - barclamp: database
   attributes:
+    sql_engine: postgresql
   deployment:
     elements:
       database-server:
