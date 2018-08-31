@@ -197,6 +197,8 @@
           export shared_storage_ip=$shared_storage_ip
           export want_node_aliases=controller=3,computekvm=2,computevmw=1 ;
           export want_node_roles=controller=3,compute=4 ;
+          export want_swift=1 ;
+          export cephvolumenumber=1 ;
           export scenario=\"/root/scenario.yml\" ;
           export vcenter_ip=$vcenter_ip ;
           export vcenter_user="Administrator@vsphere.local" ;
