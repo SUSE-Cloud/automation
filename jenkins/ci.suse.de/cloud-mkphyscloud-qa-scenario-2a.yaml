@@ -15,7 +15,7 @@
         - glance (storage swift)
         - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 KVM
         - cinder: Local file
-        - neutron: linuxbridge or OVS 
+        - neutron: linuxbridge or OVS
         - manila: NetApp backend (we expect that a vserver 'cloud-manila-svm' is available on the 'netapp-n1-e0m.cloud.suse.de' server)
 
       Warning: It will wipe all machines!
@@ -76,12 +76,12 @@
       - string:
           name: netapp_server
           default: netapp-n1-e0m.cloud.suse.de
-          description: Mandatory, the name of the NetApp Storage backend server 
+          description: Mandatory, the name of the NetApp Storage backend server
 
       - string:
           name: netapp_vserver
           default: cloud-manila-svm
-          description: Mandatory, the name of the NetApp Storage backend vserver 
+          description: Mandatory, the name of the NetApp Storage backend vserver
 
       - string:
           name: tempest
@@ -194,7 +194,7 @@
           # check that netapp backend server is available
           ping -c 3 $netapp_server || ret=$?
 
-          if [ $ret != 0 ] ; then 
+          if [ $ret != 0 ] ; then
             echo "netapp server is unavailable!"
             exit 1
           fi
@@ -244,6 +244,8 @@
           export netapp_server=$netapp_server ;
           export netapp_vserver=$netapp_vserver ;
           export networkingplugin=$networkingplugin ;
+          export want_swift=1 ;
+          export cephvolumenumber=1 ;
           export networkingmode=$networkingmode ;
           export commands=\"$commands\" "'
 

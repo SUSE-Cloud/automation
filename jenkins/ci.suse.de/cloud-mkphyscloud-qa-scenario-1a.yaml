@@ -15,7 +15,7 @@
       It will wipe all machines in the selected cloud!
 
     wrappers:
-      - mkphyscloud-qa-build-name-wrapper 
+      - mkphyscloud-qa-build-name-wrapper
     publishers:
       - mkphyscloud-qa-common-publishers
 
@@ -53,14 +53,14 @@
           name: automation_repo
           default: github.com/$repo_owner/automation#$branch
           description: Mandatory, automation repo URL
-      
+
       - string:
           name: networkingplugin
           default: linuxbridge
           description: |
                networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
 
-      - string: 
+      - string:
           name: networkingmode
           default: vlan
           description: networking mode to be used by Neutron. Available options are gre, vlan, vxlan
@@ -222,6 +222,8 @@
           export want_node_aliases=controller=3,compute-kvm=2,storage-swift=2 ;
           export networkingplugin=$networkingplugin ;
           export networkingmode=$networkingmode ;
+          export want_swift=1 ;
+          export cephvolumenumber=1 ;
           export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
 
