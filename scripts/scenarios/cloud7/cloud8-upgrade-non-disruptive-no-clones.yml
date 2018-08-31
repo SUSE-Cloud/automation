@@ -28,7 +28,7 @@ proposals:
       sql_engine: mysql
   deployment:
     elements:
-      database-server:
+      mysql-server:
       - cluster:data
 - barclamp: rabbitmq
   attributes:
