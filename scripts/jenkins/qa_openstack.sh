@@ -161,13 +161,6 @@ $zypper rr dlp || true
 $zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 $zypper --gpg-auto-import-keys -n ref
 
-# deinstall some leftover crap from the cleanvm
-$zypper -n rm --force 'python-cheetah < 2.4'
-
-# deinstall cloud-init and dependencies (but keep cloud-final systemd unit around)
-cp /usr/lib/systemd/system/cloud-final.service /tmp
-$zypper -n rm --force -u cloud-init
-cp /tmp/cloud-final.service /usr/lib/systemd/system/cloud-final.service
 # wickedd needs to be configured properly to avoid overriding
 # the hostname (see <https://bugzilla.opensuse.org/show_bug.cgi?id=974661>).
 sed -i -e "s/DHCLIENT_SET_HOSTNAME=\"yes\"/DHCLIENT_SET_HOSTNAME=\"no\"/" /etc/sysconfig/network/dhcp
@@ -280,14 +273,7 @@ test "$(lvs | wc -l)" -gt 1 || exit 1
 ssh_user="root"
 cirros_base_name="cirros-0.3.4-x86_64"
 
-# since glanceclient Liberty, --is-public is gone and --visibility should be used
-if glance help image-create|grep -q visibility; then
-    GLANCECLIENT_VISIBILITY_PARAMS=" --visibility=public"
-else
-    GLANCECLIENT_VISIBILITY_PARAMS=" --is-public=true"
-fi
-
-GC_IMAGE_CREATE="glance image-create --progress $GLANCECLIENT_VISIBILITY_PARAMS"
+GC_IMAGE_CREATE="glance image-create --progress --visibility=public"
 
 case "$MODE" in
     xen)
@@ -300,7 +286,7 @@ case "$MODE" in
         $GC_IMAGE_CREATE --name="debian-5" --disk-format=ami --container-format=ami --copy-from $imagemirror/debian.5-0.x86.qcow2
     ;;
     *)
-        wget $cirros_base_url/$cirros_base_name-uec.tar.gz
+        wget --timeout=20 $cirros_base_url/$cirros_base_name-uec.tar.gz
         tar xf $cirros_base_name-uec.tar.gz
         RAMDISK_ID=$($GC_IMAGE_CREATE --name="$cirros_base_name-uec-initrd" \
             --disk-format=ari --container-format=ari < $cirros_base_name-initrd | grep ' id ' | awk '{print $4}')
