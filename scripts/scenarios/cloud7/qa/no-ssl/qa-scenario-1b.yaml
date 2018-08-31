@@ -39,6 +39,7 @@ proposals:
 
 - barclamp: database
   attributes:
+    sql_engine: postgresql
     ha:
       storage:
         shared:
