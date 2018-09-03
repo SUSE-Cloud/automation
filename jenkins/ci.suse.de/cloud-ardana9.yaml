@@ -28,3 +28,17 @@
     build_pool: cloud-ardana-ci-slot
     jobs:
         - 'cloud-ardana{version}-job-std-3cp-devel-staging-updates-{arch}'
+
+
+- project:
+    name: cloud-ardana9-gerrit-x86_64
+    disabled: false
+    version: 9
+    arch: x86_64
+    develproject: Devel:Cloud:9:Staging
+    repository: SLE_12_SP4
+    branch: master
+    tempest_run_filter: ci
+    build_pool: cloud-ardana-gerrit-slot
+    jobs:
+        - 'cloud-ardana{version}-job-std-min-gerrit-{arch}'
