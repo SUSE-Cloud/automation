@@ -48,3 +48,4 @@ scenario:
   service_template: full-spread
   network_template: full-spread
   disk_template: full-spread
+  interface_template: standard

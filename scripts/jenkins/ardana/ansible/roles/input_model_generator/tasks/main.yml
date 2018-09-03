@@ -23,7 +23,7 @@
   loop:
     - "service"
     - "network"
-    - "interfaces"
+    - "interface"
     - "disk"
   when: "item ~ '_template' in scenario"
 

@@ -93,7 +93,7 @@ scenario:
   service_template: "{{ 'standard-dac' if clm_model is defined and clm_model == 'integrated' else 'standard' }}"
   network_template: standard
   disk_template: compact
-  interfaces_template: standard
+  interface_template: standard
 
 ```
 
