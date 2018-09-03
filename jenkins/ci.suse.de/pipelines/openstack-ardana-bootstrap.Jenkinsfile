@@ -66,9 +66,7 @@ pipeline {
         expression { reuse_workspace == '' }
       }
       steps {
-        dir("automation-git") {
-          checkout scm
-        }
+        sh 'git clone $git_automation_repo --branch $git_automation_branch automation-git'
       }
     }
 

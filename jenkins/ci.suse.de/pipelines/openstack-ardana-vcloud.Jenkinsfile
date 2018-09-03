@@ -54,9 +54,7 @@ pipeline {
         expression { reuse_workspace == '' }
       }
       steps {
-        dir("automation-git") {
-          checkout scm
-        }
+        sh 'git clone $git_automation_repo --branch $git_automation_branch automation-git'
       }
     }
 
@@ -65,12 +63,7 @@ pipeline {
         expression { git_input_model_repo != '' && scenario == '' }
       }
       steps {
-        dir('input-model-git') {
-          git(
-             url: "${git_input_model_repo}",
-             branch: "${git_input_model_branch}"
-          )
-        }
+        sh 'git clone $git_input_model_repo --branch $git_input_model_branch input-model-git'
         script {
           env.input_model_path = "${WORKSPACE}/input-model-git/${git_input_model_path}/${model}"
         }

@@ -42,9 +42,7 @@ pipeline {
 
     stage('clone automation repo') {
       steps {
-        dir('automation-git') {
-          checkout scm
-        }
+        sh 'git clone $git_automation_repo --branch $git_automation_branch automation-git'
       }
     }
 
