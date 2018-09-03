@@ -15,6 +15,12 @@
 #
 ---
 
+- debug:
+    var: clm
+
+- name: Gather variables for '{{ clm }}'
+  include_vars: "{{ clm }}.yml"
+
 - include_tasks: pre_defcore.yml
   when: tempest_run_filter == 'defcore'
 

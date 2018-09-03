@@ -25,17 +25,17 @@
         mode: 0644
       become: yes
       with_items: "{{ tempest_qe_run_filters }}"
-      when: tempest_run_filter in tempest_qe_run_filters
+      when:
+        - tempest_run_filter in tempest_qe_run_filters
+        - inventory_hostname not in groups['crowbar_nue']
 
-    - name: Run tempest '{{ tempest_run_filter }}'
-      shell: |
-        ansible-playbook -i hosts/verb_hosts tempest-run.yml \
-                     -e run_filter="{{ tempest_run_filter }}"
+    - name: Run tempest
+      shell: "{{ tempest_run_cmd }}"
       args:
-        chdir: "{{ ardana_scratch_path }}"
+        chdir: "{{ tempest_run_path }}"
   rescue:
     - name: Get list of failed tempest tests
-      shell: "grep -B1 -- '------' {{ tempest_results_log }} | awk -F '\n' 'ln ~ /^$/ { ln = \"matched\"; print $1 } $1 ~ /^--$/ { ln = \"\" }'"
+      shell: "grep -B1 -- '------' {{ tempest_run_log }} | awk -F '\n' 'ln ~ /^$/ { ln = \"matched\"; print $1 } $1 ~ /^--$/ { ln = \"\" }'"
       register: tempest_failed_tests
   always:
     - name: Ensure virtualenv with subunit2junit
@@ -57,6 +57,6 @@
       failed_when: false
 
     - name: Process tempest result
-      shell: "awk {{ item }} {{ tempest_results_log }}"
+      shell: "awk {{ item }} {{ tempest_run_log }}"
       with_items: "{{ tempest_results_awk_collect }}"
       register: tempest_results_processed

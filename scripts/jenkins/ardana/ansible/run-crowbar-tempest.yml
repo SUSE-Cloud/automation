@@ -16,16 +16,16 @@
 
 ---
 
-- name: Update ardana
-  hosts: ardana-{{ qe_env }}
-  remote_user: ardana
-  gather_facts: True
+- name: Run ardana tempest and collect results
+  hosts: "{{ qe_env }}"
+  remote_user: root
+  gather_facts: false
   vars:
-    task: "update"
+    task: "tempest"
 
   vars_prompt:
     - name: "qe_env"
-      prompt: "Target envinroment to deploy"
+      prompt: "Target envinroment to run tempest"
       private: no
       when: qe_env not defined
 
@@ -48,14 +48,13 @@
             rc_action: "finished"
             rc_state: "Failed"
           when: rc_notify
-
-        - name: Stop if something failed
-          fail:
-            msg: "{{ task }} failed."
       always:
         - include_role:
             name: jenkins_artifacts
           when: lookup("env", "WORKSPACE")
+
+        - include_role:
+            name: send_to_os_health
 
   post_tasks:
     - include_role:

@@ -1,0 +1,9 @@
+---
+
+tempest_run_cmd: "tempest run \
+  {{ (tempest_run_filter == 'smoke') | ternary('--smoke', '') }} 2>&1 \
+  | tee {{ tempest_run_log }} &&
+  testr last --subunit > {{ tempest_results_subunit }}"
+tempest_run_path: "/var/lib/openstack-tempest-test"
+tempest_run_log: "/var/lib/openstack-tempest-test/tempest-output.log"
+tempest_results_subunit: "/var/lib/openstack-tempest-test/tempest-subunit.log"

@@ -1,0 +1,8 @@
+---
+
+tempest_run_cmd: "ansible-playbook -i hosts/verb_hosts tempest-run.yml \
+                     -e run_filter='{{ tempest_run_filter }}'"
+tempest_run_path: "~/scratch/ansible/next/ardana/ansible"
+tempest_run_log: "/opt/stack/tempest/logs/testr_results_region1.log"
+
+tempest_results_subunit: "/opt/stack/tempest/logs/testrepository_region1.subunit"
