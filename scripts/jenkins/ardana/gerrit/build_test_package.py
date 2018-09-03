@@ -22,22 +22,32 @@ import sh
 
 GERRIT_URL = 'https://gerrit.suse.provo.cloud'
 
+# We use a more complex regex that matches both formats of Depends-On so that
+# we preserve the order in which they are discovered.
 DEPENDS_ON_RE = re.compile(
-    r"^\W*Depends-On: "
+    r"^\W*Depends-On: ("
     r"((http(s)?:\/\/)?gerrit\.suse\.provo\.cloud\/(\/)?(\#\/c\/)?(\d+).*?)"
-    r"\s*$",
+    r"|(I[0-9a-f]{40})"
+    r")\s*$",
     re.MULTILINE | re.IGNORECASE)
 
 
 def find_dependency_headers(message):
     # Search for Depends-On headers
     dependencies = []
+
     for match in DEPENDS_ON_RE.findall(message):
         # Grab out the change-id
-        # NOTE: Because we only pull out the change-id here, if a patchset was
-        #       included in the URL it will be ignored at this point. The check
-        #       later on will be missed and thus no warning is raised.
-        dependencies.append(match[5])
+        if match[6]:
+            # Group 6 is the change-id matcher from the URL
+            # NOTE: Because we only pull out the change-id here, if a patchset
+            #       was included in the URL it will be ignored at this point.
+            #       The check later on will be missed and thus no warning is
+            #       raised.
+            dependencies.append(match[6])
+        elif match[7]:
+            # Group 7 is the gerrit ID in format Ia32...234a (41 chars)
+            dependencies.append(match[7])
     # Reverse the order so that we process the oldest Depends-On first
     dependencies.reverse()
     return dependencies
@@ -71,7 +81,16 @@ class GerritChange:
     Holds the state of a gerrit change
     """
 
-    def __init__(self, change_id):
+    @staticmethod
+    def _query_gerrit(query):
+        query_url = GERRIT_URL + query
+        print("Running query %s" % query_url)
+        response = requests.get(query_url)
+        print("Got response: %s" % response)
+        return json.loads(response.text.replace(")]}'", ''))
+
+    def __init__(self, change_id, try_branches=['master']):
+        print("Processing given change id: %s" % change_id)
         if change_id.isdigit():
             self.id = change_id
             self._get_numeric_change()
@@ -80,28 +99,56 @@ class GerritChange:
                   " Latest patchset will be used." % change_id)
             self.id = change_id.split(',')[0]
             self._get_numeric_change()
-        elif change_id.startswith('I'):
-            # TODO:
-            # Consider if we want to handle applying changes in the gerrit
-            # change-id format. If we do, we need to handle the potential for
-            # multiple changes to match the given ID across multiple projects
-            # and branches.
-            # For now, require explicit change-id's in numeric format that
-            # uniquely identifies only one change.
-            raise Exception(
-                "This script only supports numeric change numbers")
+        elif change_id.startswith('I') and len(change_id) == 41:
+            self._get_change_id(change_id, try_branches)
         else:
             raise Exception("Unknown change id format (%s)" % change_id)
 
-    def _get_numeric_change(self):
-        query_url = '%(gerrit)s/changes/%(change_id)s/' % {
-            'gerrit': GERRIT_URL, 'change_id': self.id}
-        query_url += '?o=CURRENT_REVISION&o=CURRENT_COMMIT'
-        print("Retrieving gerrit change %s" % self.id)
-        response = requests.get(query_url)
-        print("Got response: %s" % response)
+        # Take the known self._change_object and load the attributes we want
+        self._load_change_object()
 
-        self._change_object = json.loads(response.text.replace(")]}'", ''))
+    def _get_numeric_change(self):
+        """
+        Get a change object from a deterministic numeric change number
+        """
+        query = '/changes/%(id)s/' % {'id': self.id}
+        query += '?o=CURRENT_REVISION&o=CURRENT_COMMIT'
+        response_json = self._query_gerrit(query)
+
+        self._change_object = response_json
+
+    def _get_change_id(self, change_id, try_branches):
+        """
+        Get a change object from an ambiguous change ID by matching the first
+        given try_branches
+        """
+        query = '/changes/?q=%(change_id)s' % {'change_id': change_id}
+        query += '&o=CURRENT_REVISION&o=CURRENT_COMMIT'
+        response_json = self._query_gerrit(query)
+
+        matches = []
+        for branch in try_branches:
+            for change_obj in response_json:
+                if branch == change_obj['branch']:
+                    matches.append(change_obj)
+            if len(matches) > 0:
+                # We have matched a preferable branch, we don't need to
+                # coninue checking
+                break
+
+        if len(matches) > 1:
+            raise Exception(
+                "Unable to get a unique change for %s given the branches seen "
+                "so far. This can also happen if the same change-id is used "
+                "in multiple gerrit projects." % change_id
+            )
+        elif len(matches) != 1:
+            raise Exception("Unable to find a change for %s" % change_id)
+
+        self.id = str(matches[0]['_number'])
+        self._change_object = matches[0]
+
+    def _load_change_object(self):
         self.change_id = self._change_object['change_id']
         self.gerrit_project = self._change_object['project'].split('/')[1]
         self.status = self._change_object['status']
@@ -386,12 +433,17 @@ def build_test_packages(change_ids, obs_linked_project, home_project,
     # changes the change_ids list may expand with dependencies. These are also
     # processed. If a change has already been processed we skip it to avoid
     # circular dependencies.
+    try_branches = ['master']
     for id in change_ids:
         if id in processed_changes:
             # Duplicate dependency, skipping..
             continue
-        c = GerritChange(id)
-        processed_changes.append(c.change_id)
+        c = GerritChange(id, try_branches)
+        if c.target not in try_branches:
+            # Save the branch as a hint to disambiguate cross-repo
+            # dependencies.
+            try_branches.insert(0, c.target)
+        processed_changes.append(c.id)
 
         # Create the package if it doesn't exist already
         if c.gerrit_project not in packages:
