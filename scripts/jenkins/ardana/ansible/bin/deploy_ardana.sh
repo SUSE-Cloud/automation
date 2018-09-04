@@ -11,7 +11,7 @@ verification_temp_dir=$(ssh $sshargs root@${DEPLOYER_IP} \
 sed -i "s/^verification_temp_dir.*/verification_temp_dir: '${verification_temp_dir//\//\\/}'/g" vars/main.yml
 
 source /opt/ansible/bin/activate
-ansible-playbook -v -e clm_env=$clm_env \
+ansible-playbook -v -e ardana_env=$ardana_env \
                     pre-deploy-checks.yml
 
 # Run site.yml outside ansible for output streaming

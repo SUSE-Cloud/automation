@@ -33,14 +33,14 @@
     parameters:
 
       - string:
-          name: clm_env
+          name: ardana_env
           default: ''
           description: >-
             The virtual or hardware environment identifier. This field should either
             be set to one of the values associated with the known hardware environments
             (e.g. qe101), or to a value that will identify the created virtual environment.
 
-            WARNING: if a virtual environment associated with the supplied clm_env already
+            WARNING: if a virtual environment associated with the supplied ardana_env already
             exists, it will be replaced.
 
       - choice:

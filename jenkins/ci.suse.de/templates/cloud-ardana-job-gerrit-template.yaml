@@ -3,7 +3,7 @@
     properties:
       - lockable-resources:
           label: "{build_pool}"
-          var-name: "clm_env"
+          var-name: "ardana_env"
           number: 1
     concurrent: true
     node: cloud-trigger
@@ -83,7 +83,7 @@
           block: true
           current-parameters: true
           predefined-parameters: |
-            clm_env=${{clm_env}}
+            ardana_env=${{ardana_env}}
             cleanup=on success
             gerrit_change_ids=${{GERRIT_CHANGE_NUMBER}}
             develproject={develproject}

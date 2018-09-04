@@ -32,7 +32,7 @@ parameters](https://ci.nue.suse.com/job/openstack-ardana/build). The
 available parameters should be self-descriptive. Here are some best
 practices:
 
-*   Use your Rocket/irc nickname as ```clm_env```.
+*   Use your Rocket/irc nickname as ```ardana_env```.
 *   To test a different than the default model, adjust the
     ```model``` parameter in the deployment.
 *   To test a custom automation repo, push to your fork and adjust

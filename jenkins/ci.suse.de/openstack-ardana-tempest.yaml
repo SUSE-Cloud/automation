@@ -33,7 +33,7 @@
     parameters:
 
       - string:
-          name: clm_env
+          name: ardana_env
           default: ''
           description: >-
             The virtual or hardware environment identifier. This field should either
