@@ -30,6 +30,7 @@
     tempestoptions: -s -t
     label: openstack-mkcloud-ha-x86_64
     storage_method_ha: ceph
+    want_all_ssl: 0
     jobs:
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
