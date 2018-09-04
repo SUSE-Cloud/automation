@@ -1,6 +1,6 @@
 ---
 - name: Setup repositories on the deployer node
-  hosts: ardana-virt
+  hosts: ardana-{{ clm_env }}
   remote_user: root
   gather_facts: False
 
@@ -50,6 +50,11 @@
     when: not item.stat.exists
     with_items:
       - "{{ srv_dir_stats.results }}"
+
+  - name: Grow 1st partition filesystem
+    shell: |
+      /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
+    ignore_errors: True
 
   # NOTE: we rsync only once, to avoid bringing in new cloudsource media contents
   # during subsequent runs
@@ -117,17 +122,8 @@
       url: "{{ cloudsource_url }}/media.1/build"
       dest: /etc/ardana/media-build-version
 
-  - name: Add build information to /etc/motd
-    shell: |
-      echo "Build job:  {{ build_url }}" >>/etc/motd
-
   - name: Add cloudsource information to /etc/motd
     shell: |
       media_build_version=$(cat /etc/ardana/media-build-version)
       echo "Built from: {{ cloudsource_url }}" >>/etc/motd
       echo "Media build version: $media_build_version" >>/etc/motd
-
-  - name: Add repos information to /etc/motd
-    shell: |
-      echo "Configured repositories: {{ repository_list|join(', ') }}" >>/etc/motd
-    when: repositories != ''

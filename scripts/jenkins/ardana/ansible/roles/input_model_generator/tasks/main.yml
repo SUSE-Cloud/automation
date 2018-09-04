@@ -28,7 +28,9 @@
   when: "item ~ '_template' in scenario"
 
 - include_tasks: get_qe_bm_info.yml
-  when: qe_env is defined
+  when:
+    - qe_env is defined
+    - "'ardana-' ~ qe_env in groups['deployer_all']"
 
 - name: Create directories
   file:

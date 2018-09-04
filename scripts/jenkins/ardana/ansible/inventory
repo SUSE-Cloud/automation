@@ -25,7 +25,6 @@ ardana-scale    ansible_host=10.84.48.51
 ardana-qa4      ansible_host=10.162.66.12
 
 [deployer_virt]
-ardana-virt
 
 [ses_prv]
 ses-prv       ansible_host=10.84.88.251

@@ -1,7 +1,7 @@
 - job:
-    name: cloud-ardana-testbuild-gerrit
-    node: openstack-trackupstream
+    name: openstack-ardana-testbuild-gerrit
     concurrent: true
+    project-type: pipeline
     description: |
       <!-- Managed by Jenkins Job Builder -->
 
@@ -61,22 +61,43 @@
          default: master
          description: The git automation branch
 
-    wrappers:
-    - timestamps:
-    - build-name:
-         name: '#${BUILD_NUMBER}: ${ENV,var="gerrit_change_id"}'
-    - timeout:
-        timeout: 20
-        type: no-activity
-        abort: true
-        write-description: "Job aborted due to 20 minutes of inactivity."
+     - string:
+         name: jenkinsfile_path
+         default: jenkins/ci.suse.de/pipelines/openstack-ardana-testbuild-gerrit.Jenkinsfile
+         description: >-
+           The location of the Jenkinsfile defining the pipeline
 
-    builders:
-      - shell: |
-          set -eux
-          rm -rf ./automation-git
-          git clone $git_automation_repo --branch $git_automation_branch automation-git
-          python -u automation-git/scripts/jenkins/ardana/gerrit/build_test_package.py
+     - string:
+         name: reuse_node
+         default: ''
+         description: >-
+           The Jenkins agent where this job must run. Used by upstream jobs to
+           force a job to reuse the same node.
+
+     - string:
+         name: reuse_workspace
+         default: ''
+         description: >-
+           The Jenkins workspace that this job must reuse. Used by upstream jobs to
+           force a job to use the same workspace.
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+      script-path: ${jenkinsfile_path}
+      lightweight-checkout: false
+
+    wrappers:
+      - timestamps
+      - timeout:
+          timeout: 20
+          type: no-activity
+          abort: true
+          write-description: "Job aborted due to 20 minutes of inactivity."
 
     publishers:
       - workspace-cleanup:
@@ -84,9 +105,3 @@
             - failure: false
             - aborted: false
             - unstable: false
-      - archive:
-          artifacts: output-vars.yml
-          allow-empty: false
-          only-if-success: true
-          fingerprint: false
-          default-excludes: true
