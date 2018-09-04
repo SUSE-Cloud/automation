@@ -1,5 +1,6 @@
 jenkins/*.config.xml
 jenkins/*.cred
+scripts/jenkins/jenkins-job-triggerc
 scripts/jenkins/*.config.xml
 scripts/jenkins/*.cred
 

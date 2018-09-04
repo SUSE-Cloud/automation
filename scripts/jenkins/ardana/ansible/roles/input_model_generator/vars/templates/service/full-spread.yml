@@ -56,9 +56,9 @@ service_groups:
     member_count: '{{ lmm_nodes|default(3) }}'
     service_components:
       - LMM
-  - name: dmbq
+  - name: dbmq
     type: cluster
-    prefix: dmbq
+    prefix: dbmq
     heat_flavor_id: cloud-ardana-job-controller
     member_count: '{{ dbmq_nodes|default(3) }}'
     service_components:

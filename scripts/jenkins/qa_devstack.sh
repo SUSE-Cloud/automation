@@ -4,7 +4,15 @@
 # Setup devstack and run Tempest
 ##########################################################################
 
-DEVSTACK_DIR="/tmp/devstack"
+DEVSTACK_DIR="/opt/stack/devstack"
+
+
+# if this variable is set to non-empty, the clone of devstack git
+# will be set up with this gerrit review id being merged
+
+# This allows testing with an unmerged change included. An
+# empty variable disables that behavior
+PENDING_REVIEW="576798"
 
 set -ex
 
@@ -40,12 +48,15 @@ function h_setup_base_repos {
         fi
     fi
     USE_PYTHON3=False
+    PYTHON3_VERSION=3.4
 
     if [[ $DIST_NAME == "openSUSE_Leap" ]]; then
         $zypper ar -f http://download.opensuse.org/distribution/leap/${DIST_VERSION}/repo/oss/ Base || true
         $zypper ar -f http://download.opensuse.org/update/leap/${DIST_VERSION}/oss/openSUSE:Leap:${DIST_VERSION}:Update.repo || true
-        if [[ $DIST_VERSION == "15.0" ]]; then
+        # Python 3.x support is quite broken atm
+        if false && [[ $DIST_VERSION == "15.0" ]]; then
             USE_PYTHON3=True
+            PYTHON3_VERSION=3.6
         fi
     fi
 
@@ -89,13 +100,31 @@ function h_setup_extra_disk {
 }
 
 function h_setup_devstack {
-    $zypper in git-core which ca-certificates-mozilla net-tools
-    git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
+    $zypper in git-core which ca-certificates-mozilla net-tools git-review
+    $zypper in 'group(nogroup)'
 
+    git config --global user.email root@cleanvm.ci.opensuse.org
+    git config --global user.name "Devstack User"
+
+    git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
     hostname -f || hostname cleanvm.ci.opensuse.org
+
+    if [[ "$PENDING_REVIEW" ]]; then
+        pushd $DEVSTACK_DIR
+        changerev="refs/changes/${PENDING_REVIEW: -2}/${PENDING_REVIEW}"
+        # Find latest rev
+        changerev=$(git ls-remote -q --refs origin "$changerev/*" | sort -V \
+            egrep -o "$changerev.*" | tail -n 1)
+        git pull --no-edit origin $changerev
+        popd
+    fi
 
     # setup non-root user (username is "stack")
     (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)
+
+    SWIFT_SERVICES="s-account,s-container,s-object,s-proxy,"
+    # Swift still broken for python 3.x
+    [ "$USE_PYTHON3" = "True" ] && SWIFT_SERVICES=""
     # configure devstack
     cat > $DEVSTACK_DIR/local.conf <<EOF
 [[local|localrc]]
@@ -116,11 +145,9 @@ API_RATE_LIMIT=False
 TEMPEST_ALLOW_TENANT_ISOLATION=True
 
 USE_PYTHON3=$USE_PYTHON3
-ENABLED_SERVICES=c-api,c-bak,c-sch,c-vol,ceilometer-acentral,ceilometer-acompute,ceilometer-alarm-evaluator,ceilometer-alarm-notifier,ceilometer-anotification,ceilometer-api,ceilometer-collector,cinder,dstat,etcd3,g-api,g-reg,horizon,key,mysql,n-api,n-api-meta,n-cauth,n-cond,n-cpu,n-novnc,n-obj,n-sch,peakmem_tracker,placement-api,q-agt,q-dhcp,q-l3,q-meta,q-metering,q-svc,rabbit,s-account,s-container,s-object,s-proxy,tempest,tls-proxy
+PYTHON3_VERSION=$PYTHON3_VERSION
 
-# use postgres instead of mysql as database
-disable_service mysql
-enable_service postgresql
+ENABLED_SERVICES=c-api,c-bak,c-sch,c-vol,ceilometer-acentral,ceilometer-acompute,ceilometer-alarm-evaluator,ceilometer-alarm-notifier,ceilometer-anotification,ceilometer-api,ceilometer-collector,cinder,dstat,etcd3,g-api,g-reg,horizon,key,mysql,n-api,n-api-meta,n-cauth,n-cond,n-cpu,n-novnc,n-obj,n-sch,peakmem_tracker,placement-api,q-agt,q-dhcp,q-l3,q-meta,q-metering,q-svc,rabbit,$SWIFT_SERVICES,tempest,tls-proxy
 
 # vpn disabled for now. openswan required by devstack but not available in openSUSE
 # enable_service q-vpn

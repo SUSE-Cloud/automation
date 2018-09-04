@@ -28,6 +28,12 @@ interface_models:
   - name: CONTROLLER
     service_groups:
       - controller
+      - core
+      - lmm
+      - dbmq
+      - neutron
+      - swpac
+      - swobj
     network_interfaces:
       - network_groups:
           - ARDANA
@@ -50,8 +56,8 @@ interface_models:
 
   - name: COMPUTE
     service_groups:
-      - sles_compute
-      - rhel_compute
+      - sles-compute
+      - rhel-compute
     network_interfaces:
       - network_groups:
           - MANAGEMENT

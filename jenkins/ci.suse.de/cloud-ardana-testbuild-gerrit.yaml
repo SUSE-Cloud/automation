@@ -84,3 +84,9 @@
             - failure: false
             - aborted: false
             - unstable: false
+      - archive:
+          artifacts: output-vars.yml
+          allow-empty: false
+          only-if-success: true
+          fingerprint: false
+          default-excludes: true

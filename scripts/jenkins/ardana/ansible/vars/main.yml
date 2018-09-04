@@ -1,5 +1,7 @@
 ---
 
+verification_temp_dir: "/tmp/ardana-job-rpm-verification"
+
 pre_deploy_unowned_files: "{{ verification_temp_dir }}/rpm-qf-pre.out"
 pre_deploy_rpm_verification: "{{ verification_temp_dir }}/rpm-verify-pre.out"
 

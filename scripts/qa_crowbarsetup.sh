@@ -2236,7 +2236,18 @@ function custom_configuration
                         proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
                     fi
                 fi
-                proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
+                # For SOC7 we introduced transitional role called mysql-server that's gonna be used during the upgrade
+                # Users deploying SOC7 with MariaDB must use this one and not database-server
+                if iscloudver 7 && [[ "$want_database_sql_engine" == "mysql" ]] && \
+                    [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
+                    proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "['cluster:$clusternamedata']"
+                else
+                    proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
+                    if iscloudver 7 && [[ "$want_database_sql_engine" != "mysql" ]] ; then
+                        # explicitely set sql_engine to override the default
+                        proposal_set_value database default "['attributes']['database']['sql_engine']" "'postgresql'"
+                    fi
+                fi
             fi
             if iscloudver 7plus && [[ $want_database_sql_engine ]] ; then
                 proposal_set_value database default "['attributes']['database']['sql_engine']" "'$want_database_sql_engine'"
@@ -3637,7 +3648,7 @@ function oncontroller_manila_generic_driver_setup()
         manila_tenant_vm_ip=`oncontroller_manila_service_instance_get_floating_ip`
     else
         fixed_net_id=`neutron net-show fixed -f value -c id`
-        timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
+        timeout 10m nova --insecure boot --poll --flavor 100 --image manila-service-image \
             --security-groups $sec_group,default \
             --nic net-id=$fixed_net_id manila-service
 
@@ -3936,7 +3947,7 @@ function oncontroller_testsetup
         nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
     fi
 
-    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
+    timeout 10m nova --insecure boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
@@ -3955,7 +3966,7 @@ function oncontroller_testsetup
 
     local ssh_target="$ssh_user@$vmip"
 
-    wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
+    wait_for 60 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
 
     if ! ssh $ssh_target curl $test_internet_url ; then
         complain 95 could not reach internet

@@ -1,0 +1,158 @@
+---
+proposals:
+- barclamp: pacemaker
+  name: data
+  attributes:
+    stonith:
+      mode: libvirt
+      per_node:
+        nodes:
+          @@data1@@:
+            params: ''
+          @@data2@@:
+            params: ''
+          @@data3@@:
+            params: ''
+      libvirt:
+        hypervisor_ip: ##hypervisor_ip##
+    drbd:
+    clone_stateless_services: false
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@data1@@"
+      - "@@data2@@"
+      - "@@data3@@"
+- barclamp: database
+  attributes:
+      sql_engine: mysql
+  deployment:
+    elements:
+      mysql-server:
+      - cluster:data
+- barclamp: rabbitmq
+  attributes:
+    cluster: true
+    vhost: "/nova"
+    trove:
+      vhost: "/trove"
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:data
+- barclamp: keystone
+  attributes:
+    database_instance: default
+    rabbitmq_instance: default
+    db:
+    service:
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:data
+- barclamp: swift
+  attributes:
+    dispersion:
+    container_sync:
+      key: oRt2CFEGZfTA
+      key2: f3Ve8olN6E5s
+    cluster_hash: '468072042'
+    replicas: 2
+    keystone_instance: default
+  deployment:
+    elements:
+      swift-dispersion:
+      - "@@data1@@"
+      swift-proxy:
+      - cluster:data
+      swift-ring-compute:
+      - "@@data1@@"
+      swift-storage:
+      - "@@data3@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+- barclamp: glance
+  attributes:
+    db:
+    default_store: swift
+    vsphere:
+      user: admin
+      password: crowbar
+  deployment:
+    elements:
+      glance-server:
+      - cluster:data
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: nfs
+      backend_name: nfs
+      nfs:
+        nfs_shares: nfsserver:/srv/nfs/cinder -o rw,async,nofail
+    db:
+      password: idRll2gJPodv
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:data
+      cinder-volume:
+      - cluster:data
+- barclamp: neutron
+  attributes:
+    db:
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:data
+      neutron-network:
+      - cluster:data
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    compute_remotefs_sshkey: |
+      -----BEGIN OPENSSH PRIVATE KEY-----
+      b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+      QyNTUxOQAAACDzIiadCas3Xz35IPa0Yd530bZtaAMGUdILUWvt/SIVdwAAAKhR3B23Udwd
+      twAAAAtzc2gtZWQyNTUxOQAAACDzIiadCas3Xz35IPa0Yd530bZtaAMGUdILUWvt/SIVdw
+      AAAEDC9UMOMLsMM+G/rAowjG4aLjXihBxwybstV+RQDzcCQ/MiJp0JqzdfPfkg9rRh3nfR
+      tm1oAwZR0gtRa+39IhV3AAAAIWNyb3diYXJAY3Jvd2Jhci52bzYuY2xvdWQuc3VzZS5kZQ
+      ECAwQ=
+      -----END OPENSSH PRIVATE KEY-----
+    ec2-api:
+      db:
+        password: XrfoQ5zEqM2l
+    db:
+      password: O62F1wNospCz
+    api_db:
+      password: 0S3BvWQEmtcw
+    placement_db:
+      password: 2WvitbmD1n6P
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:data
+      nova-compute-kvm:
+      - "@@compute1@@"
+      - "@@compute2@@"
+      nova-compute-qemu: []
+      nova-compute-xen: []
+- barclamp: horizon
+  attributes:
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:data
+- barclamp: heat
+  attributes:
+    db:
+  deployment:
+    elements:
+      heat-server:
+      - cluster:data
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - "@@data1@@"

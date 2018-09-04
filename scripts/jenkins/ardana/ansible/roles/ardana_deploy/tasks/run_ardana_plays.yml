@@ -17,7 +17,7 @@
 
 - name: Copy input model
   copy:
-    src: "{{ ardana_input_model_path }}/"
+    src: "{{ input_model_path }}/"
     dest: "~/openstack/my_cloud/definition"
   register: input_model
 

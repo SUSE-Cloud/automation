@@ -38,12 +38,14 @@ projects:
       - openstack-rpm-packaging-sles12-Ocata
       - openstack-rpm-packaging-sles12-Pike
       - openstack-rpm-packaging-sles12-Queens
+      - openstack-rpm-packaging-sles12-Rocky
     post-rpm-packaging:
       - openstack-rpm-packaging-update-Master
       - openstack-rpm-packaging-update-Newton
       - openstack-rpm-packaging-update-Ocata
       - openstack-rpm-packaging-update-Pike
       - openstack-rpm-packaging-update-Queens
+      - openstack-rpm-packaging-update-Rocky
 
 jobs:
   - name: openstack-rpm-packaging-sles12-Master
@@ -71,6 +73,11 @@ jobs:
     failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Queens-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Queens-{build.build_set.commit}
 
+  - name: openstack-rpm-packaging-sles12-Rocky
+    branch: stable/rocky
+    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Rocky-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Rocky-{build.build_set.commit}
+
   - name: openstack-rpm-packaging-update-Master
     branch: master
 
@@ -88,3 +95,6 @@ jobs:
 
   - name: openstack-rpm-packaging-update-Queens
     branch: stable/queens
+
+  - name: openstack-rpm-packaging-update-Rocky
+    branch: stable/rocky

@@ -17,15 +17,11 @@
 
 clouddata_server: provo-clouddata.cloud.suse.de
 download_suse_server: download.suse.de
-cloudsource: stagingcloud8
 repositories: SLES-Pool,SLES-Updates
 arch: x86_64
 repos_url: "http://{{ clouddata_server }}/repos/{{ arch }}"
 
 test_repository_url: ''
-
-# The cloud release is encoded in the cloudsource value
-cloud_release: "cloud{{ cloudsource[-1] }}"
 
 # Media/repositories mapped by the cloudsource value
 cloudsource_repos:

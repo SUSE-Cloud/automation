@@ -15,8 +15,16 @@
 #
 ---
 
+cloudsource: stagingcloud8
+
+# The cloud release is encoded in the cloudsource value
+cloud_release: "cloud{{ cloudsource[-1] }}"
+
 ntp_servers:
   - ntp.suse.de
   - ntp0.suse.de
   - ntp1.suse.de
   - ntp3.suse.de
+
+dns_servers:
+  - 147.2.2.2 # nsnwb.microfocus.com

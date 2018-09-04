@@ -31,11 +31,8 @@ scenario:
   ses_enabled: "{{ ses_enabled | default(False) }}"
   use_cinder_volume_disk: True
   use_glance_cache_disk: False
-  ntp_servers: "{{ ntp_servers }}"
-  nameservers:
-    - 147.2.2.2
 
   service_template: "{{ 'standard-dac' if clm_model == 'integrated' else 'standard' }}"
   network_template: compact
-  interfaces_template: compact-bond
+  interface_template: compact-bond
   disk_template: compact

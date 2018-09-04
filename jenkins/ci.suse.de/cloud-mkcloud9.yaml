@@ -25,7 +25,6 @@
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-monasca-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
-        - 'cloud-mkcloud{version}-job-ssl-{arch}'
 - project:
     name: cloud-mkcloud9-ha-x86_64
     disabled: false
@@ -38,6 +37,7 @@
     label: openstack-mkcloud-ha-x86_64
     storage_method_ha: swift
     database_engine: mysql
+    want_all_ssl: 1
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'
@@ -80,4 +80,3 @@
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
-        - 'cloud-mkcloud{version}-job-ssl-{arch}'
