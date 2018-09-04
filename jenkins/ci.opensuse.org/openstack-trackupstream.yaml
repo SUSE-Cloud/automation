@@ -17,6 +17,7 @@
             - Cloud:OpenStack:Ocata:Staging
             - Cloud:OpenStack:Pike:Staging
             - Cloud:OpenStack:Queens:Staging
+            - Cloud:OpenStack:Rocky:Staging
             - Cloud:OpenStack:Master
       - axis:
           type: user-defined
@@ -114,7 +115,7 @@
               "python-vmware-nsxlib",
               "python-vmware-nsx",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
               "python-heat-cfntools",
               "openstack-rally",
@@ -127,7 +128,7 @@
               "openstack-horizon-plugin-neutron-vpnaas-ui",
               "openstack-neutron-vsphere",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Queens:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Rocky:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-murano-ui",
               "openstack-gnocchi",

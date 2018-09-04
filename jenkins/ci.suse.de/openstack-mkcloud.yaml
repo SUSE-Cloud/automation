@@ -417,7 +417,7 @@
 
     builders:
       - shell: |
-          set -x
+          set -ex
 
           export automationrepo=~/github.com/SUSE-Cloud/automation
 
@@ -430,7 +430,7 @@
           ${automationrepo}/scripts/jenkins/update_automation
 
           # run the builder script in the automation repo
-          ${automationrepo}/scripts/jenkins/mkcloud/openstack-mkcloud.builder.sh
+          exec ${automationrepo}/scripts/jenkins/mkcloud/openstack-mkcloud.builder.sh
 
     publishers:
       - logparser:

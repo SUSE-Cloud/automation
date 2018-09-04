@@ -901,11 +901,11 @@ function onadmin_set_source_variables
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
         ;;
-        develcloud9)
-            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9/images/iso"
-            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Staging/images/iso"
+        rockycloud9)
+            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Rocky/images/iso"
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Rocky/images/iso"
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel-rocky"
         ;;
         susecloud9)
             CLOUDISOURL="$susedownload/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/"
@@ -4125,8 +4125,13 @@ function install_suse_ca
     gpg --export -a 0xFEAB502539D846DB2C0961CA70AF9E8139DB7C82 > build.suse.de.key.pgp
     safely rpm --import build.suse.de.key.pgp
 
-    onadmin_set_source_variables # for $slesdist
-    $zypper ar --refresh http://$susedownload/ibs/SUSE:/CA/$slesdist/SUSE:CA.repo
+    onadmin_set_source_variables # for $slesdista
+    local caurl=http://$susedownload/ibs/SUSE:/CA/$slesdist/SUSE:CA.repo
+    # 2018-09-01: SP4 repo not yet enabled, try SP3 repo for now
+    if ! curl -s -f $caurl > /dev/null; then
+        caurl=${caurl/SLE_12_SP4/SLE_12_SP3}
+    fi
+    $zypper ar --refresh $caurl
     safely $zypper in ca-certificates-suse
 }
 
