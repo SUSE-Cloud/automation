@@ -15,7 +15,7 @@ pipeline {
   agent {
     node {
       label reuse_node ? reuse_node : "cloud-ardana-ci"
-      customWorkspace clm_env ? "${JOB_NAME}-${clm_env}" : "${JOB_NAME}-${BUILD_NUMBER}"
+      customWorkspace ardana_env ? "${JOB_NAME}-${ardana_env}" : "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
 
@@ -38,11 +38,11 @@ pipeline {
         '''
 
         script {
-          if ( clm_env == '') {
-            error("Empty 'clm_env' parameter value.")
+          if ( ardana_env == '') {
+            error("Empty 'ardana_env' parameter value.")
           }
-          currentBuild.displayName = "#${BUILD_NUMBER} ${clm_env}"
-          env.heat_stack_name="openstack-ardana-$clm_env"
+          currentBuild.displayName = "#${BUILD_NUMBER} ${ardana_env}"
+          env.heat_stack_name="openstack-ardana-$ardana_env"
           env.input_model_path = "${WORKSPACE}/input-model"
           env.heat_template_file = "${WORKSPACE}/heat-ardana-${model}.yaml"
         }
@@ -82,7 +82,7 @@ pipeline {
           cd automation-git/scripts/jenkins/ardana/ansible
           source /opt/ansible/bin/activate
           ansible-playbook -v \
-                           -e qe_env=$clm_env \
+                           -e qe_env=$ardana_env \
                            -e cloud_release="${cloud_release}" \
                            -e scenario_name="${scenario}" \
                            -e input_model_dir="${input_model_path}" \
@@ -134,7 +134,7 @@ pipeline {
             script: '''
               cd automation-git/scripts/jenkins/ardana/ansible
               source /opt/ansible/bin/activate
-              ansible -o localhost -a "echo {{ hostvars['ardana-$clm_env'].ansible_host }}" | cut -d' ' -f 8
+              ansible -o localhost -a "echo {{ hostvars['ardana-$ardana_env'].ansible_host }}" | cut -d' ' -f 8
             ''',
             returnStdout: true
           ).trim()
@@ -150,7 +150,7 @@ pipeline {
           sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 $sshargs root@${DEPLOYER_IP}
           cd automation-git/scripts/jenkins/ardana/ansible
           source /opt/ansible/bin/activate
-          ansible-playbook -v -e clm_env=$clm_env \
+          ansible-playbook -v -e ardana_env=$ardana_env \
                                ssh-keys.yml
         '''
       }

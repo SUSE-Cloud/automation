@@ -1,6 +1,6 @@
 ---
 - name: Setup SSH keys
-  hosts: ardana-{{ clm_env }}
+  hosts: ardana-{{ ardana_env }}
   remote_user: root
   gather_facts: False
 

@@ -11,7 +11,7 @@ pipeline {
   agent {
     node {
       label 'cloud-ardana-ci'
-      customWorkspace clm_env ? "${JOB_NAME}-${clm_env}" : "${JOB_NAME}-${BUILD_NUMBER}"
+      customWorkspace ardana_env ? "${JOB_NAME}-${ardana_env}" : "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
 
@@ -22,11 +22,11 @@ pipeline {
 
         script {
           env.cloud_type = "virtual"
-          if ( clm_env == '') {
-            error("Empty 'clm_env' parameter value.")
+          if ( ardana_env == '') {
+            error("Empty 'ardana_env' parameter value.")
           }
-          currentBuild.displayName = "#${BUILD_NUMBER} ${clm_env}"
-          if ( clm_env.startsWith("qe") || clm_env.startsWith("qa") ) {
+          currentBuild.displayName = "#${BUILD_NUMBER} ${ardana_env}"
+          if ( ardana_env.startsWith("qe") || ardana_env.startsWith("qa") ) {
             env.cloud_type = "physical"
           }
           env.cloud_release = "cloud"+cloudsource[-1]
@@ -81,12 +81,12 @@ pipeline {
               cd automation-git/scripts/jenkins/ardana/ansible
               source /opt/ansible/bin/activate
               ansible-playbook -v \
-                               -e qe_env=$clm_env \
+                               -e qe_env=$ardana_env \
                                -e rc_notify=$rc_notify \
                                rebuild-deployer-vm.yml
 
               ansible-playbook -v \
-                               -e clm_env=$clm_env \
+                               -e ardana_env=$ardana_env \
                                ssh-keys.yml
             '''
           }
@@ -114,7 +114,7 @@ pipeline {
               cd automation-git/scripts/jenkins/ardana/ansible
               source /opt/ansible/bin/activate
               ansible-playbook -v \
-                               -e qe_env=$clm_env \
+                               -e qe_env=$ardana_env \
                                -e cloud_source="${cloud_source}" \
                                -e cloud_release="${cloud_release}" \
                                -e scenario_name="${scenario}" \
@@ -138,7 +138,7 @@ pipeline {
           steps {
             script {
               def slaveJob = build job: 'openstack-ardana-vcloud', parameters: [
-                string(name: 'clm_env', value: "${clm_env}"),
+                string(name: 'ardana_env', value: "${ardana_env}"),
                 string(name: 'cloud_release', value: "${cloud_release}"),
                 string(name: 'git_automation_repo', value: "${git_automation_repo}"),
                 string(name: 'git_automation_branch', value: "${git_automation_branch}"),
@@ -171,7 +171,7 @@ pipeline {
       steps {
         script {
           def slaveJob = build job: 'openstack-ardana-bootstrap', parameters: [
-            string(name: 'clm_env', value: "${clm_env}"),
+            string(name: 'ardana_env', value: "${ardana_env}"),
             string(name: 'git_automation_repo', value: "${git_automation_repo}"),
             string(name: 'git_automation_branch', value: "${git_automation_branch}"),
             string(name: 'cloudsource', value: "${cloudsource}"),
@@ -201,7 +201,7 @@ pipeline {
               cd automation-git/scripts/jenkins/ardana/ansible
               source /opt/ansible/bin/activate
               ansible-playbook -v \
-                               -e clm_env=$clm_env \
+                               -e ardana_env=$ardana_env \
                                -e build_url=$BUILD_URL \
                                -e cloudsource="${cloudsource}" \
                                init.yml
@@ -229,7 +229,7 @@ pipeline {
               cd automation-git/scripts/jenkins/ardana/ansible
               source /opt/ansible/bin/activate
               ansible-playbook -v \
-                               -e qe_env=$clm_env \
+                               -e qe_env=$ardana_env \
                                -e cloud_source=$cloud_source \
                                -e cloud_brand=$cloud_brand \
                                -e rc_notify=$rc_notify \
@@ -261,7 +261,7 @@ pipeline {
           steps {
             script {
               def slaveJob = build job: 'openstack-ardana-tempest', parameters: [
-                string(name: 'clm_env', value: "${clm_env}"),
+                string(name: 'ardana_env', value: "${ardana_env}"),
                 string(name: 'git_automation_repo', value: "${git_automation_repo}"),
                 string(name: 'git_automation_branch', value: "${git_automation_branch}"),
                 string(name: 'tempest_run_filter', value: "${tempest_run_filter}"),
@@ -282,7 +282,7 @@ pipeline {
               source /opt/ansible/bin/activate
               # Run post-deploy checks
               ansible-playbook -v \
-                               -e clm_env=$clm_env \
+                               -e ardana_env=$ardana_env \
                                post-deploy-checks.yml
             '''
           }
@@ -299,7 +299,7 @@ pipeline {
           cd automation-git/scripts/jenkins/ardana/ansible
           source /opt/ansible/bin/activate
           ansible-playbook -v \
-                           -e clm_env=$clm_env \
+                           -e ardana_env=$ardana_env \
                            deploy-caasp.yml
         '''
       }
