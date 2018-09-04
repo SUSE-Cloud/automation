@@ -122,22 +122,64 @@ function h_setup_devstack {
     # setup non-root user (username is "stack")
     (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)
 
-    SWIFT_SERVICES="s-account,s-container,s-object,s-proxy,"
+    SWIFT_SERVICES="
+enable_service s-proxy
+enable_service s-object
+enable_service s-container
+enable_service s-account"
     # Swift still broken for python 3.x
     [ "$USE_PYTHON3" = "True" ] && SWIFT_SERVICES=""
     # configure devstack
     cat > $DEVSTACK_DIR/local.conf <<EOF
 [[local|localrc]]
-SERVICE_TOKEN=testtoken
-DATABASE_PASSWORD=test
-ADMIN_PASSWORD=test
-RABBIT_PASSWORD=test
-SERVICE_PASSWORD=test
-SWIFT_HASH=f515ae389a20420fa466f27a0779d845
+disable_all_services
+enable_service g-reg
+enable_service key
+enable_service n-api
+enable_service c-api
+enable_service g-api
+enable_service mysql
+enable_service tls-proxy
+enable_service etcd3
+enable_service q-dhcp
+enable_service n-api-meta
+enable_service tempest
+enable_service q-l3
+enable_service c-sch
+enable_service n-novnc
+enable_service peakmem_tracker
+enable_service n-cauth
+enable_service q-metering
+enable_service rabbit
+enable_service n-cond
+enable_service q-meta
+enable_service q-svc
+enable_service placement-api
+enable_service n-cpu
+enable_service c-vol
+enable_service n-obj
+enable_service c-bak
+enable_service q-agt
+disable_service horizon
+enable_service cinder
+enable_service n-sch
+enable_service dstat
+$SWIFT_SERVICES
+
+DATABASE_PASSWORD=secretdatabase
+ADMIN_PASSWORD=secretadmin
+RABBIT_PASSWORD=secretrabbit
+SERVICE_PASSWORD=secretservice
+SWIFT_HASH=1234123412341234
 SWIFT_REPLICAS=1
 SWIFT_START_ALL_SERVICES=False
-FORCE_CONFIG_DRIVE=False
-ENABLE_FILE_INJECTION=True
+
+CINDER_PERIODIC_INTERVAL=10
+LOG_COLOR=False
+NOVA_VNC_ENABLED=True
+NOVNC_FROM_PACKAGE=True
+PUBLIC_BRIDGE_MTU=1450
+VERBOSE_NO_TIMESTAMP=True
 
 NOVNC_FROM_PACKAGE=True
 RECLONE=yes
@@ -152,13 +194,12 @@ TEMPEST_ALLOW_TENANT_ISOLATION=True
 USE_PYTHON3=$USE_PYTHON3
 PYTHON3_VERSION=$PYTHON3_VERSION
 
-ENABLED_SERVICES=c-api,c-bak,c-sch,c-vol,ceilometer-acentral,ceilometer-acompute,ceilometer-alarm-evaluator,ceilometer-alarm-notifier,ceilometer-anotification,ceilometer-api,ceilometer-collector,cinder,dstat,etcd3,g-api,g-reg,horizon,key,mysql,n-api,n-api-meta,n-cauth,n-cond,n-cpu,n-novnc,n-obj,n-sch,peakmem_tracker,placement-api,q-agt,q-dhcp,q-l3,q-meta,q-metering,q-svc,rabbit,$SWIFT_SERVICES,tempest,tls-proxy
-
-# vpn disabled for now. openswan required by devstack but not available in openSUSE
-# enable_service q-vpn
-# enable_service q-fwaas
-enable_service q-lbaas
-
+[[test-config|$$TEMPEST_CONFIG]]
+[compute]
+min_compute_nodes = 1
+[[post-config|$$NEUTRON_CONF]]
+[DEFAULT]
+global_physnet_mtu = 1450
 EOF
 
     chown stack:stack -R $DEVSTACK_DIR
@@ -182,6 +223,7 @@ cd $DEVSTACK_DIR
 FORCE=yes ./stack.sh
 EOF
 h_echo_header "Run tempest"
+
 if [ -z "${DISABLE_TEMPESTRUN}" ]; then
     sudo -u stack -i <<EOF
 cd /opt/stack/tempest
