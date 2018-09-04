@@ -16,9 +16,9 @@ branches:
     bs_repo:     SLE_12_SP3
     cloudsource: develcloud8
   master:
-    bs_project:  Devel:Cloud:8:Staging
-    bs_repo:     SLE_12_SP3
-    cloudsource: develcloud8
+    bs_project:  Devel:Cloud:9:Staging
+    bs_repo:     SLE_12_SP4
+    cloudsource: develcloud9
 parameters_template:
   default: &mkcloud_default
     nodenumber: 2
