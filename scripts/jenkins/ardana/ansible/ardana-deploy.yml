@@ -16,12 +16,6 @@
 
 ---
 
-- import_playbook: generate-input-model.yml
-
-- import_playbook: rebuild-deployer-vm.yml
-
-- import_playbook: bootstrap-deployer-vm.yml
-
 - import_playbook: ardana-ses-integration.yml
   when: ses_enabled
 

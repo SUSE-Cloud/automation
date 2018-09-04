@@ -40,7 +40,7 @@ service_groups:
   - name: core
     type: cluster
     prefix: core
-    heat_flavor_id: cloud-ardana-job-controller
+    heat_flavor_id: cloud-ardana-job-compute
     member_count: '{{ core_nodes|default(2) }}'
     service_components:
       - CORE
@@ -53,10 +53,10 @@ service_groups:
     member_count: '{{ lmm_nodes|default(3) }}'
     service_components:
       - LMM
-  - name: dmbq
+  - name: dbmq
     type: cluster
-    prefix: dmbq
-    heat_flavor_id: cloud-ardana-job-controller
+    prefix: dbmq
+    heat_flavor_id: cloud-ardana-job-compute
     member_count: '{{ dbmq_nodes|default(3) }}'
     service_components:
       - DBMQ

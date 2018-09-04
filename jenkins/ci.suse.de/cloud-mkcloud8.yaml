@@ -40,6 +40,7 @@
     label: openstack-mkcloud-ha-x86_64
     storage_method_ha: swift
     database_engine: mysql
+    want_all_ssl: 0
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'
@@ -50,6 +51,7 @@
         - 'cloud-mkcloud{version}-job-upgrade-disruptive-ha-mariadb-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-debug-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-no-clones-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}'
 - project:
     name: cloud-mkcloud8-tempestfull-x86_64

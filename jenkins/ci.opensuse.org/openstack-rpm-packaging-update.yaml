@@ -11,3 +11,5 @@
             release: 'Pike'
         - 'openstack-rpm-packaging-update-{release}':
             release: 'Queens'
+        - 'openstack-rpm-packaging-update-{release}':
+            release: 'Rocky'

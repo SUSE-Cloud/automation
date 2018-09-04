@@ -38,6 +38,7 @@ proposals:
       - "@@controller3@@"
 - barclamp: database
   attributes:
+    sql_engine: postgresql
     ha:
       storage:
         shared:

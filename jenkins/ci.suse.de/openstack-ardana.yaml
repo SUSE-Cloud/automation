@@ -1,14 +1,9 @@
 - job:
     name: openstack-ardana
+    project-type: pipeline
     concurrent: true
-    workspace: "openstack-ardana-$BUILD_ID"
-    # the selected node needs the cloud credentials
-    node: cloud-ardana-ci
     wrappers:
       - timestamps
-      - build-name:
-          name: '#${BUILD_NUMBER}: ${ENV,var="job_name"}/${ENV,var="model"}'
-
       - timeout:
           timeout: 300
           type: no-activity
@@ -19,7 +14,49 @@
       numToKeep: 2000
       daysToKeep: 300
 
+    properties:
+      - authorization:
+          cloud:
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
+          anonymous:
+            - job-read
+
     parameters:
+
+      - string:
+          name: ardana_env
+          default: ''
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied ardana_env already
+            exists, it will be replaced.
+
+      - choice:
+          name: cleanup
+          choices:
+            - 'never'
+            - 'always'
+            - 'on success'
+            - 'on failure'
+          description: >-
+            Configure the conditions that trigger the virtual environment cleanup. Possible values are:
+              - never
+              - always
+              - on success
+              - on failure
+
       - string:
           name: git_automation_repo
           default: https://github.com/SUSE-Cloud/automation.git
@@ -31,6 +68,12 @@
           default: master
           description: >-
             The git automation branch
+
+      - string:
+          name: jenkinsfile_path
+          default: jenkins/ci.suse.de/pipelines/openstack-ardana.Jenkinsfile
+          description: >-
+            The location of the Jenkinsfile defining the pipeline
 
       - string:
           name: git_input_model_repo
@@ -54,13 +97,52 @@
           name: model
           default: std-min
           description: >-
-            The Input Model to use from the input model git repository / branch / path
+            The Input Model to use from the input model git repository / branch / path.
+
+      - choice:
+          name: scenario
+          choices:
+            -
+            - entry-scale-kvm
+            - entry-scale-swift
+            - standard
+          description: >-
+            The scenario used to generate the input model
+
+      - choice:
+          name: clm_model
+          choices:
+            - standalone
+            - integrated
+          description: |
+            standalone - one node dedicated for CLM
+            integrated - the first controller node will also be used as a CLM node
 
       - string:
-          name: job_name
-          default: ''
+          name: controllers
+          default: '3'
+          description: Number of nodes used as controller
+
+      - string:
+          name: sles_computes
+          default: '2'
+          description: Number of SLES compute nodes
+
+      - string:
+          name: rhel_computes
+          default: '0'
+          description: Number of RHEL compute nodes
+
+      - bool:
+          name: ses_enabled
+          default: false
+          description: Configure SES backend for glance, cinder, cinder-backup, nova and swift
+
+      - string:
+          name: os_cloud
+          default: 'engcloud-cloud-ci'
           description: >-
-            This name reserves job environment and prevents deletion at the end.
+            The OpenStack cloud configuration used to create the virtual environment
 
       - choice:
           name: cloudsource
@@ -78,6 +160,13 @@
                develcloud<X> (Devel:Cloud:X)
                GM<X> (official GM)
 
+      - choice:
+          name: cloud_brand
+          choices:
+            - SUSE
+            - HPE-Helion
+          description: Cloud media brand.
+
       - extended-choice:
           name: repositories
           type: multi-select
@@ -88,6 +177,16 @@
           description: >-
             Set of zypper repositories (from provo-clouddata) to be configured during installation
             in addition to that indicated by the cloudsource parameter.
+
+      - string:
+          name: cloud_maint_updates
+          default: ''
+          description: List of cloud maintenance update IDs separated by comma (eg. 7396,7487)
+
+      - string:
+          name: sles_maint_updates
+          default: ''
+          description: List of SLES maintenance update IDs separated by comma (eg. 7434,7435)
 
       - choice:
           name: update_cloudsource
@@ -122,30 +221,44 @@
           description: >-
             The update method used for update testing.
 
-      - string:
+      - choice:
           name: tempest_run_filter
-          default: ''
+          choices:
+            -
+            - smoke
+            - smoke-upstream
+            - defcore
+            - full
+            - ci
+            - compute
+            - designate
+            - identity
+            - lbaas
+            - monasca
+            - network
+            - neutron-api
+            - periodic
+            - periodic-virtual
+            - refstack
+            - swift
+            - tests2skip
+            - tests-ci
+            - upgrade-ci
+            - upgrade
           description: >-
-            Name of the filter file to use for tempest. Possible values:
-            ci, compute, designate, lbaas, network, neutron-api, periodic,
-            periodic-virtual, refstack, smoke, swift, tests2skip, tests-ci,
-            upgrade-ci or upgrade
+            Name of the filter file to use for tempest. Use an empty value to
+            skip running tempest.
 
-      - string:
-          name: build_pool_name
-          default: ''
+      - bool:
+          name: want_caasp
+          default: false
           description: >-
-            Name of the build resource pool to be used for this job. When
-            supplied, the heat stack created by this job will be added to the
-            build pool and will be cleaned up automatically when the pool fills up.
+            Deploy CaaSP using the caasp-openstack-heat-templates.
 
-      - string:
-          name: build_pool_size
-          default: '0'
-          description: >-
-            The maximum number of heat stacks in the build_pool_name build pool
-            that can be kept running at any given time. When this number is exceeded,
-            older stacks in the pool will be deleted to make place for new ones.
+      - bool:
+          name: rc_notify
+          default: false
+          description: Notify RocketChat when deployment starts/finishes.
 
       - string:
           name: gerrit_change_ids
@@ -156,7 +269,7 @@
 
       - string:
           name: develproject
-          default: 'Devel:Cloud:8'
+          default: 'Devel:Cloud:8:Staging'
           description: >-
             Project in IBS to link against when creating a test project for a
             change proposal.
@@ -174,244 +287,12 @@
           description: >-
             Name of the repository in IBS against which to build the test packages.
 
-    builders:
-      - conditional-step:
-          condition-kind: shell
-          condition-command: |
-            test -n "${gerrit_change_ids}"
-          steps:
-              - trigger-builds:
-                - project: cloud-ardana-testbuild-gerrit
-                  predefined-parameters: |
-                    gerrit_change_ids=${gerrit_change_ids}
-                    develproject=${develproject}
-                    homeproject=${homeproject}
-                    repository=${repository}
-                    git_automation_repo=${git_automation_repo}
-                    git_automation_branch=${git_automation_branch}
-                  block: true
-      - shell: |
-          set +x
-
-          echo cloudsource=$cloudsource
-          echo
-
-          set -ex
-          heat_stack_name=cloud-ci-openstack-ardana-${BUILD_NUMBER}
-          if [ -n "${JOB_NAME}" ]; then
-              heat_stack_name=${heat_stack_name}-${JOB_NAME}
-          fi
-
-          export ANSIBLE_KEEP_REMOTE_FILES=1
-
-          # init the git tree
-          git clone $git_automation_repo --branch $git_automation_branch automation-git
-          if [ "$git_automation_repo" != "$git_input_model_repo" ]; then
-              git clone $git_input_model_repo --branch $git_input_model_branch ardana-input-model-git
-              input_model_path="$WORKSPACE/ardana-input-model-git/${git_input_model_path}/${model}"
-          else
-              input_model_path="$WORKSPACE/automation-git/${git_input_model_path}/${model}"
-          fi
-          rsync -av $input_model_path/* $WORKSPACE/input-model
-
-          pushd automation-git/scripts/jenkins/ardana/ansible
-          source /opt/ansible/bin/activate
-
-          # generate the heat template
-          ansible-playbook -v generate-heat.yml \
-            -e cloudsource="${cloudsource}" \
-            -e input_model_path="$WORKSPACE/input-model" \
-            -e heat_template_file="$WORKSPACE/heat-ardana-${model}.yaml" \
-
-          # generate properties file
-          cat - > $WORKSPACE/heat_stack_env <<EOF
-          build_pool_name=$build_pool_name
-          build_pool_size=$build_pool_size
-          heat_stack_name=$heat_stack_name
-          heat_template_file=$WORKSPACE/heat-ardana-${model}.yaml
-          input_model_path=$WORKSPACE/input-model
-          EOF
-
-      - trigger-builds:
-        - project: openstack-ardana-heat
-          predefined-parameters: |
-            action=create
-          property-file: heat_stack_env
-          block: true
-
-      - trigger-builds:
-        - project: openstack-ardana-heat
-          predefined-parameters: |
-            action=cleanup
-            build_pool_name=$build_pool_name
-            build_pool_size=$build_pool_size
-          block: false
-
-      - shell: |
-          set +x
-          . $WORKSPACE/heat_stack_env
-
-          # the name for the cloud defined in ~./config/openstack/clouds.yaml
-          CLOUD_CONFIG_NAME=engcloud-cloud-ci
-          # mirror used to download images
-          image_mirror_url=http://provo-clouddata.cloud.suse.de/images/openstack/x86_64
-
-          set -ex
-
-          pushd automation-git/scripts/jenkins/ardana/ansible
-
-          DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name admin-floating-ip -c output_value -f value)
-          NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name mgmt-network-id -c output_value -f value)
-          cat << EOF > hosts
-          [hosts]
-          $DEPLOYER_IP ansible_user=root
-          EOF
-
-          cat hosts
-
-          cat << EOF > ardana_net_vars.yml
-          ---
-          input_model_path: "$input_model_path"
-          deployer_mgmt_ip: $(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name admin-mgmt-ip -c output_value -f value)
-          EOF
-
-          controller_mgmt_ips=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name controller-mgmt-ips -c output_value -f value|grep -o '[0-9.]*')
-          if [ -n "$controller_mgmt_ips" ]; then
-            echo "controller_mgmt_ips:" >> ardana_net_vars.yml
-            for ip in $controller_mgmt_ips; do
-                cat << EOF >> ardana_net_vars.yml
-              - $ip
-          EOF
-            done
-          fi
-
-          compute_mgmt_ips=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name compute-mgmt-ips -c output_value -f value|grep -o '[0-9.]*')
-          if [ -n "$compute_mgmt_ips" ]; then
-            echo "compute_mgmt_ips:" >> ardana_net_vars.yml
-            for ip in $compute_mgmt_ips; do
-                cat << EOF >> ardana_net_vars.yml
-              - $ip
-          EOF
-            done
-          fi
-
-          # Get the IP addresses of the dns servers from the mgmt network
-          echo "mgmt_dnsservers:" >> ardana_net_vars.yml
-          openstack --os-cloud $CLOUD_CONFIG_NAME port list --network $NETWORK_MGMT_ID \
-                    --device-owner network:dhcp -f value -c 'Fixed IP Addresses' | \
-              sed -e "s/^ip_address='\(.*\)', .*$/\1/" | \
-              while read line; do echo "  - $line" >> ardana_net_vars.yml; done;
-
-          cat ardana_net_vars.yml
-
-          sshargs="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-          # FIXME: Use cloud-init in the used image
-          sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 $sshargs root@${DEPLOYER_IP}
-
-          source /opt/ansible/bin/activate
-
-          ansible-playbook -v -i hosts ssh-keys.yml
-          if [ -n "$gerrit_change_ids" ] ; then
-              test_repository=http://download.suse.de/ibs/${homeproject//:/:\/}:/ardana-ci-${gerrit_change_ids//,/-}/standard
-              ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
-                                           -e "cloudsource=${cloudsource}" \
-                                           -e "repositories='${repositories}'" \
-                                           -e "test_repository_url=${test_repository}" \
-                                           repositories.yml
-          else
-              ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
-                                           -e "cloudsource=${cloudsource}" \
-                                           -e "repositories='${repositories}'" \
-                                           repositories.yml
-          fi
-          verification_temp_dir=$(ssh $sshargs root@$DEPLOYER_IP \
-                                    "mktemp -d /tmp/ardana-job-rpm-verification.XXXXXXXX")
-          ansible-playbook -v -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
-                                       -e "verification_temp_dir=$verification_temp_dir" \
-                                       -e cloudsource="${cloudsource}" \
-                                       init.yml
-
-          # Run site.yml outside ansible for output streaming
-          ssh $sshargs ardana@$DEPLOYER_IP "cd ~/scratch/ansible/next/ardana/ansible ; \
-               ansible-playbook -v -i hosts/verb_hosts site.yml"
-
-          # Run Update if required
-          if [ -n "$update_cloudsource" -a "$update_cloudsource" != "$cloudsource" -o -n "$update_repositories" ]; then
-
-              # Run pre-update checks
-              ansible-playbook -v -i hosts \
-                  -e "image_mirror_url=${image_mirror_url}" \
-                  -e "tempest_run_filter=${tempest_run_filter}" \
-                  pre-update-checks.yml
-
-              ansible-playbook -v -i hosts \
-                  -e "build_url=$BUILD_URL" \
-                  -e "cloudsource=${update_cloudsource}" \
-                  -e "repositories='${update_repositories}'" \
-                  repositories.yml
-
-              ansible-playbook -v -i hosts \
-                  -e "cloudsource=${update_cloudsource}" \
-                  -e "update_method=${update_method}" \
-                  update.yml
-          fi
-
-          # Run post-deploy checks
-          ansible-playbook -v -i hosts \
-              -e "image_mirror_url=${image_mirror_url}" \
-              -e "tempest_run_filter=${tempest_run_filter}" \
-              -e "verification_temp_dir=$verification_temp_dir" \
-              post-deploy-checks.yml
-
-    publishers:
-      - trigger-parameterized-builds:
-        - project: openstack-ardana-heat
-          predefined-parameters: |
-            action=cleanup
-          property-file: heat_stack_env
-          condition: ALWAYS
-        - project: openstack-ardana-heat
-          predefined-parameters: |
-            action=cleanup
-            build_pool_name=$build_pool_name
-            build_pool_size=$build_pool_size
-          condition: ALWAYS
-
-      - post-tasks:
-        - matches:
-          - log-text: DEPLOYER_IP
-          script: |
-            set +x
-            . $WORKSPACE/heat_stack_env
-            # the name for the cloud defined in ~./config/openstack/clouds.yaml
-            CLOUD_CONFIG_NAME=engcloud-cloud-ci
-
-            if [[ -z $build_pool_name ]] || (( $build_pool_size != 0 )); then
-                DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name admin-floating-ip -c output_value -f value)
-                echo "*****************************************************************"
-                echo ""
-                if [[ -n $build_pool_name ]]; then
-                  echo "** The installation stack will be suspended and will be removed  "
-                  echo "** automatically by one of the future job runs that is using the "
-                  echo "** same '$build_pool_name' build pool.                           "
-                  echo ""
-                  echo "** To prevent future jobs from removing the installation, either "
-                  echo "** resume the stack or take the stack out of the '$build_pool_name' "
-                  echo "** build pool by rebuilding the 'openstack-ardana-heat' job that "
-                  echo "** created it with the 'action' parameter set to 'exclude'.      "
-                  echo ""
-                else
-                  echo "** Installation remains available at                             "
-                  echo "             ssh ardana@$DEPLOYER_IP                             "
-                  echo ""
-                  echo "** Please delete the $heat_stack_name stack manually when you're done."
-                fi
-                echo ""
-                echo "*****************************************************************"
-            fi
-      - workspace-cleanup:
-          clean-if:
-            - failure: false
-            - aborted: false
-            - unstable: false
-            - success: false
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+      script-path: ${jenkinsfile_path}
+      lightweight-checkout: false

@@ -210,10 +210,7 @@ proposals:
       - cluster:services
       ceilometer-server:
       - cluster:services
-      ceilometer-swift-proxy-middleware:
-      - "@@controller1@@"
-      - "@@controller2@@"
-      - "@@controller3@@"
+      ceilometer-swift-proxy-middleware: []
 - barclamp: aodh
   deployment:
     elements:

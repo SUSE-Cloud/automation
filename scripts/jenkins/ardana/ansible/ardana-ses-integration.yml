@@ -65,6 +65,10 @@
             - rc_notify
             - ardana_ses_post_deploy
 
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
+
 - name: Configure ardana with SES backend when SES enabled
   hosts: ardana-{{ qe_env }}
   remote_user: ardana
@@ -97,6 +101,10 @@
           when:
             - rc_notify
             - ardana_ses_post_deploy
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
       always:
         - include_role:
             name: jenkins_artifacts

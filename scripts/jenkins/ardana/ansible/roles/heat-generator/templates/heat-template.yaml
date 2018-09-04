@@ -96,8 +96,8 @@ resources:
 {% endfor %}
 
 {% for router in heat_template.routers %}
-{%   set net1_name = router[0].name|lower|replace('-','_')|regex_replace('_net$', '') %}
-{%   set net2_name = router[1].name|lower|replace('-','_')|regex_replace('_net$', '') %}
+{%   set net1_name = router[0]|lower|replace('-','_')|regex_replace('_net$', '') %}
+{%   set net2_name = router[1]|lower|replace('-','_')|regex_replace('_net$', '') %}
   router_{{ net1_name }}_{{ net2_name }}:
     type: OS::Neutron::Router
 

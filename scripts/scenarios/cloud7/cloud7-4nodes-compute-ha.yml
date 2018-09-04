@@ -36,11 +36,13 @@ proposals:
       - @@compute2@@
 - barclamp: database
   attributes:
-    ha:
-      storage:
-        mode: drbd
-        drbd:
-          size: 5
+    sql_engine: postgresql
+    postgresql:
+      ha:
+        storage:
+          mode: drbd
+          drbd:
+            size: 5
   deployment:
     elements:
       database-server:

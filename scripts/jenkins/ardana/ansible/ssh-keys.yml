@@ -1,11 +1,11 @@
 ---
 - name: Setup SSH keys
-  hosts: hosts
+  hosts: ardana-{{ ardana_env }}
+  remote_user: root
   gather_facts: False
 
   tasks:
   - name:  Write available ssh keys to people can login
-    become: yes
     lineinfile:
       dest: /root/.ssh/authorized_keys
       line: "{{ item }}"

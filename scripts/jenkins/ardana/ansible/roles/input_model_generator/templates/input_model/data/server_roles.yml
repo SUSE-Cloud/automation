@@ -20,7 +20,9 @@
   server-roles:
 {% for service_group in scenario['service_groups'] if service_group['member_count']|int %}
     - name: {{ service_group.name|upper }}-ROLE
-      interface-model: {{ service_group.name|upper }}-INTERFACES
+{%   for interface_model in scenario['interface_models'] if service_group.name in interface_model['service_groups'] %}
+      interface-model: {{ interface_model.name|upper }}-INTERFACES
+{%   endfor %}
       disk-model: {{ service_group.name|upper }}-DISKS
 
 {% endfor %}

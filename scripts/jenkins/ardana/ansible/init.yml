@@ -1,27 +1,17 @@
 ---
 - name: Initialize the Deployer
-  hosts: hosts
+  hosts: ardana-{{ ardana_env }}
+  remote_user: root
   gather_facts: False
-  roles:
-    - cloud-common
 
   vars_files:
-    - ardana_net_vars.yml
     - vars/main.yml
 
   tasks:
-  - name: Write deployer info to /etc/motd
-    become: yes
-    shell: |
-      echo "DEPLOYER_IP={{ deployer_floating_ip | default(None) }}" >> /etc/motd
 
-  - name: Grow 1st partition filesystem
-    become: yes
+  - name: Add build information to /etc/motd
     shell: |
-      /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
-    ignore_errors: True
-
-  - include: pre-deploy-checks.yml
+      echo "Build job:  {{ build_url }}" >>/etc/motd
 
   - name: Call ardana-init
     shell: /usr/bin/ardana-init
@@ -82,7 +72,6 @@
     when: item != "" and item != deployer_mgmt_ip
 
   - name: Grow 1st partition filesystem on non-deployer nodes
-    become: yes
     shell: |
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ item }} "/usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1"
     ignore_errors: True
@@ -100,29 +89,12 @@
     tags:
       - create-ardana-input-model
 
-  - name: Update DNS servers in Model
-    shell: >
-      python -c "
-         import yaml;
-         f = open('cloudConfig.yml');
-         data = yaml.load(f.read());
-         f.close();
-         data['cloud']['dns-settings']=dict(nameservers = {{ mgmt_dnsservers }});
-         data['cloud']['ntp-servers'] = {{ ntp_servers }};
-         f = open('cloudConfig.yml', 'w');
-         f.write(yaml.safe_dump(data, default_flow_style=False));
-         f.close();"
-    args:
-      chdir: /var/lib/ardana/openstack/my_cloud/definition/
-    tags:
-      - create-ardana-input-model
-
   - name: Add my_cloud config to git
     shell: |
       git add -A
       git commit -q -m "Add custom config to git" || true
     args:
-      chdir: /var/lib/ardana//openstack/ardana/ansible
+      chdir: /var/lib/ardana/openstack/ardana/ansible
     become: true
     become_user: ardana
 
@@ -144,7 +116,7 @@
     become: true
     become_user: ardana
 
-  - name: Enable skip_disk_config on controller
+  - name: Enable skip_disk_config on deployer
     shell: |
       mkdir -p /etc/openstack/
       touch /etc/openstack/skip_disk_config

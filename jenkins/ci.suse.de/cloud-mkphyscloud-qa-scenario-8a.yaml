@@ -11,12 +11,12 @@
         - Shared device for DB and rabbit
         - Swift
         - Neutron: linuxbridge or OVS
-        - Monasca 
+        - Monasca
 
       It will wipe all machines in the selected cloud!
 
     wrappers:
-      - mkphyscloud-qa-build-name-wrapper 
+      - mkphyscloud-qa-build-name-wrapper
     publishers:
       - mkphyscloud-qa-common-publishers
 
@@ -202,6 +202,8 @@
           export want_node_aliases=controller=3,compute-kvm=1,storage-swift=2,monasca-server=1 ;
           export networkingplugin=$networkingplugin ;
           export networkingmode=$networkingmode ;
+          export want_swift=1 ;
+          export cephvolumenumber=1 ;
           export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
 

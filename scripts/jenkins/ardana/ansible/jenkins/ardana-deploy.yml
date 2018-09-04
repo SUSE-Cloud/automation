@@ -94,6 +94,10 @@
           name: sles_maint_updates
           default: ''
           description: List of SLES maintenance update IDs separated by comma (eg. 7434,7435)
+      - bool:
+          name: rc_notify
+          default: true
+          description: Notify RocketChat when deployment starts/finishes.
       - string:
           name: ardana_deploy_repo
           default: https://github.com/SUSE-Cloud/automation.git
