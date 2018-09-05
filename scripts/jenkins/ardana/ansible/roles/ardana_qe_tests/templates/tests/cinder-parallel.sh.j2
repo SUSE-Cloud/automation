@@ -9,6 +9,9 @@ test_name="cinder-parallel"
 work_dir={{ ardana_qe_test_work_dir }}
 test_dir={{ ardana_qe_tests_dir }}/ardana-qa-tests/cinder-new
 test_log="$work_dir/${test_name}.log"
+
+/rdana_qe_test_venv }}
+source $venv_dir/bin/activate
 subunit_log="$work_dir/${test_name}.subunit:mjsvenv"
 
 source $HOME/service.osrc
