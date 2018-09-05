@@ -1,15 +1,23 @@
-#!/bin/bash
+!/bin/bash
 
-# Wrapper script to execute heat tests
-
-# Usage: python MagnumCluster.py
+# Wrapper script to execute the Magnum tests
+#
+# Usage: magnum.sh
 
 set -o pipefail
 
-source ~/service.osrc
+VENV={{ ardana_qe_test_venv }}
+STESTR={{ ardana_qe_test_venv }}/bin/stestr
 
-cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/magnum
+# Activate the virtual environment
+source ${VENV}/bin/activate
 
 # Run the test
-python MagnumCluster.py  > {{ ardana_qe_test_log }}
+source ~/service.osrc
+cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/magnum/
+${STESTR} init
+${STESTR} run -t ./ --no-discover MagnumClusterTestSuite.py  --concurrency=1 | tee {{ ardana_qe_test_log }}
+res=$?
+${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
 
+exit $res

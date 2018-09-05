@@ -15,8 +15,12 @@
 #
 ---
 
-ardana_qe_test_get_failed_cmd: "grep -e '^Cluster.*\\.\\.\\..*FAIL' {{ ardana_qe_test_log }} || echo 'None'"
+ardana_qe_test_venv_requires:
+  - 'python-subunit'
+  - 'stestr'
+
+ardana_qe_test_get_failed_cmd: "grep FAILED {{ ardana_qe_test_log }} || echo 'None'"
 ardana_qe_test_get_results_cmds:
-  passed: "grep -e '^Cluster.*\\.\\.\\..*PASS' {{ ardana_qe_test_log }} | wc -l"
-  failed: "grep -e '^Cluster.*\\.\\.\\..*FAIL' {{ ardana_qe_test_log }} | wc -l"
-  ran: "grep Total  {{ ardana_qe_test_log }} | awk '{print $4}' "
+  failed: "grep Failed {{ ardana_qe_test_log }} | cut -c12-13"
+  ran: "grep Ran {{ ardana_qe_test_log }} | cut -c6-7"
+  passed: "grep Passed {{ ardana_qe_test_log }} | cut -c12-13"
