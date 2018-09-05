@@ -12,7 +12,7 @@ ardana_qe_test_venv_requires:
 #               `grep FAIL {{ ardana_qe_test_log }} | wc -l`"
 ardana_qe_test_get_failed_cmd: "cat {{ ardana_qe_test_log }} | grep FAIL"
 ardana_qe_test_get_results_cmds:
-  ran:    "egrep -v 'Test|FAIL' {{ ardana_qe_test_log }} | wc -l"
-  passed: "egrep -v 'Test|FAIL' {{ ardana_qe_test_log }} | wc -l"
+  ran:    "egrep -v Test {{ ardana_qe_test_log }} | wc -l"
+  passed: "egrep -v Test {{ ardana_qe_test_log }} | wc -l"
   failed: "grep FAIL {{ ardana_qe_test_log }} | wc -l"
 
