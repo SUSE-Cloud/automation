@@ -35,7 +35,7 @@ $subunit_output --inprogress getput > $subunit_log
 
 # WARNING - because of Nagel, 1K SES GETs always too slow!
 command="$venv_dir/getput --creds $creds -c$cname -o$oname -s$osize -r$rtime -t$tests --insecure"
-$command -s4k | tee $test_log
+$command -s1k | tee $test_log
 res=$?
 echo "getput completed with status $res"
 
@@ -54,7 +54,7 @@ if (( `echo $iops | cut -f1 -d'.'` < $get_iops )); then
     success=0
 fi
 
-if (( success == 1 )); then
+if (( $success == 1 )); then
     $subunit_output --success getput >> $subunit_log
 else
     $subunit_output --fail getput >> $subunit_log
