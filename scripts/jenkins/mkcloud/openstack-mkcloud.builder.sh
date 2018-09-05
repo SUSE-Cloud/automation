@@ -32,7 +32,7 @@ case $cloudsource in
             unset want_ldap
         fi
         ;;
-    M*|ocatacloud8|develcloud8|develcloud7|mitakacloud7|susecloud7)
+    M*|develcloud9|rockycloud9|develcloud8|develcloud7|GM7|GM7+up|susecloud9)
         if [[ $mkcloudtarget =~ upgrade ]]; then
             echo "Unsetting want_ldap for upgrade jobs until hybrid backend is migrated to domain-specific backends"
             unset want_ldap
@@ -45,7 +45,6 @@ case $cloudsource in
         ;;
 esac
 
-
 if [[ $cinder_backend = " " ]] ; then
   cinder_backend=""
 elif [[ $cinder_backend = "nfs" ]] ; then
@@ -56,7 +55,7 @@ fi
 # HAcloud
 if [[ $hacloud == 1 ]] ; then
   case $cloudsource in
-    develcloud6|develcloud7|mitakacloud7|susecloud7)
+    develcloud6|GM7|GM7+up)
         clusternodes=2
         nodes=3
         ;;
