@@ -8,8 +8,11 @@ set -o pipefail
 
 work_dir={{ ardana_qe_test_work_dir }}
 test_log="$work_dir/getput.log"
+subunit_log="$work_dir/subunit.log"
+
 venv_dir={{ ardana_qe_test_venv }}
 source $venv_dir/bin/activate
+subunit_output="venv_dir/bin/subunit_output"
   
 creds="$HOME/service.osrc"
 cname="container-auto"
@@ -28,6 +31,8 @@ wget https://raw.githubusercontent.com/markseger/getput/master/getput
 chmod +x $venv_dir/getput
 
 # run test
+$subunit_output --inprogress getput > $subunit_log
+
 command="$venv_dir/getput --creds $creds -c$cname -o$oname -s$osize -r$rtime -t$tests --insecure"
 $command -s1k | tee $test_log
 res=$?
@@ -35,14 +40,23 @@ echo "getput completed with status $res"
 
 # do some brute force IOPS checks and append failures to log
 # also being a little silly to save fractional part of IOPS so we can report full value
+success=1
 iops=`grep 1k $test_log | grep put | awk '{print $10}'`
 if (( `echo $iops | cut -f1 -d'.'` < $put_iops )); then
     echo "FAIL -- Test: 1K PUT  Minimal Value: $put_iops Reported: $iops" >> $test_log
+    success=0
 fi
 
 iops=`grep 1k $test_log | grep get | awk '{print $10}'`
 if (( `echo $iops | cut -f1 -d'.'` < $get_iops )); then
     echo "FAIL -- Test: 1K GET  Minimal Value: $get_iops Reported: $iops" >> $test_log
+    success=0
+fi
+
+if (( success == 1 )); then
+    $subunit_output --success getput >> $subunit_log
+else
+    $subunit_output --fail getput >> $subunit_log
 fi
 
 exit $res
