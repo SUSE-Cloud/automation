@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Wrapper script to execute heat tests
+
+# Usage: python HeatCluster.py
+
+set -o pipefail
+
+source ~/service.osrc
+
+cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/heat/new-tests/
+
+# Run the test
+python HeatCluster.py  > {{ ardana_qe_test_log }}
+
