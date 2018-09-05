@@ -4,6 +4,9 @@
 # in column 10, though I'm not sure if automation can/should deal with those
 # sorts of numbers
 
+ardana_qe_test_venv_requires:
+  - 'python-subunit'
+
 # if (( `grep 1k xxx | grep put | awk '{print $10}'|cut -f1 -d'.'` < 40 )); then grep 1k xxx|grep put; fi
 ardana_qe_test_get_failed_cmd: "cat {{ ardana_qe_test_log }}"
 ardana_qe_test_get_results_cmds:
