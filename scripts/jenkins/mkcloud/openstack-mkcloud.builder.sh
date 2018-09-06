@@ -1,15 +1,17 @@
 #!/bin/sh
 set -x
 shopt -s extglob
-# emptying the workspace
-mkdir -p empty
-rsync -r --delete empty/ ./
 
 export artifacts_dir=$WORKSPACE/.artifacts
 rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 export log_dir=$artifacts_dir/mkcloud_log
+
+if [ -d $WORKSPACE/automation-git ] ; then
+    # If we're testing a pull request, use our custom checkout
+    automationrepo=$WORKSPACE/automation-git
+fi
 
 jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
 export ghprrepo=~/github.com/openSUSE/github-pr
@@ -138,30 +140,7 @@ if [[ $github_pr ]] ; then
 
     trap "mkcloudgating_trap" ERR
 
-    # Support for automation self-gating
-    if [[ "$github_pr_repo" = "SUSE-Cloud/automation" ]]; then
-        automationrepo_orig=$automationrepo
-        pr_dir=`mktemp -d $WORKSPACE/SUSE-Cloud.automation.XXXXXX`
-        automationrepo=$pr_dir/automation
-
-        mkdir -p $automationrepo
-        rsync -a ${automationrepo_orig%/}/ $automationrepo/
-        pushd $automationrepo
-        ghremote=origin
-        git config --get-all remote.${ghremote}.fetch | grep -q pull || \
-            git config --add remote.${ghremote}.fetch "+refs/pull/*/head:refs/remotes/${ghremote}/pr/*"
-        git fetch $ghremote 2>&1 | grep -v '\[new ref\]' || :
-        git checkout -t $ghremote/pr/$github_pr_id
-        git config user.email cloud-devel+jenkins@suse.de
-        git config user.name "Jenkins User"
-        echo "we merge to always test what will end up in master"
-        git merge master -m temp-merge-commit
-        # Show latest commit in log to see what's really tested.
-        # Include a unique indent so that the log parser plugin
-        # can ignore the output and avoid false positives.
-        git --no-pager show | sed 's/^/|@| /'
-        popd
-    elif [[ "$github_pr_repo" = "SUSE-Cloud/cct" ]]; then
+    if [[ "$github_pr_repo" = "SUSE-Cloud/cct" ]]; then
         export want_cct_pr=$github_pr_id
     fi
 
