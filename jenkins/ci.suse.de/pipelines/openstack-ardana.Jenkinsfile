@@ -117,6 +117,7 @@ pipeline {
                                -e qe_env=$ardana_env \
                                -e cloud_source="${cloud_source}" \
                                -e cloud_release="${cloud_release}" \
+                               -e cloud_brand=$cloud_brand \
                                -e scenario_name="${scenario}" \
                                -e ardana_input_model="${scenario}" \
                                -e input_model_dir="${input_model_path}" \
@@ -124,6 +125,7 @@ pipeline {
                                -e controllers=$controllers \
                                -e sles_computes=$sles_computes \
                                -e rhel_computes=$rhel_computes \
+			       -e ses_enabled=$ses_enabled \
                                -e rc_notify=$rc_notify \
                                generate-input-model.yml
             '''

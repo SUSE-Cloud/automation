@@ -47,7 +47,7 @@
       ilo-password: {{ bm_info.servers[ns.server_idx].ilo_password }}
       ilo-ip: {{ bm_info.servers[ns.server_idx].ilo_ip }}
       mac-addr: {{ bm_info.servers[ns.server_idx].mac_addr }}
-{% else %}
+{% elif bm_info is not defined %}
       # Generate dummy iLO credentials until bsc#1091459 is fixed
       ilo-user: 'ilouser'
       ilo-password: 'ilopasswd'
