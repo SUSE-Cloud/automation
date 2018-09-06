@@ -18,12 +18,12 @@ creds="$HOME/service.osrc"
 cname="container-auto"
 oname="object-auto"
 osize="4k"
-rtime="2"
+rtime="30"
 tests="p,g,d"
 
 # minimum expected IOPS
 put_iops=20
-get_iops=400
+get_iops=40
 
 # download getput from github to venv_dir and make executable
 cd $venv_dir
@@ -44,13 +44,13 @@ echo "getput completed with status $res"
 success=1
 iops=`grep $osize $test_log | grep put | awk '{print $10}'`
 if (( `echo $iops | cut -f1 -d'.'` < $put_iops )); then
-    echo "FAIL -- Test: 1K PUT  Minimal Value: $put_iops Reported: $iops" >> $test_log
+    echo "FAIL -- Test: $osize PUT  Minimal Value: $put_iops Reported: $iops" >> $test_log
     success=0
 fi
 
 iops=`grep $osize $test_log | grep get | awk '{print $10}'`
 if (( `echo $iops | cut -f1 -d'.'` < $get_iops )); then
-    echo "FAIL -- Test: 1K GET  Minimal Value: $get_iops Reported: $iops" >> $test_log
+    echo "FAIL -- Test: $osize GET  Minimal Value: $get_iops Reported: $iops" >> $test_log
     success=0
 fi
 
