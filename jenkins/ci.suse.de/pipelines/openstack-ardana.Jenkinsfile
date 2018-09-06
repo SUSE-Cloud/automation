@@ -46,6 +46,17 @@ pipeline {
       }
     }
 
+    stage('automation PR support') {
+      steps {
+        sh '''
+          if [ -n "$github_pr" ] ; then
+            cd automation-git
+            exec scripts/jenkins/ardana/pr-update.sh
+          fi
+        '''
+      }
+    }
+
     stage('parallel one') {
       // abort all stages if one of them fails
       failFast true
@@ -326,6 +337,11 @@ pipeline {
           fi
         '''
       }
+      sh '''
+        if [ -n "$github_pr" ] ; then
+          automation-git/scripts/ardana/pr-success.sh
+        fi
+      '''
     }
     failure {
       lock(resource: 'cloud-ECP-API') {
@@ -336,6 +352,11 @@ pipeline {
           fi
         '''
       }
+      sh '''
+        if [ -n "$github_pr" ] ; then
+          automation-git/scripts/ardana/pr-failure.sh
+        fi
+      '''
     }
   }
 }
