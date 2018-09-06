@@ -10,8 +10,7 @@ ardana_qe_test_venv_requires:
 # if (( `grep 1k xxx | grep put | awk '{print $10}'|cut -f1 -d'.'` < 40 )); then grep 1k xxx|grep put; fi
 ardana_qe_test_get_failed_cmd: "cat {{ ardana_qe_test_log }} | grep FAIL || echo 'None'"
 ardana_qe_test_get_results_cmds:
-  ran:    "cat {{ ardana_qe_test_log }} | grep -v Test | wc -l"
-  #passed: "cat {{ ardana_qe_test_log }} | grep -v Test | wc -l || echo 'None'"
+  ran:    "cat {{ ardana_qe_test_log }} | egrep -v 'Test|FAIL' | wc -l"
   failed: "cat {{ ardana_qe_test_log }} | grep FAIL | wc -l || echo 'None'"
   passed: "expr `egrep -v 'Test|FAIL' {{ ardana_qe_test_log }} | wc -l` - \
                 `grep FAIL {{ ardana_qe_test_log }} | wc -l`"
