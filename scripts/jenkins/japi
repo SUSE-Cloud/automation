@@ -69,6 +69,7 @@ sub usage()
     setdescription <build> <description> : set description of a build
     getbuilds <jobname> : get build numbers
     getqueue [jobname]: get queue numbers
+    cancelItem <itemID>: cancel queued job
 
   The <jobname> has to be the exact job name (no directory, no trailing .xml)
   The <prefix> will match all
@@ -294,6 +295,15 @@ sub getqueue
   print JSON->new->allow_nonref->pretty->encode($data);
 }
 
+sub cancelItem
+{
+  my $item=shift;
+  $item or die "needs numeric queue ID";
+  my $out=curl(qw"-X POST -d", "id=${item}", "${jurlbase}/queue/cancelItem");
+  print $out;
+}
+
+
 sub getcrumb
 {
   $CRUMB||="crumb:dummy";
@@ -305,7 +315,7 @@ sub getcrumb
 
 my $cmd=shift || die usage();
 my %handlefunc=();
-foreach my $func (qw(reformat getdescription setdescription getbuilds getqueue getcrumb)) {
+foreach my $func (qw(reformat getdescription setdescription getbuilds getqueue cancelItem getcrumb)) {
   $handlefunc{$func} = eval "\\&$func";
 }
 foreach my $c (qw(fetch fetch-all push push-all)) {
