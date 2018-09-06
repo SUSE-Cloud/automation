@@ -180,6 +180,9 @@
                     Cloud:OpenStack:Ocata*)
                         OSC_BUILD_DIST=SLE_12_SP2
                         ;;
+                    Cloud:OpenStack:Rocky*)
+                        OSC_BUILD_DIST=SLE_12_SP4
+                        ;;
                     *)
                         echo "Support missing"
                         exit 1
