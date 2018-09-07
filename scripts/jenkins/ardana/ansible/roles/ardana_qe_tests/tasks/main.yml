@@ -37,5 +37,3 @@
       fail:
         msg: "{{ ardana_qe_test_results.failed }} tests failed."
       when: ardana_qe_test_results.failed | int > 0
-
-- include_tasks: send_to_os_health.yml

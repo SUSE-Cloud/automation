@@ -29,6 +29,17 @@
     dest: "{{ ardana_qe_tests_dir }}"
     force: yes
 
+- name: Ensure SLES-SDK repo
+  zypper_repository:
+    name: "{{ item }}"
+    repo: "http://{{ clouddata_server }}/repos/x86_64/{{ item }}/"
+    runrefresh: yes
+    priority: 9999
+  loop:
+    - "SLE12-SP3-SDK-Pool"
+    - "SLE12-SP3-SDK-Updates"
+  become: yes
+
 - name: Ensure test virtual environment exists when required
   pip:
     name: "{{ item }}"
