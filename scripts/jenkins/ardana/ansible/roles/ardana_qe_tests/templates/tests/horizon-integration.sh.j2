@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Wrapper script to execute the monasca test
+#
+# Usage: monasca.sh
+
+set -o pipefail
+
+VENV={{ ardana_qe_test_venv }}
+STESTR={{ ardana_qe_test_venv }}/bin/stestr
+
+# Activate the virtual environment
+source ${VENV}/bin/activate
+
+# Run the test
+source ~/service.osrc
+cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/monasca/python-monasca-client-tests/
+${STESTR} init
+${STESTR} run -t ./ --no-discover test_monasca_client_details.py --concurrency=1 | tee {{ ardana_qe_test_log }}
+res=$?
+${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
+
+
+# Cleanup all notifications,alarm definitions,alarms leftover in case any tests failed
+for id in $(monasca notification-list | grep notification_ | cut -d'|' -f3); do
+  monasca notification-delete $id
+done
+for id in $(monasca alarm-definition-list | grep alarm_name | cut -d'|' -f3); do
+  monasca alarm-definition-delete $id
+done
+for id in $(monasca alarm-list | grep alarm_name | cut -d'|' -f2); do
+  monasca alarm-delete $id
+done
+
+exit $res
