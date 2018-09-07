@@ -172,6 +172,7 @@ for servicepack in 4 3 2 1; do
         echo ================== Updating SLE 12 SP$servicepack for $arch
 
         destdir_install=/srv/nfs/install/suse-${chef_version}/$arch/install/
+        mkdir -p $destdir_install
         if [ -z "$sync_from_ibs" ]; then
             $rsync $install_source/SLP/SLE-$version-Server-GM/$arch/DVD1/ $destdir_install
         else
