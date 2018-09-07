@@ -17,9 +17,6 @@
 
 ses_cluster_configuration:
   ses_cluster_name: ceph
-{% if ardana_ses_post_deploy %}
-  ses_radosgw_url: "http://{{ hostvars['ses-' + ses_cluster_id].ansible_host }}:{{ ses_rgw_port }}/swift/v1"
-{% endif %}
 
   conf_options:
       ses_fsid: {{ hostvars['ses-' + ses_cluster_id].conf_options.stdout_lines.0 }}
@@ -28,18 +25,18 @@ ses_cluster_configuration:
       ses_public_network: {{ hostvars['ses-' + ses_cluster_id].conf_options.stdout_lines.3 }}
       ses_cluster_network: {{ hostvars['ses-' + ses_cluster_id].conf_options.stdout_lines.4 }}
   cinder:
-      rbd_store_pool: cinder-{{ qe_env }}
-      rbd_store_pool_user: cinder-{{ qe_env }}
-      keyring_file_name: ceph.client.cinder-{{ qe_env }}.keyring
+      rbd_store_pool: cinder-{{ ardana_env }}
+      rbd_store_pool_user: cinder-{{ ardana_env }}
+      keyring_file_name: ceph.client.cinder-{{ ardana_env }}.keyring
   cinder-backup:
-      rbd_store_pool: backups-{{ qe_env }}
-      rbd_store_pool_user: cinder_backup-{{ qe_env }}
-      keyring_file_name: ceph.client.cinder_backup-{{ qe_env }}.keyring
+      rbd_store_pool: backups-{{ ardana_env }}
+      rbd_store_pool_user: cinder_backup-{{ ardana_env }}
+      keyring_file_name: ceph.client.cinder_backup-{{ ardana_env }}.keyring
  # Nova uses the cinder user to access the nova pool, cinder pool
  # So all we need here is the nova pool name.
   nova:
-      rbd_store_pool: nova-{{ qe_env }}
+      rbd_store_pool: nova-{{ ardana_env }}
   glance:
-      rbd_store_pool: glance-{{ qe_env }}
-      rbd_store_pool_user: glance-{{ qe_env }}
-      keyring_file_name: ceph.client.glance-{{ qe_env }}.keyring
+      rbd_store_pool: glance-{{ ardana_env }}
+      rbd_store_pool_user: glance-{{ ardana_env }}
+      keyring_file_name: ceph.client.glance-{{ ardana_env }}.keyring

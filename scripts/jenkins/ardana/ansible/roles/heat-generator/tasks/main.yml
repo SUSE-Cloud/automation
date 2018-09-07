@@ -73,6 +73,8 @@
     regexp: '/dev/sd([a-f])'
     replace: '/dev/vd\1'
   with_filetree: '{{ input_model_path }}'
+  loop_control:
+    label: "{{ item.path }}"
   when: item.state == 'file'
   ignore_errors: True
 

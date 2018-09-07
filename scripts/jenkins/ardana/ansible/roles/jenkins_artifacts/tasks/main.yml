@@ -15,9 +15,6 @@
 #
 ---
 
-- name: Gather variables for artifacts to collect when '{{ task }}'
-  include_vars: "{{ task }}.yml"
-
 - name: Ensure artifacts dir exists
   file:
     path: "{{ jenkins_artifacts_dir }}"
@@ -25,9 +22,10 @@
   delegate_to: localhost
 
 - name: Collect artifacts
-  fetch:
+  synchronize:
     src: "{{ item }}"
     dest: "{{ jenkins_artifacts_dir }}"
-    fail_on_missing: no
-    flat: yes
-  with_items: "{{ jenkins_artifacts_to_collect }}"
+    mode: pull
+  when: item != ''
+  loop: "{{ jenkins_artifacts_to_collect }}"
+  failed_when: false

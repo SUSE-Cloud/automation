@@ -1,0 +1,56 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Run cobbler-deploy
+  command: |
+    ansible-playbook -i hosts/localhost cobbler-deploy.yml \
+      -e ardanauser_password='ardana'
+  args:
+    chdir: "{{ ardana_openstack_path }}"
+
+- name: Get list of SLES nodes to reimage
+  shell: 'cobbler profile list | grep "sles12sp3-x86_64-" | cut -d"-" -f3'
+  become: yes
+  register: ardana_sles_nodes
+
+- name: Get list of RHEL nodes to reimage
+  shell: 'cobbler profile list | grep "rhel73-x86_64-" | cut -d"-" -f3'
+  become: yes
+  register: ardana_rhel_nodes
+
+- name: Run playbook to prepare SLES grub2
+  command: |
+    ansible-playbook -i hosts/localhost prepare-sles-grub2.yml \
+      -e nodelist={{ ardana_sles_nodes.stdout_lines | join(',') }}
+  args:
+    chdir: "{{ ardana_openstack_path }}"
+
+- name: Run playbook to prepare RHEL grub2
+  command: |
+    ansible-playbook -i hosts/localhost prepare-rhel-grub2.yml \
+      -e nodelist={{ ardana_rhel_nodes.stdout_lines | join(',') }}
+  args:
+    chdir: "{{ ardana_openstack_path }}"
+  when: ardana_rhel_nodes.stdout_lines | length
+
+- name: Run playbook to reimage nodes
+  command: |
+    ansible-playbook -i hosts/localhost bm-reimage.yml \
+      -e nodelist={{ (ardana_sles_nodes.stdout_lines + \
+      ardana_rhel_nodes.stdout_lines) | join(',') }}
+  args:
+    chdir: "{{ ardana_openstack_path }}"

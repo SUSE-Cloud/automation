@@ -27,7 +27,7 @@
       with_items: "{{ tempest_qe_run_filters }}"
       when: tempest_run_filter in tempest_qe_run_filters
 
-    - name: Run tempest
+    - name: Run tempest '{{ tempest_run_filter }}'
       shell: |
         ansible-playbook -i hosts/verb_hosts tempest-run.yml \
                      -e run_filter="{{ tempest_run_filter }}"
@@ -38,6 +38,24 @@
       shell: "grep -B1 -- '------' {{ tempest_results_log }} | awk -F '\n' 'ln ~ /^$/ { ln = \"matched\"; print $1 } $1 ~ /^--$/ { ln = \"\" }'"
       register: tempest_failed_tests
   always:
+    - name: Ensure virtualenv with subunit2junit
+      pip:
+        name: "{{ item }}"
+        virtualenv: "{{ subunit2junit_venv }}"
+      loop:
+        - "junitxml"
+        - "python-subunit"
+
+    - name: Generate xml subunit results
+      shell: "{{ subunit2junit_venv }}/bin/subunit2junitxml {{ tempest_results_subunit }} > {{ subunit_xml_results }}"
+      changed_when: false
+      failed_when: false
+
+    - name: Generate html subunit results
+      shell: "subunit2html {{ tempest_results_subunit }} {{ subunit_html_results }}"
+      changed_when: false
+      failed_when: false
+
     - name: Process tempest result
       shell: "awk {{ item }} {{ tempest_results_log }}"
       with_items: "{{ tempest_results_awk_collect }}"

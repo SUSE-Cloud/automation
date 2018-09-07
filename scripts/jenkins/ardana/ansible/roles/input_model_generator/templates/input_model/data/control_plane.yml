@@ -65,7 +65,7 @@
           allocation-policy: any
 {%     endif %}
           service-components:
-{%     for service_component in ns.service_components|unique|sort if (versioned_features[service_component.split('-')[0]]|default(dict()))['enabled']|default(true) %}
+{%     for service_component in ns.service_components|unique|sort %}
             - {{ service_component }}
 {%     endfor %}
 {%   endfor %}

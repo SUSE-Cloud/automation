@@ -16,41 +16,25 @@
 
 ---
 
-- name: Configure SES RGW for {{ qe_env }}
-  hosts: ses-{{ 'nue' if qe_env.startswith('qa') else 'prv' }}
+- name: Configure SES RGW for ardana
+  hosts: "ses-qe1"
   remote_user: root
   gather_facts: no
   vars:
-    task: "ses rgw"
-
-  vars_prompt:
-    - name: "qe_env"
-      prompt: "Target environment to configure RGW"
-      private: no
-      when: qe_env not defined
-
-  pre_tasks:
-    - include_role:
-        name: rocketchat_notify
-      vars:
-        rc_action: "started"
-        rc_state: "Started"
-      when: rc_notify
+    task: "deploy"
 
   tasks:
     - block:
         - include_role:
             name: ses_configure
             tasks_from: configure_rgw
-
       rescue:
         - include_role:
             name: rocketchat_notify
           vars:
             rc_action: "finished"
             rc_state: "Failed"
-          when:
-            - rc_notify
+          when: rc_notify
 
         - name: Stop if something failed
           fail:
@@ -58,11 +42,11 @@
 
 
 - name: Reconfigure swift
-  hosts: ardana-{{ qe_env }}
+  hosts: "{{ ardana_env }}"
   remote_user: ardana
   gather_facts: no
   vars:
-    task: "ses rgw"
+    task: "deploy"
 
   tasks:
     - block:
@@ -70,13 +54,12 @@
           lineinfile:
             path: "/tmp/ses_config/ses_config.yml"
             insertafter: ".*ses_cluster_name.*"
-            line: "  ses_radosgw_url: http://{{ hostvars['ses-nue' if qe_env.startswith('qa') else 'ses-prv'].ansible_host }}:{{ ses_rgw_port }}/swift/v1"
+            line: "  ses_radosgw_url: http://{{ hostvars['ses-' ~ ses_cluster_id].ansible_host }}:{{ ses_rgw_port }}/swift/v1"
 
-        - name: Run ardana-reconfigure playbook
+        - name: Run swift-reconfigure playbook
           command: "ansible-playbook swift-reconfigure.yml"
           args:
             chdir: "~/scratch/ansible/next/ardana/ansible"
-
       rescue:
         - include_role:
             name: rocketchat_notify

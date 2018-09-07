@@ -22,9 +22,9 @@
     force: yes
   delegate_to: localhost
 
-- name: Load baremetal variables for '{{ qe_env }}'
+- name: Load baremetal variables for '{{ ardana_env }}'
   include_vars:
-    dir: "{{ qe_ardana_bm_info_dir }}/{{ qe_env }}"
+    dir: "{{ qe_ardana_bm_info_dir }}/{{ ardana_env }}"
     name: "bm_info"
     extensions:
       - yml

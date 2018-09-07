@@ -19,7 +19,6 @@ qe_ardana_bm_info_git_url: "https://gitlab.suse.de/cloud-qe/ardana-bm-info.git"
 qe_ardana_bm_info_dir: "/tmp/ardana-bm-info"
 
 template_file_name: "{{ scenario[item ~ '_template'] }}.yml"
-input_model_dir: "/tmp/ardana-im/{{ scenario_name }}"
 
 service_component_groups:
   CLM:

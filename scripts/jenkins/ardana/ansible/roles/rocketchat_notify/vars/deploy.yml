@@ -21,85 +21,63 @@ rc_announcement_finished: "{{ 'READY FOR TESTING: ' if rc_state == 'Success' els
 
 _announcement_full: "{{ _announcement_data + _announcement_mu if _cloud_mu_available or _sles_mu_available else _announcement_data }}"
 
-_announcement_data: "{{ cloud_source }} - {{ cloud_brand }} - {{ ardana_input_model }}{{ _announcement_ses }}"
+_announcement_data: "{{ cloudsource }} - {{ rc_im_name }}{{ _announcement_ses }}"
 _announcement_cloud_mu: "{{ ' - Cloud_MU: ' + cloud_maint_updates if _cloud_mu_available else '' }}"
 _announcement_mu: "{{ _announcement_cloud_mu + ' - SLES_MU: ' + sles_maint_updates if _sles_mu_available else _announcement_cloud_mu }}"
 
-_announcement_ses: "{{ '-SES' if ses_enabled else '' }}"
+_announcement_ses: "{{ ses_enabled | ternary('-SES', '') }}"
 
 # Chat message
-rc_msg_fields_started: "{{ _msg_fields_started + _msg_field_mu }}"
-rc_msg_fields_finished: "{{ _msg_fields_finished + _msg_field_mu }}"
+rc_msg_fields_started: "{{ _msg_fields_started + _msg_field_mu + _msg_field_clm_nodes }}"
+rc_msg_fields_finished: "{{ _msg_fields_finished + _msg_field_mu + _msg_field_clm_nodes }}"
 
+_msg_ses_enabled: "{{ ses_enabled | ternary('Yes', 'No') }}"
 _msg_fields_started:
   - title: Deployer
-    value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
+    value: "{{ hostvars[ardana_env].ansible_host if ardana_env in groups['all'] else 'NA' }}"
     short: True
-  - title: Source
-    value: "{{ cloud_source }}"
-    short: True
-  - title: Brand
-    value: "{{ cloud_brand }}"
+  - title: cloudsource
+    value: "{{ cloudsource }}"
     short: True
   - title: Input model
-    value: "{{ hostvars['ardana-' + qe_env].ardana_input_model }}"
-    short: True
-  - title: CLM
-    value: "{{ clm_model | title }}"
+    value: "{{ rc_im_name }}"
     short: True
   - title: SES enabled
-    value: "{{ 'Yes' if ses_enabled else 'No' }}"
+    value: "{{ _msg_ses_enabled }}"
     short: True
   - title: Started by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    value: "{{ jenkins_build_url_msg }}"
     short: False
   - title: Ardana log stream
-    value: "http://{{ hostvars['ardana-' + qe_env].ansible_host }}:9091/"
-    short: False
-  - title: Nodes
-    value: |
-      Controllers: {{ controllers }}
-      SLES-computes: {{ sles_computes }}
-      RHEL-computes: {{ rhel_computes }}
+    value: "{{ ansible_log_stream_msg if ardana_env in groups['all'] else 'NA' }}"
     short: False
 
 _msg_fields_finished:
   - title: Deployer
-    value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
+    value: "{{ hostvars[ardana_env].ansible_host if ardana_env in groups['all'] else 'NA' }}"
     short: True
-  - title: Source
-    value: "{{ cloud_source }}"
-    short: True
-  - title: Brand
-    value: "{{ cloud_brand }}"
+  - title: cloudsource
+    value: "{{ cloudsource }}"
     short: True
   - title: Input model
-    value: "{{ ardana_input_model }}"
-    short: True
-  - title: CLM
-    value: "{{ clm_model | title }}"
+    value: "{{ rc_im_name }}"
     short: True
   - title: SES enabled
-    value: "{{ 'Yes' if ses_enabled else 'No' }}"
+    value: "{{ _msg_ses_enabled }}"
     short: True
   - title: Status
     value: "{{ rc_state }}"
     short: True
   - title: Built by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    value: "{{ jenkins_build_url_msg }}"
     short: False
   - title: Media version
-    value: "{{ cloud_media_build_version.content | b64decode if cloud_media_build_version.content is defined else '-' }}"
+    value: "{{ cloud_media_build_version.content | b64decode if cloud_media_build_version is defined else 'NA' }}"
     short: False
   - title: Log
-    value: "{{ ansible_log_url if lookup('env', 'BUILD_URL') else 'Not available' }}"
+    value: "{{ ansible_log_url_msg if lookup('env', 'BUILD_URL') else 'Not available' }}"
     short: False
-  - title: Nodes
-    value: |
-      Controllers: {{ controllers }}
-      SLES-computes: {{ sles_computes }}
-      RHEL-computes: {{ rhel_computes }}
-    short: False
+
 
 _field_cloud_mu:
   - title: Cloud MU
@@ -115,3 +93,18 @@ _sles_mu_available: "{{ sles_maint_updates is defined and sles_maint_updates | l
 
 _msg_field_cloud_mu: "{{ _field_cloud_mu if _cloud_mu_available else [] }}"
 _msg_field_mu: "{{ _msg_field_cloud_mu + _field_sles_mu if _sles_mu_available else _msg_field_cloud_mu }}"
+
+_field_clm:
+  - title: CLM
+    value: "{{ clm_model | title }}"
+    short: True
+
+_field_nodes:
+  - title: Nodes
+    value: |
+      Controllers: {{ controllers }}
+      SLES-computes: {{ sles_computes }}
+      RHEL-computes: {{ rhel_computes }}
+    short: False
+
+_msg_field_clm_nodes: "{{ (scenario_name == '') | ternary([], _field_nodes + _field_clm) }}"

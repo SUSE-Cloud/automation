@@ -34,19 +34,18 @@ rc_msg_fields_finished: "{{ _msg_fields_finished + _msg_field_mu }}"
 
 _msg_fields_started:
   - title: Deployer
-    value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
+    value: "{{ hostvars[ardana_env].ansible_host }}"
     short: True
   - title: Started by
     value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
     short: False
   - title: Ardana log stream
-    value: "http://{{ hostvars['ardana-' + qe_env].ansible_host }}:9091/"
+    value: "http://{{ hostvars[ardana_env].ansible_host }}:9091/"
     short: True
-
 
 _msg_fields_finished:
   - title: Deployer
-    value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
+    value: "{{ hostvars[ardana_env].ansible_host }}"
     short: True
   - title: Status
     value: "{{ rc_state }}"

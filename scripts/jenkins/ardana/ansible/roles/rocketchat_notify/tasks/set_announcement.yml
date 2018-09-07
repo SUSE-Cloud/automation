@@ -44,7 +44,7 @@
 - name: Load previous announcement when not deploy
   slurp:
     src: "{{ rc_deploy_announcement_file }}"
-  delegate_to: "gate-{{ qe_env }}"
+  delegate_to: "gate-{{ ardana_env }}"
   register: rc_previous_announcement
   remote_user: "root"
   ignore_errors: true
@@ -68,7 +68,7 @@
   copy:
     content: "{{ rc_announcement_finished }}"
     dest: "{{ rc_deploy_announcement_file }}"
-  delegate_to: "gate-{{ qe_env }}"
+  delegate_to: "gate-{{ ardana_env }}"
   remote_user: "root"
   when:
     - "rc_task == 'deploy' or rc_task == 'update'"

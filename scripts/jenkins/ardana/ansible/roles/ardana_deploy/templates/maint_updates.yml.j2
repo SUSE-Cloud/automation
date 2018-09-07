@@ -15,20 +15,22 @@
 #
 ---
 
-- name: Apply maintenance updates
+- name: Apply package maintenance updates
   hosts: resources
   become: yes
   vars:
     cloud_maint_updates_list: {{ cloud_maint_updates_list | to_yaml if cloud_maint_updates | length else [] }}
     sles_maint_updates_list: {{ sles_maint_updates_list | to_yaml if sles_maint_updates | length else [] }}
-    deployer_ip: {{ ansible_all_ipv4_addresses | ipaddr(ardana_mgmt_subnet) | first }}
-
+    sles_sp: {{ (cloud_release == 'cloud8') | ternary('3', '4') }}
+    cloud_release: {{ cloud_release }}
 {% raw %}
+    deployer_ip: "{{ hostvars[groups['ARD-SVC--first-member'].0].ansible_ssh_host }}"
+
   tasks:
     - name: Ensure cloud maint update zypper repositories
       zypper_repository:
         name: "Cloud-Maint-Update-{{ item }}"
-        repo: "http://{{ deployer_ip }}:79/SUSE-12-3/x86_64/repos/{{ item }}/SUSE_SLE-12-SP3_Update_Products_Cloud8_Update/"
+        repo: "http://{{ deployer_ip }}:79/SUSE-12-{{ sles_sp }}/x86_64/repos/{{ item }}/SUSE_SLE-12-SP{{ sles_sp }}_Update_Products_{{ cloud_release | title }}_Update/"
         state: present
       with_items: "{{ cloud_maint_updates_list }}"
       when: ansible_distribution == 'SLES'
@@ -37,7 +39,7 @@
     - name: Ensure SLES maint update zypper repositories
       zypper_repository:
         name: "SLES-Maint-Update-{{ item }}"
-        repo: "http://{{ deployer_ip }}:79/SUSE-12-3/x86_64/repos/{{ item }}/SUSE_Updates_SLE-SERVER_12-SP3_x86_64/"
+        repo: "http://{{ deployer_ip }}:79/SUSE-12-{{ sles_sp }}/x86_64/repos/{{ item }}/SUSE_Updates_SLE-SERVER_12-SP{{ sles_sp }}_x86_64/"
         state: present
       with_items: "{{ sles_maint_updates_list }}"
       when: ansible_distribution == 'SLES'

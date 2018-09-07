@@ -15,25 +15,19 @@
 #
 ---
 
-ardana_input_model: "entry-scale-kvm"
-vrrp_offset: 50
-
 ardana_openstack_path: "~/openstack/ardana/ansible"
 ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
 
 ardana_openstack_playbooks:
   - "config-processor-run.yml -e encrypt='' -e rekey=''"
-  - "cobbler-deploy.yml -e ardanauser_password='ardana'"
   - "ready-deployment.yml"
 
 ardana_scratch_playbooks:
-  - "wipe_disks.yml -e automate=true"
-  - "site.yml"
-  - "ardana-cloud-configure.yml"
+  - play: "wipe_disks.yml -e automate=true"
+    when: "{{ is_physical_deploy }}"
+  - play: "site.yml"
+  - play: "ardana-cloud-configure.yml"
 
-ardana_openstack_rhel_repo_playbooks:
-  - "set-deployer-rhel-repo.yml"
-  - "ready-deployment.yml"
-
+ses_enabled: False
 cloud_maint_updates_list: "{{ cloud_maint_updates.split(',') if cloud_maint_updates is defined and cloud_maint_updates | length else [] }}"
 sles_maint_updates_list: "{{ sles_maint_updates.split(',') if sles_maint_updates is defined and sles_maint_updates | length else [] }}"
