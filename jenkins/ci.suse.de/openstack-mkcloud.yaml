@@ -65,6 +65,7 @@
 
       - label:
           name: label
+          all-nodes: false
           default: openstack-mkcloud
           description: >-
             Default: openstack-mkcloud |

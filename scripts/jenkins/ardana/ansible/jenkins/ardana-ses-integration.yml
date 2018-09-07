@@ -45,6 +45,7 @@
     parameters:
       - label:
           name: qe_env
+          all-nodes: false
           description: Target QE environment to run SES integration
           matching-label: allCases
       - string:

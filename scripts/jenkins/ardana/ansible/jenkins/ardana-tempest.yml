@@ -40,6 +40,7 @@
     parameters:
       - label:
           name: qe_env
+          all-nodes: false
           description: Target QE environment to run tempest
           matching-label: allCases
       - choice:
