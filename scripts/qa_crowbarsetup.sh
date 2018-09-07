@@ -2226,9 +2226,7 @@ function custom_configuration
         database)
             if [[ $hacloud = 1 ]] ; then
                 if [[ "$want_database_sql_engine" != "mysql" ]] ; then
-                    # migration 109 in SOC7 brings a change in schema, we need a different way to access to ha values
-                    # FIXME remove this after 109 is merged
-                    if [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
+                    if iscloudver 7 ; then
                         proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['mode']" "'drbd'"
                         proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['drbd']['size']" "$drbd_database_size"
                     else
@@ -2238,11 +2236,11 @@ function custom_configuration
                 fi
                 # For SOC7 we introduced transitional role called mysql-server that's gonna be used during the upgrade
                 # Users deploying SOC7 with MariaDB must use this one and not database-server
-                if iscloudver 7 && [[ "$want_database_sql_engine" == "mysql" ]] && \
-                    [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
+                if iscloudver 7 && [[ "$want_database_sql_engine" == "mysql" ]] ; then
                     proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "['cluster:$clusternamedata']"
                 else
                     proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
+                    proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "[]"
                     if iscloudver 7 && [[ "$want_database_sql_engine" != "mysql" ]] ; then
                         # explicitely set sql_engine to override the default
                         proposal_set_value database default "['attributes']['database']['sql_engine']" "'postgresql'"
