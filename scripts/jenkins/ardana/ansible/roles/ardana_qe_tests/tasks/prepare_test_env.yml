@@ -40,6 +40,15 @@
     - "SLE12-SP3-SDK-Updates"
   become: yes
 
+- name: Ensure requirements for stestr installed
+  zypper:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "gcc"
+    - "python-devel"
+  become: yes
+
 - name: Ensure test virtual environment exists when required
   pip:
     name: "{{ item }}"
