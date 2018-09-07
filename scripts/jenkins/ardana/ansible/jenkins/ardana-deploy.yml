@@ -41,6 +41,7 @@
     parameters:
       - label:
           name: qe_env
+          all-nodes: false
           description: Target QE environment to deploy
           matching-label: allCases
       - choice:
