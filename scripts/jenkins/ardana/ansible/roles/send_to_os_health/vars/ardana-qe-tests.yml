@@ -22,3 +22,4 @@ os_health_metadata:
   - "project:openstack/{{ test_name }}"
   - "qe_env:{{ qe_env }}"
   - "build_name:{{ os_health_build_name }}"
+  - "openstack_service: {{ test_name.split('_')[0] | lower }}"
