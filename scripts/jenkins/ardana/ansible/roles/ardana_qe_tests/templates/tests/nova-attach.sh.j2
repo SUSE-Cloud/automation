@@ -25,6 +25,7 @@ cd $test_dir
 source $HOME/keystone.osrc
 openstack role add --user admin --project admin cinder_admin
 $test_dir/cinder-tests-all $backend init | tee $test_log
+if [ ! $? == 0 ]; then echo "ERROR"; exit 1; fi
 
 # This is a hack because on a missing image (and other stuff) cinder-tests-all
 # does NOT do an exit 1.  Changes will eventually be made
