@@ -28,8 +28,7 @@ $test_dir/cinder-tests-all $backend init | tee $test_log
 
 # This is a hack because on a missing image (and other stuff) cinder-tests-all
 # does NOT do an exit 1.  Changes will eventually be made
-echo "Do GREP of $test_log"
-if [ `grep "does not exist" $test_log | wc -l` == 1 ]; then echo "not there"; exit 1; fi
+if [ `grep "does not exist" $test_log | wc -l` == 1 ]; then exit 1; fi
 
 source $HOME/service.osrc
 
