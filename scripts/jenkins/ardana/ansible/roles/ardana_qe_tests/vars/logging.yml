@@ -16,7 +16,7 @@
 ---
 
 ardana_qe_test_venv_requires:
-  - '../../../../tools/testhelper/'
+  - '{{ ardana_qe_tests_dir }}/tools/testhelper/'
   - 'python-subunit'
   - 'stestr'
 
