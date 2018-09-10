@@ -25,7 +25,7 @@ export HLM_USER=ardana
 #cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/monasca/python-monasca-client-tests/
 cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/logging/kronos/local
 ${STESTR} init
-${STESTR} run -t ./ --concurrency=1 | tee {{ ardana_qe_test_log }}
+${STESTR} run -t ./ --no-discover test_file_permissions.py --concurrency=1 | tee {{ ardana_qe_test_log }}
 res=$?
 ${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
 
