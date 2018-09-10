@@ -22,7 +22,7 @@ limits in our project.
 
 To be able to use the Jenkins job and login to a deployed env, you need:
 
-* the login creds for https://ci.nue.suse.com
+* the cloud team login creds for https://ci.nue.suse.com (ask in the cloud-team RocketChat channel if you don't know what it is, and someone will PM you)
 * your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/ssh-keys.yml) (via normal github pull requests)
 
 ## Create a new environment
