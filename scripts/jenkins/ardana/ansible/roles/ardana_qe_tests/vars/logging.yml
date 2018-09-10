@@ -17,6 +17,9 @@
 
 ardana_qe_test_venv_requires:
   - '{{ ardana_qe_tests_dir }}/tools/testhelper/'
+  - 'pytz'
+  - 'requests'
+  - 'configparser'
   - 'python-subunit'
   - 'stestr'
 
