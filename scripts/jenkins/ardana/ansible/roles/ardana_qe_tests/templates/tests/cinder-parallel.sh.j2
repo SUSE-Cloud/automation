@@ -18,6 +18,10 @@ test_log="$work_dir/${test_name}.log"
 venv_dir={{ ardana_qe_test_venv }}
 subunit_log="$work_dir/${test_name}.subunit:$venv_dir"
 
+# tests append so start clean
+rm $test_log
+rm $subunit_log
+
 # however they do need an environment which cinder-tests-all 
 # can set up, noting it needs a backend to be defined so for
 # note we'll use lvm
@@ -25,7 +29,6 @@ $test_dir/cinder-tests-all lvm init
 
 source $HOME/service.osrc
 cd $test_dir
-rm $test_log
 $test_dir/cinder-parallel.py --oper c --sulog $subunit_log | tee -a $test_log
 $test_dir/cinder-parallel.py --oper d --sulog $subunit_log | tee -a $test_log
 

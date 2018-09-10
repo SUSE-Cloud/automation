@@ -16,8 +16,9 @@ test_log="$work_dir/${test_name}.log"
 venv_dir={{ ardana_qe_test_venv }}
 subunit_log="$work_dir/${test_name}.subunit:$venv_dir"
 
-# we do appends to test_log, so start clean
+# tests appens so start clean
 rm $test_log
+rm $subunit_log
 
 # messy, if this is run before cinder, we need to run cinder-tests-all init to
 # set up network AND do it the same way cinder.sh does.
