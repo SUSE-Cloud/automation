@@ -30,7 +30,7 @@
     force: yes
     version: "{{ ardana_qe_tests_branch }}"
 
-- name: Ensure SLES-SDK repo
+- name: Install SLES-SDK repos
   zypper_repository:
     name: "{{ item }}"
     repo: "http://{{ clouddata_server }}/repos/x86_64/{{ item }}/"
@@ -41,13 +41,23 @@
     - "SLE12-SP3-SDK-Updates"
   become: yes
 
-- name: Ensure requirements for stestr installed
+- name: Install requirements for QE automated tests
   zypper:
     name: "{{ item }}"
     state: present
   with_items:
     - "gcc"
     - "python-devel"
+    - "java-1_8_0-openjdk-headless"
+  become: yes
+
+- name: Remove SLES-SDK repos
+  zypper_repository:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - "SLE12-SP3-SDK-Pool"
+    - "SLE12-SP3-SDK-Updates"
   become: yes
 
 - name: Ensure test virtual environment exists when required
