@@ -31,6 +31,10 @@ cd {{ ardana_qe_test_venv }}
 git clone https://github.com/vmware/vsphere-automation-sdk-python.git 
 pip install --upgrade --force-reinstall -r vsphere-automation-sdk-python/requirements.txt \
 	    --extra-index-url file://{{ ardana_qe_test_venv }}/vsphere-automation-sdk-python/lib/
+<<<<<<< HEAD
+=======
+echo $?
+>>>>>>> 4a0e027ae079b0372f3c07f5226ed3fdecc779f1
 cd $TEST_DIR
 ${STESTR} init
 if $ESX; then
