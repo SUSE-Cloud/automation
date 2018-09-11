@@ -4,7 +4,7 @@
     disabled: '{obj:disabled}'
 
     triggers:
-      - timed: '29 1 * * *'
+      - timed: 'H H * * */2'
 
     logrotate:
       numToKeep: -1

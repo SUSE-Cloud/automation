@@ -17,7 +17,7 @@
               all: process rebuild for all open PRs (even if status is successful)
 
     triggers:
-      - timed: 'H H/12 * * *'
+      - timed: 'H H/4 * * *'
 
     wrappers:
       - workspace-cleanup:

@@ -4,7 +4,7 @@
     node: cloud-trigger
 
     triggers:
-      - timed: 'H H */2 * *'
+      - timed: 'H H * * */2'
       - pollurl:
           cron: 'H/5 * * * *'
           polling-node: cloud-trigger
