@@ -22,11 +22,17 @@ export ES_USERNAME="kibana"
 export INVENTORY_LOCATION=~/scratch/ansible/next/ardana/ansible/hosts/verb_hosts
 export HLM_USER=ardana
 
-#cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/monasca/python-monasca-client-tests/
-cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/logging/kronos/local
+cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/logging/kronos/centralized
 ${STESTR} init
-${STESTR} run -t ./ --no-discover test_file_permissions.py --concurrency=1 | tee {{ ardana_qe_test_log }}
+${STESTR} run -t ./ --no-discover test_basic_vip.py --concurrency=1 | tee {{ ardana_qe_test_log }}
 res=$?
 ${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
+
+#need to run local tests on control node, WIP
+#cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/logging/kronos/local
+#${STESTR} init
+#${STESTR} run -t ./ --no-discover test_file_permissions.py --concurrency=1 | tee {{ ardana_qe_test_log }}
+#res=$?
+#${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
 
 exit $res
