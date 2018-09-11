@@ -18,6 +18,8 @@
 - name: Gather variables for test '{{ test_name }}'
   include_vars: "{{ test_name }}.yml"
 
+- include_tasks: read_osrc.yml
+
 - include_tasks: prepare_test_env.yml
 
 - include_tasks: setup_os_resources.yml

@@ -1,0 +1,35 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+- name: Collect values from keystone.osrc
+  shell: "source ~/keystone.osrc; echo ${{ item }}"
+  register: osrc
+  loop: "{{ ardana_qe_tests_admin_osrc_values }}"
+  changed_when: false
+
+- name: Store values from keystone.osrc
+  set_fact:
+    os_admin_osrc: "{{ os_admin_osrc | default({}) | combine({item.item: item.stdout}) }}"
+  loop: "{{ osrc.results }}"
+  loop_control:
+    label: "{{ item.item }}: {{ item.stdout }}"
+
+- name: Store unversioned auth url
+  shell: "source ~/keystone.osrc; echo $OS_AUTH_URL | egrep -o 'http[s]*://[^/]*' "
+  register: os_unversioned_auth_url
+
+- set_fact:
+    os_unversioned_auth_url: "{{ os_unversioned_auth_url.stdout }}"

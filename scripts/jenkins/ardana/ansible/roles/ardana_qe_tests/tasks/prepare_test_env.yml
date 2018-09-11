@@ -28,6 +28,7 @@
     repo: "{{ ardana_qe_tests_git_url }}"
     dest: "{{ ardana_qe_tests_dir }}"
     force: yes
+    version: "{{ ardana_qe_tests_branch }}"
 
 - name: Ensure SLES-SDK repo
   zypper_repository:
@@ -62,9 +63,17 @@
     dest: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.sh"
     mode: "0755"
 
+- name: Create run_filters directory
+  file:
+    path: "{{ ardana_qe_test_work_dir }}/run_filters/"
+    state: directory
+  when: "ardana_qe_test_run_filters is exists"
+
 - name: Copy test run filters when available
   copy:
     src: "{{ ardana_qe_test_run_filters }}/"
     dest: "{{ ardana_qe_test_work_dir }}/run_filters/"
     mode: "0640"
   when: "ardana_qe_test_run_filters is exists"
+
+

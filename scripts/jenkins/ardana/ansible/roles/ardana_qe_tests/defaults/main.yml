@@ -18,7 +18,9 @@
 ardana_qe_base_dir: "{{ ansible_user_dir }}/ardana-qe"
 ardana_qe_test_work_dir: "{{ ardana_qe_base_dir }}/{{ test_name }}"
 ardana_qe_tests_dir: "{{ ardana_qe_base_dir }}/ardana-qa-tests"
-ardana_qe_tests_git_url: "http://git.suse.provo.cloud/ardana/ardana-qa-tests.git"
+ardana_qe_tests_git_repo: "http://git.suse.provo.cloud"
+ardana_qe_tests_git_url: "{{ ardana_qe_tests_git_repo }}/ardana/ardana-qa-tests.git"
+ardana_qe_tests_branch: "{{ tests_branch | default('master') }}"
 
 ardana_qe_test_log: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.log"
 ardana_qe_test_subunit: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit"
@@ -43,7 +45,7 @@ os_resource_state: present
 os_resource_prefix: "ansible-qe-tests-{{ test_name }}"
 os_resources_requires: []
 os_resource_test_auth:
-  username: "{{ os_resource_prefix }}-user"
-  password: "secret"
-  project: "{{ os_resource_prefix }}-project"
-  role: "Member"
+  - username: "{{ os_resource_prefix }}-user"
+    password: "secret"
+    project: "{{ os_resource_prefix }}-project"
+    role: "Member"
