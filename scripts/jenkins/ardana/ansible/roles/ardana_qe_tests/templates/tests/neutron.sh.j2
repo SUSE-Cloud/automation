@@ -12,6 +12,8 @@ STESTR={{  ardana_qe_test_venv }}/bin/stestr
 DPDK={{ dpdk }}
 DPDKBR={{ dpdk_br }}
 OCTAVIA={{ octavia }}
+ESX={{ esx }}
+TEST_DIR={{ ardana_qe_tests_dir }}/ardana-qa-tests/neutron/sdk_scripts
 
 # Activate the virtual environment
 source ${VENV}/bin/activate
@@ -25,7 +27,19 @@ fi
 if $OCTAVIA; then
     export OCTAVIA=true
 fi
-cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/neutron/sdk_scripts/
+cd {{ ardana_qe_test_venv }}
+git clone https://github.com/vmware/vsphere-automation-sdk-python.git 
+pip install --upgrade --force-reinstall -r vsphere-automation-sdk-python/requirements.txt \
+	    --extra-index-url file://{{ ardana_qe_test_venv }}/vsphere-automation-sdk-python/lib/
+echo $?
+cd $TEST_DIR
 ${STESTR} init
-${STESTR} run -t ./ --concurrency=1 | tee {{ ardana_qe_test_log }}
+if $ESX; then
+    export ESX=true
+    ${STESTR} run -t ./ test_neutron_agent test_network_subnet test_ext_network \
+	   test_port test_router test_overlapping_ips test_neutron_rbac \
+	   test_neutron_quotas test_vm_esx --concurrency=1 | tee {{ ardana_qe_test_log }}
+else
+    ${STESTR} run -t ./ --black-regex 'esx' --concurrency=1 | tee {{ ardana_qe_test_log }}
+fi
 ${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
