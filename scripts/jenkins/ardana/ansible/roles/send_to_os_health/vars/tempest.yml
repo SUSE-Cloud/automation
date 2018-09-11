@@ -18,7 +18,7 @@
 test_results_subunit: "/opt/stack/tempest/logs/testrepository_region1.subunit"
 
 os_health_metadata:
-  - "build_uuid:'uuidgen'"
+  - "build_uuid:`uuidgen`"
   - "project:openstack/tempest/{{ tempest_run_filter }}"
   - "qe_env:{{ qe_env }}"
   - "tempest_filter:{{ tempest_run_filter }}"
