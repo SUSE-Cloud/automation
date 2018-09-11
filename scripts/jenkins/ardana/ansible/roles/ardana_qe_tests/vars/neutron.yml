@@ -16,3 +16,4 @@ ardana_qe_test_get_results_cmds:
   passed: 'grep ok {{ ardana_qe_test_log }} | wc -l'
   failed: 'grep FAILED {{ ardana_qe_test_log }} | wc -l'
   ran: 'grep -e "FAILED\|ok" {{ ardana_qe_test_log }} | wc -l'
+  skipped: 'grep -e "SKIPPED" {{ ardana_qe_test_log }} | wc -l'
