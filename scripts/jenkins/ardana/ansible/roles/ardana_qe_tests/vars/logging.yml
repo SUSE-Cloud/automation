@@ -20,6 +20,7 @@ ardana_qe_test_venv_requires:
   - 'pytz'
   - 'requests'
   - 'configparser'
+  - 'tempest'
   - 'python-subunit'
   - 'stestr'
 
