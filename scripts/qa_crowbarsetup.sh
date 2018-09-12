@@ -930,9 +930,15 @@ function onadmin_set_source_variables
             cs=$cloudsource
             [[ $cs =~ GM8 ]] && cs=GM
             # TODO: Switch to clouddata when released
-            CLOUDISOURL="${want_cloud8_iso_url:=$susedownload/install/SLE-12-SP3-Cloud8-$cs/}"
+            CLOUDISOURL="${want_cloud8_iso_url:=$reposerver/install/SLE-12-SP3-Cloud8-$cs/}"
             CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-8-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
+        ;;
+        GMC*|M?|RC?)
+            cs=$cloudsource
+            CLOUDISOURL="${want_cloud9_iso_path:=$susedownload/install/SLE-12-SP4-Cloud9-$cs/}"
+            CLOUDISONAME=${want_cloud9_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*1.iso"}
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-official"
         ;;
         *)
             complain 76 "You must set environment variable cloudsource=develcloud6|develcloud7|develcloud8|develcloud9|Mx|GM6|GM7"
