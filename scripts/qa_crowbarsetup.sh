@@ -2285,7 +2285,8 @@ function custom_configuration
                 fi
                 proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamerabbit']"
             fi
-            if ! [[ $want_trove_proposal = 0 ]]; then
+
+            if ! iscloudver 9plus && ! [[ $want_trove_proposal = 0 ]]; then
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
             fi
         ;;
@@ -2935,6 +2936,11 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        heat)
+            get_novacontroller
+            safely oncontroller heat_image_setup
+            ;;
+
         nfs_client)
             # nfs client (used by glance) is needed for ha setups but only when
             # neither swift nor ceph are deployed
@@ -2975,19 +2981,21 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        sahara)
+            if ! iscloudver 7plus; then
+                echo "Sahara is SOC 7+ only. Skipping"
+                return
+            fi
+            ;;
         swift)
             [[ $deployswift ]] || return
-            ;;
-        heat)
-            get_novacontroller
-            safely oncontroller heat_image_setup
             ;;
         tempest)
             [[ $want_tempest = 1 ]] || return
             ;;
-        sahara)
-            if ! iscloudver 7plus; then
-                echo "Sahara is SOC 7+ only. Skipping"
+        trove)
+            if iscloudver 9plus; then
+                echo "Trove is SOC 8- only. Skipping"
                 return
             fi
             ;;
