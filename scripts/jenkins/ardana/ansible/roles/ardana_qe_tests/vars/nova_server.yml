@@ -15,9 +15,11 @@
 #
 ---
 
+ardana_qe_test_venv_requires:
+  - 'python-subunit'
 
 ardana_qe_test_get_failed_cmd: "grep FAIL: {{ ardana_qe_test_log }} || echo 'None'"
 ardana_qe_test_get_results_cmds:
+  ran: "grep Ran {{ ardana_qe_test_log }} | awk '{print $2}'"
+  passed: 'grep ok {{ ardana_qe_test_log }} | wc -l'
   failed: "grep FAIL: {{ ardana_qe_test_log }} | wc -l"
-  ran: "grep Ran {{ ardana_qe_test_log }} | cut -c5-6"
-  passed: "expr `grep Ran {{ ardana_qe_test_log }} | cut -c5-6` - `grep FAIL: {{ ardana_qe_test_log }} | wc -l`"
