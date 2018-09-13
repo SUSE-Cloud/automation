@@ -58,6 +58,12 @@
               - on failure
 
       - string:
+          name: github_pr
+          description: >-
+            String is a ':' separated list of these values:
+            $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
+
+      - string:
           name: git_automation_repo
           default: https://github.com/SUSE-Cloud/automation.git
           description: >-

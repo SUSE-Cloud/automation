@@ -119,17 +119,13 @@ function mkcloudgating_trap()
 
 ## mkcloud github PR gating
 if [[ $github_pr ]] ; then
-    github_opts=(${github_pr//:/ })
-    github_pr_repo=${github_opts[0]}
-    github_pr_id=${github_opts[1]}
-    github_pr_sha=${github_opts[2]}
-    github_pr_context=${github_opts[4]}
+    # split $github_pr into multiple variables
+    source ${automationrepo}/scripts/jenkins/github-pr/parse.rc
+
     github_context=suse/mkcloud
     if [[ $github_pr_context ]] ; then
       github_context=$github_context/$github_pr_context
     fi
-    github_org=${github_pr_repo%/*}
-    github_repo=${github_pr_repo##*/}
     ghpr_paras="--org ${github_org} --repo ${github_repo} --sha $github_pr_sha --context $github_context"
 
     echo "testing PR: https://github.com/$github_pr_repo/pull/$github_pr_id"
