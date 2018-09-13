@@ -72,4 +72,15 @@ module GithubPR
       para
     end
   end
+
+  class JenkinsJobTriggerArdanaAction < JenkinsJobTriggerMkcloudAction
+    # Start by inheriting from JenkinsJobTriggerMkcloudAction to use its
+    # extra_parameters, but if we need to modify the extra_parameters then we
+    # should change to inherit JenkinsJobTriggerAction directly.
+    #
+    # github_pr is the string that lets openstack-mkcloud do the self gating, if
+    #   the ardana jobs are not adapted in the same way, we might need to set the correct
+    #   extra parameters here (overwrite the function)
+  end
+
 end

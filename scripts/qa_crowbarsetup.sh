@@ -930,9 +930,15 @@ function onadmin_set_source_variables
             cs=$cloudsource
             [[ $cs =~ GM8 ]] && cs=GM
             # TODO: Switch to clouddata when released
-            CLOUDISOURL="${want_cloud8_iso_url:=$susedownload/install/SLE-12-SP3-Cloud8-$cs/}"
+            CLOUDISOURL="${want_cloud8_iso_url:=$reposerver/install/SLE-12-SP3-Cloud8-$cs/}"
             CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-8-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
+        ;;
+        GMC*|M?|RC?)
+            cs=$cloudsource
+            CLOUDISOURL="${want_cloud9_iso_path:=$susedownload/install/SLE-12-SP4-Cloud9-$cs/}"
+            CLOUDISONAME=${want_cloud9_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*1.iso"}
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-official"
         ;;
         *)
             complain 76 "You must set environment variable cloudsource=develcloud6|develcloud7|develcloud8|develcloud9|Mx|GM6|GM7"
@@ -2197,6 +2203,7 @@ function custom_configuration
     esac
 
     local adminfqdn=`get_crowbar_node`
+    local controllernode=($(get_all_discovered_nodes | head -n 1))
 
     case "$proposal" in
         nfs_client)
@@ -2241,15 +2248,22 @@ function custom_configuration
                     proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "['cluster:$clusternamedata']"
                 else
                     proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
-                    proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "[]"
                     if iscloudver 7 && [[ "$want_database_sql_engine" != "mysql" ]] ; then
                         # explicitely set sql_engine to override the default
                         proposal_set_value database default "['attributes']['database']['sql_engine']" "'postgresql'"
                     fi
                 fi
+            # non-HA case might need some value for database-server role
+            elif [[ "$want_database_sql_engine" != "mysql" ]] ; then
+                proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['$controllernode']"
             fi
             if iscloudver 7plus && [[ $want_database_sql_engine ]] ; then
                 proposal_set_value database default "['attributes']['database']['sql_engine']" "'$want_database_sql_engine'"
+            fi
+            # for both HA and non-HA, make sure to leave mysql-server role empty for postgresql
+            if iscloudver 7 && [[ "$want_database_sql_engine" != "mysql" ]] && \
+                [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
+                proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "[]"
             fi
         ;;
         rabbitmq)

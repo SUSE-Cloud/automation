@@ -5,6 +5,13 @@
 
     triggers:
       - timed: 'H H * * *'
+      - pollurl:
+          cron: 'H * * * *'
+          polling-node: cloud-trigger
+          urls:
+            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/?regexp=x86_64-Media1.iso'
+              check-content:
+                - simple: true
 
     logrotate:
       numToKeep: -1

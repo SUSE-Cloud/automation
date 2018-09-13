@@ -28,3 +28,5 @@ sed  -i "s/\(password *= *\).*/\1$demopwd/" openstack_dashboard/test/integration
 ${STESTR} init
 ${STESTR} run -t ./ --concurrency=1 | tee {{ ardana_qe_test_log }}
 ${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
+
+exit $res
