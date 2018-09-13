@@ -46,7 +46,7 @@ _rc_msg_fields_finished:
     value: "{{ ardana_qe_test_results.failed if ardana_qe_test_results is defined else 'Not available' }}"
     short: True
   - title: Skipped
-    value: "{{ ardana_qe_test_results.skipped if ardana_qe_test_results is defined else 'Not available' }}"
+    value: "{{ ardana_qe_test_results.skipped if ardana_qe_test_results is defined and 'skipped' in ardana_qe_test_results else 'Not available' }}"
     short: True
   - title: Failed tests
     value: "{{ ardana_qe_failed_tests.stdout if ardana_qe_failed_tests is defined else 'Not available' }}"
