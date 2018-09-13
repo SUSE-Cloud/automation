@@ -7,6 +7,7 @@
 
 set -o pipefail
 VENV={{ ardana_qe_test_venv }}
+STESTR={{  ardana_qe_test_venv }}/bin/stestr
 
 # Activate the virtual environment
 source ${VENV}/bin/activate
@@ -16,4 +17,6 @@ source ~/service.osrc
 
 # Run the test
 cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/nova/nova-test-python-scripts
-python -m subunit.run test_novaclient_services test_novaclient_flavor | tee {{ ardana_qe_test_subunit }} | subunit2pyunit 2>&1 | tee {{ ardana_qe_test_log }}
+${STESTR} init
+${STESTR} run -t ./ --no-discover test_novaclient_services.py --concurrency=1 | tee {{ ardana_qe_test_log }}
+${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
