@@ -24,4 +24,4 @@ os_health_metadata:
   - "tempest_filter:{{ tempest_run_filter }}"
   - "build_name:{{ os_health_build_name }}"
   - "openstack_service:{{ tempest_run_filter }}"
-  - "build_version:{{ media_build_version }}"
+  - "build_version:{{ build_version.content | b64decode }}"

@@ -47,10 +47,10 @@
     - "pymysql"
   become: yes
 
-- name: Get media build version
+- name: Get build version
   slurp:
     src: "/srv/www/suse-12.3/x86_64/repos/Cloud/media.1/build"
-  register: media_build_version
+  register: build_version
 
 - name: Send results to OpenStack-Health
   shell: |
