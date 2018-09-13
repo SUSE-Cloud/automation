@@ -13,9 +13,6 @@ template:
       cloudsource: GM7+up
   ardana_parameters: &ardana_automation_parameters
     standard: &ardana_automation_standard
-      label: cloud-ardana-ci
-    stable:
-      *ardana_automation_standard
   user:
     suse_cloud_user: &suse_cloud_user
       - SUSE-Cloud
@@ -49,23 +46,6 @@ template:
             parameters:
               status: error
               message: Owner of the source repo for this PR lacks permission
-      - type: FileMatch
-        config:
-          inverse: true
-          paths:
-            -  !ruby/regexp '/scripts\/jenkins\/ardana\//'
-        blacklist_handler:
-          - type: SetStatus
-            parameters:
-              status: pending
-              message: Queued automation PR gating
-          - type: JenkinsJobTriggerArdana
-            parameters:
-              detail_logging: true
-              job_name: openstack-ardana
-              job_cmd: "../jenkins/jenkins-job-trigger"
-              job_parameters:
-                <<: *ardana_automation_parameters
       - type: FileMatch
         config:
           paths:
