@@ -2109,7 +2109,7 @@ function hacloud_configure_cluster_defaults
 
 function hacloud_configure_data_cluster
 {
-    if [[ "$want_database_sql_engine" != "mysql" ]] ; then
+    if iscloudver 6minus || [[ "$want_database_sql_engine" == "postgresql" ]] ; then
         proposal_set_value pacemaker $clusternamedata "['attributes']['pacemaker']['drbd']['enabled']" true
     fi
     hacloud_configure_cluster_defaults $clusternamedata "data"
@@ -2231,39 +2231,38 @@ function custom_configuration
             fi
         ;;
         database)
-            if [[ $hacloud = 1 ]] ; then
-                if [[ "$want_database_sql_engine" != "mysql" ]] ; then
-                    if [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
-                        proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['mode']" "'drbd'"
-                        proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['drbd']['size']" "$drbd_database_size"
-                    else
-                        proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
-                        proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
-                    fi
-                fi
-                # For SOC7 we introduced transitional role called mysql-server that's gonna be used during the upgrade
-                # Users deploying SOC7 with MariaDB must use this one and not database-server
-                if iscloudver 7 && [[ "$want_database_sql_engine" == "mysql" ]] && \
-                    [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
-                    proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "['cluster:$clusternamedata']"
-                else
-                    proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
-                    if iscloudver 7 && [[ "$want_database_sql_engine" != "mysql" ]] ; then
-                        # explicitely set sql_engine to override the default
-                        proposal_set_value database default "['attributes']['database']['sql_engine']" "'postgresql'"
-                    fi
-                fi
-            # non-HA case might need some value for database-server role
-            elif [[ "$want_database_sql_engine" != "mysql" ]] ; then
-                proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['$controllernode']"
-            fi
-            if iscloudver 7plus && [[ $want_database_sql_engine ]] ; then
+            if [[ $want_database_sql_engine ]] ; then
                 proposal_set_value database default "['attributes']['database']['sql_engine']" "'$want_database_sql_engine'"
             fi
-            # for both HA and non-HA, make sure to leave mysql-server role empty for postgresql
-            if iscloudver 7 && [[ "$want_database_sql_engine" != "mysql" ]] && \
-                [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
-                proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "[]"
+            # For SOC7 we introduced transitional role called mysql-server that's gonna be used during the upgrade
+            # Users deploying SOC7 with MariaDB must use this one and not database-server
+            # However to not break GM deployments, we should check if the role is actually present.
+            if iscloudver 7 && [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
+                # In this branch, if want_database_sql_engine is not set, mysql is the default
+                if [[ $hacloud = 1 ]] ; then
+                    if [[ "$want_database_sql_engine" != "postgresql" ]] ; then
+                        proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "['cluster:$clusternamedata']"
+                    else
+                        # default backend is DRBD for postgresql - and attributes are at different place when 109 migration is present
+                        proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['mode']" "'drbd'"
+                        proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['drbd']['size']" "$drbd_database_size"
+                        proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
+                        proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "[]"
+                    fi
+                else
+                    # non-HA case might need some value for database-server role, otherwise database_service model picks mysql as default
+                    if [[ "$want_database_sql_engine" == "postgresql" ]] ; then
+                        proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['$controllernode']"
+                        proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "[]"
+                    fi
+                fi
+            # DRBD is default for postgresql based deployments
+            elif [[ $hacloud = 1 ]] ; then
+                # ForSOC7 without 109_separate_db_roles.rb, default is postgresql
+                if [[ "$want_database_sql_engine" != "mysql" ]] ; then
+                    proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
+                    proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
+                fi
             fi
         ;;
         rabbitmq)
@@ -2272,7 +2271,10 @@ function custom_configuration
                 # need to setup shared storage; in SOC 7, it is available in an
                 # update but disabled by default.
                 if iscloudver 6minus || ( iscloudver 7plus && [[ $want_clustered_rabbitmq = 0 ]] ); then
-                    if [[ "$want_database_sql_engine" == "mysql" ]] ; then
+                    if iscloudver 6minus || [[ "$want_database_sql_engine" == "postgresql" ]] ; then
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
+                    else
                         local nfs_server=$adminfqdn
                         if ping -c1 -w1 nfsserver > /dev/null ; then
                             nfs_server="nfsserver"
@@ -2280,9 +2282,6 @@ function custom_configuration
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['device']" "'$nfs_server:/srv/nfs/rabbitmq'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['fstype']" "'nfs'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['options']" "'rw,async,nofail'"
-                    else
-                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
-                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
                     fi
                     if iscloudver 7plus && grep -q cluster /opt/dell/chef/data_bags/crowbar/template-rabbitmq.json; then
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['cluster']" false
