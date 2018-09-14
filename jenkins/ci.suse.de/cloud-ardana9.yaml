@@ -63,15 +63,15 @@
 
 
 - project:
-    name: cloud-ardana9-std-min-gerrit-x86_64
+    name: cloud-ardana9-gerrit-x86_64
     disabled: false
     version: 9
     arch: x86_64
+    build_pool: cloud-ardana-gerrit-slot
     model: std-min
+    tempest_run_filter: ci
     develproject: Devel:Cloud:9:Staging
     repository: SLE_12_SP4
     branch: master
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-gerrit-slot
     jobs:
-        - 'cloud-ardana{version}-job-{model}-gerrit-{arch}'
+        - 'cloud-ardana{version}-job-gerrit-{arch}'
