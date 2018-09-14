@@ -134,5 +134,6 @@
             branches:
               - ${git_automation_branch}
             browser: auto
+            wipe-workspace: false
       script-path: ${jenkinsfile_path}
       lightweight-checkout: false
