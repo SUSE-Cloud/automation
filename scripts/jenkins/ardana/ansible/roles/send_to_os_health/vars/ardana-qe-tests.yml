@@ -23,3 +23,4 @@ os_health_metadata:
   - "qe_env:{{ qe_env }}"
   - "build_name:{{ os_health_build_name }}"
   - "openstack_service:{{ os_service_name.split('-')[0] | lower }}"
+  - "build_version:{{ build_version.content | b64decode }}"

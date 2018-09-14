@@ -47,6 +47,11 @@
     - "pymysql"
   become: yes
 
+- name: Get build version
+  slurp:
+    src: "/srv/www/suse-12.3/x86_64/repos/Cloud/media.1/build"
+  register: build_version
+
 - name: Send results to OpenStack-Health
   shell: |
     {{ subunit2sql_venv }}/bin/subunit2sql --database-connection mysql+pymysql://subunit:subunit@{{ os_health_server }}/subunit \
