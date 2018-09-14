@@ -16,7 +16,7 @@ source ${VENV}/bin/activate
 source ~/service.osrc
 
 # Run the test
-cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/ceilometer/ceilometer-test-python-scripts
+cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/nova/nova-test-python-scripts
 ${STESTR} init
-${STESTR} run -t ./ --no-discover test_ceilometer_client.py --concurrency=1 | tee {{ ardana_qe_test_log }}
+${STESTR} run -t ./ --no-discover test_novaclient_image.py --concurrency=1 | tee {{ ardana_qe_test_log }}
 ${STESTR} last --subunit > {{ ardana_qe_test_subunit }}

@@ -17,9 +17,11 @@
 
 ardana_qe_test_venv_requires:
   - 'python-subunit'
+  - 'stestr'
 
-ardana_qe_test_get_failed_cmd: "grep FAIL: {{ ardana_qe_test_log }} || echo 'None'"
+ardana_qe_test_get_failed_cmd: "grep FAILED {{ ardana_qe_test_log }} || echo 'None'"
 ardana_qe_test_get_results_cmds:
   ran: "grep Ran {{ ardana_qe_test_log }} | awk '{print $2}'"
-  passed: 'grep ok {{ ardana_qe_test_log }} | wc -l'
-  failed: "grep FAIL: {{ ardana_qe_test_log }} | wc -l"
+  passed: "grep Passed {{ ardana_qe_test_log }} | awk '{print $3}'"
+  failed: "grep Failed {{ ardana_qe_test_log }} | awk '{print $3}'"
+  skipped: "grep Skipped {{ ardana_qe_test_log }} | awk '{print $3}'"
