@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-ardana{version}-job-std-3cp-{arch}'
+    name: 'cloud-ardana{version}-job-{model}-{arch}'
     properties:
       - lockable-resources:
           label: "{build_pool}"
@@ -24,6 +24,6 @@
           predefined-parameters: |
             ardana_env=${{ardana_env}}
             cleanup=on success
-            model=std-3cp
+            model={model}
             cloudsource=stagingcloud{version}
             tempest_run_filter={tempest_run_filter}

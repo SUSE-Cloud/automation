@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-ardana{version}-job-std-min-suse-{arch}'
+    name: 'cloud-ardana{version}-job-{model}-test-maintenance-updates-{arch}'
     properties:
       - lockable-resources:
           label: "{build_pool}"
@@ -24,7 +24,8 @@
           predefined-parameters: |
             ardana_env=${{ardana_env}}
             cleanup=on success
-            model=std-min
+            model={model}
             cloudsource=GM{version}
             repositories=SLES-Pool,SLES-Updates,Cloud-Pool,Cloud-Updates
+            update_repositories=SLES-Updates-test,Cloud-Updates-test
             tempest_run_filter={tempest_run_filter}

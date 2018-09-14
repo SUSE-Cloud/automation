@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-ardana{version}-job-dac-3cp-{arch}'
+    name: 'cloud-ardana{version}-job-{model}-devel-staging-updates-{arch}'
     properties:
       - lockable-resources:
           label: "{build_pool}"
@@ -24,6 +24,7 @@
           predefined-parameters: |
             ardana_env=${{ardana_env}}
             cleanup=on success
-            model=dac-3cp
-            cloudsource=stagingcloud{version}
+            model={model}
+            cloudsource=develcloud{version}
+            update_cloudsource=stagingcloud{version}
             tempest_run_filter={tempest_run_filter}

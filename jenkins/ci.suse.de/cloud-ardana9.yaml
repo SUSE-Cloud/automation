@@ -7,38 +7,71 @@
         - 'cloud-ardana{version}-gating'
 
 - project:
-    name: cloud-ardana9-x86_64
+    name: cloud-ardana9-std-3cp-x86_64
     disabled: false
     version: 9
     arch: x86_64
+    model: std-3cp
     tempest_run_filter: ci
     build_pool: cloud-ardana-ci-slot
     jobs:
-        - 'cloud-ardana{version}-job-std-3cp-{arch}'
-        - 'cloud-ardana{version}-job-dac-3cp-{arch}'
-        - 'cloud-ardana{version}-job-std-min-{arch}'
-        - 'cloud-ardana{version}-job-std-split-{arch}'
+        - 'cloud-ardana{version}-job-{model}-{arch}'
 
 - project:
-    name: cloud-ardana9-update-x86_64
+    name: cloud-ardana9-dac-3cp-x86_64
+    disabled: false
+    version: 9
+    arch: x86_64
+    model: dac-3cp
+    tempest_run_filter: ci
+    build_pool: cloud-ardana-ci-slot
+    jobs:
+        - 'cloud-ardana{version}-job-{model}-{arch}'
+
+- project:
+    name: cloud-ardana9-std-min-x86_64
+    disabled: false
+    version: 9
+    arch: x86_64
+    model: std-min
+    tempest_run_filter: ci
+    build_pool: cloud-ardana-ci-slot
+    jobs:
+        - 'cloud-ardana{version}-job-{model}-{arch}'
+
+- project:
+    name: cloud-ardana9-std-split-x86_64
+    disabled: false
+    version: 9
+    arch: x86_64
+    model: std-split
+    tempest_run_filter: ci
+    build_pool: cloud-ardana-ci-slot
+    jobs:
+        - 'cloud-ardana{version}-job-{model}-{arch}'
+
+- project:
+    name: cloud-ardana9-std-3cp-staging-update-x86_64
     disabled: true
     version: 9
     arch: x86_64
+    model: std-3cp
     tempest_run_filter: ci
     build_pool: cloud-ardana-ci-slot
     jobs:
-        - 'cloud-ardana{version}-job-std-3cp-devel-staging-updates-{arch}'
+        - 'cloud-ardana{version}-job-{model}-devel-staging-updates-{arch}'
 
 
 - project:
-    name: cloud-ardana9-gerrit-x86_64
+    name: cloud-ardana9-std-min-gerrit-x86_64
     disabled: false
     version: 9
     arch: x86_64
+    model: std-min
     develproject: Devel:Cloud:9:Staging
     repository: SLE_12_SP4
     branch: master
     tempest_run_filter: ci
     build_pool: cloud-ardana-gerrit-slot
     jobs:
-        - 'cloud-ardana{version}-job-std-min-gerrit-{arch}'
+        - 'cloud-ardana{version}-job-{model}-gerrit-{arch}'

@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-ardana{version}-job-std-3cp-devel-staging-updates-{arch}'
+    name: 'cloud-ardana{version}-job-{model}-suse-{arch}'
     properties:
       - lockable-resources:
           label: "{build_pool}"
@@ -24,7 +24,7 @@
           predefined-parameters: |
             ardana_env=${{ardana_env}}
             cleanup=on success
-            model=std-3cp
-            cloudsource=develcloud{version}
-            update_cloudsource=stagingcloud{version}
+            model={model}
+            cloudsource=GM{version}
+            repositories=SLES-Pool,SLES-Updates,Cloud-Pool,Cloud-Updates
             tempest_run_filter={tempest_run_filter}
