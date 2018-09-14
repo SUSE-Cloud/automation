@@ -14,20 +14,17 @@
 # under the License.
 #
 ---
+- name: Install ansible-lint
+  pip:
+    name: 'ansible-lint==2.1.3'
+    virtualenv: '{{ lint_venv }}'
+    virtualenv_site_packages: true
 
-ardana_openstack_path: "~/openstack/ardana/ansible"
-ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
+- name: Install Ardana linting rules
+  synchronize:
+    delete: true
+    src: lint-rules
+    dest: "{{ lint_venv }}/lint-rules"
 
-ardana_openstack_playbooks:
-  - "config-processor-run.yml -e encrypt='' -e rekey=''"
-  - "ready-deployment.yml"
-
-ardana_scratch_playbooks:
-  - play: "ardana-ssh-keyscan.yml"
-    when: "{{ is_physical_deploy and when_cloud9 }}"
-  - play: "wipe_disks.yml -e automate=true"
-    when: "{{ is_physical_deploy }}"
-  - play: "site.yml"
-  - play: "ardana-cloud-configure.yml"
-
-lint_venv: "/tmp/ansible-lint"
+- set_fact:
+    lint_params: '-p -x templating,resources,ANSIBLE0002 -r {{ lint_venv }}/lint-rules -r {{ lint_venv }}/lib/python2.7/site-packages/ansiblelint/rules'

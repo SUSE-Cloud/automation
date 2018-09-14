@@ -53,6 +53,12 @@
 - include_tasks: setup_ses_config.yml
   when: ses_enabled
 
+- include_tasks: install_lint.yml
+
+- include_tasks: run_lint.yml
+  vars:
+    lint_path: "{{ ardana_openstack_path }}"
+
 - name: Run playbooks from "{{ ardana_openstack_path }}"
   command: "ansible-playbook -i hosts/localhost {{ item }}"
   args:
@@ -83,6 +89,10 @@
   when:
     - not update_after_deploy
     - cloud_maint_updates_list | length or sles_maint_updates_list | length
+
+- include_tasks: run_lint.yml
+  vars:
+    lint_path: "{{ ardana_scratch_path }}"
 
 - name: Run playbooks from "{{ ardana_scratch_path }}"
   command: "ansible-playbook {{ item.play }}"
