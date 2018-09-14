@@ -1,5 +1,5 @@
 - job-template:
-    name: 'cloud-ardana{version}-job-std-min-gerrit-{arch}'
+    name: 'cloud-ardana{version}-job-{model}-gerrit-{arch}'
     properties:
       - lockable-resources:
           label: "{build_pool}"
@@ -90,6 +90,6 @@
             gerrit_change_ids=${{GERRIT_CHANGE_NUMBER}}
             develproject={develproject}
             repository={repository}
-            model=std-min
+            model={model}
             cloudsource=stagingcloud{version}
             tempest_run_filter={tempest_run_filter}
