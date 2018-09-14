@@ -1,0 +1,4 @@
+---
+
+subunit2sql_bin: "/usr/bin/subunit2sql"
+test_results_subunit: "/var/lib/openstack-tempest-test/tempest-subunit.subunit"

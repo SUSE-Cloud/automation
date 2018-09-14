@@ -15,8 +15,6 @@
 #
 ---
 
-clm: "{{ (inventory_hostname in groups['crowbar_nue']) | ternary('crowbar', 'ardana') }}"
-
 tempest_run_filter: smoke
 tempest_results_awk_collect:
   - "'/^Ran:/ { print $2 }'"

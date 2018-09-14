@@ -15,7 +15,7 @@
 #
 ---
 
-test_results_subunit: "/opt/stack/tempest/logs/testrepository_region1.subunit"
+tempest_run_filter: "smoke"
 
 os_health_metadata:
   - "build_uuid:`uuidgen`"
@@ -25,3 +25,4 @@ os_health_metadata:
   - "build_name:{{ os_health_build_name }}"
   - "openstack_service:{{ tempest_run_filter }}"
   - "build_version:{{ cloud_media_build_version.content | b64decode }}"
+  - "clm:{{ clm }}"

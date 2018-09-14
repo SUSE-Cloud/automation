@@ -15,9 +15,6 @@
 #
 ---
 
-- debug:
-    var: clm
-
 - name: Gather variables for '{{ clm }}'
   include_vars: "{{ clm }}.yml"
 

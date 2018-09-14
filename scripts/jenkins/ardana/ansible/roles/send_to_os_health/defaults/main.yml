@@ -18,7 +18,6 @@
 jenkins_artifacts_url: "{{ lookup('env', 'BUILD_URL') + 'artifact/.artifacts/' if lookup('env', 'BUILD_URL') else 'NA' }}"
 clouddata_server: "provo-clouddata.cloud.suse.de"
 
-subunit2sql_venv: "/opt/subunit2sql"
 os_health_server: "10.86.0.167"
 os_health_url: "http://{{ os_health_server }}/#/job/{{ os_health_build_name }}"
 os_health_build_name: "{{ lookup('env', 'BUILD_DISPLAY_NAME') | default('NA', true) | replace(': ', '-') | replace('#', '') }}"

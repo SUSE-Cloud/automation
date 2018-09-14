@@ -29,7 +29,7 @@ ses_qe
 [deployer_virt]
 
 [crowbar_nue]
-qa2             ansible_host=10.162.24.50
+qa2             ansible_host=10.162.24.51
 qa3             ansible_host=10.162.25.51
 
 
