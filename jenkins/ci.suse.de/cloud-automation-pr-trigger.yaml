@@ -5,7 +5,7 @@
     parameters:
       - string:
           name: prurl
-          default: None
+          default:
           description: |
             Only process this one PR with mode "all", irrespective of the below
             mode selection.
