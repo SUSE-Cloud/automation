@@ -1,5 +1,5 @@
 /**
- * The cloud-ardana-testbuild-gerrit Jenkins Pipeline
+ * The openstack-ardana-testbuild-gerrit Jenkins Pipeline
  *
  * This job creates test IBS packages corresponding to supplied Gerrit patches.
  */
