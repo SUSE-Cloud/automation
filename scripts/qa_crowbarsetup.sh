@@ -2743,7 +2743,10 @@ function set_proposalvars
     # F1: cloud8 no longer defaults to ceph, even if the nodenumbers allow it
     # background: starting with cloud8 the ceph nodes can not have openstack roles
     # this complicates the nodenumber counting.
-    if iscloudver 8plus ; then
+    # And since the release of mariadb as default database in SOC7, the default number
+    # of nodes changed as well: 3 nodes are required for galera and there's usually not much
+    # left for separate ceph nodes.
+    if iscloudver 8plus || ( iscloudver 7 && [[ $hacloud = 1 ]] ); then
         deployceph=
         if [[ $nodenumber -gt 1 ]]; then
             deployswift=1
