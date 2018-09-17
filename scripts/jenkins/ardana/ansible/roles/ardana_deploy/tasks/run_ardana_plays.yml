@@ -151,12 +151,12 @@
     - not (ansible_openstack_rhel_plays | default({})) is failed
     - rhel_enabled
 
-- name: Import Devel:Cloud:8 key when source is devel[-staging]
+- name: Import Devel:Cloud:X key when cloudsource is staging or devel
   command: "ansible {{ item }} resources"
   args:
     chdir: "{{ ardana_scratch_path }}"
   with_items:
-    - "-m copy -a 'src=/srv/www/suse-12.3/x86_64/repos/Cloud/content.key dest=/tmp/'"
+    - "-m copy -a 'src={{ local_repos_base_dir }}/Cloud/content.key dest=/tmp/'"
     - "-b -a 'rpm --import /tmp/content.key'"
   when: "'devel' in cloud_source"
 

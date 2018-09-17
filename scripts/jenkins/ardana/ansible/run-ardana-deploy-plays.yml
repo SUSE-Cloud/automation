@@ -19,6 +19,7 @@
 - name: Drop intput model and run Ardana playbooks
   hosts: ardana-{{ qe_env }}
   remote_user: ardana
+  gather_facts: True
   vars:
     task: "deploy"
 

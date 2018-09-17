@@ -19,6 +19,7 @@
 - name: Run ardana tempest and collect results
   hosts: ardana-{{ qe_env }}
   remote_user: ardana
+  gather_facts: True
   vars:
     task: "tempest"
 

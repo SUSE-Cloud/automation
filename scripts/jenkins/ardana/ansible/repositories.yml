@@ -2,7 +2,7 @@
 - name: Setup repositories on the deployer node
   hosts: ardana-{{ ardana_env }}
   remote_user: root
-  gather_facts: False
+  gather_facts: True
 
   tasks:
 
@@ -33,19 +33,19 @@
 
   - name: Check cloud srv directory
     stat:
-      path: "{{ repository_path[cloud_release] }}/x86_64/repos/Cloud/"
+      path: "{{ local_repos_base_dir }}/Cloud/"
     register: cloud_srv_dir_stats
 
   - name: Check srv directories
     stat:
-      path: "{{ repository_path[cloud_release] }}/x86_64/repos/{{ item.key }}"
+      path: "{{ local_repos_base_dir }}/{{ item.key }}"
     register: srv_dir_stats
     with_dict: "{{ repos_dict }}"
 
   - name: Create srv directories
     file:
       state: directory
-      path: "{{ repository_path[cloud_release] }}/x86_64/repos/{{ item.item.key }}"
+      path: "{{ local_repos_base_dir }}/{{ item.item.key }}"
       mode: 0755
     when: not item.stat.exists
     with_items:
@@ -68,7 +68,7 @@
         --delay-updates
         --delete-delay
         'rsync://{{ clouddata_server }}/cloud/repos/x86_64/{{ cloud_repository }}/'
-        '{{ repository_path[cloud_release] }}/x86_64/repos/Cloud/'
+        '{{ local_repos_base_dir }}/Cloud/'
     when: not cloud_srv_dir_stats.stat.exists
 
   - name: Mount zypper repos
@@ -76,7 +76,7 @@
       state: mounted
       fstype: nfs
       opts: ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock,x-systemd.automount,noauto
-      name: "{{ repository_path[cloud_release] }}//x86_64/repos/{{ item.item.key }}"
+      name: "{{ local_repos_base_dir }}/{{ item.item.key }}"
       src: "{{ clouddata_server }}:/srv/nfs/repos/x86_64/{{ item.item.value }}"
     when: item.item.key != 'Cloud'
     with_items:
@@ -84,7 +84,7 @@
 
   - name: Add zypper repos
     zypper_repository:
-      repo: "{{ repository_path[cloud_release] }}/x86_64/repos/{{ item.item.key }}"
+      repo: "{{ local_repos_base_dir }}/{{ item.item.key }}"
       name: "{{ item.item.key }}"
     register: added_repos
     with_items:

@@ -19,6 +19,7 @@
 - name: Update ardana
   hosts: ardana-{{ qe_env }}
   remote_user: ardana
+  gather_facts: True
   vars:
     task: "update"
 
