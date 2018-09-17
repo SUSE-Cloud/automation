@@ -19,6 +19,7 @@
 - name: Bootstrap deployer VM
   hosts: ardana-{{ qe_env }}
   remote_user: root
+  gather_facts: True
   vars:
     task: "deploy"
 

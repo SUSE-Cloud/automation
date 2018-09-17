@@ -2,7 +2,7 @@
 - name: Initialize the Deployer
   hosts: ardana-{{ ardana_env }}
   remote_user: root
-  gather_facts: False
+  gather_facts: True
 
   vars_files:
     - vars/main.yml
@@ -63,8 +63,8 @@
   # it's just that it won't auto accept the Devel key, so do that now
   - name: Import Devel:Cloud:X key
     shell: |
-      kf={{ repository_path[cloud_release] }}/x86_64/repos/Cloud/repodata/repomd.xml.key
-      [ -r $kf ] || kf={{ repository_path[cloud_release] }}/x86_64/repos/Cloud/content.key
+      kf={{ local_repos_base_dir }}/Cloud/repodata/repomd.xml.key
+      [ -r $kf ] || kf={{ local_repos_base_dir }}/Cloud/content.key
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{{ item }} "cat >/tmp/cloud.key && rpm --import /tmp/cloud.key && rm /tmp/cloud.key" < $kf
     with_items:
       - "{{ controller_mgmt_ips|default([]) }}"

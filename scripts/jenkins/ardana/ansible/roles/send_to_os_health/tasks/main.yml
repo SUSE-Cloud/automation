@@ -49,7 +49,7 @@
 
 - name: Get build version
   slurp:
-    src: "/srv/www/suse-12.3/x86_64/repos/Cloud/media.1/build"
+    src: "{{ local_repos_base_dir }}/Cloud/media.1/build"
   register: build_version
 
 - name: Send results to OpenStack-Health

@@ -51,7 +51,3 @@ repository_mnemonics:
     Cloud-Pool: SUSE-OpenStack-Cloud-9-Pool
     Cloud-Updates: SUSE-OpenStack-Cloud-9-Updates
     Cloud-Updates-test: SUSE-OpenStack-Cloud-9-Updates-test
-
-repository_path:
-  cloud8: /srv/www/suse-12.3
-  cloud9: /srv/www/suse-12.4

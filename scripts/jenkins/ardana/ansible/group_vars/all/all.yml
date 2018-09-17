@@ -20,6 +20,9 @@ cloudsource: stagingcloud8
 # The cloud release is encoded in the cloudsource value
 cloud_release: "cloud{{ cloudsource[-1] }}"
 
+suse_release: "suse-{{ ansible_distribution_version }}"
+local_repos_base_dir: "/srv/www/{{ suse_release }}/{{ ansible_architecture }}/repos"
+
 ntp_servers:
   - ntp.suse.de
   - ntp0.suse.de

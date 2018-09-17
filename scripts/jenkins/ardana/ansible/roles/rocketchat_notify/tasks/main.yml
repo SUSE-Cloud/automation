@@ -22,9 +22,14 @@
 
 - include_tasks: set_announcement.yml
 
+- name: Find cloud build file
+  shell: |
+    find /srv/www/*/x86_64/repos/*Cloud*/ -name build
+  register: cloud_build_file
+
 - name: Get media build version
   slurp:
-    src: "/srv/www/suse-12.3/x86_64/repos/Cloud/media.1/build"
+    src: "{{ cloud_build_file.stdout }}"
   register: cloud_media_build_version
   failed_when: false
   when:
