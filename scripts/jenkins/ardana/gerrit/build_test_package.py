@@ -445,19 +445,26 @@ def build_test_packages(change_ids, obs_linked_project, home_project,
             try_branches.insert(0, c.target)
         processed_changes.append(c.id)
 
-        # Create the package if it doesn't exist already
-        if c.gerrit_project not in packages:
-            # NOTE: The first change processed for a package determines the
-            #       target branch for that package. All subsquent changes must
-            #       match the target branch.
-            packages[c.gerrit_project] = OBSPackage(
-                c.gerrit_project, c.url, c.target, source_workspace)
+        # skip packages that don't have asssociated RPMs
+        if c.gerrit_project not in gerrit_project_map():
+            print("Warning: Project %s has no RPM, Skipping"
+                  % c.gerrit_project)
 
-        # Merge the change into the package
-        packages[c.gerrit_project].add_change(c)
+        else:
+            # Create the package if it doesn't exist already
+            if c.gerrit_project not in packages:
+                # NOTE: The first change processed for a package determines
+                #       the target branch for that package. All subsquent
+                #       changes must match the target branch.
+                packages[c.gerrit_project] = OBSPackage(
+                    c.gerrit_project, c.url, c.target, source_workspace)
 
-        # Add the dependent changes to the change_ids to process
-        change_ids.extend(packages[c.gerrit_project].get_depends_on_changes())
+            # Merge the change into the package
+            packages[c.gerrit_project].add_change(c)
+
+            # Add the dependent changes to the change_ids to process
+            change_ids.extend(
+                packages[c.gerrit_project].get_depends_on_changes())
 
     # Add the packages into the obs project and begin building them
     for project_name, package in packages.items():
