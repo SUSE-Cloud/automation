@@ -1,0 +1,81 @@
+- job:
+    name: 'ardana-trigger-trackupstream'
+
+    triggers:
+      - gerrit:
+          server-name: 'gerrit.suse.provo.cloud'
+          trigger-on:
+            - change-merged-event
+            - ref-updated-event
+          skip-vote:
+              notbuilt: true
+          projects:
+            - project-compare-type: 'REG_EXP'
+              project-pattern: "\
+                ardana/(\
+                ardana-ansible|\
+                ardana-input-model|\
+                ardana-extensions-dcn|\
+                ardana-extensions-example|\
+                ardana-extensions-nsx|\
+                ardana-extensions-ses|\
+                ardana-qa-ansible|\
+                ardana-service|\
+                ardana-service-ansible|\
+                barbican-ansible|\
+                cassandra-ansible|\
+                ceilometer-ansible|\
+                cinder-ansible|\
+                cinderlm|\
+                cluster-ansible|\
+                cobbler-ansible|\
+                db-ansible|\
+                designate-ansible|\
+                freezer-ansible|\
+                glance-ansible|\
+                heat-ansible|\
+                horizon-ansible|\
+                ironic-ansible|\
+                keystone-ansible|\
+                logging-ansible|\
+                magnum-ansible|\
+                manila-ansible|\
+                memcached-ansible|\
+                monasca-ansible|\
+                monasca-transform-ansible|\
+                mq-ansible|\
+                neutron-ansible|\
+                nova-ansible|\
+                octavia-ansible|\
+                opsconsole-ansible|\
+                opsconsole-server|\
+                opsconsole-ui|\
+                osconfig-ansible|\
+                spark-ansible|\
+                swift-ansible|\
+                tempest-ansible|\
+                tls-ansible)"
+              branches:
+                - branch-pattern: master
+                - branch-pattern: stable/pike
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 30
+
+    node: openstack-trackupstream
+
+    parameters:
+      - string:
+          name: GERRIT_PROJECT
+          description: |
+            The name of the git repository. It gets mapped to the IBS package.
+            Example: "ardana/ardana-ansible"
+      - string:
+          name: GERRIT_BRANCH
+          default: master
+          description: |
+            The branch. It gets mapped to the IBS project.
+            Example: stable/pike
+
+    builders:
+      - trackupstream
