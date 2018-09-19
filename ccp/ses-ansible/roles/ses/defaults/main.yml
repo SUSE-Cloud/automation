@@ -1,0 +1,37 @@
+---
+ses_version: 5
+ses_deepsea_minions: "*"
+ses_zap_disks: False
+ses_repo_server: "http://provo-clouddata.cloud.suse.de"
+
+ses_osd_pool_default_pg_num: 64
+radosgw_keystone: False
+
+# Set DEV_ENV true if need to setup cluster with less than 3 nodes
+ses_dev_env_setting: True
+
+# OpenStack configs
+
+# Flag to indicate whether create pools/keys for openstack services or not?
+ses_openstack_config: False
+ses_openstack_glance_pool:
+  name: glance
+  pg_num: "{{ ses_osd_pool_default_pg_num }}"
+ses_openstack_cinder_pool:
+  name: cinder
+  pg_num: "{{ ses_osd_pool_default_pg_num }}"
+ses_openstack_nova_pool:
+  name: nova
+  pg_num: "{{ ses_osd_pool_default_pg_num }}"
+ses_openstack_cinder_backup_pool:
+  name: backups
+  pg_num: "{{ ses_osd_pool_default_pg_num }}"
+ses_openstack_pools:
+  - "{{ ses_openstack_glance_pool }}"
+  - "{{ ses_openstack_cinder_pool }}"
+  - "{{ ses_openstack_nova_pool }}"
+  - "{{ ses_openstack_cinder_backup_pool }}"
+ses_openstack_keys:
+  - { name: client.glance, key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_glance_pool.name }}", mode: "0600", acls: [] }
+  - { name: client.cinder, key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_cinder_pool.name }}, allow rwx pool={{ ses_openstack_nova_pool.name }}, allow rwx pool={{ ses_openstack_glance_pool.name }}", mode: "0600", acls: []  }
+  - { name: client.cinder_backup, key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_cinder_backup_pool.name }}", mode: "0600", acls: [] }

@@ -1,0 +1,4 @@
+---
+
+ses_config_path: "/tmp/ses_config"
+radosgw_keystone: False

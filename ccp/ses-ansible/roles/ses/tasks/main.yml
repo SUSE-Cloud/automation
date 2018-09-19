@@ -1,0 +1,15 @@
+---
+
+- import_tasks: pre_setup.yml
+
+- import_tasks: zap_disks.yml
+  when: ses_zap_disks
+
+- import_tasks: salt_setup.yml
+
+- import_tasks: deepsea_setup.yml
+
+- import_tasks: openstack_config.yml
+  when: ses_openstack_config
+  tags:
+    - openstack_config

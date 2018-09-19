@@ -1,0 +1,18 @@
+---
+
+- name: Install SES 5
+  hosts: ses
+  become: yes
+  roles:
+    - ses
+
+- name: Get SES configs
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - roles/ses/defaults/main.yml
+  roles:
+    - role: setup_ses_configs
+      tags:
+        - openstack_config

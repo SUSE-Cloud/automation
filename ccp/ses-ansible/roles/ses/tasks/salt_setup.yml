@@ -1,0 +1,28 @@
+---
+
+- name: Install salt-master and minion
+  package:
+    name: "{{ item }}"
+  with_items:
+    - "salt-master"
+    - "salt-minion"
+  notify:
+    - Restart and enable salt-minion
+    - Restart and enable salt-master
+
+- name: Drop salt configuration
+  template:
+    src: "master.conf.j2"
+    dest: "/etc/salt/minion.d/master.conf"
+  notify:
+    - Restart and enable salt-minion
+
+- meta: flush_handlers
+
+- name: "Wait for salt-minion to initialize"
+  pause:
+    seconds: 5
+
+- name: Accept salt keys
+  command: "salt-key --accept-all -y"
+  changed_when: false
