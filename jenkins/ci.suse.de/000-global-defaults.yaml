@@ -1,0 +1,11 @@
+- defaults:
+    name: global
+    parameters:
+      - choice:
+          name: PS4
+          choices:
+            - "+${{BASH_SOURCE/$HOME/~}}@${{LINENO}}(${{FUNCNAME[0]}}): "
+          description: |
+              This parameter is added via JJB defaults to all jobs to set PS4
+              for bash to a more useful value.
+
