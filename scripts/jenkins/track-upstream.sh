@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 PROJECTSOURCE=OBS/${project}
 COMPONENT=$component
 

@@ -82,7 +82,7 @@
           name: rc_notify
     builders:
       - shell: |-
-          #!/bin/bash
+          #!/bin/bash -x
 
           export ANSIBLE_FORCE_COLOR=true
           
