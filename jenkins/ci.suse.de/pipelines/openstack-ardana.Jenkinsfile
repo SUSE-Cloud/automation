@@ -136,7 +136,7 @@ pipeline {
                                -e controllers=$controllers \
                                -e sles_computes=$sles_computes \
                                -e rhel_computes=$rhel_computes \
-			       -e ses_enabled=$ses_enabled \
+                               -e ses_enabled=$ses_enabled \
                                -e rc_notify=$rc_notify \
                                generate-input-model.yml
             '''

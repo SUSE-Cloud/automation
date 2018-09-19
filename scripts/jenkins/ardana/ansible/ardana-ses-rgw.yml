@@ -21,7 +21,7 @@
   remote_user: root
   gather_facts: no
   vars:
-    task: "ses rgw"
+    task: "ses-rgw"
 
   vars_prompt:
     - name: "qe_env"
@@ -62,7 +62,7 @@
   remote_user: ardana
   gather_facts: no
   vars:
-    task: "ses rgw"
+    task: "ses-rgw"
 
   tasks:
     - block:
