@@ -57,7 +57,7 @@
           name: rc_notify
     builders:
       - shell: |-
-          #!/bin/bash
+          #!/bin/bash -x
 
           export ANSIBLE_FORCE_COLOR=true
           ansible-playbook run-ardana-iverify.yml -e "qe_env=$qe_env rc_notify=$rc_notify"

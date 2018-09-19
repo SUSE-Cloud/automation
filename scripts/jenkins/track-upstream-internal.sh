@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 PROJECTSOURCE=IBS/${project}
 
 # needs .oscrc with user,pass,trusted_prj

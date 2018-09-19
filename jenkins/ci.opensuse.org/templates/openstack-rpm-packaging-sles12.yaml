@@ -10,10 +10,10 @@
     builders:
       - gerrit-git-prep
       - shell: |
-          #!/bin/bash -e
+          #!/bin/bash -xe
           rpm -qa|grep '\(renderspec\|pymod2pkg\)'
 
-          set -eux
+          set -u
 
           osc_timed="timeout 20m osc"
 

@@ -148,7 +148,7 @@
 
     builders:
       - shell: |
-          #!/bin/bash
+          #!/bin/bash -x
           export admin=crowbar$hw_number;
           export cloud=qa$hw_number;
 

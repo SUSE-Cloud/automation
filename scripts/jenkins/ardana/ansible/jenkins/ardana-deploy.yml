@@ -113,7 +113,7 @@
           description: Notify RocketChat when deployment starts/finishes.
     builders:
       - shell: |-
-          #!/bin/bash
+          #!/bin/bash -x
 
           export ANSIBLE_FORCE_COLOR=true
 
