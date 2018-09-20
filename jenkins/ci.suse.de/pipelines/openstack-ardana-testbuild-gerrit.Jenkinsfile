@@ -39,7 +39,7 @@ pipeline {
           env.test_repository_url = sh (
             returnStdout: true,
             script: '''
-              echo http://download.suse.de/ibs/${homeproject//:/:\\/}:/ardana-ci-${gerrit_change_ids//,/-}/standard
+              echo http://download.suse.de/ibs/${homeproject//:/:\\/}:/ardana-ci-${gerrit_change_ids//,/-}/standard/${homeproject}:ardana-ci-${gerrit_change_ids//,/-}.repo
             '''
           )
         }

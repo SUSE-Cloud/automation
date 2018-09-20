@@ -20,7 +20,7 @@ pipeline {
   }
 
   stages {
-    stage('setup workspace and environment') {
+    stage('Setup workspace') {
       steps {
         cleanWs()
 
@@ -38,147 +38,104 @@ pipeline {
         '''
 
         script {
-          if ( ardana_env == '') {
+          if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
           currentBuild.displayName = "#${BUILD_NUMBER} ${ardana_env}"
-          env.heat_stack_name="openstack-ardana-$ardana_env"
-          env.input_model_path = "${WORKSPACE}/input-model"
-          env.heat_template_file = "${WORKSPACE}/heat-ardana-${model}.yaml"
+          if (reuse_workspace == '') {
+            sh('git clone $git_automation_repo --branch $git_automation_branch automation-git')
+            sh('''
+              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+              ansible_playbook load-job-params.yml
+            ''')
+          }
         }
       }
     }
 
-    stage('clone automation repo') {
-      when {
-        expression { reuse_workspace == '' }
-      }
-      steps {
-        sh 'git clone $git_automation_repo --branch $git_automation_branch automation-git'
-      }
-    }
-
-    stage('clone input model repo') {
-      when {
-        expression { git_input_model_repo != '' && scenario == '' }
-      }
-      steps {
-        sh 'git clone $git_input_model_repo --branch $git_input_model_branch input-model-git'
-        script {
-          env.input_model_path = "${WORKSPACE}/input-model-git/${git_input_model_path}/${model}"
+    stage('Prepare input model') {
+      parallel {
+        stage('Generate input model') {
+          when {
+            expression { scenario_name != '' }
+          }
+          steps {
+            sh('''
+              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+              ansible_playbook generate-input-model.yml -e @input.yml
+            ''')
+          }
+        }
+        stage('Clone input model') {
+          when {
+            expression { scenario_name == '' }
+          }
+          steps {
+            sh('''
+              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+              ansible_playbook clone-input-model.yml -e @input.yml
+            ''')
+          }
         }
       }
     }
 
-    stage('generate input model') {
-      when {
-          expression { scenario != '' }
-      }
+    stage('Generate heat template') {
       steps {
-        script {
-          env.virt_config = "${WORKSPACE}/${scenario}-virt-config.yml"
-        }
-        sh '''
-          cd automation-git/scripts/jenkins/ardana/ansible
-          source /opt/ansible/bin/activate
-          ansible-playbook -v \
-                           -e qe_env=$ardana_env \
-                           -e cloud_release="${cloud_release}" \
-                           -e scenario_name="${scenario}" \
-                           -e input_model_dir="${input_model_path}" \
-                           -e virt_config_file="${virt_config}" \
-                           -e clm_model=$clm_model \
-                           -e controllers=$controllers \
-                           -e sles_computes=$sles_computes \
-                           -e rhel_computes=$rhel_computes \
-                           -e rc_notify=$rc_notify \
-                           generate-input-model.yml
-        '''
+        sh('''
+          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+          ansible_playbook generate-heat-template.yml -e @input.yml
+        ''')
       }
     }
 
-    stage('generate heat') {
-      steps {
-        sh '''
-          cd automation-git/scripts/jenkins/ardana/ansible
-          source /opt/ansible/bin/activate
-          ansible-playbook -v \
-                           -e cloud_release="${cloud_release}" \
-                           -e input_model_path="${input_model_path}" \
-                           -e heat_template_file="${heat_template_file}" \
-                           -e virt_config_file="${virt_config}" \
-                           generate-heat.yml
-        '''
-      }
-    }
-
-    stage('create virtual env') {
+    stage('Create heat stack') {
       steps {
         lock(resource: 'cloud-ECP-API') {
-          sh '''
-            cd automation-git/scripts/jenkins/ardana/ansible
-            ./bin/heat_stack.sh create "${heat_stack_name}" "${heat_template_file}"
-          '''
+          sh('''
+            source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+            ansible_playbook heat-stack.yml -e @input.yml
+          ''')
         }
       }
     }
 
-    stage('setup ansible vars') {
+    stage('Setup SSH access') {
       steps {
-        sh '''
-          cd automation-git/scripts/jenkins/ardana/ansible
-          ./bin/setup_virt_vars.sh
-        '''
-        script {
-          env.DEPLOYER_IP = sh (
-            script: '''
-              cd automation-git/scripts/jenkins/ardana/ansible
-              source /opt/ansible/bin/activate
-              ansible -o localhost -a "echo {{ hostvars['ardana-$ardana_env'].ansible_host }}" | cut -d' ' -f 8
-            ''',
-            returnStdout: true
-          ).trim()
-        }
-      }
-    }
-
-    stage('setup SSH access') {
-      steps {
-        sh '''
-          sshargs="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-          # FIXME: Use cloud-init in the used image
-          sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 $sshargs root@${DEPLOYER_IP}
-          cd automation-git/scripts/jenkins/ardana/ansible
-          source /opt/ansible/bin/activate
-          ansible-playbook -v -e ardana_env=$ardana_env \
-                               ssh-keys.yml
-        '''
+        sh('''
+          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+          ansible_playbook setup-ssh-access.yml -e @input.yml
+        ''')
       }
     }
   }
 
   post {
+    always {
+        archiveArtifacts artifacts: '.artifacts/**/*', allowEmptyArchive: true
+    }
     success{
-      echo """
+      sh """
+      set +x
+      cd automation-git/scripts/jenkins/ardana/ansible/ansible_facts
+      echo "
 *****************************************************************
 ** The virtual environment is reachable at
 **
-**        ssh root@${DEPLOYER_IP}
+**        ssh root@\$(awk '/admin-floating-ip/{getline; print \$2}' localhost | sed -e 's/^"//' -e 's/"\$//')
 **
-** Please delete the $heat_stack_name stack manually when you're done.
+** Please delete openstack-ardana-${ardana_env} stack manually when you're done.
 *****************************************************************
+      "
       """
     }
     failure {
       lock(resource: 'cloud-ECP-API') {
-        sh '''
-          cd automation-git/scripts/jenkins/ardana/ansible
-          if [ -n "${heat_stack_name}" ]; then
-            ./bin/heat_stack.sh delete "${heat_stack_name}"
-          fi
-        '''
+        sh('''
+          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+          ansible_playbook heat-stack.yml -e @input.yml -e heat_action=delete
+        ''')
       }
     }
   }
 }
-

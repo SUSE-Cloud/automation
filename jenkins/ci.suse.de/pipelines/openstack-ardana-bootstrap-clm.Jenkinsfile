@@ -1,7 +1,19 @@
 /**
- * The openstack-ardana-tempest Jenkins Pipeline
+ * The openstack-ardana-bootstrap-clm Jenkins Pipeline
  *
- * This job runs tempest on a pre-deployed CLM cloud.
+ * This job sets up the CLM node by adding/updating software media and repositories,
+ * SLES and RHEL artifacts, installing/updating the cloud-ardana pattern, etc.
+ * The resulted CLM node can then be used directly to deploy an Ardana cloud or
+ * snapshotted and cloned to be later on used to deploy several cloud scenarios
+ * based on the same cloudsource media/repositories.
+
+ * This job should only include steps that are common to all cloud setup scenarios
+ * using the same clousource media/repositories. It shouldn't include setting up an
+ * input model, which would mean specializing the CLM node to be used only with a particular
+ * scenario. This job should also not require interaction with any of the other nodes in
+ * the cloud. These restrictions are necessary to support the requirement of being able to
+ * create a CLM node snapshot that can be reused to spin up several cloud setups based on
+ * the same media and software channels.
  */
 
 pipeline {
@@ -47,26 +59,17 @@ pipeline {
               source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
               ansible_playbook load-job-params.yml
             ''')
-            sh('''
-              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-              ansible_playbook setup-ssh-access.yml -e @input.yml
-            ''')
           }
         }
       }
     }
 
-    stage('Run Tempest') {
+    stage('Bootstrap CLM') {
       steps {
         sh('''
           source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook run-tempest.yml -e @input.yml
+          ansible_playbook bootstrap-clm.yml -e @input.yml -e extra_repos=$extra_repos
         ''')
-      }
-      post {
-        always {
-          junit testResults: '.artifacts/*.xml', allowEmptyResults: true
-        }
       }
     }
   }

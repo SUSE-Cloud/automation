@@ -1,5 +1,5 @@
 - job:
-    name: openstack-ardana-bootstrap
+    name: openstack-ardana-bootstrap-clm
     project-type: pipeline
     concurrent: true
     wrappers:
@@ -31,14 +31,60 @@
             - job-read
 
     parameters:
-
       - string:
           name: ardana_env
           default: ''
           description: >-
             The virtual or hardware environment identifier. This field should either
             be set to one of the values associated with the known hardware environments
-            (e.g. qe101), or to a value identifying one of the running virtual environments.
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied ardana_env already
+            exists, it will be replaced.
+
+      - choice:
+          name: cloudsource
+          choices:
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - GM8+up
+            - hosdevelcloud8
+            - hosGM8
+            - hosGM8+up
+            - stagingcloud9
+            - develcloud9
+          description: >-
+            The cloud repository (from provo-clouddata) to be used for testing.
+            This value can take the following form:
+
+               stagingcloud<X> (Devel:Cloud:X:Staging)
+               develcloud<X> (Devel:Cloud:X)
+               GM<X> (official GM)
+               GM<X>+up (official GM plus Cloud-Updates)
+
+      - string:
+          name: cloud_maint_updates
+          default: ''
+          description: List of cloud maintenance update IDs separated by comma (eg. 7396,7487)
+
+      - string:
+          name: sles_maint_updates
+          default: ''
+          description: List of SLES maintenance update IDs separated by comma (eg. 7434,7435)
+
+      - string:
+          name: extra_repos
+          default: ''
+          description: >-
+            A comma separated list of repository urls (ending with .repo) to be
+            added on the deployer node
+
+      - bool:
+          name: rc_notify
+          default: false
+          description: >-
+            Notify RocketChat when deployment starts/finishes.
 
       - string:
           name: git_automation_repo
@@ -51,67 +97,6 @@
           default: master
           description: >-
             The git automation branch
-
-      - string:
-          name: jenkinsfile_path
-          default: jenkins/ci.suse.de/pipelines/openstack-ardana-bootstrap.Jenkinsfile
-          description: >-
-            The location of the Jenkinsfile defining the pipeline
-
-      - choice:
-          name: cloudsource
-          choices:
-            - stagingcloud8
-            - develcloud8
-            - GM8
-            - stagingcloud9
-            - develcloud9
-          description: >-
-            The cloud repository (from provo-clouddata) to be used for testing.
-            This value can take the following form:
-
-               stagingcloud<X> (Devel:Cloud:X:Staging)
-               develcloud<X> (Devel:Cloud:X)
-               GM<X> (official GM)
-
-      - choice:
-          name: cloud_brand
-          choices:
-            - SUSE
-            - HPE-Helion
-          description: Cloud media brand.
-
-      - extended-choice:
-          name: repositories
-          type: multi-select
-          value: SLES-Pool,SLES-Updates,SLES-Updates-test,Cloud-Pool,Cloud-Updates,Cloud-Updates-test
-          visible-items: 6
-          multi-select-delimiter: ','
-          default-value: SLES-Pool,SLES-Updates
-          description: >-
-            Set of zypper repositories (from provo-clouddata) to be configured during installation
-            in addition to that indicated by the cloudsource parameter.
-
-      - string:
-          name: cloud_maint_updates
-          default: ''
-          description: List of cloud maintenance update IDs separated by comma (eg. 7396,7487)
-
-      - string:
-          name: sles_maint_updates
-          default: ''
-          description: List of SLES maintenance update IDs separated by comma (eg. 7434,7435)
-
-      - bool:
-          name: rc_notify
-          default: false
-          description: Notify RocketChat when deployment starts/finishes.
-
-      - string:
-          name: os_cloud
-          default: 'engcloud-cloud-ci'
-          description: >-
-            The OpenStack cloud configuration used to verify the virtual environment
 
       - string:
           name: reuse_node
@@ -135,5 +120,5 @@
               - ${git_automation_branch}
             browser: auto
             wipe-workspace: false
-      script-path: ${jenkinsfile_path}
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
       lightweight-checkout: false

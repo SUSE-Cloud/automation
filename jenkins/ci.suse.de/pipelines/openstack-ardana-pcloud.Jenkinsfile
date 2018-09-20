@@ -1,7 +1,9 @@
 /**
- * The openstack-ardana-tempest Jenkins Pipeline
+ * The openstack-ardana-physical Jenkins Pipeline
  *
- * This job runs tempest on a pre-deployed CLM cloud.
+ * This jobs creates an fresh VM on the specified HW environment
+ * that can be used to deploy an Ardana input model which is either
+ * predefined or generated based on the input parameters.
  */
 
 pipeline {
@@ -47,26 +49,35 @@ pipeline {
               source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
               ansible_playbook load-job-params.yml
             ''')
-            sh('''
-              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-              ansible_playbook setup-ssh-access.yml -e @input.yml
-            ''')
           }
         }
       }
     }
 
-    stage('Run Tempest') {
+    stage('Generate input model') {
       steps {
         sh('''
           source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook run-tempest.yml -e @input.yml
+          ansible_playbook generate-input-model.yml -e @input.yml
         ''')
       }
-      post {
-        always {
-          junit testResults: '.artifacts/*.xml', allowEmptyResults: true
-        }
+    }
+
+    stage('Start deployer VM') {
+      steps {
+        sh('''
+          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+          ansible_playbook start-deployer-vm.yml -e @input.yml
+        ''')
+      }
+    }
+
+    stage('Setup SSH access') {
+      steps {
+        sh('''
+          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+          ansible_playbook setup-ssh-access.yml -e @input.yml
+        ''')
       }
     }
   }
@@ -74,6 +85,20 @@ pipeline {
   post {
     always {
         archiveArtifacts artifacts: '.artifacts/**/*', allowEmptyArchive: true
+    }
+    success{
+      sh """
+      set +x
+      cd automation-git/scripts/jenkins/ardana/ansible
+      echo "
+*****************************************************************
+** The deployer for ${ardana_env} is reachable at
+**
+**        ssh root@\$(awk '/^${ardana_env}/{print \$2}' inventory | cut -d'=' -f2)
+**
+*****************************************************************
+      "
+      """
     }
   }
 }

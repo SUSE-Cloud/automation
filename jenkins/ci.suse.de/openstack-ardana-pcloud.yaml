@@ -1,5 +1,5 @@
 - job:
-    name: openstack-ardana-tempest
+    name: openstack-ardana-pcloud
     project-type: pipeline
     concurrent: true
     wrappers:
@@ -35,41 +35,50 @@
           name: ardana_env
           default: ''
           description: >-
-            The virtual or hardware environment identifier. This field should either
-            be set to one of the values associated with the known hardware environments
-            (e.g. qe101), or to a value that will identify the created virtual environment.
-
-            WARNING: if a virtual environment associated with the supplied ardana_env already
-            exists, it will be replaced.
+            The hardware environment identifier. This field should be set to
+            one of the values associated with the known hardware environments
+            (e.g. qe101).
 
       - choice:
-          name: tempest_run_filter
+          name: cloud_release
           choices:
-            -
-            - smoke
-            - smoke-upstream
-            - defcore
-            - full
-            - ci
-            - barbican
-            - compute
-            - designate
-            - identity
-            - lbaas
-            - monasca
-            - network
-            - neutron-api
-            - periodic
-            - periodic-virtual
-            - refstack
-            - swift
-            - tests2skip
-            - tests-ci
-            - upgrade-ci
-            - upgrade
+            - cloud8
+            - cloud9
           description: >-
-            Name of the filter file to use for tempest. Use an empty value to
-            skip running tempest.
+            The cloud release value used to select the correct VM image for the
+            environment (e.g. cloud8 = SLES12SP3 / cloud9 = SLES12SP4).
+
+      - choice:
+          name: scenario_name
+          choices:
+            - entry-scale-kvm
+            - entry-scale-swift
+          description: >-
+            The scnario used to generate the input model
+
+      - choice:
+          name: clm_model
+          choices:
+            - standalone
+            - integrated
+          description: |
+            standalone - one node dedicated for CLM
+            integrated - the first controller node will also be used as a CLM node
+
+      - string:
+          name: controllers
+          default: '3'
+          description: Number of nodes used as controller
+
+      - string:
+          name: sles_computes
+          default: '2'
+          description: Number of SLES compute nodes
+
+      - string:
+          name: rhel_computes
+          default: '0'
+          description: Number of RHEL compute nodes
 
       - bool:
           name: rc_notify
