@@ -80,6 +80,13 @@
       - "{{ compute_mgmt_ips|default([]) }}"
     when: item != "" and item != deployer_mgmt_ip
 
+  - name: Remove manila from input model when manila not enabled
+    replace:
+      path: "{{ input_model_path }}/data/control_plane.yml"
+      regexp: '(.*manila.*)'
+      replace: '#\1'
+    when: not versioned_features['manila'].enabled
+
   - name: Initialize target Model from "{{ input_model_path }}"
     synchronize:
       src: "{{ input_model_path }}/"
