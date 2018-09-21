@@ -10,7 +10,7 @@ pipeline {
 
   agent {
     node {
-      label 'cloud-trigger'
+      label 'cloud-pipeline'
     }
   }
 
@@ -21,7 +21,16 @@ pipeline {
         script {
           currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_change_ids}"
         }
-        echo 'TBD: trigger commit message validator job...'
+        cleanWs()
+        sh '''
+          git clone $git_automation_repo --branch $git_automation_branch automation-git
+          export LC_ALL=C.UTF-8
+          export LANG=C.UTF-8
+
+          source /opt/gitlint/bin/activate
+
+          echo $GERRIT_CHANGE_COMMIT_MESSAGE | base64 --decode | gitlint -C automation-git/scripts/jenkins/gitlint.ini
+        '''
       }
     }
 
