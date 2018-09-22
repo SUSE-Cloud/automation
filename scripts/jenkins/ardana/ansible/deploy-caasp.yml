@@ -3,6 +3,7 @@
 - name: Deploy CaaSP using heat templates
   hosts: ardana-{{ ardana_env }}
   gather_facts: False
+  remote_user: ardana
   vars:
     caasp_image_url: "http://provo-clouddata.cloud.suse.de/images/openstack/x86_64/SUSE-CaaS-Platform-3.0-for-OpenStack-Cloud.x86_64-3.0.0-GM.qcow2"
     caasp_image_path: "/tmp/SUSE-CaaS-Platform-3.0-for-OpenStack-Cloud.x86_64-3.0.0-GM.qcow2"
