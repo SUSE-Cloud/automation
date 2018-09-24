@@ -82,3 +82,17 @@
     build_pool: cloud-ardana-ci-slot
     jobs:
         - 'cloud-ardana{version}-job-{model}-suse-{arch}'
+
+- project:
+    name: cloud-ardana8-gerrit-x86_64
+    disabled: false
+    version: 8
+    arch: x86_64
+    build_pool: cloud-ardana-gerrit-slot
+    model: std-min
+    tempest_run_filter: ci
+    develproject: Devel:Cloud:8:Staging
+    repository: SLE_12_SP3
+    branch: stable/pike
+    jobs:
+        - 'cloud-ardana{version}-job-gerrit-{arch}'
