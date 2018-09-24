@@ -23,50 +23,7 @@
               notbuilt: true
           projects:
             - project-compare-type: 'REG_EXP'
-              project-pattern: "\
-                ardana/(\
-                ardana-ansible|\
-                ardana-input-model|\
-                ardana-extensions-dcn|\
-                ardana-extensions-example|\
-                ardana-extensions-nsx|\
-                ardana-extensions-ses|\
-                ardana-qa-ansible|\
-                ardana-service|\
-                ardana-service-ansible|\
-                barbican-ansible|\
-                cassandra-ansible|\
-                ceilometer-ansible|\
-                cinder-ansible|\
-                cinderlm|\
-                cluster-ansible|\
-                cobbler-ansible|\
-                db-ansible|\
-                designate-ansible|\
-                freezer-ansible|\
-                glance-ansible|\
-                heat-ansible|\
-                horizon-ansible|\
-                ironic-ansible|\
-                keystone-ansible|\
-                logging-ansible|\
-                magnum-ansible|\
-                manila-ansible|\
-                memcached-ansible|\
-                monasca-ansible|\
-                monasca-transform-ansible|\
-                mq-ansible|\
-                neutron-ansible|\
-                nova-ansible|\
-                octavia-ansible|\
-                opsconsole-ansible|\
-                opsconsole-server|\
-                opsconsole-ui|\
-                osconfig-ansible|\
-                spark-ansible|\
-                swift-ansible|\
-                tempest-ansible|\
-                tls-ansible)"
+              project-pattern: !include-raw: ../gerrit-project-regexp.txt
               branches:
                 - branch-compare-type: 'PLAIN'
                   branch-pattern: '{branch}'
