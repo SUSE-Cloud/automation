@@ -8,11 +8,6 @@ mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 export log_dir=$artifacts_dir/mkcloud_log
 
-if [ -d $WORKSPACE/automation-git ] ; then
-    # If we're testing a pull request, use our custom checkout
-    automationrepo=$WORKSPACE/automation-git
-fi
-
 jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
 export ghprrepo=~/github.com/openSUSE/github-pr
 export ghpr=${ghprrepo}/github_pr.rb
