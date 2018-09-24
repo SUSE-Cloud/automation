@@ -1,12 +1,12 @@
 - job:
     name: 'ardana-trigger-trackupstream'
 
+    concurrent: false # It's not a good idea to try to do the same update twice.
     triggers:
       - gerrit:
           server-name: 'gerrit.suse.provo.cloud'
           trigger-on:
             - change-merged-event
-            - ref-updated-event
           skip-vote:
               notbuilt: true
           projects:
