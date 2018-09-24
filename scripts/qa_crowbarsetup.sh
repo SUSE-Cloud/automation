@@ -1995,7 +1995,7 @@ function enable_ssl_generic
         nova)
             $p "$a['ssl']['enabled']" true
             $p "$a['novnc']['ssl']['enabled']" true
-            if iscloudver 7plus ; then
+            if iscloudver 7 ; then
                 $p "$a['ec2-api']['ssl']['enabled']" true
                 $p "$a['ec2-api']['ssl']['generate_certs']" true
                 $p "$a['ec2-api']['ssl']['insecure']" true
@@ -2451,7 +2451,9 @@ function custom_configuration
             if iscloudver 7plus; then
                 # create (and test) the trusted flavors
                 proposal_set_value nova default "['attributes']['nova']['trusted_flavors']" "true"
+            fi
 
+            if iscloudver 7; then
                 if [[ $hacloud = 1 ]] ; then
                     proposal_set_value nova default "['deployment']['nova']['elements']['ec2-api']" "['cluster:$clusternameservices']"
                 else
