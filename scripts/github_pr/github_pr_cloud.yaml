@@ -50,7 +50,7 @@ template:
         config:
           paths:
             -  !ruby/regexp '/scripts\/(mkcloud|qa_crowbarsetup\.sh|lib\/.*)$/'
-            -  !ruby/regexp '/scripts\/jenkins\/log-parser\//'
+            -  !ruby/regexp '/scripts\/jenkins\/(log-parser|mkcloud)\//'
         blacklist_handler:
           - type: SetStatus
             parameters:

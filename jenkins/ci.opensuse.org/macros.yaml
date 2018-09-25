@@ -2,17 +2,17 @@
     name: update-automation
     builders:
       - shell: |
-          #!/bin/bash
-          [ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation && chmod a+x ~/bin/update_automation
+          #!/bin/bash -x
+          [ -e ~/bin/update_automation ] || mkdir -p ~/bin && wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation && chmod a+x ~/bin/update_automation
           # fetch the latest automation updates
-          update_automation
+          ~/bin/update_automation
 
 
 - builder:
     name: gerrit-git-prep
     builders:
       - shell: |
-          #!/bin/bash -e
+          #!/bin/bash -xe
 
           #
           # NOTE(toabctl): The script is basically a copy of:

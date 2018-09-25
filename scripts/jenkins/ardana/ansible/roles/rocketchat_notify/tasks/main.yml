@@ -26,6 +26,10 @@
   shell: |
     find /srv/www/*/x86_64/repos/*Cloud*/ -name build
   register: cloud_build_file
+  failed_when: false
+  when:
+    - rc_action == "finished"
+    - rc_task == "deploy"
 
 - name: Get media build version
   slurp:

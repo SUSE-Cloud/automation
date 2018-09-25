@@ -1,4 +1,25 @@
-#!/bin/bash
+#!/bin/bash -x
+
+export automationrepo=~/github.com/SUSE-Cloud/automation
+
+if [ ! $component ] && [ $GERRIT_PROJECT ]; then
+    component="$($automationrepo/scripts/jenkins/ardana/gerrit/gerrit2obs-name.py $GERRIT_PROJECT)"
+fi
+if [ ! $project ] && [ $GERRIT_BRANCH ]; then
+    case $GERRIT_BRANCH in
+        master)
+            project="Devel:Cloud:9:Staging"
+            ;;
+        stable/pike)
+            project="Devel:Cloud:8:Staging"
+            ;;
+        *)
+            echo "\$GERRIT_BRANCH is set to a branch that is not known: $GERRIT_BRANCH"
+            exit 1
+            ;;
+    esac
+fi
+
 PROJECTSOURCE=IBS/${project}
 
 # needs .oscrc with user,pass,trusted_prj
@@ -7,7 +28,6 @@ PROJECTSOURCE=IBS/${project}
 # zypper in osc obs-service-tar_scm obs-service-github_tarballs obs-service-recompress obs-service-git_tarballs obs-service-set_version obs-service-refresh_patches
 [ -z "$PROJECTSOURCE" ] && ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
 
-export automationrepo=~/github.com/SUSE-Cloud/automation
 export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
 
 # Workaround to get only the name of the job:

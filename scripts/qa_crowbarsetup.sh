@@ -1995,7 +1995,7 @@ function enable_ssl_generic
         nova)
             $p "$a['ssl']['enabled']" true
             $p "$a['novnc']['ssl']['enabled']" true
-            if iscloudver 7plus ; then
+            if iscloudver 7 ; then
                 $p "$a['ec2-api']['ssl']['enabled']" true
                 $p "$a['ec2-api']['ssl']['generate_certs']" true
                 $p "$a['ec2-api']['ssl']['insecure']" true
@@ -2292,7 +2292,8 @@ function custom_configuration
                 fi
                 proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamerabbit']"
             fi
-            if ! [[ $want_trove_proposal = 0 ]]; then
+
+            if ! iscloudver 9plus && ! [[ $want_trove_proposal = 0 ]]; then
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
             fi
         ;;
@@ -2450,7 +2451,9 @@ function custom_configuration
             if iscloudver 7plus; then
                 # create (and test) the trusted flavors
                 proposal_set_value nova default "['attributes']['nova']['trusted_flavors']" "true"
+            fi
 
+            if iscloudver 7; then
                 if [[ $hacloud = 1 ]] ; then
                     proposal_set_value nova default "['deployment']['nova']['elements']['ec2-api']" "['cluster:$clusternameservices']"
                 else
@@ -2945,6 +2948,11 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        heat)
+            get_novacontroller
+            safely oncontroller heat_image_setup
+            ;;
+
         nfs_client)
             # nfs client (used by glance) is needed for ha setups but only when
             # neither swift nor ceph are deployed
@@ -2985,19 +2993,21 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        sahara)
+            if ! iscloudver 7plus; then
+                echo "Sahara is SOC 7+ only. Skipping"
+                return
+            fi
+            ;;
         swift)
             [[ $deployswift ]] || return
-            ;;
-        heat)
-            get_novacontroller
-            safely oncontroller heat_image_setup
             ;;
         tempest)
             [[ $want_tempest = 1 ]] || return
             ;;
-        sahara)
-            if ! iscloudver 7plus; then
-                echo "Sahara is SOC 7+ only. Skipping"
+        trove)
+            if iscloudver 9plus; then
+                echo "Trove is SOC 8- only. Skipping"
                 return
             fi
             ;;

@@ -1257,12 +1257,12 @@ Optional
         want_aodh_proposal=0
         want_barbican_proposal=0
         want_sahara_proposal=0
-        want_trove_proposal=0
         The following proposals are default off:
         Set to 1 to enable \$PROPOSAL to be deployed. e.g.
         want_magnum_proposal=1
         want_monasca_proposal=1   (Cloud7+ only)
         want_murano_proposal=1
+        want_trove_proposal=1
     want_horizon_integration_test=1 (default='')
         Execute selenium integration tests for Horizon after Tempest. This test is in beta, and
         a fail will not be considered for now.

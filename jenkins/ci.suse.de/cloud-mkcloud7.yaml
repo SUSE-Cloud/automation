@@ -38,7 +38,7 @@
     nodenumber_controller: 2
     tempestoptions: --smoke
     label: openstack-mkcloud-ha-x86_64
-    storage_method_ha: ceph
+    storage_method_ha: swift
     database_engine: postgresql
     want_all_ssl: 0
     jobs:

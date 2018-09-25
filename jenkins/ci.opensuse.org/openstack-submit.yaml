@@ -10,7 +10,7 @@
 
     builders:
       - shell: |
-          #!/bin/bash
+          #!/bin/bash -x
           case $openstack_project in
             Master)
               echo "Master project, skip job, do not fail (e.g. for Master project)"

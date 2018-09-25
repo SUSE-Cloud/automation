@@ -417,20 +417,18 @@
           write-description: "Job aborted due to 60 minutes of inactivity."
 
     builders:
+      - update-automation
       - shell: |
-          set -ex
-
-          export automationrepo=~/github.com/SUSE-Cloud/automation
-
-          # automation bootstrapping
-          if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
-            rm -rf ${automationrepo}
-            curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
+          if [[ $github_pr ]] ; then
+            export automationrepo=~/github.com/SUSE-Cloud/automation
+            exec ${automationrepo}/scripts/jenkins/mkcloud/openstack-mkcloud.prep.sh
           fi
-          # fetch the latest automation updates
-          ${automationrepo}/scripts/jenkins/update_automation
-
-          # run the builder script in the automation repo
+      - shell: |
+          export automationrepo=~/github.com/SUSE-Cloud/automation
+          if [ -d $WORKSPACE/automation-git ] ; then
+            # If we're testing a pull request, use our custom checkout
+            export automationrepo=$WORKSPACE/automation-git
+          fi
           exec ${automationrepo}/scripts/jenkins/mkcloud/openstack-mkcloud.builder.sh
 
     publishers:

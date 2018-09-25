@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 source scripts/jenkins/github-pr/parse.rc
 github_context=suse/ardana
