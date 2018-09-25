@@ -35,6 +35,9 @@ pipeline {
     }
 
     stage('integration test') {
+      when {
+        expression { develproject == 'Devel:Cloud:9:Staging' }
+      }
       steps {
         lock(resource: null, label: "$build_pool", variable: 'ardana_env', quantity: 1) {
           script {
