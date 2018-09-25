@@ -282,7 +282,7 @@
 
       - string:
           name: homeproject
-          default: 'home:opensuseapibmw'
+          default: 'Devel:Cloud:Testbuild'
           description: >-
             Project in IBS that will act as the parent project for the newly
             generated test project.
