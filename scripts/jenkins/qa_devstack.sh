@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# We can pass an argument to the function to configure ipv6
+# Use ipv4 by default so we are backwards compatible
+SVC_IP_VERSION=4
+[[ $1 == "ipv6" ]] && SVC_IP_VERSION=6
+
 ##########################################################################
 # Setup devstack and run Tempest
 ##########################################################################
@@ -183,7 +188,11 @@ VERBOSE_NO_TIMESTAMP=True
 
 NOVNC_FROM_PACKAGE=True
 RECLONE=yes
+
+IP_VERSION=4+6
+SERVICE_IP_VERSION=$SVC_IP_VERSION
 HOST_IP=127.0.0.1
+HOST_IPV6=::1
 LOGFILE=stack.sh.log
 LOGDAYS=1
 SCREEN_LOGDIR=/opt/stack/logs
