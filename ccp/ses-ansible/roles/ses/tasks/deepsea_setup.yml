@@ -1,0 +1,104 @@
+---
+
+- name: Install deepsea
+  package:
+    name: "deepsea"
+
+- name: Drop deepsea config(s)
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - src: "master_minion.sls.j2"
+      dest:  "/srv/pillar/ceph/master_minion.sls"
+    - src: "deepsea_minions.sls.j2"
+      dest: "/srv/pillar/ceph/deepsea_minions.sls"
+
+- name: "Ensure DEV_ENV setting in globals"
+  lineinfile:
+    dest: "/srv/pillar/ceph/stack/global.yml"
+    state: present
+    create: yes
+    regexp: "^DEV_ENV"
+    line: "DEV_ENV: {{ ses_dev_env_setting | lower }}"
+    owner: salt
+    group: salt
+    mode: 0644
+
+- name: Run stage 0 - prepare
+  command: "salt-run state.orch ceph.stage.prep"
+  register: stage0
+  changed_when: false
+  ignore_errors: yes
+
+- name: Show stage 0 (salt-run state.orch ceph.stage.prep) results
+  debug:
+    var: stage0.stdout_lines
+    verbosity: 1
+
+- name: Run stage 1 - discovery
+  command: "salt-run state.orch ceph.stage.discovery"
+  register: stage1
+  changed_when: false
+
+- name: show stage 1 (salt-run state.orch ceph.stage.discovery) results
+  debug:
+    var: stage1.stdout_lines
+    verbosity: 1
+
+- name: Drop policy file
+  copy:
+    src: "policy.cfg"
+    dest: "/srv/pillar/ceph/proposals/policy.cfg"
+
+- name: Drop config for single node deployment
+  template:
+    src: "global.conf.j2"
+    dest: "/srv/salt/ceph/configuration/files/ceph.conf.d/global.conf"
+
+- name: Chanage RGW default port
+  replace:
+    dest: "/srv/salt/ceph/configuration/files/rgw.conf"
+    regexp: 'port=80"$'
+    replace: 'port=8080"'
+
+- name: Run stage 2 - configure
+  command: "salt-run state.orch ceph.stage.configure"
+  register: stage2
+  changed_when: false
+
+- name: Show stage 2 (salt-run state.orch ceph.stage.configure) results
+  debug:
+    var: stage2.stdout_lines
+    verbosity: 1
+
+- name: Run stage 3 - deployment
+  environment:
+    DEV_ENV: true
+  command: "salt-run state.orch ceph.stage.deploy"
+  register: stage3
+  changed_when: false
+
+- name: show stage 3 (salt-run state.orch ceph.stage.deploy) results
+  debug:
+    var: stage3.stdout_lines
+    verbosity: 1
+
+- name: Run stage 4 - services
+  command: "salt-run state.orch ceph.stage.services"
+  register: stage4
+  changed_when: false
+  failed_when:
+    - stage4.rc != 0
+    - stage4.stdout.find('lrbd has been enabled, and is dead') == -1 # Do not fail on known cosmetic issue https://www.suse.com/support/kb/doc/?id=7018668
+
+- name: Show stage 4 (salt-run state.orch ceph.stage.services) results
+  debug:
+    var: stage4.stdout_lines
+    verbosity: 1
+
+- name: run iscsi workaround
+  command: salt-run state.orch ceph.stage.iscsi
+  when:
+    - stage4.stdout.find('lrbd has been enabled, and is dead') != -1  # Implement workaround of the cosmetic issue https://www.suse.com/support/kb/doc/?id=7018668
+

@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+
+mon_max_pg_per_osd = 1500 # do not set the max limit
+# mon_pg_warn_max_per_osd = 1500 # pre-luminuous-release
+osd crush chooseleaf type = 0 # set OSD as failure domain
+mon pg warn max object skew = -1
+mon allow pool delete = true
+{% if ses_node_disks_count|int > 3 %}
+osd pool default size = {{ [3, ses_node_disks_count -2] | min }}
+{% else %}
+osd pool default size = 1
+{% endif %}
+
+{% if radosgw_keystone %}
+[client.rgw.{{ ansible_hostname }}]
+rgw keystone url = {{ lookup('env', 'OS_AUTH_URL') }}
+rgw keystone admin user = {{ lookup('env', 'OS_USERNAME') }}
+rgw keystone admin password = {{ lookup('env', 'OS_PASSWORD') }}
+rgw keystone admin project = {{ lookup('env', 'OS_PROJECT_NAME') }}
+rgw keystone admin domain = {{ lookup('env', 'OS_USER_DOMAIN_NAME') }}
+rgw keystone api version = {{ lookup('env', 'OS_IDENTITY_API_VERSION') }}
+rgw keystone accepted roles = admin,Member,_member_
+rgw keystone accepted admin roles = admin
+rgw keystone revocation interval = 0
+rgw keystone verify ssl = false
+{% endif %}
