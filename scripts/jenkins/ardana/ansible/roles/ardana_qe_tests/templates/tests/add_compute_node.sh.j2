@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Wrapper script to execute iverify
+# within the venv
+#
+# Usage: add_node.sh
+# eg: add_node.sh -t SLES-COMPUTE -c ardana-qe202-cp1-sles-comp0004-mgmtt -e nodeid=2M25280TT8 -e ipaddr=192.168.24.206 -e serverrole=SLES-COMPUTE-ROLE -e servergroup=RACK2 -e nicmap=MY-2PORT-DL160 -e macaddr=8c:dc:d4:02:59:e0 -e iloip=192.168.9.161 -e ilopassw=<pwd> -e ilouser=HLM202
+
+set -o pipefail
+
+
+LOADVMS=1
+WORK_HOME={{ ardana_qe_test_work_dir }}
+TYPE_OF_NODE=$1
+HOST_NAME=$2
+NODE_ID=$3
+IP_ADDR=$4
+SERVER_ROLE=$5
+SERVER_GROUP=$6
+NIC_MAP=$7
+MAC_ADDR=$8
+ILO_IP=$9
+ILO_PWD=$10
+ILO_USER=$11
+
+AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
+
+# Run the test
+{{ ardana_qe_tests_dir }}/ardana-qa-tests/operational/add_node.sh -t $TYPE_OF_NODE -c $HOST_NAME -e $NODE_ID -e $IP_ADDR -e $SERVER_ROLE -e $SERVER_GROUP -e $NIC_MAP -e $MAP_ADDR -e $ILO_IP -e ILO_PWD -e $ILO_USER -n $AUTO_ID | tee \
+  ${WORK_HOME}/add_node.log
+
+res=$?
+
+exit $res
