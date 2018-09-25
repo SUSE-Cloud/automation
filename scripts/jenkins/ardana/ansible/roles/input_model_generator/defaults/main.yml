@@ -40,7 +40,7 @@ service_component_groups:
     - neutron-client
     - nova-client
     - swift-client
-    - manila-client
+    #- manila-client
   CORE:
     - ntp-server
     - ip-cluster
@@ -83,7 +83,7 @@ service_component_groups:
     - octavia-api
     - octavia-health-manager
     - ops-console-web
-    - manila-api
+    #- manila-api
   DBMQ:
     - mysql
     - rabbitmq
@@ -131,7 +131,7 @@ service_component_groups:
     - neutron-metadata-agent
     - neutron-openvswitch-agent
     - neutron-lbaasv2-agent
-    - manila-share
+    #- manila-share
 
 
 
