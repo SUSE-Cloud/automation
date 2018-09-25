@@ -4230,13 +4230,13 @@ y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin'] ||= {}
 y['proposals'].first['attributes']['admin']['password'] = '$updated_password'
 puts y.to_yaml" > /root/keystone-test-pw-update.yaml
-    safely crowbar batch --timeout 900 build < /root/keystone-test-pw-update.yaml
+    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-update.yaml
     safely oncontroller test_keystone_password
     cat /root/keystone-test-pw-update.yaml | ruby -ryaml -e "
 y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin']['password'] = '$old_password'
 puts y.to_yaml" > /root/keystone-test-pw-reset.yaml
-    safely crowbar batch --timeout 900 build < /root/keystone-test-pw-reset.yaml
+    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-reset.yaml
 }
 
 function onadmin_have_salt_barclamp
