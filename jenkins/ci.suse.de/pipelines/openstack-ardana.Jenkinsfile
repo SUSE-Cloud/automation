@@ -221,25 +221,25 @@ pipeline {
     always {
       archiveArtifacts artifacts: '.artifacts/**/*', allowEmptyArchive: true
       script{
-        if (cleanup == "always") {
-          lock(resource: 'cloud-ECP-API') {
-            sh('''
-              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-              ansible_playbook heat-stack.yml -e @input.yml -e heat_action=delete
-            ''')
-          }
+        if (cleanup == "always" && cloud_type == "virtual") {
+          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'heat_action', value: "delete"),
+            string(name: 'reuse_node', value: "${NODE_NAME}"),
+            string(name: 'reuse_workspace', value: "${WORKSPACE}")
+          ], propagate: false, wait: false
         }
       }
     }
     success {
       script {
-        if (cleanup == "on success") {
-          lock(resource: 'cloud-ECP-API') {
-            sh('''
-              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-              ansible_playbook heat-stack.yml -e @input.yml -e heat_action=delete
-            ''')
-          }
+        if (cleanup == "on success" && cloud_type == "virtual") {
+          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'heat_action', value: "delete"),
+            string(name: 'reuse_node', value: "${NODE_NAME}"),
+            string(name: 'reuse_workspace', value: "${WORKSPACE}")
+          ], propagate: false, wait: false
         }
       }
       sh '''
@@ -250,13 +250,13 @@ pipeline {
     }
     failure {
       script {
-        if (cleanup == "on failure") {
-          lock(resource: 'cloud-ECP-API') {
-            sh('''
-              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-              ansible_playbook heat-stack.yml -e @input.yml -e heat_action=delete
-            ''')
-          }
+        if (cleanup == "on failure" && cloud_type == "virtual") {
+          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'heat_action', value: "delete"),
+            string(name: 'reuse_node', value: "${NODE_NAME}"),
+            string(name: 'reuse_workspace', value: "${WORKSPACE}")
+          ], propagate: false, wait: false
         }
       }
       sh '''

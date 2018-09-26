@@ -15,9 +15,13 @@
 #
 ---
 
-os_cloud: "engcloud-cloud-ci"
-heat_action: "create"
-api_timeout: "600"
+- name: Monitor stack until deleted or not in a pending state
+  command: |
+    openstack --os-cloud {{ os_cloud }} stack show {{ heat_stack_name }} \
+      -c stack_status -f value
+  register: stack_status
+  retries: 100
+  until: "'IN_PROGRESS' not in stack_status.stdout and 'DELETE_COMPLETE' not in stack_status.stdout"
+  delay: 10
+  failed_when: "stack_status.rc != 0 and 'Stack not found' not in stack_status.stderr"
 
-heat_stack_name: "openstack-ardana-{{ ardana_env }}"
-monitor_stack_after_delete: True

@@ -22,8 +22,15 @@
   register: get_stack
   failed_when: false
 
+- include_tasks: monitor.yml
+  when:
+    - get_stack.stdout != ''
+    - heat_action == 'monitor'
+
 - include_tasks: delete.yml
-  when: get_stack.stdout != ''
+  when:
+    - get_stack.stdout != ''
+    - heat_action != 'monitor'
 
 - include_tasks: create.yml
   when: "heat_action == 'create'"
