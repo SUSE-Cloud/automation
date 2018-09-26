@@ -5,7 +5,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(__file__))
-from build_test_package import gerrit_project_map  # noqa: E402
+from gerrit_project_map import gerrit_project_map  # noqa: E402
 
 
 def main():
