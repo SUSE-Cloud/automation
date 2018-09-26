@@ -29,7 +29,7 @@ foreach my $d (@dirs) {
                 my $signalled=kill(0, $num);
                 diag "PID file had $num";
                 if($signalled) {
-                        if(!$ENV{CHECKPROC} || `grep $ENV{CHECKPROC} /proc/$num/cmdline` == 0) {
+                        if(!$ENV{CHECKPROC} || `grep -a $ENV{CHECKPROC} /proc/$num/cmdline` == 0) {
                                 diag "someone else owns $a and is alive";
                                 next;
                         }
