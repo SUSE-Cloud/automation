@@ -2506,7 +2506,7 @@ function custom_configuration
             fi
         ;;
         aodh)
-            if [[ $hacloud = 1 ]] ; then
+            if [[ $hacloud = 1 ]] && ( iscloudver 7 || iscloudver 8 ) ; then
                 proposal_set_value aodh default "['deployment']['aodh']['elements']['aodh-server']" "['cluster:$clusternameservices']"
             fi
         ;;
@@ -3012,8 +3012,8 @@ function deploy_single_proposal
             fi
             ;;
         aodh)
-            if ! iscloudver 7plus; then
-                echo "Aodh is SOC 7+ only. Skipping"
+            if ! ( iscloudver 7 || iscloudver 8 ) ; then
+                echo "Aodh is SOC 7 and 8 only. Skipping"
                 return
             fi
             ;;
