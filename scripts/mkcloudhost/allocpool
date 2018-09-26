@@ -25,11 +25,11 @@ foreach my $d (@dirs) {
         flock $fh, LOCK_EX or next;
         my $num = <$fh>;
         chomp($num);
-        if($num && $num=~m/^\d{1,5}$/) {
+        if($num && $num=~m/^\d+$/) {
                 my $signalled=kill(0, $num);
                 diag "PID file had $num";
                 if($signalled) {
-                        if(!$ENV{CHECKPROC} || `grep $ENV{CHECKPROC} /proc/$num/cmdline` == 0) {
+                        if(!$ENV{CHECKPROC} || `cat /proc/$num/cmdline` =~ m/$ENV{CHECKPROC}/ ) {
                                 diag "someone else owns $a and is alive";
                                 next;
                         }
