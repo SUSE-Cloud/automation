@@ -19,8 +19,7 @@ S.5....T.  c /etc/kibana/kibana.yml
 # permissions and owner changed by Monasca playbooks (bsc#1094971)
 SM5....T.  c /etc/storm/storm.yaml
 .....UG..    /opt/kibana/optimize
-# permissions and owner changed by Monasca playbooks (bsc#1094873)
-.....UG..    /usr/lib/monasca/agent/custom_checks.d
+.M.......    /usr/lib/monasca/agent/custom_checks.d
 .M.......    /usr/lib/monasca/agent/custom_detect.d
 S.5....T.    /usr/lib/systemd/system/apache2.service
 S.5....T.    /usr/lib/systemd/system/rabbitmq-server.service
