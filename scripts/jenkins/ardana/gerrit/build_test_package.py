@@ -20,6 +20,9 @@ import requests
 
 import sh
 
+sys.path.append(os.path.dirname(__file__))
+from gerrit_project_map import gerrit_project_map  # noqa: E402
+
 GERRIT_URL = 'https://gerrit.suse.provo.cloud'
 
 # We use a more complex regex that matches both formats of Depends-On so that
@@ -51,14 +54,6 @@ def find_dependency_headers(message):
     # Reverse the order so that we process the oldest Depends-On first
     dependencies.reverse()
     return dependencies
-
-
-def gerrit_project_map():
-    # Used for mapping gerrit project names onto OBS package names
-    map_file = os.path.join(os.path.dirname(__file__), 'project-map.json')
-    with open(map_file) as map:
-        project_map = json.load(map)
-    return project_map
 
 
 @contextlib.contextmanager
