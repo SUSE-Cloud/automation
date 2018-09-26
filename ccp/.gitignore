@@ -1,0 +1,6 @@
+**.retry
+inventory*.ini
+.*_ip
+.stackname
+environment.json
+misc-files/

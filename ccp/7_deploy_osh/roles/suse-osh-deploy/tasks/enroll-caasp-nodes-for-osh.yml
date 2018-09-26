@@ -1,0 +1,50 @@
+---
+- name: List all nodes of the caasp cluster
+  shell: kubectl get nodes -o json | jq -M -r '.items[].metadata.name'
+  changed_when: false
+  register: _all_casp_nodenames
+
+- name: Ensure enough nodes are running for HA
+  fail:
+    msg: "You do not have enough nodes to run OSH in HA"
+  when:
+    - suse_osh_deploy_require_ha | bool
+    - _all_casp_nodenames.stdout_lines | length < 3
+
+# TODO(evrardjp): Make this conditional if a previous enrollment was already done
+- name: Enroll node for OSH
+  shell: "kubectl label nodes {{ item }} openstack-control-plane=enabled"
+  register: _enrollforopenstack
+  changed_when:
+    - _enrollforopenstack.rc == 0
+  failed_when:
+    - _enrollforopenstack.rc != 0
+    - _enrollforopenstack.stderr.find("'openstack-control-plane' already has a value (enabled)") == -1
+  with_items: "{{ _all_casp_nodenames.stdout_lines }}"
+  tags:
+    - skip_ansible_lint
+
+- name: Store all nodes details
+  shell: kubectl get nodes -o json
+  changed_when: false
+  register: _nodes
+
+# TODO(evrardjp): Be more selective in taint node selection
+- name: Find tainted master master if ha is asked and only 3 nodes
+  set_fact:
+    master_node: "{{ _nodes.stdout_lines | join('') | from_json | json_query(query)}}"
+  vars:
+    query: 'items[].spec.{node: externalID, taints: taints} | [?taints].node'
+  when:
+    - suse_osh_deploy_require_ha | bool
+    - (_all_casp_nodenames.stdout_lines | length) == 3
+
+- debug:
+    var: master_node
+ 
+- name: Remove taints when only 3 nodes and ha is required
+  shell: "kubectl taint nodes {{ item }} node-role.kubernetes.io/master:NoSchedule-"
+  with_items: "{{ master_node }}"
+  when:
+    - master_node is defined
+    - master_node | length > 0

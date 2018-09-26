@@ -1,0 +1,61 @@
+---
+# TODO(evrardjp): Handle the case of tiller not installed
+# TODO(evrardjp): Remove this task when helm is packaged as rpm
+- name: Check versions
+  # the awk extracts the sha of both the helm client and server.
+  # uniq means same version or not
+  shell: helm version | awk '{print $3}' | uniq | wc -l
+  register: _helmcheck
+  failed_when: false
+  changed_when: false
+
+- name: Helm has to be installed
+  set_fact:
+    helm_state: 'to_install'
+  when:  _helmcheck.stdout == '0'
+
+- name: Helm has to be updated
+  set_fact:
+    helm_state: 'ready'
+  when:  _helmcheck.stdout == '1'
+
+- name: Helm has to be updated
+  set_fact:
+    helm_state: 'to_update'
+  when:  _helmcheck.stdout == '2'
+
+- name: Fail if state is unknown
+  fail:
+    msg: "Unknown helm state"
+  when: _helmcheck.stdout not in ['0','1','2']
+
+- name: Installing helm client
+  shell: "curl {{ helm_download_url }} | bash"
+  args:
+    executable: /bin/bash
+  when: helm_state == 'to_update' or helm_state == 'to_install'
+
+- name: Install tiller
+  shell: helm init
+  args:
+    executable: /bin/bash
+  register: _helminstall
+  when: helm_state == 'to_install'
+
+- name: Upgrade tiller
+  shell: helm init --upgrade
+  args:
+    executable: /bin/bash
+  register: _helmupgrade
+  when: helm_state == 'to_update' or helm_state == 'to_install'
+
+- name: Show stdout of upgrade
+  debug:
+    var: _helmupgrade
+    verbosity: 1
+  when: helm_state == 'to_update' or helm_state == 'to_install'
+
+- name: Create service account
+  debug:
+    msg: "TODO"
+  when: helm_state == 'to_install'

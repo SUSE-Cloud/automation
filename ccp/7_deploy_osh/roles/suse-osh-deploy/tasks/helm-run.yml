@@ -1,0 +1,33 @@
+---
+# Inspired by https://github.com/openstack/openstack-helm-infra/blob/master/roles/build-helm-packages/tasks/setup-helm-serve.yaml
+- block:
+    - name: checking if local helm server is running
+      shell: curl -s 127.0.0.1:8879 | grep -q 'Helm Repository'
+      args:
+        executable: /bin/bash
+      register: helm_server_running
+  rescue:
+    - name: moving systemd unit into place for helm server
+      template:
+        src: helm-serve.service.j2
+        dest: /etc/systemd/system/helm-serve.service
+        mode: 0640
+    - name: starting helm serve service
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: helm-serve
+        enabled: yes
+    - name: wait for helm server to be ready
+      shell: curl -s 127.0.0.1:8879 | grep -q 'Helm Repository'
+      args:
+        executable: /bin/bash
+      register: wait_for_helm_server
+      until: wait_for_helm_server.rc == 0
+      retries: 120
+      delay: 5
+  always:
+    - name: adding helm local repo
+      shell: helm repo list | grep 'http://localhost' || helm repo add localhost http://localhost:8879/charts
+      args:
+        executable: /bin/bash

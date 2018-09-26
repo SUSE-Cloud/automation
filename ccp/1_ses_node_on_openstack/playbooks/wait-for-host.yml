@@ -1,0 +1,7 @@
+---
+- hosts: all:!localhost
+  gather_facts: no
+  tasks:
+    - name: Wait for host to be up again
+      wait_for_connection:
+        timeout: 900

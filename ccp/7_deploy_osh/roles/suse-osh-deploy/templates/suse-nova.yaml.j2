@@ -1,0 +1,7 @@
+ceph:
+  enabled: true
+  admin_keyring: {{ ceph_admin_keyring_b64key | b64decode }}
+  cinder:
+    user: {{ suse_osh_deploy_storage.cinder.user }}
+    keyring: {{ ceph_admin_keyring_b64key | b64decode }}
+    secret_uuid: {{ suse_osh_deploy_libvirt_secret_uuid }}

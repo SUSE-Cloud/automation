@@ -1,0 +1,18 @@
+conf:
+  ceph:
+    enabled: true
+    admin_keyring: {{ ceph_admin_keyring_b64key | b64decode }}
+  cinder:
+    DEFAULT:
+      debug: true
+      backup_driver: cinder.backup.drivers.ceph
+      backup_ceph_user: {{ suse_osh_deploy_storage.cinder_backup.user }}
+      backup_ceph_pool: {{ suse_osh_deploy_storage.cinder_backup.pool }}
+  backends:
+    rbd1:
+      volume_driver: cinder.volume.drivers.rbd.RBDDriver
+      volume_backend_name: rbd1
+      rbd_ceph_conf: "/etc/ceph/ceph.conf"
+      rbd_user: {{ suse_osh_deploy_storage.cinder.user }}
+      rbd_pool: {{ suse_osh_deploy_storage.cinder.pool }}
+      rbd_secret_uuid: {{ suse_osh_deploy_libvirt_secret_uuid }}

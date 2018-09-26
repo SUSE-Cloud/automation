@@ -1,0 +1,10 @@
+storage: rbd
+conf:
+  ceph:
+    enabled: true
+    monitors: {{ suse_osh_deploy_ceph_mons }}
+    admin_keyring: {{ ceph_admin_keyring_b64key | b64decode }}
+  glance:
+    glance_store:
+      rbd_store_user: "{{ suse_osh_deploy_storage.glance.user }}"
+      rbd_store_pool: "{{ suse_osh_deploy_storage.glance.pool }}"

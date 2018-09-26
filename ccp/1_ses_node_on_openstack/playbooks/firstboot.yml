@@ -1,0 +1,22 @@
+---
+- hosts: all:!localhost
+  gather_facts: no
+  tasks:
+    - name: Configure host repositories
+      raw: |
+        zypper ar -f -G http://provo-clouddata.cloud.suse.de/repos/x86_64/SLES12-SP3-Pool/ product;
+        zypper ar -f -G http://provo-clouddata.cloud.suse.de/repos/x86_64/SLES12-SP3-Updates/ SLES12-SP3-Updates;
+        zypper ar -f -G http://provo-clouddata.cloud.suse.de/repos/x86_64/SLE12-SP3-SDK-Pool/ SDK-Pool;
+        zypper ar -f -G http://provo-clouddata.cloud.suse.de/repos/x86_64/SLE12-SP3-SDK-Updates/ SDK-Updates;
+        zypper ar -f -G http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP3/ SUSE-CA;
+        zypper ar -f -G http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-Pool/ SUSE-OpenStack-Cloud-8-Pool;
+        zypper ar -f -G https://download.opensuse.org/repositories/utilities/SLE_12/ SLE12-utilities;
+        zypper ar -f -G https://download.opensuse.org/repositories/devel:/tools/SLE_12_SP3/devel:tools.repo;
+        zypper ar -f -G https://download.opensuse.org/repositories/Virtualization:/containers/SLE_12_SP3/Virtualization:containers.repo;
+        zypper refresh && zypper up -y ;
+        systemctl disable SuSEfirewall2_setup.service;
+        systemctl disable SuSEfirewall2_init.service;
+        ssh-keygen -t rsa -f ~/.ssh/id_rsa -N "";
+        cat .ssh/id_rsa.pub >> .ssh/authorized_keys;
+        ssh-keyscan -H  127.0.0.1 >> ~/.ssh/known_hosts
+        reboot
