@@ -24,6 +24,7 @@ foreach my $d (@dirs) {
         sysopen my $fh, $a, O_RDWR|O_CREAT or die "cant create $a";
         flock $fh, LOCK_EX or next;
         my $num = <$fh>;
+        chomp($num);
         if($num && $num=~m/^\d{1,5}$/) {
                 my $signalled=kill(0, $num);
                 diag "PID file had $num";
