@@ -11,8 +11,9 @@ set -o pipefail
 
 LOADVMS=1
 WORK_HOME={{ ardana_qe_test_work_dir }}
-COMPUTE_NODE_NAME=$1
-COBBLER_NODE_NAME=$2
+COMPUTE_NODE_NAME={{ compute_node_name }}
+COBBLER_NODE_NAME={{ cobbler_node_name }}
+
 
 AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
 
@@ -20,9 +21,11 @@ AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
 #{{ ardana_qe_tests_dir }}/ardana-qa-tests/operational/remove_compute_node.sh -c $COMPUTE_NODE_NAME -n $COBBLER_NODE_NAME -n $AUTO_ID | tee \
  # ${WORK_HOME}/remove_compute_node.log
 
-/var/lib/ardana/automation/remove_compute_node.sh -c ardana-qe102-cp1-rhel-comp0002-mgmt -n 2M25280TZC -n $AUTO_ID | tee \
- ${WORK_HOME}/remove_compute_node.log
+#/var/lib/ardana/automation/remove_compute_node.sh -c ardana-qe102-cp1-rhel-comp0002-mgmt -n 2M25280TZC -n $AUTO_ID | tee \
+# ${WORK_HOME}/remove_compute_node.log
 
+/var/lib/ardana/automation/remove_compute_node.sh -c $COMPUTE_NODE_NAME -n $COBBLER_NODE_NAME -n $AUTO_ID | tee \
+ ${WORK_HOME}/remove_compute_node.log
 
 
 res=$?
