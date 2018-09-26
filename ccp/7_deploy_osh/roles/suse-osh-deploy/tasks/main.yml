@@ -57,7 +57,7 @@
   make:
     chdir: /opt/openstack-helm-infra
     target: all
-  when: _gitclone is changed
+  when: _gitclone is changed or (suse_osh_deploy_always_redeploy | bool)
   tags:
     - install
 
