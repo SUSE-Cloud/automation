@@ -13,11 +13,23 @@ LOADVMS=1
 WORK_HOME={{ ardana_qe_test_work_dir }}
 COMPUTE_NODE_NAME={{ compute_node_name }}
 COBBLER_NODE_NAME={{ cobbler_node_name }}
+work_dir={{ ardana_qe_test_work_dir }}
+test_log="$work_dir/remove_compute_node.log"
+subunit_log="$work_dir/remove_compute_node.subunit"
+
+venv_dir={{ ardana_qe_test_venv }}
+source $venv_dir/bin/activate
+subunit_output="$venv_dir/bin/subunit-output"
+
+
 
 
 AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
 
 # Run the test
+
+$subunit_output --inprogress remove_compute_node > $subunit_log
+
 #{{ ardana_qe_tests_dir }}/ardana-qa-tests/operational/remove_compute_node.sh -c $COMPUTE_NODE_NAME -n $COBBLER_NODE_NAME -n $AUTO_ID | tee \
  # ${WORK_HOME}/remove_compute_node.log
 
@@ -27,6 +39,9 @@ AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
 /var/lib/ardana/automation/remove_compute_node.sh -c $COMPUTE_NODE_NAME -n $COBBLER_NODE_NAME -n $AUTO_ID | tee \
  ${WORK_HOME}/remove_compute_node.log
 
+
+success=1
+tesres=`grep  ${WORK_HOME}/remove_compute_node.log
 
 res=$?
 
