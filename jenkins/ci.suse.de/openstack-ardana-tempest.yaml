@@ -31,32 +31,16 @@
             - job-read
 
     parameters:
-
       - string:
           name: ardana_env
           default: ''
           description: >-
             The virtual or hardware environment identifier. This field should either
             be set to one of the values associated with the known hardware environments
-            (e.g. qe101), or to a value identifying one of the running virtual environments.
+            (e.g. qe101), or to a value that will identify the created virtual environment.
 
-      - string:
-          name: git_automation_repo
-          default: https://github.com/SUSE-Cloud/automation.git
-          description: >-
-            The git automation repository to use
-
-      - string:
-          name: git_automation_branch
-          default: master
-          description: >-
-            The git automation branch
-
-      - string:
-          name: jenkinsfile_path
-          default: jenkins/ci.suse.de/pipelines/openstack-ardana-tempest.Jenkinsfile
-          description: >-
-            The location of the Jenkinsfile defining the pipeline
+            WARNING: if a virtual environment associated with the supplied ardana_env already
+            exists, it will be replaced.
 
       - choice:
           name: tempest_run_filter
@@ -67,6 +51,7 @@
             - defcore
             - full
             - ci
+            - barbican
             - compute
             - designate
             - identity
@@ -89,13 +74,20 @@
       - bool:
           name: rc_notify
           default: false
-          description: Notify RocketChat when deployment starts/finishes.
+          description: >-
+            Notify RocketChat when deployment starts/finishes.
 
       - string:
-          name: os_cloud
-          default: 'engcloud-cloud-ci'
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
           description: >-
-            The OpenStack cloud configuration used to verify the virtual environment
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
 
       - string:
           name: reuse_node
@@ -119,5 +111,5 @@
               - ${git_automation_branch}
             browser: auto
             wipe-workspace: false
-      script-path: ${jenkinsfile_path}
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
       lightweight-checkout: false

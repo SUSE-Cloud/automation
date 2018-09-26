@@ -17,6 +17,6 @@
 
 - name: Restart radosgw
   systemd:
-   name: "ceph-radosgw@rgw.ses-{{ qe_env }}"
+   name: "ceph-radosgw@rgw.ses-{{ ardana_env }}"
    state: restarted
    daemon_reload: yes

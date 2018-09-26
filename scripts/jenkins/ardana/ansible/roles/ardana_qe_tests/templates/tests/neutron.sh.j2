@@ -32,8 +32,8 @@ ${STESTR} init
 if $ESX; then
     export ESX=true
      ${STESTR} run -t ./ test_neutron_agent test_network_subnet test_ext_network \
-	   test_port test_router test_overlapping_ips test_neutron_rbac \
-	   test_neutron_quotas test_vm_esx --concurrency=1 | tee {{ ardana_qe_test_log }}
+     test_port test_router test_overlapping_ips test_neutron_rbac \
+     test_neutron_quotas test_vm_esx --concurrency=1 | tee {{ ardana_qe_test_log }}
 else
     ${STESTR} run -t ./ --black-regex 'esx' --concurrency=1 | tee {{ ardana_qe_test_log }}
 fi

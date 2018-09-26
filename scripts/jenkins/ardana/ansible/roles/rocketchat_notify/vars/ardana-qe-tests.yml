@@ -26,7 +26,7 @@ rc_msg_fields_started:
     value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
     short: False
   - title: Deployer
-    value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
+    value: "{{ hostvars[ardana_env].ansible_host }}"
     short: True
 
 _rc_msg_fields_finished:
@@ -34,7 +34,7 @@ _rc_msg_fields_finished:
     value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
     short: False
   - title: Deployer
-    value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
+    value: "{{ hostvars[ardana_env].ansible_host }}"
     short: True
   - title: Ran
     value: "{{ ardana_qe_test_results.ran if ardana_qe_test_results is defined else 'Not available' }}"

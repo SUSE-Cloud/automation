@@ -31,14 +31,12 @@
             - job-read
 
     parameters:
-
       - string:
           name: ardana_env
           default: ''
           description: >-
-            The virtual or hardware environment identifier. This field should either
-            be set to one of the values associated with the known hardware environments
-            (e.g. qe101), or to a value that will identify the created virtual environment.
+            The virtual environment identifier. This field should be set to a
+            value that will identify the created virtual environment.
 
             WARNING: if a virtual environment associated with the supplied ardana_env already
             exists, it will be replaced.
@@ -50,30 +48,6 @@
             - cloud9
           description: >-
             The cloud release value used to select the correct OpenStack images and flavors for the virtual environment.
-
-      - string:
-          name: git_automation_repo
-          default: https://github.com/SUSE-Cloud/automation.git
-          description: >-
-            The git automation repository to use
-
-      - string:
-          name: git_automation_branch
-          default: master
-          description: >-
-            The git automation branch
-
-      - string:
-          name: jenkinsfile_path
-          default: jenkins/ci.suse.de/pipelines/openstack-ardana-vcloud.Jenkinsfile
-          description: >-
-            The location of the Jenkinsfile defining the pipeline
-
-      - string:
-          name: git_input_model_repo
-          default: git://git.suse.provo.cloud/ardana/ardana-input-model
-          description: >-
-            The git repository to use for predefined input models
 
       - string:
           name: git_input_model_branch
@@ -95,7 +69,7 @@
             input model.
 
       - choice:
-          name: scenario
+          name: scenario_name
           choices:
             -
             - entry-scale-kvm
@@ -129,22 +103,29 @@
           description: Number of RHEL compute nodes
 
       - string:
-          name: virt_config
+          name: virt_config_name
           default: ''
           description: >-
             The custom virtual configuration deciding which OpenStack images and flavors are used
             for the virtual environment. Leave empty to use the default settings.
 
-      - string:
-          name: os_cloud
-          default: 'engcloud-cloud-ci'
-          description: >-
-            The OpenStack cloud configuration used to create the virtual environment
-
       - bool:
           name: rc_notify
           default: false
-          description: Notify RocketChat when deployment starts/finishes.
+          description: >-
+            Notify RocketChat when deployment starts/finishes.
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
 
       - string:
           name: reuse_node
@@ -168,5 +149,5 @@
               - ${git_automation_branch}
             browser: auto
             wipe-workspace: false
-      script-path: ${jenkinsfile_path}
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
       lightweight-checkout: false

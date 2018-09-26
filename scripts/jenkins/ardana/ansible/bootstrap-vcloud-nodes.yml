@@ -1,0 +1,155 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Bootstrap virtual deployer for ardana
+  hosts: "{{ ardana_env }}"
+  remote_user: ardana
+  gather_facts: False
+  vars:
+    task: "deploy"
+    virtual_hosts:
+      - group: controller
+        ips: "{{ hostvars['localhost'].controller_mgmt_ips | difference([hostvars['localhost'].admin_mgmt_ip]) }}"
+      - group: compute
+        ips: "{{ hostvars['localhost'].compute_mgmt_ips }}"
+
+  tasks:
+    - block:
+        - name: Create temp inventory with all virtual nodes (minus deployer)
+          add_host:
+            name: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }}"
+            ansible_host: "{{ item.1 }}"
+            ansible_password: "linux"
+            group: "{{ item.0.group }}, ardana_virt_hosts"
+          loop: "{{ virtual_hosts | subelements('ips') }}"
+          loop_control:
+            label: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }}"
+
+        - name: Ensure ardana SSH key on deployer
+          shell: |
+            ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
+            cat .ssh/id_rsa.pub >> .ssh/authorized_keys
+          args:
+            creates: "~/.ssh/id_rsa"
+
+        - name: Get ardana public key
+          slurp:
+            src: "~/.ssh/id_rsa.pub"
+          register: ardana_pub_key
+
+        - name: Enable skip_disk_config on deployer
+          file:
+            state: "{{ item.state }}"
+            path: "{{ item.path }}"
+          loop:
+            - state: directory
+              path: "/etc/openstack"
+            - state: touch
+              path: "/etc/openstack/skip_disk_config"
+          become: yes
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
+
+
+- name: Bootstrap other virtual nodes for ardana
+  hosts: ardana_virt_hosts
+  remote_user: root
+  gather_facts: False
+  vars:
+    task: "deploy"
+    ansible_ssh_common_args: >
+      -o ProxyCommand='ssh -o UserKnownHostsFile=/dev/null -o
+      StrictHostKeyChecking=no -W %h:%p -q root@{{ hostvars[ardana_env].ansible_host }}'
+
+  tasks:
+    - block:
+        - name: Grow 1st partition filesystem
+          shell: |
+            /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
+          failed_when: False
+          register: growpart
+          changed_when: growpart.rc == 0
+
+        - name: Create ardana group
+          group:
+            name: "ardana"
+            state: "present"
+
+        - name: Create ardana user
+          user:
+            name: "ardana"
+            group: "ardana"
+            comment: "Ardana Home"
+            shell: "/bin/bash"
+            createhome: yes
+            home: "/var/lib/ardana"
+
+        - name: Allow passwordless sudo for ardana user
+          lineinfile:
+            path: "/etc/sudoers.d/ardana"
+            line: "ardana ALL=(ALL) NOPASSWD: ALL"
+            state: present
+            create: yes
+            validate: "visudo -cf %s"
+
+        - name: Ensure .ssh directory
+          file:
+            state: directory
+            path: "/var/lib/ardana/.ssh"
+            owner: ardana
+            group: ardana
+            mode: 0700
+
+        - name: Add ardana public key to autohrized_keys
+          lineinfile:
+            path: "/var/lib/ardana/.ssh/authorized_keys"
+            line: "{{ hostvars[ardana_env].ardana_pub_key.content | b64decode }}"
+            state: present
+            create: yes
+            owner: ardana
+            group: ardana
+            mode: 0600
+
+        - name: Enable skip_disk_config on non-deployer nodes
+          file:
+            state: "{{ item.state }}"
+            path: "{{ item.path }}"
+          loop:
+            - state: directory
+              path: "/etc/openstack"
+            - state: touch
+              path: "/etc/openstack/skip_disk_config"
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."

@@ -15,30 +15,36 @@
 #
 ---
 
-- name: Ensure VM is powered off
+- name: Check defined VMs
+  virt:
+    command: list_vms
+  register: libvirt
+
+- name: Ensure all VMs are powered off
   virt:
     state: destroyed
-    name: "ardana-{{ qe_env }}.sles12sp3"
+    name: "{{ item }}"
+  loop: "{{ libvirt.list_vms }}"
 
-- name: Delete current VM image
+- name: Ensure previous VM disk deleted
   file:
-    dest: "{{ libvirt_vm_images_dir }}/ardana-{{ qe_env }}.sles12sp3.qcow2"
+    dest: "{{ libvirt_vm_images_dir }}/{{ vm_name }}.qcow2"
     state: absent
 
 - name: Copy fresh VM disk
   copy:
-    src: "{{ libvirt_fresh_images_dir }}/ardana-{{ qe_env }}.sles12sp3.qcow2"
-    dest: "{{ libvirt_vm_images_dir }}/ardana-{{ qe_env }}.sles12sp3.qcow2"
+    src: "{{ libvirt_fresh_images_dir }}/{{ vm_name }}.qcow2"
+    dest: "{{ libvirt_vm_images_dir }}/{{ vm_name }}.qcow2"
     remote_src: yes
 
 - name: Start fresh VM
   virt:
     state: running
-    name: "ardana-{{ qe_env }}.sles12sp3"
+    name: "{{ vm_name }}"
 
-- name: Wait for deployer VM SSH to be available
+- name: Wait until VM is reachable
   wait_for:
     port: 22
-    host: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
+    host: "{{ hostvars[ardana_env].ansible_host }}"
     search_regex: OpenSSH
     delay: 10

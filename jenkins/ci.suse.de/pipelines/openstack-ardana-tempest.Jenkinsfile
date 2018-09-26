@@ -3,6 +3,7 @@
  *
  * This job runs tempest on a pre-deployed CLM cloud.
  */
+
 pipeline {
 
   // skip the default checkout, because we want to use a custom path
@@ -18,7 +19,7 @@ pipeline {
   }
 
   stages {
-    stage('setup workspace and environment') {
+    stage('Setup workspace') {
       steps {
         cleanWs()
 
@@ -36,63 +37,43 @@ pipeline {
         '''
 
         script {
-          env.cloud_type = "virtual"
-          if ( ardana_env == '') {
+          if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
           currentBuild.displayName = "#${BUILD_NUMBER} ${ardana_env}"
-          // FIXME: find a better way of differentiating between hardware and virtual environments
-          if ( ardana_env.startsWith("qe") || ardana_env.startsWith("qa") ) {
-            env.cloud_type = "physical"
+          if (reuse_workspace == '') {
+            sh('git clone $git_automation_repo --branch $git_automation_branch automation-git')
+            sh('''
+              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+              ansible_playbook load-job-params.yml
+            ''')
+            sh('''
+              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+              ansible_playbook setup-ssh-access.yml -e @input.yml
+            ''')
           }
         }
       }
     }
 
-    stage('clone automation repo') {
-      when {
-        expression { reuse_workspace == '' }
-      }
+    stage('Run Tempest') {
       steps {
-        sh 'git clone $git_automation_repo --branch $git_automation_branch automation-git'
+        sh('''
+          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+          ansible_playbook run-tempest.yml -e @input.yml
+        ''')
       }
-    }
-
-    stage('setup ansible vars') {
-      when {
-        expression { cloud_type == 'virtual' && reuse_workspace == '' }
-      }
-      steps {
-        script {
-          // When running as a standalone job, we need a heat stack name to identify
-          // the virtual environment and set up the ansible inventory.
-          env.heat_stack_name="openstack-ardana-$ardana_env"
+      post {
+        always {
+          junit testResults: '.artifacts/*.xml', allowEmptyResults: true
         }
-        sh '''
-          cd automation-git/scripts/jenkins/ardana/ansible
-          ./bin/setup_virt_vars.sh
-        '''
-      }
-    }
-
-    stage('run tempest') {
-      steps {
-        sh '''
-          cd automation-git/scripts/jenkins/ardana/ansible
-          source /opt/ansible/bin/activate
-          ansible-playbook -v \
-                           -e qe_env=$ardana_env \
-                           -e rc_notify=$rc_notify \
-                           -e tempest_run_filter=$tempest_run_filter \
-                           run-ardana-tempest.yml
-        '''
       }
     }
   }
 
   post {
     always {
-      archiveArtifacts artifacts: '.artifacts/**', fingerprint: true
+        archiveArtifacts artifacts: '.artifacts/**/*', allowEmptyArchive: true
     }
   }
 }

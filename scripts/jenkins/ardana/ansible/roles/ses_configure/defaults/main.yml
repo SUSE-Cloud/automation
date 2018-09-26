@@ -15,22 +15,21 @@
 #
 ---
 
-ardana_ses_post_deploy: False
-ses_osd_pool_default_pg_num: 64
 
+ses_osd_pool_default_pg_num: 64
 ses_rgw_port: 8080
 
 ses_openstack_glance_pool:
-  name: "glance-{{ qe_env }}"
+  name: "glance-{{ ardana_env }}"
   pg_num: "{{ ses_osd_pool_default_pg_num }}"
 ses_openstack_cinder_pool:
-  name: "cinder-{{ qe_env }}"
+  name: "cinder-{{ ardana_env }}"
   pg_num: "{{ ses_osd_pool_default_pg_num }}"
 ses_openstack_nova_pool:
-  name: "nova-{{ qe_env }}"
+  name: "nova-{{ ardana_env }}"
   pg_num: "{{ ses_osd_pool_default_pg_num }}"
 ses_openstack_cinder_backup_pool:
-  name: "backups-{{ qe_env }}"
+  name: "backups-{{ ardana_env }}"
   pg_num: "{{ ses_osd_pool_default_pg_num }}"
 
 ses_openstack_pools:
@@ -40,7 +39,7 @@ ses_openstack_pools:
   - "{{ ses_openstack_cinder_backup_pool }}"
 
 ses_openstack_keys:
-  - { name: "client.glance-{{ qe_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_glance_pool.name }}", mode: "0600", acls: [] }
-  - { name: "client.cinder-{{ qe_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_cinder_pool.name }}, allow rwx pool={{ ses_openstack_nova_pool.name }}, allow rwx pool={{ ses_openstack_glance_pool.name }}", mode: "0600", acls: []  }
-  - { name: "client.cinder_backup-{{ qe_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_cinder_backup_pool.name }}", mode: "0600", acls: [] }
-  - { name: "client.rgw.ses-{{ qe_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow rwx", osd_cap: "allow rwx", mgr_cap: "allow r", mode: "0600", acls: [] }
+  - { name: "client.glance-{{ ardana_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_glance_pool.name }}", mode: "0600", acls: [] }
+  - { name: "client.cinder-{{ ardana_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_cinder_pool.name }}, allow rwx pool={{ ses_openstack_nova_pool.name }}, allow rwx pool={{ ses_openstack_glance_pool.name }}", mode: "0600", acls: []  }
+  - { name: "client.cinder_backup-{{ ardana_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow r", osd_cap: "allow class-read object_prefix rbd_children, allow rwx pool={{ ses_openstack_cinder_backup_pool.name }}", mode: "0600", acls: [] }
+  - { name: "client.rgw.ses-{{ ardana_env }}", key: "$(ceph-authtool --gen-print-key)", mon_cap: "allow rwx", osd_cap: "allow rwx", mgr_cap: "allow r", mode: "0600", acls: [] }

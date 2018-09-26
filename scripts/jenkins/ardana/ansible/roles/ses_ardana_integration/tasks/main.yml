@@ -15,7 +15,22 @@
 #
 ---
 
-- import_tasks: copy_ardana_ses_configs.yml
+- name: Ensure ses config directory exist
+  file:
+    path: "{{ ses_ardana_config_path }}"
+    state: directory
 
-- import_tasks: post_ardana_deploy.yml
-  when: ardana_ses_post_deploy
+- name: Copy ceph keyring files
+  copy:
+    dest: "{{ ses_ardana_config_path }}/ceph.{{ item.item.name }}.keyring"
+    content: "{{ item.content | b64decode }}"
+    mode: 0644
+  when: "item.item.name != 'client.rgw.ses-' ~ ardana_env"
+  loop: "{{ hostvars['ses-' + ses_cluster_id].ceph_files.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+
+- name: Generate ses-config.yml
+  template:
+    src: ses-config.yml.j2
+    dest: "{{ ses_ardana_config_path }}/ses_config.yml"
