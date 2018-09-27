@@ -1,9 +1,12 @@
-Built from: http://{{ clouddata_server }}/repos/{{ ansible_architecture }}/{{ base_repos.0 }}
-Media build version: {{ cloud_media_build_version.content | b64decode }}
+Built from: {{ built_from }}
+Media build version: {{ media_build_version }}
 Configured repositories:
 {% for repo in repos_to_add | sort %}
   - {{ repo }}
 {% endfor %}
+{% if is_milestone %}
+  - {{ media[cloud_release].name }}
+{% endif %}
 {% for id in sles_maint_updates_list %}
   - SLES-Maint-Update-{{ id }}
 {% endfor %}
