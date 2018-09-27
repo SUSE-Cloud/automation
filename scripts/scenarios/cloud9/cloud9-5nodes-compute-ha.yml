@@ -205,12 +205,6 @@ proposals:
       manila-share:
       - @@controller1@@
       - @@controller2@@
-- barclamp: trove
-  attributes:
-  deployment:
-    elements:
-      trove-server:
-      - @@controller1@@
 - barclamp: magnum
   attributes:
     cert:
