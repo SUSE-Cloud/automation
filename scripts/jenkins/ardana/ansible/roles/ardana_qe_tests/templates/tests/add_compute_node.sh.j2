@@ -10,23 +10,26 @@ set -o pipefail
 
 
 WORK_HOME={{ ardana_qe_test_work_dir }}
-TYPE_OF_NODE=$1
-HOST_NAME=$2
-NODE_ID=$3
-IP_ADDR=$4
-SERVER_ROLE=$5
-SERVER_GROUP=$6
-NIC_MAP=$7
-MAC_ADDR=$8
-ILO_IP=$9
-ILO_PWD=$10
-ILO_USER=$11
+TYPE_OF_NODE={{type_of_node}}
+HOST_NAME={{host_name}}
+NODE_ID={{node_id}}
+IP_ADDR={{ip_addr}}
+SERVER_ROLE={{server_role}}
+SERVER_GROUP={{server_group}}
+NIC_MAP={{nic_map}}
+MAC_ADDR={{mac_addr}}
+ILO_IP={{ilo_ip}}
+ILO_PWD={{ilo_pwd}}
+ILO_USER={{ilo_user}}
+work_dir={{ ardana_qe_test_work_dir }}
+test_log="$work_dir/add_compute_node.log"
+subunit_log="$work_dir/add_compute_node.subunit"
 
 AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
 
 # Run the test
 {{ ardana_qe_tests_dir }}/ardana-qa-tests/operational/add_node.sh -t $TYPE_OF_NODE -c $HOST_NAME -e $NODE_ID -e $IP_ADDR -e $SERVER_ROLE -e $SERVER_GROUP -e $NIC_MAP -e $MAP_ADDR -e $ILO_IP -e ILO_PWD -e $ILO_USER -n $AUTO_ID | tee \
-  ${WORK_HOME}/add_node.log
+  ${WORK_HOME}/add_compute_node.log
 
 res=$?
 
