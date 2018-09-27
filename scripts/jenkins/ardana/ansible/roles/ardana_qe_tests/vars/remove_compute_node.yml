@@ -1,5 +1,5 @@
 
 
-ardana_qe_test_get_results_cmds: "grep -A 6 'Disabling provisioning on compute host' {{ ardana_qe_test_log }} || echo 'None'"
+ardana_qe_test_get_results_cmds: "grep -A 10 'Disabling provisioning on compute host' {{ ardana_qe_test_log }} || echo 'None'"
 ardana_qe_test_get_failed_cmd: "grep -A 6 'fail' {{ ardana_qe_test_log }} || echo 'None'"
 
