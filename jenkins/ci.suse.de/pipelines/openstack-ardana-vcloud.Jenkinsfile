@@ -91,11 +91,13 @@ pipeline {
 
     stage('Create heat stack') {
       steps {
-        lock(resource: 'cloud-ECP-API') {
-          sh('''
-            source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-            ansible_playbook heat-stack.yml -e @input.yml
-          ''')
+        script {
+          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'heat_action', value: "create"),
+            string(name: 'reuse_node', value: "${NODE_NAME}"),
+            string(name: 'reuse_workspace', value: "${WORKSPACE}")
+          ], propagate: true, wait: true
         }
       }
     }
@@ -130,11 +132,13 @@ pipeline {
       """
     }
     failure {
-      lock(resource: 'cloud-ECP-API') {
-        sh('''
-          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook heat-stack.yml -e @input.yml -e heat_action=delete
-        ''')
+      script {
+        def slaveJob = build job: 'openstack-ardana-heat', parameters: [
+          string(name: 'ardana_env', value: "$ardana_env"),
+          string(name: 'heat_action', value: "delete"),
+          string(name: 'reuse_node', value: "${NODE_NAME}"),
+          string(name: 'reuse_workspace', value: "${WORKSPACE}")
+        ], propagate: false, wait: false
       }
     }
   }

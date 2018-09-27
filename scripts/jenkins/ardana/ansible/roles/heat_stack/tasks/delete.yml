@@ -15,14 +15,7 @@
 #
 ---
 
-- name: Ensure stack is not in a pending state before deleting it
-  command: |
-    openstack --os-cloud {{ os_cloud }} stack show {{ heat_stack_name }} \
-      -c stack_status -f value
-  register: stack_status
-  retries: 100
-  until: "'IN_PROGRESS' not in stack_status.stdout"
-  delay: 10
+- include_tasks: monitor.yml
 
 - block:
     - name: Delete stack '{{ heat_stack_name }}'
@@ -31,7 +24,6 @@
         name: "{{ heat_stack_name }}"
         state: absent
         api_timeout: "{{ api_timeout }}"
-      when: "'DELETE_COMPLETE' not in stack_status.stdout"
   rescue:
     - name: Force delete stack resources when delete failed
       shell: |
@@ -68,12 +60,5 @@
       delay: 5
 
   always:
-    - name: Wait until stack '{{ heat_stack_name }}' is completely deleted
-      command: |
-        openstack --os-cloud {{ os_cloud }} stack show {{ heat_stack_name }} \
-          -c stack_status -f value
-      register: stack_status
-      retries: 100
-      until: "'DELETE_COMPLETE' not in stack_status.stdout"
-      delay: 10
-      failed_when: False
+    - include_tasks: monitor.yml
+      when: monitor_stack_after_delete
