@@ -1,5 +1,8 @@
-
-
+# The way remove_compute_node reports test results is one line per test so in this case we have
+# 6 lines and any failures are reported as a non-zero value in column 11. This
+# almost never happens and the more interesting value is the IOPS which in
+# in column 10, though I'm not sure if automation can/should deal with those
+# sorts of numbers
 
 ardana_qe_test_venv_requires:
   - 'python-subunit'
