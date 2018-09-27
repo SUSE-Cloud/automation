@@ -41,13 +41,13 @@ res=$?
 success=1
 
 tesres=`grep -A 4 'Disabling provisioning on compute host' ${WORK_HOME}/remove_compute_node.log| grep 'QA - testing removing compute node'| gawk '{print $2}'`
-echo $tesres > ${WORK_HOME}/remove_compute_node.log
+echo $tesres >> ${WORK_HOME}/remove_compute_node.log
 if [ "$tesres" == "$COMPUTE_NODE_NAME" ]; then
    success=1
-   echo "$COMPUTE_NODE_NAME disabled" > ${WORK_HOME}/remove_compute_node.log
+   echo "Remove $COMPUTE_NODE_NAME test PASS" >> ${WORK_HOME}/remove_compute_node.log
 else 
    success=0
-   echo "$COMPUTE_NODE_NAME not able to disable" > ${WORK_HOME}/remove_compute_node.log
+   echo "Remove $COMPUTE_NODE_NAME test FAIL" >> ${WORK_HOME}/remove_compute_node.log
 fi
 
 echo $success
