@@ -37,8 +37,8 @@
       shell: "./velum-interactions {{ item }} -e /opt/ccp/environment.json"
       with_items:
         - "--setup"
-        - "--configure"
-        - "--bootstrap"
+        - "--configure --enable-tiller"
+        - "--bootstrap --enable-tiller"
       args:
         executable: /bin/bash
         chdir: /opt/ccp/automation/velum-bootstrap
