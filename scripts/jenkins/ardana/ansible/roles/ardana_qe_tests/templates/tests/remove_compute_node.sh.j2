@@ -38,11 +38,24 @@ $subunit_output --inprogress remove_compute_node > $subunit_log
 
 /var/lib/ardana/automation/remove_compute_node.sh -c $COMPUTE_NODE_NAME -n $COBBLER_NODE_NAME -n $AUTO_ID | tee \
  ${WORK_HOME}/remove_compute_node.log
-
-
-success=1
-tesres=`grep  ${WORK_HOME}/remove_compute_node.log
-
 res=$?
+success=1
+
+tesres=grep -A 4 'Disabling provisioning on compute host' ${WORK_HOME}/remove_compute_node.log| grep 'QA - testing removing compute node'| gawk '{print $2}'
+if $tesres = $COMPUTE_NODE_NAME
+   success=1
+   echo "$COMPUTE_NODE_NAME disabled"
+else 
+   success=0
+   echo "$COMPUTE_NODE_NAME not able to disable"
+fi
+
+
+if (( $success == 1 )); then
+    $subunit_output --success remove_compute_node >> $subunit_log
+else
+    $subunit_output --fail remove_compute_node >> $subunit_log
+fi
+
 
 exit $res
