@@ -42,3 +42,7 @@ network_groups:
     tagged_vlan: true
     component_endpoints:
       - NEUTRON-VXLAN
+
+  - name: ILO
+    hostname_suffix: ilo
+    component_endpoints: []
