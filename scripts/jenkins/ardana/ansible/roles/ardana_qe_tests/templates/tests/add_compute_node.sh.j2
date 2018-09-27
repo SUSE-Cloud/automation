@@ -25,6 +25,12 @@ work_dir={{ ardana_qe_test_work_dir }}
 test_log="$work_dir/add_compute_node.log"
 subunit_log="$work_dir/add_compute_node.subunit"
 
+
+venv_dir={{ ardana_qe_test_venv }}
+source $venv_dir/bin/activate
+subunit_output="$venv_dir/bin/subunit-output"
+
+
 AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
 
 # Run the test
@@ -32,5 +38,21 @@ AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
   ${WORK_HOME}/add_compute_node.log
 
 res=$?
+success=1
+tesres=`grep -A 4 'Disabling provisioning on compute host' ${WORK_HOME}/add_compute_node.log| grep 'QA - testing removing compute node'| gawk '{print $2}'`
+echo $tesres >> ${WORK_HOME}/remove_compute_node.log
+if [ "$tesres" == "$COMPUTE_NODE_NAME" ]; then
+   success=1
+   echo "Add $HOST_NAME test PASS" >> ${WORK_HOME}/add_compute_node.log
+else 
+   success=0
+   echo "Add $HOST_NAME test FAIL" >> ${WORK_HOME}/add_compute_node.log
+fi
 
+echo $success
+if (( $success == 1 )); then
+    $subunit_output --success remove_compute_node >> $subunit_log
+else
+    $subunit_output --fail remove_compute_node >> $subunit_log
+fi
 exit $res
