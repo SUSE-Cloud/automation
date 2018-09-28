@@ -135,9 +135,7 @@ pipeline {
       script {
         def slaveJob = build job: 'openstack-ardana-heat', parameters: [
           string(name: 'ardana_env', value: "$ardana_env"),
-          string(name: 'heat_action', value: "delete"),
-          string(name: 'reuse_node', value: "${NODE_NAME}"),
-          string(name: 'reuse_workspace', value: "${WORKSPACE}")
+          string(name: 'heat_action', value: "delete")
         ], propagate: false, wait: false
       }
     }
