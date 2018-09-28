@@ -2296,6 +2296,12 @@ function custom_configuration
             if ! iscloudver 9plus && ! [[ $want_trove_proposal = 0 ]]; then
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
             fi
+
+            if iscloudver 7plus && ! [[ $want_ceilometer_proposal = 0 ]]; then
+                if crowbar rabbitmq proposal show default | grep -q enable_notifications; then
+                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['client']['enable_notifications']" true
+                fi
+            fi
         ;;
         dns)
             [ "$want_multidnstest" = 1 ] || return 0
