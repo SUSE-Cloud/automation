@@ -81,6 +81,7 @@
 {%   if 'MANAGEMENT' in network_group.component_endpoints %}
 {%     if bm_info is defined %}
 {%       set _ = ns.routes.append('OCTAVIA-MGMT-NET') %}
+{%       set _ = ns.routes.append('ILO') %}
 {%     else %}
 {%       for neutron_ng in scenario.network_groups if 'NEUTRON-VLAN' in neutron_ng.component_endpoints %}
 {%         set _ = ns.routes.append('NEUTRON-%s-VLAN-NET'|format(neutron_ng.name|upper)) %}
@@ -95,6 +96,7 @@
 {%     endfor  %}
 {%   endif %}
 
+{% if network_group.name != 'ILO' %}
       load-balancers:
 {%   if 'INTERNAL-API' in network_group['component_endpoints'] %}
 
@@ -225,4 +227,5 @@
 {%   else %}
       tags: []
 {%   endif %}
+{% endif %}
 {% endfor %}
