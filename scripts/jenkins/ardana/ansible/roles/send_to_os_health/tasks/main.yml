@@ -18,15 +18,13 @@
 - name: Gather variables for '{{ task }}'
   include_vars: "{{ task }}.yml"
 
-- name: Ensure SLES-SDK repo
+- name: Ensure SLES-SDK repos present
   zypper_repository:
     name: "{{ item }}"
     repo: "http://{{ clouddata_server }}/repos/x86_64/{{ item }}/"
     runrefresh: yes
     priority: 9999
-  loop:
-    - "SLE12-SP3-SDK-Pool"
-    - "SLE12-SP3-SDK-Updates"
+  loop: "{{ sles_sdk_repos }}"
   become: yes
 
 - name: Ensure requirements for subunit2sql installed
@@ -38,6 +36,14 @@
     - "python-devel"
   become: yes
 
+- name: Ensure SLES-SDK repos absent
+  zypper_repository:
+    name: "{{ item }}"
+    repo: "http://{{ clouddata_server }}/repos/x86_64/{{ item }}/"
+    state: absent
+  loop: "{{ sles_sdk_repos }}"
+  become: yes
+
 - name: Setup subunit2sql
   pip:
     name: "{{ item }}"
@@ -46,6 +52,9 @@
     - "subunit2sql"
     - "pymysql"
   become: yes
+
+- include_tasks: get_cloud_build_version.yml
+  when: cloud_media_build_version is not defined or 'content' not in cloud_media_build_version
 
 - name: Send results to OpenStack-Health
   shell: |

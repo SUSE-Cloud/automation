@@ -1,0 +1,13 @@
+---
+
+- name: Restart and enable salt-minion
+  service:
+    name: salt-minion
+    state: restarted
+    enabled: yes
+
+- name: Restart and enable salt-master
+  service:
+    name: salt-master
+    state: restarted
+    enabled: yes

@@ -23,16 +23,16 @@
   loop:
     - "service"
     - "network"
-    - "interfaces"
+    - "interface"
     - "disk"
   when: "item ~ '_template' in scenario"
 
 - include_tasks: get_qe_bm_info.yml
-  when: qe_env is defined
+  when: is_physical_deploy
 
 - name: Create directories
   file:
-    path: "{{ input_model_dir }}/{{ item.path }}"
+    path: "{{ input_model_path }}/{{ item.path }}"
     state: directory
     mode: "{{ item.mode }}"
   with_filetree: "templates/input_model/"
@@ -43,7 +43,7 @@
 - name: Template files
   template:
     src: "{{ item.src }}"
-    dest: "{{ input_model_dir }}/{{ item.path }}"
+    dest: "{{ input_model_path }}/{{ item.path }}"
     mode: "{{ item.mode }}"
   with_filetree: "templates/input_model/"
   when: item.state == "file"
@@ -54,4 +54,7 @@
   template:
     src: "templates/virtConfig.yml"
     dest: "{{ virt_config_file }}"
-  when: virt_config_file is defined
+  when:
+    - not is_physical_deploy
+    - virt_config_file != ''
+    - not want_caasp

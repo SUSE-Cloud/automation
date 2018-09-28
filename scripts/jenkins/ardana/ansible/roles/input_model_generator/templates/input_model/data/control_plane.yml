@@ -59,10 +59,11 @@
           server-role: {{ service_group.name|upper }}-ROLE
 {%     if service_group_type == 'cluster' %}
           member-count: {{ service_group['member_count']|int }}
+          allocation-policy: strict
 {%     else %}
           min-count: {{ service_group['min_count'] }}
+          allocation-policy: any
 {%     endif %}
-          allocation-policy: strict
           service-components:
 {%     for service_component in ns.service_components|unique|sort %}
             - {{ service_component }}

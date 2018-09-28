@@ -149,6 +149,7 @@ for version in 9 8 7 6; do
     done
 done
 
+rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/9\:/Rocky/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-9-x86_64-Media1.iso /srv/nfs/repos/x86_64/SUSE-OpenStack-Cloud-Crowbar-9-devel-rocky
 rsync_with_create ${ibs_source_nue}/Devel:/Cloud:/8:/HOS5Migration/SLE_12_SP3/ /srv/nfs/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-HOS5Migration/
 
 ##############
@@ -171,6 +172,7 @@ for servicepack in 4 3 2 1; do
         echo ================== Updating SLE 12 SP$servicepack for $arch
 
         destdir_install=/srv/nfs/install/suse-${chef_version}/$arch/install/
+        mkdir -p $destdir_install
         if [ -z "$sync_from_ibs" ]; then
             $rsync $install_source/SLP/SLE-$version-Server-GM/$arch/DVD1/ $destdir_install
         else

@@ -6,8 +6,8 @@ Ansible role for running tests from [ardana-qa-tests]
 
 1. A bash script is responsible for calling the test from the ardana-qe-tests repo
     - The ardana-qa-tests repository will be cloned by the automation at `~/ardana-qe/ardana-qe-tests`
-	- The script is templated by the automation based on variables (work directory, ardana-qe-tests path) to drive its execution
-	- The script can use a python interpreter from a virtual environment that will be created by the automation at `~/ardana-qe/ardana-qe-tests/{{ test_name }}/venv` this enables the installation of test dependencies into its own virtual environment
+    - The script is templated by the automation based on variables (work directory, ardana-qe-tests path) to drive its execution
+    - The script can use a python interpreter from a virtual environment that will be created by the automation at `~/ardana-qe/ardana-qe-tests/{{ test_name }}/venv` this enables the installation of test dependencies into its own virtual environment
 2. A work directory is created for each test (`~/ardana-qe/ardana-qe-tests/{{ test_name }}`)
 3. The test execution log is saved at `~/ardana-qe/{{ test_name }}/{{ test_name }}.log`
 4. If the test provides a subunit output it is saved at `~/ardana-qe/{{ test_name }}/{{ test_name }}.subunit`
@@ -53,7 +53,7 @@ Try to use predefined ansible variables whenever possible. Example:
         ```sh
         grep -e '^iverify.*\\.\\.\\..*FAIL' ~/ardana-qe/iverify/iverify.log || echo 'None'
         iverify.monasca ... FAIL
-    	iverify.ceilometer ... FAIL
+        iverify.ceilometer ... FAIL
         iverify.nova_vm ... FAIL
         ```
 
@@ -80,8 +80,8 @@ Try to use predefined ansible variables whenever possible. Example:
 
         ```sh
         os_resources_requires:
-    	  - "user"
-    	  - "project"
+          - "user"
+          - "project"
         ```
 
         Those resources will be created/deleted by the automation.
@@ -94,7 +94,7 @@ Try to use predefined ansible variables whenever possible. Example:
           - 'python-subunit'
         ```
 
-	    Those packages will be installed on the test virtual environment by the automation.
+        Those packages will be installed on the test virtual environment by the automation.
 
     Check examples at: https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/ardana/ansible/roles/ardana_qe_tests/vars
 

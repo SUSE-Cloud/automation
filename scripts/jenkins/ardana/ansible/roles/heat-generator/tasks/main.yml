@@ -73,5 +73,22 @@
     regexp: '/dev/sd([a-f])'
     replace: '/dev/vd\1'
   with_filetree: '{{ input_model_path }}'
+  loop_control:
+    label: "{{ item.path }}"
   when: item.state == 'file'
   ignore_errors: True
+
+- name: Update DNS and NTP servers in input model
+  shell: >
+    python -c "
+       import yaml;
+       f = open('cloudConfig.yml');
+       data = yaml.load(f.read());
+       f.close();
+       data['cloud']['dns-settings']=dict(nameservers = {{ dns_servers }});
+       data['cloud']['ntp-servers'] = {{ ntp_servers }};
+       f = open('cloudConfig.yml', 'w');
+       f.write(yaml.safe_dump(data, default_flow_style=False));
+       f.close();"
+  args:
+    chdir: '{{ input_model_path }}'

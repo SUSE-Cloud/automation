@@ -1,0 +1,1 @@
++functionaltests\.client\.v1\.smoke

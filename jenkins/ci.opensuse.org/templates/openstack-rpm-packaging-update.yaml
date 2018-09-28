@@ -8,7 +8,7 @@
 
     builders:
       - shell: |
-          #!/bin/bash
+          #!/bin/bash -x
           export OSCAPI="https://api.opensuse.org"
           export OBS_PROJECT="Cloud:OpenStack:Upstream:{release}"
           export RELEASE="{release}"

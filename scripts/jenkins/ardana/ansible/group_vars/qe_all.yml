@@ -15,34 +15,4 @@
 #
 ---
 
-## Variables overriden by ardana-deploy jenkins job
-cloud_brand: "SUSE"
-cloud_source: "GM"
-ardana_input_model: "entry-scale-kvm"
-clm_model: "standalone"
-controllers: 3
-sles_computes: 2
-rhel_computes: 0
-ses_enabled: False
-cloud_maint_updates: ""
-sles_maint_updates: ""
-rc_notify: True
-
-ardana_ses_post_deploy: False
-rhel_enabled: "{{ rhel_computes is defined and rhel_computes > 0 }}"
-
-rc_channels:
-  qe002: "cloud-qe-hlm002"
-  qe007: "cloud-qe-hlm007"
-  qe101: "cloud-qe-hlm101"
-  qe102: "cloud-qe-hlm102"
-  qe201: "cloud-qe-hlm201"
-  qe202: "cloud-qe-hlm202"
-  qe2023: "cloud-qe-hlm2023par"
-  scale: "cloud-qe-scale"
-  qa4: "cloud-qe-qa4"
-
-ardana_qe_base_dir: "{{ ansible_user_dir }}/ardana-qe"
-ardana_qe_test_work_dir: "{{ ardana_qe_base_dir }}/{{ test_name }}"
-ardana_qe_test_log: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.log"
-ardana_qe_test_subunit: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit"
+ses_cluster_id: "qe1"

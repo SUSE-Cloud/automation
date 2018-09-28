@@ -19,9 +19,6 @@
 
 - import_tasks: create_users.yml
 
-- import_tasks: configure_rgw.yml
-  when: ardana_ses_post_deploy
-
 - name: Get ses conf options
   shell: grep 'fsid\|mon_host\|mon_initial\|network' /etc/ceph/ceph.conf | awk '{ print $3 }'
   register: conf_options

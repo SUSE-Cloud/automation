@@ -22,8 +22,3 @@
 
 - include_tasks: post_defcore.yml
   when: tempest_run_filter == 'defcore'
-
-- name: Fail if any tempest test has failed
-  fail:
-    msg: "{{ tempest_results_processed.results.3.stdout }} tests failed."
-  when: tempest_results_processed.results.3.stdout | int > 0

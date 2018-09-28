@@ -38,7 +38,7 @@
 {% if bm_info is not defined %}
       hostname: {{ scenario['cloud_name'] }}-{{ bm_info.servers[ns.server_idx].id if bm_info is defined else server_id }}
 {% endif %}
-      ip-addr: 192.168.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.{{ bm_info.networks.bm_subnet_start + ns.server_idx if bm_info is defined else ns.server_idx + 1 }}
+      ip-addr: 192.168.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.{{ bm_info.networks.bm_subnet_start + ns.server_idx if bm_info is defined else ns.server_idx + 100 }}
       role: {{ service_group.name|upper }}-ROLE
       server-group: RACK{{ (idx%3)+1 }}
       nic-mapping: {{ bm_info.servers[ns.server_idx].nic_mapping if bm_info is defined else 'HEAT' }}
@@ -47,6 +47,11 @@
       ilo-password: {{ bm_info.servers[ns.server_idx].ilo_password }}
       ilo-ip: {{ bm_info.servers[ns.server_idx].ilo_ip }}
       mac-addr: {{ bm_info.servers[ns.server_idx].mac_addr }}
+{% elif bm_info is not defined %}
+      # Generate dummy iLO credentials until bsc#1091459 is fixed
+      ilo-user: 'ilouser'
+      ilo-password: 'ilopasswd'
+      ilo-ip: 10.1.1.{{ ns.server_idx + 100 }}
 {% endif %}
 {% if service_group.distro_id is defined and 'sles' not in service_group.distro_id %}
       distro-id: {{ service_group.distro_id }}

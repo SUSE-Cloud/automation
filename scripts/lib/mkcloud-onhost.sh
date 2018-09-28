@@ -125,6 +125,7 @@ function onhost_cacheclouddata
                 [[ $hacloud = 1 ]] && echo "repos/$a/SLE$slesversion-HA-$suffix/***"
                 echo "repos/$a/SUSE-OpenStack-Cloud-$cloudrepover-$suffix/***"
                 echo "repos/$a/SUSE-Enterprise-Storage-$sesversion-$suffix/***"
+                echo "repos/$a/SLE12-Module-Adv-Systems-Management-$suffix/***"
             done
             echo "repos/$a/SLES$slesversion-LTSS-Updates/***"
             [[ $want_test_updates = 1 ]] && {
@@ -139,6 +140,9 @@ function onhost_cacheclouddata
             if [[ $cloudsource =~ (develcloud) ]]; then
                 suffix="devel"
                 [ -n "$TESTHEAD" ] && suffix+="-staging"
+            fi
+            if [[ $cloudsource =~ (rockycloud) ]]; then
+                suffix="devel-rocky"
             fi
             echo "repos/$a/SUSE-OpenStack-Cloud-$cloudrepover-$suffix/***"
 

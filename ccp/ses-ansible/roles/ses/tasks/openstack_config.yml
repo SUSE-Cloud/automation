@@ -1,0 +1,46 @@
+---
+- name: Create openstack pool(s)
+  command: "ceph osd pool create {{ item.name }} {{ item.pg_num }}"
+  with_items: "{{ ses_openstack_pools | unique }}"
+  changed_when: false
+  failed_when: false
+
+- name: Associate openstack pool(s) to application rbd
+  command: "ceph osd pool application enable {{ item.name }} rbd"
+  with_items: "{{ ses_openstack_pools | unique }}"
+  changed_when: false
+
+- name: Create openstack key(s)
+  shell: "ceph-authtool -C /etc/ceph/ceph.{{ item.name }}.keyring --name {{ item.name }} --add-key {{ item.key }} --cap mon \"{{ item.mon_cap|default('') }}\" --cap osd \"{{ item.osd_cap|default('') }}\" --cap mds \"{{ item.mds_cap|default('') }}\""
+  args:
+    creates: "/etc/ceph/ceph.{{ item.name }}.keyring"
+  with_items: "{{ ses_openstack_keys }}"
+  changed_when: false
+
+- name: Check if openstack key(s) already exist(s)
+  command: "ceph auth get {{ item.name }}"
+  changed_when: false
+  failed_when: false
+  with_items: "{{ ses_openstack_keys }}"
+  register: openstack_key_exist
+
+- name: Add openstack key(s) to ceph
+  command: "ceph auth import -i /etc/ceph/ceph.{{ item.0.name }}.keyring"
+  changed_when: false
+  with_together:
+    - "{{ ses_openstack_keys }}"
+    - "{{ openstack_key_exist.results }}"
+  when: item.1.rc != 0
+
+- name: Get ses conf options
+  shell: grep 'fsid\|mon_host\|mon_initial\|network' /etc/ceph/ceph.conf | awk '{ print $3}'
+  register: conf_options
+
+- name: Get ceph conf/key file contents
+  slurp:
+    src: "/etc/ceph/{{ item }}"
+  with_items:
+    - "ceph.client.cinder.keyring"
+    - "ceph.client.cinder_backup.keyring"
+    - "ceph.client.glance.keyring"
+  register: ceph_files

@@ -15,7 +15,7 @@
 #
 ---
 
-frontail_url: "https://github.com/mthenw/frontail/releases/download/4.2.0/frontail-linux"
+frontail_url: "https://github.com/mthenw/frontail/releases/download/v4.2.2/frontail-linux"
 frontail_run_dir: "/opt/frontail"
 frontail_target_log: "/var/lib/ardana/.ansible/ansible.log"
 frontail_start_cmd: "frontail -d --ui-highlight --ui-highlight-preset \

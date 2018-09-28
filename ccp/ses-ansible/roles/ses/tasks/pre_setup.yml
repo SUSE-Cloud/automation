@@ -1,0 +1,42 @@
+---
+
+- name: "Ensure host in /etc/hosts"
+  lineinfile:
+    dest: "/etc/hosts"
+    line: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - "{{ ansible_default_ipv4.address }}      {{ ansible_hostname }}"
+    - "::1     {{ ansible_hostname }}"
+
+- name: "Count number of disk devices"
+  shell: |
+    lsblk -n -o type | awk 'BEGIN{count=0} $1=="disk" {count++} END{print count}'
+  register: ses_node_disks_count_result
+
+- name: "Set SES node disk count fact"
+  set_fact:
+    ses_node_disks_count: "{{ ses_node_disks_count_result.stdout | int }}"
+
+- name: "Ensure NTP installed"
+  package:
+    name: ntp
+    state: present
+
+- name: Ensure NTP is enabled
+  service:
+    name: "ntpd"
+    state: started
+    enabled: yes
+
+- name: Ensure SES repos present
+  zypper_repository:
+    name: "{{ item.name }}"
+    repo: "{{ item.repo }}"
+  with_items:
+    - name: "SUSE-Enterprise-Storage-{{ ses_version }}-Pool"
+      repo: "{{ ses_repo_server }}/repos/x86_64/SUSE-Enterprise-Storage-{{ ses_version }}-Pool/"
+    - name: "SUSE-Enterprise-Storage-{{ ses_version }}-Updates"
+      repo: "{{ ses_repo_server }}/repos/x86_64/SUSE-Enterprise-Storage-{{ ses_version }}-Updates/"

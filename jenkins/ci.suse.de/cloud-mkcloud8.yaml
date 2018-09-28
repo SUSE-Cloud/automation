@@ -40,6 +40,7 @@
     label: openstack-mkcloud-ha-x86_64
     storage_method_ha: swift
     database_engine: mysql
+    want_all_ssl: 0
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'

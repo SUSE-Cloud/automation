@@ -1,0 +1,113 @@
+- job-template:
+    name: 'cloud-ardana{version}-job-gerrit-{arch}'
+    project-type: pipeline
+    concurrent: true
+    node: cloud-trigger
+    disabled: '{obj:disabled}'
+
+    triggers:
+      - gerrit:
+          server-name: 'gerrit.suse.provo.cloud'
+          trigger-on:
+            - patchset-created-event:
+                exclude-drafts: true
+                exclude-no-code-change: true
+            - draft-published-event
+            - comment-added-contains-event:
+                comment-contains-value: '^suse_recheck$'
+            - comment-added-contains-event:
+                comment-contains-value: '^recheck$'
+          override-votes: true
+          gerrit-build-successful-verified-value: 1
+          skip-vote:
+              notbuilt: true
+          projects:
+            - project-compare-type: 'REG_EXP'
+              project-pattern: !include-raw: ../gerrit-project-regexp.txt
+              branches:
+                - branch-compare-type: 'PLAIN'
+                  branch-pattern: '{branch}'
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 14
+
+    parameters:
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
+
+      - string:
+          name: jenkinsfile_path
+          default: jenkins/ci.suse.de/pipelines/openstack-ardana-gerrit.Jenkinsfile
+          description: >-
+            The location of the Jenkinsfile defining the pipeline
+
+      - string:
+          name: build_pool
+          default: '{build_pool}'
+          description: >-
+            The lockable resource pool (label) to use for jobs triggered by this pipeline
+
+      - string:
+          name: gerrit_change_ids
+          default: '${{GERRIT_CHANGE_NUMBER}}'
+          description: >-
+            A comma separated list of IDs for changes in gerrit.suse.provo.cloud
+            to test.
+
+      - string:
+          name: model
+          default: '{model}'
+          description: >-
+            The Input Model to use from the input model git repository / branch / path.
+
+      - string:
+          name: cloudsource
+          default: 'stagingcloud{version}'
+          description: >-
+            The cloud repository (from provo-clouddata) to be used for testing.
+            This value can take the following form:
+
+               stagingcloud<X> (Devel:Cloud:X:Staging)
+               develcloud<X> (Devel:Cloud:X)
+               GM<X> (official GM)
+
+      - string:
+          name: tempest_run_filter
+          default: '{tempest_run_filter}'
+          description: >-
+            Name of the filter file to use for tempest. Use an empty value to
+            skip running tempest.
+
+      - string:
+          name: develproject
+          default: '{develproject}'
+          description: >-
+            Project in IBS to link against when creating a test project for a
+            change proposal.
+
+      - string:
+          name: repository
+          default: '{repository}'
+          description: >-
+            Name of the repository in IBS against which to build the test packages.
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${{git_automation_repo}}
+            branches:
+              - ${{git_automation_branch}}
+            browser: auto
+            wipe-workspace: false
+      script-path: ${{jenkinsfile_path}}
+      lightweight-checkout: false

@@ -22,8 +22,8 @@ limits in our project.
 
 To be able to use the Jenkins job and login to a deployed env, you need:
 
-* the login creds for https://ci.nue.suse.com
-* your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/ssh-keys.yml) (via normal github pull requests)
+* the cloud team login creds for https://ci.nue.suse.com (ask in the cloud-team RocketChat channel if you don't know what it is, and someone will PM you)
+* your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/group_vars/all/ssh_pub_keys.yml) (via normal github pull requests)
 
 ## Create a new environment
 
@@ -32,7 +32,7 @@ parameters](https://ci.nue.suse.com/job/openstack-ardana/build). The
 available parameters should be self-descriptive. Here are some best
 practices:
 
-*   Use your Rocket/irc nickname as ```job_name```.
+*   Use your Rocket/irc nickname as ```ardana_env```.
 *   To test a different than the default model, adjust the
     ```model``` parameter in the deployment.
 *   To test a custom automation repo, push to your fork and adjust

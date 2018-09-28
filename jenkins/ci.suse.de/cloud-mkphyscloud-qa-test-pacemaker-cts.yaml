@@ -41,7 +41,7 @@
 
     builders:
       - shell: |
-          #!/bin/bash
+          #!/bin/bash -x
           admin=crowbar$hw_number
           cloud=qa$hw_number
           

@@ -20,3 +20,4 @@ ardana_qe_test_get_results_cmds:
   passed: "grep -e '^iverify.*\\.\\.\\..*ok' {{ ardana_qe_test_log }} | wc -l"
   failed: "grep -e '^iverify.*\\.\\.\\..*FAIL' {{ ardana_qe_test_log }} | wc -l"
   ran: "grep -e '^iverify.*\\.\\.\\..*' {{ ardana_qe_test_log }} | wc -l"
+  skipped: "grep -e '^iverify.*\\.\\.\\..*SKIP' {{ ardana_qe_test_log }} | wc -l"

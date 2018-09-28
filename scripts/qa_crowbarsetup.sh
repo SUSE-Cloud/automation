@@ -901,11 +901,11 @@ function onadmin_set_source_variables
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
         ;;
-        develcloud9)
-            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9/images/iso"
-            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Staging/images/iso"
+        rockycloud9)
+            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Rocky/images/iso"
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Rocky/images/iso"
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel-rocky"
         ;;
         susecloud9)
             CLOUDISOURL="$susedownload/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/"
@@ -930,9 +930,15 @@ function onadmin_set_source_variables
             cs=$cloudsource
             [[ $cs =~ GM8 ]] && cs=GM
             # TODO: Switch to clouddata when released
-            CLOUDISOURL="${want_cloud8_iso_url:=$susedownload/install/SLE-12-SP3-Cloud8-$cs/}"
+            CLOUDISOURL="${want_cloud8_iso_url:=$reposerver/install/SLE-12-SP3-Cloud8-$cs/}"
             CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-8-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
+        ;;
+        GMC*|M?|RC?)
+            cs=$cloudsource
+            CLOUDISOURL="${want_cloud9_iso_path:=$susedownload/install/SLE-12-SP4-Cloud9-$cs/}"
+            CLOUDISONAME=${want_cloud9_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*1.iso"}
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-official"
         ;;
         *)
             complain 76 "You must set environment variable cloudsource=develcloud6|develcloud7|develcloud8|develcloud9|Mx|GM6|GM7"
@@ -1989,7 +1995,7 @@ function enable_ssl_generic
         nova)
             $p "$a['ssl']['enabled']" true
             $p "$a['novnc']['ssl']['enabled']" true
-            if iscloudver 7plus ; then
+            if iscloudver 7 ; then
                 $p "$a['ec2-api']['ssl']['enabled']" true
                 $p "$a['ec2-api']['ssl']['generate_certs']" true
                 $p "$a['ec2-api']['ssl']['insecure']" true
@@ -2103,7 +2109,7 @@ function hacloud_configure_cluster_defaults
 
 function hacloud_configure_data_cluster
 {
-    if [[ "$want_database_sql_engine" != "mysql" ]] ; then
+    if iscloudver 6minus || [[ "$want_database_sql_engine" == "postgresql" ]] ; then
         proposal_set_value pacemaker $clusternamedata "['attributes']['pacemaker']['drbd']['enabled']" true
     fi
     hacloud_configure_cluster_defaults $clusternamedata "data"
@@ -2197,6 +2203,7 @@ function custom_configuration
     esac
 
     local adminfqdn=`get_crowbar_node`
+    local controllernode=($(get_all_discovered_nodes | head -n 1))
 
     case "$proposal" in
         nfs_client)
@@ -2224,33 +2231,38 @@ function custom_configuration
             fi
         ;;
         database)
-            if [[ $hacloud = 1 ]] ; then
-                if [[ "$want_database_sql_engine" != "mysql" ]] ; then
-                    # migration 109 in SOC7 brings a change in schema, we need a different way to access to ha values
-                    # FIXME remove this after 109 is merged
-                    if [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
+            if [[ $want_database_sql_engine ]] ; then
+                proposal_set_value database default "['attributes']['database']['sql_engine']" "'$want_database_sql_engine'"
+            fi
+            # For SOC7 we introduced transitional role called mysql-server that's gonna be used during the upgrade
+            # Users deploying SOC7 with MariaDB must use this one and not database-server
+            # However to not break GM deployments, we should check if the role is actually present.
+            if iscloudver 7 && [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
+                # In this branch, if want_database_sql_engine is not set, mysql is the default
+                if [[ $hacloud = 1 ]] ; then
+                    if [[ "$want_database_sql_engine" != "postgresql" ]] ; then
+                        proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "['cluster:$clusternamedata']"
+                    else
+                        # default backend is DRBD for postgresql - and attributes are at different place when 109 migration is present
                         proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['mode']" "'drbd'"
                         proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['drbd']['size']" "$drbd_database_size"
-                    else
-                        proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
-                        proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
+                        proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
+                        proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "[]"
                     fi
-                fi
-                # For SOC7 we introduced transitional role called mysql-server that's gonna be used during the upgrade
-                # Users deploying SOC7 with MariaDB must use this one and not database-server
-                if iscloudver 7 && [[ "$want_database_sql_engine" == "mysql" ]] && \
-                    [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
-                    proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "['cluster:$clusternamedata']"
                 else
-                    proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
-                    if iscloudver 7 && [[ "$want_database_sql_engine" != "mysql" ]] ; then
-                        # explicitely set sql_engine to override the default
-                        proposal_set_value database default "['attributes']['database']['sql_engine']" "'postgresql'"
+                    # non-HA case might need some value for database-server role, otherwise database_service model picks mysql as default
+                    if [[ "$want_database_sql_engine" == "postgresql" ]] ; then
+                        proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['$controllernode']"
+                        proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "[]"
                     fi
                 fi
-            fi
-            if iscloudver 7plus && [[ $want_database_sql_engine ]] ; then
-                proposal_set_value database default "['attributes']['database']['sql_engine']" "'$want_database_sql_engine'"
+            # DRBD is default for postgresql based deployments
+            elif [[ $hacloud = 1 ]] ; then
+                # ForSOC7 without 109_separate_db_roles.rb, default is postgresql
+                if [[ "$want_database_sql_engine" != "mysql" ]] ; then
+                    proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
+                    proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
+                fi
             fi
         ;;
         rabbitmq)
@@ -2259,7 +2271,10 @@ function custom_configuration
                 # need to setup shared storage; in SOC 7, it is available in an
                 # update but disabled by default.
                 if iscloudver 6minus || ( iscloudver 7plus && [[ $want_clustered_rabbitmq = 0 ]] ); then
-                    if [[ "$want_database_sql_engine" == "mysql" ]] ; then
+                    if iscloudver 6minus || [[ "$want_database_sql_engine" == "postgresql" ]] ; then
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
+                    else
                         local nfs_server=$adminfqdn
                         if ping -c1 -w1 nfsserver > /dev/null ; then
                             nfs_server="nfsserver"
@@ -2267,9 +2282,6 @@ function custom_configuration
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['device']" "'$nfs_server:/srv/nfs/rabbitmq'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['fstype']" "'nfs'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['options']" "'rw,async,nofail'"
-                    else
-                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
-                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
                     fi
                     if iscloudver 7plus && grep -q cluster /opt/dell/chef/data_bags/crowbar/template-rabbitmq.json; then
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['cluster']" false
@@ -2280,8 +2292,15 @@ function custom_configuration
                 fi
                 proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamerabbit']"
             fi
-            if ! [[ $want_trove_proposal = 0 ]]; then
+
+            if ! iscloudver 9plus && ! [[ $want_trove_proposal = 0 ]]; then
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
+            fi
+
+            if iscloudver 7plus && ! [[ $want_ceilometer_proposal = 0 ]]; then
+                if crowbar rabbitmq proposal show default | grep -q enable_notifications; then
+                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['client']['enable_notifications']" true
+                fi
             fi
         ;;
         dns)
@@ -2438,7 +2457,9 @@ function custom_configuration
             if iscloudver 7plus; then
                 # create (and test) the trusted flavors
                 proposal_set_value nova default "['attributes']['nova']['trusted_flavors']" "true"
+            fi
 
+            if iscloudver 7; then
                 if [[ $hacloud = 1 ]] ; then
                     proposal_set_value nova default "['deployment']['nova']['elements']['ec2-api']" "['cluster:$clusternameservices']"
                 else
@@ -2491,7 +2512,7 @@ function custom_configuration
             fi
         ;;
         aodh)
-            if [[ $hacloud = 1 ]] ; then
+            if [[ $hacloud = 1 ]] && ( iscloudver 7 || iscloudver 8 ) ; then
                 proposal_set_value aodh default "['deployment']['aodh']['elements']['aodh-server']" "['cluster:$clusternameservices']"
             fi
         ;;
@@ -2730,7 +2751,10 @@ function set_proposalvars
     # F1: cloud8 no longer defaults to ceph, even if the nodenumbers allow it
     # background: starting with cloud8 the ceph nodes can not have openstack roles
     # this complicates the nodenumber counting.
-    if iscloudver 8plus ; then
+    # And since the release of mariadb as default database in SOC7, the default number
+    # of nodes changed as well: 3 nodes are required for galera and there's usually not much
+    # left for separate ceph nodes.
+    if iscloudver 8plus || ( iscloudver 7 && [[ $hacloud = 1 ]] ); then
         deployceph=
         if [[ $nodenumber -gt 1 ]]; then
             deployswift=1
@@ -2930,6 +2954,11 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        heat)
+            get_novacontroller
+            safely oncontroller heat_image_setup
+            ;;
+
         nfs_client)
             # nfs client (used by glance) is needed for ha setups but only when
             # neither swift nor ceph are deployed
@@ -2970,25 +2999,27 @@ function deploy_single_proposal
                 return
             fi
             ;;
-        swift)
-            [[ $deployswift ]] || return
-            ;;
-        heat)
-            get_novacontroller
-            safely oncontroller heat_image_setup
-            ;;
-        tempest)
-            [[ $want_tempest = 1 ]] || return
-            ;;
         sahara)
             if ! iscloudver 7plus; then
                 echo "Sahara is SOC 7+ only. Skipping"
                 return
             fi
             ;;
+        swift)
+            [[ $deployswift ]] || return
+            ;;
+        tempest)
+            [[ $want_tempest = 1 ]] || return
+            ;;
+        trove)
+            if iscloudver 9plus; then
+                echo "Trove is SOC 8- only. Skipping"
+                return
+            fi
+            ;;
         aodh)
-            if ! iscloudver 7plus; then
-                echo "Aodh is SOC 7+ only. Skipping"
+            if ! ( iscloudver 7 || iscloudver 8 ) ; then
+                echo "Aodh is SOC 7 and 8 only. Skipping"
                 return
             fi
             ;;
@@ -3966,7 +3997,7 @@ function oncontroller_testsetup
 
     local ssh_target="$ssh_user@$vmip"
 
-    wait_for 40 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
+    wait_for 60 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
 
     if ! ssh $ssh_target curl $test_internet_url ; then
         complain 95 could not reach internet
@@ -4125,8 +4156,13 @@ function install_suse_ca
     gpg --export -a 0xFEAB502539D846DB2C0961CA70AF9E8139DB7C82 > build.suse.de.key.pgp
     safely rpm --import build.suse.de.key.pgp
 
-    onadmin_set_source_variables # for $slesdist
-    $zypper ar --refresh http://$susedownload/ibs/SUSE:/CA/$slesdist/SUSE:CA.repo
+    onadmin_set_source_variables # for $slesdista
+    local caurl=http://$susedownload/ibs/SUSE:/CA/$slesdist/SUSE:CA.repo
+    # 2018-09-01: SP4 repo not yet enabled, try SP3 repo for now
+    if ! curl -s -f $caurl > /dev/null; then
+        caurl=${caurl/SLE_12_SP4/SLE_12_SP3}
+    fi
+    $zypper ar --refresh $caurl
     safely $zypper in ca-certificates-suse
 }
 
@@ -4200,13 +4236,13 @@ y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin'] ||= {}
 y['proposals'].first['attributes']['admin']['password'] = '$updated_password'
 puts y.to_yaml" > /root/keystone-test-pw-update.yaml
-    safely crowbar batch --timeout 900 build < /root/keystone-test-pw-update.yaml
+    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-update.yaml
     safely oncontroller test_keystone_password
     cat /root/keystone-test-pw-update.yaml | ruby -ryaml -e "
 y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin']['password'] = '$old_password'
 puts y.to_yaml" > /root/keystone-test-pw-reset.yaml
-    safely crowbar batch --timeout 900 build < /root/keystone-test-pw-reset.yaml
+    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-reset.yaml
 }
 
 function onadmin_have_salt_barclamp

@@ -20,5 +20,7 @@ test_results_subunit: "{{ ardana_qe_test_subunit }}"
 os_health_metadata:
   - "build_uuid:`uuidgen`"
   - "project:openstack/{{ test_name }}"
-  - "qe_env:{{ qe_env }}"
+  - "ardana_env:{{ ardana_env }}"
   - "build_name:{{ os_health_build_name }}"
+  - "openstack_service:{{ os_service_name.split('-')[0] | lower }}"
+  - "build_version:{{ cloud_media_build_version.content | b64decode }}"

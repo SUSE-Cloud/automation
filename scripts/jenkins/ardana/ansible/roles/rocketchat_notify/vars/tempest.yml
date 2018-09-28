@@ -16,30 +16,31 @@
 ---
 
 tempest_log_url: "{{ lookup('env', 'BUILD_URL') }}artifact/.artifacts/testr_results_region1.log"
+tempest_log_url_msg: "[{{ tempest_log_url }}]({{ tempest_log_url }})"
 
 rc_announcement_started: "Running tempest {{ tempest_run_filter }}"
 rc_announcement_finished: "{{ rc_previous_announcement.content | b64decode if rc_previous_announcement.content is defined else 'NA' }}"
 
 rc_msg_fields_started:
   - title: Started by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    value: "{{ jenkins_build_url_msg }}"
     short: False
   - title: Deployer
-    value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
+    value: "{{ hostvars[ardana_env].ansible_host }}"
     short: True
   - title: Filter
     value: "{{ tempest_run_filter }}"
     short: True
   - title: Ardana log stream
-    value: "http://{{ hostvars['ardana-' + qe_env].ansible_host }}:9091/"
+    value: "{{ ansible_log_stream_msg }}"
     short: True
 
 rc_msg_fields_finished_temp:
   - title: Started by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    value: "{{ jenkins_build_url_msg }}"
     short: False
   - title: Deployer
-    value: "{{ hostvars['ardana-' + qe_env].ansible_host }}"
+    value: "{{ hostvars[ardana_env].ansible_host }}"
     short: True
   - title: Filter
     value: "{{ tempest_run_filter }}"
@@ -60,15 +61,16 @@ rc_msg_fields_finished_temp:
     value: "{{ tempest_failed_tests.stdout if tempest_failed_tests is defined else 'Not available' }}"
     short: False
   - title: Tempest log
-    value: "{{ tempest_log_url if lookup('env', 'BUILD_URL') else 'Not available' }}"
+    value: "{{ tempest_log_url_msg if lookup('env', 'BUILD_URL') else 'Not available' }}"
     short: False
   - title: OpenStack-Health
-    value: "{{ os_health_url }}"
+    value: "{{ os_health_url_msg }}"
     short: False
 
+refstack_url_msg: "{{ '[' ~ refstack_out.stdout ~ '](' ~ refstack_out.stdout ~ ')' if refstack_out is defined else 'Not available' }}"
 rc_msg_fields_finished_defcore:
   - title: RefStack
-    value: "{{ refstack_out.stdout if refstack_out is defined else 'Not available' }}"
+    value: "{{ refstack_url_msg }}"
     short: False
 
 rc_msg_fields_finished: "{{ rc_msg_fields_finished_temp + rc_msg_fields_finished_defcore if tempest_run_filter == 'defcore' else rc_msg_fields_finished_temp }}"

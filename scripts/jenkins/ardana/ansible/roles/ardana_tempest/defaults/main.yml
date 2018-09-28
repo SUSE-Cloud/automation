@@ -29,7 +29,11 @@ tempest_results_awk_collect:
 tempest_qe_run_filters:
   - full
 
+subunit2junit_venv: "~/subunit2junit"
+
 defcore_tests_url: "https://refstack.openstack.org/api/v1/guidelines/2018.02/tests"
 defcore_refstackclient_git_url: "https://github.com/openstack/refstack-client.git"
 defcore_refstack_url: "https://10.86.0.98"
 defcore_results: "~/refstack_results.subunit"
+subunit_html_results: "~/testr_results_region1.html"
+subunit_xml_results: "~/testr_results_region1.xml"

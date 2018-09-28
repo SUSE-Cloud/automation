@@ -27,12 +27,13 @@ rc_bot:
 rc_auth_info_git_url: "https://gitlab.suse.de/cloud-qe/ardana-bm-info.git"
 rc_auth_info_dir: "/tmp/ardana-bm-info"
 
-rc_channel_id_query: "json.channels[?name=='{{ rc_channels[qe_env] }}']._id"
+rc_channel: "{{ is_physical_deploy | ternary(rc_channels[ardana_env], '@' ~ ardana_env.split('-')[0]) }}"
 
-rc_deploy_announcement_file: "~/deploy_finished-{{ qe_env }}.rc"
+rc_channel_id_query: "json.channels[?name=='{{ rc_channels[ardana_env] }}']._id"
+
+rc_deploy_announcement_file: "~/deploy_finished-{{ ardana_env }}.rc"
 
 rc_msg_title: "{{ rc_task | upper }} {{ rc_action }}"
-rc_channels: []
 
 # IVerify vars
 iverify_failed_tests:
@@ -42,6 +43,14 @@ iverify_failed_tests:
 tempest_run_filter: "smoke"
 os_health_server: "10.86.0.167"
 os_health_url: "http://{{ os_health_server }}/#/job/{{ os_health_build_name }}"
+os_health_url_msg: "[{{ os_health_url }}]({{ os_health_url }})"
 os_health_build_name: "{{ lookup('env', 'BUILD_DISPLAY_NAME') | default('NA', true) }}"
 
 ansible_log_url: "{{ lookup('env', 'BUILD_URL') }}artifact/.artifacts/ansible.log"
+ansible_log_url_msg: "[{{ ansible_log_url }}]({{ ansible_log_url }})"
+ansible_log_stream: "http://{{ hostvars[ardana_env].ansible_host if ardana_env in groups['all'] else 'NA' }}:9091/"
+ansible_log_stream_msg: "[{{ ansible_log_stream }}]({{ ansible_log_stream }})"
+jenkins_build_url: "{{ lookup('env', 'BUILD_URL') }}"
+jenkins_build_url_msg: "{{ (jenkins_build_url != '') | ternary('[' ~ jenkins_build_url ~ '](' ~ jenkins_build_url ~ ')', lookup('env', 'USER')) }}"
+
+rc_im_name: "{{ (scenario_name == '') | ternary(model, scenario_name) }}"

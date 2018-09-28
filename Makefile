@@ -52,11 +52,14 @@ flake8:
 python_unittest:
 	python -m unittest discover -v -s scripts/lib/libvirt/
 
-jjb_test:
+gerrit-project-regexp:
+	scripts/jenkins/ardana/gerrit/project-map2project-regexp.py > jenkins/ci.suse.de/gerrit-project-regexp.txt
+
+jjb_test: gerrit-project-regexp
 	jenkins-jobs --ignore-cache test jenkins/ci.suse.de:jenkins/ci.suse.de/templates/ cloud* openstack* > /dev/null
 	jenkins-jobs --ignore-cache test jenkins/ci.opensuse.org:jenkins/ci.opensuse.org/templates/ cloud* openstack* > /dev/null
 
-cisd_deploy:
+cisd_deploy: gerrit-project-regexp
 	jenkins-jobs --conf /etc/jenkins_jobs/jenkins_jobs-cisd.ini update jenkins/ci.suse.de:jenkins/ci.suse.de/templates/ cloud\* openstack\* ardana\*
 
 cioo_deploy:
