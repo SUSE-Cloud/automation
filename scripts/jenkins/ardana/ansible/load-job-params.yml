@@ -22,6 +22,7 @@
     jjb: "{{ lookup('file', jjb_file) | from_yaml }}"
     default_line: "{{ item.value.name }}: '{{ lookup('env', item.value.name) }}'"
     bool_line: "{{ item.value.name }}: {{ lookup('env', item.value.name) }}"
+    jjb_type: "job"
 
   tasks:
     - name: Load ansible variables from ENV
@@ -29,7 +30,7 @@
         path: "./input.yml"
         create: yes
         line: "{{ (item.key == 'bool') | ternary(bool_line, default_line) }}"
-      with_dict: "{{ jjb.0.job.parameters }}"
+      with_dict: "{{ jjb.0[jjb_type].parameters }}"
       loop_control:
         label: "{{ item.value.name }}"
 

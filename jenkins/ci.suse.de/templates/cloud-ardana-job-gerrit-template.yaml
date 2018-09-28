@@ -1,9 +1,9 @@
 - job-template:
-    name: 'cloud-ardana{version}-job-gerrit-{arch}'
+    name: '{ardana_gerrit_job}'
     project-type: pipeline
     concurrent: true
     node: cloud-trigger
-    disabled: '{obj:disabled}'
+    disabled: '{obj:disabled|False}'
 
     triggers:
       - gerrit:
@@ -26,7 +26,7 @@
               project-pattern: !include-raw: ../gerrit-project-regexp.txt
               branches:
                 - branch-compare-type: 'PLAIN'
-                  branch-pattern: '{branch}'
+                  branch-pattern: '{branch|master}'
     logrotate:
       numToKeep: -1
       daysToKeep: 14
@@ -34,28 +34,33 @@
     parameters:
 
       - string:
+          name: ardana_env
+          default: '{ardana_env|}'
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied ardana_env already
+            exists, it will be replaced.
+
+      - bool:
+          name: reserve_env
+          default: '{reserve_env|true}'
+          description: >-
+            Reserve the 'ardana_env' lockable resource throughout the execution of this job
+
+      - string:
           name: git_automation_repo
-          default: https://github.com/SUSE-Cloud/automation.git
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
           description: >-
             The git automation repository to use
 
       - string:
           name: git_automation_branch
-          default: master
+          default: '{git_automation_branch|master}'
           description: >-
             The git automation branch
-
-      - string:
-          name: jenkinsfile_path
-          default: jenkins/ci.suse.de/pipelines/openstack-ardana-gerrit.Jenkinsfile
-          description: >-
-            The location of the Jenkinsfile defining the pipeline
-
-      - string:
-          name: build_pool
-          default: '{build_pool}'
-          description: >-
-            The lockable resource pool (label) to use for jobs triggered by this pipeline
 
       - string:
           name: gerrit_change_ids
@@ -66,13 +71,13 @@
 
       - string:
           name: model
-          default: '{model}'
+          default: '{model|std-min}'
           description: >-
             The Input Model to use from the input model git repository / branch / path.
 
       - string:
           name: cloudsource
-          default: 'stagingcloud{version}'
+          default: '{cloudsource|stagingcloud9}'
           description: >-
             The cloud repository (from provo-clouddata) to be used for testing.
             This value can take the following form:
@@ -83,21 +88,21 @@
 
       - string:
           name: tempest_run_filter
-          default: '{tempest_run_filter}'
+          default: '{tempest_run_filter|ci}'
           description: >-
             Name of the filter file to use for tempest. Use an empty value to
             skip running tempest.
 
       - string:
           name: develproject
-          default: '{develproject}'
+          default: '{develproject|Devel:Cloud:9:Staging}'
           description: >-
             Project in IBS to link against when creating a test project for a
             change proposal.
 
       - string:
           name: repository
-          default: '{repository}'
+          default: '{repository|SLE_12_SP4}'
           description: >-
             Name of the repository in IBS against which to build the test packages.
 
@@ -109,5 +114,5 @@
               - ${{git_automation_branch}}
             browser: auto
             wipe-workspace: false
-      script-path: ${{jenkinsfile_path}}
+      script-path: jenkins/ci.suse.de/pipelines/openstack-ardana-gerrit.Jenkinsfile
       lightweight-checkout: false

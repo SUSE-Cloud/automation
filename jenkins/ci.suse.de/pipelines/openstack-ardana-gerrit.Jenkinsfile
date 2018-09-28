@@ -36,24 +36,24 @@ pipeline {
 
     stage('integration test') {
       when {
-        expression { develproject == 'Devel:Cloud:9:Staging' }
+        expression { cloudsource == 'stagingcloud9' }
       }
       steps {
-        lock(resource: null, label: "$build_pool", variable: 'ardana_env', quantity: 1) {
-          script {
-            def slaveJob = build job: 'openstack-ardana', parameters: [
-              string(name: 'ardana_env', value: "$ardana_env"),
-              string(name: 'cleanup', value: "on success"),
-              string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
-              string(name: 'git_automation_repo', value: "$git_automation_repo"),
-              string(name: 'git_automation_branch', value: "$git_automation_branch"),
-              string(name: 'model', value: "$model"),
-              string(name: 'cloudsource', value: "$cloudsource"),
-              string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
-              string(name: 'develproject', value: "$develproject"),
-              string(name: 'repository', value: "$repository")
-            ], propagate: true, wait: true
-          }
+        script {
+          def slaveJob = build job: 'openstack-ardana', parameters: [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'reserve_env', value: "$reserve_env"),
+            string(name: 'cleanup', value: "on success"),
+            string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch"),
+            string(name: 'git_input_model_branch', value: "$GERRIT_BRANCH"),
+            string(name: 'model', value: "$model"),
+            string(name: 'cloudsource', value: "$cloudsource"),
+            string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
+            string(name: 'develproject', value: "$develproject"),
+            string(name: 'repository', value: "$repository")
+          ], propagate: true, wait: true
         }
       }
     }

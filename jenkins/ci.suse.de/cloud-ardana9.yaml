@@ -1,77 +1,67 @@
 - project:
     name: cloud-ardana9-gating
+    ardana_gating_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
     version: 9
     label: cloud-trigger
-    build_pool: cloud-ardana-ci-slot
     jobs:
-        - 'cloud-ardana{version}-gating'
+        - '{ardana_gating_job}'
 
 - project:
-    name: cloud-ardana9-std-3cp-x86_64
-    disabled: false
-    version: 9
-    arch: x86_64
+    name: cloud-ardana9-job-std-3cp-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
     model: std-3cp
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
+    triggers:
+     - timed: 'H H * * *'
     jobs:
-        - 'cloud-ardana{version}-job-{model}-{arch}'
+        - '{ardana_job}'
 
 - project:
-    name: cloud-ardana9-dac-3cp-x86_64
-    disabled: false
-    version: 9
-    arch: x86_64
+    name: cloud-ardana9-job-dac-3cp-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
     model: dac-3cp
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
+    triggers:
+     - timed: 'H H * * *'
     jobs:
-        - 'cloud-ardana{version}-job-{model}-{arch}'
+        - '{ardana_job}'
 
 - project:
-    name: cloud-ardana9-std-min-x86_64
-    disabled: false
-    version: 9
-    arch: x86_64
-    model: std-min
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
+    name: cloud-ardana9-job-std-min-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    triggers:
+     - timed: 'H H * * *'
     jobs:
-        - 'cloud-ardana{version}-job-{model}-{arch}'
+        - '{ardana_job}'
 
 - project:
-    name: cloud-ardana9-std-split-x86_64
-    disabled: false
-    version: 9
-    arch: x86_64
+    name: cloud-ardana9-job-std-split-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
     model: std-split
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
+    triggers:
+     - timed: 'H H * * *'
     jobs:
-        - 'cloud-ardana{version}-job-{model}-{arch}'
+        - '{ardana_job}'
 
 - project:
-    name: cloud-ardana9-std-3cp-staging-update-x86_64
+    name: cloud-ardana9-job-std-3cp-devel-staging-updates-x86_64
+    ardana_job: '{name}'
     disabled: true
-    version: 9
-    arch: x86_64
+    ardana_env: cloud-ardana-ci-slot
+    cloudsource: develcloud9
+    update: 'cloudsource=stagingcloud9'
     model: std-3cp
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
+    triggers:
+     - timed: 'H H * * *'
     jobs:
-        - 'cloud-ardana{version}-job-{model}-devel-staging-updates-{arch}'
-
+        - '{ardana_job}'
 
 - project:
-    name: cloud-ardana9-gerrit-x86_64
-    disabled: false
-    version: 9
-    arch: x86_64
-    build_pool: cloud-ardana-gerrit-slot
-    model: std-min
-    tempest_run_filter: ci
-    develproject: Devel:Cloud:9:Staging
-    repository: SLE_12_SP4
-    branch: master
+    name: cloud-ardana9-job-gerrit-x86_64
+    ardana_gerrit_job: '{name}'
+    ardana_env: cloud-ardana-gerrit-slot
     jobs:
-        - 'cloud-ardana{version}-job-gerrit-{arch}'
+        - '{ardana_gerrit_job}'

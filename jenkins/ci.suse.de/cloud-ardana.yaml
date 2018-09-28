@@ -1,0 +1,12 @@
+# Multi-purpose, customizable, manually triggered Ardana job
+- project:
+    name: openstack-ardana
+    ardana_job: '{name}'
+    concurrent: True
+    triggers:
+    ardana_env: ''
+    reserve_env: false
+    tempest_run_filter: ''
+    cleanup: never
+    jobs:
+        - '{ardana_job}'

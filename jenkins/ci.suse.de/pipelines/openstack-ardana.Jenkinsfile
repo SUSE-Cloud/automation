@@ -6,6 +6,11 @@ pipeline {
   options {
     // skip the default checkout, because we want to use a custom path
     skipDefaultCheckout()
+    // reserve a resource if instructed to do so, otherwise use a dummy resource
+    // and a zero quantity to fool Jenkins into thinking it reserved a resource when in fact it didn't
+    lock(label: reserve_env == 'true' ? ardana_env:'dummy-resource',
+         variable: 'reserved_env',
+         quantity: reserve_env == 'true' ? 1:0 )
   }
 
   agent {
@@ -23,7 +28,10 @@ pipeline {
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
-          currentBuild.displayName = "#${BUILD_NUMBER} ${ardana_env}"
+          if (env.reserved_env && reserved_env != null) {
+            env.ardana_env = reserved_env
+          }
+          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
           if ( ardana_env.startsWith("qe") || ardana_env.startsWith("qa") ) {
               env.cloud_type = "physical"
           }
@@ -50,7 +58,9 @@ pipeline {
           fi
 
           source scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook load-job-params.yml
+          ansible_playbook load-job-params.yml \
+            -e jjb_file=$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml \
+            -e jjb_type=job-template
           ansible_playbook notify-rc-pcloud.yml -e @input.yml
         ''')
       }
