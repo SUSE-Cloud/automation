@@ -125,6 +125,7 @@ function onhost_cacheclouddata
                 [[ $hacloud = 1 ]] && echo "repos/$a/SLE$slesversion-HA-$suffix/***"
                 echo "repos/$a/SUSE-OpenStack-Cloud-$cloudrepover-$suffix/***"
                 echo "repos/$a/SUSE-Enterprise-Storage-$sesversion-$suffix/***"
+                echo "repos/$a/SLE12-Module-Adv-Systems-Management-$suffix/***"
             done
             echo "repos/$a/SLES$slesversion-LTSS-Updates/***"
             [[ $want_test_updates = 1 ]] && {
