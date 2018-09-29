@@ -64,9 +64,14 @@ pipeline {
 
   post {
     always {
-        archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-        junit testResults: ".artifacts/*.xml", allowEmptyResults: true
-        cleanWs()
+      script {
+        // Let the upstream job archive artifacts and collect test results
+        if (reuse_node == '') {
+          archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
+          junit testResults: ".artifacts/*.xml", allowEmptyResults: true
+        }
+      }
+      cleanWs()
     }
   }
 }

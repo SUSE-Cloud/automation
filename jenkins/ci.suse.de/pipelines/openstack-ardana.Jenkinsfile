@@ -238,7 +238,12 @@ pipeline {
 
   post {
     always {
+      script{
         archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
+        if ( tempest_run_filter != '' ) {
+          junit testResults: ".artifacts/*.xml", allowEmptyResults: true
+        }
+      }
       cleanWs()
       script{
         if (cleanup == "always" && cloud_type == "virtual") {
