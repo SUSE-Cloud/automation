@@ -53,7 +53,7 @@
               - delete: delete a heat stack
 
             If the create action is selected, a heat template file is required, which can only
-            be supplied by running this job as a downstream job or indicating a preexisting workspace.
+            be supplied by running this job as a downstream job.
 
       - string:
           name: git_automation_repo
@@ -73,13 +73,6 @@
           description: >-
             The Jenkins agent where this job must run. Used by upstream jobs to
             force a job to reuse the same node.
-
-      - string:
-          name: reuse_workspace
-          default: ''
-          description: >-
-            The Jenkins workspace that this job must reuse. Used by upstream jobs to
-            force a job to use the same workspace.
 
     pipeline-scm:
       scm:

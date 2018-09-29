@@ -18,44 +18,40 @@
 
 pipeline {
 
-  // skip the default checkout, because we want to use a custom path
   options {
+    // skip the default checkout, because we want to use a custom path
     skipDefaultCheckout()
   }
 
   agent {
     node {
       label reuse_node ? reuse_node : "cloud-ardana-ci"
-      customWorkspace ardana_env ? "${JOB_NAME}-${ardana_env}" : "${JOB_NAME}-${BUILD_NUMBER}"
+      // Use a single workspace for all job runs, to avoid cluttering the
+      // worker node
+      customWorkspace "${JOB_NAME}"
     }
   }
 
   stages {
     stage('Setup workspace') {
       steps {
-        cleanWs()
-
-        // If the job is set up to reuse an existing workspace, replace the
-        // current workspace with a symlink to the reused one.
-        // NOTE: even if we specify the reused workspace as the
-        // customWorkspace variable value, Jenkins will refuse to reuse a
-        // workspace that's already in use by one of the currently running
-        // jobs and will just create a new one.
-        sh '''
-          if [ -n "${reuse_workspace}" ]; then
-            rmdir "${WORKSPACE}"
-            ln -s "${reuse_workspace}" "${WORKSPACE}"
-          fi
-        '''
-
         script {
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
-          currentBuild.displayName = "#${BUILD_NUMBER} ${ardana_env}"
-          if (reuse_workspace == '') {
-            sh('git clone $git_automation_repo --branch $git_automation_branch automation-git')
+          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
+          // Use a shared workspace folder for all jobs running on the same
+          // target 'ardana_env' cloud environment
+          env.SHARED_WORKSPACE = sh (
+            returnStdout: true,
+            script: 'echo "$(dirname $WORKSPACE)/shared/${ardana_env}"'
+          ).trim()
+          if (reuse_node == '') {
             sh('''
+              rm -rf $SHARED_WORKSPACE
+              mkdir -p $SHARED_WORKSPACE
+              cd $SHARED_WORKSPACE
+              git clone $git_automation_repo --branch $git_automation_branch automation-git
               source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
               ansible_playbook load-job-params.yml
             ''')
@@ -67,6 +63,7 @@ pipeline {
     stage('Bootstrap CLM') {
       steps {
         sh('''
+          cd $SHARED_WORKSPACE
           source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
           ansible_playbook bootstrap-clm.yml -e @input.yml -e extra_repos=$extra_repos
         ''')
@@ -76,7 +73,10 @@ pipeline {
 
   post {
     always {
-        archiveArtifacts artifacts: '.artifacts/**/*', allowEmptyArchive: true
+        // archiveArtifacts doesn't support absolute paths, so we have to to this instead
+        sh 'ln -s ${SHARED_WORKSPACE}/.artifacts ${BUILD_NUMBER}.artifacts'
+        archiveArtifacts artifacts: "${BUILD_NUMBER}.artifacts/**/*", allowEmptyArchive: true
+        sh 'rm ${BUILD_NUMBER}.artifacts'
     }
   }
 }

@@ -73,13 +73,6 @@
             The Jenkins agent where this job must run. Used by upstream jobs to
             force a job to reuse the same node.
 
-      - string:
-          name: reuse_workspace
-          default: ''
-          description: >-
-            The Jenkins workspace that this job must reuse. Used by upstream jobs to
-            force a job to use the same workspace.
-
     pipeline-scm:
       scm:
         - git:
