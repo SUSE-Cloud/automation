@@ -14,13 +14,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
+SHARED_WORKSPACE=${SHARED_WORKSPACE:-"$PWD"}
 ANSIBLE_VENV=${ANSIBLE_VENV:-"/opt/ansible"}
-AUTOMATION_DIR=${AUTOMATION_DIR:-"automation-git"}
+AUTOMATION_DIR=${AUTOMATION_DIR:-"$SHARED_WORKSPACE/automation-git"}
 
 
 function ansible_playbook {
   set +x
+  export WORKSPACE=$SHARED_WORKSPACE
   export ANSIBLE_FORCE_COLOR=true
   source $ANSIBLE_VENV/bin/activate
   if [[ "$PWD" != *scripts/jenkins/ardana/ansible ]]; then
