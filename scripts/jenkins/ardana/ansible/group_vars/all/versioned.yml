@@ -19,7 +19,11 @@ when_staging: "{{ cloud_source | default(cloudsource) is match('.*staging.*') }}
 when_staging_or_devel: "{{ cloud_source | default(cloudsource) is match('.*(staging|devel).*') }}"
 when_cloud8: "{{ cloud_source | default(cloudsource) is match('.*8.*') }}"
 when_cloud9: "{{ cloud_source | default(cloudsource) is match('.*9.*') }}"
+when_cloud9M3: "{{ cloud_source | default(cloudsource) is match('cloud9M3') }}"
 
 versioned_features:
   manila:
     enabled: "{{ when_staging }}"
+  # FIXME: Remove this entry when bsc#1110414 fixed
+  fix_ardana_ssh_keyscan:
+    enabled: "{{ when_cloud9M3 }}"
