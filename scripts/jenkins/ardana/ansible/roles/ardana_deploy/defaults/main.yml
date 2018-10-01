@@ -23,6 +23,8 @@ ardana_openstack_playbooks:
   - "ready-deployment.yml"
 
 ardana_scratch_playbooks:
+  - play: "ardana-ssh-keyscan.yml"
+    when: "{{ is_physical_deploy and when_cloud9 }}"
   - play: "wipe_disks.yml -e automate=true"
     when: "{{ is_physical_deploy }}"
   - play: "site.yml"
