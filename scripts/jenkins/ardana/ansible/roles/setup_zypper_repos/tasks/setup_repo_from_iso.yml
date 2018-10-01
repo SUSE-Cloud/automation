@@ -15,20 +15,19 @@
 #
 ---
 
-- name: Gather variables when milestone cloudsousrce
-  include_vars: "milestone.yml"
-  when: is_milestone
+- name: Download media "{{ media[cloud_release].name }}"
+  get_url:
+   url: "{{ media[cloud_release].url }}/{{ media[cloud_release].iso }}"
+   dest: "{{ media[cloud_release].dest }}"
+   mode: 0440
+  register: download_media
+  until: download_media is succeeded
+  retries: 5
+  delay: 3
 
-- include_tasks: setup_sles_cloud_repos.yml
-
-- include_tasks: setup_repo_from_iso.yml
-  when: is_milestone
-
-- include_tasks: setup_maint_update_repos.yml
-  when: cloud_maint_updates_list | length or
-    sles_maint_updates_list | length
-
-- include_tasks: add_extra_repos.yml
-  when: extra_repos_list | length
-
-- include_tasks: set_motd.yml
+- name: Add media as zypper repository
+  zypper_repository:
+    name: "{{ media[cloud_release].name }}"
+    repo: "iso:///?iso={{ media[cloud_release].iso }}&url=dir:{{ media[cloud_release].dest }}"
+    auto_import_keys: yes
+    runrefresh: yes

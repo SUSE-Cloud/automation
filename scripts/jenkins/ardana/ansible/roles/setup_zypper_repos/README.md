@@ -9,15 +9,16 @@ Zypper repositories will be added according to the `cloudsource` value.
 The following table presents the possible values for `cloudsource` and the
 resulting repositories added.
 
-| `cloudsource`  | Cloud-Pool                            | SLES-Pool | SLES-Updates | Cloud-Updates | SLES-Updates-test         | Cloud-Updates-test        |
-| -------------- | ------------------------------------- |:---------:|:------------:|:-------------:|:-------------------------:|:-------------------------:|
-| stagingcloudX  | SUSE-OpenStack-Cloud-X-devel-staging  | X         | X            |               | *                         |                           |
-| develcloudX    | SUSE-OpenStack-Cloud-X-devel          | X         | X            |               | *                         |                           |
-| GMX            | SUSE-OpenStack-Cloud-X-Pool           | X         | X            |               | *                         | *                         |
-| GMX+up         | SUSE-OpenStack-Cloud-X-Pool           | X         | X            | X             | *                         | *                         |
-| hosdevelcloud8 | HPE-Helion-OpenStack-8-devel          | X         | X            |               | *                         |                           |
-| hosGM8         | HPE-Helion-OpenStack-8-Pool           | X         | X            |               | *                         | *                         |
-| hosGM8+up      | HPE-Helion-OpenStack-8-Pool           | X         | X            | X             | *                         | *                         |
+| `cloudsource`  | Cloud-Pool                             | SLES-Pool | SLES-Updates | Cloud-Updates | SLES-Updates-test         | Cloud-Updates-test        |
+| -------------- | ---------------------------------------|:---------:|:------------:|:-------------:|:-------------------------:|:-------------------------:|
+| stagingcloudX  | SUSE-OpenStack-Cloud-X-devel-staging   | X         | X            |               | *                         |                           |
+| develcloudX    | SUSE-OpenStack-Cloud-X-devel           | X         | X            |               | *                         |                           |
+| GMX            | SUSE-OpenStack-Cloud-X-Pool            | X         | X            |               | *                         | *                         |
+| GMX+up         | SUSE-OpenStack-Cloud-X-Pool            | X         | X            | X             | *                         | *                         |
+| hosdevelcloud8 | HPE-Helion-OpenStack-8-devel           | X         | X            |               | *                         |                           |
+| hosGM8         | HPE-Helion-OpenStack-8-Pool            | X         | X            |               | *                         | *                         |
+| hosGM8+up      | HPE-Helion-OpenStack-8-Pool            | X         | X            | X             | *                         | *                         |
+| cloud9MX       | ISO milestoneX(ibs-mirror.prv.suse.net)| X         | X            |               | *                         | *                         |
 
 `X` on `cloudsource` and `Cloud-Pool` represents the cloud version (8 or 9) and
 the SLES repositories will be configured according to the cloud version
