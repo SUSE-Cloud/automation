@@ -57,19 +57,15 @@ pipeline {
           ansible_playbook run-tempest.yml -e @input.yml
         ''')
       }
-      post {
-        always {
-          junit testResults: "${SHARED_WORKSPACE}/.artifacts/*.xml", allowEmptyResults: true
-        }
-      }
     }
   }
 
   post {
     always {
-        // archiveArtifacts doesn't support absolute paths, so we have to to this instead
+        // archiveArtifacts and junit don't support absolute paths, so we have to to this instead
         sh 'ln -s ${SHARED_WORKSPACE}/.artifacts ${BUILD_NUMBER}.artifacts'
         archiveArtifacts artifacts: "${BUILD_NUMBER}.artifacts/**/*", allowEmptyArchive: true
+        junit testResults: "${BUILD_NUMBER}/.artifacts/*.xml", allowEmptyResults: true
         sh 'rm ${BUILD_NUMBER}.artifacts'
     }
   }
