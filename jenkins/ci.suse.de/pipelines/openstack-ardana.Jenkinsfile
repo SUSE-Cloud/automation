@@ -224,7 +224,9 @@ pipeline {
         if (cleanup == "always" && cloud_type == "virtual") {
           def slaveJob = build job: 'openstack-ardana-heat', parameters: [
             string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'heat_action', value: "delete")
+            string(name: 'heat_action', value: "delete"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch")
           ], propagate: false, wait: false
         }
       }
@@ -234,7 +236,9 @@ pipeline {
         if (cleanup == "on success" && cloud_type == "virtual") {
           def slaveJob = build job: 'openstack-ardana-heat', parameters: [
             string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'heat_action', value: "delete")
+            string(name: 'heat_action', value: "delete"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch")
           ], propagate: false, wait: false
         }
       }
@@ -249,7 +253,9 @@ pipeline {
         if (cleanup == "on failure" && cloud_type == "virtual") {
           def slaveJob = build job: 'openstack-ardana-heat', parameters: [
             string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'heat_action', value: "delete")
+            string(name: 'heat_action', value: "delete"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch")
           ], propagate: false, wait: false
         }
       }

@@ -95,6 +95,8 @@ pipeline {
           def slaveJob = build job: 'openstack-ardana-heat', parameters: [
             string(name: 'ardana_env', value: "$ardana_env"),
             string(name: 'heat_action', value: "create"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch"),
             string(name: 'reuse_node', value: "${NODE_NAME}"),
             string(name: 'reuse_workspace', value: "${WORKSPACE}")
           ], propagate: true, wait: true
