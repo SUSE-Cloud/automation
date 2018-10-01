@@ -15,13 +15,14 @@
 #
 ---
 
-- include_tasks: pre_defcore.yml
-  when: tempest_run_filter == 'defcore'
+- name: Check if octavia amphora image is present
+  shell: source ~/service.osrc;openstack image list | grep octavia-amphora-image | awk '{print $2}'
+  register: octavia_amphora_image_is_present
 
-- include_tasks: import_octavia_image.yml
-  when: tempest_run_filter == 'lbaas'
-
-- include_tasks: run_tempest.yml
-
-- include_tasks: post_defcore.yml
-  when: tempest_run_filter == 'defcore'
+- name: Import octavia amphora image
+  shell: |
+    ansible-playbook -i hosts/verb_hosts service-guest-image.yml \
+                 -e service_package=`{{ octavia_amphora_image_rpm }}`
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  when: octavia_amphora_image_is_present.stdout == ""
