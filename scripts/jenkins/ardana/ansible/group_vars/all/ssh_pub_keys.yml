@@ -112,3 +112,6 @@ ssh_pub_keys:
   - name: mseri
     keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDU1Ym9SvDBTztsRQhK9uKXBrlN6rSa/lJkAl8QQcfY1J49jSjefqA9WQ5ffQIFPinBWsRmTgzAvlceJ3Ir6rrQZfEgvcQumT313lNmQOurhNhV6H9c2IsWc1meDzog/QbFS4CQ13Z5thykxKqFqYAYW9KqPNHYcZKxsEPNBLxwujbIg5YPzmjpaJGHgNQmWxVPHGf+P8GbSFySKwGhnZzgOlbNJTXW1oi+g7qjSBuIVo2/MgQPHfhs5vBff2X5AMn6SLv66rDMx9Fj1+7FjPNyiJfB7X2cChlT846Ay2g1fab5XRRLdvGDgHMPJhdBF5j8MYBj27uVwIuWsknr64JR serim@seri-pc
+  - name: agreentree
+    keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDyM3KkPo8W0SLCQG2bhIZNCtYC+sR9pybtaB3jg7GUAqVA9jZTladMFEGdpV8ng4w8Xy/FkkIFvom3hx6BNy18VybQDMz/67q4QHq1gUdqjF//87dUrkPRJw7uesdxN6vZD7vJeE4Sg+tZyoTGpPXDvicaz5T5c94RhWHkOzSQk2PcCq48LfZ9sAdd13xzzc0KljdfrXTl5IMHwx8tc22ZFBi/+2KYa3GV+4nKsS7UYFX2LjGLdW3tQvZa/2nGAdSW8uDWNnj7OZgFepLXxtecXy1QKVumnNCRvXaSe1jACLR04DeqVlXvIc91FXvPr7wydDYakVDsyH+vkqxwY4+l agreentree@linux-g1p9
