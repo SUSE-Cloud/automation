@@ -26,9 +26,7 @@ pipeline {
   agent {
     node {
       label reuse_node ? reuse_node : "cloud-ardana-ci"
-      // Use a single workspace for all job runs, to avoid cluttering the
-      // worker node
-      customWorkspace "${JOB_NAME}"
+      customWorkspace "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
 
@@ -50,6 +48,10 @@ pipeline {
             sh('''
               rm -rf $SHARED_WORKSPACE
               mkdir -p $SHARED_WORKSPACE
+
+              # archiveArtifacts and junit don't support absolute paths, so we have to to this instead
+              ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}
+
               cd $SHARED_WORKSPACE
               git clone $git_automation_repo --branch $git_automation_branch automation-git
               source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
@@ -73,10 +75,8 @@ pipeline {
 
   post {
     always {
-        // archiveArtifacts doesn't support absolute paths, so we have to to this instead
-        sh 'ln -s ${SHARED_WORKSPACE} ${BUILD_NUMBER}'
-        archiveArtifacts artifacts: "${BUILD_NUMBER}/.artifacts/**/*", allowEmptyArchive: true
-        sh 'rm ${BUILD_NUMBER}'
+        archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
+        cleanWs()
     }
   }
 }
