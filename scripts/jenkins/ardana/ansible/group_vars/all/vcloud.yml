@@ -16,7 +16,7 @@
 ---
 
 heat_stack_name: "openstack-ardana-{{ ardana_env }}"
-heat_template_file: "{{ workspace_path }}/heat-stack-{{ (model is defined and model != '') | ternary(model, scenario_name) }}.yml"
+heat_template_file: "{{ workspace_path }}/heat-stack-{{ (scenario_name is defined and scenario_name != '') | ternary(scenario_name, model) }}.yml"
 os_cloud: "engcloud-cloud-ci"
 
 
