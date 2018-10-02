@@ -227,9 +227,9 @@ pipeline {
   post {
     always {
         // archiveArtifacts doesn't support absolute paths, so we have to to this instead
-        sh 'ln -s ${SHARED_WORKSPACE}/.artifacts ${BUILD_NUMBER}.artifacts'
-        archiveArtifacts artifacts: "${BUILD_NUMBER}.artifacts/**/*", allowEmptyArchive: true
-        sh 'rm ${BUILD_NUMBER}.artifacts'
+        sh 'ln -s ${SHARED_WORKSPACE} ${BUILD_NUMBER}'
+        archiveArtifacts artifacts: "${BUILD_NUMBER}/.artifacts/**/*", allowEmptyArchive: true
+        sh 'rm ${BUILD_NUMBER}'
       script{
         if (cleanup == "always" && cloud_type == "virtual") {
           def slaveJob = build job: 'openstack-ardana-heat', parameters: [
