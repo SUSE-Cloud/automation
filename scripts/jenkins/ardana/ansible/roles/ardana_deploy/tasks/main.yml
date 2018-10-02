@@ -34,6 +34,14 @@
   register: vrrp
   when: is_physical_deploy
 
+# FIXME: Remove task when bsc#1110414 fixed
+- name: Workaround for bug bsc#1110414
+  replace:
+    path: "~/openstack/ardana/ansible/roles/ardana-ssh-keyscan/tasks/main.yml"
+    regexp: '"\$'
+    replace: '"'
+  when: versioned_features.fix_ardana_ssh_keyscan.enabled
+
 - name: Commit changes
   shell: |
     git add -A

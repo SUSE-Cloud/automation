@@ -22,6 +22,8 @@
 
 - include_tasks: read_group_vars.yml
 
+- include_tasks: qe_test_requires.yml
+
 - include_tasks: prepare_test_env.yml
 
 - include_tasks: setup_os_resources.yml
@@ -36,6 +38,12 @@
       vars:
         os_resource_state: "absent"
       when: os_resources_requires | length
+
+      # NOTE: Removing SLE-SDK repos and packages required for ardana-qe-tests
+      # as they were affecting maintenance updates
+    - include_tasks: qe_test_requires.yml
+      vars:
+        ardana_qe_tests_requires_state: "absent"
 
     - name: Fail if any '{{ test_name }}' test has failed
       fail:
