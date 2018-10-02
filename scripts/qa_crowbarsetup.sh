@@ -2547,7 +2547,7 @@ function custom_configuration
             fi
         ;;
         murano)
-            if [[ $hacloud = 1 ]] ; then
+            if [[ $hacloud = 1 ]] && ( iscloudver 7 || iscloudver 8 ) ; then
                 proposal_set_value murano default "['deployment']['murano']['elements']['murano-server']" "['cluster:$clusternameservices']"
             fi
         ;;
@@ -3024,8 +3024,8 @@ function deploy_single_proposal
             fi
             ;;
         murano)
-            if ! iscloudver 7plus; then
-                echo "Murano is SOC 7+ only. Skipping"
+            if ! ( iscloudver 7 || iscloudver 8 ) ; then
+                echo "Murano is SOC 7 and 8 only. Skipping"
                 return
             fi
             ;;
