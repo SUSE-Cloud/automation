@@ -3,66 +3,109 @@
  */
 
 pipeline {
-  // skip the default checkout, because we want to use a custom path
   options {
+    // skip the default checkout, because we want to use a custom path
     skipDefaultCheckout()
   }
 
   agent {
     node {
       label 'cloud-ardana-ci'
-      customWorkspace ardana_env ? "${JOB_NAME}-${ardana_env}" : "${JOB_NAME}-${BUILD_NUMBER}"
+      // Use a single workspace for all job runs, to avoid cluttering the
+      // worker node
+      customWorkspace "${JOB_NAME}"
     }
   }
 
   stages {
-    stage('setup workspace and environment') {
+    stage('Setup workspace') {
       steps {
-        cleanWs()
-
         script {
           env.cloud_type = "virtual"
-          if ( ardana_env == '') {
+          if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
           currentBuild.displayName = "#${BUILD_NUMBER} ${ardana_env}"
           if ( ardana_env.startsWith("qe") || ardana_env.startsWith("qa") ) {
-            env.cloud_type = "physical"
+              env.cloud_type = "physical"
           }
-          env.cloud_release = "cloud"+cloudsource[-1]
-          if ( "${want_caasp}" == 'true' ) {
-            // Use the CaaSP flavors instead of the default ones, when CaaSP is deployed
-            env.virt_config="caasp.yml"
-          }
-          env.input_model_path = "${WORKSPACE}/input-model"
-          env.test_repository_url = ''
+          // Use a shared workspace folder for all jobs running on the same
+          // target 'ardana_env' cloud environment
+          env.SHARED_WORKSPACE = sh (
+            returnStdout: true,
+            script: 'echo "$(dirname $WORKSPACE)/shared/${ardana_env}"'
+          ).trim()
         }
-      }
-    }
+        sh('''
+          rm -rf "$SHARED_WORKSPACE"
+          mkdir -p "$SHARED_WORKSPACE"
+          cd $SHARED_WORKSPACE
+          git clone $git_automation_repo --branch $git_automation_branch automation-git
+          cd automation-git
 
-    stage('clone automation repo') {
-      steps {
-        sh 'git clone $git_automation_repo --branch $git_automation_branch automation-git'
-      }
-    }
-
-    stage('automation PR support') {
-      steps {
-        sh '''
           if [ -n "$github_pr" ] ; then
-            cd automation-git
-            exec scripts/jenkins/ardana/pr-update.sh
+            scripts/jenkins/ardana/pr-update.sh
           fi
-        '''
+
+          source scripts/jenkins/ardana/jenkins-helper.sh
+          ansible_playbook load-job-params.yml
+          ansible_playbook notify-rc-pcloud.yml -e @input.yml
+        ''')
       }
     }
 
-    stage('parallel one') {
+    stage('Prepare infra and build package(s)') {
       // abort all stages if one of them fails
       failFast true
       parallel {
+        stage('Prepare BM cloud') {
+          when {
+            expression { cloud_type == 'physical' }
+          }
+          steps {
+            script {
+              def slaveJob = build job: 'openstack-ardana-pcloud', parameters: [
+                string(name: 'ardana_env', value: "$ardana_env"),
+                string(name: 'scenario_name', value: "$scenario_name"),
+                string(name: 'clm_model', value: "$clm_model"),
+                string(name: 'controllers', value: "$controllers"),
+                string(name: 'sles_computes', value: "$sles_computes"),
+                string(name: 'rhel_computes', value: "$rhel_computes"),
+                string(name: 'rc_notify', value: "$rc_notify"),
+                string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                string(name: 'reuse_node', value: "${NODE_NAME}")
+              ], propagate: true, wait: true
+            }
+          }
+        }
 
-        stage('build test packages') {
+        stage('Prepare virtual cloud') {
+          when {
+            expression { cloud_type == 'virtual' }
+          }
+          steps {
+            script {
+              def slaveJob = build job: 'openstack-ardana-vcloud', parameters: [
+                string(name: 'ardana_env', value: "$ardana_env"),
+                string(name: 'git_input_model_branch', value: "$git_input_model_branch"),
+                string(name: 'git_input_model_path', value: "$git_input_model_path"),
+                string(name: 'model', value: "$model"),
+                string(name: 'scenario_name', value: "$scenario_name"),
+                string(name: 'clm_model', value: "$clm_model"),
+                string(name: 'controllers', value: "$controllers"),
+                string(name: 'sles_computes', value: "$sles_computes"),
+                string(name: 'rhel_computes', value: "$rhel_computes"),
+                string(name: 'rc_notify', value: "$rc_notify"),
+                string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                string(name: 'reuse_node', value: "${NODE_NAME}")
+              ], propagate: true, wait: true
+            }
+          }
+        }
+
+        stage('Build test packages') {
           when {
             expression { gerrit_change_ids != '' }
           }
@@ -82,281 +125,155 @@ pipeline {
             }
           }
         }
-
-        stage('rebuild deployer VM for HW setup') {
-          when {
-            expression { cloud_type == 'physical' }
-          }
-          steps {
-            sh '''
-              cd automation-git/scripts/jenkins/ardana/ansible
-              source /opt/ansible/bin/activate
-              ansible-playbook -v \
-                               -e qe_env=$ardana_env \
-                               -e rc_notify=$rc_notify \
-                               rebuild-deployer-vm.yml
-
-              ansible-playbook -v \
-                               -e ardana_env=$ardana_env \
-                               ssh-keys.yml
-            '''
-          }
-        }
-
-        stage('generate HW input model') {
-          when {
-              expression { cloud_type == 'physical' }
-          }
-          steps {
-            script {
-              env.virt_config = "${WORKSPACE}/${scenario}-virt-config.yml"
-            }
-            sh '''
-              # convert cloudsource to cloud_source
-              # TODO: this will no longer be needed when the virtual/hw stages are merged
-              if [[ "$cloudsource" == "GM"* ]]; then
-                cloud_source="GM"
-              elif [[ "$cloudsource" == "staging"* ]]; then
-                cloud_source="devel-staging"
-              elif [[ "$cloudsource" == "devel"* ]]; then
-                cloud_source="devel"
-              fi
-
-              cd automation-git/scripts/jenkins/ardana/ansible
-              source /opt/ansible/bin/activate
-              ansible-playbook -v \
-                               -e qe_env=$ardana_env \
-                               -e cloud_source="${cloud_source}" \
-                               -e cloud_release="${cloud_release}" \
-                               -e cloud_brand=$cloud_brand \
-                               -e scenario_name="${scenario}" \
-                               -e ardana_input_model="${scenario}" \
-                               -e input_model_dir="${input_model_path}" \
-                               -e clm_model=$clm_model \
-                               -e controllers=$controllers \
-                               -e sles_computes=$sles_computes \
-                               -e rhel_computes=$rhel_computes \
-			       -e ses_enabled=$ses_enabled \
-                               -e rc_notify=$rc_notify \
-                               generate-input-model.yml
-            '''
-          }
-        }
-
-
-        stage('prepare virtual environment') {
-          when {
-            expression { cloud_type == 'virtual' }
-          }
-          steps {
-            script {
-              def slaveJob = build job: 'openstack-ardana-vcloud', parameters: [
-                string(name: 'ardana_env', value: "${ardana_env}"),
-                string(name: 'cloud_release', value: "${cloud_release}"),
-                string(name: 'git_automation_repo', value: "${git_automation_repo}"),
-                string(name: 'git_automation_branch', value: "${git_automation_branch}"),
-                string(name: 'git_input_model_repo', value: "${git_input_model_repo}"),
-                string(name: 'git_input_model_branch', value: "${git_input_model_branch}"),
-                string(name: 'git_input_model_path', value: "${git_input_model_path}"),
-                string(name: 'model', value: "${model}"),
-                string(name: 'scenario', value: "${scenario}"),
-                string(name: 'clm_model', value: "${clm_model}"),
-                string(name: 'controllers', value: "${controllers}"),
-                string(name: 'sles_computes', value: "${sles_computes}"),
-                string(name: 'rhel_computes', value: "${rhel_computes}"),
-                string(name: 'os_cloud', value: "${os_cloud}"),
-                string(name: 'rc_notify', value: "${rc_notify}"),
-                string(name: 'reuse_node', value: "${NODE_NAME}"),
-                string(name: 'reuse_workspace', value: "${WORKSPACE}")
-              ], propagate: true, wait: true
-
-              // Load the environment variables set by the downstream job
-              env.DEPLOYER_IP=slaveJob.buildVariables.DEPLOYER_IP
-              env.heat_stack_name=slaveJob.buildVariables.heat_stack_name
-              env.input_model_path=slaveJob.buildVariables.input_model_path
-            }
-          }
-        } // stage('prepare virtual environment')
       } // parallel
     } // stage('parallel stage')
 
-    stage('bootstrap deployer') {
+    stage('Bootstrap CLM') {
       steps {
         script {
-          def slaveJob = build job: 'openstack-ardana-bootstrap', parameters: [
-            string(name: 'ardana_env', value: "${ardana_env}"),
-            string(name: 'git_automation_repo', value: "${git_automation_repo}"),
-            string(name: 'git_automation_branch', value: "${git_automation_branch}"),
-            string(name: 'cloudsource', value: "${cloudsource}"),
-            string(name: 'repositories', value: "${repositories}"),
-            string(name: 'test_repository_url', value: "${test_repository_url}"),
-            string(name: 'cloud_brand', value: "${cloud_brand}"),
-            string(name: 'rc_notify', value: "${rc_notify}"),
-            string(name: 'cloud_maint_updates', value: "${cloud_maint_updates}"),
-            string(name: 'sles_maint_updates', value: "${sles_maint_updates}"),
-            string(name: 'reuse_node', value: "${NODE_NAME}"),
-            string(name: 'reuse_workspace', value: "${WORKSPACE}")
+          def slaveJob = build job: 'openstack-ardana-bootstrap-clm', parameters: [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'cloudsource', value: "$cloudsource"),
+            string(name: 'cloud_maint_updates', value: "$cloud_maint_updates"),
+            string(name: 'sles_maint_updates', value: "$sles_maint_updates"),
+            string(name: 'extra_repos', value: "${env.test_repository_url ?: extra_repos}"),
+            string(name: 'rc_notify', value: "$rc_notify"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch"),
+            string(name: 'reuse_node', value: "${NODE_NAME}")
           ], propagate: true, wait: true
-
-          // Load the environment variables set by the downstream job
         }
       }
     }
 
-    stage('deploy cloud') {
+    stage('Bootstrap nodes') {
+      failFast true
       parallel {
-        stage ('deploy virtual cloud') {
-          when {
-            expression { cloud_type == 'virtual' }
-          }
-          steps {
-            sh '''
-              cd automation-git/scripts/jenkins/ardana/ansible
-              source /opt/ansible/bin/activate
-              ansible-playbook -v \
-                               -e ardana_env=$ardana_env \
-                               -e build_url=$BUILD_URL \
-                               -e cloudsource="${cloudsource}" \
-                               init.yml
-              ./bin/deploy_ardana.sh
-            '''
-          }
-        }
-
-        stage('deploy physical cloud') {
+        stage('Bootstrap BM nodes') {
           when {
             expression { cloud_type == 'physical' }
           }
-          steps {
-            sh '''
-              # convert cloudsource to cloud_source
-              # TODO: this will no longer be needed when the virtual/hw stages are merged
-              if [[ "$cloudsource" == "GM"* ]]; then
-                cloud_source="GM"
-              elif [[ "$cloudsource" == "staging"* ]]; then
-                cloud_source="devel-staging"
-              elif [[ "$cloudsource" == "devel"* ]]; then
-                cloud_source="devel"
-              fi
+          steps{
+            sh('''
+              cd $SHARED_WORKSPACE
+              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+              ansible_playbook bootstrap-pcloud-nodes.yml -e @input.yml
+            ''')
+          }
+        }
 
-              cd automation-git/scripts/jenkins/ardana/ansible
-              source /opt/ansible/bin/activate
-              ansible-playbook -v \
-                               -e qe_env=$ardana_env \
-                               -e cloud_source=$cloud_source \
-                               -e cloud_brand=$cloud_brand \
-                               -e rc_notify=$rc_notify \
-                               -e ardana_input_model=$scenario \
-                               -e input_model_path=$input_model_path \
-                               -e cloud_maint_updates=$cloud_maint_updates \
-                               -e sles_maint_updates=$sles_maint_updates \
-                               -e clm_model=$clm_model \
-                               -e controllers=$controllers \
-                               -e sles_computes=$sles_computes \
-                               -e rhel_computes=$rhel_computes \
-                               -e ses_enabled=$ses_enabled \
-                               ardana-deploy.yml
-            '''
+        stage('Bootstrap virtual nodes') {
+          when {
+            expression { cloud_type == 'virtual' }
+          }
+          steps{
+            sh('''
+              cd $SHARED_WORKSPACE
+              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+              ansible_playbook bootstrap-vcloud-nodes.yml -e @input.yml
+            ''')
           }
         }
       }
     }
 
-    stage('parallel two') {
-      // run all stages to the end, even if one of them fails
+    stage('Deploy cloud') {
+      steps {
+        sh('''
+          cd $SHARED_WORKSPACE
+          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+          ansible_playbook deploy-cloud.yml -e @input.yml
+        ''')
+      }
+    }
+
+    stage('Run tests') {
       failFast false
       parallel {
-
-        stage ('tempest') {
+        stage ('Tempest') {
           when {
             expression { tempest_run_filter != '' }
           }
           steps {
             script {
               def slaveJob = build job: 'openstack-ardana-tempest', parameters: [
-                string(name: 'ardana_env', value: "${ardana_env}"),
-                string(name: 'git_automation_repo', value: "${git_automation_repo}"),
-                string(name: 'git_automation_branch', value: "${git_automation_branch}"),
-                string(name: 'tempest_run_filter', value: "${tempest_run_filter}"),
-                string(name: 'rc_notify', value: "${rc_notify}"),
-                string(name: 'reuse_node', value: "${NODE_NAME}"),
-                string(name: 'reuse_workspace', value: "${WORKSPACE}")
+                string(name: 'ardana_env', value: "$ardana_env"),
+                string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
+                string(name: 'rc_notify', value: "$rc_notify"),
+                string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                string(name: 'reuse_node', value: "${NODE_NAME}")
               ], propagate: true, wait: true
-
-              // Load the environment variables set by the downstream job
             }
-          }
-        }
-
-        stage ('post deploy checks') {
-          steps {
-            sh '''
-              cd automation-git/scripts/jenkins/ardana/ansible
-              source /opt/ansible/bin/activate
-              # Run post-deploy checks
-              ansible-playbook -v \
-                               -e ardana_env=$ardana_env \
-                               post-deploy-checks.yml
-            '''
           }
         }
       }
     }
 
-    stage ('deploy CaaSP') {
+    stage ('Deploy CaaSP') {
       when {
         expression { want_caasp == 'true' }
       }
       steps {
-        sh '''
-          cd automation-git/scripts/jenkins/ardana/ansible
-          source /opt/ansible/bin/activate
-          ansible-playbook -v \
-                           -e ardana_env=$ardana_env \
-                           deploy-caasp.yml
-        '''
+        sh('''
+          cd $SHARED_WORKSPACE
+          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+          ansible_playbook deploy-caasp.yml -e @input.yml
+        ''')
       }
     }
   }
 
   post {
     always {
-      lock(resource: 'cloud-ECP-API') {
-        sh '''
-          cd automation-git/scripts/jenkins/ardana/ansible
-          if [ "$cloud_type" == "virtual" ] && [ "$cleanup" == "always" ] && [ -n "${heat_stack_name}" ]; then
-            ./bin/heat_stack.sh delete "${heat_stack_name}"
-          fi
-        '''
+        // archiveArtifacts doesn't support absolute paths, so we have to to this instead
+        sh 'ln -s ${SHARED_WORKSPACE} ${BUILD_NUMBER}'
+        archiveArtifacts artifacts: "${BUILD_NUMBER}/.artifacts/**/*", allowEmptyArchive: true
+        sh 'rm ${BUILD_NUMBER}'
+      script{
+        if (cleanup == "always" && cloud_type == "virtual") {
+          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'heat_action', value: "delete"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch")
+          ], propagate: false, wait: false
+        }
       }
     }
     success {
-      lock(resource: 'cloud-ECP-API') {
-        sh '''
-          cd automation-git/scripts/jenkins/ardana/ansible
-          if [ "$cloud_type" == "virtual" ] && [ "$cleanup" == "on success" ] && [ -n "${heat_stack_name}" ]; then
-            ./bin/heat_stack.sh delete "${heat_stack_name}"
-          fi
-        '''
+      script {
+        if (cleanup == "on success" && cloud_type == "virtual") {
+          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'heat_action', value: "delete"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch")
+          ], propagate: false, wait: false
+        }
       }
       sh '''
         if [ -n "$github_pr" ] ; then
-          automation-git/scripts/ardana/pr-success.sh
+          cd $SHARED_WORKSPACE
+          exec automation-git/scripts/ardana/pr-success.sh
         fi
       '''
     }
     failure {
-      lock(resource: 'cloud-ECP-API') {
-        sh '''
-          cd automation-git/scripts/jenkins/ardana/ansible
-          if [ "$cloud_type" == "virtual" ] && [ "$cleanup" == "on failure" ] && [ -n "${heat_stack_name}" ]; then
-            ./bin/heat_stack.sh delete "${heat_stack_name}"
-          fi
-        '''
+      script {
+        if (cleanup == "on failure" && cloud_type == "virtual") {
+          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'heat_action', value: "delete"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch")
+          ], propagate: false, wait: false
+        }
       }
       sh '''
         if [ -n "$github_pr" ] ; then
-          automation-git/scripts/ardana/pr-failure.sh
+          cd $SHARED_WORKSPACE
+          exec automation-git/scripts/ardana/pr-failure.sh
         fi
       '''
     }

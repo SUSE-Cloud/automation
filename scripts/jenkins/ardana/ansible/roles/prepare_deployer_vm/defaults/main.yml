@@ -17,3 +17,8 @@
 
 libvirt_fresh_images_dir:  "/var/lib/libvirt/images/backup"
 libvirt_vm_images_dir: "/var/lib/libvirt/images"
+vm_name: "ardana.{{ sles_version[cloud_release] }}"
+
+sles_version:
+  cloud8: "sles12sp3"
+  cloud9: "sles12sp4"

@@ -1,0 +1,86 @@
+- job:
+    name: openstack-ardana-heat
+    project-type: pipeline
+    concurrent: true
+    wrappers:
+      - timestamps
+      - timeout:
+          timeout: 300
+          type: no-activity
+          abort: true
+          write-description: "Job aborted due to 180 minutes of inactivity"
+
+    logrotate:
+      numToKeep: 2000
+      daysToKeep: 300
+
+    properties:
+      - authorization:
+          cloud:
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
+          anonymous:
+            - job-read
+
+    parameters:
+      - string:
+          name: ardana_env
+          default: ''
+          description: >-
+            The virtual environment identifier. This field should be set to a
+            value that will uniquely identify the heat stack.
+
+            WARNING: if a heat stack associated with the supplied ardana_env already
+            exists, it will be replaced if this job is launched to create it.
+
+      - choice:
+          name: heat_action
+          choices:
+            -
+            - create
+            - delete
+          description: >-
+            The action to be performed:
+              - create: create a new heat stack
+              - delete: delete a heat stack
+
+            If the create action is selected, a heat template file is required, which can only
+            be supplied by running this job as a downstream job.
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
+
+      - string:
+          name: reuse_node
+          default: ''
+          description: >-
+            The Jenkins agent where this job must run. Used by upstream jobs to
+            force a job to reuse the same node.
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
+      lightweight-checkout: false

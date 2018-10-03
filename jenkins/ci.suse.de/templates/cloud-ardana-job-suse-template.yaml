@@ -25,6 +25,5 @@
             ardana_env=${{ardana_env}}
             cleanup=on success
             model={model}
-            cloudsource=GM{version}
-            repositories=SLES-Pool,SLES-Updates,Cloud-Pool,Cloud-Updates
+            cloudsource=GM{version}+up
             tempest_run_filter={tempest_run_filter}

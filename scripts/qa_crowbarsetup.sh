@@ -2296,6 +2296,12 @@ function custom_configuration
             if ! iscloudver 9plus && ! [[ $want_trove_proposal = 0 ]]; then
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
             fi
+
+            if iscloudver 7plus && ! [[ $want_ceilometer_proposal = 0 ]]; then
+                if crowbar rabbitmq proposal show default | grep -q enable_notifications; then
+                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['client']['enable_notifications']" true
+                fi
+            fi
         ;;
         dns)
             [ "$want_multidnstest" = 1 ] || return 0
@@ -2506,7 +2512,7 @@ function custom_configuration
             fi
         ;;
         aodh)
-            if [[ $hacloud = 1 ]] ; then
+            if [[ $hacloud = 1 ]] && ( iscloudver 7 || iscloudver 8 ) ; then
                 proposal_set_value aodh default "['deployment']['aodh']['elements']['aodh-server']" "['cluster:$clusternameservices']"
             fi
         ;;
@@ -2541,7 +2547,7 @@ function custom_configuration
             fi
         ;;
         murano)
-            if [[ $hacloud = 1 ]] ; then
+            if [[ $hacloud = 1 ]] && ( iscloudver 7 || iscloudver 8 ) ; then
                 proposal_set_value murano default "['deployment']['murano']['elements']['murano-server']" "['cluster:$clusternameservices']"
             fi
         ;;
@@ -3012,14 +3018,14 @@ function deploy_single_proposal
             fi
             ;;
         aodh)
-            if ! iscloudver 7plus; then
-                echo "Aodh is SOC 7+ only. Skipping"
+            if ! ( iscloudver 7 || iscloudver 8 ) ; then
+                echo "Aodh is SOC 7 and 8 only. Skipping"
                 return
             fi
             ;;
         murano)
-            if ! iscloudver 7plus; then
-                echo "Murano is SOC 7+ only. Skipping"
+            if ! ( iscloudver 7 || iscloudver 8 ) ; then
+                echo "Murano is SOC 7 and 8 only. Skipping"
                 return
             fi
             ;;
@@ -4230,13 +4236,13 @@ y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin'] ||= {}
 y['proposals'].first['attributes']['admin']['password'] = '$updated_password'
 puts y.to_yaml" > /root/keystone-test-pw-update.yaml
-    safely crowbar batch --timeout 900 build < /root/keystone-test-pw-update.yaml
+    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-update.yaml
     safely oncontroller test_keystone_password
     cat /root/keystone-test-pw-update.yaml | ruby -ryaml -e "
 y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin']['password'] = '$old_password'
 puts y.to_yaml" > /root/keystone-test-pw-reset.yaml
-    safely crowbar batch --timeout 900 build < /root/keystone-test-pw-reset.yaml
+    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-reset.yaml
 }
 
 function onadmin_have_salt_barclamp

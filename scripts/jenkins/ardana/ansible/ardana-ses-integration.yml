@@ -17,107 +17,47 @@
 ---
 
 - name: Configure SES for Ardana when SES enabled
-  hosts: ses-{{ 'nue' if qe_env.startswith('qa') else 'prv' }}
+  hosts: "ses-qe1"
   remote_user: root
   gather_facts: no
   vars:
-    task: "ses integration"
-
-  vars_prompt:
-    - name: "qe_env"
-      prompt: "Target environment to configure SES for"
-      private: no
-      when: qe_env not defined
-
-  pre_tasks:
-    - include_role:
-        name: rocketchat_notify
-      vars:
-        rc_action: "started"
-        rc_state: "Started"
-      when:
-        - rc_notify
-        - ardana_ses_post_deploy
+    task: "deploy"
 
   tasks:
     - block:
         - include_role:
             name: ses_configure
       rescue:
-        # This will be triggered only when SES Integration
-        # is part of the deployment
-        - include_role:
-            name: rocketchat_notify
-          vars:
-            rc_task: "deploy"
-            rc_action: "finished"
-            rc_state: "Failed"
-          when:
-            - rc_notify
-            - not ardana_ses_post_deploy
-
         - include_role:
             name: rocketchat_notify
           vars:
             rc_action: "finished"
             rc_state: "Failed"
-          when:
-            - rc_notify
-            - ardana_ses_post_deploy
+          when: rc_notify
 
         - name: Stop if something failed
           fail:
             msg: "{{ task }} failed."
 
 - name: Configure ardana with SES backend when SES enabled
-  hosts: ardana-{{ qe_env }}
+  hosts: "{{ ardana_env }}"
   remote_user: ardana
   gather_facts: no
   vars:
-    task: "ses integration"
+    task: "deploy"
 
   tasks:
     - block:
         - include_role:
             name: ses_ardana_integration
       rescue:
-        # This will be triggered only when SES Integration
-        # is part of the deployment
-        - include_role:
-            name: rocketchat_notify
-          vars:
-            rc_task: "deploy"
-            rc_action: "finished"
-            rc_state: "Failed"
-          when:
-            - rc_notify
-            - not ardana_ses_post_deploy
-
         - include_role:
             name: rocketchat_notify
           vars:
             rc_action: "finished"
             rc_state: "Failed"
-          when:
-            - rc_notify
-            - ardana_ses_post_deploy
+          when: rc_notify
 
         - name: Stop if something failed
           fail:
             msg: "{{ task }} failed."
-      always:
-        - include_role:
-            name: jenkins_artifacts
-          when:
-            - lookup("env", "WORKSPACE")
-            - ardana_ses_post_deploy
-
-  post_tasks:
-    - include_role:
-        name: rocketchat_notify
-      vars:
-        rc_action: "finished"
-        rc_state: "Success"
-      when:
-        - rc_notify
-        - ardana_ses_post_deploy

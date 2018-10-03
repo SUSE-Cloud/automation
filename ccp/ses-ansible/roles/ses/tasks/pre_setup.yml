@@ -8,8 +8,8 @@
     group: root
     mode: 0644
   with_items:
-    - "{{ ansible_default_ipv4.address }}	{{ ansible_hostname }}"
-    - "::1	{{ ansible_hostname }}"
+    - "{{ ansible_default_ipv4.address }}      {{ ansible_hostname }}"
+    - "::1     {{ ansible_hostname }}"
 
 - name: "Count number of disk devices"
   shell: |

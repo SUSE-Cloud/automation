@@ -21,31 +21,20 @@
 - include_tasks: get_rc_auth_info.yml
 
 - include_tasks: set_announcement.yml
+  when: is_physical_deploy
 
-- name: Find cloud build file
-  shell: |
-    find /srv/www/*/x86_64/repos/*Cloud*/ -name build
-  register: cloud_build_file
-  failed_when: false
+- include_tasks: get_cloud_build_version.yml
   when:
     - rc_action == "finished"
     - rc_task == "deploy"
-
-- name: Get media build version
-  slurp:
-    src: "{{ cloud_build_file.stdout }}"
-  register: cloud_media_build_version
-  failed_when: false
-  when:
-    - rc_action == "finished"
-    - rc_task == "deploy"
+    - cloud_media_build_version is not defined or 'content' not in cloud_media_build_version
 
 - name: Notify RocketChat
   rocketchat:
     domain: "{{ rc_domain }}"
     token: "{{ rc_token }}"
     username: "Ansible on {{ inventory_hostname }}"
-    channel: "{{ rc_channels[qe_env] }}"
+    channel: "{{ rc_channel }}"
     validate_certs: no
     protocol: "{{ rc_protocol }}"
     attachments:
@@ -54,3 +43,5 @@
         title_link: "{{ lookup('env', 'BUILD_URL') }}console"
         text:
         fields: "{{ rc_msg_fields_started if rc_action == 'started' else rc_msg_fields_finished }}"
+  ignore_errors: True
+  delegate_to: localhost

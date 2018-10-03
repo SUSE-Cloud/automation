@@ -15,7 +15,6 @@
 #
 ---
 
-ardana_ses_post_deploy: False
 ardana_openstack_path: "~/openstack/ardana/ansible"
 ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
 ardana_openstack_playbooks:
@@ -27,5 +26,5 @@ ardana_scratch_playbooks:
   - "ardana-cloud-configure.yml"
 
 ses_ardana_config_path: "/tmp/ses_config"
-ses_cluster_id: "{{ 'nue' if qe_env.startswith('qa') else 'prv' }}"
+ses_cluster_id: "qe1"
 ses_rgw_port: 8080

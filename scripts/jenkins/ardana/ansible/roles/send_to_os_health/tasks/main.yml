@@ -15,28 +15,10 @@
 #
 ---
 
+- include_tasks: os_health_requires.yml
+
 - name: Gather variables for '{{ task }}'
   include_vars: "{{ task }}.yml"
-
-- name: Ensure SLES-SDK repo
-  zypper_repository:
-    name: "{{ item }}"
-    repo: "http://{{ clouddata_server }}/repos/x86_64/{{ item }}/"
-    runrefresh: yes
-    priority: 9999
-  loop:
-    - "SLE12-SP3-SDK-Pool"
-    - "SLE12-SP3-SDK-Updates"
-  become: yes
-
-- name: Ensure requirements for subunit2sql installed
-  zypper:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - "gcc"
-    - "python-devel"
-  become: yes
 
 - name: Setup subunit2sql
   pip:
@@ -47,12 +29,16 @@
     - "pymysql"
   become: yes
 
-- name: Get build version
-  slurp:
-    src: "{{ local_repos_base_dir }}/Cloud/media.1/build"
-  register: build_version
+- include_tasks: get_cloud_build_version.yml
+  when: cloud_media_build_version is not defined or 'content' not in cloud_media_build_version
 
 - name: Send results to OpenStack-Health
   shell: |
     {{ subunit2sql_venv }}/bin/subunit2sql --database-connection mysql+pymysql://subunit:subunit@{{ os_health_server }}/subunit \
       --run_meta "{{ os_health_metadata | join(',') }}" --artifacts "{{ jenkins_artifacts_url }}" {{ test_results_subunit }}
+
+# NOTE: Removing SLE-SDK repos and packages required for subunit2sql
+# as they were affecting maintenance updates
+- include_tasks: os_health_requires.yml
+  vars:
+    os_health_requires_state: "absent"

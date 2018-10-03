@@ -12,46 +12,29 @@ pipeline {
 
   agent {
     node {
-      label reuse_node ? reuse_node : "openstack-trackupstream"
+      label "openstack-trackupstream"
     }
   }
 
   stages {
-    stage('setup workspace and environment') {
+    stage('Setup workspace') {
       steps {
         cleanWs()
-
-        // If the job is set up to reuse an existing workspace, replace the
-        // current workspace with a symlink to the reused one.
-        // NOTE: even if we specify the reused workspace as the
-        // customWorkspace variable value, Jenkins will refuse to reuse a
-        // workspace that's already in use by one of the currently running
-        // jobs and will just create a new one.
-        sh '''
-          if [ -n "${reuse_workspace}" ]; then
-            rmdir "${WORKSPACE}"
-            ln -s "${reuse_workspace}" "${WORKSPACE}"
-          fi
-        '''
-
         script {
+          if (gerrit_change_ids == '') {
+            error("Empty 'gerrit_change_ids' parameter value.")
+          }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_change_ids}"
           env.test_repository_url = sh (
             returnStdout: true,
             script: '''
-              echo http://download.suse.de/ibs/${homeproject//:/:\\/}:/ardana-ci-${gerrit_change_ids//,/-}/standard
+              echo http://download.suse.de/ibs/${homeproject//:/:\\/}:/ardana-ci-${gerrit_change_ids//,/-}/standard/${homeproject}:ardana-ci-${gerrit_change_ids//,/-}.repo
             '''
-          )
+          ).trim()
+          sh('''
+            git clone $git_automation_repo --branch $git_automation_branch automation-git
+          ''')
         }
-      }
-    }
-
-    stage('clone automation repo') {
-      when {
-        expression { reuse_workspace == '' }
-      }
-      steps {
-        sh 'git clone $git_automation_repo --branch $git_automation_branch automation-git'
       }
     }
 

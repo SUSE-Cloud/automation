@@ -4,12 +4,13 @@ description: >
   {{ heat_template.description }}
 
 parameters:
+{% if os_key_name is defined %}
   key_name:
     type: string
     label: Key Name
     description: Name of key-pair to be used for compute instance
     default: engcloud-cloud-ci
-
+{% endif %}
   floating_network:
     type: string
     label: Floating IP Network
@@ -239,7 +240,9 @@ resources:
   {{ server_name }}_server:
     type: OS::Nova::Server
     properties:
+{% if os_key_name is defined %}
       key_name: { get_param: key_name }
+{% endif %}
       image: {{ server.image }}
       flavor: {{ server.flavor }}
       networks:

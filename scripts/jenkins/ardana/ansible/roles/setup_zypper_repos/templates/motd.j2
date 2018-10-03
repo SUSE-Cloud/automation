@@ -1,0 +1,18 @@
+Built from: {{ built_from }}
+Media build version: {{ media_build_version }}
+Configured repositories:
+{% for repo in repos_to_add | sort %}
+  - {{ repo }}
+{% endfor %}
+{% if is_milestone %}
+  - {{ media[cloud_release].name }}
+{% endif %}
+{% for id in sles_maint_updates_list %}
+  - SLES-Maint-Update-{{ id }}
+{% endfor %}
+{% for id in cloud_maint_updates_list %}
+  - Cloud-Maint-Update-{{ id }}
+{% endfor %}
+{% for repo in extra_repos_list %}
+  - {{ repo }}
+{% endfor %}

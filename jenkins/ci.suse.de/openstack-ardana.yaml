@@ -31,7 +31,6 @@
             - job-read
 
     parameters:
-
       - string:
           name: ardana_env
           default: ''
@@ -44,48 +43,37 @@
             exists, it will be replaced.
 
       - choice:
-          name: cleanup
+          name: cloudsource
           choices:
-            - 'never'
-            - 'always'
-            - 'on success'
-            - 'on failure'
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - GM8+up
+            - hosdevelcloud8
+            - hosGM8
+            - hosGM8+up
+            - stagingcloud9
+            - develcloud9
+            - cloud9M3
           description: >-
-            Configure the conditions that trigger the virtual environment cleanup. Possible values are:
-              - never
-              - always
-              - on success
-              - on failure
+            The cloud repository (from provo-clouddata) to be used for testing.
+            This value can take the following form:
+
+               stagingcloud<X> (Devel:Cloud:X:Staging)
+               develcloud<X> (Devel:Cloud:X)
+               GM<X> (official GM)
+               GM<X>+up (official GM plus Cloud-Updates)
+               cloud9MX (cloud 9 milestones)
 
       - string:
-          name: github_pr
-          description: >-
-            String is a ':' separated list of these values:
-            $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
+         name: cloud_maint_updates
+         default: ''
+         description: List of cloud maintenance update IDs separated by comma (eg. 7396,7487)
 
       - string:
-          name: git_automation_repo
-          default: https://github.com/SUSE-Cloud/automation.git
-          description: >-
-            The git automation repository to use
-
-      - string:
-          name: git_automation_branch
-          default: master
-          description: >-
-            The git automation branch
-
-      - string:
-          name: jenkinsfile_path
-          default: jenkins/ci.suse.de/pipelines/openstack-ardana.Jenkinsfile
-          description: >-
-            The location of the Jenkinsfile defining the pipeline
-
-      - string:
-          name: git_input_model_repo
-          default: git://git.suse.provo.cloud/ardana/ardana-input-model
-          description: >-
-            The git repository to use for input models
+         name: sles_maint_updates
+         default: ''
+         description: List of SLES maintenance update IDs separated by comma (eg. 7434,7435)
 
       - string:
           name: git_input_model_branch
@@ -103,10 +91,11 @@
           name: model
           default: std-min
           description: >-
-            The Input Model to use from the input model git repository / branch / path.
+            The Input Model to use from the input model git repository / branch / path, or the name of the generated
+            input model.
 
       - choice:
-          name: scenario
+          name: scenario_name
           choices:
             -
             - entry-scale-kvm
@@ -144,89 +133,6 @@
           default: false
           description: Configure SES backend for glance, cinder, cinder-backup, nova and swift
 
-      - string:
-          name: os_cloud
-          default: 'engcloud-cloud-ci'
-          description: >-
-            The OpenStack cloud configuration used to create the virtual environment
-
-      - choice:
-          name: cloudsource
-          choices:
-            - stagingcloud8
-            - develcloud8
-            - GM8
-            - stagingcloud9
-            - develcloud9
-          description: >-
-            The cloud repository (from provo-clouddata) to be used for testing.
-            This value can take the following form:
-
-               stagingcloud<X> (Devel:Cloud:X:Staging)
-               develcloud<X> (Devel:Cloud:X)
-               GM<X> (official GM)
-
-      - choice:
-          name: cloud_brand
-          choices:
-            - SUSE
-            - HPE-Helion
-          description: Cloud media brand.
-
-      - extended-choice:
-          name: repositories
-          type: multi-select
-          value: SLES-Pool,SLES-Updates,SLES-Updates-test,Cloud-Pool,Cloud-Updates,Cloud-Updates-test
-          visible-items: 6
-          multi-select-delimiter: ','
-          default-value: SLES-Pool,SLES-Updates
-          description: >-
-            Set of zypper repositories (from provo-clouddata) to be configured during installation
-            in addition to that indicated by the cloudsource parameter.
-
-      - string:
-          name: cloud_maint_updates
-          default: ''
-          description: List of cloud maintenance update IDs separated by comma (eg. 7396,7487)
-
-      - string:
-          name: sles_maint_updates
-          default: ''
-          description: List of SLES maintenance update IDs separated by comma (eg. 7434,7435)
-
-      - choice:
-          name: update_cloudsource
-          choices:
-            -
-            - stagingcloud8
-            - develcloud8
-            - GM8
-            - stagingcloud9
-            - develcloud9
-          description: >-
-            The cloud media (from provo-clouddata) to be used for update testing. Use a value different than
-            cloudsource to enable update testing.
-
-      - extended-choice:
-          name: update_repositories
-          type: multi-select
-          value: SLES-Pool,SLES-Updates,SLES-Updates-test,Cloud-Pool,Cloud-Updates,Cloud-Updates-test
-          visible-items: 6
-          multi-select-delimiter: ','
-          default-value: ''
-          description: >-
-            Set of repositories to be added after the initial installation and used
-            during update testing. Select one or more repositories to enable update testing.
-
-      - choice:
-          name: update_method
-          choices:
-            - update
-            - patch
-            - dist-upgrade
-          description: >-
-            The update method used for update testing.
-
       - choice:
           name: tempest_run_filter
           choices:
@@ -236,6 +142,7 @@
             - defcore
             - full
             - ci
+            - barbican
             - compute
             - designate
             - identity
@@ -255,16 +162,24 @@
             Name of the filter file to use for tempest. Use an empty value to
             skip running tempest.
 
-      - bool:
-          name: want_caasp
-          default: false
+      - string:
+          name: extra_repos
+          default: ''
           description: >-
-            Deploy CaaSP using the caasp-openstack-heat-templates.
+            A comma separated list of repository urls (ending with .repo) to be
+            added on the deployer node
 
       - bool:
           name: rc_notify
           default: false
-          description: Notify RocketChat when deployment starts/finishes.
+          description: >-
+            Notify RocketChat when deployment starts/finishes.
+
+      - string:
+          name: github_pr
+          description: >-
+            String is a ':' separated list of these values:
+            $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
 
       - string:
           name: gerrit_change_ids
@@ -293,6 +208,38 @@
           description: >-
             Name of the repository in IBS against which to build the test packages.
 
+      - bool:
+          name: want_caasp
+          default: false
+          description: >-
+            Deploy CaaSP using the caasp-openstack-heat-templates.
+
+      - choice:
+          name: cleanup
+          choices:
+            - 'never'
+            - 'always'
+            - 'on success'
+            - 'on failure'
+          description: >-
+            Configure the conditions that trigger the virtual environment cleanup. Possible values are:
+              - never
+              - always
+              - on success
+              - on failure
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
+
     pipeline-scm:
       scm:
         - git:
@@ -301,5 +248,5 @@
               - ${git_automation_branch}
             browser: auto
             wipe-workspace: false
-      script-path: ${jenkinsfile_path}
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
       lightweight-checkout: false

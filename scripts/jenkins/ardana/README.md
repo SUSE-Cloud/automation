@@ -60,7 +60,22 @@ inside the stage steps, which would show the stage as being always executed, reg
 
 ## Permitted Jenkinsfile contents
 
-The contents of a Jenkinsfile are restricted to the following:
+The Jenkinsfile definition of a Jenkins declarative pipeline uses a specialized DSL with a syntax similar to Groovy.
+Interacting with some of the Jenkins plugins or accessing more advanced Jenkins features sometimes even requires
+running Groovy pipeline steps.
+While there is no easy way around using the DSL/Groovy to implement Jenkins pipelines, a set of rules have been set
+in place to keep the DSL/Groovy footprint in our CI to a minimum. This is enforced for a number of different reasons:
+* developers and QA engineers shouldn't require extensive Jenkins pipeline DSL or Groovy knowledge to make
+contributions to the CI
+* the test automation strategy is based on the idea of using a common set of tools and scripts for the
+development, CI and QA workflows. This requires minimizing the extent of the CI automation logic implemented using
+Jenkins pipeline DSL/Groovy because those parts cannot simply be reused in a development environment and would need
+to be duplicated using other languages
+
+Based on the above, unless Jenkins pipeline DSL/Groovy is absolutely needed to implement something in a pipeline
+Jenkins job, for instance because it relates to a Jenkins specific feature, it should be implemented independently
+from Jenkins, using other languages, and should be made part of the development workflow. The contents
+of a Jenkinsfile are therefore restricted to the following:
 
 * basic pipeline and stage workflow directives [\[1\]](#fn1)[\[2\]](#fn2): `pipeline`, `stages`, `stage`, `steps`
 * directives needed to configure the agent and the workspace [\[3\]](#fn3): `agent`, `node`, `label`, `customWorkspace`

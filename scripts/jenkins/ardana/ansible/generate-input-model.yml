@@ -15,26 +15,12 @@
 #
 ---
 
-- name: Generate input model
-  hosts: 'localhost'
+- name: Generate Ardana Input Model
+  hosts: localhost
   connection: local
   gather_facts: False
   vars:
     task: "deploy"
-
-  vars_prompt:
-    - name: "scenario_name"
-      prompt: "Scenario name [standard, entry-scale-kvm, mid-scale]"
-      private: no
-      when: scenario_name not defined
-
-  pre_tasks:
-    - include_role:
-        name: rocketchat_notify
-      vars:
-        rc_action: "started"
-        rc_state: "Started"
-      when: rc_notify
 
   tasks:
     - block:
@@ -51,3 +37,11 @@
         - name: Stop if something failed
           fail:
             msg: "{{ task }} failed."
+      always:
+        - include_role:
+            name: jenkins_artifacts
+          when: lookup("env", "WORKSPACE")
+          vars:
+            jenkins_artifacts_to_collect:
+              - "{{ virt_config_file }}"
+              - "{{ input_model_path }}"

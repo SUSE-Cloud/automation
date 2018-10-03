@@ -37,8 +37,7 @@
   args:
     chdir: "{{ frontail_run_dir }}"
 
-- name: Ensure frontail starts on reboot
-  cron:
-    name: "Frontail"
-    special_time: reboot
-    job: "{{ frontail_run_dir }}/{{ frontail_start_cmd }}"
+- name: Ensure frontail starts on boot
+  lineinfile:
+    path: "/etc/init.d/boot.local"
+    line: "{{ frontail_run_dir }}/{{ frontail_start_cmd }}"
