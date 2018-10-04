@@ -535,6 +535,16 @@ find_fastest_clouddata_server()
     $scripts_lib_dir/find_fastest_server.pl clouddata.nue.suse.com. provo-clouddata.cloud.suse.de. | tee $cache
 }
 
+find_fastest_crowbar_image_server()
+{
+    local cache=~/.mkcloud/fastest_crowbar_image_server
+    if [[ -r $cache ]] && [[ $cache -nt $BASH_SOURCE ]] ; then
+        exec cat $cache || exit 100
+    fi
+    mkdir -p ~/.mkcloud
+    $scripts_lib_dir/find_fastest_server.pl ibs-mirror.prv.suse.net download.nue.suse.com | tee $cache
+}
+
 function get_admin_node_dist
 {
     # echo the name of the current dist for the admin node
@@ -625,7 +635,7 @@ function common_set_versions
 # defaults for generic common variables
 : ${arch:=$(uname -m)}
 : ${admin_image_password:='linux'}
-: ${susedownload:=download.nue.suse.com}
+: ${susedownload:=find_fastest_crowbar_image_server}
 
 # bmc credentials
 : ${bmc_user:=root}
