@@ -293,6 +293,9 @@ class OBSProject:
                   (self.obs_test_project_name, self.obs_linked_project))
             sh.osc('-A', 'https://api.suse.de', 'api', '-T', meta.name,
                    '/source/%s/_meta' % self.obs_test_project_name)
+            sh.osc('-A', 'https://api.suse.de', 'deleterequest',
+                   self.obs_test_project_name, '--accept-in-hours', 720,
+                   '-m', 'Auto delete after 30 days.')
 
     def add_test_package(self, package):
         """
