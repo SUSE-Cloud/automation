@@ -29,7 +29,6 @@
           choices:
             - "all"
             - "SUSE-Cloud/automation"
-            - "SUSE-Cloud/cct"
           description: |
             Only process the PRs of the selected repositories or all.
             This can be useful for PR rebuilds (see 'mode' parameter).

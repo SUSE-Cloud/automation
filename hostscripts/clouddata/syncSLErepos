@@ -293,7 +293,7 @@ for arch in $archs ; do
 done
 
 if [ $SITE = "nue" ]; then
-    # repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync, cct)
+    # repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync)
     for obsrepo in devel:/languages:/ruby:/extensions/SLE_12 devel:/tools:/building/SLE_12_SP3 ; do
         rsync_with_create rsync://rsync.opensuse.org/buildservice-repos/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/
     done
