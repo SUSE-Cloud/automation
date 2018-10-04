@@ -1,39 +1,19 @@
-- job:
-    name: openstack-ardana
+- job-template:
+    name: '{ardana_job}'
     project-type: pipeline
-    concurrent: true
-    wrappers:
-      - timestamps
-      - timeout:
-          timeout: 300
-          type: no-activity
-          abort: true
-          write-description: "Job aborted due to 180 minutes of inactivity"
+    disabled: '{obj:disabled|False}'
+    concurrent: '{concurrent|False}'
 
     logrotate:
-      numToKeep: 2000
-      daysToKeep: 300
+      numToKeep: -1
+      daysToKeep: 30
 
-    properties:
-      - authorization:
-          cloud:
-            - job-build
-            - job-cancel
-            - job-configure
-            - job-delete
-            - job-discover
-            - job-read
-            - job-workspace
-            - run-delete
-            - run-update
-            - scm-tag
-          anonymous:
-            - job-read
+    triggers: '{triggers}'
 
     parameters:
       - string:
           name: ardana_env
-          default: ''
+          default: '{ardana_env|}'
           description: >-
             The virtual or hardware environment identifier. This field should either
             be set to one of the values associated with the known hardware environments
@@ -42,9 +22,16 @@
             WARNING: if a virtual environment associated with the supplied ardana_env already
             exists, it will be replaced.
 
+      - bool:
+          name: reserve_env
+          default: '{reserve_env|true}'
+          description: >-
+            Reserve the 'ardana_env' lockable resource throughout the execution of this job
+
       - choice:
           name: cloudsource
           choices:
+            - '{cloudsource|stagingcloud9}'
             - stagingcloud8
             - develcloud8
             - GM8
@@ -77,7 +64,7 @@
 
       - string:
           name: git_input_model_branch
-          default: master
+          default: '{branch|master}'
           description: >-
             The git repository branch to use for input models
 
@@ -89,7 +76,7 @@
 
       - string:
           name: model
-          default: std-min
+          default: '{model|std-min}'
           description: >-
             The Input Model to use from the input model git repository / branch / path, or the name of the generated
             input model.
@@ -136,7 +123,7 @@
       - choice:
           name: tempest_run_filter
           choices:
-            -
+            - '{tempest_run_filter|ci}'
             - smoke
             - smoke-upstream
             - defcore
@@ -190,7 +177,7 @@
 
       - string:
           name: develproject
-          default: 'Devel:Cloud:8:Staging'
+          default: '{develproject|Devel:Cloud:9:Staging}'
           description: >-
             Project in IBS to link against when creating a test project for a
             change proposal.
@@ -204,7 +191,7 @@
 
       - string:
           name: repository
-          default: 'SLE_12_SP3'
+          default: '{repository|SLE_12_SP4}'
           description: >-
             Name of the repository in IBS against which to build the test packages.
 
@@ -217,6 +204,7 @@
       - choice:
           name: cleanup
           choices:
+            - '{cleanup|on success}'
             - 'never'
             - 'always'
             - 'on success'
@@ -230,23 +218,23 @@
 
       - string:
           name: git_automation_repo
-          default: https://github.com/SUSE-Cloud/automation.git
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
           description: >-
             The git automation repository to use
 
       - string:
           name: git_automation_branch
-          default: master
+          default: '{git_automation_branch|master}'
           description: >-
             The git automation branch
 
     pipeline-scm:
       scm:
         - git:
-            url: ${git_automation_repo}
+            url: ${{git_automation_repo}}
             branches:
-              - ${git_automation_branch}
+              - ${{git_automation_branch}}
             browser: auto
             wipe-workspace: false
-      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
+      script-path: jenkins/ci.suse.de/pipelines/openstack-ardana.Jenkinsfile
       lightweight-checkout: false

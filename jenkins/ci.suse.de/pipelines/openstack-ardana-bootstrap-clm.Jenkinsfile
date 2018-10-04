@@ -75,8 +75,13 @@ pipeline {
 
   post {
     always {
-        archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-        cleanWs()
+      script {
+        // Let the upstream job archive artifacts
+        if (reuse_node == '') {
+          archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
+        }
+      }
+      cleanWs()
     }
   }
 }
