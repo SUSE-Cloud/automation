@@ -58,8 +58,10 @@ function h_setup_base_repos {
     if [[ $DIST_NAME == "openSUSE_Leap" ]]; then
         $zypper ar -f http://download.opensuse.org/distribution/leap/${DIST_VERSION}/repo/oss/ Base || true
         $zypper ar -f http://download.opensuse.org/update/leap/${DIST_VERSION}/oss/openSUSE:Leap:${DIST_VERSION}:Update.repo || true
-        # Python 3.x support is quite broken atm
-        if false && [[ $DIST_VERSION == "15.0" ]]; then
+        # Python 2.7 is scheduled for end-of-life in 2020
+        # Openstack goal is to have python3 supported on the end of the T cycle
+        # https://governance.openstack.org/tc/resolutions/20180529-python2-deprecation-timeline.html
+        if [[ $DIST_VERSION == "15.0" ]]; then
             USE_PYTHON3=True
             PYTHON3_VERSION=3.6
         fi
