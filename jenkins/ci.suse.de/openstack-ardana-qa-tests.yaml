@@ -1,0 +1,132 @@
+- job:
+    name: openstack-ardana-qa-tests
+    project-type: pipeline
+    concurrent: true
+    wrappers:
+      - timestamps
+      - timeout:
+          timeout: 300
+          type: no-activity
+          abort: true
+          write-description: "Job aborted due to 180 minutes of inactivity"
+
+    logrotate:
+      numToKeep: 2000
+      daysToKeep: 300
+
+    properties:
+      - authorization:
+          cloud:
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
+          anonymous:
+            - job-read
+
+    parameters:
+      - string:
+          name: ardana_env
+          default: ''
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied ardana_env already
+            exists, it will be replaced.
+
+      - extended-choice:
+          name: test_list
+          type: multi-select
+          visible-items: 10
+          multi-select-delimiter: ','
+          default-value: ''
+          value: >-
+            iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,
+            heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,
+            nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
+            barbican-functional,horizon,horizon_integration-tests,freezer,keystone-soapui,
+            remove_compute_node,add_compute_node,tempest_cleanup
+          description: >-
+            Select tests to run
+
+      - string:
+          name: test_branch
+          default: master
+          description: >-
+            ardana-qa-tests repository branch
+
+      - string:
+          name: run_filter
+          default: ''
+          description: >-
+            test run filter
+
+      - bool:
+          name: dpdk
+          default: false
+          description: >-
+            (neutron) DPDK enabled/disabled
+
+      - choice:
+          name: dpdk_br
+          choices:
+            - br-dpdk0
+            - br-dpdkbond0
+          description: >-
+            (neutron) dpdk bond interface name
+
+      - bool:
+          name: octavia
+          default: false
+          description: >-
+            (neutron) OCTAVIA enabled/disabled
+
+      - bool:
+          name: esx
+          default: false
+          description: >-
+            ESX compute enabled/disabled
+
+      - bool:
+          name: rc_notify
+          default: true
+          description: >-
+            Notify RocketChat about job status
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
+
+      - string:
+          name: reuse_node
+          default: ''
+          description: >-
+            The Jenkins agent where this job must run. Used by upstream jobs to
+            force a job to reuse the same node.
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
+      lightweight-checkout: false

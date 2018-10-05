@@ -223,7 +223,25 @@ pipeline {
       }
     }
 
-    stage ('Deploy CaaSP') {
+    stage('Run QA tests') {
+      when {
+        expression { qa_test_list != '' }
+      }
+      steps {
+        script {
+          def slaveJob = build job: 'openstack-ardana-qa-tests', parameters: [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'test_list', value: "$qa_test_list"),
+            string(name: 'rc_notify', value: "$rc_notify"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch"),
+            string(name: 'reuse_node', value: "${NODE_NAME}")
+          ], propagate: true, wait: true
+        }
+      }
+    }
+
+    stage('Deploy CaaSP') {
       when {
         expression { want_caasp == 'true' }
       }
