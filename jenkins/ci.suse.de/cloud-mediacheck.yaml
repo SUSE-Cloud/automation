@@ -21,7 +21,6 @@
             - Devel:Cloud:8/SLE_12_SP3/CROWBAR
             - Devel:Cloud:9/SLE_12_SP4/SOC
             - Devel:Cloud:9/SLE_12_SP4/CROWBAR
-            - Devel:Cloud:9:Rocky/SLE_12_SP4/CROWBAR
             - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3/SOC
             - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3/HOS
             - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3/CROWBAR

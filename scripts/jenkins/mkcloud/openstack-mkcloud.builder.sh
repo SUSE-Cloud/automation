@@ -29,7 +29,7 @@ case $cloudsource in
             unset want_ldap
         fi
         ;;
-    M*|develcloud9|rockycloud9|develcloud8|develcloud7|GM7|GM7+up|susecloud9)
+    M*|develcloud9|develcloud8|develcloud7|GM7|GM7+up|susecloud9)
         if [[ $mkcloudtarget =~ upgrade ]]; then
             echo "Unsetting want_ldap for upgrade jobs until hybrid backend is migrated to domain-specific backends"
             unset want_ldap

@@ -1146,7 +1146,6 @@ Mandatory
         develcloud7   : product from IBS Devel:Cloud:7
         develcloud8   : product from IBS Devel:Cloud:8
         develcloud9   : product from IBS Devel:Cloud:9
-        rockycloud9   : product from IBS Devel:Cloud:9:Rocky
         susecloud9    : product from IBS SUSE:SLE....
         GM6           : SUSE Cloud Goldmaster 6 without updates
         GM7           : SUSE Cloud Goldmaster 7 without updates
@@ -1384,7 +1383,7 @@ function sanity_checks
 
     if [ -z "$cloudsource" ] ; then
         echo "Please set the env variable:"
-        echo "export cloudsource=M?|develcloud6|develcloud7|develcloud8|develcloud9|rockycloud9|susecloud9|GM6|GM6+up|GM7|GM7+up|GM8|GM+up"
+        echo "export cloudsource=M?|develcloud6|develcloud7|develcloud8|develcloud9|susecloud9|GM6|GM6+up|GM7|GM7+up|GM8|GM+up"
         exit 1
     fi
 

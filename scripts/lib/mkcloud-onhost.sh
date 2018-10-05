@@ -141,9 +141,6 @@ function onhost_cacheclouddata
                 suffix="devel"
                 [ -n "$TESTHEAD" ] && suffix+="-staging"
             fi
-            if [[ $cloudsource =~ (rockycloud) ]]; then
-                suffix="devel-rocky"
-            fi
             echo "repos/$a/SUSE-OpenStack-Cloud-$cloudrepover-$suffix/***"
 
             # Now the various test images

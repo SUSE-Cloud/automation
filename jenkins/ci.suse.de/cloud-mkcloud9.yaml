@@ -25,9 +25,6 @@
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-monasca-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
-        # temporary jobs for testing Devel:Cloud:9:Rocky:
-        - 'cloud-mkcloud{version}-job-2nodes-rocky-{arch}'
-        - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-rocky-{arch}'
 - project:
     name: cloud-mkcloud9-ha-x86_64
     disabled: false
@@ -48,8 +45,6 @@
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
-        # temporary job for testing Devel:Cloud:9:Rocky:
-        - 'cloud-mkcloud{version}-job-ha-rocky-{arch}'
 - project:
     name: cloud-mkcloud9-tempestfull-x86_64
     disabled: false
