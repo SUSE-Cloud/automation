@@ -21,21 +21,20 @@
     chdir: "{{ ardana_qe_test_work_dir }}"
   register: ardana_qe_failed_tests
 
-- name: Process '{{ test_name }}' results
-  shell: "{{ ardana_qe_test_get_results_cmds[item] }}"
-  args:
-    chdir: "{{ ardana_qe_test_work_dir }}"
-  loop: "{{ ardana_qe_test_get_results_cmds.keys() }}"
-  register: test_results_processed
-
-- name: Store test results
-  set_fact:
-    ardana_qe_test_results: "{{ ardana_qe_test_results | default({}) | combine({item.item: item.stdout}) }}"
-  loop: "{{ test_results_processed.results }}"
-  loop_control:
-    label: "{{ item.item }}: {{ item.stdout }}"
-
 - name: Check if subunit output is available
   stat:
     path: "{{ ardana_qe_test_subunit }}"
   register: subunit
+
+- name: Get '{{ test_name }}' results from subunit
+  command: "{{ subunit2junit_venv }}/bin/subunit-stats {{ ardana_qe_test_subunit }}"
+  failed_when: false
+  register: test_results
+
+- name: Process test results from subunit
+  set_fact:
+    ardana_qe_test_results: "{{ ardana_qe_test_results | default({}) | combine({item.split()[0] | lower: item.split()[-1]}) }}"
+  when: "'tests' in item"
+  loop: "{{ test_results.stdout_lines }}"
+  loop_control:
+    label: "{{ item.split()[0] | lower }}: {{ item.split()[-1] }}"

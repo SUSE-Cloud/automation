@@ -17,9 +17,11 @@
 
 test_results_subunit: "{{ ardana_qe_test_subunit }}"
 
+os_health_build_name: "{{ ardana_env }}_qa-tests_{{ test_name }}"
+
 os_health_metadata:
   - "build_uuid:`uuidgen`"
-  - "project:openstack/{{ test_name }}"
+  - "project:openstack/qa_tests/{{ test_name }}"
   - "ardana_env:{{ ardana_env }}"
   - "build_name:{{ os_health_build_name }}"
   - "openstack_service:{{ os_service_name.split('-')[0] | lower }}"

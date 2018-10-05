@@ -20,7 +20,3 @@ ardana_qe_test_venv_requires:
   - 'stestr'
 
 ardana_qe_test_get_failed_cmd: "grep FAILED {{ ardana_qe_test_log }} | cut -d. -f2-7"
-ardana_qe_test_get_results_cmds:
-  failed: "grep Failed: {{ ardana_qe_test_log }} | cut -c12-13"
-  ran: "grep Ran: {{ ardana_qe_test_log }} | cut -c6-7"
-  passed: "grep Passed: {{ ardana_qe_test_log }} | cut -c12-13"

@@ -32,6 +32,15 @@
 - block:
     - include_tasks: run_test.yml
   always:
+    - name: Fail if the test timed out
+      fail:
+        msg: |
+          Timed out waiting for '{{ ardana_qe_test_script }}' to finish after
+          {{ ardana_qe_test_timeout }} minutes.
+      when: test_output.rc == 124
+
+    - include_tasks: convert_subunit.yml
+
     - include_tasks: process_test_results.yml
 
     - include_tasks: setup_os_resources.yml

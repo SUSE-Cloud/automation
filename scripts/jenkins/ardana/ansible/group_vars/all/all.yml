@@ -17,6 +17,7 @@
 
 # The cloud release is encoded in the cloudsource value
 cloud_release: "cloud{{ cloudsource | regex_search('\\d') }}"
+clouddata_server: "provo-clouddata.cloud.suse.de"
 rhel_enabled: "{{ rhel_computes is defined and rhel_computes | int > 0 }}"
 
 workspace_path: "{{ lookup('env', 'WORKSPACE') | default('.', true) }}"

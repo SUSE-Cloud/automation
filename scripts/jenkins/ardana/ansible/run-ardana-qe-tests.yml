@@ -13,25 +13,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-
 ---
 
 - name: Run '{{ test_name }}' test and collect results
-  hosts: ardana-{{ qe_env }}
+  hosts: "{{ ardana_env }}"
   remote_user: ardana
   gather_facts: True
   vars:
     task: "ardana-qe-tests"
-
-  vars_prompt:
-    - name: "qe_env"
-      prompt: "Target envinroment to run tests"
-      private: no
-      when: qe_env not defined
-    - name: "test_name"
-      prompt: "Test to run"
-      private: no
-      when: test_name not defined
 
   pre_tasks:
     - include_role:
@@ -52,17 +41,28 @@
             rc_action: "finished"
             rc_state: "Failed"
           when: rc_notify
+
         - name: Stop if something failed
           fail:
             msg: "{{ task }} failed."
       always:
+        - name: Load ardana_qe_tests role variables (remove when https://github.com/ansible/ansible/issues/21890 fixed)
+          include_vars: "roles/ardana_qe_tests/defaults/main.yml"
+
         - include_role:
             name: jenkins_artifacts
+          vars:
+            jenkins_artifacts_to_collect:
+              - "{{ ardana_qe_test_log }}"
+              - "{{ subunit_html_results }}"
+              - "{{ subunit_xml_results }}"
           when: lookup("env", "WORKSPACE")
 
         - include_role:
             name: send_to_os_health
-          when: subunit.stat.exists
+          when:
+            - subunit is defined
+            - subunit.stat.exists
 
   post_tasks:
     - include_role:

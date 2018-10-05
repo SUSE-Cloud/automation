@@ -13,16 +13,23 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+
 ---
 
-test_results_subunit: "/opt/stack/tempest/logs/testrepository_region1.subunit"
+- name: Ensure virtualenv with subunit2junit
+  pip:
+    name: "{{ item }}"
+    virtualenv: "{{ subunit2junit_venv }}"
+  loop:
+    - "junitxml"
+    - "python-subunit"
 
-os_health_build_name: "{{ ardana_env }}_tempest_{{ tempest_run_filter }}"
+- name: Generate xml subunit results
+  shell: "{{ subunit2junit_venv }}/bin/subunit2junitxml {{ ardana_qe_test_subunit }} > {{ subunit_xml_results }}"
+  changed_when: false
+  failed_when: false
 
-os_health_metadata:
-  - "build_uuid:`uuidgen`"
-  - "project:openstack/tempest/{{ tempest_run_filter }}""
-  - "ardana_env:{{ ardana_env }}"
-  - "build_name:{{ os_health_build_name }}"
-  - "openstack_service:{{ tempest_run_filter }}"
-  - "build_version:{{ cloud_media_build_version.content | b64decode }}"
+- name: Generate html subunit results
+  shell: "subunit2html {{ ardana_qe_test_subunit }} {{ subunit_html_results }}"
+  changed_when: false
+  failed_when: false
