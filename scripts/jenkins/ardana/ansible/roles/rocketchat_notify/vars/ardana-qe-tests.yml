@@ -15,6 +15,12 @@
 #
 ---
 ardana_qe_test_log_url: "{{ lookup('env', 'BUILD_URL') }}artifact/.artifacts/{{ test_name }}.log"
+ardana_qe_test_log_url_msg: "[{{ ardana_qe_test_log_url }}]({{ ardana_qe_test_log_url }})"
+
+rc_att_colapsed: True
+
+rc_msg_color: "{{ 'danger' if (rc_state == 'Failed' and ardana_qe_test_results is not defined) else '#BDC3C7' if rc_state == 'Started' else _test_msg_color }}"
+_test_msg_color: "{{ (ardana_qe_test_results is defined and ardana_qe_test_results.failed | int > 0) | ternary('warning', 'good') }}"
 
 rc_announcement_started: "Running ardana-qe-tests({{ test_name }}) test"
 rc_announcement_finished: "{{ rc_previous_announcement.content | b64decode if rc_previous_announcement.content is defined else 'NA' }}"
@@ -23,7 +29,7 @@ rc_msg_title: "ardana-qe-tests({{ test_name }}) {{ rc_action }}"
 
 rc_msg_fields_started:
   - title: Started by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    value: "{{ jenkins_build_url_msg  }}"
     short: False
   - title: Deployer
     value: "{{ hostvars[ardana_env].ansible_host }}"
@@ -31,13 +37,13 @@ rc_msg_fields_started:
 
 _rc_msg_fields_finished:
   - title: Started by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    value: "{{ jenkins_build_url_msg }}"
     short: False
   - title: Deployer
     value: "{{ hostvars[ardana_env].ansible_host }}"
     short: True
-  - title: Ran
-    value: "{{ ardana_qe_test_results.ran if ardana_qe_test_results is defined else 'Not available' }}"
+  - title: Total
+    value: "{{ ardana_qe_test_results.total if ardana_qe_test_results is defined else 'Not available' }}"
     short: True
   - title: Passed
     value: "{{ ardana_qe_test_results.passed if ardana_qe_test_results is defined else 'Not available' }}"
@@ -46,18 +52,18 @@ _rc_msg_fields_finished:
     value: "{{ ardana_qe_test_results.failed if ardana_qe_test_results is defined else 'Not available' }}"
     short: True
   - title: Skipped
-    value: "{{ ardana_qe_test_results.skipped if ardana_qe_test_results is defined and 'skipped' in ardana_qe_test_results else 'Not available' }}"
+    value: "{{ ardana_qe_test_results.skipped if ardana_qe_test_results is defined else 'Not available' }}"
     short: True
   - title: Failed tests
-    value: "{{ ardana_qe_failed_tests.stdout if ardana_qe_failed_tests is defined else 'Not available' }}"
+    value: "{{ ardana_qe_failed_tests.stdout if ardana_qe_failed_tests is defined else 'Timeout' if test_output is defined and test_output.rc == 124 else 'Not available' }}"
     short: False
   - title: Log
-    value: "{{ ardana_qe_test_log_url if lookup('env', 'BUILD_URL') else 'Not available' }}"
+    value: "{{ ardana_qe_test_log_url_msg if lookup('env', 'BUILD_URL') else 'Not available' }}"
     short: False
 
 _rc_os_health_msg:
   - title: OpenStack-Health
-    value: "{{ os_health_url }}"
+    value: "[{{ os_health_url }}]({{ os_health_url }})"
     short: False
 
 rc_msg_fields_finished: "{{ _rc_msg_fields_finished + _rc_os_health_msg if subunit is defined and subunit.stat.exists else _rc_msg_fields_finished }}"

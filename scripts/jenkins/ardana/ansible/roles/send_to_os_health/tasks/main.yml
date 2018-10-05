@@ -33,9 +33,10 @@
   when: cloud_media_build_version is not defined or 'content' not in cloud_media_build_version
 
 - name: Send results to OpenStack-Health
-  shell: |
+  command: |
     {{ subunit2sql_venv }}/bin/subunit2sql --database-connection mysql+pymysql://subunit:subunit@{{ os_health_server }}/subunit \
       --run_meta "{{ os_health_metadata | join(',') }}" --artifacts "{{ jenkins_artifacts_url }}" {{ test_results_subunit }}
+  changed_when: false
 
 # NOTE: Removing SLE-SDK repos and packages required for subunit2sql
 # as they were affecting maintenance updates
