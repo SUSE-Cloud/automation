@@ -6,6 +6,7 @@ pipeline {
   options {
     // skip the default checkout, because we want to use a custom path
     skipDefaultCheckout()
+    timestamps()
     // reserve a resource if instructed to do so, otherwise use a dummy resource
     // and a zero quantity to fool Jenkins into thinking it reserved a resource when in fact it didn't
     lock(label: reserve_env == 'true' ? ardana_env:'dummy-resource',
