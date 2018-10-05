@@ -3,7 +3,7 @@ shopt -s extglob
 
 # emptying the workspace
 cd $WORKSPACE
-rm -rf ./* ./.*
+rm -rf ./* ./.[a-zA-Z]*
 
 if [ ! -v github_pr ] ; then
     exit 0
