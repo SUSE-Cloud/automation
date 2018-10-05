@@ -101,5 +101,6 @@
     branch: stable/pike
     develproject: Devel:Cloud:8:Staging
     repository: SLE_12_SP3
+    voting: 0
     jobs:
         - '{ardana_gerrit_job}'
