@@ -18,7 +18,7 @@
             - comment-added-contains-event:
                 comment-contains-value: '^recheck$'
           override-votes: true
-          gerrit-build-successful-verified-value: 1
+          gerrit-build-successful-verified-value: '{voting|1}'
           skip-vote:
               notbuilt: true
           projects:
