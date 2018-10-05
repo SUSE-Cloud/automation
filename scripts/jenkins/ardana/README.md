@@ -65,12 +65,17 @@ Interacting with some of the Jenkins plugins or accessing more advanced Jenkins 
 running Groovy pipeline steps.
 While there is no easy way around using the DSL/Groovy to implement Jenkins pipelines, a set of rules have been set
 in place to keep the DSL/Groovy footprint in our CI to a minimum. This is enforced for a number of different reasons:
-* developers and QA engineers shouldn't require extensive Jenkins pipeline DSL or Groovy knowledge to make
-contributions to the CI
+* ensure looser coupling from Jenkins than unrestricted use of everything
+  possible in a Jenkinsfile would give, for keeping the cost of replacing
+  Jenkins constrained and to be able to test parts without needing to install and
+  run Jenkins, bind only to something that needs a Jenkins installation when
+  there is an advantage over using an alternative that works without Jenkins
 * the test automation strategy is based on the idea of using a common set of tools and scripts for the
 development, CI and QA workflows. This requires minimizing the extent of the CI automation logic implemented using
 Jenkins pipeline DSL/Groovy because those parts cannot simply be reused in a development environment and would need
 to be duplicated using other languages
+* developers and QA engineers shouldn't require extensive Jenkins pipeline DSL or Groovy knowledge to make
+contributions to the CI
 
 Based on the above, unless Jenkins pipeline DSL/Groovy is absolutely needed to implement something in a pipeline
 Jenkins job, for instance because it relates to a Jenkins specific feature, it should be implemented independently
