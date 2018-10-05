@@ -121,6 +121,11 @@
               "openstack-rally",
               "openstack-tempest",
             ].contains(component) ||
+            [ "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging" ].contains(project) &&
+            [
+              "openstack-trove",
+              "openstack-horizon-plugin-trove-ui",
+            ].contains(component) ||
             [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-freezer-ui",

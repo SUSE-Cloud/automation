@@ -8,8 +8,6 @@ proposals:
       - @@controller@@
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
   deployment:
     elements:
       rabbitmq-server:
@@ -152,12 +150,6 @@ proposals:
       ceilometer-server:
       - @@controller@@
       ceilometer-swift-proxy-middleware:
-      - @@controller@@
-- barclamp: trove
-  attributes:
-  deployment:
-    elements:
-      trove-server:
       - @@controller@@
 - barclamp: magnum
   attributes:
