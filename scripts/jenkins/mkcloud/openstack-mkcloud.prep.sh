@@ -1,11 +1,13 @@
-#!/bin/sh
-set -x
+#!/bin/bash -xu
 shopt -s extglob
 
 # emptying the workspace
-mkdir -p empty
-rsync -r --delete empty/ ./
+cd $WORKSPACE
+rm -rf ./* ./.*
 
+if [ ! -v github_pr ] ; then
+    exit 0
+fi
 # split $github_pr into multiple variables
 source ${automationrepo}/scripts/jenkins/github-pr/parse.rc
 

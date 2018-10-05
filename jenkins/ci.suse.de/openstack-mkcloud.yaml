@@ -419,10 +419,8 @@
     builders:
       - update-automation
       - shell: |
-          if [[ $github_pr ]] ; then
-            export automationrepo=~/github.com/SUSE-Cloud/automation
-            exec ${automationrepo}/scripts/jenkins/mkcloud/openstack-mkcloud.prep.sh
-          fi
+          export automationrepo=~/github.com/SUSE-Cloud/automation
+          exec ${automationrepo}/scripts/jenkins/mkcloud/openstack-mkcloud.prep.sh
       - shell: |
           export automationrepo=~/github.com/SUSE-Cloud/automation
           if [ -d $WORKSPACE/automation-git ] ; then
