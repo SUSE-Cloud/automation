@@ -8,6 +8,7 @@ pipeline {
   options {
     // skip the default checkout, because we want to use a custom path
     skipDefaultCheckout()
+    timestamps()
   }
 
   agent {
