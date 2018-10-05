@@ -15,19 +15,16 @@
 #
 ---
 
-- include_tasks: os_health_requires.yml
+- name: Check if subunit2sql installed
+  stat:
+    path: "{{ subunit2sql_bin }}"
+  register: _subunit2sql
+
+- include_tasks: install_subunit2sql.yml
+  when: not _subunit2sql.stat.exists
 
 - name: Gather variables for '{{ task }}'
   include_vars: "{{ task }}.yml"
-
-- name: Setup subunit2sql
-  pip:
-    name: "{{ item }}"
-    virtualenv: "{{ subunit2sql_venv }}"
-  with_items:
-    - "subunit2sql"
-    - "pymysql"
-  become: yes
 
 - include_tasks: get_cloud_build_version.yml
   when: cloud_media_build_version is not defined or 'content' not in cloud_media_build_version
@@ -43,3 +40,4 @@
 - include_tasks: os_health_requires.yml
   vars:
     os_health_requires_state: "absent"
+  when: not _subunit2sql.stat.exists

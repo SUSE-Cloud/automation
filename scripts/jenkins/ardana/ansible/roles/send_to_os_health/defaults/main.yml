@@ -19,9 +19,9 @@ jenkins_artifacts_url: "{{ lookup('env', 'BUILD_URL') + 'artifact/.artifacts/' i
 clouddata_server: "provo-clouddata.cloud.suse.de"
 
 subunit2sql_venv: "/opt/subunit2sql"
+subunit2sql_bin: "{{ subunit2sql_venv }}/bin/subunit2sql"
 os_health_server: "10.86.0.167"
 os_health_url: "http://{{ os_health_server }}/#/job/{{ os_health_build_name }}"
-os_health_build_name: "{{ lookup('env', 'BUILD_DISPLAY_NAME') | default('NA', true) | replace(': ', '-') | replace('#', '') }}"
 os_service_name: "{{ test_name.split('_')[0] }}"
 os_health_requires_state: "present"
 os_health_requires:
