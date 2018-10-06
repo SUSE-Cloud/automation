@@ -1,0 +1,12 @@
+---
+keystone_test_ansible_code_folder: "{{ ardana_qe_tests_dir }}/ardana-qa-tests/keystone/testcase/functional/keystone-ansible"
+
+ardana_qe_test_get_failed_cmd: "cat {{ ardana_qe_test_log }} | grep k2k_failed | wc -l"
+ardana_qe_test_get_results_cmds:
+  ran: "cat {{ ardana_qe_test_log }} | grep 'X509 SSL certificate is configured on this server' | wc -l "
+  failed: "cat {{ ardana_qe_test_log }} | grep 'domain creation failed' | wc -l "
+  passed: "cat {{ ardana_qe_test_log }} | grep 'domain creation passed' | wc -l "
+
+ardana_qe_test_venv_requires:
+  - 'python-subunit'
+ardana_read_group_vars: True

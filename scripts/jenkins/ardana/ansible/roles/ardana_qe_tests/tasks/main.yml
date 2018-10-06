@@ -21,6 +21,7 @@
 - include_tasks: read_osrc.yml
 
 - include_tasks: read_group_vars.yml
+  when: ardana_read_group_vars
 
 - include_tasks: qe_test_requires.yml
 
