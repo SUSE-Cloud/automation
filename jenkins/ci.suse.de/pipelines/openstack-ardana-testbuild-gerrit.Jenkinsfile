@@ -22,6 +22,8 @@ pipeline {
       steps {
         cleanWs()
         script {
+          // Set this variable to be used by upstream builds
+          env.blue_ocean_buildurl = env.RUN_DISPLAY_URL
           if (gerrit_change_ids == '') {
             error("Empty 'gerrit_change_ids' parameter value.")
           }

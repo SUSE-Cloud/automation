@@ -25,6 +25,8 @@ pipeline {
     stage('Setup workspace') {
       steps {
         script {
+          // Set this variable to be used by upstream builds
+          env.blue_ocean_buildurl = env.RUN_DISPLAY_URL
           env.cloud_type = "virtual"
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
@@ -77,18 +79,23 @@ pipeline {
           }
           steps {
             script {
-              def slaveJob = build job: 'openstack-ardana-pcloud', parameters: [
-                string(name: 'ardana_env', value: "$ardana_env"),
-                string(name: 'scenario_name', value: "$scenario_name"),
-                string(name: 'clm_model', value: "$clm_model"),
-                string(name: 'controllers', value: "$controllers"),
-                string(name: 'sles_computes', value: "$sles_computes"),
-                string(name: 'rhel_computes', value: "$rhel_computes"),
-                string(name: 'rc_notify', value: "$rc_notify"),
-                string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                string(name: 'reuse_node', value: "${NODE_NAME}")
-              ], propagate: true, wait: true
+              def slaveJob = null
+              try {
+                slaveJob = build job: 'openstack-ardana-pcloud', parameters: [
+                  string(name: 'ardana_env', value: "$ardana_env"),
+                  string(name: 'scenario_name', value: "$scenario_name"),
+                  string(name: 'clm_model', value: "$clm_model"),
+                  string(name: 'controllers', value: "$controllers"),
+                  string(name: 'sles_computes', value: "$sles_computes"),
+                  string(name: 'rhel_computes', value: "$rhel_computes"),
+                  string(name: 'rc_notify', value: "$rc_notify"),
+                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                  string(name: 'reuse_node', value: "${NODE_NAME}")
+                ], propagate: true, wait: true
+              } finally {
+                echo slaveJob.buildVariables.blue_ocean_buildurl
+              }
             }
           }
         }
@@ -99,21 +106,26 @@ pipeline {
           }
           steps {
             script {
-              def slaveJob = build job: 'openstack-ardana-vcloud', parameters: [
-                string(name: 'ardana_env', value: "$ardana_env"),
-                string(name: 'git_input_model_branch', value: "$git_input_model_branch"),
-                string(name: 'git_input_model_path', value: "$git_input_model_path"),
-                string(name: 'model', value: "$model"),
-                string(name: 'scenario_name', value: "$scenario_name"),
-                string(name: 'clm_model', value: "$clm_model"),
-                string(name: 'controllers', value: "$controllers"),
-                string(name: 'sles_computes', value: "$sles_computes"),
-                string(name: 'rhel_computes', value: "$rhel_computes"),
-                string(name: 'rc_notify', value: "$rc_notify"),
-                string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                string(name: 'reuse_node', value: "${NODE_NAME}")
-              ], propagate: true, wait: true
+              def slaveJob = null
+              try {
+                slaveJob = build job: 'openstack-ardana-vcloud', parameters: [
+                  string(name: 'ardana_env', value: "$ardana_env"),
+                  string(name: 'git_input_model_branch', value: "$git_input_model_branch"),
+                  string(name: 'git_input_model_path', value: "$git_input_model_path"),
+                  string(name: 'model', value: "$model"),
+                  string(name: 'scenario_name', value: "$scenario_name"),
+                  string(name: 'clm_model', value: "$clm_model"),
+                  string(name: 'controllers', value: "$controllers"),
+                  string(name: 'sles_computes', value: "$sles_computes"),
+                  string(name: 'rhel_computes', value: "$rhel_computes"),
+                  string(name: 'rc_notify', value: "$rc_notify"),
+                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                  string(name: 'reuse_node', value: "${NODE_NAME}")
+                ], propagate: true, wait: true
+              } finally {
+                echo slaveJob.buildVariables.blue_ocean_buildurl
+              }
             }
           }
         }
@@ -124,17 +136,22 @@ pipeline {
           }
           steps {
             script {
-              def slaveJob = build job: 'openstack-ardana-testbuild-gerrit', parameters: [
-                string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
-                string(name: 'develproject', value: "$develproject"),
-                string(name: 'homeproject', value: "$homeproject"),
-                string(name: 'repository', value: "$repository"),
-                string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                string(name: 'git_automation_branch', value: "$git_automation_branch")
-              ], propagate: true, wait: true
+              def slaveJob = null
+              try {
+                slaveJob = build job: 'openstack-ardana-testbuild-gerrit', parameters: [
+                  string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
+                  string(name: 'develproject', value: "$develproject"),
+                  string(name: 'homeproject', value: "$homeproject"),
+                  string(name: 'repository', value: "$repository"),
+                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                  string(name: 'git_automation_branch', value: "$git_automation_branch")
+                ], propagate: true, wait: true
 
-              // Load the environment variables set by the downstream job
-              env.test_repository_url = slaveJob.buildVariables.test_repository_url
+                // Load the environment variables set by the downstream job
+                env.test_repository_url = slaveJob.buildVariables.test_repository_url
+              } finally {
+                echo slaveJob.buildVariables.blue_ocean_buildurl
+              }
             }
           }
         }
@@ -144,17 +161,22 @@ pipeline {
     stage('Bootstrap CLM') {
       steps {
         script {
-          def slaveJob = build job: 'openstack-ardana-bootstrap-clm', parameters: [
-            string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'cloudsource', value: "$cloudsource"),
-            string(name: 'cloud_maint_updates', value: "$cloud_maint_updates"),
-            string(name: 'sles_maint_updates', value: "$sles_maint_updates"),
-            string(name: 'extra_repos', value: "${env.test_repository_url ?: extra_repos}"),
-            string(name: 'rc_notify', value: "$rc_notify"),
-            string(name: 'git_automation_repo', value: "$git_automation_repo"),
-            string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'reuse_node', value: "${NODE_NAME}")
-          ], propagate: true, wait: true
+          def slaveJob = null
+          try {
+            slaveJob = build job: 'openstack-ardana-bootstrap-clm', parameters: [
+              string(name: 'ardana_env', value: "$ardana_env"),
+              string(name: 'cloudsource', value: "$cloudsource"),
+              string(name: 'cloud_maint_updates', value: "$cloud_maint_updates"),
+              string(name: 'sles_maint_updates', value: "$sles_maint_updates"),
+              string(name: 'extra_repos', value: "${env.test_repository_url ?: extra_repos}"),
+              string(name: 'rc_notify', value: "$rc_notify"),
+              string(name: 'git_automation_repo', value: "$git_automation_repo"),
+              string(name: 'git_automation_branch', value: "$git_automation_branch"),
+              string(name: 'reuse_node', value: "${NODE_NAME}")
+            ], propagate: true, wait: true
+          } finally {
+            echo slaveJob.buildVariables.blue_ocean_buildurl
+          }
         }
       }
     }
@@ -209,14 +231,19 @@ pipeline {
           }
           steps {
             script {
-              def slaveJob = build job: 'openstack-ardana-tempest', parameters: [
-                string(name: 'ardana_env', value: "$ardana_env"),
-                string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
-                string(name: 'rc_notify', value: "$rc_notify"),
-                string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                string(name: 'reuse_node', value: "${NODE_NAME}")
-              ], propagate: true, wait: true
+              def slaveJob = null
+              try {
+                slaveJob = build job: 'openstack-ardana-tempest', parameters: [
+                  string(name: 'ardana_env', value: "$ardana_env"),
+                  string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
+                  string(name: 'rc_notify', value: "$rc_notify"),
+                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                  string(name: 'reuse_node', value: "${NODE_NAME}")
+                ], propagate: true, wait: true
+              } finally {
+                echo slaveJob.buildVariables.blue_ocean_buildurl
+              }
             }
           }
         }
@@ -229,14 +256,19 @@ pipeline {
       }
       steps {
         script {
-          def slaveJob = build job: 'openstack-ardana-qa-tests', parameters: [
-            string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'test_list', value: "$qa_test_list"),
-            string(name: 'rc_notify', value: "$rc_notify"),
-            string(name: 'git_automation_repo', value: "$git_automation_repo"),
-            string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'reuse_node', value: "${NODE_NAME}")
-          ], propagate: true, wait: true
+          def slaveJob = null
+          try {
+            slaveJob = build job: 'openstack-ardana-qa-tests', parameters: [
+              string(name: 'ardana_env', value: "$ardana_env"),
+              string(name: 'test_list', value: "$qa_test_list"),
+              string(name: 'rc_notify', value: "$rc_notify"),
+              string(name: 'git_automation_repo', value: "$git_automation_repo"),
+              string(name: 'git_automation_branch', value: "$git_automation_branch"),
+              string(name: 'reuse_node', value: "${NODE_NAME}")
+            ], propagate: true, wait: true
+          } finally {
+            echo slaveJob.buildVariables.blue_ocean_buildurl
+          }
         }
       }
     }
