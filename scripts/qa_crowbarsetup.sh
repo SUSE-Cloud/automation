@@ -3689,11 +3689,12 @@ function oncontroller_manila_generic_driver_setup()
         oscclient_ver=`rpm -q --queryformat '%{VERSION}' python-openstackclient`
         if [ ${oscclient_ver:0:1} -ge 3 ]; then
             # >= Newton
-            manila_tenant_vm_ip=`openstack ip floating create floating -f value -c floating_ip_address`
+            manila_tenant_vm_ip=`openstack floating ip create floating -f value -c floating_ip_address`
+            openstack server add floating ip manila-service $manila_tenant_vm_ip
         else
             manila_tenant_vm_ip=`openstack ip floating create floating -f value -c ip`
+            openstack ip floating add $manila_tenant_vm_ip manila-service
         fi
-        openstack ip floating add $manila_tenant_vm_ip manila-service
 
         [ $? != 0 ] && complain 44 "adding a floating ip to the manila service VM failed"
     fi
