@@ -4509,6 +4509,10 @@ function onadmin_ping_running_instances
 
 function onadmin_testpostupgrade
 {
+    if ! grep non_disruptive /var/lib/crowbar/upgrade/*-progress.yml ; then
+        complain 11 "The testpostupgrade step is only valid for non-disruptive upgrade mode!"
+    fi
+
     get_novacontroller
     check_novacontroller
 
