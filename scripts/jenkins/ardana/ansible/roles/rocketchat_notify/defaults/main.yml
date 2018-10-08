@@ -45,7 +45,6 @@ tempest_run_filter: "smoke"
 os_health_server: "10.86.0.167"
 os_health_url: "http://{{ os_health_server }}/#/job/{{ os_health_build_name }}"
 os_health_url_msg: "[{{ os_health_url }}]({{ os_health_url }})"
-os_health_build_name: "{{ lookup('env', 'BUILD_DISPLAY_NAME') | default('NA', true) | replace(': ', '-') | replace('#', '') }}"
 
 ansible_log_url: "{{ lookup('env', 'BUILD_URL') }}artifact/.artifacts/ansible.log"
 ansible_log_url_msg: "[{{ ansible_log_url }}]({{ ansible_log_url }})"
