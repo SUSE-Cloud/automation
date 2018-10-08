@@ -597,6 +597,7 @@ function lonelynode_nfs_server
 function prepareinstcrowbar
 {
     echo "connecting to crowbar admin server at $adminip"
+    ! [ -e crowbar.patch ] || scp crowbar.patch root@$adminip:
     onadmin prepareinstallcrowbar
     return $?
 }
