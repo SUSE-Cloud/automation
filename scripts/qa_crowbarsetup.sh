@@ -4107,8 +4107,8 @@ function oncontroller_testsetup
     fi
 
     # check that no port is in binding_failed state
-    for p in $(neutron port-list -f csv -c id --quote none | grep -v id); do
-        if neutron port-show $p -f value | grep -qx binding_failed; then
+    for p in $(openstack port list -f csv -c ID --quote none | grep -v ID); do
+        if openstack port show $p -f value | grep -qx binding_failed; then
             echo "binding for port $p failed.."
             portresult=1
         fi
