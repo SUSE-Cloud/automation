@@ -21,7 +21,7 @@ virt_artifacts:
     sles_distro_id: sles12sp3-x86_64
     rhel_distro_id: rhel73-x86_64
     sles_image: cleanvm-jeos-SLE12SP3
-    rhel_image: centos73
+    rhel_image: centos73-ardana
     clm_flavor: cloud-ardana-job-compute
     controller_flavor: cloud-ardana-job-controller
     compute_flavor: cloud-ardana-job-compute
@@ -30,7 +30,7 @@ virt_artifacts:
     sles_distro_id: sles12sp4-x86_64
     rhel_distro_id: rhel73-x86_64
     sles_image: cleanvm-jeos-SLE12SP4
-    rhel_image: centos73
+    rhel_image: centos73-ardana
     clm_flavor: cloud-ardana-job-compute
     controller_flavor: cloud-ardana-job-controller
     compute_flavor: cloud-ardana-job-compute

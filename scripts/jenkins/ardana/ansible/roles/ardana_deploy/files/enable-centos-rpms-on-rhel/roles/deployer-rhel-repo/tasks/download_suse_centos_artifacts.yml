@@ -48,7 +48,10 @@
   when: _centos_venv_rpms_install_result | changed
 
 - name: deployer-rhel-repo | download_suse_centos_artifacts | Download rpms on deployer
-  command: zypper download {{ centos_repository_name }}:{{ item }}
+  command: timeout 2m zypper download {{ centos_repository_name }}:{{ item }}
+  retries: 10
+  until: _centos_repo_rpms_download_result.rc == 0
+  delay: 2
   with_items: "{{ rhel_repo_rpms_list }}"
   register: _centos_repo_rpms_download_result
 
@@ -90,4 +93,3 @@
     dest: "{{ centos_all_rpms_location }}/"
   with_fileglob:
     - "{{ centos_rpms_download_location }}/*.rpm"
-

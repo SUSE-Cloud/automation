@@ -41,7 +41,7 @@ sles_images:
   cloud8: cleanvm-jeos-SLE12SP3
   cloud9: cleanvm-jeos-SLE12SP4
 sles_image: "{{ sles_images[cloud_release] }}"
-rhel_image: centos73
+rhel_image: centos73-ardana
 disk_size: 30
 
 images:
@@ -66,4 +66,3 @@ disks:
   CONTROLLER-DISKS:
     default: 10 # swift-object (vdc-vdf)
     vdb: 20 # cinder-volume
-

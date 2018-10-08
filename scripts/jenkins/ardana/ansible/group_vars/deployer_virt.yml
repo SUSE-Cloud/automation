@@ -1,0 +1,6 @@
+---
+
+cobbler_requires:
+  - name: "rhel7.iso"
+    url: "http://10.84.144.252/compute_iso/centos73.iso"
+    download_when: "{{ rhel_enabled }}"

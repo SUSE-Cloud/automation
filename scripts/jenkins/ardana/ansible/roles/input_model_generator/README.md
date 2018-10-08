@@ -1,12 +1,12 @@
 # Ardana Input Model Generator
 
 Being able to generate an input model on the fly by manipulating a reduced set of input parameters is a more flexible
-alternative than having to choose from a set of fully defined input models, such as those stored in the 
+alternative than having to choose from a set of fully defined input models, such as those stored in the
 `ardana-input-model` repository. The input model generator is able to generate a large variety of valid input models by
 combining a set of predefined, parameterized template modules, each of them controlling how a different part of the input model
 is configured (services, networks, disks, interfaces).
 
-Main advantages over the traditional method of storing individual input model definitions for development, QA, CI etc. 
+Main advantages over the traditional method of storing individual input model definitions for development, QA, CI etc.
 purposes:
 
 * hardware separation - this is one of the first requirements that led to the development of this mechanism. It enables
@@ -14,8 +14,8 @@ the service aspects of an input model (service components, clusters, resources) 
 from the available hardware infrastructure (servers, networks, interface attachments, disks)
 * eliminates duplicated information - most of the input models stored in the `ardana-input-model` repository are very
 similar to each other and can be easily templated. Moreover, instead of having to add yet another slightly modified copy
-of one of the existing input models whenever a new input model is needed which has a slightly different configuration 
-(e.g. like a different number of compute nodes), the generator's approach is to just use a different parameter value 
+of one of the existing input models whenever a new input model is needed which has a slightly different configuration
+(e.g. like a different number of compute nodes), the generator's approach is to just use a different parameter value
 for an existing template.
 * better usability - it's simpler to change a set of template parameters, which are guaranteed to generate a valid input model
 than to define a new input model from scratch
@@ -49,10 +49,10 @@ a few [global parameters](#global-parameters) that can be used to further custom
 
 This section describes the template categories that the input model generator combines to create an input model:
 
-### Scenario templates 
+### Scenario templates
 
-The scenario template is a top-level template which defines the general input model configuration parameters as well as 
-references all the other template modules required to define a complete input model, along with their input parameter values: 
+The scenario template is a top-level template which defines the general input model configuration parameters as well as
+references all the other template modules required to define a complete input model, along with their input parameter values:
 
 * a _service template_
 * a _network template_
@@ -98,7 +98,7 @@ defined at the beginning of the scenario template can be used to fine-tune vario
 as the number of controller and compute nodes, by overriding then with group variables, host variables, or by passing
 their values directly to the `generate-input-model.yml` playbook.
 
-The input model generator uses the global information in the service template to generate the `cloud` input model 
+The input model generator uses the global information in the service template to generate the `cloud` input model
 element configuration and the `cloudConfig.yml` file:
 
 
@@ -122,10 +122,10 @@ the _service group_ being a more general term that covers both clusters and reso
 Defined service templates are located under `roles/ardana_input_model_generator/vars/templates/service`.
 
 The service template uses a set of macros representing groups of service components. These macros are defined in
-`roles/input_model_generator/defaults/main.yml`. The list of available macros can be extended by adding new macros 
+`roles/input_model_generator/defaults/main.yml`. The list of available macros can be extended by adding new macros
 to that file, if needed.
 
-The structure of the service template is a compacted version of that used for the `control-planes` element in the input model. 
+The structure of the service template is a compacted version of that used for the `control-planes` element in the input model.
 The attributes that can be configured for a service group are a mixture of those that can be configured for the `clusters`,
 `resources` and `servers` input model configuration elements.
 
@@ -165,7 +165,7 @@ service_groups:
     type: resource
     prefix: rhel-comp
     distro_id: rhel73-x86_64
-    heat_image_id: centos73
+    heat_image_id: centos73-ardana
     heat_flavor_id: cloud-ardana-job-compute
     member_count: '{{ rhel_computes|default(1) }}'
     min_count: 0
@@ -187,14 +187,14 @@ to be used for each server is also generated from the information present in the
 
 ### Network templates
 
-The network template defines the networks (including neutron networks) and network groups together in a single, compact format, 
-based on the assumption that there is a one-to-one relationship between a network and a network group (see Limitations). 
+The network template defines the networks (including neutron networks) and network groups together in a single, compact format,
+based on the assumption that there is a one-to-one relationship between a network and a network group (see Limitations).
 Network templates are located under `roles/ardana_input_model_generator/vars/templates/network`
 
 The network template uses a set of predefined macros as component endpoint values, encoding groups of component endpoints,
 load balancers, neutron network tags or networks playing a special role in the input model:
 
-* _CLM_: represents the network and network group that will be used to provision the OS onto the nodes and to perform the 
+* _CLM_: represents the network and network group that will be used to provision the OS onto the nodes and to perform the
 inital OS configuration. This macro expands into the lifecycle manager component endpoints. This network will also be
 used to generate the IP addresses configured for the servers input model elements.
 * _MANAGEMENT_: identifies the network and network group that will be used to for management traffic within the cloud. It is used
@@ -205,7 +205,7 @@ Specifying this macro adds the external load-balancer to the network group.
 Specifying this macro adds the internal load-balancer to the network group.
 * _SWIFT_: represents the network and network group that will be used for Swift back-end traffic between proxy, container,
 account and object servers. This macro expands into the swift component endpoints.
-* _NEUTRON-EXT_: configures the network group as a Neutron flat external network that will be used to provide external access 
+* _NEUTRON-EXT_: configures the network group as a Neutron flat external network that will be used to provide external access
 to VMs (via floating IP Addresses). When this macro is specified as a component endpoint, the generated network group
 will be tagged with `neutron.l3_agent.external_network_bridge` and a `neutron_external_networks` entry is generated and
 added to the Neutron configuration data corresponding to this network.
@@ -320,5 +320,4 @@ has a dedicated device associated with it
 the ansible template files and cannot be varied via input parameters
 * disk models and interface models differentiated over servers tied to the same server role. Currently, all servers
 that are associated with the same server role are modeled to have the same interface attachment and disk layout
-* two or more networks referencing the same network group, associated with different availability zones 
-
+* two or more networks referencing the same network group, associated with different availability zones

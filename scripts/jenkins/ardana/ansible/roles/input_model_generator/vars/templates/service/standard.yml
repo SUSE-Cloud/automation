@@ -56,7 +56,7 @@ service_groups:
     type: resource
     prefix: rhel-comp
     distro_id: rhel73-x86_64
-    heat_image_id: centos73
+    heat_image_id: centos73-ardana
     heat_flavor_id: cloud-ardana-job-compute
     member_count: '{{ rhel_computes|default(1) }}'
     min_count: 0

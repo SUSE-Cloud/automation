@@ -88,7 +88,7 @@ rhel_repo_rpms_list:
   - python-keystoneauth1
   - python-keystoneclient
   - python-monotonic
-  - python-msgpack-  - python
+  - python-msgpack-python
   - python-netaddr
   - python-netifaces
   - python-oauthlib
@@ -110,8 +110,9 @@ rhel_repo_rpms_list:
   - python-stevedore
   - python-urllib3
   - python-wrapt
-  - python2-cryptography
+  - python-cryptography
   - python2-pyasn1
+  - python-asn1crypto
   - python-msgpack-python
   - python-base
   - python-Beaver
