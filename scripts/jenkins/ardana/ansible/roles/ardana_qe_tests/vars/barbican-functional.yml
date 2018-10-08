@@ -81,12 +81,7 @@ ardana_qe_tests_dir: "{{ ardana_qe_test_work_dir }}"
 ardana_qe_tests_branch: "stable/pike"
 ardana_qe_test_get_failed_cmd: "grep -B1 -- '------' {{ ardana_qe_test_log }} |
   awk -F '\n' 'ln ~ /^$/ { ln = \"matched\"; print $1 } $1 ~ /^--$/ { ln = \"\" }'"
-ardana_qe_test_get_results_cmds:
-  passed: "awk '/- Passed:/ { print $3 }' {{ ardana_qe_test_log }} "
-  failed: "awk '/- Failed:/ { print $3 }' {{ ardana_qe_test_log }}"
-  ran: "awk '/^Ran:/ { print $2 }' {{ ardana_qe_test_log }}"
-  skipped: "awk '/- Skipped:/ { print $3 }' {{ ardana_qe_test_log }}"
-
+  
 ardana_qe_test_venv_requires:
   - 'os-testr'
 ardana_qe_test_run_filters: "{{ role_path }}/files/run_filters/"

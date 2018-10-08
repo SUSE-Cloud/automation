@@ -45,7 +45,7 @@ Try to use predefined ansible variables whenever possible. Example:
 
 6. Create the file `vars/<test_name>.yml` to define specific variables for the test, this is like its the configuration file.
 
-* The following variables must be defined on it:
+* The following variables should be defined on it:
     * `ardana_qe_test_get_failed_cmd`: a bash command used to get a list of tests that failed from its execution log.
 
         Example for iverify:
@@ -63,16 +63,7 @@ Try to use predefined ansible variables whenever possible. Example:
         ardana_qe_test_get_failed_cmd: "grep -e '^iverify.*\\.\\.\\..*FAIL' {{ ardana_qe_test_log }} || echo 'None'"
         ```
 
-    * `ardana_qe_test_get_results_cmds`: a list of bash commands to get the number of tests that passed, failed and ran from its execution log.
-
-        Example for iverify:
-
-        ```sh
-        ardana_qe_test_get_results_cmds:
-          passed: "grep -e '^iverify.*\\.\\.\\..*ok' {{ ardana_qe_test_log }} | wc -l"
-          failed: "grep -e '^iverify.*\\.\\.\\..*FAIL' {{ ardana_qe_test_log }} | wc -l"
-          ran: "grep -e '^iverify.*\\.\\.\\..*' {{ ardana_qe_test_log }} | wc -l"
-        ```
+    * `ardana_qe_test_timeout`: define a specific timeout for the test in minutes (defaults to 120).
 
     * If the test requires the creation OpenStack resources you must define `os_resources_requires` variable with the resources needed. Example:
 

@@ -16,5 +16,9 @@
 ---
 
 - name: Run test '{{ test_name }}'
-  command: "{{ ardana_qe_test_script }} {{ ardana_qe_test_script_args | default('') }} \
-    {{ run_filter_file | default('') }}"
+  command: |
+    timeout {{ ardana_qe_test_timeout}}m {{ ardana_qe_test_script }} \
+    {{ ardana_qe_test_script_args | default('') }} \
+    {{ run_filter_file | default('') }}
+  register: test_output
+  changed_when: false

@@ -25,6 +25,7 @@ ardana_qe_tests_branch: "{{ tests_branch | default('master') }}"
 ardana_qe_test_log: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.log"
 ardana_qe_test_subunit: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit"
 ardana_qe_test_script: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.sh"
+ardana_qe_test_timeout: 120
 
 ardana_qe_test_venv: "{{ ardana_qe_base_dir }}/{{ test_name }}/venv"
 ardana_qe_test_venv_requires: []
@@ -58,3 +59,7 @@ os_resource_test_auth:
     password: "secret"
     project: "{{ os_resource_prefix }}-project"
     role: "Member"
+
+subunit2junit_venv: "~/subunit2junit"
+subunit_html_results: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.html"
+subunit_xml_results: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.xml"

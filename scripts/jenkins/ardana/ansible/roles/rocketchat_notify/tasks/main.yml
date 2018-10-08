@@ -38,10 +38,11 @@
     validate_certs: no
     protocol: "{{ rc_protocol }}"
     attachments:
-      - color: "{{ 'danger' if rc_state == 'Failed' else 'good' if rc_state == 'Success' else 'warning' }}"
+      - color: "{{ rc_msg_color }}"
         title: "{{ rc_msg_title }}"
         title_link: "{{ lookup('env', 'BUILD_URL') }}console"
         text:
+        collapsed: "{{ rc_att_colapsed | default(False) }}"
         fields: "{{ rc_msg_fields_started if rc_action == 'started' else rc_msg_fields_finished }}"
   ignore_errors: True
   delegate_to: localhost

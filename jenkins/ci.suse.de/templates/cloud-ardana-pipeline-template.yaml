@@ -149,6 +149,21 @@
             Name of the filter file to use for tempest. Use an empty value to
             skip running tempest.
 
+      - extended-choice:
+          name: qa_test_list
+          type: multi-select
+          visible-items: 10
+          multi-select-delimiter: ','
+          default-value: ''
+          value: >-
+            iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,
+            heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,
+            nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
+            barbican-functional,horizon,horizon_integration-tests,freezer,keystone-soapui,
+            remove_compute_node,add_compute_node,tempest_cleanup
+          description: >-
+            Select QA tests to run. Use an empty value to skip running QA tests.
+
       - string:
           name: extra_repos
           default: ''

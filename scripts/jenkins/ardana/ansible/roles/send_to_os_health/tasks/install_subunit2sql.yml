@@ -15,14 +15,13 @@
 #
 ---
 
-test_results_subunit: "/opt/stack/tempest/logs/testrepository_region1.subunit"
+- include_tasks: os_health_requires.yml
 
-os_health_build_name: "{{ ardana_env }}_tempest_{{ tempest_run_filter }}"
-
-os_health_metadata:
-  - "build_uuid:`uuidgen`"
-  - "project:openstack/tempest/{{ tempest_run_filter }}""
-  - "ardana_env:{{ ardana_env }}"
-  - "build_name:{{ os_health_build_name }}"
-  - "openstack_service:{{ tempest_run_filter }}"
-  - "build_version:{{ cloud_media_build_version.content | b64decode }}"
+- name: Setup subunit2sql
+  pip:
+    name: "{{ item }}"
+    virtualenv: "{{ subunit2sql_venv }}"
+  loop:
+    - "subunit2sql"
+    - "pymysql"
+  become: yes
