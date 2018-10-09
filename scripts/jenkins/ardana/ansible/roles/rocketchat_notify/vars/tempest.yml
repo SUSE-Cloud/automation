@@ -15,11 +15,16 @@
 #
 ---
 
+os_health_build_name: "{{ ardana_env }}_tempest_{{ tempest_run_filter }}"
 tempest_log_url: "{{ lookup('env', 'BUILD_URL') }}artifact/.artifacts/testr_results_region1.log"
 tempest_log_url_msg: "[{{ tempest_log_url }}]({{ tempest_log_url }})"
 
+rc_att_colapsed: True
+
 rc_announcement_started: "Running tempest {{ tempest_run_filter }}"
 rc_announcement_finished: "{{ rc_previous_announcement.content | b64decode if rc_previous_announcement.content is defined else 'NA' }}"
+
+rc_msg_title: "Tempest - {{ tempest_run_filter }}: {{ rc_state }}"
 
 rc_msg_fields_started:
   - title: Started by
