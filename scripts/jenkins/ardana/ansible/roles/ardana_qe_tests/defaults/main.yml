@@ -22,8 +22,8 @@ ardana_qe_tests_git_repo: "http://git.suse.provo.cloud"
 ardana_qe_tests_git_url: "{{ ardana_qe_tests_git_repo }}/ardana/ardana-qa-tests.git"
 
 # cloudsource is not required for QA tests, so we set a 'dummy' cloudsource
-# value based on the SLES SP version
-cloudsource: "{{ (ansible_distribution_release == '3') | ternary('8', '9') }}"
+# value based on the SLES version
+cloudsource: "{{ sles_cloud_version[ansible_distribution_version] }}"
 ardana_qa_tests_branch: "{{ cloud_git_branch[cloud_release] }}"
 
 ardana_qe_test_log: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.log"

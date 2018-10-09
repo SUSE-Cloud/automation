@@ -1,0 +1,67 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Import Devel:Cloud:X key on all nodes when cloudsource is staging or devel
+  shell: "ansible {{ item }} resources"
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  environment:
+    ANSIBLE_HOST_KEY_CHECKING: False
+    ANSIBLE_SSH_ARGS: '-o UserKnownHostsFile=/dev/null'
+  loop:
+    - '-m copy -a "src=`find /srv/www/*/x86_64/repos/*Cloud* -name content.key` dest=/tmp/"'
+    - '-b -a "rpm --import /tmp/content.key"'
+  when: "'staging' in cloudsource or 'devel' in cloudsource"
+
+# This is needed to trick ardana repo check that the repository is a Cloud-Updates
+# repo.
+- name: Add cloud update tag to repomd when cloudsource is not a update repo
+  lineinfile:
+    path: "/srv/www/suse-{{ ansible_distribution_version }}/x86_64/repos/{{ cloud_update_repo_name }}/suse/repodata/repomd.xml"
+    insertafter: "<tags>"
+    line: "    <repo>obsrepository://build.suse.de/SUSE:Updates:{{ cloud_brand | replace('SUSE-', '') }}:{{ cloud_release[-1] }}:x86_64/update</repo>"
+  when: "'+up' not in cloudsource"
+  become: yes
+
+- name: Remove and add back Cloud update repo on all nodes to prevent repomd error
+  command: |
+    ansible -b -m zypper_repository -a "name={{ cloud_update_repo_name }}
+      repo={{ deployer_repo_base_url }}/{{ cloud_update_repo_name }} state={{ item }}"
+      'resources:!*rhel*:!ARD-SVC--first-member'
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  loop:
+    - "absent"
+    - "present"
+
+# Updating to another cloudsource may change the package vendor (SUSE LLC, obs)
+# disabling vendor stickiness allows the ardana update playbook to include those
+# packages on the update
+- name: Disable zypper vendor stickiness on all nodes
+  command: |
+    ansible -b -m lineinfile -a "dest=/etc/zypp/zypp.conf
+      regexp='^solver.allowVendorChange' line='solver.allowVendorChange = true'"
+      'resources:!*rhel*'
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+
+- name: Update motd with cloudsource update
+  lineinfile:
+    path: /etc/motd
+    line: "System updated to {{ cloudsource }} on {{ ansible_date_time.date }}"
+    insertafter: "^Media"
+  become: yes

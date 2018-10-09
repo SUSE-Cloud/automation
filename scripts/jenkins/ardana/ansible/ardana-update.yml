@@ -17,17 +17,11 @@
 ---
 
 - name: Update ardana
-  hosts: ardana-{{ qe_env }}
+  hosts: "{{ ardana_env }}"
   remote_user: ardana
   gather_facts: True
   vars:
     task: "update"
-
-  vars_prompt:
-    - name: "qe_env"
-      prompt: "Target envinroment to deploy"
-      private: no
-      when: qe_env not defined
 
   pre_tasks:
     - include_role:
@@ -39,6 +33,11 @@
 
   tasks:
     - block:
+        - include_role:
+            name: setup_zypper_repos
+          vars:
+            ansible_become: yes
+
         - include_role:
             name: ardana_update
       rescue:

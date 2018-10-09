@@ -80,7 +80,9 @@
   when: "'staging' in cloudsource or 'devel' in cloudsource"
 
 - include_tasks: setup_mu_repos.yml
-  when: cloud_maint_updates_list | length or sles_maint_updates_list | length
+  when:
+    - not update_after_deploy
+    - cloud_maint_updates_list | length or sles_maint_updates_list | length
 
 - name: Run playbooks from "{{ ardana_scratch_path }}"
   command: "ansible-playbook {{ item.play }}"

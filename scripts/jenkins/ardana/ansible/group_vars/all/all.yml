@@ -23,6 +23,7 @@ cloud_git_branch:
 
 clouddata_server: "provo-clouddata.cloud.suse.de"
 rhel_enabled: "{{ rhel_computes is defined and rhel_computes | int > 0 }}"
+ses_enabled: False
 
 workspace_path: "{{ lookup('env', 'WORKSPACE') | default('.', true) }}"
 input_model_path: "{{ workspace_path }}/input_model"
@@ -34,6 +35,18 @@ jjb_file: "../../../../jenkins/ci.suse.de/{{ lookup('env', 'JOB_NAME') }}.yaml"
 
 suse_release: "suse-{{ ansible_distribution_version }}"
 local_repos_base_dir: "/srv/www/{{ suse_release }}/{{ ansible_architecture }}/repos"
+
+sles_cloud_version:
+  "12.3": 8
+  "12.4": 9
+
+update_after_deploy: False
+maintenance_updates_path:
+  Cloud: "SUSE_SLE-{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}_Update_Products_Cloud{{ sles_cloud_version[ansible_distribution_version] }}_Update"
+  SLES: "SUSE_Updates_SLE-SERVER_{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}_x86_64"
+
+cloud_maint_updates_list: "{{ cloud_maint_updates.split(',') if cloud_maint_updates is defined and cloud_maint_updates | length else [] }}"
+sles_maint_updates_list: "{{ sles_maint_updates.split(',') if sles_maint_updates is defined and sles_maint_updates | length else [] }}"
 
 ntp_servers:
   - ntp.suse.de

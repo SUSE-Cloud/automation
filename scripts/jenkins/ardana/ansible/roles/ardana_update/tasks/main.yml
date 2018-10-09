@@ -15,30 +15,22 @@
 #
 ---
 
-- include_tasks: setup_update_repos.yml
+- include_tasks: add_mu_repos.yml
+  when: cloud_maint_updates_list | length or sles_maint_updates_list | length
 
-- include_tasks: update_node.yml
+- include_tasks: pre_cloudsource_update.yml
+  when:
+    - cloudsource is defined
+    - cloudsource != ''
 
-- name: Get list of remaining nodes to update
-  shell: |
-    for line in $(awk '/resources/' RS= hosts/verb_hosts); do
-      if [[ `hostname` != *$line* ]]; then
-        echo $line
-      fi
-    done
-  args:
-    chdir: "{{ ardana_scratch_path }}"
-  register: ardana_nodes
+- include_tasks: update_nodes.yml
 
-- include_tasks: update_node.yml
-  vars:
-    target_node: "{{ outer_item }}"
-  with_items: "{{ ardana_nodes.stdout_lines }}"
-  loop_control:
-    loop_var: "outer_item"
+- include_tasks: reboot_nodes.yml
+  when: pending_system_reboot
 
 - name: Check ardana services after update
-  shell: |
+  command: |
     ansible-playbook -i hosts/verb_hosts ardana-status.yml
   args:
     chdir: "{{ ardana_scratch_path }}"
+  changed_when: False

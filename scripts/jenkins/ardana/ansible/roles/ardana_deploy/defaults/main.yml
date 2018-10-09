@@ -29,7 +29,3 @@ ardana_scratch_playbooks:
     when: "{{ is_physical_deploy }}"
   - play: "site.yml"
   - play: "ardana-cloud-configure.yml"
-
-ses_enabled: False
-cloud_maint_updates_list: "{{ cloud_maint_updates.split(',') if cloud_maint_updates is defined and cloud_maint_updates | length else [] }}"
-sles_maint_updates_list: "{{ sles_maint_updates.split(',') if sles_maint_updates is defined and sles_maint_updates | length else [] }}"

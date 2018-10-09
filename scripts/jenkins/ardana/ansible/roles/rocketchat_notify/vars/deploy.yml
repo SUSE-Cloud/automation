@@ -106,4 +106,4 @@ _field_nodes:
       RHEL-computes: {{ rhel_computes }}
     short: False
 
-_msg_field_clm_nodes: "{{ (scenario_name == '') | ternary([], _field_nodes + _field_clm) }}"
+_msg_field_clm_nodes: "{{ (scenario_name is defined) | ternary(_field_nodes + _field_clm, []) }}"
