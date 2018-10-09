@@ -41,20 +41,25 @@ pipeline {
       }
       steps {
         script {
-          def slaveJob = build job: 'openstack-ardana', parameters: [
-            string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'reserve_env', value: "$reserve_env"),
-            string(name: 'cleanup', value: "on success"),
-            string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
-            string(name: 'git_automation_repo', value: "$git_automation_repo"),
-            string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'git_input_model_branch', value: "$GERRIT_BRANCH"),
-            string(name: 'model', value: "$model"),
-            string(name: 'cloudsource', value: "$cloudsource"),
-            string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
-            string(name: 'develproject', value: "$develproject"),
-            string(name: 'repository', value: "$repository")
-          ], propagate: true, wait: true
+          def slaveJob = null
+          try {
+            slaveJob = build job: 'openstack-ardana', parameters: [
+              string(name: 'ardana_env', value: "$ardana_env"),
+              string(name: 'reserve_env', value: "$reserve_env"),
+              string(name: 'cleanup', value: "on success"),
+              string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
+              string(name: 'git_automation_repo', value: "$git_automation_repo"),
+              string(name: 'git_automation_branch', value: "$git_automation_branch"),
+              string(name: 'git_input_model_branch', value: "$GERRIT_BRANCH"),
+              string(name: 'model', value: "$model"),
+              string(name: 'cloudsource', value: "$cloudsource"),
+              string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
+              string(name: 'develproject', value: "$develproject"),
+              string(name: 'repository', value: "$repository")
+            ], propagate: true, wait: true
+          } finally {
+            echo slaveJob.buildVariables.blue_ocean_buildurl
+          }
         }
       }
     }

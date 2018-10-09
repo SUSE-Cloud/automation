@@ -24,6 +24,8 @@ pipeline {
     stage('Setup workspace') {
       steps {
         script {
+          // Set this variable to be used by upstream builds
+          env.blue_ocean_buildurl = env.RUN_DISPLAY_URL
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
@@ -94,13 +96,18 @@ pipeline {
     stage('Create heat stack') {
       steps {
         script {
-          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
-            string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'heat_action', value: "create"),
-            string(name: 'git_automation_repo', value: "$git_automation_repo"),
-            string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'reuse_node', value: "${NODE_NAME}")
-          ], propagate: true, wait: true
+          def slaveJob = null
+          try {
+            slaveJob = build job: 'openstack-ardana-heat', parameters: [
+              string(name: 'ardana_env', value: "$ardana_env"),
+              string(name: 'heat_action', value: "create"),
+              string(name: 'git_automation_repo', value: "$git_automation_repo"),
+              string(name: 'git_automation_branch', value: "$git_automation_branch"),
+              string(name: 'reuse_node', value: "${NODE_NAME}")
+            ], propagate: true, wait: true
+          } finally {
+            echo slaveJob.buildVariables.blue_ocean_buildurl
+          }
         }
       }
     }

@@ -25,6 +25,8 @@ pipeline {
     stage('Setup workspace') {
       steps {
         script {
+          // Set this variable to be used by upstream builds
+          env.blue_ocean_buildurl = env.RUN_DISPLAY_URL
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
