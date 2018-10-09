@@ -38,8 +38,14 @@ rc_msg_fields_started:
     short: True
 
 _rc_msg_fields_finished:
-  - title: Started by
+  - title: Built by
     value: "{{ jenkins_build_url_msg }}"
+    short: False
+  - title: Failed tests
+    value: "{{ ardana_qe_failed_tests.stdout if ardana_qe_failed_tests is defined else 'Timeout' if test_output is defined and test_output.rc == 124 else 'Not available' }}"
+    short: False
+  - title: Log
+    value: "{{ ardana_qe_test_log_url_msg if lookup('env', 'BUILD_URL') else 'Not available' }}"
     short: False
   - title: Deployer
     value: "{{ hostvars[ardana_env].ansible_host }}"
@@ -56,12 +62,6 @@ _rc_msg_fields_finished:
   - title: Skipped
     value: "{{ ardana_qe_test_results.skipped if ardana_qe_test_results is defined else 'Not available' }}"
     short: True
-  - title: Failed tests
-    value: "{{ ardana_qe_failed_tests.stdout if ardana_qe_failed_tests is defined else 'Timeout' if test_output is defined and test_output.rc == 124 else 'Not available' }}"
-    short: False
-  - title: Log
-    value: "{{ ardana_qe_test_log_url_msg if lookup('env', 'BUILD_URL') else 'Not available' }}"
-    short: False
 
 _rc_os_health_msg:
   - title: OpenStack-Health
