@@ -17,7 +17,7 @@ DEVSTACK_DIR="/opt/stack/devstack"
 
 # This allows testing with an unmerged change included. An
 # empty variable disables that behavior
-PENDING_REVIEW="576798"
+PENDING_REVIEW="605983"
 
 set -ex
 
