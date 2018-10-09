@@ -3689,11 +3689,12 @@ function oncontroller_manila_generic_driver_setup()
         oscclient_ver=`rpm -q --queryformat '%{VERSION}' python-openstackclient`
         if [ ${oscclient_ver:0:1} -ge 3 ]; then
             # >= Newton
-            manila_tenant_vm_ip=`openstack ip floating create floating -f value -c floating_ip_address`
+            manila_tenant_vm_ip=`openstack floating ip create floating -f value -c floating_ip_address`
+            openstack server add floating ip manila-service $manila_tenant_vm_ip
         else
             manila_tenant_vm_ip=`openstack ip floating create floating -f value -c ip`
+            openstack ip floating add $manila_tenant_vm_ip manila-service
         fi
-        openstack ip floating add $manila_tenant_vm_ip manila-service
 
         [ $? != 0 ] && complain 44 "adding a floating ip to the manila service VM failed"
     fi
@@ -4106,8 +4107,8 @@ function oncontroller_testsetup
     fi
 
     # check that no port is in binding_failed state
-    for p in $(neutron port-list -f csv -c id --quote none | grep -v id); do
-        if neutron port-show $p -f value | grep -qx binding_failed; then
+    for p in $(openstack port list -f csv -c ID --quote none | grep -v ID); do
+        if openstack port show $p -f value | grep -qx binding_failed; then
             echo "binding for port $p failed.."
             portresult=1
         fi
