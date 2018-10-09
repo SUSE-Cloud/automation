@@ -39,13 +39,13 @@ class ArdanaModeOctalOrSymbolicRule(AnsibleLintRule):
             return re.match('^0[0-7]+', string)
 
         def is_valid_octal_mode(string):
-             if len(string) == 4:
-                 return re.match('^0[0-7]?[0-7]?[0-7]?$', string)
-             else:
-                 # If this is not a 4-digit octal, we are assuming user
-                 # is specifying the sticky bit.
-                 # The second number must be 1 for sticky bit
-                 return re.match('^01[0-7]?[0-7]?[0-7]?$', string)
+            if len(string) == 4:
+                return re.match('^0[0-7]?[0-7]?[0-7]?$', string)
+            else:
+                # If this is not a 4-digit octal, we are assuming user
+                # is specifying the sticky bit.
+                # The second number must be 1 for sticky bit
+                return re.match('^01[0-7]?[0-7]?[0-7]?$', string)
 
         def is_valid_symbolic_mode(string):
             parts = string.split(',')
@@ -62,7 +62,6 @@ class ArdanaModeOctalOrSymbolicRule(AnsibleLintRule):
             return not is_valid_octal_mode(mode)
         else:
             return not is_valid_symbolic_mode(mode)
-
 
     def matchtask(self, file, task):
         if sys.modules['ardana_noqa'].skip_match(file):
