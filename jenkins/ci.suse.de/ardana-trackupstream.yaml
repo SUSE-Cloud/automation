@@ -24,7 +24,6 @@
             - ardana-db
             - ardana-designate
             - ardana-extensions-dcn
-            - ardana-extensions-example
             - ardana-extensions-nsx
             - ardana-freezer
             - ardana-glance

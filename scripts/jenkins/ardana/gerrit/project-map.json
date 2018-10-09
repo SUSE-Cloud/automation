@@ -2,7 +2,6 @@
   "ardana-ansible": "ardana-ansible",
   "ardana-input-model": "ardana-input-model",
   "ardana-extensions-dcn": "ardana-extensions-dcn",
-  "ardana-extensions-example": "ardana-extensions-example",
   "ardana-extensions-nsx": "ardana-extensions-nsx",
   "ardana-extensions-ses": "ardana-ses",
   "ardana-qa-ansible": "ardana-qa-ansible",
