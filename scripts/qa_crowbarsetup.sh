@@ -3907,7 +3907,7 @@ function oncontroller_testsetup
     fi
 
     #test for Glance scrubber service, added after bnc#930739
-    if iscloudver 6plus || [[ $cloudsource =~ (devel|newton)cloud ]]; then
+    if iscloudver 6plus || [[ $cloudsource =~ develcloud ]]; then
         configargs="--config-dir /etc/glance"
         iscloudver 6plus && configargs=""
         su - glance -s /bin/sh -c "/usr/bin/glance-scrubber $configargs" \
