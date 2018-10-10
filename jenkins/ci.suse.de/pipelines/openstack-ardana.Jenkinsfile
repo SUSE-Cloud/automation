@@ -321,9 +321,11 @@ pipeline {
         }
       }
       sh '''
+        cd $SHARED_WORKSPACE
         if [ -n "$github_pr" ] ; then
-          cd $SHARED_WORKSPACE
-          exec automation-git/scripts/ardana/pr-success.sh
+          automation-git/scripts/ardana/pr-success.sh
+        else
+          automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 0
         fi
       '''
     }
@@ -339,9 +341,11 @@ pipeline {
         }
       }
       sh '''
+        cd $SHARED_WORKSPACE
         if [ -n "$github_pr" ] ; then
-          cd $SHARED_WORKSPACE
-          exec automation-git/scripts/ardana/pr-failure.sh
+          automation-git/scripts/ardana/pr-failure.sh
+        else
+          automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 1
         fi
       '''
     }
