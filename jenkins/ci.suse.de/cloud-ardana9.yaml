@@ -2,6 +2,7 @@
     name: cloud-ardana9-gating
     ardana_gating_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
+    model: demo
     version: 9
     label: cloud-trigger
     jobs:
@@ -10,6 +11,7 @@
 - project:
     name: cloud-ardana9-job-std-3cp-x86_64
     ardana_job: '{name}'
+    disabled: true
     ardana_env: cloud-ardana-ci-slot
     model: std-3cp
     triggers:
@@ -20,6 +22,7 @@
 - project:
     name: cloud-ardana9-job-dac-3cp-x86_64
     ardana_job: '{name}'
+    disabled: true
     ardana_env: cloud-ardana-ci-slot
     model: dac-3cp
     triggers:
@@ -30,7 +33,18 @@
 - project:
     name: cloud-ardana9-job-std-min-x86_64
     ardana_job: '{name}'
+    disabled: true
     ardana_env: cloud-ardana-ci-slot
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana9-job-demo-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    model: demo
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -39,6 +53,7 @@
 - project:
     name: cloud-ardana9-job-std-split-x86_64
     ardana_job: '{name}'
+    disabled: true
     ardana_env: cloud-ardana-ci-slot
     model: std-split
     triggers:
@@ -63,5 +78,6 @@
     name: cloud-ardana9-job-gerrit-x86_64
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-gerrit-slot
+    model: demo
     jobs:
         - '{ardana_gerrit_job}'

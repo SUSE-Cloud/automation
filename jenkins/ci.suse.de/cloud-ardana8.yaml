@@ -2,6 +2,7 @@
     name: cloud-ardana8-gating
     ardana_gating_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
+    model: std-min
     version: 8
     label: cloud-trigger
     jobs:
