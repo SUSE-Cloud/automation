@@ -909,7 +909,7 @@ function onadmin_set_source_variables
         ;;
         susecloud9)
             CLOUDISOURL="$susedownload/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/"
-            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*Media1.iso"
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-official"
         ;;
         GM6|GM6+up)
