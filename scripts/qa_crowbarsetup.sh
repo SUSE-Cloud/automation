@@ -3432,14 +3432,17 @@ function oncontroller_run_tempest
         tempestret=${PIPESTATUS[0]}
     fi
 
+    local testdriver=testr
+    [ -f ".stestr.conf" ] && testdriver=stestr
+
     # tempest returns 0 also if no tests were executed - so use "testr last"
     # to verify that some tests were executed
     if [ "$tempestret" -eq 0 ]; then
-        testr last || complain 96 "Tempest run succeeded but something is wrong"
+        $testdriver last || complain 96 "Tempest run succeeded but something is wrong"
         # output the slowest tests from the latest run
-        testr slowest
+        $testdriver slowest
     fi
-    testr last --subunit > tempest.subunit.log
+    $testdriver last --subunit > tempest.subunit.log
 
     oncontroller_tempest_cleanup
     popd
@@ -3457,7 +3460,10 @@ function oncontroller_upload_defcore
     tempest run --whitelist-file defcore.txt
     source /root/.openrc
     wget https://raw.githubusercontent.com/testing-cabal/subunit/master/filters/subunit-2to1
-    testr last --subunit | python subunit-2to1 > tempest.subunit_1.log
+
+    local testdriver=testr
+    [ -f ".stestr.conf" ] && testdriver=stestr
+    $testdriver last --subunit | python subunit-2to1 > tempest.subunit_1.log
     test -d refstack-client || safely git clone https://github.com/openstack/refstack-client
     yes | refstack-client/refstack-client upload-subunit --keystone-endpoint $OS_AUTH_URL --url https://10.86.0.98 --insecure tempest.subunit_1.log
     popd
