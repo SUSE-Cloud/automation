@@ -120,8 +120,8 @@ function h_setup_devstack {
         pushd $DEVSTACK_DIR
         changerev="refs/changes/${PENDING_REVIEW: -2}/${PENDING_REVIEW}"
         # Find latest rev
-        changerev=$(git ls-remote -q --refs origin "$changerev/*" | sort -V \
-            egrep -o "$changerev.*" | tail -n 1)
+        changerev=$(git ls-remote -q --refs origin "$changerev/*" | \
+            egrep -o "$changerev.*" | sort -V | tail -n 1)
         git pull --no-edit origin $changerev
         popd
     fi
