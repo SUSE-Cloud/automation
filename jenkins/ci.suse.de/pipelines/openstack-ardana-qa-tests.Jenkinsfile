@@ -37,14 +37,11 @@ pipeline {
             script: 'echo "$(dirname $WORKSPACE)/shared/${ardana_env}"'
           ).trim()
           if (reuse_node == '') {
+            // Resort to the backup dedicated workspace if this job is running as
+            // a standalone job allowing users to run several tests in parallel
+            // targeting the same environment.
+            env.SHARED_WORKSPACE = "$WORKSPACE"
             sh('''
-               rm -rf "$SHARED_WORKSPACE"
-               mkdir -p "$SHARED_WORKSPACE"
-
-               # archiveArtifacts and junit don't support absolute paths, so we have to to this instead
-               ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}
-
-               cd $SHARED_WORKSPACE
                git clone $git_automation_repo --branch $git_automation_branch automation-git
                source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
                ansible_playbook load-job-params.yml
