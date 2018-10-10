@@ -252,7 +252,9 @@ pipeline {
 
     stage('Run QA tests') {
       when {
-        expression { qa_test_list != '' }
+        // For extended-choice parameter we also need to check if the variable
+        // is defined
+        expression { env.qa_test_list != null && qa_test_list != '' }
       }
       steps {
         script {
