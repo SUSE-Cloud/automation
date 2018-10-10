@@ -31,6 +31,7 @@
         create: yes
         line: "{{ (item.key == 'bool') | ternary(bool_line, default_line) }}"
       with_dict: "{{ jjb.0[jjb_type].parameters }}"
+      when: lookup('env', item.value.name)
       loop_control:
         label: "{{ item.value.name }}"
 
