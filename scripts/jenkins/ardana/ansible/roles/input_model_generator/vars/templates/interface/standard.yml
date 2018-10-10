@@ -24,6 +24,8 @@ interface_models:
           - MANAGEMENT
       - network_groups:
           - ARDANA
+      - forced_network_groups:
+          - EXTERNAL-API
 
   - name: CONTROLLER
     service_groups:
