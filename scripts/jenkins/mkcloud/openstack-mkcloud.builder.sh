@@ -135,10 +135,6 @@ if [[ $github_pr ]] ; then
 
     trap "mkcloudgating_trap" ERR
 
-    if [[ "$github_pr_repo" = "SUSE-Cloud/cct" ]]; then
-        export want_cct_pr=$github_pr_id
-    fi
-
     $ghpr --action set-status $ghpr_paras --status "pending" --targeturl $BUILD_URL --message "Started PR gating"
 
 fi

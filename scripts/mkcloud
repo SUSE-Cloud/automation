@@ -142,14 +142,11 @@ fi
 
 #if localreposdir_src string is available, the local repositories are used for setup
 : ${localreposdir_src:=""}
-: ${cct_tests:="features:base"}
 
 [ -n "$cache_clouddata" ] && {
     # Reduce scope a bit for road-warriers
     # Only host architecture, nothing else
     export architectures="$arch"
-    # Remove cct: requires SDK to mirror which is huge
-    export cct_tests=""
     export localreposdir_src=$cache_dir
     # make sure the cached images are used
     export want_cached_images=1
@@ -315,7 +312,6 @@ function sshrun
         export http_proxy=$http_proxy ;
         export https_proxy=$https_proxy ;
         export no_proxy=$no_proxy ;
-        export cct_tests=$cct_tests ;
         export scenario=$scenario ;
         export host_mtu=$host_mtu ;
         export architectures='$architectures';
@@ -1027,12 +1023,6 @@ function cloudupgrade
     fi
 }
 
-function cct
-{
-    onadmin run_cct "$@"
-    return $?
-}
-
 function devsetup
 {
     onadmin devsetup
@@ -1292,8 +1282,6 @@ Optional
         parameters passed to run_tempest.sh script
     rally_server (default='')
         rally server address
-    cct_tests='test1+test2' (default='features')
-        Defines which cct_tests should be run while the cct step.
     scenario='scenario.yaml' (default='')
         Defines which scenario file should be used.
         Currently only the step 'batch' uses such a file.
@@ -1469,7 +1457,7 @@ allcmds="$step_aliases _test_setuphost \
     setuplonelynodes crowbar_register createadminsnapshot \
     lonelynode_nfs_server setupironicnodes\
     restoreadminfromsnapshot createcloudsnapshot restorecloudfromsnapshot \
-    cct steps batch setup_aliases onadmin onhost devsetup plain_with_upgrade_test \
+    steps batch setup_aliases onadmin onhost devsetup plain_with_upgrade_test \
     testpreupgrade testpostupgrade deployexternalceph"
 wantedcmds=$@
 
@@ -1502,19 +1490,19 @@ function expand_steps
                         runcmds="$runcmds setupnodes instnodes setup_aliases proposal"
                     ;;
                     all)
-                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` testsetup cct rebootcloud"
+                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` testsetup rebootcloud"
                     ;;
                     all_noreboot)
-                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps _compute` testsetup cct"
+                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps _compute` testsetup"
                     ;;
                     all_batch)
-                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar setupnodes instnodes setup_aliases batch testsetup cct rebootcloud"
+                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar setupnodes instnodes setup_aliases batch testsetup rebootcloud"
                     ;;
                     all_batch_noreboot)
-                        runcmds="$runcmds `expand_steps _new_admin` setupnodes instnodes setup_aliases batch testsetup cct"
+                        runcmds="$runcmds `expand_steps _new_admin` setupnodes instnodes setup_aliases batch testsetup"
                     ;;
                     _testupdate|testupdate)
-                        runcmds="$runcmds addupdaterepo runupdate testsetup cct"
+                        runcmds="$runcmds addupdaterepo runupdate testsetup"
                     ;;
                     _test_setuphost)
                         runcmds="$runcmds cleanup prepare setupadmin onadmin+test_setuphost"
@@ -1574,7 +1562,6 @@ for cmd in `echo $steplist` ; do
     sleep 2
     echo $cmd >> mkcloud.steps.log
     # support calls to functions with parameters
-    # this is currently used for the cct function
     IFS=+
     cmd_and_parameters=($cmd) # split at + and convert to list
     unset IFS

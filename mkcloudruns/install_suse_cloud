@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -o nounset
 
-commands="cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupnodes instnodes proposal testsetup cct rebootcloud $@" # all_noreboot
+commands="cleanup prepare setupadmin addupdaterepo runupdate prepareinstcrowbar instcrowbar rebootcrowbar setupnodes instnodes proposal testsetup rebootcloud $@" # all_noreboot
 currentdir=$(pwd)
 
 function deploy_upgrade_clouds() {
