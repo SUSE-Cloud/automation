@@ -51,9 +51,10 @@
 
       - string:
           name: git_input_model_branch
-          default: master
+          default: ''
           description: >-
-            The git repository branch to use for input models
+            The git repository branch to use for input models. If empty the branch is set based
+            on the cloud release version (cloud8: stable/pike, cloud9: master)
 
       - string:
           name: git_input_model_path
