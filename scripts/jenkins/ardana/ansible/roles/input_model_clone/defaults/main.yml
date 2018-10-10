@@ -16,6 +16,6 @@
 ---
 
 git_input_model_repo: "git://git.suse.provo.cloud/ardana/ardana-input-model.git"
-git_input_model_branch: "master"
+git_input_model_branch: "{{ cloud_git_branch[cloud_release] }}"
 git_input_model_path: "2.0/ardana-ci"
 git_input_model_dest: "/tmp/ardana-input-model"

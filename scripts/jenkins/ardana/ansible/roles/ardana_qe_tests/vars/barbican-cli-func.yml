@@ -18,10 +18,6 @@
 ardana_qe_tests_git_url: "{{ ardana_qe_tests_git_repo }}/openstack/python-barbicanclient"
 ardana_qe_tests_dir: "{{ ardana_qe_test_work_dir }}"
 
-#For now setting this to stable/pike. We need to update this based on the cloud
-# release version as part of the framework.
-ardana_qe_tests_branch: "stable/pike"
-
 ardana_qe_test_venv_requires:
   - 'os-testr'
 

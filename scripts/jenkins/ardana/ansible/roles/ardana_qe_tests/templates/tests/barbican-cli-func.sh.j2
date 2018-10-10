@@ -28,7 +28,7 @@ $VENV_FOLDER/bin/pip install -r test-requirements.txt
 $PYTHON setup.py install
 
 #Workaround for bug 1084362 for upstream pike-cloud8
-if [[ "{{ ardana_qe_tests_branch }}" = *"pike"* ]]; then
+if [[ "{{ ardana_qa_tests_branch }}" = *"pike"* ]]; then
     git grep -l '2018-02' | xargs sed -i 's/2018-02/2021-02/g'
 fi
 if [ ! -d {{ ardana_qe_tests_dir }}/.testrepository ]; then
