@@ -96,17 +96,19 @@ pipeline {
     stage('Create heat stack') {
       steps {
         script {
-          def slaveJob = null
-          try {
-            slaveJob = build job: 'openstack-ardana-heat', parameters: [
+          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
               string(name: 'ardana_env', value: "$ardana_env"),
               string(name: 'heat_action', value: "create"),
               string(name: 'git_automation_repo', value: "$git_automation_repo"),
               string(name: 'git_automation_branch', value: "$git_automation_branch"),
               string(name: 'reuse_node', value: "${NODE_NAME}")
-            ], propagate: true, wait: true
-          } finally {
-            echo slaveJob.buildVariables.blue_ocean_buildurl
+          ], propagate: false, wait: true
+          def jobResult = slaveJob.getResult()
+          def jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
+          def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
+          echo jobMsg
+          if (jobResult != 'SUCCESS') {
+             error(jobMsg)
           }
         }
       }

@@ -41,9 +41,7 @@ pipeline {
       }
       steps {
         script {
-          def slaveJob = null
-          try {
-            slaveJob = build job: 'openstack-ardana', parameters: [
+          def slaveJob = build job: 'openstack-ardana', parameters: [
               string(name: 'ardana_env', value: "$ardana_env"),
               string(name: 'reserve_env', value: "$reserve_env"),
               string(name: 'cleanup', value: "on success"),
@@ -56,9 +54,13 @@ pipeline {
               string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
               string(name: 'develproject', value: "$develproject"),
               string(name: 'repository', value: "$repository")
-            ], propagate: true, wait: true
-          } finally {
-            echo slaveJob.buildVariables.blue_ocean_buildurl
+          ], propagate: false, wait: true
+          def jobResult = slaveJob.getResult()
+          def jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
+          def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
+          echo jobMsg
+          if (jobResult != 'SUCCESS') {
+             error(jobMsg)
           }
         }
       }
