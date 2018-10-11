@@ -58,10 +58,11 @@
             Select tests to run
 
       - string:
-          name: test_branch
-          default: master
+          name: ardana_qa_tests_branch
+          default: ''
           description: >-
-            ardana-qa-tests repository branch
+            ardana-qa-tests repository branch. If empty the branch is set based
+            on the cloud release version (cloud8: stable/pike, cloud9: master)
 
       - string:
           name: run_filter

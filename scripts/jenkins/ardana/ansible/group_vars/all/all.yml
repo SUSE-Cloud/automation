@@ -17,6 +17,10 @@
 
 # The cloud release is encoded in the cloudsource value
 cloud_release: "cloud{{ cloudsource | regex_search('\\d') }}"
+cloud_git_branch:
+  cloud8: "stable/pike"
+  cloud9: "master"
+
 clouddata_server: "provo-clouddata.cloud.suse.de"
 rhel_enabled: "{{ rhel_computes is defined and rhel_computes | int > 0 }}"
 

@@ -76,12 +76,9 @@ ca_bundle: /etc/ssl/ca-bundle.pem
 ardana_qe_tests_git_url: "{{ ardana_qe_tests_git_repo }}/openstack/barbican"
 ardana_qe_tests_dir: "{{ ardana_qe_test_work_dir }}"
 
-#For now setting this to stable/pike. We need to update this based on the cloud
-# release version as part of the framework.
-ardana_qe_tests_branch: "stable/pike"
 ardana_qe_test_get_failed_cmd: "grep -B1 -- '------' {{ ardana_qe_test_log }} |
   awk -F '\n' 'ln ~ /^$/ { ln = \"matched\"; print $1 } $1 ~ /^--$/ { ln = \"\" }'"
-  
+
 ardana_qe_test_venv_requires:
   - 'os-testr'
 ardana_qe_test_run_filters: "{{ role_path }}/files/run_filters/"

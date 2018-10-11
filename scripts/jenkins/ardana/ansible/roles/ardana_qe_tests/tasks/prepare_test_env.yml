@@ -28,7 +28,7 @@
     repo: "{{ ardana_qe_tests_git_url }}"
     dest: "{{ ardana_qe_tests_dir }}"
     force: yes
-    version: "{{ ardana_qe_tests_branch }}"
+    version: "{{ ardana_qa_tests_branch }}"
 
 - name: Ensure test virtual environment exists when required
   pip:
