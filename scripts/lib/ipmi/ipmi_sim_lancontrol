@@ -32,7 +32,9 @@ link_mac() {
 }
 
 link_subnet() {
-    ifconfig $1 | sed -n -e 's/.*Mask:\([.0-9]*\).*/\1/p'
+    addr=$(ip -o -4 addr list $1 | head -n 1 | awk '{print $4}')
+    cidr=${addr##*/}
+    ruby -e "require 'ipaddr'; puts IPAddr.new('255.255.255.255').mask(${cidr})"
 }
 
 get_val() {
