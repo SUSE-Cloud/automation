@@ -53,6 +53,17 @@
               du $file
               exit 1
           fi
+          scp root@cleanvm:/opt/stack/results.html .
+          scp root@cleanvm:/opt/stack/results.xml .
 
     wrappers:
       - timestamps
+
+    publishers:
+      - archive:
+          artifacts: results.html
+          allow-empty-results: true
+
+      - junit:
+          results: results.xml
+          allow-empty-results: true

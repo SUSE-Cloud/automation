@@ -242,4 +242,14 @@ tox -e smoke
 EOF
 fi
 
+h_echo_header "Store tempest results"
+pip install junitxml
+sudo -u stack -i <<EOF
+cd /opt/stack
+if [ -f devstack.subunit ]; then
+    subunit2html devstack.subunit
+    subunit2junitxml devstack.subunit > results.xml
+fi
+EOF
+
 exit 0
