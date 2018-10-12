@@ -86,6 +86,16 @@
 
   tasks:
     - block:
+        - name: Wait for cloud nodes to be accessible
+          delegate_to: localhost
+          wait_for:
+            host: "{{ ansible_ssh_host }}"
+            port: 22
+            search_regex: OpenSSH
+            state: started
+            delay: 10
+            timeout: 300
+
         - name: Grow 1st partition filesystem
           shell: |
             /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
