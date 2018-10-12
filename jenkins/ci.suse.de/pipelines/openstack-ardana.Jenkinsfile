@@ -98,6 +98,17 @@ pipeline {
               if (jobResult != 'SUCCESS') {
                  error(jobMsg)
               }
+
+              // Load the environment variables set by the downstream job
+              env.DEPLOYER_IP = slaveJob.buildVariables.DEPLOYER_IP
+              echo """
+******************************************************************************
+** The deployer for the '${ardana_env}' physical environment is reachable at:
+**
+**        ssh root@${DEPLOYER_IP}
+**
+******************************************************************************
+              """
             }
           }
         }
@@ -130,6 +141,17 @@ pipeline {
               if (jobResult != 'SUCCESS') {
                  error(jobMsg)
               }
+
+              // Load the environment variables set by the downstream job
+              env.DEPLOYER_IP = slaveJob.buildVariables.DEPLOYER_IP
+              echo """
+******************************************************************************
+** The deployer for the '${ardana_env}' virtual environment is reachable at:
+**
+**        ssh root@${DEPLOYER_IP}
+**
+******************************************************************************
+              """
             }
           }
         }
@@ -149,8 +171,6 @@ pipeline {
                   string(name: 'git_automation_branch', value: "$git_automation_branch")
               ], propagate: false, wait: true
 
-              // Load the environment variables set by the downstream job
-              env.test_repository_url = slaveJob.buildVariables.test_repository_url
               def jobResult = slaveJob.getResult()
               def jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
               def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
@@ -158,6 +178,9 @@ pipeline {
               if (jobResult != 'SUCCESS') {
                  error(jobMsg)
               }
+
+              // Load the environment variables set by the downstream job
+              env.test_repository_url = slaveJob.buildVariables.test_repository_url
             }
           }
         }
@@ -311,27 +334,75 @@ pipeline {
       }
       cleanWs()
       script{
-        if (cleanup == "always" && cloud_type == "virtual") {
-          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
-            string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'heat_action', value: "delete"),
-            string(name: 'git_automation_repo', value: "$git_automation_repo"),
-            string(name: 'git_automation_branch', value: "$git_automation_branch")
-          ], propagate: false, wait: false
+        if (env.DEPLOYER_IP != null) {
+          if (cloud_type == "virtual") {
+            if (cleanup == "always" ||
+                cleanup == "on success" && currentBuild.currentResult == "SUCCESS" ||
+                cleanup == "on failure" && currentBuild.currentResult != "SUCCESS") {
+
+              build job: 'openstack-ardana-heat', parameters: [
+                string(name: 'ardana_env', value: "$ardana_env"),
+                string(name: 'heat_action', value: "delete"),
+                string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                string(name: 'git_automation_branch', value: "$git_automation_branch")
+              ], propagate: false, wait: false
+            } else {
+              if (reserve_env == 'true') {
+                echo """
+******************************************************************************
+** The deployer for the '${ardana_env}' virtual environment is reachable at:
+**
+**        ssh root@${DEPLOYER_IP}
+**
+** IMPORTANT: the '${ardana_env}' virtual environment may be (may have
+** already been) deleted by any of the future periodic job runs. To prevent
+** that, you should use the Lockable Resource page at
+** https://ci.nue.suse.com/lockable-resources and reserve the '${ardana_env}'
+** resource.
+**
+** Please remember to release the '${ardana_env}' Lockable Resource when
+** you're done with the environment.
+**
+** You don't have to manually delete the heat stack if you don't want to.
+**
+******************************************************************************
+                """
+              } else {
+                echo """
+******************************************************************************
+** The deployer for the '${ardana_env}' virtual environment is reachable at:
+**
+**        ssh root@${DEPLOYER_IP}
+**
+** Please delete the 'openstack-ardana-${ardana_env}' stack when you're done,
+** by using one of the following methods:
+**
+**  1. log into the ECP at https://engcloud.prv.suse.net/project/stacks/
+**  and delete the stack manually, or
+**
+**  2. (preferred) trigger a manual build for the openstack-ardana-heat job at
+**  https://ci.nue.suse.com/job/openstack-ardana-heat/build and use the
+**  same '${ardana_env}' ardana_env value and the 'delete' action for the
+**  parameters
+**
+******************************************************************************
+                """
+              }
+            }
+          } else {
+            echo """
+******************************************************************************
+** The deployer for the '${ardana_env}' physical environment is reachable at:
+**
+**        ssh root@${DEPLOYER_IP}
+**
+******************************************************************************
+            """
+          }
         }
       }
     }
     success {
-      script {
-        if (cleanup == "on success" && cloud_type == "virtual") {
-          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
-            string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'heat_action', value: "delete"),
-            string(name: 'git_automation_repo', value: "$git_automation_repo"),
-            string(name: 'git_automation_branch', value: "$git_automation_branch")
-          ], propagate: false, wait: false
-        }
-      }
       sh '''
         cd $SHARED_WORKSPACE
         if [ -n "$github_pr" ] ; then
@@ -342,16 +413,6 @@ pipeline {
       '''
     }
     failure {
-      script {
-        if (cleanup == "on failure" && cloud_type == "virtual") {
-          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
-            string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'heat_action', value: "delete"),
-            string(name: 'git_automation_repo', value: "$git_automation_repo"),
-            string(name: 'git_automation_branch', value: "$git_automation_branch")
-          ], propagate: false, wait: false
-        }
-      }
       sh '''
         cd $SHARED_WORKSPACE
         if [ -n "$github_pr" ] ; then

@@ -97,17 +97,22 @@ pipeline {
       cleanWs()
     }
     success{
-      sh """
-      set +x
-      cd $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible
-      echo "
-*****************************************************************
-** The deployer for ${ardana_env} is reachable at
+      script {
+        env.DEPLOYER_IP = sh (
+          returnStdout: true,
+          script: '''
+            grep -oP "${ardana_env}\s+ansible_host=\K[0-9\.]+" \
+              $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
+          '''
+        ).trim()
+      }
+      echo """
+******************************************************************************
+** The deployer for the '${ardana_env}' physical environment is reachable at:
 **
-**        ssh root@\$(awk '/^${ardana_env}/{print \$2}' inventory | cut -d'=' -f2)
+**        ssh root@${DEPLOYER_IP}
 **
-*****************************************************************
-      "
+******************************************************************************
       """
     }
   }
