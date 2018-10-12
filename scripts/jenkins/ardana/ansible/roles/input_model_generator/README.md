@@ -42,6 +42,9 @@ Example:
 The input model described by the `roles/ardana_input_model_generator/vars/templates/standard.yml` scenario template will
 be generated in the `/path/to/input-model` output path.
 
+In addition to the mentioned parameters and to those specific for each scenario template, there are also
+a few [global parameters](#global-parameters) that can be used to further customize the generated input model.
+
 ## Input Model Templates
 
 This section describes the template categories that the input model generator combines to create an input model:
@@ -296,6 +299,15 @@ TBD
 
 TBD
 
+### Hardware templates
+
+## Global parameters
+
+The following optional parameters may be supplied as ansible external variables to control various
+aspects of the generated input model:
+
+* `designate_backend` : controls the designate backend configured for the input model. May be set to
+either `bind` (default) or `powerdns`.
 
 # Limitations
 

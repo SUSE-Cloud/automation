@@ -33,7 +33,7 @@ network_groups:
 
   - name: EXTERNAL-VM
     hostname_suffix: extvm
-    tagged_vlan: false
+    tagged_vlan: true
     component_endpoints:
       - NEUTRON-EXT
 

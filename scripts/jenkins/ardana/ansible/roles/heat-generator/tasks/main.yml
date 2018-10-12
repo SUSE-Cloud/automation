@@ -70,7 +70,7 @@
 - name: Update input model disks to accomodate virtio_blk
   replace:
     dest: '{{ item.src }}'
-    regexp: '/dev/sd([a-f])'
+    regexp: '/dev/sd([a-z])'
     replace: '/dev/vd\1'
   with_filetree: '{{ input_model_path }}'
   loop_control:

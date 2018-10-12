@@ -30,8 +30,10 @@
 {% else %}
         neutron_provider_networks:
 {% set ns = namespace(mgmt_net_id=0, physnet_id=0, net_id=30, vlan_id=100+scenario.network_groups|length) %}
-{% for network_group in scenario.network_groups if 'MANAGEMENT' in network_group.component_endpoints %}
-{%   set ns.mgmt_net_id = loop.index0+100 %}
+{% for network_group in scenario.network_groups %}
+{%   if 'MANAGEMENT' in network_group.component_endpoints %}
+{%     set ns.mgmt_net_id = loop.index0+100 %}
+{%   endif %}
 {% endfor  %}
 {% for network_group in scenario.network_groups %}
 {%   if 'NEUTRON-VLAN' in network_group.component_endpoints %}
