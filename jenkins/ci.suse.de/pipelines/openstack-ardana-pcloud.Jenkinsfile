@@ -82,6 +82,16 @@ pipeline {
           source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
           ansible_playbook setup-ssh-access.yml -e @input.yml
         ''')
+        script {
+          env.DEPLOYER_IP = sh (
+            returnStdout: true,
+            script: '''
+              grep -oP "${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
+                $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
+            '''
+          ).trim()
+          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
+        }
       }
     }
   }
@@ -97,15 +107,6 @@ pipeline {
       cleanWs()
     }
     success{
-      script {
-        env.DEPLOYER_IP = sh (
-          returnStdout: true,
-          script: '''
-            grep -oP "${ardana_env}\s+ansible_host=\K[0-9\.]+" \
-              $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
-          '''
-        ).trim()
-      }
       echo """
 ******************************************************************************
 ** The deployer for the '${ardana_env}' physical environment is reachable at:

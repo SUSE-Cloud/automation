@@ -101,6 +101,7 @@ pipeline {
 
               // Load the environment variables set by the downstream job
               env.DEPLOYER_IP = slaveJob.buildVariables.DEPLOYER_IP
+              currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
               echo """
 ******************************************************************************
 ** The deployer for the '${ardana_env}' physical environment is reachable at:
@@ -144,6 +145,7 @@ pipeline {
 
               // Load the environment variables set by the downstream job
               env.DEPLOYER_IP = slaveJob.buildVariables.DEPLOYER_IP
+              currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
               echo """
 ******************************************************************************
 ** The deployer for the '${ardana_env}' virtual environment is reachable at:
