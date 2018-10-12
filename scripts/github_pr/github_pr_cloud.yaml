@@ -13,6 +13,7 @@ template:
       cloudsource: GM8+up
   ardana_parameters: &ardana_automation_parameters
     standard: &ardana_automation_standard
+      label: cloud-ardana-ci
   user:
     suse_cloud_user: &suse_cloud_user
       - SUSE-Cloud
@@ -48,6 +49,26 @@ template:
               message: Owner of the source repo for this PR lacks permission
       - type: FileMatch
         config:
+          pass_through: all
+          paths:
+            -  !ruby/regexp '/scripts\/jenkins\/ardana\//'
+        whitelist_handler:
+          - type: JenkinsJobTriggerArdana
+            parameters:
+              detail_logging: true
+              job_name: openstack-ardana
+              job_cmd: "../jenkins/jenkins-job-trigger"
+              job_parameters:
+                <<: *ardana_automation_parameters
+        blacklist_handler:
+          - type: SetStatus
+            config:
+              context: suse/ardana
+            parameters:
+              status: success
+              message: Ardana gating not applicable
+      - type: FileMatch
+        config:
           paths:
             -  !ruby/regexp '/scripts\/(mkcloud|qa_crowbarsetup\.sh|lib\/.*)$/'
             -  !ruby/regexp '/scripts\/jenkins\/(log-parser|mkcloud)\//'
@@ -55,7 +76,7 @@ template:
           - type: SetStatus
             parameters:
               status: success
-              message: gating not applicable
+              message: Mkcloud gating not applicable
         whitelist_handler:
           - type: SetStatus
             parameters:
