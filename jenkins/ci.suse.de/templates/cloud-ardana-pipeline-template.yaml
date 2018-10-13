@@ -52,15 +52,40 @@
                GM<X>+up (official GM plus Cloud-Updates)
                cloud9MX (cloud 9 milestones)
 
-      - string:
-         name: cloud_maint_updates
-         default: ''
-         description: List of cloud maintenance update IDs separated by comma (eg. 7396,7487)
+      - bool:
+          name: update_after_deploy
+          default: '{update_after_deploy|false}'
+          description: >-
+            Run ardana update after the cloud is deployed. If true the MU's will
+            be applied only after the cloud is deployed.
+
+      - choice:
+          name: update_to_cloudsource
+          choices:
+            - '{update_to_cloudsource|}'
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - GM8+up
+            - hosdevelcloud8
+            - hosGM8
+            - hosGM8+up
+            - stagingcloud9
+            - develcloud9
+            - cloud9M3
+          description: >-
+            Only valid if update_after_deploy is true. The cloud repository
+            (from provo-clouddata) to be used to update.
 
       - string:
-         name: sles_maint_updates
-         default: ''
-         description: List of SLES maintenance update IDs separated by comma (eg. 7434,7435)
+          name: cloud_maint_updates
+          default: ''
+          description: List of cloud maintenance update IDs separated by comma (eg. 7396,7487)
+
+      - string:
+          name: sles_maint_updates
+          default: ''
+          description: List of SLES maintenance update IDs separated by comma (eg. 7434,7435)
 
       - string:
           name: git_input_model_branch
