@@ -24,6 +24,7 @@ neutron_nodes: 3
 sles_computes: 1
 rhel_computes: 0
 swobj_nodes: 3
+clm_model: standalone
 
 scenario:
   name: mid-scale
@@ -34,12 +35,12 @@ scenario:
     agent nodes, {{ swpac_nodes }} swift proxy/account/container nodes, {{ swobj_nodes }} swift object nodes,
     {{ lmm_nodes }} LMM nodes and with {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
   mml_enabled: True
-  audit_enabled: True
+  audit_enabled: False
   ses_enabled: False
   use_cinder_volume_disk: True
-  use_glance_cache_disk: True
+  use_glance_cache_disk: False
 
-  service_template: full-spread
+  service_template: "{{ 'full-spread-dac' if clm_model == 'integrated' else 'full-spread' }}"
   network_template: full-spread
   disk_template: full-spread
-  interface_template: standard
+  interface_template: full-spread

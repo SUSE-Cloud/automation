@@ -32,7 +32,7 @@ network_groups:
 
   - name: INTERNAL-API
     hostname_suffix: intapi
-    tagged_vlan: false
+    tagged_vlan: true
     component_endpoints:
       - INTERNAL-API
 
@@ -44,7 +44,7 @@ network_groups:
 
   - name: EXTERNAL-VM
     hostname_suffix: extvm
-    tagged_vlan: false
+    tagged_vlan: true
     component_endpoints:
       - NEUTRON-EXT
 
@@ -59,8 +59,3 @@ network_groups:
     tagged_vlan: true
     component_endpoints:
       - SWIFT
-
-  - name: STORAGE
-    hostname_suffix: storage
-    tagged_vlan: true
-    component_endpoints: []
