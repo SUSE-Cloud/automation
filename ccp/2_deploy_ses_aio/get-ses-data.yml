@@ -1,0 +1,22 @@
+---
+- hosts: all:!localhost
+  vars:
+    ses_config_file_path: "~/suse-osh-deploy/ses_config.yml"
+  tasks:
+    - name: Copy SES config in userspace
+      copy:
+        src: "/tmp/ses_config/ses_config.yml"
+        dest: "{{ ses_config_file_path }}"
+        remote_src: yes
+      delegate_to: localhost
+
+    # TODO(evrardjp): Add return code to latest call to make sure idempotency is known.
+    # This step is needed until we decide to use ses_config created pools (and have properly tested them)
+    - name: Create pools
+      shell: "ceph -k /etc/ceph/ceph.client.admin.keyring osd pool ls | grep {{ item }} || ceph -k /etc/ceph/ceph.client.admin.keyring osd pool create {{ item }} 128 128"
+      with_items:
+        - rbd
+        - volumes
+        - cinder_backup
+        - images
+        - vms

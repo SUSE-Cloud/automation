@@ -1,0 +1,28 @@
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: general
+provisioner: kubernetes.io/rbd
+parameters:
+  monitors: {{ suse_osh_deploy_ceph_mons }}
+  adminId: {{ suse_osh_deploy_storage.adminId }}
+  adminSecretName: {{ suse_osh_deploy_storage.adminSecretName }}
+  adminSecretNamespace: {{ suse_osh_deploy_storage.adminSecretNamespace }}
+  pool: {{ suse_osh_deploy_storage.pool }}
+  userId: {{ suse_osh_deploy_storage.userId }}
+  userSecretName: {{ suse_osh_deploy_storage.userSecretName }}
+  userSecretNamespace: {{ suse_osh_deploy_storage.userSecretNamespace }}
+#---
+#apiVersion: storage.k8s.io/v1
+#kind: StorageClass
+#metadata:
+#  name: cephfs
+#provisioner: ceph.com/cephfs
+#parameters:
+#  adminId: admin
+#  adminSecretName: pvc-ceph-cephfs-client-key
+#  adminSecretNamespace: openstack
+#  monitors: "{% for ip in ceph_monitors_ips %}{{ ip }}:6789{% if not loop.last %},{% endif %}{% endfor %}"
+#reclaimPolicy: Delete
+#volumeBindingMode: Immediate

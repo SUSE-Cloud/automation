@@ -1,0 +1,44 @@
+---
+- hosts: all:!localhost
+  gather_facts: no
+  vars:
+    velum_automation_src: https://github.com/kubic-project/automation.git
+    velum_automation_version: 'master'
+    velum_automation_host_packages:
+      - git
+      - gcc
+      - make
+      - jq
+  tasks:
+    - name: Creating velum automation folder
+      file:
+        path: /opt/ccp
+        state: directory
+
+    - name: Copying environment.json
+      copy:
+        src: "{{ playbook_dir }}/../environment.json"
+        dest: /opt/ccp/environment.json
+
+    - name: Install the necessary packages
+      package:
+        name: "{{ velum_automation_host_packages }}"
+        state: present
+
+    - name: Copying suse-cloud repo for velum automation
+      git:
+        repo: "{{ velum_automation_src }}"
+        dest: /opt/ccp/automation
+        force: yes
+        version: "{{ velum_automation_version }}"
+        reference: "{{ lookup('env','suse_cloud_automation_REF') | default(omit, True) }}"
+
+    - name: Use Velum tooling
+      shell: "./velum-interactions {{ item }} -e /opt/ccp/environment.json"
+      with_items:
+        - "--setup"
+        - "--configure --enable-tiller"
+        - "--bootstrap --enable-tiller"
+      args:
+        executable: /bin/bash
+        chdir: /opt/ccp/automation/velum-bootstrap

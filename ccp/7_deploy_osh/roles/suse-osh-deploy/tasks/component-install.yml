@@ -1,0 +1,17 @@
+---
+- name: "Prepare override file {{ _cmpnt_template }}"
+  config_template:
+    src: "{{ _cmpnt_template }}.j2"
+    dest: "/tmp/{{ _cmpnt_template }}"
+    config_overrides: "{{ _cmpnt_overrides }}"
+    config_type: yaml
+  register: _usertemplatedata
+
+- name: Run the override file
+  shell: "{{ _cmpnt_runcommand }}"
+  args:
+    executable: /bin/bash
+    chdir: /opt/openstack-helm
+  when:
+    - _usertemplatedata is changed or (suse_osh_deploy_always_redeploy | bool)
+  failed_when: false #terrible idea, but no ingress yet

@@ -1,0 +1,11 @@
+---
+- name: Clone OpenStack-Helm code repositories
+  git:
+    repo: "{{ item.value.src }}"
+    dest: "/opt/{{ item.key }}"
+    update: yes
+    force: yes
+    version: "{{ item.value.version }}"
+  with_dict: "{{ osh_repos }}"
+  register: _gitclone
+  until: _gitclone is succeeded

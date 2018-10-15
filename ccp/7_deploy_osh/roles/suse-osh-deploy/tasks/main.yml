@@ -1,0 +1,203 @@
+---
+# tasks file for suse-osh-deploy
+
+- name: Pre-fligt checks for the role
+  assert:
+    that:
+      - ceph_admin_keyring_b64key is defined
+      - ceph_user_keyring_b64key is defined
+      - ceph_monitors_ips is defined
+
+- name: Set monitors data
+  set_fact:
+    suse_osh_deploy_ceph_mons:  "{% for ip in  ceph_monitors_ips %}{{ ip }}:6789{% if not loop.last %},{% endif %}{% endfor %}"
+  tags:
+    - always
+    - run
+
+- name: Install system packages
+  package:
+    name: "{{ suse_osh_deploy_packages }}"
+    state: present
+  register: install_packages
+  until: install_packages is success
+  retries: 5
+  delay: 2
+  tags:
+    - install
+
+- name: Ensure kubectl is installed
+  include: kubectl-install.yml
+  tags:
+    - install
+
+- name: Ensure helm and tiller are up to date
+  include: helm-install.yml
+  tags:
+    - install
+
+# TODO(evrardjp): Replace this with systemd service
+- name: Ensure helm runs on localhost
+  include: helm-run.yml
+  tags:
+    - run
+
+- name: Enrol nodes for CCP
+  include: enroll-caasp-nodes-for-osh.yml
+  tags:
+    - run
+
+- name: Fetch OSH code
+  include: code-install.yml
+  tags:
+    - install
+
+# TODO(evrardjp): Ensure this task doesn't run if the expected files are already there!
+- name: Build infra charts
+  make:
+    chdir: /opt/openstack-helm-infra
+    target: all
+  when: _gitclone is changed or (suse_osh_deploy_always_redeploy | bool)
+  tags:
+    - install
+
+# TODO(evrardjp): Use mechanism like glance to re-use component-install.yml code and allow any override.
+- name: Setup openstack CLIs
+  shell: ./tools/deployment/multinode/010-setup-client.sh
+  args:
+    executable: /bin/bash
+    chdir: /opt/openstack-helm
+  tags:
+    - run
+
+# TODO(evrardjp): Use mechanism like glance to re-use component-install.yml code and allow any override.
+- name: Setup Basic ingress and namespace
+  shell: ./tools/deployment/multinode/020-ingress.sh
+  args:
+    executable: /bin/bash
+    chdir: /opt/openstack-helm
+  tags:
+    - run
+
+# TODO(evrardjp): Improve idempotency
+- name: Add ceph secrets to k8s
+  include: ceph-secrets.yml
+  tags:
+    - run
+
+# TODO(evrardjp): Use mechanism like glance to re-use component-install.yml code and allow any override.
+- name: Deploy infrastructure charts
+  shell: "{{ item }}"
+  with_items:
+    - "./tools/deployment/multinode/050-mariadb.sh"
+    - "./tools/deployment/multinode/060-rabbitmq.sh"
+    - "./tools/deployment/multinode/070-memcached.sh"
+  args:
+    executable: /bin/bash
+    chdir: /opt/openstack-helm
+  tags:
+    - run
+
+# Keystone should be kept separate as its one failing.
+- name: Deploy keystone, ignore errors due to SCRD-4677. #https://jira.suse.de/browse/SCRD-4677.
+  shell: ./tools/deployment/multinode/080-keystone.sh
+  failed_when: false # terrible idea.
+  args:
+    executable: /bin/bash
+    chdir: /opt/openstack-helm
+  tags:
+    - run
+
+  #TODO(evrardjp): Remove the next two tasks by an appropriate include in tasks/main
+  #when https://review.openstack.org/#/c/586992 is merged
+- name: Copy ceph provisioner
+  template:
+    src: 046-ceph-deploy-with-existing-ceph.sh.j2
+    dest: "/opt/openstack-helm/tools/deployment/developer/ceph/046-ceph-deploy-with-existing-ceph.sh"
+    mode: "0755"
+  tags:
+    - run
+
+- name: Execute ceph provisioner
+  shell: ../openstack-helm/tools/deployment/developer/ceph/046-ceph-deploy-with-existing-ceph.sh
+  args:
+    executable: /bin/bash
+    chdir: /opt/openstack-helm-infra
+  tags:
+    - run
+
+- name: Deploy glance
+  import_tasks: component-install.yml
+  vars:
+    _cmpnt_template: suse-glance.yaml
+    _cmpnt_overrides: "{{ suse_osh_deploy_glance_yaml_overrides }}"
+    _cmpnt_runcommand: "./tools/deployment/multinode/100-glance.sh"
+  environment:
+    OSH_EXTRA_HELM_ARGS_GLANCE: "{{ lookup('env', 'OSH_EXTRA_HELM_ARGS_GLANCE') | default('', True) }} -f /tmp/suse-glance.yaml"
+  tags:
+    - glance
+    - run
+
+- name: Find libvirt secret
+  shell: |
+    kubectl get secrets -n {{ suse_osh_deploy_storage.adminSecretNamespace }} {{ suse_osh_deploy_storage.adminSecretName }} -o json | jq -r .metadata.uid
+  changed_when: false
+  register: rbd_secret_uuid
+  tags:
+    - always
+
+- name: Set libvirt secret uuid
+  set_fact:
+    suse_osh_deploy_libvirt_secret_uuid: "{{ rbd_secret_uuid.stdout_lines[0] }}"
+  tags:
+    - always
+
+- name: Deploy cinder
+  import_tasks: component-install.yml
+  vars:
+    _cmpnt_template: suse-cinder.yaml
+    _cmpnt_overrides: "{{ suse_osh_deploy_cinder_yaml_overrides }}"
+    _cmpnt_runcommand: "./tools/deployment/multinode/110-cinder.sh"
+  environment:
+    OSH_EXTRA_HELM_ARGS_CINDER`: "{{ lookup('env', 'OSH_EXTRA_HELM_ARGS_CINDER') | default('', True) }} -f /tmp/suse-cinder.yaml"
+  tags:
+    - cinder
+    - run
+
+# TODO(evrardjp): Check if need to have our own dummy overrides
+- name: Deploy OVS
+  shell: "./tools/deployment/multinode/120-openvswitch.sh"
+  args:
+    executable: /bin/bash
+    chdir: /opt/openstack-helm
+  tags:
+    - ovs
+    - run
+
+- name: Deploy libvirt
+  import_tasks: component-install.yml
+  vars:
+    _cmpnt_template: suse-libvirt.yaml
+    _cmpnt_overrides: "{{ suse_osh_deploy_libvirt_yaml_overrides }}"
+    _cmpnt_runcommand: "./tools/deployment/multinode/130-libvirt.sh"
+  environment:
+    OSH_EXTRA_HELM_ARGS_LIBVIRT`: "{{ lookup('env', 'OSH_EXTRA_HELM_ARGS_LIBVIRT') | default('', True) }} -f /tmp/suse-libvirt.yaml"
+  tags:
+    - libvirt
+    - run
+
+# TODO(evrardjp): Check if need to have our own dummy overrides
+# In that case, try to split the shell script upstream in two scripts.
+# Compute kit deploys nova and neutron but only nova needs overrides
+- name: Deploy compute kit
+  import_tasks: component-install.yml
+  vars:
+    _cmpnt_template: suse-nova.yaml
+    _cmpnt_overrides: "{{ suse_osh_deploy_nova_yaml_overrides }}"
+    _cmpnt_runcommand: "./tools/deployment/multinode/140-compute-kit.sh"
+  environment:
+    OSH_EXTRA_HELM_ARGS_NOVA`: "{{ lookup('env', 'OSH_EXTRA_HELM_ARGS_NOVA') | default('', True) }} -f /tmp/suse-nova.yaml"
+  tags:
+    - nova
+    - neutron
+    - run

@@ -1,0 +1,61 @@
+---
+# defaults file for suse-osh-deploy
+
+# Location of the kubeconfig file, fetched from velum UI.
+kubeconfig_file_path: "~/suse-osh-deploy/kubeconfig"
+
+suse_osh_deploy_packages:
+  - python-setuptools
+  - python-virtualenv
+  - python-pip
+  - python-devel
+  - autoconf
+  - git
+  - gcc
+  - make
+  - jq
+  - ca-certificates-suse
+  - rng-tools
+  - curl #after this line these are the packages required for osh deploy itself
+  - python-selinux
+  - ceph-common
+  - nfs-utils
+  - bridge-utils
+
+# Keep this until helm is packaged as rpm
+helm_download_url: "https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get"
+
+# OpenStack-Helm repos
+osh_repos:
+  openstack-helm-infra:
+    src: https://git.openstack.org/openstack/openstack-helm-infra.git
+    version: master
+  openstack-helm:
+    src: https://git.openstack.org/openstack/openstack-helm.git
+    version: master
+
+suse_osh_deploy_require_ha: True
+
+suse_osh_deploy_storage:
+  adminId: admin
+  adminSecretName: pvc-ceph-conf-combined-storageclass
+  adminSecretNamespace: openstack
+  pool: rbd
+  userId: admin
+  userSecretName: pvc-ceph-client-key
+  userSecretNamespace: openstack
+  glance:
+    user: admin
+    pool: images
+  cinder:
+    user: admin
+    pool: cinder
+  cinder_backup:
+    user: admin
+    pool: backups
+
+# Set this to false if you want to speed up your builds or do partial upgrades
+suse_osh_deploy_always_redeploy: True
+suse_osh_deploy_glance_yaml_overrides: {}
+suse_osh_deploy_cinder_yaml_overrides: {}
+suse_osh_deploy_libvirt_yaml_overrides: {}

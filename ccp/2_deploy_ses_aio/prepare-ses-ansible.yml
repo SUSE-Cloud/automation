@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  gather_facts: no
+  connection: local
+  vars:
+    ses_ansible_folder: "{{ playbook_dir }}/../ses-ansible/"
+    ses_ip: "{{ lookup('file', playbook_dir + '/../.ses_ip') }}"
+  tasks:
+    - name: Prepare inventory
+      copy:
+        content: |
+          ses ansible_ssh_host={{ ses_ip }} ansible_ssh_user=root
+        dest: "{{ ses_ansible_folder }}/inventory.ini"

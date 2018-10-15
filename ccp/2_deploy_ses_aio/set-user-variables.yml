@@ -1,0 +1,24 @@
+---
+# This play is a minimum details needed to deploy OSH, with some specific assumptions on pool names
+# This can probably be removed in the future, should we decide to ALWAYS use ses_config.yml, and
+# load ses_config.yml in the OSH play
+
+- hosts: all:!localhost
+  gather_facts: yes
+  vars:
+    suse_osh_deploy_user_variables: "~/suse-osh-deploy/user_variables.yml"
+  tasks:
+    - name: Find the admin keyring b64 value
+      shell: ceph auth get-key client.admin | base64
+      changed_when: false
+      register: _clientadminkey
+
+    - name: Create user_variables
+      delegate_to: localhost
+      blockinfile:
+        path: "{{ suse_osh_deploy_user_variables }}"
+        create: yes
+        block: |
+          ceph_admin_keyring_b64key: {{ _clientadminkey.stdout_lines[0] }}
+          ceph_user_keyring_b64key: {{ _clientadminkey.stdout_lines[0]  }}
+          ceph_monitors_ips: {{ ansible_all_ipv4_addresses }} #list containing all ips of the host (which should be an AIO containing the mons).

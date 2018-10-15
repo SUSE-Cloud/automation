@@ -1,0 +1,47 @@
+---
+- name: Download latest stable kubectl
+  shell: >-
+    kubectl version || (curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl &&
+    chmod 0755 ./kubectl &&
+    mv ./kubectl /usr/local/bin/kubectl)
+  register: _kubectldl
+  args:
+    executable: /bin/bash
+    chdir: /root
+    warn: False
+  changed_when: _kubectldl.stdout.find('Client Version') == -1 # If no version found, means it is installing
+
+- name: Ensure kube folder exists
+  file:
+    state: directory
+    path: "{{ ansible_user_dir }}/.kube"
+    mode: "0700"
+
+- name: Find kubeconfig location
+  shell: jq -r '.kubeConfig.admin' /opt/ccp/environment.json
+  changed_when: false
+  register: _kubeconfiglocation
+
+- name: Copy kubeconfig file
+  copy:
+    remote_src: yes
+    src: "{{ _kubeconfiglocation.stdout_lines[0] }}"
+    dest: "{{ ansible_user_dir }}/.kube/config"
+    mode: "0600"
+
+- name: Test kubectl
+  command: kubectl cluster-info
+  changed_when: false
+  register: _kubectlclusterinfo
+
+- name: Show kubectl cluster-info
+  debug:
+    var: _kubectlclusterinfo
+    verbosity: 1
+
+- name: Do not proceed further if issues in kubectl
+  assert:
+    that:
+      - _kubectlclusterinfo.stdout.find('\u001b[0;32mKubernetes master\u001b[0m is running') != -1
+      - _kubectlclusterinfo.stdout.find('\u001b[0;32mDex\u001b[0m is running') != -1
+      - _kubectlclusterinfo.stdout.find('\u001b[0;32mKubeDNS\u001b[0m is running') != -1

@@ -1,0 +1,212 @@
+heat_template_version: 2015-04-30
+
+# Modifications:
+# - smaller stack by default
+# - use given internal network
+# - use given security group
+# - use given keypair
+description: Template to create a CaaSP cluster for Dev/Test purposes inspired by Kubic Automation
+
+parameter_groups:
+  - label: general
+    description: General Parameters
+    parameters:
+      - image
+      - root_password
+      - security_group
+      - keypair
+
+  - label: sizing
+    description: Sizing Parameters
+    parameters:
+      - admin_flavor
+      - master_flavor
+      - master_count
+      - worker_flavor
+      - worker_count
+      - worker_num_volumes
+      - worker_volume_size
+
+  - label: network
+    description: Network Parameters
+    parameters:
+      - external_net
+      - internal_network
+      - internal_subnet
+
+parameters:
+  image:
+    type: string
+    description: Name of image to use for servers
+    constraints:
+      - custom_constraint: glance.image
+  security_group:
+    type: string
+    description: Security group to use
+    constraints:
+      - custom_constraint: neutron.security_group
+  keypair:
+    type: string
+    description: Name of the keypair to use for servers
+    constraints:
+      - custom_constraint: nova.keypair
+  external_net:
+    type: string
+    description: >
+      Name of public network for which floating IP addresses will be allocated
+    default: floating
+  internal_network:
+    type: string
+    description: >
+      Name of internal network for which IP addresses will be assigned from
+  internal_subnet:
+    type: string
+    description: Name of private sub network into which servers get deployed
+  admin_flavor:
+    type: string
+    description: Admin Flavor
+    default: m1.large
+    constraints:
+      - custom_constraint: nova.flavor
+  master_flavor:
+    type: string
+    description: Master Flavor
+    default: m1.large
+    constraints:
+      - custom_constraint: nova.flavor
+  master_count:
+    type: number
+    description: Number of Master nodes to boot
+    default: 1
+  worker_flavor:
+    type: string
+    description: Worker Flavor
+    default: m1.large
+    constraints:
+      - custom_constraint: nova.flavor
+  worker_count:
+    type: number
+    description: Number of Worker nodes to boot
+    default: 2
+  worker_num_volumes:
+    type: number
+    description: Number of volumes to create and attach to each worker
+    default: 0
+  worker_volume_size:
+    type: number
+    description: Size of each worker-attached volume in GB
+    default: 10
+  root_password:
+    type: string
+    description: Root Password for the VMs
+    default: linux
+
+resources:
+  secgroup_base:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - protocol: tcp
+          port_range_min: 2379
+          port_range_max: 2379
+        - protocol: udp
+          port_range_min: 8472
+          port_range_max: 8472
+
+  admin:
+    type: OS::Nova::Server
+    properties:
+      image: { get_param: image }
+      key_name: { get_param: keypair }
+      flavor: { get_param: admin_flavor }
+      networks:
+        - port: { get_resource: admin_port }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #cloud-config
+
+            disable_root: False
+            ssh_deletekeys: False
+            ssh_pwauth: True
+
+            chpasswd:
+              list: |
+                root:$root_password
+              expire: False
+
+            suse_caasp:
+              role: admin
+
+            ntp:
+              servers:
+                - 0.opensuse.pool.ntp.org
+                - 1.opensuse.pool.ntp.org
+                - 2.opensuse.pool.ntp.org
+            runcmd:
+              - /usr/bin/systemctl enable --now ntpd
+
+          params:
+            $root_password: { get_param: root_password }
+
+  admin_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_param: internal_network }
+      fixed_ips:
+        - subnet: { get_param: internal_subnet }
+      security_groups:
+        - { get_param: security_group }
+
+  admin_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: external_net }
+
+  admin_floating_ip_association:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: admin_floating_ip }
+      port_id: { get_resource: admin_port }
+
+  masters:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: master_count }
+      resource_def:
+        type: caasp-stack-master.yaml
+        properties:
+          name: {list_join: ['-', [{get_param: 'OS::stack_name'}, 'master', '%index%']]}
+          image: { get_param: image }
+          internal_net: { get_param: internal_network }
+          external_net: { get_param: external_net }
+          secgroup_base: { get_resource: secgroup_base }
+          secgroup_master: { get_param: security_group }
+          flavor: { get_param: master_flavor }
+          keypair: { get_param: keypair }
+          root_password: { get_param: root_password }
+          admin_node_ip: { get_attr: [admin, first_address] }
+
+  workers:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: worker_count }
+      resource_def:
+        type: caasp-stack-worker.yaml
+        properties:
+          name: {list_join: ['-', [{get_param: 'OS::stack_name'}, 'worker', '%index%']]}
+          image: { get_param: image }
+          internal_net: { get_param: internal_network }
+          secgroup_base: { get_resource: secgroup_base }
+          secgroup_worker: { get_param: security_group }
+          flavor: { get_param: worker_flavor }
+          keypair: { get_param: keypair }
+          root_password: { get_param: root_password }
+          admin_node_ip: { get_attr: [admin, first_address] }
+          num_volumes: { get_param: worker_num_volumes }
+          volume_size: { get_param: worker_volume_size }
