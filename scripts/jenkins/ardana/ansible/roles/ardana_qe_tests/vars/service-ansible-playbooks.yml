@@ -15,6 +15,7 @@
 #
 ---
 
+ardana_qe_test_timeout: 300
 ardana_qe_test_venv_requires:
   - 'python-subunit'
   - 'stestr'
