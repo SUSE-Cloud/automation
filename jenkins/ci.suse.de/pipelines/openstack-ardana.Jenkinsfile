@@ -338,21 +338,21 @@ pipeline {
     }
     success {
       sh '''
-        cd $SHARED_WORKSPACE
+        cd $SHARED_WORKSPACE/automation-git
         if [ -n "$github_pr" ] ; then
-          automation-git/scripts/ardana/pr-success.sh
+          scripts/jenkins/ardana/pr-success.sh
         else
-          automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 0
+          scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 0
         fi
       '''
     }
     failure {
       sh '''
-        cd $SHARED_WORKSPACE
+        cd $SHARED_WORKSPACE/automation-git
         if [ -n "$github_pr" ] ; then
-          automation-git/scripts/ardana/pr-failure.sh
+          scripts/jenkins/ardana/pr-failure.sh
         else
-          automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 1
+          scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 1
         fi
       '''
     }
