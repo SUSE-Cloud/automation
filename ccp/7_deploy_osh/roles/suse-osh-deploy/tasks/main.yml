@@ -85,6 +85,11 @@
   tags:
     - run
 
+- name: Create privileged ClusterRoleBinding for ServiceAccounts
+  include: privileged-cluster-role-binding.yml
+  tags:
+    - run
+
 # TODO(evrardjp): Use mechanism like glance to re-use component-install.yml code and allow any override.
 - name: Deploy infrastructure charts
   shell: "{{ item }}"

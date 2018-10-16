@@ -1,0 +1,40 @@
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: PrivilegedRoleBinding
+roleRef:
+  kind: ClusterRole
+  name: {{ suse_osh_deploy_privileged_cluster_role }}
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: cinder-backup
+  namespace: openstack
+- kind: ServiceAccount
+  name: nova-novncproxy
+  namespace: openstack
+- kind: ServiceAccount
+  name: openvswitch-vswitchd
+  namespace: openstack
+- kind: ServiceAccount
+  name: libvirt
+  namespace: openstack
+- kind: ServiceAccount
+  name: neutron-dhcp-agent
+  namespace: openstack
+- kind: ServiceAccount
+  name: neutron-l3-agent
+  namespace: openstack
+- kind: ServiceAccount
+  name: neutron-metadata-agent
+  namespace: openstack
+- kind: ServiceAccount
+  name: nova-compute
+  namespace: openstack
+- kind: ServiceAccount
+  name: neutron-ovs-agent
+  namespace: openstack
+- kind: ServiceAccount
+  name: openvswitch-db
+  namespace: openstack

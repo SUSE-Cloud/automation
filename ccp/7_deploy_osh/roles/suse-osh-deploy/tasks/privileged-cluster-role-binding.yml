@@ -1,0 +1,9 @@
+---
+- name: Create privileged ClusterRoleBinding
+  template:
+    src: "privileged-cluster-role-binding.yml.j2"
+    dst: "/tmp/privileged-cluster-role-binding.yml"
+    mode: "0600"
+
+- name: Apply privileged ClusterRoleBinding
+  command: "kubectl apply -f /tmp/privileged-cluster-role-binding.yml --overwrite=true"

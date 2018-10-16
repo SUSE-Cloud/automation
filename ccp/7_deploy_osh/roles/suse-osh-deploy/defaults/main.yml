@@ -54,6 +54,9 @@ suse_osh_deploy_storage:
     user: admin
     pool: backups
 
+# ClusterRole to allow privileged containers
+suse_osh_deploy_privileged_cluster_role: suse:caasp:psp:privileged
+
 # Set this to false if you want to speed up your builds or do partial upgrades
 suse_osh_deploy_always_redeploy: True
 suse_osh_deploy_glance_yaml_overrides: {}
