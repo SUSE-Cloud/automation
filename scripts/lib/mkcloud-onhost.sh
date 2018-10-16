@@ -24,15 +24,26 @@ function onhost_setup_portforwarding
         mosh_end=$((   $cloud_port_offset + 60010 ))
 
         mkdir -p $boot_mkcloud_d
+        if [[ ${want_ipv6} == 0 ]]; then
+            net_end=".0/24"
+            ip_wrap_left=''
+            ip_wrap_right=''
+            iptables="iptables"
+        else
+            net_end=":/64"
+            ip_wrap_left='['
+            ip_wrap_right=']'
+            iptables="ip6tables"
+        fi
         $sudo tee $boot_mkcloud_d_cloud >/dev/null <<EOS
 #!/bin/bash
 # Auto-generated from $0 on `date`
 
 iptables_unique_rule () {
     # First argument must be chain
-    if ! iptables -C "\$@" 2>/dev/null; then
-        iptables -I "\$@"
-        echo "iptables -I \$*"
+    if ! $iptables -C "\$@" 2>/dev/null; then
+        $iptables -I "\$@"
+        echo "$iptables -I \$*"
     fi
 }
 
@@ -40,7 +51,7 @@ iptables_unique_rule () {
 for port in 22 80 443 3000 4000 4040; do
     iptables_unique_rule PREROUTING -t nat -p tcp \\
         --dport \$(( $cloud_port_offset + \$port )) \\
-        -j DNAT --to-destination $adminip:\$port
+        -j DNAT --to-destination $(wrap_ip $adminip):\$port
 done
 
 # Connect to admin server with mosh (if installed) via:
@@ -57,18 +68,18 @@ for port in 22 80 443 5000 7630; do
         host_port_offset=\$(( \$host - \$offset ))
         iptables_unique_rule PREROUTING -t nat -p tcp \\
             --dport \$(( $cloud_port_offset + \$port + \$host_port_offset )) \\
-            -j DNAT --to-destination $net_admin.\$host:\$port
+            -j DNAT --to-destination ${ip_wrap_left}${net_admin}${ip_sep}\$host${ip_wrap_right}:\$port
     done
 done
 
 # Forward VNC port
 iptables_unique_rule PREROUTING -t nat -p tcp --dport \$(( $cloud_port_offset + 6080 )) \\
-    -j DNAT --to-destination $net_public.2
+    -j DNAT --to-destination ${net_public}${ip_sep}2
 
 # need to delete+insert on top to make sure our ACCEPT comes before libvirt's REJECT
 for x in D I ; do
-    iptables -\$x FORWARD -d $net_admin.0/24 -j ACCEPT
-    iptables -\$x FORWARD -d $net_public.0/24 -j ACCEPT
+    $iptables -\$x FORWARD -d ${net_admin}${net_end} -j ACCEPT
+    $iptables -\$x FORWARD -d ${net_public}${net_end} -j ACCEPT
 done
 
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter

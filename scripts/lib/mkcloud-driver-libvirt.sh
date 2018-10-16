@@ -55,6 +55,7 @@ function libvirt_net_start()
         $sudo virsh net-start $cloud-admin || exit $?
     fi
     $sudo sysctl -e net.ipv4.conf.$cloudbr.forwarding=1
+    $sudo sysctl -e net.ipv6.conf.$cloudbr.forwarding=1
     for dev in $cloudbr-nic $cloudbr ; do
         $sudo ip link set mtu 9000 dev $dev
     done
@@ -62,6 +63,7 @@ function libvirt_net_start()
     if [[ $want_ironic ]]; then
         $sudo virsh net-start $cloud-ironic
         $sudo sysctl -e net.ipv4.conf.$ironicbr.forwarding=1
+        $sudo sysctl -e net.ipv6.conf.$ironicbr.forwarding=1
     fi
 
     onhost_setup_portforwarding
@@ -73,12 +75,19 @@ function libvirt_prepare()
     libvirt_modprobe_kvm
     libvirt_start_daemon
 
+    local need_ipv6
+    if (( $want_ipv6 > 0 )); then
+        need_ipv6="--ipv6"
+    else
+        need_ipv6=""
+    fi
+
     # admin network
-    ${scripts_lib_dir}/libvirt/net-config 'admin' $cloud $cloudbr $admingw $adminnetmask $forwardmode $cloudfqdn $adminip > /tmp/$cloud-admin.net.xml
+    ${scripts_lib_dir}/libvirt/net-config $need_ipv6 'admin' $cloud $cloudbr $admingw $adminnetmask $forwardmode $cloudfqdn $adminip > /tmp/$cloud-admin.net.xml
     $sudo ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
     # ironic network
     if [[ $want_ironic ]]; then
-        ${scripts_lib_dir}/libvirt/net-config 'ironic' $cloud $ironicbr $ironicgw $ironicnetmask $forwardmode > /tmp/$cloud-ironic.net.xml
+        ${scripts_lib_dir}/libvirt/net-config $need_ipv6 'ironic' $cloud $ironicbr $ironicgw $ironicnetmask $forwardmode > /tmp/$cloud-ironic.net.xml
         $sudo ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-ironic.net.xml || exit $?
     fi
     libvirt_net_start
@@ -122,6 +131,7 @@ function libvirt_do_setuphost()
 
     sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
     echo "net.ipv4.conf.all.rp_filter = 0" > /etc/sysctl.d/90-cloudrpfilter.conf
+    echo "net.ipv6.conf.all.forwarding = 1" > /etc/sysctl.d/90-cloudipv6.conf
     # activate settings
     sysctl -p
 
