@@ -68,6 +68,23 @@
   set_fact:
     _ardana_group_vars: "{{ _ardana_group_var_list_result.results | map(attribute='ansible_facts._ardana_group_vars') | list }}"
 
+- name: Set available ardana services
+  set_fact:
+      ardana_services:
+          # Services available for test
+          cinder_available: "{{ ( 'cinder-api' in _ardana_services_list ) }}"
+          neutron_available: "{{ ( 'neutron-server' in _ardana_services_list ) }}"
+          glance_available: "{{ ( 'glance-api' in _ardana_services_list ) }}"
+          swift_available: "{{ ( 'swift-proxy' in _ardana_services_list ) }}"
+          nova_available: "{{ ( 'nova-api' in _ardana_services_list ) }}"
+          heat_available: "{{ ( 'heat-api' in _ardana_services_list ) }}"
+          ceilometer_available: "{{ ( 'ceilometer-api' in _ardana_services_list ) }}"
+          horizon_available: "{{ ( 'horizon' in _ardana_services_list ) }}"
+          ironic_available: "{{ ( 'ironic-api' in _ardana_services_list ) }}"
+          centralized_logging_available: "{{ ( 'logging-server' in _ardana_services_list ) }}"
+          barbican_available: "{{ ( 'barbican-api' in _ardana_services_list ) }}"
+          monasca_available: "{{ ( 'monasca-api' in _ardana_services_list ) }}"
+
 - name: Build a dictionary to hold variables of interest to QE
   set_fact:
       ardana_group_vars_key_api:
@@ -90,6 +107,34 @@
         keystone_demo_password: "{{ item.KEY_API.vars.keystone_demo_pwd }}"
   when: item.KEY_API is defined
   with_items: "{{ _ardana_group_vars }}"
-  no_log: true
 
 - debug: var=ardana_group_vars_key_api
+
+- name: Build a dictionary to hold variables specific to key_api nodes
+  set_fact:
+      ardana_group_vars_key_api_fnd_clu:
+        keystone_node1: "{{ item.FND_CLU.has_proxy.KEY_API.servers[0] }}"
+        keystone_node2: "{{ item.FND_CLU.has_proxy.KEY_API.servers[1] | default(item.FND_CLU.has_proxy.KEY_API.servers[0]) }}"
+        keystone_node3: "{{ item.FND_CLU.has_proxy.KEY_API.servers[2] | default(item.FND_CLU.has_proxy.KEY_API.servers[0]) }}"
+  when: (item.FND_CLU is defined) and (item.FND_CLU.has_proxy.KEY_API is defined)
+  with_items: "{{ _ardana_group_vars }}"
+
+
+- name: Build a dictionary to hold variables specific to mon_api nodes
+  set_fact:
+      ardana_group_vars_mon_api_fnd_clu:
+        monasca_node1: "{{ item.FND_CLU.has_proxy.MON_API.servers[0] }}"
+        monasca_node2: "{{ item.FND_CLU.has_proxy.MON_API.servers[1] | default(item.FND_CLU.has_proxy.MON_API.servers[0]) }}"
+        monasca_node3: "{{ item.FND_CLU.has_proxy.MON_API.servers[2] | default(item.FND_CLU.has_proxy.MON_API.servers[0]) }}"
+  when: ( ardana_services.monasca_available | bool ) and (item.FND_CLU is defined ) and (item.FND_CLU.has_proxy.MON_API is defined)
+  with_items: "{{ _ardana_group_vars }}"
+
+- name: Build a dictionary to hold variables specific to mon_api 
+  set_fact:
+      ardana_group_vars_mon_api:
+        monasca_endpoint: "{{ ardana_group_vars_key_api.keystone_vip_protocol }}://{{ item.MON_API.advertises.vips.private[0].ip_address }}"
+        monasca_port: "{{ item.MON_API.advertises.vips.private[0].port }}"
+        monasca_user: "{{ item.MON_API.consumes_KEY_API.vars.keystone_monasca_user }}"
+        monasca_password: "{{ item.MON_API.consumes_KEY_API.vars.keystone_monasca_password }}"
+  when: ardana_services.monasca_available | bool and (item.MON_API is defined )
+  with_items: "{{ _ardana_group_vars }}"

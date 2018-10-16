@@ -1,0 +1,17 @@
+---
+# Setting for Keystone-soapui
+SoapuiSettings: soapui-settings.xml
+
+keystone_soapui_code_folder: "{{ ardana_qe_tests_dir }}/ardana-qa-tests/keystone/testcase/functional/SoapUI"
+
+ardana_qe_test_get_failed_cmd: "cat {{ ardana_qe_test_log }} | grep FAIL | grep -v INFO | grep .txt | awk -F/ '{print $12}' | awk -F.txt '{print $1}'"
+
+ardana_qe_test_venv_requires:
+  - 'python-subunit'
+
+ardana_qe_tests_requires:
+  - "gcc"
+  - "python-devel"
+  - "java-1_8_0-openjdk-headless"
+
+ardana_read_group_vars: True
