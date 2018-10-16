@@ -17,7 +17,7 @@ DEVSTACK_DIR="/opt/stack/devstack"
 
 # This allows testing with an unmerged change included. An
 # empty variable disables that behavior
-PENDING_REVIEW="605983"
+PENDING_REVIEW=""
 
 set -ex
 
@@ -243,9 +243,9 @@ EOF
 fi
 
 h_echo_header "Store tempest results"
+pip install junitxml
 sudo -u stack -i <<EOF
 cd /opt/stack
-pip install junitxml
 subunit2html devstack.subunit
 subunit2junitxml devstack.subunit > results.xml
 EOF
