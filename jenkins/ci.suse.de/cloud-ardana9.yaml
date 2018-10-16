@@ -51,6 +51,20 @@
         - '{ardana_job}'
 
 - project:
+    name: cloud-ardana9-job-std-min-centos-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '0'
+    rhel_computes: '1'
+    triggers:
+      - timed: 'H H * * *'
+    jobs:
+      - '{ardana_job}'
+
+- project:
     name: cloud-ardana9-job-std-split-x86_64
     ardana_job: '{name}'
     disabled: true

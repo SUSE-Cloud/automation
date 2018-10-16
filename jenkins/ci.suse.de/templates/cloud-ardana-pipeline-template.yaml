@@ -110,7 +110,7 @@
       - choice:
           name: scenario_name
           choices:
-            -
+            - '{scenario_name|}'
             - entry-scale-kvm
             - entry-scale-swift
             - standard
@@ -120,7 +120,7 @@
       - choice:
           name: clm_model
           choices:
-            - standalone
+            - '{clm_model|standalone}'
             - integrated
           description: |
             standalone - one node dedicated for CLM
@@ -128,17 +128,17 @@
 
       - string:
           name: controllers
-          default: '3'
+          default: '{controllers|3}'
           description: Number of nodes used as controller
 
       - string:
           name: sles_computes
-          default: '2'
+          default: '{sles_computes|2}'
           description: Number of SLES compute nodes
 
       - string:
           name: rhel_computes
-          default: '0'
+          default: '{rhel_computes|0}'
           description: Number of RHEL compute nodes
 
       - bool:
