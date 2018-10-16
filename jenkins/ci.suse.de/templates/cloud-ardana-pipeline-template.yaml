@@ -128,6 +128,8 @@
             - entry-scale-kvm
             - entry-scale-swift
             - standard
+            - std-split
+            - mid-scale
           description: >-
             The scenario used to generate the input model
 
@@ -144,6 +146,36 @@
           name: controllers
           default: '3'
           description: Number of nodes used as controller
+
+      - string:
+          name: core_nodes
+          default: '2'
+          description: Number of OpenStack core service nodes
+
+      - string:
+          name: lmm_nodes
+          default: '1'
+          description: Number of LMM nodes
+
+      - string:
+          name: dbmq_nodes
+          default: '3'
+          description: Number of database & rabbitmq nodes
+
+      - string:
+          name: neutron_nodes
+          default: '1'
+          description: Number of neutron network nodes
+
+      - string:
+          name: swpac_nodes
+          default: '1'
+          description: Number of swift proxy/account/container service nodes
+
+      - string:
+          name: swobj_nodes
+          default: '1'
+          description: Number of swift object service nodes
 
       - string:
           name: sles_computes
