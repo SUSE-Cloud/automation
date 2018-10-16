@@ -25,10 +25,10 @@
 {%  if bm_info is defined %}
 {{ bm_info.networks[network_group.name|replace('-', '_')|lower] | to_nice_yaml(indent=2) | indent(6, True) }}
 {%-  else -%}
-{%   if network_group['tagged_vlan'] %}
+{%   if network_group['tagged_vlan']|default(False) %}
       vlanid: {{ ns.net_id }}
 {%   endif %}
-      tagged-vlan: {{ network_group['tagged_vlan']|lower }}
+      tagged-vlan: {{ network_group['tagged_vlan']|default('False')|lower }}
       cidr: 192.168.{{ ns.net_id }}.0/24
       gateway-ip: 192.168.{{ ns.net_id }}.1
 {%  endif %}

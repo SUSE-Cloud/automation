@@ -68,8 +68,8 @@
         - swift-account
         - swift-object
         - swift-rsync
-{%   elif bm_info is defined and 'EXTERNAL-API' in network_group.component_endpoints %}
-        - bind-ext
+{%   elif 'EXTERNAL-API' in network_group.component_endpoints %}
+        - {{ designate_backend }}-ext
 {%   else %}
         []
 {%   endif %}

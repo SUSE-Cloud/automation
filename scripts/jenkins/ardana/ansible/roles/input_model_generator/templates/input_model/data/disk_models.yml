@@ -203,7 +203,9 @@
 {%     endif %}
 {%   endfor %}
 
-{%  if 'SWPAC' in service_group.service_components or 'SWOBJ' in service_group.service_components %}
+{%  if 'SWPAC' in service_group.service_components or
+       'SWOBJ' in service_group.service_components or
+       'CORE'  in service_group.service_components %}
     device-groups:
 {%   for service_component in service_group['service_components'] %}
 {%     if service_component == 'SWPAC' %}
@@ -235,9 +237,17 @@
           attrs:
             rings:
               - object-0
+{%     elif service_component == 'CORE' %}
+{%       set ns.drive_idx = ns.drive_idx+1 %}
+
+      - name: cinder-volume
+        devices:
+          - name: /dev/sd{{ drive_letters[ns.drive_idx] }}
+        consumer:
+          name: cinder
 {%     endif %}
 {%   endfor %}
-{%  endif %}
+{% endif %}
 
 {% endfor %}
 {% endif %}

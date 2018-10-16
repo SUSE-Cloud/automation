@@ -15,12 +15,16 @@
 #
 ---
 {% set ns = namespace(clm_net_id=0, server_idx=0) %}
-{% for network_group in scenario['network_groups'] if 'CLM' in network_group['component_endpoints'] %}
-{%   set ns.clm_net_id = loop.index0+100 %}
-{% endfor  %}
-{% if ns.clm_net_id == 0  %}
-{%   for network_group in scenario['network_groups'] if 'MANAGEMENT' in network_group['component_endpoints'] %}
+{% for network_group in scenario['network_groups'] %}
+{%   if 'CLM' in network_group['component_endpoints'] %}
 {%     set ns.clm_net_id = loop.index0+100 %}
+{%   endif %}
+{% endfor %}
+{% if ns.clm_net_id == 0  %}
+{%   for network_group in scenario['network_groups'] %}
+{%     if 'MANAGEMENT' in network_group['component_endpoints'] %}
+{%       set ns.clm_net_id = loop.index0+100 %}
+{%     endif %}
 {%   endfor  %}
 {% endif %}
   product:
@@ -35,9 +39,6 @@
 {%   for idx in range(service_group['member_count']|int) %}
 {%     set server_id = "%s-%04d"|format(service_group.name, idx+1) %}
     - id: {{ bm_info.servers[ns.server_idx].id if bm_info is defined else server_id }}
-{% if bm_info is not defined %}
-      hostname: {{ scenario['cloud_name'] }}-{{ bm_info.servers[ns.server_idx].id if bm_info is defined else server_id }}
-{% endif %}
       ip-addr: 192.168.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.{{ bm_info.networks.bm_subnet_start + ns.server_idx if bm_info is defined else ns.server_idx + 100 }}
       role: {{ service_group.name|upper }}-ROLE
       server-group: RACK{{ (idx%3)+1 }}
