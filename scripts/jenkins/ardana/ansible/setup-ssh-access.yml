@@ -76,6 +76,16 @@
 
   tasks:
     - block:
+        - name: Wait for deployer to be accessible
+          delegate_to: localhost
+          wait_for:
+            host: "{{ ansible_host }}"
+            port: 22
+            search_regex: OpenSSH
+            state: started
+            delay: 10
+            timeout: 300
+
         - include_role:
             name: ssh_keys
       rescue:
