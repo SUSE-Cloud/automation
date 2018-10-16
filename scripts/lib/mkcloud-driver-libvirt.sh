@@ -120,8 +120,12 @@ function libvirt_do_setuphost()
 
     sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
     echo "net.ipv4.conf.all.rp_filter = 0" > /etc/sysctl.d/90-cloudrpfilter.conf
-    echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
+    # activate settings
+    sysctl -p
+
     libvirt_do_sanity_checks
+    libvirt_enable_ksm
+
     if [ -n "$needcvol" ] ; then
         safely_skip_support pvcreate "$cloudpv"
         safely_skip_support vgcreate "$cloudvg" "$cloudpv"
@@ -341,7 +345,6 @@ function libvirt_do_cleanup()
 
 function libvirt_do_prepare()
 {
-    libvirt_enable_ksm
     libvirt_do_create_cloud_lvm
     onhost_add_etchosts_entries
     libvirt_prepare
