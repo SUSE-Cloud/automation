@@ -53,28 +53,28 @@ service_groups:
   - name: lmm
     type: cluster
     prefix: lmm
-    heat_flavor_id: cloud-ardana-job-controller
+    heat_flavor_id: cloud-ardana-job-compute
     member_count: '{{ lmm_nodes|default(3) }}'
     service_components:
       - LMM
   - name: dbmq
     type: cluster
     prefix: dbmq
-    heat_flavor_id: cloud-ardana-job-controller
+    heat_flavor_id: cloud-ardana-job-minimal
     member_count: '{{ dbmq_nodes|default(3) }}'
     service_components:
       - DBMQ
   - name: swpac
     type: cluster
     prefix: swpac
-    heat_flavor_id: cloud-ardana-job-controller
+    heat_flavor_id: cloud-ardana-job-minimal
     member_count: '{{ swpac_nodes|default(3) }}'
     service_components:
       - SWPAC
   - name: neutron
     type: cluster
     prefix: neutron
-    heat_flavor_id: cloud-ardana-job-controller
+    heat_flavor_id: cloud-ardana-job-minimal
     member_count: '{{ neutron_nodes|default(3) }}'
     service_components:
       - NEUTRON
