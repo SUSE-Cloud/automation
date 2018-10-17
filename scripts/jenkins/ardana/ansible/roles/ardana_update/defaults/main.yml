@@ -15,22 +15,21 @@
 #
 ---
 
-target_node: "ARD-SVC--first-member"
-node_is_deployer: "{{ target_node == 'ARD-SVC--first-member' }}"
-deployer_ip: "{{ ansible_all_ipv4_addresses | ipaddr(ardana_mgmt_subnet) | first }}"
-update_method: "patch"
+deployer_ip: "{{ '{{' }} hostvars[groups['ARD-SVC--first-member'].0].ansible_ssh_host {{ '}}' }}"
+update_method: "{{ (cloudsource | regex_search('devel|staging.*')) | ternary('update', 'patch') }}"
 update_gpg_checks: true
 update_licenses_agree: true
 update_include_reboot_patches: true
 
-cloud_maint_updates_list: "{{ cloud_maint_updates.split(',') if cloud_maint_updates is defined and cloud_maint_updates | length > 0 else [] }}"
-sles_maint_updates_list: "{{ sles_maint_updates.split(',') if sles_maint_updates is defined and sles_maint_updates | length > 0 else [] }}"
-
-update_nfs_repo_server: "{{ cloud_media_server }}:/dist/ibs/SUSE:/Maintenance:/"
+cloud_brand: "{{ cloudsource.startswith('hos') | ternary('HPE-Helion-OpenStack', 'SUSE-OpenStack-Cloud') }}"
+cloud_update_repo_name: "{{ cloud_brand }}-{{ sles_cloud_version[ansible_distribution_version] }}-Updates"
+deployer_repo_base_url: "http://{{ deployer_ip }}:79/SUSE-{{ ansible_distribution_major_version }}-{{ ansible_distribution_release }}/x86_64/repos"
 
 ardana_openstack_path: "~/openstack/ardana/ansible"
 ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
 
 ardana_openstack_playbooks:
-  - "config-processor-run.yml -e encrypt='' -e rekey=''"
-  - "ready-deployment.yml"
+  - play: "cobbler-deploy.yml -e ardanauser_password='ardana'"
+    when: "{{ is_physical_deploy }}"
+  - play: "config-processor-run.yml -e encrypt='' -e rekey=''"
+  - play: "ready-deployment.yml"

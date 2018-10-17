@@ -29,33 +29,40 @@ _announcement_cloud_mu: "{{ ' - Cloud_MU: ' + cloud_maint_updates if _cloud_mu_a
 _announcement_mu: "{{ _announcement_cloud_mu + ' - SLES_MU: ' + sles_maint_updates if _sles_mu_available else _announcement_cloud_mu }}"
 
 # Chat message
-rc_msg_fields_started: "{{ _msg_fields_started + _msg_field_mu }}"
-rc_msg_fields_finished: "{{ _msg_fields_finished + _msg_field_mu }}"
+rc_msg_fields_started: "{{ _msg_fields_started + _msg_field_cloudsource + _msg_field_mu }}"
+rc_msg_fields_finished: "{{ _msg_fields_finished + _msg_field_cloudsource + _msg_field_mu }}"
 
 _msg_fields_started:
+  - title: Started by
+    value: "{{ jenkins_build_url_msg }}"
+    short: False
+  - title: Ardana log stream
+    value: "{{ ansible_log_stream_msg }}"
+    short: False
   - title: Deployer
     value: "{{ hostvars[ardana_env].ansible_host }}"
     short: True
-  - title: Started by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
-    short: False
-  - title: Ardana log stream
-    value: "http://{{ hostvars[ardana_env].ansible_host }}:9091/"
-    short: True
 
 _msg_fields_finished:
+  - title: Built by
+    value: "{{ jenkins_build_url_msg }}"
+    short: False
+  - title: Log
+    value: "{{ ansible_log_url_msg if lookup('env', 'BUILD_URL') else 'Not available' }}"
+    short: False
   - title: Deployer
     value: "{{ hostvars[ardana_env].ansible_host }}"
     short: True
   - title: Status
     value: "{{ rc_state }}"
     short: True
-  - title: Built by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
-    short: False
-  - title: Log
-    value: "{{ ansible_log_url if lookup('env', 'BUILD_URL') else 'Not available' }}"
-    short: False
+
+_field_cloudsource:
+  - title: cloudsource update
+    value: "{{ cloudsource }}"
+    short: True
+
+_msg_field_cloudsource: "{{ (cloudsource is defined and cloudsource != '') | ternary(_field_cloudsource, [])}}"
 
 _field_cloud_mu:
   - title: Cloud MU

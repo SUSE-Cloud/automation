@@ -19,9 +19,9 @@
   hosts: resources
   become: yes
   vars:
-    cloud_maint_updates_list: {{ cloud_maint_updates_list | to_yaml if cloud_maint_updates is defined and cloud_maint_updates | length else [] }}
-    sles_maint_updates_list: {{ sles_maint_updates_list | to_yaml if sles_maint_updates is defined and sles_maint_updates | length else [] }}
-    sles_sp: {{ (cloud_release == 'cloud8') | ternary('3', '4') }}
+    cloud_maint_updates_list: {{ cloud_maint_updates_list | to_yaml }}
+    sles_maint_updates_list: {{ sles_maint_updates_list | to_yaml }}
+    sles_sp: {{ ansible_distribution_release }}
     cloud_release: {{ cloud_release }}
 {% raw %}
     deployer_ip: "{{ hostvars[groups['ARD-SVC--first-member'].0].ansible_ssh_host }}"

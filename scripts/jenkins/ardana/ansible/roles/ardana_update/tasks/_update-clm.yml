@@ -21,9 +21,19 @@
     ARDANA_INIT_AUTO: 1
 
 - name: Run playbooks from "{{ ardana_openstack_path }}"
-  command: "ansible-playbook -i hosts/localhost {{ item }}"
+  command: |
+    ansible-playbook -i hosts/localhost {{ item.play }}
   args:
     chdir: "{{ ardana_openstack_path }}"
-  with_items: "{{ ardana_openstack_playbooks }}"
+  loop: "{{ ardana_openstack_playbooks }}"
   register: ansible_openstack_plays
-  when: not (ansible_openstack_plays | default({})) is failed
+  when:
+    - item.when | default(True)
+    - not (ansible_openstack_plays | default({})) is failed
+
+- name: Clear pending CLM update status
+  command: |
+    ansible-playbook ardana-update-status.yml -l ARD-SVC--first-member
+      -e "update_status_var=clm-update update_status_reset=true"
+  args:
+    chdir: "{{ ardana_scratch_path }}"

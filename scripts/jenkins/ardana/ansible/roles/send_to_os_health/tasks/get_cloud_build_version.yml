@@ -17,7 +17,7 @@
 
 - name: Find cloud build file
   shell: |
-    find /srv/www/*/x86_64/repos/*Cloud*/ -name build
+    find /srv/www/*/x86_64/repos/*OpenStack-*/ -name build | tail -1
   register: cloud_build_file
   failed_when: false
 

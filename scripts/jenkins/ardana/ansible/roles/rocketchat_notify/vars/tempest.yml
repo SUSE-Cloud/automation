@@ -30,19 +30,25 @@ rc_msg_fields_started:
   - title: Started by
     value: "{{ jenkins_build_url_msg }}"
     short: False
+  - title: Ardana log stream
+    value: "{{ ansible_log_stream_msg }}"
+    short: False
   - title: Deployer
     value: "{{ hostvars[ardana_env].ansible_host }}"
     short: True
   - title: Filter
     value: "{{ tempest_run_filter }}"
     short: True
-  - title: Ardana log stream
-    value: "{{ ansible_log_stream_msg }}"
-    short: True
 
 rc_msg_fields_finished_temp:
-  - title: Started by
+  - title: Built by
     value: "{{ jenkins_build_url_msg }}"
+    short: False
+  - title: Failed tests
+    value: "{{ tempest_failed_tests.stdout if tempest_failed_tests is defined else 'Not available' }}"
+    short: False
+  - title: Tempest log
+    value: "{{ tempest_log_url_msg if lookup('env', 'BUILD_URL') else 'Not available' }}"
     short: False
   - title: Deployer
     value: "{{ hostvars[ardana_env].ansible_host }}"
@@ -62,12 +68,6 @@ rc_msg_fields_finished_temp:
   - title: Failed
     value: "{{ tempest_results_processed.results.3.stdout if tempest_results_processed is defined else 'Not available' }}"
     short: True
-  - title: Failed tests
-    value: "{{ tempest_failed_tests.stdout if tempest_failed_tests is defined else 'Not available' }}"
-    short: False
-  - title: Tempest log
-    value: "{{ tempest_log_url_msg if lookup('env', 'BUILD_URL') else 'Not available' }}"
-    short: False
   - title: OpenStack-Health
     value: "{{ os_health_url_msg }}"
     short: False

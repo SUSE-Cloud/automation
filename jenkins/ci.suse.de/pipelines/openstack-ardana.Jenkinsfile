@@ -255,6 +255,33 @@ pipeline {
       }
     }
 
+    stage('Update cloud') {
+      when {
+        expression { update_after_deploy == 'true' }
+      }
+      steps {
+        script {
+          def slaveJob = build job: 'openstack-ardana-update', parameters: [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'update_to_cloudsource', value: "$update_to_cloudsource"),
+            string(name: 'cloud_maint_updates', value: "$cloud_maint_updates"),
+            string(name: 'sles_maint_updates', value: "$sles_maint_updates"),
+            string(name: 'rc_notify', value: "$rc_notify"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch"),
+            string(name: 'reuse_node', value: "${NODE_NAME}")
+          ], propagate: false, wait: true
+          def jobResult = slaveJob.getResult()
+          def jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
+          def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
+          echo jobMsg
+          if (jobResult != 'SUCCESS') {
+             error(jobMsg)
+          }
+        }
+      }
+    }
+
     stage('Run tests') {
       failFast false
       parallel {

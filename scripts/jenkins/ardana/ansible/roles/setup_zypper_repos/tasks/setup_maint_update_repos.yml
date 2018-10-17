@@ -24,7 +24,7 @@
 - name: Rsync cloud MU repo(s)
   synchronize:
     mode: pull
-    src: "rsync://{{ maintenance_updates_server }}:/repos/SUSE:/Maintenance:/{{ item }}/{{ maintenance_updates_path[cloud_release]['Cloud'] }}"
+    src: "rsync://{{ maintenance_updates_server }}:/repos/SUSE:/Maintenance:/{{ item }}/{{ maintenance_updates_path['Cloud'] }}"
     dest: "{{ local_repos_base_dir }}/{{ item }}/"
     rsync_opts:
       - "--sparse"
@@ -37,7 +37,7 @@
 - name: Rsync SLES MU repo(s)
   synchronize:
     mode: pull
-    src: "rsync://{{ maintenance_updates_server }}:/repos/SUSE:/Maintenance:/{{ item }}/{{ maintenance_updates_path[cloud_release]['SLES'] }}"
+    src: "rsync://{{ maintenance_updates_server }}:/repos/SUSE:/Maintenance:/{{ item }}/{{ maintenance_updates_path['SLES'] }}"
     dest: "{{ local_repos_base_dir }}/{{ item }}/"
     rsync_opts:
       - "--sparse"
@@ -54,6 +54,8 @@
     runrefresh: yes
     state: present
   loop: "{{ cloud_maint_updates_list }}"
+  notify:
+    - Refresh all repos
 
 - name: Add SLES MU zypper repo(s)
   zypper_repository:
@@ -62,3 +64,5 @@
     runrefresh: yes
     state: present
   loop: "{{ sles_maint_updates_list }}"
+  notify:
+    - Refresh all repos

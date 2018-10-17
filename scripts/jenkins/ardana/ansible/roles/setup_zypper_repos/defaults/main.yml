@@ -21,6 +21,7 @@ repos_url: "http://{{ clouddata_server }}/repos/{{ ansible_architecture }}"
 is_milestone: "{{ cloudsource is match('cloud\\dM\\d') }}"
 built_from: "{{ repos_url}}/{{ base_repos.0 }}"
 media_build_version: "{{ cloud_media_build_version.content | b64decode }}"
+include_maint_update: "{{ (task == 'deploy' and not update_after_deploy) or (task == 'update') }}"
 
 # Media/repositories mapped by the cloudsource value
 cloudsource_repos:
@@ -68,15 +69,6 @@ cloud_test_repos_enabled: "{{ updates_test_enabled and 'GM' in cloudsource }}"
 repos_to_mount: "{{ repos_to_add | select('search', '.*-Pool$') | list }}"
 repos_to_sync: "{{ repos_to_add | difference(repos_to_mount) }}"
 
-maintenance_updates_path:
-  cloud8:
-    SLES: "SUSE_Updates_SLE-SERVER_12-SP3_x86_64"
-    Cloud: "SUSE_SLE-12-SP3_Update_Products_Cloud8_Update"
-  cloud9:
-    SLES: "SUSE_Updates_SLE-SERVER_12-SP4_x86_64"
-    Cloud: "SUSE_SLE-12-SP4_Update_Products_Cloud9_Update"
-
-cloud_maint_updates_list: "{{ cloud_maint_updates.split(',') if cloud_maint_updates is defined and cloud_maint_updates | length > 0 else [] }}"
-sles_maint_updates_list: "{{ sles_maint_updates.split(',') if sles_maint_updates is defined and sles_maint_updates | length > 0 else [] }}"
 extra_repos_list: "{{ extra_repos.split(',') if extra_repos is defined and extra_repos | length > 0 else [] }}"
-zypper_repo_name: "{{ item | regex_replace('devel.*', 'Pool') }}"
+cloudsource_repo: "{{ (task == 'update' and cloudsource is defined and cloudsource != '') | ternary('Updates', 'Pool') }}"
+zypper_repo_name: "{{ item | regex_replace('devel.*', cloudsource_repo) }}"

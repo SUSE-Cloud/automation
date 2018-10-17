@@ -20,15 +20,18 @@
   when: is_milestone
 
 - include_tasks: setup_sles_cloud_repos.yml
+  when: cloudsource != ''
 
 - include_tasks: setup_repo_from_iso.yml
   when: is_milestone
 
 - include_tasks: setup_maint_update_repos.yml
-  when: cloud_maint_updates_list | length or
-    sles_maint_updates_list | length
+  when:
+    - include_maint_update
+    - cloud_maint_updates_list | length or sles_maint_updates_list | length
 
 - include_tasks: add_extra_repos.yml
   when: extra_repos_list | length
 
 - include_tasks: set_motd.yml
+  when: task == 'deploy'
