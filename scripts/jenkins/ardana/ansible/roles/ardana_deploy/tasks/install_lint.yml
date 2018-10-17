@@ -25,6 +25,3 @@
     delete: true
     src: lint-rules
     dest: "{{ lint_venv }}/lint-rules"
-
-- set_fact:
-    lint_params: '-p -x templating,resources,ANSIBLE0002 -r {{ lint_venv }}/lint-rules -r {{ lint_venv }}/lib/python2.7/site-packages/ansiblelint/rules'
