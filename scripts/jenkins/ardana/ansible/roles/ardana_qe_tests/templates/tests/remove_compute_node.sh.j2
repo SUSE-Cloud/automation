@@ -10,7 +10,7 @@ set -o pipefail
 
 
 WORK_HOME={{ ardana_qe_test_work_dir }}
-TYPE_OF_COMPUTE={{ compute_node_name }}
+COMPUTE_TYPE={{ type_of_compute }}
 work_dir={{ ardana_qe_test_work_dir }}
 test_log="$work_dir/remove_compute_node.log"
 subunit_log="$work_dir/remove_compute_node.subunit"
@@ -34,7 +34,7 @@ $subunit_output --inprogress remove_compute_node > $subunit_log
 #/var/lib/ardana/automation/remove_compute_node.sh -c ardana-qe102-cp1-rhel-comp0002-mgmt -n 2M25280TZC -n $AUTO_ID | tee \
 # ${WORK_HOME}/remove_compute_node.log
 
-NODE_NAME=`grep -B3 $TYPE_OF_COMPUTE ~/openstack/my_cloud/definition/data/servers.yml | grep -m1 id: | awk '{print$3}'`
+NODE_NAME=`grep -B3 $COMPUTE_TYPE ~/openstack/my_cloud/definition/data/servers.yml | grep -m1 id: | awk '{print$3}'`
 IP_ADDR=`grep -A3 $NODE_NAME ~/openstack/my_cloud/definition/data/servers.yml | grep -m1 ip-addr | awk '{print$2}'`
 HOST_NAME=`grep -m1 $IP_ADDR /etc/hosts | awk '{print$2}'`
 
@@ -47,10 +47,10 @@ tesres=`grep -A 4 'Disabling provisioning on compute host' ${WORK_HOME}/remove_c
 echo $tesres >> ${WORK_HOME}/remove_compute_node.log
 if [ "$tesres" == "$COMPUTE_NODE_NAME" ]; then
    success=1
-   echo "Remove $COMPUTE_NODE_NAME test PASS" >> ${WORK_HOME}/remove_compute_node.log
+   echo "Remove $NODE_NAME test PASS" >> ${WORK_HOME}/remove_compute_node.log
 else 
    success=0
-   echo "Remove $COMPUTE_NODE_NAME test FAIL" >> ${WORK_HOME}/remove_compute_node.log
+   echo "Remove $NODE_NAME test FAIL" >> ${WORK_HOME}/remove_compute_node.log
 fi
 
 echo $success
