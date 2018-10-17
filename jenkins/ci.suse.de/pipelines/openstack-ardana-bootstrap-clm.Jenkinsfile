@@ -64,7 +64,7 @@ pipeline {
           env.DEPLOYER_IP = sh (
             returnStdout: true,
             script: '''
-              grep -oP "${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
+              grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
                 $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
             '''
           ).trim()
