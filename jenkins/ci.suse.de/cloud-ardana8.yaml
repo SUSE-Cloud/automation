@@ -58,10 +58,10 @@
 - project:
     name: cloud-ardana8-job-std-3cp-devel-staging-updates-x86_64
     ardana_job: '{name}'
-    disabled: true
     ardana_env: cloud-ardana-ci-slot
     cloudsource: develcloud8
-    update: 'cloudsource=stagingcloud8'
+    update_after_deploy: true
+    update_to_cloudsource: stagingcloud8
     branch: stable/pike
     model: std-3cp
     triggers:
@@ -75,7 +75,8 @@
     disabled: true
     ardana_env: cloud-ardana-ci-slot
     cloudsource: GM8+up
-    update: 'test_updates=true'
+    update_after_deploy: true
+    update_to_cloudsource: GM8+testup
     branch: stable/pike
     model: std-3cp
     triggers:
