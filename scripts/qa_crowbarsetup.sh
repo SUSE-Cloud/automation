@@ -2560,7 +2560,7 @@ function custom_configuration
 
             if [ $networkingplugin = openvswitch ] ; then
                 if [[ $networkingmode = vxlan ]] || iscloudver 6plus; then
-                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vxlan','vlan']"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vxlan','vlan', 'gre']"
                     if [[ $want_dvr = 1 ]]; then
                         proposal_set_value neutron default "['attributes']['neutron']['use_dvr']" "true"
                         # Enable L2 population, because for mkcloud we enable all ml2_type_drivers
@@ -2568,8 +2568,10 @@ function custom_configuration
                         # DVR with GRE or VXLAN requires L2 population
                         proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "true"
                     fi
-                else
+                elif [[ $networkingmode = gre ]]; then
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vlan']"
+                else
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
                 fi
             elif [ "$networkingplugin" = "linuxbridge" ] ; then
                 if iscloudver 7plus; then

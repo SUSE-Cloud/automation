@@ -62,7 +62,7 @@ export want_node_aliases='controller=2,network=1,compute=2,nfsshare=1'
 # Set the networking plugin for neutron.
 export networkingplugin=openvswitch
 # Set the networking mode (vlan, vxlan, gre)
-export networkingmode=gre
+export networkingmode=vxlan
 export want_dvr=1
 #export host_mtu= # Set given MTU settings...
 
