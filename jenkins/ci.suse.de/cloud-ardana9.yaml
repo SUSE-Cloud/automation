@@ -67,7 +67,8 @@
     disabled: true
     ardana_env: cloud-ardana-ci-slot
     cloudsource: develcloud9
-    update: 'cloudsource=stagingcloud9'
+    update_after_deploy: true
+    update_to_cloudsource: stagingcloud9
     model: std-3cp
     triggers:
      - timed: 'H H * * *'
