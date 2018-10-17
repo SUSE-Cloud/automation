@@ -14,19 +14,38 @@
 # under the License.
 #
 ---
-- name: Find ansible files under "{{ lint_path }}"
-  command: >
-    find "{{ lint_path }}" -type f
-    -name _ardana-base*yml -or -name client*yml -or
-    -name *ceilometer*.yml -or -name *FND-AP2*.yml -or
-    -name *FND-CLU*.yml -or -name *glance*.yml -or
-    -name *heat*.yml -or -name *magnum*.yml -or
-    -name *monasca-transform*.yml -or -name *nova*.yml -or
-    -name *percona*.yml -or -name *rabbitmq*.yml -or
-    -name *spark*.yml -or -name *tls*.yml
-  register: _lint_files
-  #TODO: run on all yml files. The current file list is copied from
-  # ardana-dev-tools, and any other files are not yet expected to pass linting.
+- block:
+    - name: Create a temporary directory
+      command: mktemp -d
+      register: _temp_path
 
-- name: Run ansible-lint on the files found
-  command: "{{ lint_venv }}/bin/ansible-lint {{ lint_params }} {{ _lint_files.stdout }}"
+    - name: Make a copy of "{{ lint_path }}"
+      synchronize:
+        src: '{{ lint_path }}'
+        dest: '{{ _temp_path.stdout }}'
+      delegate_to: "{{ inventory_hostname }}"
+
+    - name: Find ansible files under "{{ _temp_path.stdout }}"
+      command: >
+        find "{{ _temp_path.stdout }}" -type f
+        -name _ardana-base*yml -or -name client*yml -or
+        -name *ceilometer*.yml -or -name *FND-AP2*.yml -or
+        -name *FND-CLU*.yml -or -name *glance*.yml -or
+        -name *heat*.yml -or -name *magnum*.yml -or
+        -name *monasca-transform*.yml -or -name *nova*.yml -or
+        -name *percona*.yml -or -name *rabbitmq*.yml -or
+        -name *spark*.yml -or -name *tls*.yml
+      register: _lint_files
+      #TODO: run on all yml files. The current file list is copied from
+      # ardana-dev-tools, and any other files are not yet expected to pass linting.
+      failed_when: len(_lint_files) == 0
+      # Fail if no files were found
+
+    - name: Run ansible-lint on the files found
+      command: "{{ lint_venv }}/bin/ansible-lint {{ lint_params }} {{ _lint_files.stdout }}"
+
+  always:
+    - name: Cleanup temporary copy
+      file:
+        path: "{{ _temp_path.stdout }}"
+        state: absent
