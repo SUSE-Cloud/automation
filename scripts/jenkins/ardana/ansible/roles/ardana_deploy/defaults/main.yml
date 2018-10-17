@@ -31,3 +31,4 @@ ardana_scratch_playbooks:
   - play: "ardana-cloud-configure.yml"
 
 lint_venv: "/tmp/ansible-lint"
+lint_params: '-p -x templating,resources,ANSIBLE0002 -r {{ lint_venv }}/lint-rules -r {{ lint_venv }}/lib/python2.7/site-packages/ansiblelint/rules'
