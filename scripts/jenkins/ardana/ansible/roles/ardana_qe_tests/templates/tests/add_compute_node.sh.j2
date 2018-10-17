@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Wrapper script to execute iverify
+# within the venv
+#
+# Usage: add_node.sh
+# eg: add_node.sh -t SLES-COMPUTE -c ardana-qe202-cp1-sles-comp0004-mgmtt -e nodeid=2M25280TT8 -e ipaddr=192.168.24.206 -e serverrole=SLES-COMPUTE-ROLE -e servergroup=RACK2 -e nicmap=MY-2PORT-DL160 -e macaddr=8c:dc:d4:02:59:e0 -e iloip=192.168.9.161 -e ilopassw=<pwd> -e ilouser=HLM202
+
+set -o pipefail
+
+
+WORK_HOME={{ ardana_qe_test_work_dir }}
+TYPE_OF_NODE={{type_of_node}}
+HOST_NAME={{host_name}}
+NODE_ID={{node_id}}
+IP_ADDR={{ip_addr}}
+SERVER_ROLE={{server_role}}
+SERVER_GROUP={{server_group}}
+NIC_MAP={{nic_map}}
+MAC_ADDR={{mac_addr}}
+ILO_IP={{ilo_ip}}
+ILO_PWD={{ilo_pwd}}
+ILO_USER={{ilo_user}}
+work_dir={{ ardana_qe_test_work_dir }}
+test_log="$work_dir/add_compute_node.log"
+subunit_log="$work_dir/add_compute_node.subunit"
+
+
+venv_dir={{ ardana_qe_test_venv }}
+source $venv_dir/bin/activate
+subunit_output="$venv_dir/bin/subunit-output"
+
+
+AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
+
+# Run the test
+{{ ardana_qe_tests_dir }}/ardana-qa-tests/operational/add_node.sh -t $TYPE_OF_NODE -c $HOST_NAME -e $NODE_ID -e $IP_ADDR -e $SERVER_ROLE -e $SERVER_GROUP -e $NIC_MAP -e $MAP_ADDR -e $ILO_IP -e ILO_PWD -e $ILO_USER -n $AUTO_ID | tee \
+  ${WORK_HOME}/add_compute_node.log
+
+res=$?
+success=1
+tesres=`grep -A 4 'successfully added' ${WORK_HOME}/add_compute_node.log| gawk '{print $2}'`
+echo $tesres >> ${WORK_HOME}/add_compute_node.log
+if [ "$tesres" == "$HOST_NAME" ]; then
+   success=1
+   echo "Add $HOST_NAME test PASS" >> ${WORK_HOME}/add_compute_node.log
+else 
+   success=0
+   echo "Add $HOST_NAME test FAIL" >> ${WORK_HOME}/add_compute_node.log
+fi
+
+echo $success
+if (( $success == 1 )); then
+    $subunit_output --success remove_compute_node >> $subunit_log
+else
+    $subunit_output --fail remove_compute_node >> $subunit_log
+fi
+exit $res
