@@ -143,7 +143,6 @@ pipeline {
           archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
         }
       }
-      cleanWs()
     }
     success{
       echo """
@@ -155,6 +154,9 @@ pipeline {
 ** Please delete the 'openstack-ardana-${ardana_env}' stack manually when you're done.
 ******************************************************************************
       """
+    }
+    cleanup {
+      cleanWs()
     }
   }
 }

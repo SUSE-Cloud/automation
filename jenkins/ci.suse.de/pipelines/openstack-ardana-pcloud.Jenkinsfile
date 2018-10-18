@@ -104,7 +104,6 @@ pipeline {
           archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
         }
       }
-      cleanWs()
     }
     success{
       echo """
@@ -115,6 +114,9 @@ pipeline {
 **
 ******************************************************************************
       """
+    }
+    cleanup {
+      cleanWs()
     }
   }
 }

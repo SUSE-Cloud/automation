@@ -361,7 +361,6 @@ pipeline {
           junit testResults: ".artifacts/*.xml", allowEmptyResults: true
         }
       }
-      cleanWs()
       script{
         if (env.DEPLOYER_IP != null) {
           if (cloud_type == "virtual") {
@@ -450,6 +449,9 @@ pipeline {
           automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 1
         fi
       '''
+    }
+    cleanup {
+      cleanWs()
     }
   }
 }
