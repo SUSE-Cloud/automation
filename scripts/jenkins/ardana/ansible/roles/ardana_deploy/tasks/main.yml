@@ -93,3 +93,14 @@
     - not (ansible_scratch_plays | default({})) is failed
   loop_control:
     label: "{{ item.play }}"
+
+- name: Get public vip
+  shell: grep  'public-KEY-API-extapi' /etc/hosts | awk {'print $1'}
+  register: public_vip
+
+- name: Update /etc/hosts
+  lineinfile:
+    dest=/etc/hosts
+    line="{{ public_vip.stdout }}    {{ external_name }}"
+  become: yes
+  when: external_name | default('') != ''
