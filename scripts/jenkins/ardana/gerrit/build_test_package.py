@@ -338,7 +338,13 @@ class OBSProject:
                 service_file.truncate()
             # Run the osc service and commit the changes to OBS
             sh.osc('rm', glob.glob('%s*.obscpio' % package.name))
-            sh.osc('service', 'disabledrun')
+            env = os.environ.copy()
+            # TODO use proper api, once available from:
+            # https://github.com/openSUSE/obs-service-tar_scm/issues/258
+            # Workaround to make obs_scm work with a local path.
+            # Otherwise it only works with remote URLs.
+            env['TAR_SCM_TESTMODE'] = '1'
+            sh.osc('service', 'disabledrun', _env=env)
             sh.osc('add', glob.glob('%s*.obscpio' % package.name))
             sh.osc('commit', '-m',
                    'Testing gerrit changes applied to %s'
