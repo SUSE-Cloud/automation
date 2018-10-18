@@ -52,6 +52,7 @@ template:
           pass_through: all
           paths:
             -  !ruby/regexp '/scripts\/jenkins\/ardana\//'
+            -  !ruby/regexp '/jenkins\/ci.suse.de\/pipelines\/openstack-ardana.*\.Jenkinsfile$/'
         whitelist_handler:
           - type: JenkinsJobTriggerArdana
             parameters:

@@ -74,13 +74,16 @@ module GithubPR
   end
 
   class JenkinsJobTriggerArdanaAction < JenkinsJobTriggerMkcloudAction
-    # Start by inheriting from JenkinsJobTriggerMkcloudAction to use its
-    # extra_parameters, but if we need to modify the extra_parameters then we
-    # should change to inherit JenkinsJobTriggerAction directly.
-    #
-    # github_pr is the string that lets openstack-mkcloud do the self gating, if
-    #   the ardana jobs are not adapted in the same way, we might need to set the correct
-    #   extra parameters here (overwrite the function)
+    # Inherit github_pr from MkcloudAction, but also set git_automation_repo
+    # and git_automation_branch used by openstack-ardana.
+    def extra_parameters(pull, build_mode = "")
+      para = super(pull, build_mode)
+      para.merge!({
+        "git_automation_repo" => "https://github.com/#{@metadata[:org_repo]}",
+        "git_automation_branch" => "#{pull.head.ref}"
+      })
+      para
+    end
   end
 
 end
