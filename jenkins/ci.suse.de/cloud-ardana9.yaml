@@ -78,7 +78,41 @@
 - project:
     name: cloud-ardana9-job-gerrit-x86_64
     ardana_gerrit_job: '{name}'
-    ardana_env: cloud-ardana-gerrit-slot
+    ardana_env: cloud-ardana-ci-slot
     model: demo
+    gerrit_change_ids: '4940'
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_gerrit_job}'
+
+- project:
+    name: openstack-ardana-gerrit-cloud9
+    ardana_gerrit_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    model: demo
+    gerrit_change_ids: '${{GERRIT_CHANGE_NUMBER}}'
+    triggers:
+      - gerrit:
+          server-name: 'gerrit.suse.provo.cloud'
+          trigger-on:
+            - patchset-created-event:
+                exclude-drafts: true
+                exclude-no-code-change: true
+            - draft-published-event
+            - comment-added-contains-event:
+                comment-contains-value: '^suse_recheck$'
+            - comment-added-contains-event:
+                comment-contains-value: '^recheck$'
+          override-votes: true
+          gerrit-build-successful-verified-value: 1
+          skip-vote:
+              notbuilt: true
+          projects:
+            - project-compare-type: 'REG_EXP'
+              project-pattern: !include-raw: gerrit-project-regexp.txt
+              branches:
+                - branch-compare-type: 'PLAIN'
+                  branch-pattern: 'master'
     jobs:
         - '{ardana_gerrit_job}'
