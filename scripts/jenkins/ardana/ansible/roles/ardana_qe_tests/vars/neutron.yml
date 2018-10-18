@@ -14,7 +14,8 @@
 # under the License.
 #
 ---
-
+# Adding longer timeout as neutron tests run in sequence.
+ardana_qe_test_timeout: 480
 ardana_qe_test_venv_requires:
   - 'pymysql'
   - 'python-subunit'
