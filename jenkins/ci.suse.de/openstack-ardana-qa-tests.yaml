@@ -121,6 +121,15 @@
             The Jenkins agent where this job must run. Used by upstream jobs to
             force a job to reuse the same node.
 
+      - choice:
+          name: type_of_compute
+          choices:
+            - SLES-COMPUTE
+            - RHEL-COMPUTE
+          description: >-
+            Type of Compute node to be removed for Operation Test
+
+
     pipeline-scm:
       scm:
         - git:
