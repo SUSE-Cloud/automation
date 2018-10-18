@@ -18,6 +18,9 @@ pipeline {
   stages {
 
     stage('validate commit message') {
+      when {
+        expression { env.GERRIT_CHANGE_COMMIT_MESSAGE != null }
+      }
       steps {
         script {
           currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_change_ids}"

@@ -5,31 +5,11 @@
     node: cloud-trigger
     disabled: '{obj:disabled|False}'
 
-    triggers:
-      - gerrit:
-          server-name: 'gerrit.suse.provo.cloud'
-          trigger-on:
-            - patchset-created-event:
-                exclude-drafts: true
-                exclude-no-code-change: true
-            - draft-published-event
-            - comment-added-contains-event:
-                comment-contains-value: '^suse_recheck$'
-            - comment-added-contains-event:
-                comment-contains-value: '^recheck$'
-          override-votes: true
-          gerrit-build-successful-verified-value: '{voting|1}'
-          skip-vote:
-              notbuilt: true
-          projects:
-            - project-compare-type: 'REG_EXP'
-              project-pattern: !include-raw: ../gerrit-project-regexp.txt
-              branches:
-                - branch-compare-type: 'PLAIN'
-                  branch-pattern: '{branch|master}'
     logrotate:
       numToKeep: -1
       daysToKeep: 14
+
+    triggers: '{triggers}'
 
     parameters:
 
@@ -64,7 +44,7 @@
 
       - string:
           name: gerrit_change_ids
-          default: '${{GERRIT_CHANGE_NUMBER}}'
+          default: '{gerrit_change_ids}'
           description: >-
             A comma separated list of IDs for changes in gerrit.suse.provo.cloud
             to test.
