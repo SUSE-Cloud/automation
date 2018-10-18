@@ -257,9 +257,9 @@
       - choice:
           name: networkingmode
           choices:
-            - gre
-            - vlan
             - vxlan
+            - vlan
+            - gre
 
       - string:
           name: want_dvr
