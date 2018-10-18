@@ -54,16 +54,22 @@
           default: github.com/$repo_owner/automation#$branch
           description: Mandatory, automation repo URL
 
-      - string:
+      - choice:
           name: networkingplugin
-          default: linuxbridge
           description: |
                networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
+          choices:
+            - openvswitch
+            - linuxbridge
 
-      - string:
+      - choice:
           name: networkingmode
-          default: vlan
-          description: networking mode to be used by Neutron. Available options are gre, vlan, vxlan
+          description: |
+               networking mode to be used by Neutron. Available options are gre, vlan, vxlan
+          choices:
+            - vxlan
+            - vlan
+            - gre
 
       - string:
           name: tempest
