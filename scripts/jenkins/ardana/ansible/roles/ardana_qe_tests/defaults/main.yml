@@ -15,7 +15,7 @@
 #
 ---
 
-ardana_qe_base_dir: "~/ardana-qe"
+ardana_qe_base_dir: "/var/lib/ardana/ardana-qe"
 ardana_qe_test_work_dir: "{{ ardana_qe_base_dir }}/{{ test_name }}"
 ardana_qe_tests_dir: "{{ ardana_qe_base_dir }}/ardana-qa-tests"
 ardana_qe_tests_git_repo: "http://git.suse.provo.cloud"
