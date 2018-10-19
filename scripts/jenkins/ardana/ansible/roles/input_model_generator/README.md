@@ -71,7 +71,6 @@ controllers: 3
 sles_computes: 3
 rhel_computes: 0
 swobj_devices: 3
-clm_model: standalone
 
 scenario:
   name: standard
@@ -84,14 +83,14 @@ scenario:
   use_cinder_volume_disk: False
   use_glance_cache_disk: False
 
-  service_template: "{{ 'standard-dac' if clm_model is defined and clm_model == 'integrated' else 'standard' }}"
+  service_template: standard
   network_template: standard
   disk_template: compact
   interface_template: standard
 
 ```
 
-The last section of this template shows how the scenario includes the `standard-dac` or `standard` service template,
+The last section of this template shows how the scenario includes the `standard` service template,
 the `standard` network template, the `compact` disk template and the `standard` interface template. The parameters
 defined at the beginning of the scenario template can be used to fine-tune various aspects of the input model, such
 as the number of controller and compute nodes, by overriding then with group variables, host variables, or by passing
@@ -128,6 +127,11 @@ The structure of the service template is a compacted version of that used for th
 The attributes that can be configured for a service group are a mixture of those that can be configured for the `clusters`,
 `resources` and `servers` input model configuration elements.
 
+The `CLM` service component group is special: it marks the service group designated as deployer and is conditionally
+listed twice in the service template: depending on the `clm_model` [global parameter](#global-parameters) value, only
+one `CLM` occurrence will be considered by the input model generator, while the other one will be ignored, which
+allows a single service template to be used to implement both integrated and standalone deployer scenarios.
+
 The following example taken from `roles/input_model_generator/vars/templates/service/standard.yml` defines the service
 template included by the `standard` scenario template:
 
@@ -137,7 +141,7 @@ service_groups:
     type: cluster
     prefix: c0
     heat_flavor_id: cloud-ardana-job-compute
-    member_count: 1
+    member_count: '{{ (clm_model == "standalone") | ternary(1, 0) }}'
     service_components:
       - CLM
   - name: controller
@@ -146,6 +150,7 @@ service_groups:
     heat_flavor_id: cloud-ardana-job-controller
     member_count: '{{ controllers|default(3) }}'
     service_components:
+      - '{{ (clm_model == "integrated") | ternary("CLM", '') }}'
       - CORE
       - LMM
       - DBMQ
@@ -181,7 +186,7 @@ service group
 * the `server-roles` elements: a server role is generated for every service group
 
 The virtual configuration consumed by the heat template generator, indicating which openstack image and flavor needs
-to be used for each server is also generated from the information present in the service template (note the
+to be used for each server is also generated from the optional information present in the service template (note the
 `heat_image_id` and `heat_flavor_id` attributes).
 
 ### Network templates
@@ -305,6 +310,9 @@ TBD
 The following optional parameters may be supplied as ansible external variables to control various
 aspects of the generated input model:
 
+* `clm_model` : can be used to switch between an integrated deployer scenario (the deployer node also hosts
+other services in addition to the lifecycle manager services) and a standalone deployer (the deployer node 
+only hosts the lifecycle manager services). May be set to either `standalone` (default) or `integrated`.
 * `designate_backend` : controls the designate backend configured for the input model. May be set to
 either `bind` (default) or `powerdns`.
 * `disabled_services` : can be used to selectively exclude service components or entire service component

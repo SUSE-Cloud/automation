@@ -24,13 +24,12 @@ neutron_nodes: 3
 sles_computes: 1
 rhel_computes: 0
 swobj_nodes: 3
-clm_model: standalone
 
 scenario:
   name: mid-scale
   cloud_name: mid-scale
   description: >
-    Multi-cluster scenario with all services enabled, standalone CLM node, dedicated
+    Multi-cluster scenario with all services enabled, {{ clm_model }} CLM node, dedicated
     clusters with {{ core_nodes }} core nodes, {{ dbmq_nodes }} database/rabbitmq nodes, {{ neutron_nodes }} neutron
     agent nodes, {{ swpac_nodes }} swift proxy/account/container nodes, {{ swobj_nodes }} swift object nodes,
     {{ lmm_nodes }} LMM nodes and with {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
@@ -39,7 +38,7 @@ scenario:
   use_cinder_volume_disk: True
   use_glance_cache_disk: False
 
-  service_template: "{{ 'full-spread-dac' if clm_model == 'integrated' else 'full-spread' }}"
+  service_template: full-spread
   network_template: full-spread
   disk_template: full-spread
   interface_template: full-spread

@@ -23,8 +23,9 @@
 {% else %}
 {% set drive_letters = 'abcdefghijklmnopqrstuvwxyz' %}
 {% for service_group in scenario['service_groups'] if service_group['member_count']|int %}
-{%   set ns = namespace(drive_idx=0) %}
-{%   set service_components = service_group['service_components'] | reject('match', disabled_services|ternary(disabled_services, '^$') | list %}
+{%   set ns = namespace(drive_idx=0, service_components=[]) %}
+{%   set ns.service_component_groups = service_group['service_components'] | reject('match', disabled_services|ternary(disabled_services, '^$')) | list %}
+{%   if ns.service_component_groups %}
   - name: {{ service_group.name|upper }}-DISKS
     volume-groups:
       - name: ardana-vg
@@ -62,11 +63,11 @@
 
         consumer:
            name: os
-{%   for service_component in service_components %}
-{%     if service_component == 'CORE' %}
+{%     for service_component_group in ns.service_component_groups %}
+{%       if service_component_group == 'CORE' %}
 
-{%       if scenario['use_cinder_volume_disk'] %}
-{%         set ns.drive_idx = ns.drive_idx+1 %}
+{%         if scenario['use_cinder_volume_disk'] %}
+{%           set ns.drive_idx = ns.drive_idx+1 %}
 
       # Cinder: cinder volume needs temporary local filesystem space to convert
       # images to raw when creating bootable volumes. Using a separate volume
@@ -84,9 +85,9 @@
            mount: /var/lib/cinder
            fstype: ext4
 
-{%       endif %}
-{%       if scenario['use_glance_cache_disk'] %}
-{%         set ns.drive_idx = ns.drive_idx+1 %}
+{%         endif %}
+{%         if scenario['use_glance_cache_disk'] %}
+{%           set ns.drive_idx = ns.drive_idx+1 %}
 
       #  Glance cache: if a logical volume with consumer usage 'glance-cache'
       #  is defined Glance caching will be enabled. The logical volume can be
@@ -104,10 +105,10 @@
              name: glance-api
              usage: glance-cache
 
-{%       endif %}
+{%         endif %}
 
-{%   elif service_component == 'COMPUTE' %}
-{%     set ns.drive_idx = ns.drive_idx+1 %}
+{%       elif service_component_group == 'COMPUTE' %}
+{%         set ns.drive_idx = ns.drive_idx+1 %}
 
       - name: vg-comp
         # this VG is dedicated to Nova Compute to keep VM IOPS off the OS disk
@@ -120,8 +121,8 @@
             fstype: ext4
             mkfs-opts: -O large_file
 
-{%     elif service_component == 'DBMQ' %}
-{%       set ns.drive_idx = ns.drive_idx+1 %}
+{%       elif service_component_group == 'DBMQ' %}
+{%         set ns.drive_idx = ns.drive_idx+1 %}
 
       - name: ardana-dbmq
         physical-volumes:
@@ -151,8 +152,8 @@
               name: rabbitmq
               rabbitmq_env: home
 
-{%     elif service_component == 'LMM' %}
-{%       set ns.drive_idx = ns.drive_idx+1 %}
+{%       elif service_component_group == 'LMM' %}
+{%         set ns.drive_idx = ns.drive_idx+1 %}
 
       - name: ardana-lmm
         physical-volumes:
@@ -201,14 +202,14 @@
             size: 5%
             mount: /var/lib/zookeeper
             fstype: ext4
-{%     endif %}
-{%   endfor %}
+{%       endif %}
+{%     endfor %}
 
-{%  if service_components | intersect(['SWPAC', 'SWOBJ', 'CORE']) %}
+{%     if ns.service_component_groups | intersect(['SWPAC', 'SWOBJ', 'CORE']) %}
     device-groups:
-{%   for service_component in service_components %}
-{%     if service_component == 'SWPAC' %}
-{%       set ns.drive_idx = ns.drive_idx+1 %}
+{%       for service_component_group in ns.service_component_groups %}
+{%         if service_component_group == 'SWPAC' %}
+{%           set ns.drive_idx = ns.drive_idx+1 %}
 
       # Additional disk group defined for Swift
       # If available, you can add additional disks to the "devices" list.
@@ -222,8 +223,8 @@
             rings:
               - account
               - container
-{%     elif service_component == 'SWOBJ' %}
-{%       set ns.drive_idx = ns.drive_idx+1 %}
+{%         elif service_component_group == 'SWOBJ' %}
+{%           set ns.drive_idx = ns.drive_idx+1 %}
 
       # Additional disk group defined for Swift
       # If available, you can add additional disks to the "devices" list.
@@ -236,17 +237,17 @@
           attrs:
             rings:
               - object-0
-{%     elif service_component == 'CORE' %}
-{%       set ns.drive_idx = ns.drive_idx+1 %}
+{%         elif service_component_group == 'CORE' %}
+{%           set ns.drive_idx = ns.drive_idx+1 %}
 
       - name: cinder-volume
         devices:
           - name: /dev/sd{{ drive_letters[ns.drive_idx] }}
         consumer:
           name: cinder
+{%         endif %}
+{%       endfor %}
 {%     endif %}
-{%   endfor %}
-{% endif %}
-
+{%   endif %}
 {% endfor %}
 {% endif %}

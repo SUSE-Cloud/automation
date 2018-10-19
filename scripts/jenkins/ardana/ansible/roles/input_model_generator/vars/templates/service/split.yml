@@ -34,7 +34,7 @@ service_groups:
     type: cluster
     prefix: clm
     heat_flavor_id: cloud-ardana-job-compute
-    member_count: 1
+    member_count: '{{ (clm_model == "standalone") | ternary(1, 0) }}'
     service_components:
       - CLM
   - name: core
@@ -43,6 +43,7 @@ service_groups:
     heat_flavor_id: cloud-ardana-job-controller
     member_count: '{{ core_nodes|default(2) }}'
     service_components:
+      - '{{ (clm_model == "integrated") | ternary("CLM", '') }}'
       - CORE
       - SWPAC
       - NEUTRON
@@ -73,7 +74,6 @@ service_groups:
     type: resource
     prefix: rhel-comp
     distro_id: rhel73-x86_64
-    heat_image_id: centos73
     heat_flavor_id: cloud-ardana-job-compute
     member_count: '{{ rhel_computes|default(1) }}'
     min_count: 0
