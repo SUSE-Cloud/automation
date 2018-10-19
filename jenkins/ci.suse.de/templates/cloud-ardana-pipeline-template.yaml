@@ -270,6 +270,12 @@
           description: >-
             The git automation branch
 
+      - string:
+          name: external_name
+          default: ''
+          description: >-
+            Configurable external name for your public endpoints
+
     pipeline-scm:
       scm:
         - git:
