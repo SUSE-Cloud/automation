@@ -924,7 +924,7 @@ function onadmin_set_source_variables
             # TODO: Switch to clouddata when released
             CLOUDISOURL="${want_cloud8_iso_url:=$reposerver/install/SLE-12-SP3-Cloud8-$cs/}"
             CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-8-${arch}*1.iso"}
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-official"
         ;;
         GMC*|M?|RC?)
             cs=$cloudsource
