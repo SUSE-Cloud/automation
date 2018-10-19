@@ -19,5 +19,4 @@ ${STESTR} init
 ${STESTR} run -t ./ --no-discover validate_tls_testsuite.py --concurrency=1 | tee {{ ardana_qe_test_log }}
 res=$?
 ${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
-
 exit $res
