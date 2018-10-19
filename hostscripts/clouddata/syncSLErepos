@@ -249,7 +249,7 @@ done
 # Storage
 ##############
 
-for version in 5 4 2.1; do
+for version in 6 5 4 2.1; do
 
     for arch in $archs; do
         [ "$arch" != x86_64 -a $version = 2.1 ] && continue
@@ -257,10 +257,10 @@ for version in 5 4 2.1; do
 
         echo ================== Updating Storage $version
 
-        # sync version 5 from ibs while in development
+        # sync version 6 from ibs while in development
         poolsource=
-        if [[ $version == 5 ]]; then
-            poolsource=${ibs_source}/SUSE\:/SLE-12-SP3\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
+        if [[ $version == 6 ]]; then
+            poolsource=${ibs_source}/SUSE\:/SLE-15\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
         else
             poolsource=${ibs_source}/SUSE/Products/Storage/$version/$arch/product/
         fi
