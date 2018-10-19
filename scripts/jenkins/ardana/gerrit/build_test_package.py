@@ -19,7 +19,7 @@ import sh
 
 sys.path.append(os.path.dirname(__file__))
 from gerrit_settings import gerrit_project_map, obs_project_settings  # noqa: E402
-from gerrit import GerritChange  # noqa: E402
+from gerrit import GERRIT_URL, GerritChange  # noqa: E402
 
 
 @contextlib.contextmanager
@@ -162,6 +162,20 @@ class OBSProject:
          - Grab the local source
          - Commit the package to be built into the project
         """
+
+        obsinfo = sh.osc(
+            '-A', 'https://api.suse.de',
+            'cat',
+            self.obs_linked_project,
+            package.name,
+            '%s.obsinfo' % package.name)
+        matches = re.findall('^commit: (\S+)$', str(obsinfo), re.MULTILINE)
+        commitid = sh.git(
+            '-C', package.source_dir,
+            'rev-list', '-n', '1', 'HEAD')
+        if len(matches) == 1 and matches[0] == commitid:
+            print("Skipping %s as the inherited package is the same.")
+            return
 
         print("Creating test package %s" % package.name)
 
@@ -337,6 +351,13 @@ def build_test_packages(change_ids, obs_linked_project, home_project,
 
             # Merge the change into the package
             packages[c.gerrit_project].add_change(c)
+
+    for project_name, package in gerrit_project_map().items():
+        if project_name in packages:
+            continue
+        url = GERRIT_URL + "/ardana/" + project_name
+        packages[project_name] = OBSPackage(
+            project_name, url, branch, source_workspace)
 
     # Add the packages into the obs project and begin building them
     for project_name, package in packages.items():
