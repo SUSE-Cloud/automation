@@ -98,7 +98,7 @@
           trigger-on:
             - patchset-created-event:
                 exclude-drafts: true
-                exclude-no-code-change: true
+                exclude-no-code-change: false
             - draft-published-event
             - comment-added-contains-event:
                 comment-contains-value: '^suse_recheck$'
