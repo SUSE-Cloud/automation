@@ -136,6 +136,11 @@
           description: Number of RHEL compute nodes
 
       - string:
+          name: disabled_services
+          default: ''
+          description: Regex matching service components and component groups to disable in the generated input model
+
+      - string:
           name: virt_config_name
           default: ''
           description: >-

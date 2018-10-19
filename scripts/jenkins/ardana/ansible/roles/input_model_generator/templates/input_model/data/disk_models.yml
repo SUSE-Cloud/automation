@@ -24,6 +24,7 @@
 {% set drive_letters = 'abcdefghijklmnopqrstuvwxyz' %}
 {% for service_group in scenario['service_groups'] if service_group['member_count']|int %}
 {%   set ns = namespace(drive_idx=0) %}
+{%   set service_components = service_group['service_components'] | reject('match', disabled_services|ternary(disabled_services, '^$') | list %}
   - name: {{ service_group.name|upper }}-DISKS
     volume-groups:
       - name: ardana-vg
@@ -61,7 +62,7 @@
 
         consumer:
            name: os
-{%   for service_component in service_group['service_components'] %}
+{%   for service_component in service_components %}
 {%     if service_component == 'CORE' %}
 
 {%       if scenario['use_cinder_volume_disk'] %}
@@ -203,11 +204,9 @@
 {%     endif %}
 {%   endfor %}
 
-{%  if 'SWPAC' in service_group.service_components or
-       'SWOBJ' in service_group.service_components or
-       'CORE'  in service_group.service_components %}
+{%  if service_components | intersect(['SWPAC', 'SWOBJ', 'CORE']) %}
     device-groups:
-{%   for service_component in service_group['service_components'] %}
+{%   for service_component in service_components %}
 {%     if service_component == 'SWPAC' %}
 {%       set ns.drive_idx = ns.drive_idx+1 %}
 

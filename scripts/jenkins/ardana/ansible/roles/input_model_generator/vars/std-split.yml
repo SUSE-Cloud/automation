@@ -30,7 +30,6 @@ scenario:
     Standard split scenario with all services enabled, standalone CLM node, {{ core_nodes }} OpenStack core nodes,
     {{ dbmq_nodes }} database nodes, {{ lmm_nodes }} LMM nodes, {{ sles_computes }} SLES compute nodes and
     {{ rhel_computes }} RHEL compute nodes.
-  mml_enabled: True
   audit_enabled: False
   ses_enabled: False
   use_cinder_volume_disk: False

@@ -79,7 +79,6 @@ scenario:
   description: >
     Standard scenario with all services enabled, {{ clm_model }} CLM node, {{ controllers }} controller nodes,
     {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
-  mml_enabled: True
   audit_enabled: False
   ses_enabled: False
   use_cinder_volume_disk: False
@@ -308,6 +307,10 @@ aspects of the generated input model:
 
 * `designate_backend` : controls the designate backend configured for the input model. May be set to
 either `bind` (default) or `powerdns`.
+* `disabled_services` : can be used to selectively exclude service components or entire service component
+groups from the generated input model. Accepts a regular expression as value (e.g. `freezer.*|logging.*`),
+which is used to filter out matching service components and service component groups.
+
 
 # Limitations
 

@@ -30,44 +30,43 @@
         - OCTAVIA-CONFIG-CP1
         - NEUTRON-CONFIG-CP1
       common-service-components:
-        - lifecycle-manager-target
-        - stunnel
-{% if scenario['mml_enabled'] %}
-        - freezer-agent
-        - monasca-agent
-        - logging-rotate
-        - logging-producer
-{% endif %}
+{% set common_service_components = service_component_groups.COMMON | reject('match', disabled_services|ternary(disabled_services, '^$')) | list %}
+{% for service_component in common_service_components|unique|sort %}
+        - {{ service_component }}
+{% endfor %}
 
 {% for service_group_type in ['cluster', 'resource'] %}
       {{ service_group_type }}s:
 {%   for service_group in scenario['service_groups'] if service_group.type == service_group_type and service_group['member_count']|int %}
 {%     set ns = namespace(service_components=[]) %}
-{%     for service_component_group in service_group['service_components'] %}
+{%     for service_component_group in service_group['service_components'] | reject('match', disabled_services|ternary(disabled_services, '^$') | list %}
 {%       if service_component_group in service_component_groups %}
 {%         set ns.service_components = ns.service_components+service_component_groups[service_component_group] %}
 {%       else %}
 {%         set ns.service_components = ns.service_components+[service_component_group] %}
 {%       endif %}
 {%     endfor %}
-{%     if 'ntp-server' not in ns.service_components %}
-{%       set ns.service_components = ns.service_components+['ntp-client'] %}
-{%     endif %}
+{%     set ns.service_components = ns.service_components | reject('match', disabled_services|ternary(disabled_services, '^$')) | list %}
+{%     if ns.service_components %}
+{%       if 'ntp-server' not in ns.service_components %}
+{%         set ns.service_components = ns.service_components+['ntp-client'] %}
+{%       endif %}
 
         - name: {{ service_group.name }}
           {{ service_group_type }}-prefix: {{ service_group.prefix }}
           server-role: {{ service_group.name|upper }}-ROLE
-{%     if service_group_type == 'cluster' %}
+{%       if service_group_type == 'cluster' %}
           member-count: {{ service_group['member_count']|int }}
           allocation-policy: strict
-{%     else %}
+{%       else %}
           min-count: {{ service_group['min_count'] }}
           allocation-policy: any
-{%     endif %}
+{%       endif %}
           service-components:
-{%     for service_component in ns.service_components|unique|sort %}
+{%       for service_component in ns.service_components|unique|sort %}
             - {{ service_component }}
-{%     endfor %}
+{%       endfor %}
+{%     endif %}
 {%   endfor %}
 
 {% endfor %}

@@ -34,7 +34,6 @@ scenario:
     clusters with {{ core_nodes }} core nodes, {{ dbmq_nodes }} database/rabbitmq nodes, {{ neutron_nodes }} neutron
     agent nodes, {{ swpac_nodes }} swift proxy/account/container nodes, {{ swobj_nodes }} swift object nodes,
     {{ lmm_nodes }} LMM nodes and with {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
-  mml_enabled: True
   audit_enabled: False
   ses_enabled: False
   use_cinder_volume_disk: True

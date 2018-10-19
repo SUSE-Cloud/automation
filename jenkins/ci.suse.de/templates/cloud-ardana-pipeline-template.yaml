@@ -187,6 +187,11 @@
           default: '0'
           description: Number of RHEL compute nodes
 
+      - string:
+          name: disabled_services
+          default: ''
+          description: Regex matching service components and component groups to disable in the generated input model
+
       - bool:
           name: ses_enabled
           default: false
