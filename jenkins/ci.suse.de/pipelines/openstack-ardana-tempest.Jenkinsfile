@@ -82,6 +82,8 @@ pipeline {
           junit testResults: ".artifacts/*.xml", allowEmptyResults: true
         }
       }
+    }
+    cleanup {
       cleanWs()
     }
   }

@@ -92,6 +92,8 @@ pipeline {
           archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
         }
       }
+    }
+    cleanup {
       cleanWs()
     }
   }
