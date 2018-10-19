@@ -145,6 +145,7 @@ class GerritChange:
 
     def _load_change_object(self):
         self.change_id = self._change_object['change_id']
+        self.change_number = self._change_object['_number']
         self.gerrit_project = self._change_object['project'].split('/')[1]
         self.status = self._change_object['status']
         current_revision = self._change_object['current_revision']
@@ -443,11 +444,18 @@ def build_test_packages(change_ids, obs_linked_project, home_project,
             # Duplicate dependency, skipping..
             continue
         c = GerritChange(id, try_branches)
+        # id might not have been in canonical form
+        if c.id in processed_changes:
+            processed_changes.append(id)
+            # Duplicate dependency, skipping..
+            continue
+        processed_changes.append(id)
+        processed_changes.append(c.id)
+
         if c.target not in try_branches:
             # Save the branch as a hint to disambiguate cross-repo
             # dependencies.
             try_branches.insert(0, c.target)
-        processed_changes.append(c.id)
 
         # skip packages that don't have asssociated RPMs
         if c.gerrit_project not in gerrit_project_map():
