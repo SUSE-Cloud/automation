@@ -21,6 +21,7 @@
 - include_tasks: read_osrc.yml
 
 - include_tasks: read_group_vars.yml
+  when: ardana_read_group_vars
 
 - include_tasks: qe_test_requires.yml
 
@@ -48,11 +49,20 @@
         os_resource_state: "absent"
       when: os_resources_requires | length
 
+    - name: Remember which packages need to be uninstalled
+      set_fact:
+        qe_tests_requires: "{{ qe_tests_requires | default([]) + item.name }}"
+      when: item.changed
+      loop: "{{ qe_tests_requires_state.results }}"
+      loop_control:
+        label: "{{ item.name }}"
+
       # NOTE: Removing SLE-SDK repos and packages required for ardana-qe-tests
       # as they were affecting maintenance updates
     - include_tasks: qe_test_requires.yml
       vars:
         ardana_qe_tests_requires_state: "absent"
+        ardana_qe_tests_requires: "{{ qe_tests_requires | default([]) }}"
 
     - name: Fail if any '{{ test_name }}' test has failed
       fail:

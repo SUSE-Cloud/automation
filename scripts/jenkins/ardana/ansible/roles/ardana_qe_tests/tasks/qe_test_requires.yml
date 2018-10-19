@@ -32,3 +32,4 @@
     state: "{{ ardana_qe_tests_requires_state }}"
   loop: "{{ ardana_qe_tests_requires }}"
   become: yes
+  register: qe_tests_requires_state

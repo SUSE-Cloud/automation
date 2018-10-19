@@ -1,0 +1,8 @@
+---
+keystone_soapui_code_folder: "{{ ardana_qe_tests_dir }}/ardana-qa-tests/keystone/testcase/functional/SoapUI"
+
+ardana_qe_test_get_failed_cmd: "cat {{ ardana_qe_test_log }} | grep websso_failed | wc -l"
+
+ardana_qe_test_venv_requires:
+  - 'python-subunit'
+ardana_read_group_vars: True

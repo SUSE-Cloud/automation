@@ -67,3 +67,4 @@ os_resource_test_auth:
 subunit2junit_venv: "~/subunit2junit"
 subunit_html_results: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.html"
 subunit_xml_results: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.xml"
+ardana_read_group_vars: False

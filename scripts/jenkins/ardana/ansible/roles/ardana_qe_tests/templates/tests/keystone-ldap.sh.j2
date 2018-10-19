@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+set -eux
+set -o pipefail
+
+function write_subunit
+{
+    rm {{ ardana_qe_test_work_dir }}/keystone-$1.subunit
+    IFS=$'\n'
+    for test in $(cat {{ keystone_soapui_code_folder }}/TestSuite_ldap_$1.sh_console_output  \
+    | grep 'Finished running SoapUI testcase' | grep -v FAILED | awk -F[ '{print $3}' | awk -F] '{print $1}' | awk NF)
+    do
+        {{ ardana_qe_test_venv }}/bin/subunit-output --success v3IdentityServiceAPI-Ardana-PerDomainLDAP-$1_$test >> {{ ardana_qe_test_work_dir }}/keystone-$1.subunit
+    done
+    for test in $(cat {{ keystone_soapui_code_folder }}/TestSuite_ldap_$1.sh_console_output \
+    | grep 'Finished running SoapUI testcase' | grep FAILED | awk -F[ '{print $3}' | awk -F] '{print $1}' | awk NF)
+    do
+        {{ ardana_qe_test_venv }}/bin/subunit-output --fail v3IdentityServiceAPI-Ardana-PerDomainLDAP-$1_$test >> {{ ardana_qe_test_work_dir }}/keystone-$1.subunit
+    done
+}
+
+source /var/lib/ardana/keystone.osrc
+NOAUTH_KSADMINTOKEN=`openstack token issue -f value -c id`
+
+cd {{ ardana_qe_test_work_dir }}
+if [ ! -f {{ ardana_qe_test_work_dir}}/SoapUI-4.6.4-linux-bin.tar.gz ]; then
+    wget http://10.84.144.252/downloads/SoapUI-4.6.4-linux-bin.tar.gz
+    tar -zxvf SoapUI-4.6.4-linux-bin.tar.gz
+fi
+
+cat > {{ keystone_soapui_code_folder }}/test_resources.sh <<EOF
+KSENDPOINT={{ ardana_group_vars_key_api.keystone_endpoint }}
+KSADMINENDPOINT={{ ardana_group_vars_key_api.keystone_admin_endpoint }}
+MONENDPOINT={{ ardana_group_vars_mon_api.monasca_endpoint }}
+ADMINPASSWORD={{ ardana_group_vars_key_api.keystone_admin_password }}
+KSENDPOINTPORT={{ ardana_group_vars_key_api.keystone_endpoint_port }}
+KSADMINENDPOINTPORT={{ ardana_group_vars_key_api.keystone_admin_endpoint_port }}
+MONENDPOINTPORT={{ ardana_group_vars_mon_api.monasca_port }}
+NOAUTH_KSADMINTOKEN=${NOAUTH_KSADMINTOKEN}
+HostNameForStopStartApache={{ ardana_group_vars_key_api_fnd_clu.keystone_node1 }}
+observer_host1={{ ardana_group_vars_key_api_fnd_clu.keystone_node1 }}
+observer_host2={{ ardana_group_vars_key_api_fnd_clu.keystone_node2 }}
+observer_host3={{ ardana_group_vars_key_api_fnd_clu.keystone_node3 }}
+SoapuiSettings={{ SoapuiSettings }}
+monasca_user={{ ardana_group_vars_mon_api.monasca_user }}
+monasca_password={{ ardana_group_vars_mon_api.monasca_password }}
+mrtmon_cluster1={{ ardana_group_vars_mon_api_fnd_clu.monasca_node1 }}
+mrtmon_cluster2={{ ardana_group_vars_mon_api_fnd_clu.monasca_node2 }}
+mrtmon_cluster3={{ ardana_group_vars_mon_api_fnd_clu.monasca_node3 }}
+InstallFolder={{ ardana_qe_test_work_dir }}
+TestFolder={{ keystone_soapui_code_folder }}
+EOF
+
+cd {{ keystone_soapui_code_folder }}
+
+
+#cleanup files from last run if any
+set +e
+rm *ldap*_console_output
+
+# configure ldap domains
+bash {{ keystone_soapui_code_folder }}/TestSuite_configure_ldap.sh
+
+# run api tests against the AD domain
+bash {{ keystone_soapui_code_folder }}/TestSuite_ldap_ad.sh
+
+write_subunit 'ad'
+
+cat {{ ardana_qe_test_work_dir }}/keystone-ad.subunit > {{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit
+
+# run api tests against the openldap domain
+bash {{ keystone_soapui_code_folder }}/TestSuite_ldap_openldap.sh
+
+write_subunit 'openldap'
+
+cat {{ ardana_qe_test_work_dir }}/keystone-openldap.subunit >> {{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit
+
+cat {{ keystone_soapui_code_folder }}/*_ldap_*.sh_console_output > {{ ardana_qe_test_log }}

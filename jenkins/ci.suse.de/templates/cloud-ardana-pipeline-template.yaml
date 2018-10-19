@@ -185,7 +185,8 @@
             iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,
             heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,
             nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
-            barbican-functional,horizon,horizon_integration-tests,freezer,keystone-soapui,
+            barbican-functional,horizon,horizon_integration-tests,freezer,
+            keystone-api,keystone-ldap,keystone-k2k-config,keystone-websso-config,keystone-x509-config,
             remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks
           description: >-
             Select QA tests to run. Use an empty value to skip running QA tests.
