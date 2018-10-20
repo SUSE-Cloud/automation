@@ -26,5 +26,7 @@
 - name: Get ceph keyring file contents
   slurp:
     src: "/etc/ceph/ceph.{{ item.name }}.keyring"
-  loop: "{{ ses_openstack_keys }}"
   register: ceph_files
+  loop: "{{ ses_openstack_keys }}"
+  loop_control:
+    label: "{{ item.name }}"

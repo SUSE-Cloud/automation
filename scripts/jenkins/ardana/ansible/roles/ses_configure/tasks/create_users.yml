@@ -23,20 +23,23 @@
       --cap mgr "{{ item.mgr_cap|default('') }}"
   args:
     creates: "/etc/ceph/ceph.{{ item.name }}.keyring"
-  with_items: "{{ ses_openstack_keys }}"
-  changed_when: false
+  loop: "{{ ses_openstack_keys }}"
+  loop_control:
+    label: "{{ item.name }}"
 
 - name: Check if openstack key(s) already exist(s)
   command: "ceph auth get {{ item.name }}"
   changed_when: false
   failed_when: false
-  with_items: "{{ ses_openstack_keys }}"
+  loop: "{{ ses_openstack_keys }}"
+  loop_control:
+    label: "{{ item.name }}"
   register: openstack_key_exist
 
 - name: Add openstack key(s) to ceph
   command: "ceph auth import -i /etc/ceph/ceph.{{ item.0.name }}.keyring"
   changed_when: false
-  with_together:
-    - "{{ ses_openstack_keys }}"
-    - "{{ openstack_key_exist.results }}"
   when: item.1.rc != 0
+  loop: "{{ ses_openstack_keys | zip(openstack_key_exist.results) | list }}"
+  loop_control:
+    label: "{{ item.0.name }}"
