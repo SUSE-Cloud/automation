@@ -78,7 +78,7 @@
 - project:
     name: cloud-ardana9-job-gerrit-x86_64
     ardana_gerrit_job: '{name}'
-    ardana_env: cloud-ardana-gerrit-slot
+    ardana_env: cloud-ardana-ci-slot
     model: demo
     gerrit_change_ids: '4940'
     triggers:
@@ -89,7 +89,7 @@
 - project:
     name: openstack-ardana-gerrit-cloud9
     ardana_gerrit_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    ardana_env: cloud-ardana-gerrit-slot
     model: demo
     gerrit_change_ids: '${{GERRIT_CHANGE_NUMBER}}'
     triggers:
