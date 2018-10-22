@@ -150,6 +150,14 @@
             - state: touch
               path: "/etc/openstack/skip_disk_config"
           when: not want_lvm
+
+        - name: Add CentOS repository
+          yum_repository:
+            name: CentOS-Base
+            description: "CentOS Base Repository"
+            gpgcheck: no
+            baseurl: "http://{{ hostvars['localhost'].admin_mgmt_ip }}:79/ardana/rhel7/yum/OS"
+          when: ansible_distribution == 'CentOS'
       rescue:
         - include_role:
             name: rocketchat_notify

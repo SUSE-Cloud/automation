@@ -41,7 +41,7 @@ sles_images:
   cloud8: cleanvm-jeos-SLE12SP3
   cloud9: cleanvm-jeos-SLE12SP4
 sles_image: "{{ sles_images[cloud_release] }}"
-rhel_image: centos73
+rhel_image: centos75
 disk_size: 30
 
 images:
@@ -50,11 +50,11 @@ images:
   STD-COMPUTE-ROLE:
       sles12sp3-x86_64: '{{ sles_images["cloud8"] }}'
       sles12sp4-x86_64: '{{ sles_images["cloud9"] }}'
-      rhel73-x86_64: '{{ rhel_image }}'
+      rhel75-x86_64: '{{ rhel_image }}'
   COMPUTE-ROLE:
       sles12sp3-x86_64: '{{ sles_images["cloud8"] }}'
       sles12sp4-x86_64: '{{ sles_images["cloud9"] }}'
-      rhel73-x86_64: '{{ rhel_image }}'
+      rhel75-x86_64: '{{ rhel_image }}'
 
 flavors:
   CONTROLLER-ROLE: '{{ controller_flavor }}'
@@ -66,4 +66,3 @@ disks:
   CONTROLLER-DISKS:
     default: 10 # swift-object (vdc-vdf)
     vdb: 20 # cinder-volume
-

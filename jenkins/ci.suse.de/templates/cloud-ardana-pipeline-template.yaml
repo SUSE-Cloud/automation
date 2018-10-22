@@ -260,7 +260,7 @@
 
       - validating-string:
           name: rhel_computes
-          default: '0'
+          default: '{rhel_computes|0}'
           regex: '[0-9]+'
           msg: The entered value failed validation
           description: |

@@ -21,18 +21,18 @@ heat_resource_name_prefix: "openstack-ardana-{{ ardana_env }}"
 virt_artifacts:
   cloud8:
     sles_distro_id: sles12sp3-x86_64
-    rhel_distro_id: rhel73-x86_64
+    rhel_distro_id: rhel75-x86_64
     sles_image: "{{ vcloud_image_name_prefix }}-SLE12SP3"
-    rhel_image: centos73
+    rhel_image: centos75
     clm_flavor: cloud-ardana-job-compute
     controller_flavor: cloud-ardana-job-controller
     compute_flavor: cloud-ardana-job-compute
     disk_size: 20
   cloud9:
     sles_distro_id: sles12sp4-x86_64
-    rhel_distro_id: rhel73-x86_64
+    rhel_distro_id: rhel75-x86_64
     sles_image: "{{ vcloud_image_name_prefix }}-SLE12SP4"
-    rhel_image: centos73
+    rhel_image: centos75
     clm_flavor: cloud-ardana-job-compute
     controller_flavor: cloud-ardana-job-controller
     compute_flavor: cloud-ardana-job-compute

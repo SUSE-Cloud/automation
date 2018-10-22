@@ -28,7 +28,7 @@
   register: ardana_sles_nodes
 
 - name: Get list of RHEL nodes to reimage
-  shell: 'cobbler profile list | grep "rhel73-x86_64-" | cut -d"-" -f3'
+  shell: 'cobbler profile list | grep "rhel75-x86_64-" | cut -d"-" -f3'
   become: yes
   register: ardana_rhel_nodes
 

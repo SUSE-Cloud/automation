@@ -44,7 +44,7 @@ c8setup_mode_detection_paths:
 centos_repo_setup_name: centos_c8_ardana
 #centos_repo_setup_url: "http://ibs-mirror.prv.suse.net/ibs/Devel:/Cloud:/8:/RHEL_Pike/CentOS_7"
 #centos_repo_setup_url: "http://10.84.2.50/ibs/Devel:/Cloud:/8:/RHEL_Pike/CentOS_7"
-centos_repo_setup_url: https://download.opensuse.org/repositories/systemsmanagement:/Ardana:/8:/CentOS/CentOS_7.3/
+centos_repo_setup_url: https://download.opensuse.org/repositories/systemsmanagement:/Ardana:/8:/CentOS:/7.5/CentOS_7.5/
 
 centos_all_rpms_dir: all_rpms
 centos_repo_tarball_name: centos_rpms_repo.tgz
@@ -69,6 +69,7 @@ rhel_venv_rpms_list:
 # are hosted on deployer and accordingly repo is configured on RHEL compute.
 rhel_repo_rpms_list:
   - ca-certificates-mozilla
+  - python-asn1crypto
   - python-Babel
   - python-PyJWT
   - python-appdirs
@@ -88,7 +89,7 @@ rhel_repo_rpms_list:
   - python-keystoneauth1
   - python-keystoneclient
   - python-monotonic
-  - python-msgpack-  - python
+  - python-msgpack-python
   - python-netaddr
   - python-netifaces
   - python-oauthlib
@@ -110,9 +111,7 @@ rhel_repo_rpms_list:
   - python-stevedore
   - python-urllib3
   - python-wrapt
-  - python2-cryptography
-  - python2-pyasn1
-  - python-msgpack-python
+  - python-cryptography
   - python-base
   - python-Beaver
   - python-pyparsing
