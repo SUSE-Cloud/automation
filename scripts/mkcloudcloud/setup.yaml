@@ -36,8 +36,12 @@ resources:
         properties:
           network_id: { get_resource: private_net }
           cidr: 192.168.120.0/24
+          allocation_pools:
+            - start: 192.168.120.2
+              end:   192.168.120.19
           dns_nameservers:
             - 147.2.2.2
+            - 10.84.2.20
 
   mkcc_router:
         type: OS::Neutron::Router

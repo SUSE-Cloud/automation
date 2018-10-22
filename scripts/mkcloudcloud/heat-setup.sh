@@ -1,7 +1,8 @@
-#!/bin/sh
+#!/bin/sh -e
 
 if [ -z "$namespace" -o -z "$openstacksshkey" ] ; then
     echo "usage: namespace=$USER openstacksshkey=xxx $0"
+    exit 21
 fi
 
 stackname=mkcc-$namespace
@@ -10,4 +11,4 @@ openstack stack output show -f value -c output_value $stackname floating_ip
 
 # TODO
 
-openstack stack delete -y --wait $stackname
+#openstack stack delete -y --wait $stackname
