@@ -1027,7 +1027,8 @@ EOF
         add_suse_storage_repo
     fi
 
-    ensure_packages_installed rsync netcat wget nfs-client
+    ensure_packages_installed rsync netcat wget nfs-client \
+        curl iputils
 
     # setup cloud repos for tftpboot and zypper
     onadmin_prepare_cloud_repos
