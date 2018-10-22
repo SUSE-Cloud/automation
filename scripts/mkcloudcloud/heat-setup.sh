@@ -7,8 +7,6 @@ fi
 
 stackname=mkcc-$namespace
 openstack stack create --wait -t setup.yaml --parameter key_name=$openstacksshkey --parameter namespace=$namespace $stackname
-openstack stack output show -f value -c output_value $stackname floating_ip
+openstack stack output show -f value -c output_value $stackname floating_ip | tee .admin_ip
 
-# TODO
-
-#openstack stack delete -y --wait $stackname
+echo be sure to clean up later: openstack stack delete -y --wait $stackname
