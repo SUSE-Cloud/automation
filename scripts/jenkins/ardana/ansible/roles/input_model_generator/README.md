@@ -221,7 +221,6 @@ The Neutron VLAN provider network generated for the first _NEUTRON-VLAN_ tagged 
 one configured for Octavia.
 * _NEUTRON-VXLAN_: configures the network group as a Neutron VXLAN provider network. When this macro is specified as a
 component endpoint, the generated network group will be tagged with `neutron.networks.vxlan`.
-* _DEFAULT-ROUTE_: the network group marked with this tag will have the default route configured for it.
 
 The following example taken from `roles/input_model_generator/vars/templates/network/standard.yml` defines the network
 template included by the `standard` scenario template:
@@ -241,7 +240,8 @@ network_groups:
       - MANAGEMENT
       - INTERNAL-API
       - NEUTRON-VLAN
-      - DEFAULT-ROUTE
+    routes:
+      - default
 
   - name: EXTERNAL-API
     hostname_suffix: extapi
@@ -283,7 +283,7 @@ The input model generator uses the information in the network template to genera
 
 * the `network-groups` element: a network group input model element is generated corresponding to each network group listed in
 the network template, with the component endpoint macros properly expanded into their corresponding component endpoints,
-load balancers, routes and neutron network tags.
+load balancers, routes and neutron network tags. Routes can be configured explicitly using the optional `routes` list attribute
 * the `networks` elements: a network input model element is generated for each network group listed in the network
 template. The subnet and gateway values are generated.
 * the Neutron `configuration-data`: external neutron networks and provider networks are generated according to the

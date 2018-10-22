@@ -28,7 +28,9 @@ network_groups:
     component_endpoints:
       - MANAGEMENT
       - NEUTRON-VLAN
-      - DEFAULT-ROUTE
+    routes:
+      - default
+      - INTERNAL-API
 
   - name: INTERNAL-API
     hostname_suffix: intapi
