@@ -1,0 +1,97 @@
+heat_template_version: 2015-10-15
+
+description: |
+  This template builds virtual machines for running mkcloud in OpenStack
+
+parameters:
+  namespace:
+    type: string
+    description: Unique string per user/deployment
+  floating_network:
+    type: string
+    default: floating
+    description: The network to draw floating IPs from.
+  image:
+    type: string
+    default: cleanvm-jeos-SLE12SP4
+    description: The Glance image to use for the vm
+  flavor:
+    type: string
+    default: d4.smaller
+    description: The Nova flavor to use for the vm
+  key_name:
+    type: string
+    description: The SSH key to copy into the vm's authorized_keys
+
+
+resources:
+  private_net:
+        type: OS::Neutron::Net
+        properties:
+          name: mkcc-private-net
+          port_security_enabled: false
+
+  private_subnet:
+        type: OS::Neutron::Subnet
+        properties:
+          network_id: { get_resource: private_net }
+          cidr: 192.168.120.0/24
+          dns_nameservers:
+            - 147.2.2.2
+
+  mkcc_router:
+        type: OS::Neutron::Router
+        properties:
+          external_gateway_info:
+                network: { get_param: floating_network }
+
+  mkcc_router_interface:
+        type: OS::Neutron::RouterInterface
+        properties:
+          router_id: { get_resource: mkcc_router }
+          subnet_id: { get_resource: private_subnet }
+
+  admin_server_port:
+        type: OS::Neutron::Port
+        properties:
+          network_id: { get_resource: private_net }
+          fixed_ips:
+                - subnet_id: { get_resource: private_subnet }
+
+  instanceVM:
+    type: OS::Nova::Server
+    properties:
+      name:
+        list_join: ['-', [ {get_param: namespace}, 'admin']]
+      config_drive: true
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_param: key_name }
+      networks:
+        - port: { get_resource: admin_server_port }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          params:
+            _namespace: { get_param: namespace }
+          template: |
+            #!/bin/sh -x
+            cd /srv/www/
+            export namespace=_namespace
+            rpm -i https://www.zq1.de/suse/ca-certificates-suse.noarch.rpm
+            curl $sourceurl | sh
+            touch /root/setup_finished
+
+  floatingip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      port_id: { get_resource: admin_server_port }
+      floating_network:
+        get_param: floating_network
+
+outputs:
+  floating_ip:
+    value:
+      get_attr:
+        - floatingip
+        - floating_ip_address
