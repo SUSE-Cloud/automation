@@ -19,7 +19,7 @@
   cloud:
     name: {{ scenario['cloud_name'] }}
     hostname-data:
-        host-prefix: {{ 'ardana-' ~ ardana_env if ardana_env is defined else 'ardana' }}
+        host-prefix: {{ host_prefix }}
         member-prefix: -m
     ntp-servers:
 {% for server in ntp_servers %}

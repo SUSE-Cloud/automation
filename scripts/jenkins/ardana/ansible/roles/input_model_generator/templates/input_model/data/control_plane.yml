@@ -19,7 +19,7 @@
 
   control-planes:
     - name: control-plane-1
-      control-plane-prefix: cp1
+      control-plane-prefix: {{ cp_prefix }}
       region-name: region1
       failure-zones:
         - AZ1

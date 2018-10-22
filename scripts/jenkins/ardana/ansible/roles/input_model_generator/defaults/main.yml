@@ -29,6 +29,10 @@ designate_backend: bind
 # (i.e. values in service_component_groups)
 disabled_services: ""
 
+cp_prefix: cp1
+max_host_prefix_len: "{{ 33-(cp_prefix|length) }}"
+host_prefix: "{{ ('ardana-' ~ ardana_env)[:max_host_prefix_len|int-1] if ardana_env is defined else 'ardana' }}"
+
 service_component_groups:
   COMMON:
     - lifecycle-manager-target
