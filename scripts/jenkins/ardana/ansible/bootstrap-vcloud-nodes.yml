@@ -37,7 +37,7 @@
             group: "{{ item.0.group }}, ardana_virt_hosts"
           loop: "{{ virtual_hosts | subelements('ips') }}"
           loop_control:
-            label: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }}"
+            label: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }} - {{ item.1 }}"
 
         - name: Ensure ardana SSH key on deployer
           shell: |
