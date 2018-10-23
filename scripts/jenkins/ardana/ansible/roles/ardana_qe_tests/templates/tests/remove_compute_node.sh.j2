@@ -30,7 +30,7 @@ $subunit_output --inprogress remove_compute_node > $subunit_log
 
 
 COBBLER_NODE_NAME=`grep -B3 $COMPUTE_TYPE ~/openstack/my_cloud/definition/data/servers.yml | grep -m1 id: | awk '{print$3}'`
-IP_ADDR=`grep -A3 $NODE_NAME ~/openstack/my_cloud/definition/data/servers.yml | grep -m1 ip-addr | awk '{print$2}'`
+IP_ADDR=`grep -A3 $COBBLER_NODE_NAME ~/openstack/my_cloud/definition/data/servers.yml | grep -m1 ip-addr | awk '{print$2}'`
 COMPUTE_NODE_NAME=`grep -m1 $IP_ADDR /etc/hosts | awk '{print$2}'`
 
 
