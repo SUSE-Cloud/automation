@@ -35,7 +35,7 @@ COMPUTE_NODE_NAME=`grep -m1 $IP_ADDR /etc/hosts | awk '{print$2}'`
 
 
 
-{{ ardana_qe_tests_dir }}/ardana-qa-tests/operational/remove_compute_node.sh -c $COMPUTE_NODE_NAME -n $COBBLER_NODE_NAME -n $AUTO_ID | tee \
+{{ ardana_qe_tests_dir }}/ardana-qa-tests/operational/add-remove-nodes/remove_compute_node.sh -c $COMPUTE_NODE_NAME -n $COBBLER_NODE_NAME -n $AUTO_ID | tee \
  ${WORK_HOME}/remove_compute_node.log
 
 #/var/lib/ardana/automation/remove_compute_node.sh -c ardana-qe102-cp1-rhel-comp0002-mgmt -n 2M25280TZC -n $AUTO_ID | tee \
