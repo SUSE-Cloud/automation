@@ -638,6 +638,11 @@ def generate_heat_model(input_model, virt_config):
                 # The default route is satisfied by adding the network to the
                 # external router
                 heat_network['external'] = True
+            elif 'networks' in route:
+                # If the route points to a network group, track down the
+                # networks associated with it
+                for network_name in route['networks'].keys():
+                    routers.add((heat_network['name'], network_name,))
             else:
                 routers.add((heat_network['name'], route['name'],))
 
