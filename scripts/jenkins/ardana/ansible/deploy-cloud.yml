@@ -48,6 +48,7 @@
           loop:
             - manila
             - freezer
+            - heat-cloudwatch-api
 
         - name: Ardana log stream at
           debug:
