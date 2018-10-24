@@ -4889,6 +4889,8 @@ function onadmin_prepare_cloudupgrade_admin_repos
         $zypper rr SLES12-SP2-Pool
         $zypper rr SLES12-SP2-Updates
     fi
+    # remove old PTF repo
+    $zypper rr cloud-ptf
 
     onadmin_setup_local_zypper_repositories
     create_repos_yml
