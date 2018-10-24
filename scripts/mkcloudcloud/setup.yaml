@@ -13,7 +13,7 @@ parameters:
     description: The network to draw floating IPs from.
   image:
     type: string
-    default: cleanvm-jeos-SLE12SP4
+    default: d51d22f4-1b00-4782-99c7-55323306fcf1
     description: The Glance image to use for the vm
   flavor:
     type: string
