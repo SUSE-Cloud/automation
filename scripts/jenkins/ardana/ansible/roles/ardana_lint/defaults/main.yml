@@ -15,14 +15,7 @@
 #
 ---
 
-- name: Run playbooks from "{{ ardana_scratch_path }}"
-  command: "ansible-playbook {{ item.play }}"
-  args:
-    chdir: "{{ ardana_scratch_path }}"
-  loop: "{{ ardana_scratch_playbooks }}"
-  register: ansible_scratch_plays
-  when:
-    - item.when | default(True)
-    - not (ansible_scratch_plays | default({})) is failed
-  loop_control:
-    label: "{{ item.play }}"
+lint_venv: "/tmp/ansible-lint"
+lint_params: '-p -x templating,resources,ANSIBLE0002 -r {{ lint_venv }}/lint-rules -r {{ lint_venv }}/lib/python2.7/site-packages/ansiblelint/rules'
+
+lint_path: "{{ ardana_scratch_path }}"

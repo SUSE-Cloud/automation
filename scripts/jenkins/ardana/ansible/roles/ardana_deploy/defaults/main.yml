@@ -18,10 +18,6 @@
 ardana_openstack_path: "~/openstack/ardana/ansible"
 ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
 
-ardana_openstack_playbooks:
-  - "config-processor-run.yml -e encrypt='' -e rekey=''"
-  - "ready-deployment.yml"
-
 ardana_scratch_playbooks:
   - play: "ardana-ssh-keyscan.yml"
     when: "{{ is_physical_deploy and when_cloud9 }}"
@@ -30,5 +26,3 @@ ardana_scratch_playbooks:
   - play: "site.yml"
   - play: "ardana-cloud-configure.yml"
 
-lint_venv: "/tmp/ansible-lint"
-lint_params: '-p -x templating,resources,ANSIBLE0002 -r {{ lint_venv }}/lint-rules -r {{ lint_venv }}/lib/python2.7/site-packages/ansiblelint/rules'

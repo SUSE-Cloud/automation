@@ -54,6 +54,10 @@
             msg: "http://{{ ansible_host }}:9091/"
 
         - include_role:
+            name: ardana_init
+        - include_role:
+            name: ardana_lint
+        - include_role:
             name: ardana_deploy
       rescue:
         - include_role:
