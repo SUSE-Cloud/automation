@@ -110,3 +110,9 @@ outputs:
       get_attr:
         - floatingip
         - floating_ip_address
+  nodes:
+    description: ids of nodes
+    value:
+      get_attr:
+        - group_of_nodes
+        - "refs"
