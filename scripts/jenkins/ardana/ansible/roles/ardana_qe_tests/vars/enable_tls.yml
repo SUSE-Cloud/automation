@@ -18,6 +18,7 @@
 ardana_qe_test_venv_requires:
   - 'python-subunit'
   - 'stestr'
+  - 'paramiko'
 
 ardana_qe_test_get_failed_cmd: "grep FAILED {{ ardana_qe_test_log }} || echo 'None'"
 
