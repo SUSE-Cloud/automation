@@ -22,7 +22,10 @@ parameters:
   key_name:
     type: string
     description: The SSH key to copy into the vm's authorized_keys
-
+  node_number:
+    type: number
+    default: 2
+    description: The number of nodes to deploy
 
 resources:
   private_net:
@@ -86,6 +89,20 @@ resources:
       port_id: { get_resource: admin_server_port }
       floating_network:
         get_param: floating_network
+
+  group_of_nodes:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: node_number}
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          name: mkcc-node-%index%
+          flavor: { get_param: flavor }
+          image: { get_param: image }
+          key_name: { get_param: key_name }
+          networks:
+             - network: { get_resource: private_net }
 
 outputs:
   floating_ip:
