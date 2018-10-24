@@ -27,7 +27,7 @@
   include_vars: "{{ task }}.yml"
 
 - include_tasks: get_cloud_build_version.yml
-  when: cloud_media_build_version is not defined or 'content' not in cloud_media_build_version
+  when: cloud_media_build_version is not defined or 'stdout' not in cloud_media_build_version
 
 - name: Send results to OpenStack-Health
   command: |

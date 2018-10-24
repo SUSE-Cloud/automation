@@ -15,14 +15,6 @@
 #
 ---
 
-- name: Find cloud build file
-  shell: |
-    find /srv/www/*/x86_64/repos/*Cloud*/ -name build
-  register: cloud_build_file
-  failed_when: false
-
 - name: Get media build version
-  slurp:
-    src: "{{ cloud_build_file.stdout }}"
+  command: "awk '/Media build version/ { print $4 }' /etc/motd"
   register: cloud_media_build_version
-  when: cloud_build_file.rc == 0
