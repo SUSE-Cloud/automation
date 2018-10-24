@@ -74,17 +74,11 @@ resources:
       networks:
         - port: { get_resource: admin_server_port }
       user_data_format: RAW
-      user_data:
-        str_replace:
-          params:
-            _namespace: { get_param: namespace }
-          template: |
-            #!/bin/sh -x
-            cd /srv/www/
-            export namespace=_namespace
-            rpm -i https://www.zq1.de/suse/ca-certificates-suse.noarch.rpm
-            curl $sourceurl | sh
-            touch /root/setup_finished
+      user_data: |
+        #cloud-config
+        users:
+            - root
+        disable_root: false
 
   floatingip:
     type: OS::Neutron::FloatingIP
