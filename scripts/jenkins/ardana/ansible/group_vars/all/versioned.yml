@@ -26,6 +26,8 @@ versioned_features:
     enabled: "{{ when_staging }}"
   freezer:
     enabled: "{{ when_cloud8 }}"
+  heat-cloudwatch-api:
+    enabled: "{{ when_cloud8 }}"
   # FIXME: Remove this entry when bsc#1110414 fixed
   fix_ardana_ssh_keyscan:
     enabled: "{{ when_cloud9M3 }}"
