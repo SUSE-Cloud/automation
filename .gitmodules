@@ -1,6 +1,0 @@
-[submodule "ccp/submodules/kubic-project-automation"]
-	path = ccp/submodules/kubic-project-automation
-	url = https://github.com/kubic-project/automation.git
-[submodule "ccp/submodules/ansible-config_template"]
-	path = ccp/submodules/ansible-config_template
-	url = https://github.com/openstack/ansible-config_template.git
