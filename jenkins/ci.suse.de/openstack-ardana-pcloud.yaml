@@ -53,8 +53,11 @@
           choices:
             - entry-scale-kvm
             - entry-scale-swift
+            - standard
+            - std-split
+            - mid-scale
           description: >-
-            The scnario used to generate the input model
+            The scenario used to generate the input model
 
       - choice:
           name: clm_model
@@ -71,6 +74,36 @@
           description: Number of nodes used as controller
 
       - string:
+          name: core_nodes
+          default: '2'
+          description: Number of OpenStack core service nodes
+
+      - string:
+          name: lmm_nodes
+          default: '1'
+          description: Number of LMM nodes
+
+      - string:
+          name: dbmq_nodes
+          default: '3'
+          description: Number of database & rabbitmq nodes
+
+      - string:
+          name: neutron_nodes
+          default: '1'
+          description: Number of neutron network nodes
+
+      - string:
+          name: swpac_nodes
+          default: '1'
+          description: Number of swift proxy/account/container service nodes
+
+      - string:
+          name: swobj_nodes
+          default: '1'
+          description: Number of swift object service nodes
+
+      - string:
           name: sles_computes
           default: '2'
           description: Number of SLES compute nodes
@@ -79,6 +112,11 @@
           name: rhel_computes
           default: '0'
           description: Number of RHEL compute nodes
+
+      - string:
+          name: disabled_services
+          default: ''
+          description: Regex matching service components and component groups to disable in the generated input model
 
       - bool:
           name: rc_notify

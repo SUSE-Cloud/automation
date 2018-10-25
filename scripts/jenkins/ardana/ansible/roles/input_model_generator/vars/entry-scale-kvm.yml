@@ -18,7 +18,6 @@
 controllers: 3
 sles_computes: 2
 rhel_computes: 0
-clm_model: standalone
 
 scenario:
   name: entry-scale-kvm
@@ -26,13 +25,12 @@ scenario:
   description: >
     Multi-cluster scenario with all services enabled, {{ clm_model }} CLM node,
     {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
-  mml_enabled: True
   audit_enabled: True
   ses_enabled: "{{ ses_enabled | default(False) }}"
   use_cinder_volume_disk: True
   use_glance_cache_disk: False
 
-  service_template: "{{ 'standard-dac' if clm_model == 'integrated' else 'standard' }}"
+  service_template: standard
   network_template: compact
   interface_template: compact-bond
   disk_template: compact

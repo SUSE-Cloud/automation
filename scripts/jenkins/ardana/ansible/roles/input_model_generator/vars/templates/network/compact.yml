@@ -21,7 +21,8 @@ network_groups:
     tagged_vlan: true
     component_endpoints:
       - EXTERNAL-API
-      - DEFAULT-ROUTE
+    routes:
+      - default
 
   - name: MANAGEMENT
     hostname_suffix: mgmt

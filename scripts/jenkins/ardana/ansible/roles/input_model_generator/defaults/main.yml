@@ -20,10 +20,27 @@ qe_ardana_bm_info_dir: "/tmp/ardana-bm-info"
 
 template_file_name: "{{ scenario[item ~ '_template'] }}.yml"
 
+clm_model: standalone
+
 # Backend for designate: powerdns or bind
 designate_backend: bind
 
+# Regular expression matching disabled service components or component groups
+# (i.e. values in service_component_groups)
+disabled_services: ""
+
+cp_prefix: cp1
+max_host_prefix_len: "{{ 33-(cp_prefix|length) }}"
+host_prefix: "{{ ('ardana-' ~ ardana_env)[:max_host_prefix_len|int-1] if ardana_env is defined else 'ardana' }}"
+
 service_component_groups:
+  COMMON:
+    - lifecycle-manager-target
+    - stunnel
+    - freezer-agent
+    - monasca-agent
+    - logging-rotate
+    - logging-producer
   CLM:
     - lifecycle-manager
     - tempest
@@ -95,7 +112,6 @@ service_component_groups:
     - neutron-metadata-agent
     - neutron-openvswitch-agent
   LMM:
-    - ntp-client
     - ceilometer-api
     - ceilometer-polling
     - ceilometer-agent-notification
@@ -134,8 +150,6 @@ service_component_groups:
     - neutron-openvswitch-agent
     - neutron-lbaasv2-agent
     - manila-share
-
-
 
 disk_component_groups:
   OS:

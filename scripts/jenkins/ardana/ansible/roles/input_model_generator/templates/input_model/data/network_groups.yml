@@ -74,10 +74,7 @@
         []
 {%   endif %}
 
-{%   set ns.routes=[] %}
-{%   if 'DEFAULT-ROUTE' in network_group.component_endpoints %}
-{%     set _ = ns.routes.append('default') %}
-{%   endif %}
+{%   set ns.routes=network_group.routes|default([]) %}
 {%   if 'MANAGEMENT' in network_group.component_endpoints %}
 {%     if bm_info is defined %}
 {%       set _ = ns.routes.append('OCTAVIA-MGMT-NET') %}

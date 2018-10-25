@@ -71,7 +71,6 @@ controllers: 3
 sles_computes: 3
 rhel_computes: 0
 swobj_devices: 3
-clm_model: standalone
 
 scenario:
   name: standard
@@ -79,20 +78,19 @@ scenario:
   description: >
     Standard scenario with all services enabled, {{ clm_model }} CLM node, {{ controllers }} controller nodes,
     {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
-  mml_enabled: True
   audit_enabled: False
   ses_enabled: False
   use_cinder_volume_disk: False
   use_glance_cache_disk: False
 
-  service_template: "{{ 'standard-dac' if clm_model is defined and clm_model == 'integrated' else 'standard' }}"
+  service_template: standard
   network_template: standard
   disk_template: compact
   interface_template: standard
 
 ```
 
-The last section of this template shows how the scenario includes the `standard-dac` or `standard` service template,
+The last section of this template shows how the scenario includes the `standard` service template,
 the `standard` network template, the `compact` disk template and the `standard` interface template. The parameters
 defined at the beginning of the scenario template can be used to fine-tune various aspects of the input model, such
 as the number of controller and compute nodes, by overriding then with group variables, host variables, or by passing
@@ -129,6 +127,11 @@ The structure of the service template is a compacted version of that used for th
 The attributes that can be configured for a service group are a mixture of those that can be configured for the `clusters`,
 `resources` and `servers` input model configuration elements.
 
+The `CLM` service component group is special: it marks the service group designated as deployer and is conditionally
+listed twice in the service template: depending on the `clm_model` [global parameter](#global-parameters) value, only
+one `CLM` occurrence will be considered by the input model generator, while the other one will be ignored, which
+allows a single service template to be used to implement both integrated and standalone deployer scenarios.
+
 The following example taken from `roles/input_model_generator/vars/templates/service/standard.yml` defines the service
 template included by the `standard` scenario template:
 
@@ -138,7 +141,7 @@ service_groups:
     type: cluster
     prefix: c0
     heat_flavor_id: cloud-ardana-job-compute
-    member_count: 1
+    member_count: '{{ (clm_model == "standalone") | ternary(1, 0) }}'
     service_components:
       - CLM
   - name: controller
@@ -147,6 +150,7 @@ service_groups:
     heat_flavor_id: cloud-ardana-job-controller
     member_count: '{{ controllers|default(3) }}'
     service_components:
+      - '{{ (clm_model == "integrated") | ternary("CLM", '') }}'
       - CORE
       - LMM
       - DBMQ
@@ -182,7 +186,7 @@ service group
 * the `server-roles` elements: a server role is generated for every service group
 
 The virtual configuration consumed by the heat template generator, indicating which openstack image and flavor needs
-to be used for each server is also generated from the information present in the service template (note the
+to be used for each server is also generated from the optional information present in the service template (note the
 `heat_image_id` and `heat_flavor_id` attributes).
 
 ### Network templates
@@ -217,7 +221,6 @@ The Neutron VLAN provider network generated for the first _NEUTRON-VLAN_ tagged 
 one configured for Octavia.
 * _NEUTRON-VXLAN_: configures the network group as a Neutron VXLAN provider network. When this macro is specified as a
 component endpoint, the generated network group will be tagged with `neutron.networks.vxlan`.
-* _DEFAULT-ROUTE_: the network group marked with this tag will have the default route configured for it.
 
 The following example taken from `roles/input_model_generator/vars/templates/network/standard.yml` defines the network
 template included by the `standard` scenario template:
@@ -237,7 +240,8 @@ network_groups:
       - MANAGEMENT
       - INTERNAL-API
       - NEUTRON-VLAN
-      - DEFAULT-ROUTE
+    routes:
+      - default
 
   - name: EXTERNAL-API
     hostname_suffix: extapi
@@ -279,7 +283,7 @@ The input model generator uses the information in the network template to genera
 
 * the `network-groups` element: a network group input model element is generated corresponding to each network group listed in
 the network template, with the component endpoint macros properly expanded into their corresponding component endpoints,
-load balancers, routes and neutron network tags.
+load balancers, routes and neutron network tags. Routes can be configured explicitly using the optional `routes` list attribute
 * the `networks` elements: a network input model element is generated for each network group listed in the network
 template. The subnet and gateway values are generated.
 * the Neutron `configuration-data`: external neutron networks and provider networks are generated according to the
@@ -306,8 +310,15 @@ TBD
 The following optional parameters may be supplied as ansible external variables to control various
 aspects of the generated input model:
 
+* `clm_model` : can be used to switch between an integrated deployer scenario (the deployer node also hosts
+other services in addition to the lifecycle manager services) and a standalone deployer (the deployer node 
+only hosts the lifecycle manager services). May be set to either `standalone` (default) or `integrated`.
 * `designate_backend` : controls the designate backend configured for the input model. May be set to
 either `bind` (default) or `powerdns`.
+* `disabled_services` : can be used to selectively exclude service components or entire service component
+groups from the generated input model. Accepts a regular expression as value (e.g. `freezer.*|logging.*`),
+which is used to filter out matching service components and service component groups.
+
 
 # Limitations
 
