@@ -43,6 +43,8 @@ proposals:
       - cluster:services
 - barclamp: rabbitmq
   attributes:
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
