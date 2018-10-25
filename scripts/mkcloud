@@ -109,7 +109,7 @@ iscloudver 7plus && : ${controller_node_memory:=12582912}
 : ${lonelynode_hdd_size:=20}
 : ${ironicnode_hdd_size:=20}
 
-if [[ $hacloud ]] && ( [[ "$want_database_sql_engine" == "postgresql" ]] || iscloudver 6minus ) ; then
+if [[ $hacloud = 1 ]] && ( [[ "$want_database_sql_engine" == "postgresql" ]] || iscloudver 6minus ) ; then
     : ${drbd_hdd_size:=15}
 else
     : ${drbd_hdd_size:=0}
@@ -1389,7 +1389,7 @@ function sanity_checks
     fi
 
     # checking clusterconfig
-    if [[ $hacloud && ! $clusterconfig ]] ; then
+    if [[ $hacloud = 1 && ! $clusterconfig ]] ; then
         echo "Examples for clusterconfig:"
         echo '3 clusters: clusterconfig="data=2:network=3:services=3"'
         echo '2 clusters: clusterconfig="services+data=2:network=3"'
