@@ -29,7 +29,7 @@
 - name: Get cloud media build version
   command: "awk '/Media build version/ { print $4 }' /etc/motd"
   register: cloud_media_build_version
-  when: 'stdout' not in cloud_media_build_version
+  when: "'stdout' not in cloud_media_build_version"
 
 - name: Send results to OpenStack-Health
   command: |
