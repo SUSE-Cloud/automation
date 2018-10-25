@@ -29,7 +29,7 @@
   when:
     - rc_action == "finished"
     - rc_task == "deploy"
-    - 'stdout' not in cloud_media_build_version
+    - "'stdout' not in cloud_media_build_version"
 
 - name: Notify RocketChat
   rocketchat:
