@@ -2590,7 +2590,7 @@ function custom_configuration
             fi
 
             # assign neutron-network role to one of SLE12 nodes
-            if [[ $hacloud && $want_neutronsles12 ]] && iscloudver 5plus ; then
+            if [[ $hacloud = 1 && $want_neutronsles12 ]] && iscloudver 5plus ; then
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['${unclustered_sles12plusnodes[0]}']"
             fi
 
