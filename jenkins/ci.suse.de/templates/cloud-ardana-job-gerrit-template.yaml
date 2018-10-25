@@ -47,7 +47,9 @@
           default: '{gerrit_change_ids}'
           description: >-
             A comma separated list of IDs for changes in gerrit.suse.provo.cloud
-            to test.
+            to test. The patchset may be supplied as part of the change ID in the form:
+
+               <change_number>[/<patchset_number>]
 
       - string:
           name: cloudsource
@@ -66,19 +68,6 @@
           description: >-
             Name of the filter file to use for tempest. Use an empty value to
             skip running tempest.
-
-      - string:
-          name: develproject
-          default: '{develproject|Devel:Cloud:9:Staging}'
-          description: >-
-            Project in IBS to link against when creating a test project for a
-            change proposal.
-
-      - string:
-          name: repository
-          default: '{repository|SLE_12_SP4}'
-          description: >-
-            Name of the repository in IBS against which to build the test packages.
 
     pipeline-scm:
       scm:

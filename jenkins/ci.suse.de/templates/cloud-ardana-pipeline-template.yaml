@@ -352,27 +352,10 @@
           default: ''
           description: >-
             A comma separated list of IDs for changes in
-            gerrit.suse.provo.cloud to test.
+            gerrit.suse.provo.cloud to test. The patchset may be supplied as part
+            of the change ID in the form:
 
-      - string:
-          name: develproject
-          default: '{develproject|Devel:Cloud:9:Staging}'
-          description: >-
-            Project in IBS to link against when creating a test project for a
-            change proposal.
-
-      - string:
-          name: homeproject
-          default: 'Devel:Cloud:Testbuild'
-          description: >-
-            Project in IBS that will act as the parent project for the newly
-            generated test project.
-
-      - string:
-          name: repository
-          default: '{repository|SLE_12_SP4}'
-          description: >-
-            Name of the repository in IBS against which to build the test packages.
+               <change_number>[/<patchset_number>]
 
       - bool:
           name: want_caasp

@@ -1,37 +1,36 @@
 #!/usr/bin/env python
 
 import argparse
+import os
+import sys
 
-from pygerrit2 import GerritRestAPI, GerritReview, HTTPDigestAuthFromNetrc
+sys.path.append(os.path.dirname(__file__))
+from gerrit import GerritChange  # noqa: E402
+from gerrit_settings import gerrit_project_map  # noqa: E402
 
-GERRIT_URL = 'https://gerrit.suse.provo.cloud/'
 
+def gerrit_review(change, label=None, vote=1, message=''):
+    if change.gerrit_project not in gerrit_project_map():
+        print("Skipping - project {} not in the list of "
+              "allowed projects ".format(change.gerrit_project))
+        return 1
 
-def gerrit_review(change_no, patch=None, label=None, vote=1, message=''):
-    auth = HTTPDigestAuthFromNetrc(url=GERRIT_URL)
-    rest = GerritRestAPI(url=GERRIT_URL, auth=auth, verify=False)
-    change = rest.get("/changes/?q={}".format(change_no))[0]
-    print("Posting {}: {} review for change: '{}'".format(label, vote,
-                                                          change['subject']))
-    if not patch:
-        current_rev = rest.get("/changes/?q={}&o=CURRENT_REVISION".format(
-            change['_number']))
-        patch = current_rev[0]['revisions'].values()[0]['_number']
-    rev = GerritReview()
-    rev.set_message(message)
-    if label:
-        rev.add_labels({label: vote})
+    if not change.is_current:
+        print("Skipping - change {} is not current".format(change))
+        return 1
 
-    rest.review(change['_number'], patch, rev)
+    change.review(label, vote, message)
+
+    return 0
 
 
 def main():
     parser = argparse.ArgumentParser(
         description='Post a Gerrit review')
-    parser.add_argument('change',
+    parser.add_argument('change', type=int,
                         help='the Gerrit change number (e.g. 1234)')
-    parser.add_argument('--patch',
-                        default='0',
+    parser.add_argument('--patch', type=int,
+                        default=None,
                         help='the Gerrit patch number (e.g. 3). If not '
                              'supplied, the latest patch will be used')
     parser.add_argument('--label',
@@ -57,10 +56,11 @@ def main():
         with open(args.message_file) as msg_file:
             message += msg_file.read()
 
-    gerrit_review(int(args.change),
-                  int(args.patch),
+    change = GerritChange(str(args.change), patchset=args.patch)
+
+    gerrit_review(change,
                   args.label,
-                  int(args.vote),
+                  args.vote,
                   message)
 
 

@@ -5,55 +5,21 @@ This file takes in a list of gerrit changes to build into the supplied OBS
 project.
 """
 
+import argparse
 import contextlib
 import glob
-import json
 import os
 import re
 import shutil
-import subprocess
 import sys
 import tempfile
 import time
 
-import requests
-
 import sh
 
 sys.path.append(os.path.dirname(__file__))
-from gerrit_project_map import gerrit_project_map  # noqa: E402
-
-GERRIT_URL = 'https://gerrit.suse.provo.cloud'
-
-# We use a more complex regex that matches both formats of Depends-On so that
-# we preserve the order in which they are discovered.
-DEPENDS_ON_RE = re.compile(
-    r"^\W*Depends-On: ("
-    r"((http(s)?:\/\/)?gerrit\.suse\.provo\.cloud\/(\/)?(\#\/c\/)?(\d+).*?)"
-    r"|(I[0-9a-f]{40})"
-    r")\s*$",
-    re.MULTILINE | re.IGNORECASE)
-
-
-def find_dependency_headers(message):
-    # Search for Depends-On headers
-    dependencies = []
-
-    for match in DEPENDS_ON_RE.findall(message):
-        # Grab out the change-id
-        if match[6]:
-            # Group 6 is the change-id matcher from the URL
-            # NOTE: Because we only pull out the change-id here, if a patchset
-            #       was included in the URL it will be ignored at this point.
-            #       The check later on will be missed and thus no warning is
-            #       raised.
-            dependencies.append(match[6])
-        elif match[7]:
-            # Group 7 is the gerrit ID in format Ia32...234a (41 chars)
-            dependencies.append(match[7])
-    # Reverse the order so that we process the oldest Depends-On first
-    dependencies.reverse()
-    return dependencies
+from gerrit_settings import gerrit_project_map, obs_project_settings  # noqa: E402
+from gerrit import GerritChange  # noqa: E402
 
 
 @contextlib.contextmanager
@@ -69,95 +35,6 @@ def cd(dir):
 def cleanup_path(path):
     if os.path.exists(path):
         shutil.rmtree(path)
-
-
-class GerritChange:
-    """
-    Holds the state of a gerrit change
-    """
-
-    @staticmethod
-    def _query_gerrit(query):
-        query_url = GERRIT_URL + query
-        print("Running query %s" % query_url)
-        response = requests.get(query_url)
-        print("Got response: %s" % response)
-        return json.loads(response.text.replace(")]}'", ''))
-
-    def __init__(self, change_id, try_branches=['master']):
-        print("Processing given change id: %s" % change_id)
-        if change_id.isdigit():
-            self.id = change_id
-            self._get_numeric_change()
-        elif change_id.split(',')[0].isdigit():
-            print("Warning: Ignoring given patchset number for change %s."
-                  " Latest patchset will be used." % change_id)
-            self.id = change_id.split(',')[0]
-            self._get_numeric_change()
-        elif change_id.startswith('I') and len(change_id) == 41:
-            self._get_change_id(change_id, try_branches)
-        else:
-            raise Exception("Unknown change id format (%s)" % change_id)
-
-        # Take the known self._change_object and load the attributes we want
-        self._load_change_object()
-
-    def _get_numeric_change(self):
-        """
-        Get a change object from a deterministic numeric change number
-        """
-        query = '/changes/%(id)s/' % {'id': self.id}
-        query += '?o=CURRENT_REVISION&o=CURRENT_COMMIT'
-        response_json = self._query_gerrit(query)
-
-        self._change_object = response_json
-
-    def _get_change_id(self, change_id, try_branches):
-        """
-        Get a change object from an ambiguous change ID by matching the first
-        given try_branches
-        """
-        query = '/changes/?q=%(change_id)s' % {'change_id': change_id}
-        query += '&o=CURRENT_REVISION&o=CURRENT_COMMIT'
-        response_json = self._query_gerrit(query)
-
-        matches = []
-        for branch in try_branches:
-            for change_obj in response_json:
-                if branch == change_obj['branch']:
-                    matches.append(change_obj)
-            if len(matches) > 0:
-                # We have matched a preferable branch, we don't need to
-                # coninue checking
-                break
-
-        if len(matches) > 1:
-            raise Exception(
-                "Unable to get a unique change for %s given the branches seen "
-                "so far. This can also happen if the same change-id is used "
-                "in multiple gerrit projects." % change_id
-            )
-        elif len(matches) != 1:
-            raise Exception("Unable to find a change for %s" % change_id)
-
-        self.id = str(matches[0]['_number'])
-        self._change_object = matches[0]
-
-    def _load_change_object(self):
-        self.change_id = self._change_object['change_id']
-        self.change_number = self._change_object['_number']
-        self.gerrit_project = self._change_object['project'].split('/')[1]
-        self.status = self._change_object['status']
-        current_revision = self._change_object['current_revision']
-        revision_obj = self._change_object['revisions'][current_revision]
-        self.url = revision_obj['fetch']['anonymous http']['url']
-        self.ref = revision_obj['fetch']['anonymous http']['ref']
-        self.target = self._change_object['branch']
-        self.subject = revision_obj['commit']['subject']
-        self.commit_message = revision_obj['commit']['message']
-
-    def __repr__(self):
-        return "<GerritChange %s>" % self.id
 
 
 class OBSPackage:
@@ -202,11 +79,11 @@ class OBSPackage:
         if change in self._applied_changes:
             print("Change %s has already been applied" % change)
             return
-        if change.target != self.target_branch:
+        if change.branch != self.target_branch:
             raise Exception(
                 "Cannot merge change %s from branch %s onto target branch %s "
                 "in package %s" %
-                (change, change.target, self.target_branch, self))
+                (change, change.branch, self.target_branch, self))
         # Check change isn't already merged.
         if change.status == "MERGED":
             print("Change %s has already been merged in gerrit" % change)
@@ -222,28 +99,6 @@ class OBSPackage:
             sh.git('fetch', self.url, change.ref)
             sh.git('merge', '--no-edit', 'FETCH_HEAD')
             self._applied_changes.add(change)
-
-    def get_depends_on_changes(self):
-        """
-        Return a list of numeric change_id's that are dependencies of the
-        current repo state
-        """
-        # NOTE: Because a given gerrit change may be at the bottom of a tail of
-        #       commits we can't just check the changes as they merge. Instead
-        #       we must also check for any "Depends-On" strings in any commits
-        #       that may have also been merged on top of the target branch
-
-        with cd(self.source_dir):
-            log_messages = subprocess.check_output(
-                ["git", "log", "origin/%s..HEAD" % self.target_branch]).decode(
-                    'utf-8')
-
-        dependencies = find_dependency_headers(log_messages)
-        if dependencies:
-            print("Found the following dependencies between %s..HEAD:"
-                  % self.target_branch)
-            print(dependencies)
-        return dependencies
 
     def applied_change_numbers(self):
         return ", ".join([change.id for change in self._applied_changes])
@@ -408,11 +263,35 @@ class OBSProject:
 
 
 def test_project_name(change_ids, home_project):
-    return '%s:ardana-ci-%s' % (home_project, '-'.join(change_ids))
+    return '%s:ardana-ci-%s' % \
+           (home_project, '-'.join(change_ids).replace('/', '-'))
 
 
 def build_test_packages(change_ids, obs_linked_project, home_project,
                         obs_repository):
+
+    print('Attempting to build packages for changes {}'.format(
+        ', '.join(change_ids)))
+
+    # The target branch associated with the first change is used for
+    # all changes
+    branch = None
+
+    # Grab each change for the supplied change_ids
+    changes = []
+    for id in change_ids:
+        c = GerritChange(id, branch=branch)
+        branch = branch or c.branch
+        changes.append(c)
+        # Add the dependent changes to the changes list to process
+        changes.extend(c.get_dependencies())
+
+    # Use the default OBS linked project and repository configured for
+    # the target branch, if not supplied as arguments
+    project_settings = obs_project_settings()[branch]
+    obs_linked_project = obs_linked_project or \
+        project_settings['develproject']
+    obs_repository = obs_repository or project_settings['repository']
 
     # The Jenkins workspace we are building in
     workspace = os.getcwd()
@@ -434,34 +313,19 @@ def build_test_packages(change_ids, obs_linked_project, home_project,
     # 'gerrit_project': Package()
     packages = {}
 
-    # Grab each change for the supplied change_ids. As we go through the
-    # changes the change_ids list may expand with dependencies. These are also
-    # processed. If a change has already been processed we skip it to avoid
-    # circular dependencies.
-    try_branches = ['master']
-    for id in change_ids:
-        if id in processed_changes:
+    # We process the supplied changes, as well as their dependencies.
+    # If a change has already been processed we skip it to avoid circular
+    # dependencies.
+    for c in changes:
+        if c in processed_changes:
             # Duplicate dependency, skipping..
             continue
-        c = GerritChange(id, try_branches)
-        # id might not have been in canonical form
-        if c.id in processed_changes:
-            processed_changes.append(id)
-            # Duplicate dependency, skipping..
-            continue
-        processed_changes.append(id)
-        processed_changes.append(c.id)
-
-        if c.target not in try_branches:
-            # Save the branch as a hint to disambiguate cross-repo
-            # dependencies.
-            try_branches.insert(0, c.target)
+        processed_changes.append(c)
 
         # skip packages that don't have asssociated RPMs
         if c.gerrit_project not in gerrit_project_map():
             print("Warning: Project %s has no RPM, Skipping"
                   % c.gerrit_project)
-
         else:
             # Create the package if it doesn't exist already
             if c.gerrit_project not in packages:
@@ -469,14 +333,10 @@ def build_test_packages(change_ids, obs_linked_project, home_project,
                 #       the target branch for that package. All subsquent
                 #       changes must match the target branch.
                 packages[c.gerrit_project] = OBSPackage(
-                    c.gerrit_project, c.url, c.target, source_workspace)
+                    c.gerrit_project, c.url, c.branch, source_workspace)
 
             # Merge the change into the package
             packages[c.gerrit_project].add_change(c)
-
-            # Add the dependent changes to the change_ids to process
-            change_ids.extend(
-                packages[c.gerrit_project].get_depends_on_changes())
 
     # Add the packages into the obs project and begin building them
     for project_name, package in packages.items():
@@ -493,17 +353,29 @@ def build_test_packages(change_ids, obs_linked_project, home_project,
 
 
 def main():
-    # A list of change id's to apply to packages
-    change_ids = os.environ['gerrit_change_ids'].split(',')
-    # The OBS project to link from
-    obs_linked_project = os.environ['develproject']
-    # The home project to build in
-    home_project = os.environ['homeproject']
-    # The target repository
-    obs_repository = os.environ['repository']
+    parser = argparse.ArgumentParser(
+        description='Build OBS packages corresponding to one or more '
+                    'Gerrit changes and their dependencies. '
+                    'If --develproject or --repository are not supplied, they '
+                    'will be determined automatically based on the Gerrit '
+                    'change target branch and the gerrit-settings.json file')
+    parser.add_argument('-c', '--changes', action='append', required=True,
+                        help='Gerrit change number (e.g. 1234) or change '
+                             'number and patchset number (e.g. 1234/2)')
+    parser.add_argument('--homeproject', default=None, required=True,
+                        help='Project in OBS that will act as the parent '
+                             'project for the newly generated test project '
+                             '(e.g. home:username)')
+    parser.add_argument('--develproject', default=None,
+                        help='The OBS development project that will be linked '
+                             'against (e.g. Devel:Cloud:9:Staging)')
+    parser.add_argument('--repository', default=None,
+                        help='Name of the repository in OBS against which to '
+                             'build the test packages (e.g. SLE_12_SP4)')
+    args = parser.parse_args()
 
     results = build_test_packages(
-        change_ids, obs_linked_project, home_project, obs_repository)
+        args.changes, args.develproject, args.homeproject, args.repository)
 
     if not results:
         sys.exit(1)

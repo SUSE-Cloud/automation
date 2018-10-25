@@ -54,8 +54,6 @@ The following links can also be used to track the results:
           export LC_ALL=C.UTF-8
           export LANG=C.UTF-8
 
-          source /opt/gitlint/bin/activate
-
           echo $GERRIT_CHANGE_COMMIT_MESSAGE | base64 --decode | gitlint -C automation-git/scripts/jenkins/gitlint.ini
         '''
       }
@@ -91,9 +89,7 @@ The following links can also be used to track the results:
               string(name: 'controllers', value: "2"),
               string(name: 'sles_computes', value: "1"),
               string(name: 'cloudsource', value: "$cloudsource"),
-              string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
-              string(name: 'develproject', value: "$develproject"),
-              string(name: 'repository', value: "$repository")
+              string(name: 'tempest_run_filter', value: "$tempest_run_filter")
           ], propagate: false, wait: true
           env.jobResult = slaveJob.getResult()
           env.jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
@@ -117,13 +113,21 @@ The following links can also be used to track the results:
           # Post reviews only for jobs triggered by Gerrit
           if [ -n "$GERRIT_CHANGE_NUMBER" ] ; then
             if [[ $BUILD_RESULT == SUCCESS ]]; then
-              vote=+1
+              if [[ $cloudsource == stagingcloud9 ]]; then
+                vote=+2
+              else
+                vote=0
+              fi
               message="
 Build succeeded (${JOB_NAME}): ${BUILD_URL}
 
 "
             else
-              vote=-1
+              if [[ $cloudsource == stagingcloud9 ]]; then
+                vote=-2
+              else
+                vote=-1
+              fi
               message="
 Build failed (${JOB_NAME}): ${BUILD_URL}
 
@@ -136,6 +140,12 @@ Build failed (${JOB_NAME}): ${BUILD_URL}
               --message-file results.txt \
               --patch ${GERRIT_PATCHSET_NUMBER} \
               ${GERRIT_CHANGE_NUMBER}
+
+            if [[ $BUILD_RESULT == SUCCESS ]]; then
+              automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py \
+                --patch ${GERRIT_PATCHSET_NUMBER} \
+                ${GERRIT_CHANGE_NUMBER}
+            fi
           fi
         ''')
 

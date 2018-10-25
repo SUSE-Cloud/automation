@@ -36,18 +36,9 @@
           default:
           description: >-
             A comma separated list of IDs for changes in gerrit.suse.provo.cloud
-            to test.
+            to test. The patchset may be supplied as part of the change ID in the form:
 
-      - string:
-          name: develproject
-          default: Devel:Cloud:8
-          description: The IBS development project that will be linked against.
-
-      - string:
-          name: repository
-          default: SLE_12_SP3
-          description: >-
-            Name of the repository in IBS against which to build the test packages.
+               <change_number>[/<patchset_number>]
 
       - string:
           name: homeproject
