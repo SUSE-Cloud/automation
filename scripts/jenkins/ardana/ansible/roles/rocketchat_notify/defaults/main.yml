@@ -54,3 +54,4 @@ jenkins_build_url: "{{ lookup('env', 'BUILD_URL') }}"
 jenkins_build_url_msg: "{{ (jenkins_build_url != '') | ternary('[' ~ jenkins_build_url ~ '](' ~ jenkins_build_url ~ ')', lookup('env', 'USER')) }}"
 
 rc_im_name: "{{ scenario_name | default(model) }}"
+cloud_media_build_version: {}
