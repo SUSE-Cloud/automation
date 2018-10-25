@@ -122,10 +122,7 @@
                 comment-contains-value: '^suse_recheck$'
             - comment-added-contains-event:
                 comment-contains-value: '^recheck$'
-          override-votes: true
-          gerrit-build-successful-verified-value: 0
-          skip-vote:
-              notbuilt: true
+          silent: true
           projects:
             - project-compare-type: 'REG_EXP'
               project-pattern: !include-raw: gerrit-project-regexp.txt

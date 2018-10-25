@@ -17,17 +17,40 @@ pipeline {
 
   stages {
 
+    stage('Setup workspace') {
+      steps {
+        script {
+          currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_change_ids}"
+        }
+        sh('''
+          git clone $git_automation_repo --branch $git_automation_branch automation-git
+
+          if [ -n "$GERRIT_CHANGE_NUMBER" ] ; then
+            # Post reviews only for jobs triggered by Gerrit
+            automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
+              --vote 0 \
+              --label 'Verified' \
+              --message "
+Started build (${JOB_NAME}): ${BUILD_URL}
+The following links can also be used to track the results:
+
+- live console output: ${BUILD_URL}console
+- live pipeline job view: ${RUN_DISPLAY_URL}
+" \
+              --patch ${GERRIT_PATCHSET_NUMBER} \
+              ${GERRIT_CHANGE_NUMBER}
+          fi
+        ''')
+
+      }
+    }
+
     stage('validate commit message') {
       when {
         expression { env.GERRIT_CHANGE_COMMIT_MESSAGE != null }
       }
       steps {
-        script {
-          currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_change_ids}"
-        }
-        cleanWs()
         sh '''
-          git clone $git_automation_repo --branch $git_automation_branch automation-git
           export LC_ALL=C.UTF-8
           export LANG=C.UTF-8
 
@@ -35,6 +58,18 @@ pipeline {
 
           echo $GERRIT_CHANGE_COMMIT_MESSAGE | base64 --decode | gitlint -C automation-git/scripts/jenkins/gitlint.ini
         '''
+      }
+      post {
+        success {
+            sh '''
+              echo "- ${STAGE_NAME}: PASSED (${BUILD_URL}console)" > results.txt
+            '''
+        }
+        failure {
+            sh '''
+              echo "- ${STAGE_NAME}: FAILED (${BUILD_URL}console)" > results.txt
+            '''
+        }
       }
     }
 
@@ -60,15 +95,54 @@ pipeline {
               string(name: 'develproject', value: "$develproject"),
               string(name: 'repository', value: "$repository")
           ], propagate: false, wait: true
-          def jobResult = slaveJob.getResult()
-          def jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
+          env.jobResult = slaveJob.getResult()
+          env.jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
           def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
           echo jobMsg
-          if (jobResult != 'SUCCESS') {
+          sh '''
+            echo "- ${STAGE_NAME}: ${jobResult} (${jobUrl})" >> results.txt
+          '''
+          if (env.jobResult != 'SUCCESS') {
              error(jobMsg)
           }
         }
       }
+    }
+  }
+  post {
+    always {
+      script{
+        env.BUILD_RESULT = currentBuild.currentResult
+        sh('''
+          # Post reviews only for jobs triggered by Gerrit
+          if [ -n "$GERRIT_CHANGE_NUMBER" ] ; then
+            if [[ $BUILD_RESULT == SUCCESS ]]; then
+              vote=+1
+              message="
+Build succeeded (${JOB_NAME}): ${BUILD_URL}
+
+"
+            else
+              vote=-1
+              message="
+Build failed (${JOB_NAME}): ${BUILD_URL}
+
+"
+            fi
+            automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
+              --vote $vote \
+              --label 'Verified' \
+              --message "$message" \
+              --message-file results.txt \
+              --patch ${GERRIT_PATCHSET_NUMBER} \
+              ${GERRIT_CHANGE_NUMBER}
+          fi
+        ''')
+
+      }
+    }
+    cleanup {
+      cleanWs()
     }
   }
 }
