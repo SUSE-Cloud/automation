@@ -238,8 +238,7 @@ h_echo_header "Run tempest"
 if [ -z "${DISABLE_TEMPESTRUN}" ]; then
     sudo -u stack -i <<EOF
 cd /opt/stack/tempest
-tempest run --regex '(?!.*\[.*\bslow\b.*\])(^tempest\.(api|scenario))' --concurrency=2 --black-regex=
-testr last --subunit > tempest.subunit
+tempest run --regex '(?!.*\[.*\bslow\b.*\])(^tempest\.(api|scenario))' --concurrency=2 --subunit > tempest.subunit
 EOF
 fi
 
