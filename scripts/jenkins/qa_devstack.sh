@@ -248,7 +248,7 @@ sudo -u stack -i <<EOF
 cd /opt/stack/tempest
 subunit2html tempest.subunit /opt/stack/results.html
 # subunit2junitxml will fail if test run failed as it forwards subunit stream result code, ignore it
-subunit2junitxml tempest.subunit --output-to /opt/stack/results.xml || true
+subunit2junitxml tempest.subunit --output-to=/opt/stack/results.xml || true
 EOF
 
 exit 0
