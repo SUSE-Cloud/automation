@@ -124,7 +124,7 @@
       - choice:
           name: scenario_name
           choices:
-            -
+            - '{scenario_name|}'
             - entry-scale-kvm
             - entry-scale-swift
             - standard
@@ -136,6 +136,7 @@
       - choice:
           name: clm_model
           choices:
+            - '{clm_model|standalone}'
             - standalone
             - integrated
           description: |
@@ -144,22 +145,22 @@
 
       - string:
           name: controllers
-          default: '3'
+          default: '{controllers|3}'
           description: Number of nodes used as controller
 
       - string:
           name: core_nodes
-          default: '2'
+          default: '{core_nodes|2}'
           description: Number of OpenStack core service nodes
 
       - string:
           name: lmm_nodes
-          default: '1'
+          default: '{lmm_nodes|1}'
           description: Number of LMM nodes
 
       - string:
           name: dbmq_nodes
-          default: '3'
+          default: '{dbmq_nodes|3}'
           description: Number of database & rabbitmq nodes
 
       - string:
@@ -179,7 +180,7 @@
 
       - string:
           name: sles_computes
-          default: '2'
+          default: '{sles_computes|2}'
           description: Number of SLES compute nodes
 
       - string:
@@ -189,7 +190,7 @@
 
       - string:
           name: disabled_services
-          default: ''
+          default: '{disabled_services|}'
           description: Regex matching service components and component groups to disable in the generated input model
 
       - bool:
