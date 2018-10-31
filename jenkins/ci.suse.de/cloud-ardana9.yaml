@@ -2,7 +2,7 @@
     name: cloud-ardana9-gating
     ardana_gating_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
-    model: demo
+    model: std-min
     version: 9
     label: cloud-trigger
     jobs:
@@ -11,9 +11,13 @@
 - project:
     name: cloud-ardana9-job-std-3cp-x86_64
     ardana_job: '{name}'
-    disabled: true
     ardana_env: cloud-ardana-ci-slot
-    model: std-3cp
+    model: std-3cp-gen
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -22,9 +26,13 @@
 - project:
     name: cloud-ardana9-job-dac-3cp-x86_64
     ardana_job: '{name}'
-    disabled: true
     ardana_env: cloud-ardana-ci-slot
-    model: dac-3cp
+    model: dac-3cp-gen
+    scenario_name: standard
+    clm_model: integrated
+    controllers: '3'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -33,8 +41,13 @@
 - project:
     name: cloud-ardana9-job-std-min-x86_64
     ardana_job: '{name}'
-    disabled: true
     ardana_env: cloud-ardana-ci-slot
+    model: std-min-gen
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -53,9 +66,15 @@
 - project:
     name: cloud-ardana9-job-std-split-x86_64
     ardana_job: '{name}'
-    disabled: true
     ardana_env: cloud-ardana-ci-slot
-    model: std-split
+    model: std-split-gen
+    scenario_name: std-split
+    clm_model: standalone
+    core_nodes: '1'
+    lmm_nodes: '1'
+    dbmq_nodes: '1'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -64,12 +83,16 @@
 - project:
     name: cloud-ardana9-job-std-3cp-devel-staging-updates-x86_64
     ardana_job: '{name}'
-    disabled: true
     ardana_env: cloud-ardana-ci-slot
     cloudsource: develcloud9
     update_after_deploy: true
     update_to_cloudsource: stagingcloud9
-    model: std-3cp
+    model: std-3cp-gen
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -79,7 +102,7 @@
     name: cloud-ardana9-job-gerrit-x86_64
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
-    model: demo
+    model: std-min-gen
     gerrit_change_ids: '4940'
     triggers:
      - timed: 'H H * * *'
@@ -90,7 +113,7 @@
     name: openstack-ardana-gerrit-cloud9
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-gerrit-slot
-    model: demo
+    model: std-min-gen
     gerrit_change_ids: '${{GERRIT_CHANGE_NUMBER}}'
     triggers:
       - gerrit:
