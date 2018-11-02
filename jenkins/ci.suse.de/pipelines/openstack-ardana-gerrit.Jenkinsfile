@@ -90,7 +90,8 @@ The following links can also be used to track the results:
               string(name: 'controllers', value: "2"),
               string(name: 'sles_computes', value: "1"),
               string(name: 'cloudsource', value: "$cloudsource"),
-              string(name: 'tempest_run_filter', value: "$tempest_run_filter")
+              string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
+              string(name: 'os_cloud', value: "$os_cloud")
           ], propagate: false, wait: true
           env.jobResult = slaveJob.getResult()
           env.jobUrl = slaveJob.buildVariables.blue_ocean_buildurl

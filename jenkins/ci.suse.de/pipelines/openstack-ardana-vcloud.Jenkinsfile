@@ -101,7 +101,8 @@ pipeline {
               string(name: 'heat_action', value: "create"),
               string(name: 'git_automation_repo', value: "$git_automation_repo"),
               string(name: 'git_automation_branch', value: "$git_automation_branch"),
-              string(name: 'reuse_node', value: "${NODE_NAME}")
+              string(name: 'reuse_node', value: "${NODE_NAME}"),
+              string(name: 'os_cloud', value: "$os_cloud")
           ], propagate: false, wait: true
           def jobResult = slaveJob.getResult()
           def jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
