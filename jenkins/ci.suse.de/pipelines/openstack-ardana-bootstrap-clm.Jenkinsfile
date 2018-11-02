@@ -59,6 +59,7 @@ pipeline {
               git clone $git_automation_repo --branch $git_automation_branch automation-git
               source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
               ansible_playbook load-job-params.yml
+              ansible_playbook setup-ssh-access.yml -e @input.yml
             ''')
           }
           env.DEPLOYER_IP = sh (
