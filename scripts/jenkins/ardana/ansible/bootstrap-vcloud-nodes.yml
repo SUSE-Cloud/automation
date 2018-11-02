@@ -61,6 +61,7 @@
             - state: touch
               path: "/etc/openstack/skip_disk_config"
           become: yes
+          when: not want_lvm
       rescue:
         - include_role:
             name: rocketchat_notify
@@ -152,6 +153,7 @@
               path: "/etc/openstack"
             - state: touch
               path: "/etc/openstack/skip_disk_config"
+          when: not want_lvm
       rescue:
         - include_role:
             name: rocketchat_notify
