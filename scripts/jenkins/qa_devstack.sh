@@ -236,19 +236,14 @@ EOF
 h_echo_header "Run tempest"
 
 if [ -z "${DISABLE_TEMPESTRUN}" ]; then
+pip install junitxml
     sudo -u stack -i <<EOF
 cd /opt/stack/tempest
 tempest run --regex '(?!.*\[.*\bslow\b.*\])(^tempest\.(api|scenario))' --concurrency=2 --subunit > tempest.subunit
-EOF
-fi
-
-h_echo_header "Store tempest results"
-pip install junitxml
-sudo -u stack -i <<EOF
-cd /opt/stack/tempest
 subunit2html tempest.subunit /opt/stack/results.html
 # subunit2junitxml will fail if test run failed as it forwards subunit stream result code, ignore it
-subunit2junitxml tempest.subunit --output-to=/opt/stack/results.xml || true
+subunit2junitxml tempest.subunit > /opt/stack/results.xml || true
 EOF
+fi
 
 exit 0
