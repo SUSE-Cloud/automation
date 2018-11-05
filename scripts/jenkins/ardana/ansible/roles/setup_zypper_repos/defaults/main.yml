@@ -63,8 +63,8 @@ cloud_test_repos:
 
 cloud_update_repos_enabled: "{{ '+up' in cloudsource }}"
 updates_test_enabled: False
-sles_test_repos_enabled: "{{ updates_test_enabled }}"
-cloud_test_repos_enabled: "{{ updates_test_enabled and 'GM' in cloudsource }}"
+sles_test_repos_enabled: "{{ updates_test_enabled and ((task == 'deploy' and not update_after_deploy) or (task == 'update')) }}"
+cloud_test_repos_enabled: "{{ updates_test_enabled and 'GM' in cloudsource and ((task == 'deploy' and not update_after_deploy) or (task == 'update')) }}"
 
 repos_to_mount: "{{ repos_to_add | select('search', '.*-Pool$') | list }}"
 repos_to_sync: "{{ repos_to_add | difference(repos_to_mount) }}"
