@@ -24,7 +24,3 @@ os_health_server: "10.86.0.167"
 os_health_url: "http://{{ os_health_server }}/#/job/{{ os_health_build_name }}"
 os_health_cloud_build: "{{ cloud_media_build_version['stdout'] | default('Not-available', true) }}"
 os_service_name: "{{ test_name.split('_')[0] }}"
-os_health_requires_state: "present"
-os_health_requires:
-  - "gcc"
-  - "python-devel"
