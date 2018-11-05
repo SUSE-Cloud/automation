@@ -63,7 +63,7 @@
 
         consumer:
            name: os
-{%     for service_component_group in ns.service_component_groups %}
+{%     for service_component_group in ns.service_component_groups if enable_extra_volume_groups %}
 {%       if service_component_group == 'CORE' %}
 
 {%         if scenario['use_cinder_volume_disk'] %}
