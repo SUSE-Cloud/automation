@@ -32,8 +32,6 @@
      [client.rgw.ses-{{ ardana_env }}]
      keyring = /etc/ceph/ceph.client.rgw.ses-{{ ardana_env }}.keyring
      rgw frontends = "civetweb port={{ ses_rgw_port }}"
-     rgw dns name = ses-{{ ardana_env }}
-     rgw enable usage log = true
      rgw keystone url = {{ osrc.results.0.stdout }}
      rgw keystone admin user = admin
      rgw keystone admin password = {{ osrc.results.1.stdout }}
