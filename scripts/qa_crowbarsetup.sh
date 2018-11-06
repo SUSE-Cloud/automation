@@ -5486,6 +5486,8 @@ function oncontroller_setupproduction()
     openstack role add --project engineering --user obs-ci Member
     openstack user create --project container-ci --email KMacInnes@suse.com container-ci
     openstack role add --project container-ci --user container-ci Member
+    openstack user create --project stratos --email ihabib@suse.com stratos-ci
+    openstack role add --project stratos --user stratos-ci Member
     openstack user create --project hana --email DAkechi@suse.com hana-ci
     openstack role add --project hana --user hana-ci Member
     openstack user create --project susemanager --email DMaiocchi@suse.com susemanager-ci
