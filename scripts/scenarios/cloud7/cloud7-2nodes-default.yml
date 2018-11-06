@@ -79,6 +79,8 @@ proposals:
       - @@controller@@
 - barclamp: cinder
   attributes:
+    # NOTE(colleen): REMOVE WHEN SCRD-5775 IS RESOLVED
+    debug: true
     volumes:
     - backend_driver: local
       backend_name: default
