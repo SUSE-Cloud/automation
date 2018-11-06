@@ -70,20 +70,15 @@
 - name: Ensure public keys on deployer
   hosts: "{{ ardana_env }}"
   remote_user: root
-  gather_facts: false
+  gather_facts: true
   vars:
     task: "deploy"
 
   tasks:
     - block:
         - name: Wait for deployer to be accessible
-          delegate_to: localhost
-          wait_for:
-            host: "{{ ansible_host }}"
-            port: 22
-            search_regex: OpenSSH
-            state: started
-            delay: 10
+          wait_for_connection:
+            sleep: 10
             timeout: 300
 
         - include_role:

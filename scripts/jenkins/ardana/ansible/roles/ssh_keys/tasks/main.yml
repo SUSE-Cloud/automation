@@ -16,10 +16,12 @@
 ---
 
 - name: Copy SSH keys
-  authorized_key:
-    user: root
-    state: present
-    key: "{{ item.1 }}"
-  loop: "{{ ssh_pub_keys | subelements('keys') }}"
-  loop_control:
-    label: "{{ item.0.name }}"
+  blockinfile:
+    path: "{{ ansible_env.HOME }}/.ssh/authorized_keys"
+    create: yes
+    block: |
+      {% for dict_item in ssh_pub_keys %}
+      {% for key in dict_item['keys'] %}
+      {{ key }}
+      {% endfor %}
+      {% endfor %}
