@@ -1,0 +1,26 @@
+---
+proposals:
+- barclamp: manila
+  attributes:
+    default_share_type: ceph
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+    shares:
+    - cephfs:
+        use_crowbar: false
+        cephfs_conf_path: "/etc/ceph/ceph.conf"
+        cephfs_auth_id: %CEPH_MANILA_USER%
+        cephfs_cluster_name: ceph
+      backend_driver: cephfs
+      backend_name: cephfs-backend
+  deployment:
+    elements:
+      manila-server:
+      - cluster:services
+      manila-share:
+      - "@@storage0@@"
+      - "@@storage1@@"
+      - "@@storage2@@"

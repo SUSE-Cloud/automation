@@ -1,0 +1,7 @@
+---
+proposals:
+- barclamp: tempest
+  deployment:
+    elements:
+      tempest:
+      - "@@controller6@@"

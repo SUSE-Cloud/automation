@@ -1,0 +1,44 @@
+---
+# TODO:
+proposals:
+- barclamp: neutron
+  attributes:
+    rabbitmq_instance: default
+    keystone_instance: default
+    ml2_mechanism_drivers:
+    - linuxbridge
+    ml2_type_drivers:
+    - vxlan
+    ml2_type_drivers_default_provider_network: vxlan
+    ml2_type_drivers_default_tenant_network: vxlan
+    apic:
+      opflex:
+      - pod: ''
+        nodes:
+        - 58-00-00-00-00-00
+        - 58-00-00-00-00-01
+        - 58-00-00-00-00-02
+        - 58-00-00-00-00-03
+        peer_ip: ''
+        peer_port: 8009
+        encap: vxlan
+        vxlan:
+          encap_iface: br-int_vxlan0
+          uplink_iface: vlan.4093
+          uplink_vlan: 4093
+          remote_ip: ''
+          remote_port: 8472
+        vlan:
+          encap_iface: ''
+    database_instance: default
+    ssl:
+      generate_certs: true
+      insecure: true
+    api:
+      protocol: https
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:network

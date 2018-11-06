@@ -1264,6 +1264,31 @@ EOPYTHON
     fi
 
     cp -v ${netfile} ${netfile}.netbak.clouds
+
+    # upgrade-scale test cloud specific settings
+    if [[ $cloud = u1 ]] ; then
+        local crowbar_specific_conduit='{"pattern": "single/1/.*",
+            "conduit_list": {"intf0": {"if_list"  : ["?1g1"]},
+            "intf1": {"if_list": ["?1g1"]},
+            "intf2": {"if_list": ["?1g1"]}}
+            }'
+
+        local hardware_node_conduit='{"pattern": "single/.*/.*",
+            "conduit_list": {"intf0": {"if_list"  : ["10g1"]},
+            "intf1": {"if_list": ["10g1"]},
+            "intf2": {"if_list": ["10g1"]}}
+            }'
+
+        local conmap_complete=`python -c "import json; f=open('$netfile'); \
+            j=json.load(f);\
+            j['attributes']['network']['conduit_map'] = [item for item in j['attributes']['network']['conduit_map'] if item['pattern'] != 'single/.*/.*']; \
+            j['attributes']['network']['conduit_map'] = [item for item in j['attributes']['network']['conduit_map'] if item['pattern'] != 'single/1/.*']; \
+            j['attributes']['network']['conduit_map'].insert(0, $hardware_node_conduit); \
+            j['attributes']['network']['conduit_map'].insert(0, $crowbar_specific_conduit); \
+            print json.dumps(j['attributes']['network']['conduit_map'], indent=4)"`
+        # set the modified conduit map
+        /opt/dell/bin/json-edit -a attributes.network.conduit_map -r -v "$conmap_complete" $netfile
+    fi
     if [[ $cloud =~ ^p[0-9]$ ]] ; then
         local pcloudnum=${cloud#p}
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
@@ -1301,6 +1326,68 @@ EOPYTHON
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v $netp.167.191 $netfile
         # todo? broadcast
     fi
+    # upgrade-scale test cloud specific settings
+    if [[ $cloud = u1 ]] ; then
+        /opt/dell/bin/json-edit -a attributes.network.networks.storage.vlan -r -v 1343 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.storage.netmask -v 255.255.255.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.storage.subnet -v 192.168.135.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.storage.broadcast -v 192.168.135.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.storage.ranges.host.start -v 192.168.135.10 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.storage.ranges.host.end -v 192.168.135.239 $netfile
+
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.vlan -r -v 1341 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.248.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.subnet -v 10.84.208.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.router -v 10.84.208.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.broadcast -v 10.84.215.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.start -v 10.84.208.2 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.end -v 10.84.211.250 $netfile
+
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.vlan -r -v 1341 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.252.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v 10.84.212.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.router -v 10.84.215.254 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.broadcast -v 10.84.215.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.start -v 10.84.212.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v 10.84.215.250 $netfile
+
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.vlan -r -v 1344 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.subnet -v 44.71.0.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.router -v 44.71.0.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.broadcast -v 44.71.63.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.start -v 44.71.0.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.71.63.254 $netfile
+
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.netmask -v 255.255.248.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.subnet -v 192.168.120.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.router -v 192.168.120.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.broadcast -v 192.168.127.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.admin.start -v 192.168.120.10 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.admin.end -v 192.168.120.11 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.dhcp.start -v 192.168.120.21 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.dhcp.end -v 192.168.120.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.host.start -v 192.168.121.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.host.end -v 192.168.126.127 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.switch.start -v 192.168.127.251 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.admin.ranges.switch.end -v 192.168.127.253 $netfile
+
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.netmask -v 255.255.248.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.subnet -v 192.168.120.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.router -v 192.168.120.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.broadcast -v 192.168.127.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.ranges.host.start -v 192.168.126.129 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc.ranges.host.end -v 192.168.127.240 $netfile
+
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.netmask -v 255.255.248.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.subnet -v 192.168.120.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.router -v 192.168.120.1 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.broadcast -v 192.168.127.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.ranges.host.start -v 192.168.126.128 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.bmc_vlan.ranges.host.end -v 192.168.126.128 $netfile
+
+        /opt/dell/bin/json-edit -a attributes.network.networks.os_sdn.vlan -r -v 1345 $netfile
+    fi
     # Setup specific network configuration for d2 cloud
     if [[ $cloud = d2 ]] ; then
         /opt/dell/bin/json-edit -a attributes.network.mode -v dual $netfile
@@ -1327,6 +1414,12 @@ EOPYTHON
     for lnet in admin storage os_sdn public nova_floating nova_fixed; do
         /opt/dell/bin/json-edit -a attributes.network.networks.$lnet.mtu -r -v $want_mtu_size $netfile
     done
+    # upgrade-scale test cloud specific settings
+    # override common MTU
+    if [[ $cloud = u1 ]] ; then
+        /opt/dell/bin/json-edit -a attributes.network.networks.os_sdn.mtu -r -v 1550 $netfile
+    fi
+
     if [[ $want_network_json_url ]] ; then
         wget -O$netfile "$want_network_json_url"
     fi
