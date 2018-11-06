@@ -138,6 +138,10 @@
               "openstack-horizon-plugin-murano-ui",
               "openstack-gnocchi",
               "openstack-monasca-transform"
+            ].contains(component) ||
+            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Ocata:Staging", "Cloud:OpenStack:Rocky:Staging" ].contains(project) &&
+            [
+              "openstack-horizon-plugin-freezer-ui",
             ].contains(component)
             )
       sequential: true
