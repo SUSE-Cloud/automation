@@ -55,6 +55,7 @@
             - ardana-swift
             - ardana-tempest
             - ardana-tls
+            - python-ardana-configurationprocessor
             - python-ardana-opsconsole-server
             - python-cinderlm
       - axis:
