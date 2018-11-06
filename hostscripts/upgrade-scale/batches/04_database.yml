@@ -1,0 +1,12 @@
+---
+proposals:
+- barclamp: database
+  attributes:
+    sql_engine: mysql
+    mysql:
+      max_connections: 1600
+      innodb_buffer_pool_size: 512
+  deployment:
+    elements:
+      database-server:
+      - cluster:data

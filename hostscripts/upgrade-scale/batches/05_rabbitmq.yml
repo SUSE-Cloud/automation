@@ -1,0 +1,11 @@
+---
+proposals:
+- barclamp: rabbitmq
+  attributes:
+    ssl:
+      generate_certs: true
+    cluster: true
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:data

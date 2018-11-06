@@ -1,0 +1,18 @@
+---
+proposals:
+- barclamp: ntp
+  attributes:
+    external_servers:
+    - ntp1.cloud.suse.de.
+    - ntp2.cloud.suse.de.
+    - ntp3.cloud.suse.de.
+    - kirk.provo.novell.com
+    - 1.us.pool.ntp.org.
+    - 2.us.pool.ntp.org
+  deployment:
+    elements:
+      ntp-server:
+      - crowbar.u1.cloud.suse.de
+      - "@@controller3@@"
+      - "@@controller0@@"
+      - "@@controller6@@"
