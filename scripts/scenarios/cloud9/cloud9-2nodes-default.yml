@@ -75,7 +75,9 @@ proposals:
       - @@compute-kvm@@
       - @@controller@@
 - barclamp: cinder
+    # NOTE(colleen): REMOVE WHEN SCRD-5775 IS RESOLVED
   attributes:
+    debug: true
     volumes:
     - backend_driver: local
       backend_name: default
