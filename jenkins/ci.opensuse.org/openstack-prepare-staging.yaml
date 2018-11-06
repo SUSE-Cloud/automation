@@ -1,0 +1,16 @@
+- job:
+    name: 'openstack-prepare-staging'
+    node: cloud-trackupstream
+
+    parameters:
+      - string:
+          name: openstack_project
+          default: None
+          description: name of the main project that should be updated with packages from its staging project
+
+    builders:
+      - shell: !include-raw: openstack-prepare-staging.py
+
+    wrappers:
+      - build-name:
+          name: '#${BUILD_NUMBER} / C:O:${ENV,var="openstack_project"}'
