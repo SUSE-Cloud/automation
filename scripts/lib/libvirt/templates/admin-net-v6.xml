@@ -1,0 +1,8 @@
+<network>
+  <name>${cloud}-admin</name>
+  <bridge name='${bridge}' stp='off' delay='0' />
+  <mac address='52:54:00:AB:B1:77'/>
+  <ip family='ipv6' address='${gateway}' prefix='${netmask}'/>
+  <forward mode='${forwardmode}'>
+  </forward>
+</network>

@@ -198,6 +198,9 @@ def net_interfaces_config(args, nicmodel):
 
 
 def net_config(args):
+    template_file = "%s-net.xml" % args.network
+    if args.ipv6:
+        template_file = "%s-net-v6.xml" % args.network
     values = {
         'cloud': args.cloud,
         'bridge': args.bridge,
@@ -208,10 +211,7 @@ def net_config(args):
         'forwardmode': args.forwardmode
     }
 
-    return get_config(
-        values,
-        os.path.join(TEMPLATE_DIR, "%s-net.xml" % args.network)
-    )
+    return get_config(values, os.path.join(TEMPLATE_DIR, template_file))
 
 
 def merge_dicts(d1, d2):
