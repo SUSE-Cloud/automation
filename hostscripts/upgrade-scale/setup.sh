@@ -39,3 +39,5 @@ export want_tempest=0
 export networkingplugin=openvswitch
 export networkingmode=vxlan
 export want_dvr=1
+export crowbar_vmname=crowbaru1
+export sshkey=`cat /root/.ssh/id_rsa.pub`
