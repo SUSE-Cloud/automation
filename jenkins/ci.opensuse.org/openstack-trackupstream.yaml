@@ -128,7 +128,6 @@
             ].contains(component) ||
             [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
-              "openstack-horizon-plugin-freezer-ui",
               "openstack-horizon-plugin-neutron-fwaas-ui",
               "openstack-horizon-plugin-neutron-vpnaas-ui",
               "openstack-neutron-vsphere",
