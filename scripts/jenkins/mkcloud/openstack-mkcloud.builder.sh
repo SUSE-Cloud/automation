@@ -151,7 +151,7 @@ env
 echo "########################################################################"
 
 MKCLOUDTARGET=$mkcloudtarget
-[ $UPDATEBEFOREINSTALL == "true" ] && MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
+[ $UPDATEBEFOREINSTALL == "true" ] && MKCLOUDTARGET='_new_admin _compute testsetup'
 
 [ $(uname -m) = s390x ] && WITHCROWBARREGISTER=true
 if [ $WITHCROWBARREGISTER == "true" ] ; then
