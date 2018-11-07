@@ -427,7 +427,9 @@
             # If we're testing a pull request, use our custom checkout
             export automationrepo=$WORKSPACE/automation-git
           fi
-          exec ${automationrepo}/scripts/jenkins/mkcloud/openstack-mkcloud.builder.sh
+          ${automationrepo}/scripts/jenkins/mkcloud/openstack-mkcloud.builder.sh
+          # subunit2junitxml will fail if test run failed as it forwards subunit stream result code, ignore it
+          subunit2junitxml .artifacts/tempest.subunit.log > .artifacts/results.xml || true
 
     publishers:
       - logparser:
@@ -442,4 +444,7 @@
           only-if-success: false
           fingerprint: false
           default-excludes: true
+      - junit:
+          results: .artifacts/results.xml
+          allow-empty-results: true
     triggers: []
