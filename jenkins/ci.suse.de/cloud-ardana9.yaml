@@ -17,7 +17,6 @@
     clm_model: standalone
     controllers: '3'
     sles_computes: '1'
-    disabled_services: 'monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -32,7 +31,6 @@
     clm_model: integrated
     controllers: '3'
     sles_computes: '1'
-    disabled_services: 'monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -47,7 +45,6 @@
     clm_model: standalone
     controllers: '2'
     sles_computes: '1'
-    disabled_services: 'monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -74,7 +71,6 @@
     lmm_nodes: '1'
     dbmq_nodes: '1'
     sles_computes: '1'
-    disabled_services: 'monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -92,7 +88,6 @@
     clm_model: standalone
     controllers: '3'
     sles_computes: '1'
-    disabled_services: 'monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm'
     triggers:
      - timed: 'H H * * *'
     jobs:
