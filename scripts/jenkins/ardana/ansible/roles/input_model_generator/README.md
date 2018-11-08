@@ -211,8 +211,8 @@ Specifying this macro adds the internal load-balancer to the network group.
 account and object servers. This macro expands into the swift component endpoints.
 * _NEUTRON-EXT_: configures the network group as a Neutron flat external network that will be used to provide external access 
 to VMs (via floating IP Addresses). When this macro is specified as a component endpoint, the generated network group
-will be tagged with `neutron.l3_agent.external_network_bridge` and a `neutron_external_networks` entry is generated and
-added to the Neutron configuration data corresponding to this network.
+will be tagged with `neutron.networks.flat` and a `neutron_external_networks` entry is generated and added to the Neutron
+configuration data corresponding to this network.
 * _NEUTRON-VLAN_: configures the network group as a Neutron VLAN provider network. When this macro is specified as a
 component endpoint, the generated network group will be tagged with `neutron.networks.vlan` and a VLAN `neutron_provider_networks`
 entry is generated and added to the Neutron configuration data corresponding to this network. A route is also configured

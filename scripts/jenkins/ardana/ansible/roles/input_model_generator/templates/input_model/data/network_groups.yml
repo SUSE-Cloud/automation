@@ -19,7 +19,7 @@
 
   network-groups:
 
-{% set ns = namespace(physnet_id=0, routes=[]) %}
+{% set ns = namespace(physnet_id=0, extnet_id=0, routes=[]) %}
 {% for network_group in scenario['network_groups'] %}
 
     - name: {{ network_group.name|upper }}
@@ -196,7 +196,9 @@
         # This is the network group that will be used to provide
         # external access to VMs (via floating IP Addresses)
         #
-        - neutron.l3_agent.external_network_bridge
+        - neutron.networks.flat:
+            provider-physical-network: external{{ ns.extnet_id | ternary(ns.extnet_id, '') }}
+{%       set ns.extnet_id = ns.extnet_id+1 %}
 {%     endif %}
 {%     if 'NEUTRON-VLAN' in network_group['component_endpoints'] %}
 {%       set ns.physnet_id = ns.physnet_id+1 %}
