@@ -582,8 +582,9 @@ function crowbar_register
     local i
     for i in $(nodes ids lonely) ; do
         local mac=$(macfunc $i)
-        sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register"
+        sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register" &
     done
+    wait
 }
 
 # setup an NFS server on the first lonely node
