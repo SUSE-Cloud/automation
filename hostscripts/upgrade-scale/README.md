@@ -5,24 +5,24 @@ This is a very succinct description of what we currently have.
 
 ## The admin host (the gate)
 
-* <TODO: adminhost address> is the host where the crowbaru1 vm is running.
+* 10.84.208.2 is the host where the crowbaru1 vm is running.
 * crowbar vm qcow2 image is extracted to the /dev/system/crowbaru1 lvm
 * The ports 1122 and 1180 are forwarded to 10.84.208.2(crowbaru1) port 22 and 80 correspondingly.
 
 ## The crowbaru1 VM
 
 Because of the port forwarding on the host, use this to access crowbar:
-* crowbar UI: http://<TODO: adminhost address>:1180
-* crowbar SSH: ssh root@<TODO: adminhost address> -p 1122
+* crowbar UI: http://10.84.208.2:1180
+* crowbar SSH: ssh root@10.84.208.2 -p 1122
 
 ## IPMI (bmc, ilo) for the nodes
 
-Please use the SOCKS5 proxy on <TODO: adminhost address> (or any other jumphost with access to provo iLO network) to access the IPMI of the nodes
-For this to work supply the -D parameter when sshing to <TODO: adminhost address>
+Please use the SOCKS5 proxy on 10.84.208.2 (or any other jumphost with access to provo iLO network) to access the IPMI of the nodes
+For this to work supply the -D parameter when sshing to 10.84.208.2
 E.g.:
 
 ```bash
-ssh -D 12345 root@<TODO: adminhost address>
+ssh -D 12345 root@10.84.208.2
 ```
 
 And then configure your browser to use the corresponding SOCKS5 proxy
@@ -88,13 +88,13 @@ automation/hostscripts/gatehost/freshadminvm crowbaru1 GM7+up
 automation/scripts/mkcloud prepareinstcrowbar runupdate bootstrapcrowbar
 
 # remove old ssh server key (if any) to avoid errors when sshing to crowbar vm
-ssh-keygen -R <TODO: crowbar vm IP>
+ssh-keygen -R 192.168.124.10
 
 # upload latest batch files from automation repo to crowbar vm (they will land in /root/batches)
 # these will be used later to deploy the cloud
-rsync -vr automation/hostscripts/upgrade-scale/batches <TODO: crowbar vm IP>:
+rsync -vr automation/hostscripts/upgrade-scale/batches 192.168.124.10:
 # fill ipmi credentials in remote copy (using variables set on host)
-ssh <TODO: crowbar VM IP> sed -i -e "s/%IPMIUSER%/$want_ipmi_username/" -e "s/%IPMIPASS%/$extraipmipw/" batches/00_ipmi.yml
+ssh 192.168.124.10 sed -i -e "s/%IPMIUSER%/$want_ipmi_username/" -e "s/%IPMIPASS%/$extraipmipw/" batches/00_ipmi.yml
 
 ### on crowbar VM
 # we need updated packages
