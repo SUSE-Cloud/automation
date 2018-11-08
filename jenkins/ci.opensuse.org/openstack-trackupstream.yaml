@@ -78,7 +78,6 @@
             - openstack-swift
             - openstack-trove
             - openstack-tempest
-            - openstack-utils
             - openstack-zaqar
             - python-heat-cfntools
             - python-monasca-common
