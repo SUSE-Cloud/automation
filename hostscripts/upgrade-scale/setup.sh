@@ -6,6 +6,7 @@ export mkclouddriver=physical
 # see https://github.com/SUSE-Cloud/automation/blob/master/docs/mkcloud.md#using-with-local-repositories
 export cache_clouddata=1
 export want_cached_images=1
+export cache_dir=/var/cache/mkcloud/
 export debug_qa_crowbarsetup=1
 export debug_mkcloud=1
 export want_ldap=1
