@@ -85,7 +85,7 @@ export extraipmipw="<ILO PASSWORD>"
 test -e /dev/system/crowbaru1 || lvcreate -L20G system -n crowbaru1
 
 # remove old ssh server key (if any) to avoid errors when sshing to crowbar vm
-ssh-keygen -R 192.168.124.10
+ssh-keygen -R 192.168.120.10
 
 # update the local cache
 automation/scripts/mkcloud prepare
@@ -97,9 +97,9 @@ automation/scripts/mkcloud prepareinstcrowbar runupdate bootstrapcrowbar
 
 # upload latest batch files from automation repo to crowbar vm (they will land in /root/batches)
 # these will be used later to deploy the cloud
-rsync -vr automation/hostscripts/upgrade-scale/batches 192.168.124.10:
+rsync -vr automation/hostscripts/upgrade-scale/batches 192.168.120.10:
 # fill ipmi credentials in remote copy (using variables set on host)
-ssh 192.168.124.10 sed -i -e "s/%IPMIUSER%/$want_ipmi_username/" -e "s/%IPMIPASS%/$extraipmipw/" batches/00_ipmi.yml
+ssh 192.168.120.10 sed -i -e "s/%IPMIUSER%/$want_ipmi_username/" -e "s/%IPMIPASS%/$extraipmipw/" batches/00_ipmi.yml
 
 ### on crowbar VM
 # we need updated packages
