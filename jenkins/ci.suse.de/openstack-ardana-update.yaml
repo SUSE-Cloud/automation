@@ -73,6 +73,13 @@
                GM<X>+up (official GM plus Cloud-Updates)
                cloud9MX (cloud 9 milestones)
 
+      - bool:
+          name: updates_test_enabled
+          default: false
+          description: >-
+            Enable SLES/Cloud test update repos (the Cloud test update repos will
+            be enabled only when cloudsource is GM based)
+
       - string:
           name: cloud_maint_updates
           default: ''

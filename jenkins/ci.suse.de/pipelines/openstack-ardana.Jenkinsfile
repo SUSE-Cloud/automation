@@ -209,6 +209,7 @@ pipeline {
           def slaveJob = build job: 'openstack-ardana-bootstrap-clm', parameters: [
               string(name: 'ardana_env', value: "$ardana_env"),
               string(name: 'cloudsource', value: "$cloudsource"),
+              string(name: 'updates_test_enabled', value: "$updates_test_enabled"),
               string(name: 'cloud_maint_updates', value: "$cloud_maint_updates"),
               string(name: 'sles_maint_updates', value: "$sles_maint_updates"),
               string(name: 'extra_repos', value: "${env.test_repository_url ?: extra_repos}"),
@@ -278,6 +279,7 @@ pipeline {
           def slaveJob = build job: 'openstack-ardana-update', parameters: [
             string(name: 'ardana_env', value: "$ardana_env"),
             string(name: 'update_to_cloudsource', value: "$update_to_cloudsource"),
+            string(name: 'updates_test_enabled', value: "$updates_test_enabled"),
             string(name: 'cloud_maint_updates', value: "$cloud_maint_updates"),
             string(name: 'sles_maint_updates', value: "$sles_maint_updates"),
             string(name: 'rc_notify', value: "$rc_notify"),

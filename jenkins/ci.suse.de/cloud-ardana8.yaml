@@ -72,11 +72,12 @@
 - project:
     name: cloud-ardana8-job-std-3cp-test-maintenance-updates-x86_64
     ardana_job: '{name}'
-    disabled: true
+    disabled: false
     ardana_env: cloud-ardana-ci-slot
     cloudsource: GM8+up
+    updates_test_enabled: true
     update_after_deploy: true
-    update_to_cloudsource: GM8+testup
+    update_to_cloudsource: GM8+up
     branch: stable/pike
     model: std-3cp
     triggers:
