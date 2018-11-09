@@ -61,6 +61,9 @@ export want_tempest_proposal=1
 ./mkcloud "\$@"
 EOF
 chmod a+x cloud9
+
+$zypper in nfs-client
+
 ./cloud9 prepareinstcrowbar bootstrapcrowbar instcrowbar
 
 # Rick suggested you could add the remaning nodes as lonelynodes to crowbar
