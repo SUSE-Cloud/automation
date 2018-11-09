@@ -5,24 +5,24 @@ This is a very succinct description of what we currently have.
 
 ## The admin host (the gate)
 
-* 10.84.208.2 is the host where the crowbaru1 vm is running.
+* 10.84.208.1 is the host where the crowbaru1 vm is running.
 * crowbar vm qcow2 image is extracted to the /dev/system/crowbaru1 lvm
-* The ports 1122 and 1180 are forwarded to 10.84.208.2(crowbaru1) port 22 and 80 correspondingly.
+* The ports 1122 and 1180 are forwarded to 10.84.208.1(crowbaru1) port 22 and 80 correspondingly.
 
 ## The crowbaru1 VM
 
 Because of the port forwarding on the host, use this to access crowbar:
-* crowbar UI: http://10.84.208.2:1180
-* crowbar SSH: ssh root@10.84.208.2 -p 1122
+* crowbar UI: http://10.84.208.1:1180
+* crowbar SSH: ssh root@10.84.208.1 -p 1122
 
 ## IPMI (bmc, ilo) for the nodes
 
-Please use the SOCKS5 proxy on 10.84.208.2 (or any other jumphost with access to provo iLO network) to access the IPMI of the nodes
-For this to work supply the -D parameter when sshing to 10.84.208.2
+Please use the SOCKS5 proxy on 10.84.208.1 (or any other jumphost with access to provo iLO network) to access the IPMI of the nodes
+For this to work supply the -D parameter when sshing to 10.84.208.1
 E.g.:
 
 ```bash
-ssh -D 12345 root@10.84.208.2
+ssh -D 12345 root@10.84.208.1
 ```
 
 And then configure your browser to use the corresponding SOCKS5 proxy
