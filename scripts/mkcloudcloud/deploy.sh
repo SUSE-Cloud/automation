@@ -13,7 +13,7 @@ admin_ip=`cat .admin_ip`
 
 ### PART-2
 ### mkcloud and surrounding setup
-ssh root@$admin_ip
+nc -z -w 60 $admin_ip 22 && ssh root@$admin_ip
 # and execute this
 zypper="zypper --gpg-auto-import-keys -n"
 
