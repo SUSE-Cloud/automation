@@ -4,7 +4,11 @@
 ### from local machine to setup infrastructure on engcloud
 export namespace=$USER
 export openstacksshkey=xxx
-./heat-setup.sh
+if ! ./heat-setup.sh; then
+  echo "Error deploying stack"
+  exit 1
+fi
+
 admin_ip=`cat .admin_ip`
 
 ### PART-2
