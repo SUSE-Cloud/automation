@@ -62,6 +62,12 @@ export want_tempest_proposal=1
 EOF
 chmod a+x cloud9
 
+if [ ! -f ~/.ssh/id_rsa.pub ]; then
+  ssh-keygen -t rsa -f /root/.ssh/id_rsa -N ""
+  cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+  chmod 600 ~/.ssh/authorized_keys
+fi
+
 $zypper in nfs-client
 
 ./cloud9 prepareinstcrowbar bootstrapcrowbar instcrowbar
