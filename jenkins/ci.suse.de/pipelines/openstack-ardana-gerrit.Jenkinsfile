@@ -57,7 +57,6 @@ pipeline {
               string(name: 'clm_model', value: "standalone"),
               string(name: 'controllers', value: "2"),
               string(name: 'sles_computes', value: "1"),
-              string(name: 'disabled_services', value: "monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm"),
               string(name: 'cloudsource', value: "$cloudsource"),
               string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
               string(name: 'develproject', value: "$develproject"),
