@@ -87,6 +87,7 @@ test -e /dev/system/crowbaru1 || lvcreate -L20G system -n crowbaru1
 
 # remove old ssh server key (if any) to avoid errors when sshing to crowbar vm
 ssh-keygen -R 192.168.120.10
+ssh-keygen -R crowbaru1
 
 # update the local cache
 automation/scripts/mkcloud prepare
@@ -130,12 +131,12 @@ automation/scripts/mkcloud instcrowbar
 
 ### on the crowbar VM
 # install patched barclamp
-barclamp_install.rb --rpm core
-rccrowbar restart
-rccrowbar-jobs restart
+#barclamp_install.rb --rpm core
+#rccrowbar restart
+#rccrowbar-jobs restart
 
 # apply IPMI batch to make sure IPMI settings are discovered from the beginning
-crowbar batch build batches/00_ipmi.yml
+crowbar batch build batches/01_ipmi.yml
 
 
 ### on the admin host
