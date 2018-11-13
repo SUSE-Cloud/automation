@@ -138,18 +138,17 @@ automation/scripts/mkcloud instcrowbar
 # apply IPMI batch to make sure IPMI settings are discovered from the beginning
 crowbar batch build batches/01_ipmi.yml
 
+#############################
+# install controllers
+#############################
 
 ### on the admin host
 
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# TODO: install controller nodes first to avoid picking them for storage or compute needs
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-# pxe boot all nodes listed in the ~/all_machines_ipmi_addresses.txt file
+# pxe boot all controller nodes listed in the ~/all_controllers.txt file
 # NOTE: this is one-time boot override, don't use options=persistent as it causes undesired side effects (e.g. switch from UEFI to Legacy boot)
-cut -d: -f2 all_machines_ipmi_addresses.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power reset'
+awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power reset'
 # NOTE: nodes which are in "off" state will not power on after this command. you can check the power status with:
-cut -d: -f2 all_machines_ipmi_addresses.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
+awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
 # wait until nodes are discovered
 
 ### on the crowbar VM
@@ -159,11 +158,9 @@ cut -d: -f2 all_machines_ipmi_addresses.txt | xargs -i sh -c 'echo {}; ipmitool 
 #   are cleared after ~60sec so the reboot needs to fit in this window (i.e. whole pre-reboot phase of installation can't take more
 #   than 60sec or the pxe boot override will expire).
 crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'
-
 # wait until nodes are installed, reboot and transition to ready
 
 # set aliases
-# controller-class nodes first
 count=0
 nodes=( `crowbarctl node list --plain | grep ready$ | grep "^d" | cut -d' ' -f1` )
 aliases=( "controller0 controller1 controller2 controller3 controller4 controller5 controller6 controller7" )
@@ -172,6 +169,10 @@ for a in $aliases; do
     echo "${nodes[$count]} -> $a"
     (( count++ ))
 done
+
+###########################
+# TODO
+###########################
 
 # pick some compute-class nodes for ceph and monasca
 nodes_without_alias=`crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|grep -e ^crowbar -v`
