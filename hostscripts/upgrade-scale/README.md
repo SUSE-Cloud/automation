@@ -99,7 +99,7 @@ automation/scripts/mkcloud prepareinstcrowbar runupdate bootstrapcrowbar
 # these will be used later to deploy the cloud
 rsync -vr automation/hostscripts/upgrade-scale/batches 192.168.120.10:
 # fill ipmi credentials in remote copy (using variables set on host)
-ssh 192.168.120.10 sed -i -e "s/%IPMIUSER%/$want_ipmi_username/" -e "s/%IPMIPASS%/$extraipmipw/" batches/00_ipmi.yml
+ssh 192.168.120.10 sed -i -e "s/%IPMIUSER%/$want_ipmi_username/" -e "s/%IPMIPASS%/$extraipmipw/" batches/01_ipmi.yml
 
 ### on crowbar VM
 # we need updated packages
