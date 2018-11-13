@@ -71,6 +71,7 @@ avoid conflicts.
 cd
 
 # get fresh version of automation scripts
+rm -r automation.old
 mv automation automation.old
 git clone --branch=upgrade-scale https://github.com/SUSE-Cloud/automation
 # use that before the PR is merged
