@@ -131,6 +131,7 @@ automation/scripts/mkcloud instcrowbar
 # install patched barclamp
 barclamp_install.rb --rpm core
 rccrowbar restart
+rccrowbar-jobs restart
 
 # apply IPMI batch to make sure IPMI settings are discovered from the beginning
 crowbar batch build batches/00_ipmi.yml
@@ -200,6 +201,7 @@ done
 
 #barclamp_install.rb --rpm openstack
 #rccrowbar restart
+#rccrowbar-jobs restart
 
 # use "crowbar batch build XX_X.yml" to build the cloud
 find batches -name '*.yml' | sort | xargs -i sh -c 'crowbar batch build {} || exit 255'
