@@ -108,37 +108,47 @@
           default: ''
           description: List of SLES maintenance update IDs separated by comma (eg. 7434,7435)
 
-      - string:
-          name: git_input_model_branch
-          default: '{branch|}'
-          description: >-
-            The git repository branch to use for input models. If empty the branch is set based
-            on the cloud release version (cloud8: stable/pike, cloud9: master)
-
-      - string:
-          name: git_input_model_path
-          default: 2.0/ardana-ci
-          description: >-
-            Relative path in the input model git repository where the input models are located
-
-      - string:
+      - choice:
           name: model
-          default: '{model|std-min}'
+          choices:
+            - '{model|}'
+            - dac-3cp
+            - dac-min
+            - demo
+            - deployerincloud
+            - deployerincloud-lite
+            - entry-scale-swift
+            - mid-size
+            - minimal
+            - standard
+            - std-3cm
+            - std-3cp
+            - std-min
+            - std-split
           description: >-
-            The Input Model to use from the input model git repository / branch / path, or the name of the generated
-            input model.
+            The name of the one of the available 'ardana-ci' input models to use from the ardana-input-model git repository.
+
+
+            NOTE: use this parameter only if you want to use an existing input model. To generate an input model instead,
+            leave this field empty and use the 'scenario_name' parameter instead.
 
       - choice:
           name: scenario_name
           choices:
             - '{scenario_name|}'
             - entry-scale-kvm
-            - entry-scale-swift
             - standard
             - std-split
             - mid-scale
           description: >-
-            The scenario used to generate the input model
+            The name of one of the available scenarios that can be used to generate input models.
+            If this parameter is set, the following parameters may also be set to different values, to control
+            various aspects of the generated input model: clm_model, controllers, core_nodes, lmm_nodes, dbmq_nodes,
+            neutron_nodes, swpac_nodes, swobj_nodes, sles_computes, rhel_computes and disabled_services.
+
+
+            NOTE: use this parameter only if you want to use a generated input model. To use an existing input model instead,
+            leave this field empty and use the 'model' parameter instead.
 
       - choice:
           name: clm_model
@@ -147,58 +157,126 @@
             - standalone
             - integrated
           description: |
-            standalone - one node dedicated for CLM
-            integrated - the first controller node will also be used as a CLM node
+            The type of deployer node deployment to use for the generated input model. Can take one of the following values:
+
+              standalone - one node dedicated for CLM
+              integrated - the first controller node will also be used as a CLM node
+
+            Input model generator scenarios using this parameter : all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
 
       - string:
           name: controllers
           default: '{controllers|3}'
-          description: Number of nodes used as controller
+          description: |
+            The number of controller nodes in the generated input model.
+
+            Input model generator scenarios using this parameter is available: standard, entry-scale-kvm.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
 
       - string:
           name: core_nodes
           default: '{core_nodes|2}'
-          description: Number of OpenStack core service nodes
+          description: |
+            The number of OpenStack core services nodes in the generated input model.
+
+            Input model generator scenarios using this parameter is available: mid-scale, std-split.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
 
       - string:
           name: lmm_nodes
           default: '{lmm_nodes|1}'
-          description: Number of LMM nodes
+          description: |
+            The number of LMM services nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: mid-scale, std-split.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
 
       - string:
           name: dbmq_nodes
           default: '{dbmq_nodes|3}'
-          description: Number of database & rabbitmq nodes
+          description: |
+            The number of database & rabbitmq service nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: std-split, mid-scale.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
 
       - string:
           name: neutron_nodes
           default: '1'
-          description: Number of neutron network nodes
+          description: |
+            The number of neutron network nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: mid-scale.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
 
       - string:
           name: swpac_nodes
           default: '1'
-          description: Number of swift proxy/account/container service nodes
+          description: |
+            The number of swift proxy/account/container service nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: mid-scale.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
 
       - string:
           name: swobj_nodes
           default: '1'
-          description: Number of swift object service nodes
+          description: |
+            The number of swift object service nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: std-split, mid-scale.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
 
       - string:
           name: sles_computes
           default: '{sles_computes|2}'
-          description: Number of SLES compute nodes
+          description: |
+            The number of SLES compute nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
 
       - string:
           name: rhel_computes
           default: '0'
-          description: Number of RHEL compute nodes
+          description: |
+            The number of RHEL (CentOS) compute nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
 
       - string:
           name: disabled_services
           default: '{disabled_services|}'
-          description: Regex matching service components and component groups to disable in the generated input model
+          description:
+          description: |
+            Regex matching service components and component groups to exclude from the generated input model.
+
+            Input model generator scenarios using this parameter: all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
 
       - bool:
           name: ses_enabled

@@ -50,12 +50,6 @@
             to test.
 
       - string:
-          name: model
-          default: '{model|std-min}'
-          description: >-
-            The Input Model to use from the input model git repository / branch / path.
-
-      - string:
           name: cloudsource
           default: '{cloudsource|stagingcloud9}'
           description: >-

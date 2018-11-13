@@ -129,8 +129,6 @@ pipeline {
             script {
               def slaveJob = build job: 'openstack-ardana-vcloud', parameters: [
                   string(name: 'ardana_env', value: "$ardana_env"),
-                  string(name: 'git_input_model_branch', value: "$git_input_model_branch"),
-                  string(name: 'git_input_model_path', value: "$git_input_model_path"),
                   string(name: 'model', value: "$model"),
                   string(name: 'scenario_name', value: "$scenario_name"),
                   string(name: 'clm_model', value: "$clm_model"),
