@@ -16,6 +16,13 @@
 ---
 
 network_groups:
+  - name: MANAGEMENT
+    hostname_suffix: mgmt
+    tagged_vlan: false
+    component_endpoints:
+      - MANAGEMENT
+      - INTERNAL-API
+
   - name: EXTERNAL-API
     hostname_suffix: extapi
     tagged_vlan: true
@@ -23,13 +30,6 @@ network_groups:
       - EXTERNAL-API
     routes:
       - default
-
-  - name: MANAGEMENT
-    hostname_suffix: mgmt
-    tagged_vlan: false
-    component_endpoints:
-      - MANAGEMENT
-      - INTERNAL-API
 
   - name: EXTERNAL-VM
     hostname_suffix: extvm

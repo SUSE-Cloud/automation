@@ -21,7 +21,11 @@ parameters:
     type: string
     label: Default CIDR
     description: Default CIDR value to use for networks which don't have CIDR specified
+{%   if ipv6 == true %}
+    default: "2001::/64"
+{%    else   %}
     default: "1.1.1.0/24"
+{%    endif  %}
 
 resources:
 
@@ -44,7 +48,11 @@ resources:
     properties:
       network_id: { get_resource: default_network }
       cidr: { get_param: default_subnet_cidr }
+{%   if ipv6 == true %}
+      ip_version: 6
+{%    else   %}
       ip_version: 4
+{%    endif  %}
       enable_dhcp: False
 
   # networks and subnets
@@ -75,12 +83,21 @@ resources:
         - start: "{{ pool[0] }}"
           end: "{{ pool[1] }}"
 {%     endfor %}
-{%   endif %}
+{%     endif  %}
+{%   if ipv6 == true %}
+{%   if network.is_mgmt %}
       ip_version: 4
+{%   else   %}
+      ip_version: 6
+{%   endif  %}
+{%   else   %}
+      ip_version: 4
+{%   endif  %}
+      enable_dhcp: {{ network.is_mgmt }}
 {%   if network.gateway is defined %}
       gateway_ip: "{{ network.gateway }}"
-{%   endif %}
-      enable_dhcp: {{ network.is_mgmt }}
+{%   endif   %}
+
 
 {%   if network.external %}
   router_ext_{{ name }}_interface:
