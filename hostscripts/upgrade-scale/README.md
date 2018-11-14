@@ -110,6 +110,8 @@ ssh 192.168.120.10 sed -i -e "s/%IPMIUSER%/$want_ipmi_username/" -e "s/%IPMIPASS
 #wget -nc http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12_SP2/x86_64/ruby2.1-rubygem-chef-10.32.2-27.1.x86_64.rpm
 #zypper in -n -f sleshamm* ruby*
 
+zypper in patch
+
 # we need some crowbar-core patches
 # 1299: Stable 4.0 bsc1054081 by toabctl
 # 1297: Avoid crashing chef on listing 'installing' nodes (bsc#1050278) by toabctl
@@ -202,9 +204,19 @@ done
 #done
 #popd
 
+# apply HA patches
+# 330: Set the value of drbd nodes only for the first deployment.
+pushd /opt/dell
+for github_pr in 330; do
+    wget -q https://github.com/crowbar/crowbar-ha/pull/$github_pr.patch
+    patch -p1 < $github_pr.patch
+done
+popd
+
 #barclamp_install.rb --rpm openstack
-#rccrowbar restart
-#rccrowbar-jobs restart
+barclamp_install.rb --rpm ha
+rccrowbar restart
+rccrowbar-jobs restart
 
 # use "crowbar batch build XX_X.yml" to build the cloud
 find batches -name '*.yml' | sort | xargs -i sh -c 'crowbar batch build {} || exit 255'
