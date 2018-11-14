@@ -73,6 +73,41 @@
         - '{ardana_job}'
 
 - project:
+    name: cloud-ardana9-job-entry-scale-kvm-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud9
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '2'
+    rhel_computes: '0'
+    tempest_run_filter: 'ci'
+    qa_test_list: 'iverify,cinder,heat,magnum,neutron,nova-attach,nova_volume,nova_server,nova_services,nova_flavor,nova_image,tempest_cleanup'
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana9-job-entry-scale-kvm-qe102-x86_64
+    ardana_job: '{name}'
+    concurrent: False
+    ardana_env: qe102
+    reserve_env: false
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '2'
+    rhel_computes: '0'
+    tempest_run_filter: 'ci'
+    qa_test_list: 'iverify,cinder,heat,magnum,neutron,nova-attach,nova_volume,nova_server,nova_services,nova_flavor,nova_image,tempest_cleanup'
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
     name: cloud-ardana9-job-std-3cp-devel-staging-updates-x86_64
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot

@@ -317,7 +317,7 @@
           type: multi-select
           visible-items: 10
           multi-select-delimiter: ','
-          default-value: ''
+          default-value: '{qa_test_list|}'
           value: >-
             iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,
             heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,
