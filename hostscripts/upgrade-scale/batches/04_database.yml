@@ -8,5 +8,5 @@ proposals:
       innodb_buffer_pool_size: 512
   deployment:
     elements:
-      database-server:
+      mysql-server:
       - cluster:data
