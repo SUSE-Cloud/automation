@@ -42,7 +42,7 @@ proposals:
         mcast_addr: 239.255.0.2
         mcast_port: 5405
     stonith:
-      mode: manual
+      mode: ipmi_barclamp
   deployment:
     elements:
       pacemaker-cluster-member:
