@@ -13,7 +13,6 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    branch: stable/pike
     model: std-3cp
     triggers:
      - timed: 'H H * * *'
@@ -25,7 +24,6 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    branch: stable/pike
     model: dac-3cp
     triggers:
      - timed: 'H H * * *'
@@ -37,7 +35,6 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    branch: stable/pike
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -48,7 +45,6 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    branch: stable/pike
     model: std-split
     triggers:
      - timed: 'H H * * *'
@@ -62,7 +58,6 @@
     cloudsource: develcloud8
     update_after_deploy: true
     update_to_cloudsource: stagingcloud8
-    branch: stable/pike
     model: std-3cp
     triggers:
      - timed: 'H H * * *'
@@ -78,7 +73,6 @@
     updates_test_enabled: true
     update_after_deploy: true
     update_to_cloudsource: GM8+up
-    branch: stable/pike
     model: std-3cp
     triggers:
      - timed: 'H H * * *'
@@ -90,7 +84,6 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: GM8+up
-    branch: stable/pike
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -114,7 +107,6 @@
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-gerrit-slot
     cloudsource: stagingcloud8
-    branch:
     develproject: Devel:Cloud:8:Staging
     repository: SLE_12_SP3
     gerrit_change_ids: '${{GERRIT_CHANGE_NUMBER}}'

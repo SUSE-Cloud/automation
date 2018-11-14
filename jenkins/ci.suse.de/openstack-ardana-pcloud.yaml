@@ -51,13 +51,15 @@
       - choice:
           name: scenario_name
           choices:
-            - entry-scale-kvm
-            - entry-scale-swift
             - standard
+            - entry-scale-kvm
             - std-split
             - mid-scale
           description: >-
-            The scenario used to generate the input model
+            The name of one of the available scenarios that can be used to generate input models.
+            If this parameter is set, the following parameters may also be set to different values, to control
+            various aspects of the generated input model: clm_model, controllers, core_nodes, lmm_nodes, dbmq_nodes,
+            neutron_nodes, swpac_nodes, swobj_nodes, sles_computes, rhel_computes and disabled_services.
 
       - choice:
           name: clm_model
@@ -65,58 +67,93 @@
             - standalone
             - integrated
           description: |
-            standalone - one node dedicated for CLM
-            integrated - the first controller node will also be used as a CLM node
+            The type of deployer node deployment to use for the generated input model. Can take one of the following values:
+
+              standalone - one node dedicated for CLM
+              integrated - the first controller node will also be used as a CLM node
+
+            Input model generator scenarios using this parameter : all
 
       - string:
           name: controllers
           default: '3'
-          description: Number of nodes used as controller
+          description: |
+            The number of controller nodes in the generated input model.
+
+            Input model generator scenarios using this parameter is available: standard, entry-scale-kvm.
 
       - string:
           name: core_nodes
           default: '2'
-          description: Number of OpenStack core service nodes
+          description: |
+            The number of OpenStack core services nodes in the generated input model.
+
+            Input model generator scenarios using this parameter is available: mid-scale, std-split.
 
       - string:
           name: lmm_nodes
           default: '1'
-          description: Number of LMM nodes
+          description: |
+            The number of LMM services nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: mid-scale, std-split.
 
       - string:
           name: dbmq_nodes
           default: '3'
-          description: Number of database & rabbitmq nodes
+          description: |
+            The number of database & rabbitmq service nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: std-split, mid-scale.
 
       - string:
           name: neutron_nodes
           default: '1'
-          description: Number of neutron network nodes
+          description: |
+            The number of neutron network nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: mid-scale.
 
       - string:
           name: swpac_nodes
           default: '1'
-          description: Number of swift proxy/account/container service nodes
+          description: |
+            The number of swift proxy/account/container service nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: mid-scale.
 
       - string:
           name: swobj_nodes
           default: '1'
-          description: Number of swift object service nodes
+          description: |
+            The number of swift object service nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: std-split, mid-scale.
 
       - string:
           name: sles_computes
           default: '2'
-          description: Number of SLES compute nodes
+          description: |
+            The number of SLES compute nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: all
 
       - string:
           name: rhel_computes
           default: '0'
-          description: Number of RHEL compute nodes
+          description: |
+            The number of RHEL (CentOS) compute nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: all
 
       - string:
           name: disabled_services
           default: ''
-          description: Regex matching service components and component groups to disable in the generated input model
+          description:
+          description: |
+            Regex matching service components and component groups to exclude from the generated input model.
+
+            Input model generator scenarios using this parameter: all
 
       - bool:
           name: rc_notify
