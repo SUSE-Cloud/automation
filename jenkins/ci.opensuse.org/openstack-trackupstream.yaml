@@ -111,14 +111,15 @@
             [ "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
               "openstack-ironic-python-agent",
-              "python-vmware-nsxlib",
-              "python-vmware-nsx",
             ].contains(component) ||
             [ "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
             [
               "python-heat-cfntools",
               "openstack-rally",
               "openstack-tempest",
+              "python-monasca-statsd",
+              "python-vmware-nsxlib",
+              "python-vmware-nsx",
             ].contains(component) ||
             [ "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging" ].contains(project) &&
             [
