@@ -12,6 +12,7 @@ pipeline {
   agent {
     node {
       label 'cloud-pipeline'
+      customWorkspace "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
 
