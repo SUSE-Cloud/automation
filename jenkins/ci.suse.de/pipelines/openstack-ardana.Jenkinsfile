@@ -178,9 +178,6 @@ pipeline {
             script {
               def slaveJob = build job: 'openstack-ardana-testbuild-gerrit', parameters: [
                   string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
-                  string(name: 'develproject', value: "$develproject"),
-                  string(name: 'homeproject', value: "$homeproject"),
-                  string(name: 'repository', value: "$repository"),
                   string(name: 'git_automation_repo', value: "$git_automation_repo"),
                   string(name: 'git_automation_branch', value: "$git_automation_branch")
               ], propagate: false, wait: true

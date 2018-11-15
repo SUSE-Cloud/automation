@@ -94,8 +94,6 @@
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    develproject: Devel:Cloud:8:Staging
-    repository: SLE_12_SP3
     gerrit_change_ids: '4941'
     triggers:
      - timed: 'H H * * *'
@@ -107,9 +105,7 @@
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-gerrit-slot
     cloudsource: stagingcloud8
-    develproject: Devel:Cloud:8:Staging
-    repository: SLE_12_SP3
-    gerrit_change_ids: '${{GERRIT_CHANGE_NUMBER}}'
+    gerrit_change_ids: '${{GERRIT_CHANGE_NUMBER}}/${{GERRIT_PATCHSET_NUMBER}}'
     triggers:
       - gerrit:
           server-name: 'gerrit.suse.provo.cloud'
@@ -122,10 +118,7 @@
                 comment-contains-value: '^suse_recheck$'
             - comment-added-contains-event:
                 comment-contains-value: '^recheck$'
-          override-votes: true
-          gerrit-build-successful-verified-value: 0
-          skip-vote:
-              notbuilt: true
+          silent: true
           projects:
             - project-compare-type: 'REG_EXP'
               project-pattern: !include-raw: gerrit-project-regexp.txt

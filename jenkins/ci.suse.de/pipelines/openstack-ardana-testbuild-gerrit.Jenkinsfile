@@ -31,7 +31,8 @@ pipeline {
           env.test_repository_url = sh (
             returnStdout: true,
             script: '''
-              echo http://download.suse.de/ibs/${homeproject//:/:\\/}:/ardana-ci-${gerrit_change_ids//,/-}/standard/${homeproject}:ardana-ci-${gerrit_change_ids//,/-}.repo
+              gerrit_change_ids=$(echo $gerrit_change_ids|tr ",/" -)
+              echo http://download.suse.de/ibs/${homeproject//:/:\\/}:/ardana-ci-${gerrit_change_ids}/standard/${homeproject}:ardana-ci-${gerrit_change_ids}.repo
             '''
           ).trim()
           sh('''
@@ -46,7 +47,7 @@ pipeline {
         sh '''
           cd automation-git/scripts/jenkins/ardana/gerrit
           set -eux
-          python -u build_test_package.py
+          python -u build_test_package.py --homeproject ${homeproject} -c ${gerrit_change_ids//,/ -c }
           echo "zypper repository for test packages: $test_repository_url"
         '''
       }
