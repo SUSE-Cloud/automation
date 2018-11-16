@@ -337,7 +337,7 @@
 
       - bool:
           name: rc_notify
-          default: false
+          default: '{rc_notify|false}'
           description: >-
             Notify RocketChat when deployment starts/finishes.
 
