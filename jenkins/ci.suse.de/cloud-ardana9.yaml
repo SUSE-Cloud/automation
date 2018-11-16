@@ -102,6 +102,7 @@
     rhel_computes: '0'
     tempest_run_filter: 'ci'
     qa_test_list: 'iverify,cinder,heat,magnum,neutron,nova-attach,nova_volume,nova_server,nova_services,nova_flavor,nova_image,tempest_cleanup'
+    rc_notify: 'true'
     triggers:
      - timed: 'H H * * *'
     jobs:
