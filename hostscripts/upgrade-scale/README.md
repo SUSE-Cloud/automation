@@ -137,7 +137,8 @@ automation/scripts/mkcloud instcrowbar
 #rccrowbar restart
 #rccrowbar-jobs restart
 
-# apply IPMI batch to make sure IPMI settings are discovered from the beginning
+# apply IPMI and provisioner batch to make sure IPMI settings are discovered from the beginning and correct installation settings are used
+crowbar batch build batches/00_provisioner.yml
 crowbar batch build batches/01_ipmi.yml
 
 #############################
