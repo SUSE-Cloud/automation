@@ -110,8 +110,6 @@ ssh 192.168.120.10 sed -i -e "s/%IPMIUSER%/$want_ipmi_username/" -e "s/%IPMIPASS
 #wget -nc http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12_SP2/x86_64/ruby2.1-rubygem-chef-10.32.2-27.1.x86_64.rpm
 #zypper in -n -f sleshamm* ruby*
 
-zypper in patch
-
 # we need some crowbar-core patches
 # 1299: Stable 4.0 bsc1054081 by toabctl
 # 1297: Avoid crashing chef on listing 'installing' nodes (bsc#1050278) by toabctl
@@ -120,7 +118,7 @@ zypper in patch
 # 1320: dhcp fix for UEFI (bsc#961536) by toabctl
 # 1262: [stable/4.0] ipmi: Add support for bmc_interface (bsc#1046567) by s-t-e-v-e-n-k
 # 1321: Properly pass command args to bmc_cmd by toabctl
-#zypper -n in patch
+zypper -n in patch
 #pushd /opt/dell
 #for github_pr in 1299 1297 1301 1304 1320 1262 1321; do
 #    wget -q https://github.com/crowbar/crowbar-core/pull/$github_pr.patch
