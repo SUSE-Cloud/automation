@@ -12,8 +12,6 @@ proposals:
       protocol: https
       region: CustomRegion
       processes: 32
-    assignment:
-      driver: json
     domain_specific_config:
       ldap_users:
         ldap:
