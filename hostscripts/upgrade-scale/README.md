@@ -145,6 +145,7 @@ crowbar batch build batches/01_ipmi.yml
 
 ### on the admin host
 
+# NOTE: make sure all controllers / DL360s are set to Legacy BIOS boot mode. UEFI sometimes causes weird problems.
 # pxe boot all controller nodes listed in the ~/all_controllers.txt file
 # NOTE: this is one-time boot override, don't use options=persistent as it causes undesired side effects (e.g. switch from UEFI to Legacy boot)
 awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power reset'
