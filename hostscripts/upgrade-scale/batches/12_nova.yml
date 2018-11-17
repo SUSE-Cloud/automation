@@ -36,8 +36,8 @@ proposals:
       nova-controller:
       - cluster:services
       nova-compute-kvm:
+      - "@@compute0@@"
       - "@@compute1@@"
-      - "@@compute2@@"
       nova-compute-qemu: []
       nova-compute-xen: []
       ec2-api: []
