@@ -7,6 +7,7 @@ proposals:
       protocol: https
     ssl:
       generate_certs: true
+      insecure: true
     shares:
     - cephfs:
         use_crowbar: true

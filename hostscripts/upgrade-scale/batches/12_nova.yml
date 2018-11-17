@@ -24,6 +24,7 @@ proposals:
     ssl:
       enabled: true
       generate_certs: true
+      insecure: true
     novnc:
       ssl:
         enabled: true

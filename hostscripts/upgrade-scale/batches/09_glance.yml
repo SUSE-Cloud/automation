@@ -6,6 +6,7 @@ proposals:
       protocol: https
     ssl:
       generate_certs: true
+      insecure: true
     default_store: rbd
     keystone_instance: default
     database_instance: default

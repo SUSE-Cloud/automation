@@ -10,6 +10,7 @@ proposals:
       ssl:
         enabled: true
         generate_certs: true
+        insecure: true
   deployment:
     elements:
       ceph-calamari: []

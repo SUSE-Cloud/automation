@@ -33,6 +33,7 @@ proposals:
     database_instance: default
     ssl:
       generate_certs: true
+      insecure: true
     api:
       protocol: https
   deployment:

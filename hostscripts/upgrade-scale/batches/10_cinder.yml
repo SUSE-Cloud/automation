@@ -24,6 +24,7 @@ proposals:
       protocol: https
     ssl:
       generate_certs: true
+      insecure: true
   deployment:
     elements:
       cinder-controller:

@@ -9,6 +9,7 @@ proposals:
     apache:
       ssl: true
       generate_certs: true
+      insecure: true
   deployment:
     elements:
       horizon-server:

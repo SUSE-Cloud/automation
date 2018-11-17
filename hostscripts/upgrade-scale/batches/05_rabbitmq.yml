@@ -4,6 +4,7 @@ proposals:
   attributes:
     ssl:
       generate_certs: true
+      insecure: true
     cluster: true
   deployment:
     elements:
