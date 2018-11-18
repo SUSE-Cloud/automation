@@ -70,6 +70,13 @@ avoid conflicts.
 # everything starts in root home
 cd
 
+# NOTE: make sure all nodes are off to avoid IP conflicts. You can check the power status with:
+awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
+awk '{print $1}' all_computes.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
+# if needed, power off the nodes
+awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
+awk '{print $1}' all_computes.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
+
 # get fresh version of automation scripts
 rm -r automation.old
 mv automation automation.old
@@ -148,9 +155,7 @@ crowbar batch build batches/01_ipmi.yml
 # NOTE: make sure all controllers / DL360s are set to Legacy BIOS boot mode. UEFI sometimes causes weird problems.
 # pxe boot all controller nodes listed in the ~/all_controllers.txt file
 # NOTE: this is one-time boot override, don't use options=persistent as it causes undesired side effects (e.g. switch from UEFI to Legacy boot)
-awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power reset'
-# NOTE: nodes which are in "off" state will not power on after this command. you can check the power status with:
-awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
+awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
 # wait until nodes are discovered
 
 ### on the crowbar VM
@@ -160,7 +165,7 @@ awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanp
 #   are cleared after ~60sec so the reboot needs to fit in this window (i.e. whole pre-reboot phase of installation can't take more
 #   than 60sec or the pxe boot override will expire).
 crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'
-# wait until nodes are installed, reboot and transition to ready
+# wait until nodes are installed, rebooted and transition to ready
 
 # set aliases
 count=0
@@ -172,12 +177,19 @@ for a in $aliases; do
     (( count++ ))
 done
 
-###########################
-# TODO
-###########################
+### on the admin host
+# install first 10 compute-class nodes for non-compute use and some initial computes
+awk '{print $1}' all_computes.txt | head -n10 | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
+# wait until nodes are discovered
 
-# pick some compute-class nodes for ceph and monasca
-nodes_without_alias=`crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|grep -e ^crowbar -v`
+### on the crowbar VM
+
+# allocate all pending nodes and set following boot to pxe for proper AutoYaST installation
+crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'
+# wait until nodes are installed, rebooted and transition to ready
+
+# pick some free (compute-class) nodes for ceph and monasca
+nodes_without_alias=( `crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|grep -e ^crowbar -v` )
 count=0
 aliases=( "storage0 storage1 storage2 monasca" )
 for a in $aliases; do
@@ -187,9 +199,9 @@ for a in $aliases; do
 done
 
 # the rest are compute nodes
-nodes_without_alias=`crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|grep -e ^crowbar -v`
+nodes_without_alias=( `crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|grep -e ^crowbar -v` )
 count=0
-for node in $nodes_without_alias; do
+for node in ${nodes_without_alias[@]}; do
     crowbarctl node rename $node "compute$count"
     echo "${nodes_without_alias[$count]} -> compute$count"
     (( count++ ))
