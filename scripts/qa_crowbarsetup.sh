@@ -1235,7 +1235,7 @@ EOPYTHON
         /opt/dell/bin/json-edit -a attributes.network.networks.public.vlan -r -v 1341 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.248.0 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.subnet -v 10.84.208.0 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.public.router -v 10.84.215.254 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.router -v 10.84.208.1 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.broadcast -v 10.84.215.255 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.start -v 10.84.208.2 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.end -v 10.84.211.250 $netfile
