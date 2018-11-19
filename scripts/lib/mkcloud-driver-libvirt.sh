@@ -51,7 +51,9 @@ function libvirt_start_daemon()
 
 function libvirt_net_start()
 {
-    $sudo virsh net-start $cloud-admin || exit $?
+    if ! $sudo virsh net-info $cloud-admin | grep -q 'Active.*yes' ; then
+        $sudo virsh net-start $cloud-admin || exit $?
+    fi
     $sudo sysctl -e net.ipv4.conf.$cloudbr.forwarding=1
     for dev in $cloudbr-nic $cloudbr ; do
         $sudo ip link set mtu 9000 dev $dev
