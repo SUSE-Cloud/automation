@@ -20,6 +20,7 @@ proposals:
         pool: volumes
         user: cinder
         flatten_volume_from_snapshot: false
+        secret_uuid: ""
     api:
       protocol: https
     ssl:
