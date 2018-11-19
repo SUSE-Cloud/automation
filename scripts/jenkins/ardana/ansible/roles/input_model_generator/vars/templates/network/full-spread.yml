@@ -27,7 +27,6 @@ network_groups:
     tagged_vlan: false
     component_endpoints:
       - MANAGEMENT
-      - NEUTRON-VLAN
     routes:
       - default
       - INTERNAL-API
@@ -49,6 +48,12 @@ network_groups:
     tagged_vlan: true
     component_endpoints:
       - NEUTRON-EXT
+
+  - name: TENANT-VLAN
+    hostname_suffix: tvlan
+    tagged_vlan: false
+    component_endpoints:
+      - NEUTRON-VLAN
 
   - name: GUEST
     hostname_suffix: guest

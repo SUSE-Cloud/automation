@@ -34,9 +34,14 @@ interface_models:
           num_interfaces: 2
         network_groups:
           - EXTERNAL-API
-          - EXTERNAL-VM
           - GUEST
           - MANAGEMENT
+      - bond:
+          mode: "active-backup"
+          num_interfaces: 2
+        network_groups:
+          - EXTERNAL-VM
+          - TENANT-VLAN
 
   - name: COMPUTE
     service_groups:
@@ -47,6 +52,11 @@ interface_models:
           mode: "active-backup"
           num_interfaces: 2
         network_groups:
-          - EXTERNAL-VM
           - GUEST
           - MANAGEMENT
+      - bond:
+          mode: "active-backup"
+          num_interfaces: 2
+        network_groups:
+          - EXTERNAL-VM
+          - TENANT-VLAN
