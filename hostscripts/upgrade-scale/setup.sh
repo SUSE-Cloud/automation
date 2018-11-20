@@ -16,6 +16,7 @@ export reposerver=provo-clouddata.cloud.suse.de
 export susedownload=ibs-mirror.prv.suse.net
 export architectures="x86_64"
 export cloudsource=GM7+up
+export upgrade_cloudsource=GM8
 #export cloudsource=develcloud7
 #export TESTHEAD=1
 export virtualcloud=u1
