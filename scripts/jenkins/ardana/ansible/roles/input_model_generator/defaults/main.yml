@@ -29,10 +29,11 @@ designate_backend: bind
 # (i.e. values in service_component_groups)
 disabled_services: ""
 
-# Disable extra volume groups in the generated disk models, since these have no
-# effect anyway as long as `skip_disk_config` is used to skip LVM disk configuration
+# Disable extra volume groups in the generated disk models when LVM is
+# disabled in the base image, since these have no effect anyway as long as
+# `skip_disk_config` is also used to skip LVM disk configuration
 # in deployed clouds
-enable_extra_volume_groups: False
+enable_extra_volume_groups: "{{ want_lvm }}"
 
 cp_prefix: cp1
 max_host_prefix_len: "{{ 33-(cp_prefix|length) }}"

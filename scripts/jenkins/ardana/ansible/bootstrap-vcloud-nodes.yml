@@ -61,6 +61,7 @@
             - state: touch
               path: "/etc/openstack/skip_disk_config"
           become: yes
+          when: not want_lvm
       rescue:
         - include_role:
             name: rocketchat_notify
@@ -77,7 +78,7 @@
 - name: Bootstrap other virtual nodes for ardana
   hosts: ardana_virt_hosts
   remote_user: root
-  gather_facts: False
+  gather_facts: True
   vars:
     task: "deploy"
     ansible_ssh_common_args: >
@@ -96,12 +97,8 @@
             delay: 10
             timeout: 300
 
-        - name: Grow 1st partition filesystem
-          shell: |
-            /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
-          failed_when: False
-          register: growpart
-          changed_when: growpart.rc == 0
+        - include_role:
+            name: setup_root_partition
 
         - name: Create ardana group
           group:
@@ -152,6 +149,7 @@
               path: "/etc/openstack"
             - state: touch
               path: "/etc/openstack/skip_disk_config"
+          when: not want_lvm
       rescue:
         - include_role:
             name: rocketchat_notify

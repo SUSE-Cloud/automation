@@ -13,8 +13,23 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# The CaaSP admin node needs at least 16GB of RAM, which requires a bigger
-# compute node.
 ---
 
-compute_flavor: "{{ vcloud_flavor_name_prefix }}-controller"
+# List of tools required for partition resizing
+part_resize_tools:
+  basic:
+    - fdisk
+    - parted
+    - growpart
+  lvm:
+    - lvdisplay
+    - lvs
+    - vgs
+
+# if / is not on bootable partition, updated dynamically otherwise
+sles_vm_fdisk_start_field: 2
+
+# the size (in GB) to which the LVM root partition is resized
+# this needs to be less than 95% of the total available size, otherwise
+# the Ardana osconfig play will fail
+min_deployer_root_part_size: 24

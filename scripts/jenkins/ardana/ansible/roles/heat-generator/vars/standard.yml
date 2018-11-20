@@ -34,9 +34,9 @@ clm_service_components:
   - barbican-client
   - ntp-client
 
-clm_flavor: cloud-ardana-job-compute
-controller_flavor: cloud-ardana-job-controller
-compute_flavor: cloud-ardana-job-compute
+clm_flavor: "{{ vcloud_flavor_name_prefix }}-compute"
+controller_flavor: "{{ vcloud_flavor_name_prefix }}-controller"
+compute_flavor: "{{ vcloud_flavor_name_prefix }}-compute"
 sles_images:
   cloud8: cleanvm-jeos-SLE12SP3
   cloud9: cleanvm-jeos-SLE12SP4

@@ -38,14 +38,14 @@ service_groups:
   - name: clm
     type: cluster
     prefix: clm
-    heat_flavor_id: cloud-ardana-job-compute
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
     member_count: '{{ (clm_model == "standalone") | ternary(1, 0) }}'
     service_components:
       - CLM
   - name: core
     type: cluster
     prefix: core
-    heat_flavor_id: cloud-ardana-job-controller
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-controller"
     member_count: '{{ core_nodes|default(2) }}'
     service_components:
       - '{{ (clm_model == "integrated") | ternary("CLM", '') }}'
@@ -53,35 +53,35 @@ service_groups:
   - name: lmm
     type: cluster
     prefix: lmm
-    heat_flavor_id: cloud-ardana-job-compute
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
     member_count: '{{ lmm_nodes|default(3) }}'
     service_components:
       - LMM
   - name: dbmq
     type: cluster
     prefix: dbmq
-    heat_flavor_id: cloud-ardana-job-minimal
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-minimal"
     member_count: '{{ dbmq_nodes|default(3) }}'
     service_components:
       - DBMQ
   - name: swpac
     type: cluster
     prefix: swpac
-    heat_flavor_id: cloud-ardana-job-minimal
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-minimal"
     member_count: '{{ swpac_nodes|default(3) }}'
     service_components:
       - SWPAC
   - name: neutron
     type: cluster
     prefix: neutron
-    heat_flavor_id: cloud-ardana-job-minimal
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-minimal"
     member_count: '{{ neutron_nodes|default(3) }}'
     service_components:
       - NEUTRON
   - name: sles-compute
     type: resource
     prefix: sles-comp
-    heat_flavor_id: cloud-ardana-job-compute
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
     member_count: '{{ sles_computes|default(1) }}'
     min_count: 0
     service_components:
@@ -91,7 +91,7 @@ service_groups:
     prefix: rhel-comp
     distro_id: rhel73-x86_64
     heat_image_id: centos73
-    heat_flavor_id: cloud-ardana-job-compute
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
     member_count: '{{ rhel_computes|default(1) }}'
     min_count: 0
     service_components:
@@ -99,7 +99,7 @@ service_groups:
   - name: swobj
     type: resource
     prefix: swobj
-    heat_flavor_id: cloud-ardana-job-compute
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
     member_count: '{{ swobj_nodes|default(3) }}'
     min_count: '{{ [ swobj_nodes|default(3)|int, 3 ] | min }}'
     service_components:

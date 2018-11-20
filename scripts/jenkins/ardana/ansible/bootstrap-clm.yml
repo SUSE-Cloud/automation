@@ -26,10 +26,8 @@
 
   pre_tasks:
     - block:
-        - name: Grow 1st partition filesystem
-          shell: |
-            /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
-          failed_when: False
+        - include_role:
+            name: setup_root_partition
           when: not is_physical_deploy
 
         - include_role:
