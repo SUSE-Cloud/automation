@@ -128,6 +128,7 @@
     name: cloud-ardana9-job-gerrit-x86_64
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
+    cloudsource: develcloud9
     gerrit_change_ids: '4940'
     triggers:
      - timed: 'H H * * *'
@@ -138,6 +139,7 @@
     name: openstack-ardana-gerrit-cloud9
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-gerrit-slot
+    cloudsource: develcloud9
     gerrit_change_ids: '${{GERRIT_CHANGE_NUMBER}}/${{GERRIT_PATCHSET_NUMBER}}'
     triggers:
       - gerrit:

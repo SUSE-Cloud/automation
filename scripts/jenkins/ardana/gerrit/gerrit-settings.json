@@ -45,11 +45,11 @@
   },
   "obs-project": {
     "master": {
-      "develproject": "Devel:Cloud:9:Staging",
+      "develproject": "Devel:Cloud:9",
       "repository": "SLE_12_SP4"
     },
     "stable/pike": {
-      "develproject": "Devel:Cloud:8:Staging",
+      "develproject": "Devel:Cloud:8",
       "repository": "SLE_12_SP3"
     }
   }
