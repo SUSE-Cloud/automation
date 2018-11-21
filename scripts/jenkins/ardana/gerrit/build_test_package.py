@@ -185,7 +185,7 @@ class OBSProject:
         matches = re.findall('^commit: (\S+)$', str(obsinfo), re.MULTILINE)
         commitid = sh.git(
             '-C', package.source_dir,
-            'rev-list', '-n', '1', 'HEAD')
+            'rev-list', '-n', '1', 'HEAD').strip()
         if len(matches) == 1 and matches[0] == commitid:
             print("Skipping %s as the inherited package is the same.")
             return
