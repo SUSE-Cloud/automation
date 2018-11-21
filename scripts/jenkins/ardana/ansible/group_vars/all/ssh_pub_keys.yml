@@ -121,3 +121,6 @@ ssh_pub_keys:
   - name: gyee
     keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCwVnxAO0ZRFMAEG/zijy8vs8Gun4xdvmlHRqcDRVukfEw93Tow50jeos5yRRi3n96imw/ImWwkh7rwJJ7gzi+SJyYr4w0AEY3HeCe11TkQXxgdOPOPFmI3eBGbgaqEo9vnl6cpVP1wwV7UG5oRv9iuFPAgtb87k6qz/7cls9gpsBxBYyM4l9hBaymg6Q2Km8qP0txuwubq8SVwwdXcEXOuXU7vsTpKSo3c9P65bgCn6AOGKUcoOVOTEOqL30Yr0uOOss4hxRxPw6sA7DRa/84/CTmdUK683FuP8IlrXbo5KUaCxT8qvBKxdFiWdGgut0jKP3RLDwHoJoi3tVAZWJ6T yeeg@GY-37417
+  - name: mnmehta
+    keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC95Z3R6w8cnVHkTjtHtXwHvi8zCTA7/wpj29R9MQm2GIwMRPwmibyswWHMe8+i7H8bZ0v5aR9++ZeGAq9J8DvhOrTqSvIYuiad7WTye8oZA6EC7ifIjjUuQWcrQI2Y2itySVn+L4dXgIR/sjb+4ujgecX+ZvaRWh8P4xKyQsIBokwu6nrPqkzDa/zTx/BdPhN1tQiWtjPSZVcTjWHr/9a0ESzoSfYzZpCq3P7D+v7/Lbjk/9Wl/CXFw8Wfsh1OiFGg82BL4DgpKvakNdKKIf9gqrMkr0uCwmSZr2uY+7jRvgAbjxvagcTUtgyHUFhPoxjrHnbCPPveX2GYFnGgDvhb mnmehta@suse.com
