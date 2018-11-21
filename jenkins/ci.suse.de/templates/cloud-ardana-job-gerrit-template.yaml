@@ -53,7 +53,7 @@
 
       - string:
           name: cloudsource
-          default: '{cloudsource|stagingcloud9}'
+          default: '{cloudsource|develcloud9}'
           description: >-
             The cloud repository (from provo-clouddata) to be used for testing.
             This value can take the following form:

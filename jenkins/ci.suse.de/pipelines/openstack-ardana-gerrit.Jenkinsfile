@@ -74,7 +74,7 @@ The following links can also be used to track the results:
 
     stage('integration test') {
       when {
-        expression { cloudsource == 'stagingcloud9' }
+        expression { cloudsource == 'develcloud9' }
       }
       steps {
         script {
@@ -115,7 +115,7 @@ The following links can also be used to track the results:
           # Post reviews only for jobs triggered by Gerrit
           if [ -n "$GERRIT_CHANGE_NUMBER" ] ; then
             if [[ $BUILD_RESULT == SUCCESS ]]; then
-              if [[ $cloudsource == stagingcloud9 ]]; then
+              if [[ $cloudsource == develcloud9 ]]; then
                 vote=+2
               else
                 vote=0
@@ -125,7 +125,7 @@ Build succeeded (${JOB_NAME}): ${BUILD_URL}
 
 "
             else
-              if [[ $cloudsource == stagingcloud9 ]]; then
+              if [[ $cloudsource == develcloud9 ]]; then
                 vote=-2
               else
                 vote=-1
