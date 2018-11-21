@@ -147,7 +147,8 @@ class GerritChange(GerritApiCaller):
                                  for r in revision_obj['commit']['parents']]
         self.mergeable = self._change_object.get('mergeable', False)
         self.submittable = self._change_object.get('submittable', False)
-        self.gerrit_url = "{}/{}/{}".format(GERRIT_URL, self.id, self.patchset)
+        self.gerrit_url = "{}/#/c/{}/{}".format(GERRIT_URL, self.id,
+                                                self.patchset)
 
     def _find_dependency_headers(self):
         if self._dependency_headers is not None:
