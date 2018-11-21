@@ -179,7 +179,8 @@ done
 
 ### on the admin host
 # install first 10 compute-class nodes for non-compute use and some initial computes
-awk '{print $1}' all_computes.txt | head -n10 | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
+awk '{print $1}' all_computes.txt | head -n10 | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
+  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
 # wait until nodes are discovered
 
 ### on the crowbar VM
@@ -203,7 +204,7 @@ nodes_without_alias=( `crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|gre
 count=0
 for node in ${nodes_without_alias[@]}; do
     crowbarctl node rename $node "compute$count"
-    echo "${nodes_without_alias[$count]} -> compute$count"
+    echo "$node -> compute$count"
     (( count++ ))
 done
 
@@ -230,10 +231,66 @@ barclamp_install.rb --rpm ha
 rccrowbar restart
 rccrowbar-jobs restart
 
+# manually install python-keystone-json-assignment package on all nodes which will go to 'services' cluster
+for node in controller5 controller6; do
+  ssh $node "wget -nc http://download.suse.de/ibs/Devel:/Cloud:/7:/Staging/SLE_12_SP2/noarch/python-keystone-json-assignment-0.0.2-2.14.noarch.rpm"
+  ssh $node "zypper -n --no-gpg-checks in -f python-keystone-json-assignment*"
+done
+
+# TODO: deploy basic keystone?
+# TODO: create/upload /etc/keystone/user-project-map.json?
+# TODO: switch keystone assignment to json?
+
 # use "crowbar batch build XX_X.yml" to build the cloud
 find batches -name '*.yml' | sort | xargs -i sh -c 'crowbar batch build {} || exit 255'
 
 # the cloud should be ready now for adding more nodes
+
+# before the upgrade update cache of target product
+export old_cloudsource=$cloudsource
+export cloudsource=$upgrade_cloudsource
+automation/scripts/mkcloud prepare
+export cloudsource=$old_cloudsource
+
+# some useful commands
+### on the admin host
+
+# collect ipmi addresses of all nodes known to crowbar
+ssh crowbaru1 "crowbarctl node list --plain | cut -d' ' -f1 | grep -v crowbar | xargs -i knife node show -a crowbar_wall.ipmi.address {} | cut -d: -f2" > all_known_ipmi.txt
+
+# power off all unused controller nodes
+awk '{ print$2 }' all_controllers.txt | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
+  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
+
+# trigger discovery of all unused controller nodes
+awk '{ print$2 }' all_controllers.txt | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
+  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
+  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
+
+# power off all unused compute nodes
+awk '{ print$1 }' all_computes.txt | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
+  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
+
+# trigger discovery of all unused compute nodes
+awk '{ print$1 }' all_computes.txt | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
+  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
+  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
+
+# allocate all pending nodes and set following boot to pxe for proper AutoYaST installation
+ssh crowbaru1 "crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'"
+
+# forget all unready nodes (after waiting for installation to have a clean slate for retry of above procedure)
+ssh crowbaru1 "crowbarctl node list --plain | grep unready$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; crowbarctl node delete {}'"
+
+# set aliases for remaining compute nodes
+nodes_without_alias=( `crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|grep -e ^crowbar -v` )
+count=$(crowbar machines aliases | grep compute | cut -d' ' -f1 | tr -d [:alpha:] | sort -n | tail -n1)
+for node in ${nodes_without_alias[@]}; do
+    (( count++ ))
+    crowbarctl node rename $node "compute$count"
+    echo "$node -> compute$count"
+done
+
 
 # maybe needed: export/update the barclamp batch files
 # TODO: update this part to include proper list of barclamps
