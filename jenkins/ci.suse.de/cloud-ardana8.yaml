@@ -95,7 +95,7 @@
     name: cloud-ardana8-job-gerrit-x86_64
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
-    cloudsource: stagingcloud8
+    cloudsource: develcloud8
     gerrit_change_ids: '4941'
     triggers:
      - timed: 'H H * * *'
@@ -106,7 +106,7 @@
     name: openstack-ardana-gerrit-cloud8
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-gerrit-slot
-    cloudsource: stagingcloud8
+    cloudsource: develcloud8
     gerrit_change_ids: '${{GERRIT_CHANGE_NUMBER}}/${{GERRIT_PATCHSET_NUMBER}}'
     triggers:
       - gerrit:

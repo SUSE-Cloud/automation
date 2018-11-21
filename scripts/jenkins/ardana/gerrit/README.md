@@ -102,11 +102,8 @@ package corresponds to the _stable/pike_ branch of the [keystone-ansible](http:/
 * every time a change is merged in Gerrit in one of these projects, the [ardana-trigger-trackupstream](https://ci.suse.de/job/ardana-trigger-trackupstream/)
 Jenkins job is triggered to rebuild the associated IBS package to reflect the latest sources in the Gerrit repository
 and the tracked git branch.
-* consequently, the automated testing validating open Gerrit changes always use the packages in the staging project
-as a baseline, to ensure the sources being tested correspond to the most recent Gerrit repository state available
-at the time the testing process starts. Even so, there is always a slight chance that some last minute
-Gerrit changes will not be included, but most of the time this will not negatively impact the CI process
-because it automatically takes care of Gerrit change dependencies.
+* consequently, the automated testing validating open Gerrit changes always builds packages corresponding to the most
+recent Gerrit repository state available at the time the testing process starts.
 
 ## Building test IBS packages
 
@@ -130,9 +127,13 @@ The process of building test RPM packages can be summarized as follows:
   * Gerrit changes that are not mapped to a corresponding IBS package according to
   [gerrit-settings.json](gerrit-settings.json) are skipped
   * all other changes are merged on top of the `test-branch` branch
-* finally, corresponding OBS packages are built, starting as copies of their existing IBS counterparts
-taken from the Cloud staging project (also taken from [gerrit-settings.json](gerrit-settings.json) unless
-otherwise specified), and updated to package the sources in the local git clones and the populated `test-branch` branch
+* finally, OBS packages corresponding to collected Gerrit changes are built, starting as copies of their existing IBS
+counterparts taken from the Cloud non-staging project (also configured in [gerrit-settings.json](gerrit-settings.json) unless
+otherwise specified), and updated to package the sources in the local git clones and the populated `test-branch` branch.
+Furthermore, remaining packages in the [gerrit-settings.json](gerrit-settings.json) list, that do not have corresponding
+Gerrit changes in the list of changes collected at the first step, are also updated to include the latest merged sources
+in Gerrit, where this is needed. 
+
 
 ## Posting Gerrit comments and/or labels
 
