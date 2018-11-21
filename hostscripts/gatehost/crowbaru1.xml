@@ -1,8 +1,8 @@
 <domain type='kvm'>
   <name>crowbaru1</name>
   <uuid>0111b7ea-cb3a-4eed-acb2-db34da7f5b9c</uuid>
-  <memory unit='KiB'>3145728</memory>
-  <currentMemory unit='KiB'>3145728</currentMemory>
+  <memory unit='KiB'>6291456</memory>
+  <currentMemory unit='KiB'>6291456</currentMemory>
   <vcpu placement='static'>2</vcpu>
   <os>
     <type arch='x86_64' machine='pc-i440fx-2.0'>hvm</type>
