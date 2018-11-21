@@ -122,6 +122,13 @@
             The Jenkins agent where this job must run. Used by upstream jobs to
             force a job to reuse the same node.
 
+      - string:
+          name: os_cloud
+          default: ''
+          description: >-
+            The OpenStack API credentials used to manage virtual clouds (leave
+            empty to use the default shared 'cloud' ECP account).
+
       - choice:
           name: type_of_compute
           choices:

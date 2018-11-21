@@ -69,6 +69,13 @@
             Name of the filter file to use for tempest. Use an empty value to
             skip running tempest.
 
+      - string:
+          name: os_cloud
+          default: '{os_cloud|engcloud-cloud-ci-private}'
+          description: >-
+            The OpenStack API credentials used to manage virtual clouds (leave
+            empty to use the default shared 'cloud' ECP account).
+
     pipeline-scm:
       scm:
         - git:

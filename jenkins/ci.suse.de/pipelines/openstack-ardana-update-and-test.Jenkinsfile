@@ -66,7 +66,8 @@ pipeline {
             string(name: 'rc_notify', value: "$rc_notify"),
             string(name: 'git_automation_repo', value: "$git_automation_repo"),
             string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'reuse_node', value: "${NODE_NAME}")
+            string(name: 'reuse_node', value: "${NODE_NAME}"),
+            string(name: 'os_cloud', value: "$os_cloud")
           ], propagate: true, wait: true
         }
       }
@@ -88,7 +89,8 @@ pipeline {
                   string(name: 'rc_notify', value: "$rc_notify"),
                   string(name: 'git_automation_repo', value: "$git_automation_repo"),
                   string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                  string(name: 'reuse_node', value: "${NODE_NAME}")
+                  string(name: 'reuse_node', value: "${NODE_NAME}"),
+                  string(name: 'os_cloud', value: "$os_cloud")
                 ], propagate: true, wait: true
               }
             }
@@ -109,7 +111,8 @@ pipeline {
             string(name: 'rc_notify', value: "$rc_notify"),
             string(name: 'git_automation_repo', value: "$git_automation_repo"),
             string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'reuse_node', value: "${NODE_NAME}")
+            string(name: 'reuse_node', value: "${NODE_NAME}"),
+            string(name: 'os_cloud', value: "$os_cloud")
           ], propagate: true, wait: true
         }
       }

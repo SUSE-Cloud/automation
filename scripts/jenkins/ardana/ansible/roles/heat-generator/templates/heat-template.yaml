@@ -9,7 +9,7 @@ parameters:
     type: string
     label: Key Name
     description: Name of key-pair to be used for compute instance
-    default: engcloud-cloud-ci
+    default: {{ os_key_name }}
 {% endif %}
   floating_network:
     type: string

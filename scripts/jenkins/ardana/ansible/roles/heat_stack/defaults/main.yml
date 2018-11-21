@@ -15,7 +15,6 @@
 #
 ---
 
-os_cloud: "engcloud-cloud-ci"
 heat_action: "create"
 api_timeout: "600"
 
