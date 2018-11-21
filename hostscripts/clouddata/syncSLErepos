@@ -166,7 +166,7 @@ rsync_with_create ${ibs_source_nue}/Devel:/Cloud:/8:/HOS5Migration/SLE_12_SP3/ /
 for servicepack in 4 3 2 1; do
     # fetch latest code from service pack in development (not just latest beta)
     sync_from_ibs=
-    [ $servicepack -eq 4 ] && sync_from_ibs=1
+    [ $servicepack -eq 5 ] && sync_from_ibs=1
 
     version="12-SP$servicepack"
     repo_version="$version"
