@@ -17,6 +17,11 @@ import time
 
 import sh
 
+try:
+    from xml.etree import cElementTree as ET
+except ImportError:
+    import cElementTree as ET
+
 sys.path.append(os.path.dirname(__file__))
 from gerrit_settings import gerrit_project_map, obs_project_settings  # noqa: E402
 from gerrit import GERRIT_URL, GerritChange  # noqa: E402
@@ -162,19 +167,29 @@ class OBSProject:
          - Grab the local source
          - Commit the package to be built into the project
         """
-
-        obsinfo = sh.osc(
-            '-A', 'https://api.suse.de',
-            'cat',
+        pcat = sh.osc.bake(
+            '-A', 'https://api.suse.de', 'cat',
             self.obs_linked_project,
-            package.name,
-            '%s.obsinfo' % package.name)
+            package.name)
+        service = pcat('_service')
+        root = ET.fromstring(str(service))
+        nodes = root.findall(
+            './service[@name="obs_scm"]/param[@name="filename"]')
+        if len(nodes) != 1 or not nodes[0].text:
+            raise ValueError(
+                "There needs to be exactly one obs_scm service filename"
+                " in https://build.suse.de/package/view_file/%s/%s/_service"
+                % (self.obs_linked_project, package.name))
+        servicefilename = nodes[0].text
+        obsinfo = pcat('%s.obsinfo' % servicefilename)
         matches = re.findall('^commit: (\S+)$', str(obsinfo), re.MULTILINE)
         commitid = sh.git(
             '-C', package.source_dir,
-            'rev-list', '-n', '1', 'HEAD')
+            'rev-list', '-n', '1', 'HEAD').strip()
         if len(matches) == 1 and matches[0] == commitid:
-            print("Skipping %s as the inherited package is the same.")
+            print(
+                "Skipping %s as the inherited package is the same."
+                % package.name)
             return
 
         print("Creating test package %s" % package.name)
@@ -207,7 +222,7 @@ class OBSProject:
                 service_file.write(service_def)
                 service_file.truncate()
             # Run the osc service and commit the changes to OBS
-            sh.osc('rm', glob.glob('%s*.obscpio' % package.name))
+            sh.osc('rm', glob.glob('%s*.obscpio' % servicefilename))
             env = os.environ.copy()
             # TODO use proper api, once available from:
             # https://github.com/openSUSE/obs-service-tar_scm/issues/258
@@ -215,7 +230,7 @@ class OBSProject:
             # Otherwise it only works with remote URLs.
             env['TAR_SCM_TESTMODE'] = '1'
             sh.osc('service', 'disabledrun', _env=env)
-            sh.osc('add', glob.glob('%s*.obscpio' % package.name))
+            sh.osc('add', glob.glob('%s*.obscpio' % servicefilename))
             sh.osc('commit', '-m',
                    'Testing gerrit changes applied to %s'
                    % package.applied_change_numbers())
