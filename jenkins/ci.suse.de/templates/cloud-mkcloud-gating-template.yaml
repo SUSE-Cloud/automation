@@ -44,4 +44,4 @@
           predefined-parameters: |
             project=Devel:Cloud:{version}
             subproject=Staging
-            package_blacklist=ardana
+            package_blacklist=ardana venv
