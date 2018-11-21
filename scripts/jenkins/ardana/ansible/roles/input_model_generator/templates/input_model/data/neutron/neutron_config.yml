@@ -59,12 +59,13 @@
 {%   endif %}
 {% endfor %}
         neutron_external_networks:
-{% for network_group in scenario.network_groups %}
-{%   if 'NEUTRON-EXT' in network_group.component_endpoints %}
-          - name: NEUTRON-{{ network_group.name|upper }}-EXT-NET
+{% for network_group in scenario.network_groups if 'NEUTRON-EXT' in network_group.component_endpoints %}
+          - name: ext-net{{ loop.index0 | ternary(loop.index0, '') }}
             cidr: 172.{{ ns.net_id }}.0.0/16
             gateway: 172.{{ ns.net_id }}.0.1
-{%     set ns.net_id = ns.net_id+1 %}
-{%   endif %}
+            provider:
+            - network_type: flat
+              physical_network: external{{ loop.index0 | ternary(loop.index0, '') }}
+{%   set ns.net_id = ns.net_id+1 %}
 {% endfor %}
 {% endif %}

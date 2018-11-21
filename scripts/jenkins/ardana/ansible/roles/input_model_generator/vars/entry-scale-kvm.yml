@@ -32,5 +32,5 @@ scenario:
 
   service_template: standard
   network_template: compact
-  interface_template: compact-bond
+  interface_template: compact
   disk_template: compact

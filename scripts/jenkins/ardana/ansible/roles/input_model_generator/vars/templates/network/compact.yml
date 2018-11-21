@@ -30,13 +30,18 @@ network_groups:
     component_endpoints:
       - MANAGEMENT
       - INTERNAL-API
-      - NEUTRON-VLAN
 
   - name: EXTERNAL-VM
     hostname_suffix: extvm
     tagged_vlan: true
     component_endpoints:
       - NEUTRON-EXT
+
+  - name: TENANT-VLAN
+    hostname_suffix: tvlan
+    tagged_vlan: false
+    component_endpoints:
+      - NEUTRON-VLAN
 
   - name: GUEST
     hostname_suffix: guest

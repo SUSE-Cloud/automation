@@ -34,7 +34,10 @@ interface_models:
     network_interfaces:
       - network_groups:
           - ARDANA
-      - network_groups:
+      - bond:
+          mode: "active-backup"
+          num_interfaces: 2
+        network_groups:
           - EXTERNAL-API
           - INTERNAL-API
           - MANAGEMENT
@@ -45,10 +48,12 @@ interface_models:
     network_interfaces:
       - network_groups:
           - ARDANA
-      - network_groups:
+      - bond:
+          mode: "active-backup"
+          num_interfaces: 2
+        network_groups:
           - GUEST
           - MANAGEMENT
-      - network_groups:
           - EXTERNAL-VM
           - TENANT-VLAN
 
@@ -59,10 +64,12 @@ interface_models:
     network_interfaces:
       - network_groups:
           - ARDANA
-      - network_groups:
+      - bond:
+          mode: "active-backup"
+          num_interfaces: 2
+        network_groups:
           - GUEST
           - MANAGEMENT
-      - network_groups:
           - EXTERNAL-VM
           - TENANT-VLAN
 
@@ -72,7 +79,10 @@ interface_models:
     network_interfaces:
       - network_groups:
           - ARDANA
-      - network_groups:
+      - bond:
+          mode: "active-backup"
+          num_interfaces: 2
+        network_groups:
           - MANAGEMENT
           - SWIFT
 
@@ -82,7 +92,10 @@ interface_models:
     network_interfaces:
       - network_groups:
           - ARDANA
-      - network_groups:
+      - bond:
+          mode: "active-backup"
+          num_interfaces: 2
+        network_groups:
           - MANAGEMENT
           - SWIFT
 
@@ -92,7 +105,10 @@ interface_models:
     network_interfaces:
       - network_groups:
           - ARDANA
-      - network_groups:
+      - bond:
+          mode: "active-backup"
+          num_interfaces: 2
+        network_groups:
           - MANAGEMENT
 
   - name: LMM
@@ -101,5 +117,8 @@ interface_models:
     network_interfaces:
       - network_groups:
           - ARDANA
-      - network_groups:
+      - bond:
+          mode: "active-backup"
+          num_interfaces: 2
+        network_groups:
           - MANAGEMENT
