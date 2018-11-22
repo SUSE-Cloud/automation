@@ -1,0 +1,35 @@
+---
+proposals:
+- barclamp: keystone
+  attributes:
+    database_instance: default
+    rabbitmq_instance: default
+    domain_specific_drivers: true
+    token_expiration: 86400
+    ssl:
+      generate_certs: true
+      insecure: true
+    api:
+      protocol: https
+      region: CustomRegion
+      processes: 32
+    domain_specific_config:
+      ldap_users:
+        ldap:
+          url: ldaps://ldap.suse.de
+          suffix: dc=suse,dc=de
+          user_tree_dn: ou=accounts,dc=suse,dc=de
+          user_objectclass: posixAccount
+          user_id_attribute: uid
+          user_name_attribute: uid
+          group_tree_dn: ou=accounts,dc=suse,dc=de
+          group_objectclass: posixGroup
+          group_id_attribute: gidNumber
+          group_name_attribute: cn
+          group_member_attribute: memberUid
+          group_members_are_ids: true
+          tls_cacertdir: "/etc/ssl/certs"
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services

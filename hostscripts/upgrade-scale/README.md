@@ -237,9 +237,7 @@ for node in controller5 controller6; do
   ssh $node "zypper -n --no-gpg-checks in -f python-keystone-json-assignment*"
 done
 
-# TODO: deploy basic keystone?
 # TODO: create/upload /etc/keystone/user-project-map.json?
-# TODO: switch keystone assignment to json?
 
 # use "crowbar batch build XX_X.yml" to build the cloud
 find batches -name '*.yml' | sort | xargs -i sh -c 'crowbar batch build {} || exit 255'
