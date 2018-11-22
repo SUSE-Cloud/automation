@@ -235,7 +235,7 @@ rccrowbar-jobs restart
 for node in controller5 controller6; do
   ssh $node "wget -nc http://download.suse.de/ibs/Devel:/Cloud:/7:/Staging/SLE_12_SP2/noarch/python-keystone-json-assignment-0.0.2-2.14.noarch.rpm"
   ssh $node "zypper -n --no-gpg-checks in -f python-keystone-json-assignment*"
-  ssh $node "wget -nc https://w3.suse.de/~bwiedemann/cloud/user-project-map.json -O /etc/keystone/user-project-map.json"
+  ssh $node "wget -nc --no-chec-certificate https://w3.suse.de/~bwiedemann/cloud/user-project-map.json -O /etc/keystone/user-project-map.json"
 done
 
 # use "crowbar batch build XX_X.yml" to build the cloud
