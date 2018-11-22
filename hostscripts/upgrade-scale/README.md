@@ -285,10 +285,11 @@ ssh crowbaru1 "crowbarctl node list --plain | grep unready$ | cut -d' ' -f2 | xa
 # set aliases for remaining compute nodes
 nodes_without_alias=( `crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|grep -e ^crowbar -v` )
 count=$(crowbar machines aliases | grep compute | cut -d' ' -f1 | tr -d [:alpha:] | sort -n | tail -n1)
+(( count++ ))
 for node in ${nodes_without_alias[@]}; do
-    (( count++ ))
     crowbarctl node rename $node "compute$count"
     echo "$node -> compute$count"
+    (( count++ ))
 done
 
 
