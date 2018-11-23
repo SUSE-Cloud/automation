@@ -224,23 +224,24 @@ done
 
 # apply HA patches
 # 330: Set the value of drbd nodes only for the first deployment.
-pushd /opt/dell
-for github_pr in 330; do
-    wget -q https://github.com/crowbar/crowbar-ha/pull/$github_pr.patch
-    patch -p1 < $github_pr.patch
-done
-popd
+#pushd /opt/dell
+#for github_pr in 330; do
+#    wget -q https://github.com/crowbar/crowbar-ha/pull/$github_pr.patch
+#    patch -p1 < $github_pr.patch
+#done
+#popd
 
 #barclamp_install.rb --rpm openstack
-barclamp_install.rb --rpm ha
-rccrowbar restart
-rccrowbar-jobs restart
+#barclamp_install.rb --rpm ha
+#rccrowbar restart
+#rccrowbar-jobs restart
 
 # manually install python-keystone-json-assignment package on all nodes which will go to 'services' cluster
 for node in controller5 controller6; do
-  ssh $node "wget -nc http://download.suse.de/ibs/Devel:/Cloud:/7:/Staging/SLE_12_SP2/noarch/python-keystone-json-assignment-0.0.2-2.14.noarch.rpm"
-  ssh $node "zypper -n --no-gpg-checks in -f python-keystone-json-assignment*"
-  ssh $node "wget -nc --no-chec-certificate https://w3.suse.de/~bwiedemann/cloud/user-project-map.json -O /etc/keystone/user-project-map.json"
+#  ssh $node "wget -nc http://download.suse.de/ibs/Devel:/Cloud:/7:/Staging/SLE_12_SP2/noarch/python-keystone-json-assignment-0.0.2-2.14.noarch.rpm"
+#  ssh $node "zypper -n --no-gpg-checks in -f python-keystone-json-assignment*"
+  ssh $node zypper -n in python-keystone-json-assignment
+  ssh $node "mkdir -p /etc/keystone; wget -nc --no-check-certificate https://w3.suse.de/~bwiedemann/cloud/user-project-map.json -O /etc/keystone/user-project-map.json"
 done
 
 # use "crowbar batch build XX_X.yml" to build the cloud
