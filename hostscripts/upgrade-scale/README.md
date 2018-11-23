@@ -99,7 +99,7 @@ ssh-keygen -R crowbaru1
 # update the local cache
 automation/scripts/mkcloud prepare
 # install the admin VM
-automation/hostscripts/gatehost/freshadminvm crowbaru1 GM7+up
+automation/hostscripts/gatehost/freshadminvm crowbaru1 develcloud7
 # if crowbar VM is not reachable via ssh at this point, probably it didn't get IP assigned, fix: `systemctl restart dnsmasq` on host
 # bootstrap crowbar on the VM
 automation/scripts/mkcloud prepareinstcrowbar runupdate bootstrapcrowbar
