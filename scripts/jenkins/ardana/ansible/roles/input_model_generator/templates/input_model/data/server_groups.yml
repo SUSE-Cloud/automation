@@ -25,34 +25,31 @@
     #
     - name: CLOUD
       server-groups:
-        - AZ1
-        - AZ2
-        - AZ3
+{% for az in range(scenario.availability_zones) %}
+        - AZ{{ az + 1 }}
+{% endfor %}
       networks:
-{% for network_group in scenario['network_groups'] %}
+{% for network_group in scenario['network_groups'] if not network_group.rack_network|default(False) %}
         - {{ network_group.name|upper }}-NET
 {% endfor %}
 
     #
     # Create a group for each failure zone
     #
-    - name: AZ1
+{% for az in range(scenario.availability_zones) %}
+    - name: AZ{{ az + 1 }}
       server-groups:
-        - RACK1
+        - RACK{{ az + 1 }}
 
-    - name: AZ2
-      server-groups:
-        - RACK2
+{% endfor %}
 
-    - name: AZ3
-      server-groups:
-        - RACK3
+{% for az in range(scenario.availability_zones) %}
+    - name: RACK{{ az + 1 }}
+{%   if scenario.rack_networks_enabled | default(False) %}
+      networks:
+{%     for network_group in scenario['network_groups'] if network_group.rack_network|default(False) %}
+        - {{ network_group.name|upper }}-NET-RACK{{ az + 1 }}
+{%     endfor %}
+{%   endif %}
 
-    #
-    # Create a group for each rack zone
-    #
-    - name: RACK1
-
-    - name: RACK2
-
-    - name: RACK3
+{% endfor %}

@@ -16,8 +16,8 @@
 ---
 
 network_groups:
-  - name: ARDANA
-    hostname_suffix: ardana
+  - name: CONF
+    hostname_suffix: conf
     tagged_vlan: false
     component_endpoints:
       - CLM

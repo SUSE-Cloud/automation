@@ -24,7 +24,7 @@ interface_models:
       - network_groups:
           - MANAGEMENT
       - network_groups:
-          - ARDANA
+          - CONF
       - forced_network_groups:
           - EXTERNAL-API
 
@@ -33,7 +33,7 @@ interface_models:
       - core
     network_interfaces:
       - network_groups:
-          - ARDANA
+          - CONF
       - bond:
           mode: "active-backup"
           num_interfaces: 2
@@ -47,7 +47,7 @@ interface_models:
       - neutron
     network_interfaces:
       - network_groups:
-          - ARDANA
+          - CONF
       - bond:
           mode: "active-backup"
           num_interfaces: 2
@@ -63,7 +63,7 @@ interface_models:
       - rhel-compute
     network_interfaces:
       - network_groups:
-          - ARDANA
+          - CONF
       - bond:
           mode: "active-backup"
           num_interfaces: 2
@@ -78,7 +78,7 @@ interface_models:
       - swobj
     network_interfaces:
       - network_groups:
-          - ARDANA
+          - CONF
       - bond:
           mode: "active-backup"
           num_interfaces: 2
@@ -91,7 +91,7 @@ interface_models:
       - swpac
     network_interfaces:
       - network_groups:
-          - ARDANA
+          - CONF
       - bond:
           mode: "active-backup"
           num_interfaces: 2
@@ -104,7 +104,7 @@ interface_models:
       - dbmq
     network_interfaces:
       - network_groups:
-          - ARDANA
+          - CONF
       - bond:
           mode: "active-backup"
           num_interfaces: 2
@@ -116,7 +116,7 @@ interface_models:
       - lmm
     network_interfaces:
       - network_groups:
-          - ARDANA
+          - CONF
       - bond:
           mode: "active-backup"
           num_interfaces: 2

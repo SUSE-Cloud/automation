@@ -21,9 +21,17 @@ ring-specifications:
 
     - region-name: region1
       swift-zones:
+{% if scenario.rack_networks_enabled | default(False) %}
+{%   for az in range(scenario.availability_zones) %}
+        - id: {{ az + 1 }}
+          server-groups:
+            - AZ{{ az + 1 }}
+{%   endfor %}
+{% else %}
         - id: 1
           server-groups:
             - CLOUD
+{% endif %}
       rings:
         - name: account
           display-name: Account Ring

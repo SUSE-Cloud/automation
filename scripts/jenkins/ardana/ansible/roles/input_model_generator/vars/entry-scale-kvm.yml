@@ -29,6 +29,7 @@ scenario:
   ses_enabled: "{{ ses_enabled | default(False) }}"
   use_cinder_volume_disk: True
   use_glance_cache_disk: False
+  availability_zones: "{{ availability_zones }}"
 
   service_template: standard
   network_template: compact
