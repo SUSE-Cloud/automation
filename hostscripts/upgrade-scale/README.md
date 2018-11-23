@@ -155,7 +155,9 @@ crowbar batch build batches/01_ipmi.yml
 # NOTE: make sure all controllers / DL360s are set to Legacy BIOS boot mode. UEFI sometimes causes weird problems.
 # pxe boot all controller nodes listed in the ~/all_controllers.txt file
 # NOTE: this is one-time boot override, don't use options=persistent as it causes undesired side effects (e.g. switch from UEFI to Legacy boot)
-awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
+awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; \
+  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
+  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
 # wait until nodes are discovered
 
 ### on the crowbar VM
@@ -164,7 +166,8 @@ awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanp
 # NOTE: the reboot will be done as part of post-allocate action but the IPMI specification requires that the boot option overrides
 #   are cleared after ~60sec so the reboot needs to fit in this window (i.e. whole pre-reboot phase of installation can't take more
 #   than 60sec or the pxe boot override will expire).
-crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'
+crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; \
+  crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'
 # wait until nodes are installed, rebooted and transition to ready
 
 # set aliases
@@ -179,14 +182,16 @@ done
 
 ### on the admin host
 # install first 10 compute-class nodes for non-compute use and some initial computes
-awk '{print $1}' all_computes.txt | head -n10 | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
+awk '{print $1}' all_computes.txt | head -n10 | xargs -i sh -c 'echo {}; \
+  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
   ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
 # wait until nodes are discovered
 
 ### on the crowbar VM
 
 # allocate all pending nodes and set following boot to pxe for proper AutoYaST installation
-crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'
+crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; \
+  crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'
 # wait until nodes are installed, rebooted and transition to ready
 
 # pick some free (compute-class) nodes for ceph and monasca
@@ -274,7 +279,8 @@ awk '{ print$1 }' all_computes.txt | xargs -i sh -c 'grep -q {} all_known_ipmi.t
   ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
 
 # allocate all pending nodes and set following boot to pxe for proper AutoYaST installation
-ssh crowbaru1 "crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'"
+ssh crowbaru1 "crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; \
+  crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'"
 
 # forget all unready nodes (after waiting for installation to have a clean slate for retry of above procedure)
 ssh crowbaru1 "crowbarctl node list --plain | grep unready$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; crowbarctl node delete {}'"
