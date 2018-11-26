@@ -31,3 +31,11 @@ versioned_features:
   # FIXME: Remove this entry when bsc#1110414 fixed
   fix_ardana_ssh_keyscan:
     enabled: "{{ when_cloud9M3 }}"
+  # As a temporary solution to the problem of python-devel/python-base package mismatch
+  # between the SLES12SP4 base image and the released SLES12SP4-SDK ISO, the
+  # SP3 SDK-Updates repo is also included alongside SLES12SP4-SDK repos when the SP4 LVM
+  # image is used
+  # FIXME: Remove this entry when python-devel isn't required by QA/tempest test cases anymore
+  add_sdk_sp3_repo:
+    enabled: "{{ when_cloud9 and not is_physical_deploy }}"
+

@@ -15,6 +15,10 @@
 #
 
 ---
+- name: Include SLES12-SP3-SDK-Update repo
+  set_fact:
+    sles_sdk_repos: "{{ sles_sdk_repos+['SLE12-SP3-SDK-Updates'] }}"
+  when: versioned_features.add_sdk_sp3_repo
 
 - name: Ensure SLES-SDK repos {{ os_health_requires_state }}
   zypper_repository:
