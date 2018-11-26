@@ -16,15 +16,16 @@
 ---
 
 # List of tools required for partition resizing
-part_resize_tools:
-  basic:
-    - fdisk
-    - parted
-    - growpart
-  lvm:
-    - lvdisplay
-    - lvs
-    - vgs
+resize_tools: "{{ root_mount.device.startswith('/dev/mapper') | ternary (basic_resize_tools + lvm_resize_tools, basic_resize_tools) }}"
+basic_resize_tools:
+  - fdisk
+  - parted
+  - growpart
+
+lvm_resize_tools:
+  - lvdisplay
+  - lvs
+  - vgs
 
 # if / is not on bootable partition, updated dynamically otherwise
 sles_vm_fdisk_start_field: 2

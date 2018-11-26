@@ -24,15 +24,6 @@
   set_fact:
     root_mount: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | first }}"
 
-- name: Set list of required tools
-  set_fact:
-    _required_tools: >
-      {%- set _req_tools = part_resize_tools.basic -%}
-      {%- if root_mount.device.startswith('/dev/mapper') -%}
-      {%-   set _ = _req_tools.extend(part_resize_tools.lvm) -%}
-      {%- endif -%}
-      {{- _req_tools -}}
-
 - name: Check for required tools
   shell: >
     command -v {{ item }}
@@ -40,9 +31,7 @@
   changed_when: False
   failed_when:
     - _which_result.rc > 1
-  with_items: "{{ _required_tools }}"
-  when:
-    - root_mount.device.startswith('/dev/mapper')
+  loop: "{{ resize_tools }}"
 
 - name: Fail if required tools not found
   fail:
@@ -120,8 +109,6 @@
 - name: Extract root fs base device
   set_fact:
     root_fs_base_dev: "/dev/{{ _root_dev_sys_block_result.stdout | dirname | basename }}"
-  when:
-    - root_mount.device.startswith('/dev/mapper')
 
 - name: Determine root fs device partition
   command: >
