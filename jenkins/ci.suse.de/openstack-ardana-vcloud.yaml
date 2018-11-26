@@ -263,6 +263,13 @@
           description: >-
             Use ipv6 networks in the cloud input model.
 
+      - string:
+          name: sles_image
+          default: ''
+          description: >-
+            Use this parameter to override the default SLES OpenStack image used for SLES
+            virtual cloud nodes.
+
     pipeline-scm:
       scm:
         - git:
