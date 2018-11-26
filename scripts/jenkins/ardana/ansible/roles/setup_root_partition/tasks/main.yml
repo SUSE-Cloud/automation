@@ -20,10 +20,6 @@
 # the file system layout settings defined in the input model.
 ---
 
-- name: Get root fs mount details
-  set_fact:
-    root_mount: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | first }}"
-
 - name: Check for required tools
   shell: >
     command -v {{ item }}
