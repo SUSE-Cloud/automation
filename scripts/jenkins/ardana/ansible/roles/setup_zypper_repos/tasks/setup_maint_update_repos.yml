@@ -33,6 +33,10 @@
       - "--delete-delay"
   delegate_to: "{{ inventory_hostname }}"
   loop: "{{ cloud_maint_updates_list }}"
+  register: cloud_sync_result
+  retries: 5
+  until: cloud_sync_result.rc != 24
+  delay: 300
 
 - name: Rsync SLES MU repo(s)
   synchronize:
@@ -46,6 +50,10 @@
       - "--delete-delay"
   delegate_to: "{{ inventory_hostname }}"
   loop: "{{ sles_maint_updates_list }}"
+  register: sles_sync_result
+  retries: 5
+  until: sles_sync_result.rc != 24
+  delay: 300
 
 - name: Add cloud MU zypper repo(s)
   zypper_repository:

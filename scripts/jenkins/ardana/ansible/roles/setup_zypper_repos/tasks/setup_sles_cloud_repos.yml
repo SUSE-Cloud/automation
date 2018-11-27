@@ -46,6 +46,10 @@
       - "--delete-delay"
   delegate_to: "{{ inventory_hostname }}"
   loop: "{{ repos_to_sync }}"
+  register: sync_result
+  retries: 5
+  until: sync_result.rc != 24
+  delay: 300
 
 - name: Mount repos that are not frequently updated
   mount:
