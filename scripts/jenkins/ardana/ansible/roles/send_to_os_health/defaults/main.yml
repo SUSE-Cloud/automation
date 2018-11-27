@@ -33,7 +33,3 @@ os_health_requires:
 sles_sdk_repos:
   - "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Pool"
   - "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Updates"
-  # As a temporary solution to the problem of python-devel/python-base package mismatch
-  # between the SLES12SP4 base image and the released SLES12SP4-SDK ISO, the
-  # SP3 SDK-Updates repo is also included
-  - "SLE{{ ansible_distribution_major_version }}-SP3-SDK-Updates"
