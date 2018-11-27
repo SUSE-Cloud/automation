@@ -43,5 +43,5 @@
           when: lookup("env", "WORKSPACE")
           vars:
             jenkins_artifacts_to_collect:
-              - "{{ virt_config_file }}"
-              - "{{ input_model_path }}"
+              - src: "{{ virt_config_file }}"
+              - src: "{{ input_model_path }}"

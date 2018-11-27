@@ -51,10 +51,13 @@
             name: jenkins_artifacts
           vars:
             jenkins_artifacts_to_collect:
-              - "~/.ansible/ansible.log"
-              - "~/testr_results_region1.html"
-              - "~/testr_results_region1.xml"
-              - "/opt/stack/tempest/logs/testr_results_region1.log"
+              - src: "~/.ansible/ansible.log"
+              - src: "~/testr_results_region1.html"
+                dest: "testr_results_region1_{{ tempest_run_filter }}.html"
+              - src: "~/testr_results_region1.xml"
+                dest: "testr_results_region1_{{ tempest_run_filter }}.xml"
+              - src: "/opt/stack/tempest/logs/testr_results_region1.log"
+                dest: "testr_results_region1_{{ tempest_run_filter }}.log"
           when: lookup("env", "WORKSPACE")
 
         - include_role:

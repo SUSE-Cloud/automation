@@ -30,4 +30,4 @@
           when: lookup("env", "WORKSPACE")
           vars:
             jenkins_artifacts_to_collect:
-              - "{{ input_model_path }}"
+              - src: "{{ input_model_path }}"

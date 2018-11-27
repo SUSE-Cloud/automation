@@ -31,4 +31,4 @@
           when: lookup("env", "WORKSPACE")
           vars:
             jenkins_artifacts_to_collect:
-              - "{{ heat_template_file }}"
+              - src: "{{ heat_template_file }}"

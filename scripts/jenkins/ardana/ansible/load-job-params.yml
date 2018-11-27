@@ -40,4 +40,4 @@
       when: lookup("env", "WORKSPACE")
       vars:
         jenkins_artifacts_to_collect:
-          - "input.yml"
+          - src: "input.yml"
