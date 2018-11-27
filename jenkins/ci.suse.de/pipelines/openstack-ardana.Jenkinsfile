@@ -301,13 +301,13 @@ pipeline {
       parallel {
         stage ('Tempest') {
           when {
-            expression { tempest_run_filter != '' }
+            expression { env.tempest_filter_list != null && tempest_filter_list != '' }
           }
           steps {
             script {
               def slaveJob = build job: 'openstack-ardana-tempest', parameters: [
                   string(name: 'ardana_env', value: "$ardana_env"),
-                  string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
+                  string(name: 'tempest_filter_list', value: "$tempest_filter_list"),
                   string(name: 'rc_notify', value: "$rc_notify"),
                   string(name: 'git_automation_repo', value: "$git_automation_repo"),
                   string(name: 'git_automation_branch', value: "$git_automation_branch"),
@@ -373,7 +373,7 @@ pipeline {
     always {
       script{
         archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-        if ( tempest_run_filter != '' ) {
+        if ( env.tempest_filter_list != null && tempest_filter_list != '' ) {
           junit testResults: ".artifacts/*.xml", allowEmptyResults: true
         }
       }

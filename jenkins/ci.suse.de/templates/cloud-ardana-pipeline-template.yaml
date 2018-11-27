@@ -283,34 +283,22 @@
           default: false
           description: Configure SES backend for glance, cinder, cinder-backup, nova and swift
 
-      - choice:
-          name: tempest_run_filter
-          choices:
-            - '{tempest_run_filter|ci}'
-            - smoke
-            - smoke-upstream
-            - defcore
-            - full
-            - ci
-            - barbican
-            - compute
-            - designate
-            - identity
-            - lbaas
-            - monasca
-            - network
-            - neutron-api
-            - periodic
-            - periodic-virtual
-            - refstack
-            - swift
-            - tests2skip
-            - tests-ci
-            - upgrade-ci
-            - upgrade
+      - extended-choice:
+          name: tempest_filter_list
+          type: multi-select
+          visible-items: 10
+          multi-select-delimiter: ','
+          default-value: '{tempest_filter_list|ci}'
+          value: >-
+            ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,
+            identity,lbaas,magnum,manila,monasca,network,neutron-api,periodic,
+            periodic-virtual,periodic,refstack,swift,tests2skip,tests-ci,
+            upgrade-ci,upgrade
           description: >-
-            Name of the filter file to use for tempest. Use an empty value to
-            skip running tempest.
+            Name of the filter file to use for tempest. Selecting multiple values
+            will run tempest for each selected value.
+
+            Use an empty value to skip running tempest.
 
       - extended-choice:
           name: qa_test_list
@@ -326,7 +314,9 @@
             keystone-api,keystone-ldap,keystone-k2k-config,keystone-websso-config,keystone-x509-config,
             remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,enable_tls
           description: >-
-            Select QA tests to run. Use an empty value to skip running QA tests.
+            Select QA tests to run.
+
+            Use an empty value to skip running QA tests.
 
       - string:
           name: extra_repos

@@ -6,7 +6,7 @@
     triggers:
     ardana_env: ''
     reserve_env: false
-    tempest_run_filter: ''
+    tempest_filter_list: ''
     cleanup: never
     os_cloud: ''
     jobs:
