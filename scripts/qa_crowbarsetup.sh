@@ -274,8 +274,10 @@ function addcloudmaintupdates
 
 function addcloudtestupdates
 {
-    add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test/" \
-        "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test/" "cloudtup"
+    if isrepoworking SUSE-OpenStack-Cloud-$cloudrepover-Updates-test ; then
+        add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test/" \
+            "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test/" "cloudtup"
+    fi
 }
 
 function addcloudpool
