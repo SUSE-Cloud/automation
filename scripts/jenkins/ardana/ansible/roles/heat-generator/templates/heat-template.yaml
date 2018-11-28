@@ -120,11 +120,13 @@ resources:
 {% for server in heat_template.servers %}
 {%   set interface_model = heat_template.interface_models[server.interface_model] %}
 {%   set disk_model = heat_template.disk_models[server.disk_model] %}
+{%   set server_ns = namespace(ports=[], trunk_port_names=[], volume_names=[]) %}
 
 {%   set server_name = server.name|lower|replace('-','_') %}
 {%   for port in interface_model.ports %}
 {%     set port_name = "%s_%s"|format(server_name, port.name|lower|replace('-','_')) %}
 {%     set ns = namespace(is_trunk_port=False, has_native_vlan=False) %}
+{%     set _ = server_ns.ports.append((port_name, port,)) %}
 {%     for network_id in port.networks %}
 {%       set network = heat_template.networks[network_id] %}
 {%       set network_name = network.name|lower|replace('-','_')|regex_replace('_net$', '') %}
@@ -137,15 +139,15 @@ resources:
 
   # port: {{ port.name }}{% if network.vlan is defined %}.{{ network.vlan }}{% endif %}
 
-{% if port.bond is defined %}
+{%       if port.bond is defined %}
   # bond: {{ port.bond }}
   # primary: {{ port.primary }}
-{% endif %}
-{% if network.is_mgmt and not port.primary|default(True) %}
+{%       endif %}
+{%       if network.is_mgmt and not port.primary|default(True) %}
   # attached to network: <not attached>
-{% else %}
+{%       else %}
   # attached to network: {{ network.name }}
-{% endif %}
+{%       endif %}
   # attached to server: {{ server.name }}
   # interface model: {{ server.interface_model }}
   {{ port_name }}_port:
@@ -174,18 +176,18 @@ resources:
     properties:
       floatingip_id: { get_resource: admin_floating_ip }
       port_id: { get_resource: {{ port_name }}_port }
+{%           endif %}
 {%         endif %}
-{%       endif %}
 
 {%       endif %}
 {%     endfor %}
 
 {%     if not ns.has_native_vlan %}
   # port: {{ port.name }}
-{% if port.bond is defined %}
+{%       if port.bond is defined %}
   # bond: {{ port.bond }}
   # primary: {{ port.primary }}
-{% endif %}
+{%       endif %}
   # attached to network: <not attached>
   # attached to server: {{ server.name }}
   # interface model: {{ server.interface_model }}
@@ -197,6 +199,8 @@ resources:
 {%     endif %}
 
 {%     if ns.is_trunk_port %}
+{%       set _ = server_ns.trunk_port_names.append(port_name+'_trunk') %}
+
   # trunk port: {{ port.name }}
   # attached to server: {{ server.name }}
   {{ port_name }}_trunk:
@@ -215,7 +219,8 @@ resources:
 {%   endfor %}
 {%   set ns = namespace(volume_att_deps="%s_server"|format(server_name)) %}
 {%   for volume in disk_model.volumes %}
-{%      set volume_name = "%s_%s"|format(server_name, volume.name) %}
+{%     set volume_name = "%s_%s"|format(server_name, volume.name) %}
+{%     set _ = server_ns.volume_names.append(volume_name+'_vol') %}
 
   # disk: {{ volume.mountpoint }}
   # attached to server: {{ server.name }}
@@ -232,13 +237,14 @@ resources:
       instance_uuid: { get_resource: {{ server_name }}_server }
       volume_id: { get_resource: {{ volume_name }}_vol }
       mountpoint: {{ volume.mountpoint }}
-{%   set ns.volume_att_deps="%s_vol_att"|format(volume_name) %}
+{%     set ns.volume_att_deps="%s_vol_att"|format(volume_name) %}
 {%   endfor %}
 
   # server: {{ server.name }}
   # role: {{ server.role }}
   {{ server_name }}_server:
     type: OS::Nova::Server
+    depends_on: [ {{ ', '.join(server_ns.trunk_port_names+server_ns.volume_names) }} ]
     properties:
 {% if os_key_name is defined %}
       key_name: { get_param: key_name }
@@ -246,8 +252,7 @@ resources:
       image: {{ server.image }}
       flavor: {{ server.flavor }}
       networks:
-{%   for port in interface_model.ports %}
-{%     set port_name = "%s_%s"|format(server_name, port.name|lower|replace('-','_')) %}
+{%   for port_name, port in server_ns.ports %}
           # port: {{ port.name }}
 {%     if port.bond is defined %}
           # bond:  {{ port.bond }}
