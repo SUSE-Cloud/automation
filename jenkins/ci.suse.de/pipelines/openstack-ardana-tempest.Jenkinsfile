@@ -58,31 +58,27 @@ pipeline {
             '''
           ).trim()
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
+          def filter_list = env.tempest_filter_list.split(',')
+          for (filter in filter_list) {
+            catchError {
+              stage(filter) {
+                sh("""
+                  cd \$SHARED_WORKSPACE
+                  source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+                  ansible_playbook run-tempest.yml -e @input.yml \
+                                                   -e tempest_run_filter=$filter
+                """)
+              }
+            }
+            archiveArtifacts artifacts: ".artifacts/**/ansible.log, .artifacts/**/*${filter}*", allowEmptyArchive: true
+            junit testResults: ".artifacts/testr_results_region1_${filter}.xml", allowEmptyResults: true
+          }
         }
-      }
-    }
-
-    stage('Run Tempest') {
-      steps {
-        sh('''
-          cd $SHARED_WORKSPACE
-          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook run-tempest.yml -e @input.yml
-        ''')
       }
     }
   }
 
   post {
-    always {
-      script {
-        // Let the upstream job archive artifacts and collect test results
-        if (reuse_node == '') {
-          archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-          junit testResults: ".artifacts/*.xml", allowEmptyResults: true
-        }
-      }
-    }
     cleanup {
       cleanWs()
     }

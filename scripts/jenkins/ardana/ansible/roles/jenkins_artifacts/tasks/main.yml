@@ -23,8 +23,8 @@
 
 - name: Collect artifacts
   synchronize:
-    src: "{{ item }}"
-    dest: "{{ jenkins_artifacts_dir }}"
+    src: "{{ item.src }}"
+    dest: "{{ jenkins_artifacts_dir }}/{{ item.dest | default('') }}"
     mode: pull
   when: item != ''
   loop: "{{ jenkins_artifacts_to_collect }}"

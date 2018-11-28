@@ -53,9 +53,9 @@
             name: jenkins_artifacts
           vars:
             jenkins_artifacts_to_collect:
-              - "{{ ardana_qe_test_log }}"
-              - "{{ subunit_html_results }}"
-              - "{{ subunit_xml_results }}"
+              - src: "{{ ardana_qe_test_log }}"
+              - src: "{{ subunit_html_results }}"
+              - src: "{{ subunit_xml_results }}"
           when: lookup("env", "WORKSPACE")
 
         - include_role:

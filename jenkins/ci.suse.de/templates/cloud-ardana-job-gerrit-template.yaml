@@ -63,8 +63,8 @@
                GM<X> (official GM)
 
       - string:
-          name: tempest_run_filter
-          default: '{tempest_run_filter|ci}'
+          name: tempest_filter_list
+          default: '{tempest_filter_list|ci}'
           description: >-
             Name of the filter file to use for tempest. Use an empty value to
             skip running tempest.
