@@ -100,7 +100,7 @@
     controllers: '3'
     sles_computes: '2'
     rhel_computes: '0'
-    tempest_filter_list: 'ci'
+    tempest_filter_list: 'ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,magnum,manila,monasca,network,neutron-api,swift'
     qa_test_list: 'iverify,cinder,heat,magnum,neutron,nova-attach,nova_volume,nova_server,nova_services,nova_flavor,nova_image,tempest_cleanup'
     rc_notify: 'true'
     triggers:
