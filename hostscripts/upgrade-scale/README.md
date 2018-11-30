@@ -70,13 +70,6 @@ avoid conflicts.
 # everything starts in root home
 cd
 
-# NOTE: make sure all nodes are off to avoid IP conflicts. You can check the power status with:
-awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
-awk '{print $1}' all_computes.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
-# if needed, power off the nodes
-awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
-awk '{print $1}' all_computes.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
-
 # get fresh version of automation scripts
 rm -r automation.old
 mv automation automation.old
@@ -88,6 +81,15 @@ git clone --branch=upgrade-scale https://github.com/SUSE-Cloud/automation
 source automation/hostscripts/upgrade-scale/setup.sh
 export want_ipmi_username="<ILO USER>"
 export extraipmipw="<ILO PASSWORD>"
+# OR
+source ipmi.sh # above lines with real credentials stored in file
+
+# NOTE: make sure all nodes are off to avoid IP conflicts. You can check the power status with:
+awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
+awk '{print $1}' all_computes.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
+# if needed, power off the nodes
+awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
+awk '{print $1}' all_computes.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
 
 # make sure lvm volume for crowbar exists
 test -e /dev/system/crowbaru1 || lvcreate -L20G system -n crowbaru1
