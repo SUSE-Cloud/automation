@@ -49,6 +49,14 @@ pipeline {
           }
           // archiveArtifacts and junit don't support absolute paths, so we have to to this instead
           sh "ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}"
+          env.DEPLOYER_IP = sh (
+            returnStdout: true,
+            script: '''
+              grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
+                $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
+            '''
+          ).trim()
+          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
         }
       }
     }
