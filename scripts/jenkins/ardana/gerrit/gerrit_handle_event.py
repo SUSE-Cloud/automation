@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import argparse
+import jenkins
+import json
 import os
 import sys
 
@@ -161,13 +163,14 @@ def handle_change_updated(change, dry_run=False):
         for ref_change in references:
             direct = ref_change.has_explicit_dependency(change)
             gerrit_review(ref_change, label='Verified', vote=0,
-                          message='Needs recheck. New patchset {} was '
+                          message='Check is re-running. New patchset {} was '
                                   'published for {}direct dependency: '
                                   '{} '.format(
                                     change.patchset,
                                     '' if direct else 'in',
                                     change.gerrit_url)
                           )
+            print("recheck %s %s" % (ref_change.id, ref_change.branch))
     else:
         print("[DRY-RUN] Invalidated changes:\n{}".format('\n'.join([
                 str(c) for c in references])))
@@ -195,10 +198,10 @@ def main():
     change = GerritChange(str(args.change), patchset=args.patch)
 
     if args.event == 'merged':
-        handle_change_merged(change, args.dry_run)
+        return handle_change_merged(change, args.dry_run)
     elif args.event == 'updated':
-        handle_change_updated(change, args.dry_run)
+        return handle_change_updated(change, args.dry_run)
 
 
 if __name__ == '__main__':
-    main()
+    return main()
