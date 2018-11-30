@@ -40,9 +40,6 @@ pipeline {
               rm -rf $SHARED_WORKSPACE
               mkdir -p $SHARED_WORKSPACE
 
-              # archiveArtifacts and junit don't support absolute paths, so we have to to this instead
-              ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}
-
               cd $SHARED_WORKSPACE
               git clone $git_automation_repo --branch $git_automation_branch automation-git
               source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
@@ -50,6 +47,16 @@ pipeline {
               ansible_playbook setup-ssh-access.yml -e @input.yml
             ''')
           }
+          // archiveArtifacts and junit don't support absolute paths, so we have to to this instead
+          sh "ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}"
+          env.DEPLOYER_IP = sh (
+            returnStdout: true,
+            script: '''
+              grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
+                $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
+            '''
+          ).trim()
+          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
         }
       }
     }
