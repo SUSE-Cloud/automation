@@ -247,7 +247,7 @@ for node in controller5 controller6; do
 done
 
 # use "crowbar batch build XX_X.yml" to build the cloud
-find batches -name '*.yml' | sort | xargs -i sh -c 'crowbar batch build {} || exit 255'
+find batches -name '*.yml' | sort | xargs -i sh -c 'crowbar batch build --timeout 3600 {} || exit 255'
 
 # the cloud should be ready now for adding more nodes
 
