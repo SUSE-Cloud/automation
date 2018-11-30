@@ -47,6 +47,9 @@ pipeline {
                ansible_playbook load-job-params.yml
                ansible_playbook setup-ssh-access.yml -e @input.yml
             ''')
+          } else {
+            // archiveArtifacts and junit don't support absolute paths, so we have to to this instead
+            sh "ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}"
           }
           env.DEPLOYER_IP = sh (
             returnStdout: true,
