@@ -271,11 +271,11 @@ awk '{ print$2 }' all_controllers.txt | xargs -i sh -c 'grep -q {} all_known_ipm
   ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
 
 # power off all unused compute nodes
-awk '{ print$1 }' all_computes.txt | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
+awk '{ print$1 }' all_computes.txt | grep -v '#' | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
   ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
 
 # trigger discovery of all unused compute nodes
-awk '{ print$1 }' all_computes.txt | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
+awk '{ print$1 }' all_computes.txt | grep -v '#' | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
   ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
   ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
 
