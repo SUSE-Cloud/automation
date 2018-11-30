@@ -19,6 +19,7 @@
   git:
     repo: "{{ defcore_refstackclient_git_url }}"
     dest: "~/refstack-client"
+    version: "a13a5a437581c7c26fed7c2025d2affc57b743b3"
 
 - name: Convert subunit2 results to subunit1
   script: "subunit-2to1 {{ tempest_results_subunit }} {{ defcore_results }}"
