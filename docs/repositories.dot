@@ -1,4 +1,6 @@
 digraph G {
+    rankdir=LR
+
     dlpb[
       label="devel:languages:python:backports",
       URL="https://build.opensuse.org/project/show/devel:languages:python:backports",
