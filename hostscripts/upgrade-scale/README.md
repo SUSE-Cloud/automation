@@ -260,6 +260,10 @@ export cloudsource=$old_cloudsource
 # some useful commands
 ### on the admin host
 
+# if applying proposals times out on syncmarks often, try increasing default syncmark timeout
+# e.g. /opt/dell/chef/cookbooks/crowbar-pacemaker/resources/sync_mark.rb -> attribute :timeout, kind_of: Integer, default: 120-
+# upload modified cookbook: knife cookbook upload crowbar-pacemaker -o /opt/dell/chef/cookbooks
+
 # collect ipmi addresses of all nodes known to crowbar
 ssh crowbaru1 "crowbarctl node list --plain | cut -d' ' -f1 | grep -v crowbar | xargs -i knife node show -a crowbar_wall.ipmi.address {} | cut -d: -f2" > all_known_ipmi.txt
 
