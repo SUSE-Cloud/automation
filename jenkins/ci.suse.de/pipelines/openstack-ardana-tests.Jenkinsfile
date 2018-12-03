@@ -1,7 +1,7 @@
 /**
- * The openstack-ardana-qa-tests Jenkins Pipeline
+ * The openstack-ardana-tests Jenkins Pipeline
  *
- * This job runs ardana-qa-tests on a pre-deployed CLM cloud.
+ * This job runs tempest and ardana-qa-tests on a pre-deployed CLM cloud.
  */
 
 pipeline {
@@ -26,8 +26,9 @@ pipeline {
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
-          if (test_list == '') {
-            error("Empty 'test_list' parameter value.")
+          if ((env.tempest_filter_list == null || tempest_filter_list == '') &&
+            (env.qa_test_list == null || qa_test_list == '')) {
+            error("Empty 'tempest_run_filter and qa_test_list' parameter value.")
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
           // Use a shared workspace folder for all jobs running on the same
@@ -59,20 +60,43 @@ pipeline {
             '''
           ).trim()
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
-          def test_list = env.test_list.split(',')
-          for (test in test_list) {
-            catchError {
-              stage(test) {
-                sh("""
-                  cd \$SHARED_WORKSPACE
-                  source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-                  ansible_playbook run-ardana-qe-tests.yml -e @input.yml \
-                                                           -e test_name=$test
-                """)
+
+          // Run Tempest tests
+          if (env.tempest_filter_list != null && tempest_filter_list != '') {
+            def tempest_filter_list = env.tempest_filter_list.split(',')
+            for (filter in tempest_filter_list) {
+              catchError {
+                stage(filter) {
+                  sh("""
+                    cd \$SHARED_WORKSPACE
+                    source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+                    ansible_playbook run-tempest.yml -e @input.yml \
+                                                     -e tempest_run_filter=$filter
+                  """)
+                }
               }
+              archiveArtifacts artifacts: ".artifacts/**/ansible.log, .artifacts/**/*${filter}*", allowEmptyArchive: true
+              junit testResults: ".artifacts/testr_results_region1_${filter}.xml", allowEmptyResults: true
             }
-            archiveArtifacts artifacts: ".artifacts/**/${test}*", allowEmptyArchive: true
-            junit testResults: ".artifacts/${test}.xml", allowEmptyResults: true
+          }
+
+          // Run QA tests
+          if (env.qa_test_list != null && qa_test_list != '') {
+            def qa_test_list = env.qa_test_list.split(',')
+            for (test in qa_test_list) {
+              catchError {
+                stage(test) {
+                  sh("""
+                    cd \$SHARED_WORKSPACE
+                    source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+                    ansible_playbook run-ardana-qe-tests.yml -e @input.yml \
+                                                             -e test_name=$test
+                  """)
+                }
+              }
+              archiveArtifacts artifacts: ".artifacts/**/${test}*", allowEmptyArchive: true
+              junit testResults: ".artifacts/${test}.xml", allowEmptyResults: true
+            }
           }
         }
       }

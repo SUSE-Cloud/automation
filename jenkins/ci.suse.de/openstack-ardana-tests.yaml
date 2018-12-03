@@ -1,5 +1,5 @@
 - job:
-    name: openstack-ardana-tempest
+    name: openstack-ardana-tests
     project-type: pipeline
     concurrent: true
     wrappers:
@@ -51,17 +51,84 @@
           value: >-
             ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,
             identity,lbaas,magnum,manila,monasca,network,neutron-api,periodic,
-            periodic-virtual,periodic,refstack,swift,tests2skip,tests-ci,
-            upgrade-ci,upgrade
+            periodic-virtual,refstack,swift,tests2skip,tests-ci,upgrade-ci,upgrade
           description: >-
             Name of the filter file to use for tempest. Selecting multiple values
             will run tempest for each selected value.
 
+            Use an empty value to skip running tempest tests.
+
+      - extended-choice:
+          name: qa_test_list
+          type: multi-select
+          visible-items: 10
+          multi-select-delimiter: ','
+          default-value: ''
+          value: >-
+            iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,
+            heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,
+            nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
+            barbican-functional,horizon,horizon_integration-tests,freezer,
+            keystone-api,keystone-ldap,keystone-k2k-config,keystone-websso-config,keystone-x509-config,
+            remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,enable_tls,
+            change_credentials
+          description: >-
+            Select QA tests to run
+
+            Use an empty value to skip running QA tests.
+
+      - string:
+          name: run_filter
+          default: ''
+          description: >-
+            QA test run filter
+
       - bool:
-          name: rc_notify
+          name: dpdk
           default: false
           description: >-
+            QA (neutron) DPDK enabled/disabled
+
+      - choice:
+          name: dpdk_br
+          choices:
+            - br-dpdk0
+            - br-dpdkbond0
+          description: >-
+            QA (neutron) dpdk bond interface name
+
+      - bool:
+          name: octavia
+          default: false
+          description: >-
+            QA (neutron) OCTAVIA enabled/disabled
+
+      - bool:
+          name: esx
+          default: false
+          description: >-
+            QA ESX compute enabled/disabled
+
+      - choice:
+          name: type_of_compute
+          choices:
+            - SLES-COMPUTE
+            - RHEL-COMPUTE
+          description: >-
+            QA Type of Compute node to be removed for Operation Test
+
+      - bool:
+          name: rc_notify
+          default: true
+          description: >-
             Notify RocketChat when deployment starts/finishes.
+
+      - string:
+          name: ardana_qa_tests_branch
+          default: ''
+          description: >-
+            ardana-qa-tests repository branch. If empty the branch is set based
+            on the cloud release version (cloud8: stable/pike, cloud9: master)
 
       - string:
           name: git_automation_repo

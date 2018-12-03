@@ -99,8 +99,7 @@
           value: >-
             ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,
             identity,lbaas,magnum,manila,monasca,network,neutron-api,periodic,
-            periodic-virtual,periodic,refstack,swift,tests2skip,tests-ci,
-            upgrade-ci,upgrade
+            periodic-virtual,refstack,swift,tests2skip,tests-ci,upgrade-ci,upgrade
           description: >-
             Name of the filter file to use for tempest. Selecting multiple values
             will run tempest for each selected value.
@@ -118,7 +117,8 @@
             heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,
             nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
             barbican-functional,horizon,horizon_integration-tests,freezer,keystone-soapui,
-            remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks
+            remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,
+            change_credentials
           description: >-
             Select QA tests to run. Use an empty value to skip running QA tests.
 
