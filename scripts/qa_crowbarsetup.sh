@@ -3016,7 +3016,7 @@ function deploy_single_proposal
             ;;
         trove)
             if iscloudver 9plus; then
-                echo "Trove is SOC 8- only. Skipping"
+                echo "Trove is only for SOC 8 and below. Skipping"
                 return
             fi
             ;;
