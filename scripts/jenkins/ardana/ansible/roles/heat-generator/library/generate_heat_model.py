@@ -587,7 +587,7 @@ def generate_heat_model(input_model, virt_config):
     # Next, add global networks
     for network in input_model['networks'].itervalues():
         cidr = None
-        vlan = network['vlanid'] if network.get('tagged-vlan') else None
+        vlan = network['vlanid'] if network.get('tagged-vlan', True) else None
         gateway = IPAddress(
             network['gateway-ip']) if network.get('gateway-ip') else None
         if network.get('cidr'):
