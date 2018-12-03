@@ -1,5 +1,5 @@
 /**
- * The openstack-ardana-tempest Jenkins Pipeline
+ * The openstack-ardana-update Jenkins Pipeline
  *
  * This job updates a pre-deployed CLM cloud.
  */
