@@ -306,7 +306,7 @@ done
 export COMPUTES=10
 nodes=$(crowbarctl node list --plain | grep compute | sort --key=2.9 -n | cut -d' ' -f1 | head -n $COMPUTES | sed -e 's/^/"/' -e 's/$/",/' | tr -d '\n' | sed 's/,$//')
 crowbarctl proposal edit nova default -m --data='{"deployment": {"nova": {"elements": {"nova-compute-kvm": ['$nodes']}}}}'
-
+crowbarctl proposal commit nova default
 
 # maybe needed: export/update the barclamp batch files
 # TODO: update this part to include proper list of barclamps
