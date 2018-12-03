@@ -308,6 +308,13 @@ nodes=$(crowbarctl node list --plain | grep compute | sort --key=2.9 -n | cut -d
 crowbarctl proposal edit nova default -m --data='{"deployment": {"nova": {"elements": {"nova-compute-kvm": ['$nodes']}}}}'
 crowbarctl proposal commit nova default
 
+# list compute nodes sorted by number of running instances
+nova --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n
+
+# remove all instances from least loaded compute node
+nova --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n | head -n1 | awk '{print $2}' | \
+  xargs nova --insecure list --host | grep ACTIVE | awk '{print $2}' | xargs -i nova --insecure delete {}
+
 # maybe needed: export/update the barclamp batch files
 # TODO: update this part to include proper list of barclamps
 #count=0; for bc in ipmi pacemaker nfs_client database rabbitmq keystone glance cinder neutron tempest; do echo $bc; crowbar batch export $bc > batch-exports1/`printf "%02i" ${count}`_${bc}.batch; (( count++ )); done
