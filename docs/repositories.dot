@@ -1,4 +1,6 @@
 digraph G {
+    rankdir=LR
+
     dlpb[
       label="devel:languages:python:backports",
       URL="https://build.opensuse.org/project/show/devel:languages:python:backports",
@@ -59,11 +61,31 @@ digraph G {
       URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Rocky",
       fontcolor="blue"
     ];
-//    CORS[
-//      label="Cloud:OpenStack:Rocky:Staging",
-//      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Rocky:Staging",
-//      fontcolor="blue"
-//    ];
+    CORSSP4[
+      label="Cloud:OpenStack:Rocky:Staging\nSLE_12_SP4",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Rocky:Staging",
+      fontcolor="blue"
+    ];
+    CORvSP4[
+      label="Cloud:OpenStack:Rocky:venv\nSLE_12_SP4",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Rocky:venv",
+      fontcolor="blue"
+    ];
+    A9SP4[
+      label="systemsmanagement:Ardana:9\nSLE_12_SP4",
+      URL="https://build.opensuse.org/project/show/systemsmanagement:Ardana:9",
+      fontcolor="blue"
+    ];
+    C75[
+      label="CentOS:CentOS-7\n7.5.1804",
+      URL="https://build.opensuse.org/project/show/CentOS:CentOS-7",
+      fontcolor="blue"
+    ];
+    A9C75[
+      label="systemsmanagement:Ardana:9:CentOS:7.5\nCentOS_7.5",
+      URL="https://build.opensuse.org/project/show/systemsmanagement:Ardana:9:CentOS:7.5",
+      fontcolor="blue"
+    ];
     rp[
       label="rpm-packaging",
       URL="https://wiki.openstack.org/wiki/Rpm-packaging",
@@ -118,9 +140,9 @@ digraph G {
     ];
 
     // Rocky
-    COMSP4 -> CORSP4[
-      label="<link>",
-      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Rocky",
+    CORSP4 -> CORSSP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Rocky:Staging",
       fontcolor="blue"
     ];
     SP4GA -> CORSP4[
@@ -128,6 +150,32 @@ digraph G {
       URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Rocky",
       fontcolor="blue"
     ];
+    CORSP4 -> CORvSP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Rocky:venv",
+      fontcolor="blue"
+    ];
+    SP4GA -> A9SP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/systemsmanagement:Ardana:9",
+      fontcolor="blue"
+    ];
+    C75 -> A9C75[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/systemsmanagement:Ardana:9:CentOS:7.5",
+      fontcolor="blue"
+    ];
+    CORSP4 -> A9C75[
+      label="<link>",
+      URL="https://build.opensuse.org/project/meta/systemsmanagement:Ardana:9:CentOS:7.5",
+      fontcolor="blue"
+    ];
+    A9SP4 -> A9C75[
+      label="<link>",
+      URL="https://build.opensuse.org/project/meta/systemsmanagement:Ardana:9:CentOS:7.5",
+      fontcolor="blue"
+    ];
+
 
     // Pike
     COP -> COPS[
