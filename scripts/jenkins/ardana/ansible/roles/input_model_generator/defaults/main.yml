@@ -164,15 +164,14 @@ disk_component_groups:
       # At least 5% should be left free for snapshots.
 
       - name: root
-        size: 65%
-        fstype: ext4
+        size: 65
         mount: /
 
       # Reserved space for kernel crash dumps
       # Should evaluate to a value that is slightly larger than
       # the memory size of your server
       - name: crash
-        size: 15%
+        size: 15
         mount: /var/crash
         fstype: ext4
         mkfs-opts: -O large_file
