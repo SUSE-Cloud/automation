@@ -54,7 +54,8 @@
             nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
             barbican-functional,horizon,horizon_integration-tests,freezer,
             keystone-api,keystone-ldap,keystone-k2k-config,keystone-websso-config,keystone-x509-config,
-            remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,enable_tls
+            remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,enable_tls,
+            change_credentials
           description: >-
             Select tests to run
 
