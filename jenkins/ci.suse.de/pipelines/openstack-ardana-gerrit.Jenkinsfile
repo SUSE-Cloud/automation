@@ -78,9 +78,21 @@ The following links can also be used to track the results:
       }
       steps {
         script {
-          def slaveJob = build job: 'openstack-ardana', parameters: [
+          // reserve a resource here for the openstack-ardana job, to avoid
+          // keeping a cloud-ardana-ci worker busy while waiting for a
+          // resource to become available.
+          // if not instructed to reserve a resource, use a dummy resource and a zero quantity
+          // to fool Jenkins into thinking it reserved a resource when in fact it didn't
+          lock(label: reserve_env == 'true' ? ardana_env:'dummy-resource',
+               variable: 'reserved_env',
+               quantity: reserve_env == 'true' ? 1:0 ) {
+            if (env.reserved_env && reserved_env != null) {
+              env.ardana_env = reserved_env
+            }
+
+            def slaveJob = build job: 'openstack-ardana', parameters: [
               string(name: 'ardana_env', value: "$ardana_env"),
-              string(name: 'reserve_env', value: "$reserve_env"),
+              string(name: 'reserve_env', value: "false"),
               string(name: 'cleanup', value: "on success"),
               string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
               string(name: 'git_automation_repo', value: "$git_automation_repo"),
@@ -92,16 +104,17 @@ The following links can also be used to track the results:
               string(name: 'cloudsource', value: "$cloudsource"),
               string(name: 'tempest_filter_list', value: "$tempest_filter_list"),
               string(name: 'os_cloud', value: "$os_cloud")
-          ], propagate: false, wait: true
-          env.jobResult = slaveJob.getResult()
-          env.jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
-          def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
-          echo jobMsg
-          sh '''
-            echo "- ${STAGE_NAME}: ${jobResult} (${jobUrl})" >> results.txt
-          '''
-          if (env.jobResult != 'SUCCESS') {
-             error(jobMsg)
+            ], propagate: false, wait: true
+            env.jobResult = slaveJob.getResult()
+            env.jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
+            def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
+            echo jobMsg
+            sh '''
+              echo "- ${STAGE_NAME}: ${jobResult} (${jobUrl})" >> results.txt
+            '''
+            if (env.jobResult != 'SUCCESS') {
+               error(jobMsg)
+            }
           }
         }
       }
