@@ -23,10 +23,9 @@ _announcement_success: "{{ _announcement_data | regex_replace('^Update FAILED', 
 _announcement_failed: "{{ _announcement_data | regex_replace('^READY FOR TESTING', 'Update FAILED') if rc_previous_announcement.content is defined else 'NA' }}"
 
 _previous_announcement: "{{ rc_previous_announcement.content | b64decode }}"
-_announcement_data: "{{ _previous_announcement | regex_replace('.- SLES_MU.*|.- Cloud_MU.*', _announcement_mu) if 'MU' in _previous_announcement else _previous_announcement + _announcement_mu }}"
+_announcement_data: "{{ _previous_announcement | regex_replace('.- MU.*', _announcement_mu) if 'MU' in _previous_announcement else _previous_announcement + _announcement_mu }}"
 
-_announcement_cloud_mu: "{{ ' - Cloud_MU: ' + cloud_maint_updates if _cloud_mu_available else '' }}"
-_announcement_mu: "{{ _announcement_cloud_mu + ' - SLES_MU: ' + sles_maint_updates if _sles_mu_available else _announcement_cloud_mu }}"
+_announcement_mu: "{{ ' - MU: ' + maint_updates }}"
 
 # Chat message
 rc_msg_fields_started: "{{ _msg_fields_started + _msg_field_cloudsource + _msg_field_mu }}"
@@ -64,17 +63,11 @@ _field_cloudsource:
 
 _msg_field_cloudsource: "{{ (cloudsource is defined and cloudsource != '') | ternary(_field_cloudsource, [])}}"
 
-_field_cloud_mu:
-  - title: Cloud MU
-    value: "{{ cloud_maint_updates | default('') }}"
-    short: True
-_field_sles_mu:
-  - title: SLES MU
-    value: "{{ sles_maint_updates | default('') }}"
+_field_mu:
+  - title: MU
+    value: "{{ maint_updates | default('') }}"
     short: True
 
-_cloud_mu_available: "{{ cloud_maint_updates is defined and cloud_maint_updates | length > 0 }}"
-_sles_mu_available: "{{ sles_maint_updates is defined and sles_maint_updates | length > 0 }}"
+_mu_available: "{{ maint_updates is defined and maint_updates | length > 0 }}"
 
-_msg_field_cloud_mu: "{{ _field_cloud_mu if _cloud_mu_available else [] }}"
-_msg_field_mu: "{{ _msg_field_cloud_mu + _field_sles_mu if _sles_mu_available else _msg_field_cloud_mu }}"
+_msg_field_mu: "{{ _mu_available | ternary(_field_mu, []) }}"

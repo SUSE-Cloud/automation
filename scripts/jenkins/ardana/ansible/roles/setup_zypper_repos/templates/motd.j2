@@ -7,11 +7,12 @@ Configured repositories:
 {% if is_milestone %}
   - {{ media[cloud_release].name }}
 {% endif %}
-{% for id in sles_maint_updates_list %}
-  - SLES-Maint-Update-{{ id }}
-{% endfor %}
-{% for id in cloud_maint_updates_list %}
-  - Cloud-Maint-Update-{{ id }}
+{% for id in maint_updates_list %}
+{%   for product in maintenance_updates_path %}
+{%     if maintenance_updates_path[product] in mu_url.results | selectattr('item', 'equalto', id) | map(attribute='content') | join(' ') %}
+  - {{ product }}-Maint-Update-{{ id }}
+{%     endif %}
+{%   endfor %}
 {% endfor %}
 {% for repo in extra_repos_list %}
   - {{ repo }}

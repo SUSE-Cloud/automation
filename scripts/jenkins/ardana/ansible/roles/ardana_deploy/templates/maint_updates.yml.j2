@@ -19,30 +19,34 @@
   hosts: resources
   become: yes
   vars:
-    cloud_maint_updates_list: {{ cloud_maint_updates_list | to_yaml }}
-    sles_maint_updates_list: {{ sles_maint_updates_list | to_yaml }}
+    maint_updates_list: {{ maint_updates_list | to_yaml }}
     sles_sp: {{ ansible_distribution_release }}
     cloud_release: {{ cloud_release }}
+    maintenance_updates_server: {{ maintenance_updates_server }}
+    maintenance_updates_path:
+      Cloud: "SUSE_Updates_{{ cloudsource.startswith('hos') | ternary('HPE-Helion-OpenStack', 'OpenStack-Cloud') }}_{{ sles_cloud_version[ansible_distribution_version] }}_x86_64"
+      SLES: "SUSE_Updates_SLE-SERVER_{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}_x86_64"
 {% raw %}
     deployer_ip: "{{ hostvars[groups['ARD-SVC--first-member'].0].ansible_ssh_host }}"
 
   tasks:
-    - name: Ensure cloud maint update zypper repositories
-      zypper_repository:
-        name: "Cloud-Maint-Update-{{ item }}"
-        repo: "http://{{ deployer_ip }}:79/SUSE-12-{{ sles_sp }}/x86_64/repos/{{ item }}/SUSE_SLE-12-SP{{ sles_sp }}_Update_Products_{{ cloud_release | title }}_Update/"
-        state: present
-      with_items: "{{ cloud_maint_updates_list }}"
-      when: ansible_distribution == 'SLES'
-      become: yes
+    - name: Check MU URL
+      command: "curl http://{{ maintenance_updates_server }}/ibs/SUSE:/Maintenance:/{{ item }}/"
+      with_items: "{{ maint_updates_list }}"
+      register: mu_url
+      run_once: true
 
-    - name: Ensure SLES maint update zypper repositories
+    - name: Ensure maint update zypper repositories
       zypper_repository:
-        name: "SLES-Maint-Update-{{ item }}"
-        repo: "http://{{ deployer_ip }}:79/SUSE-12-{{ sles_sp }}/x86_64/repos/{{ item }}/SUSE_Updates_SLE-SERVER_12-SP{{ sles_sp }}_x86_64/"
+        name: "{{ item.1 }}-Maint-Update-{{ item.0 }}"
+        repo: "http://{{ deployer_ip }}:79/SUSE-12-{{ sles_sp }}/x86_64/repos/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/"
         state: present
-      with_items: "{{ sles_maint_updates_list }}"
-      when: ansible_distribution == 'SLES'
+      with_nested:
+        - "{{ maint_updates_list }}"
+        - "{{ maintenance_updates_path }}"
+      when:
+        - "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='stdout_lines') | join(' ')"
+        - ansible_distribution == 'SLES'
       become: yes
 
     - name: Run zypper update

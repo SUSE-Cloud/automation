@@ -42,11 +42,11 @@ sles_cloud_version:
 
 update_after_deploy: False
 maintenance_updates_path:
-  Cloud: "SUSE_SLE-{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}_Update_Products_Cloud{{ sles_cloud_version[ansible_distribution_version] }}_Update"
+  Cloud: "SUSE_Updates_{{ cloud_repo_path }}_{{ sles_cloud_version[ansible_distribution_version] }}_x86_64"
   SLES: "SUSE_Updates_SLE-SERVER_{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}_x86_64"
 
-cloud_maint_updates_list: "{{ cloud_maint_updates.split(',') if cloud_maint_updates is defined and cloud_maint_updates | length else [] }}"
-sles_maint_updates_list: "{{ sles_maint_updates.split(',') if sles_maint_updates is defined and sles_maint_updates | length else [] }}"
+maint_updates_list: "{{ maint_updates.split(',') if maint_updates is defined and maint_updates | length else [] }}"
+maintenance_updates_server: "dist.suse.de"
 
 ntp_servers:
   - ntp.suse.de

@@ -16,7 +16,6 @@
 ---
 
 clouddata_server: "provo-clouddata.cloud.suse.de"
-maintenance_updates_server: "dist.suse.de"
 repos_url: "http://{{ clouddata_server }}/repos/{{ ansible_architecture }}"
 is_milestone: "{{ cloudsource is match('cloud\\dM\\d') }}"
 built_from: "{{ repos_url}}/{{ base_repos.0 }}"

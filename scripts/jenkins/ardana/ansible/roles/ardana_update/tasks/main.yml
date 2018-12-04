@@ -16,7 +16,7 @@
 ---
 
 - include_tasks: add_mu_repos.yml
-  when: cloud_maint_updates_list | length or sles_maint_updates_list | length
+  when: maint_updates_list | length
 
 - include_tasks: pre_cloudsource_update.yml
   when:
