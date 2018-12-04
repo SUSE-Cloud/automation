@@ -10,7 +10,7 @@ except ImportError:
 import requests
 
 GERRIT_URL = 'https://gerrit.suse.provo.cloud'
-GERRIT_VERIFY = False
+GERRIT_VERIFY = True
 
 # We use a more complex regex that matches both formats of Depends-On so that
 # we preserve the order in which they are discovered.
