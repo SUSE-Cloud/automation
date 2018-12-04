@@ -296,48 +296,19 @@ pipeline {
       }
     }
 
-    stage('Run tests') {
-      failFast false
-      parallel {
-        stage ('Tempest') {
-          when {
-            expression { env.tempest_filter_list != null && tempest_filter_list != '' }
-          }
-          steps {
-            script {
-              def slaveJob = build job: 'openstack-ardana-tempest', parameters: [
-                  string(name: 'ardana_env', value: "$ardana_env"),
-                  string(name: 'tempest_filter_list', value: "$tempest_filter_list"),
-                  string(name: 'rc_notify', value: "$rc_notify"),
-                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                  string(name: 'reuse_node', value: "${NODE_NAME}"),
-                  string(name: 'os_cloud', value: "$os_cloud")
-              ], propagate: false, wait: true
-              def jobResult = slaveJob.getResult()
-              def jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
-              def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
-              echo jobMsg
-              if (jobResult != 'SUCCESS') {
-                 error(jobMsg)
-              }
-            }
-          }
-        }
-      }
-    }
-
-    stage('Run QA tests') {
+    stage ('Run Tempest/QA tests') {
       when {
-        // For extended-choice parameter we also need to check if the variable
-        // is defined
-        expression { env.qa_test_list != null && qa_test_list != '' }
+        expression {
+          (env.tempest_filter_list != null && tempest_filter_list != '') ||
+            (env.qa_test_list != null && qa_test_list != '')
+        }
       }
       steps {
         script {
-          def slaveJob = build job: 'openstack-ardana-qa-tests', parameters: [
+          def slaveJob = build job: 'openstack-ardana-tests', parameters: [
               string(name: 'ardana_env', value: "$ardana_env"),
-              string(name: 'test_list', value: "$qa_test_list"),
+              string(name: 'tempest_filter_list', value: "$tempest_filter_list"),
+              string(name: 'qa_test_list', value: "$qa_test_list"),
               string(name: 'rc_notify', value: "$rc_notify"),
               string(name: 'git_automation_repo', value: "$git_automation_repo"),
               string(name: 'git_automation_branch', value: "$git_automation_branch"),

@@ -81,47 +81,27 @@ pipeline {
       }
     }
 
-    stage('Run tests') {
-      failFast false
-      parallel {
-        stage ('Tempest') {
-          when {
-            expression { env.tempest_filter_list != null && tempest_filter_list != '' }
-          }
-          steps {
-            catchError {
-              script {
-                def slaveJob = build job: 'openstack-ardana-tempest', parameters: [
-                  string(name: 'ardana_env', value: "$ardana_env"),
-                  string(name: 'tempest_filter_list', value: "$tempest_filter_list"),
-                  string(name: 'rc_notify', value: "$rc_notify"),
-                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                  string(name: 'reuse_node', value: "${NODE_NAME}"),
-                  string(name: 'os_cloud', value: "$os_cloud")
-                ], propagate: true, wait: true
-              }
-            }
-          }
+    stage ('Tempest/QA') {
+      when {
+        expression {
+          (env.tempest_filter_list != null && tempest_filter_list != '') ||
+            (env.qa_test_list != null && qa_test_list != '')
         }
       }
-    }
-
-    stage('Run QA tests') {
-      when {
-        expression { env.qa_test_list != null && qa_test_list != '' }
-      }
       steps {
-        script {
-          def slaveJob = build job: 'openstack-ardana-qa-tests', parameters: [
-            string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'test_list', value: "$qa_test_list"),
-            string(name: 'rc_notify', value: "$rc_notify"),
-            string(name: 'git_automation_repo', value: "$git_automation_repo"),
-            string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'reuse_node', value: "${NODE_NAME}"),
-            string(name: 'os_cloud', value: "$os_cloud")
-          ], propagate: true, wait: true
+        catchError {
+          script {
+            def slaveJob = build job: 'openstack-ardana-tests', parameters: [
+              string(name: 'ardana_env', value: "$ardana_env"),
+              string(name: 'tempest_filter_list', value: "$tempest_filter_list"),
+              string(name: 'qa_test_list', value: "$qa_test_list"),
+              string(name: 'rc_notify', value: "$rc_notify"),
+              string(name: 'git_automation_repo', value: "$git_automation_repo"),
+              string(name: 'git_automation_branch', value: "$git_automation_branch"),
+              string(name: 'reuse_node', value: "${NODE_NAME}"),
+              string(name: 'os_cloud', value: "$os_cloud")
+            ], propagate: true, wait: true
+          }
         }
       }
     }
