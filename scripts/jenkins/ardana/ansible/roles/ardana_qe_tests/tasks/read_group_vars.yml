@@ -88,7 +88,7 @@
 - name: Build a dictionary to hold variables of interest to QE
   set_fact:
     ardana_group_vars_key_api:
-      keystone_member_role: "{{ item.KEY_API.vars.keystone_member_role }}"
+      keystone_member_role: "{{ item.KEY_API.vars.keystone_member_role | default('member') }}"
       keystone_vip_protocol: "{{ item.KEY_API.advertises.vips.admin[0].protocol }}"
       keystone_admin_password: "{{ item.KEY_API.vars.keystone_admin_pwd }}"
       keystone_admin_vip_host: "{{ item.KEY_API.advertises.vips.admin[0].ip_address }}"
@@ -97,7 +97,6 @@
       keystone_endpoint_port: "{{ item.KEY_API.advertises.vips.private[0].port }}"
       keystone_admin_endpoint: "{{ item.KEY_API.advertises.vips.admin[0].protocol }}://{{ item.KEY_API.advertises.vips.admin[0].ip_address }}"
       keystone_admin_endpoint_port: "{{ item.KEY_API.advertises.vips.admin[0].port }}"
-      keystone_noauth_admin_token: "{{ item.KEY_API.vars.keystone_admin_token }}"
       keystone_admin_user: "{{ item.KEY_API.vars.keystone_admin_user }}"
       keystone_default_domain: "{{ item.KEY_API.vars.keystone_default_domain }}"
       keystone_admin_url: "{{ item.KEY_API.advertises.vips.admin[0].url}}"
