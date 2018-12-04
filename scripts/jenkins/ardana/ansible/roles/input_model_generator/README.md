@@ -211,8 +211,8 @@ Specifying this macro adds the internal load-balancer to the network group.
 account and object servers. This macro expands into the swift component endpoints.
 * _NEUTRON-EXT_: configures the network group as a Neutron flat external network that will be used to provide external access 
 to VMs (via floating IP Addresses). When this macro is specified as a component endpoint, the generated network group
-will be tagged with `neutron.networks.flat` and a `neutron_external_networks` entry is generated and added to the Neutron
-configuration data corresponding to this network.
+will be tagged with `neutron.l3_agent.external_network_bridge` or `neutron.networks.flat`, depending on the `enable_external_network_bridge`
+global parameter value, and a `neutron_external_networks` entry is generated and added to the Neutron configuration data corresponding to this network.
 * _NEUTRON-VLAN_: configures the network group as a Neutron VLAN provider network. When this macro is specified as a
 component endpoint, the generated network group will be tagged with `neutron.networks.vlan` and a VLAN `neutron_provider_networks`
 entry is generated and added to the Neutron configuration data corresponding to this network. A route is also configured
@@ -318,7 +318,9 @@ either `bind` (default) or `powerdns`.
 * `disabled_services` : can be used to selectively exclude service components or entire service component
 groups from the generated input model. Accepts a regular expression as value (e.g. `freezer.*|logging.*`),
 which is used to filter out matching service components and service component groups.
-
+* `enable_external_network_bridge`: can be used to switch between using the deprecated `external_network_bridge`
+input model option to configure an external network and configuring a flat provider network to represent
+the external network.
 
 # Limitations
 

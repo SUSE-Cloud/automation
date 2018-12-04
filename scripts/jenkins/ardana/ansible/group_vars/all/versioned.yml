@@ -35,3 +35,8 @@ versioned_features:
   # until https://gerrit.suse.provo.cloud/#/c/5143/ gets released
   want_lvm:
     enabled: "{{ when_staging_or_devel or not when_cloud8 }}"
+  # Keep using the deprecated external_network_bridge option with GM8*
+  # cloudsources until the http://bugzilla.suse.com/show_bug.cgi?id=1117198
+  # fix gets released
+  external_network_bridge:
+    enabled: "{{ when_cloud8 and not when_staging_or_devel }}"
