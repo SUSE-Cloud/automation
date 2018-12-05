@@ -28,6 +28,15 @@ pipeline {
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
+          // Parameters of the type 'extended-choice' are set to null when the job
+          // is automatically triggered and its default value is ''. So, we need to set
+          // it to '' to be able to pass it as a parameter to downstream jobs.
+          if (env.tempest_filter_list == null) {
+            env.tempest_filter_list = ''
+          }
+          if (env.qa_test_list == null) {
+            env.qa_test_list = ''
+          }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
           // Use a shared workspace folder for all jobs running on the same
           // target 'ardana_env' cloud environment
@@ -83,10 +92,7 @@ pipeline {
 
     stage ('Tempest/QA') {
       when {
-        expression {
-          (env.tempest_filter_list != null && tempest_filter_list != '') ||
-            (env.qa_test_list != null && qa_test_list != '')
-        }
+        expression { tempest_filter_list != '' || qa_test_list != '' }
       }
       steps {
         catchError {
