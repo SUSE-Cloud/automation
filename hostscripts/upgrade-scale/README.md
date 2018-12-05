@@ -85,11 +85,11 @@ export extraipmipw="<ILO PASSWORD>"
 source ipmi.sh # above lines with real credentials stored in file
 
 # NOTE: make sure all nodes are off to avoid IP conflicts. You can check the power status with:
-awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
-awk '{print $1}' all_computes.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
+awk '{print $2}' all_controllers.txt | tr -d '#' | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
+awk '{print $1}' all_computes.txt | tr -d '#' | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
 # if needed, power off the nodes
-awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
-awk '{print $1}' all_computes.txt | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
+awk '{print $2}' all_controllers.txt | tr -d '#' | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
+awk '{print $1}' all_computes.txt | tr -d '#' | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
 
 # make sure lvm volume for crowbar exists
 test -e /dev/system/crowbaru1 || lvcreate -L20G system -n crowbaru1
