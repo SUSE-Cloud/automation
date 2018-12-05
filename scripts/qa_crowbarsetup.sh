@@ -1993,10 +1993,74 @@ function proposal_set_value
     proposal_modify_value "$1" "$2" "$3" "$4" "="
 }
 
+# get the currently set value in the proposal
+function proposal_get_value
+{
+    local proposal="$1"
+    local proposaltype="$2"
+    local variable="$3"
+
+    local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
+
+    safely rubyjsonparse "puts j${variable}" < $pfile
+}
+
 # wrapper for proposal_modify_value
 function proposal_increment_int
 {
     proposal_modify_value "$1" "$2" "$3" "$4" "+="
+}
+
+function setup_trusted_cert
+{
+    local certfile=$1
+    local keyfile=$2
+
+    if [[ $hacloud = 1 ]] ; then
+        cluster_node_assignment
+        local clusternodes_var=$(echo clusternodes${clusternameservices})
+        local controller_nodes=${!clusternodes_var}
+        local cn=$(get_cluster_vip_hostname $clusternameservices)
+    else
+        local controller_nodes=($(get_all_discovered_nodes | head -n 1))
+        local cn=$controller_nodes
+    fi
+
+    if [ ! -f $cn.pem ] ; then
+        # Generate Root CA
+        openssl req -x509 -newkey rsa:1024 -keyout rootca.key -out rootca.pem \
+            -days 365 -nodes \
+            -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=root"
+        # Generate CSR
+        subj_alt="DNS:${cn},DNS:public-${cn}"
+        # openssl 1.1.1 supports setting the subjectAltName directly in the command line,
+        # but SLES 12 SP4 only has 1.0.2 so we need to read in the config like this
+        openssl req -new -newkey rsa:1024 -keyout $cn.key -out $cn.csr \
+            -days 365 -nodes \
+            -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=${cn}" \
+            -config <(sed -e "/^\[ req \]/areq_extensions = v3_req" \
+                        -e "/^\[ v3_req \]/asubjectAltName=${subj_alt}" \
+                        /etc/ssl/openssl.cnf )
+        # Generate Cert
+        openssl x509 -req -in $cn.csr -CA rootca.pem -CAkey rootca.key \
+            -CAcreateserial -days 365 -out $cn.pem \
+            -extensions v3_ca \
+            -extfile <(sed -e "/^\[ v3_ca \]/asubjectAltName=${subj_alt}" \
+                        /etc/ssl/openssl.cnf )
+
+    fi
+
+    local node
+    for node in $controller_nodes; do
+        ssh $node mkdir -p $(dirname $certfile)
+        ssh $node mkdir -p $(dirname $keyfile)
+        scp $cn.pem $node:$certfile
+        scp $cn.key $node:$keyfile
+    done
+    for node in $(get_all_discovered_nodes); do
+        scp rootca.pem $node:/etc/pki/trust/anchors/rootca.pem
+        ssh $node update-ca-certificates
+    done
 }
 
 function enable_ssl_generic
@@ -2027,8 +2091,14 @@ function enable_ssl_generic
             fi
             return
         ;;
-        swift|rabbitmq)
+        swift)
             $p "$a['ssl']['enabled']" true
+        ;;
+        rabbitmq)
+            $p "$a['ssl']['enabled']" true
+            $p "$a['ssl']['generate_certs']" true
+            $p "$a['ssl']['insecure']" true
+            return
         ;;
         nova)
             $p "$a['ssl']['enabled']" true
@@ -2041,7 +2111,9 @@ function enable_ssl_generic
         ;;
         horizon|nova_dashboard)
             $p "$a['apache']['ssl']" true
-            $p "$a['apache']['generate_certs']" true
+            local certfile=$(proposal_get_value $service default "$a['apache']['ssl_crt_file']")
+            local keyfile=$(proposal_get_value $service default "$a['apache']['ssl_key_file']")
+            setup_trusted_cert $certfile $keyfile
             return
         ;;
         heat)
@@ -2066,8 +2138,9 @@ function enable_ssl_generic
             $p "$a['api']['protocol']" "'https'"
         ;;
     esac
-    $p "$a['ssl']['generate_certs']" true
-    $p "$a['ssl']['insecure']" true
+    local certfile=$(proposal_get_value $service default "$a['ssl']['certfile']")
+    local keyfile=$(proposal_get_value $service default "$a['ssl']['keyfile']")
+    setup_trusted_cert $certfile $keyfile
 }
 
 function enable_debug_generic
