@@ -315,6 +315,10 @@ nova --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | 
 nova --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n | head -n1 | awk '{print $2}' | \
   xargs nova --insecure list --host | grep ACTIVE | awk '{print $2}' | xargs -i nova --insecure delete {}
 
+# collect logs and etc from all nodes (on adminhost)
+ssh crowbaru1 crowbarctl node list --plain | cut -d' ' -f1 | xargs -i ssh crowbaru1 host {} | \
+  while read host h a ip; do mkdir -p $host;echo $host; rsync -e "ssh -o StrictHostKeyChecking=no" -avz $ip:/var/log :/etc $host; done
+
 # maybe needed: export/update the barclamp batch files
 # TODO: update this part to include proper list of barclamps
 #count=0; for bc in ipmi pacemaker nfs_client database rabbitmq keystone glance cinder neutron tempest; do echo $bc; crowbar batch export $bc > batch-exports1/`printf "%02i" ${count}`_${bc}.batch; (( count++ )); done
