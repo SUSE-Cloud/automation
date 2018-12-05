@@ -58,6 +58,10 @@ def gerrit_merge(change, dry_run=False):
         return 1
 
     if not check_all_dependencies_satisfied(change):
+        msg = "Unable to merge: Commit dependencies are not satisifed."
+        print(msg)
+        if not dry_run:
+            change.review(message=msg)
         return 1
 
     if not dry_run:
