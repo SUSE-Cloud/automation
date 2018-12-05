@@ -4364,6 +4364,43 @@ puts y.to_yaml" > /root/keystone-test-pw-reset.yaml
     safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-reset.yaml
 }
 
+function set_keystone_endpoint
+{
+    local protocol=$1
+    if [ "$protocol" == "https" ] ; then
+        local certfile=$(proposal_get_value keystone default "['attributes']['keystone']['ssl']['certfile']")
+        local keyfile=$(proposal_get_value keystone default "['attributes']['keystone']['ssl']['keyfile']")
+        setup_trusted_cert $certfile $keyfile
+    fi
+    crowbar batch export keystone | ruby -ryaml -e "
+y = YAML.load(ARGF)
+a = y['proposals'].first['attributes']
+a['api']['protocol'] = '$protocol'
+if '$protocol' == 'https'
+    a.key?('ssl') || a['ssl'] = {}
+    a['ssl']['ca_certs'] = '/etc/ssl/ca-bundle.pem'
+end
+puts y.to_yaml" > /root/keystone-test-endpoint-update.yaml
+    safely crowbar batch --timeout 1500 build < /root/keystone-test-endpoint-update.yaml
+}
+
+function update_keystone_endpoint
+{
+    # If SSL is on, turn it off and turn it back on.
+    # If SSL is off, turn it on and turn it back off.
+    if [ "$want_all_ssl" == 1 -o "$want_keystone_ssl" == 1 ] ; then
+        echo "Testing disabling HTTPS on keystone"
+        set_keystone_endpoint http
+        echo "Testing reenabling HTTPS on keystone"
+        set_keystone_endpoint https
+    else
+        echo "Testing enabling HTTPS on keystone"
+        set_keystone_endpoint https
+        echo "Testing re-disabling HTTPS on keystone"
+        set_keystone_endpoint http
+    fi
+}
+
 function onadmin_have_salt_barclamp
 {
     test -e /opt/dell/crowbar_framework/barclamps/salt.yml
@@ -4517,6 +4554,12 @@ function onadmin_testsetup
 
     oncontroller testsetup
     ret=$?
+
+    # Run endpoint toggle after crm failcount check, this is expected to be
+    # disruptive to services.
+    if iscloudver 7plus && [[ $cloudsource =~ 'develcloud' ]] ; then
+        update_keystone_endpoint
+    fi
 
     echo "Tests on controller: $ret"
     echo "Ceph Tests: $cephret"
