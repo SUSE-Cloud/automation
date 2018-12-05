@@ -38,6 +38,15 @@ pipeline {
           if ( ardana_env.startsWith("qe") || ardana_env.startsWith("qa") ) {
               env.cloud_type = "physical"
           }
+          // Parameters of the type 'extended-choice' are set to null when the job
+          // is automatically triggered and its value is set to ''. So, we need to set
+          // it to '' to be able to pass it as a parameter to downstream jobs.
+          if (env.tempest_filter_list == null) {
+            env.tempest_filter_list = ''
+          }
+          if (env.qa_test_list == null) {
+            env.qa_test_list = ''
+          }
           // Use a shared workspace folder for all jobs running on the same
           // target 'ardana_env' cloud environment
           env.SHARED_WORKSPACE = sh (
@@ -298,10 +307,7 @@ pipeline {
 
     stage ('Run Tempest/QA tests') {
       when {
-        expression {
-          (env.tempest_filter_list != null && tempest_filter_list != '') ||
-            (env.qa_test_list != null && qa_test_list != '')
-        }
+        expression { tempest_filter_list != '' || qa_test_list != '' }
       }
       steps {
         script {
