@@ -69,7 +69,7 @@ quota_consumers: -1
 quota_cas: -1
 
 
-test_run_filter: "{{ run_filter | default('smoke', true) }}"
+test_run_filter: "{{ run_filter | default('barbican-functional', true) }}"
 run_concurrency: 0
 ca_bundle: /etc/ssl/ca-bundle.pem
 #Overrides
@@ -80,8 +80,9 @@ ardana_qe_test_get_failed_cmd: "grep -B1 -- '------' {{ ardana_qe_test_log }} |
   awk -F '\n' 'ln ~ /^$/ { ln = \"matched\"; print $1 } $1 ~ /^--$/ { ln = \"\" }'"
 
 ardana_qe_test_venv_requires:
-  - 'os-testr'
-ardana_qe_test_run_filters: "{{ role_path }}/files/run_filters/"
+  - 'python-subunit'
+  - 'stestr'
+
 os_resources_requires:
   - 'user'
   - 'project'

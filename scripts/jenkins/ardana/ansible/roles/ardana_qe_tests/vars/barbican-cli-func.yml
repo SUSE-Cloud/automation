@@ -19,12 +19,13 @@ ardana_qe_tests_git_url: "{{ ardana_qe_tests_git_repo }}/openstack/python-barbic
 ardana_qe_tests_dir: "{{ ardana_qe_test_work_dir }}"
 
 ardana_qe_test_venv_requires:
-  - 'os-testr'
+  - 'python-subunit'
+  - 'stestr'
 
 ardana_qe_test_get_failed_cmd: "grep -B1 -- '------' {{ ardana_qe_test_log }} |
   awk -F '\n' 'ln ~ /^$/ { ln = \"matched\"; print $1 } $1 ~ /^--$/ { ln = \"\" }'"
 
-test_run_filter: "{{ run_filter | default('smoke', true) }}"
+test_run_filter: "{{ run_filter | default('barbican-cli-func', true) }}"
 run_concurrency: 0
 
 km_username: barbican_client_qe_admin
