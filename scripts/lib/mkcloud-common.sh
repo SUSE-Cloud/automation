@@ -37,7 +37,11 @@ function to_ip4
 
 function to_ip
 {
-    to_ip4 $1
+    ip=$(to_ip4 $1)
+    if [ -z $ip ]; then
+        ip=$(to_ip6 $1)
+    fi
+    echo $ip
 }
 
 function to_fqdn
