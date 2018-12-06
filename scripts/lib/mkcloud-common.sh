@@ -27,7 +27,7 @@ function get_getent_hosts
 
 function to_ip6
 {
-    get_getent_hosts $1 ip6
+    echo "[$(get_getent_hosts $1 ip6)]"
 }
 
 function to_ip4
@@ -41,7 +41,7 @@ function to_ip
     if [ -z $ip ]; then
         ip=$(to_ip6 $1)
     fi
-    echo $ip
+    echo "$ip"
 }
 
 function to_fqdn
