@@ -137,14 +137,14 @@
           choices:
             - '{scenario_name|}'
             - entry-scale-kvm
+            - mid-scale-kvm
             - standard
             - std-split
-            - mid-scale
           description: >-
             The name of one of the available scenarios that can be used to generate input models.
             If this parameter is set, the following parameters may also be set to different values, to control
             various aspects of the generated input model: clm_model, controllers, core_nodes, lmm_nodes, dbmq_nodes,
-            neutron_nodes, swpac_nodes, swobj_nodes, sles_computes, rhel_computes and disabled_services.
+            neutron_nodes, swift_nodes, sles_computes, rhel_computes and disabled_services.
 
 
             NOTE: use this parameter only if you want to use a generated input model. To use an existing input model instead,
@@ -173,7 +173,7 @@
           description: |
             The number of controller nodes in the generated input model.
 
-            Input model generator scenarios using this parameter is available: standard, entry-scale-kvm.
+            Input model generator scenarios using this parameter: standard, entry-scale-kvm.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
@@ -184,18 +184,18 @@
           description: |
             The number of OpenStack core services nodes in the generated input model.
 
-            Input model generator scenarios using this parameter is available: mid-scale, std-split.
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
       - string:
           name: lmm_nodes
-          default: '{lmm_nodes|1}'
+          default: '{lmm_nodes|3}'
           description: |
             The number of LMM services nodes in the generated input model.
 
-            Input model generator scenarios using this parameter: mid-scale, std-split.
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
@@ -206,40 +206,29 @@
           description: |
             The number of database & rabbitmq service nodes in the generated input model.
 
-            Input model generator scenarios using this parameter: std-split, mid-scale.
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
       - string:
           name: neutron_nodes
-          default: '1'
+          default: '2'
           description: |
             The number of neutron network nodes in the generated input model.
 
-            Input model generator scenarios using this parameter: mid-scale.
+            Input model generator scenarios using this parameter: mid-scale-kvm.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
       - string:
-          name: swpac_nodes
-          default: '1'
+          name: swift_nodes
+          default: '3'
           description: |
-            The number of swift proxy/account/container service nodes in the generated input model.
+            The number of swift proxy/account/container/object service nodes in the generated input model.
 
-            Input model generator scenarios using this parameter: mid-scale.
-
-            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
-            using one of the available input model generator scenarios.
-
-      - string:
-          name: swobj_nodes
-          default: '1'
-          description: |
-            The number of swift object service nodes in the generated input model.
-
-            Input model generator scenarios using this parameter: std-split, mid-scale.
+            Input model generator scenarios using this parameter: mid-scale-kvm.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.

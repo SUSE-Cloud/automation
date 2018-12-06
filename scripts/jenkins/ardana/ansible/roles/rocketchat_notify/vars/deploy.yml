@@ -98,12 +98,21 @@ _field_clm:
     value: "{{ clm_model | title }}"
     short: True
 
+_field_nodes_values:
+  entry-scale-kvm: |
+    Controllers: {{ controllers }}
+    Computes: {{ sles_computes}} (SLES) / {{ rhel_computes }} (RHEL)
+  mid-scale-kvm: |
+    Core: {{ core_nodes }}
+    LMM: {{ lmm_nodes }}
+    DBMQ: {{ dbmq_nodes }}
+    SWIFT: {{ swift_nodes }}
+    NEUTRON: {{ neutron_nodes }}
+    Computes: {{ sles_computes}} (SLES) / {{ rhel_computes }} (RHEL)
+
 _field_nodes:
   - title: Nodes
-    value: |
-      Controllers: {{ controllers }}
-      SLES-computes: {{ sles_computes }}
-      RHEL-computes: {{ rhel_computes }}
+    value: "{{ _field_nodes_values[scenario_name] }}"
     short: False
 
 _msg_field_clm_nodes: "{{ (scenario_name is defined) | ternary(_field_nodes + _field_clm, []) }}"

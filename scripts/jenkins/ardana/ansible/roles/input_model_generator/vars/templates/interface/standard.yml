@@ -23,7 +23,7 @@ interface_models:
       - network_groups:
           - MANAGEMENT
       - network_groups:
-          - ARDANA
+          - CONF
       - forced_network_groups:
           - EXTERNAL-API
 
@@ -38,7 +38,7 @@ interface_models:
       - swobj
     network_interfaces:
       - network_groups:
-          - ARDANA
+          - CONF
       - bond:
           mode: "active-backup"
           num_interfaces: 2
@@ -64,7 +64,7 @@ interface_models:
       - network_groups:
           - MANAGEMENT
       - network_groups:
-          - ARDANA
+          - CONF
       - network_groups:
           - EXTERNAL-VM
       - network_groups:

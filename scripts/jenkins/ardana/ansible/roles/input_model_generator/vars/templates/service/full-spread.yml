@@ -26,9 +26,8 @@
 #   core_nodes: number of core service nodes (default: 2)
 #   lmm_nodes: number of logging/metering/monitoring nodes (default: 3)
 #   dbmq_nodes: number of database/rabbitmq nodes (default: 3)
-#   swpac_nodes: number of swift proxy/account/container nodes (default: 3)
+#   swift_nodes: number of swift proxy/account/container nodes (default: 3)
 #   neutron_nodes: number of neutron network nodes (default: 2)
-#   swobj_nodes: maximum number of swift object nodes (default: 3)
 #   sles_computes: maximum number of SLES compute nodes (default: 1)
 #   rhel_computes: maximum number of RHEL compute nodes (default: 1)
 #
@@ -64,13 +63,14 @@ service_groups:
     member_count: '{{ dbmq_nodes|default(3) }}'
     service_components:
       - DBMQ
-  - name: swpac
+  - name: swift
     type: cluster
-    prefix: swpac
+    prefix: swift
     heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-minimal"
-    member_count: '{{ swpac_nodes|default(3) }}'
+    member_count: '{{ swift_nodes|default(3) }}'
     service_components:
       - SWPAC
+      - SWOBJ
   - name: neutron
     type: cluster
     prefix: neutron
@@ -96,11 +96,3 @@ service_groups:
     min_count: 0
     service_components:
       - COMPUTE
-  - name: swobj
-    type: resource
-    prefix: swobj
-    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
-    member_count: '{{ swobj_nodes|default(3) }}'
-    min_count: '{{ [ swobj_nodes|default(3)|int, 3 ] | min }}'
-    service_components:
-      - SWOBJ

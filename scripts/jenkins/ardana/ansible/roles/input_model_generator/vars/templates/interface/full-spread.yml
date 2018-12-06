@@ -23,34 +23,33 @@ interface_models:
     network_interfaces:
       - network_groups:
           - MANAGEMENT
-      - network_groups:
-          - ARDANA
-      - forced_network_groups:
+        forced_network_groups:
           - EXTERNAL-API
+      - network_groups:
+          - CONF
 
   - name: CORE
     service_groups:
       - core
     network_interfaces:
       - network_groups:
-          - ARDANA
-      - network_groups:
           - EXTERNAL-API
           - INTERNAL-API
           - MANAGEMENT
+      - network_groups:
+          - CONF
 
   - name: NEUTRON
     service_groups:
       - neutron
     network_interfaces:
       - network_groups:
-          - ARDANA
-      - network_groups:
           - GUEST
           - MANAGEMENT
-      - network_groups:
           - EXTERNAL-VM
           - TENANT-VLAN
+      - network_groups:
+          - CONF
 
   - name: COMPUTE
     service_groups:
@@ -58,48 +57,37 @@ interface_models:
       - rhel-compute
     network_interfaces:
       - network_groups:
-          - ARDANA
-      - network_groups:
           - GUEST
           - MANAGEMENT
-      - network_groups:
           - EXTERNAL-VM
           - TENANT-VLAN
-
-  - name: SWOBJ
-    service_groups:
-      - swobj
-    network_interfaces:
       - network_groups:
-          - ARDANA
+          - CONF
+
+  - name: SWIFT
+    service_groups:
+      - swift
+    network_interfaces:
       - network_groups:
           - MANAGEMENT
           - SWIFT
-
-  - name: SWPAC
-    service_groups:
-      - swpac
-    network_interfaces:
       - network_groups:
-          - ARDANA
-      - network_groups:
-          - MANAGEMENT
-          - SWIFT
+          - CONF
 
   - name: DBMQ
     service_groups:
       - dbmq
     network_interfaces:
       - network_groups:
-          - ARDANA
-      - network_groups:
           - MANAGEMENT
+      - network_groups:
+          - CONF
 
   - name: LMM
     service_groups:
       - lmm
     network_interfaces:
       - network_groups:
-          - ARDANA
-      - network_groups:
           - MANAGEMENT
+      - network_groups:
+          - CONF

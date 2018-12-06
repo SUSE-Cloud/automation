@@ -21,6 +21,7 @@ qe_ardana_bm_info_dir: "/tmp/ardana-bm-info"
 template_file_name: "{{ scenario[item ~ '_template'] }}.yml"
 
 clm_model: standalone
+availability_zones: 3
 
 # Backend for designate: powerdns or bind
 designate_backend: bind

@@ -16,8 +16,8 @@
 ---
 
 network_groups:
-  - name: ARDANA
-    hostname_suffix: ardana
+  - name: CONF
+    hostname_suffix: conf
     tagged_vlan: false
     component_endpoints:
       - CLM
@@ -28,8 +28,8 @@ network_groups:
     component_endpoints:
       - MANAGEMENT
     routes:
-      - default
       - INTERNAL-API
+    rack_network: {{ scenario.rack_networks_enabled }}
 
   - name: INTERNAL-API
     hostname_suffix: intapi
@@ -42,6 +42,8 @@ network_groups:
     tagged_vlan: true
     component_endpoints:
       - EXTERNAL-API
+    routes:
+      - default
 
   - name: EXTERNAL-VM
     hostname_suffix: extvm
@@ -60,9 +62,15 @@ network_groups:
     tagged_vlan: true
     component_endpoints:
       - NEUTRON-VXLAN
+    rack_network: {{ scenario.rack_networks_enabled }}
 
   - name: SWIFT
     hostname_suffix: swift
     tagged_vlan: true
     component_endpoints:
       - SWIFT
+    rack_network: {{ scenario.rack_networks_enabled }}
+
+  - name: ILO
+    hostname_suffix: ilo
+    component_endpoints: []
