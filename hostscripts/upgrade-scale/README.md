@@ -178,6 +178,7 @@ nodes=( `crowbarctl node list --plain | grep ready$ | grep "^d" | cut -d' ' -f1`
 aliases=( "controller0 controller1 controller2 controller3 controller4 controller5 controller6 controller7" )
 for a in $aliases; do
     crowbarctl node rename ${nodes[$count]} $a
+    crowbarctl node group ${nodes[$count]} control
     echo "${nodes[$count]} -> $a"
     (( count++ ))
 done
@@ -202,6 +203,7 @@ count=0
 aliases=( "storage0 storage1 storage2 monasca" )
 for a in $aliases; do
     crowbarctl node rename ${nodes_without_alias[$count]} $a
+    crowbarctl node group ${nodes_without_alias[$count]} misc
     echo "${nodes_without_alias[$count]} -> $a"
     (( count++ ))
 done
@@ -211,6 +213,7 @@ nodes_without_alias=( `crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|gre
 count=0
 for node in ${nodes_without_alias[@]}; do
     crowbarctl node rename $node "compute$count"
+    crowbarctl node group $node compute
     echo "$node -> compute$count"
     (( count++ ))
 done
@@ -261,7 +264,7 @@ export cloudsource=$old_cloudsource
 ### on the admin host
 
 # if applying proposals times out on syncmarks often, try increasing default syncmark timeout
-# e.g. /opt/dell/chef/cookbooks/crowbar-pacemaker/resources/sync_mark.rb -> attribute :timeout, kind_of: Integer, default: 120-
+# e.g. /opt/dell/chef/cookbooks/crowbar-pacemaker/resources/sync_mark.rb -> attribute :timeout, kind_of: Integer, default: 120
 # upload modified cookbook: knife cookbook upload crowbar-pacemaker -o /opt/dell/chef/cookbooks
 
 # collect ipmi addresses of all nodes known to crowbar
@@ -298,6 +301,7 @@ count=$(crowbar machines aliases | grep compute | cut -d' ' -f1 | tr -d [:alpha:
 (( count++ ))
 for node in ${nodes_without_alias[@]}; do
     crowbarctl node rename $node "compute$count"
+    crowbarctl node group $node compute
     echo "$node -> compute$count"
     (( count++ ))
 done
