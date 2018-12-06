@@ -37,9 +37,6 @@ case $OBS_TYPE in
             Cloud:OpenStack:Master|Cloud:OpenStack:Pike*|Cloud:OpenStack:Queens*)
                 OSC_BUILD_DIST=SLE_12_SP3
                 ;;
-            Cloud:OpenStack:Ocata*)
-                OSC_BUILD_DIST=SLE_12_SP2
-                ;;
             Cloud:OpenStack:Rocky*)
                 OSC_BUILD_DIST=SLE_12_SP4
                 ;;

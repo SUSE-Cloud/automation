@@ -24,7 +24,6 @@
           name: openstack_project
           values:
             - Newton
-            - Ocata
             - Pike
             - Queens
             - Rocky
@@ -39,7 +38,6 @@
         (
         slave=="cloud-cleanvm" && (
            ( openstack_project=="Newton" && (image=="SLE_12_SP2" ))
-        || ( openstack_project=="Ocata" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
         || ( openstack_project=="Pike" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
         || ( openstack_project=="Queens" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
         || ( openstack_project=="Rocky" && (image=="SLE_12_SP4" || image=="openSUSE-Leap-15.0"))
