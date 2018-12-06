@@ -5,6 +5,9 @@
  * an Ardana input model which is either predefined or generated based on
  * the input parameters.
  */
+
+def ardana_lib = null
+
 pipeline {
 
   options {
@@ -26,6 +29,7 @@ pipeline {
         script {
           // Set this variable to be used by upstream builds
           env.blue_ocean_buildurl = env.RUN_DISPLAY_URL
+          env.cloud_type = 'virtual'
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
@@ -50,34 +54,18 @@ pipeline {
               ansible_playbook load-job-params.yml
             ''')
           }
+          ardana_lib = load "$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
         }
       }
     }
 
     stage('Prepare input model') {
-      parallel {
-        stage('Generate input model') {
-          when {
-            expression { scenario_name != '' }
-          }
-          steps {
-            sh('''
-              cd $SHARED_WORKSPACE
-              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-              ansible_playbook generate-input-model.yml -e @input.yml
-            ''')
-          }
-        }
-        stage('Clone input model') {
-          when {
-            expression { scenario_name == '' }
-          }
-          steps {
-            sh('''
-              cd $SHARED_WORKSPACE
-              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-              ansible_playbook clone-input-model.yml -e @input.yml
-            ''')
+      steps {
+        script {
+          if (scenario_name != '') {
+            ardana_lib.ansible_playbook('generate-input-model')
+          } else {
+            ardana_lib.ansible_playbook('clone-input-model')
           }
         }
       }
@@ -85,52 +73,31 @@ pipeline {
 
     stage('Generate heat template') {
       steps {
-        sh('''
-          cd $SHARED_WORKSPACE
-          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook generate-heat-template.yml -e @input.yml
-        ''')
+        script {
+          ardana_lib.ansible_playbook('generate-heat-template')
+        }
       }
     }
 
     stage('Create heat stack') {
       steps {
         script {
-          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
-              string(name: 'ardana_env', value: "$ardana_env"),
-              string(name: 'heat_action', value: "create"),
-              string(name: 'git_automation_repo', value: "$git_automation_repo"),
-              string(name: 'git_automation_branch', value: "$git_automation_branch"),
-              string(name: 'reuse_node', value: "${NODE_NAME}"),
-              string(name: 'os_cloud', value: "$os_cloud")
-          ], propagate: false, wait: true
-          def jobResult = slaveJob.getResult()
-          def jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
-          def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
-          echo jobMsg
-          if (jobResult != 'SUCCESS') {
-             error(jobMsg)
-          }
+          ardana_lib.trigger_build('openstack-ardana-heat', [
+            string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'heat_action', value: "create"),
+            string(name: 'git_automation_repo', value: "$git_automation_repo"),
+            string(name: 'git_automation_branch', value: "$git_automation_branch"),
+            string(name: 'reuse_node', value: "${NODE_NAME}"),
+            string(name: 'os_cloud', value: "$os_cloud")
+          ])
         }
       }
     }
 
     stage('Setup SSH access') {
       steps {
-        sh('''
-          cd $SHARED_WORKSPACE
-          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook setup-ssh-access.yml -e @input.yml
-        ''')
         script {
-          env.DEPLOYER_IP = sh (
-            returnStdout: true,
-            script: '''
-              grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
-                $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
-            '''
-          ).trim()
-          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
+          ardana_lib.ansible_playbook('setup-ssh-access')
         }
       }
     }
@@ -146,15 +113,7 @@ pipeline {
       }
     }
     success{
-      echo """
-******************************************************************************
-** The deployer for the '${ardana_env}' virtual environment is reachable at:
-**
-**        ssh root@${DEPLOYER_IP}
-**
-** Please delete the 'openstack-ardana-${ardana_env}' stack manually when you're done.
-******************************************************************************
-      """
+      ardana_lib.get_deployer_ip()
     }
     cleanup {
       cleanWs()

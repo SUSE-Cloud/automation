@@ -1,8 +1,11 @@
 /**
  * The openstack-ardana-heat Jenkins Pipeline
  *
- * This jobs automates creating/deleting heat stacks.
+ * This job automates creating/deleting heat stacks.
  */
+
+def ardana_lib = null
+
 pipeline {
 
   options {
@@ -54,30 +57,21 @@ pipeline {
               ansible_playbook load-job-params.yml
             ''')
           }
+          ardana_lib = load "$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
         }
       }
     }
     stage('Delete heat stack') {
       steps {
-        // Run the monitoring bits outside of the ECP-API lock, and lock the
-        // ECP API only while actually deleting the stack
-        sh('''
-          cd $SHARED_WORKSPACE
-          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook heat-stack.yml -e @input.yml -e heat_action='monitor'
-        ''')
-        lock(resource: 'cloud-ECP-API') {
-          sh('''
-            cd $SHARED_WORKSPACE
-            source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-            ansible_playbook heat-stack.yml -e @input.yml -e heat_action='delete' -e monitor_stack_after_delete=False
-          ''')
+        script {
+          // Run the monitoring bits outside of the ECP-API lock, and lock the
+          // ECP API only while actually deleting the stack
+          ardana_lib.ansible_playbook('heat-stack', "-e heat_action=monitor")
+          lock(resource: 'cloud-ECP-API') {
+            ardana_lib.ansible_playbook('heat-stack', "-e heat_action=delete -e monitor_stack_after_delete=False")
+          }
+          ardana_lib.ansible_playbook('heat-stack', "-e heat_action=monitor")
         }
-        sh('''
-          cd $SHARED_WORKSPACE
-          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook heat-stack.yml -e @input.yml -e heat_action='monitor'
-        ''')
       }
     }
     stage('Create heat stack') {
@@ -85,12 +79,10 @@ pipeline {
         expression { heat_action == 'create' }
       }
       steps {
-        lock(resource: 'cloud-ECP-API') {
-          sh('''
-            cd $SHARED_WORKSPACE
-            source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-            ansible_playbook heat-stack.yml -e @input.yml
-          ''')
+        script {
+          lock(resource: 'cloud-ECP-API') {
+            ardana_lib.ansible_playbook('heat-stack')
+          }
         }
       }
     }

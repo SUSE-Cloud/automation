@@ -4,6 +4,8 @@
  * This job updates a pre-deployed CLM cloud.
  */
 
+def ardana_lib = null
+
 pipeline {
 
   options {
@@ -49,25 +51,18 @@ pipeline {
           }
           // archiveArtifacts and junit don't support absolute paths, so we have to to this instead
           sh "ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}"
-          env.DEPLOYER_IP = sh (
-            returnStdout: true,
-            script: '''
-              grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
-                $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
-            '''
-          ).trim()
-          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
+
+          ardana_lib = load "$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.get_deployer_ip()
         }
       }
     }
 
     stage('Update ardana') {
       steps {
-        sh('''
-          cd $SHARED_WORKSPACE
-          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook ardana-update.yml -e @input.yml -e cloudsource=$update_to_cloudsource
-        ''')
+        script {
+          ardana_lib.ansible_playbook('ardana-update', "-e cloudsource=$update_to_cloudsource")
+        }
       }
     }
   }

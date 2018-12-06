@@ -28,3 +28,8 @@ ardana_qe_test_venv_requires:
   - 'stestr'
 
 ardana_qe_test_get_failed_cmd: "grep FAILED {{ ardana_qe_test_log }} || echo 'None'"
+
+dpdk: false
+dpdk_br: br-dpdk0
+octavia: false
+esx: false
