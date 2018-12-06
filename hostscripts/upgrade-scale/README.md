@@ -323,6 +323,25 @@ nova --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | 
 ssh crowbaru1 crowbarctl node list --plain | cut -d' ' -f1 | xargs -i ssh crowbaru1 host {} | \
   while read host h a ip; do mkdir -p $host;echo $host; rsync -e "ssh -o StrictHostKeyChecking=no" -avz $ip:/var/log :/etc $host; done
 
+# roughly estimate write performance of local storage on all nodes
+crowbarctl node list --plain | cut -d' ' -f2 | xargs -i ssh {} "echo -n {}\ ;dd bs=4096k count=250 if=/dev/zero of=/tmp/ddtemp oflag=direct 2>&1 |grep copied;rm -rf /tmp/ddtemp"
+
+# @crowbar: download link from https://support.hpe.com/hpsc/swd/public/detail?swItemId=MTX_04bffb688a73438598fef81ddd
+wget https://downloads.hpe.com/pub/softlib2/software1/pubsw-linux/p1857046646/v114618/hpssacli-2.40-13.0.x86_64.rpm -P /srv/tftpboot
+
+# install hpssacli on all nodes (put it in /srv/tftpboot on crowbar node before)
+crowbarctl node list --plain | cut -d' ' -f1 | grep -v crowbar | xargs -i sh -c "echo {}; ssh {} rpm -i http://192.168.120.10:8091/hpssacli-2.40-13.0.x86_64.rpm"
+
+# fetch current storage configs and store in per-node files
+crowbarctl node list --plain | cut -d' ' -f1 | grep -v crowbar | xargs -i sh -c "echo {}; ssh {} hpssacli ctrl all show config > {}.txt"
+
+# reconfigure all DISCOVERED nodes to 2x2 RAID0 (this is done via running sleshammer image)
+crowbarctl node list --plain | grep pending$ | cut -d' ' -f1 | grep -v crowbar | \
+  xargs -i sh -c "echo {}; ssh {} 'hpssacli ctrl slot=2 delete forced override; \
+  hpssacli ctrl slot=2 create type=ld drives=1I:1:1,1I:1:2 raid=0 forced; \
+  hpssacli ctrl slot=2 create type=ld drives=all raid=0 forced'"
+
+
 # maybe needed: export/update the barclamp batch files
 # TODO: update this part to include proper list of barclamps
 #count=0; for bc in ipmi pacemaker nfs_client database rabbitmq keystone glance cinder neutron tempest; do echo $bc; crowbar batch export $bc > batch-exports1/`printf "%02i" ${count}`_${bc}.batch; (( count++ )); done
