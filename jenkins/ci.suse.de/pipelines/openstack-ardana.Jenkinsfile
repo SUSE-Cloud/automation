@@ -232,6 +232,13 @@ pipeline {
   post {
     always {
       script{
+        sh('''
+          automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
+            -j $JOB_NAME -b $BUILD_NUMBER --recursive \
+            --filter 'Declarative: Post Actions' \
+            --filter 'Setup workspace' \
+            .artifacts/pipeline-report.txt || :
+        ''')
         archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
         if ( env.tempest_filter_list != null && tempest_filter_list != '' ) {
           junit testResults: ".artifacts/*.xml", allowEmptyResults: true
