@@ -315,6 +315,9 @@ crowbarctl proposal commit nova default
 # list compute nodes sorted by number of running instances
 nova --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n
 
+# generate VMs/node histogram data (line format: <number of nodes> <number of VMs>)
+nova --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n | awk '{print $1}' | sort | uniq -c
+
 # remove all instances from least loaded compute node
 nova --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n | head -n1 | awk '{print $2}' | \
   xargs nova --insecure list --host | grep ACTIVE | awk '{print $2}' | xargs -i nova --insecure delete {}
@@ -333,7 +336,7 @@ wget https://downloads.hpe.com/pub/softlib2/software1/pubsw-linux/p1857046646/v1
 crowbarctl node list --plain | cut -d' ' -f1 | grep -v crowbar | xargs -i sh -c "echo {}; ssh {} rpm -i http://192.168.120.10:8091/hpssacli-2.40-13.0.x86_64.rpm"
 
 # fetch current storage configs and store in per-node files
-crowbarctl node list --plain | cut -d' ' -f1 | grep -v crowbar | xargs -i sh -c "echo {}; ssh {} hpssacli ctrl all show config > {}.txt"
+crowbarctl node list --plain | cut -d' ' -f1 | grep -v crowbar | xargs -i sh -c "echo {}; ssh {} hpssacli ctrl all show config detail > {}.txt"
 
 # reconfigure all DISCOVERED nodes to 2x2 RAID0 (this is done via running sleshammer image)
 crowbarctl node list --plain | grep pending$ | cut -d' ' -f1 | grep -v crowbar | \
