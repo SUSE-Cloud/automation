@@ -13,9 +13,12 @@
 
     parameters:
 
-      - string:
+      - validating-string:
           name: ardana_env
           default: '{ardana_env|}'
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
           description: >-
             The virtual or hardware environment identifier. This field should either
             be set to one of the values associated with the known hardware environments
@@ -42,9 +45,11 @@
           description: >-
             The git automation branch
 
-      - string:
+      - validating-string:
           name: gerrit_change_ids
           default: '{gerrit_change_ids}'
+          regex: '([0-9]+(/[0-9]+)?)(,[0-9]+(/[0-9]+)?)*'
+          msg: The entered value failed validation
           description: >-
             A comma separated list of IDs for changes in gerrit.suse.provo.cloud
             to test. The patchset may be supplied as part of the change ID in the form:

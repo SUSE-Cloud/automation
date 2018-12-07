@@ -31,9 +31,12 @@
             - job-read
 
     parameters:
-      - string:
+      - validating-string:
           name: ardana_env
           default: ''
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
           description: >-
             The virtual or hardware environment identifier. This field should either
             be set to one of the values associated with the known hardware environments
@@ -80,14 +83,18 @@
             Enable SLES/Cloud test update repos (the Cloud test update repos will
             be enabled only when cloudsource is GM based)
 
-      - string:
+      - validating-string:
           name: cloud_maint_updates
           default: ''
+          regex: '([0-9]+(,[0-9]+)*)*'
+          msg: The entered value failed validation
           description: List of cloud maintenance update IDs separated by comma (eg. 7396,7487)
 
-      - string:
+      - validating-string:
           name: sles_maint_updates
           default: ''
+          regex: '([0-9]+(,[0-9]+)*)*'
+          msg: The entered value failed validation
           description: List of SLES maintenance update IDs separated by comma (eg. 7434,7435)
 
       - bool:
