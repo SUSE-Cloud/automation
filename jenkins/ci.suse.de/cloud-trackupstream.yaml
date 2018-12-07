@@ -79,8 +79,7 @@
             ].contains(project) &&
             [
               "openstack-dashboard-theme-HPE",
-              "documentation-suse-openstack-cloud",
-              "caasp-openstack-heat-templates"
+              "documentation-suse-openstack-cloud"
             ].contains(component)
           )
           ||
