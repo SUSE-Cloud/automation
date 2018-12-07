@@ -31,9 +31,12 @@
             - job-read
 
     parameters:
-      - string:
+      - validating-string:
           name: ardana_env
           default: ''
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
           description: >-
             The virtual environment identifier. This field should be set to a
             value that will identify the created virtual environment.
@@ -93,88 +96,104 @@
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
-      - string:
+      - validating-string:
           name: controllers
           default: '3'
+          regex: '[0-3]'
+          msg: The entered value failed validation
           description: |
-            The number of controller nodes in the generated input model.
+            The number of controller nodes in the generated input model (0-3).
 
             Input model generator scenarios using this parameter: standard, entry-scale-kvm.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
-      - string:
+      - validating-string:
           name: core_nodes
           default: '2'
+          regex: '[0-3]'
+          msg: The entered value failed validation
           description: |
-            The number of OpenStack core services nodes in the generated input model.
+            The number of OpenStack core services nodes in the generated input model (0-3).
 
             Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
-      - string:
+      - validating-string:
           name: lmm_nodes
           default: '3'
+          regex: '[0-3]'
+          msg: The entered value failed validation
           description: |
-            The number of LMM services nodes in the generated input model.
+            The number of LMM services nodes in the generated input model (0-3).
 
             Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
-      - string:
+      - validating-string:
           name: dbmq_nodes
           default: '3'
+          regex: '[0-3]'
+          msg: The entered value failed validation
           description: |
-            The number of database & rabbitmq service nodes in the generated input model.
+            The number of database & rabbitmq service nodes in the generated input model (0-3).
 
             Input model generator scenarios using this parameter:  mid-scale-kvm, std-split.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
-      - string:
+      - validating-string:
           name: neutron_nodes
           default: '2'
+          regex: '[0-3]'
+          msg: The entered value failed validation
           description: |
-            The number of neutron network nodes in the generated input model.
+            The number of neutron network nodes in the generated input model (0-3).
 
             Input model generator scenarios using this parameter: mid-scale-kvm.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
-      - string:
+      - validating-string:
           name: swift_nodes
           default: '3'
+          regex: '[0-3]'
+          msg: The entered value failed validation
           description: |
-            The number of swift proxy/account/container/object service nodes in the generated input model.
+            The number of swift proxy/account/container/object service nodes in the generated input model (0-3).
 
             Input model generator scenarios using this parameter: mid-scale-kvm.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
-      - string:
+      - validating-string:
           name: sles_computes
           default: '2'
+          regex: '[0-2]'
+          msg: The entered value failed validation
           description: |
-            The number of SLES compute nodes in the generated input model.
+            The number of SLES compute nodes in the generated input model (0-2).
 
             Input model generator scenarios using this parameter: all
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
-      - string:
+      - validating-string:
           name: rhel_computes
           default: '0'
+          regex: '[0-2]'
+          msg: The entered value failed validation
           description: |
-            The number of RHEL (CentOS) compute nodes in the generated input model.
+            The number of RHEL (CentOS) compute nodes in the generated input model (0-2).
 
             Input model generator scenarios using this parameter: all
 
