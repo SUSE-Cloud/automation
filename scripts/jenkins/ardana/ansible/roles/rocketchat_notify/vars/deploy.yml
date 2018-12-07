@@ -19,11 +19,10 @@
 rc_announcement_started: "Deployment in PROGRESS: {{ _announcement_full }}"
 rc_announcement_finished: "{{ 'READY FOR TESTING: ' if rc_state == 'Success' else 'Deployment FAILED: ' }} {{ _announcement_full }}"
 
-_announcement_full: "{{ _announcement_data + _announcement_mu if _cloud_mu_available or _sles_mu_available else _announcement_data }}"
+_announcement_full: "{{ _announcement_data + _announcement_mu if _mu_available else _announcement_data }}"
 
 _announcement_data: "{{ cloudsource }} - {{ rc_im_name }}{{ _announcement_ses }}"
-_announcement_cloud_mu: "{{ ' - Cloud_MU: ' + cloud_maint_updates if _cloud_mu_available else '' }}"
-_announcement_mu: "{{ _announcement_cloud_mu + ' - SLES_MU: ' + sles_maint_updates if _sles_mu_available else _announcement_cloud_mu }}"
+_announcement_mu: "{{ ' - MU: ' + maint_updates }}"
 
 _announcement_ses: "{{ ses_enabled | ternary('-SES', '') }}"
 
@@ -78,20 +77,12 @@ _msg_fields_finished:
     value: "{{ rc_state }}"
     short: True
 
-_field_cloud_mu:
-  - title: Cloud MU
-    value: "{{ cloud_maint_updates | default('') }}"
+_field_mu:
+  - title: MU
+    value: "{{ maint_updates | default('') }}"
     short: True
-_field_sles_mu:
-  - title: SLES MU
-    value: "{{ sles_maint_updates | default('') }}"
-    short: True
-
-_cloud_mu_available: "{{ cloud_maint_updates is defined and cloud_maint_updates | length > 0 }}"
-_sles_mu_available: "{{ sles_maint_updates is defined and sles_maint_updates | length > 0 }}"
-
-_msg_field_cloud_mu: "{{ _field_cloud_mu if _cloud_mu_available else [] }}"
-_msg_field_mu: "{{ _msg_field_cloud_mu + _field_sles_mu if _sles_mu_available else _msg_field_cloud_mu }}"
+_mu_available: "{{ maint_updates is defined and maint_updates | length > 0 }}"
+_msg_field_mu: "{{ _mu_available | ternary(_field_mu, []) }}"
 
 _field_clm:
   - title: CLM
@@ -112,7 +103,7 @@ _field_nodes_values:
 
 _field_nodes:
   - title: Nodes
-    value: "{{ _field_nodes_values[scenario_name] }}"
+    value: "{{ _field_nodes_values[scenario_name|default('entry-scale-kvm')] }}"
     short: False
 
 _msg_field_clm_nodes: "{{ (scenario_name is defined) | ternary(_field_nodes + _field_clm, []) }}"

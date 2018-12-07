@@ -28,7 +28,7 @@
 - include_tasks: setup_maint_update_repos.yml
   when:
     - include_maint_update
-    - cloud_maint_updates_list | length or sles_maint_updates_list | length
+    - maint_updates_list | length
 
 - include_tasks: add_extra_repos.yml
   when: extra_repos_list | length

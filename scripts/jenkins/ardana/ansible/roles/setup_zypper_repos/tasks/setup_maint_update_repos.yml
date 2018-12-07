@@ -15,62 +15,58 @@
 #
 ---
 
+- name: Find cloud product
+  shell: "zypper lr | grep 'OpenStack.*Pool' | cut -d'|' -f2"
+  args:
+    warn: False
+  register: cloud_repo_name
+
+- name: Set cloud MU repo path based on product
+  set_fact:
+    cloud_repo_path: "{{ ('HPE-Helion' in cloud_repo_name.stdout) | ternary('HPE-Helion-OpenStack', 'OpenStack-Cloud') }}"
+
+- name: Check MU URL
+  uri:
+    url: "http://{{ maintenance_updates_server }}/ibs/SUSE:/Maintenance:/{{ item }}/"
+    return_content: yes
+  loop: "{{ maint_updates_list }}"
+  register: mu_url
+
 - name: Ensure MU directories exists
   file:
     state: directory
     path: "{{ local_repos_base_dir }}/{{ item }}"
-  loop: "{{ cloud_maint_updates_list + sles_maint_updates_list }}"
+  loop: "{{ maint_updates_list }}"
 
-- name: Rsync cloud MU repo(s)
+# This tasks is responsible for fiding to which product the MUs are targeted for.
+# This is done by combining the MU IDs with the MU paths (for Cloud and SLES)
+# and for each combination it checks if the Cloud or SLES MU path is present on
+# the MU page content which registered in the mu_url variable.
+- name: Rsync MU repositories
   synchronize:
     mode: pull
-    src: "rsync://{{ maintenance_updates_server }}:/repos/SUSE:/Maintenance:/{{ item }}/{{ maintenance_updates_path['Cloud'] }}"
-    dest: "{{ local_repos_base_dir }}/{{ item }}/"
+    src: "rsync://{{ maintenance_updates_server }}:/repos/SUSE:/Maintenance:/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}"
+    dest: "{{ local_repos_base_dir }}/{{ item.0 }}/"
     rsync_opts:
       - "--sparse"
       - "--hard-links"
       - "--fuzzy"
       - "--delete-delay"
   delegate_to: "{{ inventory_hostname }}"
-  loop: "{{ cloud_maint_updates_list }}"
-  register: cloud_sync_result
+  when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
+  loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
+  register: mu_sync_result
   retries: 5
-  until: cloud_sync_result.rc != 24
+  until: mu_sync_result.rc != 24
   delay: 300
 
-- name: Rsync SLES MU repo(s)
-  synchronize:
-    mode: pull
-    src: "rsync://{{ maintenance_updates_server }}:/repos/SUSE:/Maintenance:/{{ item }}/{{ maintenance_updates_path['SLES'] }}"
-    dest: "{{ local_repos_base_dir }}/{{ item }}/"
-    rsync_opts:
-      - "--sparse"
-      - "--hard-links"
-      - "--fuzzy"
-      - "--delete-delay"
-  delegate_to: "{{ inventory_hostname }}"
-  loop: "{{ sles_maint_updates_list }}"
-  register: sles_sync_result
-  retries: 5
-  until: sles_sync_result.rc != 24
-  delay: 300
-
-- name: Add cloud MU zypper repo(s)
+- name: Add MU zypper repositories
   zypper_repository:
-    name: "Cloud-Maint-Update-{{ item }}"
-    repo: "{{ local_repos_base_dir }}/{{ item }}"
+    name: "{{ item.1 }}-Maint-Update-{{ item.0 }}"
+    repo: "{{ local_repos_base_dir }}/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/"
     runrefresh: yes
     state: present
-  loop: "{{ cloud_maint_updates_list }}"
-  notify:
-    - Refresh all repos
-
-- name: Add SLES MU zypper repo(s)
-  zypper_repository:
-    name: "SLES-Maint-Update-{{ item }}"
-    repo: "{{ local_repos_base_dir }}/{{ item }}"
-    runrefresh: yes
-    state: present
-  loop: "{{ sles_maint_updates_list }}"
+  when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
+  loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
   notify:
     - Refresh all repos

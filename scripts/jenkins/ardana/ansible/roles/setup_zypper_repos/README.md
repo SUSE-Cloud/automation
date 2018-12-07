@@ -44,8 +44,7 @@ To add specific maintenance update repositories, override the following
 variables with a list of MU ID's (separeted by comma).
 
 ```sh
-sles_maint_updates: "SLESMU1,SLESMU2"
-cloud_maint_updates: "CLOUDMU1,CLOUDMU2"
+maint_updates: "1234,4321,2233"
 ```
 
 ### Extra Repositories

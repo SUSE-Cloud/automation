@@ -84,18 +84,11 @@
             be enabled only when cloudsource is GM based)
 
       - validating-string:
-          name: cloud_maint_updates
+          name: maint_updates
           default: ''
           regex: '([0-9]+(,[0-9]+)*)*'
           msg: The entered value failed validation
-          description: List of cloud maintenance update IDs separated by comma (eg. 7396,7487)
-
-      - validating-string:
-          name: sles_maint_updates
-          default: ''
-          regex: '([0-9]+(,[0-9]+)*)*'
-          msg: The entered value failed validation
-          description: List of SLES maintenance update IDs separated by comma (eg. 7434,7435)
+          description: List of maintenance update IDs separated by comma (eg. 7396,7487)
 
       - extended-choice:
           name: tempest_filter_list

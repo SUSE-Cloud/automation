@@ -15,34 +15,20 @@
 #
 ---
 
-- name: Add cloud MU zypper repo(s) on all ardana nodes
+- name: Add MU zypper repo(s) on all ardana nodes
   command: |
-    ansible -b -m zypper_repository -a "name=Cloud-Maint-Update-{{ item }}
-      repo={{ deployer_repo_base_url }}/{{ item }}/{{ maintenance_updates_path['Cloud'] }}/
+    ansible -b -m zypper_repository -a "name={{ item.1 }}-Maint-Update-{{ item.0 }}
+      repo={{ deployer_repo_base_url }}/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/
       state=present" 'resources:!*rhel*'
   args:
     chdir: "{{ ardana_scratch_path }}"
-  loop: "{{ cloud_maint_updates_list }}"
+  when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
+  loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
 
-- name: Add SLES MU zypper repo(s) on all ardana nodes
-  command: |
-    ansible -b -m zypper_repository -a "name=SLES-Maint-Update-{{ item }}
-      repo={{ deployer_repo_base_url }}/{{ item }}/{{ maintenance_updates_path['SLES'] }}/
-      state=present" 'resources:!*rhel*'
-  args:
-    chdir: "{{ ardana_scratch_path }}"
-  loop: "{{ sles_maint_updates_list }}"
-
-- name: Update motd with Cloud updates
+- name: Update motd with MU updates
   lineinfile:
     path: /etc/motd
-    line: "  - Cloud-Maint-Update-{{ item }}"
-  loop: "{{ cloud_maint_updates_list }}"
-  become: yes
-
-- name: Update motd with SLES updates
-  lineinfile:
-    path: /etc/motd
-    line: "  - SLES-Maint-Update-{{ item }}"
-  loop: "{{ sles_maint_updates_list }}"
+    line: "  - {{ item.1 }}-Maint-Update-{{ item.0 }}"
+  when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
+  loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
   become: yes
