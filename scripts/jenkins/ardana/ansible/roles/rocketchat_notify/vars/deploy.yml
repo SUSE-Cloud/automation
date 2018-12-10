@@ -22,7 +22,7 @@ rc_announcement_finished: "{{ 'READY FOR TESTING: ' if rc_state == 'Success' els
 _announcement_full: "{{ _announcement_data + _announcement_mu if _mu_available else _announcement_data }}"
 
 _announcement_data: "{{ cloudsource }} - {{ rc_im_name }}{{ _announcement_ses }}"
-_announcement_mu: "{{ ' - MU: ' + maint_updates }}"
+_announcement_mu: "{{ ' - MU: ' + maint_updates if maint_updates is defined else '' }}"
 
 _announcement_ses: "{{ ses_enabled | ternary('-SES', '') }}"
 
