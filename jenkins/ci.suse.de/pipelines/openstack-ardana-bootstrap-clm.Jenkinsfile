@@ -16,6 +16,8 @@
  * the same media and software channels.
  */
 
+def ardana_lib = null
+
 pipeline {
 
   options {
@@ -62,25 +64,17 @@ pipeline {
               ansible_playbook setup-ssh-access.yml -e @input.yml
             ''')
           }
-          env.DEPLOYER_IP = sh (
-            returnStdout: true,
-            script: '''
-              grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
-                $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
-            '''
-          ).trim()
-          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
+          ardana_lib = load "$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.get_deployer_ip()
         }
       }
     }
 
     stage('Bootstrap CLM') {
       steps {
-        sh('''
-          cd $SHARED_WORKSPACE
-          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook bootstrap-clm.yml -e @input.yml -e extra_repos=$extra_repos
-        ''')
+        script {
+          ardana_lib.ansible_playbook('bootstrap-clm', "-e extra_repos='$extra_repos'")
+        }
       }
     }
   }

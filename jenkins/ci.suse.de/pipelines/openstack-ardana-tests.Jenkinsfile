@@ -4,6 +4,8 @@
  * This job runs tempest and ardana-qa-tests on a pre-deployed CLM cloud.
  */
 
+def ardana_lib = null
+
 pipeline {
 
   options {
@@ -26,9 +28,17 @@ pipeline {
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
-          if ((env.tempest_filter_list == null || tempest_filter_list == '') &&
-            (env.qa_test_list == null || qa_test_list == '')) {
-            error("Empty 'tempest_run_filter and qa_test_list' parameter value.")
+          // Parameters of the type 'extended-choice' are set to null when the job
+          // is automatically triggered and its value is set to ''. So, we need to set
+          // it to '' to be able to pass it as a parameter to downstream jobs.
+          if (env.tempest_filter_list == null) {
+            env.tempest_filter_list = ''
+          }
+          if (env.qa_test_list == null) {
+            env.qa_test_list = ''
+          }
+          if (tempest_filter_list == '' && qa_test_list == '') {
+            error("Empty 'tempest_run_filter' and 'qa_test_list' parameter values.")
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
           // Use a shared workspace folder for all jobs running on the same
@@ -52,52 +62,14 @@ pipeline {
             // archiveArtifacts and junit don't support absolute paths, so we have to to this instead
             sh "ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}"
           }
-          env.DEPLOYER_IP = sh (
-            returnStdout: true,
-            script: '''
-              grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
-                $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
-            '''
-          ).trim()
-          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
+          ardana_lib = load "$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.get_deployer_ip()
 
-          // Run Tempest tests
-          if (env.tempest_filter_list != null && tempest_filter_list != '') {
-            def tempest_filter_list = env.tempest_filter_list.split(',')
-            for (filter in tempest_filter_list) {
-              catchError {
-                stage(filter) {
-                  sh("""
-                    cd \$SHARED_WORKSPACE
-                    source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-                    ansible_playbook run-tempest.yml -e @input.yml \
-                                                     -e tempest_run_filter=$filter
-                  """)
-                }
-              }
-              archiveArtifacts artifacts: ".artifacts/**/ansible.log, .artifacts/**/*${filter}*", allowEmptyArchive: true
-              junit testResults: ".artifacts/testr_results_region1_${filter}.xml", allowEmptyResults: true
-            }
-          }
+          // Generate stages for Tempest tests
+          ardana_lib.generate_tempest_stages(env.tempest_filter_list)
+          // Generate stages for QA tests
+          ardana_lib.generate_qa_tests_stages(env.qa_test_list)
 
-          // Run QA tests
-          if (env.qa_test_list != null && qa_test_list != '') {
-            def qa_test_list = env.qa_test_list.split(',')
-            for (test in qa_test_list) {
-              catchError {
-                stage(test) {
-                  sh("""
-                    cd \$SHARED_WORKSPACE
-                    source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-                    ansible_playbook run-ardana-qe-tests.yml -e @input.yml \
-                                                             -e test_name=$test
-                  """)
-                }
-              }
-              archiveArtifacts artifacts: ".artifacts/**/${test}*", allowEmptyArchive: true
-              junit testResults: ".artifacts/${test}.xml", allowEmptyResults: true
-            }
-          }
         }
       }
     }

@@ -4,6 +4,8 @@
  * This job updates a pre-deployed CLM cloud and run tests.
  */
 
+def ardana_lib = null
+
 pipeline {
 
   options {
@@ -59,14 +61,8 @@ pipeline {
               ansible_playbook setup-ssh-access.yml -e @input.yml
             ''')
           }
-          env.DEPLOYER_IP = sh (
-            returnStdout: true,
-            script: '''
-              grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
-                $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
-            '''
-          ).trim()
-          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
+          ardana_lib = load "$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.get_deployer_ip()
         }
       }
     }
@@ -74,42 +70,25 @@ pipeline {
     stage('Update ardana') {
       steps {
         script {
-          def slaveJob = build job: 'openstack-ardana-update', parameters: [
-            string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'update_to_cloudsource', value: "$update_to_cloudsource"),
-            string(name: 'updates_test_enabled', value: "$updates_test_enabled"),
-            string(name: 'maint_updates', value: "$maint_updates"),
-            string(name: 'rc_notify', value: "$rc_notify"),
-            string(name: 'git_automation_repo', value: "$git_automation_repo"),
-            string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'reuse_node', value: "${NODE_NAME}"),
-            string(name: 'os_cloud', value: "$os_cloud")
-          ], propagate: true, wait: true
+          ardana_lib.ansible_playbook('ardana-update', "-e cloudsource=$update_to_cloudsource")
         }
       }
     }
 
-    stage ('Tempest/QA') {
+    stage ('Prepare tests') {
       when {
         expression { tempest_filter_list != '' || qa_test_list != '' }
       }
       steps {
-        catchError {
-          script {
-            def slaveJob = build job: 'openstack-ardana-tests', parameters: [
-              string(name: 'ardana_env', value: "$ardana_env"),
-              string(name: 'tempest_filter_list', value: "$tempest_filter_list"),
-              string(name: 'qa_test_list', value: "$qa_test_list"),
-              string(name: 'rc_notify', value: "$rc_notify"),
-              string(name: 'git_automation_repo', value: "$git_automation_repo"),
-              string(name: 'git_automation_branch', value: "$git_automation_branch"),
-              string(name: 'reuse_node', value: "${NODE_NAME}"),
-              string(name: 'os_cloud', value: "$os_cloud")
-            ], propagate: true, wait: true
-          }
+        script {
+          // Generate stages for Tempest tests
+          ardana_lib.generate_tempest_stages(env.tempest_filter_list)
+          // Generate stages for QA tests
+          ardana_lib.generate_qa_tests_stages(env.qa_test_list)
         }
       }
     }
+
   }
 
   post {
