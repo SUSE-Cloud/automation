@@ -58,18 +58,6 @@ The following links can also be used to track the results:
           echo $GERRIT_CHANGE_COMMIT_MESSAGE | base64 --decode | gitlint -C automation-git/scripts/jenkins/gitlint.ini
         '''
       }
-      post {
-        success {
-            sh '''
-              echo "- ${STAGE_NAME}: PASSED (${BUILD_URL}console)" > results.txt
-            '''
-        }
-        failure {
-            sh '''
-              echo "- ${STAGE_NAME}: FAILED (${BUILD_URL}console)" > results.txt
-            '''
-        }
-      }
     }
 
     stage('integration test') {
@@ -109,9 +97,6 @@ The following links can also be used to track the results:
             env.jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
             def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
             echo jobMsg
-            sh '''
-              echo "- ${STAGE_NAME}: ${jobResult} (${jobUrl})" >> results.txt
-            '''
             if (env.jobResult != 'SUCCESS') {
                error(jobMsg)
             }
@@ -125,6 +110,12 @@ The following links can also be used to track the results:
       script{
         env.BUILD_RESULT = currentBuild.currentResult
         sh('''
+          automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
+            -j $JOB_NAME -b $BUILD_NUMBER --recursive \
+            --filter 'Declarative: Post Actions' \
+            --filter 'Setup workspace' \
+            pipeline-report.txt || :
+
           # Post reviews only for jobs triggered by Gerrit
           if [ -n "$GERRIT_CHANGE_NUMBER" ] ; then
             if [[ $BUILD_RESULT == SUCCESS ]]; then
@@ -152,7 +143,7 @@ Build failed (${JOB_NAME}): ${BUILD_URL}
               --vote $vote \
               --label 'Verified' \
               --message "$message" \
-              --message-file results.txt \
+              --message-file pipeline-report.txt \
               --patch ${GERRIT_PATCHSET_NUMBER} \
               ${GERRIT_CHANGE_NUMBER}
 
