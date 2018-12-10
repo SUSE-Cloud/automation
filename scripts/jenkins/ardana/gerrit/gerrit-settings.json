@@ -3,6 +3,7 @@
     "ardana-ansible": "ardana-ansible",
     "ardana-configuration-processor": "python-ardana-configurationprocessor",
     "ardana-input-model": "ardana-input-model",
+    "ardana-extensions-apicaci": "ardana-extensions-apicaci",
     "ardana-extensions-dcn": "ardana-extensions-dcn",
     "ardana-extensions-nsx": "ardana-extensions-nsx",
     "ardana-extensions-ses": "ardana-ses",
