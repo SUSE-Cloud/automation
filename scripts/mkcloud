@@ -439,11 +439,11 @@ function setupadmin
     echo "Injecting public key into admin node..."
     local x keyfile
     for keyfile in ~/.ssh/*.pub ; do
-        local pubkey=`cat $keyfile`
+        local pubkey=$(< $keyfile)
         ssh_password root@$adminip "
             mkdir -p ~/.ssh;
             grep -q '$pubkey' ~/.ssh/authorized_keys 2>/dev/null ||
-                echo '$pubkey injected-from-host' >> ~/.ssh/authorized_keys
+                echo '$pubkey' >> ~/.ssh/authorized_keys
         "
     done
     if [[ $user_keyfile ]]; then
