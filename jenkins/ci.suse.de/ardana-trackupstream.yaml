@@ -23,6 +23,7 @@
             - ardana-cobbler
             - ardana-db
             - ardana-designate
+            - ardana-extensions-apicaci
             - ardana-extensions-dcn
             - ardana-extensions-nsx
             - ardana-freezer
