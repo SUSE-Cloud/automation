@@ -25,7 +25,7 @@ _announcement_failed: "{{ _announcement_data | regex_replace('^READY FOR TESTING
 _previous_announcement: "{{ rc_previous_announcement.content | b64decode }}"
 _announcement_data: "{{ _previous_announcement | regex_replace('.- MU.*', _announcement_mu) if 'MU' in _previous_announcement else _previous_announcement + _announcement_mu }}"
 
-_announcement_mu: "{{ ' - MU: ' + maint_updates }}"
+_announcement_mu: "{{ ' - MU: ' + maint_updates if maint_updates is defined else '' }}"
 
 # Chat message
 rc_msg_fields_started: "{{ _msg_fields_started + _msg_field_cloudsource + _msg_field_mu }}"
