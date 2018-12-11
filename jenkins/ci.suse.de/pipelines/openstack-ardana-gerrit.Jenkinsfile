@@ -111,10 +111,9 @@ The following links can also be used to track the results:
         env.BUILD_RESULT = currentBuild.currentResult
         sh('''
           automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
-            -j $JOB_NAME -b $BUILD_NUMBER --recursive \
+            --recursive \
             --filter 'Declarative: Post Actions' \
-            --filter 'Setup workspace' \
-            pipeline-report.txt || :
+            --filter 'Setup workspace' > pipeline-report.txt || :
 
           # Post reviews only for jobs triggered by Gerrit
           if [ -n "$GERRIT_CHANGE_NUMBER" ] ; then
