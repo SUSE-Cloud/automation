@@ -92,6 +92,37 @@
         - '{ardana_job}'
 
 - project:
+    name: cloud-ardana9-job-mid-scale-kvm-qe101-x86_64
+    ardana_job: '{name}'
+    concurrent: False
+    ardana_env: qe101
+    reserve_env: true
+    scenario_name: mid-scale-kvm
+    clm_model: integrated
+    core_nodes: '2'
+    lmm_nodes: '3'
+    dbmq_nodes: '3'
+    neutron_nodes: '2'
+    swift_nodes: '3'
+    sles_computes: '2'
+    rhel_computes: '0'
+    tempest_filter_list: "\
+      ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,\
+      magnum,manila,monasca,network,neutron-api,swift"
+    qa_test_list: "\
+      iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
+      heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
+      nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,\
+      barbican-functional,horizon,horizon_integration-tests,keystone-api,keystone-ldap,\
+      keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
+      service-ansible-playbooks,enable_tls,tempest_cleanup"
+    rc_notify: 'true'
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
     name: cloud-ardana9-job-entry-scale-kvm-qe102-x86_64
     ardana_job: '{name}'
     concurrent: False
