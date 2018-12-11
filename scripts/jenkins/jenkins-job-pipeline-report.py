@@ -189,7 +189,7 @@ def print_pipeline_report(job_name, build_number, filter_stages, recursive):
 
 
 def argparse_jenkins_job_type(jenkins_job):
-    change_regex = re.compile(r"^([a-zA-Z_-]+)(/([0-9]+))?$")
+    change_regex = re.compile(r"^([a-zA-Z0-9_-]+)(/([0-9]+))?$")
     match = change_regex.match(jenkins_job)
     if not match:
         raise argparse.ArgumentTypeError(
