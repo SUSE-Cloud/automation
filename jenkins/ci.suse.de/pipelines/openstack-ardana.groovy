@@ -44,26 +44,30 @@ def get_deployer_ip() {
 }
 
 def generate_tempest_stages(tempest_filter_list) {
-  for (filter in tempest_filter_list.split(',')) {
-    catchError {
-      stage("Tempest: "+filter) {
-        ansible_playbook('run-tempest', "-e tempest_run_filter=$filter")
+  if (tempest_filter_list != '') {
+    for (filter in tempest_filter_list.split(',')) {
+      catchError {
+        stage("Tempest: "+filter) {
+          ansible_playbook('run-tempest', "-e tempest_run_filter=$filter")
+        }
       }
+      archiveArtifacts artifacts: ".artifacts/**/ansible.log, .artifacts/**/*${filter}*", allowEmptyArchive: true
+      junit testResults: ".artifacts/testr_results_region1_${filter}.xml", allowEmptyResults: true
     }
-    archiveArtifacts artifacts: ".artifacts/**/ansible.log, .artifacts/**/*${filter}*", allowEmptyArchive: true
-    junit testResults: ".artifacts/testr_results_region1_${filter}.xml", allowEmptyResults: true
   }
 }
 
 def generate_qa_tests_stages(qa_test_list) {
-  for (test in qa_test_list.split(',')) {
-    catchError {
-      stage("QA test: "+test) {
-        ansible_playbook('run-ardana-qe-tests', "-e test_name=$test")
+  if (qa_test_list != '') {
+    for (test in qa_test_list.split(',')) {
+      catchError {
+        stage("QA test: "+test) {
+          ansible_playbook('run-ardana-qe-tests', "-e test_name=$test")
+        }
       }
+      archiveArtifacts artifacts: ".artifacts/**/${test}*", allowEmptyArchive: true
+      junit testResults: ".artifacts/${test}.xml", allowEmptyResults: true
     }
-    archiveArtifacts artifacts: ".artifacts/**/${test}*", allowEmptyArchive: true
-    junit testResults: ".artifacts/${test}.xml", allowEmptyResults: true
   }
 }
 

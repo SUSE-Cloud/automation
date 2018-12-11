@@ -121,6 +121,9 @@ pipeline {
         }
 
         stage('Create heat stack') {
+          when {
+            expression { cloud_type == 'virtual' }
+          }
           steps {
             script {
               ardana_lib.trigger_build('openstack-ardana-heat', [
