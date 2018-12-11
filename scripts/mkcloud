@@ -438,13 +438,17 @@ function setupadmin
 
     echo "Injecting public key into admin node..."
     local x keyfile
-    for keyfile in ~/.ssh/*.pub ; do
+    for keyfile in ~/.ssh/id_{ed25519,rsa,dsa}.pub ; do
+        if ! [ -r $keyfile ]; then
+            continue
+        fi
         local pubkey=$(< $keyfile)
         ssh_password root@$adminip "
             mkdir -p ~/.ssh;
             grep -q '$pubkey' ~/.ssh/authorized_keys 2>/dev/null ||
                 echo '$pubkey' >> ~/.ssh/authorized_keys
         "
+        break
     done
     if [[ $user_keyfile ]]; then
         cat $user_keyfile | sshrun "cat >> ~/.ssh/authorized_keys"
