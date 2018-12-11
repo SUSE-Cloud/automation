@@ -49,8 +49,9 @@ class WorkflowJenkins(jenkins.Jenkins):
         """
         try:
             # We temporarily 'hack' the jenkins.Jenkins get_build_info method
-            # to            # extend it with pipeline workflow API calls
-            jenkins.BUILD_INFO = WORKFLOW_BUILD_INFO + wf_path % kwargs
+            # to extend it with pipeline workflow API calls
+            jenkins.BUILD_INFO = os.path.join(WORKFLOW_BUILD_INFO,
+                                              wf_path % kwargs)
             return self.get_build_info(name, number)
         finally:
             jenkins.BUILD_INFO = BUILD_INFO
@@ -142,8 +143,6 @@ def generate_summary(server, job_name, build_number,
                     "href='(/job/([\w-]+)/([\d]+)/)'",
                     log['text'])
                 if downstream_jobs:
-                    print("Found downstream job: {}".format(
-                        downstream_jobs[0][0]))
                     d_job_name = downstream_jobs[0][1]
                     d_build_number = int(downstream_jobs[0][2])
                     sub_summary = generate_summary(
@@ -160,8 +159,7 @@ def generate_summary(server, job_name, build_number,
     return summary
 
 
-def generate_pipeline_report(job_name, build_number, filename,
-                             filter_stages, recursive):
+def print_pipeline_report(job_name, build_number, filter_stages, recursive):
 
     config_files = ('/etc/jenkinsapi.conf', './jenkinsapi.conf')
     config = dict()
@@ -181,35 +179,67 @@ def generate_pipeline_report(job_name, build_number, filename,
                              username=config['jenkins_user'],
                              password=config['jenkins_api_token'])
 
-    with open(filename, 'w+') as f:
+    if build_number is None:
+        build_number = server.get_job_info(job_name)['lastBuild']['number']
 
-        summary = generate_summary(
-            server, job_name, build_number, filter_stages, recursive)
-        f.write(summary)
+    summary = generate_summary(server, job_name, build_number,
+                               filter_stages, recursive)
+
+    print summary
+
+
+def argparse_jenkins_job_type(jenkins_job):
+    change_regex = re.compile(r"^([a-zA-Z_-]+)(/([0-9]+))?$")
+    match = change_regex.match(jenkins_job)
+    if not match:
+        raise argparse.ArgumentTypeError(
+            'Invalid Jenkins job name/build number value: {}'.format(
+                jenkins_job))
+    job_name = match.groups()[0]
+    build_number = match.groups()[2]
+    if build_number is not None:
+        build_number = int(build_number)
+    return job_name, build_number
 
 
 def main():
+
     parser = argparse.ArgumentParser(
-        description='Create a build summary report from a Jenkins pipeline '
+        description='Print a build summary report from a Jenkins pipeline '
                     'job build')
-    parser.add_argument('-j', '--job-name', default=os.environ.get('JOB_NAME'),
-                        help='the Jenkins job name. If not supplied, the '
-                             'JOB_NAME environment variable is used.')
-    parser.add_argument('-b', '--build-number', type=int,
-                        default=int(os.environ.get('BUILD_NUMBER', 0)),
-                        help='the Jenkins build number. If not not supplied, '
-                             'the BUILD_NUMBER environment variable is used.')
+    parser.add_argument('job', type=argparse_jenkins_job_type, nargs='?',
+                        help="the Jenkins job name followed by an optional "
+                             "build number (e.g. 'openstack-ardana' or "
+                             "'openstack-ardana/123'). If a build number "
+                             "isn't supplied, the latest build number is "
+                             "used. "
+                             "If this argument is omitted, the JOB_NAME "
+                             "and BUILD_NUMBER environment variables "
+                             "are used.")
     parser.add_argument('-f', '--filter', action='append',
                         help='Name of stage to filter out of the report')
     parser.add_argument('--recursive', action="store_true", default=False,
                         help='include information about downstream builds '
                              'into the build report.')
 
-    parser.add_argument('filename', help='the report filename')
     args = parser.parse_args()
 
-    generate_pipeline_report(args.job_name, args.build_number,
-                             args.filename, args.filter, args.recursive)
+    if args.job:
+        job_name, build_number = args.job
+    else:
+        build_number = None
+        job_name = os.environ.get('JOB_NAME')
+        if not job_name:
+            print('ERROR: could not determine job name from '
+                  'the JOB_NAME environment variable')
+            exit(1)
+    if build_number is None:
+        build_number = os.environ.get('BUILD_NUMBER')
+        if build_number:
+            build_number = int(build_number)
+
+    print_pipeline_report(job_name, build_number,
+                          args.filter, args.recursive)
 
 
 if __name__ == "__main__":

@@ -237,10 +237,9 @@ pipeline {
       script{
         sh('''
           automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
-            -j $JOB_NAME -b $BUILD_NUMBER --recursive \
+            --recursive \
             --filter 'Declarative: Post Actions' \
-            --filter 'Setup workspace' \
-            .artifacts/pipeline-report.txt || :
+            --filter 'Setup workspace' > .artifacts/pipeline-report.txt || :
         ''')
         archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
         if ( env.tempest_filter_list != null && tempest_filter_list != '' ) {
