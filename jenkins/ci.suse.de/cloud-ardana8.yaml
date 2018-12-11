@@ -92,6 +92,35 @@
         - '{ardana_job}'
 
 - project:
+    name: cloud-ardana8-job-entry-scale-kvm-pcloud001-x86_64
+    ardana_job: '{name}'
+    concurrent: false
+    ardana_env: pcloud001
+    reserve_env: true
+    cloudsource: stagingcloud8
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '2'
+    rhel_computes: '0'
+    ses_enabled: true
+    tempest_filter_list: "\
+      ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,\
+      magnum,manila,monasca,network,neutron-api,swift"
+    qa_test_list: "\
+      iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
+      heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
+      nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,\
+      barbican-functional,horizon,horizon_integration-tests,keystone-api,keystone-ldap,\
+      keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
+      service-ansible-playbooks,enable_tls,tempest_cleanup"
+    rc_notify: 'true'
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
     name: openstack-ardana-gerrit-cloud8
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-gerrit-slot

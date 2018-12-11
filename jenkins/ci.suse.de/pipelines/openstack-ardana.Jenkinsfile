@@ -37,7 +37,7 @@ pipeline {
             env.ardana_env = reserved_env
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
-          if ( ardana_env.startsWith("qe") || ardana_env.startsWith("qa") ) {
+          if ( ardana_env.startsWith("qe") || ardana_env.startsWith("pcloud") ) {
               env.cloud_type = "physical"
           }
           // Parameters of the type 'extended-choice' are set to null when the job

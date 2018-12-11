@@ -56,6 +56,7 @@ dns_servers:
   - 147.2.2.2 # nsnwb.microfocus.com
 
 rc_channels:
+  pcloud001: "cloud-qe-pcloud001"
   qe002: "cloud-qe-hlm002"
   qe007: "cloud-qe-hlm007"
   qe101: "cloud-qe-hlm101"
@@ -64,4 +65,3 @@ rc_channels:
   qe202: "cloud-qe-hlm202"
   qe2023: "cloud-qe-hlm2023par"
   scale: "cloud-qe-scale"
-  qa4: "cloud-qe-qa4"
