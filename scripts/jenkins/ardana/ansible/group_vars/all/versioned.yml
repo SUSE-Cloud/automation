@@ -17,8 +17,8 @@
 
 when_staging: "{{ cloudsource is match('.*staging.*') }}"
 when_staging_or_devel: "{{ cloudsource is match('.*(staging|devel).*') }}"
-when_cloud8: "{{ cloudsource is match('.*8.*') }}"
-when_cloud9: "{{ cloudsource is match('.*9.*') }}"
+when_cloud8: "{{ cloudsource is match('.*(cloud|GM)8.*') }}"
+when_cloud9: "{{ cloudsource is match('.*(cloud|GM)9.*') }}"
 when_cloud9M3: "{{ cloudsource is match('cloud9M3') }}"
 
 versioned_features:
