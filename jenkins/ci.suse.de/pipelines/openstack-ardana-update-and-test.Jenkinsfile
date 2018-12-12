@@ -94,7 +94,6 @@ pipeline {
   post {
     always {
       archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-      junit testResults: ".artifacts/*.xml", allowEmptyResults: true
     }
     cleanup {
       cleanWs()
