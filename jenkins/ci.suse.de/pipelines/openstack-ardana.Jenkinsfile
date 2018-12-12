@@ -242,9 +242,6 @@ pipeline {
             --filter 'Setup workspace' > .artifacts/pipeline-report.txt || :
         ''')
         archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-        if ( env.tempest_filter_list != null && tempest_filter_list != '' ) {
-          junit testResults: ".artifacts/*.xml", allowEmptyResults: true
-        }
       }
       script{
         if (env.DEPLOYER_IP != null) {
