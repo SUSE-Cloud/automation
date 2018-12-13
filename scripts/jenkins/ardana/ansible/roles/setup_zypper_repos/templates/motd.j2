@@ -1,4 +1,7 @@
 Built from: {{ built_from }}
+{% if lookup('env', 'BUILD_URL') %}
+Built by: {{ lookup('env', 'BUILD_URL') }}
+{% endif %}
 Media build version: {{ media_build_version }}
 Configured repositories:
 {% for repo in repos_to_add | sort %}
