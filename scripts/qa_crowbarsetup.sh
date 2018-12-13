@@ -3039,6 +3039,12 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        salt)
+            if ! iscloudver 9plus; then
+                echo "Salt is SOC 9+ only. Skipping"
+                return
+            fi
+            ;;
         sahara)
             if ! iscloudver 7plus; then
                 echo "Sahara is SOC 7+ only. Skipping"
@@ -3131,7 +3137,7 @@ function onadmin_proposal
     safely oncontroller check_crm_failcounts
     # For all remaining proposals, check for HA failures after each deployment
     for proposal in horizon ceilometer heat manila trove \
-        barbican magnum sahara murano aodh tempest; do
+        barbican magnum sahara murano aodh tempest salt; do
         deploy_single_proposal $proposal
         safely oncontroller check_crm_failcounts
     done
