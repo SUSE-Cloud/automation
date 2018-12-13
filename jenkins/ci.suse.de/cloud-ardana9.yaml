@@ -127,7 +127,7 @@
     ardana_job: '{name}'
     concurrent: False
     ardana_env: qe102
-    reserve_env: false
+    reserve_env: true
     scenario_name: entry-scale-kvm
     clm_model: standalone
     controllers: '3'
