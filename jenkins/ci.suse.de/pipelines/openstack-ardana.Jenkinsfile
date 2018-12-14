@@ -213,6 +213,17 @@ pipeline {
       }
     }
 
+    stage('Prepare Ardana') {
+      steps {
+        script {
+          ardana_lib.ansible_playbook('ardana-init')
+        }
+        script {
+          ardana_lib.ansible_playbook('ardana-lint')
+        }
+      }
+    }
+
     stage('Deploy cloud') {
       when {
         expression { deploy_cloud == 'true' }

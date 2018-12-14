@@ -13,10 +13,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+
 ---
 
-lint_venv: "/tmp/ansible-lint"
-ardana_scratch_path: "/var/lib/ardana/scratch/ansible/next/ardana/ansible"
-lint_params: '-p -x templating,resources,ANSIBLE0002 -r {{ lint_venv }}/lint-rules -r {{ lint_venv }}/lib/python2.7/site-packages/ansiblelint/rules'
+- name: Run lint on ardana
+  hosts: "{{ ardana_env }}"
+  remote_user: ardana
+  gather_facts: True
 
-lint_path: "{{ ardana_scratch_path }}"
+  tasks:
+    - block:
+        - include_role:
+            name: ardana_lint

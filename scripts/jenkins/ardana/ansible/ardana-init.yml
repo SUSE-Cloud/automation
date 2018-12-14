@@ -13,10 +13,27 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+
 ---
 
-lint_venv: "/tmp/ansible-lint"
-ardana_scratch_path: "/var/lib/ardana/scratch/ansible/next/ardana/ansible"
-lint_params: '-p -x templating,resources,ANSIBLE0002 -r {{ lint_venv }}/lint-rules -r {{ lint_venv }}/lib/python2.7/site-packages/ansiblelint/rules'
+- name: Configure ardana
+  hosts: "{{ ardana_env }}"
+  remote_user: ardana
+  gather_facts: True
 
-lint_path: "{{ ardana_scratch_path }}"
+  tasks:
+    - block:
+        - name: Remove versioned features from input model when not enabled
+          replace:
+            path: "{{ input_model_path }}/data/control_plane.yml"
+            regexp: '(.*{{ item }}.*)'
+            replace: '#\1'
+          when: not versioned_features[item].enabled
+          delegate_to: localhost
+          loop:
+            - manila
+            - freezer
+            - heat-api-cloudwatch
+
+        - include_role:
+            name: ardana_init
