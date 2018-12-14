@@ -313,10 +313,10 @@ crowbarctl proposal edit nova default -m --data='{"deployment": {"nova": {"eleme
 crowbarctl proposal commit nova default
 
 # list compute nodes sorted by number of running instances
-nova --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n
+nova --all-tenants --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n
 
 # generate VMs/node histogram data (line format: <number of nodes> <number of VMs>)
-nova --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n | awk '{print $1}' | sort | uniq -c
+nova --all-tenants --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n | awk '{print $1}' | sort | uniq -c
 
 # remove all instances from least loaded compute node
 nova --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n | head -n1 | awk '{print $2}' | \
