@@ -15,6 +15,14 @@
         - '{ardana_gating_job}'
 
 - project:
+    name: cloud-ardana8-maintenance-gating
+    ardana_maintenance_gating_job: '{name}'
+    ardana_env: cloud-ardana-maintenance-slot
+    version: 8
+    jobs:
+      - '{ardana_maintenance_gating_job}'
+
+- project:
     name: cloud-ardana8-job-std-3cp-x86_64
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
@@ -83,6 +91,19 @@
     model: std-3cp
     triggers:
      - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-entry-scale-kvm-maintenance-update-x86_64
+    ardana_job: '{name}'
+    disabled: false
+    reserve_env: false
+    cloudsource: GM8+up
+    scenario_name: entry-scale-kvm
+    tempest_filter_list: "smoke,full"
+    qa_test_list: "iverify"
+    triggers: []
     jobs:
         - '{ardana_job}'
 
