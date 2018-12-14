@@ -61,9 +61,6 @@ The following links can also be used to track the results:
     }
 
     stage('integration test') {
-      when {
-        expression { cloudsource == 'develcloud9' }
-      }
       steps {
         script {
           // reserve a resource here for the openstack-ardana job, to avoid
