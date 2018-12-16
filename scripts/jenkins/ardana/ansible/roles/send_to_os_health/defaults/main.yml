@@ -15,7 +15,6 @@
 #
 ---
 
-jenkins_artifacts_url: "{{ lookup('env', 'BUILD_URL') + 'artifact/.artifacts/' if lookup('env', 'BUILD_URL') else 'NA' }}"
 clouddata_server: "provo-clouddata.cloud.suse.de"
 cloud_media_build_version: {}
 

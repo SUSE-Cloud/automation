@@ -15,7 +15,5 @@
 #
 ---
 
-jenkins_artifacts_dir: "{{ lookup('env', 'WORKSPACE') }}/.artifacts"
-
 jenkins_artifacts_to_collect:
   - src: "~/.ansible/ansible.log"

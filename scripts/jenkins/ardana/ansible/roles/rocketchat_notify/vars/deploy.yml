@@ -59,7 +59,7 @@ _msg_fields_finished:
     value: "{{ cloud_media_build_version['stdout'] | default('Not available', true) }}"
     short: False
   - title: Log
-    value: "{{ ansible_log_url_msg if lookup('env', 'BUILD_URL') else 'Not available' }}"
+    value: "{{ ansible_log_url_msg if jenkins_build_url else 'Not available' }}"
     short: False
   - title: Deployer
     value: "{{ hostvars[ardana_env].ansible_host if ardana_env in groups['all'] else 'NA' }}"
