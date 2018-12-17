@@ -226,20 +226,30 @@ function issusenode
     knife node show $machine -a node.target_platform | grep -q suse-
 }
 
-function openstack
-{
-    command openstack --insecure "$@"
-}
-export NEUTRONCLIENT_INSECURE=true
-export NOVACLIENT_INSECURE=true
-export SWIFTCLIENT_INSECURE=true
-export CINDERCLIENT_INSECURE=true
-export MAGNUMCLIENT_INSECURE=true
-# Extra environment variable because of https://launchpad.net/bugs/1535284
-export manilaclient_INSECURE=true
-export MANILACLIENT_INSECURE=true
-export MISTRALCLIENT_INSECURE=true
-export TROVECLIENT_INSECURE=true
+if [[ $want_ssl_trusted != 1 ]] ; then
+    function openstack
+    {
+        command openstack --insecure "$@"
+    }
+    function nova
+    {
+        command nova --insecure "$@"
+    }
+    function neutron
+    {
+        command neutron --insecure "$@"
+    }
+    export NEUTRONCLIENT_INSECURE=true
+    export NOVACLIENT_INSECURE=true
+    export SWIFTCLIENT_INSECURE=true
+    export CINDERCLIENT_INSECURE=true
+    export MAGNUMCLIENT_INSECURE=true
+    # Extra environment variable because of https://launchpad.net/bugs/1535284
+    export manilaclient_INSECURE=true
+    export MANILACLIENT_INSECURE=true
+    export MISTRALCLIENT_INSECURE=true
+    export TROVECLIENT_INSECURE=true
+fi
 
 function isrepoworking
 {
@@ -3798,7 +3808,7 @@ function oncontroller_manila_generic_driver_setup()
         manila_tenant_vm_ip=`oncontroller_manila_service_instance_get_floating_ip`
     else
         fixed_net_id=`neutron net-show fixed -f value -c id`
-        timeout 10m nova --insecure boot --poll --flavor 100 --image manila-service-image \
+        timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
             --security-groups $sec_group,default \
             --nic net-id=$fixed_net_id manila-service
 
@@ -4098,7 +4108,7 @@ function oncontroller_testsetup
         nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
     fi
 
-    timeout 10m nova --insecure boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
+    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
@@ -4597,8 +4607,8 @@ function oncontroller_testpreupgrade
     create_cmd="heat --insecure stack-create upgrade_test -f "
     list_cmd="heat --insecure stack-list"
     if iscloudver 7plus; then
-        create_cmd="openstack --insecure stack create upgrade_test -t "
-        list_cmd="openstack --insecure stack list"
+        create_cmd="openstack stack create upgrade_test -t "
+        list_cmd="openstack stack list"
     fi
     $create_cmd /root/scripts/heat/2-instances-cinder.yaml $heat_stack_params
     wait_for 15 20 "$list_cmd | grep upgrade_test | grep CREATE_COMPLETE" \
@@ -4610,12 +4620,12 @@ function oncontroller_testpreupgrade
 function oncontroller_testpostupgrade
 {
     # retrieve the ping results
-    local fips=$(openstack --insecure floating ip list -f value -c "Floating IP Address")
+    local fips=$(openstack floating ip list -f value -c "Floating IP Address")
 
     # remove manila-service fip from list
-    manila_vm=$(openstack --insecure server list --all-projects -f value | grep manila-service | awk '{ print $1 }' )
+    manila_vm=$(openstack server list --all-projects -f value | grep manila-service | awk '{ print $1 }' )
     if [[ $manila_vm ]]; then
-        manila_fip=$(openstack --insecure server show $manila_vm -f value -c addresses | awk '{ print $2 }' )
+        manila_fip=$(openstack server show $manila_vm -f value -c addresses | awk '{ print $2 }' )
         fips=( "${fips[@]/$manila_fip}" )
     fi
 
@@ -4637,8 +4647,8 @@ function oncontroller_testpostupgrade
         fi
     done
 
-    openstack --insecure stack delete --yes upgrade_test
-    wait_for 15 20 "! openstack --insecure stack show upgrade_test" \
+    openstack stack delete --yes upgrade_test
+    wait_for 15 20 "! openstack stack show upgrade_test" \
              "heat stack for upgrade tests to be deleted"
     echo "test post-upgrade successful."
 }
@@ -4811,9 +4821,9 @@ function onneutron_wait_for_neutron
     [ -z "$NEUTRON_SERVER" ] && return
 
     wait_for 300 3 "ssh $NEUTRON_SERVER 'rcopenstack-neutron status' |grep -q running" "neutron-server service running state"
-    wait_for 200 3 " ! ssh $NEUTRON_SERVER '. .openrc && neutron --insecure agent-list -f csv --quote none'|tail -n+2 | grep -q -v ':-)'" "neutron agents up"
+    wait_for 200 3 " ! ssh $NEUTRON_SERVER '. .openrc && neutron agent-list -f csv --quote none'|tail -n+2 | grep -q -v ':-)'" "neutron agents up"
 
-    ssh $NEUTRON_SERVER '. .openrc && neutron --insecure agent-list'
+    ssh $NEUTRON_SERVER '. .openrc && neutron agent-list'
     ssh $NEUTRON_SERVER 'ping -c1 -w1 8.8.8.8' > /dev/null
     if [ "x$?" != "x0" ]; then
         complain 14 "ping to 8.8.8.8 from $NEUTRON_SERVER failed."
