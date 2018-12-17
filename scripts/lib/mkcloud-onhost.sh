@@ -26,13 +26,9 @@ function onhost_setup_portforwarding
         mkdir -p $boot_mkcloud_d
         if [[ ${want_ipv6} == 0 ]]; then
             net_end=".0/24"
-            ip_wrap_left=''
-            ip_wrap_right=''
             iptables="iptables"
         else
             net_end=":/64"
-            ip_wrap_left='['
-            ip_wrap_right=']'
             iptables="ip6tables"
         fi
         $sudo tee $boot_mkcloud_d_cloud >/dev/null <<EOS
@@ -68,7 +64,7 @@ for port in 22 80 443 5000 7630; do
         host_port_offset=\$(( \$host - \$offset ))
         iptables_unique_rule PREROUTING -t nat -p tcp \\
             --dport \$(( $cloud_port_offset + \$port + \$host_port_offset )) \\
-            -j DNAT --to-destination ${ip_wrap_left}${net_admin}${ip_sep}\$host${ip_wrap_right}:\$port
+            -j DNAT --to-destination $(wrap_ip "${net_admin}${ip_sep}\$host"):\$port
     done
 done
 
