@@ -29,13 +29,14 @@
 #
 
   firewall-rules:
-    - name: SSH
+
+{% if ipv6 == true %}
+    - name: SSH_CLM
       network-groups:
 {% for network_group in scenario['network_groups']
   if 'CLM' in network_group['component_endpoints'] or
-     'MANAGEMENT' in network_group['component_endpoints'] or
-     'EXTERNAL-API' in network_group['component_endpoints'] %}
-        - {{ network_group.name|upper }}
+     'MANAGEMENT' in network_group['component_endpoints'] %}
+         - {{ network_group.name|upper }}
 {% endfor  %}
       rules:
       - type: allow
@@ -43,15 +44,43 @@
         port-range-min: 22
         port-range-max: 22
         protocol: tcp
+{% endif   %}
 
-    - name: PING
+    - name: SSH
       network-groups:
+{% if ipv6 == true %}
+{% for network_group in scenario['network_groups']
+  if 'MANAGEMENT' in network_group['component_endpoints'] or
+     'EXTERNAL-API' in network_group['component_endpoints'] %}
+        - {{ network_group.name|upper }}
+{% endfor  %}
+{% else %}
 {% for network_group in scenario['network_groups']
   if 'CLM' in network_group['component_endpoints'] or
      'MANAGEMENT' in network_group['component_endpoints'] or
      'EXTERNAL-API' in network_group['component_endpoints'] %}
         - {{ network_group.name|upper }}
 {% endfor  %}
+{% endif %}
+      rules:
+      - type: allow
+{% if ipv6 == true %}
+        remote-ip-prefix:  ::/128
+{% else %}
+        remote-ip-prefix:  0.0.0.0/0
+{% endif %}
+        port-range-min: 22
+        port-range-max: 22
+        protocol: tcp
+
+{% if ipv6 == true %}
+    - name: PING_CLM
+      network-groups:
+{% for network_group in scenario['network_groups']
+  if 'CLM' in network_group['component_endpoints'] or
+     'MANAGEMENT' in network_group['component_endpoints']%}
+        - {{ network_group.name|upper }}
+{% endfor %}
       rules:
       # open ICMP echo request (ping)
       - type: allow
@@ -61,6 +90,52 @@
         # icmp code
         port-range-max: 0
         protocol: icmp
+{% endif %}
+
+    - name: PING
+      network-groups:
+{% if ipv6 == true %}
+{% for network_group in scenario['network_groups']
+  if 'MANAGEMENT' in network_group['component_endpoints'] or
+     'EXTERNAL-API' in network_group['component_endpoints'] %}
+        - {{ network_group.name|upper }}
+{% endfor  %}
+{% else %}
+{% for network_group in scenario['network_groups']
+  if 'CLM' in network_group['component_endpoints'] or
+     'MANAGEMENT' in network_group['component_endpoints'] or
+     'EXTERNAL-API' in network_group['component_endpoints'] %}
+        - {{ network_group.name|upper }}
+{% endfor  %}
+{% endif %}
+      rules:
+      # open ICMP echo request (ping)
+      - type: allow
+{% if ipv6 == true %}
+        remote-ip-prefix:  ::/128
+{% else %}
+        remote-ip-prefix:  0.0.0.0/0
+{% endif %}
+        # icmp type
+        port-range-min: 8
+        # icmp code
+        port-range-max: 0
+        protocol: icmp
+
+{% if ipv6 == true %}
+    - name: NETCAT_IPv6
+      network-groups:
+{% for network_group in scenario['network_groups']
+  if 'MANAGEMENT' in network_group['component_endpoints'] %}
+        - {{ network_group.name|upper }}
+{% endfor  %}
+      rules:
+      - type: allow
+        remote-ip-prefix:  ::128
+        port-range-min: 11382
+        port-range-max: 11382
+        protocol: tcp
+{% endif %}
 
     - name: NETCAT
       network-groups:
@@ -75,16 +150,45 @@
         port-range-max: 11382
         protocol: tcp
 
-    - name: FRONTAIL
+{% if ipv6 == true %}
+    - name: FRONTAIL_CLM
       network-groups:
 {% for network_group in scenario['network_groups']
   if 'CLM' in network_group['component_endpoints'] or
-     'EXTERNAL-API' in network_group['component_endpoints'] %}
+     'MANAGEMENT' in network_group['component_endpoints'] %}
         - {{ network_group.name|upper }}
-{% endfor  %}
+{% endfor %}
       rules:
       - type: allow
         remote-ip-prefix:  0.0.0.0/0
+        port-range-min: 9091
+        port-range-max: 9091
+        protocol: tcp
+{% endif %}
+
+    - name: FRONTAIL
+      network-groups:
+{% if ipv6 == true %}
+{% for network_group in scenario['network_groups']
+  if 'MANAGEMENT' in network_group['component_endpoints'] or
+     'EXTERNAL-API' in network_group['component_endpoints'] %}
+        - {{ network_group.name|upper }}
+{% endfor  %}
+{% else %}
+{% for network_group in scenario['network_groups']
+  if 'CLM' in network_group['component_endpoints'] or
+     'MANAGEMENT' in network_group['component_endpoints'] or
+     'EXTERNAL-API' in network_group['component_endpoints'] %}
+        - {{ network_group.name|upper }}
+{% endfor  %}
+{% endif %}
+      rules:
+      - type: allow
+{% if ipv6 == true %}
+        remote-ip-prefix:  ::/128
+{% else    %}
+        remote-ip-prefix:  0.0.0.0/0
+{% endif %}
         port-range-min: 9091
         port-range-max: 9091
         protocol: tcp

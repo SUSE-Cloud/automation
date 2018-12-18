@@ -36,10 +36,20 @@
 {%   if network_group['tagged_vlan']|default(True) %}
       vlanid: {{ ns.net_id }}
 {%   endif %}
-      tagged-vlan: {{ network_group['tagged_vlan']|default('True')|lower }}
+      tagged-vlan: {{ network_group['tagged_vlan']|default('False')|lower }}
+{%   if ipv6 == true %}
+{%   if ns.net_id != 100 %}
+      cidr: fc00:0:0:{{ ns.net_id }}::/64
+      gateway-ip: fc00:0:0:{{ ns.net_id }}::1
+{%   else %}
       cidr: 192.168.{{ ns.net_id }}.0/24
       gateway-ip: 192.168.{{ ns.net_id }}.1
-{%  endif %}
+{%   endif %}
+{%   else  %}
+      cidr: 192.168.{{ ns.net_id }}.0/24
+      gateway-ip: 192.168.{{ ns.net_id }}.1
+{%   endif %}
+{%   endif %}
       network-group: {{ network_group.name|upper }}
 
 {%   set ns.net_id = ns.net_id+1 %}

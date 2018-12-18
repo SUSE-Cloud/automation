@@ -196,6 +196,12 @@
           description: >-
             Configurable external name for your public endpoints
 
+      - bool:
+          name: ipv6
+          default: false
+          description: >-
+            Use ipv6 networks in the cloud input model.
+
     pipeline-scm:
       scm:
         - git:

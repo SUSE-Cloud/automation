@@ -257,6 +257,12 @@
             The OpenStack API credentials used to manage virtual clouds (leave
             empty to use the default shared 'cloud' ECP account).
 
+      - bool:
+          name: ipv6
+          default: false
+          description: >-
+            Use ipv6 networks in the cloud input model.
+
     pipeline-scm:
       scm:
         - git:
