@@ -10,6 +10,7 @@ sys.path.append(os.path.dirname(__file__))
 from gerrit import GerritChange, GerritChangeSet  # noqa: E402
 from gerrit_merge import gerrit_merge  # noqa: E402
 from gerrit_review import gerrit_review  # noqa: E402
+from gerrit_settings import gerrit_project_map  # noqa: E402
 
 
 def get_submittable_references(change):
@@ -161,16 +162,18 @@ def handle_change_updated(change, dry_run=False):
                 str(c) for c in references])))
 
         for ref_change in references:
-            direct = ref_change.has_explicit_dependency(change)
-            gerrit_review(ref_change, label='Verified', vote=0,
-                          message='Check is re-running. New patchset {} was '
-                                  'published for {}direct dependency: '
-                                  '{} '.format(
-                                    change.patchset,
-                                    '' if direct else 'in',
-                                    change.gerrit_url)
-                          )
-            print("recheck %s %s" % (ref_change.id, ref_change.branch))
+            if ref_change.gerrit_project in gerrit_project_map:
+                direct = ref_change.has_explicit_dependency(change)
+                gerrit_review(
+                    ref_change, label='Verified', vote=0,
+                    message='Check is re-running. New patchset {} was '
+                            'published for {}direct dependency: {} '.format(
+                                change.patchset,
+                                '' if direct else 'in',
+                                change.gerrit_url
+                            )
+                )
+                print("recheck %s %s" % (ref_change.id, ref_change.branch))
     else:
         print("[DRY-RUN] Invalidated changes:\n{}".format('\n'.join([
                 str(c) for c in references])))
