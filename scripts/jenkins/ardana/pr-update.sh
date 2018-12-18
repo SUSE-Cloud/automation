@@ -22,5 +22,5 @@ $ghpr --action set-status $ghpr_paras --status "pending" --targeturl $BUILD_URL 
 git config --add remote.origin.fetch "+refs/pull/*/head:refs/remotes/origin/pr/*"
 git fetch origin $github_pr_sha
 git checkout -B ardana-ci FETCH_HEAD
-git clean  # remove files deleted from git
+git clean -f  # remove files deleted from git
 
