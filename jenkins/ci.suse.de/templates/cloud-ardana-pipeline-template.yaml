@@ -294,6 +294,21 @@
             Configure object-store service with RADOS Gateway. This only takes effect
             if ses_enabled is set to true.
 
+      - choice:
+          name: rhel_os
+          choices:
+            - '{rhel_os|CentOS_75}'
+            - CentOS_73
+            - CentOS_75
+            - RHEL_73
+            - RHEL_75
+          description: |
+            The OS distribution and version to use for Ardana RHEL compute nodes.
+
+            NOTE: some of these values are only known to work in combination with bare-metal
+            deployments (RHEL_73, CentOS_75), while other are only known to work with virtual
+            deployments (CentOS_73, CentOS_75).
+
       - extended-choice:
           name: tempest_filter_list
           type: multi-select

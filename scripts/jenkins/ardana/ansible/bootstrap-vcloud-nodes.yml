@@ -157,7 +157,7 @@
             description: "CentOS Base Repository"
             gpgcheck: no
             baseurl: "http://{{ hostvars['localhost'].admin_mgmt_ip }}:79/ardana/rhel7/yum/OS"
-          when: ansible_distribution == 'CentOS'
+          when: ansible_os_family == 'RedHat'
       rescue:
         - include_role:
             name: rocketchat_notify

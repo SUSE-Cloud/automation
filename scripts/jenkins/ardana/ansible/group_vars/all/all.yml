@@ -39,6 +39,12 @@ sles_cloud_version:
   "12.3": 8
   "12.4": 9
 
+
+# This variable controls the OS type and version used for Ardana RHEL compute nodes
+# Possible values: CentOS_73, CentOS_75, RHEL_73, RHEL_75
+rhel_os: CentOS_75
+rhel_os_version: "{{ rhel_os.split('_')[1] }}"
+
 update_after_deploy: False
 maintenance_updates_path:
   Cloud: "SUSE_Updates_{{ cloud_repo_path }}_{{ sles_cloud_version[ansible_distribution_version] }}_x86_64"

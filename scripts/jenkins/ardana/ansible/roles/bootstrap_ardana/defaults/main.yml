@@ -18,6 +18,16 @@
 ardana_home: "/var/lib/ardana/"
 sles_media_server: "ibs-mirror.prv.suse.net"
 
+rhel_iso:
+  # CentOS_73: not available
+  CentOS_75: CentOS-75-x86_64-DVD-1804.iso
+  RHEL_73: RHEL-7.3-20170728-Server-x86_64-dvd.iso
+  RHEL_75: rhel7.5.iso
+
+rhel7_opt_yum:
+  "73": yum-internal-rhel73-20180118-1320.tgz
+  "75": yum-internal-rhel75-20181026-1528.tgz
+
 cobbler_requires:
   - name: "sles12sp3.iso"
     url: "http://{{ sles_media_server }}/install/SLE-12-SP3-Server-GM/SLE-12-SP3-Server-DVD-x86_64-GM-DVD1.iso"
@@ -26,8 +36,8 @@ cobbler_requires:
     url: "http://{{ sles_media_server }}/install/SLE-12-SP4-Server-RC1/SLE-12-SP4-Server-DVD-x86_64-RC1-DVD1.iso"
     download_when: "{{ cloud_release == 'cloud9' and is_physical_deploy }}"
   - name: "rhel7.iso"
-    url: "http://10.84.144.252/compute_iso/CentOS-75-x86_64-DVD-1804.iso"
+    url: "http://10.84.144.252/compute_iso/{{ rhel_iso[rhel_os] }}"
     download_when: "{{ rhel_enabled }}"
   - name: "rhel7-opt-yum.tgz"
-    url: "http://ardana.suse.provo.cloud/yum-extras/yum-internal-rhel75-20181026-1528.tgz"
+    url: "http://ardana.suse.provo.cloud/yum-extras/{{ rhel7_opt_yum[rhel_os_version] }}"
     download_when: "{{ rhel_enabled }}"
