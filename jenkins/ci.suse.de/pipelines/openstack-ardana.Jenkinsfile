@@ -236,6 +236,7 @@ pipeline {
     always {
       script{
         sh('''
+          cd $SHARED_WORKSPACE
           automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
             --recursive \
             --filter 'Declarative: Post Actions' \
