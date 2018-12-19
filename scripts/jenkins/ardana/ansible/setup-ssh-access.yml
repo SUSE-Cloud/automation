@@ -70,7 +70,8 @@
 - name: Ensure public keys on deployer
   hosts: "{{ ardana_env }}"
   remote_user: root
-  gather_facts: true
+  # NOTE: don't gather facts before deployer becomes accessible
+  gather_facts: false
   vars:
     task: "deploy"
 
@@ -80,6 +81,9 @@
           wait_for_connection:
             sleep: 10
             timeout: 300
+
+        - name: Gather facts
+          setup:
 
         - include_role:
             name: ssh_keys
