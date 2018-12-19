@@ -45,3 +45,10 @@ function routedcloudpublicnet()
     base2=$(($base2 % 256))
     echo -n 10.$base1.$(($base2+$n-1))
 }
+
+function ipv6prefix()
+{
+    local n=$1
+    local mkch_id=$(mkch_id)
+    printf fd3b:f495:9651:%x%02x "$mkch_id" "$n"
+}
