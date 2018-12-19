@@ -37,7 +37,7 @@
       vlanid: {{ ns.net_id }}
 {%   endif %}
       tagged-vlan: {{ network_group['tagged_vlan']|default('False')|lower }}
-{%   if ipv6 == true %}
+{%   if (ipv6 | default(false)) == true %}
 {%   if ns.net_id != 100 %}
       cidr: fc00:0:0:{{ ns.net_id }}::/64
       gateway-ip: fc00:0:0:{{ ns.net_id }}::1
