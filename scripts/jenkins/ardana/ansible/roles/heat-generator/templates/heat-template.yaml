@@ -137,7 +137,7 @@ resources:
 {% for server in heat_template.servers %}
 {%   set interface_model = heat_template.interface_models[server.interface_model] %}
 {%   set disk_model = heat_template.disk_models[server.disk_model] %}
-{%   set server_ns = namespace(ports=[], trunk_port_names=[], volume_names=[]) %}
+{%   set server_ns = namespace(ports=[], trunk_port_names=[]) %}
 
 {%   set server_name = server.name|lower|replace('-','_') %}
 {%   for port in interface_model.ports %}
@@ -234,34 +234,34 @@ resources:
 {%     endif %}
 
 {%   endfor %}
-{%   set ns = namespace(volume_att_deps="%s_server"|format(server_name)) %}
+{%   set ns = namespace(volume_deps="%s_server"|format(server_name)) %}
 {%   for volume in disk_model.volumes %}
 {%     set volume_name = "%s_%s"|format(server_name, volume.name) %}
-{%     set _ = server_ns.volume_names.append(volume_name+'_vol') %}
 
   # disk: {{ volume.mountpoint }}
   # attached to server: {{ server.name }}
   # disk model: {{ server.disk_model }}
   {{ volume_name }}_vol:
     type: OS::Cinder::Volume
+    depends_on: {{ ns.volume_deps }}
     properties:
       size: {{ volume.size }}
 
   {{ volume_name }}_vol_att:
     type: OS::Cinder::VolumeAttachment
-    depends_on: {{ ns.volume_att_deps }}
+    depends_on: {{ volume_name }}_vol
     properties:
       instance_uuid: { get_resource: {{ server_name }}_server }
       volume_id: { get_resource: {{ volume_name }}_vol }
       mountpoint: {{ volume.mountpoint }}
-{%     set ns.volume_att_deps="%s_vol_att"|format(volume_name) %}
+{%     set ns.volume_deps="%s_vol_att"|format(volume_name) %}
 {%   endfor %}
 
   # server: {{ server.name }}
   # role: {{ server.role }}
   {{ server_name }}_server:
     type: OS::Nova::Server
-    depends_on: [ {{ ', '.join(server_ns.trunk_port_names+server_ns.volume_names) }} ]
+    depends_on: [ {{ ', '.join(server_ns.trunk_port_names) }} ]
     properties:
 {% if os_key_name is defined %}
       key_name: { get_param: key_name }
