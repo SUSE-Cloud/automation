@@ -53,7 +53,7 @@
                 segmentation_id: {{ ns.vlan_id }}
             no_gateway:  True
             enable_dhcp: True
-{% if ipv6 == true %}
+{% if (ipv6 | default(false)) == true %}
             cidr: fc00:0:0:{{ ns.net_id }}::/64
             allocation_pools:
               - start: fc00:0:0:{{ ns.net_id }}::10
@@ -81,7 +81,7 @@
         neutron_external_networks:
 {% for network_group in scenario.network_groups if 'NEUTRON-EXT' in network_group.component_endpoints %}
           - name: ext-net{{ loop.index0 | ternary(loop.index0, '') }}
-{% if ipv6 == true %}
+{% if (ipv6 | default(false)) == true %}
             cidr: fc00:0:0:{{ ns.net_id }}::/64
             gateway-ip: fc00:0:0:{{ ns.net_id }}::1
 {%     set ns.net_id = ns.net_id+1 %}
