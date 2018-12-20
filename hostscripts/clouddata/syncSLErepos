@@ -300,9 +300,13 @@ for arch in $archs ; do
 done
 
 if [ $SITE = "nue" ]; then
-    # repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync, cct)
-    for obsrepo in devel:/languages:/ruby:/extensions/SLE_12 devel:/tools:/building/SLE_12_SP3 ; do
-        rsync_with_create rsync://ftp.gwdg.de/pub/opensuse/repositories/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/
+    rsync_with_create rsync://ftp.gwdg.de/pub/opensuse/repositories/devel:/languages:/ruby:/extensions/SLE_12 /srv/nfs/repos/repositories/devel:/languages:/ruby:/extensions/SLE_12
+
+    for servicepack in 4 3; do
+        # repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync, cct)
+        for obsrepo in devel:/tools:/building/SLE_12_SP$servicepack ; do
+            rsync_with_create rsync://ftp.gwdg.de/pub/opensuse/repositories/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/
+        done
     done
 
     # this one is always failing - we need to ignore that otherwise the lock file remains stuck
