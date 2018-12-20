@@ -15,6 +15,7 @@
 #
 ---
 
-jenkins_artifacts_dir: "{{ lookup('env', 'WORKSPACE') }}/.artifacts"
-jenkins_artifacts_to_collect:
-  - src: "~/.ansible/ansible.log"
+- name: Generate heat template for SES
+  template:
+    src: "heat-template.yml.j2"
+    dest: "./ses-stack-template.yml"

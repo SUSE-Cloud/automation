@@ -15,6 +15,10 @@
 #
 ---
 
-jenkins_artifacts_dir: "{{ lookup('env', 'WORKSPACE') }}/.artifacts"
-jenkins_artifacts_to_collect:
-  - src: "~/.ansible/ansible.log"
+- name: Install SES 5
+  hosts: ses
+  remote_user: root
+  gather_facts: true
+
+  roles:
+    - ses

@@ -15,6 +15,16 @@
 #
 ---
 
-jenkins_artifacts_dir: "{{ lookup('env', 'WORKSPACE') }}/.artifacts"
-jenkins_artifacts_to_collect:
-  - src: "~/.ansible/ansible.log"
+- include_tasks: pre_setup.yml
+
+- include_tasks: zap_disks.yml
+  when: ses_zap_disks
+
+- include_tasks: salt_setup.yml
+
+- include_tasks: deepsea_setup.yml
+
+- include_tasks: openstack_config.yml
+  when: ses_openstack_config
+  tags:
+    - openstack_config
