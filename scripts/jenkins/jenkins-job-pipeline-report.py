@@ -150,6 +150,7 @@ def generate_summary(server, job_name, build_number,
                         filter_stages, recursive, depth+1)
                     stage_url = server.get_pipeline_url(d_job_name,
                                                         d_build_number)
+        stage_url = stage_url.replace('ci.suse.de', 'ci.nue.suse.com')
         summary += '{}  - {}: {}{}\n'.format(
             ' '*depth*4, stage['name'], stage['status'],
             ' ({})'.format(stage_url) if stage_url else ''

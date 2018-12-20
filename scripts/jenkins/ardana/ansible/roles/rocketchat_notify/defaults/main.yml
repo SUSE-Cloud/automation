@@ -46,11 +46,10 @@ os_health_server: "10.86.0.167"
 os_health_url: "http://{{ os_health_server }}/#/job/{{ os_health_build_name }}"
 os_health_url_msg: "[{{ os_health_url }}]({{ os_health_url }})"
 
-ansible_log_url: "{{ lookup('env', 'BUILD_URL') }}artifact/.artifacts/ansible.log"
+ansible_log_url: "{{ jenkins_build_url }}artifact/.artifacts/ansible.log"
 ansible_log_url_msg: "[{{ ansible_log_url }}]({{ ansible_log_url }})"
 ansible_log_stream: "http://{{ hostvars[ardana_env].ansible_host if ardana_env in groups['all'] else 'NA' }}:9091/"
 ansible_log_stream_msg: "[{{ ansible_log_stream }}]({{ ansible_log_stream }})"
-jenkins_build_url: "{{ lookup('env', 'BUILD_URL') }}"
 jenkins_build_url_msg: "{{ (jenkins_build_url != '') | ternary('[' ~ jenkins_build_url ~ '](' ~ jenkins_build_url ~ ')', lookup('env', 'USER')) }}"
 
 rc_im_name: "{{ scenario_name | default(model) }}"

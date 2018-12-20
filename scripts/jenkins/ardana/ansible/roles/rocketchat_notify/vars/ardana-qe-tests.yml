@@ -16,7 +16,7 @@
 ---
 
 os_health_build_name: "{{ ardana_env }}_qa_{{ test_name }}"
-ardana_qe_test_log_url: "{{ lookup('env', 'BUILD_URL') }}artifact/.artifacts/{{ test_name }}.log"
+ardana_qe_test_log_url: "{{ jenkins_build_url }}artifact/.artifacts/{{ test_name }}.log"
 ardana_qe_test_log_url_msg: "[{{ ardana_qe_test_log_url }}]({{ ardana_qe_test_log_url }})"
 
 rc_att_colapsed: True
@@ -45,7 +45,7 @@ _rc_msg_fields_finished:
     value: "{{ ardana_qe_failed_tests.stdout if ardana_qe_failed_tests is defined else 'Timeout' if test_output is defined and test_output.rc == 124 else 'Not available' }}"
     short: False
   - title: Log
-    value: "{{ ardana_qe_test_log_url_msg if lookup('env', 'BUILD_URL') else 'Not available' }}"
+    value: "{{ ardana_qe_test_log_url_msg if jenkins_build_url else 'Not available' }}"
     short: False
   - title: Deployer
     value: "{{ hostvars[ardana_env].ansible_host }}"
