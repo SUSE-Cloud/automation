@@ -123,7 +123,7 @@ if [[ $want_magnum_proposal = 1 ]]; then
     : ${computenode_hdd_size:=80}
 fi
 # pvlist is filled below
-pvlist=
+: ${pvlist:=}
 next_pv_device=
 pv_cur_device_no=0
 
