@@ -33,6 +33,7 @@ resources:
   router_ext:
     type: OS::Neutron::Router
     properties:
+      name: {{ heat_resource_name_prefix }}_router_ext
       external_gateway_info:
         network: { get_param: floating_network }
 
@@ -41,11 +42,13 @@ resources:
   default_network:
     type: OS::Neutron::Net
     properties:
+      name: {{ heat_resource_name_prefix }}_dummy_net
       port_security_enabled: True
 
   default_subnet:
     type: OS::Neutron::Subnet
     properties:
+      name: {{ heat_resource_name_prefix }}_dummy_subnet
       network_id: { get_resource: default_network }
       cidr: { get_param: default_subnet_cidr }
 {%   if (ipv6 | default(false)) == true %}
@@ -65,12 +68,14 @@ resources:
   {{ name }}_network:
     type: OS::Neutron::Net
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ name }}_net
       port_security_enabled: False
 
   # subnet for network: {{ network.name }}
   {{ name }}_subnet:
     type: OS::Neutron::Subnet
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ name }}_subnet
       network_id: { get_resource: {{ name }}_network }
 {%   if network.cidr is defined %}
       cidr: "{{ network.cidr }}"
@@ -118,6 +123,8 @@ resources:
 {%   set net2_name = router[1]|lower|replace('-','_')|regex_replace('_net$', '') %}
   router_{{ net1_name }}_{{ net2_name }}:
     type: OS::Neutron::Router
+    properties:
+      name: {{ heat_resource_name_prefix }}_{{ net1_name }}_{{ net2_name }}_router
 
   router_{{ net1_name }}_{{ net2_name }}_interface:
     type: OS::Neutron::RouterInterface
@@ -170,6 +177,7 @@ resources:
   {{ port_name }}_port:
     type: OS::Neutron::Port
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ port_name }}_port
 {%       if network.is_mgmt and not port.primary|default(true) %}
       network: { get_resource: default_network }
 
@@ -211,6 +219,7 @@ resources:
   {{ port_name }}_port:
     type: OS::Neutron::Port
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ port_name }}_port
       network: { get_resource: default_network }
 
 {%     endif %}
@@ -245,6 +254,7 @@ resources:
   {{ volume_name }}_vol:
     type: OS::Cinder::Volume
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ volume_name }}_vol
       size: {{ volume.size }}
 
   {{ volume_name }}_vol_att:
@@ -273,6 +283,7 @@ resources:
     type: OS::Nova::Server
     depends_on: [ {{ ', '.join(server_ns.trunk_port_names+server_ns.volume_names) }} ]
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ server_name }}_server
 {% if os_key_name is defined %}
       key_name: { get_param: key_name }
 {% endif %}
