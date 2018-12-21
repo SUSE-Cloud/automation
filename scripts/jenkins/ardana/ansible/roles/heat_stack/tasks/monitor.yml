@@ -20,7 +20,7 @@
     openstack --os-cloud {{ os_cloud }} stack show {{ heat_stack_name }} \
       -c stack_status -f value
   register: stack_status
-  retries: 100
+  retries: 60
   until: "'IN_PROGRESS' not in stack_status.stdout and 'DELETE_COMPLETE' not in stack_status.stdout"
   delay: 10
   failed_when: "stack_status.rc != 0 and 'Stack not found' not in stack_status.stderr"
