@@ -89,7 +89,7 @@ pr_processing:
         - crowbar-hyperv
         - crowbar-init
         - crowbar-openstack
-      context: suse/mkcloud/testbuild
+      context: suse/cloud/testbuild
     filter: *suse_crowbar
   - config:
       organization: sap-oc
@@ -100,5 +100,5 @@ pr_processing:
         - crowbar-ha
         - crowbar-openstack
         - crowbar-monitoring
-      context: suse/mkcloud/testbuild
+      context: suse/cloud/testbuild
     filter: *sap-oc_crowbar

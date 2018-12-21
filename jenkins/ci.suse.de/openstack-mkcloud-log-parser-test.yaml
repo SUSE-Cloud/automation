@@ -41,9 +41,9 @@
           default: SUSE-Cloud/automation:PR_ID:SHA1:master
           description: >-
             String is a ':' separated list of these values:
-            $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
+            $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context_suffix
 
-            Note: SHA1 must be latest commit in PR, $context is optional
+            Note: SHA1 must be latest commit in PR, $context_suffix is optional
             (only use if multiple gating runs needed per PR)
 
     wrappers:
@@ -90,10 +90,10 @@
               github_pr_repo=${github_opts[0]}
               github_pr_id=${github_opts[1]}
               github_pr_sha=${github_opts[2]}
-              github_pr_context=${github_opts[4]}
-              ghs_context=suse/mkcloud
-              if [[ $github_pr_context ]] ; then
-                ghs_context=$ghs_context/$github_pr_context
+              github_pr_context_suffix=${github_opts[4]}
+              ghs_context=suse/cloud
+              if [[ $github_pr_context_suffix ]] ; then
+                ghs_context=$ghs_context/$github_pr_context_suffix
               fi
 
               echo "testing PR: https://github.com/$github_pr_repo/pull/$github_pr_id"

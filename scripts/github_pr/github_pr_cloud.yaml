@@ -101,11 +101,11 @@ pr_processing:
       organization: SUSE-Cloud
       repositories:
         - automation
-      context: suse/mkcloud
+      context: suse/cloud
     filter: *suse_automation
   - config:
       organization: SUSE-Cloud
       repositories:
         - cct
-      context: suse/mkcloud
+      context: suse/cloud
     filter: *suse_cct
