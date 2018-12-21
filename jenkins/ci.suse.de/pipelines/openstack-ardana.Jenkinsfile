@@ -171,10 +171,32 @@ pipeline {
       }
     }
 
-    stage('Bootstrap CLM') {
-      steps {
-        script {
-          ardana_lib.ansible_playbook('bootstrap-clm', "-e extra_repos='$extra_repos'")
+    stage('Prepare environment') {
+      // abort all stages if one of them fails
+      failFast true
+      parallel {
+        stage('Bootstrap CLM') {
+          steps {
+            script {
+              ardana_lib.ansible_playbook('bootstrap-clm', "-e extra_repos='$extra_repos'")
+            }
+          }
+        }
+        stage('Deploy SES') {
+          when {
+            expression { ses_enabled == 'true' }
+          }
+          steps {
+            script {
+              ardana_lib.trigger_build('openstack-ses', [
+                string(name: 'ses_id', value: "$ardana_env"),
+                string(name: 'network', value: "openstack-ardana-${ardana_env}_management_net"),
+                string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                string(name: 'os_cloud', value: "$os_cloud")
+              ], false)
+            }
+          }
         }
       }
     }

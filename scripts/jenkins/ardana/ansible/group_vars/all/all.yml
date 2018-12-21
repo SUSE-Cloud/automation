@@ -24,6 +24,7 @@ cloud_git_branch:
 clouddata_server: "provo-clouddata.cloud.suse.de"
 rhel_enabled: "{{ rhel_computes is defined and rhel_computes | int > 0 }}"
 ses_enabled: False
+ses_rgw_enabled: False
 
 workspace_path: "{{ lookup('env', 'WORKSPACE') | default('.', true) }}"
 input_model_path: "{{ workspace_path }}/input_model"

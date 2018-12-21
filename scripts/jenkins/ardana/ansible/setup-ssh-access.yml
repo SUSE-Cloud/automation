@@ -45,6 +45,7 @@
           blockinfile:
             path: "inventory"
             insertafter: "\\[deployer_virt\\]"
+            marker: "# {mark} ANSIBLE MANAGED BLOCK - ARDANA"
             block: |
               {{ ardana_env }}      ansible_host={{ admin_floating_ip }}
           when: not is_physical_deploy

@@ -17,7 +17,7 @@
 ---
 
 - name: Configure SES RGW for ardana
-  hosts: "ses-qe1"
+  hosts: "ses_{{ (ardana_env.startswith('pcloud') or ardana_env.startswith('qe')) | ternary('qe', 'virt') }}"
   remote_user: root
   gather_facts: no
   vars:

@@ -22,10 +22,26 @@
   register: get_stack
   failed_when: false
 
+- name: Check if SES stack also exists
+  command: |
+    openstack --os-cloud {{ os_cloud }} stack show {{ ses_stack_name }} \
+      -c stack_status -f value
+  register: ses_stack
+  when: heat_action == 'delete'
+  failed_when: false
+
 - include_tasks: monitor.yml
   when:
     - get_stack.stdout != ''
     - heat_action == 'monitor'
+
+- include_tasks: delete.yml
+  vars:
+    heat_stack_name: "{{ ses_stack_name }}"
+  when:
+    - "'skipped' not in ses_stack"
+    - ses_stack.stdout != ''
+    - heat_action != 'monitor'
 
 - include_tasks: delete.yml
   when:

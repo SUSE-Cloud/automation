@@ -15,10 +15,5 @@
 #
 ---
 
-heat_action: "create"
-api_timeout: "600"
-
-heat_stack_create_timeout: 480
-heat_stack_name: "openstack-ardana-{{ ardana_env }}"
-ses_stack_name: "openstack-ses-{{ ardana_env }}"
-monitor_stack_after_delete: True
+ses_cluster_id: "virt"
+ses_rgw_port: 8081
