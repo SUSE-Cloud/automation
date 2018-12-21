@@ -316,7 +316,7 @@
             barbican-functional,horizon,horizon_integration-tests,freezer,
             keystone-api,keystone-ldap,keystone-k2k-config,keystone-websso-config,keystone-x509-config,
             remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,enable_tls,
-            change_credentials
+            change_credentials,nova_guest_images
           description: >-
             Select QA tests to run.
 
