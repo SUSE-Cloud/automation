@@ -32,6 +32,13 @@
   notify:
     - Restart and enable salt-minion
 
+- name: Drop salt api secret conf
+  template:
+    src: "sharedsecret.conf.j2"
+    dest: "/etc/salt/master.d/sharedsecret.conf"
+  notify:
+    - Restart and enable salt-master
+
 - meta: flush_handlers
 
 - name: "Wait for salt-minion to initialize"

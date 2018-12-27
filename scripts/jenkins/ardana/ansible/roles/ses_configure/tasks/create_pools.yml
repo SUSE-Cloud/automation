@@ -15,11 +15,6 @@
 #
 ---
 
-- name: Ensure openstack pool(s) deleted
-  command: "ceph osd pool delete {{ item.name }} {{ item.name }} --yes-i-really-really-mean-it"
-  with_items: "{{ ses_openstack_pools | unique }}"
-  changed_when: false
-
 - name: Create openstack pool(s)
   command: "ceph osd pool create {{ item.name }} {{ item.pg_num }}"
   with_items: "{{ ses_openstack_pools | unique }}"

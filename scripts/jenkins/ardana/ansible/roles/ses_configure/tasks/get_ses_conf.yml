@@ -15,7 +15,14 @@
 #
 ---
 
-- include_tasks: delete_pools.yml
+- name: Get ses conf options
+  shell: grep 'fsid\|mon_host\|mon_initial\|network' /etc/ceph/ceph.conf | awk '{ print $3 }'
+  register: conf_options
 
-- include_tasks: configure_ses.yml
-  when: ardana_ses_integration_version == 1
+- name: Get ceph keyring file contents
+  slurp:
+    src: "/etc/ceph/ceph.{{ item.name }}.keyring"
+  register: ceph_files
+  loop: "{{ ses_openstack_keys }}"
+  loop_control:
+    label: "{{ item.name }}"

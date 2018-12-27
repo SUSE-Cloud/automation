@@ -15,7 +15,7 @@
 #
 ---
 
-- include_tasks: delete_pools.yml
-
-- include_tasks: configure_ses.yml
-  when: ardana_ses_integration_version == 1
+- name: Ensure openstack pool(s) deleted
+  command: "ceph osd pool delete {{ item.name }} {{ item.name }} --yes-i-really-really-mean-it"
+  with_items: "{{ ses_openstack_pools | unique }}"
+  changed_when: false

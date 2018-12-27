@@ -18,6 +18,7 @@ ses_version: 5
 ses_deepsea_minions: "*"
 ses_zap_disks: False
 ses_add_zypper_repos: True
+ses_salt_api_secret: "salt-api-secret"
 ses_repo_server: "http://provo-clouddata.cloud.suse.de"
 
 ses_osd_pool_default_pg_num: 64
