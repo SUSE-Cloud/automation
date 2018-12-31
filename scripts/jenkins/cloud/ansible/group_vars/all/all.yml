@@ -119,3 +119,4 @@ rc_channels:
   engcloud-ci-slot19: "cloud-ci-monitoring"
   engcloud-ci-slot20: "cloud-ci-monitoring"
   engcloud-ci-slot21: "cloud-ci-monitoring"
+  qe006: "cloud-qe-hlm006"

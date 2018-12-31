@@ -46,6 +46,7 @@ enable_external_network_bridge: "{{ versioned_features.external_network_bridge.e
 
 enable_designate_worker_producer: "{{ versioned_features.designate_worker_producer.enabled }}"
 
+
 cp_prefix: cp1
 max_host_prefix_len: "{{ 33-(cp_prefix|length) }}"
 host_prefix: "{{ ('ardana-' ~ cloud_env)[:max_host_prefix_len|int-1] if cloud_env is defined else 'ardana' }}"
@@ -140,6 +141,11 @@ service_component_groups:
     - neutron-dhcp-agent
     - neutron-metadata-agent
     - neutron-openvswitch-agent
+  IRONIC:
+    - nova-scheduler-ironic
+    - ironic-api
+    - ironic-conductor
+    - ironic-client
   LMM:
     - ceilometer-api
     - ceilometer-polling
@@ -185,6 +191,10 @@ service_component_groups:
     - neutron-metadata-agent
     - neutron-openvswitch-agent
     - neutron-lbaasv2-agent
+  IRONIC-COMPUTE:
+    - neutron-openvswitch-agent
+    - nova-compute-ironic
+    - nova-compute
 
 disk_component_groups:
   OS:

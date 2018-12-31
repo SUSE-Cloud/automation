@@ -155,6 +155,7 @@
             - standard
             - std-lmm
             - std-split
+            - entry-scale-ironic-flat-network
           description: >-
             The name of one of the available scenarios that can be used to generate input models.
             If this parameter is set, the following parameters may also be set to different values, to control
@@ -268,7 +269,7 @@
           description: |
             The number of SLES compute nodes in the generated input model.
 
-            Input model generator scenarios using this parameter: all
+            Input model generator scenarios using this parameter: all except entry-scale-ironic-flat-network.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
@@ -282,6 +283,19 @@
             The number of RHEL (CentOS) compute nodes in the generated input model.
 
             Input model generator scenarios using this parameter: all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: ironic_compute
+          default: '0'
+          regex: '[0-9]+'
+          msg: The entered value failed validation
+          description: |
+            The number of Ironic compute nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: entry-scale-ironic-flat-network 
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
