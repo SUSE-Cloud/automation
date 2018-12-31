@@ -130,6 +130,7 @@ function h_setup_devstack {
     (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)
 
     SWIFT_SERVICES="
+enable_service c-bak
 enable_service s-proxy
 enable_service s-object
 enable_service s-container
@@ -165,7 +166,6 @@ enable_service placement-api
 enable_service n-cpu
 enable_service c-vol
 enable_service n-obj
-enable_service c-bak
 enable_service q-agt
 disable_service horizon
 enable_service cinder
