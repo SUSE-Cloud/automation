@@ -39,6 +39,32 @@
 
   tasks:
     - block:
+        - name: Remove versioned features from input model when not enabled
+          replace:
+            path: "{{ input_model_path }}/data/control_plane.yml"
+            regexp: '(.*{{ item }}.*)'
+            replace: '#\1'
+          when: not versioned_features[item].enabled
+          delegate_to: localhost
+          loop:
+            - manila
+            - freezer
+            - heat-api-cloudwatch
+            - nova-console-auth
+
+        - name: Remove designate and octavia features from input model when scenario is ironic
+          replace:
+            path: "{{ input_model_path }}/data/control_plane.yml"
+            regexp: '(.*{{ item }}.*)'
+            replace: '#\1'
+          when: scenario_name == "entry-scale-ironic-flat-network"
+          delegate_to: localhost
+          loop:
+            - designate
+            - octavia
+            - bind
+
+
         - name: Ardana log stream at
           debug:
             msg: "http://{{ ansible_host }}:9091/"

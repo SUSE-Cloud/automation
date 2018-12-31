@@ -83,3 +83,4 @@ rc_channels:
   cloud-ardana-ci-slot18: "cloud-ci-monitoring"
   cloud-ardana-ci-slot19: "cloud-ci-monitoring"
   cloud-ardana-ci-slot20: "cloud-ci-monitoring"
+  qe006: "cloud-qe-hlm006"
