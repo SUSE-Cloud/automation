@@ -3,7 +3,14 @@
     builders:
       - shell: |
           #!/bin/bash -x
-          [ -e ~/bin/update_automation ] || mkdir -p ~/bin && wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation && chmod a+x ~/bin/update_automation
+          if [ ! -e ~/bin/update_automation ]; then
+              mkdir -p ~/bin
+              tmpf=$(mktemp ~/bin/update_automation.XXXXXX)
+              wget -O $tmpf https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation
+              chmod a+x $tmpf
+              mv -vu $tmpf ~/bin/update_automation
+              rm -f $tmpf
+          fi
           # fetch the latest automation updates
           ~/bin/update_automation
 
