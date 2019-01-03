@@ -21,5 +21,6 @@
     name: "{{ heat_stack_name }}"
     state: present
     template: "{{ heat_template_file }}"
+    timeout: "{{ heat_stack_create_timeout }}"
     api_timeout: "{{ api_timeout }}"
   register: heat_stack_create
