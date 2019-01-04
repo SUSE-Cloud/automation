@@ -53,8 +53,8 @@
         - name: Add RGW endpoint on SES config
           lineinfile:
             path: "/tmp/ses_config/ses_config.yml"
-            insertafter: ".*ses_cluster_name.*"
-            line: "  ses_radosgw_url: http://{{ hostvars['ses-' ~ ses_cluster_id].ansible_host }}:{{ ses_rgw_port }}/swift/v1"
+            regex: "^radosgw_urls"
+            line: "radosgw_urls: ['http://{{ hostvars['ses-' ~ ses_cluster_id].ansible_host }}:{{ ses_rgw_port }}/swift/v1']"
 
         - name: Run swift-reconfigure playbook
           command: "ansible-playbook swift-reconfigure.yml"
