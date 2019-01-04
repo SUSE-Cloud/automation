@@ -56,11 +56,15 @@ mkcconf=mkcloud.config
 rm -f $mkcconf # we dont want to source old info in the line below
 
 : ${virtualcloud:=virtual}
-: ${net_admin:=192.168.124}
+#: ${net_admin:=192.168.124}
+if (( $want_ipv6 > 0 )); then
+    echo ">>> WARNING: IPv6 (want_ipv6) is under active development <<<"
+    : ${net_admin:='fd00:0:0:3'}
+else
+    : ${net_admin:=192.168.124}
+fi
 setcloudnetvars $virtualcloud
 : ${forwardmode:=nat}
-: ${adminnetmask:=255.255.248.0}
-: ${ironicnetmask:=255.255.255.0}
 : ${nodenumber:=2}
 # expect to have this many physical machines attached via $mkch_physcloudif
 # these replace virtual machines, so we start less VMs
@@ -225,7 +229,7 @@ function onhost_supportconfig
             timeout 600 supportconfig | wc &
             wait
         '
-        $scp root@$adminip:/var/log/*tbz $artifacts_dir/
+        $scp root@$(wrap_ip $adminip):/var/log/*tbz $artifacts_dir/
     fi
 }
 
@@ -354,8 +358,8 @@ EOF
     env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig -e ^ironicnetmask | sort >> $mkcconf
 
     cp -a $mkcconf $artifacts_dir/
-    $scp -r $SCRIPTS_DIR $mkcconf root@$adminip:
-    [[ $need_scenario = 1 ]] && $scp $scenario_path root@$adminip:
+    $scp -r $SCRIPTS_DIR $mkcconf root@$(wrap_ip $adminip):
+    [[ $need_scenario = 1 ]] && $scp $scenario_path root@$(wrap_ip $adminip):
     ssh $sshopts root@$adminip "echo `hostname` > cloud ; . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ; $@"
     return $?
 }
@@ -602,7 +606,7 @@ function lonelynode_nfs_server
 function prepareinstcrowbar
 {
     echo "connecting to crowbar admin server at $adminip"
-    ! [ -e crowbar.patch ] || $scp crowbar.patch root@$adminip:
+    ! [ -e crowbar.patch ] || $scp crowbar.patch root@$(wrap_ip $adminip):
     onadmin prepareinstallcrowbar
     return $?
 }
@@ -619,7 +623,7 @@ function scp_install_chef_suse_override
     if [ -e "$install_chef_suse_override" ]; then
         ssh root@$adminip "mv /opt/dell/bin/install-chef-suse.sh{,.orig}"
         $scp -p "$install_chef_suse_override" \
-            root@$adminip:/opt/dell/bin/install-chef-suse.sh
+            root@$(wrap_ip $adminip):/opt/dell/bin/install-chef-suse.sh
         ssh root@$adminip "chmod +x /opt/dell/bin/install-chef-suse.sh"
     fi
 }
@@ -629,7 +633,7 @@ function instcrowbar
     scp_install_chef_suse_override
     onadmin installcrowbar
     local ret=$?
-    $scp root@$adminip:$crowbar_install_log "$artifacts_dir/"
+    $scp root@$(wrap_ip $adminip):$crowbar_install_log "$artifacts_dir/"
     return $ret
 }
 
@@ -639,7 +643,7 @@ function instcrowbarfromgit
     safely rsync -av --exclude ".git" --exclude ".ci-tracking" ./crowbar root@$adminip:/root/
     onadmin installcrowbarfromgit
     local ret=$?
-    $scp root@$adminip:$crowbar_install_log "$artifacts_dir/"
+    $scp root@$(wrap_ip $adminip):$crowbar_install_log "$artifacts_dir/"
     return $ret
 }
 
@@ -811,14 +815,14 @@ function testsetup
 {
     onadmin testsetup
     local ret=$?
-    $scp root@$adminip:tempest*.log "$artifacts_dir/"
+    $scp root@$(wrap_ip $adminip):tempest*.log "$artifacts_dir/"
 
     # Register the cloud in Rally and import the results
     if [[ $rally_server && -f $artifacts_dir/tempest.subunit.log ]] ; then
         local title=$(testname)
         local type=$(testtype)
 
-        $scp root@$adminip:.openrc "$artifacts_dir/"
+        $scp root@$(wrap_ip $adminip):.openrc "$artifacts_dir/"
         local tmpdir=`ssh $sshopts rally@$rally_server "mktemp -d rally-XXXXXX"`
         $scp "$artifacts_dir/tempest.subunit.log" "$artifacts_dir/.openrc" rally@$rally_server:$tmpdir
         ssh $sshopts rally@$rally_server "
@@ -938,11 +942,11 @@ function qa_test
         git clone https://$ghsc/qa-openstack-cli.git
     fi
     popd
-    rsync -av ~/$ghsc/qa-openstack-cli root@$adminip:
+    rsync -av ~/$ghsc/qa-openstack-cli root@$(wrap_ip $adminip):
     onadmin qa_test
     ret=$?
 
-    $scp -r root@$adminip:qa_test.logs/ $artifacts_dir/
+    $scp -r root@$(wrap_ip $adminip):qa_test.logs/ $artifacts_dir/
     return $ret
 }
 
@@ -951,7 +955,7 @@ function crowbarbackup
     safely onadmin crowbarbackup "$@"
     local btargetdir=${artifacts_dir:-.}
     mkdir -p "$btargetdir"
-    safely $scp root@$adminip:/tmp/backup-crowbar.tar.gz "$btargetdir"
+    safely $scp root@$(wrap_ip $adminip):/tmp/backup-crowbar.tar.gz "$btargetdir"
 }
 
 function crowbarrestore
@@ -962,7 +966,7 @@ function crowbarrestore
         complain 56 "No crowbar backup tarball found."
     fi
     onhost_reset_admin
-    safely $scp "$btarball" root@$adminip:/tmp/
+    safely $scp "$btarball" root@$(wrap_ip $adminip):/tmp/
     safely onadmin crowbarrestore "$@"
 }
 

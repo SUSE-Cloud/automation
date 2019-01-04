@@ -970,7 +970,7 @@ function onadmin_prepareinstallcrowbar
     [[ $forcephysicaladmin ]] || lsmod | grep -q ^virtio_blk || complain 25 "this script should be run in the crowbar admin VM"
     [[ $want_ssl_keys ]] && ! [[ -e /root/cloud-keys/ ]] && rsync -a "$want_ssl_keys/" /root/cloud-keys/
     [[ $want_rootpw = linux ]] || echo -e "$want_rootpw\n$want_rootpw" | passwd
-    echo configure static IP and absolute + resolvable hostname ${crowbar_name}.$cloudfqdn gw:$net.1
+    echo configure static IP and absolute + resolvable hostname ${crowbar_name}.$cloudfqdn gw:$net${ip_sep}1
     # We want to use static networking which needs a static resolv.conf .
     # The SUSE sysconfig/ifup scripts drop DNS-servers received from DHCP
     # when switching from DHCP to static.
@@ -980,15 +980,25 @@ function onadmin_prepareinstallcrowbar
 NAME='eth0'
 STARTMODE='auto'
 BOOTPROTO='static'
+EOF
+    if (( ${want_ipv6} > 0 )); then
+        cat >> /etc/sysconfig/network/ifcfg-eth0 <<EOF
+IPV6INIT=yes
+IPV6ADDR='$adminip/$adminnetmask'
+IPV6_DEFAULTGW='${net_admin}${ip_sep}1'
+EOF
+    else
+        cat >> /etc/sysconfig/network/ifcfg-eth0 <<EOF
 IPADDR='$adminip'
 NETMASK='255.255.255.0'
-BROADCAST='$net.255'
+BROADCAST='$net${ip_sep}255'
 EOF
+    fi
     ifdown br0
     rm -f /etc/sysconfig/network/ifcfg-br0
     routes_file=/etc/sysconfig/network/routes
     if ! [ -e $routes_file ] || ! grep -q "^default" $routes_file; then
-        echo "default $net.1 - -" > $routes_file
+        echo "default $net${ip_sep}1 - -" > $routes_file
     fi
     echo "${crowbar_name}.$cloudfqdn" > /etc/HOSTNAME
     hostname `cat /etc/HOSTNAME`
@@ -1064,6 +1074,12 @@ EOF
     local netfile="/etc/crowbar/network.json"
 
     local netfilepatch=`basename $netfile`.patch
+
+    if (( $want_ipv6 > 0 )); then
+        cp $netfile ${netfile}.orig-v4
+        cp $scripts_lib_dir/ipv6/network.json $netfile
+    fi
+
     if [ -e ~/$netfilepatch ]; then
         ensure_packages_installed patch
         patch -p1 $netfile < ~/$netfilepatch
@@ -1079,13 +1095,28 @@ EOF
     # to revert https://github.com/crowbar/barclamp-network/commit/a85bb03d7196468c333a58708b42d106d77eaead
     sed -i.netbak1 -e 's/192\.168\.126/192.168.122/g' $netfile
 
-    sed -i.netbak -e 's/"conduit": "bmc",$/& "router": "192.168.124.1",/' \
-        -e "s/192.168.124/$net/g" \
-        -e "s/192.168.130/$net_sdn/g" \
-        -e "s/192.168.125/$net_storage/g" \
-        -e "s/192.168.127/$net_ceph/g" \
-        -e "s/192.168.123/$net_fixed/g" \
-        -e "s/192.168.122/$net_public/g" \
+    if (( $want_ipv6 > 0 )); then
+        sed -i.netbak -e 's/"conduit": "bmc",$/& "router": "fd00:0:0:3::1",/' \
+            -e "s/fd00:0:0:3:/$net${ip_sep}/g" \
+            -e "s/fd00:0:0:7:/$net_sdn${ip_sep}/g" \
+            -e "s/fd00:0:0:4:/$net_storage${ip_sep}/g" \
+            -e "s/fd00:0:0:5:/$net_ceph${ip_sep}/g" \
+            -e "s/fd00:0:0:2:/$net_fixed${ip_sep}/g" \
+            -e "s/fd00:0:0:1:/$net_public${ip_sep}/g" \
+            -e "s/fd00:0:0:3:5054:ff:fe77:7770/$adminip/g" \
+            -e "s/fd00:0:0:3:5054:ff:fe77:7771/$admin_end_range/g" \
+            $netfile
+    else
+        sed -i.netbak -e 's/"conduit": "bmc",$/& "router": "192.168.124.1",/' \
+            -e "s/192.168.124./$net${ip_sep}/g" \
+            -e "s/192.168.130./$net_sdn${ip_sep}/g" \
+            -e "s/192.168.125./$net_storage${ip_sep}/g" \
+            -e "s/192.168.127./$net_ceph${ip_sep}/g" \
+            -e "s/192.168.123./$net_fixed${ip_sep}/g" \
+            -e "s/192.168.122./$net_public${ip_sep}/g" \
+            $netfile
+    fi
+    sed -i.netbak.vlan \
         -e "s/ 200/ $vlan_storage/g" \
         -e "s/ 600/ $vlan_ceph/g" \
         -e "s/ 300/ $vlan_public/g" \
@@ -1120,6 +1151,12 @@ EOF
     fi
 
     if [[ $want_ironic = 1 ]] ; then
+        if (( $want_ipv6 > 0 )); then
+            # IPv6 don't use broadcast addresses.
+            local ironic_bc=""
+        else
+            local ironic_bc="${net_ironic}${ip_sep}255"
+        fi
         local conmap_complete=`
             python - <<EOPYTHON
 import json
@@ -1147,19 +1184,19 @@ ironic_network={
     'add_bridge': False,
     'add_ovs_bridge': False,
     'bridge_name': 'br-ironic',
-    'subnet': '$net_ironic.0',
+    'subnet': '${net_ironic}${ip_sep}0',
     'netmask': '$ironicnetmask',
-    'broadcast': '$net_ironic.255',
-    'router': '$net_ironic.1',
+    'broadcast': '$ironic_bc',
+    'router': '${net_ironic}${ip_sep}1',
     'router_pref': 50,
     'ranges': {
       'admin': {
-        'start': '$net_ironic.10',
-        'end': '$net_ironic.11'
+        'start': ${net_ironic}${ip_sep}10',
+        'end': '${net_ironic}${ip_sep}11'
       },
       'dhcp': {
-        'start': '$net_ironic.21',
-        'end': '$net_ironic.254'
+        'start': ${net_ironic}${ip_sep}21',
+        'end': ${net_ironic}${ip_sep}254'
       }
     },
     'mtu': 1500
@@ -1843,7 +1880,7 @@ function onadmin_crowbar_register
             set -x
             rm -f /tmp/crowbar_register_done;
             zypper -n in wget screen
-            wget http://$adminip:8091/$image/crowbar_register &&
+            wget http://$(wrap_ip $adminip):8091/$image/crowbar_register &&
             chmod a+x crowbar_register &&
             $hostnamecmd
             zypper -n ref &&
@@ -2829,7 +2866,7 @@ function set_proposalvars
 function set_noproxyvar
 {
     [[ $http_proxy ]] || [[ $https_proxy ]] || return 0
-    [[ $no_proxy =~ "localhost" ]] || no_proxy="127.0.0.1,localhost,$no_proxy"
+    [[ $no_proxy =~ "localhost" ]] || no_proxy="127.0.0.1,localhost,::1,$no_proxy"
     [[ ! $adminip ]] || [[ $no_proxy =~ "$adminip" ]] || no_proxy="$adminip,$no_proxy"
     [[ ! $cloudfqdn ]] || [[ $no_proxy =~ "$cloudfqdn" ]] || no_proxy="$cloudfqdn,$no_proxy"
     export no_proxy="${no_proxy%,}";
@@ -2837,7 +2874,7 @@ function set_noproxyvar
         return 0 # only apply this once
     fi
     local ips
-    printf -v ips '%s,' $net_public.{1..254}
+    printf -v ips '%s,' $net_public${ip_sep}{1..254}
     no_proxy="$ips$no_proxy"
     no_proxy="${no_proxy%,}";
 }
@@ -4811,11 +4848,11 @@ function onadmin_upgrade_ses_to_4
     for node in $ceph_nodes; do
         # Replace SP1 repos with the new ones
         ssh $node "rm /etc/zypp/repos.d/*
-zypper ar -f http://$adminip:8091/suse-12.2/x86_64/install SLES12-SP2-12.2-0
-zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SLES12-SP2-Updates SLES12-SP2-Updates
-zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SLES12-SP2-Pool SLES12-SP2-Pool
-zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Pool SUSE-Enterprise-Storage-4-Pool
-zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Updates SUSE-Enterprise-Storage-4-Updates
+zypper ar -f http://$(wrap_ip $adminip):8091/suse-12.2/x86_64/install SLES12-SP2-12.2-0
+zypper ar -f http://$(wrap_ip $adminip):8091/suse-12.2/x86_64/repos/SLES12-SP2-Updates SLES12-SP2-Updates
+zypper ar -f http://$(wrap_ip $adminip):8091/suse-12.2/x86_64/repos/SLES12-SP2-Pool SLES12-SP2-Pool
+zypper ar -f http://$(wrap_ip $adminip):8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Pool SUSE-Enterprise-Storage-4-Pool
+zypper ar -f http://$(wrap_ip $adminip):8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Updates SUSE-Enterprise-Storage-4-Updates
 zypper ref
 zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgrade-helper"
 
@@ -5527,7 +5564,7 @@ function onadmin_external_ceph
     local node
     local i=0
     local ip_alloc
-    local ses_repo="http://$adminip:8091/suse-$suseversion/$arch/repos/SUSE-Enterprise-Storage-$sesversion"
+    local ses_repo="http://$(wrap_ip $adminip):8091/suse-$suseversion/$arch/repos/SUSE-Enterprise-Storage-$sesversion"
     for node in ${ceph_cluster[@]}; do
         set_node_alias $node ceph$i
         let "i+=1"
@@ -5544,10 +5581,15 @@ function onadmin_external_ceph
         setcloudnetvars $cloud
     fi
     echo "== Running SES deployment script =="
-    if [[ $want_separate_ceph_network -eq 1 ]]; then
-        safely ${SCRIPTS_DIR}/build_ses.sh ${net_ceph}.0/24 ${net_storage}.0/24 ${ceph_cluster[@]}
+    if [[ ${want_ipv6} == 0 ]]; then
+        net_end=".0/24"
     else
-        safely ${SCRIPTS_DIR}/build_ses.sh ${net_public}.0/24 ${net_storage}.0/24 ${ceph_cluster[@]}
+        net_end=":/64"
+    fi
+    if [[ $want_separate_ceph_network -eq 1 ]]; then
+        safely ${SCRIPTS_DIR}/build_ses.sh ${net_ceph}${net_end} ${net_storage}${net_end} ${ceph_cluster[@]}
+    else
+        safely ${SCRIPTS_DIR}/build_ses.sh ${net_public}${net_end} ${net_storage}${net_end} ${ceph_cluster[@]}
     fi
 }
 
