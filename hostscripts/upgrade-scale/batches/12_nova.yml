@@ -1,0 +1,43 @@
+---
+# TODO:
+proposals:
+- barclamp: nova
+  attributes:
+    database_instance: default
+    rabbitmq_instance: default
+    keystone_instance: default
+    glance_instance: default
+    cinder_instance: default
+    neutron_instance: default
+    itxt_instance: ''
+    use_migration: true
+    image_cache_manager_interval: -1
+    scheduler:
+      cpu_allocation_ratio: 3
+      reserved_host_memory_mb: 4096
+    ec2-api:
+      ssl:
+        enabled: true
+        generate_certs: true
+    kvm:
+      nested_virt: true
+    ssl:
+      enabled: true
+      generate_certs: true
+      insecure: true
+    novnc:
+      ssl:
+        enabled: true
+    metadata:
+      vendordata:
+        json: '{"custom-key": "custom-value"}'
+  deployment:
+    elements:
+      nova-controller:
+      - cluster:services
+      nova-compute-kvm:
+      - "@@compute0@@"
+      - "@@compute1@@"
+      nova-compute-qemu: []
+      nova-compute-xen: []
+      ec2-api: []

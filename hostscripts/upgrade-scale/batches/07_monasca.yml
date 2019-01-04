@@ -1,0 +1,28 @@
+---
+proposals:
+- barclamp: monasca
+  attributes:
+    agent:
+      check_frequency: 30
+  deployment:
+    elements:
+      monasca-master:
+      - crowbar.u1.cloud.suse.de
+      monasca-server:
+      - "@@monasca@@"
+      monasca-agent:
+      - "@@compute0@@"
+      - "@@compute1@@"
+      - "@@monasca@@"
+      - "@@controller0@@"
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      - "@@controller4@@"
+      - "@@controller5@@"
+      - "@@controller6@@"
+      monasca-log-agent:
+      - "@@compute0@@"
+      - "@@compute1@@"
+      - "@@controller5@@"
+      - "@@controller6@@"

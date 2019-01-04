@@ -1,0 +1,15 @@
+---
+proposals:
+- barclamp: horizon
+  attributes:
+    keystone_instance: default
+    database_instance: default
+    session_timeout: 1000
+    multi_domain_support: true
+    apache:
+      ssl: true
+      generate_certs: true
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services

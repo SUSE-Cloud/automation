@@ -1,0 +1,25 @@
+---
+proposals:
+- barclamp: ceph
+  attributes:
+    config:
+      fsid: ca97ce1c-4df7-4758-b3b7-f14ea51438ef
+      replicas_number: 2
+    keystone_instance: default
+    radosgw:
+      ssl:
+        enabled: true
+        generate_certs: true
+        insecure: true
+  deployment:
+    elements:
+      ceph-calamari: []
+      ceph-mon:
+      - "@@storage0@@"
+      ceph-osd:
+      - "@@storage0@@"
+      - "@@storage2@@"
+      ceph-mds:
+      - "@@storage1@@"
+      ceph-radosgw:
+      - "@@storage2@@"

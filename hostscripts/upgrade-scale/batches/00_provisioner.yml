@@ -1,0 +1,13 @@
+---
+proposals:
+- barclamp: provisioner
+  attributes:
+    supported_oses:
+      suse-12.2:
+        x86_64:
+          append: wicked.timeout=70 netwait=35 nomodeset
+    timezone: Etc/UTC
+    use_serial_console: true
+    serial_tty: ttyS1,115200
+    chef_splay: 100
+    chef_client_runs: 14400
