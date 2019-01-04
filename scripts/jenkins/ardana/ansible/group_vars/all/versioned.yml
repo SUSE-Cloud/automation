@@ -28,9 +28,6 @@ versioned_features:
     enabled: "{{ when_cloud8 }}"
   heat-api-cloudwatch:
     enabled: "{{ when_cloud8 }}"
-  # FIXME: Remove this entry when bsc#1110414 fixed
-  fix_ardana_ssh_keyscan:
-    enabled: "{{ when_cloud9M3 }}"
   # Disable LVM on virtual deployments with GM8* cloudsources
   # until https://gerrit.suse.provo.cloud/#/c/5143/ gets released
   want_lvm:
