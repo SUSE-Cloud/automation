@@ -38,18 +38,6 @@
             exists, it will be replaced if this job is launched.
 
       - string:
-          name: floating_net
-          default: "floating"
-          description: >-
-            External network
-
-      - string:
-          name: subnet_cidr
-          default: "192.168.200.0/24"
-          description: >-
-            CIDR of the internal network
-
-      - string:
           name: server_key_name
           default: ""
           description: >-
@@ -73,11 +61,24 @@
             Size of the volume to be attached to the SES instance
 
       - string:
-          name: router
+          name: floating_net
+          default: "floating"
+          description: >-
+            External network
+
+      - string:
+          name: network
           default: ""
           description: >-
-            An existing router to connect to the SES internal network.
-            If empty a new router will be created.
+            An existing network to connect the SES node to.
+            If empty a new network will be created.
+
+      - string:
+          name: subnet_cidr
+          default: "192.168.200.0/24"
+          description: >-
+            If network parameter is empty a new network will be created with
+            this CIDR.
 
       - string:
           name: git_automation_repo
