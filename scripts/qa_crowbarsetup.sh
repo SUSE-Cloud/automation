@@ -3287,13 +3287,14 @@ function addfloatingip
 {
     local instanceid=$1
     if iscloudver 7plus; then
-        floatingip=$(openstack floating ip create floating -f value -c floating_ip_address)
+        local floatingip=$(openstack floating ip create floating -f value -c floating_ip_address)
         openstack server add floating ip $instanceid $floatingip
     else
         nova floating-ip-create | tee floating-ip-create.out
-        floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
+        local floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
         nova add-floating-ip "$instanceid" "$floatingip"
     fi
+    echo ${floatingip}
 }
 
 function ha_services_failover_test
@@ -3352,8 +3353,7 @@ function oncontroller_nova_evacuate
     # image always exist after tempest run (cirros-0.3.4-x86_64-tempest-machine)
     nova boot --image cirros-0.3.4-x86_64-tempest-machine --flavor tempest-stuff --availability-zone nova:$hypervisor_host $vm_name
     # Create floating ip assign to instance
-    addfloatingip $vm_name
-    local floatingip=$(openstack server show -c addresses --format value $vm_name | cut -d " " -f 2)
+    local floatingip=$(addfloatingip $vm_name)
     # Update security group for icmp
     if iscloudver 8plus; then
         local projectid=$(openstack project show -c id --format value $OS_PROJECT_NAME)
@@ -4037,12 +4037,11 @@ function oncontroller_testsetup
         tail -n 90 /var/log/nova/*
         complain 38 "VM IP is empty. Exiting"
     fi
-    addfloatingip "$instanceid"
-    vmip=$floatingip
-    wait_for 1000 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm booted and ping returned"
-    wait_for 500  1 "netcat -z $vmip 22" "ssh daemon on testvm is accessible"
+    local floatingip=$(addfloatingip "$instanceid")
+    wait_for 1000 1 "ping -q -c 1 -w 1 $floatingip >/dev/null" "testvm booted and ping returned"
+    wait_for 500  1 "netcat -z $floatingip 22" "ssh daemon on testvm is accessible"
 
-    local ssh_target="$ssh_user@$vmip"
+    local ssh_target="$ssh_user@$floatingip"
 
     wait_for 60 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
 
@@ -4787,10 +4786,9 @@ function oncontroller_waitforinstance
     safely nova list
     nova start testvm || complain 28 "Failed to start VM"
     safely nova list
-    addfloatingip testvm
-    local vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
-    [[ $vmip ]] || complain 12 "no IP found for instance"
-    wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
+    local floatingip=$(addfloatingip testvm)
+    [[ $floatingip ]] || complain 12 "no IP found for instance"
+    wait_for 100 1 "ping -q -c 1 -w 1 $floatingip >/dev/null" "testvm to boot up"
 }
 
 function oncontroller_suspendallinstances
