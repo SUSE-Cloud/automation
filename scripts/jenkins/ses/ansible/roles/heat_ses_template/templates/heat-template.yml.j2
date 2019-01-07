@@ -1,0 +1,110 @@
+heat_template_version: 2016-10-14
+
+description: >
+  Stack for deploying SES AIO
+
+parameters:
+{% if server_key_name is defined %}
+  key_name:
+    type: string
+    label: Key Name
+    description: Name of key-pair to be used for compute instance
+    default: {{ server_key_name }}
+{% endif %}
+  floating_network:
+    type: string
+    label: Floating IP Network
+    description: Name of network to be used for NAT and floating IP addresses
+    default: "{{ floating_net }}"
+
+  default_subnet_cidr:
+    type: string
+    label: Default CIDR
+    description: Default CIDR value to use for networks which don't have CIDR specified
+    default: "{{ subnet_cidr }}"
+
+  router:
+    type: string
+    label: Router
+    description: Router to connect SES internal network to
+    default: "{{ router }}"
+
+resources:
+  ses-{{ ses_id }}_network:
+    type: OS::Neutron::Net
+    properties:
+      name: openstack-ses-{{ ses_id }}
+      port_security_enabled: True
+
+  ses-{{ ses_id }}_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: openstack-ses-{{ ses_id }}
+      network_id: { get_resource: ses-{{ ses_id }}_network }
+      cidr: { get_param: default_subnet_cidr }
+      ip_version: 4
+      enable_dhcp: True
+
+  ses-{{ ses_id }}_port:
+    type: OS::Neutron::Port
+    properties:
+      name: openstack-ses-{{ ses_id }}
+      network_id: { get_resource: ses-{{ ses_id }}_network }
+      security_groups:
+        - all-incoming
+
+  ses-{{ ses_id }}_server:
+    type: OS::Nova::Server
+    properties:
+{% if server_key_name is defined %}
+      key_name: { get_param: key_name }
+{% endif %}
+      name: openstack-ses-{{ ses_id }}
+      image: {{ server_image }}
+      flavor: {{ server_flavor }}
+      networks:
+        - port: { get_resource: ses-{{ ses_id }}_port }
+
+  ses-{{ ses_id }}_vol:
+    type: OS::Cinder::Volume
+    properties:
+      name: openstack-ses-{{ ses_id }}
+      size: {{ volume_size }}
+
+  ses-{{ ses_id }}_vol_att:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      instance_uuid: { get_resource: ses-{{ ses_id }}_server }
+      volume_id: { get_resource: ses-{{ ses_id }}_vol }
+      mountpoint: "{{ volume_mountpoint }}"
+
+{% if router is not defined or router|length == 0 %}
+  ses-{{ ses_id }}_router:
+    type: OS::Neutron::Router
+    properties:
+      name: openstack-ses-{{ ses_id }}
+      external_gateway_info:
+        network: { get_param: floating_network }
+{% endif %}
+
+  ses-{{ ses_id }}-router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { {{ (router is not defined or router|length == 0) | ternary('get_resource: ses-' ~ ses_id ~ '_router', 'get_param: router') }} }
+      subnet: { get_resource: ses-{{ ses_id }}_subnet }
+
+  ses_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: floating_network }
+
+  ses_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: ses_floating_ip }
+      port_id: { get_resource: ses-{{ ses_id }}_port }
+
+outputs:
+  ses-floating-ip:
+    description: Floating IP address of the SES node
+    value: { get_attr: [ses_floating_ip, floating_ip_address] }
