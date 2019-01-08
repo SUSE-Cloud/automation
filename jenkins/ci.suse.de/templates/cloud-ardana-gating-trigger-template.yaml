@@ -1,0 +1,22 @@
+- job-template:
+    name: '{ardana_gating_trigger_job}'
+    project-type: multijob
+    node: cloud-trigger
+
+    triggers:
+      - pollurl:
+          cron: 'H/5 * * * *'
+          polling-node: cloud-trigger
+          urls:
+            - url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-devel-staging/media.1/build'
+              check-content:
+                - simple: true
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 14
+
+    builders:
+      - trigger-builds:
+         - project: cloud-ardana{version}-gating
+           block: false

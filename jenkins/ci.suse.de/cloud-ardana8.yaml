@@ -1,10 +1,16 @@
 - project:
+    name: cloud-ardana8-gating-trigger
+    ardana_gating_trigger_job: '{name}'
+    version: '8'
+    jobs:
+        - '{ardana_gating_trigger_job}'
+
+- project:
     name: cloud-ardana8-gating
     ardana_gating_job: '{name}'
+    concurrent: False
     ardana_env: cloud-ardana-ci-slot
-    model: std-min
-    version: 8
-    label: cloud-trigger
+    version: '8'
     jobs:
         - '{ardana_gating_job}'
 
