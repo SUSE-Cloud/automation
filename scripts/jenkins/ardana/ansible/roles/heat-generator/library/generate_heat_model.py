@@ -215,7 +215,8 @@ input_model_schema = {
 
 # The number of addresses from the Ardana management subnet
 # that are set aside for external management services
-EXTERNAL_MGMT_ADDR_RANGE=50
+EXTERNAL_MGMT_ADDR_RANGE = 50
+
 
 def convert_element_list_to_map(element, list_attr_name,
                                 foreign_key_attr='name'):
@@ -674,7 +675,8 @@ def generate_heat_model(input_model, virt_config):
             heat_network['allocation_pools'] = \
                 [[str(start_addr), str(end_addr)]]
 
-        elif 'default' in network['network-group']['component-endpoints']:
+        elif ('component-endpoints' in network['network-group'] and 'default'
+              in network['network-group']['component-endpoints']):
             heat_network['external'] = heat_network['is_mgmt'] = True
 
             # Create an address pool range that is outside of the range
@@ -682,7 +684,7 @@ def generate_heat_model(input_model, virt_config):
             mgmt_net_last = IPAddress(IPNetwork(network['cidr']).last)
             heat_network['allocation_pools'] = \
                 [[str(mgmt_net_last - EXTERNAL_MGMT_ADDR_RANGE),
-                  str(mgmt_net_last)-1]]
+                  str(mgmt_net_last - 1)]]
 
         heat_networks[network['name']] = heat_network
 

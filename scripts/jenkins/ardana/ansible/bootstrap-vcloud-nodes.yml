@@ -23,7 +23,7 @@
     task: "deploy"
     virtual_hosts:
       - group: controller
-        ips: "{{ hostvars['localhost'].controller_conf_ips | difference([hostvars['localhost'].admin_mgmt_ip]) }}"
+        ips: "{{ hostvars['localhost'].controller_conf_ips | difference([hostvars['localhost'].admin_conf_ip]) }}"
       - group: compute
         ips: "{{ hostvars['localhost'].compute_conf_ips }}"
 
