@@ -56,7 +56,6 @@ mkcconf=mkcloud.config
 rm -f $mkcconf # we dont want to source old info in the line below
 
 : ${virtualcloud:=virtual}
-#: ${net_admin:=192.168.124}
 if (( $want_ipv6 > 0 )); then
     echo ">>> WARNING: IPv6 (want_ipv6) is under active development <<<"
     : ${net_admin:='fd00:0:0:3'}
@@ -437,7 +436,11 @@ function setupadmin
 {
     ${mkclouddriver}_do_setupadmin
 
-    wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
+    ping_cmd="ping"
+    if (( $want_ipv6 > 0 )); then
+        ping_cmd="ping6"
+    fi
+    wait_for 300 1 "$ping_cmd -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
     wait_for_crowbar_ssh
 
     echo "Injecting public key into admin node..."
