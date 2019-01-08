@@ -284,7 +284,7 @@
 
       - bool:
           name: ses_enabled
-          default: false
+          default: '{ses_enabled|false}'
           description: Configure SES backend for glance, cinder, cinder-backup, nova and swift
 
       - extended-choice:
@@ -400,7 +400,7 @@
           description: >-
             The OpenStack API credentials used to manage virtual clouds (leave
             empty to use the default shared 'cloud' ECP account).
-      
+
       - bool:
           name: ipv6
           default: false
