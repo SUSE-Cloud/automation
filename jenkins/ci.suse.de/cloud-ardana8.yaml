@@ -10,6 +10,18 @@
         - '{ardana_url_trigger_job}'
 
 - project:
+    name: cloud-ardana8-updates-test-trigger
+    ardana_url_trigger_job: '{name}'
+    version: '8'
+    url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-Updates-test/SUSE:Maintenance:Test:OpenStack-Cloud:{version}:x86_64.repo'
+    check_date: true
+    projects:
+      - project: 'cloud-ardana{version}-job-entry-scale-kvm-pcloud001-x86_64'
+        block: false
+    jobs:
+        - '{ardana_url_trigger_job}'
+
+- project:
     name: cloud-ardana8-gating
     ardana_gating_job: '{name}'
     concurrent: False
@@ -107,7 +119,8 @@
     concurrent: false
     ardana_env: pcloud001
     reserve_env: true
-    cloudsource: stagingcloud8
+    cloudsource: GM8+up
+    updates_test_enabled: true
     scenario_name: entry-scale-kvm
     clm_model: standalone
     controllers: '3'
@@ -125,8 +138,7 @@
       keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
       service-ansible-playbooks,enable_tls,tempest_cleanup"
     rc_notify: 'true'
-    triggers:
-     - timed: 'H H * * *'
+    triggers: []
     jobs:
         - '{ardana_job}'
 
