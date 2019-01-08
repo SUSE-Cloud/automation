@@ -134,8 +134,8 @@ parameter to the `generate-heat.yml` playbook.
 
 Following is an example of a virtual configuration, demonstrating which details can be customized:
 * _clm_service_components_ - this is the complete list of service components required by the CLM node. The heat
-template generator uses this list to figure out whether a server is a CLM node, a controller node or a compute node.
-This information will then be used to group management IP addresses together and to determine the server flavor,
+template generator uses this list to figure out whether a server is a deployer node, a controller node or a compute node.
+This information will then be used to group lifecycle management IP addresses together and to determine the server flavor,
 unless explicitly configured for the server or server role
 * _clm_flavor_ - default flavor used for the CLM node
 * _controller_flavor_ - default flavor used for all controller nodes
@@ -292,27 +292,27 @@ generator has the following structure:
                 "cidr": "192.168.110.0/24", 
                 "external": true, 
                 "gateway": "192.168.110.1", 
-                "is_mgmt": true, 
+                "is_conf": true,
                 "name": "ARDANA-NET"
             }, 
             "EXTERNAL-VM-NET": {
                 "cidr": "172.31.0.0/16", 
                 "external": true, 
                 "gateway": "172.31.0.1", 
-                "is_mgmt": false, 
+                "is_conf": false,
                 "name": "EXTERNAL-VM-NET"
             }, 
             "MANAGEMENT-NET": {
                 "cidr": "192.168.245.0/24", 
                 "external": true, 
                 "gateway": "192.168.245.1", 
-                "is_mgmt": false, 
+                "is_conf": false,
                 "name": "MANAGEMENT-NET"
             }, 
             "OCTAVIA-MGMT-NET": {
                 "cidr": "172.30.1.0/24", 
                 "external": true, 
-                "is_mgmt": false, 
+                "is_conf": false,
                 "name": "OCTAVIA-MGMT-NET", 
                 "vlan": 106
             }
@@ -394,7 +394,7 @@ The following points capture the detailed strategy used during the conversion:
 
 The following are networks that are special and/or require special handling:
 
-* the "CLM" or "management" network:
+* the "lifecycle management" or "configuration" network:
 
   * identification: the input model network with the same CIDR value as that configured
     in the baremetal server settings. This network is also associated with the lifecycle manager
@@ -412,6 +412,17 @@ The following are networks that are special and/or require special handling:
   * ports attaching OpenStack servers to the CLM network must usually translate into the lowest
   interface index (i.e. eth0), because this is the interface that is usually configured in the guest
   OS to perform DHCP
+
+* the Ardana "management" network:
+
+  * identification: the input model network that has a network group associated with the "default"
+  component endpoint
+  * this network will be used by other, external management services, such as SES, which is why we
+  need to do the following:
+    * enable DHCP for this network
+    * set up an IP allocation pool that is outside of the range covered by Ardana, so that there are
+    no conflicts between DHCP allocated addresses and the addresses that Ardana allocates for cloud
+    nodes and virtual IPs
 
 * neutron external "bridge" networks:
 

@@ -35,16 +35,16 @@ vcloud_flavor_name_prefix: "{{ 'cloud-ardana-job-lvm' if want_lvm else 'cloud-ar
 
 cli_stack_queries:
   - "admin-floating-ip"
-  - "admin-mgmt-ip"
-  - "controller-mgmt-ips"
-  - "compute-mgmt-ips"
+  - "admin-conf-ip"
+  - "controller-conf-ips"
+  - "compute-conf-ips"
 
 heat_stack_output_queries:
  - item: "admin-floating-ip"
    stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'admin-floating-ip') | map(attribute='output_value') | list | join('') }}"
- - item: "admin-mgmt-ip"
-   stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'admin-mgmt-ip') | map(attribute='output_value') | list | join('') }}"
- - item: "controller-mgmt-ips"
-   stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'controller-mgmt-ips') | map(attribute='output_value') | list | flatten }}"
- - item: "compute-mgmt-ips"
-   stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'compute-mgmt-ips') | map(attribute='output_value') | list | flatten }}"
+ - item: "admin-conf-ip"
+   stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'admin-conf-ip') | map(attribute='output_value') | list | join('') }}"
+ - item: "controller-conf-ips"
+   stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'controller-conf-ips') | map(attribute='output_value') | list | flatten }}"
+ - item: "compute-conf-ips"
+   stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'compute-conf-ips') | map(attribute='output_value') | list | flatten }}"
