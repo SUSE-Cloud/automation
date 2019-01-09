@@ -139,6 +139,7 @@
     controllers: '3'
     sles_computes: '2'
     rhel_computes: '0'
+    ses_enabled: true
     tempest_filter_list: "\
       ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,\
       magnum,manila,monasca,network,neutron-api,swift"
