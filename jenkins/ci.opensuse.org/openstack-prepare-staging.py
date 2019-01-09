@@ -5,6 +5,11 @@ import sys
 import os
 
 try:
+    from urllib.error import HTTPError
+except ImportError:
+    from urllib2 import HTTPError
+
+try:
     from xml.etree import cElementTree as ET
 except ImportError:
     import cElementTree as ET
@@ -18,7 +23,7 @@ def get_package_results(apiurl, project, package=None, wait=False, *args, **kwar
     while True:
         waiting = False
         try:
-            xml = ''.join(show_results_meta(apiurl, project, package, *args, **kwargs))
+            xml = ''.join(osc.core.show_results_meta(apiurl, project, package, *args, **kwargs))
         except HTTPError as e:
             # check for simple timeout error and fetch again
             if e.code == 502 or e.code == 504:
