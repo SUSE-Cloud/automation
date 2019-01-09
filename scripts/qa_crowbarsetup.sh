@@ -931,7 +931,7 @@ function onadmin_set_source_variables
         GMC*|M?|RC?)
             cs=$cloudsource
             CLOUDISOURL="${want_cloud9_iso_path:=$susedownload/install/SLE-12-SP4-Cloud9-$cs/}"
-            CLOUDISONAME=${want_cloud9_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*1.iso"}
+            CLOUDISONAME=${want_cloud9_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-official"
         ;;
         *)
