@@ -23,12 +23,23 @@
     insertbefore: "^ses_config_file:"
   register: ses_config
 
-- name: Set default glance backend to RBD
+- name: Remove glance file store config from input model
+  lineinfile:
+    path: "~/openstack/my_cloud/definition/data/control_plane.yml"
+    regexp: "(.*ha_mode.*|.*glance_stores.*)"
+    state: absent
+
+- name: Set default glance backend to RBD on ardana input model
   replace:
     dest: "~/openstack/my_cloud/definition/data/control_plane.yml"
-    regexp: "(?<=-\\sglance-api)$"
-    replace: ":\n                glance_default_store: 'rbd'"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
   register: im
+  loop:
+    - regexp: "(?<=-\\sglance-api)$"
+      replace: ":\n                glance_default_store: 'rbd'"
+    - regexp: "glance_default_store:\\s.*"
+      replace: "glance_default_store: 'rbd'"
 
 - name: Commit SES config changes
   shell: |

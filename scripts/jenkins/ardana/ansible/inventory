@@ -21,7 +21,7 @@ qe2023          ansible_host=10.84.89.151
 scale           ansible_host=10.84.48.51
 
 [ses_qe]
-ses-qe1         ansible_host=10.84.88.251
+ses-qe          ansible_host=10.84.88.251
 
 [qe_all:children]
 gate_qe
@@ -30,5 +30,8 @@ ses_qe
 
 [deployer_virt]
 
+[ses_virt]
+
 [virt_all:children]
 deployer_virt
+ses_virt

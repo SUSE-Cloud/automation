@@ -285,7 +285,14 @@
       - bool:
           name: ses_enabled
           default: '{ses_enabled|false}'
-          description: Configure SES backend for glance, cinder, cinder-backup, nova and swift
+          description: Configure SES backend for glance, cinder, cinder-backup and nova
+
+      - bool:
+          name: ses_rgw_enabled
+          default: '{ses_rgw_enabled|true}'
+          description: |
+            Configure object-store service with RADOS Gateway. This only takes effect
+            if ses_enabled is set to true.
 
       - extended-choice:
           name: tempest_filter_list
