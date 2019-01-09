@@ -2,12 +2,15 @@
     name: 'openstack-cleanvm'
     project-type: matrix
 
-    triggers:
-      - timed: 'H 4 * * *'
-
     logrotate:
       numToKeep: -1
       daysToKeep: 10
+
+    parameters:
+      - string:
+          name: openstack_project
+          default: None
+          description: name of the main project that should be updated with packages from its staging project
 
     axes:
       - axis:
@@ -19,15 +22,6 @@
             - SLE_12_SP4
             - openSUSE-Leap-42.3
             - openSUSE-Leap-15.0
-      - axis:
-          type: user-defined
-          name: openstack_project
-          values:
-            - Newton
-            - Pike
-            - Queens
-            - Rocky
-            - Master
       - axis:
           type: slave
           name: slave
@@ -94,9 +88,3 @@
 
           exec_jtsync ${main_job_name} ${openstack_project} ${BUILD_NUMBER} $ret
           exit $ret
-      - trigger-builds:
-        - project: openstack-submit
-          condition: SUCCESS
-          current-parameters: true
-          predefined-parameters:
-            openstack_project=${openstack_project}
