@@ -67,18 +67,6 @@
                develcloud<X> (Devel:Cloud:X)
                GM<X> (official GM)
 
-      - bool:
-          name: ses_enabled
-          default: '{ses_enabled|false}'
-          description: Configure SES backend for glance, cinder, cinder-backup and nova
-
-      - bool:
-          name: ses_rgw_enabled
-          default: '{ses_rgw_enabled|false}'
-          description: |
-            Configure object-store service with RADOS Gateway. This only takes effect
-            if ses_enabled is set to true.
-
       - string:
           name: tempest_filter_list
           default: '{tempest_filter_list|ci}'
