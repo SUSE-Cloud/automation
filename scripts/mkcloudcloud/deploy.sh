@@ -4,12 +4,16 @@
 ### from local machine to setup infrastructure on engcloud
 export namespace=$USER
 export openstacksshkey=xxx
-./heat-setup.sh
+if ! ./heat-setup.sh; then
+  echo "Error deploying stack"
+  exit 1
+fi
+
 admin_ip=`cat .admin_ip`
 
 ### PART-2
 ### mkcloud and surrounding setup
-ssh root@$admin_ip
+nc -z -w 60 $admin_ip 22 && ssh root@$admin_ip
 # and execute this
 zypper="zypper --gpg-auto-import-keys -n"
 
@@ -57,6 +61,15 @@ export want_tempest_proposal=1
 ./mkcloud "\$@"
 EOF
 chmod a+x cloud9
+
+if [ ! -f ~/.ssh/id_rsa.pub ]; then
+  ssh-keygen -t rsa -f /root/.ssh/id_rsa -N ""
+  cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+  chmod 600 ~/.ssh/authorized_keys
+fi
+
+$zypper in nfs-client
+
 ./cloud9 prepareinstcrowbar bootstrapcrowbar instcrowbar
 
 # Rick suggested you could add the remaning nodes as lonelynodes to crowbar
