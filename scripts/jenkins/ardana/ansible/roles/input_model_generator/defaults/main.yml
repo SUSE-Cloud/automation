@@ -84,8 +84,8 @@ service_component_groups:
     - cinder-backup
     - designate-api
     - designate-central
-    - "{{ enable_designate_worker_producer | ternary('desigate-worker', 'designate-pool-manager') }}"
-    - "{{ enable_designate_worker_producer | ternary('desigate-producer', 'designate-zone-manager') }}"
+    - "{{ enable_designate_worker_producer | ternary('designate-worker', 'designate-pool-manager') }}"
+    - "{{ enable_designate_worker_producer | ternary('designate-producer', 'designate-zone-manager') }}"
     - designate-mdns
     - glance-api
     #- glance-api:
