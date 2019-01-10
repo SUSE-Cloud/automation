@@ -61,7 +61,11 @@
     name: cloud-ardana9-job-demo-x86_64
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
-    model: demo
+    scenario_name: standard
+    clm_model: integrated
+    controllers: '1'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|octavia'
     triggers:
      - timed: 'H H * * *'
     jobs:
