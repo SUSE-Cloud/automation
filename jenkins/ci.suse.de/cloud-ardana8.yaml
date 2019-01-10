@@ -25,8 +25,8 @@
     name: cloud-ardana8-gating
     ardana_gating_job: '{name}'
     concurrent: False
-    ardana_env: cloud-ardana-ci-slot
     version: '8'
+    ardana_env: 'cloud-ardana-gate{version}-slot'
     jobs:
         - '{ardana_gating_job}'
 
