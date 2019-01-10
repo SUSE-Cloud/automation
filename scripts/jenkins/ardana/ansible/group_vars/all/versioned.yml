@@ -37,3 +37,6 @@ versioned_features:
   # fix gets released
   external_network_bridge:
     enabled: "{{ when_cloud8 and not when_staging_or_devel }}"
+  # designate zone/pool (Cloud8) or worker/producer (Cloud9)
+  designate_worker_producer:
+    enabled: "{{ when_cloud9 }}"
