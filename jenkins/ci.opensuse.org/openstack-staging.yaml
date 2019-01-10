@@ -23,7 +23,7 @@
           type: slave
           name: slave
           values:
-            - cloud-cleanvm
+            - openstack
     execution-strategy:
       sequential: true
     builders:
