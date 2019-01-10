@@ -182,9 +182,9 @@ pipeline {
             }
           }
         }
-        stage('Deploy SES') {
+        stage('Deploy SES for vcloud') {
           when {
-            expression { ses_enabled == 'true' }
+            expression { ses_enabled == 'true' && cloud_type == 'virtual' }
           }
           steps {
             script {
