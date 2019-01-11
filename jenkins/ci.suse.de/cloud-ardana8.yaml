@@ -36,6 +36,8 @@
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
     model: std-3cp
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -47,6 +49,8 @@
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
     model: dac-3cp
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -58,6 +62,8 @@
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
     model: std-min
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -69,6 +75,8 @@
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
     model: std-split
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -82,6 +90,8 @@
     update_after_deploy: true
     update_to_cloudsource: stagingcloud8
     model: std-3cp
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -97,6 +107,8 @@
     update_after_deploy: true
     update_to_cloudsource: GM8+up
     model: std-3cp
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -108,6 +120,8 @@
     ardana_env: cloud-ardana-ci-slot
     cloudsource: GM8+up
     model: std-min
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -147,6 +161,8 @@
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-gerrit-slot
     cloudsource: develcloud8
+    ses_enabled: true
+    ses_rgw_enabled: false
     gerrit_change_ids: '${{GERRIT_CHANGE_NUMBER}}/${{GERRIT_PATCHSET_NUMBER}}'
     triggers:
       - gerrit:
