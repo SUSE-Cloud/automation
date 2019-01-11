@@ -49,6 +49,7 @@
             - manila
             - freezer
             - heat-api-cloudwatch
+            - nova-console-auth
 
         - name: Ardana log stream at
           debug:
