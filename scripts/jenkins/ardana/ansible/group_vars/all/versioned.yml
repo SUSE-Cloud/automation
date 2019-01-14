@@ -28,6 +28,8 @@ versioned_features:
     enabled: "{{ when_cloud8 }}"
   heat-api-cloudwatch:
     enabled: "{{ when_cloud8 }}"
+  nova-console-auth:
+    enabled: "{{ when_cloud8 }}"
   # Disable LVM on virtual deployments with GM8* cloudsources
   # until https://gerrit.suse.provo.cloud/#/c/5143/ gets released
   want_lvm:
