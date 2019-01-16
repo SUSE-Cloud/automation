@@ -26,6 +26,7 @@
         - 'cloud-mkcloud{version}-job-monasca-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-disruptive-{arch}'
+        - 'cloud-mkcloud{version}-job-ipv6-{arch}'
 - project:
     name: cloud-mkcloud9-ha-x86_64
     disabled: false
