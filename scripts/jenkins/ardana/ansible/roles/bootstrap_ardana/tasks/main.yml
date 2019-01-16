@@ -39,7 +39,6 @@
     remote_src: yes
 
 - include_tasks: download_cobbler_requires.yml
-  when: is_physical_deploy
 
 - include_tasks: update_deployer.yml
   when: is_physical_deploy

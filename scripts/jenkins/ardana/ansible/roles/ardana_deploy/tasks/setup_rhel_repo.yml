@@ -30,11 +30,11 @@
   when: rhel_plays.changed
 
 - name: Run playbooks to enable RHEL repo on deployer
-  command: "ansible-playbook -i hosts/localhost {{ item }}.yml"
+  command: "ansible-playbook -i hosts/localhost {{ item }}"
   args:
     chdir: "{{ ardana_openstack_path }}"
   loop:
-    - "set-deployer-rhel-repo"
-    - "ready-deployment"
+    - "set-deployer-rhel-repo.yml -e cloud_version={{ cloud_release[-1] }} -e rhel_release='{{ rhel_os_version[0] }}.{{ rhel_os_version[1] }}'"
+    - "ready-deployment.yml"
   register: ardana_rhel_plays
   when: not (ardana_rhel_plays | default({})) is failed

@@ -157,6 +157,21 @@
         - '{ardana_job}'
 
 - project:
+    name: cloud-ardana8-job-std-min-centos-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud8
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '0'
+    rhel_computes: '2'
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
     name: openstack-ardana-gerrit-cloud8
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-gerrit-slot

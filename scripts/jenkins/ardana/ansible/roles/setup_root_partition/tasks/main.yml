@@ -118,54 +118,54 @@
 
 - name: Print starting partition size
   command: parted --script {{ root_fs_base_dev }} print
-  register: sles_vm_partitions
+  register: vm_partitions
 
 - debug:
-    var: sles_vm_partitions
+    var: vm_partitions
 
 - name: Print starting filesystem size
   command: df -h /
-  register: sles_vm_filesystems
+  register: vm_filesystems
   changed_when: False
 
 - debug:
-    var: sles_vm_filesystems
+    var: vm_filesystems
 
 - name: Change fdisk start field number for single partition layout
   set_fact:
-    sles_vm_fdisk_start_field: 3
+    vm_fdisk_start_field: 3
   when:
     - root_fs_partition | int == 1
 
 - name: Check if disk is much larger than root partition
   shell: fdisk -l {{ root_fs_base_dev }} | awk -v DEV={{ root_fs_dev_path }}
       '$1 == "Disk" && $NF == "sectors" { total = $(NF-1) }
-       $1 == DEV { used = $({{ sles_vm_fdisk_start_field | int }}+1) }
+       $1 == DEV { used = $({{ vm_fdisk_start_field | int }}+1) }
        END { print int(total/used) }'
-  register: sles_vm_disk_size
+  register: vm_disk_size
   changed_when: False
 
 - name: Get the start sector of the root partition
   shell: fdisk -l {{ root_fs_base_dev }} | awk -v DEV={{ root_fs_dev_path }}
-      '$1 == DEV { print ${{ sles_vm_fdisk_start_field | int }}; }'
-  register: sles_vm_partition_start
+      '$1 == DEV { print ${{ vm_fdisk_start_field | int }}; }'
+  register: vm_partition_start
   when:
-    - sles_vm_disk_size.stdout != "inf"
-    - (sles_vm_disk_size.stdout | int) > 1
-  failed_when: (sles_vm_partition_start.stdout | int) == 0
+    - vm_disk_size.stdout != "inf"
+    - (vm_disk_size.stdout | int) > 1
+  failed_when: (vm_partition_start.stdout | int) == 0
 
 - name: Grow root partition filesystem
   shell: |
     /usr/sbin/growpart {{ root_fs_base_dev }} {{ root_fs_partition }}
-  register: sles_vm_resize_partition
+  register: vm_resize_partition
   when:
-    - sles_vm_partition_start.changed
-    - (sles_vm_disk_size.stdout | int) > 1
+    - vm_partition_start.changed
+    - (vm_disk_size.stdout | int) > 1
 
 - name: Check root vol size
   shell: >
     lvdisplay {{ root_vg }}/{{ root_lv }} | grep "LV Size" | awk '{print $3}'
-  register: sles_lvm_root_size
+  register: lvm_root_size
   when:
     - root_mount.device.startswith('/dev/mapper')
   changed_when: False
@@ -174,7 +174,7 @@
   command: pvresize {{ root_pv }}
   when:
     - root_mount.device.startswith('/dev/mapper')
-    - (sles_lvm_root_size.stdout | int) < (min_deployer_root_part_size | int)
+    - (lvm_root_size.stdout | int) < (min_deployer_root_part_size | int)
 
 - name: Resize lv if necessary
   command: lvresize -L {{ min_deployer_root_part_size }}G /dev/{{ root_vg }}/{{ root_lv }}
@@ -182,26 +182,38 @@
   failed_when: ( _lvresize_output.rc != 0 ) and ( "matches existing size" not in _lvresize_output.stderr )
   when:
     - root_mount.device.startswith('/dev/mapper')
-    - (sles_lvm_root_size.stdout | int) < (min_deployer_root_part_size | int)
+    - (lvm_root_size.stdout | int) < (min_deployer_root_part_size | int)
+
+- name: Check root vol fstype
+  shell: df --output=fstype "{{ root_mount.device }}"
+  register: lvm_root_fstype
 
 - name: Resize the filesystem
   command: resize2fs "{{ root_mount.device }}"
-  register: sles_vm_resize_filesystem
+  register: vm_resize_filesystem
   when:
-    - sles_vm_resize_partition is not skipped
+    - vm_resize_partition is not skipped
+    - lvm_root_fstype.stdout.find('ext') != -1
+
+- name: Resize the filesystem
+  command: xfs_growfs "{{ root_mount.device }}"
+  register: vm_resize_filesystem
+  when:
+    - vm_resize_partition is not skipped
+    - lvm_root_fstype.stdout.find('xfs') != -1
 
 - name: Print finishing partition size
   command: parted {{ root_fs_base_dev }} print
-  register: sles_vm_partitions
+  register: vm_partitions
   when:
-    - sles_vm_resize_partition is not skipped
+    - vm_resize_partition is not skipped
 
-- debug: var=sles_vm_partitions
+- debug: var=vm_partitions
 
 - name: Print finishing filesystem size
   command: df -h /
-  register: sles_vm_filesystems
+  register: vm_filesystems
   when:
-    - sles_vm_resize_filesystem is not skipped
+    - vm_resize_filesystem is not skipped
 
-- debug: var=sles_vm_filesystems
+- debug: var=vm_filesystems

@@ -23,6 +23,8 @@ template_file_name: "{{ scenario[item ~ '_template'] }}.yml"
 clm_model: standalone
 availability_zones: 3
 
+rhel_distro_id: "rhel{{ rhel_os_version }}-x86_64"
+
 # Backend for designate: powerdns or bind
 designate_backend: bind
 

@@ -15,6 +15,10 @@
 #
 ---
 
+rhel_release: '7.5'
+
+cloud_version: 8
+
 yum_optional_loc: ardana/rhel7/yum/optional
 yum_optional_dir: "{{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ yum_optional_loc }}"
 
@@ -25,26 +29,10 @@ deployer_rhel7_yum_optional_tarball: "rhel7-opt-yum.tgz"
 
 disable_suse_centos_repo_auto_setup: false
 
-# Dev tool specific glag
-cloudsetup_legacy_mode: false
-
-# Flag to identify if RHEL compute is added in dev/CI deployment.
-devtools_rhel_setup: false
-
 _downloaded_rpms_list: []
-_c8setup_mode_path_exists: false
 
-# Paths which are expected to exist in C8 setup mode (not in legacy mode)
-# If any of these path is found on deployer, then its a non-legacy mode.
-c8setup_mode_detection_paths:
- - "/usr/bin/ardana-init"
- - "{{ PACKAGE_CONSTANTS.REPO_DIR }}/ardana/sles12/zypper/C8"
- - "{{ PACKAGE_CONSTANTS.REPO_DIR }}/ardana/sles12/zypper/cloud8"
-
-centos_repo_setup_name: centos_c8_ardana
-#centos_repo_setup_url: "http://ibs-mirror.prv.suse.net/ibs/Devel:/Cloud:/8:/RHEL_Pike/CentOS_7"
-#centos_repo_setup_url: "http://10.84.2.50/ibs/Devel:/Cloud:/8:/RHEL_Pike/CentOS_7"
-centos_repo_setup_url: https://download.opensuse.org/repositories/systemsmanagement:/Ardana:/8:/CentOS/CentOS_7.3/
+centos_repo_setup_name: "centos_c{{ cloud_version }}_ardana"
+centos_repo_setup_url: "https://download.opensuse.org/repositories/systemsmanagement:/Ardana:/{{ cloud_version }}:/CentOS:/{{ rhel_release }}/CentOS_{{ rhel_release }}/"
 
 centos_all_rpms_dir: all_rpms
 centos_repo_tarball_name: centos_rpms_repo.tgz
@@ -67,8 +55,21 @@ rhel_venv_rpms_list:
 
 # List of rhel/centos rpms to be made available for RHEL compute. These rpms
 # are hosted on deployer and accordingly repo is configured on RHEL compute.
+# The RPMs come from the cloud CentOS zypper repository [1] and they are copied
+# over to the deployer to a location which is set up as a CentOS yum repository.
+#
+# FIXME: maintaining this list is a real pain, because every time package
+# dependencies change, it needs to be updated. A better way to do this would
+# be to follow the approach in the official documentation [2] which is to
+# store the full contents of the CentOS zypper repository on the deployer,
+# instead of downloading only the packages in this list. This also requires
+# the repository contents to be mirrored to Provo.
+#
+# [1] https://download.opensuse.org/repositories/systemsmanagement:/Ardana:/[8|9]:/CentOS:/[7.3|7.5]/CentOS_[7.3|7.5/
+# [2] http://docserv.suse.de/documents/SUSE_OpenStack_Cloud_8/hpe-helion-openstack-installation/single-html/#sec.install_rhel_compute_node.provision-deployer
 rhel_repo_rpms_list:
   - ca-certificates-mozilla
+  - python-asn1crypto
   - python-Babel
   - python-PyJWT
   - python-appdirs
@@ -88,7 +89,7 @@ rhel_repo_rpms_list:
   - python-keystoneauth1
   - python-keystoneclient
   - python-monotonic
-  - python-msgpack-  - python
+  - python-msgpack-python
   - python-netaddr
   - python-netifaces
   - python-oauthlib
@@ -110,9 +111,7 @@ rhel_repo_rpms_list:
   - python-stevedore
   - python-urllib3
   - python-wrapt
-  - python2-cryptography
-  - python2-pyasn1
-  - python-msgpack-python
+  - python-cryptography
   - python-base
   - python-Beaver
   - python-pyparsing
@@ -187,3 +186,14 @@ rhel_repo_rpms_list:
   - python-monascaclient
   - supportutils
   - supportutils-plugin-suse-openstack-cloud
+  # The following are required only for SOC9
+  - python-six
+  - python-openstacksdk
+  - python-os-service-types
+  - python-msgpack
+  - python-wcwidth
+  - python-contextlib2
+  - python-subprocess32
+  - python-deprecation
+  - python-munch
+  - libsodium23
