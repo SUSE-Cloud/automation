@@ -25,6 +25,7 @@
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-monasca-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-disruptive-{arch}'
 - project:
     name: cloud-mkcloud9-ha-x86_64
     disabled: false
@@ -45,6 +46,8 @@
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}'
 - project:
     name: cloud-mkcloud9-tempestfull-x86_64
     disabled: false
