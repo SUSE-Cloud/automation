@@ -35,7 +35,10 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    model: std-3cp
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -48,7 +51,10 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    model: dac-3cp
+    scenario_name: standard
+    clm_model: integrated
+    controllers: '3'
+    sles_computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -61,7 +67,27 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    model: std-min
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-demo-x86_64
+    ardana_job: '{name}'
+    cloudsource: stagingcloud8
+    ardana_env: cloud-ardana-ci-slot
+    scenario_name: standard
+    clm_model: integrated
+    controllers: '1'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer|octavia'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -74,7 +100,12 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    model: std-split
+    scenario_name: std-split
+    clm_model: standalone
+    core_nodes: '1'
+    lmm_nodes: '1'
+    dbmq_nodes: '1'
+    sles_computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -89,7 +120,10 @@
     cloudsource: develcloud8
     update_after_deploy: true
     update_to_cloudsource: stagingcloud8
-    model: std-3cp
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -106,7 +140,10 @@
     updates_test_enabled: true
     update_after_deploy: true
     update_to_cloudsource: GM8+up
-    model: std-3cp
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -119,7 +156,10 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: GM8+up
-    model: std-min
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
