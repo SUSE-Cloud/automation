@@ -7,7 +7,7 @@ gate-qe102      ansible_host=10.84.84.1
 gate-qe201      ansible_host=10.84.88.1
 gate-qe202      ansible_host=10.84.89.1
 gate-qe2023     ansible_host=10.84.89.150
-gate-scale      ansible_host=10.84.48.50
+gate-qescale      ansible_host=10.84.48.50
 
 [deployer_qe]
 pcloud001       ansible_host=10.84.132.1
@@ -18,7 +18,7 @@ qe102           ansible_host=10.84.81.113
 qe201           ansible_host=10.84.81.33
 qe202           ansible_host=10.84.81.49
 qe2023          ansible_host=10.84.89.151
-scale           ansible_host=10.84.48.51
+qescale           ansible_host=10.84.48.51
 
 [ses_qe]
 ses-qe          ansible_host=10.84.88.251

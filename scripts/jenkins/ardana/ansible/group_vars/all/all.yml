@@ -71,4 +71,4 @@ rc_channels:
   qe201: "cloud-qe-hlm201"
   qe202: "cloud-qe-hlm202"
   qe2023: "cloud-qe-hlm2023par"
-  scale: "cloud-qe-scale"
+  qescale: "cloud-qe-scale"
