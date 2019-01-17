@@ -47,6 +47,23 @@ pipeline {
         }
       }
     }
+    stage('Ask to hold the instance'){
+      /* beforeInput can be used to clarify intent:
+         https://jenkins.io/doc/book/pipeline/syntax/
+         In the meantime, input is given in "steps".
+         beforeInput true
+      */
+      when {
+        environment name: 'ask_to_hold_instance', value: 'true'
+      }
+      options {
+        timeout(time: 9, unit: 'HOURS')
+      }
+      steps {
+        echo "This stage is running because ask to hold instance is set to ${ask_to_hold_instance}."
+        input(message: "Waiting for input before deleting the ccp env")
+      }
+    }
   }
   post {
     always {
