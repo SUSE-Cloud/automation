@@ -4925,6 +4925,9 @@ function onadmin_prepare_cloudupgrade_admin_repos
     elif iscloudver 8; then
         $zypper rr SLES12-SP2-Pool
         $zypper rr SLES12-SP2-Updates
+    elif iscloudver 9; then
+        $zypper rr SLES12-SP3-Pool
+        $zypper rr SLES12-SP3-Updates
     fi
     # remove old PTF repo
     $zypper rr cloud-ptf
