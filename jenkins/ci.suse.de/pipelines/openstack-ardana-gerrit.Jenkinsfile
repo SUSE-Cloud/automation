@@ -117,21 +117,13 @@ The following links can also be used to track the results:
           # Post reviews only for jobs triggered by Gerrit
           if [ -n "$GERRIT_CHANGE_NUMBER" ] ; then
             if [[ $BUILD_RESULT == SUCCESS ]]; then
-              if [[ $cloudsource == develcloud9 ]]; then
-                vote=+2
-              else
-                vote=0
-              fi
+              vote=+2
               message="
 Build succeeded (${JOB_NAME}): ${BUILD_URL}
 
 "
             else
-              if [[ $cloudsource == develcloud9 ]]; then
-                vote=-2
-              else
-                vote=-1
-              fi
+              vote=-2
               message="
 Build failed (${JOB_NAME}): ${BUILD_URL}
 
