@@ -10,13 +10,15 @@ Configured repositories:
 {% if is_milestone %}
   - {{ media[cloud_release].name }}
 {% endif %}
-{% for id in maint_updates_list %}
-{%   for product in maintenance_updates_path %}
-{%     if maintenance_updates_path[product] in mu_url.results | selectattr('item', 'equalto', id) | map(attribute='content') | join(' ') %}
+{% if cloud_repo_path is defined %}
+{%   for id in maint_updates_list %}
+{%     for product in maintenance_updates_path %}
+{%       if maintenance_updates_path[product] in mu_url.results | selectattr('item', 'equalto', id) | map(attribute='content') | join(' ') %}
   - {{ product }}-Maint-Update-{{ id }}
-{%     endif %}
+{%       endif %}
+{%     endfor %}
 {%   endfor %}
-{% endfor %}
+{% endif %}
 {% for repo in extra_repos_list %}
   - {{ repo }}
 {% endfor %}
