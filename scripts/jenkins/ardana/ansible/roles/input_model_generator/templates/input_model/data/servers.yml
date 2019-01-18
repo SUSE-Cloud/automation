@@ -31,7 +31,7 @@
     version: 2
 
   baremetal:
-    netmask: 255.255.255.0
+    netmask: {{ bm_info.networks.bm_netmask if bm_info is defined else '255.255.255.0' }}
     subnet: 192.168.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.0
 
   servers:
