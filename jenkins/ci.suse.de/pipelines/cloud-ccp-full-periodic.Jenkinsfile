@@ -5,7 +5,7 @@ pipeline {
   options {
     skipDefaultCheckout() /* skips the clone of automation repo into wrkspc */
     timestamps()
-    timeout(time: 30, unit: 'MINUTES', activity: true)
+    timeout(time: 9, unit: 'HOURS', activity: true)
   }
 
   agent {
@@ -47,35 +47,30 @@ pipeline {
         }
       }
     }
-    stage('Ask to hold the instance'){
-      /* beforeInput can be used to clarify intent:
-         https://jenkins.io/doc/book/pipeline/syntax/
-         In the meantime, input is given in "steps".
-         beforeInput true
-      */
-      when {
-        environment name: 'ask_to_hold_instance', value: 'true'
-      }
-      options {
-        timeout(time: 9, unit: 'HOURS')
-      }
-      steps {
-        echo "This stage is running because ask to hold instance is set to ${ask_to_hold_instance}."
-        input(message: "Waiting for input before deleting the ccp env")
-      }
-    }
   }
   post {
     always {
       script {
         sh('''
+          rm ~/ready-to-cleanup || true
           env
-          pushd ${WORKSPACE}/ccp/
-            export PREFIX=${PREFIX:-'ccpci'}
-            export OS_CLOUD=${OS_CLOUD:-'engcloud-cloud-ci'}
-            export KEYNAME=${KEYNAME:-'engcloud-cloud-ci'}
-            export INTERNAL_SUBNET="${PREFIX}-subnet"
+          export PREFIX=${PREFIX:-'ccpci'}
+          export OS_CLOUD=${OS_CLOUD:-'engcloud-cloud-ci'}
+          export KEYNAME=${KEYNAME:-'engcloud-cloud-ci'}
+          export INTERNAL_SUBNET="${PREFIX}-subnet"
 
+          # When holding instance, expire at 540 minutes (9 hours)
+          # or when readytocleanup exists
+          countdown=540
+          if [[ "${ask_to_hold_instance}" == "true" ]]; then
+              echo "This holds the instance for 9 hours. Please create ~/ready-to-cleanup file to shorten the process."
+              until (stat ~/ready-to-cleanup > /dev/null 2>&1 || [[ $countdown -eq 0 ]]); do
+                sleep 1m;
+                countdown=`expr ${countdown} - 1`;
+              done
+          fi
+
+          pushd ${WORKSPACE}/ccp/
             pushd socok8s
                 ./run.sh teardown
             popd
