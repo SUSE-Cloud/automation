@@ -100,12 +100,13 @@
                 - account
                 - container
                 - object-0
+{%     if cinder_lvm_enabled | bool %}
         - name: cinder-volume
           devices:
             - name: /dev/sdc
           consumer:
             name: cinder
-
+{%     endif %}
 {%   elif 'compute' in service_group.name %}
         - name: ardana-vg
           consumer:
@@ -160,11 +161,14 @@
               mkfs-opts: -O large_file
 
       device-groups:
+
+{%     if cinder_lvm_enabled | bool %}
         - name: cinder-volume
           devices:
             - name: /dev/sdc
           consumer:
             name: cinder
+{%     endif %}
 
 {%   elif 'neutron' in service_group.name %}
         - name: ardana-vg
