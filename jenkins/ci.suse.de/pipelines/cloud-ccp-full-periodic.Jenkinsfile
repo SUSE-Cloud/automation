@@ -5,7 +5,7 @@ pipeline {
   options {
     skipDefaultCheckout() /* skips the clone of automation repo into wrkspc */
     timestamps()
-    timeout(time: 9, unit: 'HOURS', activity: true)
+    timeout(time: 30, unit: 'MINUTES', activity: true)
   }
 
   agent {
@@ -49,26 +49,23 @@ pipeline {
     }
   }
   post {
-    always {
+    failure {
+      script {
+        if (env.ask_to_hold_instance == 'true') {
+          timeout(time: 9, unit: 'HOURS') {
+               input(message: "Waiting for input before deleting the ccp env.")
+          }
+        }
+      }
+    }
+    cleanup {
       script {
         sh('''
-          rm ~/ready-to-cleanup || true
           env
           export PREFIX=${PREFIX:-'ccpci'}
           export OS_CLOUD=${OS_CLOUD:-'engcloud-cloud-ci'}
           export KEYNAME=${KEYNAME:-'engcloud-cloud-ci'}
           export INTERNAL_SUBNET="${PREFIX}-subnet"
-
-          # When holding instance, expire at 540 minutes (9 hours)
-          # or when readytocleanup exists
-          countdown=540
-          if [[ "${ask_to_hold_instance}" == "true" ]]; then
-              echo "This holds the instance for 9 hours. Please create ~/ready-to-cleanup file to shorten the process."
-              until (stat ~/ready-to-cleanup > /dev/null 2>&1 || [[ $countdown -eq 0 ]]); do
-                sleep 1m;
-                countdown=`expr ${countdown} - 1`;
-              done
-          fi
 
           pushd ${WORKSPACE}/ccp/
             pushd socok8s
