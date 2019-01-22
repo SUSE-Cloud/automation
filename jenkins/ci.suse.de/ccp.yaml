@@ -29,10 +29,10 @@
           default: master
           description: The socok8s branch
 
-      - string:
-          name: ask_to_hold_instance
-          default: "false"
-          description: Holding instance for debugging is disabled by default. Use true to debug.
+      - bool:
+          name: hold_instance_for_debug
+          default: false
+          description: Enabling this will hold an instance for 9 hours to analyse issues should a failure happen.
 
     triggers:
       - timed: '0 0 * * *'

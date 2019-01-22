@@ -51,7 +51,7 @@ pipeline {
   post {
     failure {
       script {
-        if (env.ask_to_hold_instance == 'true') {
+        if (env.hold_instance_for_debug == 'true') {
           timeout(time: 9, unit: 'HOURS') {
                input(message: "Waiting for input before deleting the ccp env.")
           }
