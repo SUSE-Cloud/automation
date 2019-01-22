@@ -49,16 +49,28 @@ pipeline {
     }
   }
   post {
-    always {
+    failure {
+      script {
+        if (env.hold_instance_for_debug == 'true') {
+          echo "You can reach this node by connecting to its floating IP as root user, with the default password."
+          echo "Run `openstack server show ccp-ci-launcher` to see the agent node IP."
+          echo "In other words, most likely `ssh root@10.86.2.167`.
+          timeout(time: 9, unit: 'HOURS') {
+               input(message: "Waiting for input before deleting the ccp env.")
+          }
+        }
+      }
+    }
+    cleanup {
       script {
         sh('''
           env
-          pushd ${WORKSPACE}/ccp/
-            export PREFIX=${PREFIX:-'ccpci'}
-            export OS_CLOUD=${OS_CLOUD:-'engcloud-cloud-ci'}
-            export KEYNAME=${KEYNAME:-'engcloud-cloud-ci'}
-            export INTERNAL_SUBNET="${PREFIX}-subnet"
+          export PREFIX=${PREFIX:-'ccpci'}
+          export OS_CLOUD=${OS_CLOUD:-'engcloud-cloud-ci'}
+          export KEYNAME=${KEYNAME:-'engcloud-cloud-ci'}
+          export INTERNAL_SUBNET="${PREFIX}-subnet"
 
+          pushd ${WORKSPACE}/ccp/
             pushd socok8s
                 ./run.sh teardown
             popd
