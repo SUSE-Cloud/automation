@@ -135,6 +135,7 @@
             [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Rocky:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-freezer-ui",
+              "openstack-nova-virt-zvm"
             ].contains(component)
             )
       sequential: true
