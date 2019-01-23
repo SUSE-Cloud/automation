@@ -116,9 +116,6 @@ function h_setup_devstack {
         $zypper in 'group(nogroup)'
     fi
 
-    git config --global user.email root@cleanvm.ci.opensuse.org
-    git config --global user.name "Devstack User"
-
     if ! [ -e $DEVSTACK_DIR ]; then
         git clone \
             -b $DEVSTACK_BRANCH \
