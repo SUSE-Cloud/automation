@@ -112,7 +112,9 @@ function h_setup_devstack {
         $zypper --no-gpg-checks in http://download.opensuse.org/repositories/openSUSE:/Leap:/42.3/standard/noarch/git-review-1.25.0-6.2.noarch.rpm
     fi
     $zypper in git-core which ca-certificates-mozilla net-tools git-review
-    $zypper in 'group(nogroup)'
+    if ! getent group nobody >/dev/null; then
+        $zypper in 'group(nogroup)'
+    fi
 
     git config --global user.email root@cleanvm.ci.opensuse.org
     git config --global user.name "Devstack User"
