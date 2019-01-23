@@ -238,13 +238,15 @@
             rings:
               - object-0
 {%         elif service_component_group == 'CORE' %}
-{%           set ns.drive_idx = ns.drive_idx+1 %}
+{%           if cinder_lvm_enabled | bool %}
+{%             set ns.drive_idx = ns.drive_idx+1 %}
 
       - name: cinder-volume
         devices:
           - name: /dev/sd{{ drive_letters[ns.drive_idx] }}
         consumer:
           name: cinder
+{%           endif %}
 {%         endif %}
 {%       endfor %}
 {%     endif %}
