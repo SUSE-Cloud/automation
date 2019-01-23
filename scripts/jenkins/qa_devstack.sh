@@ -113,7 +113,9 @@ function h_setup_devstack {
     git config --global user.email root@cleanvm.ci.opensuse.org
     git config --global user.name "Devstack User"
 
-    git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
+    if ! [ -e $DEVSTACK_DIR ]; then
+        git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
+    fi
     hostname -f || hostname cleanvm.ci.opensuse.org
 
     if [[ "$PENDING_REVIEW" ]]; then
