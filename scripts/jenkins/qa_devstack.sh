@@ -86,6 +86,13 @@ function h_setup_base_repos {
             $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SDK/${DIST_VERSION}/x86_64/product" SDK || true
             $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SDK/${DIST_VERSION}/x86_64/update/" SDK-Update || true
         fi
+        if [[ $DIST_VERSION == 12-SP3 ]]; then
+            $zypper ar -f "https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP3/" devel_languages_python_backports  || true
+            $zypper ar -f "https://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/SLE_12_SP3/" Cloud:OpenStack:Master  || true
+        elif [[ $DIST_VERSION == 12-SP4 ]]; then
+            $zypper ar -f "https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP4/" devel_languages_python_backports  || true
+            $zypper ar -f "https://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/SLE_12_SP4/" Cloud:OpenStack:Master  || true
+        fi
     fi
 }
 
