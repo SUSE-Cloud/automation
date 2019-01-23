@@ -126,7 +126,10 @@ function h_setup_devstack {
             $DEVSTACK_DIR
     fi
 
-    hostname -f || hostname cleanvm.ci.opensuse.org
+    if ! hostname -f; then
+        echo "You must set a hostname before running qa_devstack.sh; aborting." >&2
+        exit 1
+    fi
 
     if [[ "$PENDING_REVIEW" ]]; then
         pushd $DEVSTACK_DIR
