@@ -284,7 +284,7 @@
 
       - bool:
           name: ses_enabled
-          default: '{ses_enabled|false}'
+          default: '{ses_enabled|true}'
           description: Configure SES backend for glance, cinder, cinder-backup and nova
 
       - bool:
@@ -293,6 +293,9 @@
           description: |
             Configure object-store service with RADOS Gateway. This only takes effect
             if ses_enabled is set to true.
+
+            NOTE: tempest does not support testing RADOS Gateway, so failures on object_storage
+            tempest tests are expected when ses_rgw_enabled is set to true.
 
       - choice:
           name: rhel_os
