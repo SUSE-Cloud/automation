@@ -3495,17 +3495,26 @@ function oncontroller_upload_defcore
     pushd /var/lib/openstack-tempest-test
     # get the test list
     wget "https://refstack.openstack.org/api/v1/guidelines/2018.02/tests" -O defcore-with-id.txt
+
     # remove the id in [] or tempest will complain on incorrect regex
     sed -e 's/\[[^][]*\]//g' defcore-with-id.txt > defcore.txt
+
     # run only the specified tests
     tempest run --whitelist-file defcore.txt
-    source /root/.openrc
+
+    # get a subunit-2to1 filter directly
     wget https://raw.githubusercontent.com/testing-cabal/subunit/master/filters/subunit-2to1
 
+    # save the latest tempest run results
     local testdriver=testr
     [ -f ".stestr.conf" ] && testdriver=stestr
     $testdriver last --subunit | python subunit-2to1 > tempest.subunit_1.log
-    test -d refstack-client || safely git clone https://github.com/openstack/refstack-client
+
+    # clone a refstack client
+    test -d refstack-client || safely git clone https://github.com/kbaikov/refstack-client
+
+    # upload to refstack server
+    source /root/.openrc
     yes | refstack-client/refstack-client upload-subunit --keystone-endpoint $OS_AUTH_URL --url https://10.86.0.98 --insecure tempest.subunit_1.log
     popd
 }
@@ -4925,6 +4934,9 @@ function onadmin_prepare_cloudupgrade_admin_repos
     elif iscloudver 8; then
         $zypper rr SLES12-SP2-Pool
         $zypper rr SLES12-SP2-Updates
+    elif iscloudver 9; then
+        $zypper rr SLES12-SP3-Pool
+        $zypper rr SLES12-SP3-Updates
     fi
     # remove old PTF repo
     $zypper rr cloud-ptf

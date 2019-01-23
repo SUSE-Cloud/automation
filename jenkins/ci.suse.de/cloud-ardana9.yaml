@@ -26,6 +26,8 @@
     clm_model: standalone
     controllers: '3'
     sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -39,6 +41,8 @@
     clm_model: integrated
     controllers: '3'
     sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -52,6 +56,8 @@
     clm_model: standalone
     controllers: '2'
     sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -66,6 +72,8 @@
     controllers: '1'
     sles_computes: '1'
     disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|octavia'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -81,6 +89,8 @@
     lmm_nodes: '1'
     dbmq_nodes: '1'
     sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -97,6 +107,8 @@
     sles_computes: '2'
     rhel_computes: '0'
     tempest_filter_list: 'ci'
+    ses_enabled: true
+    ses_rgw_enabled: false
     qa_test_list: "\
       iverify,cinder,heat,magnum,neutron,nova-attach,nova_volume,nova_server,\
       nova_services,nova_flavor,nova_image,tempest_cleanup"
@@ -120,6 +132,8 @@
     swift_nodes: '3'
     sles_computes: '2'
     rhel_computes: '0'
+    ses_enabled: true
+    ses_rgw_enabled: false
     tempest_filter_list: "\
       ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,\
       magnum,manila,monasca,network,neutron-api,swift"
@@ -176,6 +190,8 @@
     clm_model: standalone
     controllers: '3'
     sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -196,14 +212,11 @@
     jobs:
         - '{ardana_job}'
 
-
 - project:
     name: openstack-ardana-gerrit-cloud9
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-gerrit-slot
     cloudsource: develcloud9
-    ses_enabled: false
-    ses_rgw_enabled: false
     gerrit_change_ids: '${{GERRIT_CHANGE_NUMBER}}/${{GERRIT_PATCHSET_NUMBER}}'
     triggers:
       - gerrit:

@@ -26,7 +26,6 @@ scenario:
     Multi-cluster scenario with all services enabled, {{ clm_model }} CLM node,
     {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
   audit_enabled: True
-  ses_enabled: "{{ ses_enabled | default(False) }}"
   use_cinder_volume_disk: True
   use_glance_cache_disk: False
   availability_zones: "{{ availability_zones }}"

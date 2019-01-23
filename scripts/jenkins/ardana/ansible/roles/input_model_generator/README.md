@@ -79,7 +79,6 @@ scenario:
     Standard scenario with all services enabled, {{ clm_model }} CLM node, {{ controllers }} controller nodes,
     {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
   audit_enabled: False
-  ses_enabled: False
   use_cinder_volume_disk: False
   use_glance_cache_disk: False
 

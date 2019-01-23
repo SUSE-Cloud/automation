@@ -239,7 +239,7 @@ if [ -z "${DISABLE_TEMPESTRUN}" ]; then
 pip install junitxml
     sudo -u stack -i <<EOF
 cd /opt/stack/tempest
-tempest run --regex '(?!.*\[.*\bslow\b.*\])(^tempest\.(api|scenario))' --concurrency=2 --subunit > tempest.subunit
+tempest run --smoke --subunit | tee tempest.subunit | subunit-trace -f -n
 subunit2html tempest.subunit /opt/stack/results.html
 # subunit2junitxml will fail if test run failed as it forwards subunit stream result code, ignore it
 subunit2junitxml tempest.subunit > /opt/stack/results.xml || true

@@ -25,6 +25,7 @@ clouddata_server: "provo-clouddata.cloud.suse.de"
 rhel_enabled: "{{ rhel_computes is defined and rhel_computes | int > 0 }}"
 ses_enabled: False
 ses_rgw_enabled: False
+cinder_lvm_enabled: '{{ not ses_enabled }}'
 
 workspace_path: "{{ lookup('env', 'WORKSPACE') | default('.', true) }}"
 input_model_path: "{{ workspace_path }}/input_model"
@@ -71,4 +72,9 @@ rc_channels:
   qe201: "cloud-qe-hlm201"
   qe202: "cloud-qe-hlm202"
   qe2023: "cloud-qe-hlm2023par"
-  scale: "cloud-qe-scale"
+  qescale: "cloud-qe-scale"
+  cloud-ardana-ci-slot16: "cloud-maintenance"
+  cloud-ardana-ci-slot17: "cloud-maintenance"
+  cloud-ardana-ci-slot18: "cloud-ci-monitoring"
+  cloud-ardana-ci-slot19: "cloud-ci-monitoring"
+  cloud-ardana-ci-slot20: "cloud-ci-monitoring"

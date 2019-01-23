@@ -155,15 +155,15 @@ if [ -z "$skip_reposetup" ]; then
     $addrepofunc
 fi
 
-# install maintenance updates
-# run twice, first installs zypper update, then the rest
-$zypper -n patch --skip-interactive || $zypper -n patch --skip-interactive
-
 # grizzly or master does not want dlp
 $zypper rr dlp || true
 
 $zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 $zypper --gpg-auto-import-keys -n ref
+
+# install maintenance updates
+# run twice, first installs zypper update, then the rest
+$zypper -n patch --skip-interactive || $zypper -n patch --skip-interactive
 
 # wickedd needs to be configured properly to avoid overriding
 # the hostname (see <https://bugzilla.opensuse.org/show_bug.cgi?id=974661>).

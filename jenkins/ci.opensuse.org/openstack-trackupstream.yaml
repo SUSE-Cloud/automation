@@ -82,7 +82,6 @@
             - python-monasca-common
             - python-monasca-statsd
             - python-networking-cisco
-            - python-networking-hyperv
             - python-vmware-nsxlib
             - python-vmware-nsx
       - axis:
@@ -136,6 +135,7 @@
             [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Rocky:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-freezer-ui",
+              "openstack-nova-virt-zvm"
             ].contains(component)
             )
       sequential: true

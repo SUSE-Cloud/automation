@@ -87,8 +87,8 @@ The following links can also be used to track the results:
               string(name: 'controllers', value: "2"),
               string(name: 'sles_computes', value: "1"),
               string(name: 'cloudsource', value: "$cloudsource"),
-              string(name: 'ses_enabled', value: "$ses_enabled"),
-              string(name: 'ses_rgw_enabled', value: "$ses_rgw_enabled"),
+              string(name: 'ses_enabled', value: "true"),
+              string(name: 'ses_rgw_enabled', value: "false"),
               string(name: 'tempest_filter_list', value: "$tempest_filter_list"),
               string(name: 'os_cloud', value: "$os_cloud")
             ], propagate: false, wait: true
@@ -117,21 +117,13 @@ The following links can also be used to track the results:
           # Post reviews only for jobs triggered by Gerrit
           if [ -n "$GERRIT_CHANGE_NUMBER" ] ; then
             if [[ $BUILD_RESULT == SUCCESS ]]; then
-              if [[ $cloudsource == develcloud9 ]]; then
-                vote=+2
-              else
-                vote=0
-              fi
+              vote=+2
               message="
 Build succeeded (${JOB_NAME}): ${BUILD_URL}
 
 "
             else
-              if [[ $cloudsource == develcloud9 ]]; then
-                vote=-2
-              else
-                vote=-1
-              fi
+              vote=-2
               message="
 Build failed (${JOB_NAME}): ${BUILD_URL}
 
