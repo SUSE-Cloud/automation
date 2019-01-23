@@ -108,6 +108,9 @@ function h_setup_extra_disk {
 }
 
 function h_setup_devstack {
+    if [[ $DIST_VERSION == 12-SP3 ]]; then
+        $zypper --no-gpg-checks in http://download.opensuse.org/repositories/openSUSE:/Leap:/42.3/standard/noarch/git-review-1.25.0-6.2.noarch.rpm
+    fi
     $zypper in git-core which ca-certificates-mozilla net-tools git-review
     $zypper in 'group(nogroup)'
 
