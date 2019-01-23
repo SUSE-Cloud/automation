@@ -74,3 +74,6 @@ rc_channels:
   qescale: "cloud-qe-scale"
   cloud-ardana-ci-slot16: "cloud-maintenance"
   cloud-ardana-ci-slot17: "cloud-maintenance"
+  cloud-ardana-ci-slot18: "cloud-ci-monitoring"
+  cloud-ardana-ci-slot19: "cloud-ci-monitoring"
+  cloud-ardana-ci-slot20: "cloud-ci-monitoring"

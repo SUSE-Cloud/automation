@@ -90,7 +90,7 @@ _field_clm:
     short: True
 
 _field_nodes_values:
-  entry-scale-kvm: |
+  default: |
     Controllers: {{ controllers }}
     Computes: {{ sles_computes}} (SLES) / {{ rhel_computes }} (RHEL)
   mid-scale-kvm: |
@@ -103,7 +103,7 @@ _field_nodes_values:
 
 _field_nodes:
   - title: Nodes
-    value: "{{ _field_nodes_values[scenario_name|default('entry-scale-kvm')] }}"
+    value: "{{ _field_nodes_values[scenario_name] | default(_field_nodes_values['default']) }}"
     short: False
 
 _msg_field_clm_nodes: "{{ (scenario_name is defined) | ternary(_field_nodes + _field_clm, []) }}"
