@@ -250,7 +250,7 @@ h_setup_devstack
 h_echo_header "Run devstack"
 sudo -u stack -i <<EOF
 cd $DEVSTACK_DIR
-FORCE=yes ./stack.sh
+./stack.sh
 EOF
 h_echo_header "Run tempest"
 
