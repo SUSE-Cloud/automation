@@ -81,7 +81,7 @@
         rc_state: "Success"
       when:
         - rc_notify
-        - not ses_enabled
+        - not ses_enabled or (ses_enabled and not ses_rgw_enabled)
 
 - import_playbook: ardana-ses-rgw.yml
   when: ses_enabled and ses_rgw_enabled
