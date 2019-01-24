@@ -10,7 +10,8 @@ SVC_IP_VERSION=4
 ##########################################################################
 
 DEVSTACK_DIR="/opt/stack/devstack"
-
+: ${DEVSTACK_FORK:=openstack-dev}
+: ${DEVSTACK_BRANCH:=master}
 
 # if this variable is set to non-empty, the clone of devstack git
 # will be set up with this gerrit review id being merged
@@ -113,7 +114,13 @@ function h_setup_devstack {
     git config --global user.email root@cleanvm.ci.opensuse.org
     git config --global user.name "Devstack User"
 
-    git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
+    if ! [ -e $DEVSTACK_DIR ]; then
+        git clone \
+            -b $DEVSTACK_BRANCH \
+            https://github.com/$DEVSTACK_FORK/devstack.git \
+            $DEVSTACK_DIR
+    fi
+
     hostname -f || hostname cleanvm.ci.opensuse.org
 
     if [[ "$PENDING_REVIEW" ]]; then
