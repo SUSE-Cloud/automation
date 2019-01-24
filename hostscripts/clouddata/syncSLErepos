@@ -300,7 +300,9 @@ for arch in $archs ; do
 done
 
 if [ $SITE = "nue" ]; then
-    rsync_with_create rsync://ftp.gwdg.de/pub/opensuse/repositories/devel:/languages:/ruby:/extensions/SLE_12 /srv/nfs/repos/repositories/devel:/languages:/ruby:/extensions/SLE_12
+    for v in 12 15 ; do
+        rsync_with_create rsync://ftp.gwdg.de/pub/opensuse/repositories/devel:/languages:/ruby:/extensions/SLE_$v/ /srv/nfs/repos/repositories/devel:/languages:/ruby:/extensions/SLE_$v
+    done
 
     for servicepack in 4 3; do
         # repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync, cct)

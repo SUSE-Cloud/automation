@@ -79,7 +79,6 @@ scenario:
     Standard scenario with all services enabled, {{ clm_model }} CLM node, {{ controllers }} controller nodes,
     {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
   audit_enabled: False
-  ses_enabled: False
   use_cinder_volume_disk: False
   use_glance_cache_disk: False
 
@@ -168,8 +167,8 @@ service_groups:
   - name: rhel-compute
     type: resource
     prefix: rhel-comp
-    distro_id: rhel73-x86_64
-    heat_image_id: centos73
+    distro_id: rhel75-x86_64
+    heat_image_id: centos75
     heat_flavor_id: cloud-ardana-job-compute
     member_count: '{{ rhel_computes|default(1) }}'
     min_count: 0

@@ -70,6 +70,9 @@ Project used: %(ZUUL_PROJECT)s
   <description>
 %(description)s
   </description>
+  <url>
+%(url)s
+  </url>
 %(projectlink)s
   <person userid="%(user)s" role="maintainer"/>
   <publish>
@@ -79,6 +82,7 @@ Project used: %(ZUUL_PROJECT)s
 </project>""" % ({'project': project,
                   'user': get_osc_user(),
                   'description': description,
+                  'url': os.environ.get('BUILD_URL'),
                   'projectlink': projectlink,
                   'build_repository': build_repository})
 

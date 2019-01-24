@@ -21,6 +21,7 @@
           OSC="osc -A https://api.opensuse.org"
           COS="Cloud:OpenStack:$openstack_project"
           COSS="$COS:Staging"
+          COST="$COS:ToTest"
           export BS_CHECKOUT=/home/jenkins/OBS_CHECKOUT/$COSS
           submitcmd="$OSC copypac -K -e"
           OSCBUILDDIST=SLE_11_SP3
@@ -45,6 +46,13 @@
               exit 1
             ;;
           esac
+
+          if [ "Cloud:OpenStack:Rocky" = "$COS" ]; then
+              # TODO replace this once the osc here is new enough to have
+              # https://github.com/openSUSE/osc/commit/fb80026651c47d262dbff33136ae5306ff83aff3
+              $OSC api -m POST "/source/${COST}?cmd=release&nodelay=1"
+              exit 0
+          fi
 
           # first ls, then loop in order to catch failing 'osc ls' calls
           components=`$OSC ls $COSS 2>/dev/null`

@@ -29,6 +29,6 @@ $test_dir/cinder-tests-all lvm init
 
 source $HOME/service.osrc
 cd $test_dir
-$test_dir/cinder-parallel.py --oper c --sulog $subunit_log | tee -a $test_log
-$test_dir/cinder-parallel.py --oper d --sulog $subunit_log | tee -a $test_log
+$test_dir/cinder-parallel.py --oper s --sulog $subunit_log | tee -a $test_log
+$test_dir/cinder-parallel.py --oper S --sulog $subunit_log | tee -a $test_log
 

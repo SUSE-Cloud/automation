@@ -16,12 +16,14 @@
 ---
 
 qe_ardana_bm_info_git_url: "https://gitlab.suse.de/cloud-qe/ardana-bm-info.git"
-qe_ardana_bm_info_dir: "/tmp/ardana-bm-info"
+qe_ardana_bm_info_dir: "{{ workspace_path }}/ardana-bm-info"
 
 template_file_name: "{{ scenario[item ~ '_template'] }}.yml"
 
 clm_model: standalone
 availability_zones: 3
+
+rhel_distro_id: "rhel{{ rhel_os_version }}-x86_64"
 
 # Backend for designate: powerdns or bind
 designate_backend: bind
@@ -37,6 +39,8 @@ disabled_services: ""
 enable_extra_volume_groups: "{{ want_lvm }}"
 
 enable_external_network_bridge: "{{ versioned_features.external_network_bridge.enabled }}"
+
+enable_designate_worker_producer: "{{ versioned_features.designate_worker_producer.enabled }}"
 
 cp_prefix: cp1
 max_host_prefix_len: "{{ 33-(cp_prefix|length) }}"
@@ -82,8 +86,8 @@ service_component_groups:
     - cinder-backup
     - designate-api
     - designate-central
-    - designate-pool-manager
-    - designate-zone-manager
+    - "{{ enable_designate_worker_producer | ternary('designate-worker', 'designate-pool-manager') }}"
+    - "{{ enable_designate_worker_producer | ternary('designate-producer', 'designate-zone-manager') }}"
     - designate-mdns
     - glance-api
     #- glance-api:

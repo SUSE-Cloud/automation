@@ -23,14 +23,13 @@ when_cloud9M3: "{{ cloudsource is match('cloud9M3') }}"
 
 versioned_features:
   manila:
-    enabled: "{{ when_staging }}"
+    enabled: "{{ when_staging or when_cloud9 }}"
   freezer:
     enabled: "{{ when_cloud8 }}"
   heat-api-cloudwatch:
     enabled: "{{ when_cloud8 }}"
-  # FIXME: Remove this entry when bsc#1110414 fixed
-  fix_ardana_ssh_keyscan:
-    enabled: "{{ when_cloud9M3 }}"
+  nova-console-auth:
+    enabled: "{{ when_cloud8 }}"
   # Disable LVM on virtual deployments with GM8* cloudsources
   # until https://gerrit.suse.provo.cloud/#/c/5143/ gets released
   want_lvm:
@@ -40,3 +39,6 @@ versioned_features:
   # fix gets released
   external_network_bridge:
     enabled: "{{ when_cloud8 and not when_staging_or_devel }}"
+  # designate zone/pool (Cloud8) or worker/producer (Cloud9)
+  designate_worker_producer:
+    enabled: "{{ when_cloud9 }}"

@@ -1,10 +1,20 @@
 - project:
+    name: cloud-ardana9-gating-trigger
+    ardana_url_trigger_job: '{name}'
+    version: '9'
+    url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-devel-staging/media.1/build'
+    projects:
+      - project: 'cloud-ardana{version}-gating'
+        block: false
+    jobs:
+        - '{ardana_url_trigger_job}'
+
+- project:
     name: cloud-ardana9-gating
     ardana_gating_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
-    model: std-min
-    version: 9
-    label: cloud-trigger
+    concurrent: False
+    version: '9'
+    ardana_env: 'cloud-ardana-gate{version}-slot'
     jobs:
         - '{ardana_gating_job}'
 
@@ -16,6 +26,8 @@
     clm_model: standalone
     controllers: '3'
     sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -29,6 +41,8 @@
     clm_model: integrated
     controllers: '3'
     sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -42,6 +56,8 @@
     clm_model: standalone
     controllers: '2'
     sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -51,7 +67,13 @@
     name: cloud-ardana9-job-demo-x86_64
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
-    model: demo
+    scenario_name: standard
+    clm_model: integrated
+    controllers: '1'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|octavia'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -67,6 +89,8 @@
     lmm_nodes: '1'
     dbmq_nodes: '1'
     sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -83,9 +107,44 @@
     sles_computes: '2'
     rhel_computes: '0'
     tempest_filter_list: 'ci'
+    ses_enabled: true
+    ses_rgw_enabled: false
     qa_test_list: "\
       iverify,cinder,heat,magnum,neutron,nova-attach,nova_volume,nova_server,\
       nova_services,nova_flavor,nova_image,tempest_cleanup,nova_guest_image"
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana9-job-mid-scale-kvm-qe101-x86_64
+    ardana_job: '{name}'
+    concurrent: False
+    ardana_env: qe101
+    reserve_env: true
+    scenario_name: mid-scale-kvm
+    clm_model: integrated
+    core_nodes: '2'
+    lmm_nodes: '3'
+    dbmq_nodes: '3'
+    neutron_nodes: '2'
+    swift_nodes: '3'
+    sles_computes: '2'
+    rhel_computes: '0'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    tempest_filter_list: "\
+      ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,\
+      magnum,manila,monasca,network,neutron-api,swift"
+    qa_test_list: "\
+      iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
+      heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
+      nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,\
+      barbican-functional,horizon,horizon_integration-tests,keystone-api,keystone-ldap,\
+      keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
+      service-ansible-playbooks,enable_tls,tempest_cleanup"
+    rc_notify: 'true'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -96,12 +155,14 @@
     ardana_job: '{name}'
     concurrent: False
     ardana_env: qe102
-    reserve_env: false
+    reserve_env: true
     scenario_name: entry-scale-kvm
     clm_model: standalone
     controllers: '3'
     sles_computes: '2'
     rhel_computes: '0'
+    ses_enabled: true
+    ses_rgw_enabled: false
     tempest_filter_list: "\
       ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,\
       magnum,manila,monasca,network,neutron-api,swift"
@@ -129,6 +190,23 @@
     clm_model: standalone
     controllers: '3'
     sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana9-job-std-min-centos-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud9
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '0'
+    rhel_computes: '2'
     triggers:
      - timed: 'H H * * *'
     jobs:

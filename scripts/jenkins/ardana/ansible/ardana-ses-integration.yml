@@ -16,8 +16,11 @@
 
 ---
 
+- import_playbook: get-virt-ses-cluster.yml
+  when: not is_physical_deploy
+
 - name: Configure SES for Ardana when SES enabled
-  hosts: "ses-qe1"
+  hosts: "ses_{{ (ardana_env.startswith('pcloud') or ardana_env.startswith('qe')) | ternary('qe', 'virt') }}"
   remote_user: root
   gather_facts: no
   vars:

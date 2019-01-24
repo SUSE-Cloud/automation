@@ -118,7 +118,6 @@ proposals:
 - barclamp: nova
   attributes:
     use_migration: true
-    vnc_keymap: de
     kvm:
       ksm_enabled: true
     metadata:

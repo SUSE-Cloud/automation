@@ -137,3 +137,6 @@ ssh_pub_keys:
   - name: mital
     keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCodtTc4zp6anKoPgXBWzZpYjGXvpQFnPg6qJXZEGiBgnY08KRFfmoWR/mImwIJyyaK7Rq/OnhaGLqKLFycMMbAKKJpSigLdaR/aY9BEx4xt58UGUyUmr9n0u7554e+JpkhVNi3wk0Q85+nT+NC70+eX6s0hLrZWsr5l/JpJoBIcScOjwUQWQdgrMRFGUVpTOKXdgtuzQ2iSKA7oOKMmoGyAVw8QzQQ4q/3mpGwbtwmHbpFxnBBr+bL6KaXJ/lvZbaxBmjE9Pv83o0lFAz7dnVzdXqjajSoOxauINLYY8mspOBCigogFGuvRR+NAXynDVvU0WHjNBXaGR8E3BosMZhH shahmi@linux-4qjq
+  - name: aduarte
+    keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDaX0bFymK0JHlm7i6Olu/NA1ICNx1TdYkj2EXIOQdmDbbAxfxCNvy/EI5jf/X6QyEQq5nbAtdic1NQ86HkPQUKv8MoEtVIqrtiWG8Aj2jTbgnR8QWtaZPVnp9Ff5hvPXAg8AIe4NPjtQmy0HWljX9b7iEUuNX9XdLL+tG8N0Lug2djObjxEi6leZToqr+xNME7y+4V/BTyi4i382puXq8BOJzppJ+LtsbMqFTI98uFqy9KBhuZI6JnTul0wOQ9Vzb/qce6V5GbEN/SqvFdx4gIT3LB/o4chyg2Sqtrzdm1TaN0J6l95E1+PTHAWyx/dCvMm/DsulN3FRp0Oj1OYpOZ adolfo.duarte@suse.com

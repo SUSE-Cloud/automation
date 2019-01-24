@@ -30,7 +30,7 @@ lvm_resize_tools:
   - vgs
 
 # if / is not on bootable partition, updated dynamically otherwise
-sles_vm_fdisk_start_field: 2
+vm_fdisk_start_field: 2
 
 # the size (in GB) to which the LVM root partition is resized
 # this needs to be less than 95% of the total available size, otherwise

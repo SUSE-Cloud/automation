@@ -22,8 +22,11 @@ adminpwd=`grep OS_PASSWORD ~/service.osrc | sed -e 's#.*=\(\)#\1#'`
 demopwd=`grep -ri keystone_demo_pwd ~/scratch/ansible/next/ardana/ansible/group_vars | sed -e 's#.*_pwd: \(\)#\1#'`
 
 sed  -i 's|^\(dashboard_url=\)\(.*\)|\1'$url'|' openstack_dashboard/test/integration_tests/horizon.conf
-sed  -i "s/\(admin_password *= *\).*/\1$adminpwd/" openstack_dashboard/test/integration_tests/horizon.conf
 sed  -i "s/\(password *= *\).*/\1$demopwd/" openstack_dashboard/test/integration_tests/horizon.conf
+sed  -i "s/\(admin_password *= *\).*/\1$adminpwd/" openstack_dashboard/test/integration_tests/horizon.conf
+
+bash install_browser.sh
+
 
 ${STESTR} init
 ${STESTR} run -t ./ --concurrency=1 | tee {{ ardana_qe_test_log }}

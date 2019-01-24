@@ -37,7 +37,7 @@ pipeline {
             env.ardana_env = reserved_env
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
-          if ( ardana_env.startsWith("qe") || ardana_env.startsWith("qa") ) {
+          if ( ardana_env.startsWith("qe") || ardana_env.startsWith("pcloud") ) {
               env.cloud_type = "physical"
           }
           // Parameters of the type 'extended-choice' are set to null when the job
@@ -171,10 +171,32 @@ pipeline {
       }
     }
 
-    stage('Bootstrap CLM') {
-      steps {
-        script {
-          ardana_lib.ansible_playbook('bootstrap-clm', "-e extra_repos='$extra_repos'")
+    stage('Prepare environment') {
+      // abort all stages if one of them fails
+      failFast true
+      parallel {
+        stage('Bootstrap CLM') {
+          steps {
+            script {
+              ardana_lib.ansible_playbook('bootstrap-clm', "-e extra_repos='$extra_repos'")
+            }
+          }
+        }
+        stage('Deploy SES for vcloud') {
+          when {
+            expression { ses_enabled == 'true' && cloud_type == 'virtual' }
+          }
+          steps {
+            script {
+              ardana_lib.trigger_build('openstack-ses', [
+                string(name: 'ses_id', value: "$ardana_env"),
+                string(name: 'network', value: "openstack-ardana-${ardana_env}_management_net"),
+                string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                string(name: 'os_cloud', value: "$os_cloud")
+              ], false)
+            }
+          }
         }
       }
     }

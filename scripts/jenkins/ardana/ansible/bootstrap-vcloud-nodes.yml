@@ -23,9 +23,9 @@
     task: "deploy"
     virtual_hosts:
       - group: controller
-        ips: "{{ hostvars['localhost'].controller_mgmt_ips | difference([hostvars['localhost'].admin_mgmt_ip]) }}"
+        ips: "{{ hostvars['localhost'].controller_conf_ips | difference([hostvars['localhost'].admin_conf_ip]) }}"
       - group: compute
-        ips: "{{ hostvars['localhost'].compute_mgmt_ips }}"
+        ips: "{{ hostvars['localhost'].compute_conf_ips }}"
 
   tasks:
     - block:
@@ -150,6 +150,14 @@
             - state: touch
               path: "/etc/openstack/skip_disk_config"
           when: not want_lvm
+
+        - name: Add CentOS repository
+          yum_repository:
+            name: CentOS-Base
+            description: "CentOS Base Repository"
+            gpgcheck: no
+            baseurl: "http://{{ hostvars['localhost'].admin_conf_ip }}:79/ardana/rhel7/yum/OS"
+          when: ansible_os_family == 'RedHat'
       rescue:
         - include_role:
             name: rocketchat_notify

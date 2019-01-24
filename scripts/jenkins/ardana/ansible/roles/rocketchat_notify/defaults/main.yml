@@ -25,9 +25,9 @@ rc_bot:
   password: ""
 
 rc_auth_info_git_url: "https://gitlab.suse.de/cloud-qe/ardana-bm-info.git"
-rc_auth_info_dir: "/tmp/ardana-bm-info"
+rc_auth_info_dir: "{{ workspace_path }}/ardana-bm-info"
 
-rc_channel: "{{ is_physical_deploy | ternary(rc_channels[ardana_env], '@' ~ ardana_env.split('-')[0]) }}"
+rc_channel: "{{ rc_channels[ardana_env] | default('@' ~ ardana_env.split('-')[0]) }}"
 
 rc_channel_id_query: "json.channels[?name=='{{ rc_channels[ardana_env] }}']._id"
 

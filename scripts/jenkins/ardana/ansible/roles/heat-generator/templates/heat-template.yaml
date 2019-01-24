@@ -33,6 +33,7 @@ resources:
   router_ext:
     type: OS::Neutron::Router
     properties:
+      name: {{ heat_resource_name_prefix }}_router_ext
       external_gateway_info:
         network: { get_param: floating_network }
 
@@ -41,11 +42,13 @@ resources:
   default_network:
     type: OS::Neutron::Net
     properties:
+      name: {{ heat_resource_name_prefix }}_dummy_net
       port_security_enabled: True
 
   default_subnet:
     type: OS::Neutron::Subnet
     properties:
+      name: {{ heat_resource_name_prefix }}_dummy_subnet
       network_id: { get_resource: default_network }
       cidr: { get_param: default_subnet_cidr }
 {%   if (ipv6 | default(false)) == true %}
@@ -56,7 +59,7 @@ resources:
       enable_dhcp: False
 
   # networks and subnets
-{% set global_ns = namespace(mgmt_network_name='', mgmt_ports=[]) %}
+{% set global_ns = namespace(conf_network_name='', conf_ports=[]) %}
 {% for network_rec in heat_template.networks|dictsort %}
 {%   set network = network_rec[1] %}
 {%   set name = network.name|lower|replace('-','_')|regex_replace('_net$', '') %}
@@ -65,12 +68,14 @@ resources:
   {{ name }}_network:
     type: OS::Neutron::Net
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ name }}_net
       port_security_enabled: False
 
   # subnet for network: {{ network.name }}
   {{ name }}_subnet:
     type: OS::Neutron::Subnet
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ name }}_subnet
       network_id: { get_resource: {{ name }}_network }
 {%   if network.cidr is defined %}
       cidr: "{{ network.cidr }}"
@@ -85,7 +90,7 @@ resources:
 {%     endfor %}
 {%     endif  %}
 {%   if (ipv6 | default(false)) == true %}
-{%   if network.is_mgmt %}
+{%   if network.is_conf %}
       ip_version: 4
 {%   else   %}
       ip_version: 6
@@ -93,7 +98,7 @@ resources:
 {%   else   %}
       ip_version: 4
 {%   endif  %}
-      enable_dhcp: {{ network.is_mgmt }}
+      enable_dhcp: {{ network.is_conf or network.is_mgmt }}
 {%   if network.gateway is defined %}
       gateway_ip: "{{ network.gateway }}"
 {%   endif   %}
@@ -107,8 +112,8 @@ resources:
       subnet_id: { get_resource: {{ name }}_subnet }
 {%   endif %}
 
-{%   if network.is_mgmt %}
-{%     set global_ns.mgmt_network_name = name %}
+{%   if network.is_conf %}
+{%     set global_ns.conf_network_name = name %}
 {%   endif %}
 
 {% endfor %}
@@ -118,6 +123,8 @@ resources:
 {%   set net2_name = router[1]|lower|replace('-','_')|regex_replace('_net$', '') %}
   router_{{ net1_name }}_{{ net2_name }}:
     type: OS::Neutron::Router
+    properties:
+      name: {{ heat_resource_name_prefix }}_{{ net1_name }}_{{ net2_name }}_router
 
   router_{{ net1_name }}_{{ net2_name }}_interface:
     type: OS::Neutron::RouterInterface
@@ -160,7 +167,7 @@ resources:
   # bond: {{ port.bond }}
   # primary: {{ port.primary }}
 {%       endif %}
-{%       if network.is_mgmt and not port.primary|default(True) %}
+{%       if network.is_conf and not port.primary|default(True) %}
   # attached to network: <not attached>
 {%       else %}
   # attached to network: {{ network.name }}
@@ -170,6 +177,7 @@ resources:
   {{ port_name }}_port:
     type: OS::Neutron::Port
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ port_name }}_port
 {%       if network.is_mgmt and not port.primary|default(true) %}
       network: { get_resource: default_network }
 
@@ -177,8 +185,8 @@ resources:
       network: { get_resource: {{ network_name }}_network }
       fixed_ips:
         - subnet_id: { get_resource: {{ network_name }}_subnet }
-{%         if network.is_mgmt %}
-{%           set _ = global_ns.mgmt_ports.append((server, port_name,)) %}
+{%         if network.is_conf %}
+{%           set _ = global_ns.conf_ports.append((server, port_name,)) %}
           ip_address: "{{ server.ip_addr }}"
 
 {%           if server.is_admin %}
@@ -211,6 +219,7 @@ resources:
   {{ port_name }}_port:
     type: OS::Neutron::Port
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ port_name }}_port
       network: { get_resource: default_network }
 
 {%     endif %}
@@ -245,6 +254,7 @@ resources:
   {{ volume_name }}_vol:
     type: OS::Cinder::Volume
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ volume_name }}_vol
       size: {{ volume.size }}
 
   {{ volume_name }}_vol_att:
@@ -273,6 +283,7 @@ resources:
     type: OS::Nova::Server
     depends_on: [ {{ ', '.join(server_ns.trunk_port_names+server_ns.volume_names) }} ]
     properties:
+      name: {{ heat_resource_name_prefix }}_{{ server_name }}_server
 {% if os_key_name is defined %}
       key_name: { get_param: key_name }
 {% endif %}
@@ -295,30 +306,25 @@ outputs:
     description: Floating IP address of the admin node
     value: { get_attr: [admin_floating_ip, floating_ip_address] }
 
-{% for server, port_name in global_ns.mgmt_ports if server.is_admin %}
+{% for server, port_name in global_ns.conf_ports if server.is_admin %}
   # management IP address of the admin node
-  admin-mgmt-ip:
+  admin-conf-ip:
     description: Management IP address of the management node
     value: { get_attr: [{{ port_name }}_port, fixed_ips, 0, ip_address] }
 {%   endfor %}
 
   # management IP addresses of the controller nodes
-  controller-mgmt-ips:
+  controller-conf-ips:
     description: Management IP addresses of the controller node
     value:
-{% for server, port_name in global_ns.mgmt_ports if server.is_controller %}
+{% for server, port_name in global_ns.conf_ports if server.is_controller %}
       - { get_attr: [{{ port_name }}_port, fixed_ips, 0, ip_address] }
 {%   endfor %}
 
   # management IP addresses of the compute nodes
-  compute-mgmt-ips:
+  compute-conf-ips:
     description: Management IP addresses of the compute nodes
     value:
-{% for server, port_name in global_ns.mgmt_ports if server.is_compute %}
+{% for server, port_name in global_ns.conf_ports if server.is_compute %}
       - { get_attr: [{{ port_name }}_port, fixed_ips, 0, ip_address] }
 {%   endfor %}
-
-  # management network info
-  mgmt-network-id:
-    description: Neutron Network ID of management network
-    value: { get_resource: {{ global_ns.mgmt_network_name }}_network }
