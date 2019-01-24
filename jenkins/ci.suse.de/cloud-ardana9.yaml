@@ -85,7 +85,7 @@
     tempest_filter_list: 'ci'
     qa_test_list: "\
       iverify,cinder,heat,magnum,neutron,nova-attach,nova_volume,nova_server,\
-      nova_services,nova_flavor,nova_image,tempest_cleanup"
+      nova_services,nova_flavor,nova_image,tempest_cleanup,nova_guest_image"
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -111,7 +111,7 @@
       nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,\
       barbican-functional,horizon,horizon_integration-tests,keystone-api,keystone-ldap,\
       keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
-      service-ansible-playbooks,enable_tls,tempest_cleanup"
+      service-ansible-playbooks,enable_tls,tempest_cleanup,nova_guest_image"
     rc_notify: 'true'
     triggers:
      - timed: 'H H * * *'
