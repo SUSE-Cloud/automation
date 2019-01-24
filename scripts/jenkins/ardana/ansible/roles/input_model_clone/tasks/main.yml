@@ -27,3 +27,15 @@
   synchronize:
     src: "{{ git_input_model_dest }}/{{ git_input_model_path }}/{{ model }}/"
     dest: "{{ input_model_path }}/"
+
+- name: Remove versioned features from input model when not enabled
+  replace:
+    path: "{{ input_model_path }}/data/control_plane.yml"
+    regexp: '(.*{{ item }}.*)'
+    replace: '#\1'
+  when: not versioned_features[item].enabled
+  loop:
+    - manila
+    - freezer
+    - heat-api-cloudwatch
+    - nova-console-auth
