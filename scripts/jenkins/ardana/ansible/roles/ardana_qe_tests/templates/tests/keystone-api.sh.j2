@@ -12,9 +12,14 @@ if [ ! -f {{ ardana_qe_test_work_dir}}/SoapUI-4.6.4-linux-bin.tar.gz ]; then
     tar -zxvf SoapUI-4.6.4-linux-bin.tar.gz
 fi
 
+KSPUBLICURL={{ ardana_group_vars_key_api.keystone_public_url }}
+KSPUBLICENDPOINT=`echo $KSPUBLICURL  | egrep -o 'http[s]*:\/\/[^\:]*'`
+
 cat > {{ keystone_soapui_code_folder }}/test_resources.sh <<EOF
 KSENDPOINT={{ ardana_group_vars_key_api.keystone_endpoint }}
 KSADMINENDPOINT={{ ardana_group_vars_key_api.keystone_admin_endpoint }}
+KSPUBLICENDPOINT=${KSPUBLICENDPOINT}
+KSPUBLICENDPOINTPORT=5000
 MONENDPOINT={{ ardana_group_vars_mon_api.monasca_endpoint }}
 ADMINPASSWORD={{ ardana_group_vars_key_api.keystone_admin_password }}
 KSENDPOINTPORT={{ ardana_group_vars_key_api.keystone_endpoint_port }}

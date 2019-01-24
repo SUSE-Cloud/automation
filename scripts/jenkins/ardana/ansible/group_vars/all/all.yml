@@ -24,6 +24,8 @@ cloud_git_branch:
 clouddata_server: "provo-clouddata.cloud.suse.de"
 rhel_enabled: "{{ rhel_computes is defined and rhel_computes | int > 0 }}"
 ses_enabled: False
+ses_rgw_enabled: False
+cinder_lvm_enabled: '{{ not ses_enabled }}'
 
 workspace_path: "{{ lookup('env', 'WORKSPACE') | default('.', true) }}"
 input_model_path: "{{ workspace_path }}/input_model"
@@ -37,6 +39,12 @@ local_repos_base_dir: "/srv/www/{{ suse_release }}/{{ ansible_architecture }}/re
 sles_cloud_version:
   "12.3": 8
   "12.4": 9
+
+
+# This variable controls the OS type and version used for Ardana RHEL compute nodes
+# Possible values: CentOS_73, CentOS_75, RHEL_73, RHEL_75
+rhel_os: CentOS_75
+rhel_os_version: "{{ rhel_os.split('_')[1] }}"
 
 update_after_deploy: False
 maintenance_updates_path:
@@ -56,6 +64,7 @@ dns_servers:
   - 147.2.2.2 # nsnwb.microfocus.com
 
 rc_channels:
+  pcloud001: "cloud-qe-pcloud001"
   qe002: "cloud-qe-hlm002"
   qe007: "cloud-qe-hlm007"
   qe101: "cloud-qe-hlm101"
@@ -63,5 +72,9 @@ rc_channels:
   qe201: "cloud-qe-hlm201"
   qe202: "cloud-qe-hlm202"
   qe2023: "cloud-qe-hlm2023par"
-  scale: "cloud-qe-scale"
-  qa4: "cloud-qe-qa4"
+  qescale: "cloud-qe-scale"
+  cloud-ardana-ci-slot16: "cloud-maintenance"
+  cloud-ardana-ci-slot17: "cloud-maintenance"
+  cloud-ardana-ci-slot18: "cloud-ci-monitoring"
+  cloud-ardana-ci-slot19: "cloud-ci-monitoring"
+  cloud-ardana-ci-slot20: "cloud-ci-monitoring"

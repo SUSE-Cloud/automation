@@ -10,7 +10,8 @@ SVC_IP_VERSION=4
 ##########################################################################
 
 DEVSTACK_DIR="/opt/stack/devstack"
-
+: ${DEVSTACK_FORK:=openstack-dev}
+: ${DEVSTACK_BRANCH:=master}
 
 # if this variable is set to non-empty, the clone of devstack git
 # will be set up with this gerrit review id being merged
@@ -113,7 +114,13 @@ function h_setup_devstack {
     git config --global user.email root@cleanvm.ci.opensuse.org
     git config --global user.name "Devstack User"
 
-    git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
+    if ! [ -e $DEVSTACK_DIR ]; then
+        git clone \
+            -b $DEVSTACK_BRANCH \
+            https://github.com/$DEVSTACK_FORK/devstack.git \
+            $DEVSTACK_DIR
+    fi
+
     hostname -f || hostname cleanvm.ci.opensuse.org
 
     if [[ "$PENDING_REVIEW" ]]; then
@@ -130,6 +137,7 @@ function h_setup_devstack {
     (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)
 
     SWIFT_SERVICES="
+enable_service c-bak
 enable_service s-proxy
 enable_service s-object
 enable_service s-container
@@ -165,7 +173,6 @@ enable_service placement-api
 enable_service n-cpu
 enable_service c-vol
 enable_service n-obj
-enable_service c-bak
 enable_service q-agt
 disable_service horizon
 enable_service cinder
@@ -239,7 +246,7 @@ if [ -z "${DISABLE_TEMPESTRUN}" ]; then
 pip install junitxml
     sudo -u stack -i <<EOF
 cd /opt/stack/tempest
-tempest run --regex '(?!.*\[.*\bslow\b.*\])(^tempest\.(api|scenario))' --concurrency=2 --subunit > tempest.subunit
+tempest run --smoke --subunit | tee tempest.subunit | subunit-trace -f -n
 subunit2html tempest.subunit /opt/stack/results.html
 # subunit2junitxml will fail if test run failed as it forwards subunit stream result code, ignore it
 subunit2junitxml tempest.subunit > /opt/stack/results.xml || true

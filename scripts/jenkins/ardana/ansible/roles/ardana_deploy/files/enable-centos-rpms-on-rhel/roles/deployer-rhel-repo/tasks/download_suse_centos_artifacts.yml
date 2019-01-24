@@ -38,17 +38,11 @@
   with_items: "{{ rhel_venv_rpms_list }}"
   register: _centos_venv_rpms_install_result
 
-- name: deployer-rhel-repo | download_suse_centos_artifacts | Rebuild rhel venv index
-  become: yes
-  command: >
-    ./create_index
-    --dir={{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ ardana_version }}/rhel_venv/x86_64
-  args:
-    chdir: "{{ 'packager' | bin_dir if deployer_media_legacy_layout|bool else '/usr/bin/' }}"
-  when: _centos_venv_rpms_install_result | changed
-
 - name: deployer-rhel-repo | download_suse_centos_artifacts | Download rpms on deployer
-  command: zypper download {{ centos_repository_name }}:{{ item }}
+  command: timeout 2m zypper download {{ centos_repository_name }}:{{ item }}
+  retries: 10
+  until: _centos_repo_rpms_download_result.rc == 0
+  delay: 2
   with_items: "{{ rhel_repo_rpms_list }}"
   register: _centos_repo_rpms_download_result
 
@@ -90,4 +84,3 @@
     dest: "{{ centos_all_rpms_location }}/"
   with_fileglob:
     - "{{ centos_rpms_download_location }}/*.rpm"
-

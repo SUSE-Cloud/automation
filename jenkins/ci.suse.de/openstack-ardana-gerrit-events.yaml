@@ -19,6 +19,7 @@
               project-pattern: !include-raw: gerrit-project-regexp.txt
               branches:
                 - branch-pattern: master
+                - branch-pattern: stable/pike
     wrappers:
       - workspace-cleanup
 

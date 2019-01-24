@@ -16,16 +16,7 @@
 # Limited to the deployer
 ---
 
-- include: deployer_setup_mode.yml
-
-- include: check_centos_nova_tarball.yml
-  when:
-    - rhel_optional_repo_enabled | bool
-    - cloudsetup_legacy_mode | bool
-
 - include: _rhel_repo_support.yml
-  when:
-    - not (cloudsetup_legacy_mode | bool)
 
 - include: install_target_repo_tarball.yml
 

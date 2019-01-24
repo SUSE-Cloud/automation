@@ -1,19 +1,54 @@
 - project:
+    name: cloud-ardana8-gating-trigger
+    ardana_url_trigger_job: '{name}'
+    version: '8'
+    url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-devel-staging/media.1/build'
+    projects:
+      - project: 'cloud-ardana{version}-gating'
+        block: false
+    jobs:
+        - '{ardana_url_trigger_job}'
+
+- project:
+    name: cloud-ardana8-updates-test-trigger
+    ardana_url_trigger_job: '{name}'
+    version: '8'
+    url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-Updates-test/SUSE:Maintenance:Test:OpenStack-Cloud:{version}:x86_64.repo'
+    check_date: true
+    projects:
+      - project: 'cloud-ardana{version}-job-entry-scale-kvm-pcloud001-x86_64'
+        block: false
+    jobs:
+        - '{ardana_url_trigger_job}'
+
+- project:
     name: cloud-ardana8-gating
     ardana_gating_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
-    model: std-min
-    version: 8
-    label: cloud-trigger
+    concurrent: False
+    version: '8'
+    ardana_env: 'cloud-ardana-gate{version}-slot'
     jobs:
         - '{ardana_gating_job}'
+
+- project:
+    name: cloud-ardana8-maintenance-gating
+    ardana_maintenance_gating_job: '{name}'
+    ardana_env: cloud-ardana-maintenance-slot
+    version: 8
+    jobs:
+      - '{ardana_maintenance_gating_job}'
 
 - project:
     name: cloud-ardana8-job-std-3cp-x86_64
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    model: std-3cp
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -24,7 +59,12 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    model: dac-3cp
+    scenario_name: standard
+    clm_model: integrated
+    controllers: '3'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -35,7 +75,29 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    model: std-min
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-demo-x86_64
+    ardana_job: '{name}'
+    cloudsource: stagingcloud8
+    ardana_env: cloud-ardana-ci-slot
+    scenario_name: standard
+    clm_model: integrated
+    controllers: '1'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer|octavia'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -46,7 +108,14 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud8
-    model: std-split
+    scenario_name: std-split
+    clm_model: standalone
+    core_nodes: '1'
+    lmm_nodes: '1'
+    dbmq_nodes: '1'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -59,7 +128,12 @@
     cloudsource: develcloud8
     update_after_deploy: true
     update_to_cloudsource: stagingcloud8
-    model: std-3cp
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -74,9 +148,27 @@
     updates_test_enabled: true
     update_after_deploy: true
     update_to_cloudsource: GM8+up
-    model: std-3cp
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-entry-scale-kvm-maintenance-update-x86_64
+    ardana_job: '{name}'
+    disabled: false
+    reserve_env: false
+    cloudsource: GM8+up
+    scenario_name: entry-scale-kvm
+    tempest_filter_list: "smoke,full"
+    qa_test_list: "iverify"
+    triggers: []
     jobs:
         - '{ardana_job}'
 
@@ -85,7 +177,56 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: GM8+up
-    model: std-min
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-entry-scale-kvm-pcloud001-x86_64
+    ardana_job: '{name}'
+    concurrent: false
+    ardana_env: pcloud001
+    reserve_env: true
+    cloudsource: GM8+up
+    updates_test_enabled: true
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '2'
+    rhel_computes: '0'
+    ses_enabled: true
+    tempest_filter_list: "\
+      ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,\
+      magnum,manila,monasca,network,neutron-api,swift"
+    qa_test_list: "\
+      iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
+      heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
+      nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,\
+      barbican-functional,horizon,horizon_integration-tests,keystone-api,keystone-ldap,\
+      keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
+      service-ansible-playbooks,enable_tls,tempest_cleanup"
+    rc_notify: 'true'
+    triggers: []
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-std-min-centos-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud8
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '0'
+    rhel_computes: '2'
     triggers:
      - timed: 'H H * * *'
     jobs:

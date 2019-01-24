@@ -1,4 +1,5 @@
 [gate_qe]
+gate-pcloud001  ansible_host=10.84.99.1
 gate-qe002      ansible_host=10.84.65.1
 gate-qe007      ansible_host=10.84.83.1
 gate-qe101      ansible_host=10.84.68.1
@@ -6,9 +7,10 @@ gate-qe102      ansible_host=10.84.84.1
 gate-qe201      ansible_host=10.84.88.1
 gate-qe202      ansible_host=10.84.89.1
 gate-qe2023     ansible_host=10.84.89.150
-gate-scale      ansible_host=10.84.48.50
+gate-qescale    ansible_host=10.84.48.50
 
 [deployer_qe]
+pcloud001       ansible_host=10.84.132.1
 qe002           ansible_host=10.84.43.81
 qe007           ansible_host=10.84.81.17
 qe101           ansible_host=10.84.43.113
@@ -16,10 +18,10 @@ qe102           ansible_host=10.84.81.113
 qe201           ansible_host=10.84.81.33
 qe202           ansible_host=10.84.81.49
 qe2023          ansible_host=10.84.89.151
-scale           ansible_host=10.84.48.51
+qescale         ansible_host=10.84.43.33
 
 [ses_qe]
-ses-qe1         ansible_host=10.84.88.251
+ses-qe          ansible_host=10.84.88.251
 
 [qe_all:children]
 gate_qe
@@ -28,5 +30,8 @@ ses_qe
 
 [deployer_virt]
 
+[ses_virt]
+
 [virt_all:children]
 deployer_virt
+ses_virt

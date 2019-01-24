@@ -23,7 +23,7 @@ interface v${host_letter}<NUM>br
   };
   RDNSS <PREFIX>::1
   {
-    AdvRDNSSLifetime 60;
+    AdvRDNSSLifetime 100;
   };
 };
 
