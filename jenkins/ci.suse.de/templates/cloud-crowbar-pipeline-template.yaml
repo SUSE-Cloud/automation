@@ -117,67 +117,22 @@
           description: List of maintenance update IDs separated by comma (eg. 7396,7487)
 
       - choice:
-          name: model
-          choices:
-            - '{model|}'
-            - dac-3cp
-            - dac-min
-            - demo
-            - deployerincloud
-            - deployerincloud-lite
-            - entry-scale-swift
-            - mid-size
-            - minimal
-            - standard
-            - std-3cm
-            - std-3cp
-            - std-min
-            - std-split
-          description: >-
-            The name of the one of the available 'ardana-ci' input models to use from the ardana-input-model git repository.
-
-
-            NOTE: use this parameter only if you want to use an existing input model. To generate an input model instead,
-            leave this field empty and use the 'scenario_name' parameter instead.
-
-      - choice:
           name: scenario_name
           choices:
-            - '{scenario_name|}'
-            - entry-scale-kvm
-            - mid-scale-kvm
-            - standard
-            - std-split
+            - '{scenario_name|crowbar}'
+            - crowbar
           description: >-
             The name of one of the available scenarios that can be used to generate input models.
             If this parameter is set, the following parameters may also be set to different values, to control
-            various aspects of the generated input model: clm_model, controllers, core_nodes, lmm_nodes, dbmq_nodes,
-            neutron_nodes, swift_nodes, sles_computes, rhel_computes and disabled_services.
+            various aspects of the generated input model: controllers, computes.
 
 
             NOTE: use this parameter only if you want to use a generated input model. To use an existing input model instead,
             leave this field empty and use the 'model' parameter instead.
 
-      - choice:
-          name: clm_model
-          choices:
-            - '{clm_model|standalone}'
-            - standalone
-            - integrated
-          description: |
-            The type of deployer node deployment to use for the generated input model. Can take one of the following values:
-
-              standalone - one node dedicated for CLM
-              integrated - the first controller node will also be used as a CLM node
-
-            Input model generator scenarios using this parameter : all
-
-            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
-            using one of the available input model generator scenarios.
-
       - validating-string:
           name: controllers
-          default: '{controllers|3}'
+          default: '{controllers|1}'
           regex: '[0-3]'
           msg: The entered value failed validation
           description: |
@@ -189,101 +144,12 @@
             using one of the available input model generator scenarios.
 
       - validating-string:
-          name: core_nodes
-          default: '{core_nodes|2}'
-          regex: '[0-3]'
-          msg: The entered value failed validation
-          description: |
-            The number of OpenStack core services nodes in the generated input model (0-3).
-
-            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
-
-            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
-            using one of the available input model generator scenarios.
-
-      - validating-string:
-          name: lmm_nodes
-          default: '{lmm_nodes|3}'
-          regex: '[0-3]'
-          msg: The entered value failed validation
-          description: |
-            The number of LMM services nodes in the generated input model (0-3).
-
-            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
-
-            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
-            using one of the available input model generator scenarios.
-
-      - validating-string:
-          name: dbmq_nodes
-          default: '{dbmq_nodes|3}'
-          regex: '[0-3]'
-          msg: The entered value failed validation
-          description: |
-            The number of database & rabbitmq service nodes in the generated input model (0-3).
-
-            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
-
-            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
-            using one of the available input model generator scenarios.
-
-      - validating-string:
-          name: neutron_nodes
-          default: '2'
-          regex: '[0-3]'
-          msg: The entered value failed validation
-          description: |
-            The number of neutron network nodes in the generated input model (0-3).
-
-            Input model generator scenarios using this parameter: mid-scale-kvm.
-
-            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
-            using one of the available input model generator scenarios.
-
-      - validating-string:
-          name: swift_nodes
-          default: '3'
-          regex: '[0-3]'
-          msg: The entered value failed validation
-          description: |
-            The number of swift proxy/account/container/object service nodes in the generated input model (0-3).
-
-            Input model generator scenarios using this parameter: mid-scale-kvm.
-
-            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
-            using one of the available input model generator scenarios.
-
-      - validating-string:
-          name: sles_computes
-          default: '{sles_computes|2}'
+          name: computes
+          default: '{computes|1}'
           regex: '[0-9]+'
           msg: The entered value failed validation
           description: |
             The number of SLES compute nodes in the generated input model.
-
-            Input model generator scenarios using this parameter: all
-
-            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
-            using one of the available input model generator scenarios.
-
-      - validating-string:
-          name: rhel_computes
-          default: '{rhel_computes|0}'
-          regex: '[0-9]+'
-          msg: The entered value failed validation
-          description: |
-            The number of RHEL (CentOS) compute nodes in the generated input model.
-
-            Input model generator scenarios using this parameter: all
-
-            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
-            using one of the available input model generator scenarios.
-
-      - string:
-          name: disabled_services
-          default: '{disabled_services|}'
-          description: |
-            Regex matching service components and component groups to exclude from the generated input model.
 
             Input model generator scenarios using this parameter: all
 
@@ -304,21 +170,6 @@
 
             NOTE: tempest does not support testing RADOS Gateway, so failures on object_storage
             tempest tests are expected when ses_rgw_enabled is set to true.
-
-      - choice:
-          name: rhel_os
-          choices:
-            - '{rhel_os|CentOS_75}'
-            - CentOS_73
-            - CentOS_75
-            - RHEL_73
-            - RHEL_75
-          description: |
-            The OS distribution and version to use for Ardana RHEL compute nodes.
-
-            NOTE: some of these values are only known to work in combination with bare-metal
-            deployments (RHEL_73, CentOS_75), while other are only known to work with virtual
-            deployments (CentOS_73, CentOS_75).
 
       - extended-choice:
           name: tempest_filter_list
