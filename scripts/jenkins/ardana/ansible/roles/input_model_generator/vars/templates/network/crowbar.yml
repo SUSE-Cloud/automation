@@ -1,0 +1,13 @@
+---
+
+network_groups:
+  - name: MANAGEMENT
+    hostname_suffix: mgmt
+    tagged_vlan: false
+    component_endpoints:
+      - CLM
+      - MANAGEMENT
+      - INTERNAL-API
+      - EXTERNAL-API
+    routes:
+      - default
