@@ -34,7 +34,7 @@
     name: cloud-ardana8-maintenance-gating
     ardana_maintenance_gating_job: '{name}'
     ardana_env: cloud-ardana-maintenance-slot
-    version: 8
+    version: '8'
     jobs:
       - '{ardana_maintenance_gating_job}'
 
