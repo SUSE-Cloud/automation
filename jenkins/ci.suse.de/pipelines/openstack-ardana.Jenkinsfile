@@ -214,6 +214,9 @@ pipeline {
     }
 
     stage('Deploy cloud') {
+      when {
+        expression { deploy_cloud == 'true' }
+      }
       steps {
         script {
           ardana_lib.ansible_playbook('deploy-cloud')
@@ -223,7 +226,7 @@ pipeline {
 
     stage('Update cloud') {
       when {
-        expression { update_after_deploy == 'true' }
+        expression { deploy_cloud == 'true' && update_after_deploy == 'true' }
       }
       steps {
         script {

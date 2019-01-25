@@ -63,6 +63,14 @@
                cloud9MX (cloud 9 milestones)
 
       - bool:
+          name: deploy_cloud
+          default: '{deploy|true}'
+          description: >-
+            If left unchecked, the cloud deployment steps will be skipped. This option can be
+            used if you only need to set up the infrastructure and configure the cloud media and
+            repositories, but skip the actual cloud deployment, e.g. for testing purposes.
+
+      - bool:
           name: updates_test_enabled
           default: '{updates_test_enabled|false}'
           description: >-
