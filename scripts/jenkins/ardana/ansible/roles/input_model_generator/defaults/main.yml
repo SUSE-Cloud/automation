@@ -46,6 +46,17 @@ cp_prefix: cp1
 max_host_prefix_len: "{{ 33-(cp_prefix|length) }}"
 host_prefix: "{{ ('ardana-' ~ ardana_env)[:max_host_prefix_len|int-1] if ardana_env is defined else 'ardana' }}"
 
+subnet_prefix: 192.168
+gen_subnet_start: 124
+gen_ip_start: 10
+# The gap to be left between the generated IP of the first node (usually the admin node)
+# and the rest of the nodes
+gen_ip_gap: 70
+# For Ardana:
+#gen_subnet_start: 100
+#gen_ip_start: 100
+#gen_ip_gap: 1
+
 service_component_groups:
   COMMON:
     - lifecycle-manager-target
