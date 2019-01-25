@@ -70,3 +70,4 @@
     - freezer
     - heat-api-cloudwatch
     - nova-console-auth
+    - ceilometer-api
