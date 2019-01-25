@@ -34,8 +34,5 @@
     regexp: '(.*{{ item }}.*)'
     replace: '#\1'
   when: not versioned_features[item].enabled
-  loop:
-    - manila
-    - freezer
-    - heat-api-cloudwatch
-    - nova-console-auth
+  loop: "{{ input_model_versioned_features }}"
+

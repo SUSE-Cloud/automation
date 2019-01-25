@@ -30,6 +30,8 @@ versioned_features:
     enabled: "{{ when_cloud8 }}"
   nova-console-auth:
     enabled: "{{ when_cloud8 }}"
+  ceilometer-api:
+    enabled: "{{ when_cloud8 }}"
   # Keep using the deprecated external_network_bridge option with GM8*
   # cloudsources until the http://bugzilla.suse.com/show_bug.cgi?id=1117198
   # fix gets released
@@ -38,3 +40,10 @@ versioned_features:
   # designate zone/pool (Cloud8) or worker/producer (Cloud9)
   designate_worker_producer:
     enabled: "{{ when_cloud9 }}"
+
+input_model_versioned_features:
+  - manila
+  - freezer
+  - heat-api-cloudwatch
+  - nova-console-auth
+  - ceilometer-api
