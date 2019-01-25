@@ -46,6 +46,16 @@ cp_prefix: cp1
 max_host_prefix_len: "{{ 33-(cp_prefix|length) }}"
 host_prefix: "{{ ('ardana-' ~ ardana_env)[:max_host_prefix_len|int-1] if ardana_env is defined else 'ardana' }}"
 
+# First two octets of the generated subnet prefixes for Ardana networks
+subnet_prefix: 192.168
+# Start value for the third octet for the generated subnet prefixes and also
+# start of generated VLAN IDs for Ardana networks
+gen_subnet_start: 100
+# Start value for the fourth octet for the generated server IP addresses
+gen_ip_start: 100
+# Gap to be left between the generated IP for the admin node and the rest of the nodes
+gen_ip_gap: 1
+
 service_component_groups:
   COMMON:
     - lifecycle-manager-target
