@@ -15,6 +15,7 @@ function random_ipv6_prefix {
 
 : ${reposerver:=clouddata.cloud.suse.de}
 : ${nfsserver:=clouddata.cloud.suse.de}
+: ${want_ipv6:=0}
 export reposerver nfsserver
 if (( $want_ipv6 > 0 )); then
     export net_admin=$(ipv6prefix $n)
