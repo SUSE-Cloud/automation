@@ -8,29 +8,42 @@ a single VM inside an OpenStack cloud.  It uses
 [`qa_devstack.sh`](../../scripts/jenkins/qa_devstack.sh) in order to
 prepare the VM for `devstack` and then run it.
 
-## Example usage
-
 The below examples use [OpenStack's Heat CLI
 client](https://docs.openstack.org/python-heatclient/latest/cli/stack.html#stack-create);
 however it is also possible to [launch a stack via the Horizon web
 dashboard](https://docs.openstack.org/heat-dashboard/latest/user/stacks.html#launch-a-stack).
 
-Firstly, [set up your environment with the right
-credentials](https://docs.openstack.org/python-openstackclient/rocky/cli/man/openstack.html#authentication-methods),
-e.g.
+## Prerequites
+
+The [Python OpenStack client with the `heatclient`
+extension](https://docs.openstack.org/mitaka/user-guide/common/cli_install_openstack_command_line_clients.html)
+must be installed.
+
+## Example usage
+
+[Set up your environment with the right
+credentials](https://docs.openstack.org/python-openstackclient/rocky/cli/man/openstack.html#authentication-methods).
+The easiest way to create an Openstack RC file (an `openrc` for `source`ing) or
+the cloud configuration file (`~/.config/openstack/cloud.yaml`) is to navigate
+to the [API Access page](https://engcloud.prv.suse.net/project/api_access/) on
+the [engineering cloud](https://engcloud.prv.suse.net) and use the pulldown menu
+on the right to download a file that is already populated with the appropriate
+values for our environment.  To avoid further prompts, you may add your password
+into the file that you downloaded.  Then either
 
     source openrc
 
 or
 
-    # assuming ~/.config/openstack/my-cloud.yaml exists
-    export OS_CLOUD=my-cloud
-
-and ensure you have the Python OpenStack client and the `heatclient`
-extension both installed.
+    # assuming that ~/.config/openstack/cloud.yaml contains the openstack cloud
+    export OS_CLOUD=openstack
 
 Also ensure that you have created or imported an ssh key pair into
-your OpenStack account.  In the instructions below, it is assumed that
+your OpenStack account.  This can be done on the
+[Key Pairs page](https://engcloud.prv.suse.net/project/key_pairs/)
+or with the `openstack keypair create` CLI command.
+
+In the instructions below, it is assumed that
 you have set `$KEY_NAME` to the name of your public key, e.g.
 
     export KEY_NAME=my-key-name
