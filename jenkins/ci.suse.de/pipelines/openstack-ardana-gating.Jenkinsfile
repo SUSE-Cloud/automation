@@ -44,8 +44,8 @@ pipeline {
     }
 
     stage('Trigger validation jobs') {
-      // abort all stages if one of them fails
-      failFast true
+      // Do not abort all stages if one of them fails
+      failFast false
       parallel {
 
         stage('Run cloud deploy job') {
