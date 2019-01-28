@@ -29,11 +29,17 @@ or
 and ensure you have the Python OpenStack client and the `heatclient`
 extension both installed.
 
+Also ensure that you have created or imported an ssh key pair into
+your OpenStack account.  In the instructions below, it is assumed that
+you have set `$KEY_NAME` to the name of your public key, e.g.
+
+    export KEY_NAME=my-key-name
+
 Then, to boot `devstack` on Leap 15.0:
 
     openstack stack create \
         -t scripts/heat/devstack-heat-template.yaml \
-        --parameter key_name=$USER \
+        --parameter key_name=$KEY_NAME \
         --parameter image_name=openSUSE-Leap-15.0 \
         $USER-devstack-leap
 
@@ -41,7 +47,7 @@ To boot `devstack` on SLES 12 SP3:
 
     openstack stack create \
         -t scripts/heat/devstack-heat-template.yaml \
-        --parameter key_name=$USER \
+        --parameter key_name=$KEY_NAME \
         --parameter image_name=SLES12-SP3-JeOS.x86_64 \
         $USER-devstack-sles12-sp3
 
@@ -50,7 +56,7 @@ To boot `devstack` on SLES 12 SP3 using modified versions of
 
     openstack stack create \
         -t scripts/heat/devstack-heat-template.yaml \
-        --parameter key_name=$USER \
+        --parameter key_name=$KEY_NAME \
         --parameter image_name=SLES12-SP3-JeOS.x86_64 \
         --parameter qa_devstack_fork=$USER
         --parameter qa_devstack_branch=devstack-sle
@@ -61,3 +67,21 @@ To boot `devstack` on SLES 12 SP3 using modified versions of
 There are more parameters available; details are available inside [the
 heat template](../../scripts/heat/devstack-heat-template.yaml) itself,
 near the top.
+
+## Logging into the VM
+
+If all goes well, your server will boot up, become pingable, and after
+a while it should be possible to `ssh` to its floating IP as normal
+with any other OpenStack instance, e.g.
+
+    fip=$(
+        openstack stack output show \
+            -c output_value \
+            -f value \
+            "$MY_STACK" floating-ip
+    )
+    ssh -i my-key-cert.pem root@$fip
+
+`devstack` should have been triggered by `cloud-init` (see
+`/var/log/cloud-init.log`), and the output of the `devstack` run can
+be found in `/var/log/cloud-init-output.log`.
