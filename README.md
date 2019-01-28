@@ -17,10 +17,16 @@ This project has several scripts for different automated tasks. Some of them are
 # Documentation
 
 ## Crowbar deployments
-Find out more about configuration and usage in [`/docs/mkcloud.md`](docs/mkcloud.md)
 
-## Ardana deployment
-Find out more about configuration and usage in [`/docs/ardana/testing.md`](docs/ardana/testing.md)
+Find out more in [`/docs/mkcloud.md`](docs/mkcloud.md)
+
+## Ardana deployments
+
+Find out more in [`/docs/ardana/`](docs/ardana/)
+
+## devstack deployments
+
+Find out more in [`/docs/devstack/`](docs/devstack/)
 
 # License
 
