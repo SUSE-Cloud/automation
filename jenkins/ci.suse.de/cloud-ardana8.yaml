@@ -209,7 +209,7 @@
       iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
       heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
       nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,\
-      barbican-functional,horizon,horizon_integration-tests,keystone-api,keystone-ldap,\
+      barbican-functional,horizon,keystone-api,keystone-ldap,\
       keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
       service-ansible-playbooks,enable_tls,tempest_cleanup,nova_guest_image"
     rc_notify: 'true'

@@ -116,7 +116,7 @@
             iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,
             heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,
             nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
-            barbican-functional,horizon,horizon_integration-tests,freezer,keystone-soapui,
+            barbican-functional,horizon,freezer,keystone-soapui,
             remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,
             change_credentials,nova_guest_image
           description: >-
