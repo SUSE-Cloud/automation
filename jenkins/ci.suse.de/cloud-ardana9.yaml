@@ -15,6 +15,7 @@
     concurrent: False
     version: '9'
     ardana_env: 'cloud-ardana-gate{version}-slot'
+    deploy_and_update: false
     jobs:
         - '{ardana_gating_job}'
 
