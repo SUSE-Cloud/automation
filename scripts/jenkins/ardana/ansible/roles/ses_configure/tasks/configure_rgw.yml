@@ -60,7 +60,7 @@
      rgw keystone admin project = admin
      rgw keystone admin domain = Default
      rgw keystone api version = 3
-     rgw keystone accepted roles = admin,Member,_member_
+     rgw keystone accepted roles = admin,Member,_member_,member
      rgw keystone accepted admin roles = admin
      rgw keystone verify ssl = false
   notify: Restart radosgw
