@@ -119,9 +119,9 @@ if [[ $github_pr ]] ; then
     # split $github_pr into multiple variables
     source ${automationrepo}/scripts/jenkins/github-pr/parse.rc
 
-    github_context=suse/mkcloud
-    if [[ $github_pr_context ]] ; then
-      github_context=$github_context/$github_pr_context
+    github_context=suse/cloud
+    if [[ $github_pr_context_suffix ]] ; then
+      github_context=$github_context/$github_pr_context_suffix
     fi
     ghpr_paras="--org ${github_org} --repo ${github_repo} --sha $github_pr_sha --context $github_context"
 
