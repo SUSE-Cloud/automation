@@ -49,6 +49,9 @@ pipeline {
       parallel {
 
         stage('Run cloud deploy job') {
+          when {
+            expression { deploy == 'true' }
+          }
           steps {
             script {
               // reserve a resource here for the openstack-ardana job, to avoid
@@ -71,7 +74,7 @@ pipeline {
 
         stage('Run cloud update job') {
           when {
-            expression { version != '9' }
+            expression { deploy_and_update == 'true' }
           }
           steps {
             script {
