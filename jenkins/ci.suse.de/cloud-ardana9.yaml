@@ -146,8 +146,7 @@
       keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
       service-ansible-playbooks,enable_tls,tempest_cleanup,nova_guest_image"
     rc_notify: 'true'
-    triggers:
-     - timed: 'H H * * *'
+    triggers: []
     jobs:
         - '{ardana_job}'
 
