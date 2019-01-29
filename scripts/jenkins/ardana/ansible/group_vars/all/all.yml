@@ -58,7 +58,11 @@ ntp_servers:
   - ntp.suse.de
   - ntp0.suse.de
   - ntp1.suse.de
+  - ntp2.suse.de
   - ntp3.suse.de
+  - kirk.provo.novell.com
+  - 1.us.pool.ntp.org
+  - 2.us.pool.ntp.org
 
 dns_servers:
   - 147.2.2.2 # nsnwb.microfocus.com
