@@ -56,6 +56,11 @@
 - include_tasks: setup_rhel_repo.yml
   when: rhel_enabled
 
+- include_tasks: setup_rhel_ceph_client_repo.yml
+  when:
+    - rhel_enabled
+    - ses_enabled
+
 - include_tasks: reimage_nodes.yml
   when: is_physical_deploy
 
