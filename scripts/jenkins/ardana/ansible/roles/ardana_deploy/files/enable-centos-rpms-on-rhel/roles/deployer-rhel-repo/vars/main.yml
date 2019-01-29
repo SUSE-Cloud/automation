@@ -197,3 +197,4 @@ rhel_repo_rpms_list:
   - python-deprecation
   - python-munch
   - libsodium23
+  - python-PySocks

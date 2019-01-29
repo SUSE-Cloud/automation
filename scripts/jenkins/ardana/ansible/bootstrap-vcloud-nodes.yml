@@ -149,7 +149,7 @@
               path: "/etc/openstack"
             - state: touch
               path: "/etc/openstack/skip_disk_config"
-          when: not want_lvm
+          when: ansible_os_family == 'RedHat' or not want_lvm
 
         - name: Add CentOS repository
           yum_repository:
