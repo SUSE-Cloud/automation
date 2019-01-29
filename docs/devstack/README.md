@@ -25,8 +25,7 @@ must be installed.
 credentials](https://docs.openstack.org/python-openstackclient/rocky/cli/man/openstack.html#authentication-methods).
 The easiest way to create an Openstack RC file (an `openrc` for `source`ing) or
 the cloud configuration file (`~/.config/openstack/cloud.yaml`) is to navigate
-to the [API Access page](https://engcloud.prv.suse.net/project/api_access/) on
-the [engineering cloud](https://engcloud.prv.suse.net) and use the pulldown menu
+to the Project / API Access page in horizon and use the pulldown menu
 on the right to download a file that is already populated with the appropriate
 values for our environment.  To avoid further prompts, you may add your password
 into the file that you downloaded.  Then either
@@ -40,7 +39,7 @@ or
 
 Also ensure that you have created or imported an ssh key pair into
 your OpenStack account.  This can be done on the
-[Key Pairs page](https://engcloud.prv.suse.net/project/key_pairs/)
+Project / Compute / Key Pairs page in horizon
 or with the `openstack keypair create` CLI command.
 
 In the instructions below, it is assumed that
