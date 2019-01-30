@@ -74,185 +74,30 @@ cd
 rm -r automation.old
 mv automation automation.old
 git clone --branch=upgrade-scale https://github.com/SUSE-Cloud/automation
-# use that before the PR is merged
-#git clone --branch=upgrade-scale-scenario https://github.com/skazi0/automation
 
 # setup environment
 source automation/hostscripts/upgrade-scale/setup.sh
 export want_ipmi_username="<ILO USER>"
 export extraipmipw="<ILO PASSWORD>"
 # OR
-source ipmi.sh # above lines with real credentials stored in file
+# above lines with real credentials stored in file (create this file if it's not present on the adminhost)
+source ./ipmi.sh
 
-# NOTE: make sure all nodes are off to avoid IP conflicts. You can check the power status with:
-awk '{print $2}' all_controllers.txt | tr -d '#' | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
-awk '{print $1}' all_computes.txt | tr -d '#' | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
-# if needed, power off the nodes
-awk '{print $2}' all_controllers.txt | tr -d '#' | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
-awk '{print $1}' all_computes.txt | tr -d '#' | xargs -i sh -c 'echo {}; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
+# reset previous state
+# NOTE: this is needed only if you want to rebuild the cloud from scratch. individual `*-done` files can also
+# be removed from this directory to re-trigger steps selectively.
+automation/hostscripts/upgrade-scale/build.sh reset
 
-# make sure lvm volume for crowbar exists
-test -e /dev/system/crowbaru1 || lvcreate -L20G system -n crowbaru1
-
-# remove old ssh server key (if any) to avoid errors when sshing to crowbar vm
-ssh-keygen -R 192.168.120.10
-ssh-keygen -R crowbaru1
-
-# update the local cache
-automation/scripts/mkcloud prepare
-# install the admin VM
-automation/hostscripts/gatehost/freshadminvm crowbaru1 develcloud7
-# if crowbar VM is not reachable via ssh at this point, probably it didn't get IP assigned, fix: `systemctl restart dnsmasq` on host
-# bootstrap crowbar on the VM
-automation/scripts/mkcloud prepareinstcrowbar runupdate bootstrapcrowbar
-
-# upload latest batch files from automation repo to crowbar vm (they will land in /root/batches)
-# these will be used later to deploy the cloud
-rsync -vr automation/hostscripts/upgrade-scale/batches 192.168.120.10:
-# fill ipmi credentials in remote copy (using variables set on host)
-ssh 192.168.120.10 sed -i -e "s/%IPMIUSER%/$want_ipmi_username/" -e "s/%IPMIPASS%/$extraipmipw/" batches/01_ipmi.yml
-
-### on crowbar VM
-# we need updated packages
-#wget -nc http://download.suse.de/ibs/Devel:/Cloud:/7/SLE_12_SP2/noarch/sleshammer-x86_64-0.7.0-0.38.9.noarch.rpm
-#wget -nc http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12_SP2/x86_64/rubygem-chef-10.32.2-27.1.x86_64.rpm
-#wget -nc http://download.suse.de/ibs/Devel:/Cloud:/Shared:/Rubygem/SLE_12_SP2/x86_64/ruby2.1-rubygem-chef-10.32.2-27.1.x86_64.rpm
-#zypper in -n -f sleshamm* ruby*
-
-# we need some crowbar-core patches
-# 1299: Stable 4.0 bsc1054081 by toabctl
-# 1297: Avoid crashing chef on listing 'installing' nodes (bsc#1050278) by toabctl
-# 1301: provisioner: Wait for admin server after net restart (bsc#1054191) by toabctl
-# 1304: Bootdisk detection: Skip cciss, prefer wwn's by toabctl
-# 1320: dhcp fix for UEFI (bsc#961536) by toabctl
-# 1262: [stable/4.0] ipmi: Add support for bmc_interface (bsc#1046567) by s-t-e-v-e-n-k
-# 1321: Properly pass command args to bmc_cmd by toabctl
-zypper -n in patch
-#pushd /opt/dell
-#for github_pr in 1299 1297 1301 1304 1320 1262 1321; do
-#    wget -q https://github.com/crowbar/crowbar-core/pull/$github_pr.patch
-#    patch -p1 < $github_pr.patch
-#done
-
-### on the admin host
-# install crowbar admin node
-automation/scripts/mkcloud instcrowbar
-
-### on the crowbar VM
-# install patched barclamp
-#barclamp_install.rb --rpm core
-#rccrowbar restart
-#rccrowbar-jobs restart
-
-# apply IPMI and provisioner batch to make sure IPMI settings are discovered from the beginning and correct installation settings are used
-crowbar batch build batches/00_provisioner.yml
-crowbar batch build batches/01_ipmi.yml
-
-#############################
-# install controllers
-#############################
-
-### on the admin host
-
-# NOTE: make sure all controllers / DL360s are set to Legacy BIOS boot mode. UEFI sometimes causes weird problems.
-# pxe boot all controller nodes listed in the ~/all_controllers.txt file
-# NOTE: this is one-time boot override, don't use options=persistent as it causes undesired side effects (e.g. switch from UEFI to Legacy boot)
-awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; \
-  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
-  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
-# wait until nodes are discovered
-
-### on the crowbar VM
-
-# allocate all pending nodes and set following boot to pxe for proper AutoYaST installation
-# NOTE: the reboot will be done as part of post-allocate action but the IPMI specification requires that the boot option overrides
-#   are cleared after ~60sec so the reboot needs to fit in this window (i.e. whole pre-reboot phase of installation can't take more
-#   than 60sec or the pxe boot override will expire).
-crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; \
-  crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'
-# wait until nodes are installed, rebooted and transition to ready
-
-# set aliases
-count=0
-nodes=( `crowbarctl node list --plain | grep ready$ | grep "^d" | cut -d' ' -f1` )
-aliases=( "controller0 controller1 controller2 controller3 controller4 controller5 controller6 controller7" )
-for a in $aliases; do
-    crowbarctl node rename ${nodes[$count]} $a
-    crowbarctl node group ${nodes[$count]} control
-    echo "${nodes[$count]} -> $a"
-    (( count++ ))
-done
-
-### on the admin host
-# install first 10 compute-class nodes for non-compute use and some initial computes
-awk '{print $1}' all_computes.txt | head -n10 | xargs -i sh -c 'echo {}; \
-  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
-  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
-# wait until nodes are discovered
-
-### on the crowbar VM
-
-# allocate all pending nodes and set following boot to pxe for proper AutoYaST installation
-crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; \
-  crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'
-# wait until nodes are installed, rebooted and transition to ready
-
-# pick some free (compute-class) nodes for ceph and monasca
-nodes_without_alias=( `crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|grep -e ^crowbar -v` )
-count=0
-aliases=( "storage0 storage1 storage2 monasca" )
-for a in $aliases; do
-    crowbarctl node rename ${nodes_without_alias[$count]} $a
-    crowbarctl node group ${nodes_without_alias[$count]} misc
-    echo "${nodes_without_alias[$count]} -> $a"
-    (( count++ ))
-done
-
-# the rest are compute nodes
-nodes_without_alias=( `crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|grep -e ^crowbar -v` )
-count=0
-for node in ${nodes_without_alias[@]}; do
-    crowbarctl node rename $node "compute$count"
-    crowbarctl node group $node compute
-    echo "$node -> compute$count"
-    (( count++ ))
-done
-
-# we need some more patches for the OpenStack barclamps
-# 1142: [4.0] keystone: fix ha race condition during default objects creation by stefannica
-#pushd /opt/dell
-#for github_pr in 1142; do
-#    wget -q https://github.com/crowbar/crowbar-openstack/pull/$github_pr.patch
-#    patch -p1 < $github_pr.patch
-#done
-#popd
-
-# apply HA patches
-# 330: Set the value of drbd nodes only for the first deployment.
-#pushd /opt/dell
-#for github_pr in 330; do
-#    wget -q https://github.com/crowbar/crowbar-ha/pull/$github_pr.patch
-#    patch -p1 < $github_pr.patch
-#done
-#popd
-
-#barclamp_install.rb --rpm openstack
-#barclamp_install.rb --rpm ha
-#rccrowbar restart
-#rccrowbar-jobs restart
-
-# manually install python-keystone-json-assignment package on all nodes which will go to 'services' cluster
-for node in controller5 controller6; do
-#  ssh $node "wget -nc http://download.suse.de/ibs/Devel:/Cloud:/7:/Staging/SLE_12_SP2/noarch/python-keystone-json-assignment-0.0.2-2.14.noarch.rpm"
-#  ssh $node "zypper -n --no-gpg-checks in -f python-keystone-json-assignment*"
-  ssh $node zypper -n in python-keystone-json-assignment
-  ssh $node "mkdir -p /etc/keystone; wget -nc --no-check-certificate https://w3.suse.de/~bwiedemann/cloud/user-project-map.json -O /etc/keystone/user-project-map.json"
-done
-
-# use "crowbar batch build XX_X.yml" to build the cloud
-find batches -name '*.yml' | sort | xargs -i sh -c 'crowbar batch build --timeout 3600 {} || exit 255'
-
-# the cloud should be ready now for adding more nodes
+# (re)build the cloud
+# this script wraps most steps required to deploy the crowbar VM and baremetal cloud nodes.
+# by default it will run series of predefined "steps" which are just bash functions defined inside the script.
+# it can also be used to run selected steps explicitly by passing their names as command arguments (like "reset"
+# above).
+# because `set -e` is used and there is currently no special error handling, the script will die on any failure.
+# to retry failed step, simply run the command again. it should pick up from where it left off.
+# there is currently no timeout logic for discovery/installation steps. if the script gets stuck on DDDD... or
+# III....., kill the script with Ctrl+C and try again.
+automation/hostscripts/upgrade-scale/build.sh
 
 # before the upgrade update cache of target product
 export old_cloudsource=$cloudsource
@@ -260,57 +105,10 @@ export cloudsource=$upgrade_cloudsource
 automation/scripts/mkcloud prepare
 export cloudsource=$old_cloudsource
 
-# some useful commands
-### on the admin host
-
+# some other useful commands
 # if applying proposals times out on syncmarks often, try increasing default syncmark timeout
 # e.g. /opt/dell/chef/cookbooks/crowbar-pacemaker/resources/sync_mark.rb -> attribute :timeout, kind_of: Integer, default: 120
 # upload modified cookbook: knife cookbook upload crowbar-pacemaker -o /opt/dell/chef/cookbooks
-
-# collect ipmi addresses of all nodes known to crowbar
-ssh crowbaru1 "crowbarctl node list --plain | cut -d' ' -f1 | grep -v crowbar | xargs -i knife node show -a crowbar_wall.ipmi.address {} | cut -d: -f2" > all_known_ipmi.txt
-
-# power off all unused controller nodes
-awk '{ print$2 }' all_controllers.txt | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
-  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
-
-# trigger discovery of all unused controller nodes
-awk '{ print$2 }' all_controllers.txt | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
-  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
-  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
-
-# power off all unused compute nodes
-awk '{ print$1 }' all_computes.txt | tr -d '#' | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
-  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
-
-# trigger discovery of all unused compute nodes
-awk '{ print$1 }' all_computes.txt | grep -v '#' | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
-  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
-  ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
-
-# allocate all pending nodes and set following boot to pxe for proper AutoYaST installation
-ssh crowbaru1 "crowbarctl node list --plain | grep pending$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; \
-  crowbarctl node allocate {} && ssh -o StrictHostKeyChecking=no {} ipmitool chassis bootdev pxe'"
-
-# forget all unready nodes (after waiting for installation to have a clean slate for retry of above procedure)
-ssh crowbaru1 "crowbarctl node list --plain | grep unready$ | cut -d' ' -f2 | xargs -i sh -c 'echo {}; crowbarctl node delete {}'"
-
-# set aliases for remaining compute nodes
-nodes_without_alias=( `crowbar machines aliases|grep ^-| sed -e 's/^-\s*//g'|grep -e ^crowbar -v` )
-count=$(crowbar machines aliases | grep compute | cut -d' ' -f1 | tr -d [:alpha:] | sort -n | tail -n1)
-(( count++ ))
-for node in ${nodes_without_alias[@]}; do
-    crowbarctl node rename $node "compute$count"
-    crowbarctl node group $node compute
-    echo "$node -> compute$count"
-    (( count++ ))
-done
-
-# add up to N computes to nova proposal
-export COMPUTES=10
-nodes=$(crowbarctl node list --plain | grep compute | sort --key=2.9 -n | cut -d' ' -f1 | head -n $COMPUTES | sed -e 's/^/"/' -e 's/$/",/' | tr -d '\n' | sed 's/,$//')
-crowbarctl proposal edit nova default -m --data='{"deployment": {"nova": {"elements": {"nova-compute-kvm": ['$nodes']}}}}'
-crowbarctl proposal commit nova default
 
 # list compute nodes sorted by number of running instances
 nova --all-tenants --insecure list --fields id,host,status | grep ACTIVE | awk '{print $4}' | sort | uniq -c | sort -n
