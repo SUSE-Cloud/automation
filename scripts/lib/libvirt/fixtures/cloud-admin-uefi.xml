@@ -15,7 +15,7 @@
     <pae/>
   </features>
   <cpu mode='custom' match='exact'>
-    <model fallback='allow'>Haswell-noTSX</model>
+    <model fallback='allow'>SandyBridge-IBRS</model>
     <feature policy='require' name='vmx'/>
     <feature policy='disable' name='monitor'/>
   </cpu>
