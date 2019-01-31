@@ -13,16 +13,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+
 ---
 
-ardana_openstack_path: "~/openstack/ardana/ansible"
-ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
+- name: Run lint on ardana
+  hosts: "{{ ardana_env }}"
+  remote_user: ardana
+  gather_facts: True
 
-ardana_scratch_playbooks:
-  - play: "ardana-ssh-keyscan.yml"
-    when: "{{ is_physical_deploy and when_cloud9 }}"
-  - play: "wipe_disks.yml -e automate=true"
-    when: "{{ is_physical_deploy }}"
-  - play: "site.yml"
-  - play: "ardana-cloud-configure.yml"
-
+  tasks:
+    - block:
+        - include_role:
+            name: ardana_lint
