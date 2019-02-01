@@ -6,8 +6,12 @@ def ansible_playbook(playbook, params='') {
   sh("""
     cd $WORKSPACE
     source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-    ansible_playbook """+playbook+""".yml -e @input.yml """+params
-  )
+    if [[ -e automation-git/scripts/jenkins/ardana/ansible/input.yml ]]; then
+      ansible_playbook """+playbook+""".yml -e @input.yml """+params+"""
+    else
+      ansible_playbook """+playbook+""".yml """+params+"""
+    fi
+  """)
 }
 
 def trigger_build(job_name, parameters, propagate=true, wait=true) {

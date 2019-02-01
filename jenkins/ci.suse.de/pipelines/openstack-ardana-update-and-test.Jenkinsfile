@@ -42,11 +42,10 @@ pipeline {
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
-            source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-            ansible_playbook load-job-params.yml
-            ansible_playbook setup-ssh-access.yml -e @input.yml
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.ansible_playbook('load-job-params')
+          ardana_lib.ansible_playbook('setup-ssh-access')
           ardana_lib.get_deployer_ip()
         }
       }

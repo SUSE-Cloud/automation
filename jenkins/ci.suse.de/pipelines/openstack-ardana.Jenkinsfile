@@ -61,14 +61,12 @@ pipeline {
             if [ -n "$github_pr" ] ; then
               scripts/jenkins/ardana/pr-update.sh
             fi
-
-            source scripts/jenkins/ardana/jenkins-helper.sh
-            ansible_playbook load-job-params.yml \
-              -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml \
-              -e jjb_type=job-template
-            ansible_playbook notify-rc-pcloud.yml -e @input.yml
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.ansible_playbook('load-job-params',
+                                      "-e jjb_type=job-template -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml"
+                                      )
+          ardana_lib.ansible_playbook('notify-rc-pcloud')
         }
       }
     }
