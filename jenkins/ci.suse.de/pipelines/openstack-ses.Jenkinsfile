@@ -25,9 +25,14 @@ pipeline {
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ses_id}"
 
           sh('''
-            git clone $git_automation_repo --branch $git_automation_branch automation-git
-
             set +x
+
+            IFS='/' read -r -a repo_arr <<< "$git_automation_repo"
+            export git_automation_repo="${repo_arr[3]}"
+            # Need a local git clone copy to run from
+            export use_global_clone=false
+            curl https://raw.githubusercontent.com/$git_automation_repo/automation/$git_automation_branch/scripts/jenkins/ardana/openstack-ardana.prep.sh | bash
+
             export ANSIBLE_FORCE_COLOR=true
             cd $WORKSPACE/automation-git/scripts/jenkins/ses/ansible
             source /opt/ansible/bin/activate
