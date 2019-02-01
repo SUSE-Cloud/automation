@@ -47,7 +47,7 @@
 
       - string:
           name: sbd_ip
-          default: 10.162.64.10
+          default: 10.162.66.10
           description: Mandatory, IP of iscsi target for sbd
 
       - string:
