@@ -996,9 +996,9 @@ EOF
     fi
     ifdown br0
     rm -f /etc/sysconfig/network/ifcfg-br0
-    routes_file=/etc/sysconfig/network/routes
+    routes_file=/etc/sysconfig/network/ifroute-eth0
     if ! [ -e $routes_file ] || ! grep -q "^default" $routes_file; then
-        echo "default $net${ip_sep}1 - -" > $routes_file
+        echo "default $net${ip_sep}1" > $routes_file
     fi
     echo "${crowbar_name}.$cloudfqdn" > /etc/HOSTNAME
     hostname `cat /etc/HOSTNAME`
