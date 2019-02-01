@@ -63,6 +63,7 @@ pipeline {
                 ardana_lib.trigger_build("cloud-ardana${version}-job-std-min-x86_64", [
                   string(name: 'ardana_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
+                  string(name: 'cleanup', value: "never"),
                   string(name: 'rc_notify', value: "true"),
                   string(name: 'git_automation_repo', value: "$git_automation_repo"),
                   string(name: 'git_automation_branch', value: "$git_automation_branch")
@@ -87,6 +88,7 @@ pipeline {
                 ardana_lib.trigger_build("cloud-ardana${version}-job-std-3cp-devel-staging-updates-x86_64", [
                   string(name: 'ardana_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
+                  string(name: 'cleanup', value: "never"),
                   string(name: 'rc_notify', value: "true"),
                   string(name: 'git_automation_repo', value: "$git_automation_repo"),
                   string(name: 'git_automation_branch', value: "$git_automation_branch")
