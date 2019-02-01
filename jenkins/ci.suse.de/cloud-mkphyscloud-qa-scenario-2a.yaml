@@ -266,7 +266,7 @@
 
             cat > /tmp/sbd_prepare_$admin <<EOSCRIPT
               # preparation of iSCSI
-              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
+              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP4/ --non-interactive install python-sh
 
               chmod +x scripts/iscsictl.py
 
