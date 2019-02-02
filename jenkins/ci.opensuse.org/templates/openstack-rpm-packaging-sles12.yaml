@@ -52,7 +52,7 @@
                   unset failed
                   unset kickscheduler
                   unset succeeded
-                  res=`osc results --csv -w -r standard`
+                  res=`osc results --csv -r standard`
                   if [ $? -ne 0 ]; then
                       sleep 5
                       continue
