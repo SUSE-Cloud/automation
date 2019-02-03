@@ -20,7 +20,7 @@ parameters:
   default_subnet_cidr:
     type: string
     label: Default CIDR
-    description: Default CIDR value to use for networks which don't have CIDR specified
+    description: Default CIDR value to use for networks which do not have CIDR specified
 {%   if (ipv6 | default(false)) == true %}
     default: "2001::/64"
 {%    else   %}
@@ -37,7 +37,7 @@ resources:
       external_gateway_info:
         network: { get_param: floating_network }
 
-  # a dummy network/subnet to which to connect ports which aren't associated with
+  # a dummy network/subnet to which to connect ports which are not associated with
   # a network
   default_network:
     type: OS::Neutron::Net
