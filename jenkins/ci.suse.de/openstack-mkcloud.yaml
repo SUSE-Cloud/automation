@@ -391,11 +391,6 @@
           description: set to 1 to deploy sahara
 
       - string:
-          name: want_murano_proposal
-          default:
-          description: set to 1 to deploy murano
-
-      - string:
           name: want_aodh_proposal
           default: '1'
           description: set to 0 to not deploy aodh
