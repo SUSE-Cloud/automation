@@ -729,6 +729,7 @@ fi
 : ${nodenumberironicnode:=0}
 : ${want_mtu_size:=1500}
 # proposals:
+: ${want_designate_proposal:=0}
 : ${want_magnum_proposal:=0}
 : ${want_monasca_proposal:=0}
 : ${want_murano_proposal:=0}
