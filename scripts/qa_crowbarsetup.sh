@@ -2335,7 +2335,7 @@ function custom_configuration
     esac
 
     case "$proposal" in
-        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard|sahara|murano|aodh)
+        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard|sahara|aodh)
             if [[ $want_all_debug = 1 ]] || eval [[ \$want_${proposal}_debug = 1 ]] ; then
                 enable_debug_generic $proposal
             fi
@@ -2702,11 +2702,6 @@ function custom_configuration
         designate)
             if [[ $hacloud = 1 ]] && iscloudver 9plus ; then
                 proposal_set_value designate default "['deployment']['designate']['elements']['designate-server']" "['cluster:$clusternameservices']"
-            fi
-        ;;
-        murano)
-            if [[ $hacloud = 1 ]] && ( iscloudver 7 || iscloudver 8 ) ; then
-                proposal_set_value murano default "['deployment']['murano']['elements']['murano-server']" "['cluster:$clusternameservices']"
             fi
         ;;
         neutron)
@@ -3201,12 +3196,6 @@ function deploy_single_proposal
                 return
             fi
             ;;
-        murano)
-            if ! ( iscloudver 7 || iscloudver 8 ) ; then
-                echo "Murano is SOC 7 and 8 only. Skipping"
-                return
-            fi
-            ;;
         ironic)
             [[ $want_ironic = 1 ]] || return
             if ! iscloudver 7plus; then
@@ -3269,7 +3258,7 @@ function onadmin_proposal
     safely oncontroller check_crm_failcounts
     # For all remaining proposals, check for HA failures after each deployment
     for proposal in horizon ceilometer heat manila trove \
-        designate barbican magnum sahara murano aodh tempest; do
+        designate barbican magnum sahara aodh tempest; do
         deploy_single_proposal $proposal
         safely oncontroller check_crm_failcounts
     done
