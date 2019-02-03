@@ -356,6 +356,11 @@
           description: set to 1 to deploy with ironic
 
       - string:
+          name: want_external_ceph
+          default:
+          description: set to 1 to deploy with external SES integration
+
+      - string:
           name: want_ceilometer_proposal
           default:
           description: Deploy with Ceilomenter

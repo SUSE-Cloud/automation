@@ -165,6 +165,10 @@ if [ $WITHCROWBARREGISTER == "true" ] ; then
   MKCLOUDTARGET+=" setuplonelynodes crowbar_register"
 fi
 
+if [[ $want_external_ceph ]] ; then
+  export nodenumberlonelynode=1
+fi
+
 [ $(uname -m) = aarch64 ] && {
     export vcpus=16
 }

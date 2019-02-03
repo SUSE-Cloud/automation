@@ -1468,6 +1468,10 @@ function sanity_checks
         complain 118 "\$want_ceph and \$want_external_ceph are mutully exclusive. Please choose one or the other"
     fi
 
+    if [[ $want_external_ceph = 1 ]] && [[ $nodenumberlonelynode -lt 1 ]]; then
+        complain 119 "\$want_external_ceph requires nodenumberlonelynode to be set to 1."
+    fi
+
     if [[ " ${steplist[*]} " == *" batch "* ]] ; then
         : ${scenario_dir:="${SCRIPTS_DIR}/scenarios/cloud$(getcloudver)"}
         need_scenario=1
@@ -1526,19 +1530,24 @@ function expand_steps
                         runcmds="$runcmds cleanup prepare setupadmin addupdaterepo prepareinstcrowbar runupdate bootstrapcrowbar instcrowbar"
                     ;;
                     _compute)
-                        runcmds="$runcmds setupnodes instnodes setup_aliases proposal"
+                        runcmds="$runcmds setupnodes instnodes"
+                        if [[ $nodenumberlonelynode ]]; then
+                            runcmds="$runcmds setupnodes instnodes setuplonelynodes crowbar_register setup_aliases deployexternalceph"
+                        else
+                            runcmds="$runcmds setup_aliases"
+                        fi
                     ;;
                     all)
-                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` testsetup cct rebootcloud"
+                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` proposal rebootcloud testsetup cct"
                     ;;
                     all_noreboot)
-                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps _compute` testsetup cct"
+                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps _compute` proposal testsetup cct"
                     ;;
                     all_batch)
-                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar setupnodes instnodes setup_aliases batch testsetup cct rebootcloud"
+                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` batch rebootcloud testsetup cct"
                     ;;
                     all_batch_noreboot)
-                        runcmds="$runcmds `expand_steps _new_admin` setupnodes instnodes setup_aliases batch testsetup cct"
+                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps _compute` batch testsetup cct"
                     ;;
                     _testupdate|testupdate)
                         runcmds="$runcmds addupdaterepo runupdate testsetup cct"
@@ -1550,7 +1559,7 @@ function expand_steps
                         runcmds="$runcmds `expand_steps instonly` proposal"
                     ;;
                     instonly)
-                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar bootstrapcrowbar instcrowbar setupnodes instnodes setup_aliases"
+                        runcmds="$runcmds cleanup prepare setupadmin prepareinstcrowbar bootstrapcrowbar instcrowbar `expand_steps _compute`"
                     ;;
                     _upgrade)
                         runcmds="$runcmds cloudupgrade"
