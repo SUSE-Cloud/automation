@@ -34,8 +34,6 @@ pipeline {
             error("Empty 'heat_action' parameter value.")
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${heat_action} ${ardana_env}"
-          // The ardana_lib.ansible_playbook scripts still rely on this variable
-          env.SHARED_WORKSPACE = "$WORKSPACE"
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
             source automation-git/scripts/jenkins/ardana/jenkins-helper.sh

@@ -4,7 +4,7 @@
 
 def ansible_playbook(playbook, params='') {
   sh("""
-    cd $SHARED_WORKSPACE
+    cd $WORKSPACE
     source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
     ansible_playbook """+playbook+""".yml -e @input.yml """+params
   )
@@ -29,7 +29,7 @@ def get_deployer_ip() {
     returnStdout: true,
     script: '''
       grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
-        $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
+        $WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
     '''
   ).trim()
   currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
