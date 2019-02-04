@@ -126,12 +126,19 @@ pipeline {
           }
           steps {
             script {
+
+              // Needed to pass the generated heat template file contents as a text parameter value
+              def heat_template = sh (
+                returnStdout: true,
+                script: 'cat "$SHARED_WORKSPACE/heat-stack-${scenario_name}${model}.yml"'
+              )
+
               ardana_lib.trigger_build('openstack-ardana-heat', [
                 string(name: 'ardana_env', value: "$ardana_env"),
                 string(name: 'heat_action', value: "create"),
+                text(name: 'heat_template', value: heat_template),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                string(name: 'reuse_node', value: "${NODE_NAME}"),
                 string(name: 'os_cloud', value: "$os_cloud")
               ], false)
             }
