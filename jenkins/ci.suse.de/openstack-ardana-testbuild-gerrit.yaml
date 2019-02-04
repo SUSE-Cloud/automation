@@ -57,13 +57,6 @@
           default: master
           description: The git automation branch
 
-      - string:
-          name: reuse_node
-          default: ''
-          description: >-
-            The Jenkins agent where this job must run. Used by upstream jobs to
-            force a job to reuse the same node.
-
     pipeline-scm:
       scm:
         - git:

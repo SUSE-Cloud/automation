@@ -49,20 +49,7 @@ pipeline {
           if (env.qa_test_list == null) {
             env.qa_test_list = ''
           }
-          // Use a shared workspace folder for all jobs running on the same
-          // target 'ardana_env' cloud environment
-          env.SHARED_WORKSPACE = sh (
-            returnStdout: true,
-            script: 'echo "$(dirname $WORKSPACE)/shared/${ardana_env}"'
-          ).trim()
           sh('''
-            rm -rf "$SHARED_WORKSPACE"
-            mkdir -p "$SHARED_WORKSPACE"
-
-            # archiveArtifacts and junit don't support absolute paths, so we have to to this instead
-            ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}
-
-            cd $SHARED_WORKSPACE
             git clone $git_automation_repo --branch $git_automation_branch automation-git
             cd automation-git
 
@@ -72,11 +59,11 @@ pipeline {
 
             source scripts/jenkins/ardana/jenkins-helper.sh
             ansible_playbook load-job-params.yml \
-              -e jjb_file=$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml \
+              -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml \
               -e jjb_type=job-template
             ansible_playbook notify-rc-pcloud.yml -e @input.yml
           ''')
-          ardana_lib = load "$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
         }
       }
     }
@@ -130,7 +117,7 @@ pipeline {
               // Needed to pass the generated heat template file contents as a text parameter value
               def heat_template = sh (
                 returnStdout: true,
-                script: 'cat "$SHARED_WORKSPACE/heat-stack-${scenario_name}${model}.yml"'
+                script: 'cat "$WORKSPACE/heat-stack-${scenario_name}${model}.yml"'
               )
 
               ardana_lib.trigger_build('openstack-ardana-heat', [
@@ -268,7 +255,6 @@ pipeline {
     always {
       script{
         sh('''
-          cd $SHARED_WORKSPACE
           automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
             --recursive \
             --filter 'Declarative: Post Actions' \
@@ -348,7 +334,6 @@ pipeline {
     }
     success {
       sh '''
-        cd $SHARED_WORKSPACE
         if [ -n "$github_pr" ] ; then
           automation-git/scripts/ardana/pr-success.sh
         else
@@ -358,7 +343,6 @@ pipeline {
     }
     failure {
       sh '''
-        cd $SHARED_WORKSPACE
         if [ -n "$github_pr" ] ; then
           automation-git/scripts/ardana/pr-failure.sh
         else
