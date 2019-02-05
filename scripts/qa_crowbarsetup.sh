@@ -226,30 +226,20 @@ function issusenode
     knife node show $machine -a node.target_platform | grep -q suse-
 }
 
-if [[ $want_ssl_trusted != 1 ]] ; then
-    function openstack
-    {
-        command openstack --insecure "$@"
-    }
-    function nova
-    {
-        command nova --insecure "$@"
-    }
-    function neutron
-    {
-        command neutron --insecure "$@"
-    }
-    export NEUTRONCLIENT_INSECURE=true
-    export NOVACLIENT_INSECURE=true
-    export SWIFTCLIENT_INSECURE=true
-    export CINDERCLIENT_INSECURE=true
-    export MAGNUMCLIENT_INSECURE=true
-    # Extra environment variable because of https://launchpad.net/bugs/1535284
-    export manilaclient_INSECURE=true
-    export MANILACLIENT_INSECURE=true
-    export MISTRALCLIENT_INSECURE=true
-    export TROVECLIENT_INSECURE=true
-fi
+function openstack
+{
+    command openstack --insecure "$@"
+}
+export NEUTRONCLIENT_INSECURE=true
+export NOVACLIENT_INSECURE=true
+export SWIFTCLIENT_INSECURE=true
+export CINDERCLIENT_INSECURE=true
+export MAGNUMCLIENT_INSECURE=true
+# Extra environment variable because of https://launchpad.net/bugs/1535284
+export manilaclient_INSECURE=true
+export MANILACLIENT_INSECURE=true
+export MISTRALCLIENT_INSECURE=true
+export TROVECLIENT_INSECURE=true
 
 function isrepoworking
 {
@@ -2003,74 +1993,10 @@ function proposal_set_value
     proposal_modify_value "$1" "$2" "$3" "$4" "="
 }
 
-# get the currently set value in the proposal
-function proposal_get_value
-{
-    local proposal="$1"
-    local proposaltype="$2"
-    local variable="$3"
-
-    local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
-
-    safely rubyjsonparse "puts j${variable}" < $pfile
-}
-
 # wrapper for proposal_modify_value
 function proposal_increment_int
 {
     proposal_modify_value "$1" "$2" "$3" "$4" "+="
-}
-
-function setup_trusted_cert
-{
-    local certfile=$1
-    local keyfile=$2
-
-    if [[ $hacloud = 1 ]] ; then
-        cluster_node_assignment
-        local clusternodes_var=$(echo clusternodes${clusternameservices})
-        local controller_nodes=${!clusternodes_var}
-        local cn=$(get_cluster_vip_hostname $clusternameservices)
-    else
-        local controller_nodes=($(get_all_discovered_nodes | head -n 1))
-        local cn=$controller_nodes
-    fi
-
-    if [ ! -f $cn.pem ] ; then
-        # Generate Root CA
-        openssl req -x509 -newkey rsa:1024 -keyout rootca.key -out rootca.pem \
-            -days 365 -nodes \
-            -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=root"
-        # Generate CSR
-        subj_alt="DNS:${cn},DNS:public-${cn}"
-        # openssl 1.1.1 supports setting the subjectAltName directly in the command line,
-        # but SLES 12 SP4 only has 1.0.2 so we need to read in the config like this
-        openssl req -new -newkey rsa:1024 -keyout $cn.key -out $cn.csr \
-            -days 365 -nodes \
-            -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=${cn}" \
-            -config <(sed -e "/^\[ req \]/areq_extensions = v3_req" \
-                        -e "/^\[ v3_req \]/asubjectAltName=${subj_alt}" \
-                        /etc/ssl/openssl.cnf )
-        # Generate Cert
-        openssl x509 -req -in $cn.csr -CA rootca.pem -CAkey rootca.key \
-            -CAcreateserial -days 365 -out $cn.pem \
-            -extensions v3_ca \
-            -extfile <(sed -e "/^\[ v3_ca \]/asubjectAltName=${subj_alt}" \
-                        /etc/ssl/openssl.cnf )
-
-    fi
-
-    local node
-    for node in $controller_nodes; do
-        ssh $node mkdir -p $(dirname $certfile)
-        ssh $node mkdir -p $(dirname $keyfile)
-        scp $cn.pem $node:$certfile
-        scp $cn.key $node:$keyfile
-    done
-    for node in $(get_all_discovered_nodes); do
-        scp rootca.pem $node:/etc/pki/trust/anchors/rootca.pem
-        ssh $node update-ca-certificates
-    done
 }
 
 function enable_ssl_generic
@@ -2101,14 +2027,8 @@ function enable_ssl_generic
             fi
             return
         ;;
-        swift)
+        swift|rabbitmq)
             $p "$a['ssl']['enabled']" true
-        ;;
-        rabbitmq)
-            $p "$a['ssl']['enabled']" true
-            $p "$a['ssl']['generate_certs']" true
-            $p "$a['ssl']['insecure']" true
-            return
         ;;
         nova)
             $p "$a['ssl']['enabled']" true
@@ -2121,9 +2041,7 @@ function enable_ssl_generic
         ;;
         horizon|nova_dashboard)
             $p "$a['apache']['ssl']" true
-            local certfile=$(proposal_get_value $service default "$a['apache']['ssl_crt_file']")
-            local keyfile=$(proposal_get_value $service default "$a['apache']['ssl_key_file']")
-            setup_trusted_cert $certfile $keyfile
+            $p "$a['apache']['generate_certs']" true
             return
         ;;
         heat)
@@ -2148,9 +2066,8 @@ function enable_ssl_generic
             $p "$a['api']['protocol']" "'https'"
         ;;
     esac
-    local certfile=$(proposal_get_value $service default "$a['ssl']['certfile']")
-    local keyfile=$(proposal_get_value $service default "$a['ssl']['keyfile']")
-    setup_trusted_cert $certfile $keyfile
+    $p "$a['ssl']['generate_certs']" true
+    $p "$a['ssl']['insecure']" true
 }
 
 function enable_debug_generic
@@ -3817,7 +3734,7 @@ function oncontroller_manila_generic_driver_setup()
         manila_tenant_vm_ip=`oncontroller_manila_service_instance_get_floating_ip`
     else
         fixed_net_id=`neutron net-show fixed -f value -c id`
-        timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
+        timeout 10m nova --insecure boot --poll --flavor 100 --image manila-service-image \
             --security-groups $sec_group,default \
             --nic net-id=$fixed_net_id manila-service
 
@@ -4117,7 +4034,7 @@ function oncontroller_testsetup
         nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
     fi
 
-    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
+    timeout 10m nova --insecure boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
@@ -4383,43 +4300,6 @@ puts y.to_yaml" > /root/keystone-test-pw-reset.yaml
     safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-reset.yaml
 }
 
-function set_keystone_endpoint
-{
-    local protocol=$1
-    if [ "$protocol" == "https" ] ; then
-        local certfile=$(proposal_get_value keystone default "['attributes']['keystone']['ssl']['certfile']")
-        local keyfile=$(proposal_get_value keystone default "['attributes']['keystone']['ssl']['keyfile']")
-        setup_trusted_cert $certfile $keyfile
-    fi
-    crowbar batch export keystone | ruby -ryaml -e "
-y = YAML.load(ARGF)
-a = y['proposals'].first['attributes']
-a['api']['protocol'] = '$protocol'
-if '$protocol' == 'https'
-    a.key?('ssl') || a['ssl'] = {}
-    a['ssl']['ca_certs'] = '/etc/ssl/ca-bundle.pem'
-end
-puts y.to_yaml" > /root/keystone-test-endpoint-update.yaml
-    safely crowbar batch --timeout 1500 build < /root/keystone-test-endpoint-update.yaml
-}
-
-function update_keystone_endpoint
-{
-    # If SSL is on, turn it off and turn it back on.
-    # If SSL is off, turn it on and turn it back off.
-    if [ "$want_all_ssl" == 1 -o "$want_keystone_ssl" == 1 ] ; then
-        echo "Testing disabling HTTPS on keystone"
-        set_keystone_endpoint http
-        echo "Testing reenabling HTTPS on keystone"
-        set_keystone_endpoint https
-    else
-        echo "Testing enabling HTTPS on keystone"
-        set_keystone_endpoint https
-        echo "Testing re-disabling HTTPS on keystone"
-        set_keystone_endpoint http
-    fi
-}
-
 function onadmin_have_salt_barclamp
 {
     test -e /opt/dell/crowbar_framework/barclamps/salt.yml
@@ -4574,12 +4454,6 @@ function onadmin_testsetup
     oncontroller testsetup
     ret=$?
 
-    # Run endpoint toggle after crm failcount check, this is expected to be
-    # disruptive to services.
-    if iscloudver 7plus && [[ $cloudsource =~ 'develcloud' ]] ; then
-        update_keystone_endpoint
-    fi
-
     echo "Tests on controller: $ret"
     echo "Ceph Tests: $cephret"
     echo "RadosGW S3 Tests: $s3radosgwret"
@@ -4616,8 +4490,8 @@ function oncontroller_testpreupgrade
     create_cmd="heat --insecure stack-create upgrade_test -f "
     list_cmd="heat --insecure stack-list"
     if iscloudver 7plus; then
-        create_cmd="openstack stack create upgrade_test -t "
-        list_cmd="openstack stack list"
+        create_cmd="openstack --insecure stack create upgrade_test -t "
+        list_cmd="openstack --insecure stack list"
     fi
     $create_cmd /root/scripts/heat/2-instances-cinder.yaml $heat_stack_params
     wait_for 15 20 "$list_cmd | grep upgrade_test | grep CREATE_COMPLETE" \
@@ -4629,12 +4503,12 @@ function oncontroller_testpreupgrade
 function oncontroller_testpostupgrade
 {
     # retrieve the ping results
-    local fips=$(openstack floating ip list -f value -c "Floating IP Address")
+    local fips=$(openstack --insecure floating ip list -f value -c "Floating IP Address")
 
     # remove manila-service fip from list
-    manila_vm=$(openstack server list --all-projects -f value | grep manila-service | awk '{ print $1 }' )
+    manila_vm=$(openstack --insecure server list --all-projects -f value | grep manila-service | awk '{ print $1 }' )
     if [[ $manila_vm ]]; then
-        manila_fip=$(openstack server show $manila_vm -f value -c addresses | awk '{ print $2 }' )
+        manila_fip=$(openstack --insecure server show $manila_vm -f value -c addresses | awk '{ print $2 }' )
         fips=( "${fips[@]/$manila_fip}" )
     fi
 
@@ -4656,8 +4530,8 @@ function oncontroller_testpostupgrade
         fi
     done
 
-    openstack stack delete --yes upgrade_test
-    wait_for 15 20 "! openstack stack show upgrade_test" \
+    openstack --insecure stack delete --yes upgrade_test
+    wait_for 15 20 "! openstack --insecure stack show upgrade_test" \
              "heat stack for upgrade tests to be deleted"
     echo "test post-upgrade successful."
 }
@@ -4830,9 +4704,9 @@ function onneutron_wait_for_neutron
     [ -z "$NEUTRON_SERVER" ] && return
 
     wait_for 300 3 "ssh $NEUTRON_SERVER 'rcopenstack-neutron status' |grep -q running" "neutron-server service running state"
-    wait_for 200 3 " ! ssh $NEUTRON_SERVER '. .openrc && neutron agent-list -f csv --quote none'|tail -n+2 | grep -q -v ':-)'" "neutron agents up"
+    wait_for 200 3 " ! ssh $NEUTRON_SERVER '. .openrc && neutron --insecure agent-list -f csv --quote none'|tail -n+2 | grep -q -v ':-)'" "neutron agents up"
 
-    ssh $NEUTRON_SERVER '. .openrc && neutron agent-list'
+    ssh $NEUTRON_SERVER '. .openrc && neutron --insecure agent-list'
     ssh $NEUTRON_SERVER 'ping -c1 -w1 8.8.8.8' > /dev/null
     if [ "x$?" != "x0" ]; then
         complain 14 "ping to 8.8.8.8 from $NEUTRON_SERVER failed."
