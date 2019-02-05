@@ -5436,6 +5436,7 @@ function oncontroller_setupproduction()
     openstack flavor create --property hw_rng:allowed=True --property hw:cpu_policy=dedicated    --id 51 --ram 8192 --disk 160 --vcpus 6 c6.large
     nova flavor-create --ephemeral 80 d4.xlarge  40 16384 40 4
     nova flavor-create --ephemeral 20 m8.xlarge  41 32768 20 8
+    nova flavor-create                m2.xlarge  42 24576 160 4
 
     # for aduffek/bosh/cloudfoundry
     nova flavor-create --ephemeral 10 cf-minimal  160 3840 3 1
