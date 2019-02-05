@@ -259,6 +259,10 @@ function install_remaining_computes() {
     set_compute_aliases
 }
 
+function add_all_computes_to_nova() {
+    add_first_n_computes_to_nova $(ssh crowbaru1 crowbarctl node list --plain | grep compute -c)
+}
+
 function add_computes_to_nova() {
     n=10
     current=$(ssh crowbaru1 crowbarctl proposal show nova default --plain | grep deployment.nova.elements.nova-compute-kvm -c)
