@@ -34,6 +34,7 @@
         rc_state: "Started"
       when:
         - rc_notify
+        - rc_notify_start
         - not is_physical_deploy
 
   tasks:
