@@ -26,7 +26,7 @@ exec 2> >(exec tee -ia $log_file >&2)
 
 if [[ $debug_mkcloud = 1 ]] ; then
     set -x
-    PS4='+(${BASH_SOURCE##*/}:${LINENO}) ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    PS4='+\D{%Y/%m/%d %T} (${BASH_SOURCE##*/}:${LINENO}) ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 fi
 
 cache_dir_default=/var/cache/mkcloud/$cloud
