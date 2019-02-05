@@ -260,8 +260,14 @@ function install_remaining_computes() {
 }
 
 function add_computes_to_nova() {
-    # add up to N computes to nova proposal
-    COMPUTES=10
+    n=10
+    current=$(ssh crowbaru1 crowbarctl proposal show nova default --plain | grep deployment.nova.elements.nova-compute-kvm -c)
+    add_first_n_computes_to_nova $(( $current + $n ))
+}
+
+function add_first_n_computes_to_nova() {
+    # add up to "$COMPUTES" computes to nova proposal
+    COMPUTES=$1
     nodes=$(ssh crowbaru1 crowbarctl node list --plain | grep compute | sort --key=2.9 -n | cut -d' ' -f1 | head -n $COMPUTES | sed -e 's/^/"/' -e 's/$/",/' | tr -d '\n' | sed 's/,$//')
     ssh crowbaru1 "crowbarctl proposal edit nova default -m --data='{\"deployment\": {\"nova\": {\"elements\": {\"nova-compute-kvm\": [$nodes]}}}}'"
     ssh crowbaru1 crowbarctl proposal commit nova default
