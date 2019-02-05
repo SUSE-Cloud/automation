@@ -20,6 +20,15 @@
         - '{ardana_gating_job}'
 
 - project:
+    name: cloud-ardana9-gerrit-events
+    openstack_ardana_gerrit_events_job: '{name}'
+    cloudsource: develcloud9
+    gatingjob: openstack-ardana-gerrit-cloud9
+    branch: master
+    jobs:
+        - '{openstack_ardana_gerrit_events_job}'
+
+- project:
     name: cloud-ardana9-job-std-3cp-x86_64
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
