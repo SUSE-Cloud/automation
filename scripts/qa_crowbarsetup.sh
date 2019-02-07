@@ -1191,12 +1191,12 @@ ironic_network={
     'router_pref': 50,
     'ranges': {
       'admin': {
-        'start': ${net_ironic}${ip_sep}10',
+        'start': '${net_ironic}${ip_sep}10',
         'end': '${net_ironic}${ip_sep}11'
       },
       'dhcp': {
-        'start': ${net_ironic}${ip_sep}21',
-        'end': ${net_ironic}${ip_sep}254'
+        'start': '${net_ironic}${ip_sep}21',
+        'end': '${net_ironic}${ip_sep}254'
       }
     },
     'mtu': 1500
