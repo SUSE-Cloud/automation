@@ -4753,6 +4753,18 @@ function reboot_controller_clusters
     done
 }
 
+function select_compute_nodes
+{
+    nodesavailable=${unclustered_nodes[@]}
+
+    compute_nodes=$(knife search node "roles:nova-compute-*" -a name | grep ^name: | cut -d : -f 2 | sed 's/\s//g')
+    for node in $compute_nodes; do
+        nodesavailable=$(remove_node_from_list "$node" "$nodesavailable")
+    done
+
+    unclustered_nodes=($nodesavailable)
+}
+
 # reboot all cloud nodes (controller+compute+storage)
 # wait for nodes to go down and come up again
 function onadmin_rebootcloud
@@ -4769,7 +4781,21 @@ function onadmin_rebootcloud
         unclustered_nodes=(`get_all_discovered_nodes`)
     fi
 
+    select_compute_nodes
+
+    # reboot non-compute/controller nodes first
     for machine in ${unclustered_nodes[@]}; do
+        power_cycle_and_wait $machine
+    done
+
+    # wait for non-compute/controller nodes to be back online
+    for machine in ${unclustered_nodes[@]}; do
+        m_hostname=$(echo $machine | cut -d '.' -f 1)
+        wait_for 400 5 "crowbar node_state status | grep $m_hostname | grep -qiE \"ready$|problem$\"" "node $m_hostname to be online"
+    done
+
+    # reboot compute nodes
+    for machine in $compute_nodes; do
         power_cycle_and_wait $machine
     done
 
