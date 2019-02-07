@@ -59,6 +59,15 @@ parameters:
     description: GitHub branch from which to fetch devstack
     default: master
 
+  devstack_extra_config:
+    type: string
+    label: devstack extra config
+    description: >-
+      Extra configuration to put in local.conf.  Config starts off
+      under the [[local|localrc]] header, but other headers can be
+      specified for text following them.
+    default:
+
 conditions:
   skip_tempest_res:
     equals:
@@ -182,10 +191,11 @@ resources:
           - chown -R stack:stack /home/stack
           - str_replace:
               template: |
-                HOME=/root \
-                DISABLE_TEMPESTRUN=$tempest \
-                DEVSTACK_FORK=$fork \
-                DEVSTACK_BRANCH=$branch \
+                export HOME=/root
+                export DISABLE_TEMPESTRUN=$tempest
+                export DEVSTACK_FORK=$fork
+                export DEVSTACK_BRANCH=$branch
+                export DEVSTACK_EXTRA_CONFIG="$extra"
                 /home/stack/qa_devstack.sh # ipv6
               params:
                 $fork:
@@ -194,6 +204,8 @@ resources:
                   get_param: devstack_branch
                 $tempest:
                   if: ["skip_tempest_res", "yes", ""]
+                $extra:
+                  get_param: devstack_extra_config
 
 outputs:
   # floating IP address of the admin node
