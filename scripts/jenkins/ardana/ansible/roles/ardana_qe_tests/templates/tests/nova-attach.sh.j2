@@ -5,7 +5,10 @@
 #
 # Usage: nova-attach-and-move.py PLUS too many options to list
 
-backend="lvm"
+# since we don't know the specific volume type set up in cinder
+# let's just say 'default' which means the cinder commands will
+# in turn not specify volume-type.
+backend="default"
 
 test_name="nova-attach"
 work_dir={{ ardana_qe_test_work_dir }}

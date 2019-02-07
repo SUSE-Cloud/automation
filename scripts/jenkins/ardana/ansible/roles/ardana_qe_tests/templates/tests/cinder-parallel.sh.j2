@@ -23,9 +23,10 @@ rm $test_log
 rm $subunit_log
 
 # however they do need an environment which cinder-tests-all 
-# can set up, noting it needs a backend to be defined so for
-# note we'll use lvm
-$test_dir/cinder-tests-all lvm init
+# can set up, noting we're NOT specifying 'default' for the
+# backend and as a result cinder commands will not specify
+# a backend type.
+$test_dir/cinder-tests-all default init
 
 source $HOME/service.osrc
 cd $test_dir
