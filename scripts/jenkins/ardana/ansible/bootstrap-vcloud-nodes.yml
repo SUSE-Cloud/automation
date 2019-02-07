@@ -93,6 +93,13 @@
           wait_for_connection:
             sleep: 10
             timeout: 300
+          register: _connection
+
+        - name: Fail if one or more hosts are unreacheable
+          fail:
+          when: hostvars[item]['_connection']['failed']
+          loop: "{{ ansible_play_hosts_all }}"
+          run_once: True
 
         - name: Gather facts
           setup:
@@ -161,6 +168,7 @@
       rescue:
         - include_role:
             name: rocketchat_notify
+          delegate_to: "{{ ardana_env }}"
           vars:
             rc_action: "finished"
             rc_state: "Failed"
