@@ -10,7 +10,7 @@
                 exclude-drafts: true
                 exclude-no-code-change: false
             - comment-added-contains-event:
-                comment-contains-value: 'Code-Review|Workflow|Verified'
+                comment-contains-value: 'Code-Review|Workflow|Verified|QE-Review'
             - comment-added-contains-event:
                 comment-contains-value: '^reverify$'
           silent: true
