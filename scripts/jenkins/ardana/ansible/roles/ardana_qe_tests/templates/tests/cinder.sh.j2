@@ -5,7 +5,10 @@
 #
 # Usage: cinder-tests-all.sh backend-type subunit-logname
 
-backend="lvm"
+# rather than try to figured out cinder's default backend
+# type to pass to cinder-tests-all, just use 'default'
+# which will result in no volume-type in cinder commands.
+backend="default"
 
 work_dir={{ ardana_qe_test_work_dir }}
 test_dir={{ ardana_qe_tests_dir }}/ardana-qa-tests/cinder-new
