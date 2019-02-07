@@ -28,21 +28,26 @@
             name: input_model_generator
             tasks_from: get_qe_bm_info
 
-        - name: Ensure pyghmi installed
-          package:
-            name: "python-pyghmi"
-            state: present
-
-        - name: Ensure all baremetal nodes are turned off
-          ipmi_power:
-            name: "{{ item.ilo_ip }}"
-            user: "{{ item.ilo_user }}"
-            password: "{{ item.ilo_password }}"
-            state: off
+        - name: Power off all baremetal nodes
+          shell: |
+            ipmitool -H {{ item.ilo_ip }} -U {{ item.ilo_user }} \
+              -I lanplus -P '{{ item.ilo_password }}' power off
           register: bm_node_state
           retries: 5
           until: bm_node_state is succeeded
           delay: 2
+          when: "'ilo_user' in item"
+          loop: "{{ bm_info.servers }}"
+          loop_control:
+            label: "{{ item.id }}"
+
+        - name: Ensure all baremetal nodes are powered off
+          shell: |
+            ipmitool -H {{ item.ilo_ip }} -U {{ item.ilo_user }} \
+              -I lanplus -P '{{ item.ilo_password }}' power status
+          register: _node_status
+          failed_when: "not ('off' in _node_status.stdout)"
+          changed_when: False
           when: "'ilo_user' in item"
           loop: "{{ bm_info.servers }}"
           loop_control:
