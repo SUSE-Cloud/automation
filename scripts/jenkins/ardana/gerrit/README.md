@@ -181,6 +181,12 @@ approved by the project submit rules configured on the Gerrit server, In the cas
 *NOTE*: the `submittable` and `mergeable` flags do not reflect the status of [implicit dependencies](#implicit-dependencies),
 when these are present. These flags only reflect the status of the change on its own.
 
+*UPDATE*: with the introduction of the `QE-Review` label, the `gerrit.suse.provo.cloud`
+submit rules were modified to also include the following for branches corresponding to released Cloud versions:
+
+ * at least one `QE-Review+1` label value
+ * no `QE-Review-1` label values
+
 4. all changes representing direct and indirect [implicit](#implicit-dependencies) and [explicit](#explicit-dependencies)
 dependencies are merged.
 
