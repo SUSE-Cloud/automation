@@ -71,8 +71,13 @@ The following links can also be used to track the results:
           lock(label: reserve_env == 'true' ? ardana_env:'dummy-resource',
                variable: 'reserved_env',
                quantity: reserve_env == 'true' ? 1:0 ) {
-            if (env.reserved_env && reserved_env != null) {
-              env.ardana_env = reserved_env
+            if (reserve_env == 'true') {
+              echo "Reserved resource: " + env.reserved_env
+              if (env.reserved_env && reserved_env != null) {
+                env.ardana_env = reserved_env
+              } else {
+                error("Jenkins bug (JENKINS-52638): couldn't reserve a resource with label $ardana_env")
+              }
             }
 
             def slaveJob = build job: 'openstack-ardana', parameters: [

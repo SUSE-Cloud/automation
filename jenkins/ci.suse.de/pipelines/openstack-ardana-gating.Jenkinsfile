@@ -60,6 +60,11 @@ pipeline {
               lock(label: ardana_env,
                    variable: 'reserved_env',
                    quantity: 1) {
+                echo "Reserved resource: " + env.reserved_env
+                if (reserved_env == null) {
+                  error("Jenkins bug (JENKINS-52638): couldn't reserve a resource with label $ardana_env")
+                }
+
                 ardana_lib.trigger_build("cloud-ardana${version}-job-std-min-x86_64", [
                   string(name: 'ardana_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
@@ -85,6 +90,11 @@ pipeline {
               lock(label: ardana_env,
                    variable: 'reserved_env',
                    quantity: 1) {
+                echo "Reserved resource: " + env.reserved_env
+                if (reserved_env == null) {
+                  error("Jenkins bug (JENKINS-52638): couldn't reserve a resource with label $ardana_env")
+                }
+
                 ardana_lib.trigger_build("cloud-ardana${version}-job-std-3cp-devel-staging-updates-x86_64", [
                   string(name: 'ardana_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
