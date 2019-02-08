@@ -34,7 +34,7 @@ pipeline {
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
 
-          ardana_lib = load "automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
         }
       }
     }
@@ -52,31 +52,20 @@ pipeline {
               // reserve a resource here for the openstack-ardana job, to avoid
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
-              // if not instructed to reserve a resource, use a dummy resource and a zero quantity
-              // to fool Jenkins into thinking it reserved a resourcewhen in fact it didn't
-              lock(label: reserve_env == 'true' ? ardana_env:'dummy-resource',
-                variable: 'reserved_env', quantity: reserve_env == 'true' ? 1:0 ) {
-                  def ardana_env = "${ardana_env}-deploy"
-                  if (reserve_env == 'true') {
-                    echo "Reserved resource: " + env.reserved_env
-                    if (env.reserved_env && reserved_env != null) {
-                      env.ardana_env = reserved_env
-                    } else {
-                      error("Jenkins bug (JENKINS-52638): couldn't reserve a resource with label $ardana_env")
-                    }
-                  }
-                  def slaveJob = ardana_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-maintenance-update-x86_64", [
-                    string(name: 'ardana_env', value: "$ardana_env"),
-                    string(name: 'reserve_env', value: "false"),
-                    string(name: 'cloudsource', value: "$cloudsource"),
-                    string(name: 'maint_updates', value: "$maint_updates"),
-                    string(name: 'update_after_deploy', value: "false"),
-                    string(name: 'rc_notify', value: "true"),
-                    string(name: 'cleanup', value: "on success"),
-                    string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                    string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                    string(name: 'os_cloud', value: "engcloud-cloud-ci-private")
-                  ], false)
+              ardana_lib.run_with_reserved_env(reserve_env == 'true', ardana_env, "${ardana_env}-deploy") {
+                reserved_env ->
+                def slaveJob = ardana_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-maintenance-update-x86_64", [
+                  string(name: 'ardana_env', value: reserved_env),
+                  string(name: 'reserve_env', value: "false"),
+                  string(name: 'cloudsource', value: "$cloudsource"),
+                  string(name: 'maint_updates', value: "$maint_updates"),
+                  string(name: 'update_after_deploy', value: "false"),
+                  string(name: 'rc_notify', value: "true"),
+                  string(name: 'cleanup', value: "on success"),
+                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                  string(name: 'os_cloud', value: "engcloud-cloud-ci-private")
+                ], false)
               }
             }
           }
@@ -91,31 +80,20 @@ pipeline {
               // reserve a resource here for the openstack-ardana job, to avoid
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
-              // if not instructed to reserve a resource, use a dummy resource and a zero quantity
-              // to fool Jenkins into thinking it reserved a resourcewhen in fact it didn't
-              lock(label: reserve_env == 'true' ? ardana_env:'dummy-resource',
-                variable: 'reserved_env', quantity: reserve_env == 'true' ? 1:0 ) {
-                  def ardana_env = "${ardana_env}-update"
-                  if (reserve_env == 'true') {
-                    echo "Reserved resource: " + env.reserved_env
-                    if (env.reserved_env && reserved_env != null) {
-                      env.ardana_env = reserved_env
-                    } else {
-                      error("Jenkins bug (JENKINS-52638): couldn't reserve a resource with label $ardana_env")
-                    }
-                  }
-                  def slaveJob = ardana_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-maintenance-update-x86_64", [
-                    string(name: 'ardana_env', value: "$ardana_env"),
-                    string(name: 'reserve_env', value: "false"),
-                    string(name: 'cloudsource', value: "$cloudsource"),
-                    string(name: 'maint_updates', value: "$maint_updates"),
-                    string(name: 'update_after_deploy', value: "true"),
-                    string(name: 'rc_notify', value: "true"),
-                    string(name: 'cleanup', value: "on success"),
-                    string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                    string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                    string(name: 'os_cloud', value: "engcloud-cloud-ci-private")
-                  ], false)
+              ardana_lib.run_with_reserved_env(reserve_env == 'true', ardana_env, "${ardana_env}-update") {
+                reserved_env ->
+                def slaveJob = ardana_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-maintenance-update-x86_64", [
+                  string(name: 'ardana_env', value: reserved_env),
+                  string(name: 'reserve_env', value: "false"),
+                  string(name: 'cloudsource', value: "$cloudsource"),
+                  string(name: 'maint_updates', value: "$maint_updates"),
+                  string(name: 'update_after_deploy', value: "true"),
+                  string(name: 'rc_notify', value: "true"),
+                  string(name: 'cleanup', value: "on success"),
+                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                  string(name: 'os_cloud', value: "engcloud-cloud-ci-private")
+                ], false)
               }
             }
           }

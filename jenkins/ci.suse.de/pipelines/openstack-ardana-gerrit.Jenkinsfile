@@ -2,6 +2,8 @@
  * The openstack-ardana-gerrit Jenkins Pipeline
  */
 
+def ardana_lib = null
+
 pipeline {
   // skip the default checkout, because we want to use a custom path
   options {
@@ -22,10 +24,15 @@ pipeline {
       steps {
         script {
           currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_change_ids}"
-        }
-        sh('''
-          git clone $git_automation_repo --branch $git_automation_branch automation-git
 
+          sh('''
+            git clone $git_automation_repo --branch $git_automation_branch automation-git
+          ''')
+
+          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+        }
+
+        sh('''
           if [ -n "$GERRIT_CHANGE_NUMBER" ] ; then
             # Post reviews only for jobs triggered by Gerrit
             automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
@@ -42,7 +49,6 @@ The following links can also be used to track the results:
               ${GERRIT_CHANGE_NUMBER}
           fi
         ''')
-
       }
     }
 
@@ -66,22 +72,10 @@ The following links can also be used to track the results:
           // reserve a resource here for the openstack-ardana job, to avoid
           // keeping a cloud-ardana-ci worker busy while waiting for a
           // resource to become available.
-          // if not instructed to reserve a resource, use a dummy resource and a zero quantity
-          // to fool Jenkins into thinking it reserved a resource when in fact it didn't
-          lock(label: reserve_env == 'true' ? ardana_env:'dummy-resource',
-               variable: 'reserved_env',
-               quantity: reserve_env == 'true' ? 1:0 ) {
-            if (reserve_env == 'true') {
-              echo "Reserved resource: " + env.reserved_env
-              if (env.reserved_env && reserved_env != null) {
-                env.ardana_env = reserved_env
-              } else {
-                error("Jenkins bug (JENKINS-52638): couldn't reserve a resource with label $ardana_env")
-              }
-            }
-
-            def slaveJob = build job: 'openstack-ardana', parameters: [
-              string(name: 'ardana_env', value: "$ardana_env"),
+          ardana_lib.run_with_reserved_env(reserve_env == 'true', ardana_env, ardana_env) {
+            reserved_env ->
+            ardana_lib.trigger_build('openstack-ardana', [
+              string(name: 'ardana_env', value: reserved_env),
               string(name: 'reserve_env', value: "false"),
               string(name: 'cleanup', value: "on success"),
               string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
@@ -96,14 +90,7 @@ The following links can also be used to track the results:
               string(name: 'ses_rgw_enabled', value: "false"),
               string(name: 'tempest_filter_list', value: "$tempest_filter_list"),
               string(name: 'os_cloud', value: "$os_cloud")
-            ], propagate: false, wait: true
-            env.jobResult = slaveJob.getResult()
-            env.jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
-            def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
-            echo jobMsg
-            if (env.jobResult != 'SUCCESS') {
-               error(jobMsg)
-            }
+            ])
           }
         }
       }
