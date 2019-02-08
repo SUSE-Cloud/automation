@@ -163,7 +163,7 @@ resources:
           - mkdir /home/stack/.ssh
           - cp -p /root/.ssh/authorized_keys /home/stack/.ssh
 
-          # Use wget to retrieve qa_devstack.sh server-side rather than relying
+          # Use curl to retrieve qa_devstack.sh server-side rather than relying
           # on heat's write_files client-side magic.  This works around
           # https://bugs.launchpad.net/cloud-init/+bug/1486113 which would write
           # the file before the stack user/group exist, but more importantly, it
