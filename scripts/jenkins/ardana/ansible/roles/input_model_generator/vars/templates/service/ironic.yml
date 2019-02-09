@@ -30,7 +30,7 @@ service_groups:
     heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
     member_count: '{{ (clm_model == "standalone") | ternary(1, 0) }}'
     service_components:
-      - CLM
+      - lifecycle-manager
   - name: controller
     type: cluster
     prefix: c1
