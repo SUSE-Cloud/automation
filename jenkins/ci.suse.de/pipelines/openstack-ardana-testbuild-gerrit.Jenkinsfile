@@ -3,6 +3,9 @@
  *
  * This job creates test IBS packages corresponding to supplied Gerrit patches.
  */
+
+def ardana_lib = null
+
 pipeline {
 
   // skip the default checkout, because we want to use a custom path
@@ -31,6 +34,8 @@ pipeline {
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
+          ardana_lib = load "automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.load_extra_params_as_vars(extra_params)
         }
       }
     }

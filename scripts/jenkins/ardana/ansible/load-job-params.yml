@@ -31,9 +31,20 @@
         create: yes
         line: "{{ (item.key == 'bool') | ternary(bool_line, default_line) }}"
       with_dict: "{{ jjb.0[jjb_type].parameters }}"
-      when: lookup('env', item.value.name)
+      when: item.value.name != 'extra_params' and lookup('env', item.value.name)
       loop_control:
         label: "{{ item.value.name }}"
+
+    - name: Load extra parameters
+      lineinfile:
+        path: "./input.yml"
+        create: yes
+        line: "{{ item.split('=')[0] }}: {{ lookup('env', item.split('=')[0]) }}"
+        regexp: "^{{ item.split('=')[0] }}: "
+      loop: "{{ lookup('env', 'extra_params').splitlines() }}"
+      when: lookup('env', 'extra_params') is defined and item.split('=')[0] != ''
+      loop_control:
+        label: "{{ item.split('=')[0] }}"
 
     - include_role:
         name: jenkins_artifacts

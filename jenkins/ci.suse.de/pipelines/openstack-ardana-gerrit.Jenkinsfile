@@ -30,6 +30,7 @@ pipeline {
           ''')
 
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.load_extra_params_as_vars(extra_params)
         }
 
         sh('''
@@ -89,7 +90,8 @@ The following links can also be used to track the results:
               string(name: 'ses_enabled', value: "true"),
               string(name: 'ses_rgw_enabled', value: "false"),
               string(name: 'tempest_filter_list', value: "$tempest_filter_list"),
-              string(name: 'os_cloud', value: "$os_cloud")
+              string(name: 'os_cloud', value: "$os_cloud"),
+              text(name: 'extra_params', value: extra_params)
             ])
           }
         }

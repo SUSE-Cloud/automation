@@ -448,12 +448,19 @@
           description: >-
             Use ipv6 networks in the cloud input model.
 
-      - string:
-          name: sles_image
-          default: ''
+      - text:
+          name: extra_params
+          default:
           description: >-
-            Use this parameter to override the default SLES OpenStack image used for SLES
-            virtual cloud nodes.
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
 
     pipeline-scm:
       scm:
