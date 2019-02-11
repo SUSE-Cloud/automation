@@ -35,6 +35,6 @@ if $ESX; then
      test_port test_router test_overlapping_ips test_neutron_rbac \
      test_neutron_quotas test_vm_esx --concurrency=1 | tee {{ ardana_qe_test_log }}
 else
-    ${STESTR} run -t ./ --black-regex 'esx' --concurrency=1 | tee {{ ardana_qe_test_log }}
+    ${STESTR} run -t ./ --black-regex 'esx' | tee {{ ardana_qe_test_log }}
 fi
 ${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
