@@ -2758,7 +2758,11 @@ function custom_configuration
             fi
         ;;
         ironic)
-            proposal_set_value ironic default "['attributes']['ironic']['enabled_drivers']" "['pxe_ipmitool', 'pxe_ssh']"
+            if ! iscloudver 9plus ; then
+                local maybe_agent_driver=''
+                [[ $deployswift ]] && maybe_agent_driver=", 'agent_ipmitool'"
+                proposal_set_value ironic default "['attributes']['ironic']['enabled_drivers']" "['pxe_ipmitool' $maybe_agent_driver]"
+            fi
         ;;
         *) echo "No hooks defined for service: $proposal"
         ;;
