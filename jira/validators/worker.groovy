@@ -10,6 +10,13 @@ log.info("Start Worker Validation")
 def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def workerCf = customFieldManager.getCustomFieldObjectByName("Worker")
 def worker = issue.getCustomFieldValue(workerCf)
+
+// If resolution is Rejected or Deferred return always true
+if (!(issue.resolutionObject.name == "Rejected" || issue.resolutionObject.name == "Deferred")) {
+    log.info("Status is Rejected or Deferred (true)")
+    return true
+}
+
 if (worker && worker != "unassigned") {
     log.info("Worker is assigned (true)")
     return true
