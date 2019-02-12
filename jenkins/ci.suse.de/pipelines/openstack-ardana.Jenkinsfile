@@ -33,8 +33,13 @@ pipeline {
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
-          if (env.reserved_env && reserved_env != null) {
-            env.ardana_env = reserved_env
+          if (reserve_env == 'true') {
+            echo "Reserved resource: " + env.reserved_env
+            if (env.reserved_env && reserved_env != null) {
+              env.ardana_env = reserved_env
+            } else {
+              error("Jenkins bug (JENKINS-52638): couldn't reserve a resource with label $ardana_env")
+            }
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
           if ( ardana_env.startsWith("qe") || ardana_env.startsWith("pcloud") ) {

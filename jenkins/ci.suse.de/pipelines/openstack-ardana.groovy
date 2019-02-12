@@ -71,4 +71,37 @@ def generate_qa_tests_stages(qa_test_list) {
   }
 }
 
+
+// Implements a simple closure that executes the supplied function (body) with
+// or without reserving a Lockable Resource identified by the 'resource_label'
+// label value, depending on the 'reserve' boolean value.
+//
+// The reserved resource will be passed to the supplied closure as a parameter.
+// For convenience, the function also accepts a 'default_resource' parameter
+// that will be used as a default value for the name of the resource, if a
+// resource does not actually need to be reserved. This enables the supplied
+// function body to use the resource name without needing to check again if it
+// has been reserved or not. If 'default_resource' is null, the 'resource_label'
+// value will be used in its place.
+//
+def run_with_reserved_env(reserve, resource_label, default_resource, body) {
+
+  if (reserve) {
+    lock(resource: null, label: resource_label, variable: 'reserved_resource', quantity: 1) {
+      if (env.reserved_resource && reserved_resource != null) {
+        echo "Reserved resource: " + reserved_resource
+        body(reserved_resource)
+      } else  {
+        def errorMsg = "Jenkins bug (JENKINS-52638): couldn't reserve a resource with label " + resource_label
+        echo errorMsg
+        error(errorMsg)
+      }
+    }
+  } else {
+    def reserved_resource = default_resource != null ? default_resource: resource_label
+    echo "Using resource without a reservation: " + reserved_resource
+    body(reserved_resource)
+  }
+}
+
 return this
