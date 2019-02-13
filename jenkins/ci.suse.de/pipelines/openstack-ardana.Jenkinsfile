@@ -236,7 +236,7 @@ pipeline {
 
     stage ('Prepare tests') {
       when {
-        expression { tempest_filter_list != '' || qa_test_list != '' || want_caasp == 'true' }
+        expression { tempest_filter_list != '' || qa_test_list != '' || deploy_caasp != ''}
       }
       steps {
         script {
@@ -245,7 +245,7 @@ pipeline {
           // Generate stages for QA tests
           ardana_lib.generate_qa_tests_stages(env.qa_test_list)
           // Generate stage for CaaSP deployment
-          if (want_caasp == 'true') {
+          if (deploy_caasp != '') {
             stage('Deploy CaaSP') {
               ardana_lib.ansible_playbook('deploy-caasp')
             }

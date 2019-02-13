@@ -19,9 +19,8 @@ heat_stack_name: "openstack-ardana-{{ ardana_env }}"
 heat_template_file: "{{ workspace_path }}/heat-stack-{{ scenario_name | default(model) }}.yml"
 os_cloud: "engcloud-cloud-ci"
 
-
-want_caasp: False
-virt_config_file_name: "{{ 'caasp.yml' if want_caasp else workspace_path ~ '/' ~ scenario_name ~ '-virt-config.yml' if scenario_name is defined else '' }}"
+deploy_caasp: ""
+virt_config_file_name: "{{ 'caasp.yml' if (deploy_caasp != '') else workspace_path ~ '/' ~ scenario_name ~ '-virt-config.yml' if scenario_name is defined else '' }}"
 virt_config_file: "{{ virt_config_name | default(virt_config_file_name) }}"
 
 want_lvm: True

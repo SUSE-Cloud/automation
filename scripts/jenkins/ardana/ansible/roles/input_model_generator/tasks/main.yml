@@ -57,7 +57,7 @@
   when:
     - not is_physical_deploy
     - virt_config_file != ''
-    - not want_caasp
+    - deploy_caasp == ''
 
 - name: Remove versioned features from input model when not enabled
   replace:

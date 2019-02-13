@@ -396,11 +396,17 @@
 
                <change_number>[/<patchset_number>]
 
-      - bool:
-          name: want_caasp
-          default: false
+      - choice:
+          name: deploy_caasp
+          choices: 
+            - '{deploy_caasp|}'
+            - 'single-master'
+            - 'multiple-masters'
           description: >-
-            Deploy CaaSP using the caasp-openstack-heat-templates.
+            Deploy CaaSP using the caasp-openstack-heat-templates. Possible values are:
+            - '' - do not deploy CaaSP
+            - 'single-master' - deploy CaaSP with single master
+            - 'multiple-masters' - deploy CaaSP multiple masters and loadbalancer
 
       - choice:
           name: cleanup
