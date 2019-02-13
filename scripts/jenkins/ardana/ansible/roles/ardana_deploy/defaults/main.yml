@@ -24,6 +24,7 @@ ardana_openstack_playbooks:
 
 ardana_scratch_playbooks:
   - play: "wipe_disks.yml -e automate=true"
+    when: "{{ is_physical_deploy }}"
   - play: "site.yml"
   - play: "ardana-cloud-configure.yml"
 
