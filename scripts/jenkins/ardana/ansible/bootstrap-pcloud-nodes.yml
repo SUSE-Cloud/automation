@@ -48,6 +48,9 @@
           register: _node_status
           failed_when: "not ('off' in _node_status.stdout)"
           changed_when: False
+          retries: 10
+          until: _node_status is succeeded
+          delay: 5
           when: "'ilo_user' in item"
           loop: "{{ bm_info.servers }}"
           loop_control:
