@@ -24,6 +24,7 @@ mkcloud.*
 .artifacts
 pids/
 screenlog*
+.byebug_history
 
 scripts/jenkins/ardana/manual/ansible-venv
 scripts/jenkins/ardana/manual/mitogen
