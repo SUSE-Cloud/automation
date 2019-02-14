@@ -1,0 +1,48 @@
+---
+
+- name:
+  hosts: "{{ ardana_env }}"
+  remote_user: root
+  gather_facts: True
+  vars:
+    task: "deploy"
+
+  pre_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "started"
+        rc_state: "Started"
+      when:
+        - rc_notify
+        - rc_notify_start
+        - not is_physical_deploy
+
+  tasks:
+    - block:
+        - include_role:
+            name: crowbar_deploy
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
+      always:
+        - include_role:
+            name: jenkins_artifacts
+          when: lookup("env", "WORKSPACE")
+
+  post_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "finished"
+        rc_state: "Success"
+      when:
+        - rc_notify

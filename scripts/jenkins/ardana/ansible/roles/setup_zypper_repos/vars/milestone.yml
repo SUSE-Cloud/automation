@@ -27,5 +27,5 @@ media:
   cloud9:
     name: "SUSE-OpenStack-Cloud-9-{{ milestone }}"
     iso: "SUSE-OPENSTACK-CLOUD-9-x86_64-Media1.iso"
-    url: "http://ibs-mirror.prv.suse.net/install/SLE-12-SP4-Cloud9-{{ milestone }}"
+    url: "http://{{ sles_media_server }}/install/SLE-12-SP4-Cloud9-{{ milestone }}"
     dest: "/root"

@@ -1,0 +1,4 @@
+---
+
+admin_scripts_path: "/root/scripts"
+admin_mkcloud_config_file: "/root/mkcloud.config"

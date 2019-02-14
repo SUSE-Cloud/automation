@@ -16,7 +16,6 @@
 ---
 
 ardana_home: "/var/lib/ardana/"
-sles_media_server: "ibs-mirror.prv.suse.net"
 
 rhel_iso:
   # CentOS_73: not available

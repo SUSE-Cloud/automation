@@ -1,0 +1,20 @@
+---
+- name: Sync automation scripts onto the admin node
+  synchronize:
+    src: "{{ automation_scripts_path }}"
+    dest: "{{ admin_scripts_path }}"
+    delete: yes
+    recursive: yes
+
+- name: Generate mkcloud.config
+  template:
+    src: "mkcloud.config.j2"
+    dest: "{{ admin_mkcloud_config_file }}"
+
+- name: Run qa_crowbarsetup.sh command on the admin node
+  shell: |
+    . {{ admin_scripts_path }}/qa_crowbarsetup.sh
+    {{ qa_crowbarsetup_cmd }}
+  args:
+    executable: "/bin/bash"
+

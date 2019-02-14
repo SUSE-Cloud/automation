@@ -124,15 +124,11 @@ pipeline {
     stage('Bootstrap admin node') {
       steps {
         script {
-          sh('''
-             # This step does the following on the admin node:
-             #  - waits for it to complete boot
-             #  - resizes the root partition
-             #  - sets up Crowbar network/DNS and repos
-             #  - installs crowbar packages
-             #
-             # qa_crowbarsetup.sh onadmin_runlist prepareinstallcrowbar
-          ''')
+          // This step does the following on the admin node:
+          //  - waits for it to complete boot
+          //  - resizes the root partition
+          //  - TODO: sets up SLES and Cloud repositories
+          ardana_lib.ansible_playbook('bootstrap-crowbar', "-e extra_repos='$extra_repos'")
         }
       }
     }
@@ -140,12 +136,10 @@ pipeline {
     stage('Bootstrap nodes') {
       steps {
         script {
-          sh('''
-             # This step does the following on the non-admin nodes:
-             #  - waits for them to complete boot
-             #  - resizes the root partition
-             #  - sets up accounts, passwordless SSH and sudo
-          ''')
+          // This step does the following on the non-admin nodes:
+          //  - waits for them to complete boot
+          //  - resizes the root partition
+          ardana_lib.ansible_playbook('bootstrap-crowbar-nodes')
         }
       }
     }
@@ -156,12 +150,12 @@ pipeline {
       }
       steps {
         script {
-          sh('''
-             # This step does the following on the admin node:
-             #  - installs crowbar
-             #
-             # qa_crowbarsetup.sh onadmin_runlist bootstrapcrowbar installcrowbar
-          ''')
+           // This step does the following on the admin node:
+           //  - sets up SLES and Cloud repositories
+           //  - installs crowbar
+           ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist prepareinstallcrowbar"\'')
+           ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist bootstrapcrowbar"\'')
+           ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist installcrowbar"\'')
         }
       }
     }

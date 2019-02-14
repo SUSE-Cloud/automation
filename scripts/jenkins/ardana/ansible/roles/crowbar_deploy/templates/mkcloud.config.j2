@@ -1,0 +1,93 @@
+
+# export debug_qa_crowbarsetup=0
+# export debug_openstack=0
+
+# export drbdnode_mac_vol=
+export cloud={{ scenario_name }}
+# hostnames of repo, nfs, rsync and smt servers
+# (*_ip and *_fqdn suffix variables are computed automatically)
+export reposerver={{ clouddata_server }}
+# export reposerver_ip=
+# export reposerver_fqdn=
+# export reposerver_base_path=
+# export reposerver_url=
+# export imageserver_url=
+# export nfsserver=
+# export nfsserver_ip=
+# export nfsserver_fqdn=
+# export nfsserver_base_path=
+# export rsyncserver=
+# export rsyncserver_ip=
+# export rsyncserver_fqdn=
+# export rsyncserver_images_dir=
+export susedownload={{ sles_media_server }}
+# export cloudfqdn=
+
+{% if cloudsource.startswith("stagingcloud") %}
+export cloudsource=develcloud{{ cloudsource[-1] }}
+export TESTHEAD=1
+{% else %}
+export cloudsource={{ cloudsource }}
+{% endif %}
+
+# export mkclouddriver=
+# export adminip=
+# export hacloud=
+export libvirt_type=physical
+# export firmware_type=
+# export networkingplugin=
+# export networkingmode=
+# export nosetestparameters=
+# export tempestoptions=
+# export cephvolumenumber=
+# export controller_raid_volumes=
+# export drbd_database_size=
+# export drbd_rabbitmq_size=
+# export shell=
+# export keep_existing_hostname=
+# export http_proxy=
+# export https_proxy=
+# export no_proxy=
+# export cct_tests=
+# export scenario=
+# export host_mtu=
+# export architectures=
+
+# export crowbar_networkingmode=
+
+# export nova_shared_instance_storage=
+
+# export localreposdir_target=
+
+# export cinder_backend=
+# export cinder_netapp_storage_protocol=
+# export cinder_netapp_login=
+# export cinder_netapp_password=
+
+# export UPDATEREPOS=
+# export UPDATEREPOS_UPGRADE=
+# export UPDATEREPOS_EXTRA=
+# export NOINSTALLCLOUDPATTERN=
+
+# export clouddescription=
+# export JENKINS_BUILD_URL=
+# export JENKINS_NODE_NAME=
+# export JENKINS_EXECUTOR_NUMBER=
+# export JENKINS_WORKSPACE=
+# export test_internet_url=
+# export extraipmipw=
+# export ipmi_ip_addrs=
+# export bmc_user=
+# export bmc_password=
+# export upgrade_progress_file=
+
+export nodenumber={{ controllers | int + computes | int }}
+# export nodenumberlonelynode=
+# export nodenumberironicnode=
+# export clusterconfig=
+# export ironicnetmask=
+
+export want_test_updates={{ updates_test_enabled | ternary (1, 0) }}
+
+
+# NOTE: might also need some of the other variables starting with vlan_ , want_ and net_

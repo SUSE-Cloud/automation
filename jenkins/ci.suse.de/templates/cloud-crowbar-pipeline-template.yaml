@@ -187,6 +187,12 @@
             not already supported by the job's parameters, such as testing automation git pull requests
             with special configurations.
 
+      - hidden:
+          name: cloud_product
+          default: 'crowbar'
+          description: >-
+            Cloud product (ardana or crowbar)
+
     pipeline-scm:
       scm:
         - git:
