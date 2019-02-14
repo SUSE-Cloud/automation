@@ -19,7 +19,7 @@
 
   networks:
 
-{% set ns = namespace(net_id=100) %}
+{% set ns = namespace(net_id=gen_subnet_start) %}
 {% for network_group in scenario['network_groups'] %}
 {%   if network_group.rack_network|default(False) %}
 {%     for az in range(scenario.availability_zones) %}
@@ -38,16 +38,16 @@
 {%   endif %}
       tagged-vlan: {{ network_group['tagged_vlan']|default('False')|lower }}
 {%   if (ipv6 | default(false)) == true %}
-{%   if ns.net_id != 100 %}
+{%   if ns.net_id != gen_subnet_start %}
       cidr: fd00:0:0:{{ ns.net_id }}::/64
       gateway-ip: fd00:0:0:{{ ns.net_id }}::1
 {%   else %}
-      cidr: 192.168.{{ ns.net_id }}.0/24
-      gateway-ip: 192.168.{{ ns.net_id }}.1
+      cidr: {{ subnet_prefix }}.{{ ns.net_id }}.0/24
+      gateway-ip: {{ subnet_prefix }}.{{ ns.net_id }}.1
 {%   endif %}
 {%   else  %}
-      cidr: 192.168.{{ ns.net_id }}.0/24
-      gateway-ip: 192.168.{{ ns.net_id }}.1
+      cidr: {{ subnet_prefix }}.{{ ns.net_id }}.0/24
+      gateway-ip: {{ subnet_prefix }}.{{ ns.net_id }}.1
 {%   endif %}
 {%   endif %}
       network-group: {{ network_group.name|upper }}

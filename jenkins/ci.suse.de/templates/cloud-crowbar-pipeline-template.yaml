@@ -1,0 +1,185 @@
+- job-template:
+    name: '{crowbar_job}'
+    project-type: pipeline
+    disabled: '{obj:disabled|False}'
+    concurrent: '{concurrent|False}'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 30
+
+    triggers: '{triggers}'
+
+    parameters:
+      - validating-string:
+          name: ardana_env
+          default: '{ardana_env|}'
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied ardana_env already
+            exists, it will be replaced.
+
+      - bool:
+          name: reserve_env
+          default: '{reserve_env|true}'
+          description: >-
+            Reserve the 'ardana_env' lockable resource throughout the execution of this job
+
+      - choice:
+          name: cloudsource
+          choices:
+            - '{cloudsource|stagingcloud9}'
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - GM8+up
+            - hosdevelcloud8
+            - hosGM8
+            - hosGM8+up
+            - stagingcloud9
+            - develcloud9
+            - cloud9M3
+            - cloud9M4
+            - cloud9M5
+            - cloud9M6
+            - cloud9M7
+            - cloud9M8
+            - cloud9M9
+            - cloud9M10
+          description: >-
+            The cloud repository (from provo-clouddata) to be used for testing.
+            This value can take the following form:
+
+               stagingcloud<X> (Devel:Cloud:X:Staging)
+               develcloud<X> (Devel:Cloud:X)
+               GM<X> (official GM)
+               GM<X>+up (official GM plus Cloud-Updates)
+               cloud9MX (cloud 9 milestones)
+
+      - bool:
+          name: deploy_cloud
+          default: '{deploy|true}'
+          description: >-
+            If left unchecked, the cloud deployment steps will be skipped. This option can be
+            used if you only need to set up the infrastructure and configure the cloud media and
+            repositories, but skip the actual cloud deployment, e.g. for testing purposes.
+
+      - bool:
+          name: updates_test_enabled
+          default: '{updates_test_enabled|false}'
+          description: >-
+            Enable SLES/Cloud test update repos (the Cloud test update repos will
+            be enabled only when cloudsource is GM based)
+
+      - validating-string:
+          name: maint_updates
+          default: ''
+          regex: '([0-9]+(,[0-9]+)*)*'
+          msg: The entered value failed validation
+          description: List of maintenance update IDs separated by comma (eg. 7396,7487)
+
+      - choice:
+          name: scenario_name
+          choices:
+            - '{scenario_name|crowbar}'
+            - crowbar
+          description: >-
+            The name of one of the available scenarios that can be used to generate input models.
+            If this parameter is set, the following parameters may also be set to different values, to control
+            various aspects of the generated input model: controllers, computes.
+
+
+            NOTE: use this parameter only if you want to use a generated input model. To use an existing input model instead,
+            leave this field empty and use the 'model' parameter instead.
+
+      - validating-string:
+          name: controllers
+          default: '{controllers|1}'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of controller nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: standard, entry-scale-kvm.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: computes
+          default: '{computes|1}'
+          regex: '[0-9]+'
+          msg: The entered value failed validation
+          description: |
+            The number of SLES compute nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: extra_repos
+          default: ''
+          regex: '((http(s)?:\/\/[^ ,]+\.repo)(,http(s)?:\/\/[^ ,]+\.repo)*)*'
+          msg: The entered value failed validation
+          description: >-
+            A comma separated list of repository urls (ending with .repo) to be
+            added on the deployer node
+
+      - bool:
+          name: rc_notify
+          default: '{rc_notify|false}'
+          description: >-
+            Notify RocketChat when deployment starts/finishes.
+
+      - choice:
+          name: cleanup
+          choices:
+            - '{cleanup|on success}'
+            - 'never'
+            - 'always'
+            - 'on success'
+            - 'on failure'
+          description: >-
+            Configure the conditions that trigger the virtual environment cleanup. Possible values are:
+              - never
+              - always
+              - on success
+              - on failure
+
+      - string:
+          name: git_automation_repo
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: '{git_automation_branch|master}'
+          description: >-
+            The git automation branch
+
+      - string:
+          name: os_cloud
+          default: '{os_cloud|engcloud-cloud-ci-private}'
+          description: >-
+            The OpenStack API credentials used to manage virtual clouds (leave
+            empty to use the default shared 'cloud' ECP account).
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${{git_automation_repo}}
+            branches:
+              - ${{git_automation_branch}}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/openstack-crowbar.Jenkinsfile
+      lightweight-checkout: false

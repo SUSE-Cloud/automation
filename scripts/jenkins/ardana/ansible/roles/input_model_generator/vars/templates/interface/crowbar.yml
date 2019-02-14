@@ -1,0 +1,11 @@
+---
+
+interface_models:
+  - name: ALL
+    service_groups:
+      - admin
+      - controller
+      - compute
+    network_interfaces:
+      - network_groups:
+          - MANAGEMENT

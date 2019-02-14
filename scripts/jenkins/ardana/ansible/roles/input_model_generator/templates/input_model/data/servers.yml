@@ -17,13 +17,13 @@
 {% set ns = namespace(clm_net_id=0, server_idx=0) %}
 {% for network_group in scenario['network_groups'] %}
 {%   if 'CLM' in network_group['component_endpoints'] %}
-{%     set ns.clm_net_id = loop.index0+100 %}
+{%     set ns.clm_net_id = loop.index0+gen_subnet_start %}
 {%   endif %}
 {% endfor %}
 {% if ns.clm_net_id == 0  %}
 {%   for network_group in scenario['network_groups'] %}
 {%     if 'MANAGEMENT' in network_group['component_endpoints'] %}
-{%       set ns.clm_net_id = loop.index0+100 %}
+{%       set ns.clm_net_id = loop.index0+gen_subnet_start %}
 {%     endif %}
 {%   endfor  %}
 {% endif %}
@@ -32,14 +32,14 @@
 
   baremetal:
     netmask: {{ bm_info.networks.bm_netmask if bm_info is defined else '255.255.255.0' }}
-    subnet: 192.168.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.0
+    subnet: {{ subnet_prefix }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.0
 
   servers:
 {% for service_group in scenario['service_groups'] if service_group['member_count']|int %}
 {%   for idx in range(service_group['member_count']|int) %}
 {%     set server_id = "%s-%04d"|format(service_group.name, idx+1) %}
     - id: {{ bm_info.servers[ns.server_idx].id if bm_info is defined else server_id }}
-      ip-addr: 192.168.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.{{ bm_info.networks.bm_subnet_start + ns.server_idx if bm_info is defined else ns.server_idx + 100 }}
+      ip-addr: {{ subnet_prefix }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.{{ bm_info.networks.bm_subnet_start + ns.server_idx if bm_info is defined else ns.server_idx + gen_ip_start }}
       role: {{ service_group.name|upper }}-ROLE
       server-group: RACK{{ (idx%3)+1 }}
       nic-mapping: {{ bm_info.servers[ns.server_idx].nic_mapping if bm_info is defined else 'HEAT' }}
@@ -52,12 +52,12 @@
       # Generate dummy iLO credentials until bsc#1091459 is fixed
       ilo-user: 'ilouser'
       ilo-password: 'ilopasswd'
-      ilo-ip: 10.1.1.{{ ns.server_idx + 100 }}
+      ilo-ip: 10.1.1.{{ ns.server_idx + gen_ip_start }}
 {% endif %}
 {% if service_group.distro_id is defined and 'sles' not in service_group.distro_id %}
       distro-id: {{ service_group.distro_id }}
 {% endif %}
-{%     set ns.server_idx = ns.server_idx+1 %}
+{%     set ns.server_idx = ns.server_idx + (gen_ip_gap if ns.server_idx == 0 else 1) %}
 
 {%   endfor %}
 {% endfor %}
