@@ -32,21 +32,28 @@ pipeline {
         sh '''
           wget -qO- ${download_image_url} | xz -d > ${sles_image}.qcow2
 
-          # The cloud-ci user cannot create public images or change their
-          # membership; until that is resolved by updating its privileges,
-          # resort to doing everything twice, once for the 'cloud-ci'
-          # project and a second time for the 'cloud' project
-          for os_cloud in engcloud-cloud-ci-private engcloud-cloud-ci; do
-              openstack --os-cloud $os_cloud image show ${sles_image}-update && \
-                  openstack --os-cloud $os_cloud image delete ${sles_image}-update
+          openstack --os-cloud $os_cloud image show ${sles_image}-update && \
+              openstack --os-cloud $os_cloud image delete ${sles_image}-update
 
-              openstack --os-cloud $os_cloud image create \
-                  --file ${sles_image}.qcow2 \
-                  --disk-format qcow2 \
-                  --container-format bare \
-                  --private \
-                  ${sles_image}-update
-          done
+          openstack --os-cloud $os_cloud image create \
+              --file ${sles_image}.qcow2 \
+              --disk-format qcow2 \
+              --container-format bare \
+              --${image_visibility} \
+              ${sles_image}-update
+
+          if [[ $image_visibility == shared ]]; then
+              # Share the image will all the other projects that the default CI user has access to
+              image_props=($(openstack --os-cloud $os_cloud image show -f value -c id -c owner ${sles_image}-update))
+              image_uuid=${image_props[0]}
+              image_owner=${image_props[1]}
+              other_projects=$(openstack --os-cloud $os_cloud --os-interface public project list -f value -c ID | grep -v "${image_owner}")
+
+              for project in $other_projects; do
+                  openstack --os-cloud $os_cloud --os-interface public image add project ${sles_image}-update $project
+                  openstack --os-cloud $os_cloud --os-project-id $project image set --accept $image_uuid
+              done
+          fi
         '''
       }
     }
@@ -66,20 +73,14 @@ pipeline {
   post {
     success {
       sh '''
-          # The cloud-ci user cannot create public images or change their
-          # membership; until that is resolved by updating its privileges,
-          # resort to doing everything twice, once for the 'cloud-ci'
-          # project and a second time for the 'cloud' project
-          for os_cloud in engcloud-cloud-ci-private engcloud-cloud-ci; do
-              openstack --os-cloud $os_cloud image set \
-                  --name ${sles_image}-$(date +%Y%m%d) \
-                  --deactivate \
-                  ${sles_image}
+          openstack --os-cloud $os_cloud image set \
+              --name ${sles_image}-$(date +%Y%m%d) \
+              --deactivate \
+              ${sles_image}
 
-              openstack --os-cloud $os_cloud image set \
-                  --name ${sles_image} \
-                  ${sles_image}-update
-          done
+          openstack --os-cloud $os_cloud image set \
+              --name ${sles_image} \
+              ${sles_image}-update
       '''
     }
     cleanup {

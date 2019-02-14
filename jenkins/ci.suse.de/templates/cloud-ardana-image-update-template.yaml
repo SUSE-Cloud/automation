@@ -23,6 +23,16 @@
           description: >-
             The URL pointing to the updated image file
 
+      - choice:
+          name: image_visibility
+          choices:
+            - 'shared'
+            - 'private'
+          description: >-
+            The visibility used for the image. Possible values are:
+              - shared - installs an image shared with all the other projects that the user is associated with
+              - private - installs a private image
+
       - string:
           name: openstack_ardana_job
           default: '{openstack_ardana_job|openstack-ardana}'
@@ -40,6 +50,12 @@
           default: '{git_automation_branch|master}'
           description: >-
             The git automation branch
+
+      - hidden:
+          name: os_cloud
+          default: '{os_cloud|engcloud-cloud-ci-private}'
+          description: >-
+            The OpenStack API credentials for the target OpenStack cloud.
 
     pipeline-scm:
       scm:
