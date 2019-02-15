@@ -2,13 +2,6 @@
     name: openstack-ardana-testbuild-gerrit
     project-type: pipeline
     concurrent: true
-    wrappers:
-      - timestamps
-      - timeout:
-          timeout: 20
-          type: no-activity
-          abort: true
-          write-description: "Job aborted due to 20 minutes of inactivity."
 
     logrotate:
       numToKeep:  300
@@ -67,10 +60,3 @@
             wipe-workspace: false
       script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
       lightweight-checkout: false
-
-    publishers:
-      - workspace-cleanup:
-          clean-if:
-            - failure: false
-            - aborted: false
-            - unstable: false
