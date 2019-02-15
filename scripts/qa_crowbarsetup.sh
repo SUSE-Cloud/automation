@@ -2380,6 +2380,7 @@ function custom_configuration
             if [[ $want_osprofiler = 1 ]] ; then
                 if iscloudver 9M11plus ; then
                     proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['enabled']" "true"
+                    proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['hmac_keys']" "['SECRET']"
                     proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['trace_sqlalchemy']" "true"
                 else
                     echo "Warning: osprofiler currently is only available in 9M11plus. Not enabling it"
