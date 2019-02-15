@@ -166,6 +166,11 @@ host_mtu=$(determine_mtu)
 iscloudver 7plus && [[ $arch == x86_64 ]] && \
     [[ -n $want_efi ]] && firmware_type="uefi"
 
+# TODO(colleen) Fix cloudsource check once there are new MUs for cloud7/8
+iscloudver 7plus && [[ $cloudsource =~ develcloud ]] && [[ -z $want_ssl_trusted ]] && {
+    export want_ssl_trusted=1
+}
+
 pidfile=mkcloud.pid
 
 exec </dev/null
@@ -1321,6 +1326,11 @@ Optional
     localreposdir_src (default='')
         If you want to use repositories from your host's local filesystem, set
         this variable to point to the root of the hierarchy.
+    want_all_ssl (default='0')
+        If set, enables TLS for all services. Can also enable TLS for
+        individual services using want_{proposal}_ssl.
+    want_ssl_trusted (default='1' for cloud7+)
+        If set, does not use the --insecure flag in openstack CLI commands.
 EOUSAGE
     qacrowbarsetup_help
     exit 1
