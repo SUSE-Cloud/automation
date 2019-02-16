@@ -1,0 +1,80 @@
+- job:
+    name: openstack-jenkins-agent
+    project-type: pipeline
+    concurrent: false
+
+    logrotate:
+      numToKeep: 10
+      daysToKeep: 1
+
+    properties:
+      - authorization:
+          cloud:
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
+          anonymous:
+            - job-read
+
+    parameters:
+
+      - string:
+          name: agent_name
+          default: ''
+          description: >-
+            The name used for the deployed Jenkins agent. This will also be used
+            as a prefix to name the OpenStack artifacts (servers, networks, etc.)
+
+      - string:
+          name: os_image
+          default: 'cleanvm-jeos-SLE12SP4'
+          description: >-
+            The OpenStack image to use for the instantiated server
+
+      - string:
+          name: os_flavor
+          default: 'm1.large'
+          description: >-
+            The OpenStack flavor to use for the instantiated server
+
+      - string:
+          name: os_floating_net
+          default: 'floating'
+          description: >-
+            The OpenStack network used for floating IPs
+
+      - string:
+          name: os_cloud
+          default: 'engcloud-cloud-ci'
+          description: >-
+            The OpenStack API credentials to be used from ~/.config/openstack/clouds.yml
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: pipeline-tutorial
+          description: >-
+            The git automation branch
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+            wipe-workspace: false
+      script-path: docs/pipelines/stage-02/jenkins/pipelines/${JOB_NAME}.Jenkinsfile
+      lightweight-checkout: false

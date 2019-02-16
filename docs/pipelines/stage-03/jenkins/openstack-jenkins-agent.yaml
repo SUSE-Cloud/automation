@@ -1,0 +1,101 @@
+- job:
+    name: openstack-jenkins-agent
+    project-type: pipeline
+    concurrent: false
+
+    logrotate:
+      numToKeep: 10
+      daysToKeep: 1
+
+    properties:
+      - authorization:
+          cloud:
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
+          anonymous:
+            - job-read
+
+    parameters:
+
+      - validating-string:
+          name: agent_name
+          default: ''
+          regex: '[A-Za-z0-9-_\.]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '.', '-' and '_' characters are allowed).
+          description: >-
+            The name used for the deployed Jenkins agent. This will also be used
+            as a prefix to name the OpenStack artifacts (servers, networks, etc.)
+
+      - validating-string:
+          name: os_image
+          default: 'cleanvm-jeos-SLE12SP4'
+          regex: '[A-Za-z0-9-_\.]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '.', '-' and '_' characters are allowed).
+          description: >-
+            The OpenStack image to use for the instantiated server
+
+      - validating-string:
+          name: os_flavor
+          default: 'm1.large'
+          regex: '[A-Za-z0-9-_\.]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '.', '-' and '_' characters are allowed).
+          description: >-
+            The OpenStack flavor to use for the instantiated server
+
+      - validating-string:
+          name: os_floating_net
+          default: 'floating'
+          regex: '[A-Za-z0-9-_\.]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '.', '-' and '_' characters are allowed).
+          description: >-
+            The OpenStack network used for floating IPs
+
+      - validating-string:
+          name: os_cloud
+          default: 'engcloud-cloud-ci'
+          regex: '[A-Za-z0-9-_\.]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '.', '-' and '_' characters are allowed).
+          description: >-
+            The OpenStack API credentials to be used from ~/.config/openstack/clouds.yml
+
+      - bool:
+          name: run_tests
+          default: false
+          description: >-
+            Run tests on the Jenkins agent
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: pipeline-tutorial
+          description: >-
+            The git automation branch
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+            wipe-workspace: false
+      script-path: docs/pipelines/stage-03/jenkins/pipelines/${JOB_NAME}.Jenkinsfile
+      lightweight-checkout: false

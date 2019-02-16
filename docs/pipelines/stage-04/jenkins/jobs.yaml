@@ -1,0 +1,30 @@
+- project:
+    name: openstack-jenkins-agent
+    openstack_jenkins_agent_job: '{name}'
+    triggers:
+    jobs:
+        - '{openstack_jenkins_agent_job}'
+
+- project:
+    name: openstack-jenkins-agent-one
+    agent_name: openstack-ci-agent-one
+    openstack_jenkins_agent_job: '{name}'
+    os_image: cleanvm-jeos-lvm-SLE12SP4
+    os_cloud: engcloud-cloud-ci-private
+    run_tests: true
+    triggers:
+     - timed: 'H * * * *'
+    jobs:
+        - '{openstack_jenkins_agent_job}'
+
+- project:
+    name: openstack-jenkins-agent-two
+    agent_name: openstack-ci-agent-two
+    openstack_jenkins_agent_job: '{name}'
+    os_image: cleanvm-jeos-lvm-SLE12SP4
+    os_cloud: engcloud-cloud-ci-private
+    run_tests: true
+    triggers:
+     - timed: 'H * * * *'
+    jobs:
+        - '{openstack_jenkins_agent_job}'

@@ -1,0 +1,126 @@
+- job:
+    name: openstack-jenkins-agent
+    project-type: pipeline
+    concurrent: false
+
+    logrotate:
+      numToKeep: 10
+      daysToKeep: 1
+
+    properties:
+      - authorization:
+          cloud:
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
+          anonymous:
+            - job-read
+
+    parameters:
+
+      - string:
+          name: agent_name
+          default: ''
+          description: >-
+            The name used for the deployed Jenkins agent. This will also be used
+            as a prefix to name the OpenStack artifacts (servers, networks, etc.)
+
+      - string:
+          name: os_image
+          default: 'cleanvm-jeos-SLE12SP4'
+          description: >-
+            The OpenStack image to use for the instantiated server
+
+      - string:
+          name: os_flavor
+          default: 'm1.large'
+          description: >-
+            The OpenStack flavor to use for the instantiated server
+
+      - string:
+          name: os_floating_net
+          default: 'floating'
+          description: >-
+            The OpenStack network used for floating IPs
+
+      - string:
+          name: os_cloud
+          default: 'engcloud-cloud-ci'
+          description: >-
+            The OpenStack API credentials to be used from ~/.config/openstack/clouds.yml
+
+    sandbox: true
+    dsl: |
+      pipeline {
+        agent {
+          node {
+            label 'cloud-ardana-ci'
+          }
+        }
+
+        stages {
+          stage('Print job info') {
+            steps {
+              sh ('''
+                echo ==============================================================================
+                hostname
+                echo ==============================================================================
+                pwd
+                echo ==============================================================================
+                find
+                echo ==============================================================================
+                env
+                echo ==============================================================================
+              ''')
+            }
+          }
+
+          stage('Create Jenkins agent VM') {
+            steps {
+              sh ('''
+                existing_vm=$(openstack --os-cloud $os_cloud server show ${agent_name}_server || :)
+
+                if [[ -n "$existing_vm" ]]; then
+                  openstack --os-cloud $os_cloud server delete --wait ${agent_name}_server || :
+                  openstack --os-cloud $os_cloud router remove subnet ${agent_name}_router ${agent_name}_subnet || :
+                  openstack --os-cloud $os_cloud router delete ${agent_name}_router || :
+                  openstack --os-cloud $os_cloud network delete ${agent_name}_network || :
+                  openstack --os-cloud $os_cloud security group delete ${agent_name}_secgroup || :
+                fi
+
+                openstack --os-cloud $os_cloud network create ${agent_name}_network
+                openstack --os-cloud $os_cloud subnet create \
+                  --network ${agent_name}_network \
+                  --subnet-range 192.168.100.0/24 \
+                  ${agent_name}_subnet
+                openstack --os-cloud $os_cloud router create ${agent_name}_router
+                openstack --os-cloud $os_cloud router set --external-gateway $os_floating_net ${agent_name}_router
+                openstack --os-cloud $os_cloud router add subnet ${agent_name}_router ${agent_name}_subnet
+                openstack --os-cloud $os_cloud security group create ${agent_name}_secgroup
+                openstack --os-cloud $os_cloud security group rule create ${agent_name}_secgroup \
+                  --protocol tcp --dst-port 22:22
+                openstack --os-cloud $os_cloud security group rule create ${agent_name}_secgroup \
+                  --protocol icmp
+
+                openstack --os-cloud $os_cloud server create \
+                  --image $os_image \
+                  --flavor $os_flavor \
+                  --network ${agent_name}_network \
+                  --security-group ${agent_name}_secgroup \
+                  --wait \
+                  ${agent_name}_server
+
+                floatingip=$(openstack --os-cloud $os_cloud floating ip create -f value -c floating_ip_address $os_floating_net)
+                openstack --os-cloud $os_cloud server add floating ip ${agent_name}_server $floatingip
+              ''')
+            }
+          }
+        }
+      }
