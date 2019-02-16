@@ -35,16 +35,20 @@ parameters:
     description: Set to 'True' to run Tempest tests.  Defaults to 'False'.
     default: False
 
-  qa_devstack_fork:
+  automation_fork:
     type: string
     label: qa_devstack.sh fork
-    description: GitHub user/organization from which to fetch qa_devstack.sh
+    description: >-
+      GitHub user/organization from which to fetch the automation repo
+      which contains qa_devstack.sh.
     default: SUSE-Cloud
 
-  qa_devstack_branch:
+  automation_branch:
     type: string
     label: qa_devstack.sh branch
-    description: GitHub branch from which to fetch qa_devstack.sh
+    description: >-
+      GitHub branch from which to fetch the automation repo
+      which contains qa_devstack.sh.
     default: master
 
   devstack_fork:
@@ -183,9 +187,9 @@ resources:
                   https://raw.githubusercontent.com/$fork/automation/$branch/scripts/jenkins/qa_devstack.sh
               params:
                 $fork:
-                  get_param: qa_devstack_fork
+                  get_param: automation_fork
                 $branch:
-                  get_param: qa_devstack_branch
+                  get_param: automation_branch
           - chmod 755 /home/stack/qa_devstack.sh
 
           - chown -R stack:stack /home/stack

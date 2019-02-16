@@ -70,8 +70,8 @@ To boot `devstack` on SLES 12 SP3 using modified versions of
         -t scripts/heat/devstack-heat-template.yaml \
         --parameter key_name=$KEY_NAME \
         --parameter image_name=SLES12-SP3-JeOS.x86_64 \
-        --parameter qa_devstack_fork=$USER
-        --parameter qa_devstack_branch=devstack-sle
+        --parameter automation_fork=$USER
+        --parameter automation_branch=devstack-sle
         --parameter devstack_fork=$USER
         --parameter devstack_branch=sles-support \
         $USER-devstack-sles12-sp3
