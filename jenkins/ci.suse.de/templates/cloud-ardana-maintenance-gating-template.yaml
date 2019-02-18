@@ -51,14 +51,13 @@
           name: cloudsource
           choices:
             - 'GM{version|8}+up'
-            - GM8+up
-            - hosGM8+up
+            - 'hosGM{version|8}+up'
           description: >-
             The cloud repository (from provo-clouddata) to be used for testing.
             This value can take the following form:
 
                GM<X>+up (official GM plus Cloud-Updates)
-               hosGM8+up (official HOS GM plus Cloud-Updates)
+               hosGM<X>+up (official HOS GM plus Cloud-Updates)
 
       - validating-string:
           name: maint_updates
@@ -90,6 +89,13 @@
           default: master
           description: >-
             The git automation branch
+
+      - hidden:
+          name: version
+          default: '{version}'
+          description: >-
+            Cloud version number (8, 9 etc.)
+
 
     pipeline-scm:
       scm:

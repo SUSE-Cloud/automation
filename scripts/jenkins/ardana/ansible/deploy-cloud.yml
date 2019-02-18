@@ -34,23 +34,11 @@
         rc_state: "Started"
       when:
         - rc_notify
+        - rc_notify_start
         - not is_physical_deploy
 
   tasks:
     - block:
-        - name: Remove versioned features from input model when not enabled
-          replace:
-            path: "{{ input_model_path }}/data/control_plane.yml"
-            regexp: '(.*{{ item }}.*)'
-            replace: '#\1'
-          when: not versioned_features[item].enabled
-          delegate_to: localhost
-          loop:
-            - manila
-            - freezer
-            - heat-api-cloudwatch
-            - nova-console-auth
-
         - name: Ardana log stream at
           debug:
             msg: "http://{{ ansible_host }}:9091/"
@@ -81,7 +69,7 @@
         rc_state: "Success"
       when:
         - rc_notify
-        - not ses_enabled
+        - not ses_enabled or (ses_enabled and not ses_rgw_enabled)
 
 - import_playbook: ardana-ses-rgw.yml
   when: ses_enabled and ses_rgw_enabled

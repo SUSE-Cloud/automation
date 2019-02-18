@@ -32,6 +32,7 @@ input_model_path: "{{ workspace_path }}/input_model"
 
 is_physical_deploy: "{{ ardana_env in groups['qe_all'] }}"
 rc_notify: False
+rc_notify_start: True
 
 suse_release: "suse-{{ ansible_distribution_version }}"
 local_repos_base_dir: "/srv/www/{{ suse_release }}/{{ ansible_architecture }}/repos"
@@ -58,7 +59,11 @@ ntp_servers:
   - ntp.suse.de
   - ntp0.suse.de
   - ntp1.suse.de
+  - ntp2.suse.de
   - ntp3.suse.de
+  - kirk.provo.novell.com
+  - 1.us.pool.ntp.org
+  - 2.us.pool.ntp.org
 
 dns_servers:
   - 147.2.2.2 # nsnwb.microfocus.com

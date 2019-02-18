@@ -47,7 +47,7 @@ high-level work items need to be completed to enable generating the Jenkinsfile 
   downstream job and using the `.buildVariables` build job object attribute in the upstream job
   (NOTE: this is only possible if the downstream job is also a pipeline job)
 * passing information from one stage to the next:
-  * use the shared workspace
+  * use the workspace
   * use ansible variables (host/group vars, extra vars) as much as possible
   * use build environment variables (which can only be set by using `env.<variable-name>` in a pipeline script block)
 * use the lockable resources mechanism to throttle parallel builds and
@@ -103,7 +103,7 @@ be executed with a regular bash script. The following exceptions have been ident
   * the build name can only be set by using the `currentBuild.displayName` variable in a script block
   * build environment variables can only be set by using `env.<variable-name>` in a pipeline script block.
   Exporting environment variables from shell scripts has no effect. Build environment variables are needed
-  to pass information from one stage to the next. __NOTE__: this can be avoided by using the shared workspace
+  to pass information from one stage to the next. __NOTE__: this can be avoided by using the workspace
   (e.g. creating host/group ansible var files or persisting ansible facts) instead of setting environment
   variables.
   * downstream builds can be triggered using the `build job` directive and the returned object can be used

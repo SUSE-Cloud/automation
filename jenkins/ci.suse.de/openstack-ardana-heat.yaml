@@ -55,8 +55,14 @@
               - create: create a new heat stack
               - delete: delete a heat stack
 
-            If the create action is selected, a heat template file is required, which can only
-            be supplied by running this job as a downstream job.
+            If the create action is selected, a heat template needs to be supplied through the
+            'heat_template' parameter.
+
+      - text:
+          name: heat_template
+          default: ''
+          description: >-
+            The heat orchestration template describing the heat stack to be instantiated.
 
       - string:
           name: git_automation_repo
@@ -69,13 +75,6 @@
           default: master
           description: >-
             The git automation branch
-
-      - string:
-          name: reuse_node
-          default: ''
-          description: >-
-            The Jenkins agent where this job must run. Used by upstream jobs to
-            force a job to reuse the same node.
 
       - string:
           name: os_cloud

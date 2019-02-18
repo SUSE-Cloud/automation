@@ -245,6 +245,11 @@
           default: ''
           description: The database backend sql_engine to be used
 
+      - string:
+          name: want_osprofiler
+          default:
+          description: Set to 1 will setup osprofiler
+
       ################################################
       # neutron
 

@@ -33,8 +33,13 @@ pipeline {
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
-          if (env.reserved_env && reserved_env != null) {
-            env.ardana_env = reserved_env
+          if (reserve_env == 'true') {
+            echo "Reserved resource: " + env.reserved_env
+            if (env.reserved_env && reserved_env != null) {
+              env.ardana_env = reserved_env
+            } else {
+              error("Jenkins bug (JENKINS-52638): couldn't reserve a resource with label $ardana_env")
+            }
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
           if ( ardana_env.startsWith("qe") || ardana_env.startsWith("pcloud") ) {
@@ -49,20 +54,7 @@ pipeline {
           if (env.qa_test_list == null) {
             env.qa_test_list = ''
           }
-          // Use a shared workspace folder for all jobs running on the same
-          // target 'ardana_env' cloud environment
-          env.SHARED_WORKSPACE = sh (
-            returnStdout: true,
-            script: 'echo "$(dirname $WORKSPACE)/shared/${ardana_env}"'
-          ).trim()
           sh('''
-            rm -rf "$SHARED_WORKSPACE"
-            mkdir -p "$SHARED_WORKSPACE"
-
-            # archiveArtifacts and junit don't support absolute paths, so we have to to this instead
-            ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}
-
-            cd $SHARED_WORKSPACE
             git clone $git_automation_repo --branch $git_automation_branch automation-git
             cd automation-git
 
@@ -72,11 +64,11 @@ pipeline {
 
             source scripts/jenkins/ardana/jenkins-helper.sh
             ansible_playbook load-job-params.yml \
-              -e jjb_file=$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml \
+              -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml \
               -e jjb_type=job-template
             ansible_playbook notify-rc-pcloud.yml -e @input.yml
           ''')
-          ardana_lib = load "$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
         }
       }
     }
@@ -126,12 +118,19 @@ pipeline {
           }
           steps {
             script {
+
+              // Needed to pass the generated heat template file contents as a text parameter value
+              def heat_template = sh (
+                returnStdout: true,
+                script: 'cat "$WORKSPACE/heat-stack-${scenario_name}${model}.yml"'
+              )
+
               ardana_lib.trigger_build('openstack-ardana-heat', [
                 string(name: 'ardana_env', value: "$ardana_env"),
                 string(name: 'heat_action', value: "create"),
+                text(name: 'heat_template', value: heat_template),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                string(name: 'reuse_node', value: "${NODE_NAME}"),
                 string(name: 'os_cloud', value: "$os_cloud")
               ], false)
             }
@@ -214,6 +213,9 @@ pipeline {
     }
 
     stage('Deploy cloud') {
+      when {
+        expression { deploy_cloud == 'true' }
+      }
       steps {
         script {
           ardana_lib.ansible_playbook('deploy-cloud')
@@ -223,7 +225,7 @@ pipeline {
 
     stage('Update cloud') {
       when {
-        expression { update_after_deploy == 'true' }
+        expression { deploy_cloud == 'true' && update_after_deploy == 'true' }
       }
       steps {
         script {
@@ -258,7 +260,6 @@ pipeline {
     always {
       script{
         sh('''
-          cd $SHARED_WORKSPACE
           automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
             --recursive \
             --filter 'Declarative: Post Actions' \
@@ -338,7 +339,6 @@ pipeline {
     }
     success {
       sh '''
-        cd $SHARED_WORKSPACE
         if [ -n "$github_pr" ] ; then
           automation-git/scripts/ardana/pr-success.sh
         else
@@ -348,7 +348,6 @@ pipeline {
     }
     failure {
       sh '''
-        cd $SHARED_WORKSPACE
         if [ -n "$github_pr" ] ; then
           automation-git/scripts/ardana/pr-failure.sh
         else

@@ -71,10 +71,10 @@
             iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,
             heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,
             nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
-            barbican-functional,horizon,horizon_integration-tests,freezer,
+            barbican-functional,horizon,freezer,
             keystone-api,keystone-ldap,keystone-k2k-config,keystone-websso-config,keystone-x509-config,
             remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,enable_tls,
-            change_credentials,nova_guest_images
+            change_credentials,nova_guest_image
           description: >-
             Select QA tests to run
 
@@ -144,13 +144,6 @@
           default: master
           description: >-
             The git automation branch
-
-      - string:
-          name: reuse_node
-          default: ''
-          description: >-
-            The Jenkins agent where this job must run. Used by upstream jobs to
-            force a job to reuse the same node.
 
       - string:
           name: os_cloud

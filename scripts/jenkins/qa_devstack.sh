@@ -10,7 +10,8 @@ SVC_IP_VERSION=4
 ##########################################################################
 
 DEVSTACK_DIR="/opt/stack/devstack"
-
+: ${DEVSTACK_FORK:=openstack-dev}
+: ${DEVSTACK_BRANCH:=master}
 
 # if this variable is set to non-empty, the clone of devstack git
 # will be set up with this gerrit review id being merged
@@ -85,6 +86,13 @@ function h_setup_base_repos {
             $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SDK/${DIST_VERSION}/x86_64/product" SDK || true
             $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SDK/${DIST_VERSION}/x86_64/update/" SDK-Update || true
         fi
+        if [[ $DIST_VERSION == 12-SP3 ]]; then
+            $zypper ar -f "https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP3/" devel_languages_python_backports  || true
+            $zypper ar -f "https://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/SLE_12_SP3/" Cloud:OpenStack:Master  || true
+        elif [[ $DIST_VERSION == 12-SP4 ]]; then
+            $zypper ar -f "https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP4/" devel_languages_python_backports  || true
+            $zypper ar -f "https://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/SLE_12_SP4/" Cloud:OpenStack:Master  || true
+        fi
     fi
 }
 
@@ -107,14 +115,31 @@ function h_setup_extra_disk {
 }
 
 function h_setup_devstack {
+    if [[ $DIST_VERSION == 12-SP[34] ]]; then
+        $zypper --no-gpg-checks in http://download.opensuse.org/repositories/openSUSE:/Leap:/42.3/standard/noarch/git-review-1.25.0-6.2.noarch.rpm
+    fi
     $zypper in git-core which ca-certificates-mozilla net-tools git-review
-    $zypper in 'group(nogroup)'
+    if ! getent group nobody >/dev/null; then
+        $zypper in 'group(nogroup)'
+    fi
 
-    git config --global user.email root@cleanvm.ci.opensuse.org
-    git config --global user.name "Devstack User"
+    if ! modinfo openvswitch >/dev/null; then
+        echo "openvswitch kernel module is not available; maybe you are" \
+             "running a -base kernel?  Aborting." >&2
+        exit 1
+    fi
 
-    git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
-    hostname -f || hostname cleanvm.ci.opensuse.org
+    if ! [ -e $DEVSTACK_DIR ]; then
+        git clone \
+            -b $DEVSTACK_BRANCH \
+            https://github.com/$DEVSTACK_FORK/devstack.git \
+            $DEVSTACK_DIR
+    fi
+
+    if ! hostname -f; then
+        echo "You must set a hostname before running qa_devstack.sh; aborting." >&2
+        exit 1
+    fi
 
     if [[ "$PENDING_REVIEW" ]]; then
         pushd $DEVSTACK_DIR
@@ -204,6 +229,7 @@ TEMPEST_ALLOW_TENANT_ISOLATION=True
 
 USE_PYTHON3=$USE_PYTHON3
 PYTHON3_VERSION=$PYTHON3_VERSION
+$DEVSTACK_EXTRA_CONFIG
 
 [[test-config|$$TEMPEST_CONFIG]]
 [compute]
@@ -231,7 +257,7 @@ h_setup_devstack
 h_echo_header "Run devstack"
 sudo -u stack -i <<EOF
 cd $DEVSTACK_DIR
-FORCE=yes ./stack.sh
+./stack.sh
 EOF
 h_echo_header "Run tempest"
 

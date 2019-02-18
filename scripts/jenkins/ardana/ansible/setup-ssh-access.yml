@@ -34,11 +34,11 @@
 
         - name: Store vcloud IP(s) when virtual deploy
           set_fact:
-            "{{ item.item | replace('-', '_') }}": "{{ item.stdout | from_yaml }}"
+            "{{ item.item | replace('-', '_') }}": "{{ (item.stdout == 'None') | ternary([], item.stdout | from_yaml) }}"
             cacheable: True
           loop: "{{ (heat_stack_output is defined) | ternary(heat_stack_output_queries, os_stack_output.results) }}"
           loop_control:
-            label: "{{ item.item | replace('-', '_') }}: {{ item.stdout | default('') | from_yaml }}"
+            label: "{{ item.item | replace('-', '_') }}: {{ ('stdout' in item and item.stdout == 'None') | ternary([], item.stdout | default('') | from_yaml) }}"
           when: not is_physical_deploy
 
         - name: Ensure deployer on ansible inventory file when virtual deploy

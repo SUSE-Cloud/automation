@@ -19,6 +19,8 @@ resulting repositories added.
 | hosGM8         | HPE-Helion-OpenStack-8-Pool            | X         | X            |               | *                         | *                         |
 | hosGM8+up      | HPE-Helion-OpenStack-8-Pool            | X         | X            | X             | *                         | *                         |
 | cloud9MX       | ISO milestoneX(ibs-mirror.prv.suse.net)| X         | X            |               | *                         | *                         |
+| cloud9RCX      | ISO rcX(ibs-mirror.prv.suse.net)       | X         | X            |               | *                         | *                         |
+| cloud9GMC      | ISO GMC(ibs-mirror.prv.suse.net)       | X         | X            |               | *                         | *                         |
 
 `X` on `cloudsource` and `Cloud-Pool` represents the cloud version (8 or 9) and
 the SLES repositories will be configured according to the cloud version

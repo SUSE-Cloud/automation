@@ -61,4 +61,4 @@ service_groups:
     member_count: '{{ rhel_computes|default(1) }}'
     min_count: 0
     service_components:
-      - COMPUTE
+      - RHEL_COMPUTE

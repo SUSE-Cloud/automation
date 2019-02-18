@@ -35,16 +35,19 @@
 {%     endif %}
 {%   endfor %}
 {% else %}
-        neutron_provider_networks:
-{% set ns = namespace(mgmt_net_id=0, physnet_id=0, net_id=30, vlan_id=100+scenario.network_groups|length) %}
+{% set ns = namespace(provider_nets_hdr=False, ext_nets_hdr=False, mgmt_net_id=0, physnet_id=0, net_id=30, vlan_id=gen_subnet_start+scenario.network_groups|length) %}
 {% for network_group in scenario.network_groups %}
 {%   if 'MANAGEMENT' in network_group.component_endpoints %}
-{%     set ns.mgmt_net_id = loop.index0+100 %}
+{%     set ns.mgmt_net_id = loop.index0+gen_subnet_start %}
 {%   endif %}
 {% endfor  %}
 {% for network_group in scenario.network_groups %}
 {%   if 'NEUTRON-VLAN' in network_group.component_endpoints %}
 {%     set ns.physnet_id = ns.physnet_id+1 %}
+{%     if not ns.provider_nets_hdr %}
+{%       set ns.provider_nets_hdr=True %}
+        neutron_provider_networks:
+{%     endif %}
 
           - name: NEUTRON-{{ network_group.name|upper }}-VLAN-NET
             provider:
@@ -71,15 +74,23 @@
                 end: 172.{{ ns.net_id }}.1.250
             host_routes:
             # route to management network
-              - destination: 192.168.{{ ns.mgmt_net_id }}.0/24
+              - destination: {{ subnet_prefix }}.{{ ns.mgmt_net_id }}.0/24
                 nexthop:  172.{{ ns.net_id }}.1.1
 {%     set ns.net_id = ns.net_id+1 %}
 {%     set ns.vlan_id = ns.vlan_id+1 %}
 {%   endif %}
 {%   endif %}
 {% endfor %}
-        neutron_external_networks:
+{%     if not ns.provider_nets_hdr %}
+        neutron_provider_networks: []
+{%     endif %}
+
 {% for network_group in scenario.network_groups if 'NEUTRON-EXT' in network_group.component_endpoints %}
+{%     if not ns.ext_nets_hdr %}
+{%       set ns.ext_nets_hdr=True %}
+        neutron_external_networks:
+{%     endif %}
+
           - name: ext-net{{ loop.index0 | ternary(loop.index0, '') }}
 {% if (ipv6 | default(false)) == true %}
             cidr: fd00:0:0:{{ ns.net_id }}::/64
@@ -96,4 +107,8 @@
 {%   set ns.net_id = ns.net_id+1 %}
 {% endif %}
 {% endfor %}
+{%     if not ns.ext_nets_hdr %}
+        neutron_external_networks: []
+{%     endif %}
+
 {% endif %}

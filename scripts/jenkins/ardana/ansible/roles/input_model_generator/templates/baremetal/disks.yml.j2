@@ -138,7 +138,7 @@
               fstype: ext4
               mkfs-opts: -O large_file
 
-{%   elif 'core' in service_group.name %}
+{%   elif service_group.name == 'core' %}
         - name: ardana-vg
           physical-volumes:
             - /dev/sda_root
@@ -160,14 +160,53 @@
               fstype: ext4
               mkfs-opts: -O large_file
 
-      device-groups:
-
 {%     if cinder_lvm_enabled | bool %}
+      device-groups:
         - name: cinder-volume
           devices:
             - name: /dev/sdc
           consumer:
             name: cinder
+{%     endif %}
+
+{%   elif service_group.name == 'mml-core' %}
+        - name: ardana-vg
+          physical-volumes:
+            - /dev/sda_root
+          consumer:
+             name: os
+          logical-volumes:
+            - name: root
+              size: 12%
+              fstype: ext4
+              mount: /
+            - name: crash
+              size: 10%
+              mount: /var/crash
+              fstype: ext4
+              mkfs-opts: -O large_file
+            - name: log
+              size: 10%
+              mount: /var/log
+              fstype: ext4
+              mkfs-opts: -O large_file
+      device-groups:
+      - name: swiftobj
+        devices:
+          - name: /dev/sdb
+        consumer:
+          name: swift
+          attrs:
+            rings:
+              - account
+              - container
+              - object-0
+{%     if cinder_lvm_enabled | bool %}
+      - name: cinder-volume
+        devices:
+          - name: /dev/sdc
+        consumer:
+          name: cinder
 {%     endif %}
 
 {%   elif 'neutron' in service_group.name %}

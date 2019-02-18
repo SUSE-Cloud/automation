@@ -412,6 +412,7 @@ function setcloudnetvars
         : ${adminip:=${net}:5054:ff:fe77:7770}
         : ${admin_end_range:=${net}:5054:ff:fe77:7771}
         : ${admingw:=${net}${ip_sep}${ip_sep}1}
+        : ${publicgw:=${net_public}${ip_sep}${ip_sep}1}
         : ${ironicgw:=${net_ironic}${ip_sep}${ip_sep}1}
     else
         net_fixed=${net_fixed:-192.168.123}
@@ -425,6 +426,7 @@ function setcloudnetvars
         : ${defaultnetmask:=255.255.255.0}
         : ${adminip:=${net}${ip_sep}10}
         : ${admingw:=${net}${ip_sep}1}
+        : ${publicgw:=${net_public}${ip_sep}1}
         : ${ironicgw:=${net_ironic}${ip_sep}1}
     fi
 }

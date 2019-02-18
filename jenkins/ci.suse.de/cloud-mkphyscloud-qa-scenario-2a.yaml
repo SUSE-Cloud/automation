@@ -47,7 +47,7 @@
 
       - string:
           name: sbd_ip
-          default: 10.162.64.10
+          default: 10.162.66.10
           description: Mandatory, IP of iscsi target for sbd
 
       - string:
@@ -266,12 +266,14 @@
 
             cat > /tmp/sbd_prepare_$admin <<EOSCRIPT
               # preparation of iSCSI
-              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
+              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP4/ --non-interactive install python-sh
 
               chmod +x scripts/iscsictl.py
 
+              ./scripts/iscsictl.py --service target --host \$(hostname) --no-key
+
               for node in {controller1,controller2,data1,data2,network1,network2} ; do
-                ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host \$node --no-key --id id-qa$hw_number
+                ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host \$node --no-key
               done
 
               # preparation of SBD for services nodes

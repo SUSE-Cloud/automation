@@ -34,7 +34,7 @@
     name: cloud-ardana8-maintenance-gating
     ardana_maintenance_gating_job: '{name}'
     ardana_env: cloud-ardana-maintenance-slot
-    version: 8
+    version: '8'
     jobs:
       - '{ardana_maintenance_gating_job}'
 
@@ -209,9 +209,9 @@
       iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
       heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
       nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,\
-      barbican-functional,horizon,horizon_integration-tests,keystone-api,keystone-ldap,\
+      barbican-functional,horizon,keystone-api,keystone-ldap,\
       keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
-      service-ansible-playbooks,enable_tls,tempest_cleanup"
+      service-ansible-playbooks,enable_tls,tempest_cleanup,nova_guest_image"
     rc_notify: 'true'
     triggers: []
     jobs:
@@ -227,6 +227,8 @@
     controllers: '2'
     sles_computes: '0'
     rhel_computes: '2'
+    ses_enabled: false
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -259,3 +261,13 @@
                   branch-pattern: 'stable/pike'
     jobs:
         - '{ardana_gerrit_job}'
+
+- project:
+    name: cloud-ardana8-job-image-update
+    ardana_image_update_job: '{name}'
+    triggers:
+    openstack_ardana_job: cloud-ardana8-job-std-min-x86_64
+    download_image_url: http://download.suse.de/ibs/Devel:/Cloud:/Images/images_SLE_12_SP3/ardana-jeos-SLE12SP3.x86_64.qcow2.xz
+    sles_image: cleanvm-jeos-lvm-SLE12SP3
+    jobs:
+        - '{ardana_image_update_job}'

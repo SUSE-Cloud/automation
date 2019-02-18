@@ -702,7 +702,7 @@ function onadmin_prepare_cloud_repos
             develcloud8)
                 addslestestupdates
                 ;;
-            *cloud9|M?|Beta*|RC*|GMC*)
+            *cloud9|M?*|Beta*|RC*|GMC*)
                 addslestestupdates
                 ;;
             *)
@@ -928,7 +928,7 @@ function onadmin_set_source_variables
             CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-8-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-official"
         ;;
-        GMC*|M?|RC?)
+        GMC*|M?*|RC?)
             cs=$cloudsource
             CLOUDISOURL="${want_cloud9_iso_path:=$susedownload/install/SLE-12-SP4-Cloud9-$cs/}"
             CLOUDISONAME=${want_cloud9_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"}
@@ -996,9 +996,9 @@ EOF
     fi
     ifdown br0
     rm -f /etc/sysconfig/network/ifcfg-br0
-    routes_file=/etc/sysconfig/network/routes
+    routes_file=/etc/sysconfig/network/ifroute-eth0
     if ! [ -e $routes_file ] || ! grep -q "^default" $routes_file; then
-        echo "default $net${ip_sep}1 - -" > $routes_file
+        echo "default $net${ip_sep}1" > $routes_file
     fi
     echo "${crowbar_name}.$cloudfqdn" > /etc/HOSTNAME
     hostname `cat /etc/HOSTNAME`
@@ -1191,12 +1191,12 @@ ironic_network={
     'router_pref': 50,
     'ranges': {
       'admin': {
-        'start': ${net_ironic}${ip_sep}10',
+        'start': '${net_ironic}${ip_sep}10',
         'end': '${net_ironic}${ip_sep}11'
       },
       'dhcp': {
-        'start': ${net_ironic}${ip_sep}21',
-        'end': ${net_ironic}${ip_sep}254'
+        'start': '${net_ironic}${ip_sep}21',
+        'end': '${net_ironic}${ip_sep}254'
       }
     },
     'mtu': 1500
@@ -2377,6 +2377,15 @@ function custom_configuration
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value keystone default "['deployment']['keystone']['elements']['keystone-server']" "['cluster:$clusternameservices']"
             fi
+            if [[ $want_osprofiler = 1 ]] ; then
+                if iscloudver 9M11plus ; then
+                    proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['enabled']" "true"
+                    proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['hmac_keys']" "['SECRET']"
+                    proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['trace_sqlalchemy']" "true"
+                else
+                    echo "Warning: osprofiler currently is only available in 9M11plus. Not enabling it"
+                fi
+            fi
             if [[ $want_ldap = 1 ]] ; then
                 local machine
                 for machine in $(get_all_discovered_nodes); do
@@ -2758,7 +2767,11 @@ function custom_configuration
             fi
         ;;
         ironic)
-            proposal_set_value ironic default "['attributes']['ironic']['enabled_drivers']" "['pxe_ipmitool', 'pxe_ssh']"
+            if ! iscloudver 9plus ; then
+                local maybe_agent_driver=''
+                [[ $deployswift ]] && maybe_agent_driver=", 'agent_ipmitool'"
+                proposal_set_value ironic default "['attributes']['ironic']['enabled_drivers']" "['pxe_ipmitool' $maybe_agent_driver]"
+            fi
         ;;
         *) echo "No hooks defined for service: $proposal"
         ;;
@@ -4753,6 +4766,18 @@ function reboot_controller_clusters
     done
 }
 
+function select_compute_nodes
+{
+    nodesavailable=${unclustered_nodes[@]}
+
+    compute_nodes=$(knife search node "roles:nova-compute-*" -a name | grep ^name: | cut -d : -f 2 | sed 's/\s//g')
+    for node in $compute_nodes; do
+        nodesavailable=$(remove_node_from_list "$node" "$nodesavailable")
+    done
+
+    unclustered_nodes=($nodesavailable)
+}
+
 # reboot all cloud nodes (controller+compute+storage)
 # wait for nodes to go down and come up again
 function onadmin_rebootcloud
@@ -4769,7 +4794,21 @@ function onadmin_rebootcloud
         unclustered_nodes=(`get_all_discovered_nodes`)
     fi
 
+    select_compute_nodes
+
+    # reboot non-compute/controller nodes first
     for machine in ${unclustered_nodes[@]}; do
+        power_cycle_and_wait $machine
+    done
+
+    # wait for non-compute/controller nodes to be back online
+    for machine in ${unclustered_nodes[@]}; do
+        m_hostname=$(echo $machine | cut -d '.' -f 1)
+        wait_for 400 5 "crowbar node_state status | grep $m_hostname | grep -qiE \"ready$|problem$\"" "node $m_hostname to be online"
+    done
+
+    # reboot compute nodes
+    for machine in $compute_nodes; do
         power_cycle_and_wait $machine
     done
 

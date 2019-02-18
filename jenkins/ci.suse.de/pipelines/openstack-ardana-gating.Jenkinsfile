@@ -38,28 +38,31 @@ pipeline {
             script: 'echo $(date +%s)'
           ).trim()
 
-          ardana_lib = load "automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
         }
       }
     }
 
     stage('Trigger validation jobs') {
-      // abort all stages if one of them fails
-      failFast true
+      // Do not abort all stages if one of them fails
+      failFast false
       parallel {
 
         stage('Run cloud deploy job') {
+          when {
+            expression { deploy == 'true' }
+          }
           steps {
             script {
               // reserve a resource here for the openstack-ardana job, to avoid
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
-              lock(label: ardana_env,
-                   variable: 'reserved_env',
-                   quantity: 1) {
+              ardana_lib.run_with_reserved_env(true, ardana_env, null) {
+                reserved_env ->
                 ardana_lib.trigger_build("cloud-ardana${version}-job-std-min-x86_64", [
                   string(name: 'ardana_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
+                  string(name: 'cleanup', value: "never"),
                   string(name: 'rc_notify', value: "true"),
                   string(name: 'git_automation_repo', value: "$git_automation_repo"),
                   string(name: 'git_automation_branch', value: "$git_automation_branch")
@@ -71,19 +74,19 @@ pipeline {
 
         stage('Run cloud update job') {
           when {
-            expression { version != '9' }
+            expression { deploy_and_update == 'true' }
           }
           steps {
             script {
               // reserve a resource here for the openstack-ardana job, to avoid
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
-              lock(label: ardana_env,
-                   variable: 'reserved_env',
-                   quantity: 1) {
+              ardana_lib.run_with_reserved_env(true, ardana_env, null) {
+                reserved_env ->
                 ardana_lib.trigger_build("cloud-ardana${version}-job-std-3cp-devel-staging-updates-x86_64", [
                   string(name: 'ardana_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
+                  string(name: 'cleanup', value: "never"),
                   string(name: 'rc_notify', value: "true"),
                   string(name: 'git_automation_repo', value: "$git_automation_repo"),
                   string(name: 'git_automation_branch', value: "$git_automation_branch")

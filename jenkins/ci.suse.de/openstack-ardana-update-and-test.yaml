@@ -66,6 +66,10 @@
             - cloud9M8
             - cloud9M9
             - cloud9M10
+            - cloud9RC1
+            - cloud9RC2
+            - cloud9RC3
+            - cloud9GMC
           description: >-
             The cloud repository (from provo-clouddata) to be used for updating.
             This value can take the following form:
@@ -116,9 +120,9 @@
             iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,
             heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,
             nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
-            barbican-functional,horizon,horizon_integration-tests,freezer,keystone-soapui,
+            barbican-functional,horizon,freezer,keystone-soapui,
             remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,
-            change_credentials,nova_guest_images
+            change_credentials,nova_guest_image
           description: >-
             Select QA tests to run. Use an empty value to skip running QA tests.
 
@@ -139,13 +143,6 @@
           default: master
           description: >-
             The git automation branch
-
-      - string:
-          name: reuse_node
-          default: ''
-          description: >-
-            The Jenkins agent where this job must run. Used by upstream jobs to
-            force a job to reuse the same node.
 
       - string:
           name: os_cloud

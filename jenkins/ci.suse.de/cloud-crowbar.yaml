@@ -1,0 +1,12 @@
+# Multi-purpose, customizable, manually triggered Crowbar job
+- project:
+    name: openstack-crowbar
+    crowbar_job: '{name}'
+    concurrent: True
+    triggers:
+    ardana_env: ''
+    reserve_env: false
+    cleanup: never
+    os_cloud: ''
+    jobs:
+        - '{crowbar_job}'

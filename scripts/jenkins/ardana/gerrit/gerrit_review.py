@@ -35,7 +35,8 @@ def main():
                              'supplied, the latest patch will be used')
     parser.add_argument('--label',
                         default=None,
-                        choices=['Code-Review', 'Verified', 'Workflow'],
+                        choices=['Code-Review', 'Verified',
+                                 'Workflow', 'QE-Review'],
                         help='a label to use for voting')
     parser.add_argument('--vote',
                         default='1',

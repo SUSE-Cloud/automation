@@ -21,13 +21,16 @@
     - name: OCTAVIA-CONFIG-CP1
       services:
         - octavia
-      data:
 {% if bm_info is defined %}
+      data:
         amp_network_name: OCTAVIA-MGMT-NET
 {% else %}
 {%   set ns = namespace(octavia_ng={}) %}
 {%   for network_group in scenario.network_groups if 'NEUTRON-VLAN' in network_group.component_endpoints and not ns.octavia_ng %}
 {%     set ns.octavia_ng = network_group %}
 {%   endfor  %}
+{%   if ns.octavia_ng %}
+      data:
         amp_network_name: NEUTRON-{{ ns.octavia_ng.name|upper }}-VLAN-NET
+{%   endif %}
 {% endif %}

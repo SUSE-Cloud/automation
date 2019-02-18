@@ -4,7 +4,7 @@
 
 def ansible_playbook(playbook, params='') {
   sh("""
-    cd $SHARED_WORKSPACE
+    cd $WORKSPACE
     source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
     ansible_playbook """+playbook+""".yml -e @input.yml """+params
   )
@@ -29,7 +29,7 @@ def get_deployer_ip() {
     returnStdout: true,
     script: '''
       grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
-        $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
+        $WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
     '''
   ).trim()
   currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
@@ -68,6 +68,39 @@ def generate_qa_tests_stages(qa_test_list) {
       archiveArtifacts artifacts: ".artifacts/**/${test}*", allowEmptyArchive: true
       junit testResults: ".artifacts/${test}.xml", allowEmptyResults: true
     }
+  }
+}
+
+
+// Implements a simple closure that executes the supplied function (body) with
+// or without reserving a Lockable Resource identified by the 'resource_label'
+// label value, depending on the 'reserve' boolean value.
+//
+// The reserved resource will be passed to the supplied closure as a parameter.
+// For convenience, the function also accepts a 'default_resource' parameter
+// that will be used as a default value for the name of the resource, if a
+// resource does not actually need to be reserved. This enables the supplied
+// function body to use the resource name without needing to check again if it
+// has been reserved or not. If 'default_resource' is null, the 'resource_label'
+// value will be used in its place.
+//
+def run_with_reserved_env(reserve, resource_label, default_resource, body) {
+
+  if (reserve) {
+    lock(resource: null, label: resource_label, variable: 'reserved_resource', quantity: 1) {
+      if (env.reserved_resource && reserved_resource != null) {
+        echo "Reserved resource: " + reserved_resource
+        body(reserved_resource)
+      } else  {
+        def errorMsg = "Jenkins bug (JENKINS-52638): couldn't reserve a resource with label " + resource_label
+        echo errorMsg
+        error(errorMsg)
+      }
+    }
+  } else {
+    def reserved_resource = default_resource != null ? default_resource: resource_label
+    echo "Using resource without a reservation: " + reserved_resource
+    body(reserved_resource)
   }
 }
 

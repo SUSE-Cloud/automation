@@ -21,14 +21,17 @@
           description: >-
             The Lockable Resource label representing the resource pool to used by this job.
 
-      - validating-string:
-          name: version
-          default: '{version}'
-          regex: '[0-9]+'
-          msg: >-
-            Cloud version value not valid.
+      - bool:
+          name: deploy
+          default: '{deploy|true}'
           description: >-
-            Cloud version number (8, 9 etc.)
+            Run Ardana deploy validation step
+
+      - bool:
+          name: deploy_and_update
+          default: '{deploy_and_update|true}'
+          description: >-
+            Run Ardana deploy and update validation step
 
       - string:
           name: git_automation_repo
@@ -41,6 +44,12 @@
           default: '{git_automation_branch|master}'
           description: >-
             The git automation branch
+
+      - hidden:
+          name: version
+          default: '{version}'
+          description: >-
+            Cloud version number (8, 9 etc.)
 
     logrotate:
       numToKeep: -1

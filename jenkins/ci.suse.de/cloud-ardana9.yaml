@@ -15,6 +15,7 @@
     concurrent: False
     version: '9'
     ardana_env: 'cloud-ardana-gate{version}-slot'
+    deploy_and_update: false
     jobs:
         - '{ardana_gating_job}'
 
@@ -111,7 +112,7 @@
     ses_rgw_enabled: false
     qa_test_list: "\
       iverify,cinder,heat,magnum,neutron,nova-attach,nova_volume,nova_server,\
-      nova_services,nova_flavor,nova_image,tempest_cleanup"
+      nova_services,nova_flavor,nova_image,tempest_cleanup,nova_guest_image"
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -141,12 +142,11 @@
       iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
       heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
       nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,\
-      barbican-functional,horizon,horizon_integration-tests,keystone-api,keystone-ldap,\
+      barbican-functional,horizon,keystone-api,keystone-ldap,\
       keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
-      service-ansible-playbooks,enable_tls,tempest_cleanup"
+      service-ansible-playbooks,enable_tls,tempest_cleanup,nova_guest_image"
     rc_notify: 'true'
-    triggers:
-     - timed: 'H H * * *'
+    triggers: []
     jobs:
         - '{ardana_job}'
 
@@ -170,12 +170,11 @@
       iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
       heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
       nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,\
-      barbican-functional,horizon,horizon_integration-tests,keystone-api,keystone-ldap,\
+      barbican-functional,horizon,keystone-api,keystone-ldap,\
       keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
-      service-ansible-playbooks,enable_tls,tempest_cleanup"
+      service-ansible-playbooks,enable_tls,tempest_cleanup,nova_guest_image"
     rc_notify: 'true'
-    triggers:
-     - timed: 'H H * * *'
+    triggers: []
     jobs:
         - '{ardana_job}'
 
@@ -207,6 +206,8 @@
     controllers: '2'
     sles_computes: '0'
     rhel_computes: '2'
+    ses_enabled: false
+    ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -239,3 +240,13 @@
                   branch-pattern: 'master'
     jobs:
         - '{ardana_gerrit_job}'
+
+- project:
+    name: cloud-ardana9-job-image-update
+    ardana_image_update_job: '{name}'
+    triggers:
+    openstack_ardana_job: cloud-ardana9-job-std-min-x86_64
+    download_image_url: http://download.suse.de/ibs/Devel:/Cloud:/Images/images_SLE_12_SP4/ardana-jeos-SLE12SP4.x86_64.qcow2.xz
+    sles_image: cleanvm-jeos-lvm-SLE12SP4
+    jobs:
+        - '{ardana_image_update_job}'

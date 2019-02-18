@@ -52,6 +52,10 @@
             - cloud9M8
             - cloud9M9
             - cloud9M10
+            - cloud9RC1
+            - cloud9RC2
+            - cloud9RC3
+            - cloud9GMC
           description: >-
             The cloud repository (from provo-clouddata) to be used for testing.
             This value can take the following form:
@@ -61,6 +65,14 @@
                GM<X> (official GM)
                GM<X>+up (official GM plus Cloud-Updates)
                cloud9MX (cloud 9 milestones)
+
+      - bool:
+          name: deploy_cloud
+          default: '{deploy|true}'
+          description: >-
+            If left unchecked, the cloud deployment steps will be skipped. This option can be
+            used if you only need to set up the infrastructure and configure the cloud media and
+            repositories, but skip the actual cloud deployment, e.g. for testing purposes.
 
       - bool:
           name: updates_test_enabled
@@ -97,6 +109,10 @@
             - cloud9M8
             - cloud9M9
             - cloud9M10
+            - cloud9RC1
+            - cloud9RC2
+            - cloud9RC3
+            - cloud9GMC
           description: >-
             Only valid if update_after_deploy is true. The cloud repository
             (from provo-clouddata) to be used to update.
@@ -338,7 +354,7 @@
             iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,
             heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,
             nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
-            barbican-functional,horizon,horizon_integration-tests,freezer,
+            barbican-functional,horizon,freezer,
             keystone-api,keystone-ldap,keystone-k2k-config,keystone-websso-config,keystone-x509-config,
             remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,enable_tls,
             change_credentials,nova_guest_images
@@ -431,6 +447,13 @@
           default: false
           description: >-
             Use ipv6 networks in the cloud input model.
+
+      - string:
+          name: sles_image
+          default: ''
+          description: >-
+            Use this parameter to override the default SLES OpenStack image used for SLES
+            virtual cloud nodes.
 
     pipeline-scm:
       scm:
