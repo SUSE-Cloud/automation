@@ -655,10 +655,15 @@ function mkvlan
     local defvlan=$1 ; shift
     local ip=$1 ; shift
     local intf=$cloudbr.$defvlan
+    if (( $want_ipv6 > 0 )); then
+        local netmask=$defaultnetmask
+    else
+        local netmask=24
+    fi
     $sudo ip link add link $cloudbr name $intf type vlan id $defvlan
     safely $sudo ip link set $intf up
-    if ! ip addr show $intf | grep -q $ip/24; then
-        safely $sudo ip addr add $ip/24 dev $intf
+    if ! ip addr show $intf | grep -q $ip/$netmask; then
+        safely $sudo ip addr add $ip/$netmask dev $intf
     fi
 }
 
@@ -666,7 +671,7 @@ function setuppublicnet
 {
     # workaround https://bugzilla.novell.com/show_bug.cgi?id=845496
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
-    mkvlan $vlan_public $net_public.1
+    mkvlan $vlan_public $publicgw
     if [[ $mkch_physcloudif ]] ; then
         $sudo brctl addif $cloudbr $mkch_physcloudif
         $sudo ip link set dev $mkch_physcloudif up
