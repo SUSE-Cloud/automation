@@ -2144,6 +2144,9 @@ function enable_ssl_generic
             $p "$a['radosgw']['ssl']['insecure']" true
             return
         ;;
+        keystone)
+            $p "$a['ssl']['ca_certs']" "'/etc/ssl/ca-bundle.pem'"
+        ;;
         *)
             $p "$a['api']['protocol']" "'https'"
         ;;
