@@ -28,7 +28,7 @@ ses_rgw_enabled: False
 ardana_ses_integration_version: 2
 cinder_lvm_enabled: '{{ not ses_enabled }}'
 
-workspace_path: "{{ lookup('env', 'WORKSPACE') | default('.', true) }}"
+workspace_path: "{{ lookup('env', 'WORKSPACE') | default(playbook_dir, true) }}"
 input_model_path: "{{ workspace_path }}/input_model"
 
 is_physical_deploy: "{{ ardana_env in groups['qe_all'] }}"
