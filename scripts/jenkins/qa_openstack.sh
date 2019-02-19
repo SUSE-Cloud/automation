@@ -10,7 +10,10 @@ fi
 
 : ${MODE:=kvm}
 ARCH=$(uname -i)
-: ${repomirror:=http://download.opensuse.org}
+# Default is one mirror we know is updated fast enough instead of the
+# redirector because some mirrors lag and cause a checksum mismatch for rpms
+# that keep name and size and only change content.
+: ${repomirror:=http://downloadcontent.opensuse.org}
 : ${imagemirror:=http://149.44.161.38/images} # ci1-opensuse
 : ${cirros_base_url:="$imagemirror"} # could also be "http://download.cirros-cloud.net/0.3.4/"
 cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
