@@ -40,6 +40,8 @@ versioned_features:
   # designate zone/pool (Cloud8) or worker/producer (Cloud9)
   designate_worker_producer:
     enabled: "{{ when_cloud9 }}"
+  glance-registry:
+    enabled: "{{ when_cloud8 }}"
 
 input_model_versioned_features:
   - manila
@@ -47,3 +49,4 @@ input_model_versioned_features:
   - heat-api-cloudwatch
   - nova-console-auth
   - ceilometer-api
+  - glance-registry
