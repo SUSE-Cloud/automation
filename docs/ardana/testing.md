@@ -1,7 +1,7 @@
 # Ardana automated testing
 
-Starting with SOC8, Ardana can be deployed and tested using sources coming from the 
-[internal build service](https://build.suse.de/project/show/Devel:Cloud:8:Staging), 
+Starting with SOC8, Ardana can be deployed and tested using sources coming from the
+[internal build service](https://build.suse.de/project/show/Devel:Cloud:8:Staging),
 automated through jobs running in the [ci.nue.suse.com Jenkins service](https://ci.nue.suse.com/job/openstack-ardana)
 and consuming the virtualized resources in [the engineering cloud](https://engcloud.prv.suse.net/project/stacks/).
 This process is implemented by the [Jenkins pipeline jobs](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/pipelines)
@@ -148,6 +148,8 @@ To be able to deploy an Ardana environment using the Ardana automation ansible p
 Setting up a local Ardana test environment:
 
 * clone the [automation repository](https://github.com/SUSE-Cloud/automation) locally
+* for building test packages from gerrit changes, the osc utility needs to be correctly installed and configured on
+the local host.
 * set up an OpenStack cloud configuration reflecting your engineering cloud credentials (for virtual Ardana environments).
 To do that, create an `~/.config/openstack/clouds.yaml` file with the following contents reflecting your engineering cloud account:
 
@@ -166,13 +168,6 @@ clouds:
     cacert: /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem
 ```
 
-* create and activate a local python virtualenv and install the following packages:
-  * python-openstackclient
-  * python-heatclient
-  * python-neutronclient
-  * ansible
-  * netaddr
-
 To verify that the test environment is properly set up:
 
 * run an openstack CLI command, e.g.:
@@ -181,17 +176,39 @@ To verify that the test environment is properly set up:
 openstack --os-cloud engcloud-cloud-ci stack list
 ```
 
-* run an ansible playbook, e.g.:
-
-```
-cd automation/scripts/jenkins/ardana/ansible
-ansible_playbook clone-input-model.yml -e model=standard
-```
-
-
 ### Manual Ardana deployment
 
-TBD: how to run the ansible playbooks
+A bash script is provided to help deploying Ardana manually. The script sets up a virtual environment with ansible and all
+requirements and mimics the steps of the openstack-ardana job by calling the ansible playbooks in the appropriate
+sequence with the appropriate parameters, which are taken from `input.yml`.
+
+Before running the script you need to configure the parameters in the `input.yml` file to fit how you want ardana to be
+deployed. The options available are basically a subset of the inputs from the openstack-ardana jenkins job.
+
+Deploying Ardana:
+
+* Go to `scripts/jenkins/ardana/manual` directory
+* Edit the `input.yml` file
+* Run `deploy-ardana.sh`
+
+```
+cd scripts/jenkins/ardana/manual
+vim input.yml
+./deploy-ardana.sh
+```
+
+Alternatively you can also call each step individually (after configuring `input.yml`) by sourcing the script library.
+E.g.:
+
+```
+cd scripts/jenkins/ardana/manual
+source lib.sh
+setup_ansible_venv
+mitogen_enable
+prepare_input_model
+prepare_infra
+...
+```
 
 
 ## Ardana CI jobs
@@ -204,7 +221,7 @@ especially useful in the Blue Ocean Jenkins UI
 * more flexible
 * TBD
 
-### 
+###
 
 
 TBD: describe the existing jobs, their purpose, triggers,
@@ -230,7 +247,7 @@ link to the detailed pipeline description for every job.
 
 ### Integration pipeline
 
-Describe the pipeline job, stages, link to detail docs for various features/roles., 
+Describe the pipeline job, stages, link to detail docs for various features/roles.,
 Diagram with job stages/hierarchy.
 
 ### Gerrit pipeline
@@ -243,5 +260,3 @@ Prepare BM cloud
 Some extra checks are automatically run by the Jenkins job:
 
 - [rpm file checks](rpm-file-checks.md)
-
-

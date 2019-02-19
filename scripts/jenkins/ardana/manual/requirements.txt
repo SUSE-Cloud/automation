@@ -1,0 +1,4 @@
+ansible
+netaddr
+openstacksdk
+sh
