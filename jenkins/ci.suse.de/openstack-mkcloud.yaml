@@ -271,6 +271,11 @@
           default:
           description: Set to 1 to deploy neutron with Distributed Virtual Router
 
+      - string:
+          name: want_l3_ha
+          default:
+          description: Set to 1 to deploy neutron with l3 HA
+
       ################################################
       # storage
 
