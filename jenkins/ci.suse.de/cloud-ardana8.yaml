@@ -267,7 +267,7 @@
     ardana_image_update_job: '{name}'
     triggers:
     openstack_ardana_job: cloud-ardana8-job-std-min-x86_64
-    download_image_url: http://download.suse.de/ibs/Devel:/Cloud:/Images/images_SLE_12_SP3/ardana-jeos-SLE12SP3.x86_64.qcow2.xz
+    download_image_url: http://download.suse.de/ibs/Devel:/Cloud:/Images/images-SLE_12_SP3/ardana-jeos-SLE12SP3.x86_64.qcow2.xz
     sles_image: cleanvm-jeos-lvm-SLE12SP3
     jobs:
         - '{ardana_image_update_job}'
