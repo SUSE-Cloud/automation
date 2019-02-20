@@ -1,4 +1,5 @@
 import json
+import os
 import re
 
 try:
@@ -10,7 +11,8 @@ except ImportError:
 import requests
 
 GERRIT_URL = 'https://gerrit.suse.provo.cloud'
-GERRIT_VERIFY = True
+
+GERRIT_VERIFY = os.environ.get('GERRIT_VERIFY', True) in ['true', '1', True]
 
 # We use a more complex regex that matches both formats of Depends-On so that
 # we preserve the order in which they are discovered.
