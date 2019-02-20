@@ -50,7 +50,7 @@
 
   tasks:
     - block:
-        - name: Add RGW endpoint on SES config
+        - name: Add RADOS GW entry on SES config
           lineinfile:
             path: "/tmp/ses_config/ses_config.yml"
             regex: "^radosgw_urls"

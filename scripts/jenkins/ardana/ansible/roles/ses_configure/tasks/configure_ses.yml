@@ -15,7 +15,8 @@
 #
 ---
 
-- include_tasks: delete_pools.yml
+- include_tasks: create_pools.yml
 
-- include_tasks: configure_ses.yml
-  when: ardana_ses_integration_version == 1
+- include_tasks: create_users.yml
+
+- include_tasks: get_ses_conf.yml
