@@ -133,23 +133,24 @@ def generate_summary(server, job_name, build_number,
 
         sub_summary = ''
         if recursive and stage['status'] not in ['ABORTED', 'SKIPPED']:
-            # Figure out if the stage wraps a downstream job
+            # Figure out if the stage wraps one or more downstream jobs
             nodes = stage_info.get('stageFlowNodes')
-            if nodes and nodes[0]['name'].startswith('Building '):
-                log = server.get_workflow_stage_log(
-                    job_name, build_number, nodes[0]['id'])
+            for node in nodes:
+                if node['name'].startswith('Building '):
+                    log = server.get_workflow_stage_log(
+                        job_name, build_number, node['id'])
 
-                downstream_jobs = re.findall(
-                    "href='(/job/([\w-]+)/([\d]+)/)'",
-                    log['text'])
-                if downstream_jobs:
-                    d_job_name = downstream_jobs[0][1]
-                    d_build_number = int(downstream_jobs[0][2])
-                    sub_summary = generate_summary(
-                        server, d_job_name, d_build_number,
-                        filter_stages, recursive, depth+1)
-                    stage_url = server.get_pipeline_url(d_job_name,
-                                                        d_build_number)
+                    downstream_jobs = re.findall(
+                        "href='(/job/([\w-]+)/([\d]+)/)'",
+                        log['text'])
+                    if downstream_jobs:
+                        d_job_name = downstream_jobs[0][1]
+                        d_build_number = int(downstream_jobs[0][2])
+                        sub_summary = generate_summary(
+                            server, d_job_name, d_build_number,
+                            filter_stages, recursive, depth+1)
+                        stage_url = server.get_pipeline_url(d_job_name,
+                                                            d_build_number)
         if stage_url is not None:
             stage_url = stage_url.replace('ci.suse.de', 'ci.nue.suse.com')
         summary += '{}  - {}: {}{}\n'.format(
