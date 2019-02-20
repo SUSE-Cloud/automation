@@ -17,7 +17,7 @@ def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def workerCf = customFieldManager.getCustomFieldObjectByName("Worker")
 def worker = issue.getCustomFieldValue(workerCf)
 
-if (worker && worker != "unassigned") {
+if (worker && worker != "None") {
     log.info("Worker is assigned (true)")
     return true
 }
