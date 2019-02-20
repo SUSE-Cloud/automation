@@ -8,6 +8,28 @@ set -o pipefail
 
 VENV={{ ardana_qe_test_venv }}
 STESTR={{ ardana_qe_test_venv }}/bin/stestr
+ARDANA_SCRATCHDIR=/var/lib/ardana/scratch/ansible/next/ardana/ansible
+ARDANA_ANSIBLEDIR=/var/lib/ardana/openstack/ardana/ansible
+# Change the heat configuration file to enable hidden_stack_tag feature.
+sed -i -e 's/^#hidden_stack_tags.*/hidden_stack_tags = data-processing-cluster/' /var/lib/ardana/openstack/my_cloud/config/heat/heat.conf.j2 --follow-symlinks
+
+# Add and commit the above change
+cd $ARDANA_ANSIBLEDIR
+git add -A
+git commit -m "enabling Heat Stack Hidden Tag feature"
+
+
+echo " Running the config-processor and ready deployment "
+echo "-------------------------------------------------- "
+
+ansible-playbook -i hosts/localhost config-processor-run.yml -e encrypt="" -e rekey=""
+ansible-playbook -i hosts/localhost ready-deployment.yml
+
+cd  $ARDANA_SCRATCHDIR
+echo "Running the ardana-reconfigure.yml to reconfigure and update heat configuration "
+echo "------------------------------------------------ "
+ansible-playbook -i hosts/verb_hosts heat-reconfigure.yml
+
 
 # Activate the virtual environment
 source ${VENV}/bin/activate
