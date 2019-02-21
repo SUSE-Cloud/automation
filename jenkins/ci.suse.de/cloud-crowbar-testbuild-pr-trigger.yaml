@@ -77,4 +77,5 @@
               ;;
           esac
 
-          ${ghpr} -a trigger-prs $repos --mode "$buildmode" --debugfilterchain --debugratelimit --config ${automationrepo}/scripts/github_pr/github_pr_crowbar.yaml
+          # timeout should be less than the interval (currently 10m)
+          timeout 500 ${ghpr} -a trigger-prs $repos --mode "$buildmode" --debugfilterchain --debugratelimit --config ${automationrepo}/scripts/github_pr/github_pr_crowbar.yaml
