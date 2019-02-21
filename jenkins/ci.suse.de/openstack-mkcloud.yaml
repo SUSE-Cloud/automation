@@ -361,6 +361,11 @@
           description: Deploy with Ceilomenter
 
       - string:
+          name: want_designate_proposal
+          default:
+          description: Deploy with Designate
+
+      - string:
           name: want_magnum_proposal
           default:
           description: Deploy with Magnum

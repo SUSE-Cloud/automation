@@ -2679,6 +2679,11 @@ function custom_configuration
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-agent']" "$ceilometernodes_json"
             fi
         ;;
+        designate)
+            if [[ $hacloud = 1 ]] && iscloudver 9plus ; then
+                proposal_set_value designate default "['deployment']['designate']['elements']['designate-server']" "['cluster:$clusternameservices']"
+            fi
+        ;;
         murano)
             if [[ $hacloud = 1 ]] && ( iscloudver 7 || iscloudver 8 ) ; then
                 proposal_set_value murano default "['deployment']['murano']['elements']['murano-server']" "['cluster:$clusternameservices']"
@@ -3170,6 +3175,12 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        designate)
+            if ! iscloudver 9plus ; then
+                echo "Designate is SOC 9+ only. Skipping"
+                return
+            fi
+            ;;
         murano)
             if ! ( iscloudver 7 || iscloudver 8 ) ; then
                 echo "Murano is SOC 7 and 8 only. Skipping"
@@ -3238,7 +3249,7 @@ function onadmin_proposal
     safely oncontroller check_crm_failcounts
     # For all remaining proposals, check for HA failures after each deployment
     for proposal in horizon ceilometer heat manila trove \
-        barbican magnum sahara murano aodh tempest; do
+        designate barbican magnum sahara murano aodh tempest; do
         deploy_single_proposal $proposal
         safely oncontroller check_crm_failcounts
     done
