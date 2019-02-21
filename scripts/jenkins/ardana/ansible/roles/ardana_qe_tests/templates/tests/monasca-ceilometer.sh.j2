@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Wrapper script to execute the example test
+# within the venv
+#
+# Usage: template.sh run_filter_filename
+
+set -o pipefail
+VENV={{ ardana_qe_test_venv }}
+STESTR={{  ardana_qe_test_venv }}/bin/stestr
+
+# Activate the virtual environment
+source ${VENV}/bin/activate
+
+# Set environment variables
+source ~/service.osrc
+
+# Run the test
+cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/ceilometer/ceilometer-test-python-scripts
+${STESTR} init
+${STESTR} run -t ./ --no-discover test_ceilometer_meters.py --concurrency=1 | tee {{ ardana_qe_test_log }}
+${STESTR} last --subunit > {{ ardana_qe_test_subunit }}

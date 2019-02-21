@@ -74,7 +74,7 @@
             barbican-functional,horizon,freezer,
             keystone-api,keystone-ldap,keystone-k2k-config,keystone-websso-config,keystone-x509-config,
             remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,enable_tls,
-            change_credentials,nova_guest_image
+            change_credentials,nova_guest_image,monasca-ceilometer
           description: >-
             Select QA tests to run
 

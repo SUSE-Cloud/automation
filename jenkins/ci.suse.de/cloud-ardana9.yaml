@@ -139,7 +139,7 @@
       ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,\
       magnum,manila,monasca,network,neutron-api,swift"
     qa_test_list: "\
-      iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
+      iverify,monasca-ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
       heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
       nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,\
       barbican-functional,horizon,keystone-api,keystone-ldap,\
