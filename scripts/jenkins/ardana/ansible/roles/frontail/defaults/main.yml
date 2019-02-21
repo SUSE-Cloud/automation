@@ -17,6 +17,8 @@
 
 frontail_url: "https://github.com/mthenw/frontail/releases/download/v4.2.2/frontail-linux"
 frontail_run_dir: "/opt/frontail"
-frontail_target_log: "/var/lib/ardana/.ansible/ansible.log"
+frontail_target_log:
+  ardana: "/var/lib/ardana/.ansible/ansible.log"
+  crowbar: "/root/qa_crowbarsetup.log"
 frontail_start_cmd: "frontail -d --ui-highlight --ui-highlight-preset \
-  {{ frontail_run_dir }}/ansible-preset.json --theme dark {{ frontail_target_log }} -p 9091 -n 800"
+  {{ frontail_run_dir }}/{{ cloud_product }}-preset.json --theme dark {{ frontail_target_log[cloud_product] }} -p 9091 -n 800"

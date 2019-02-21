@@ -11,10 +11,15 @@
     src: "mkcloud.config.j2"
     dest: "{{ admin_mkcloud_config_file }}"
 
+- name: Crowbar log stream at
+  debug:
+    msg: "http://{{ ansible_host }}:9091/"
+
 - name: Run qa_crowbarsetup.sh command on the admin node
   shell: |
     . {{ admin_scripts_path }}/qa_crowbarsetup.sh
-    {{ qa_crowbarsetup_cmd }}
+    {{ qa_crowbarsetup_cmd }} | tee -a qa_crowbarsetup.log
+    exit ${PIPESTATUS[0]}
   args:
     executable: "/bin/bash"
 

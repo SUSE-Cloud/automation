@@ -1,0 +1,10 @@
+{
+    "words": {
+    },
+    "lines": {
+        "ok:": "color: green;",
+        "changed:": "color: yellow;",
+        "skipping:": "color: cyan;",
+        "failed:": "color: red;"
+    }
+}
