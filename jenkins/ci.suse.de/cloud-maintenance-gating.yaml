@@ -1,5 +1,5 @@
-- job-template:
-    name: '{ardana_maintenance_gating_job}'
+- job:
+    name: cloud-maintenance-gating
     project-type: pipeline
     disabled: '{obj:disabled|False}'
     concurrent: '{concurrent|True}'
@@ -29,7 +29,7 @@
     parameters:
       - validating-string:
           name: ardana_env
-          default: '{ardana_env|cloud-ardana-maintenance-slot}'
+          default: 'cloud-ardana-maintenance-slot'
           regex: '[A-Za-z0-9-_]+'
           msg: >-
             Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
@@ -50,8 +50,8 @@
       - choice:
           name: cloudsource
           choices:
-            - 'GM{version|8}+up'
-            - 'hosGM{version|8}+up'
+            - 'GM8+up'
+            - 'hosGM8+up'
           description: >-
             The cloud repository (from provo-clouddata) to be used for testing.
             This value can take the following form:
@@ -105,5 +105,5 @@
               - ${{git_automation_branch}}
             browser: auto
             wipe-workspace: false
-      script-path: jenkins/ci.suse.de/pipelines/openstack-ardana-maintenance-gating.Jenkinsfile
+      script-path: jenkins/ci.suse.de/pipelines/openstack-maintenance-gating.Jenkinsfile
       lightweight-checkout: false

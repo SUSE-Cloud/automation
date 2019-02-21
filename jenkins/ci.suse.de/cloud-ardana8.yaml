@@ -31,14 +31,6 @@
         - '{ardana_gating_job}'
 
 - project:
-    name: cloud-ardana8-maintenance-gating
-    ardana_maintenance_gating_job: '{name}'
-    ardana_env: cloud-ardana-maintenance-slot
-    version: '8'
-    jobs:
-      - '{ardana_maintenance_gating_job}'
-
-- project:
     name: cloud-ardana8-job-std-3cp-x86_64
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
