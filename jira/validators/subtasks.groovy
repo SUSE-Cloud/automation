@@ -8,12 +8,13 @@ if (issue.isSubTask()) {
     return true
 }
 
+def boolean result = true
 issue.subTaskObjects.each {
-    if (it.resolution == 0) {
+    if (it.getStatus().getStatusCategory().getName() != "Complete") {
         log.info("Issue has open Sub-Tasks (false)")
-        return false
+        result = false
     }
 }
 
-log.info("End Sub-Tasks Validation (true)")
-return true
+log.info("End Sub-Tasks Validation ($result)")
+return result

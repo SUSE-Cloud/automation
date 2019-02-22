@@ -16,8 +16,9 @@ if ((issue.resolutionObject.name == "Rejected" || issue.resolutionObject.name ==
 def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def workerCf = customFieldManager.getCustomFieldObjectByName("Worker")
 def worker = issue.getCustomFieldValue(workerCf)
+def noneuser = ComponentAccessor.getUserManager().getUserByName("None")
 
-if (worker && worker != "None") {
+if (worker && worker != noneuser) {
     log.info("Worker is assigned (true)")
     return true
 }
