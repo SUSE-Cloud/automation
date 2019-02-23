@@ -37,6 +37,10 @@
         - include_role:
             name: jenkins_artifacts
           when: lookup("env", "WORKSPACE")
+          vars:
+            jenkins_artifacts_to_collect:
+              - src: "{{ admin_mkcloud_config_file }}"
+              - src: "{{ qa_crowbarsetup_log }}"
 
   post_tasks:
     - include_role:
