@@ -2038,14 +2038,14 @@ function setup_trusted_cert
 
     if [ ! -f $cn.pem ] ; then
         # Generate Root CA
-        openssl req -x509 -newkey rsa:1024 -keyout rootca.key -out rootca.pem \
+        openssl req -x509 -newkey rsa:2048 -keyout rootca.key -out rootca.pem \
             -days 365 -nodes \
             -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=root"
         # Generate CSR
         subj_alt="DNS:${cn},DNS:public-${cn}"
         # openssl 1.1.1 supports setting the subjectAltName directly in the command line,
         # but SLES 12 SP4 only has 1.0.2 so we need to read in the config like this
-        openssl req -new -newkey rsa:1024 -keyout $cn.key -out $cn.csr \
+        openssl req -new -newkey rsa:2048 -keyout $cn.key -out $cn.csr \
             -days 365 -nodes \
             -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=${cn}" \
             -config <(sed -e "/^\[ req \]/areq_extensions = v3_req" \
