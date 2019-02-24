@@ -33,6 +33,48 @@
           description: >-
             Reserve the 'ardana_env' lockable resource throughout the execution of this job
 
+      - validating-string:
+          name: GERRIT_CHANGE_NUMBER
+          default: ''
+          regex: '([0-9]+)'
+          msg: The entered value failed validation
+          description: >-
+            A Gerrit change number to test (the latest available patchset number is assumed).
+
+            For jobs triggered by Gerrit, the Gerrit change number and patchset number are
+            extracted from the GERRIT_CHANGE_NUMBER and GERRIT_PATCHSET_NUMBER environment
+            variables set by the trigger, which override this parameter.
+
+      - string:
+          name: gerrit_context
+          default: ''
+          description: >-
+            A short description of the job to be reported back to Gerrit. It can be useful
+            when multiple jobs are running simultaneously on the same Gerrit change, to
+            differentiate between their corresponding Gerrit reports.
+
+      - bool:
+          name: voting
+          default: '{voting|false}'
+          description: >-
+            Determines if this job posts Verified labels on target Gerrit changes.
+
+      - string:
+          name: integration_test_job
+          default: '{integration_test_job}'
+          description: >-
+            The Ardana Jenkins integration job triggered to validate the Gerrit change.
+            Leave empty to skip integration testing.
+
+      - validating-string:
+          name: extra_repos
+          default: ''
+          regex: '((http(s)?:\/\/[^ ,]+\.repo)(,http(s)?:\/\/[^ ,]+\.repo)*)*'
+          msg: The entered value failed validation
+          description: >-
+            A comma separated list of repository urls (ending with .repo) to be
+            added on the deployer node
+
       - string:
           name: git_automation_repo
           default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
@@ -44,54 +86,6 @@
           default: '{git_automation_branch|master}'
           description: >-
             The git automation branch
-
-      - validating-string:
-          name: gerrit_change_ids
-          default: '{gerrit_change_ids}'
-          regex: '([0-9]+(/[0-9]+)?)(,[0-9]+(/[0-9]+)?)*'
-          msg: The entered value failed validation
-          description: >-
-            A comma separated list of IDs for changes in gerrit.suse.provo.cloud
-            to test. The patchset may be supplied as part of the change ID in the form:
-
-               <change_number>[/<patchset_number>]
-
-      - string:
-          name: cloudsource
-          default: '{cloudsource|develcloud9}'
-          description: >-
-            The cloud repository (from provo-clouddata) to be used for testing.
-            This value can take the following form:
-
-               stagingcloud<X> (Devel:Cloud:X:Staging)
-               develcloud<X> (Devel:Cloud:X)
-               GM<X> (official GM)
-
-      - bool:
-          name: ses_enabled
-          default: '{ses_enabled|false}'
-          description: Configure SES backend for glance, cinder, cinder-backup and nova
-
-      - bool:
-          name: ses_rgw_enabled
-          default: '{ses_rgw_enabled|false}'
-          description: |
-            Configure object-store service with RADOS Gateway. This only takes effect
-            if ses_enabled is set to true.
-
-      - string:
-          name: tempest_filter_list
-          default: '{tempest_filter_list|ci}'
-          description: >-
-            Name of the filter file to use for tempest. Use an empty value to
-            skip running tempest.
-
-      - string:
-          name: os_cloud
-          default: '{os_cloud|engcloud-cloud-ci-private}'
-          description: >-
-            The OpenStack API credentials used to manage virtual clouds (leave
-            empty to use the default shared 'cloud' ECP account).
 
       - text:
           name: extra_params
@@ -106,6 +100,12 @@
             This should not be used by default or regularly. It is meant to run job build customized in ways
             not already supported by the job's parameters, such as testing automation git pull requests
             with special configurations.
+
+      - hidden:
+          name: version
+          default: '{version}'
+          description: >-
+            Cloud version number (8, 9 etc.)
 
     pipeline-scm:
       scm:
