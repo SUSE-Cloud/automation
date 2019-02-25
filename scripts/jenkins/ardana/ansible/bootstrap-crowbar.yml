@@ -17,14 +17,14 @@
 
 - import_playbook: setup-ssh-access.yml
 
-- name: Bootstrap Cloud Lifecycle Manager
+- name: Bootstrap Crowbar
   hosts: "{{ ardana_env }}"
   remote_user: root
   gather_facts: True
   vars:
     task: "deploy"
 
-  pre_tasks:
+  tasks:
     - block:
         # <package>-devel packages must not be installed in the base image
         # because they come from the SLES SDK repository and will usually
@@ -38,8 +38,21 @@
             name: setup_root_partition
           when: not is_physical_deploy
 
+        # FIXME: remove everything but eth0 ifcfg files from base image
+        - name: Remove unused ifcfg files
+          shell: rm /etc/sysconfig/network/ifcfg-eth[1-9]*
+
+        # FIXME: remove when https://github.com/crowbar/crowbar/pull/2371 is
+        # available in all crowbar versions
+        - name: Remove comments from authorized_keys file
+          lineinfile:
+            dest: "{{ ansible_env.HOME }}/.ssh/authorized_keys"
+            regexp: "^ *#"
+            state: absent
+
         - include_role:
-            name: "setup_zypper_repos"
+            name: frontail
+
       rescue:
         - include_role:
             name: rocketchat_notify
@@ -52,23 +65,3 @@
           fail:
             msg: "{{ task }} failed."
 
-  tasks:
-    - block:
-        - include_role:
-            name: "{{ outer_item }}"
-          loop:
-            - bootstrap_ardana
-            - frontail
-          loop_control:
-            loop_var: outer_item
-      rescue:
-        - include_role:
-            name: rocketchat_notify
-          vars:
-            rc_action: "finished"
-            rc_state: "Failed"
-          when: rc_notify
-
-        - name: Stop if something failed
-          fail:
-            msg: "{{ task }} failed."

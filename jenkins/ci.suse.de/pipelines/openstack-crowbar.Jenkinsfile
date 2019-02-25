@@ -33,8 +33,13 @@ pipeline {
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
+          if (reserve_env == 'true') {
+            echo "Reserved resource: " + env.reserved_env
           if (env.reserved_env && reserved_env != null) {
             env.ardana_env = reserved_env
+            } else {
+              error("Jenkins bug (JENKINS-52638): couldn't reserve a resource with label $ardana_env")
+            }
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
           if ( ardana_env.startsWith("qe") || ardana_env.startsWith("pcloud") ) {
@@ -47,14 +52,13 @@ pipeline {
             if [ -n "$github_pr" ] ; then
               scripts/jenkins/ardana/pr-update.sh
             fi
-
-            source scripts/jenkins/ardana/jenkins-helper.sh
-            ansible_playbook load-job-params.yml \
-              -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-crowbar-pipeline-template.yaml \
-              -e jjb_type=job-template
-            ansible_playbook notify-rc-pcloud.yml -e @input.yml
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.load_extra_params_as_vars(extra_params)
+          ardana_lib.ansible_playbook('load-job-params',
+                                      "-e jjb_type=job-template -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-crowbar-pipeline-template.yaml"
+                                      )
+          ardana_lib.ansible_playbook('notify-rc-pcloud')
         }
       }
     }
@@ -101,7 +105,8 @@ pipeline {
             text(name: 'heat_template', value: heat_template),
             string(name: 'git_automation_repo', value: "$git_automation_repo"),
             string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'os_cloud', value: "$os_cloud")
+            string(name: 'os_cloud', value: "$os_cloud"),
+            text(name: 'extra_params', value: extra_params)
           ], false)
         }
       }
@@ -119,15 +124,11 @@ pipeline {
     stage('Bootstrap admin node') {
       steps {
         script {
-          sh('''
-             # This step does the following on the admin node:
-             #  - waits for it to complete boot
-             #  - resizes the root partition
-             #  - sets up Crowbar network/DNS and repos
-             #  - installs crowbar packages
-             #
-             # qa_crowbarsetup.sh onadmin_runlist prepareinstallcrowbar
-          ''')
+          // This step does the following on the admin node:
+          //  - waits for it to complete boot
+          //  - resizes the root partition
+          //  - TODO: sets up SLES and Cloud repositories
+          ardana_lib.ansible_playbook('bootstrap-crowbar', "-e extra_repos='$extra_repos'")
         }
       }
     }
@@ -135,12 +136,10 @@ pipeline {
     stage('Bootstrap nodes') {
       steps {
         script {
-          sh('''
-             # This step does the following on the non-admin nodes:
-             #  - waits for them to complete boot
-             #  - resizes the root partition
-             #  - sets up accounts, passwordless SSH and sudo
-          ''')
+          // This step does the following on the non-admin nodes:
+          //  - waits for them to complete boot
+          //  - resizes the root partition
+          ardana_lib.ansible_playbook('bootstrap-crowbar-nodes')
         }
       }
     }
@@ -151,12 +150,12 @@ pipeline {
       }
       steps {
         script {
-          sh('''
-             # This step does the following on the admin node:
-             #  - installs crowbar
-             #
-             # qa_crowbarsetup.sh onadmin_runlist bootstrapcrowbar installcrowbar
-          ''')
+           // This step does the following on the admin node:
+           //  - sets up SLES and Cloud repositories
+           //  - installs crowbar
+           ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist prepareinstallcrowbar"\'')
+           ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist bootstrapcrowbar"\'')
+           ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist installcrowbar"\'')
         }
       }
     }
@@ -230,7 +229,8 @@ pipeline {
                 string(name: 'heat_action', value: "delete"),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                string(name: 'os_cloud', value: "$os_cloud")
+                string(name: 'os_cloud', value: "$os_cloud"),
+                text(name: 'extra_params', value: extra_params)
               ], propagate: false, wait: false
             } else {
               if (reserve_env == 'true') {

@@ -1,0 +1,3 @@
+
+admin_mkcloud_config_file: "/root/mkcloud.config"
+qa_crowbarsetup_log: "/root/qa_crowbarsetup.log"

@@ -22,8 +22,8 @@
 
 - name: Drop color preset
   copy:
-    src: "ansible-preset.json"
-    dest: "{{ frontail_run_dir }}/ansible-preset.json"
+    src: "{{ cloud_product }}-preset.json"
+    dest: "{{ frontail_run_dir }}/{{ cloud_product }}-preset.json"
     mode: "0644"
 
 - name: Download frontail
