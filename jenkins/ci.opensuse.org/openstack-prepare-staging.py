@@ -1,6 +1,7 @@
 #!/usr/bin/python2
 import osc.commandline
 import osc.core
+import osc.babysitter
 import sys
 import os
 
@@ -100,7 +101,7 @@ def run_osc(*args):
     cli = _OscModifiedPrjresults()
     argv = ['osc', '-A', 'https://api.opensuse.org']
     argv.extend(args)
-    exit = cli.main(argv=argv)
+    exit = osc.babysitter.run(cli, argv=argv)
     return exit
 
 def run_osc_prjstatus(project):
@@ -114,17 +115,24 @@ def run_osc_release(project):
     # https://github.com/openSUSE/osc/commit/fb80026651c47d262dbff33136ae5306ff83aff3
     return run_osc('api', '-m', 'POST', '/source/%s?cmd=release&nodelay=1' % project)
 
+def prepare(branch):
+    project = 'Cloud:OpenStack:' + branch
+    project_staging = project + ':Staging'
+    project_totest = project + ':ToTest'
+    exit = run_osc_release(project_staging)
+    if exit != None:
+        print("Failed to release " + project_staging + " to " + project_totest + " .")
+        return exit
+    exit = run_osc_prjstatus(project_totest)
+    if exit != None:
+        print(project_totest + " failed.")
+        return exit
+
+
 def main():
     branch = os.environ['openstack_project']
     if 'Rocky' == branch:
-        project = 'Cloud:OpenStack:' + branch
-        project_staging = project + ':Staging'
-        project_totest = project + ':ToTest'
-        run_osc_release(project_staging)
-        exit = run_osc_prjstatus(project_totest)
-        if exit != None:
-            print(project_totest + " failed.")
-            sys.exit(exit)
+        sys.exit(prepare(branch))
     else:
         print("%s not supported for argument openstack_project." % branch)
         # don't fail so the previous staging implementation
