@@ -26,14 +26,6 @@
 
   tasks:
     - block:
-        # <package>-devel packages must not be installed in the base image
-        # because they come from the SLES SDK repository and will usually
-        # cause zypper patch or zypper update to fail due to the fact
-        # that the SLES SDK repository is not present and there is a
-        # hard version dependency between <package>-devel and <package>.
-        - name: Ensure no -devel packages are installed in the base image
-          command: "zypper --non-interactive remove *-devel"
-
         - include_role:
             name: setup_root_partition
           when: not is_physical_deploy
