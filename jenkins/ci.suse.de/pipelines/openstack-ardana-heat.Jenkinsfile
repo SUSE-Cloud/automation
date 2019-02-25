@@ -36,10 +36,10 @@ pipeline {
           currentBuild.displayName = "#${BUILD_NUMBER}: ${heat_action} ${ardana_env}"
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
-            source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-            ansible_playbook load-job-params.yml
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.load_extra_params_as_vars(extra_params)
+          ardana_lib.ansible_playbook('load-job-params')
         }
       }
     }

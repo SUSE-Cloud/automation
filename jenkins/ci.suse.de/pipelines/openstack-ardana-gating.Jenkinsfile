@@ -39,6 +39,7 @@ pipeline {
           ).trim()
 
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.load_extra_params_as_vars(extra_params)
         }
       }
     }
@@ -65,7 +66,8 @@ pipeline {
                   string(name: 'cleanup', value: "never"),
                   string(name: 'rc_notify', value: "true"),
                   string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                  string(name: 'git_automation_branch', value: "$git_automation_branch")
+                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                  text(name: 'extra_params', value: extra_params)
                 ], false)
               }
             }
@@ -89,7 +91,8 @@ pipeline {
                   string(name: 'cleanup', value: "never"),
                   string(name: 'rc_notify', value: "true"),
                   string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                  string(name: 'git_automation_branch', value: "$git_automation_branch")
+                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                  text(name: 'extra_params', value: extra_params)
                 ], false)
               }
             }

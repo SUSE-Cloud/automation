@@ -61,14 +61,13 @@ pipeline {
             if [ -n "$github_pr" ] ; then
               scripts/jenkins/ardana/pr-update.sh
             fi
-
-            source scripts/jenkins/ardana/jenkins-helper.sh
-            ansible_playbook load-job-params.yml \
-              -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml \
-              -e jjb_type=job-template
-            ansible_playbook notify-rc-pcloud.yml -e @input.yml
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.load_extra_params_as_vars(extra_params)
+          ardana_lib.ansible_playbook('load-job-params',
+                                      "-e jjb_type=job-template -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml"
+                                      )
+          ardana_lib.ansible_playbook('notify-rc-pcloud')
         }
       }
     }
@@ -131,7 +130,8 @@ pipeline {
                 text(name: 'heat_template', value: heat_template),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                string(name: 'os_cloud', value: "$os_cloud")
+                string(name: 'os_cloud', value: "$os_cloud"),
+                text(name: 'extra_params', value: extra_params)
               ], false)
             }
           }
@@ -146,7 +146,8 @@ pipeline {
               def slaveJob = ardana_lib.trigger_build('openstack-ardana-testbuild-gerrit', [
                 string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                string(name: 'git_automation_branch', value: "$git_automation_branch")
+                string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                text(name: 'extra_params', value: extra_params)
               ], false)
               env.test_repository_url = "http://download.suse.de/ibs/Devel:/Cloud:/Testbuild:/ardana-ci-${slaveJob.getNumber()}/standard/Devel:Cloud:Testbuild:ardana-ci-${slaveJob.getNumber()}.repo"
               if (extra_repos == '') {
@@ -279,7 +280,8 @@ pipeline {
                 string(name: 'heat_action', value: "delete"),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                string(name: 'os_cloud', value: "$os_cloud")
+                string(name: 'os_cloud', value: "$os_cloud"),
+                text(name: 'extra_params', value: extra_params)
               ], propagate: false, wait: false
             } else {
               if (reserve_env == 'true') {

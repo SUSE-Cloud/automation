@@ -2,12 +2,29 @@
  * The openstack-ardana Jenkins pipeline library
  */
 
+
+// Loads the list of extra parameters into the environment
+def load_extra_params_as_vars(extra_params) {
+  if (extra_params) {
+    def props = readProperties text: extra_params
+    for(key in props.keySet()) {
+      value = props["${key}"]
+      env."${key}" = "${value}"
+    }
+  }
+}
+
+
 def ansible_playbook(playbook, params='') {
   sh("""
     cd $WORKSPACE
     source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-    ansible_playbook """+playbook+""".yml -e @input.yml """+params
-  )
+    if [[ -e automation-git/scripts/jenkins/ardana/ansible/input.yml ]]; then
+      ansible_playbook """+playbook+""".yml -e @input.yml """+params+"""
+    else
+      ansible_playbook """+playbook+""".yml """+params+"""
+    fi
+  """)
 }
 
 def trigger_build(job_name, parameters, propagate=true, wait=true) {
