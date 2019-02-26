@@ -65,7 +65,7 @@ pipeline {
           def slaveJob = build job: openstack_ardana_job, parameters: [
               string(name: 'git_automation_repo', value: "$git_automation_repo"),
               string(name: 'git_automation_branch', value: "$git_automation_branch"),
-              text(name: 'extra_vars', value: "sles_image=${sles_image}-update")
+              text(name: 'extra_params', value: "sles_image=${sles_image}-update")
           ], propagate: true, wait: true
         }
       }
