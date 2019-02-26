@@ -1,0 +1,105 @@
+#!/usr/bin/python
+
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Cancels all running builds with the supplied parameter values except the
+# most recent one, via the API.
+
+import jenkins
+import json
+import os
+import sys
+
+
+def usage():
+    print("Error: No job name defined as first parameter.\n" +
+              "Add parameters as needed:\n" +
+              "  jenkins-job-cancel <job_name> [ para1=val1 [ para2=val2 ]... ]")
+    sys.exit(1)
+
+
+def get_build_params(build):
+    """
+    Return a dictionary of params names and their values
+    """
+    # This is what a parameter action looks like:
+    # {'_class': 'hudson.model.ParametersAction', 'parameters': [
+    #     {'_class': 'hudson.model.StringParameterValue',
+    #      'value': '12',
+    #      'name': 'FOO_BAR_BAZ'}]}
+    actions = build.get('actions')
+    if actions:
+        parameters = {}
+        for elem in actions:
+            if elem.get('_class') == 'hudson.model.ParametersAction':
+                parameters = elem.get('parameters', {})
+                break
+        return set([(str(pair['name']), str(pair.get('value')),) for pair in parameters])
+
+    return set()
+
+
+def jenkins_cancel_job(job_name, job_args=[]):
+    if not job_name:
+        usage()
+
+    config_files = ('/etc/jenkinsapi.conf', './jenkinsapi.conf')
+    config = dict()
+    job_parameters = set()
+
+    for config_file in config_files:
+        if not os.path.exists(config_file):
+            continue
+        with open(config_file, 'r') as f:
+            config.update(json.load(f))
+
+    if not config:
+        print('Error: No config file could be loaded. Please create either of: %s' %
+              ', '.join(config_files))
+        sys.exit(1)
+
+    for param in job_args:
+        p_key, _, p_val = param.partition('=')
+        job_parameters.add((p_key.strip(' '), p_val.strip(' ')))
+
+    server = jenkins.Jenkins(str(config['jenkins_url']),
+                             username=config['jenkins_user'],
+                             password=config['jenkins_api_token'])
+
+    job_info = server.get_job_info(job_name)
+    skipped_latest_build = False
+    for build in job_info['builds']:
+        build = server.get_build_info(job_name, build['number'])
+        if build['building']:
+            if job_parameters and \
+               job_parameters.issubset(get_build_params(build)):
+                if not skipped_latest_build:
+                    skipped_latest_build = True
+                    continue
+                server.stop_build(job_name, build['number'])
+
+
+def main():
+    if len(sys.argv) < 2:
+        usage()
+    args = list()
+    if len(sys.argv) > 2:
+        args.extend(sys.argv[2:])
+    jenkins_cancel_job(sys.argv[1], args)
+
+
+if __name__ == "__main__":
+    main()

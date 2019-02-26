@@ -1,0 +1,8 @@
+  <qemu:commandline>
+    <qemu:arg value='-chardev'/>
+    <qemu:arg value='socket,id=ipmi0,host=0.0.0.0,port=623$nodecounter,reconnect=10'/>
+    <qemu:arg value='-device'/>
+    <qemu:arg value='ipmi-bmc-extern,id=bmc0,chardev=ipmi0'/>
+    <qemu:arg value='-device'/>
+    <qemu:arg value='isa-ipmi-bt,bmc=bmc0'/>
+  </qemu:commandline>

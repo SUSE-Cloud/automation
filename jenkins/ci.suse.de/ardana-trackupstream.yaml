@@ -1,0 +1,88 @@
+- job:
+    name: 'ardana-trackupstream'
+    project-type: matrix
+
+    triggers:
+      - timed: 'H 5,19 * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 30
+
+    axes:
+      - axis:
+          type: user-defined
+          name: component
+          values:
+            - ardana-ansible
+            - ardana-barbican
+            - ardana-cassandra
+            - ardana-ceilometer
+            - ardana-cinder
+            - ardana-cluster
+            - ardana-cobbler
+            - ardana-db
+            - ardana-designate
+            - ardana-extensions-apicaci
+            - ardana-extensions-dcn
+            - ardana-extensions-nsx
+            - ardana-freezer
+            - ardana-glance
+            - ardana-heat
+            - ardana-horizon
+            - ardana-input-model
+            - ardana-installer-ui
+            - ardana-installer-server
+            - ardana-ironic
+            - ardana-keystone
+            - ardana-logging
+            - ardana-magnum
+            - ardana-manila
+            - ardana-memcached
+            - ardana-monasca
+            - ardana-monasca-transform
+            - ardana-mq
+            - ardana-neutron
+            - ardana-nova
+            - ardana-octavia
+            - ardana-opsconsole
+            - ardana-opsconsole-ui
+            - ardana-osconfig
+            - ardana-qa-ansible
+            - ardana-service
+            - ardana-service-ansible
+            - ardana-ses
+            - ardana-spark
+            - ardana-swift
+            - ardana-tempest
+            - ardana-tls
+            - python-ardana-configurationprocessor
+            - python-ardana-opsconsole-server
+            - python-cinderlm
+      - axis:
+          type: user-defined
+          name: project
+          values:
+            - Devel:Cloud:8:Staging
+            - Devel:Cloud:9:Staging
+      - axis:
+          type: slave
+          name: label
+          values:
+            - openstack-trackupstream
+    # execution-strategy:
+    #   combination-filter: |
+    #     !(
+    #       (
+    #         [
+    #           "Devel:Cloud:8:Staging"
+    #         ].contains(project) &&
+    #         [
+    #           "XXX"
+    #         ].contains(component)
+    #       )
+
+    #     )
+    #   sequential: true
+    builders:
+      - trackupstream

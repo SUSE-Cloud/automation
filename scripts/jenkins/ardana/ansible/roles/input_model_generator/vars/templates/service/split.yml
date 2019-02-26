@@ -1,0 +1,81 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+#
+# Split scenario with standalone CLM node:
+#   - all services enabled
+#   - individual clusters with configurable size for: core, database/rabbitmq
+#   (colocated with swift object), and LMM services
+#   - configurable number of SLES compute and RHEL compute nodes
+#
+# Template parameters:
+#   core_nodes: number of core service nodes (default: 2)
+#   lmm_nodes: number of logging/metering/monitoring nodes (default: 3)
+#   dbmq_nodes: number of database/rabbitmq/swift object nodes (default: 3)
+#   sles_computes: maximum number of SLES compute nodes (default: 1)
+#   rhel_computes: maximum of RHEL compute nodes (default: 1)
+#
+---
+
+service_groups:
+  - name: clm
+    type: cluster
+    prefix: clm
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
+    member_count: '{{ (clm_model == "standalone") | ternary(1, 0) }}'
+    service_components:
+      - CLM
+  - name: core
+    type: cluster
+    prefix: core
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-controller"
+    member_count: '{{ core_nodes|default(2) }}'
+    service_components:
+      - '{{ (clm_model == "integrated") | ternary("CLM", '') }}'
+      - CORE
+      - SWPAC
+      - NEUTRON
+  - name: lmm
+    type: cluster
+    prefix: lmm
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
+    member_count: '{{ lmm_nodes|default(3) }}'
+    service_components:
+      - LMM
+  - name: dbmq
+    type: cluster
+    prefix: dbmq
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-minimal"
+    member_count: '{{ dbmq_nodes|default(3) }}'
+    service_components:
+      - DBMQ
+      - SWOBJ
+  - name: sles-compute
+    type: resource
+    prefix: sles-comp
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
+    member_count: '{{ sles_computes|default(1) }}'
+    min_count: 0
+    service_components:
+      - COMPUTE
+  - name: rhel-compute
+    type: resource
+    prefix: rhel-comp
+    distro_id: "{{ rhel_distro_id }}"
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
+    member_count: '{{ rhel_computes|default(1) }}'
+    min_count: 0
+    service_components:
+      - RHEL_COMPUTE

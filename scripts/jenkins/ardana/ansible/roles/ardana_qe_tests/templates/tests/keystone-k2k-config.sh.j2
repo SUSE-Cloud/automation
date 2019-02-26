@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+# Requirements for k2k configuration
+
+# service provider - as defined in AUTH_URL
+# identity provider (federation) - myhelion.test required for external-name for public vip
+
+set -eux
+set -o pipefail
+
+export ccn_0001={{ ardana_group_vars_key_api_fnd_clu.keystone_node1 }}
+export AUTH_URL={{ ardana_group_vars_key_api.keystone_public_url }}
+
+set +e
+#cleanup files from last run if any
+rm {{ ardana_qe_test_work_dir }}/Keystone_idpKeyPermTest*
+rm {{ ardana_qe_test_work_dir }}/Keystone_k2kConsole*
+
+bash {{ keystone_soapui_code_folder }}/configure_k2k_federation_separateConfig.sh $HOME {{ ardana_qe_test_work_dir }} ardana | tee {{ ardana_qe_test_log }}
+
+count=`grep k2k_failed {{ ardana_qe_test_log }}  | wc -l`
+if [[ "$count" > 0 ]]; then
+    {{ ardana_qe_test_venv }}/bin/subunit-output --fail {{ test_name}}  >> {{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit
+else
+    {{ ardana_qe_test_venv }}/bin/subunit-output --success {{ test_name}} >> {{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit
+fi

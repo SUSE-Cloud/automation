@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # usage:
 # curl http://openqa.suse.de/sle/qatests/qa_openstack.sh | sh -x
 # needs 2.1GB space for /var/lib/{glance,nova}
@@ -10,7 +10,10 @@ fi
 
 : ${MODE:=kvm}
 ARCH=$(uname -i)
-: ${repomirror:=http://download.opensuse.org}
+# Default is one mirror we know is updated fast enough instead of the
+# redirector because some mirrors lag and cause a checksum mismatch for rpms
+# that keep name and size and only change content.
+: ${repomirror:=http://downloadcontent.opensuse.org}
 : ${imagemirror:=http://149.44.161.38/images} # ci1-opensuse
 : ${cirros_base_url:="$imagemirror"} # could also be "http://download.cirros-cloud.net/0.3.4/"
 cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
@@ -63,6 +66,21 @@ function get_dist_version() {
     echo $VERSION_ID
 }
 
+function addslesrepos {
+    $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/$REPOVER/x86_64/product/" SLES$VERSION-Pool
+    $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER/x86_64/update/" SLES$VERSION-Updates
+    case "$VERSION" in
+        "12.2")
+            $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER-LTSS/x86_64/update/" SLES$VERSION-LTSS-Updates
+            ;;
+    esac
+}
+
+function addopensuseleaprepos {
+    $zypper ar "$repomirror/distribution/leap/$VERSION/repo/oss/" Leap-$VERSION-oss
+    $zypper ar --refresh "$repomirror/update/leap/$VERSION/oss/" Leap-$VERSION-oss-update
+}
+
 # setup repos
 VERSION=11
 REPO=SLE_11_SP3
@@ -73,16 +91,15 @@ if [ -f "/etc/os-release" ]; then
 
     case "$DIST_NAME" in
         "SLES")
-            REPO="SLE_12"
-            [ "$VERSION" = "12.1" ] && REPO="SLE_12_SP1"
-            [ "$VERSION" = "12.2" ] && REPO="SLE_12_SP2"
-            [ "$VERSION" = "12.3" ] && REPO="SLE_12_SP3"
+            IFS=. read major minor <<< $VERSION
+            REPO="SLE_${major}_SP${minor}"
+            REPOVER="${major}-SP${minor}"
+            # FIXME for SLE15 to not have SP0
+            addrepofunc=addslesrepos
         ;;
         "openSUSE Leap")
             REPO="openSUSE_Leap_${VERSION}"
-        ;;
-        "openSUSE")
-            REPO="openSUSE_${VERSION}"
+            addrepofunc=addopensuseleaprepos
         ;;
         *)
             echo "Switch to a useful distribution!"
@@ -90,52 +107,39 @@ if [ -f "/etc/os-release" ]; then
             ;;
     esac
 else
-    # old style for SLES11
-    if grep "^VERSION = 1[2-4]\\.[0-5]" /etc/SuSE-release ; then
-        VERSION=$(awk -e '/^VERSION = 1[2-4]\./{print $3}' /etc/SuSE-release)
-        REPO=openSUSE_$VERSION
-    fi
+    echo unsupported OS
+    exit 54
 fi
 
 zypper="zypper --non-interactive"
 
+if test -n "$allow_vendor_change" ; then
+    # Allow vendor change for packages that may already be installed on the image
+    # but have a newer version in Cloud:OpenStack:*
+    # (without a vendor change this scenario would cause zypper to stall deployment
+    # with a prompt)
+    echo 'solver.allowVendorChange = true' >> /etc/zypp/zypp.conf
+fi
+
 zypper rr cloudhead || :
 
 case "$cloudsource" in
-    openstackliberty)
-        $zypper ar -G -f $cloudopenstackmirror/Liberty/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Liberty:/Staging/$REPO/ cloudhead
-        fi
-    ;;
-    openstackmitaka)
-        $zypper ar -G -f $cloudopenstackmirror/Mitaka/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Mitaka:/Staging/$REPO/ cloudhead
-        fi
-    ;;
-    openstacknewton)
-        $zypper ar -G -f $cloudopenstackmirror/Newton/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Newton:/Staging/$REPO/ cloudhead
-        fi
-    ;;
-    openstackocata)
-        $zypper ar -G -f $cloudopenstackmirror/Ocata/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Ocata:/Staging/$REPO/ cloudhead
-        fi
-    ;;
-    openstackpike)
-        $zypper ar -G -f $cloudopenstackmirror/Pike/$REPO/ cloud
-        if test -n "$OSHEAD" ; then
-            $zypper ar -G -f $cloudopenstackmirror/Pike:/Staging/$REPO/ cloudhead
-        fi
-    ;;
     openstackmaster)
         $zypper ar -G -f $cloudopenstackmirror/Master/$REPO/ cloud || :
         # no staging for master
         $zypper mr --priority 22 cloud
+    ;;
+    openstack?*)
+        osrelease=${cloudsource#openstack}
+        osrelease=${osrelease^}
+        $zypper ar -G -f $cloudopenstackmirror/$osrelease/$REPO/ cloud
+        if test -n "$OSHEAD" ; then
+            if [ "Rocky" = "$osrelease" ]; then
+                $zypper ar -G -f $cloudopenstackmirror/$osrelease:/ToTest/$REPO/ cloudhead
+            else
+                $zypper ar -G -f $cloudopenstackmirror/$osrelease:/Staging/$REPO/ cloudhead
+            fi
+        fi
     ;;
     *)
         echo "unknown cloudsource"
@@ -151,36 +155,8 @@ if [ -n "$OSHEAD" ]; then
 fi
 
 if [ -z "$skip_reposetup" ]; then
-    if [ "$VERSION" = "12.1" ]; then
-        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
-        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates
-    fi
-
-    if [ "$VERSION" = "12.2" ]; then
-        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP2/x86_64/product/' SLE12-SP2-Pool
-        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP2/x86_64/update/' SLES12-SP2-Updates
-    fi
-
-    if [ "$VERSION" = "12.3" ]; then
-        $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/' SLE12-SP3-Pool
-        $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP3/x86_64/update/' SLES12-SP3-Updates
-    fi
-
-    # openSUSE Leap versions
-    if [ "$VERSION" = "42.2" ]; then
-        $zypper ar "$repomirror/distribution/leap/42.2/repo/oss/" Leap-42.2-oss
-        $zypper ar "$repomirror/update/leap/42.2/oss/" Leap-42.2-oss-update
-    fi
-
-    if [ "$VERSION" = "42.3" ]; then
-        $zypper ar "$repomirror/distribution/leap/42.3/repo/oss/" Leap-42.3-oss
-        $zypper ar "$repomirror/update/leap/42.3/oss/" Leap-42.3-oss-update
-    fi
+    $addrepofunc
 fi
-
-# install maintenance updates
-# run twice, first installs zypper update, then the rest
-$zypper -n patch --skip-interactive || $zypper -n patch --skip-interactive
 
 # grizzly or master does not want dlp
 $zypper rr dlp || true
@@ -188,13 +164,10 @@ $zypper rr dlp || true
 $zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
 $zypper --gpg-auto-import-keys -n ref
 
-# deinstall some leftover crap from the cleanvm
-$zypper -n rm --force 'python-cheetah < 2.4'
+# install maintenance updates
+# run twice, first installs zypper update, then the rest
+$zypper -n patch --skip-interactive || $zypper -n patch --skip-interactive
 
-# deinstall cloud-init and dependencies (but keep cloud-final systemd unit around)
-cp /usr/lib/systemd/system/cloud-final.service /tmp
-$zypper -n rm --force -u cloud-init
-cp /tmp/cloud-final.service /usr/lib/systemd/system/cloud-final.service
 # wickedd needs to be configured properly to avoid overriding
 # the hostname (see <https://bugzilla.opensuse.org/show_bug.cgi?id=974661>).
 sed -i -e "s/DHCLIENT_SET_HOSTNAME=\"yes\"/DHCLIENT_SET_HOSTNAME=\"no\"/" /etc/sysconfig/network/dhcp
@@ -265,7 +238,6 @@ sed -i -e "s/with_magnum=no/with_magnum=yes/" /etc/openstackquickstartrc
 sed -i -e "s/with_barbican=no/with_barbican=yes/" /etc/openstackquickstartrc
 sed -i -e "s/with_sahara=no/with_sahara=yes/" /etc/openstackquickstartrc
 sed -i -e "s/with_designate=no/with_designate=yes/" /etc/openstackquickstartrc
-sed -i -e "s/with_gnocchi=no/with_gnocchi=yes/" /etc/openstackquickstartrc
 sed -i -e "s/node_is_compute=.*/node_is_compute=yes/" /etc/openstackquickstartrc
 sed -i -e s/br0/brclean/ /etc/openstackquickstartrc
 unset http_proxy
@@ -308,14 +280,7 @@ test "$(lvs | wc -l)" -gt 1 || exit 1
 ssh_user="root"
 cirros_base_name="cirros-0.3.4-x86_64"
 
-# since glanceclient Liberty, --is-public is gone and --visibility should be used
-if glance help image-create|grep -q visibility; then
-    GLANCECLIENT_VISIBILITY_PARAMS=" --visibility=public"
-else
-    GLANCECLIENT_VISIBILITY_PARAMS=" --is-public=true"
-fi
-
-GC_IMAGE_CREATE="glance image-create --progress $GLANCECLIENT_VISIBILITY_PARAMS"
+GC_IMAGE_CREATE="glance image-create --progress --visibility=public"
 
 case "$MODE" in
     xen)
@@ -328,7 +293,7 @@ case "$MODE" in
         $GC_IMAGE_CREATE --name="debian-5" --disk-format=ami --container-format=ami --copy-from $imagemirror/debian.5-0.x86.qcow2
     ;;
     *)
-        wget $cirros_base_url/$cirros_base_name-uec.tar.gz
+        wget --timeout=20 $cirros_base_url/$cirros_base_name-uec.tar.gz
         tar xf $cirros_base_name-uec.tar.gz
         RAMDISK_ID=$($GC_IMAGE_CREATE --name="$cirros_base_name-uec-initrd" \
             --disk-format=ari --container-format=ari < $cirros_base_name-initrd | grep ' id ' | awk '{print $4}')
@@ -442,7 +407,12 @@ fi
 
 sleep 10
 
-for i in $(nova floating-ip-list | grep -P -o "172.31\S+"); do nova floating-ip-delete $i; done
+# nova floating-ip-delete was removed in Pike
+if nova help floating-ip-delete; then
+    for i in $(nova floating-ip-list | grep -P -o "172.31\S+"); do nova floating-ip-delete $i; done
+else
+    for fip in $(openstack floating ip list -f value -c 'Floating IP Address'); do openstack floating ip delete $fip; done
+fi
 
 # run tempest
 if [ -e /etc/tempest/tempest.conf ]; then
@@ -462,17 +432,33 @@ if [ -e /etc/tempest/tempest.conf ]; then
     pushd /var/lib/openstack-tempest-test/
     # check that test listing works - otherwise we run 0 tests and everything seems to be fine
     # because run_tempest.sh doesn't catch the error
-    if ! [ -d ".testrepository" ]; then
-        testr init
+    if [ -f ".testr.conf" ]; then
+        if ! [ -d ".testrepository" ]; then
+            testr init
+        fi
+        testr list-tests >/dev/null
+    elif [ -f ".stestr.conf" ]; then
+        if ! [ -d ".stestr" ]; then
+            stestr init
+        fi
+        stestr list >/dev/null
+    else
+        echo "No .testr.conf or .stestr.conf in $(pwd)"
+        exit 5
     fi
-    testr list-tests >/dev/null
 
     if tempest help cleanup; then
         tempest cleanup --init-saved-state
     else
         test -x "$(type -p tempest-cleanup)" && tempest-cleanup --init-saved-state
     fi
-    ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
+
+    if tempest help run; then
+        tempest run -t -s 2>&1 | tee console.log
+    else
+        # run_tempest.sh is no longer available since tempest 16 (~ since Pike)
+        ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
+    fi
     ret=${PIPESTATUS[0]}
     if tempest help cleanup; then
         tempest cleanup

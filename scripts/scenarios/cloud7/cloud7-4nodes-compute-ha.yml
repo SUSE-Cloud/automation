@@ -36,11 +36,13 @@ proposals:
       - @@compute2@@
 - barclamp: database
   attributes:
-    ha:
-      storage:
-        mode: drbd
-        drbd:
-          size: 5
+    sql_engine: postgresql
+    postgresql:
+      ha:
+        storage:
+          mode: drbd
+          drbd:
+            size: 5
   deployment:
     elements:
       database-server:
@@ -54,6 +56,8 @@ proposals:
         mode: drbd
         drbd:
           size: 5
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:

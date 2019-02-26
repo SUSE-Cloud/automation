@@ -7,7 +7,7 @@ if [ -z "$n" ] ; then
         exit 1
 fi
 
-if [[ "$n" != crowbard2 && "$n" != crowbard3 ]] ; then
+if [[ $n != crowbard2 && $n != crowbard3 && $n != $crowbar_vmname ]] ; then
         echo "bad VM name"
         exit 2
 fi
@@ -19,19 +19,22 @@ rm -f mkcloud.config
 : ${cachedir:=/root/tmp}
 mkdir -p $cachedir
 export mkclouddriver=libvirt
-SCRIPTS_DIR=/usr/src/automation/scripts
+: ${SCRIPTS_DIR:=/usr/src/automation/scripts}
 scripts_lib_dir=${SCRIPTS_DIR}/lib
-common_scripts="mkcloud-onhost.sh mkcloud-common.sh mkcloud-$mkclouddriver.sh"
+common_scripts="mkcloud-onhost.sh mkcloud-common.sh mkcloud-driver-$mkclouddriver.sh"
 for script in $common_scripts; do
     source ${scripts_lib_dir}/$script
 done
-admin_node_disk=/dev/system/$n
-[ -e $admin_node_disk ] || admin_node_disk=/dev/gate/$n
-[ -e $admin_node_disk ] || exit 51
+if [[ ! $admin_node_disk ]]; then
+        admin_node_disk=/dev/system/$n
+        [[ -e $admin_node_disk ]] || admin_node_disk=/dev/gate/$n
+        [[ -e $admin_node_disk ]] || exit 51
+fi
 onhost_prepareadmin
 virsh define $SCRIPTS_DIR/../hostscripts/gatehost/$n.xml # is OK to fail if already there
 virsh start $n
-sleep 100 # time for the admin VM to boot
-sshkey=`cat /home/jenkins/.ssh/id_rsa.pub`
+# a constant sleep is either too long or too short, just wait max 5 minutes for the ssh port
+wait_for 150 2 "nc -w 1 -z $n 22" 'admin node to start ssh daemon'
+[[ $sshkey ]] || sshkey=`cat /home/jenkins/.ssh/id_rsa.pub`
 ssh_password $n "mkdir -p ~/.ssh ; echo '$sshkey' >> ~/.ssh/authorized_keys"
 

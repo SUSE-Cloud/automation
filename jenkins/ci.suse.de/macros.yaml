@@ -19,3 +19,10 @@
       - archive:
           artifacts: .artifacts/**
           allow-empty: 'true'
+
+- builder:
+    name: trackupstream
+    builders:
+      - update-automation
+      - shell: |
+          ~/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-internal.sh

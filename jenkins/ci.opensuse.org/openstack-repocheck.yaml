@@ -5,47 +5,48 @@
     triggers:
       - timed: '@hourly'
 
-    build-discarder:
-      num-to-keep: 10
-      days-to-keep: -1
+    logrotate:
+      numToKeep: 10
+      daysToKeep: -1
 
     axes:
       - axis:
           type: user-defined
           name: project
           values:
-            - Cloud:OpenStack:Liberty
-            - Cloud:OpenStack:Liberty:Staging
             - Cloud:OpenStack:Newton
             - Cloud:OpenStack:Newton:Staging
-            - Cloud:OpenStack:Ocata
-            - Cloud:OpenStack:Ocata:Staging
             - Cloud:OpenStack:Pike
             - Cloud:OpenStack:Pike:Staging
+            - Cloud:OpenStack:Queens
+            - Cloud:OpenStack:Queens:Staging
+            - Cloud:OpenStack:Rocky
+            - Cloud:OpenStack:Rocky:Staging
             - Cloud:OpenStack:Master
             - Cloud:Tools
       - axis:
           type: user-defined
           name: repository
           values:
-            - SLE_12_SP1
             - SLE_12_SP2
             - SLE_12_SP3
-            - openSUSE_Leap_42.2
+            - SLE_12_SP4
             - openSUSE_Leap_42.3
+            - openSUSE_Leap_15.0
       - axis:
           type: slave
           name: nodes
           values:
             - cloud-trackupstream
     execution-strategy:
+      # NOTE: Be careful! These are "reversed" filters. i.e. add a platform
+      # to a branch here only if you want to "exclude" it for the given branch.
       combination-filter: |
-       !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "openSUSE_Leap_42.2"].contains(repository) ||
-         ["Cloud:OpenStack:Liberty", "Cloud:OpenStack:Liberty:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP3", "openSUSE_Leap_42.2", "openSUSE_Leap_42.3"].contains(repository) ||
-         ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["SLE_12_SP1", "openSUSE_Leap_42.3"].contains(repository) ||
-         ["Cloud:OpenStack:Ocata", "Cloud:OpenStack:Ocata:Staging"].contains(project) && ["SLE_12_SP1"].contains(repository) ||
-         ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["SLE_12_SP1", "SLE_12_SP2", "openSUSE_Leap_42.2"].contains(repository) ||
-         ["Cloud:Tools"].contains(project) && ["SLE_12", "SLE_12_SP1"].contains(repository)
+       !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_12_SP2"].contains(repository) ||
+         ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["openSUSE_Leap_42.3", "openSUSE_Leap_15.0", "SLE_12_SP4"].contains(repository) ||
+         ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["SLE_12_SP2", "openSUSE_Leap_15.0", "SLE_12_SP4"].contains(repository) ||
+         ["Cloud:OpenStack:Queens", "Cloud:OpenStack:Queens:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP4"].contains(repository) ||
+         ["Cloud:OpenStack:Rocky", "Cloud:OpenStack:Rocky:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP3" ].contains(repository)
        )
       sequential: true
     builders:
@@ -59,6 +60,23 @@
           # zypper in osc obs-service-tar_scm obs-service-github_tarballs obs-service-recompress obs-service-git_tarballs obs-service-set_version
           [ -z "$PROJECTSOURCE" ] && ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
 
+          export automationrepo=~/github.com/SUSE-Cloud/automation
+          export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
+          
+          # Workaround to get only the name of the job:
+          # https://issues.jenkins-ci.org/browse/JENKINS-39189
+          # When the JOB_BASE_NAME contains only in ex. "openstack-repocheck", this
+          # workaround can be removed.
+          echo "$JOB_BASE_NAME"
+          main_job_name=${JOB_NAME%%/*}
+
+          function jtsync_trap() {
+            $jtsync --ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} 1
+          }
+
+          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
+            trap jtsync_trap EXIT ERR
+          fi
 
           DIST_NAME=$(echo $repository|cut -d "_" -f 1)
           DIST_VERSION=$(echo $repository|cut -d "_" -f 2-)
@@ -109,3 +127,11 @@
 
           test -e ~/repo || { echo "~/repo needs to have a copy of pre-generated .solv files from internal media" ; exit 55; }
           installcheck $ARCH --withobsoletes --exclude "-kmp-" tmp/repo/primary.xml.gz  --nocheck $EXTRA_NOCHECK ~/repo/${repository}-${ARCH}.solv
+          ret=$?
+
+          # only enable jtsync when build is not manually triggered
+          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
+            trap - EXIT ERR
+            $jtsync --ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} $ret || :
+          fi
+          exit $ret

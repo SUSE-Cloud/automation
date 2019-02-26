@@ -56,6 +56,8 @@ proposals:
           device: ##shared_nfs_for_rabbitmq##
           fstype: nfs
           options: nfsvers=3
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
@@ -120,6 +122,7 @@ proposals:
       backend_name: nfs
       nfs:
         nfs_shares: ##cinder-storage-shares##
+        nfs_snapshot: true
     api:
       protocol: https
     ssl:
@@ -213,6 +216,23 @@ proposals:
       - "@@controller1@@"
       - "@@controller2@@"
       - "@@controller3@@"
+- barclamp: aodh
+  deployment:
+    elements:
+      aodh-server:
+      - "@@controller1@@"
+- barclamp: barbican
+  attributes:
+  deployment:
+    elements:
+      barbican-controller:
+      - "@@controller1@@"
+- barclamp: sahara
+  attributes:
+  deployment:
+    elements:
+      sahara-server:
+      - "@@controller1@@"
 - barclamp: tempest
   attributes:
   deployment:

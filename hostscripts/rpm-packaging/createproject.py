@@ -70,6 +70,9 @@ Project used: %(ZUUL_PROJECT)s
   <description>
 %(description)s
   </description>
+  <url>
+%(url)s
+  </url>
 %(projectlink)s
   <person userid="%(user)s" role="maintainer"/>
   <publish>
@@ -79,6 +82,7 @@ Project used: %(ZUUL_PROJECT)s
 </project>""" % ({'project': project,
                   'user': get_osc_user(),
                   'description': description,
+                  'url': os.environ.get('BUILD_URL'),
                   'projectlink': projectlink,
                   'build_repository': build_repository})
 
@@ -131,7 +135,7 @@ def create_new_build_project(workdir, project, linkproject):
         os.chdir(olddir)
 
 
-def generate_pkgspec(pkgoutdir, global_requirements, spectemplate, pkgname):
+def generate_pkgspec(pkgoutdir, spectemplate, pkgname):
 
     obsservicedir = '/usr/lib/obs/service/'
     outdir = ('--outdir', pkgoutdir)
@@ -143,7 +147,6 @@ def generate_pkgspec(pkgoutdir, global_requirements, spectemplate, pkgname):
 
         renderspec(
             '--input-template', os.path.join(olddir, spectemplate),
-            '--requirements', os.path.join(olddir, global_requirements),
             '--output-name', pkgname + '.spec', *outdir)
 
         format_spec_file = Command(
@@ -212,6 +215,9 @@ def osc_commit_all(workdir, packagename):
     try:
         os.chdir(os.path.join(workdir, packagename))
         sh.osc('addremove')
+        for o in sh.osc('service', 'localrun', 'source_validator'):
+            if o.startswith('###ASK'):
+                sh.osc('rm', o.strip().split()[1])
         sh.osc('commit', '--noservice', '-n')
     finally:
         os.chdir(olddir)
@@ -248,7 +254,6 @@ def create_project(worktree, project, linkproject):
         copy_extra_sources(os.path.dirname(spectemplate), pkgoutdir)
         generate_pkgspec(
             pkgoutdir,
-            os.path.join(worktree, 'global-requirements.txt'),
             spectemplate, pkgname)
 
         if pkgname in existing_pkgs:
@@ -280,6 +285,7 @@ def main():
 
     args = parser.parse_args()
 
+    sh.ErrorReturnCode.truncate_cap = 9000
     create_project(args.worktree, args.project, args.linkproject)
 
 

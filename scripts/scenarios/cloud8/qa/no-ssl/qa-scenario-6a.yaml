@@ -45,8 +45,6 @@ proposals:
         nfs_server: ##nfs_server##
         export: ##nfs_export##
         mount_path: "/images"
-        mount_options:
-        - nfsvers=3
   deployment:
     elements:
       nfs-client:
@@ -55,13 +53,6 @@ proposals:
       - "@@controller3@@"
 
 - barclamp: database
-  attributes:
-    ha:
-      storage:
-        shared:
-          device: ##shared_nfs_for_database##
-          fstype: nfs
-          options: nfsvers=3
   deployment:
     elements:
       database-server:
@@ -69,14 +60,8 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
-    ha:
-      storage:
-        shared:
-          device: ##shared_nfs_for_rabbitmq##
-          fstype: nfs
-          options: nfsvers=3
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
@@ -175,12 +160,6 @@ proposals:
       - cluster:services
       ceilometer-server:
       - cluster:services
-
-- barclamp: trove
-  deployment:
-    elements:
-      trove-server:
-      - "@@controller1@@"
 
 - barclamp: magnum
   attributes:

@@ -2,8 +2,7 @@
 
 #
 # update the automation scripts on jenkins nodes
-# it will pull the latest changes from the git repo
-# and update the symlinks in ~/bin for the wanted scripts
+# it will pull the latest changes from the git repos
 #
 # it can be called from within the jenkins job itself
 #
@@ -13,27 +12,69 @@
 # Bernhard M. Wiedemann <bwiedemann suse.de>
 #
 
-: ${automation_repo:="https://github.com/SUSE-Cloud/automation.git"}
-: ${branch:=master}
+declare -a must_have_repos=(
+    github.com/openSUSE/github-pr#master
+)
 
-a_dir=${automation_repo#*git://}
-a_dir=${a_dir#*https://}
-a_dir=${a_dir%.git}
-p_dir=${a_dir%/*}
+# allow to override the automation repo
+# upper case var should be used by caller
+: ${AUTOMATION_REPO:="github.com/SUSE-Cloud/automation#master"}
+# keeping support for lower case for backward compatibility
+: ${automation_repo:="$AUTOMATION_REPO"}
+
+# Note: Additional repos can be added this way:
+#
+# export EXTRA_REPOS="github.com/org1/repo1#master
+# github.com/org2/repo2#master"
+
+
+if [[ $automation_repo =~ ^(https?|git): || $automation_repo =~ \.git ]] ; then
+    echo "Syntax error with automation repo definition."
+    echo "Please use this pattern: <domain>/<owner>/<repo>#<branch>"
+    echo "  eg.: github.com/SUSE-Cloud/automation#master"
+    exit 1
+fi
+
+declare -a needed_repos=(
+    $automation_repo
+    ${must_have_repos[@]}
+    ${EXTRA_REPOS}
+)
+
+function get_archive_url
+{
+    echo -n https://${1}/archive/${2}.tar.gz
+}
+
+function get_repo_url
+{
+    echo -n https://${1}.git
+}
+
+function echo_info
+{
+    echo "Handling repo: $1 with branch: $2"
+}
 
 function do_wget
 {
-    wget -O- https://${a_dir}/archive/${branch}.tar.gz | tar xz
-    rm -rf $a_dir
-    mv automation-$branch $a_dir
+    local url_dir=$1
+    local branch=$2
+    #wget -O- https://${url_dir}/archive/${branch}.tar.gz | tar xz
+    wget -O- `get_archive_url "$url_dir" "$branch"` | tar xz
+    rm -rf $url_dir
+    local repo_name=${url_dir##*/}
+    mv $repo_name-$branch $url_dir
 }
 
 function do_git
 {
+    local url_dir=$1
+    local branch=$2
     rpm -q git-core >/dev/null || zypper --non-interactive in git-core || return 24
 
-    if [ -d $a_dir/.git ] ; then
-        pushd $a_dir > /dev/null
+    if [ -d $url_dir/.git ] ; then
+        pushd $url_dir > /dev/null
             local n=100
             # check counter before mkdir to be sure that we did not get the lock when it is 0
             while [[ $n -gt 0 ]] && ! mkdir .git/lock.update-automation ; do
@@ -57,17 +98,29 @@ function do_git
             git checkout $branch
             git fetch origin
             git reset --hard origin/$branch
+            rmdir .git/lock.update-automation
+            trap "-" EXIT SIGINT SIGTERM
         popd > /dev/null
     else
-        rm -rf ~/$a_dir
-        pushd $p_dir > /dev/null
-            git clone ${automation_repo}
+        rm -rf ~/$url_dir
+        local checkout_base_dir=${url_dir%/*}
+        pushd $checkout_base_dir > /dev/null
+            git clone `get_repo_url "$url_dir"`
         popd > /dev/null
-        ( cd $a_dir && ( git checkout $branch || git checkout -b $branch origin/$branch ))
+        ( cd $url_dir && ( git checkout $branch || git checkout -b $branch origin/$branch ))
     fi
 }
 
 pushd ~ > /dev/null
-mkdir -p $p_dir
-do_git || do_wget
+for repo_str in "${needed_repos[@]}" ; do
+    IFS='#' read -r -a repo_arr <<< "$repo_str"
+    repo_url_dir=${repo_arr[0]}
+    branch=${repo_arr[1]:-master}
+    checkout_base_dir=${repo_url_dir%/*}
+    mkdir -p $checkout_base_dir
+    echo_info "$repo_url_dir" "$branch"
+    if [[ ! $dryrun_update_automation ]] ; then
+        do_git "$repo_url_dir" "$branch" || do_wget "$repo_url_dir" "$branch"
+    fi
+done
 popd > /dev/null

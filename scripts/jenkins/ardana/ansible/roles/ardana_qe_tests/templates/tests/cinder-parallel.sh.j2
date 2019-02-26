@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Wrapper script to execute cinder-tests-all
+# within the venv
+#
+# Usage: nova-attach-and-move.py PLUS too many options to list
+
+test_name="cinder-parallel"
+work_dir={{ ardana_qe_test_work_dir }}
+test_dir={{ ardana_qe_tests_dir }}/ardana-qa-tests/cinder-new
+test_log="$work_dir/${test_name}.log"
+
+# don't need to run the tests out of a vm as they don't install
+# anything, they just need a venv to write the subunit log into
+# also note that cinder-parallel expects the name of the venv
+# to follow the name of the log since written to a different dir
+# and cinder-parallel looks in the venv for subunit-output
+venv_dir={{ ardana_qe_test_venv }}
+subunit_log="$work_dir/${test_name}.subunit:$venv_dir"
+
+# tests append so start clean
+rm $test_log
+rm $subunit_log
+
+# however they do need an environment which cinder-tests-all 
+# can set up, noting we're NOT specifying 'default' for the
+# backend and as a result cinder commands will not specify
+# a backend type.
+$test_dir/cinder-tests-all default init
+
+source $HOME/service.osrc
+cd $test_dir
+$test_dir/cinder-parallel.py --oper s --sulog $subunit_log | tee -a $test_log
+$test_dir/cinder-parallel.py --oper S --sulog $subunit_log | tee -a $test_log
+

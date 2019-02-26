@@ -1,0 +1,198 @@
+digraph G {
+    rankdir=LR
+
+    dlpb[
+      label="devel:languages:python:backports",
+      URL="https://build.opensuse.org/project/show/devel:languages:python:backports",
+      fontcolor="blue"
+    ];
+    SP3GA[
+      label="SUSE:SLE-12-SP3:GA\nstandard",
+      URL="https://build.opensuse.org/project/show/SUSE:SLE-12-SP3:GA",
+      fontcolor="blue"
+    ];
+    SP4GA[
+      label="SUSE:SLE-12-SP4:GA\nstandard",
+      URL="https://build.opensuse.org/project/show/SUSE:SLE-12-SP4:GA",
+      fontcolor="blue"
+    ];
+    COUMs[
+      label="Cloud:OpenStack:Upstream:Master\nstandard",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Upstream:Master",
+      fontcolor="blue"
+    ];
+    COUMSP3[
+      label="Cloud:OpenStack:Upstream:Master:SLE_12_SP3",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Upstream:Master:SLE_12_SP3",
+      fontcolor="blue"
+    ];
+    COMSP3[
+      label="Cloud:OpenStack:Master\nSLE_12_SP3",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+    COMSP4[
+      label="Cloud:OpenStack:Master\nSLE_12_SP4",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+//    COF[
+//      label="Cloud:OpenStack:Factory",
+//      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Factory",
+//      fontcolor="blue"
+//    ];
+    COP[
+      label="Cloud:OpenStack:Pike\nSLE_12_SP3",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Pike",
+      fontcolor="blue"
+    ];
+    COPv[
+      label="Cloud:OpenStack:Pike:venv\nSLE_12_SP3",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Pike:venv",
+      fontcolor="blue"
+    ];
+    COPS[
+      label="Cloud:OpenStack:Pike:Staging\nSLE_12_SP3",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Pike:Staging",
+      fontcolor="blue"
+    ];
+    CORSP4[
+      label="Cloud:OpenStack:Rocky\nSLE_12_SP4",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Rocky",
+      fontcolor="blue"
+    ];
+    CORSSP4[
+      label="Cloud:OpenStack:Rocky:Staging\nSLE_12_SP4",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Rocky:Staging",
+      fontcolor="blue"
+    ];
+    CORvSP4[
+      label="Cloud:OpenStack:Rocky:venv\nSLE_12_SP4",
+      URL="https://build.opensuse.org/project/show/Cloud:OpenStack:Rocky:venv",
+      fontcolor="blue"
+    ];
+    A9SP4[
+      label="systemsmanagement:Ardana:9\nSLE_12_SP4",
+      URL="https://build.opensuse.org/project/show/systemsmanagement:Ardana:9",
+      fontcolor="blue"
+    ];
+    C75[
+      label="CentOS:CentOS-7\n7.5.1804",
+      URL="https://build.opensuse.org/project/show/CentOS:CentOS-7",
+      fontcolor="blue"
+    ];
+    A9C75[
+      label="systemsmanagement:Ardana:9:CentOS:7.5\nCentOS_7.5",
+      URL="https://build.opensuse.org/project/show/systemsmanagement:Ardana:9:CentOS:7.5",
+      fontcolor="blue"
+    ];
+    rp[
+      label="rpm-packaging",
+      URL="https://wiki.openstack.org/wiki/Rpm-packaging",
+      fontcolor="blue"
+    ];
+
+    // Upstream
+    dlpb -> COUMs[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Upstream:Master",
+      fontcolor="blue"
+    ];
+    COUMSP3 -> COUMs[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Upstream:Master",
+      fontcolor="blue"
+    ];
+
+    // Master SP3
+    COUMSP3 -> COMSP3[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+    dlpb -> COMSP3[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+    SP3GA -> COMSP3[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+
+    // Master SP4
+    COUMSP3 -> COMSP4[
+      label="<path>",
+      color="red",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+    dlpb -> COMSP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+    SP4GA -> COMSP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Master",
+      fontcolor="blue"
+    ];
+
+    // Rocky
+    CORSP4 -> CORSSP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Rocky:Staging",
+      fontcolor="blue"
+    ];
+    SP4GA -> CORSP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Rocky",
+      fontcolor="blue"
+    ];
+    CORSP4 -> CORvSP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Rocky:venv",
+      fontcolor="blue"
+    ];
+    SP4GA -> A9SP4[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/systemsmanagement:Ardana:9",
+      fontcolor="blue"
+    ];
+    C75 -> A9C75[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/systemsmanagement:Ardana:9:CentOS:7.5",
+      fontcolor="blue"
+    ];
+    CORSP4 -> A9C75[
+      label="<link>",
+      URL="https://build.opensuse.org/project/meta/systemsmanagement:Ardana:9:CentOS:7.5",
+      fontcolor="blue"
+    ];
+    A9SP4 -> A9C75[
+      label="<link>",
+      URL="https://build.opensuse.org/project/meta/systemsmanagement:Ardana:9:CentOS:7.5",
+      fontcolor="blue"
+    ];
+
+
+    // Pike
+    COP -> COPS[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Pike",
+      fontcolor="blue"
+    ];
+    SP3GA -> COP[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Pike",
+      fontcolor="blue"
+    ];
+    COP -> COPv[
+      label="<path>",
+      URL="https://build.opensuse.org/project/meta/Cloud:OpenStack:Pike:venv",
+      fontcolor="blue"
+    ];
+
+    rp-> COUMs;
+}

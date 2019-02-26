@@ -1,0 +1,37 @@
+- job-template:
+    ### The reason why this upgrade job is "disruptive" is the default cinder backend
+    name: 'cloud-mkcloud{version}-job-upgrade-disruptive-ha-mariadb-{arch}'
+    node: cloud-trigger
+
+    triggers:
+      - timed: '32 22 * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 7
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{previous_version}
+            upgrade_cloudsource=develcloud{version}
+            ### 3 nodes for HA cluster, 2 compute nodes
+            nodenumber={nodenumber}
+            ### 1 lonelynode for nfs server
+            nodenumberlonelynode=1
+            want_nodesupgrade=1
+            want_database_sql_engine={database_engine}
+            want_trove_proposal=0
+            want_barbican_proposal=0
+            want_sahara_proposal=0
+            hacloud=1
+            clusterconfig=data+services+network={nodenumber_controller}
+            storage_method=swift
+            label={label}
+            mkcloudtarget=instonly setuplonelynodes lonelynode_nfs_server proposal addupdaterepo runupdate cloudupgrade testsetup
+            job_name=cloud-mkcloud{version}-job-upgrade-disruptive-ha-mariadb-{arch}

@@ -1,7 +1,7 @@
 - job-template:
     name: 'cloud-mkcloud{version}-job-ha-mariadb-{arch}'
     node: cloud-trigger
-    disabled: 'true'
+    disabled: '{obj:disabled}'
 
     triggers:
       - timed: '11 2 * * *'
@@ -19,7 +19,9 @@
           predefined-parameters: |
             TESTHEAD=1
             cloudsource=develcloud{version}
-            nodenumber=4
+            clusterconfig="data+services+network=3"
+            storage_method=swift
+            nodenumber={nodenumber}
             tempestoptions={tempestoptions}
             hacloud=1
             want_database_sql_engine=mysql

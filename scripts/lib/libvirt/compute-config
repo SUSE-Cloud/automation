@@ -41,6 +41,12 @@ def main():
     parser.add_argument("--firmwaretype", default="bios",
                         help="Boot firmware type for the node. "
                         "Default: %(default)s")
+    parser.add_argument("--localreposrc", required=False,
+                        help="Local Repository Directory Source")
+    parser.add_argument("--localrepotgt", required=False,
+                        help="Local Repository Directory Target")
+    parser.add_argument("--ipmi", action='store_true',
+                        help="Whether to simulate IPMI BMC devices")
     args = parser.parse_args()
 
     print(libvirt_setup.compute_config(args, libvirt_setup.cpuflags()))

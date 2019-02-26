@@ -4,7 +4,7 @@
     node: cloud-trigger
 
     triggers:
-      - timed: 'H H */2 * *'
+      - timed: 'H H * * */2'
       - pollurl:
           cron: 'H/5 * * * *'
           polling-node: cloud-trigger
@@ -44,4 +44,4 @@
           predefined-parameters: |
             project=Devel:Cloud:{version}
             subproject=Staging
-            packagefilter=crowbar python openstack patterns release-notes-suse-openstack-cloud suse-cloud-upgrade
+            package_blacklist=ardana venv

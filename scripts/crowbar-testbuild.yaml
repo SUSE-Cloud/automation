@@ -11,10 +11,14 @@ branches:
     bs_project:  Devel:Cloud:7:Staging
     bs_repo:     SLE_12_SP2
     cloudsource: develcloud7
-  master:
+  stable/5.0-pike:
     bs_project:  Devel:Cloud:8:Staging
     bs_repo:     SLE_12_SP3
     cloudsource: develcloud8
+  master:
+    bs_project:  Devel:Cloud:9:Staging
+    bs_repo:     SLE_12_SP4
+    cloudsource: develcloud9
 parameters_template:
   default: &mkcloud_default
     nodenumber: 2
@@ -24,7 +28,7 @@ parameters_template:
     nodenumber: 5
     hacloud: 1
     networkingmode: vxlan
-    clusterconfig: "data+services+network=2"
+    clusterconfig: "data+services+network=3"
   hyperv: &mkcloud_hyperv
     networkingplugin: linuxbridge
     libvirt_type: hyperv

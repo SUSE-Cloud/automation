@@ -2,31 +2,26 @@
     name: 'openstack-cleanvm'
     project-type: matrix
 
-    triggers:
-      - timed: 'H 4 * * *'
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 10
 
-    build-discarder:
-      num-to-keep: 30
-      days-to-keep: -1
+    parameters:
+      - string:
+          name: openstack_project
+          default: None
+          description: name of the main project that should be updated with packages from its staging project
 
     axes:
       - axis:
           type: user-defined
           name: image
           values:
-            - SLE_12_SP1
             - SLE_12_SP2
             - SLE_12_SP3
-            - openSUSE-Leap-42.2
+            - SLE_12_SP4
             - openSUSE-Leap-42.3
-      - axis:
-          type: user-defined
-          name: openstack_project
-          values:
-            - Liberty
-            - Newton
-            - Ocata
-            - Master
+            - openSUSE-Leap-15.0
       - axis:
           type: slave
           name: slave
@@ -36,16 +31,37 @@
       combination-filter: |
         (
         slave=="cloud-cleanvm" && (
-           ( openstack_project=="Liberty" && (image=="SLE_12_SP1" ))
-        || ( openstack_project=="Newton" && (image=="SLE_12_SP2" || image=="openSUSE-Leap-42.2" ))
-        || ( openstack_project=="Ocata" && (image=="SLE_12_SP2" || image=="SLE_12_SP3" || image=="openSUSE-Leap-42.2" || image=="openSUSE-Leap-42.3"))
-        || ( openstack_project=="Master" && (image=="openSUSE-Leap-42.3" || image=="SLE_12_SP3"))
+           ( openstack_project=="Newton" && (image=="SLE_12_SP2" ))
+        || ( openstack_project=="Pike" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
+        || ( openstack_project=="Queens" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
+        || ( openstack_project=="Rocky" && (image=="SLE_12_SP4" || image=="openSUSE-Leap-15.0"))
+        || ( openstack_project=="Master" && (image=="SLE_12_SP4" || image=="openSUSE-Leap-15.0"))
         ))
       sequential: true
     builders:
       - update-automation
       - shell: |
-          #!/bin/bash
+          export automationrepo=~/github.com/SUSE-Cloud/automation
+          export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
+          # We need a workaround for the cleanvm job.
+          # The job will run on a host with SLE11 installed.
+          # There are no packages for ruby available to run jtsync.
+          export jtsync_fix="ssh root@tu-sle12"
+
+          # Workaround to get only the name of the job:
+          # https://issues.jenkins-ci.org/browse/JENKINS-39189
+          # When the JOB_BASE_NAME contains only in ex. "openstack-cleanvm", this
+          # workaround can be removed.
+          echo "$JOB_BASE_NAME"
+          main_job_name=${JOB_NAME%%/*}
+
+          function exec_jtsync {
+            # only enable jtsync when build is not manually triggered
+            if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
+              $jtsync_fix "$jtsync --ci opensuse --matrix $1,$2,$3 $4" || :
+            fi
+          }
+
           sudo /usr/local/sbin/freshvm cleanvm $image
           sleep 100
           cloudsource=openstack$(echo $openstack_project | tr '[:upper:]' '[:lower:]')
@@ -66,13 +82,9 @@
             file=/mnt/cleanvmbackup/${BUILD_NUMBER}-${openstack_project}-${image}.raw.gz
             time gzip -c1 /dev/vg0/cleanvm > $file
             du $file
+            exec_jtsync ${main_job_name} ${openstack_project} ${BUILD_NUMBER} 1
             exit 1
           fi
 
+          exec_jtsync ${main_job_name} ${openstack_project} ${BUILD_NUMBER} $ret
           exit $ret
-      - trigger-builds:
-        - project: openstack-submit
-          condition: SUCCESS
-          current-parameters: true
-          predefined-parameters:
-            openstack_project=${openstack_project}

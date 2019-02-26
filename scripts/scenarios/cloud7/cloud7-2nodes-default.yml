@@ -2,6 +2,7 @@
 proposals:
 - barclamp: database
   attributes:
+    sql_engine: postgresql
   deployment:
     elements:
       database-server:
@@ -10,6 +11,8 @@ proposals:
   attributes:
     trove:
       enabled: true
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:

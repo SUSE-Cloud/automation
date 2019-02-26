@@ -87,12 +87,12 @@ proposals:
 
 - barclamp: database
   attributes:
+    sql_engine: postgresql
     ha:
       storage:
         shared:
           device: ##shared_nfs_for_database##
           fstype: nfs
-          options: nfsvers=3
   deployment:
     elements:
       database-server:
@@ -100,14 +100,8 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
-    ha:
-      storage:
-        shared:
-          device: ##shared_nfs_for_rabbitmq##
-          fstype: nfs
-          options: nfsvers=3
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
@@ -161,6 +155,7 @@ proposals:
       backend_name: nfs
       nfs:
         nfs_shares: ##cinder-storage-shares##
+        nfs_snapshot: true
   deployment:
     elements:
       cinder-controller:
@@ -261,14 +256,6 @@ proposals:
       manila-share:
       - "@@data1@@"
       - "@@data2@@"
-
-- barclamp: trove
-  attributes:
-    volume_support: true
-  deployment:
-    elements:
-      trove-server:
-      - "@@controller1@@"
 
 - barclamp: tempest
   attributes:

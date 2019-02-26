@@ -1,5 +1,38 @@
 #!/bin/bash
-r=/srv/nfs/repos/
+
+SITE_DEFAULT="nue"
+[[ $(hostname) =~ provo ]] && SITE_DEFAULT="prv"
+
+# SITE to use. Can be "nue" or "prv" (Nuermberg and Provo)
+: ${SITE:=$SITE_DEFAULT}
+
+# The IBS source in Nuermberg
+ibs_source_nue="rsync://dist.nue.suse.com/repos/"
+# The install source in Nuermberg
+install_source_nue="rsync://dist.nue.suse.com/distinstall/"
+
+# The IBS source for Provo (NFS not provided - see https://infra.nue.suse.com/SelfService/Display.html?id=90350
+ibs_source_prv="rsync://ibs-mirror.prv.suse.net/dist/ibs/"
+# The install source in Provo
+install_source_prv="rsync://ibs-mirror.prv.suse.net/dist/install/"
+
+rsync_excludes="--exclude=*src.rpm"
+rsync_delete="--delete-delay"
+
+if [ $SITE = "nue" ]; then
+    ibs_source=$ibs_source_nue
+    install_source=$install_source_nue
+    archs="x86_64 s390x aarch64"
+elif [ $SITE = "prv" ]; then
+    ibs_source=$ibs_source_prv
+    install_source=$install_source_prv
+    # we do not need anything other that x86_64 in provo currently
+    archs=x86_64
+    rsync_excludes+=" --exclude=*-untested.qcow2 --exclude=*-debugsource-*.rpm --exclude=*-debuginfo-*.rpm"
+else
+    echo "Invalid site $SITE"
+    exit 1
+fi
 
 # disable/debug rsync with E=echo
 E=echo
@@ -13,89 +46,209 @@ M=
 DRY=--dry-run
 DRY=
 
-rsync="$E rsync $DRY --bwlimit 10000 --delay-updates --delete-delay -avH --no-owner --no-group --exclude=*src.rpm "
+rsync="$E rsync $DRY --timeout=1200 --fuzzy
+    --delay-updates $rsync_delete -aPH --no-owner --no-group $rsync_excludes "
 
 # http://download.suse.de/ibs/Devel:/Cloud:/4/images/*qcow2 -> images/SLES11-SP3-x86_64-cfntools.qcow2
 
-buildsuse=/mnt/dist/ibs/
-buildncc=$buildsuse
-ibsmaint=$buildsuse/SUSE\:/Maintenance\:/Test\:/
+# prevent concurrent runs
+lockf=/srv/nfs/last-update.txt.lock
+
+lockfile -l $((4 * 60 * 60)) $lockf || exit 1
+date > /srv/nfs/last-update.txt
+
+# Always sync the Maintenance test updates from NUE as they are not yet
+# on ibs-mirror.prv.suse.net. change this back when fixed.
+ibsmaint=${ibs_source_nue}/SUSE\:/Maintenance\:/Test\:/
+
+rsync_with_create() {
+    local src="$1"
+    local dst="$2"
+
+    mkdir -p "$dst"
+    $rsync "$src" "$dst"
+}
+
+mount_and_rsync()
+{
+    local from=$1
+    local to=$2
+    local oneiso=`ls $from | tail -1`
+    if [ -e "$oneiso" ] ; then
+        $M mount -o loop,ro "$oneiso" /mnt/cloud
+        [ $? == 0 ] && $rsync /mnt/cloud/ $to
+        $M umount /mnt/cloud
+    fi
+}
+
+rsync_and_unpack_iso()
+{
+    local iso="$1"
+    local dst="$2"
+
+    # need smaller than normal block size to circumvent ISO data alignment issues
+    # and speed up the sync
+    $rsync --checksum --block-size=2048 --copy-links "$iso" $dst.iso
+    mount_and_rsync $dst.iso $dst
+}
+
+##############
+# Cloud
+##############
+
+for version in 9 8 7 6; do
+    # fetch latest code from version in development (not just latest beta)
+    sync_from_ibs=
+    [ "$version" == "9" ] && sync_from_ibs=1
+    servicepack=1
+    [ "$version" == "7" ] && servicepack=2
+    [ "$version" == "8" ] && servicepack=3
+    [ "$version" == "9" ] && servicepack=4
+
+    for arch in $archs; do
+        # no ARM for Cloud <= 6
+        [ "$arch" == aarch64 -a $version -le 6 ] && continue
+        # no s390x for Cloud <= 6
+        [ "$arch" == s390x -a $version -le 6 ] && continue
+
+        echo ================== Updating Cloud $version for $arch
+
+        if [ -z "$sync_from_ibs" ]; then
+            $rsync $install_source/SLP/SLE-12-SP$servicepack-Cloud$version-GM/$arch/DVD1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
+        else
+            rsync_and_unpack_iso ${ibs_source_nue}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
+        fi
+
+        # Ardana flavor
+        if [ "$version" != "8" ] || [ "$arch" = "x86_64" ]; then
+            if [ -z "$sync_from_ibs" ]; then
+                rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel
+                rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel-staging
+            else
+                rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel
+                rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel-staging
+            fi
+            rsync_with_create ${ibs_source}/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Pool/
+            rsync_with_create ${ibs_source}/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates/
+            rsync_with_create $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
+        fi
+
+        # Cloud8-HOS flavor
+        if [ "$version" = "8" -a "$arch" = "x86_64" ]; then
+            rsync_and_unpack_iso ${ibs_source_nue}/Devel:/Cloud:/$version/images/iso/HPE-HELION-OPENSTACK-$version-$arch-Media1.iso /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-devel
+            rsync_with_create ${ibs_source}/SUSE/Products/HPE-Helion-OpenStack/$version/$arch/product/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Pool/
+            rsync_with_create ${ibs_source}/SUSE/Updates/HPE-Helion-OpenStack/$version/$arch/update/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Updates/
+        fi
+
+        # SOC-Crowbar flavor
+        if [ "$version" = "8" -o "$version" = "9" ]; then
+            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel
+            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
+            rsync_with_create ${ibs_source}/SUSE/Products/OpenStack-Cloud-Crowbar/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Pool/
+            rsync_with_create ${ibs_source}/SUSE/Updates/OpenStack-Cloud-Crowbar/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Updates/
+            rsync_with_create $ibsmaint/OpenStack-Cloud-Crowbar\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Updates-test/
+
+            if [ -z "$sync_from_ibs" ]; then
+                rsync_and_unpack_iso $install_source/SLE-12-SP$servicepack-Cloud$version-GM/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-GM-DVD1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-official
+            else
+                rsync_and_unpack_iso ${ibs_source_nue}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-official
+            fi
+        fi
+    done
+done
+
+rsync_with_create ${ibs_source_nue}/Devel:/Cloud:/8:/HOS5Migration/SLE_12_SP3/ /srv/nfs/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-HOS5Migration/
 
 ##############
 # SLE 12
 ##############
 
-for servicepack in 1 2 3; do
+for servicepack in 4 3 2 1; do
     # fetch latest code from service pack in development (not just latest beta)
     sync_from_ibs=
-    [ $servicepack -eq 3 ] && sync_from_ibs=1
+    [ $servicepack -eq 5 ] && sync_from_ibs=1
 
     version="12-SP$servicepack"
     repo_version="$version"
     chef_version="12.$servicepack"
 
-    for arch in x86_64 s390x aarch64; do
-        # only x86_64 for SP0
-        [ "$arch" != x86_64 -a $servicepack -eq 0 ] && continue
-        [ "$arch" = "aarch64" -a $servicepack -eq 1 ] && continue
-        install_subdir="/$arch"
-        # no subdir for /install for SP0
-        [ $servicepack -eq 0 ] && install_subdir=
+    for arch in $archs; do
+        # only x86_64 for SP1
+        [ "$arch" != x86_64 -a $servicepack -le 1 ] && continue
 
         echo ================== Updating SLE 12 SP$servicepack for $arch
 
-        destdir=/srv/nfs/suse-${chef_version}${install_subdir}/install/
-        mkdir -p $destdir
-        if test -d /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ ; then
-            $rsync /mnt/dist/install/SLP/SLE-$version-Server-GM/$arch/DVD1/ $destdir
+        destdir_install=/srv/nfs/install/suse-${chef_version}/$arch/install/
+        mkdir -p $destdir_install
+        if [ -z "$sync_from_ibs" ]; then
+            $rsync $install_source/SLP/SLE-$version-Server-GM/$arch/DVD1/ $destdir_install
         else
-            $rsync /mnt/dist/install/SLP/SLE-$version-Server-TEST/$arch/DVD1/ $destdir
+            $rsync $install_source/SLP/SLE-$version-Server-TEST/$arch/DVD1/ $destdir_install
         fi
 
         # SLES pool
+        destdir_sles_pool=/srv/nfs/repos/$arch/SLES$repo_version-Pool/
+        mkdir -p $destdir_sles_pool
         if [ -z "$sync_from_ibs" ]; then
-            $rsync --link-dest /srv/nfs/suse-${chef_version}${install_subdir}/install/suse/ $buildsuse/SUSE/Products/SLE-SERVER/$version/$arch/product/ /srv/nfs/repos/$arch/SLES$repo_version-Pool/
+            $rsync --link-dest /srv/nfs/install/suse-${chef_version}/$arch/install/suse/ ${ibs_source}/SUSE/Products/SLE-SERVER/$version/$arch/product/ $destdir_sles_pool
         else
-            $rsync --link-dest /srv/nfs/suse-${chef_version}${install_subdir}/install/suse/ /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-Server-POOL-$arch-Media1/ /srv/nfs/repos/$arch/SLES$repo_version-Pool/
+            $rsync --link-dest /srv/nfs/install/suse-${chef_version}/$arch/install/suse/ ${ibs_source}/SUSE\:/SLE-$version\:/GA\:/TEST/images/repo/SLE-$version-Server-POOL-$arch-Media1/ $destdir_sles_pool
         fi
         # SLES updates
-        $rsync $buildsuse/SUSE/Updates/SLE-SERVER/$version/$arch/update/ /srv/nfs/repos/$arch/SLES$repo_version-Updates/
+        destdir_sles_updates=/srv/nfs/repos/$arch/SLES$repo_version-Updates/
+        mkdir -p $destdir_sles_updates
+        $rsync ${ibs_source}/SUSE/Updates/SLE-SERVER/$version/$arch/update/ $destdir_sles_updates
         # SLES test updates
-        if test -d $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ ; then
-            $rsync $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLES$repo_version-Updates-test/
-        fi
+        destdir_sles_updates_test=/srv/nfs/repos/$arch/SLES$repo_version-Updates-test/
+        mkdir -p $destdir_sles_updates_test
+        $rsync $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ $destdir_sles_updates_test
 
-        # HA is only for > SP1, and not for ARM
-        if [ $servicepack -gt 0 -a "$arch" != aarch64 ]; then
+        # HA is not for ARM
+        if [ "$arch" != aarch64 ]; then
             # HA pool
+            destdir_ha_pool=/srv/nfs/repos/$arch/SLE$repo_version-HA-Pool/
+            mkdir -p $destdir_ha_pool
             if [ -z "$sync_from_ibs" ]; then
-                $rsync $buildsuse/SUSE/Products/SLE-HA/$version/$arch/product/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Pool/
+                $rsync ${ibs_source}/SUSE/Products/SLE-HA/$version/$arch/product/ $destdir_ha_pool
             else
-                $rsync /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-HA-POOL-$arch-Media1/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Pool/
+                rsync_with_create ${ibs_source}/SUSE\:/SLE-$version\:/GA\:/TEST/images/repo/SLE-$version-HA-POOL-$arch-Media1/ $destdir_ha_pool
             fi
             # HA updates
-            $rsync $buildsuse/SUSE/Updates/SLE-HA/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates/
+            rsync_with_create ${ibs_source}/SUSE/Updates/SLE-HA/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates/
             # HA test updates
-            if test -d $ibsmaint/SLE-HA\:/$version\:/$arch/update/ ; then
-                $rsync $ibsmaint/SLE-HA\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates-test/
-            fi
+            rsync_with_create $ibsmaint/SLE-HA\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-HA-Updates-test/
         fi
 
-        # SDK is only for > SP1, and not for ARM
-        if [ $servicepack -gt 0 -a "$arch" != aarch64 ]; then
+        # SDK only for x86_64
+        if [ "$arch" = x86_64 ]; then
             # SDK pool
+            destdir_sdk_pool=/srv/nfs/repos/$arch/SLE$repo_version-SDK-Pool/
+            mkdir -p $destdir_sdk_pool
             if [ -z "$sync_from_ibs" ]; then
-                $rsync $buildsuse/SUSE/Products/SLE-SDK/$version/$arch/product/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Pool/
+                rsync_with_create ${ibs_source}/SUSE/Products/SLE-SDK/$version/$arch/product/ $destdir_sdk_pool
             else
-                $rsync /mnt/dist/ibs/SUSE\:/SLE-$version\:/GA/images/repo/SLE-$version-SDK-POOL-$arch-Media1/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Pool/
+                rsync_with_create ${ibs_source}/SUSE\:/SLE-$version\:/GA\:/TEST/images/repo/SLE-$version-SDK-POOL-$arch-Media1/ $destdir_sdk_pool
             fi
             # SDK updates
-            $rsync $buildsuse/SUSE/Updates/SLE-SDK/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates/
+            rsync_with_create ${ibs_source}/SUSE/Updates/SLE-SDK/$version/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates/
             # SDK test updates
-            if test -d $ibsmaint/SLE-SDK\:/$version\:/$arch/update/ ; then
-                $rsync $ibsmaint/SLE-SDK\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates-test/
-            fi
+            rsync_with_create $ibsmaint/SLE-SDK\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SLE$repo_version-SDK-Updates-test/
         fi
+    done
+done
+
+
+# LTSS enablement
+for servicepack in 3 2 1; do
+
+    version="12-SP$servicepack-LTSS"
+    repo_version="$version"
+    chef_version="12.$servicepack"
+
+    for arch in x86_64; do
+        destdir_sles_updates=/srv/nfs/repos/$arch/SLES$repo_version-Updates/
+        mkdir -p $destdir_sles_updates
+        $rsync ${ibs_source}/SUSE/Updates/SLE-SERVER/$version/$arch/update/ $destdir_sles_updates
     done
 done
 
@@ -104,110 +257,62 @@ done
 # Storage
 ##############
 
-for version in 2.1 4 5; do
+for version in 6 5 4 2.1; do
 
-    for arch in x86_64 aarch64; do
+    for arch in $archs; do
         [ "$arch" != x86_64 -a $version = 2.1 ] && continue
+        [ "$arch" != x86_64 -a "$arch" != aarch64 ] && continue
 
         echo ================== Updating Storage $version
 
-        # sync version 4 from ibs while in development
+        # sync version 6 from ibs while in development
         poolsource=
-        if [[ $version == 4 ]]; then
-            poolsource=/mnt/dist/ibs/SUSE\:/SLE-12-SP2\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
+        if [[ $version == 6 ]]; then
+            poolsource=${ibs_source}/SUSE\:/SLE-15\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
         else
-            poolsource=$buildsuse/SUSE/Products/Storage/$version/$arch/product/
+            poolsource=${ibs_source}/SUSE/Products/Storage/$version/$arch/product/
         fi
-        $rsync $poolsource /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Pool
-
-        if test -d $buildsuse/SUSE/Updates/Storage/$version/$arch/update/; then
-            $rsync $buildsuse/SUSE/Updates/Storage/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates
-        fi
-
-        if test -d $ibsmaint/Storage\:/$version\:/$arch/update/; then
-            $rsync $ibsmaint/Storage\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates-test
-        fi
-    done
-done
-
-
-##############
-# Cloud
-##############
-
-function mount_and_rsync {
-    local from=$1
-    local to=$2
-    local oneiso=`ls $from | tail -1`
-    if [ -e "$oneiso" ] ; then
-        $M mount -o loop,ro "$oneiso" /mnt/cloud
-        [ $? == 0 ] && $rsync /mnt/cloud/ /srv/nfs/repos/$to/
-        $M umount /mnt/cloud
-    fi
-}
-
-# mirror aarch64 SP1 builds
-$rsync /mnt/dist/ibs/Devel:/ARM:/SLE-12-SP1:/Update/images/repo/SLE-12-SP1-Server-POOL-aarch64-*-Media1/ /srv/nfs/repos/aarch64/SLES12-SP1-Pool
-
-for version in 6 7 8; do
-    # fetch latest code from version in development (not just latest beta)
-    sync_from_ibs=
-    [ "$version" == "8" ] && sync_from_ibs=1
-    servicepack=1
-    [ "$version" == "7" ] && servicepack=2
-
-    for arch in x86_64 s390x aarch64; do
-        # no ARM for Cloud <= 6
-        [ "$arch" == aarch64 -a $version -le 6 ] && continue
-
-        echo ================== Updating Cloud $version for $arch
-
-        if [ -z "$sync_from_ibs" ]; then
-            $rsync /mnt/dist/install/SLP/SLE-12-SP$servicepack-Cloud$version-GM/$arch/DVD1/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
-        else
-            mount_and_rsync "/mnt/dist/ibs/SUSE:/SLE-12-SP$servicepack:/Update:/Products:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Build[0-9][0-9][0-9][0-9]-Media1.iso" $arch/SUSE-OpenStack-Cloud-$version-official
-        fi
-
-        mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Build[0-9][0-9][0-9][0-9]-Media1.iso" $arch/SUSE-OpenStack-Cloud-$version-devel
-        mount_and_rsync "/mnt/dist/ibs/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Build[0-9][0-9][0-9][0-9]-Media1.iso" $arch/SUSE-OpenStack-Cloud-$version-devel-staging
-
-        if test -d $buildsuse/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ ; then
-            $rsync $buildsuse/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Pool/
-        fi
-
-        if test -d $buildsuse/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ ; then
-            $rsync $buildsuse/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates/
-        fi
-
-        if test -d $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/; then
-            $rsync $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
-        fi
+        rsync_with_create $poolsource /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Pool
+        rsync_with_create ${ibs_source}/SUSE/Updates/Storage/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates
+        rsync_with_create $ibsmaint/Storage\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-Enterprise-Storage-$version-Updates-test
     done
 done
 
 # sync admin images
-for arch in x86_64 aarch64 s390x ; do
-    $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2.${arch}.qcow2 /srv/nfs/images/$arch/SLES12-SP2-untested.qcow2
-
-    $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP3/mkcloud-admin-node-SLE12SP3.${arch}.qcow2 /srv/nfs/images/$arch/SLES12-SP3-untested.qcow2
+for arch in $archs ; do
+    destdir_admin_images=/srv/nfs/images/$arch/
+    mkdir -p $destdir_admin_images
+    $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-untested.qcow2
+    $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP3/mkcloud-admin-node-SLE12SP3.${arch}.qcow2 $destdir_admin_images/SLES12-SP3-untested.qcow2
+    $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP4/mkcloud-admin-node-SLE12SP4.${arch}.qcow2 $destdir_admin_images/SLES12-SP4-untested.qcow2
 
     if [ "$arch" == x86_64 ]; then
-        $rsync -L /mnt/dist/ibs/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2-uefi.${arch}.qcow2 /srv/nfs/images/$arch/SLES12-SP2-uefi.qcow2
+        $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2-uefi.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-uefi.qcow2
     fi
 done
 
-# reduce disk usage
-fdupes -q -n -r /srv/nfs/repos/ /srv/nfs/install/ |
-    while read _file; do
-        if test -z "$_target" ; then
-            _target="$_file";
-        else
-            if test -z "$_file" ; then
-                _target="";
-                continue ;
-            fi
-            ln -f "$_target" "$_file";
-        fi
-     done
+# sync modules
+for arch in $archs ; do
+    [ "$arch" == x86_64 ] || continue
+    # for salt:
+    $rsync ${ibs_source}/SUSE/Products/SLE-Module-Adv-Systems-Management/12/x86_64/product/ /srv/nfs/repos/$arch/SLE12-Module-Adv-Systems-Management-Pool
+    $rsync ${ibs_source}/SUSE/Updates/SLE-Module-Adv-Systems-Management/12/x86_64/update/ /srv/nfs/repos/$arch/SLE12-Module-Adv-Systems-Management-Updates
+done
 
-~/bin/syncgitrepos
+if [ $SITE = "nue" ]; then
+    for v in 12 15 ; do
+        rsync_with_create rsync://ftp.gwdg.de/pub/opensuse/repositories/devel:/languages:/ruby:/extensions/SLE_$v/ /srv/nfs/repos/repositories/devel:/languages:/ruby:/extensions/SLE_$v
+    done
+
+    for servicepack in 4 3; do
+        # repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync, cct)
+        for obsrepo in devel:/tools:/building/SLE_12_SP$servicepack ; do
+            rsync_with_create rsync://ftp.gwdg.de/pub/opensuse/repositories/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/
+        done
+    done
+
+    # this one is always failing - we need to ignore that otherwise the lock file remains stuck
+    timeout 1h ~/bin/syncgitrepos || :
+fi
+
+rm -f $lockf

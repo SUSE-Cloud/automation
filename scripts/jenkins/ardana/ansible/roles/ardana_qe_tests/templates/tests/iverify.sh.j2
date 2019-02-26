@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Wrapper script to execute iverify
+# within the venv
+#
+# Usage: iverify.sh
+
+set -o pipefail
+
+
+LOADVMS=1
+WORK_HOME={{ ardana_qe_test_work_dir }}
+
+AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
+
+# Run the test
+{{ ardana_qe_tests_dir }}/ardana-qa-tests/iverify/iverify.sh -n $AUTO_ID | tee \
+  ${WORK_HOME}/iverify.log
+
+res=$?
+
+# Save subunit output
+cp ~/iverify_test$AUTO_ID/subunit_output ${WORK_HOME}/iverify.subunit
+
+echo "Run completed with status $res"
+
+# Run cleanup
+{{ ardana_qe_tests_dir }}/ardana-qa-tests/iverify/iverify.sh -n $AUTO_ID -d
+
+exit $res

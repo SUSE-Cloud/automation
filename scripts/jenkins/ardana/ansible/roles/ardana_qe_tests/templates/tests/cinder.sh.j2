@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Wrapper script to execute cinder-tests-all
+# within the venv
+#
+# Usage: cinder-tests-all.sh backend-type subunit-logname
+
+# rather than try to figured out cinder's default backend
+# type to pass to cinder-tests-all, just use 'default'
+# which will result in no volume-type in cinder commands.
+backend="default"
+
+work_dir={{ ardana_qe_test_work_dir }}
+test_dir={{ ardana_qe_tests_dir }}/ardana-qa-tests/cinder-new
+test_log="$work_dir/cinder.log"
+subunit_log="$work_dir/cinder.subunit"
+
+# tests append so start clean
+rm $test_log
+rm $subunit_log
+
+# need to run out of cinder dir because cinder-tests-all assume that ;(
+cd $test_dir
+source ~/keystone.osrc
+openstack role add --user admin --project admin cinder_admin
+
+$test_dir/cinder-tests-all $backend $subunit_log | tee $test_log

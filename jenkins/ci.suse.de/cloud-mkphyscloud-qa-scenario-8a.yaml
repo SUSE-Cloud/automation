@@ -11,12 +11,12 @@
         - Shared device for DB and rabbit
         - Swift
         - Neutron: linuxbridge or OVS
-        - Monasca 
+        - Monasca
 
       It will wipe all machines in the selected cloud!
 
     wrappers:
-      - mkphyscloud-qa-build-name-wrapper 
+      - mkphyscloud-qa-build-name-wrapper
     publishers:
       - mkphyscloud-qa-common-publishers
 
@@ -31,7 +31,7 @@
 
       - string:
           name: admin_os
-          default: sles12sp2
+          default: sles12sp3
           description: Mandatory, admin node operating system version
 
       - string:
@@ -45,14 +45,14 @@
           description: Mandatory, automation repo owner/organization
 
       - string:
-          name: automation_repo
-          default: git://github.com/$repo_owner/automation.git
-          description: Mandatory, automation repo URL
-
-      - string:
           name: branch
           default: master
           description: Mandatory, automation repo branch
+
+      - string:
+          name: automation_repo
+          default: github.com/$repo_owner/automation#$branch
+          description: Mandatory, automation repo URL
 
       - string:
           name: networkingplugin
@@ -70,11 +70,6 @@
           default: smoke
           description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
 
-      - string:
-          name: cct
-          default: features:base
-          description: Optional, specify cct tests to run
-
       - bool:
           name: horizon-tests
           default: false
@@ -87,7 +82,7 @@
 
       - string:
           name: cloud_version
-          default: "7"
+          default: "8"
           description: Mandatory, version of the cloud to be installed as integer
 
       - string:
@@ -133,6 +128,11 @@
           default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases
           description: All the steps that needs to be completed to have cloud installed
 
+      - string:
+          name: want_test_updates
+          default: 0
+          description: Use updates-test repos for all SUSE products
+
       - text:
           name: UPDATEREPOS
           default:
@@ -145,7 +145,7 @@
 
     builders:
       - shell: |
-          #!/bin/bash
+          #!/bin/bash -x
           admin=crowbar$hw_number
           cloud=qa$hw_number
 
@@ -172,7 +172,7 @@
           update_automation
 
           # put variables needed during the build process into mkcloud.config file
-          env | grep -e networking -e libvirt -e cloud -e upgrade -e cct -e TESTHEAD > mkcloud.config
+          env | grep -e networking -e libvirt -e cloud -e upgrade -e TESTHEAD > mkcloud.config
 
           # copy scripts/ dir onto the admin node in /root/scripts
           scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
@@ -197,6 +197,8 @@
           export want_node_aliases=controller=3,compute-kvm=1,storage-swift=2,monasca-server=1 ;
           export networkingplugin=$networkingplugin ;
           export networkingmode=$networkingmode ;
+          export want_swift=1 ;
+          export cephvolumenumber=1 ;
           export scenario=\"/root/scenario.yml\" ;
           export commands=\"$commands\" "'
 
@@ -244,7 +246,6 @@
             predefined-parameters: |
               hw_number=$hw_number
               tempest=$tempest
-              cct_tests=$cct
               horizon-tests=$horizon-tests
               scenario_name=8a
               scenario_job_name=$JOB_NAME

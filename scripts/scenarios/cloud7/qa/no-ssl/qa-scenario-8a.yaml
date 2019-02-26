@@ -39,6 +39,7 @@ proposals:
 
 - barclamp: database
   attributes:
+    sql_engine: postgresql
     ha:
       storage:
         shared:
@@ -58,6 +59,8 @@ proposals:
           device: ##shared_nfs_for_rabbitmq##
           fstype: nfs
           options: nfsvers=3
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
@@ -111,7 +114,6 @@ proposals:
       backend_name: nfs
       nfs:
         nfs_shares: ##cinder-storage-shares##
-        nfs_mount_options: nfsvers=3,rw,sync,nofail
   deployment:
     elements:
       cinder-controller:

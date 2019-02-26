@@ -6,26 +6,26 @@ description: |
 
   Usage examples:
 
-    # Build from Cloud:OpenStack:Newton:Staging on SLE12 SP2
+    # Build from Cloud:OpenStack:Pike:Staging on SLE12 SP3
     heat stack-create -f openstack-cleanvm.yaml -P key_name=myuser -P TESTHEAD=1 myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Newton on SLE12 SP2
+    # Build from Cloud:OpenStack:Pike on SLE12 SP3
     heat stack-create -f openstack-cleanvm.yaml -P key_name=myuser myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Liberty on SLE12 SP1
+    # Build from Cloud:OpenStack:Newton on SLE12 SP2
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
-      -P cloudsource=openstackliberty \
+      -P cloudsource=openstacknewton \
       -P image=SLES12-SP1
       myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Newton on openSUSE Leap 42.1
+    # Build from Cloud:OpenStack:Pike on openSUSE Leap 42.1
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
       -P image=openSUSE-Leap-42.1 \
       myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Newton on openSUSE Leap 42.1 and use a
+    # Build from Cloud:OpenStack:Pike on openSUSE Leap 42.2 and use a
     # openstack-quickstart fork
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
@@ -34,7 +34,7 @@ description: |
       -P quickstart_branch=my-quickstart-feature
       myuser-cleanvm
 
-    # Build from Cloud:OpenStack:Newton on openSUSE Leap 42.1 and use a
+    # Build from Cloud:OpenStack:Pike on openSUSE Leap 42.3 and use a
     # fork of SUSE-cloud/automation
     heat stack-create -f openstack-cleanvm.yaml \
       -P key_name=myuser \
@@ -45,6 +45,16 @@ description: |
 
 
 parameters:
+  allow_vendor_change:
+    type: string
+    default: '1'
+    description: >
+      Allow package vendor changes in zypper. This may be needed because the
+      images available in Glance usually have more packages installed than our
+      standard CI image and some of these may have never versions in
+      Cloud:OpenStack:*. Any package for which this is the case will cause
+      zypper to stall deployment by displaying a prompt asking the user whether
+      they'd like to allow a vendor change for the package in question.
   TESTHEAD:
     type: string
     default: '1'
@@ -67,7 +77,7 @@ parameters:
     description: The repository URL to clone the automation repository from
   cloudsource:
     type: string
-    default: openstacknewton
+    default: openstackpike
     description: The Cloud source to use.
   floating_network:
     type: string
@@ -75,10 +85,10 @@ parameters:
     description: The network to draw floating IPs from.
   image:
     type: string
-    default: SLES12-SP2
+    default: SLES12-SP3
     description: >
       The Glance image to use for the cleanvm machine. Use `SLES12-SP1`,
-      `SLES12-SP2` or `openSUSE-Leap-42.1` for now.
+      `SLES12-SP2`, `SLES12-SP3`  or `openSUSE-Leap-42.1` for now.
   flavor:
     type: string
     default: m1.large
@@ -142,6 +152,7 @@ resources:
           params:
             _cloudsource: { get_param: cloudsource }
             _TESTHEAD: { get_param: TESTHEAD }
+            _allow_vendor_change: { get_param: allow_vendor_change }
             _automation_repo: { get_param: automation_repo }
             _automation_branch: { get_param: automation_branch }
             _package_repo: { get_param: package_repo }

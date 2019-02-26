@@ -27,7 +27,7 @@ function get_getent_hosts
 
 function to_ip6
 {
-    get_getent_hosts $1 ip6
+    echo "[$(get_getent_hosts $1 ip6)]"
 }
 
 function to_ip4
@@ -37,12 +37,25 @@ function to_ip4
 
 function to_ip
 {
-    to_ip4 $1
+    ip=$(to_ip4 $1)
+    if [ -z $ip ]; then
+        ip=$(to_ip6 $1)
+    fi
+    echo "$ip"
 }
 
 function to_fqdn
 {
     get_getent_hosts $1 fqdn
+}
+
+function wrap_ip
+{
+  if (( $want_ipv6 > 0 )); then
+    echo "[$1]"
+  else
+    echo $1
+  fi
 }
 
 function max
@@ -115,6 +128,11 @@ function safely
     fi
 }
 
+function safely_skip_support
+{
+    SKIPSUPPORTCONFIG=1 safely "$@"
+}
+
 function rubyjsonparse
 {
     ruby -e "
@@ -140,7 +158,7 @@ function handle_service_dependencies
 
 function determine_mtu
 {
-    LC_ALL=C sort -n /sys/class/net/*/mtu | head -n 1
+    ( shopt -s extglob; LC_ALL=C eval "sort -n /sys/class/net/!(lo)/mtu" | head -n 1 )
 }
 
 function is_opensuse
@@ -167,15 +185,34 @@ function is_onhost
 
 function is_onadmin
 {
-    [[ $BASH_SOURCE =~ qa_crowbarsetup.sh$ ]] && [[ ! $is_oncontroller ]]
+    [[ ${BASH_SOURCE[@]} =~ "qa_crowbarsetup.sh" ]] && [[ ! $is_oncontroller ]]
 }
 
 function is_oncontroller
 {
-    [[ $BASH_SOURCE =~ qa_crowbarsetup.sh$ ]] && [[ $is_oncontroller ]]
+    [[ ${BASH_SOURCE[@]} =~ "qa_crowbarsetup.sh" ]] && [[ $is_oncontroller ]]
 }
 
-sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oServerAliveInterval=20"
+timing_file_host=$artifacts_dir/timing_stats.csv
+timing_file_admin=timing_stats_admin.csv
+function log_timing
+{
+    start="$1"
+    end="$2"
+    kind="${3//,/}"
+    item="${4//,/}"
+    logfile=/dev/null
+    if is_onhost ; then
+        logfile="$timing_file_host"
+    elif is_onadmin ; then
+        logfile="$timing_file_admin"
+    fi
+    # csv format example:
+    # 1508410033,1508410048,proposal,crowbar(default),15
+    echo "$start,$end,$kind,$item,$(($end - $start))" >> $logfile
+}
+
+sshopts="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oServerAliveInterval=20 -oConnectTimeout=5"
 scp="scp $sshopts"
 ssh="ssh $sshopts"
 function ssh_password
@@ -185,7 +222,7 @@ function ssh_password
 #!/bin/sh
 echo $admin_image_password
 EOSSHASK
-    chmod +x $SSH_ASKPASS
+    chmod 0700 $SSH_ASKPASS
     DISPLAY=dummydisplay:0 SSH_ASKPASS=$SSH_ASKPASS setsid $ssh -oNumberOfPasswordPrompts=1 "$@"
 }
 
@@ -246,7 +283,11 @@ function setcloudnetvars
 
     # common cloud network prefix within SUSE Nuremberg:
     netp=10.162
-    net=${net_admin:-192.168.124}
+    if (( $want_ipv6 > 0 )); then
+        net=${net_admin:-'fd00:0:0:3'}
+    else
+        net=${net_admin:-192.168.124}
+    fi
     case "$cloud" in
         p1)
             nodenumbertotal=5
@@ -354,17 +395,40 @@ function setcloudnetvars
     test -n "$nodenumbertotal" && nodenumber=${nodenumber:-$nodenumbertotal}
     # default networks in crowbar:
     vlan_storage=${vlan_storage:-200}
+    vlan_ceph=${vlan_ceph:-600}
     vlan_public=${vlan_public:-300}
     vlan_fixed=${vlan_fixed:-500}
     vlan_sdn=${vlan_sdn:-400}
-    net_fixed=${net_fixed:-192.168.123}
-    net_public=${net_public:-192.168.122}
-    net_storage=${net_storage:-192.168.125}
-    net_ironic=${net_ironic:-192.168.128}
-    net_sdn=${net_sdn:-192.168.130}
-    : ${admingw:=$net.1}
-    : ${adminip:=$net.10}
-    : ${ironicgw:=$net_ironic.1}
+    if (( ${want_ipv6} > 0 )); then
+        net_fixed=${net_fixed:-'fd00:0:0:2'}
+        net_public=${net_public:-'fd00:0:0:1'}
+        net_storage=${net_storage:-'fd00:0:0:4'}
+        net_ceph=${net_ceph:-'fd00:0:0:5'}
+        net_ironic=${net_ironic:-'fd00:0:0:6'}
+        net_sdn=${net_sdn:-'fd00:0:0:7'}
+        : ${adminnetmask:=64}
+        : ${ironicnetmask:=64}
+        : ${defaultnetmask:=64}
+        : ${adminip:=${net}:5054:ff:fe77:7770}
+        : ${admin_end_range:=${net}:5054:ff:fe77:7771}
+        : ${admingw:=${net}${ip_sep}${ip_sep}1}
+        : ${publicgw:=${net_public}${ip_sep}${ip_sep}1}
+        : ${ironicgw:=${net_ironic}${ip_sep}${ip_sep}1}
+    else
+        net_fixed=${net_fixed:-192.168.123}
+        net_public=${net_public:-192.168.122}
+        net_storage=${net_storage:-192.168.125}
+        net_ceph=${net_ceph:-192.168.127}
+        net_ironic=${net_ironic:-192.168.128}
+        net_sdn=${net_sdn:-192.168.130}
+        : ${adminnetmask:=255.255.248.0}
+        : ${ironicnetmask:=255.255.255.0}
+        : ${defaultnetmask:=255.255.255.0}
+        : ${adminip:=${net}${ip_sep}10}
+        : ${admingw:=${net}${ip_sep}1}
+        : ${publicgw:=${net_public}${ip_sep}1}
+        : ${ironicgw:=${net_ironic}${ip_sep}1}
+    fi
 }
 
 # Returns success if a change was made
@@ -441,15 +505,20 @@ function getcloudver
         echo -n 6
     elif [[ $cloudsource =~ ^.*(cloud|GM)7(\+up)?$ ]] ; then
         echo -n 7
-    elif [[ $cloudsource =~ ^(.+8|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM8?(\+up)?)$ ]] ; then
+    elif [[ $cloudsource =~ ^.*(cloud|GM)8(\+up)?$ ]] ; then
         echo -n 8
+    elif [[ $cloudsource =~ ^(.+9|M[[:digit:]]+|Beta[[:digit:]]+|RC[[:digit:]]*|GMC[[:digit:]]*|GM9?(\+up)?)$ ]] ; then
+        echo -n 9
     else
         complain 11 "unknown cloudsource version"
     fi
 }
 
 # return if cloudsource is referring a certain SUSE Cloud version
-# input1: version - 6plus refers to version 6 or later ; only a number refers to one exact version
+# input1: version
+#   6plus refers to version 6 or later
+#   6minus refers to version 6 or earlier
+#   6 refers to exactly version 6
 function iscloudver
 {
     [[ $cloudsource ]] || return 1
@@ -494,11 +563,23 @@ get_nodenumbercontroller()
     echo "$nodenumbercontroller"
 }
 
+find_fastest_clouddata_server()
+{
+    local cache=~/.mkcloud/fastest_clouddata_server
+    if [[ -r $cache ]] && [[ $cache -nt $BASH_SOURCE ]] ; then
+        exec cat $cache || exit 100
+    fi
+    mkdir -p ~/.mkcloud
+    $scripts_lib_dir/find_fastest_server.pl clouddata.nue.suse.com. provo-clouddata.cloud.suse.de. | tee $cache
+}
+
 function get_admin_node_dist
 {
     # echo the name of the current dist for the admin node
     local dist=
     case $(getcloudver) in
+        9)  dist=SLES12-SP4
+            ;;
         8)  dist=SLES12-SP3
             ;;
         7)  dist=SLES12-SP2
@@ -521,8 +602,6 @@ function dist_to_image_name
 {
     # get the name of the image to deploy the admin node
     local image=$1
-    iscloudver 7 && [[ $want_efi ]] && \
-        [[ $arch == x86_64 ]] && image="SLES12-SP2-uefi"
     echo "$image.qcow2"
 }
 
@@ -533,14 +612,20 @@ function run_zypper
     $sudo zypper $params "$@"
 }
 
-function common_set_slesversions
+function common_set_versions
 {
-    if iscloudver 7; then
+    if iscloudver 8; then
+        suseversion=12.3
+        cloudrepover="Crowbar-8"
+    elif iscloudver 7; then
         suseversion=12.2
+        cloudrepover=7
     elif iscloudver 6; then
         suseversion=12.1
+        cloudrepover=6
     else
-        suseversion=12.3
+        suseversion=12.4
+        cloudrepover="Crowbar-9"
     fi
 
     case "$suseversion" in
@@ -559,7 +644,16 @@ function common_set_slesversions
             slesdist=SLE_12_SP3
             sesversion=5
         ;;
+        12.4)
+            slesversion=12-SP4
+            slesdist=SLE_12_SP4
+            sesversion=5
+        ;;
     esac
+
+    if [ $want_ses_version -gt 0 ]; then
+        sesversion=$want_ses_version
+    fi
 }
 
 # ---- END: functions related to repos and distribution settings
@@ -570,6 +664,10 @@ function common_set_slesversions
 : ${arch:=$(uname -m)}
 : ${admin_image_password:='linux'}
 : ${susedownload:=download.nue.suse.com}
+
+# bmc credentials
+: ${bmc_user:=root}
+: ${bmc_password:=cr0wBar!}
 
 # NOTE: $clouddata and similar variables are deprecated
 if [[ $clouddata || $clouddatadns || $clouddata_base_path || $clouddata_nfs || $clouddata_nfs_dir ]] ; then
@@ -596,7 +694,7 @@ fi
 # NOTE: they are not to be used in mkcloud/qa_crowbarsetup
 # Please ONLY use the suffixed variables: '*_ip' or '*_fqdn'
 
-: ${reposerver:=clouddata.nue.suse.com}
+: ${reposerver:=$(find_fastest_clouddata_server)}
 : ${reposerver_ip:=$(to_ip $reposerver)}
 : ${reposerver_fqdn:=$(to_fqdn $reposerver)}
 : ${reposerver_base_path:=/repos}
@@ -621,15 +719,35 @@ if [[ $UID != 0 ]] ; then
 fi
 : ${libvirt_type:=kvm}
 : ${networkingplugin:=openvswitch}
-: ${architectures:='aarch64 x86_64 s390x'}
+if [[ "$reposerver" =~ nue.suse.com ]]; then
+    : ${architectures:='aarch64 x86_64 s390x'}
+else
+    : ${architectures:='x86_64'}
+fi
+: ${nodenumbertotal:=$nodenumber}
 : ${nodenumberlonelynode:=0}
 : ${nodenumberironicnode:=0}
 : ${want_mtu_size:=1500}
 # proposals:
+: ${want_designate_proposal:=0}
 : ${want_magnum_proposal:=0}
 : ${want_monasca_proposal:=0}
 : ${want_murano_proposal:=0}
+: ${want_trove_proposal:=0}
 
 [ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
+
+# mysql (MariaDB actually) is the default option for Cloud8
+iscloudver 8plus && : ${want_database_sql_engine:="mysql"}
+: ${want_external_ceph:=0}
+: ${want_ses_version:=0}
+
+# IPv6 Support
+: ${want_ipv6:=0}
+if (( ${want_ipv6} == 0 )); then
+    : ${ip_sep:="."}
+else
+    : ${ip_sep:=":"}
+fi
 
 # ---- END: common variables and defaults

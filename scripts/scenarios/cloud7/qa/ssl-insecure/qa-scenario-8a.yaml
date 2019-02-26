@@ -39,6 +39,7 @@ proposals:
 
 - barclamp: database
   attributes:
+    sql_engine: postgresql
     ha:
       storage:
         shared:
@@ -58,6 +59,8 @@ proposals:
           device: ##shared_nfs_for_rabbitmq##
           fstype: nfs
           options: nfsvers=3
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:

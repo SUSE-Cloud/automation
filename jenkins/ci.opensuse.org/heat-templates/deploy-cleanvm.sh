@@ -12,18 +12,20 @@ if [ "$IS_HEAT" = HEAT ]; then
   quickstart_repo=_quickstart_repo
   quickstart_branch=_quickstart_branch
   package_repo=_package_repo
+  allow_vendor_change=_allow_vendor_change
 else
   # In standalone mode these defaults are used:
   : ${TESTHEAD:=1}
-  : ${cloudsource:=openstacknewton}
-  : ${automation_repo:=''}
+  : ${cloudsource:=openstackocata}
+  : ${automation_repo:='https://github.com/suse-cloud/automation.git'}
   : ${automation_branch:='master'}
-  : ${quickstart_repo:=''}
-  : ${quickstart_branch:='master'}
+  : ${quickstart_repo:='https://github.com/suse-cloud/openstack-quickstart.git'}
+  : ${quickstart_branch:='stable/ocata'}
   : ${package_repo:=''}
+  : ${allow_vendor_change:=''}
 fi
 
-export TESTHEAD cloudsource automation_repo automation_branch quickstart_repo quickstart_branch package_repo
+export TESTHEAD cloudsource allow_vendor_change automation_repo automation_branch quickstart_repo quickstart_branch package_repo
 
 if [ -n "$package_repo" ]; then
   zypper ar --priority 22 -G -f "$package_repo" extra
@@ -34,6 +36,10 @@ fi
 zypper='zypper --non-interactive'
 
 case "$VERSION_ID" in
+  12.3)
+    $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/' SLE12-SP3-Pool
+    $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP3/x86_64/update/' SLES12-SP3-Updates
+    ;;
   "12.2")
     $zypper ar 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Products/SLE-SERVER/12-SP1/x86_64/product/' SLE12-SP1-Pool
     $zypper ar -f 'http://smt-internal.opensuse.org/repo/$RCE/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/' SLES12-SP1-Updates

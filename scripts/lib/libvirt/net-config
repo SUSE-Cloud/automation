@@ -6,6 +6,7 @@ import libvirt_setup
 
 def main():
     parser = argparse.ArgumentParser(description="Create Virtual Network Config")
+    parser.add_argument("--ipv6", help="Use IPv6", action="store_true")
     parser.add_argument("network", help="Name of the network to be configured (admin, ironic)")
     parser.add_argument("cloud", help="Name of the Cloud")
     parser.add_argument("bridge", help="Name of the Virtual bridge to be used for this network")

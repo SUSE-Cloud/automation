@@ -8,14 +8,15 @@
 
       This job will redeploy the scenario-2b:
         - total 7 nodes
-        - database: default, postgresql
+        - database: default
         - pacemaker: 1 cluster with 3 controllers
-        - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 2 kvm and 2 ESXi compute nodes
+        - nova: no ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 kvm and 1 ESXi compute nodes
+        - glance: vmare
         - cinder: vmware
-        - neutron: vmware (but currently ovs as NSX plugin is kind of out of order)
-        - eveyrthing with SSL.
+        - neutron: vmware (vmware_dvs ml2 plugin)
 
-      Warning: It will wipe all machines!
+      Warning: You need to have vmware installed at 10.162.66.201
+      Follow the instructions in: https://gitlab.suse.de/qa/cloud-doc/blob/master/vmware.md
 
     wrappers:
       - mkphyscloud-qa-common-wrappers
@@ -43,14 +44,14 @@
           description: Mandatory, shared storage server IP
 
       - string:
+          name: vcenter_ip
+          default: 10.162.66.201
+          description: Mandatory, ip of the vcenter
+
+      - string:
           name: repo_owner
           default: SUSE-Cloud
           description: Mandatory, automation repo owner/organization
-
-      - string:
-          name: automation_repo
-          default: git://github.com/$repo_owner/automation.git
-          description: Mandatory, automation repo URL
 
       - string:
           name: branch
@@ -58,14 +59,14 @@
           description: Mandatory, automation repo branch
 
       - string:
+          name: automation_repo
+          default: github.com/$repo_owner/automation#$branch
+          description: Mandatory, automation repo URL
+
+      - string:
           name: tempest
           default: smoke
           description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
-
-      - string:
-          name: cct
-          default: features:base
-          description: Optional, specify cct tests to run
 
       - bool:
           name: rally-tests
@@ -119,8 +120,13 @@
 
       - string:
           name: commands
-          default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases
+          default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
           description: All the steps that needs to be completed to have cloud installed
+
+      - string:
+          name: want_test_updates
+          default: 0
+          description: Use updates-test repos for all SUSE products
 
       - text:
           name: UPDATEREPOS
@@ -136,8 +142,9 @@
           #!/bin/bash
           admin=crowbar$hw_number
           cloud=qa$hw_number
-          vcenter_user="Administrator@vsphere.qa.suse.de"
-          vcenter_password=`cat /home/jenkins/passwords/Administrator\@vsphere.qa.suse.de`
+          vcenter_ip=$vcenter_ip
+          vcenter_user="Administrator@vsphere.local"
+          vcenter_password=`cat /home/jenkins/passwords/administrator@vsphere.local`
 
           if [ ! -z "$UPDATEREPOS" ] ; then
             export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
@@ -185,12 +192,20 @@
           export shared_storage_ip=$shared_storage_ip
           export want_node_aliases=controller=3,computekvm=2,computevmw=1 ;
           export want_node_roles=controller=3,compute=4 ;
+          export want_swift=1 ;
+          export cephvolumenumber=1 ;
           export scenario=\"/root/scenario.yml\" ;
+          export vcenter_ip=$vcenter_ip ;
+          export vcenter_user="Administrator@vsphere.local" ;
+          export vcenter_password=$vcenter_password ;
           export commands=\"$commands\" "'
 
           sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
           sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," scenario.yml
           sed -i -e "s,##cinder-storage-shares##,$shared_storage_ip:/var/$cloud/cinder-storage," scenario.yml
+          sed -i -e "s,@@vcenter_ip@@,${vcenter_ip}," scenario.yml
+          sed -i -e "s,@@vcenter_user@@,${vcenter_user}," scenario.yml
+          sed -i -e "s,@@vcenter_password@@,${vcenter_password}," scenario.yml
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
@@ -198,47 +213,6 @@
           ' || ret=$?
 
           echo "mkphyscloud ret=$ret (before scenario)"
-
-          if [ "$ret" = "0" ]; then
-            # ----- Prepare the SBD setup:
-            cat > /tmp/sbd_prepare_$admin <<EOSCRIPT
-              # preparation of iSCSI
-              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
-              wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
-              chmod +x iscsictl.py
-              ./iscsictl.py --service target --host \$(hostname) --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
-              ./iscsictl.py --service initiator --target_host \$(hostname) --host controller3 --no-key
-              # preparation of SBD
-              SBD_DEV=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV create"
-              ssh controller2 "zypper --non-interactive install sbd"
-              ssh controller3 "zypper --non-interactive install sbd"
-              # watchdog configuration
-              ssh controller1 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-              ssh controller2 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-              ssh controller3 modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf
-              # take scenario yaml file and replace placeholders with right things:
-              sed -i "s|@@sbd_device@@|\${SBD_DEV}|g" scenario.yml
-              sed -i "s|@@vcenter_user@@|\${vcenter_user}|g" scenario.yml
-              sed -i "s|@@vcenter_password@@|\${vcenter_password}|g" scenario.yml
-              # ----- End of SBD
-          EOSCRIPT
-            chmod +x /tmp/sbd_prepare_$admin
-            scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
-
-            # Check if zypper is used by other application
-            ssh root@$admin '
-              source scripts/qa_crowbarsetup.sh;
-              for node in $(crowbar machines aliases | grep "controller" | grep -oE "^.*[[:space:]]"); do
-                wait_for 20 10 "ssh $node \"zypper refresh\"" "zypper to be available on $node"
-              done
-            '
-
-            ssh root@$admin './sbd_prepare
-            ' || ret=$?
-          fi
 
           if [ "$ret" = "0" ]; then
             ssh root@$admin "
@@ -283,7 +257,6 @@
             predefined-parameters: |
               hw_number=$hw_number
               tempest=$tempest
-              cct_tests=$cct
               scenario_name=2b
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER

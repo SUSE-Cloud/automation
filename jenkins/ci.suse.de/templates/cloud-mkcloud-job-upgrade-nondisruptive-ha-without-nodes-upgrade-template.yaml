@@ -20,10 +20,15 @@
             TESTHEAD=1
             cloudsource=develcloud{previous_version}
             upgrade_cloudsource=develcloud{version}
-            nodenumber=4
+            nodenumber={nodenumber}
+            clusterconfig=data+services+network={nodenumber_controller}
             hacloud=1
             storage_method=swift
             mkcloudtarget=plain_with_upgrade
             want_nodesupgrade=
+            want_trove_proposal=0
+            want_barbican_proposal=0
+            want_sahara_proposal=0
+            want_database_sql_engine={database_engine}
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}

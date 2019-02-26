@@ -20,6 +20,7 @@ require "yaml"
 require "optparse"
 require "fileutils"
 require "tmpdir"
+require "open-uri"
 
 class CrowbarTestbuild
   def initialize(options, config)
@@ -118,10 +119,12 @@ class CrowbarTestbuild
       job_name: job_name
     }
     para_extra = extra_build_parameters(mode)
-    p = para_default.merge(para_extra).map { |k,v| "#{k}=#{v}" }
-    jcmd += p
-    puts "Triggering jenkins job with url #{ptf_url} and directory #{ptf_dir}"
+    all_paras = para_default.merge(para_extra)
+    jcmd += all_paras.map{ |k,v| "#{k}=#{v}" }
     system(*jcmd) or raise
+    puts "Triggered jenkins job with url #{ptf_url} and directory #{ptf_dir}"
+    puts "   Rebuild Link: https://ci.suse.de/job/#{mkcloud_job_name}/parambuild/?#{URI.encode_www_form(all_paras)}"
+    puts "   => NOTE: Job already triggered. Make sure there are no identical parallel jobs!"
   end
 
   def jenkins_jobs_scenarios
@@ -210,6 +213,7 @@ class CrowbarTestbuild
               osc_cmd("build") +
               [
                 "--root", File.join(Dir.pwd, build_root),
+                "--keep-pkgs", ptf_dir,
                 bs_repo, "x86_64", package_spec_file
               ]
             )
@@ -220,11 +224,6 @@ class CrowbarTestbuild
         puts e.backtrace
         return false
       else
-        # copy rpms
-        FileUtils.cp(
-          Dir.glob(File.join(package_name, build_root, ".build.packages/RPMS/*/*.rpm")),
-          ptf_dir, :preserve => true
-        ) or raise
         return true
       ensure
         # copy log

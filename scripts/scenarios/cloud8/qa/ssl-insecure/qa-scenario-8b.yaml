@@ -1,0 +1,279 @@
+---
+# 8b - 8 nodes: HA 1 x 2, IPMI, KVM x 2, CEPH x 3, Monasca
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: ipmi_barclamp
+      sbd:
+        nodes:
+          @@controller1@@:
+            devices:
+            - ''
+          @@controller2@@:
+            devices:
+            - ''
+      per_node:
+        nodes:
+          @@controller1@@:
+            params: ''
+          @@controller2@@:
+            params: ''
+    drbd:
+      enabled: true
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - @@controller1@@
+      - @@controller2@@
+      hawk-server:
+      - @@controller1@@
+      - @@controller2@@
+
+- barclamp: database
+  attributes:
+    ha:
+      storage:
+        mode: drbd
+        drbd:
+          size: 5
+  deployment:
+    elements:
+      database-server:
+      - cluster:services
+
+- barclamp: rabbitmq
+  attributes:
+    ha:
+      storage:
+        mode: drbd
+        drbd:
+          size: 5
+    client:
+      enable_notifications: true
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:services
+
+- barclamp: keystone
+  attributes:
+    ssl:
+      generate_certs: true
+      insecure: true
+    api:
+      protocol: https
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+
+- barclamp: ceph
+  attributes:
+    disk_mode: first
+    radosgw:
+      ssl:
+        enabled: true
+        generate_certs: true
+        insecure: true
+  deployment:
+    elements:
+      ceph-calamari: []
+      ceph-mon:
+      - @@ceph1@@
+      - @@ceph2@@
+      - @@ceph3@@
+      ceph-osd:
+      - @@ceph1@@
+      - @@ceph2@@
+      - @@ceph3@@
+      ceph-radosgw:
+      - @@ceph1@@
+      ceph-mds:
+      - @@compute2@@
+
+- barclamp: glance
+  attributes:
+    default_store: rbd
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: rbd
+      backend_name: rbd
+      rbd:
+        use_crowbar: true
+        config_file: "/etc/ceph/ceph.conf"
+        admin_keyring: "/etc/ceph/ceph.client.admin.keyring"
+        pool: volumes
+        user: cinder
+        secret_uuid: ''
+        flatten_volume_from_snapshot: false
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - @@controller1@@
+      - @@controller2@@
+
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - ##networkingplugin##
+    ml2_type_drivers:
+    - ##networkingmode##
+    ml2_type_drivers_default_provider_network: ##networkingmode##
+    ml2_type_drivers_default_tenant_network: ##networkingmode##
+    num_vlans: 99
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:services
+
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    vnc_keymap: de
+    kvm:
+      ksm_enabled: true
+    metadata:
+      vendordata:
+        json: '{"custom-key": "custom-value"}'
+    ssl:
+      generate_certs: true
+      insecure: true
+    novnc:
+      ssl:
+        enabled: true
+  deployment:
+    elements:
+      ec2-api:
+      - cluster:services
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - @@compute1@@
+      - @@compute2@@
+      nova-compute-qemu: []
+      nova-compute-xen: []
+
+- barclamp: horizon
+  attributes:
+    apache:
+      ssl: true
+      generate_certs: true
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+
+- barclamp: heat
+  attributes:
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+
+- barclamp: ceilometer
+  attributes:
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      ceilometer-agent:
+      - @@compute1@@
+      - @@compute2@@
+      ceilometer-agent-hyperv: []
+      ceilometer-central:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware: []
+
+- barclamp: manila
+  attributes:
+    default_share_type: ceph
+    shares:
+    - backend_driver: cephfs
+      backend_name: cephfs-backend
+      cephfs:
+        use_crowbar: true
+        cephfs_conf_path: "/etc/ceph/ceph.conf"
+        cephfs_auth_id: manila
+        cephfs_cluster_name: ceph
+  deployment:
+    elements:
+      manila-server:
+      - cluster:services
+      manila-share:
+      - @@controller1@@
+      - @@controller2@@
+
+- barclamp: monasca
+  attributes:
+  deployment:
+    elements:
+      monasca-master:
+      - "@@crowbar@@"
+      monasca-server:
+      - "@@monasca-server@@"
+      monasca-log-agent:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+      - "@@ceph1@@"
+      - "@@ceph2@@"
+      - "@@ceph3@@"
+      - "@@monasca-server@@"
+      monasca-agent:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+      - "@@ceph1@@"
+      - "@@ceph2@@"
+      - "@@ceph3@@"
+      - "@@monasca-server@@"
+
+- barclamp: tempest
+  attributes:
+    manila:
+      run_consistency_group_tests: false
+      run_snapshot_tests: false
+      enable_protocols: cephfs
+      enable_ip_rules_for_protocols: ""
+      enable_cert_rules_for_protocols: ""
+      storage_protocol: CEPHFS
+  deployment:
+    elements:
+      tempest:
+      - @@controller1@@

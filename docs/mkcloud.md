@@ -15,6 +15,12 @@ It requires SLE-12 or openSUSE Leap 42.2 or newer as host OS.
 
 ## Prepare your system
 
+* Install `libvirt` if not present on the system
+
+  ```
+  $ sudo zypper install libvirt
+  ```
+
 * Check if `libvirtd` is running and if it isn't start it.
 
   ```
@@ -78,10 +84,12 @@ To use mkcloud the following additional steps are needed:
     ```
 
 * Prepare the system with an initial mkcloud run which installs a few required
-  packages and sets up the lvm volume.
+  packages and sets up the lvm volume. Additionally one of the following
+  variables should be set: cloudpv or cloudvg
 
   ```
-  $ sudo /path/to/mkcloud setuphost
+  $ export cloudpv=/dev/loopX
+  $ sudo -E /path/to/mkcloud setuphost
   ```
 
 
@@ -97,9 +105,12 @@ To get a complete list run: `./mkcloud help`
 
 ### Additional Information
 
-* `cloudpv`, block device used by mkcloud to put LVM partitions, these partitions
-  are used to host the virtual machines. In development environments this is
-  usually a loop device (e.g. `/dev/loop0`)
+* `cloudpv`, block device used by mkcloud to create a volume group. This will
+  be used as cloudvg later.  In development environments this can be a loop
+  device (e.g. `/dev/loop0`) or an unused disk or partition.
+* `cloudvg`, volume group used by mkcloud to put LVM partitions, these
+  partitions are used to host the virtual machines. If defined, cloudpv is
+  ignored.
 * `cloudsource`, defines what version of SUSE Cloud will be deployed (e.g. `susecloud4`)
   The latest version always is in development. So do not expect it to work out of the box.
   If you need a stable/working version use <latest-version>-1.
@@ -150,21 +161,40 @@ A basic working mkcloud environment could look like [this](basic-mkcloud-config.
 
 ## Using with local repositories
 
-To be able to deploy a complete Cloud with `mkcloud` and without network access,
-you can run the "prepare" step in mkcloud using the cache_clouddata=1 environment
-variable set. This will create a cache under $cache_dir (set to /var/cache/mkcloud by default
-of images and repositories needed during deployment.
+To be able to deploy a complete Cloud with `mkcloud` and without VPN access,
+you can run the "prepare" step in mkcloud using the `cache_clouddata=1`
+environment variable set. This will create a cache under `$cache_dir` (set to
+`/var/cache/mkcloud` by default) of images and repositories needed during
+deployment. Make sure your `$cache_dir` partition has enough free space to
+store all the repos. You should always monitor the space on that partition and
+adjust accordingly.
 
-Here's an example script you can execute to create a full cloud:
+Note that you will need to run the "prepare" step again (with VPN access) if
+your `$cloudsource` environment variable had changed. For example, if you are
+developing on "develcloud8" and "develcloud7" in parallel, you will need to run the
+"prepare" step for each separately.
+
+Here's an example wrapper script you can use instead of executing mkcloud directly
+which will enable caching and create a loopback LVM volume group which is used
+by mkcloud then for installation of a virtualized cloud:
 
 ```
 #!/bin/bash
 
-# path to the locally available repositories
-export localreposdir_src=/home/tom/devel/repositories/
+# tell mkcloud to cache all repositories it will pass into the VMs locally
+# on the host that mkcloud is being invoked on during "prepare" step.
+#
+# This allows running mkcloud without VPN being used.
+export cache_clouddata=1
+
+# path to the locally available repositories. By default, cache_dir is set
+# to "/var/cache/mkcloud". If you want to change it to a different location,
+# you should be making sure that the partition have enough free space to cache
+# all the necessary repos.
+#export cache_dir=<some other dir>
 
 # setup/create lvm disk
-cloud_lvm_disk=/home/tom/devel/libvirt-images/develcloud7-lvm.raw
+cloud_lvm_disk=$HOME/develcloud-lvm.raw
 if ! [ -f $cloud_lvm_disk ] ; then
     qemu-img create -f raw $cloud_lvm_disk 100G
 fi

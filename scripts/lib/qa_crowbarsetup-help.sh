@@ -6,14 +6,22 @@ function qacrowbarsetup_help
     cat <<EOUSAGE
     crowbar_networkingmode=single         (default single)
         set the networking mode for Crowbar.
+    want_l3_ha=1         (default 0)
+        Use the upstream l3 HA solution (with VRRP/keepalived)
     want_neutronsles12=1 (default 0)
         if there is a SLE12 node, deploy neutron-network role into the SLE12 node
     want_mtu_size=<size> (default='')
         Option to set variable MTU size or select Jumbo Frames for Admin and Storage nodes. 1500 is used if not set.
     want_raidtype (default='raid1')
         The type of RAID to create.
+    want_batch_dir (default='${SCRIPTS_DIR}/scenarios')
+        Allow to use crowbar batch for single proposals by placing
+        \$PROPOSAL-batch.yaml files in this directory
     want_database_sql_engine (default='' which picks cloud default)
-        The type of database backend to create (only cloud8+)
+        The type of database backend to create (only cloud7; cloud8 can only have mysql)
+    want_network_json_url=http://some.server/path/network.json (default='')
+        If set, download and use network.json from this URL
+        ignoring most other network values (such as vlan_storage)
     want_node_aliases=list of aliases to assign to nodes
         Takes all provided aliases and assign them to available nodes successively.
         Note that this doesn't take care about node assignment itself.
@@ -46,13 +54,17 @@ function qacrowbarsetup_help
         Example:
             want_devel_repos=storage,virt
         Valid values: ha, storage, virt
-    want_cloud6_iso_path=path to search for Cloud 6 ISO image in
-        Search for Cloud 6 ISO image files in this path.
+    want_cloud6_iso_url=URL to use for downloading Cloud 6 ISO image
     want_cloud6_iso=ISO filename
         Name of Cloud 6 ISO image file.
-    want_cloud7_iso_path=path to search for Cloud 7 ISO image in
-        Search for Cloud 7 ISO image files in this path.
+    want_cloud7_iso_url=URL to use for downloading Cloud 7 ISO image
     want_cloud7_iso=ISO filename
         Name of Cloud 7 ISO image file.
+    want_cloud8_iso_url=URL to use for downloading Cloud 8 ISO image
+    want_cloud8_iso=ISO filename
+        Name of Cloud 8 ISO image file.
+    want_cloud9_iso_url=URL to use for downloading Cloud 9 ISO image
+    want_cloud9_iso=ISO filename
+        Name of Cloud 9 ISO image file.
 EOUSAGE
 }

@@ -1,0 +1,84 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+  product:
+    version: 2
+
+  # nic-mappings are used to ensure that the device name used by the
+  # operating system always maps to the same physical device.
+  # A nic-mapping is associated to a server in the server definition.
+  # The logical-name specified here can be used as a device name in
+  # the network interface-models definitions.
+  #
+  # - name               user-defined name for each mapping
+  #   physical-ports     list of ports for this mapping
+  #     - logical-name   device name to be used by the operating system
+  #       type           physical port type
+  #       bus-address    bus address of the physical device
+  #
+  # Notes:
+  # - The PCI bus addresses are examples. You will need to determine
+  #   the values pertinent to your servers. These can be found with the
+  #   the `lspci` command or from the server BIOS
+  # - enclose the bus address in quotation marks so yaml does not
+  #   misinterpret the embedded colon (:) characters
+
+  nic-mappings:
+{% if bm_info is defined %}
+{%   for map in bm_info.nic_mappings %}
+    - name: {{ map.name }}
+      physical-ports:
+{%     for port in map.physical_ports %}
+        - logical-name: "{{ port.logical_name }}"
+          bus-address: "{{ port.bus_address }}"
+          type: simple-port
+{%     endfor %}
+{%   endfor %}
+{% else %}
+    - name: HEAT
+      physical-ports:
+        - logical-name: hed1
+          type: simple-port
+          bus-address: "0000:00:03.0"
+
+        - logical-name: hed2
+          type: simple-port
+          bus-address: "0000:00:04.0"
+
+        - logical-name: hed3
+          type: simple-port
+          bus-address: "0000:00:05.0"
+
+        - logical-name: hed4
+          type: simple-port
+          bus-address: "0000:00:06.0"
+
+        - logical-name: hed5
+          type: simple-port
+          bus-address: "0000:00:07.0"
+
+        - logical-name: hed6
+          type: simple-port
+          bus-address: "0000:00:08.0"
+
+        - logical-name: hed7
+          type: simple-port
+          bus-address: "0000:00:09.0"
+
+        - logical-name: hed8
+          type: simple-port
+          bus-address: "0000:00:0a.0"
+{% endif %}

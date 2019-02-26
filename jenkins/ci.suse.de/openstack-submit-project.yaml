@@ -12,9 +12,13 @@
           default: None
           description: Name of the subproject that acts as staging project.
       - string:
-          name: packagefilter
-          default: None
-          description: space separated strings to filter the packages by their names (from the beginning)
+          name: package_whitelist
+          default: ""
+          description: space separated strings to white list filter the package names (strings are prefixes)
+      - string:
+          name: package_blacklist
+          default: ""
+          description: space separated strings to black list filter the package names (strings are prefixes)
       - string:
           name: starttime
           default: None
@@ -25,90 +29,95 @@
 
     builders:
       - shell: |
-          # DEBUG MODE with E=echo
-          # NORMAL MODE with E=
+          # to debug set E=echo
           E=
 
-          if [ -z "$starttime" ] ; then
+          if [[ ! $starttime ]] ; then
               echo "FATAL: calling script needs to specify starttime"
               exit 1
           fi
 
           case $subproject in
-          None) echo "No valid 'subproject' provided - defaults for safety reasons to 'None'"
-                exit 1
-          ;;
-          "-")  echo "Subproject set to '-': skip job, do not fail (eg. for Master project)"
-                exit 0
-          ;;
+              None) echo "No valid 'subproject' provided - defaults for safety reasons to 'None'"
+                    exit 1
+              ;;
+              "-")  echo "Subproject set to '-': skip job, do not fail (eg. for Master project)"
+                    exit 0
+              ;;
           esac
 
-          export BS=IBS
-          case $BS in
-          OBS)
-              OSC="osc -A https://api.opensuse.org"
-          ;;
-          IBS)
-              OSC="osc -A https://api.suse.de"
-          ;;
-          esac
+          bs=IBS
+          osc="osc -A https://api.suse.de"
 
-
-          COS=$project
-          ECOS=""
-          COSS=$COS:$subproject
-          export BS_CHECKOUT=/home/jenkins/${BS}_CHECKOUT/$COSS
-          submitcmd="$OSC copypac -K -e"
-          OSCBUILDDIST=SLE_12_SP1
+          cos=$project
+          coss=$cos:$subproject
+          ecos=
+          eard=
+          oscbuilddist=SLE_12_SP1
+          bs_checkout=/home/jenkins/${bs}_CHECKOUT/$coss
+          submitcmd="$osc copypac -K -e"
 
           case $project in
-          Devel:Cloud:6)
-              ECOS=systemsmanagement:crowbar:3.0
-          ;;
-          Devel:Cloud:6:SAP)
-              ECOS=systemsmanagement:crowbar:3.1
-          ;;
-          Devel:Cloud:7)
-              OSCBUILDDIST=SLE_12_SP2
-              ECOS=systemsmanagement:crowbar:4.0
-          ;;
-          Devel:Cloud:8)
-              OSCBUILDDIST=SLE_12_SP3
-              ECOS=systemsmanagement:crowbar:5.0
-          ;;
-          *) echo "Please add support for the project: $project"
-              exit 1
+              Devel:Cloud:6)
+                  ecos=systemsmanagement:crowbar:3.0
+              ;;
+              Devel:Cloud:6:SAP)
+                  ecos=systemsmanagement:crowbar:3.1
+              ;;
+              Devel:Cloud:7)
+                  oscbuilddist=SLE_12_SP2
+                  ecos=systemsmanagement:crowbar:4.0
+              ;;
+              Devel:Cloud:8)
+                  oscbuilddist=SLE_12_SP3
+                  ecos=systemsmanagement:crowbar:5.0
+                  eard=systemsmanagement:Ardana:8
+              ;;
+              Devel:Cloud:9)
+                  oscbuilddist=SLE_12_SP4
+                  ecos=systemsmanagement:crowbar:6.0
+                  eard=systemsmanagement:Ardana:9
+              ;;
+              *) echo "Please add support for the project: $project"
+                  exit 1
           esac
 
+          pkg_white=$(awk '{$1=$1};1 {gsub(" ", "|");}1' <<< "${package_whitelist}")
+          pkg_black=$(awk '{$1=$1};1 {gsub(" ", "|");}1' <<< "${package_blacklist}")
 
-          for COMPONENT in `$OSC ls $COSS 2>/dev/null | grep -E "^(${packagefilter// /|})" | grep -v "^_product."` ; do
-          cd $BS_CHECKOUT || exit 1
-          if [ ! -d $COMPONENT ] ; then
-              $OSC co -o $COMPONENT $COSS $COMPONENT
-          fi
-          cd $COMPONENT || exit 1
+          for component in `$osc ls $coss 2>/dev/null | grep -E "^(${pkg_white})" | grep -Ev "^(${pkg_black})" | grep -v "^_product"` ; do
+              cd $bs_checkout
+              if [[ ! -d $component ]] ; then
+                  $osc co -o $component $coss $component
+              fi
+              cd $component
 
-          grep -q "<linkinfo" .osc/_files || exit 2
+              if ! grep -q "<linkinfo" .osc/_files ; then
+                  echo "Error: package $component in $subproject (staging) is not a link to non-staging."
+                  exit 2
+              fi
 
-          # avoid copying untested versions
-          lastchange=$($OSC api "source/$COSS/$COMPONENT/_history" | perl -ne 'if(m/<time>(\d+)</) {print $1; exit 0}')
-          if [[ $lastchange > $starttime ]] ; then
-              echo "skipping $COMPONENT because of a change after test started"
-              continue
-          fi
+              # avoid copying untested versions
+              lastchange=$($osc api "source/$coss/$component/_history" | perl -ne 'if(m/<time>(\d+)</) {print $1; exit 0}')
+              if [[ $lastchange -gt $starttime ]] ; then
+                  echo "Skipping $component due to a change after the test in the previous job started. test start time: $starttime :: last change: $lastchange"
+                  continue
+              fi
 
-          #  if $OSC rdiff $COS $COMPONENT $COSS | grep .  &&  $OSC api /build/$COSS/$OSCBUILDDIST/x86_64/$COMPONENT/_status | grep -E 'code="succeeded"|package="_product"'
-          if $OSC rdiff $COS $COMPONENT $COSS | grep .  && ( [ "$COMPONENT" = "_product" ] || $OSC r $COSS $COMPONENT -r $OSCBUILDDIST -a x86_64 | grep 'succeeded' )
-          then
-              # NOTE(saschpe): the "|| :" is a work-around for an osc bug (should be fixed, but Adrian needs to release a new osc)
-              # No need to put this in git.
-              [[ "$COMPONENT" =~ -doc$ ]] || {
-                  $E $submitcmd $COSS $COMPONENT $COS || :
-
-                  if [[ "$COMPONENT" =~ "crow" ]];  then
-                      [ -n "$ECOS" ] && $E $submitcmd $COSS $COMPONENT -t https://api.opensuse.org/ $ECOS || :
+              if $osc rdiff $cos $component $coss | grep .  && ( [ "$component" = "_product" ] || $osc r $coss $component -r $oscbuilddist -a x86_64 | grep 'succeeded' )
+              then
+                  if [[ "$component" =~ -doc$ ]] ; then
+                      echo "Skipping *-doc package: $component"
+                      continue
                   fi
-              }
-          fi
-          done
 
+                  # submit package
+                  $E $submitcmd $coss $component $cos || :
+                  if [[ $ecos && $component =~ ^crowbar ]] ; then
+                      $E $submitcmd $coss $component -t https://api.opensuse.org/ $ecos || :
+                  fi
+                  if [[ $eard && $component =~ ^ardana ]] ; then
+                      $E $submitcmd $coss $component -t https://api.opensuse.org/ $eard || :
+                  fi
+              fi
+          done

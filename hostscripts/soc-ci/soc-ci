@@ -37,8 +37,12 @@ from six.moves import input
 
 # path to the user configuration file
 USER_CONFIG_PATH = os.path.expanduser('~/.soc-ci.ini')
-# possible mkcX hosts (there is no 'j' host)
-CI_WORKERS = list('abcdefghiklmnp')
+
+# the default config section
+CONFIG_SECTION = "defaults"
+
+# possible mkcX hosts
+CI_WORKERS = list('abcdefghijklmnop')
 
 
 def _config_credentials_get():
@@ -54,28 +58,39 @@ def _config_get():
     """get the configuration"""
     conf = configparser.RawConfigParser()
     conf.read([USER_CONFIG_PATH])
-    section_name = "defaults"
-    if not conf.has_section(section_name):
+    if not conf.has_section(CONFIG_SECTION):
         user, password, url, nick = _config_credentials_get()
-        conf.add_section(section_name)
-        conf.set(section_name, "user", user)
-        conf.set(section_name, "password", password)
-        conf.set(section_name, "url", url)
-        conf.set(section_name, "nick", nick)
+        conf.add_section(CONFIG_SECTION)
+        conf.set(CONFIG_SECTION, "user", user)
+        conf.set(CONFIG_SECTION, "password", password)
+        conf.set(CONFIG_SECTION, "url", url)
+        conf.set(CONFIG_SECTION, "nick", nick)
         with os.fdopen(os.open(
                 USER_CONFIG_PATH, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
             conf.write(f)
 
     # some optional configuration options
-    if not conf.has_option(section_name, "artifacts_dir"):
-        conf.set(section_name, "artifacts_dir",
+    if not conf.has_option(CONFIG_SECTION, "artifacts_dir"):
+        conf.set(CONFIG_SECTION, "artifacts_dir",
                  os.path.expanduser('~/.soc-ci/artifacts/'))
+    if not conf.has_option(CONFIG_SECTION, "ssl_verify"):
+        conf.set(CONFIG_SECTION, "ssl_verify", "True")
 
     # create things where needed
-    if not os.path.exists(conf.get(section_name, "artifacts_dir")):
-        os.makedirs(conf.get(section_name, "artifacts_dir"))
+    if not os.path.exists(conf.get(CONFIG_SECTION, "artifacts_dir")):
+        os.makedirs(conf.get(CONFIG_SECTION, "artifacts_dir"))
 
-    return dict(conf.items(section_name))
+    return conf
+
+
+def _get_jenkins_job(conf=None):
+    if conf is None:
+        conf = _config_get()
+    server = Jenkins(conf.get(CONFIG_SECTION, 'url'),
+                     username=conf.get(CONFIG_SECTION, 'user'),
+                     password=conf.get(CONFIG_SECTION, 'password'),
+                     ssl_verify=conf.getboolean(CONFIG_SECTION, 'ssl_verify'))
+    return server['openstack-mkcloud']
 
 
 ###############################################################################
@@ -96,11 +111,7 @@ def _ssh_get_client():
 
 
 def _os_mkcloud_where(job_id):
-    conf = _config_get()
-    server = Jenkins(conf['url'],
-                     username=conf['user'],
-                     password=conf['password'])
-    job = server['openstack-mkcloud']
+    job = _get_jenkins_job()
 
     build = job.get_build(job_id)
     console = build.get_console()
@@ -119,11 +130,7 @@ def os_mkcloud_where(args):
 
 
 def os_mkcloud_console_log(args):
-    conf = _config_get()
-    server = Jenkins(conf['url'],
-                     username=conf['user'],
-                     password=conf['password'])
-    job = server['openstack-mkcloud']
+    job = _get_jenkins_job()
 
     build = job.get_build(args.job_id)
     print(build.get_console())
@@ -170,14 +177,11 @@ def _unpack_supportconfigs(cwd):
 def os_mkcloud_artifacts(args):
     """download artifacts for the given job"""
     conf = _config_get()
-    server = Jenkins(conf['url'],
-                     username=conf['user'],
-                     password=conf['password'])
-    job = server['openstack-mkcloud']
+    job = _get_jenkins_job(conf=conf)
 
     build = job.get_build(args.job_id)
-    dest_dir = os.path.join(conf['artifacts_dir'], 'os-mkcloud',
-                            '%s' % args.job_id)
+    dest_dir = os.path.join(conf.get(CONFIG_SECTION, 'artifacts_dir'),
+                            'os-mkcloud', '%s' % args.job_id)
     if os.path.exists(dest_dir):
         if not args.force:
             print('Artifacts already available under %s' % dest_dir)
@@ -225,7 +229,7 @@ def ci_worker_pool_reserve(args):
     stdin, stdout, stderr = client.exec_command(
         'mv /root/pool/%s /root/pool/%s.%s.`date "+%%Y-%%m-%%d"`' % (
             args.slot,
-            args.slot, conf['nick']))
+            args.slot, conf.get(CONFIG_SECTION, 'nick')))
     print(stdout.read())
     sys.exit(stdout.channel.recv_exit_status())
 
@@ -236,8 +240,8 @@ def ci_worker_pool_release(args):
     client.connect('mkch%s.cloud.suse.de' % args.worker,
                    username='root', password='linux')
     stdin, stdout, stderr = client.exec_command(
-        'mv /root/pool/%s.%s.* /root/pool/%s' % (args.slot, conf['nick'],
-                                                 args.slot))
+        'mv /root/pool/%s.%s.* /root/pool/%s' % (
+            args.slot, conf.get(CONFIG_SECTION, 'nick'), args.slot))
     print(stdout.read())
     sys.exit(stdout.channel.recv_exit_status())
 
@@ -258,7 +262,8 @@ def ci_workers_pool_list(args):
     for worker in sorted(data.keys()):
         print('### mkch%s.cloud.suse.de ###' % worker)
         for pool in data[worker]:
-            if args.all or pool.find('.%s' % conf['nick']) != -1:
+            if args.all or pool.find('.%s' % conf.get(
+                    CONFIG_SECTION, 'nick')) != -1:
                 print(pool)
     sys.exit(0)
 

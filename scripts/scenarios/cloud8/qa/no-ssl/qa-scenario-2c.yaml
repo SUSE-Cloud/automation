@@ -1,5 +1,5 @@
 ---
-# 2c - 7 nodes: HA 1 x 2 SBD, KVM x 2, ESXi x 2
+# 2c - 7 nodes: HA x 3 SBD, KVM x 3, SES x 1
 proposals:
 - barclamp: pacemaker
   name: services
@@ -10,34 +10,33 @@ proposals:
         nodes:
           @@controller1@@:
             devices:
-            - "/dev/sda"
+            - "@@sbd_device_services@@"
           @@controller2@@:
             devices:
-            - "/dev/sda"
+            - "@@sbd_device_services@@"
+          @@controller3@@:
+            devices:
+            - "@@sbd_device_services@@"
       per_node:
         nodes:
           @@controller1@@:
             params: ''
           @@controller2@@:
             params: ''
-    drbd:
-      enabled: true
+          @@controller3@@:
+            params: ''
   deployment:
     elements:
       pacemaker-cluster-member:
       - @@controller1@@
       - @@controller2@@
+      - @@controller3@@
       hawk-server:
       - @@controller1@@
       - @@controller2@@
+      - @@controller3@@
 
 - barclamp: database
-  attributes:
-    ha:
-      storage:
-        mode: drbd
-        drbd:
-          size: 5
   deployment:
     elements:
       database-server:
@@ -45,13 +44,8 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
-    ha:
-      storage:
-        mode: drbd
-        drbd:
-          size: 5
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
@@ -63,25 +57,6 @@ proposals:
     elements:
       keystone-server:
       - cluster:services
-
-- barclamp: ceph
-  attributes:
-    disk_mode: first
-  deployment:
-    elements:
-      ceph-calamari: []
-      ceph-mon:
-      - @@ceph1@@
-      - @@ceph2@@
-      - @@ceph3@@
-      ceph-osd:
-      - @@ceph1@@
-      - @@ceph2@@
-      - @@ceph3@@
-      ceph-radosgw:
-      - @@ceph1@@
-      ceph-mds:
-      - @@compute2@@
 
 - barclamp: glance
   attributes:
@@ -97,19 +72,19 @@ proposals:
     - backend_driver: rbd
       backend_name: rbd
       rbd:
-        use_crowbar: true
+        use_crowbar: false
         config_file: "/etc/ceph/ceph.conf"
         admin_keyring: "/etc/ceph/ceph.client.admin.keyring"
         pool: volumes
         user: cinder
         secret_uuid: ''
+        flatten_volume_from_snapshot: false
   deployment:
     elements:
       cinder-controller:
       - cluster:services
       cinder-volume:
-      - @@controller1@@
-      - @@controller2@@
+      - cluster:services
 
 - barclamp: neutron
   attributes:
@@ -147,6 +122,7 @@ proposals:
       nova-compute-kvm:
       - @@compute1@@
       - @@compute2@@
+      - @@compute3@@
       nova-compute-qemu: []
       nova-compute-xen: []
 
@@ -168,6 +144,7 @@ proposals:
       ceilometer-agent:
       - @@compute1@@
       - @@compute2@@
+      - @@compute3@@
       ceilometer-agent-hyperv: []
       ceilometer-central:
       - cluster:services
@@ -182,7 +159,7 @@ proposals:
     - backend_driver: cephfs
       backend_name: cephfs-backend
       cephfs:
-        use_crowbar: true
+        use_crowbar: false
         cephfs_conf_path: "/etc/ceph/ceph.conf"
         cephfs_auth_id: manila
         cephfs_cluster_name: ceph
@@ -191,24 +168,15 @@ proposals:
       manila-server:
       - cluster:services
       manila-share:
-      - @@controller1@@
-      - @@controller2@@
-
-- barclamp: trove
-  deployment:
-    elements:
-      trove-server:
-      - @@controller1@@
+      - cluster:services
 
 - barclamp: tempest
   attributes:
     manila:
-      run_consistency_group_tests: false
       run_snapshot_tests: false
       enable_protocols: cephfs
       enable_ip_rules_for_protocols: ""
       enable_cert_rules_for_protocols: ""
-      storage_protocol: CEPHFS
   deployment:
     elements:
       tempest:

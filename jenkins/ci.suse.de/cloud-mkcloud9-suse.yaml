@@ -1,0 +1,65 @@
+- job:
+    name: 'cloud-mkcloud9-suse-x86_64'
+    project-type: multijob
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H H * * *'
+      - pollurl:
+          cron: 'H * * * *'
+          polling-node: cloud-trigger
+          urls:
+            - url: 'http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/?regexp=x86_64-Media1.iso'
+              check-content:
+                - simple: true
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 7
+
+    builders:
+      - multijob:
+          name: 'Standard Gate Checks (non-HA/OVS+Linuxbridge)'
+          condition: SUCCESSFUL
+          projects:
+            - name: openstack-mkcloud
+              node-label: cloud-trigger
+              predefined-parameters: |
+                cloudsource=susecloud9
+                TESTHEAD=
+                want_test_updates=1
+                nodenumber=2
+                mkcloudtarget=all_batch
+                scenario=cloud9-2nodes-default.yml
+                want_node_aliases=controller=1,compute-kvm=1
+                label=openstack-mkcloud-SLE12-x86_64
+                job_name=susecloud9: OVS
+            - name: openstack-mkcloud
+              node-label: cloud-trigger
+              predefined-parameters: |
+                cloudsource=susecloud9
+                TESTHEAD=
+                want_test_updates=1
+                nodenumber=4
+                networkingplugin=linuxbridge
+                mkcloudtarget=all
+                label=openstack-mkcloud-SLE12-x86_64
+                job_name=susecloud9: linuxbridge
+      - multijob:
+          name: 'Extra Gate Checks (HA)'
+          condition: SUCCESSFUL
+          projects:
+            - name: openstack-mkcloud
+              node-label: cloud-trigger
+              predefined-parameters: |
+                TESTHEAD=
+                want_test_updates=1
+                cloudsource=susecloud9
+                nodenumber=5
+                networkingmode=vxlan
+                crowbar_networkingmode=team
+                storage_method=swift
+                hacloud=1
+                mkcloudtarget=all_noreboot
+                label=openstack-mkcloud-SLE12-x86_64
+                job_name=susecloud9: HA vxlan

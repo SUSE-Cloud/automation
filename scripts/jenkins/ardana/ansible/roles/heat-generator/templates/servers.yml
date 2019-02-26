@@ -1,0 +1,9 @@
+---
+  product:
+    version: 2
+
+  baremetal:
+{{ input_model['baremetal'] | to_nice_yaml( width=50, explicit_start=False, explicit_end=False) | indent(width=4, indentfirst=True) }}
+
+  servers:
+{{ input_model['servers'] | to_nice_yaml( width=50, explicit_start=False, explicit_end=False) | indent(width=4, indentfirst=True) }}

@@ -1,0 +1,76 @@
+- job:
+    name: openstack-ardana-testbuild-gerrit
+    project-type: pipeline
+    concurrent: true
+
+    logrotate:
+      numToKeep:  300
+      daysToKeep: 300
+
+    properties:
+      - authorization:
+          cloud:
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
+          anonymous:
+            - job-read
+
+    parameters:
+      - string:
+          name: gerrit_change_ids
+          default:
+          description: >-
+            A comma separated list of IDs for changes in gerrit.suse.provo.cloud
+            to test. The patchset may be supplied as part of the change ID in the form:
+
+               <change_number>[/<patchset_number>]
+
+      - string:
+          name: homeproject
+          default: 'Devel:Cloud:Testbuild'
+          description: >-
+            Project in IBS that will act as the parent project for the newly
+            generated test project.
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: The git automation branch
+
+      - text:
+          name: extra_params
+          default:
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
+      lightweight-checkout: false

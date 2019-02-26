@@ -15,14 +15,17 @@
           type: user-defined
           name: project
           values:
-            - Devel:Cloud:6/SLE_12_SP1
-            - Devel:Cloud:6:Appliances/SLE_12_SP1
             - Devel:Cloud:7/SLE_12_SP2
-            - Devel:Cloud:7:Mitaka/SLE_12_SP2
-            - Devel:Cloud:8/SLE_12_SP3
-            - Devel:Cloud:8:Ocata/SLE_12_SP3
-            - Devel:Cloud:8:Pike/SLE_12_SP3
-            - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3
+            - Devel:Cloud:8/SLE_12_SP3/SOC
+            - Devel:Cloud:8/SLE_12_SP3/HOS
+            - Devel:Cloud:8/SLE_12_SP3/CROWBAR
+            - Devel:Cloud:9/SLE_12_SP4/SOC
+            - Devel:Cloud:9/SLE_12_SP4/CROWBAR
+            - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3/SOC
+            - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3/HOS
+            - SUSE:SLE-12-SP3:Update:Products:Cloud8/SLE_12_SP3/CROWBAR
+            - SUSE:SLE-12-SP4:Update:Products:Cloud9/SLE_12_SP4/SOC
+            - SUSE:SLE-12-SP4:Update:Products:Cloud9/SLE_12_SP4/CROWBAR
       - axis:
           type: user-defined
           name: subproject
@@ -36,11 +39,28 @@
             - cloud-mediacheck
     execution-strategy:
       combination-filter: |
-        (["Devel:Cloud:6", "Devel:Cloud:6/SLE_12_SP1", "Devel:Cloud:7/SLE_12_SP2", "Devel:Cloud:8/SLE_12_SP3" ].contains(project) || subproject == ":")
+        (
+          [
+            "Devel:Cloud:7/SLE_12_SP2",
+            "Devel:Cloud:8/SLE_12_SP3/SOC",
+            "Devel:Cloud:8/SLE_12_SP3/HOS",
+            "Devel:Cloud:8/SLE_12_SP3/CROWBAR",
+            "Devel:Cloud:9/SLE_12_SP4/SOC",
+            "Devel:Cloud:9/SLE_12_SP4/CROWBAR"
+          ].contains(project)
+          || subproject == ":"
+        )
     builders:
       - shell: |
           export automationrepo=~/github.com/SUSE-Cloud/automation
           export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
+
+          # Workaround to get only the name of the job:
+          # https://issues.jenkins-ci.org/browse/JENKINS-39189
+          # When the JOB_BASE_NAME contains only in ex. "cloud-mediacheck", this
+          # workaround can be removed.
+          echo "$JOB_BASE_NAME"
+          main_job_name=${JOB_NAME%%/*}
 
           # automation bootstrapping
           if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
@@ -51,11 +71,11 @@
           ${automationrepo}/scripts/jenkins/update_automation
 
           function jtsync_trap() {
-            $jtsync --ci suse --matrix ${JOB_BASE_NAME},${project},${BUILD_NUMBER} 1 || :
+            $jtsync --ci suse --matrix ${main_job_name},${project},${BUILD_NUMBER} 1 || :
           }
 
           # only enable jtsync when build is not manually triggered
-          if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
+          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
             trap jtsync_trap EXIT ERR
           fi
           if [[ ! -d /mounts/dist ]] ; then
@@ -80,9 +100,6 @@
           mkdir -p cloud
           rsync -av $d/scripts ./cloud/
 
-          # Cleanup isos from old builds
-          rm -f scripts/release-mgmt/*Media1.iso
-
           # options
           export RPM_DEPCHECK=1
           export SRCRPM_DEPCHECK=0
@@ -93,6 +110,17 @@
               export INSTALLCHECK_EXTRA_OPTS="--exclude pattern:"
           fi
 
+          # temporary, remove once there is a current resource-agents package
+          # in SLE-12-SP3 and we no longer need to keep our own in
+          # Devel:Cloud:8 (otherwise we'd have to pull all the HA dependencies
+          # used by resource-agents into the product just for the sake of
+          # the cloud-mediacheck job since everything except mediacheck has SLE
+          # 12 SP3 HA media available and can thus fulfill the resource-agents
+          # package's dependencies).
+          if [[ "$project" =~ Devel:Cloud:8.* ]]; then
+              export INSTALLCHECK_EXTRA_OPTS="--exclude resource-agents"
+          fi
+
           OBS_PROJECT=$project
           stage=$subproject
           [[ $stage == ":" ]] && stage=
@@ -100,7 +128,7 @@
 
           if [ -n "$stage" ]; then
               if [ "${OBS_PROJECT##*\/}" != "${OBS_PROJECT}" ]; then
-                  OBS_PROJECT=${OBS_PROJECT%%\/*}$stage/${OBS_PROJECT##*\/}
+                  OBS_PROJECT=${OBS_PROJECT%%\/*}$stage/${OBS_PROJECT#*\/}
               else
                   OBS_PROJECT=${OBS_PROJECT%%\/*}$stage
               fi
@@ -109,11 +137,12 @@
           OBS_TYPE=IBS OBS_PROJECT=$OBS_PROJECT make -C cloud/scripts/release-mgmt/ mediacheck
           RETVAL=$?
 
-          # Cleanup
-          rm -r cloud/scripts/release-mgmt/*.iso
-
           # only enable jtsync when build is not manually triggered
-          if [[ "${ROOT_BUILD_CAUSE}" != "MANUALTRIGGER" ]]; then
+          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
             trap - EXIT ERR
-            $jtsync --ci suse --matrix ${project},${subproject},${BUILD_NUMBER} $RETVAL || :
+            $jtsync --ci suse --matrix ${main_job_name},${project},${BUILD_NUMBER} $RETVAL || :
           fi
+    publishers:
+      - workspace-cleanup:
+          fail-build: false
+          clean-parent: false

@@ -6,8 +6,10 @@
         - 'openstack-rpm-packaging-update-{release}':
             release: 'Newton'
         - 'openstack-rpm-packaging-update-{release}':
-            release: 'Mitaka'
-        - 'openstack-rpm-packaging-update-{release}':
             release: 'Ocata'
         - 'openstack-rpm-packaging-update-{release}':
             release: 'Pike'
+        - 'openstack-rpm-packaging-update-{release}':
+            release: 'Queens'
+        - 'openstack-rpm-packaging-update-{release}':
+            release: 'Rocky'

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Wrapper script to execute the enable_tls tests
+#
+# Usage: enable_tls
+
+set -o pipefail
+
+VENV={{ ardana_qe_test_venv }}
+STESTR={{ ardana_qe_test_venv }}/bin/stestr
+
+# Enable TLS for MySQL and RabbitMQ
+cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/enable_tls
+./enable_tls.sh
+
+# Activate the virtual environment
+source ${VENV}/bin/activate
+${STESTR} init
+${STESTR} run -t ./ --no-discover validate_tls_testsuite.py --concurrency=1 | tee {{ ardana_qe_test_log }}
+res=$?
+${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
+exit $res
+

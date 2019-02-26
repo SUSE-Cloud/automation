@@ -15,7 +15,7 @@ bashate:
 	for f in \
 	    *.sh mkcloud mkchroot repochecker \
 	    jenkins/{update_automation,*.sh} \
-	    ../hostscripts/ci1/* ../mkcloudruns/*/[^R]*;\
+	    ../hostscripts/ci1/* ../hostscripts/clouddata/syncSLErepos ../mkcloudruns/*/[^R]*;\
 	do \
 	    echo "checking $$f"; \
 	    bash -n $$f || exit 3; \
@@ -44,6 +44,7 @@ pythoncheck:
 
 rounduptest:
 	cd scripts && roundup
+	cd scripts/jenkins && roundup
 
 flake8:
 	flake8 scripts/ hostscripts/soc-ci/soc-ci
@@ -51,12 +52,15 @@ flake8:
 python_unittest:
 	python -m unittest discover -v -s scripts/lib/libvirt/
 
-jjb_test:
+gerrit-project-regexp:
+	scripts/jenkins/ardana/gerrit/project-map2project-regexp.py > jenkins/ci.suse.de/gerrit-project-regexp.txt
+
+jjb_test: gerrit-project-regexp
 	jenkins-jobs --ignore-cache test jenkins/ci.suse.de:jenkins/ci.suse.de/templates/ cloud* openstack* > /dev/null
 	jenkins-jobs --ignore-cache test jenkins/ci.opensuse.org:jenkins/ci.opensuse.org/templates/ cloud* openstack* > /dev/null
 
-cisd_deploy:
-	jenkins-jobs --conf /etc/jenkins_jobs/jenkins_jobs-cisd.ini update jenkins/ci.suse.de:jenkins/ci.suse.de/templates/ cloud* openstack*
+cisd_deploy: gerrit-project-regexp
+	jenkins-jobs --conf /etc/jenkins_jobs/jenkins_jobs-cisd.ini update jenkins/ci.suse.de:jenkins/ci.suse.de/templates/ cloud\* openstack\* ardana\*
 
 cioo_deploy:
 	jenkins-jobs --conf /etc/jenkins_jobs/jenkins_jobs-cioo.ini update jenkins/ci.opensuse.org:jenkins/ci.opensuse.org/templates/ openstack*
@@ -72,10 +76,12 @@ suseinstall:
 	sudo zypper install perl-JSON-XS perl-libxml-perl python-pip libvirt-python
 
 genericinstall:
-	sudo pip install 'pbr>=1.6,<2.0.0' bashate 'flake8<3.0.0' flake8-import-order jenkins-job-builder
+	sudo pip install -U 'pbr>=2.0.0,!=2.1.0' bashate 'flake8<3.0.0' flake8-import-order jenkins-job-builder requests
 	git clone https://github.com/SUSE-Cloud/roundup && \
 	cd roundup && \
 	./configure && \
 	make && \
 	sudo make install
 
+shellcheck:
+	shellcheck `grep -Erl '^#! ?/bin/b?a?sh'`

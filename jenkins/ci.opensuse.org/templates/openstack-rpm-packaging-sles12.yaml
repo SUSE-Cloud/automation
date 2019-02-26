@@ -3,16 +3,17 @@
     description: "<b>This job is managed by JJB! Changes must be done in <a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.opensuse.org/templates/'>git</a></b>"
     node: openstack-rpm-packaging
     concurrent: true
-    build-discarder:
-      num-to-keep: -1
-      days-to-keep: 31
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 60
+
     builders:
       - gerrit-git-prep
       - shell: |
-          #!/bin/bash -e
+          #!/bin/bash -xe
           rpm -qa|grep '\(renderspec\|pymod2pkg\)'
 
-          set -eux
+          set -u
 
           osc_timed="timeout 20m osc"
 
@@ -29,14 +30,13 @@
           while $osc_timed api /build/${{OBS_TEST_PROJECT}} > /dev/null; do
               sleep $((RANDOM%10+5))
           done
-
-          mkdir -p ~/.cache/download_files/file  ~/.cache/download_files/filename
-          /usr/local/bin/createproject.py --linkproject ${{OBS_BASE_SRC_PROJECT}} . ${{OBS_TEST_PROJECT}}
-
-          pushd ./out
           echo "#################################"
           echo "https://build.opensuse.org/project/show/${{OBS_TEST_PROJECT}}"
           echo "#################################"
+
+          mkdir -p ~/.cache/download_files/file  ~/.cache/download_files/filename
+          /usr/local/bin/createproject.py --linkproject ${{OBS_BASE_SRC_PROJECT}} . ${{OBS_TEST_PROJECT}}
+          pushd ./out
           sleep 5
 
           # Check if there is no change, then pretent success
@@ -52,7 +52,7 @@
                   unset failed
                   unset kickscheduler
                   unset succeeded
-                  res=`osc results --csv -w -r standard`
+                  res=`osc results --csv -r standard`
                   if [ $? -ne 0 ]; then
                       sleep 5
                       continue

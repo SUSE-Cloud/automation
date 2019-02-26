@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Wrapper script to execute the example test
+# within the venv
+#
+# Usage: template.sh run_filter_filename
+
+set -o pipefail
+
+RUN_FILTER=${BASH_ARGV:-ci.txt}
+WORK_HOME={{ ardana_qe_test_work_dir }}
+VENV={{ ardana_qe_test_venv }}
+
+# Activate the virtual environment
+source ${VENV}/bin/activate
+
+# Run the test
+{{ ardana_qe_tests_dir }}/ardana-qa-tests/example/test_get_token.bash \
+  ${WORK_HOME}/test-user.osrc $(cat ${WORK_HOME}/run_filters/${RUN_FILTER}) \
+  | tee ${WORK_HOME}/{{ test_name }}.log

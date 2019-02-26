@@ -1,0 +1,49 @@
+- job:
+    name: 'cloud-mkcloud-qam-x86_64'
+    project-type: multijob
+    node: cloud-trigger
+
+    triggers:
+      - timed: 'H H * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 7
+
+    builders:
+      - multijob:
+          name: 'GM7+up (without test updates)'
+          condition: SUCCESSFUL
+          projects:
+            - name: openstack-mkcloud
+              node-label: cloud-trigger
+              predefined-parameters: |
+                cloudsource=GM7+up
+                TESTHEAD=
+                want_test_updates=
+                nodenumber=5
+                mkcloudtarget=all
+                want_barbican_proposal=0
+                want_aodh_proposal=0
+                want_sahara_proposal=0
+                networkingplugin=openvswitch
+                networkingmode=vxlan
+                job_name=GM7+up: 5nodes OVS VXLAN NON-HA (no test updates)
+      - multijob:
+          name: 'GM7+up (WITH test updates)'
+          condition: SUCCESSFUL
+          projects:
+            - name: openstack-mkcloud
+              node-label: cloud-trigger
+              predefined-parameters: |
+                cloudsource=GM7+up
+                TESTHEAD=
+                want_test_updates=1
+                nodenumber=5
+                mkcloudtarget=all
+                want_barbican_proposal=0
+                want_aodh_proposal=0
+                want_sahara_proposal=0
+                networkingplugin=openvswitch
+                networkingmode=vxlan
+                job_name=GM7+up: 5nodes OVS VXLAN NON-HA (WITH test updates)

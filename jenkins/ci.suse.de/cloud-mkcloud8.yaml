@@ -13,6 +13,7 @@
     arch: x86_64
     tempestoptions: --smoke
     label: openstack-mkcloud-SLE12-x86_64
+    database_engine: mysql
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
@@ -22,31 +23,56 @@
         - 'cloud-mkcloud{version}-job-crowbar-devsetup-{arch}'
         - 'cloud-mkcloud{version}-job-dvr-{arch}'
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
-        - 'cloud-mkcloud{version}-job-mariadb-{arch}'
         - 'cloud-mkcloud{version}-job-monasca-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
-        - 'cloud-mkcloud{version}-job-2nodes-pike'
-        - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-pike'
+        - 'cloud-mkcloud{version}-job-upgrade-disruptive-{arch}'
 - project:
     name: cloud-mkcloud8-ha-x86_64
     disabled: false
     version: 8
     previous_version: 7
     arch: x86_64
+    nodenumber: 5
+    nodenumber_controller: 3
     tempestoptions: --smoke
     label: openstack-mkcloud-ha-x86_64
     storage_method_ha: swift
+    database_engine: mysql
+    want_all_ssl: 0
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
-        - 'cloud-mkcloud{version}-job-ha-mariadb-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
-        - 'cloud-mkcloud{version}-job-ha-pike'
+        - 'cloud-mkcloud{version}-job-upgrade-disruptive-ha-mariadb-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-debug-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-no-clones-{arch}'
+        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}'
+- project:
+    name: cloud-mkcloud8-tempestfull-x86_64
+    disabled: false
+    version: 8
+    previous_version: 7
+    arch: x86_64
+    tempestoptions: --parallel
+    label: openstack-mkcloud-SLE12-x86_64
+    jobs:
+         - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
+         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-tempestfull-{arch}'
+- project:
+    name: cloud-mkcloud8-sles12sp2-x86_64
+    disabled: false
+    version: 8
+    arch: x86_64
+    label: openstack-mkcloud-SLE12-SP2-x86_64
+    tempestoptions: --smoke
+    jobs:
+        - 'cloud-mkcloud{version}-job-uefi-{arch}'
 - project:
     name: cloud-mkcloud8-aarch64
     disabled: false
@@ -63,3 +89,14 @@
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
+
+- project:
+    name: cloud-mkcloud8-s390x
+    disabled: true
+    version: 8
+    previous_version: 7
+    arch: s390x
+    label: openstack-mkcloud-SLE12-{arch}
+    tempestoptions: --smoke
+    jobs:
+        - cloud-mkcloud8-job-simpletest-s390x

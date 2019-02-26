@@ -230,7 +230,7 @@ sub find_gitrev($)
   my $retval = '';
   for my $PACK (@{$files})
   {
-    if ($PACK =~ /\.([a-f0-9]+)\.tar\.\w+$/) { $retval = $1; }
+    if ($PACK =~ /\.([a-f0-9]+)\.(?:tar\.\w+|obscpio)$/) { $retval = $1; }
   }
 
   return $retval;
@@ -245,62 +245,75 @@ sub osc_checkin()
 
 #### MAIN ####
 
-  # make sure the caching directories are setup
-  unless ( -e "$ENV{HOME}/.obs/tar_scm")
-  {
-    system("mkdir -p $ENV{HOME}/.obs/cache/tar_scm/{incoming,repo,repourl}");
-    system(qq(echo '[tar_scm]\nCACHEDIRECTORY="$ENV{HOME}/.obs/cache/tar_scm"' > ~/.obs/tar_scm));
-  }
+# make sure the caching directories are setup
+unless ( -e "$ENV{HOME}/.obs/tar_scm")
+{
+  system("mkdir -p $ENV{HOME}/.obs/cache/tar_scm/{incoming,repo,repourl}");
+  system(qq(echo '[tar_scm]\nCACHEDIRECTORY="$ENV{HOME}/.obs/cache/tar_scm"' > ~/.obs/tar_scm));
+}
 
-  die "Error: can not find .osc project in this directory: " unless ( -d '.osc');
-  $project = `osc info | grep "Package name" | sed -e "s/.*: //"`;
-  chomp $project;
+die "Error: can not find .osc project in this directory: " unless ( -d '.osc');
+$project = `osc info | grep "Package name" | sed -e "s/.*: //"`;
+chomp $project;
 
-  system(@OSCBASE, 'up') && die "Error: osc up failed, maybe due to local changes. Please check manually.";
-  system(@OSCBASE, 'pull'); # exit code does not count
+system(@OSCBASE, 'up') && die "Error: osc up failed, maybe due to local changes. Please check manually.";
+system(@OSCBASE, 'pull'); # exit code does not count
 
-  # check for conflict
-  if (osc_st('C'))
-  {
-    # we used to rebranch here, but then we loose either of the changes (change in Staging or in Stable branch)
-    # we rather error out here and want somebody to look at it
-    die "Error: Detected a conflict. Both packages in Staging and Stable branch have changed. Please fix the conflict manually.";
-  }
+# check for conflict
+if (osc_st('C'))
+{
+  # we used to rebranch here, but then we loose either of the changes
+  # (change in Staging or in Stable branch)
+  # we rather error out here and want somebody to look at it
+  die "Error: Detected a conflict. Both packages in Staging and Stable branch have changed. Please fix the conflict manually.";
+}
 
-  $xmldom = servicefile_read_xml($xmlfile);
+$xmldom = servicefile_read_xml($xmlfile);
+eval {
+  $gitremote = xml_get_text($xmldom, '/services/service[@name="obs_scm" or @name="tar_scm"][1]/param[@name="url"][1]');
+};
+my $custom_service;
+my $changesgenerate;
+if($@ =~m/Could not find an xml element with the statement/) {
   eval {
-    $gitremote = xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="url"][1]');
-  };
-  my $custom_service;
-  my $changesgenerate;
-  if($@ =~m/Could not find an xml element with the statement/) {
-    eval {
-      $custom_service=xml_get_text($xmldom, '/services/service[@name="git_tarballs"][1]/param[@name="url"][1]');
-    };
-    eval {
-      $custom_service=xml_get_text($xmldom, '/services/service[@name="github_tarballs"][1]/param[@name="url"][1]');
-    };
-    eval {
-      $custom_service=xml_get_text($xmldom, '/services/service[@name="download_files"][1]/param[@name="changesgenerate"][1]');
-    };
-    eval {
-      $custom_service=xml_get_text($xmldom, '/services/service[@name="renderspec"][1]/param[@name="output-name"][1]');
-    };
-    die $@ unless $custom_service;
-  }
-  eval {
-    $custom_service=xml_get_text($xmldom, '/services/service[@name="python_sdist"][1]/param[@name="basename"][1]');
+    $custom_service=xml_get_text($xmldom, '/services/service[@name="git_tarballs"][1]/param[@name="url"][1]');
   };
   eval {
-    $changesgenerate=xml_get_text($xmldom, '/services/service[@name="tar_scm"][1]/param[@name="changesgenerate"][1]');
+    $custom_service=xml_get_text($xmldom, '/services/service[@name="github_tarballs"][1]/param[@name="url"][1]');
   };
-  my $revision = $ENV{GITREV} || '';
+  eval {
+    $custom_service=xml_get_text($xmldom, '/services/service[@name="download_files"][1]/param[@name="changesgenerate"][1]');
+  };
+  eval {
+    $custom_service=xml_get_text($xmldom, '/services/service[@name="renderspec"][1]/param[@name="output-name"][1]');
+  };
+  die $@ unless $custom_service;
+}
+eval {
+  $custom_service=xml_get_text($xmldom, '/services/service[@name="python_sdist"][1]/param[@name="basename"][1]');
+};
+eval {
+  $changesgenerate=xml_get_text($xmldom, '/services/service[@name="obs_scm" or @name="tar_scm"][1]/param[@name="changesgenerate"][1]');
+};
+my $revision = $ENV{GITREV} || '';
 
-  my $tarball;
-  if (!$custom_service)
-  {
-    my $tarballbase = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="file"][1]');
-    my $tarballext  = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="compression"][1]');
+my $tarball;
+my $tarballbase;
+
+if (!$custom_service)
+{
+  eval {
+    $tarballbase = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="file"][1]');
+  };
+  eval {
+    $tarballbase = xml_get_text($xmldom, '/services/service[@name="obs_scm" or @name="tar_scm"][1]/param[@name="filename"][1]') . "*";
+  };
+
+  if ($tarballbase) {
+    my $tarballext = "*.obscpio";
+    eval {
+      $tarballext  = xml_get_text($xmldom, '/services/service[@name="recompress"][1]/param[@name="compression"][1]');
+    };
     $tarball = "$tarballbase.$tarballext";
     push @oldtarballfiles, glob($tarball);
     $oldgitrev = find_gitrev(\@oldtarballfiles);
@@ -308,75 +321,76 @@ sub osc_checkin()
     @oldtarballfiles || die "Error: Could not find any current tarball. Please check the state of the osc checkout manually.";
     system('osc', 'rm', @oldtarballfiles) && die "Error: osc rm failed. Please check manually.";
   }
+}
 
-  my $exitcode;
-  # run source service
-  $exitcode = pack_servicerun();
-  die_on_error('service', $exitcode);
-  if ($custom_service)
+my $exitcode;
+# run source service
+$exitcode = pack_servicerun();
+die_on_error('service', $exitcode);
+if ($custom_service)
+{
+  $gitrev=`perl -ne 'if(m/Version:.*\\.([0-9a-f]+)/){print \$1;exit}' *.spec`;
+} else
+{
+  push @tarballfiles, glob($tarball);
+  $gitrev = find_gitrev(\@tarballfiles);
+
+  my @changedfiles = osc_st('ADM');
+  if (scalar(@changedfiles) == 0)
   {
-    $gitrev=`perl -ne 'if(m/Version:.*\\.([0-9a-f]+)/){print \$1;exit}' *.spec`;
-  } else
-  {
-    push @tarballfiles, glob($tarball);
-    $gitrev = find_gitrev(\@tarballfiles);
-
-    my @changedfiles = osc_st('ADM');
-    if (scalar(@changedfiles) == 0)
-    {
-      print "\n-->\n";
-      print "--> No changes detected. Skipping build and submit.\n";
-      # revert all deleted packages to get back to a consistent checkout
-      print "-->\n";
-      print "--> Reverting back to consistent checkout.\n";
-      system('osc', 'rm', @tarballfiles) && die "Error: Could not 'osc rm' the new broken files. Please cleanup manually.";
-      system('osc', 'revert', @oldtarballfiles) && die "Error: Could not revert the deleted packages. Please cleanup manually.";
-      print "-->\n";
-      print "--> Successfully reverted back.\n";
-      exit 0;
-    }
-
     print "\n-->\n";
-    print "--> Detected ".scalar(@changedfiles)." changed files.\n";
-
-    system('osc', 'add', @tarballfiles) && die "Error: osc add failed. Please check manually.";
-
-    my @revertedfiles = osc_st('R');
-    if (scalar(@revertedfiles) == scalar(@changedfiles))
-    {
-      # we only have reverted files and no changes, switch back to consistent checkout
-      print "-->\n";
-      print "--> Sorry. The new files are just the same as the old ones.\n";
-      print "--> Reverting back to consistent checkout.\n";
-      system('osc', 'rm', @tarballfiles) && die "Error: Could not 'osc rm' the new broken files. Please cleanup manually.";
-      system('osc', 'revert', @oldtarballfiles) && die "Error: Could not revert the deleted packages. Please cleanup manually.";
-      print "-->\n";
-      print "--> Successfully reverted back.\n";
-      exit 0;
-    }
+    print "--> No changes detected. Skipping build and submit.\n";
+    # revert all deleted packages to get back to a consistent checkout
+    print "-->\n";
+    print "--> Reverting back to consistent checkout.\n";
+    system('osc', 'rm', @tarballfiles) && die "Error: Could not 'osc rm' the new broken files. Please cleanup manually.";
+    system('osc', 'revert', @oldtarballfiles) && die "Error: Could not revert the deleted packages. Please cleanup manually.";
+    print "-->\n";
+    print "--> Successfully reverted back.\n";
+    exit 0;
   }
 
-  if (!$custom_service && !$changesgenerate)
+  print "\n-->\n";
+  print "--> Detected ".scalar(@changedfiles)." changed files.\n";
+
+  system('osc', 'add', @tarballfiles) && die "Error: osc add failed. Please check manually.";
+
+  my @revertedfiles = osc_st('R');
+  if (scalar(@revertedfiles) == scalar(@changedfiles))
   {
-    eval {
-      add_changes_entry();
-    };
-    if ($@) {
-      warn $@;
-      die "Error: Could not create a changes entry.";
-    }
-    print "--> Added a changes entry.\n";
+    # we only have reverted files and no changes, switch back to consistent checkout
+    print "-->\n";
+    print "--> Sorry. The new files are just the same as the old ones.\n";
+    print "--> Reverting back to consistent checkout.\n";
+    system('osc', 'rm', @tarballfiles) && die "Error: Could not 'osc rm' the new broken files. Please cleanup manually.";
+    system('osc', 'revert', @oldtarballfiles) && die "Error: Could not revert the deleted packages. Please cleanup manually.";
+    print "-->\n";
+    print "--> Successfully reverted back.\n";
+    exit 0;
   }
+}
 
-  print "--> Now trying to build package.\n";
+if (!$custom_service && !$changesgenerate)
+{
+  eval {
+    add_changes_entry();
+  };
+  if ($@) {
+    warn $@;
+    die "Error: Could not create a changes entry.";
+  }
+  print "--> Added a changes entry.\n";
+}
 
-  # run osc build
-  $OSC_BUILD_LOG="../$project.build.log.0";
-  $OSC_BUILD_LOG_OLD="../$project.build.log.1";
-  rename($OSC_BUILD_LOG, $OSC_BUILD_LOG_OLD);
-  $exitcode = osc_build();
-  die_on_error('build', $exitcode);
+print "--> Now trying to build package.\n";
 
-  $exitcode = osc_checkin();
+# run osc build
+$OSC_BUILD_LOG="../$project.build.log.0";
+$OSC_BUILD_LOG_OLD="../$project.build.log.1";
+rename($OSC_BUILD_LOG, $OSC_BUILD_LOG_OLD);
+$exitcode = osc_build();
+die_on_error('build', $exitcode);
 
-  die_on_error('checkin', $exitcode);
+$exitcode = osc_checkin();
+
+die_on_error('checkin', $exitcode);

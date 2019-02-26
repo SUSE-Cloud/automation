@@ -1,4 +1,5 @@
 - job-template:
+    ### The reason why this upgrade job is "disruptive" is the default cinder backend
     name: 'cloud-mkcloud{version}-job-upgrade-disruptive-ha-{arch}'
     node: cloud-trigger
 
@@ -19,10 +20,16 @@
             TESTHEAD=1
             cloudsource=develcloud{previous_version}
             upgrade_cloudsource=develcloud{version}
-            nodenumber=4
-            mkcloudtarget=plain_with_upgrade testsetup
+            nodenumber={nodenumber}
+            nodenumberlonelynode=1
             want_nodesupgrade=1
+            want_database_sql_engine={database_engine}
+            want_trove_proposal=0
+            want_barbican_proposal=0
+            want_sahara_proposal=0
             hacloud=1
+            clusterconfig=data+services+network={nodenumber_controller}
             storage_method=swift
             label={label}
+            mkcloudtarget=instonly setuplonelynodes lonelynode_nfs_server proposal testpreupgrade addupdaterepo runupdate cloudupgrade testpostupgrade testsetup
             job_name=cloud-mkcloud{version}-job-upgrade-disruptive-ha-{arch}

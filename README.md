@@ -16,7 +16,17 @@ This project has several scripts for different automated tasks. Some of them are
 
 # Documentation
 
-Find out more about configuration and usage in [`/docs/mkcloud.md`](docs/mkcloud.md)
+## Crowbar deployments
+
+Find out more in [`/docs/mkcloud.md`](docs/mkcloud.md)
+
+## Ardana deployments
+
+Find out more in [`/docs/ardana/`](docs/ardana/)
+
+## devstack deployments
+
+Find out more in [`/docs/devstack/`](docs/devstack/)
 
 # License
 
@@ -73,6 +83,25 @@ jenkins/openstack-unittest-testconfig.pl syntax OK
 jenkins/track-upstream-and-package.pl syntax OK
 ```
 
+# shellcheck
+
+You can run [shellcheck](https://github.com/koalaman/shellcheck) locally to check for warnings and suggestions for shell scripts.
+
+First install it:
+
+```
+$ zypper in ShellCheck
+```
+
+Then run it with:
+```
+$ make shellcheck
+```
+
+> Note that there is currently a high number of warnings and errors discovered by shellcheck so the check is supposed to fail until
+we can fix all those issues
+
+
 # jenkins jobs
 There are manually maintained jobs, and some jobs are now using
 [jenkins-job-builder](http://docs.openstack.org/infra/jenkins-job-builder/)
@@ -111,3 +140,7 @@ jenkins-jobs --ignore-cache update \
 
 For this you need a local ini file and add it via the `--conf` parameter to
 the above command.
+
+To tune the Parsed Console Output of mkcloud jobs, edit
+[the rules file](scripts/jenkins/log-parser/openstack-mkcloud-rules.txt) according to
+[the documented rules file syntax](https://wiki.jenkins-ci.org/display/JENKINS/Log+Parser+Plugin#LogParserPlugin-Parsingrulesfiles).

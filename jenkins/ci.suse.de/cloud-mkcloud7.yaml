@@ -13,13 +13,13 @@
     arch: x86_64
     tempestoptions: --smoke
     label: openstack-mkcloud-SLE12-x86_64
+    database_engine: postgresql
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
         - 'cloud-mkcloud{version}-job-btrfs-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
-        - 'cloud-mkcloud{version}-job-crowbar-devsetup-{arch}'
         - 'cloud-mkcloud{version}-job-dvr-{arch}'
         - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-mariadb-{arch}'
@@ -34,9 +34,13 @@
     version: 7
     previous_version: 6
     arch: x86_64
+    nodenumber: 4
+    nodenumber_controller: 2
     tempestoptions: --smoke
     label: openstack-mkcloud-ha-x86_64
-    storage_method_ha: ceph
+    storage_method_ha: swift
+    database_engine: postgresql
+    want_all_ssl: 0
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
@@ -73,47 +77,3 @@
     tempestoptions: --smoke
     jobs:
         - 'cloud-mkcloud{version}-job-uefi-{arch}'
-
-- project:
-    name: cloud-mkcloud7-aarch64
-    disabled: false
-    version: 7
-    previous_version: 6
-    arch: aarch64
-    label: openstack-mkcloud-SLE12-{arch}
-    tempestoptions: --smoke
-    jobs:
-        - 'cloud-mkcloud{version}-job-2nodes-{arch}'
-        - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
-        - 'cloud-mkcloud{version}-job-btrfs-{arch}'
-        - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
-        - 'cloud-mkcloud{version}-job-magnum-{arch}'
-        - 'cloud-mkcloud{version}-job-raid-{arch}'
-        - 'cloud-mkcloud{version}-job-ssl-{arch}'
-
-- project:
-    name: cloud-mkcloud7-s390x-all
-    disabled: true
-    version: 7
-    previous_version: 6
-    arch: s390x
-    label: openstack-mkcloud-SLE12-{arch}
-    tempestoptions: --smoke
-    jobs:
-        - 'cloud-mkcloud{version}-job-backup-restore-{arch}'
-        - 'cloud-mkcloud{version}-job-btrfs-{arch}'
-        - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
-        - 'cloud-mkcloud{version}-job-raid-{arch}'
-        - 'cloud-mkcloud{version}-job-ssl-{arch}'
-        - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
-
-- project:
-    name: cloud-mkcloud7-s390x
-    disabled: false
-    version: 7
-    previous_version: 6
-    arch: s390x
-    label: openstack-mkcloud-SLE12-{arch}
-    tempestoptions: --smoke
-    jobs:
-        - cloud-mkcloud7-job-simpletest-s390x

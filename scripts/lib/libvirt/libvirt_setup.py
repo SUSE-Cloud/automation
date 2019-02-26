@@ -76,17 +76,17 @@ def get_video_devices():
     return readfile(os.path.join(TEMPLATE_DIR, 'video-default.xml'))
 
 
-# to workaround bnc#946020+bnc#946068+bnc#997358 we use the 2.0 machine type
-# if it is available
+# to workaround bnc#946020+bnc#946068+bnc#997358+1064517 we use the 2.1
+# machine type if it is available
 def get_default_machine(emulator):
     if 'aarch64' in get_machine_arch():
         return "virt"
     elif 's390x' in get_machine_arch():
         return "s390-ccw-virtio"
     else:
-        machine = "pc-i440fx-2.0"
+        machine = "pc-i440fx-2.1"
         if os.system("%(emulator)s -machine help | grep -q %(machine)s" % ({
-                         'emulator': emulator, 'machine': machine})) != 0:
+                     'emulator': emulator, 'machine': machine})) != 0:
             return "pc-0.14"
         return machine
 
@@ -103,7 +103,7 @@ def get_memballoon_type():
     </memballoon>"""
 
     return """    <memballoon model='virtio' autodeflate='on'>
-      <address type='pci' slot='0x05'/>
+      <address type='pci' bus='0x02' slot='0x01'/>
     </memballoon>"""
 
 
@@ -117,11 +117,12 @@ def get_serial_device():
 
 
 def get_mainnic_address(index):
-    mainnicaddress = "<address type='pci' slot='%s'/>" % (hex(index + 0x3))
+    mainnicaddress = "<address type='pci' bus='0x01' slot='%s'/>" % \
+        (hex(index + 0x1))
     if 's390x' in get_machine_arch():
         mainnicaddress = "<address type='ccw' cssid='0xfe' ssid='0x0' " \
-                                         "devno='%s'/>" % \
-                                         (hex(index + 0x1))
+            "devno='%s'/>" % \
+            (hex(index + 0x1))
     return mainnicaddress
 
 
@@ -135,7 +136,7 @@ def get_maindisk_address():
     return maindiskaddress
 
 
-def admin_config(args, cpu_flags=cpuflags()):
+def _get_localrepomount_config(args):
     # add xml snippet to be able to mount a local dir via 9p in a VM
     localrepomount = ""
     if args.localreposrc and args.localrepotgt:
@@ -144,6 +145,12 @@ def admin_config(args, cpu_flags=cpuflags()):
         local_repo_values = dict(localreposdir_src=args.localreposrc,
                                  localreposdir_target=args.localrepotgt)
         localrepomount = local_repo_template.substitute(local_repo_values)
+    return localrepomount
+
+
+def admin_config(args, cpu_flags=cpuflags()):
+    # add xml snippet to be able to mount a local dir via 9p in a VM
+    localrepomount = _get_localrepomount_config(args)
 
     values = dict(
         cloud=args.cloud,
@@ -182,7 +189,7 @@ def net_interfaces_config(args, nicmodel):
             net=get_net_for_nic(args, index),
             macaddress=mac,
             nicmodel=nicmodel,
-            bootorder=bootorderoffset+(index*10),
+            bootorder=bootorderoffset + (index * 10),
             mainnicaddress=mainnicaddress)
         nic_configs.append(
             get_config(values, os.path.join(TEMPLATE_DIR,
@@ -191,6 +198,9 @@ def net_interfaces_config(args, nicmodel):
 
 
 def net_config(args):
+    template_file = "%s-net.xml" % args.network
+    if args.ipv6:
+        template_file = "%s-net-v6.xml" % args.network
     values = {
         'cloud': args.cloud,
         'bridge': args.bridge,
@@ -201,10 +211,7 @@ def net_config(args):
         'forwardmode': args.forwardmode
     }
 
-    return get_config(
-        values,
-        os.path.join(TEMPLATE_DIR, "%s-net.xml" % args.network)
-    )
+    return get_config(values, os.path.join(TEMPLATE_DIR, template_file))
 
 
 def merge_dicts(d1, d2):
@@ -212,6 +219,9 @@ def merge_dicts(d1, d2):
 
 
 def compute_config(args, cpu_flags=cpuflags()):
+    # add xml snippet to be able to mount a local dir via 9p in a VM
+    localrepomount = _get_localrepomount_config(args)
+
     libvirt_type = args.libvirttype
     alldevices = it.chain(it.chain(string.lowercase[1:]),
                           it.product(string.lowercase, string.lowercase))
@@ -265,13 +275,13 @@ def compute_config(args, cpu_flags=cpuflags()):
                 args.cloud,
                 args.nodecounter,
                 i),
-            'target_dev': targetdevprefix + ''.join(alldevices.next()),
-            'target_address': target_address.format(hex(0x10+i)),
+            'target_dev': targetdevprefix + ''.join(next(alldevices)),
+            'target_address': target_address.format(hex(0x10 + i)),
         }, configopts))
 
     cephvolume = ""
     if args.cephvolumenumber and args.cephvolumenumber > 0:
-        for i in range(1, args.cephvolumenumber+1):
+        for i in range(1, args.cephvolumenumber + 1):
             ceph_template = string.Template(
                 readfile(os.path.join(TEMPLATE_DIR, "extra-volume.xml")))
             cephvolume += "\n" + ceph_template.substitute(merge_dicts({
@@ -284,8 +294,8 @@ def compute_config(args, cpu_flags=cpuflags()):
                     args.cloud,
                     args.nodecounter,
                     i),
-                'target_dev': targetdevprefix + ''.join(alldevices.next()),
-                'target_address': target_address.format(hex(0x16+i)),
+                'target_dev': targetdevprefix + ''.join(next(alldevices)),
+                'target_address': target_address.format(hex(0x16 + i)),
             }, configopts))
 
     drbdvolume = ""
@@ -298,9 +308,18 @@ def compute_config(args, cpu_flags=cpuflags()):
                 args.vdiskdir,
                 args.cloud,
                 args.nodecounter),
-            'target_dev': targetdevprefix + ''.join(alldevices.next()),
+            'target_dev': targetdevprefix + ''.join(next(alldevices)),
             'target_address': target_address.format('0x1f')},
             configopts))
+
+    if args.ipmi:
+        values = dict(
+          nodecounter=args.nodecounter
+        )
+        ipmi_config = get_config(values,
+                                 os.path.join(TEMPLATE_DIR, "ipmi-device.xml"))
+    else:
+        ipmi_config = ''
 
     values = dict(
         cloud=args.cloud,
@@ -320,8 +339,10 @@ def compute_config(args, cpu_flags=cpuflags()):
         videodevices=get_video_devices(),
         target_dev=targetdevprefix + 'a',
         serialdevice=get_serial_device(),
+        ipmidevice=ipmi_config,
         target_address=target_address.format('0x0a'),
-        bootorder=args.bootorder)
+        bootorder=args.bootorder,
+        local_repository_mount=localrepomount)
 
     return get_config(merge_dicts(values, configopts),
                       os.path.join(TEMPLATE_DIR, "compute-node.xml"))
@@ -369,7 +390,7 @@ def cleanup_one_node(args):
 def cleanup(args):
     conn = libvirt_connect()
     domains = [i for i in conn.listAllDomains()
-               if i.name().startswith(args.cloud+"-")]
+               if i.name().startswith(args.cloud + "-")]
 
     for dom in domains:
         domain_cleanup(dom)

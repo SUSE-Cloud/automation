@@ -33,6 +33,7 @@ proposals:
 
 - barclamp: database
   attributes:
+    sql_engine: postgresql
     ha:
       storage:
         mode: drbd
@@ -50,6 +51,8 @@ proposals:
         mode: drbd
         drbd:
           size: 5
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:

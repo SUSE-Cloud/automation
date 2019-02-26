@@ -15,7 +15,7 @@
         - glance (storage swift)
         - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 KVM
         - cinder: Local file
-        - neutron: linuxbridge or OVS 
+        - neutron: linuxbridge or OVS
         - manila: NetApp backend (we expect that a vserver 'cloud-manila-svm' is available on the 'netapp-n1-e0m.cloud.suse.de' server)
 
       Warning: It will wipe all machines!
@@ -47,7 +47,7 @@
 
       - string:
           name: sbd_ip
-          default: 10.162.64.10
+          default: 10.162.66.10
           description: Mandatory, IP of iscsi target for sbd
 
       - string:
@@ -64,34 +64,29 @@
           description: Mandatory, automation repo owner/organization
 
       - string:
-          name: automation_repo
-          default: git://github.com/$repo_owner/automation.git
-          description: Mandatory, automation repo URL
-
-      - string:
           name: branch
           default: master
           description: Mandatory, automation repo branch
 
       - string:
+          name: automation_repo
+          default: github.com/$repo_owner/automation#$branch
+          description: Mandatory, automation repo URL
+
+      - string:
           name: netapp_server
           default: netapp-n1-e0m.cloud.suse.de
-          description: Mandatory, the name of the NetApp Storage backend server 
+          description: Mandatory, the name of the NetApp Storage backend server
 
       - string:
           name: netapp_vserver
           default: cloud-manila-svm
-          description: Mandatory, the name of the NetApp Storage backend vserver 
+          description: Mandatory, the name of the NetApp Storage backend vserver
 
       - string:
           name: tempest
           default: smoke
           description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
-
-      - string:
-          name: cct
-          default: features:base
-          description: Optional, specify cct tests to run
 
       - bool:
           name: rally-tests
@@ -159,6 +154,11 @@
           default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases
           description: All the steps that needs to be completed to have cloud installed
 
+      - string:
+          name: want_test_updates
+          default: 0
+          description: Use updates-test repos for all SUSE products
+
       - text:
           name: UPDATEREPOS
           default:
@@ -171,7 +171,7 @@
 
     builders:
       - shell: |
-          #!/bin/bash
+          #!/bin/bash -x
           admin=crowbar$hw_number
           cloud=qa$hw_number
           netapp_server=$netapp_server
@@ -189,7 +189,7 @@
           # check that netapp backend server is available
           ping -c 3 $netapp_server || ret=$?
 
-          if [ $ret != 0 ] ; then 
+          if [ $ret != 0 ] ; then
             echo "netapp server is unavailable!"
             exit 1
           fi
@@ -238,6 +238,10 @@
           export netapp_password=$netapp_password ;
           export netapp_server=$netapp_server ;
           export netapp_vserver=$netapp_vserver ;
+          export networkingplugin=$networkingplugin ;
+          export want_swift=1 ;
+          export cephvolumenumber=1 ;
+          export networkingmode=$networkingmode ;
           export commands=\"$commands\" "'
 
           sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
@@ -262,12 +266,14 @@
 
             cat > /tmp/sbd_prepare_$admin <<EOSCRIPT
               # preparation of iSCSI
-              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
+              zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP4/ --non-interactive install python-sh
 
               chmod +x scripts/iscsictl.py
 
+              ./scripts/iscsictl.py --service target --host \$(hostname) --no-key
+
               for node in {controller1,controller2,data1,data2,network1,network2} ; do
-                ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host \$node --no-key --id id-qa$hw_number
+                ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host \$node --no-key
               done
 
               # preparation of SBD for services nodes
@@ -363,7 +369,6 @@
             predefined-parameters: |
               hw_number=$hw_number
               tempest=$tempest
-              cct_tests=$cct
               scenario_name=2a
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER

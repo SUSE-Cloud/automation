@@ -4,7 +4,7 @@
     node: cloud-trigger
 
     triggers:
-      - timed: 'H H * * *'
+      - timed: 'H H * * */2'
 
     logrotate:
       numToKeep: -1
@@ -18,26 +18,26 @@
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
-                cloudsource=susecloud8
-                TESTHEAD=
+                cloudsource=GM8+up
+                TESTHEAD=1
                 want_test_updates=1
                 nodenumber=2
                 mkcloudtarget=all_batch
                 scenario=cloud8-2nodes-default.yml
                 want_node_aliases=controller=1,compute-kvm=1
                 label=openstack-mkcloud-SLE12-x86_64
-                job_name=susecloud8: OVS
+                job_name=GM8+up: OVS
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
-                cloudsource=susecloud8
+                cloudsource=GM8+up
                 TESTHEAD=
                 want_test_updates=1
                 nodenumber=4
                 networkingplugin=linuxbridge
                 mkcloudtarget=all
                 label=openstack-mkcloud-SLE12-x86_64
-                job_name=susecloud8: linuxbridge
+                job_name=GM8+up: linuxbridge
       - multijob:
           name: 'Extra Gate Checks (HA)'
           condition: SUCCESSFUL
@@ -45,9 +45,9 @@
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
-                TESTHEAD=
+                TESTHEAD=1
                 want_test_updates=1
-                cloudsource=susecloud8
+                cloudsource=GM8+up
                 nodenumber=5
                 networkingmode=vxlan
                 crowbar_networkingmode=team
@@ -55,4 +55,4 @@
                 hacloud=1
                 mkcloudtarget=all_noreboot
                 label=openstack-mkcloud-SLE12-x86_64
-                job_name=susecloud8: HA vxlan
+                job_name=GM8+up: HA vxlan

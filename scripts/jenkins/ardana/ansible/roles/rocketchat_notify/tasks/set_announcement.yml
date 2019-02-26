@@ -1,0 +1,75 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Auth on RocketChat
+  uri:
+    url: "{{ rc_url }}/api/v1/login"
+    validate_certs: no
+    method: POST
+    body:
+      username: "{{ rc_bot.username }}"
+      password: "{{ rc_bot.password }}"
+    body_format: json
+  register: rc_auth
+
+- name: Get channels list
+  uri:
+    url: "{{ rc_url }}/api/v1/channels.list?count=100"
+    validate_certs: no
+    method: GET
+    headers:
+      X-Auth-Token: "{{ rc_auth.json.data.authToken }}"
+      X-User-Id: "{{ rc_auth.json.data.userId }}"
+  register: rc_bot_channels
+
+- name: Get environment channel ID
+  set_fact:
+    rc_channel_id: "{{ item }}"
+  loop: "{{ rc_bot_channels | json_query(rc_channel_id_query) }}"
+
+- name: Load previous announcement when not deploy
+  slurp:
+    src: "{{ rc_deploy_announcement_file }}"
+  delegate_to: "gate-{{ ardana_env }}"
+  register: rc_previous_announcement
+  remote_user: "root"
+  ignore_errors: true
+  when: "rc_task != 'deploy'"
+
+- name: Set channel announcement
+  uri:
+    url: "{{ rc_url }}/api/v1/channels.setAnnouncement"
+    validate_certs: no
+    method: POST
+    headers:
+      X-Auth-Token: "{{ rc_auth.json.data.authToken }}"
+      X-User-Id: "{{ rc_auth.json.data.userId }}"
+    body:
+      roomId: "{{ rc_channel_id }}"
+      announcement: "{{ rc_announcement_started if rc_action == 'started' else rc_announcement_finished }}"
+    body_format: json
+  failed_when: false
+
+- name: Save announcement when deploy/update finished
+  copy:
+    content: "{{ rc_announcement_finished }}"
+    dest: "{{ rc_deploy_announcement_file }}"
+  delegate_to: "gate-{{ ardana_env }}"
+  remote_user: "root"
+  when:
+    - "rc_task == 'deploy' or rc_task == 'update'"
+    - "rc_action == 'finished'"

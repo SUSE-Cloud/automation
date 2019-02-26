@@ -52,12 +52,18 @@ module Job
   end
 
   class SuseMatrix < Mapping
+
+    CARDNAMES = {
+      "cloud-mediacheck" => "mediacheck"
+    }
+
     def version
-      project.split(":")[2]
+      project.match(/.*Cloud(:)?(\d+).*/)[2]
     end
 
     def card_name
-      "C#{version} #{name}"
+      cname = CARDNAMES[name] || name
+      "C#{version} #{cname}"
     end
 
     def list_name
@@ -67,8 +73,11 @@ module Job
 
   class OpenSuseMatrix < Mapping
     def card_name
-      card = name.gsub("openstack-", "")
-      "#{card}: #{project}"
+      prefix = name.gsub("openstack-", "")
+      if project.include? ":"
+         @project = project.split(":")[2]
+      end
+      "#{prefix}: #{project}"
     end
 
     def list_name
@@ -77,12 +86,12 @@ module Job
   end
 
   MAPPING = {
-    suse: {
-      normal: SuseNormal,
-      matrix: SuseMatrix
+    :suse => {
+      :normal => SuseNormal,
+      :matrix => SuseMatrix
     },
-    opensuse: {
-      matrix: OpenSuseMatrix
+    :opensuse => {
+      :matrix => OpenSuseMatrix
     }
   }.freeze
 

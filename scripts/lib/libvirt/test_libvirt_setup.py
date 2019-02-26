@@ -64,19 +64,36 @@ class TestLibvirtHelpers(unittest.TestCase):
 
 class TestLibvirtNetConfig(unittest.TestCase):
 
-    def test_net_config(self):
+    def net_config_common_arguments(self):
         args = Arguments()
         args.network = "admin"
         args.cloud = "cloud"
         args.bridge = "cloudbr"
+        args.cloudfqdn = "unittest.suse.de"
+        args.forwardmode = "nat"
+        return args
+
+    def test_net_config(self):
+        args = self.net_config_common_arguments()
+        args.ipv6 = False
         args.gateway = "192.168.124.1"
         args.netmask = "255.255.248.0"
-        args.cloudfqdn = "unittest.suse.de"
         args.hostip = "192.168.124.10"
-        args.forwardmode = "nat"
 
         should_config = libvirt_setup.readfile(
             "{0}/cloud-admin.net.xml".format(FIXTURE_DIR))
+        is_config = libvirt_setup.net_config(args)
+        self.assertEqual(is_config, should_config)
+
+    def test_ipv6_net_config(self):
+        args = self.net_config_common_arguments()
+        args.ipv6 = True
+        args.gateway = "fd00::1"
+        args.netmask = "112"
+        args.hostip = "fd00::10"
+
+        should_config = libvirt_setup.readfile(
+            "{0}/cloud-admin.netv6.xml".format(FIXTURE_DIR))
         is_config = libvirt_setup.net_config(args)
         self.assertEqual(is_config, should_config)
 
@@ -104,6 +121,9 @@ def default_test_args(args):
     args.bootorder = 3
     args.numcontrollers = 1
     args.firmwaretype = "bios"
+    args.localreposrc = None
+    args.localrepotgt = None
+    args.ipmi = False
 
 
 class TestLibvirtAdminConfig(unittest.TestCase):
@@ -172,6 +192,12 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         args.controller_raid_volumes = 2
         args.cephvolumenumber = 2
         self._compare_configs(args, "raid")
+
+    def test_compute_config_with_9pnet_virtio_mount(self):
+        args = self.args
+        args.localreposrc = '/var/cache/mkcloud/cloud'
+        args.localrepotgt = '/repositories'
+        self._compare_configs(args, '9pnet-mount')
 
 
 if __name__ == '__main__':

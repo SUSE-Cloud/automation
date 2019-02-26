@@ -57,7 +57,7 @@ def jenkins_build_job(job_name, job_args=[]):
         p_key, _, p_val = param.partition('=')
         job_parameters[p_key.strip(' ')] = p_val.strip(' ')
 
-    server = jenkins.Jenkins(config['jenkins_url'],
+    server = jenkins.Jenkins(str(config['jenkins_url']),
                              username=config['jenkins_user'],
                              password=config['jenkins_api_token'])
     server.build_job(job_name, job_parameters)

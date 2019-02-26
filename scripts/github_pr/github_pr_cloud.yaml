@@ -1,0 +1,111 @@
+interaction_dirs:
+  - ./interactions
+template:
+  mkcloud_parameters: &mkcloud_automation_parameters
+    standard: &mkcloud_automation_standard
+      label: openstack-mkcloud
+      mkcloudtarget: all_noreboot
+      cloudsource: develcloud9
+      nodenumber: 2
+      networkingplugin: openvswitch
+    stable: &mkcloud_automation_stable
+      <<: *mkcloud_automation_standard
+      cloudsource: GM8+up
+  ardana_parameters: &ardana_automation_parameters
+    standard: &ardana_automation_standard
+  user:
+    suse_cloud_user: &suse_cloud_user
+      - SUSE-Cloud
+  team:
+    suse_cloud_team: &suse_cloud_team
+      - name: SUSE-Cloud/Owners
+        id: 159206
+      - name: SUSE-Cloud/developers
+        id: 1541628
+    crowbar_team: &crowbar_team
+      - name: crowbar/Owners
+        id: 291046
+  filter:
+    suse_automation: &suse_automation
+      - type: MergeBranch
+        config:
+          branches:
+            - master
+      - type: Status
+        config:
+          status: unseen
+      - type: TrustedSource
+        skippable: true
+        config:
+          users:
+            *suse_cloud_user
+          teams:
+            *suse_cloud_team
+        blacklist_handler:
+          - type: SetStatus
+            parameters:
+              status: error
+              message: Owner of the source repo for this PR lacks permission
+      - type: FileMatch
+        config:
+          paths:
+            -  !ruby/regexp '/scripts\/(mkcloud|qa_crowbarsetup\.sh|lib\/.*)$/'
+            -  !ruby/regexp '/scripts\/jenkins\/(log-parser|mkcloud)\//'
+        blacklist_handler:
+          - type: SetStatus
+            parameters:
+              status: success
+              message: gating not applicable
+        whitelist_handler:
+          - type: SetStatus
+            parameters:
+              status: pending
+              message: Queued automation PR gating
+          - type: JenkinsJobTriggerMkcloud
+            parameters:
+              detail_logging: true
+              job_name: openstack-mkcloud
+              job_cmd: "../jenkins/jenkins-job-trigger"
+              job_parameters:
+                *mkcloud_automation_parameters
+    suse_cct: &suse_cct
+      - type: Status
+        config:
+          status: unseen
+      - type: TrustedSource
+        config:
+          users:
+            *suse_cloud_user
+          teams:
+            *suse_cloud_team
+        blacklist_handler:
+          - type: SetStatus
+            parameters:
+              status: error
+              message: Owner of the source repo for this PR lacks permission
+        whitelist_handler:
+          - type: SetStatus
+            parameters:
+              status: pending
+              message: Queued cct PR gating
+          - type: JenkinsJobTriggerMkcloudCCT
+            parameters:
+              detail_logging: true
+              job_name: openstack-mkcloud
+              job_cmd: "../jenkins/jenkins-job-trigger"
+              job_parameters:
+                standard:
+                  *mkcloud_automation_standard
+pr_processing:
+  - config:
+      organization: SUSE-Cloud
+      repositories:
+        - automation
+      context: suse/mkcloud
+    filter: *suse_automation
+  - config:
+      organization: SUSE-Cloud
+      repositories:
+        - cct
+      context: suse/mkcloud
+    filter: *suse_cct

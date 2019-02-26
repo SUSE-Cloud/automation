@@ -1,5 +1,7 @@
 jenkins/*.config.xml
 jenkins/*.cred
+jenkins/ci.suse.de/gerrit-project-regexp.txt
+scripts/jenkins/jenkins-job-triggerc
 scripts/jenkins/*.config.xml
 scripts/jenkins/*.cred
 

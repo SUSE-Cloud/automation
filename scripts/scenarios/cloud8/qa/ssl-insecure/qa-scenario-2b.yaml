@@ -52,14 +52,14 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
     ha:
       storage:
         shared:
           device: 10.162.26.129:/var/qa2/ha-rabbitmq
           fstype: nfs
           options: nfsvers=3
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
@@ -130,6 +130,7 @@ proposals:
       backend_name: nfs
       nfs:
         nfs_shares: ##cinder-storage-shares##
+        nfs_snapshot: true
     - backend_driver: vmware
       backend_name: vmware-backend
       vmware:
@@ -262,15 +263,6 @@ proposals:
       - "@@controller1@@"
       - "@@controller2@@"
       - "@@controller3@@"
-
-- barclamp: trove
-  attributes:
-    swift_instance: ''
-    volume_support: true
-  deployment:
-    elements:
-      trove-server:
-      - "@@controller1@@"
 
 - barclamp: tempest
   attributes:
