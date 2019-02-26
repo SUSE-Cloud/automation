@@ -46,18 +46,58 @@ pipeline {
             ).trim()
           }
 
-          if (gerrit_context == '') {
-            currentBuild.displayName = "#${BUILD_NUMBER}: $GERRIT_CHANGE_NUMBER/$GERRIT_PATCHSET_NUMBER"
-          } else {
-            currentBuild.displayName = "#${BUILD_NUMBER}: $GERRIT_CHANGE_NUMBER/$GERRIT_PATCHSET_NUMBER ($gerrit_context)"
-          }
+          currentBuild.displayName = "#${BUILD_NUMBER}: $GERRIT_CHANGE_NUMBER/$GERRIT_PATCHSET_NUMBER ($gerrit_context)"
+        }
+      }
+    }
 
+    stage('supersede running jobs') {
+      steps {
+        script {
+          sh('''
+            # If this is a job triggered by Gerrit because a new patchset has
+            # been published, abort all other older running builds that
+            # target the same change number
+            if [[ $GERRIT_EVENT_TYPE == 'patchset-created' ]]; then
+              python -u automation-git/scripts/jenkins/jenkins-job-cancel \
+                --older-than ${BUILD_NUMBER} \
+                --with-param GERRIT_CHANGE_NUMBER=${GERRIT_CHANGE_NUMBER} \
+                --wait 600 \
+                ${JOB_NAME} || :
+            else
+              if $voting; then
+                # If this is a voting job, abort other older running builds that
+                # target the same change number and are also voting.
+                python -u automation-git/scripts/jenkins/jenkins-job-cancel \
+                  --older-than ${BUILD_NUMBER} \
+                  --with-param GERRIT_CHANGE_NUMBER=${GERRIT_CHANGE_NUMBER} \
+                  --with-param voting=True \
+                  --wait 600 \
+                  ${JOB_NAME} || :
+              fi
+
+              # Also abort other older running builds that target the same change
+              # number and gerrit_context value, voting or otherwise.
+              python -u automation-git/scripts/jenkins/jenkins-job-cancel \
+                --older-than ${BUILD_NUMBER} \
+                --with-param GERRIT_CHANGE_NUMBER=${GERRIT_CHANGE_NUMBER} \
+                --with-param gerrit_context=${gerrit_context} \
+                --wait 600 \
+                ${JOB_NAME} || :
+            fi
+            ''')
+        }
+      }
+    }
+
+    stage('notify Gerrit') {
+      steps {
+        script {
           sh('''
             build_str="Build"
             $voting || build_str="(Non-voting) build"
-            [[ -n $gerrit_context ]] && build_context=" ($gerrit_context)"
             message="
-${build_str} started${build_context}: ${BUILD_URL}
+${build_str} started (${gerrit_context}): ${BUILD_URL}
 The following links can also be used to track the results:
 
 - live console output: ${BUILD_URL}console
@@ -128,11 +168,12 @@ The following links can also be used to track the results:
           automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
             --recursive \
             --filter 'Declarative: Post Actions' \
-            --filter 'Setup workspace' > pipeline-report.txt || :
+            --filter 'Setup workspace' \
+            --filter 'supersede running jobs' \
+            --filter 'notify Gerrit' > pipeline-report.txt || :
 
           build_str="Build"
           $voting || build_str="(Non-voting) build"
-          [[ -n $gerrit_context ]] && build_context=" ($gerrit_context)"
 
           if [[ $BUILD_RESULT == SUCCESS ]]; then
             vote=+2
@@ -146,7 +187,7 @@ The following links can also be used to track the results:
           fi
 
           message="
-${build_str} ${message_result}${build_context}: ${BUILD_URL}
+${build_str} ${message_result} ($gerrit_context): ${BUILD_URL}
 
 "
 

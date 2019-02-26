@@ -45,13 +45,20 @@
             extracted from the GERRIT_CHANGE_NUMBER and GERRIT_PATCHSET_NUMBER environment
             variables set by the trigger, which override this parameter.
 
-      - string:
+      - validating-string:
           name: gerrit_context
-          default: ''
+          default: '{gerrit_context}'
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
           description: >-
-            A short description of the job to be reported back to Gerrit. It can be useful
-            when multiple jobs are running simultaneously on the same Gerrit change, to
-            differentiate between their corresponding Gerrit reports.
+            Unique job identifier. This string label uniquely identifies a job build within
+            the set of builds running against the same Gerrit change.
+
+            This value determines which of the job builds currently running for a Gerrit change
+            are superseded and automatically canceled when a new job build is started.
+            The rule is: there can be at most one job with a given 'gerrit_context' value running
+            at any given time for a Gerrit change, voting or otherwise.
 
       - bool:
           name: voting
@@ -59,12 +66,21 @@
           description: >-
             Determines if this job posts Verified labels on target Gerrit changes.
 
+            NOTE: there can be at most one voting Gerrit job running for a Gerrit
+            change number. The most recent job will automatically abort those
+            that are already running for the same Gerrit change number.
+
       - string:
           name: integration_test_job
           default: '{integration_test_job}'
           description: >-
             The Ardana Jenkins integration job triggered to validate the Gerrit change.
             Leave empty to skip integration testing.
+
+            NOTE: there can be at most one non-voting Gerrit job running the same
+            integration test job for a Gerrit change number. The most recent job
+            will automatically abort those that are already running for the same
+            Gerrit change number and integration test job.
 
       - validating-string:
           name: extra_repos

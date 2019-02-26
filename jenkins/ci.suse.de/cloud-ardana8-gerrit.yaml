@@ -67,6 +67,7 @@
     ardana_env: cloud-ardana-gerrit-slot
     reserve_env: true
     voting: true
+    gerrit_context: std-min
     integration_test_job: cloud-ardana8-job-std-min-gerrit-x86_64
     version: '8'
     triggers:
