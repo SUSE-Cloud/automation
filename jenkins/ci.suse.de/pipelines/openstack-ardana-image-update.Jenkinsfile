@@ -30,7 +30,11 @@ pipeline {
     stage('upload new image version') {
       steps {
         sh '''
-          wget -qO- ${download_image_url} | xz -d > ${sles_image}.qcow2
+          if [[ $download_image_url == *".xz" ]]; then
+              wget -qO- ${download_image_url} | xz -d > ${sles_image}.qcow2
+          else
+              wget -q ${download_image_url} -O ${sles_image}.qcow2
+          fi
 
           openstack --os-cloud $os_cloud image show ${sles_image}-update && \
               openstack --os-cloud $os_cloud image delete ${sles_image}-update
