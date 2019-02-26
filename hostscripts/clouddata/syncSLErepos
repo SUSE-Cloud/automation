@@ -239,7 +239,7 @@ done
 
 
 # LTSS enablement
-for servicepack in 3 2 1; do
+for servicepack in 2 1; do
 
     version="12-SP$servicepack-LTSS"
     repo_version="$version"
@@ -249,6 +249,10 @@ for servicepack in 3 2 1; do
         destdir_sles_updates=/srv/nfs/repos/$arch/SLES$repo_version-Updates/
         mkdir -p $destdir_sles_updates
         $rsync ${ibs_source}/SUSE/Updates/SLE-SERVER/$version/$arch/update/ $destdir_sles_updates
+
+        destdir_sles_updates_test=/srv/nfs/repos/$arch/SLES$repo_version-Updates-test/
+        mkdir -p $destdir_sles_updates_test
+        $rsync $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ $destdir_sles_updates_test
     done
 done
 
