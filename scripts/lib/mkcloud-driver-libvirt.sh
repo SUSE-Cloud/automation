@@ -3,7 +3,8 @@ function libvirt_modprobe_kvm()
     if [[ $(uname -m) = x86_64 ]]; then
         $sudo modprobe kvm-amd
         if [ ! -e /etc/modprobe.d/80-kvm-intel.conf ] ; then
-            echo "options kvm-intel nested=1" | $sudo dd of=/etc/modprobe.d/80-kvm-intel.conf
+            echo "options kvm-intel nested=1 emulate_invalid_guest_state=0" | \
+                $sudo dd of=/etc/modprobe.d/80-kvm-intel.conf
             $sudo rmmod kvm-intel
         fi
         $sudo modprobe kvm-intel
