@@ -58,7 +58,7 @@
 - name: Get update status
   shell: |
     ansible-playbook ardana-update-status.yml \
-      -e update_status_brief=true | grep "Pending update actions:"
+      -e update_status_brief=true | grep "Pending update actions"
   args:
     chdir: "{{ ardana_scratch_path }}"
   register: _ardana_update_status
