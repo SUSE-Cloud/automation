@@ -2038,14 +2038,14 @@ function setup_trusted_cert
 
     if [ ! -f $cn.pem ] ; then
         # Generate Root CA
-        openssl req -x509 -newkey rsa:1024 -keyout rootca.key -out rootca.pem \
+        openssl req -x509 -newkey rsa:2048 -keyout rootca.key -out rootca.pem \
             -days 365 -nodes \
             -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=root"
         # Generate CSR
         subj_alt="DNS:${cn},DNS:public-${cn}"
         # openssl 1.1.1 supports setting the subjectAltName directly in the command line,
         # but SLES 12 SP4 only has 1.0.2 so we need to read in the config like this
-        openssl req -new -newkey rsa:1024 -keyout $cn.key -out $cn.csr \
+        openssl req -new -newkey rsa:2048 -keyout $cn.key -out $cn.csr \
             -days 365 -nodes \
             -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=${cn}" \
             -config <(sed -e "/^\[ req \]/areq_extensions = v3_req" \
@@ -2285,6 +2285,17 @@ function provisioner_add_repo
     fi
 }
 
+function prepare_proposal_for_modification
+{
+    local proposal=$1
+    local proposaltype=${2:-default}
+
+    # prepare the proposal file to be edited, it will be read once at the end
+    # So, ONLY edit the $pfile  -  DO NOT call "crowbar $x proposal .*" command
+    local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
+    crowbar $proposal proposal show $proposaltype > $pfile
+}
+
 # configure one crowbar barclamp proposal using global vars as source
 #   does not include proposal create or commit
 # input1: name of the barclamp to change
@@ -2296,10 +2307,8 @@ function custom_configuration
     local proposaltypemapped=$proposaltype
     proposaltype=${proposaltype%%+*}
 
-    # prepare the proposal file to be edited, it will be read once at the end
-    # So, ONLY edit the $pfile  -  DO NOT call "crowbar $x proposal .*" command
+    prepare_proposal_for_modification $proposal $proposaltype
     local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
-    crowbar $proposal proposal show $proposaltype > $pfile
 
     if [[ $debug_openstack = 1 && $proposal != swift ]] ; then
         sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/" $pfile
@@ -4438,8 +4447,10 @@ puts y.to_yaml" > /root/keystone-test-endpoint-update.yaml
     safely crowbar batch --timeout 1500 build < /root/keystone-test-endpoint-update.yaml
 }
 
-function update_keystone_endpoint
+function test_keystone_toggle_ssl
 {
+    prepare_proposal_for_modification keystone default
+
     # If SSL is on, turn it off and turn it back on.
     # If SSL is off, turn it on and turn it back off.
     if [ "$want_all_ssl" == 1 -o "$want_keystone_ssl" == 1 ] ; then
@@ -4612,7 +4623,7 @@ function onadmin_testsetup
     # Run endpoint toggle after crm failcount check, this is expected to be
     # disruptive to services.
     if iscloudver 7plus && [[ $cloudsource =~ 'develcloud' ]] ; then
-        update_keystone_endpoint
+        test_keystone_toggle_ssl
     fi
 
     echo "Tests on controller: $ret"
