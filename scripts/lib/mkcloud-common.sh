@@ -27,26 +27,26 @@ function get_getent_hosts
 
 function to_ip6
 {
-    echo "[$(get_getent_hosts $1 ip6)]"
+    echo "[$(get_getent_hosts "$1" ip6)]"
 }
 
 function to_ip4
 {
-    get_getent_hosts $1 ip4
+    get_getent_hosts "$1" ip4
 }
 
 function to_ip
 {
-    ip=$(to_ip4 $1)
+    ip=$(to_ip4 "$1")
     if [ -z $ip ]; then
-        ip=$(to_ip6 $1)
+        ip=$(to_ip6 "$1")
     fi
     echo "$ip"
 }
 
 function to_fqdn
 {
-    get_getent_hosts $1 fqdn
+    get_getent_hosts "$1" fqdn
 }
 
 function wrap_ip
@@ -695,20 +695,20 @@ fi
 # Please ONLY use the suffixed variables: '*_ip' or '*_fqdn'
 
 : ${reposerver:=$(find_fastest_clouddata_server)}
-: ${reposerver_ip:=$(to_ip $reposerver)}
-: ${reposerver_fqdn:=$(to_fqdn $reposerver)}
+: ${reposerver_ip:=$(to_ip "$reposerver")}
+: ${reposerver_fqdn:=$(to_fqdn "$reposerver")}
 : ${reposerver_base_path:=/repos}
 : ${reposerver_url:=http://$reposerver_fqdn$reposerver_httpport$reposerver_base_path}
 : ${imageserver_url:=http://$reposerver_fqdn$reposerver_httpport/images}
 
 : ${nfsserver:=$reposerver}
-: ${nfsserver_ip:=$(to_ip $nfsserver)}
-: ${nfsserver_fqdn:=$(to_fqdn $nfsserver)}
+: ${nfsserver_ip:=$(to_ip "$nfsserver")}
+: ${nfsserver_fqdn:=$(to_fqdn "$nfsserver")}
 : ${nfsserver_base_path:=/srv/nfs}
 
 : ${rsyncserver:=$reposerver}
-: ${rsyncserver_ip:=$(to_ip $rsyncserver)}
-: ${rsyncserver_fqdn:=$(to_fqdn $rsyncserver)}
+: ${rsyncserver_ip:=$(to_ip "$rsyncserver")}
+: ${rsyncserver_fqdn:=$(to_fqdn "$rsyncserver")}
 : ${rsyncserver_images_dir:="cloud/images/$arch"}
 
 : ${test_internet_url:=http://$reposerver_fqdn/test}
