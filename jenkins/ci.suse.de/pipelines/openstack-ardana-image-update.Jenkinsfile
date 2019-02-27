@@ -30,7 +30,11 @@ pipeline {
     stage('upload new image version') {
       steps {
         sh '''
-          wget -qO- ${download_image_url} | xz -d > ${sles_image}.qcow2
+          if [[ $download_image_url == *".xz" ]]; then
+              wget -qO- ${download_image_url} | xz -d > ${sles_image}.qcow2
+          else
+              wget -q ${download_image_url} -O ${sles_image}.qcow2
+          fi
 
           openstack --os-cloud $os_cloud image show ${sles_image}-update && \
               openstack --os-cloud $os_cloud image delete ${sles_image}-update
@@ -65,7 +69,7 @@ pipeline {
           def slaveJob = build job: openstack_ardana_job, parameters: [
               string(name: 'git_automation_repo', value: "$git_automation_repo"),
               string(name: 'git_automation_branch', value: "$git_automation_branch"),
-              text(name: 'extra_params', value: "sles_image=${sles_image}-update")
+              text(name: 'extra_params', value: "$extra_params\nsles_image=${sles_image}-update")
           ], propagate: true, wait: true
         }
       }
