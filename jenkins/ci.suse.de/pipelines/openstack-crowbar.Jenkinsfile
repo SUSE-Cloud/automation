@@ -139,6 +139,7 @@ pipeline {
           // This step does the following on the non-admin nodes:
           //  - waits for them to complete boot
           //  - resizes the root partition
+          //  - prepares the nodes for Crowbar registration
           ardana_lib.ansible_playbook('bootstrap-crowbar-nodes')
         }
       }
@@ -166,10 +167,12 @@ pipeline {
       }
       steps {
         script {
-          sh('''
-             # This step does the following
-             #  - registers the Crowbar cloud nodes
-          ''')
+          // This step does the following on the non-admin nodes:
+          //  - registers nodes with the Crowbar admin
+          //  - sets up node roles and aliases
+          ardana_lib.ansible_playbook('register-crowbar-nodes')
+          ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist waitcloud"\'')
+          ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist post_allocate"\'')
         }
       }
     }

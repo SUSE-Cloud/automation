@@ -21,7 +21,7 @@ export reposerver={{ clouddata_server }}
 # export rsyncserver_fqdn=
 # export rsyncserver_images_dir=
 export susedownload={{ sles_media_server }}
-# export cloudfqdn=
+export cloudfqdn={{ crowbar_fqdn }}
 
 {% if cloudsource.startswith("stagingcloud") %}
 export cloudsource=develcloud{{ cloudsource[-1] }}
@@ -39,7 +39,7 @@ export libvirt_type=physical
 # export networkingmode=
 # export nosetestparameters=
 # export tempestoptions=
-# export cephvolumenumber=
+export cephvolumenumber=1
 # export controller_raid_volumes=
 # export drbd_database_size=
 # export drbd_rabbitmq_size=
@@ -88,6 +88,6 @@ export nodenumber={{ controllers | int + computes | int }}
 # export ironicnetmask=
 
 export want_test_updates={{ updates_test_enabled | ternary (1, 0) }}
-
+export want_swift=1
 
 # NOTE: might also need some of the other variables starting with vlan_ , want_ and net_

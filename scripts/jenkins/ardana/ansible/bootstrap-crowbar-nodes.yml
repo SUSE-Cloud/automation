@@ -80,8 +80,21 @@
         - name: Gather facts
           setup:
 
+        - name: Disable DHCP on the cloud infra management network
+          command: |
+            openstack --os-cloud {{ os_cloud }} subnet set \
+              --no-dhcp \
+              openstack-ardana-{{ ardana_env }}_management_subnet
+          delegate_to: localhost
+          run_once: True
+
         - include_role:
             name: setup_root_partition
+
+        # FIXME: remove everything but eth0 ifcfg files from base image
+        - name: Remove unused ifcfg files
+          shell: rm /etc/sysconfig/network/ifcfg-eth[1-9]*
+
       rescue:
         - include_role:
             name: rocketchat_notify

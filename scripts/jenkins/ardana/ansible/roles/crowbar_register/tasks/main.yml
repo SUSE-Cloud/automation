@@ -1,0 +1,52 @@
+---
+
+- name: Get crowbar node name
+  shell: |
+    MAC=$(cat /sys/class/net/{{ admin_interface }}/address)
+    HOSTNAME="d${MAC//:/-}.{{ crowbar_fqdn }}"
+    echo $HOSTNAME
+  register: _register_hostname
+
+- name: Set crowbar_node_name fact
+  set_fact:
+    crowbar_node_name: "{{ _register_hostname.stdout | trim }}"
+
+- name: Reserve node admin IP addresses in Crowbar
+  include_tasks: reserve_admin_ip.yml
+
+- name: Remove existing repositories
+  shell: |
+    set -e
+    while [ "`zypper lr | grep ^1`" != '' ]; do
+      zypper rr 1
+    done
+
+- name: Run crowbar_register
+  shell: |
+    set -e
+
+    wget {{ crowbar_register_url }} -O {{ crowbar_register_path }}
+    chmod +x {{ crowbar_register_path }}
+
+    SSH_CONNECTION= {{ crowbar_register_path }} -f --interface eth0 --gpg-auto-import-keys --no-gpg-checks 2>&1 | tee {{ crowbar_register_log }}
+    exit ${PIPESTATUS[0]}
+
+- name: Check that node has registered
+  delegate_to: "{{ ardana_env }}"
+  shell: knife node list | tr -d ' '
+  register: _register_tmp
+  failed_when: "_register_tmp.rc != 0 or crowbar_node_name not in _register_tmp.stdout_lines"
+
+- name: Check that node is ready
+  delegate_to: "{{ ardana_env }}"
+  shell: "knife node show -a state {{ crowbar_node_name }} | awk '{ print $2 }'"
+  register: _register_tmp
+  failed_when: "_register_tmp.rc != 0 or _register_tmp.stdout != 'ready'"
+
+- name: Set node alias and role
+  shell: |
+    . {{ admin_scripts_path }}/qa_crowbarsetup.sh
+    set_node_alias_and_role {{ crowbar_node_name }} {{ inventory_hostname }} {{ cloud_node_role }}
+  args:
+    executable: "/bin/bash"
+  delegate_to: "{{ ardana_env }}"
