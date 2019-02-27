@@ -273,6 +273,11 @@ function addslestestupdates
         add_mount "repos/$arch/SLES$slesversion-Updates-test/" \
             "$tftpboot_repos_dir/SLES$slesversion-Updates-test/" "slestup"
     fi
+
+    if iscloudver 7minus && isrepoworking SLES$slesversion-LTSS-Updates-test ; then
+        add_mount "repos/$arch/SLES$slesversion-LTSS-Updates-test/" \
+            "$tftpboot_repos_dir/SLES$slesversion-LTSS-Updates-test/" "slesltup"
+    fi
 }
 
 function addcloudmaintupdates
@@ -842,6 +847,8 @@ function create_repos_yml
     if iscloudver 7minus ; then
         grep -q SLES$slesversion-LTSS-Updates /etc/fstab && \
             additional_repos+=" SLES$slesversion-LTSS-Updates=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-LTSS-Updates"
+        grep -q SLES$slesversion-LTSS-Updates-test /etc/fstab && \
+            additional_repos+=" SLES$slesversion-LTSS-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-LTSS-Updates-test"
     fi
     grep -q SLE$slesversion-HA-Updates-test /etc/fstab && \
         additional_repos+=" SLE$slesversion-HA-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLE$slesversion-HA-Updates-test"
