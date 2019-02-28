@@ -2377,7 +2377,11 @@ function custom_configuration
             # For SOC7 we introduced transitional role called mysql-server that's gonna be used during the upgrade
             # Users deploying SOC7 with MariaDB must use this one and not database-server
             # However to not break GM deployments, we should check if the role is actually present.
-            if iscloudver 7 && [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
+            if iscloudver 8plus; then
+                if [[ $hacloud = 1 ]] ; then
+                    proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
+                fi
+            elif (iscloudver 7 &&  [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]); then
                 # In this branch, if want_database_sql_engine is not set, mysql is the default
                 if [[ $hacloud = 1 ]] ; then
                     if [[ "$want_database_sql_engine" != "postgresql" ]] ; then
