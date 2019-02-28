@@ -1,10 +1,7 @@
 - job:
     name: cloud-maintenance-gating
     project-type: pipeline
-    disabled: '{obj:disabled|False}'
-    concurrent: '{concurrent|True}'
-    wrappers:
-      - timestamps
+    concurrent: true
 
     logrotate:
       numToKeep: 500
@@ -43,7 +40,7 @@
 
       - bool:
           name: reserve_env
-          default: '{reserv_env|true}'
+          default: true
           description: >-
             Reserve the 'ardana_env' lockable resource throughout the execution of this job
 
@@ -90,12 +87,6 @@
           description: >-
             The git automation branch
 
-      - hidden:
-          name: version
-          default: '{version}'
-          description: >-
-            Cloud version number (8, 9 etc.)
-
       - text:
           name: extra_params
           default:
@@ -113,9 +104,9 @@
     pipeline-scm:
       scm:
         - git:
-            url: ${{git_automation_repo}}
+            url: ${git_automation_repo}
             branches:
-              - ${{git_automation_branch}}
+              - ${git_automation_branch}
             browser: auto
             wipe-workspace: false
       script-path: jenkins/ci.suse.de/pipelines/openstack-maintenance-gating.Jenkinsfile
