@@ -2480,12 +2480,12 @@ function custom_configuration
                 proposal_set_value keystone default "['deployment']['keystone']['elements']['keystone-server']" "['cluster:$clusternameservices']"
             fi
             if [[ $want_osprofiler = 1 ]] ; then
-                if iscloudver 9M11plus ; then
+                if grep -q osprofiler /opt/dell/chef/data_bags/crowbar/template-keystone.json ; then
                     proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['enabled']" "true"
                     proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['hmac_keys']" "['SECRET']"
                     proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['trace_sqlalchemy']" "true"
                 else
-                    echo "Warning: osprofiler currently is only available in 9M11plus. Not enabling it"
+                    echo "Warning: osprofiler not available. Not enabling it"
                 fi
             fi
             if [[ $want_ldap = 1 ]] ; then
