@@ -73,7 +73,7 @@ The following links can also be used to track the results:
           // reserve a resource here for the openstack-ardana job, to avoid
           // keeping a cloud-ardana-ci worker busy while waiting for a
           // resource to become available.
-          ardana_lib.run_with_reserved_env(reserve_env == 'true', ardana_env, ardana_env) {
+          ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), ardana_env, ardana_env) {
             reserved_env ->
             ardana_lib.trigger_build('openstack-ardana', [
               string(name: 'ardana_env', value: reserved_env),
