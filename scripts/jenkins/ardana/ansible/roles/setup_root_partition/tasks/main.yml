@@ -118,10 +118,11 @@
 
 - name: Print starting partition size
   command: parted --script {{ root_fs_base_dev }} print
+  changed_when: false
   register: vm_partitions
 
 - debug:
-    var: vm_partitions
+    var: vm_partitions.stdout
 
 - name: Print starting filesystem size
   command: df -h /
@@ -129,7 +130,7 @@
   changed_when: False
 
 - debug:
-    var: vm_filesystems
+    var: vm_filesystems.stdout
 
 - name: Change fdisk start field number for single partition layout
   set_fact:
@@ -208,7 +209,10 @@
   when:
     - vm_resize_partition is not skipped
 
-- debug: var=vm_partitions
+- debug:
+    var: vm_partitions.stdout
+  when:
+    - vm_resize_partition is not skipped
 
 - name: Print finishing filesystem size
   command: df -h /
@@ -216,4 +220,7 @@
   when:
     - vm_resize_filesystem is not skipped
 
-- debug: var=vm_filesystems
+- debug:
+    var: vm_filesystems.stdout
+  when:
+    - vm_resize_filesystem is not skipped
