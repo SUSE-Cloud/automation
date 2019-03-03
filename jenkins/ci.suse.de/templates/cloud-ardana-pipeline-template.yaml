@@ -429,7 +429,9 @@
           name: git_automation_branch
           default: '{git_automation_branch|master}'
           description: >-
-            The git automation branch
+            The git automation branch. To test an automation pull-request, use the following branch value:
+
+              pr/<pull-request-number>
 
       - string:
           name: external_name
@@ -478,5 +480,6 @@
               - ${{git_automation_branch}}
             browser: auto
             wipe-workspace: false
+            refspec: "+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pr/*"
       script-path: jenkins/ci.suse.de/pipelines/openstack-ardana.Jenkinsfile
       lightweight-checkout: false

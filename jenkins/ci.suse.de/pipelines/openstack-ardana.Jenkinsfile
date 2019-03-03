@@ -63,11 +63,6 @@ pipeline {
             # Need a local git clone copy to run from
             export use_global_clone=false
             curl https://raw.githubusercontent.com/$git_automation_repo/automation/$git_automation_branch/scripts/jenkins/ardana/openstack-ardana.prep.sh | bash
-
-            cd $WORKSPACE/automation-git
-            if [ -n "$github_pr" ] ; then
-              scripts/jenkins/ardana/pr-update.sh
-            fi
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
           ardana_lib.load_extra_params_as_vars(extra_params)
@@ -348,20 +343,12 @@ pipeline {
     }
     success {
       sh '''
-        if [ -n "$github_pr" ] ; then
-          automation-git/scripts/ardana/pr-success.sh
-        else
-          automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 0
-        fi
+        automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 0
       '''
     }
     failure {
       sh '''
-        if [ -n "$github_pr" ] ; then
-          automation-git/scripts/ardana/pr-failure.sh
-        else
-          automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 1
-        fi
+        automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 1
       '''
     }
     cleanup {
