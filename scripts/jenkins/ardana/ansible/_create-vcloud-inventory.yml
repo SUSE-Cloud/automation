@@ -14,11 +14,12 @@
   tasks:
     - name: Create temp inventory with all non-admin virtual nodes
       add_host:
-        name: "{{ item.0.group }}{{ (item.0.ips | length > 1) | ternary(item.0.ips.index(item.1) + 1, '') }}"
+        name: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }}"
         ansible_host: "{{ item.1 }}"
         ansible_password: "linux"
         group: "{{ item.0.group }}, cloud_virt_hosts"
         cloud_node_role: "{{ item.0.group }}"
+        cloud_node_alias: "{{ virtual_node_group_aliases[item.0.group] | default(item.0.group) }}{{ (item.0.ips | length > 1) | ternary(item.0.ips.index(item.1) + 1, '') }}"
       loop: "{{ virtual_hosts | subelements('ips') }}"
       loop_control:
         label: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }} - {{ item.1 }}"

@@ -49,3 +49,10 @@ heat_stack_output_queries:
    stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'controller-conf-ips') | map(attribute='output_value') | list | flatten }}"
  - item: "compute-conf-ips"
    stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'compute-conf-ips') | map(attribute='output_value') | list | flatten }}"
+
+virtual_node_group_aliases:
+  controller: 'controller'
+  # need to use different group aliases, because Crowbar uses 'compute-kvm'
+  # instead of 'compute' in the crowbar batch scenario files
+  # FIXME: control this from the generated scenario instead
+  compute: "{{ (cloud_product == 'ardana') | ternary('compute', 'compute-kvm') }}"

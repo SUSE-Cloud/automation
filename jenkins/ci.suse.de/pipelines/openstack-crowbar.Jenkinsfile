@@ -183,10 +183,9 @@ pipeline {
       }
       steps {
         script {
-          sh('''
-             # This step does the following:
-             #  - deploys the crowbar proposal
-          ''')
+          // This step does the following on the non-admin nodes:
+          //  - deploys the crowbar batch scenario
+          ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist batch"\'')
         }
       }
     }

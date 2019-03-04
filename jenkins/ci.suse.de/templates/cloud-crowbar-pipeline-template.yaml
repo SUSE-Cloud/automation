@@ -98,6 +98,12 @@
             NOTE: use this parameter only if you want to use a generated input model. To use an existing input model instead,
             leave this field empty and use the 'model' parameter instead.
 
+      - string:
+          name: scenario_file
+          default: 'cloud9/cloud9-2nodes-default.yml'
+          description: >-
+            Crowbar batch scenario yaml file path (relative to scripts/scenarios)
+
       - validating-string:
           name: controllers
           default: '{controllers|1}'

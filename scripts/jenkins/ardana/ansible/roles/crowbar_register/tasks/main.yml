@@ -46,7 +46,7 @@
 - name: Set node alias and role
   shell: |
     . {{ admin_scripts_path }}/qa_crowbarsetup.sh
-    set_node_alias_and_role {{ crowbar_node_name }} {{ inventory_hostname }} {{ cloud_node_role }}
+    set_node_alias_and_role {{ crowbar_node_name }} {{ cloud_node_alias }} {{ cloud_node_role }}
   args:
     executable: "/bin/bash"
   delegate_to: "{{ ardana_env }}"
