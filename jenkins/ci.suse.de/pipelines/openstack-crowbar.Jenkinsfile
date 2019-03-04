@@ -196,12 +196,9 @@ pipeline {
       }
       steps {
         script {
-          sh('''
-             # This step does the following:
-             #  - runs tests on the deployed cloud
-             #
-             # qa_crowbarsetup.sh onadmin_runlist onadmin_testsetup
-          ''')
+          // This step does the following on the non-admin nodes:
+          //  - runs tests on the deployed cloud
+          ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_testsetup"\'')
         }
       }
     }
