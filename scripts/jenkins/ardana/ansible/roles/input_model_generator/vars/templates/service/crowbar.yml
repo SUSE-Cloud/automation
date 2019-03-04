@@ -23,6 +23,9 @@ service_groups:
     member_count: '{{ controllers|default(1) }}'
     service_components:
       - CORE
+      - DBMQ
+      - SWPAC
+      - NEUTRON
   - name: compute
     type: resource
     prefix: sles-comp
@@ -31,3 +34,4 @@ service_groups:
     min_count: 0
     service_components:
       - COMPUTE
+      - SWOBJ
