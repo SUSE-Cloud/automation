@@ -125,11 +125,21 @@ function libvirt_do_setuphost()
             echo 1 > /proc/sys/vm/allocate_pgste
         }
     fi
+    # For IPv6 setups in CI, we have a proxy address automatically configured
+    # on the virtual bridge device, which doesn't exist yet, so unset
+    # http_proxy
+    if (( $want_ipv6 > 0 )); then
+        saved_proxy=$http_proxy
+        http_proxy=
+    fi
     zypper_override_params="--non-interactive" extra_zypper_install_params="--no-recommends" ensure_packages_installed \
         libvirt libvirt-python $kvmpkg $extra_packages \
         lvm2 curl wget iputils bridge-utils \
         dnsmasq netcat-openbsd ebtables iproute2 sudo kpartx rsync
 
+    if [[ -n "$saved_proxy" ]]; then
+        http_proxy=$saved_proxy
+    fi
     sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
     echo "net.ipv4.conf.all.rp_filter = 0" > /etc/sysctl.d/90-cloudrpfilter.conf
     echo "net.ipv6.conf.all.forwarding = 1" > /etc/sysctl.d/90-cloudipv6.conf
