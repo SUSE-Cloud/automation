@@ -93,4 +93,19 @@ export nodenumber={{ controllers | int + computes | int }}
 export want_test_updates={{ updates_test_enabled | ternary (1, 0) }}
 export want_swift=1
 
+# FIXME: these need to be generated ouf of the scenario generator
+# for now, set them to match the crowbar scenario
+
+export net_public={{ subnet_prefix }}.{{ gen_subnet_start+1 }}
+export net_sdn={{ subnet_prefix }}.{{ gen_subnet_start+2 }}
+export net_storage={{ subnet_prefix }}.{{ gen_subnet_start+3 }}
+export net_fixed={{ subnet_prefix }}.{{ gen_subnet_start+4 }}
+export net_ceph={{ subnet_prefix }}.{{ gen_subnet_start+5 }}
+
+export vlan_public={{ gen_subnet_start+1 }}
+export vlan_sdn={{ gen_subnet_start+2 }}
+export vlan_storage={{ gen_subnet_start+3 }}
+export vlan_fixed={{ gen_subnet_start+4 }}
+export vlan_ceph={{ gen_subnet_start+5 }}
+
 # NOTE: might also need some of the other variables starting with vlan_ , want_ and net_
