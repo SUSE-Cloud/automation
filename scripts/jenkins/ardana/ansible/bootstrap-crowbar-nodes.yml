@@ -15,44 +15,10 @@
 #
 ---
 
-- name: Bootstrap virtual deployer for crowbar
-  hosts: "{{ ardana_env }}"
-  remote_user: root
-  gather_facts: False
-  vars:
-    task: "deploy"
-    virtual_hosts:
-      - group: controller
-        ips: "{{ hostvars['localhost'].controller_conf_ips | difference([hostvars['localhost'].admin_conf_ip]) }}"
-      - group: compute
-        ips: "{{ hostvars['localhost'].compute_conf_ips }}"
+- import_playbook: _create-vcloud-inventory.yml
 
-  tasks:
-    - block:
-        - name: Create temp inventory with all virtual nodes (minus admin)
-          add_host:
-            name: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }}"
-            ansible_host: "{{ item.1 }}"
-            ansible_password: "linux"
-            group: "{{ item.0.group }}, crowbar_virt_hosts"
-          loop: "{{ virtual_hosts | subelements('ips') }}"
-          loop_control:
-            label: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }} - {{ item.1 }}"
-
-      rescue:
-        - include_role:
-            name: rocketchat_notify
-          vars:
-            rc_action: "finished"
-            rc_state: "Failed"
-          when: rc_notify
-
-        - name: Stop if something failed
-          fail:
-            msg: "{{ task }} failed."
-
-- name: Bootstrap other virtual nodes for crowbar
-  hosts: crowbar_virt_hosts
+- name: Bootstrap crowbar cloud nodes
+  hosts: cloud_virt_hosts
   remote_user: root
   # NOTE: don't gather facts before nodes become accessible
   gather_facts: false
