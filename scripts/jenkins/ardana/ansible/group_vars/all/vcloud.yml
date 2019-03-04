@@ -24,7 +24,8 @@ want_caasp: False
 virt_config_file_name: "{{ 'caasp.yml' if want_caasp else workspace_path ~ '/' ~ scenario_name ~ '-virt-config.yml' if scenario_name is defined else '' }}"
 virt_config_file: "{{ virt_config_name | default(virt_config_file_name) }}"
 
-want_lvm: True
+# Use the root LVM partition only for Ardana deployments
+want_lvm: "{{ cloud_product == 'ardana' }}"
 # use different flavors and images when LVM support is enabled:
 #  - LVM enabled images have the root partition set up as an LVM volume
 #  - LVM enabled flavors have a smaller disk size for generated input models,
