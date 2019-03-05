@@ -65,6 +65,22 @@
         - '{ardana_job}'
 
 - project:
+    name: cloud-ardana9-job-std-min-lmm-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    scenario_name: std-lmm
+    clm_model: standalone
+    controllers: '2'
+    lmm_nodes: '1'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
     name: cloud-ardana9-job-demo-x86_64
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
