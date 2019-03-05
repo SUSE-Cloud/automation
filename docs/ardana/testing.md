@@ -210,6 +210,229 @@ prepare_infra
 ...
 ```
 
+## Custom Ardana Gerrit CI builds
+
+The default integration test job launched by the Gerrit Jenkins CI uses
+a `standard` generated input model, with a standalone deployer, 2
+controller nodes and one SLES compute node. It also runs against a
+`develcloud` cloud media, on top of which it applies the most recent
+Ardana ansible changes and, of course, the target Gerrit change under
+test and all its Gerrit change dependencies.
+
+This is sufficient for most cases, but sometimes there are special
+circumstances that require one or more additional, customized
+`openstack-ardana` type integration jobs to be executed against the same
+Gerrit change and to have them report their results back to Gerrit,
+where they can be tracked and verified by all stake holders.
+
+This is now supported by allowing users to trigger manual builds for
+the parameterized Jenkins job that runs the Gerrit CI for either
+[cloud 8](https://ci.nue.suse.com/job/openstack-ardana-gerrit-cloud8/build)
+or [cloud 9](https://ci.nue.suse.com/job/openstack-ardana-gerrit-cloud9/build),
+and supplying custom values for its parameters, to achieve different
+results:
+
+* `GERRIT_CHANGE_NUMBER` - this parameter must be set to the target Gerrit
+change number value
+
+* `voting` - this flag controls whether the Gerrit job posts `Verify+2`
+or `Verify-2` label values on the Gerrit change. Non-voting jobs also
+post progress and outcome messages, but do not alter the `Verify` label
+value. There can be at most one voting job running for a Gerrit change
+at any given time. The most recent voting job automatically cancels
+older voting jobs running for the same Gerrit change.
+
+* `gerrit_context` - this is a string value that uniquely identifies
+a job build within the set of builds running against the same Gerrit
+change. A unique `gerrit_context` parameter value should be used for
+each additional job that is manually triggered against a Gerrit
+change, otherwise it will supersede and automatically cancel the
+previous jobs running with the same `gerrit_context` value on the same
+Gerrit change.
+This parameter should be set to a short string describing what the job
+actually achieves, as it is included both in the Gerrit build status
+reports and the Jenkins build description.
+
+* `integration_test_job` - the name of an existing Ardana Jenkins job
+that is triggered to run integration tests on the target Gerrit change.
+This parameter may be used to override the default
+`cloud-ardana8-job-std-min-gerrit-x86_64` and `cloud-ardana8-job-std-min-gerrit-x86_64`
+jobs currently employed by the Ardana CI to run integration tests.
+If the custom integration job also requires its parameters to be overridden,
+this can be achieved via the `extra_params` parameter.
+If this parameter is reset to an empty value, no integration tests will
+be run (to be used with caution !).
+
+* `git_automation_repo` and `git_automation_branch` - can be used to
+point Jenkins to a different automation repository branch or fork.
+
+* `extra_repos` - allows the user to configure custom zypper repositories
+in addition to those implied by the target `cloudsource` value.
+
+* `extra_params` - this parameter is present for most Ardana Jenkins jobs.
+It can be used to inject additional parameters into the build, which are
+reflected in several places:
+  * the list of environment variables accessible to shell scripts
+  * the list of ansible extra variables, which can override all other
+  variables used by playbooks
+  * the `extra_params` parameter values of jobs triggered downstream,
+  which means the effect is cascaded down to the entire job build
+  hierarchy
+
+
+Following are a few examples of use-cases where this feature comes in
+handy.
+
+### Custom integration jobs
+
+A Gerrit change may need to be tested against a different input model
+scenario or cloud configuration. Here are some practical examples of this
+situation:
+
+  * a Gerrit change that impacts the RHEL compute node support _also_ needs
+  to be tested against a cloud input model that includes RHEL (CentOS)
+  compute nodes.
+  E.g. to have this running for a cloud9 Gerrit change, trigger a
+  [manual cloud 9 Gerrit CI build](https://ci.nue.suse.com/job/openstack-ardana-gerrit-cloud9/build),
+  with the following parameter values:
+
+    * `voting` unset, to have the new build run in addition to the official
+    voting CI job, as a non-voting job
+    * `integration_test_job` set to point at a job running an input model
+    with RHEL compute nodes (for example
+    [cloud-ardana9-job-std-min-centos-gerrit-x86_64](https://ci.nue.suse.com/job/cloud-ardana9-job-std-min-centos-gerrit-x86_64))
+    * a custom `gerrit_context` value to indicate what the new job does
+    (e.g. `std-min-centos`).
+
+  * a Gerrit change that touches on functionality that can only be tested
+  on bare-metal deployments (e.g. cobbler) needs to be tested against
+  a QA bare-metal environment _instead of_ the virtual one.
+  E.g. to have this running for a cloud8 Gerrit change, trigger a
+  [manual cloud 8 Gerrit CI build](https://ci.nue.suse.com/job/openstack-ardana-gerrit-cloud8/build)
+  with the following parameter values:
+
+    * `ardana_env` set to point to one of the available QA bare-metal
+    environments (contact the QA team to find one that is available)
+    * `reserve_env` unchecked (unless the `ardana_env` QA environment also
+    has an associated [Lockable Resource](https://ci.nue.suse.com/lockable-resources) )
+    * `voting` set, to have the new build replace the official voting CI
+    job and determine whether the Gerrit change can be merged or not
+    * `integration_test_job` set to point at a job running an input model
+    that can actually be deployed on bare-metal (for example
+  [cloud-ardana8-job-entry-scale-kvm-gerrit-x86_64](https://ci.nue.suse.com/job/cloud-ardana8-job-entry-scale-kvm-gerrit-x86_64))
+    * a custom `gerrit_context` value to indicate what the new job does
+    (e.g. `entry-scale-bare-metal`).
+
+As can be seen, these use-cases are supported by allowing the user to
+specify a different Ardana integration Jenkins job to be run against
+the Gerrit change instead of the default one.
+The custom `integration_test_job` Jenkins job can either be one of the
+existing jobs that have already been provided for this purpose - those
+with their name ending in `-gerrit-x86_64` (**recommended**), or it can even
+be the fully customizable core [openstack-ardana](https://ci.nue.suse.com/job/openstack-ardana)
+job itself, in which case some or all of its parameters may need to be
+customized by using the `extra_params` parameter.
+
+E.g. to have a fully customizable `openstack-ardana` job running for a cloud9 Gerrit
+change, one might trigger a [manual cloud 9 Gerrit CI build](https://ci.nue.suse.com/job/openstack-ardana-gerrit-cloud9/build)
+with the following parameter values:
+
+  * `ardana_env` set to the IRC or LDAP username of the user (i.e. this
+  will be a private Ardana ECP deployment environment that remains running
+  and can be accessed after the job is done)
+  * `reserve_env` unchecked
+  * `voting` set, to have the new build replace the official voting CI
+  job and determine whether the Gerrit change can be merged or not
+  * `integration_test_job` set to `openstack-ardana`
+  * a custom `gerrit_context` value to indicate what the new job does
+  (e.g. `my-very-special-input-model`)
+  * the multi-line `extra_params` parameter set to the list of
+  [openstack-ardana](https://ci.nue.suse.com/job/openstack-ardana/build)
+  build parameters that are mandatory (need to be supplied) or need to be
+  overridden (different than their default values). For example, the following
+  set of `extra_params` parameters can be used to deploy a `demo` like input model
+  (integrated deployer, one controller, one SLES compute, monasca service disabled):
+
+  ```
+  scenario_name=standard
+  clm_model=integrated
+  controllers=1
+  sles_computes=1
+  disabled_services=monasca|logging|ceilometer|cassandra|kafka|spark|storm|octavia
+  ses_rgw_enabled=false
+  tempest_filter_list=ci
+  ```
+
+
+If a particular customized `openstack-ardana` scenario needs to be used
+often, it is recommended that it be added with a GitHub pull-request to
+the list of `-gerrit-x86_64` jobs predefined for
+[cloud8](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/cloud-ardana8-gerrit.yaml)
+and/or [cloud9](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/cloud-ardana9-gerrit.yaml),
+and thus enable other users to point to it by name.
+
+Ultimately, some Gerrit changes might not require integration testing
+at all, for example because the code changes do not affect any functionality
+areas (e.g. documentation or git configuration changes). For this cases,
+the CI supports skipping the integration testing completely, by starting
+a manual voting Gerrit job and supplying an empty `integration_test_job`
+value. **IMPORTANT**: this feature should not be abused. Most times it's
+better to rely on the default Ardana Jenkins CI behavior then to try to
+skip the integration tests.
+
+
+### Custom package repositories
+
+The user may need additional zypper repositories to be configured, for
+example:
+
+* if there is a two-way dependency between a Gerrit change on one hand,
+and one or more OBS/IBS package changes on the other hand, meaning that
+they must be tested together to ensure that neither breaks the CI, before
+they can be merged together into the main code and package streams
+* when the Gerrit change implements a new piece of functionality that
+goes hand-in-hand with a new set of packages or package updates that are
+not yet available in the development cloud build (e.g. they reside in an
+OBS home project or another non-official project while still being
+developed and tested).
+
+The recommended approach for this use-case is that test packages be
+created in an OBS or IBS project with package publishing enabled, then
+the URL to the `.repo` file generated in the repository can be supplied
+as the `extra_repos` parameter value when triggering custom manual
+Gerrit CI Jenkins builds.
+
+**IMPORTANT**: currently, this feature is only supported for packages that need
+to be installed on the deployer node - Ardana ansible and venv packages
+(see [SCRD-7800](https://jira.suse.de/browse/SCRD-7800)). If the packages
+in the extra repositories also need to be installed on the non-deployer
+nodes, it will not work until SCRD-7800 is solved.
+
+### Custom automation scripts or jobs
+
+While new CI test coverage is still being developed in a separate
+automation repository fork or branch (or pull-request), that doesn't mean
+it cannot yet be executed to validate open Gerrit changes.
+
+This is useful, for example, when someone has a set of open Gerrit changes
+that implement a new piece of functionality or use-case and someone else
+(or the same person) works in parallel on providing automation scripts
+that target that same functionality or use-case in the CI.
+
+When triggering manual Gerrit CI builds, an alternative git source can
+be used via the `git_automation_repo` and `git_automation_branch`
+parameters. There are some limitations to this feature though:
+
+* if the alternative git branch/fork also creates new JJB Jenkins jobs,
+these will not be available in Jenkins yet until changes are merged in the
+master branch or until created manually by the user
+* if the alternative git branch/fork updates the configuration of
+existing JJB Jenkins jobs (e.g. adds, removes or replaces parameters),
+these changes will also not be available in Jenkins. In this case, the
+recommendation is to use the `extra_params` feature, if possible, to
+achieve the same effect as would updating the existing Jenkins jobs,
+or create temporary new jobs that are copies of the existing ones that
+are updated in the automation git branch/fork
 
 ## Ardana CI jobs
 
