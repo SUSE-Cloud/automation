@@ -21,6 +21,6 @@
             cloudsource=develcloud{version}
             nodenumber=2
             want_ipv6=1
-            mkcloudtarget=instcrowbar
+            mkcloudtarget=cleanup prepare setupadmin prepareinstcrowbar bootstrapcrowbar
             label={label}
             job_name=cloud-mkcloud{version}-job-ipv6-{arch}
