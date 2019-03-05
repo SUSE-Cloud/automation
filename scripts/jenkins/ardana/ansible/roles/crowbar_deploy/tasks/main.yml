@@ -6,9 +6,9 @@
     delete: yes
     recursive: yes
 
-- name: Generate mkcloud.config
-  template:
-    src: "mkcloud.config.j2"
+- name: Copy generated mkcloud.config to admin node
+  copy:
+    src: "{{ mkcloud_config_file }}"
     dest: "{{ admin_mkcloud_config_file }}"
 
 - name: Crowbar log stream at
