@@ -23,41 +23,10 @@
         cloud: "{{ os_cloud }}"
         name: "{{ heat_stack_name }}"
         state: absent
-        api_timeout: "{{ api_timeout }}"
-  rescue:
-    - name: Force delete stack resources when delete failed
-      shell: |
-         openstack --os-cloud {{ os_cloud }} stack resource list --filter \
-           type={{ item.type }} -f value -c physical_resource_id {{ heat_stack_name }} |\
-           awk '{print "openstack --os-cloud '{{ os_cloud }}' {{ item.name }} \
-           delete {{ item.opt_args | default('') }} "$1 }' | sh -x || :
-      loop:
-        - name: "server"
-          type: "OS::Nova::Server"
-          opt_args: "--wait"
-        - name: "volume"
-          type: "OS::Cinder::Volume"
-        - name: "network trunk"
-          type: "OS::Neutron::Trunk"
-        - name: "port"
-          type: "OS::Neutron::Port"
-        - name: "router"
-          type: "OS::Neutron::Router"
-        - name: "subnet"
-          type: "OS::Neutron::Subnet"
-        - name: "network"
-          type: "Neutron::Net"
-
-    - name: Retry delete stack
-      os_stack:
-        cloud: "{{ os_cloud }}"
-        name: "{{ heat_stack_name }}"
-        state: absent
-        api_timeout: "{{ api_timeout }}"
       register: stack_status
-      retries: 3
+      retries: 2
       until: stack_status is success
-      delay: 5
+      delay: 2
 
   always:
     - include_tasks: monitor.yml
