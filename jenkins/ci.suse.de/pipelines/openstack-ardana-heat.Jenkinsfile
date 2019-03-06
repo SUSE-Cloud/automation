@@ -46,17 +46,15 @@ pipeline {
     stage('Delete heat stack') {
       steps {
         script {
-          retry(1) {
-            // Run the monitoring bits outside of the ECP-API lock, and lock the
-            // ECP API only while actually deleting the stack
-            ardana_lib.ansible_playbook('heat-stack', "-e heat_action=monitor")
-            lock(resource: 'cloud-ECP-API') {
-              timeout(time: 5, unit: 'MINUTES') {
-                ardana_lib.ansible_playbook('heat-stack', "-e heat_action=delete -e monitor_stack_after_delete=False")
-              }
+          // Run the monitoring bits outside of the ECP-API lock, and lock the
+          // ECP API only while actually deleting the stack
+          ardana_lib.ansible_playbook('heat-stack', "-e heat_action=monitor")
+          lock(resource: 'cloud-ECP-API') {
+            timeout(time: 10, unit: 'MINUTES', activity: true) {
+              ardana_lib.ansible_playbook('heat-stack', "-e heat_action=delete -e monitor_stack_after_delete=False")
             }
-            ardana_lib.ansible_playbook('heat-stack', "-e heat_action=monitor")
           }
+          ardana_lib.ansible_playbook('heat-stack', "-e heat_action=monitor")
         }
       }
     }
@@ -69,11 +67,9 @@ pipeline {
           // Dump the heat_template multi-string parameter value into a file
           writeFile file: "$WORKSPACE/heat_template.yml", text: params.heat_template
 
-          retry(1) {
-            lock(resource: 'cloud-ECP-API') {
-              timeout(time: 10, unit: 'MINUTES') {
-                ardana_lib.ansible_playbook('heat-stack', "-e heat_template_file=$WORKSPACE/heat_template.yml")
-              }
+          lock(resource: 'cloud-ECP-API') {
+            timeout(time: 10, unit: 'MINUTES', activity: true) {
+              ardana_lib.ansible_playbook('heat-stack', "-e heat_template_file=$WORKSPACE/heat_template.yml")
             }
           }
         }

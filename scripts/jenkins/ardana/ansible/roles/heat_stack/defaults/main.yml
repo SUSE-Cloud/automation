@@ -16,7 +16,6 @@
 ---
 
 heat_action: "create"
-api_timeout: "600"
 
 heat_stack_create_timeout: 480
 heat_stack_name: "openstack-ardana-{{ ardana_env }}"
