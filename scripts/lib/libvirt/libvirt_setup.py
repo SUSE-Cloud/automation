@@ -246,7 +246,8 @@ def compute_config(args, cpu_flags=cpuflags()):
         targetdevprefix = "sd"
         configopts['target_bus'] = 'ide'
         configopts['memballoon'] = "    <memballoon model='none' />"
-        target_address = ""
+        target_address = "<address type='drive' controller='0' " \
+            "bus='{0}' target='0' unit='0'/>"
 
     # override nic model for ironic setups
     if args.ironicnic >= 0:
@@ -320,6 +321,13 @@ def compute_config(args, cpu_flags=cpuflags()):
                                  os.path.join(TEMPLATE_DIR, "ipmi-device.xml"))
     else:
         ipmi_config = ''
+
+    if not hypervisor_has_virtio(libvirt_type):
+        target_address = target_address.format('0')
+        # map virtio addr to ide:
+        raidvolume = raidvolume.replace("bus='0x17'", "bus='1'")
+        cephvolume = cephvolume.replace("bus='0x17'", "bus='1'")
+        drbdvolume = drbdvolume.replace("bus='0x17'", "bus='1'")
 
     values = dict(
         cloud=args.cloud,
