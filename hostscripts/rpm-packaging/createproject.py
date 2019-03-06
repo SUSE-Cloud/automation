@@ -91,16 +91,25 @@ Project used: %(ZUUL_PROJECT)s
         meta.flush()
         print('Updating meta for ', project)
 
-        # work around build service bug that triggers a database deadlock
-        for fail_counter in range(1, 5):
-            try:
-                sh.osc('api', '-T', meta.name, '/source/%s/_meta' % project)
-                break
-            except sh.ErrorReturnCode_1:
+        # work around build service bug that forgets the publish flag
+        # https://github.com/openSUSE/open-build-service/issues/7126
+        for success_counter in range(2):
+            # work around build service bug that triggers a database deadlock
+            for fail_counter in range(1, 5):
+                try:
+                    sh.osc('api', '-T', meta.name, '/source/%s/_meta' % project)
+                    break
+                except sh.ErrorReturnCode_1:
+                    # Sleep a bit and try again. This has not been scientifically
+                    # proven to be the correct sleep factor, but it seems to work
+                    time.sleep(2)
+                    continue
+
+            # wait for the source service to catch up with creation
+            if success_counter == 0:
                 # Sleep a bit and try again. This has not been scientifically
                 # proven to be the correct sleep factor, but it seems to work
-                time.sleep(2)
-                continue
+                time.sleep(3)
 
 
 def upload_meta_enable_repository(project, linkproject):
