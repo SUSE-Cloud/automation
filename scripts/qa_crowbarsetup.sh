@@ -3489,8 +3489,8 @@ function oncontroller_nova_evacuate
     local hypervisor_host=$(echo $hypervisor_host_fqdn | cut -d '.' -f 1)
 
     # Create instance on specific hypervisor
-    # image always exist after tempest run (cirros-0.3.4-x86_64-tempest-machine)
-    nova boot --image cirros-0.3.4-x86_64-tempest-machine --flavor tempest-stuff --availability-zone nova:$hypervisor_host $vm_name
+    # image always exist after tempest run (cirros-0.4.0-x86_64-tempest-machine)
+    nova boot --image cirros-0.4.0-x86_64-tempest-machine --flavor tempest-stuff --availability-zone nova:$hypervisor_host $vm_name
     # Create floating ip assign to instance
     local floatingip=$(addfloatingip $vm_name)
     # Update security group for icmp
@@ -3550,7 +3550,7 @@ function kill_pacemaker_remote
     local n=120
     # Check for nova-evacute log on all cluster nodes
     while [[ $n -gt 0 && $ret != 0 ]]; do
-        for((i=1; i<=$num_controllers; i++)) ; do
+        for i in $(seq 1 $num_controllers) ; do
             ssh controller$i 'grep -q "Completed evacuation of" /var/log/messages'
             ret=$?
             [[ $ret != 0 ]] && break
