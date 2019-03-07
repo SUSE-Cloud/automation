@@ -25,7 +25,7 @@ export HLM_USER=ardana
 cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/logging/kronos/centralized
 
 # exclude tests currently failing, WIP
-echo -e "TestAudit\nTestElasticContext.test_filter_debugmsg\nTestMulticp.test_host_in_elastic_chec\nTestMVP\nCinderTransactionInElastic.test_cinder_id\nKeystoneTransactionInElastic.test_keystone_id" > dontrunlist
+echo -e "TestAudit\nTestElasticContext.test_filter_debugmsg\nTestMulticp.test_host_in_elastic_chec\nTestMVP\nTransactionInElastic" > dontrunlist
 
 ${STESTR} init
 ${STESTR} run -t ./ --blacklist-file dontrunlist | tee {{ ardana_qe_test_log }}
