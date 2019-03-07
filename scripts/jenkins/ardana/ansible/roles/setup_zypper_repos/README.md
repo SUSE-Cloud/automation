@@ -28,8 +28,10 @@ the SLES repositories will be configured according to the cloud version
 As there is no HOS version for cloud 9, `cloudsource` values for HOS are limited
 to cloud 8.
 
-For other columns `X` menas thet the repository will be added and `*` means that
-it will be added only when setting `updates_test_enabled` to True.
+For other columns:
+ * `X` means that the repository will always be added
+ * `*` means that the repository will always be added unless the
+ `updates_test_enabled` parameter is explicitly set to False.
 
 ### Update-test Repositories
 
@@ -48,6 +50,8 @@ variables with a list of MU ID's (separeted by comma).
 ```sh
 maint_updates: "1234,4321,2233"
 ```
+
+IMPORTANT: `updates_test_enabled` must be disabled when testing maintenance updates.
 
 ### Extra Repositories
 
