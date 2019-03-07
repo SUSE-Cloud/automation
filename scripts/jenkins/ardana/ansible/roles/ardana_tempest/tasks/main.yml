@@ -29,10 +29,10 @@
 - name: Fail if something went wrong during tempest execution
   fail:
     msg: "Something went wrong with tempest."
-  when: tempest_results_processed.results.0.stdout == ''
+  when: tempest_test_results.total == ''
   register: tempest_status
 
 - name: Fail if any tempest test has failed
   fail:
-    msg: "{{ tempest_results_processed.results.3.stdout }} tests failed."
-  when: tempest_results_processed.results.3.stdout | int > 0
+    msg: "{{ tempest_test_results.failed }} tests failed."
+  when: tempest_test_results.failed | int > 0
