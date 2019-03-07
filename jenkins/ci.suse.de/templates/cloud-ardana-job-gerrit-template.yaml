@@ -70,12 +70,14 @@
             change number. The most recent job will automatically abort those
             that are already running for the same Gerrit change number.
 
-      - string:
+      - validating-string:
           name: integration_test_job
           default: '{integration_test_job}'
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed Jenkins job name (only alphanumeric, '-' and '_' characters are allowed).
           description: >-
             The Ardana Jenkins integration job triggered to validate the Gerrit change.
-            Leave empty to skip integration testing.
 
             NOTE: there can be at most one non-voting Gerrit job running the same
             integration test job for a Gerrit change number. The most recent job

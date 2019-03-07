@@ -260,8 +260,6 @@ This parameter may be used to override the default
 jobs currently employed by the Ardana CI to run integration tests.
 If the custom integration job also requires its parameters to be overridden,
 this can be achieved via the `extra_params` parameter.
-If this parameter is reset to an empty value, no integration tests will
-be run (to be used with caution !).
 
 * `git_automation_repo` and `git_automation_branch` - can be used to
 point Jenkins to a different automation repository branch or fork.
@@ -370,16 +368,6 @@ the list of `-gerrit-x86_64` jobs predefined for
 [cloud8](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/cloud-ardana8-gerrit.yaml)
 and/or [cloud9](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/cloud-ardana9-gerrit.yaml),
 and thus enable other users to point to it by name.
-
-Ultimately, some Gerrit changes might not require integration testing
-at all, for example because the code changes do not affect any functionality
-areas (e.g. documentation or git configuration changes). For this cases,
-the CI supports skipping the integration testing completely, by starting
-a manual voting Gerrit job and supplying an empty `integration_test_job`
-value. **IMPORTANT**: this feature should not be abused. Most times it's
-better to rely on the default Ardana Jenkins CI behavior then to try to
-skip the integration tests.
-
 
 ### Custom package repositories
 
