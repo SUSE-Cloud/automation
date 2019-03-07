@@ -157,6 +157,7 @@
     disabled: false
     reserve_env: false
     cloudsource: GM8+up
+    updates_test_enabled: false
     scenario_name: entry-scale-kvm
     tempest_filter_list: "smoke,full"
     qa_test_list: "iverify"
@@ -169,6 +170,7 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: GM8+up
+    updates_test_enabled: false
     scenario_name: standard
     clm_model: standalone
     controllers: '2'

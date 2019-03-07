@@ -33,6 +33,9 @@ pipeline {
           if (ardana_env == '') {
             error("Empty 'ardana_env' parameter value.")
           }
+          if (updates_test_enabled == 'true' && maint_updates != '') {
+            error("Maintenance updates and test-updates cannot be applied at the same time.")
+          }
           if (reserve_env == 'true') {
             echo "Reserved resource: " + env.reserved_env
             if (env.reserved_env && reserved_env != null) {

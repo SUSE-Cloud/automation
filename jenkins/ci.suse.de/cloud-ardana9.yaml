@@ -183,6 +183,7 @@
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: develcloud9
+    updates_test_enabled: true
     update_after_deploy: true
     update_to_cloudsource: stagingcloud9
     scenario_name: standard

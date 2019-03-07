@@ -76,7 +76,7 @@
 
       - bool:
           name: updates_test_enabled
-          default: '{updates_test_enabled|false}'
+          default: '{updates_test_enabled|true}'
           description: >-
             Enable SLES/Cloud test update repos (the Cloud test update repos will
             be enabled only when cloudsource is GM based)
@@ -87,6 +87,8 @@
           description: >-
             Run ardana update after the cloud is deployed. If true the MU's will
             be applied only after the cloud is deployed.
+            If `updates_test_enabled` is true, the test updates will be
+            applied post-deployment only if the cloudsource is GM based.
 
       - choice:
           name: update_to_cloudsource
