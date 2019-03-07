@@ -13,7 +13,7 @@ pipeline {
 
   agent {
     node {
-      label 'cloud-pipeline'
+      label 'cloud-ardana-ci-trigger'
       customWorkspace "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }

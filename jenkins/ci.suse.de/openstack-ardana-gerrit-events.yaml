@@ -27,7 +27,7 @@
       numToKeep: -1
       daysToKeep: 30
 
-    node: cloud-pipeline
+    node: cloud-ardana-ci-trigger
 
     parameters:
       - string:
