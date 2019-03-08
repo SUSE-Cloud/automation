@@ -70,5 +70,5 @@
           name: rocketchat_notify
         vars:
           rc_action: "finished"
-          rc_state: "{{ (tempest_results_processed.results.3.stdout | int > 0) | ternary('Failed', 'Success' )}}"
+          rc_state: "{{ (tempest_test_results.failed | int > 0) | ternary('Failed', 'Success' )}}"
         when: rc_notify

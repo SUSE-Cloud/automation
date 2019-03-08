@@ -27,6 +27,14 @@
       with_items: "{{ tempest_qe_run_filters }}"
       when: tempest_run_filter in tempest_qe_run_filters
 
+    - name: Ensure subunit tools venv exists
+      pip:
+        name: "{{ item }}"
+        virtualenv: "{{ subunit_tools_venv }}"
+      loop:
+        - "junitxml"
+        - "python-subunit"
+
     - name: Run tempest '{{ tempest_run_filter }}'
       shell: |
         ansible-playbook -i hosts/verb_hosts tempest-run.yml \
@@ -37,17 +45,13 @@
     - name: Get list of failed tempest tests
       shell: "grep -B1 -- '------' {{ tempest_results_log }} | awk -F '\n' 'ln ~ /^$/ { ln = \"matched\"; print $1 } $1 ~ /^--$/ { ln = \"\" }'"
       register: tempest_failed_tests
-  always:
-    - name: Ensure virtualenv with subunit2junit
-      pip:
-        name: "{{ item }}"
-        virtualenv: "{{ subunit2junit_venv }}"
-      loop:
-        - "junitxml"
-        - "python-subunit"
 
+    - include_tasks: retry_failed.yml
+      when: tempest_retry_failed
+
+  always:
     - name: Generate xml subunit results
-      shell: "{{ subunit2junit_venv }}/bin/subunit2junitxml {{ tempest_results_subunit }} > {{ subunit_xml_results }}"
+      shell: "{{ subunit_tools_venv }}/bin/subunit2junitxml {{ tempest_results_subunit }} > {{ subunit_xml_results }}"
       changed_when: false
       failed_when: false
 
@@ -56,7 +60,15 @@
       changed_when: false
       failed_when: false
 
-    - name: Process tempest result
-      shell: "awk {{ item }} {{ tempest_results_log }}"
-      with_items: "{{ tempest_results_awk_collect }}"
-      register: tempest_results_processed
+    - name: Get '{{ tempest_run_filter }}' results from subunit
+      command: "{{ subunit_tools_venv }}/bin/subunit-stats {{ tempest_results_subunit }}"
+      failed_when: false
+      register: _test_results
+
+    - name: Process test results from subunit
+      set_fact:
+        tempest_test_results: "{{ tempest_test_results | default({}) | combine({item.split()[0] | lower: item.split()[-1]}) }}"
+      when: "'tests' in item"
+      loop: "{{ _test_results.stdout_lines }}"
+      loop_control:
+        label: "{{ item.split()[0] | lower }}: {{ item.split()[-1] }}"

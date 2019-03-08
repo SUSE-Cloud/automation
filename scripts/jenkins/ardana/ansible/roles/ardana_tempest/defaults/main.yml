@@ -18,18 +18,14 @@
 ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
 
 tempest_run_filter: smoke
+tempest_retry_failed: False
 tempest_results_log: "/opt/stack/tempest/logs/testr_results_region1.log"
 tempest_results_subunit: "/opt/stack/tempest/logs/testrepository_region1.subunit"
-tempest_results_awk_collect:
-  - "'/^Ran:/ { print $2 }'"
-  - "'/- Passed:/ { print $3 }'"
-  - "'/- Skipped:/ { print $3 }'"
-  - "'/- Failed:/ { print $3 }'"
 
 tempest_qe_run_filters:
   - full
 
-subunit2junit_venv: "~/subunit2junit"
+subunit_tools_venv: "/var/lib/ardana/subunit-tools-venv"
 
 defcore_tests_url: "https://refstack.openstack.org/api/v1/guidelines/2018.02/tests"
 defcore_refstackclient_git_url: "https://github.com/openstack/refstack-client.git"
