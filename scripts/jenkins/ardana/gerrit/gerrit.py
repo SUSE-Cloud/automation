@@ -1,6 +1,11 @@
+from __future__ import print_function
+
+import argparse
 import json
 import os
 import re
+import sys
+from functools import partial
 
 try:
     from pygerrit2 import GerritRestAPI, GerritReview, HTTPDigestAuthFromNetrc
@@ -24,6 +29,17 @@ DEPENDS_ON_RE = re.compile(
     re.MULTILINE | re.IGNORECASE)
 
 
+print_err = partial(print, file=sys.stderr)
+
+
+def argparse_gerrit_change_type(change_id):
+    change_regex = re.compile(r"^[0-9]+(/[0-9]+)?$")
+    if not change_regex.match(change_id):
+        raise argparse.ArgumentTypeError('Invalid Gerrit change ID value: '
+                                         '{}'.format(change_id))
+    return change_id
+
+
 class GerritApiCaller:
     _CACHE = {}
 
@@ -33,9 +49,9 @@ class GerritApiCaller:
             return GerritApiCaller._CACHE[query]
 
         query_url = GERRIT_URL + query
-        print("Running query %s" % query_url)
+        print_err("Running query %s" % query_url)
         response = requests.get(query_url, verify=GERRIT_VERIFY)
-        print("Got response: %s" % response)
+        print_err("Got response: %s" % response)
         GerritApiCaller._CACHE[query] = result = \
             json.loads(response.text.replace(")]}'", ''))
         return result
@@ -55,7 +71,7 @@ class GerritChange(GerritApiCaller):
     def __init__(self, change_id=None, branch=None,
                  patchset=None, change_object=None):
         if change_id:
-            print("Processing given change id: %s" % change_id)
+            print_err("Processing given change id: %s" % change_id)
             if change_id.isdigit():
                 self._get_numeric_change(change_id, branch, patchset)
             elif change_id.split('/')[0].isdigit():
@@ -296,7 +312,7 @@ class GerritChange(GerritApiCaller):
         return change.revision in self.parent_revisions
 
     def review(self, label=None, vote=1, message=''):
-        print("Posting {} review for change: {}".format(
+        print_err("Posting {} review for change: {}".format(
             " {}: {}".format(label, vote) if label else '', self))
         auth = HTTPDigestAuthFromNetrc(url=GERRIT_URL)
         rest = GerritRestAPI(url=GERRIT_URL, auth=auth, verify=GERRIT_VERIFY)

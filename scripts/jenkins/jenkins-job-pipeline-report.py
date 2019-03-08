@@ -146,6 +146,8 @@ def generate_summary(server, job_name, build_number,
                     if downstream_jobs:
                         d_job_name = downstream_jobs[0][1]
                         d_build_number = int(downstream_jobs[0][2])
+                        stage['name'] = '{} ({})'.format(stage['name'],
+                                                         d_job_name)
                         sub_summary = generate_summary(
                             server, d_job_name, d_build_number,
                             filter_stages, recursive, depth+1)
