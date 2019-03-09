@@ -2881,7 +2881,12 @@ function custom_configuration
             fi
         ;;
         ironic)
-            if ! iscloudver 9plus ; then
+            # cloud9+ use hardware types instead of classic drivers
+            if iscloudver 9plus ; then
+                local maybe_direct_interface=''
+                [[ $deployswift ]] && maybe_direct_interface=", 'direct'"
+                proposal_set_value ironic default "['attributes']['ironic']['enabled_deploy_interfaces']" "['iscsi' $maybe_direct_interface]"
+            else
                 local maybe_agent_driver=''
                 [[ $deployswift ]] && maybe_agent_driver=", 'agent_ipmitool'"
                 proposal_set_value ironic default "['attributes']['ironic']['enabled_drivers']" "['pxe_ipmitool' $maybe_agent_driver]"
