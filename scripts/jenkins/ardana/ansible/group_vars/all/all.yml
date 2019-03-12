@@ -78,6 +78,7 @@ dns_servers:
 
 rc_channels:
   pcloud001: "cloud-qe-pcloud001"
+  pcloud002: "cloud-qe-pcloud002"
   qe002: "cloud-qe-hlm002"
   qe007: "cloud-qe-hlm007"
   qe101: "cloud-qe-hlm101"

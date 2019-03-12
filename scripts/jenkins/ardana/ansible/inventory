@@ -1,5 +1,6 @@
 [gate_qe]
 gate-pcloud001  ansible_host=10.84.99.1
+gate-pcloud002  ansible_host=10.84.146.1
 gate-qe002      ansible_host=10.84.65.1
 gate-qe007      ansible_host=10.84.83.1
 gate-qe101      ansible_host=10.84.68.1
@@ -11,6 +12,7 @@ gate-qescale    ansible_host=10.84.48.50
 
 [deployer_qe]
 pcloud001       ansible_host=10.84.132.1
+pcloud002       ansible_host=10.84.144.1
 qe002           ansible_host=10.84.43.81
 qe007           ansible_host=10.84.81.17
 qe101           ansible_host=10.84.43.113
