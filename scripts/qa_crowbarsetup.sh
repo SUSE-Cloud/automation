@@ -2452,6 +2452,7 @@ function custom_configuration
             local cmachines=$(get_all_suse_nodes | head -n 3)
             local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
             proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
+            [[ $want_designate_proposal = 1 ]] && proposal_set_value dns default "['attributes']['dns']['enable_designate']" true
             # We could do the usual "if iscloudver 6plus ; then", but this
             # would break mkcloud when installing Cloud 6 without updates
             if grep -q CNAME /opt/dell/crowbar_framework/app/helpers/barclamp/dns_helper.rb; then
@@ -4024,6 +4025,10 @@ function oncontroller_testsetup
             fi
         fi
     fi
+
+    # this file is created by the designate barclamp
+    designate_pools="/etc/desigate/pools.crowbar.yaml"
+    [[ -e $designate_pools ]] && designate-manage pool update --file $designate_pools
 
     # Run Tempest Smoketests if configured to do so
     tempestret=0
