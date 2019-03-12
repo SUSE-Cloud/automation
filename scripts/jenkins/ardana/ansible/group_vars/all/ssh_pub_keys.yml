@@ -156,3 +156,6 @@ ssh_pub_keys:
   - name: rtidwell
     keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDSJkUpg3509zVapiMRuv6k1Iqkl1fQA9/eL5b2yQ1TiK6Po4emkg3qRnF0elwc2IIBl0hYFxNXvPVTzhcZlGJ8rhhi+niZH/fr2TDS2FLXKwypd2spAUyzDd7Bpq5On+I3yYii1B28o4hmfwRGoxF+n3Pb5qNowd6QsNX2LfhGonEUyhiv9zHiYBXLYr9/4yrCC0iW+rWgK3qxec8xisP6j6/qw0M2IIJxf6FmD09soXonV+gIqxprJE0mZeEfQm2Kk9OSuxsmqaOraKvwP4Tgf/AVfaa0tpkIYgSlaJk6lv7QfYCV+hcxxJ7GDnRaqxH0drvbQXu6SJJxnypLWAtz ryan@linux-te2l
+  - name: zzaimeche
+    keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDXBUoiBYYw4C4QUr3slgxmQOTyVAmV/w3Pdv9EldNXZtNEykcSfGC6F2mFOi0TfxbwD3g/BLSVS6LEENnJIO16OV34CclFiBWoHAlxtqNrA2pJnGMgqi2vRJcOsO5ZYaN+7h2AX19Z9EXk8X7PCNKXtCxsWGwdhMG7WyVAUYzMDxXuLunVGs/n+4UubPGD0hILvAqJ18KFWtmKXF/IwIyJfABRWK7MZIyko4hLn4OiWyiUO/hzZAnyORuM16tFwKV1lS2uDYUqy1IuSD/jpMOwQKYltCWCYhSaIFjLJWgoim+5AQCK/ebhxAyTyfXpaK6OSzWSQe9AfPAh7lynQhG3 thezarazia@gmail.com
