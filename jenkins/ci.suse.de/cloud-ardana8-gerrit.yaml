@@ -72,7 +72,7 @@
     version: '8'
     triggers:
       - gerrit:
-          server-name: 'gerrit.suse.provo.cloud'
+          server-name: 'gerrit.prv.suse.net'
           trigger-on:
             - patchset-created-event:
                 exclude-drafts: true

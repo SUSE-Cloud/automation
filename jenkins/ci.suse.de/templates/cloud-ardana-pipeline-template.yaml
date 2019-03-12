@@ -406,7 +406,7 @@
           msg: The entered value failed validation
           description: >-
             A comma separated list of IDs for changes in
-            gerrit.suse.provo.cloud to test. The patchset may be supplied as part
+            gerrit.prv.suse.net to test. The patchset may be supplied as part
             of the change ID in the form:
 
                <change_number>[/<patchset_number>]
