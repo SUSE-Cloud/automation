@@ -3143,6 +3143,12 @@ function deploy_single_proposal
         ceph)
             [[ $deployceph ]] || return
             ;;
+        ceilometer)
+            if [[ $want_monasca_proposal != 1 ]] && iscloudver 9plus; then
+                echo "Ceilometer depends on Monasca which is disabled. Skipping"
+                return
+            fi
+            ;;
         magnum)
             # PM does not want to support magnum on s390x
             if [[ $arch = "s390x" ]]; then
