@@ -75,6 +75,7 @@ model: ''
 #   - entry-scale-kvm
 #   - mid-scale-kvm
 #   - standard
+#   - std-lmm
 #   - std-split
 scenario_name: 'entry-scale-kvm'
 
@@ -112,7 +113,8 @@ rhel_os: 'CentOS_75'
 core_nodes: ''
 
 # The number of LMM services nodes in the generated input model (0-3).
-# Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
+# Input model generator scenarios using this parameter: mid-scale-kvm, std-split,
+# std-lmm.
 lmm_nodes: ''
 
 # The number of database & rabbitmq service nodes in the generated input model (0-3).

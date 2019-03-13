@@ -157,6 +157,7 @@
             - entry-scale-kvm
             - mid-scale-kvm
             - standard
+            - std-lmm
             - std-split
           description: >-
             The name of one of the available scenarios that can be used to generate input models.
@@ -219,7 +220,7 @@
           description: |
             The number of LMM services nodes in the generated input model (0-3).
 
-            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split, std-lmm.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
