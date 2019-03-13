@@ -29,6 +29,7 @@ ardana_qa_tests_branch: "{{ cloud_git_branch[cloud_release] }}"
 ardana_qe_test_log: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.log"
 ardana_qe_test_subunit: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit"
 ardana_qe_test_script: "{{ ardana_qe_test_work_dir }}/{{ test_name }}.sh"
+ardana_qe_test_script_args: "{{ lookup('env', (test_name | upper | replace('-','_')) ~ '_ARGS') | default('') }}"
 ardana_qe_test_timeout: 120
 
 ardana_qe_test_venv: "{{ ardana_qe_base_dir }}/{{ test_name }}/venv"
