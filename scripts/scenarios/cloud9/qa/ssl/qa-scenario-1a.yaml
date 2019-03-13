@@ -223,18 +223,6 @@ proposals:
       ceilometer-server:
       - cluster:services
       ceilometer-swift-proxy-middleware: []
-- barclamp: aodh
-  attributes:
-    api:
-      protocol: https
-    ssl:
-      certfile: ##certfile##
-      keyfile:  ##keyfile##
-      ca_certs: ##cafile##
-  deployment:
-    elements:
-      aodh-server:
-      - "@@controller1@@"
 - barclamp: barbican
   attributes:
     api:

@@ -180,12 +180,6 @@ proposals:
       ceilometer-swift-proxy-middleware:
       - @@controller1@@
       - @@controller2@@
-- barclamp: aodh
-  attributes:
-  deployment:
-    elements:
-      aodh-server:
-      - cluster:services
 - barclamp: manila
   attributes:
     default_share_type: default
