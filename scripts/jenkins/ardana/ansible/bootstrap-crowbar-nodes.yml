@@ -58,6 +58,8 @@
             name: setup_root_partition
 
         # FIXME: remove everything but eth0 ifcfg files from base image
+        # This is needed because crowbar_register fails if there are
+        # ifcfg files configured for non-existing interfaces
         - name: Remove unused ifcfg files
           shell: rm /etc/sysconfig/network/ifcfg-eth[1-9]*
 

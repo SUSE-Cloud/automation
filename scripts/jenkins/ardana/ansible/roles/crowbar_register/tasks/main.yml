@@ -1,15 +1,8 @@
 ---
 
-- name: Get crowbar node name
-  shell: |
-    MAC=$(cat /sys/class/net/{{ admin_interface }}/address)
-    HOSTNAME="d${MAC//:/-}.{{ crowbar_fqdn }}"
-    echo $HOSTNAME
-  register: _register_hostname
-
-- name: Set crowbar_node_name fact
+- name: set crowbar_node_name fact
   set_fact:
-    crowbar_node_name: "{{ _register_hostname.stdout | trim }}"
+    crowbar_node_name: "d{{ hostvars['ansible_%s' | format(admin_interface)].macaddress | replace(':', '-') }}.{{ cloud_fqdn }}"
 
 - name: Reserve node admin IP addresses in Crowbar
   include_tasks: reserve_admin_ip.yml
@@ -28,7 +21,7 @@
     wget {{ crowbar_register_url }} -O {{ crowbar_register_path }}
     chmod +x {{ crowbar_register_path }}
 
-    SSH_CONNECTION= {{ crowbar_register_path }} -f --interface eth0 --gpg-auto-import-keys --no-gpg-checks 2>&1 | tee {{ crowbar_register_log }}
+    SSH_CONNECTION= {{ crowbar_register_path }} -f --interface {{ admin_interface }} --gpg-auto-import-keys --no-gpg-checks 2>&1 | tee {{ crowbar_register_log }}
     exit ${PIPESTATUS[0]}
 
 - name: Check that node has registered

@@ -53,6 +53,6 @@ heat_stack_output_queries:
 virtual_node_group_aliases:
   controller: 'controller'
   # need to use different group aliases, because Crowbar uses 'compute-kvm'
-  # instead of 'compute' in the crowbar batch scenario files
+  # instead of 'compute' in the crowbar batch scenario files used by the gating jobs
   # FIXME: control this from the generated scenario instead
   compute: "{{ (cloud_product == 'ardana') | ternary('compute', 'compute-kvm') }}"

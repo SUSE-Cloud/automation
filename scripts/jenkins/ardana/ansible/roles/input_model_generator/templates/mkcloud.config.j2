@@ -21,7 +21,7 @@ export reposerver={{ clouddata_server }}
 # export rsyncserver_fqdn=
 # export rsyncserver_images_dir=
 export susedownload={{ sles_media_server }}
-export cloudfqdn={{ crowbar_fqdn }}
+export cloudfqdn={{ cloud_fqdn }}
 
 {% if cloudsource.startswith("stagingcloud") %}
 export cloudsource=develcloud{{ cloudsource[-1] }}
