@@ -23,7 +23,7 @@
     controllers: '2'
     sles_computes: '0'
     rhel_computes: '2'
-    ses_enabled: false
+    ses_enabled: true
     ses_rgw_enabled: false
     triggers:
     jobs:
