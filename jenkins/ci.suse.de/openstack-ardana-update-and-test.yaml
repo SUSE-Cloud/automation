@@ -69,6 +69,10 @@
             - cloud9RC1
             - cloud9RC2
             - cloud9RC3
+            - cloud9RC4
+            - cloud9RC5
+            - cloud9RC6
+            - cloud9RC7
             - cloud9GMC
           description: >-
             The cloud repository (from provo-clouddata) to be used for updating.
