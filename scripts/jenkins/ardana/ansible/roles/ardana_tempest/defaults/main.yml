@@ -27,7 +27,7 @@ tempest_qe_run_filters:
 
 subunit_tools_venv: "/var/lib/ardana/subunit-tools-venv"
 
-defcore_tests_url: "https://refstack.openstack.org/api/v1/guidelines/2018.02/tests"
+defcore_tests_url: "https://refstack.openstack.org/api/v1/guidelines/2018.11/tests"
 defcore_refstackclient_git_url: "https://github.com/openstack/refstack-client.git"
 defcore_refstack_url: "https://10.86.0.98"
 defcore_results: "~/refstack_results.subunit"
