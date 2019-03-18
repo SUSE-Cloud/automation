@@ -136,6 +136,11 @@
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
 
+      - bool:
+          name: ses_enabled
+          default: '{ses_enabled|true}'
+          description: Configure SES backend for glance, cinder and nova
+
       - validating-string:
           name: extra_repos
           default: ''

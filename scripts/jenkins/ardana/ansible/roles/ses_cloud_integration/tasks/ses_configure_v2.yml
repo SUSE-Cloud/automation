@@ -52,3 +52,10 @@
   loop:
     - "^radosgw_url.*"
     - "^-.*swift.*v1$"
+
+- name: Upload Crowbar SES configuration
+  shell: |
+    crowbarctl ses upload {{ ses_cloud_config_path }}/ses_config.yml
+  delegate_to: "{{ ardana_env }}"
+  run_once: true
+  when: cloud_product == 'crowbar'
