@@ -9,3 +9,6 @@ interface_models:
     network_interfaces:
       - network_groups:
           - MANAGEMENT
+          - PUBLIC
+          - OS_SDN
+          - STORAGE

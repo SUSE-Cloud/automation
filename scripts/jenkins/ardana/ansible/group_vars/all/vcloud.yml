@@ -24,7 +24,8 @@ want_caasp: False
 virt_config_file_name: "{{ 'caasp.yml' if want_caasp else workspace_path ~ '/' ~ scenario_name ~ '-virt-config.yml' if scenario_name is defined else '' }}"
 virt_config_file: "{{ virt_config_name | default(virt_config_file_name) }}"
 
-want_lvm: True
+# Use the root LVM partition only for Ardana deployments
+want_lvm: "{{ cloud_product == 'ardana' }}"
 # use different flavors and images when LVM support is enabled:
 #  - LVM enabled images have the root partition set up as an LVM volume
 #  - LVM enabled flavors have a smaller disk size for generated input models,
@@ -48,3 +49,10 @@ heat_stack_output_queries:
    stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'controller-conf-ips') | map(attribute='output_value') | list | flatten }}"
  - item: "compute-conf-ips"
    stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'compute-conf-ips') | map(attribute='output_value') | list | flatten }}"
+
+virtual_node_group_aliases:
+  controller: 'controller'
+  # need to use different group aliases, because Crowbar uses 'compute-kvm'
+  # instead of 'compute' in the crowbar batch scenario files used by the gating jobs
+  # FIXME: control this from the generated scenario instead
+  compute: "{{ (cloud_product == 'ardana') | ternary('compute', 'compute-kvm') }}"

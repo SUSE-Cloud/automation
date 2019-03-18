@@ -1,0 +1,9 @@
+---
+
+admin_interface_index: 0
+admin_interface: "eth{{ admin_interface_index }}"
+
+crowbar_register_path: "/root/crowbar_register"
+crowbar_register_log: "/root/crowbar_register.log"
+
+crowbar_register_url: "http://{{ hostvars['localhost'].admin_conf_ip }}:8091/suse-{{ ansible_distribution_version }}/{{ ansible_architecture }}/crowbar_register"

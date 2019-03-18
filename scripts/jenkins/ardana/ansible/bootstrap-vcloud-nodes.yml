@@ -15,30 +15,17 @@
 #
 ---
 
+- import_playbook: _create-vcloud-inventory.yml
+
 - name: Bootstrap virtual deployer for ardana
   hosts: "{{ ardana_env }}"
   remote_user: ardana
   gather_facts: False
   vars:
     task: "deploy"
-    virtual_hosts:
-      - group: controller
-        ips: "{{ hostvars['localhost'].controller_conf_ips | difference([hostvars['localhost'].admin_conf_ip]) }}"
-      - group: compute
-        ips: "{{ hostvars['localhost'].compute_conf_ips }}"
 
   tasks:
     - block:
-        - name: Create temp inventory with all virtual nodes (minus deployer)
-          add_host:
-            name: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }}"
-            ansible_host: "{{ item.1 }}"
-            ansible_password: "linux"
-            group: "{{ item.0.group }}, ardana_virt_hosts"
-          loop: "{{ virtual_hosts | subelements('ips') }}"
-          loop_control:
-            label: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }} - {{ item.1 }}"
-
         - name: Ensure ardana SSH key on deployer
           shell: |
             ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
@@ -76,7 +63,7 @@
 
 
 - name: Bootstrap other virtual nodes for ardana
-  hosts: ardana_virt_hosts
+  hosts: cloud_virt_hosts
   remote_user: root
   # NOTE: don't gather facts before nodes become accessible
   gather_facts: false

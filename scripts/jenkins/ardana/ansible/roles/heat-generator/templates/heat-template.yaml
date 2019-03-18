@@ -88,7 +88,15 @@ resources:
         - start: "{{ pool[0] }}"
           end: "{{ pool[1] }}"
 {%     endfor %}
-{%     endif  %}
+{%   endif  %}
+{%   if network.external and dns_servers is defined %}
+      dns_nameservers:
+{%     for dns_server in dns_servers %}
+        - {{ dns_server }}
+{%     endfor %}
+{%   endif  %}
+
+
 {%   if (ipv6 | default(false)) == true %}
 {%   if network.is_conf %}
       ip_version: 4

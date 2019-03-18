@@ -66,3 +66,9 @@
     replace: '#\1'
   when: not versioned_features[item].enabled
   loop: "{{ input_model_versioned_features }}"
+
+- name: Generate mkcloud.config
+  template:
+    src: "mkcloud.config.j2"
+    dest: "{{ mkcloud_config_file }}"
+  when: cloud_product == 'crowbar'
