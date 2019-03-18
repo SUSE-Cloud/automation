@@ -20,6 +20,7 @@
             - SLE_12_SP2
             - SLE_12_SP3
             - SLE_12_SP4
+            - SLE_15
             - openSUSE-Leap-42.3
             - openSUSE-Leap-15.0
       - axis:
@@ -35,7 +36,7 @@
         || ( openstack_project=="Pike" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
         || ( openstack_project=="Queens" && (image=="SLE_12_SP3" || image=="openSUSE-Leap-42.3"))
         || ( openstack_project=="Rocky" && (image=="SLE_12_SP4" || image=="openSUSE-Leap-15.0"))
-        || ( openstack_project=="Master" && (image=="SLE_12_SP4" || image=="openSUSE-Leap-15.0"))
+        || ( openstack_project=="Master" && (image=="SLE_15" || image=="openSUSE-Leap-15.0"))
         ))
       sequential: true
     builders:
