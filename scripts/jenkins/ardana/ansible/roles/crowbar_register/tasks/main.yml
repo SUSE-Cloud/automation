@@ -2,7 +2,7 @@
 
 - name: set crowbar_node_name fact
   set_fact:
-    crowbar_node_name: "d{{ hostvars['ansible_%s' | format(admin_interface)].macaddress | replace(':', '-') }}.{{ cloud_fqdn }}"
+    crowbar_node_name: "d{{ hostvars[inventory_hostname]['ansible_%s' | format(admin_interface)].macaddress | replace(':', '-') }}.{{ cloud_fqdn }}"
 
 - name: Reserve node admin IP addresses in Crowbar
   include_tasks: reserve_admin_ip.yml
