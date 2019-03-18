@@ -44,7 +44,7 @@
       combination-filter: |
        !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_12_SP2"].contains(repository) ||
          ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["openSUSE_Leap_42.3", "openSUSE_Leap_15.0", "SLE_12_SP4"].contains(repository) ||
-         ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["SLE_12_SP2", "openSUSE_Leap_15.0", "SLE_12_SP4"].contains(repository) ||
+         ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["openSUSE_Leap_15.0", "SLE_12_SP2", "SLE_12_SP4"].contains(repository) ||
          ["Cloud:OpenStack:Queens", "Cloud:OpenStack:Queens:Staging"].contains(project) && ["openSUSE_Leap_15.0", "SLE_12_SP2", "SLE_12_SP4"].contains(repository) ||
          ["Cloud:OpenStack:Rocky", "Cloud:OpenStack:Rocky:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP3" ].contains(repository)
        )
