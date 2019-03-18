@@ -133,11 +133,10 @@
       - validating-string:
           name: extra_repos
           default: ''
-          regex: '((http(s)?:\/\/[^ ,]+\.repo)(,http(s)?:\/\/[^ ,]+\.repo)*)*'
+          regex: '((http(s)?:\/\/[^ ,]+)(\,http(s)?:\/\/[^ ,]+)*)*'
           msg: The entered value failed validation
           description: >-
-            A comma separated list of repository urls (ending with .repo) to be
-            added on the deployer node
+            A comma separated list of repository urls to be configured on the admin node
 
       - bool:
           name: rc_notify

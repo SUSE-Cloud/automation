@@ -7,6 +7,14 @@
 - name: Reserve node admin IP addresses in Crowbar
   include_tasks: reserve_admin_ip.yml
 
+  # When installing extra repositories (such as test-updates), these
+  # repositories are served to cloud nodes using the FQDN instead of the IP,
+  # which confuses crowbar_register
+- name: Ensure admin node FQDN resolvable
+  lineinfile:
+    dest: "/etc/hosts"
+    line: "{{ hostvars['localhost'].admin_conf_ip }}    crowbar.{{ cloud_fqdn }}"
+
 - name: Remove existing repositories
   shell: |
     set -e
