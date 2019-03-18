@@ -42,11 +42,11 @@
 - name: Generate ses-config.yml
   copy:
     content: "{{ _ses_conf.json.return.0 | to_nice_yaml }}"
-    dest: "{{ ses_ardana_config_path }}/ses_config.yml"
+    dest: "{{ ses_cloud_config_path }}/ses_config.yml"
 
 - name: Remove RADOS GW config entries (will be configured after ardana deployment)
   lineinfile:
-    path: "{{ ses_ardana_config_path }}/ses_config.yml"
+    path: "{{ ses_cloud_config_path }}/ses_config.yml"
     regexp: "{{ item }}"
     state: absent
   loop:

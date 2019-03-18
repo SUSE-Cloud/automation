@@ -19,7 +19,7 @@
 - import_playbook: get-virt-ses-cluster.yml
   when: not is_physical_deploy
 
-- name: Configure SES for Ardana when SES enabled
+- name: Configure SES for Cloud
   hosts: "ses_{{ (ardana_env.startswith('pcloud') or ardana_env.startswith('qe')) | ternary('qe', 'virt') }}"
   remote_user: root
   gather_facts: no
@@ -42,9 +42,9 @@
           fail:
             msg: "{{ task }} failed."
 
-- name: Configure ardana with SES backend when SES enabled
+- name: Prepare files for Cloud SES configuration
   hosts: "{{ ardana_env }}"
-  remote_user: ardana
+  remote_user: "{{ cloud_admin_user[cloud_product] }}"
   gather_facts: no
   vars:
     task: "deploy"
@@ -52,7 +52,7 @@
   tasks:
     - block:
         - include_role:
-            name: ses_ardana_integration
+            name: ses_cloud_integration
       rescue:
         - include_role:
             name: rocketchat_notify
