@@ -1,11 +1,11 @@
 ---
 
-- name: Configure Crowbar and deploy OpenStack
+- name: Run Crowbar tests and collect results
   hosts: "{{ ardana_env }}"
   remote_user: root
   gather_facts: True
   vars:
-    task: "deploy"
+    task: "tempest"
 
   pre_tasks:
     - include_role:
@@ -13,10 +13,7 @@
       vars:
         rc_action: "started"
         rc_state: "Started"
-      when:
-        - rc_notify
-        - rc_notify_start
-        - not is_physical_deploy
+      when: rc_notify
 
   tasks:
     - block:
@@ -27,7 +24,8 @@
         - include_role:
             name: crowbar_setup
           vars:
-            qa_crowbarsetup_cmd: onadmin_batch
+            qa_crowbarsetup_cmd: onadmin_testsetup
+
       rescue:
         - include_role:
             name: rocketchat_notify
@@ -42,17 +40,18 @@
       always:
         - include_role:
             name: jenkins_artifacts
-          when: lookup("env", "WORKSPACE")
           vars:
             jenkins_artifacts_to_collect:
               - src: "{{ admin_mkcloud_config_file }}"
               - src: "{{ qa_crowbarsetup_log }}"
+              - src: "~/tempest.log"
+              - src: "~/tempest.subunit.log"
+          when: lookup("env", "WORKSPACE")
 
   post_tasks:
-    - include_role:
-        name: rocketchat_notify
-      vars:
-        rc_action: "finished"
-        rc_state: "Success"
-      when:
-        - rc_notify
+      - include_role:
+          name: rocketchat_notify
+        vars:
+          rc_action: "finished"
+          rc_state: "{{ (_qa_crowbarsetup_result.rc > 0) | ternary('Failed', 'Success' )}}"
+        when: rc_notify

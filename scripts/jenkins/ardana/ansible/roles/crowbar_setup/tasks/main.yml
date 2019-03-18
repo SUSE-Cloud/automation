@@ -1,0 +1,12 @@
+---
+
+- name: Run the supplied qa_crowbarsetup.sh command on the admin node
+  shell: |
+    . {{ admin_scripts_path }}/qa_crowbarsetup.sh
+    {{ qa_crowbarsetup_cmd }} 2>&1 | tee -a {{ qa_crowbarsetup_log }}
+    exit ${PIPESTATUS[0]}
+  args:
+    executable: "/bin/bash"
+  delegate_to: "{{ ardana_env }}"
+  register: _qa_crowbarsetup_result
+
