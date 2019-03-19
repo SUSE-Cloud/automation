@@ -1336,6 +1336,8 @@ Optional
         individual services using want_{proposal}_ssl.
     want_ssl_trusted (default='1' for cloud7+)
         If set, does not use the --insecure flag in openstack CLI commands.
+    want_monasca_tsdb (Cloud9+ only)
+        Allows setting time-series DB used for Monasca [influxdb|cassandra].
 EOUSAGE
     qacrowbarsetup_help
     exit 1

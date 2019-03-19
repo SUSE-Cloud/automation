@@ -2594,6 +2594,9 @@ function custom_configuration
             if [[ $hacloud = 1 ]] ; then
                 echo "Warning: Monasca currently is not HA ready"
             fi
+            if iscloudver 9plus && [[ $want_monasca_tsdb = cassandra ]]; then
+                proposal_set_value monasca default "['attributes']['monasca']['tsdb']" "'$want_monasca_tsdb'"
+            fi
             ;;
 
         barbican)
