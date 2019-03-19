@@ -17,6 +17,15 @@
     - block:
         - include_role:
             name: crowbar_register
+        - include_role:
+            name: crowbar_setup
+          vars:
+            qa_crowbarsetup_cmd: "onadmin_{{ command }}"
+          loop:
+            - waitcloud
+            - post_allocate
+          loop_control:
+            loop_var: command
 
       rescue:
         - include_role:

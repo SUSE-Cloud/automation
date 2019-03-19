@@ -71,6 +71,12 @@
             repositories, but skip the actual cloud deployment, e.g. for testing purposes.
 
       - bool:
+          name: test_cloud
+          default: '{test|true}'
+          description: >-
+            If left unchecked, the cloud test steps will be skipped.
+
+      - bool:
           name: updates_test_enabled
           default: '{updates_test_enabled|false}'
           description: >-
@@ -133,11 +139,10 @@
       - validating-string:
           name: extra_repos
           default: ''
-          regex: '((http(s)?:\/\/[^ ,]+\.repo)(,http(s)?:\/\/[^ ,]+\.repo)*)*'
+          regex: '((http(s)?:\/\/[^ ,]+)(\,http(s)?:\/\/[^ ,]+)*)*'
           msg: The entered value failed validation
           description: >-
-            A comma separated list of repository urls (ending with .repo) to be
-            added on the deployer node
+            A comma separated list of repository urls to be configured on the admin node
 
       - bool:
           name: rc_notify

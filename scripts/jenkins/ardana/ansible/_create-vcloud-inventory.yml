@@ -2,7 +2,6 @@
 
 - name: Create temp inventory with all non-admin virtual nodes
   hosts: "{{ ardana_env }}"
-  remote_user: ardana
   gather_facts: False
   vars:
     virtual_hosts:

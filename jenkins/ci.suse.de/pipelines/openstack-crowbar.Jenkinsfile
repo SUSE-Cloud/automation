@@ -154,9 +154,7 @@ pipeline {
            // This step does the following on the admin node:
            //  - sets up SLES and Cloud repositories
            //  - installs crowbar
-           ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist prepareinstallcrowbar"\'')
-           ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist bootstrapcrowbar"\'')
-           ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist installcrowbar"\'')
+           ardana_lib.ansible_playbook('install-crowbar')
         }
       }
     }
@@ -171,8 +169,6 @@ pipeline {
           //  - registers nodes with the Crowbar admin
           //  - sets up node roles and aliases
           ardana_lib.ansible_playbook('register-crowbar-nodes')
-          ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist waitcloud"\'')
-          ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist post_allocate"\'')
         }
       }
     }
@@ -185,20 +181,20 @@ pipeline {
         script {
           // This step does the following on the non-admin nodes:
           //  - deploys the crowbar batch scenario
-          ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_runlist batch"\'')
+          ardana_lib.ansible_playbook('deploy-crowbar')
         }
       }
     }
 
-    stage('Test') {
+    stage('Test cloud') {
       when {
-        expression { deploy_cloud == 'true' }
+        expression { deploy_cloud == 'true' && test_cloud == 'true' }
       }
       steps {
         script {
           // This step does the following on the non-admin nodes:
-          //  - runs tests on the deployed cloud
-          ardana_lib.ansible_playbook('deploy-crowbar', '-e \'qa_crowbarsetup_cmd="onadmin_testsetup"\'')
+          //  - runs tempest and other tests on the deployed cloud
+          ardana_lib.ansible_playbook('run-crowbar-tests')
         }
       }
     }
