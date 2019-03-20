@@ -124,6 +124,9 @@ ssh_pub_keys:
   - name: mnmehta
     keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC95Z3R6w8cnVHkTjtHtXwHvi8zCTA7/wpj29R9MQm2GIwMRPwmibyswWHMe8+i7H8bZ0v5aR9++ZeGAq9J8DvhOrTqSvIYuiad7WTye8oZA6EC7ifIjjUuQWcrQI2Y2itySVn+L4dXgIR/sjb+4ujgecX+ZvaRWh8P4xKyQsIBokwu6nrPqkzDa/zTx/BdPhN1tQiWtjPSZVcTjWHr/9a0ESzoSfYzZpCq3P7D+v7/Lbjk/9Wl/CXFw8Wfsh1OiFGg82BL4DgpKvakNdKKIf9gqrMkr0uCwmSZr2uY+7jRvgAbjxvagcTUtgyHUFhPoxjrHnbCPPveX2GYFnGgDvhb mnmehta@suse.com
+  - name: pendergr
+    keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC21ZifIo8673jPas6e4t7fWQYEtewQ6/y2j4lAfGZguda++oq7fGn1Oc0jr5DYYlwBCjOJ98KYZCbnkB7cN07oPNhpMa4cegCneyIlheyyWFw/PqK3wwFWyUUoPvJIFSHCSTbGHci7K+BvdcwWPoe3vrcQkkrLlnH765aUoVL8s9SziJEVvLypAqrvlDALTGIkqlfhhBbEqW6EsC59eLWGMNDllL71w6C8dUHRqrTH/fi8En5QAtKSCvygHLJyY7W4sEaUzwVfNyK2v3Odp3K8hHvFq5XEJviFL0h/+8oku175slo/otgzOgMyDUxYvivyqXWDpNxDhvxt9OHzBrjN eric
   - name: jwei
     keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDIgKfLDicNV5gEmQvLBnopriAx+H+vq6Q+mrgAbSSQHPSsXp2ayXG/XIkb9BepDFtXvw3O4l9aCzXcmNpwDnaHQ8Xr6mv0RDwIDNrAE7qwzEuBtGTkCvStm8hmeR1NQzjgMJbjhTWs3rZ/udW9/RQX+f2cYEnikGQtqPW1yR99Xdw+C1UTsUQG5wPIYXyK4GUOuUMesC2jH8qCLRRR7WlXstezQLZWfEPaOCP1DwpVpbfypdqJp6+Ua/TdRsmQoTC+R7jBMUDodPkvfsXNmnnD7dspY7OMcy5BZafrkj7GakJ61oYsuNd13xxobuP4eT8+w+sJKHoFJRjR7k2NX6LL jwei@suse.com
