@@ -22,8 +22,10 @@
           vars:
             qa_crowbarsetup_cmd: "onadmin_{{ command }}"
           loop:
+            - allocate
             - waitcloud
             - post_allocate
+            - setup_aliases
           loop_control:
             loop_var: command
 

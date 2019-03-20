@@ -387,7 +387,15 @@ function get_disk_id_by_serial_and_libvirt_type
 
 function get_all_nodes
 {
-    safely crowbarctl node list --no-meta --plain | LC_ALL=C sort
+    crowbar_node_list=$(safely crowbarctl node list --no-meta --plain | LC_ALL=C sort)
+    if [ -n "$custom_crowbar_node_order" ]; then
+        # return only the nodes that are registered
+        for onenode in $custom_crowbar_node_order ; do
+            printf "%s\n" ${crowbar_node_list[@]} | grep $onenode
+        done
+    else
+        printf "%s\n" ${crowbar_node_list[@]}
+    fi
 }
 
 function get_all_suse_nodes

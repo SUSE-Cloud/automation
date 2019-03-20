@@ -92,6 +92,12 @@ export nodenumber={{ controllers | int + computes | int }}
 # export clusterconfig=
 # export ironicnetmask=
 
+# Use this to override the crowbar node list order in qa_crowbarsetup.sh
+export custom_crowbar_node_order=
+
+export want_node_roles=controller={{ controllers | int }},compute={{ computes | int }}
+export want_node_aliases=controller={{ controllers | int }},compute-kvm={{ computes | int }}
+
 export want_test_updates={{ updates_test_enabled | ternary (1, 0) }}
 export want_swift=1
 
