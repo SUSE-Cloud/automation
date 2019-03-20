@@ -2652,6 +2652,9 @@ function custom_configuration
             if iscloudver 7plus && [[ $want_ironic = 1 ]] ; then
                 get_novacontroller
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-compute-ironic']" "['$novacontroller']"
+                # remove all other compute roles
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-compute-${libvirt_type}']" "[]"
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-compute-kvm']" "[]"
             fi
         ;;
         horizon|nova_dashboard)
