@@ -92,8 +92,15 @@ if [ -f "/etc/os-release" ]; then
     case "$DIST_NAME" in
         "SLES")
             IFS=. read major minor <<< $VERSION
-            REPO="SLE_${major}_SP${minor}"
-            REPOVER="${major}-SP${minor}"
+            # SLE15 do not have a minor version (SP1 will have then)
+            # /etc/os-release contains: VERSION="15"
+            if [ -z "$minor" ]; then
+                REPO="SLE_${major}"
+                REPOVER="${major}"
+            else
+                REPO="SLE_${major}_SP${minor}"
+                REPOVER="${major}-SP${minor}"
+            fi
             # FIXME for SLE15 to not have SP0
             addrepofunc=addslesrepos
         ;;
