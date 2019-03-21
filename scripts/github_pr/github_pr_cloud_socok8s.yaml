@@ -1,0 +1,50 @@
+interaction_dirs:
+  - ./interactions
+template:
+  user:
+    suse_user: &suse_user
+      - SUSE-Cloud
+  team:
+    suse_cloud_socok8s_team: &suse_cloud_socok8s_team
+      - name: SUSE-Cloud/SUSE Employees
+        id: 158157
+  filter:
+    cloud_socok8s: &cloud_socok8s
+      - type: MergeBranch
+        config:
+          branches:
+            - master
+      - type: Status
+        config:
+          status: unseen
+      - type: TrustedSource
+        config:
+          users:
+            *suse_user
+          teams:
+            *suse_cloud_socok8s_team
+        blacklist_handler:
+          - type: SetStatus
+            parameters:
+              status: error
+              message: Owner of the source repo for this PR lacks permission
+        whitelist_handler:
+          - type: SetStatus
+            parameters:
+              status: pending
+              message: Queued PR job
+          - type: JenkinsJobTriggerSocok8s
+            parameters:
+              detail_logging: true
+              job_name: cloud-socok8s
+              job_cmd: "../jenkins/jenkins-job-trigger"
+              job_parameters:
+                standard: {}
+
+pr_processing:
+  - config:
+      organization: SUSE-Cloud
+      repositories:
+        - socok8s
+      context: suse-cloud/socok8s
+    filter: *cloud_socok8s
