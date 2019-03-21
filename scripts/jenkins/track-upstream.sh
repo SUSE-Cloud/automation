@@ -34,10 +34,13 @@ case $OBS_TYPE in
     OBS) OSCAPI="https://api.opensuse.org"
         OSC_BUILD_ARCH=x86_64
         case $OBS_PROJECT in
-            Cloud:OpenStack:Master|Cloud:OpenStack:Pike*|Cloud:OpenStack:Queens*)
+            Cloud:OpenStack:Pike*|Cloud:OpenStack:Queens*)
                 OSC_BUILD_DIST=SLE_12_SP3
                 ;;
             Cloud:OpenStack:Rocky*)
+                OSC_BUILD_DIST=SLE_12_SP4
+                ;;
+            Cloud:OpenStack:Master)
                 OSC_BUILD_DIST=SLE_12_SP4
                 ;;
             *)
