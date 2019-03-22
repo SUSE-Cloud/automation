@@ -9,7 +9,7 @@ repo=$2
 pr_id=$3
 sha1=$4
 
-
+repo_dir=~/github.com/SUSE-Cloud/socok8s
 pr_dir=$(mktemp -d cloud-socok8s.XXXXX)
 rsync -a $repo_dir/ "$pr_dir"
 pushd "$pr_dir"
@@ -29,8 +29,9 @@ git merge master -m temp-merge-commit
 # can ignore the output and avoid false positives.
 git --no-pager show | sed 's/^/|@| /'
 
-### run tox
 export PREFIX=socok8s-ci-${pr_id}-${sha1}
+export OS_CLOUD=engcloud-cloud-ci
+export KEYNAME=engcloud-cloud-ci
 echo "Prefix set to ${PREFIX}"
 ./run.sh
 ret=$?
