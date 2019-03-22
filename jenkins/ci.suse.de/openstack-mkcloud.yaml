@@ -380,6 +380,12 @@
           default:
           description: Deploy with Monasca
 
+      - choice:
+          name: want_monasca_tsdb
+          choices:
+            - influxdb
+            - cassandra
+
       - string:
           name: want_barbican_proposal
           default:
