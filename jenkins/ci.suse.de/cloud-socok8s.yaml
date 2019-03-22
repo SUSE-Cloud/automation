@@ -1,0 +1,97 @@
+- job:
+    name: cloud-socok8s
+    node: cloud-ccp-ci
+    concurrent: true
+    description: |
+      <!-- Managed by Jenkins Job Builder -->
+
+    logrotate:
+        numToKeep:  300
+        daysToKeep: 300
+
+    properties:
+      - authorization:
+          cloud:
+               - job-build
+               - job-cancel
+               - job-configure
+               - job-delete
+               - job-discover
+               - job-read
+               - job-workspace
+               - run-delete
+               - run-update
+               - scm-tag
+          anonymous:
+               - job-read
+
+    parameters:
+     - string:
+        name: socok8s_repo
+        default: socok8s
+        description: The repo 
+
+     - string:
+        name: socok8s_org
+        default: SUSE-Cloud
+        description: The github organization to use
+
+     - string:
+        name: socok8s_github_pr
+        default:
+        description: The pull request to integrate
+
+     - string:
+        name: job_name
+        default: "-no-name-"
+        description: This name will become the build name of the job. It will appear in the list of builds (webUI, RSS feed).
+
+    wrappers:
+    - timestamps:
+    - build-name:
+         name: '#${BUILD_NUMBER}: ${ENV,var="job_name"}'
+    - timeout:
+        timeout: 60
+        type: no-activity
+        abort: true
+        write-description: "Job aborted due to 60 minutes of inactivity."
+
+    builders:
+    - shell: |
+        set -x
+
+        export automationrepo=~/github.com/SUSE-Cloud/automation
+        # automation bootstrapping
+        if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+          rm -rf ${automationrepo}
+          curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
+        fi
+        # fetch the latest automation updates
+        ${automationrepo}/scripts/jenkins/update_automation
+        export ghprrepo=~/github.com/openSUSE/github-pr
+        export ghpr=${ghprrepo}/github_pr.rb
+
+        github_opts=(${socok8s_github_pr//:/ })
+        github_pr_id=${github_opts[0]}
+        github_pr_sha=${github_opts[1]}
+        github_pr_branch=${github_opts[2]}
+        ghpr_paras="--org ${socok8s_org} --repo ${socok8s_repo} --sha ${github_pr_sha}"
+
+        function socok8sgating_trap()
+        {
+            $ghpr --action set-status $ghpr_paras --status "failure" --targeturl ${BUILD_URL} --context "suse-cloud/socok8s" --message "job failed" --debugratelimit
+        }
+
+        # using a trap to catch all errors of the following commands
+        trap "socok8sgating_trap" ERR
+
+        # report that the job has started (status "pending")
+        $ghpr --action set-status $ghpr_paras --status "pending" --targeturl ${BUILD_URL} --context "suse-cloud/socok8s" --message "job started"
+
+        # do the build
+        ${automationrepo}/scripts/socok8s/run.sh "$socok8s_org"  "$socok8s_repo" "$github_pr_id" "$github_pr_sha"
+
+        # update the status
+        $ghpr --action set-status $ghpr_paras --status "success" --targeturl ${BUILD_URL} --context "suse-cloud/socok8s" --message "job succeeded" --debugratelimit
+
+        trap "-" ERR
