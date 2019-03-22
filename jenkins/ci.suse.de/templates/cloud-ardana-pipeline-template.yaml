@@ -429,7 +429,7 @@
           name: git_automation_branch
           default: '{git_automation_branch|master}'
           description: >-
-            The git automation branch. To test an automation pull-request, use the following branch value:
+            The git automation branch. To test a GitHub automation pull-request, use the following branch value:
 
               pr/<pull-request-number>
 
