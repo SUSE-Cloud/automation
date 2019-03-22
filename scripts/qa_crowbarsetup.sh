@@ -3667,7 +3667,23 @@ function oncontroller_upload_defcore
     yes | refstack-client/refstack-client upload-subunit --keystone-endpoint $OS_AUTH_URL --url https://10.86.0.98 --insecure tempest.subunit_1.log
     popd
 }
+function onadmin_upload_tempest_results
+{
+    local scenario_name=$1
+    local hw_number=$2
 
+    #generate subunit results
+    ssh controller1 "pushd /var/lib/openstack-tempest-test;stestr last --subunit > $scenario_name"
+
+    #copy to server in provo
+    scp controller1:/var/lib/openstack-tempest-test/$scenario_name .
+    rsync -a $scenario_name ubuntu@10.84.144.252:/var/www/html/tempest-crowbar/
+
+    #upload resulst to openstack health
+    ssh ubuntu@10.84.144.252 "
+    subunit2sql --database-connection mysql+pymysql://subunit:subunit@10.86.0.167/subunit --run_meta build_uuid:$(uuidgen),project:openstack/tempest/smoke,qe_env:$hw_number,tempest_filter:smoke,build_name:$scenario_name,clm:crowbar --artifacts NA /var/www/html/tempest-crowbar/$scenario_name
+    "
+}
 function onadmin_upload_defcore
 {
     get_novacontroller
