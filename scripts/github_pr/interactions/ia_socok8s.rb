@@ -1,7 +1,7 @@
 require_relative 'ia_cloud'
 
 module GithubPR
-  class JenkinsJobTriggerSocok8sTestbuildAction < JenkinsJobTriggerAction
+  class JenkinsJobTriggerSocok8sAction < JenkinsJobTriggerAction
     def extra_parameters(pull, _build_mode = "")
       {
         socok8s_repo: @metadata[:repository],
