@@ -20,7 +20,7 @@ cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
 # if set to something, skip the base operating system repository setup
 : ${skip_reposetup:""}
 
-ifconfig | grep inet
+ip a
 
 # setup optional extra disk for cinder-volumes
 : ${dev_cinder:=/dev/vdb}
@@ -67,8 +67,19 @@ function get_dist_version() {
 }
 
 function addslesrepos {
-    $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/$REPOVER/x86_64/product/" SLES$VERSION-Pool
-    $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER/x86_64/update/" SLES$VERSION-Updates
+    case "$VERSION" in
+    12.*)
+        $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/$REPOVER/x86_64/product/" SLES$VERSION-Pool
+        $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER/x86_64/update/" SLES$VERSION-Updates
+        ;;
+    *)
+        for prod in SLE-Product-SLES SLE-Module-Basesystem SLE-Module-Legacy SLE-Module-Development-Tools SLE-Module-Server-Applications; do
+            $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/$prod/$REPOVER/x86_64/product/" $prod-$VERSION-Pool
+            $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/$prod/$REPOVER/x86_64/update/" $prod-$VERSION-Updates
+        done
+        ;;
+    esac
+
     case "$VERSION" in
         "12.2")
             $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER-LTSS/x86_64/update/" SLES$VERSION-LTSS-Updates
