@@ -566,7 +566,7 @@ get_nodenumbercontroller()
 find_fastest_clouddata_server()
 {
     local cache=~/.mkcloud/fastest_clouddata_server
-    if [[ -r $cache ]] && [[ $cache -nt $BASH_SOURCE ]] ; then
+    if [[ -r $cache ]] && [[ -s $cache ]] && [[ $cache -nt $BASH_SOURCE ]] ; then
         exec cat $cache || exit 100
     fi
     mkdir -p ~/.mkcloud
