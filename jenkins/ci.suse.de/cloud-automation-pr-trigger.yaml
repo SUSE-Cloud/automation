@@ -42,6 +42,12 @@
       numToKeep: 300
       daysToKeep: -1
 
+    wrappers:
+      - timeout:
+          fail: true
+          timeout: 120
+      - timestamps
+
     builders:
       - shell: |
           ## THIS IS A TRIGGER JOB ONLY - NO WORKER CODE IN HERE - DO NOT DARE TO ADD SOME
