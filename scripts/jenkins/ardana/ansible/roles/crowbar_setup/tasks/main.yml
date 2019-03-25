@@ -2,7 +2,8 @@
 
 - name: Run the supplied qa_crowbarsetup.sh command on the admin node
   shell: |
-    . {{ admin_scripts_path }}/qa_crowbarsetup.sh
+    . {{ admin_mkcloud_config_file }}
+    . {{ admin_scripts_path }}/qa_crowbarsetup.sh 2>&1 | tee -a {{ qa_crowbarsetup_log }}
     {{ qa_crowbarsetup_cmd }} 2>&1 | tee -a {{ qa_crowbarsetup_log }}
     exit ${PIPESTATUS[0]}
   args:
