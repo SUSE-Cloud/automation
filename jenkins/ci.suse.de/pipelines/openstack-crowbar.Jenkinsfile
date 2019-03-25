@@ -46,12 +46,7 @@ pipeline {
               env.cloud_type = "physical"
           }
           sh('''
-            git clone $git_automation_repo --branch $git_automation_branch automation-git
-            cd automation-git
-
-            if [ -n "$github_pr" ] ; then
-              scripts/jenkins/ardana/pr-update.sh
-            fi
+            curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/ardana/openstack-ardana.prep.sh | bash
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
           ardana_lib.load_extra_params_as_vars(extra_params)

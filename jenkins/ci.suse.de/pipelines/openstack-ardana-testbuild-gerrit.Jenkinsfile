@@ -32,11 +32,9 @@ pipeline {
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_change_ids}"
           sh('''
-            IFS='/' read -r -a repo_arr <<< "$git_automation_repo"
-            export git_automation_repo="${repo_arr[3]}"
             # Need a local git clone copy to run from
             export use_global_clone=false
-            curl https://raw.githubusercontent.com/$git_automation_repo/automation/$git_automation_branch/scripts/jenkins/ardana/openstack-ardana.prep.sh | bash
+            curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/ardana/openstack-ardana.prep.sh | bash
           ''')
           ardana_lib = load "automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
           ardana_lib.load_extra_params_as_vars(extra_params)
