@@ -15,7 +15,7 @@ ARCH=$(uname -i)
 # that keep name and size and only change content.
 : ${repomirror:=http://downloadcontent.opensuse.org}
 : ${imagemirror:=http://149.44.161.38/images} # ci1-opensuse
-: ${cirros_base_url:="$imagemirror"} # could also be "http://download.cirros-cloud.net/0.3.4/"
+: ${cirros_base_url:="$imagemirror"} # could also be "http://download.cirros-cloud.net/0.4.0/"
 cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
 # if set to something, skip the base operating system repository setup
 : ${skip_reposetup:""}
@@ -296,7 +296,7 @@ cinder delete $vol_id
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
 ssh_user="root"
-cirros_base_name="cirros-0.3.4-x86_64"
+cirros_base_name="cirros-0.4.0-x86_64"
 
 GC_IMAGE_CREATE="glance image-create --progress --visibility=public"
 
