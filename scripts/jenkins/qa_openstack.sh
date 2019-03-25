@@ -15,12 +15,12 @@ ARCH=$(uname -i)
 # that keep name and size and only change content.
 : ${repomirror:=http://downloadcontent.opensuse.org}
 : ${imagemirror:=http://149.44.161.38/images} # ci1-opensuse
-: ${cirros_base_url:="$imagemirror"} # could also be "http://download.cirros-cloud.net/0.3.4/"
+: ${cirros_base_url:="$imagemirror"} # could also be "http://download.cirros-cloud.net/0.4.0/"
 cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
 # if set to something, skip the base operating system repository setup
 : ${skip_reposetup:""}
 
-ifconfig | grep inet
+ip a
 
 # setup optional extra disk for cinder-volumes
 : ${dev_cinder:=/dev/vdb}
@@ -67,8 +67,19 @@ function get_dist_version() {
 }
 
 function addslesrepos {
-    $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/$REPOVER/x86_64/product/" SLES$VERSION-Pool
-    $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER/x86_64/update/" SLES$VERSION-Updates
+    case "$VERSION" in
+    12.*)
+        $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/$REPOVER/x86_64/product/" SLES$VERSION-Pool
+        $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER/x86_64/update/" SLES$VERSION-Updates
+        ;;
+    *)
+        for prod in SLE-Product-SLES SLE-Module-Basesystem SLE-Module-Legacy SLE-Module-Development-Tools SLE-Module-Server-Applications; do
+            $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/$prod/$REPOVER/x86_64/product/" $prod-$VERSION-Pool
+            $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/$prod/$REPOVER/x86_64/update/" $prod-$VERSION-Updates
+        done
+        ;;
+    esac
+
     case "$VERSION" in
         "12.2")
             $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER-LTSS/x86_64/update/" SLES$VERSION-LTSS-Updates
@@ -285,7 +296,7 @@ cinder delete $vol_id
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
 ssh_user="root"
-cirros_base_name="cirros-0.3.4-x86_64"
+cirros_base_name="cirros-0.4.0-x86_64"
 
 GC_IMAGE_CREATE="glance image-create --progress --visibility=public"
 
