@@ -19,11 +19,13 @@ when_staging: "{{ cloudsource is match('.*staging.*') }}"
 when_staging_or_devel: "{{ cloudsource is match('.*(staging|devel).*') }}"
 when_cloud8: "{{ cloudsource is match('.*(cloud|GM)8.*') }}"
 when_cloud9: "{{ cloudsource is match('.*(cloud|GM)9.*') }}"
-when_cloud9M3: "{{ cloudsource is match('cloud9M3') }}"
+when_gm8: "{{ cloudsource is match('(hosGM|GM)8$') }}"
 
 versioned_features:
   manila:
-    enabled: "{{ when_staging or when_cloud9 }}"
+    enabled: "{{ not when_gm8 }}"
+  external_network_bridge:
+    enabled: "{{ when_gm8 }}"
   freezer:
     enabled: "{{ when_cloud8 }}"
   heat-api-cloudwatch:
@@ -32,11 +34,6 @@ versioned_features:
     enabled: "{{ when_cloud8 }}"
   ceilometer-api:
     enabled: "{{ when_cloud8 }}"
-  # Keep using the deprecated external_network_bridge option with GM8*
-  # cloudsources until the http://bugzilla.suse.com/show_bug.cgi?id=1117198
-  # fix gets released
-  external_network_bridge:
-    enabled: "{{ when_cloud8 and not when_staging_or_devel }}"
   # designate zone/pool (Cloud8) or worker/producer (Cloud9)
   designate_worker_producer:
     enabled: "{{ when_cloud9 }}"
