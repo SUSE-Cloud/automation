@@ -23,9 +23,10 @@ pipeline {
     stage('Setup workspace') {
       steps {
         script {
+          env.staging_url = "http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-${version}-devel-staging/media.1/build"
           env.staging_build = sh (
             returnStdout: true,
-            script: "wget -q -O - http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-${version}-devel-staging/media.1/build | grep -oP 'Build[0-9]+'"
+            script: "wget -q -O - $staging_url | grep -oP 'Build[0-9]+'"
           ).trim()
           currentBuild.displayName = "#${BUILD_NUMBER}: ${staging_build}"
 
@@ -35,7 +36,15 @@ pipeline {
 
           env.starttime = sh (
             returnStdout: true,
-            script: 'echo $(date +%s)'
+            script: '''
+              rfcdate="$( curl -sI $staging_url | grep 'Last-Modified: ' | head -n1 | cut -d' ' -f2- )"
+              epoch=$(date +%s -d "$rfcdate")
+              if test "$epoch" -gt "1400000000"; then
+                echo "Last-Modified epoch is too low to be valid."
+                exit 1
+              fi
+              echo $epoch
+            '''
           ).trim()
 
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
