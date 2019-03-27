@@ -106,9 +106,6 @@ ssh_pub_keys:
   - name: hitalia
     keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDij5cliksmVc4fhA12hR3QuoL/uyhaA+iK7ntGWG6PYecszwkWDDdldyNBtLRsw1dsGpl9OEOuX9uzzgDI4wdvWpfx5TgLl5x4PrsTJKhwt6J56jXurJYjG0o2L67oHWPf7DndR/r+FyJYlTLvnyKqwS0zEQ9cpCL+TjgjUWNYoadKjZ/dhPbzYVz2+7lTA3+2jpG157ArnidRIrYCL8uIBmpmx85Fgtn7iCkaGvMwpAvibdSPYi/FWNSlZvlelII/yy5pFSSdKrqysoWk1eH5ANm4ASOkH5FB11oXkIwnqFfNv3gqvVRtPbCtpVDfKsE+5XZtvE8udWEKsaovoG1J hardik.italia@suse.com
-  - name: kbaikov
-    keys:
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINa39c6uD1wl0S4OvK6UB1s/ewkeYwPLNh8LE7zX5RMh kbaikov
   - name: mseri
     keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDU1Ym9SvDBTztsRQhK9uKXBrlN6rSa/lJkAl8QQcfY1J49jSjefqA9WQ5ffQIFPinBWsRmTgzAvlceJ3Ir6rrQZfEgvcQumT313lNmQOurhNhV6H9c2IsWc1meDzog/QbFS4CQ13Z5thykxKqFqYAYW9KqPNHYcZKxsEPNBLxwujbIg5YPzmjpaJGHgNQmWxVPHGf+P8GbSFySKwGhnZzgOlbNJTXW1oi+g7qjSBuIVo2/MgQPHfhs5vBff2X5AMn6SLv66rDMx9Fj1+7FjPNyiJfB7X2cChlT846Ay2g1fab5XRRLdvGDgHMPJhdBF5j8MYBj27uVwIuWsknr64JR serim@seri-pc
