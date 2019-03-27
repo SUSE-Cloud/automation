@@ -424,6 +424,11 @@ The following are networks that are special and/or require special handling:
     no conflicts between DHCP allocated addresses and the addresses that Ardana allocates for cloud
     nodes and virtual IPs
 
+* the Ardana "external API" network:
+  * identification: the input model network that has a network group associated with a public
+  load-balancer
+  * the openstack subnet must be connected to the external router to provide external access
+
 * neutron external "bridge" networks:
 
   * identification: networks tagged with `neutron.l3_agent.external_network_bridge`
