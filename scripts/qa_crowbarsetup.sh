@@ -2908,6 +2908,10 @@ function custom_configuration
             # set discovery root password too
             proposal_set_value provisioner default "['attributes']['provisioner']['discovery']['append']" "\"DISCOVERY_ROOT_PASSWORD=$want_rootpw\""
 
+            # increase chef intervals to 6h to ensure they
+            # don't randomly hit us during tempest run
+            proposal_set_value provisioner default "['attributes']['provisioner']['chef_client_runs']" $((6*60*60))
+
             if [[ $keep_existing_hostname = 1 ]] ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
             fi
@@ -4045,6 +4049,14 @@ function oncontroller_check_crm_failcounts
     return 0
 }
 
+function oncontroller_set_maintenancemode
+{
+    local mode=$1
+
+    crm configure property maintenance-mode=$mode
+    return 0
+}
+
 function oncontroller_mount_localreposdir
 {
     # use the local cache if available. This is done by mounting the local
@@ -4717,8 +4729,15 @@ function onadmin_testsetup
     keystoneret=0
 
     if iscloudver 7plus && [[ $cloudsource =~ 'develcloud' ]] ; then
+        [[ $hacloud = 1 ]] && oncontroller set_maintenancemode true
         test_keystone_toggle_ssl
         keystoneret=$?
+
+        # Make sure everything is in sync before continuing
+        crowbar_proposal_commit provisioner
+
+        # Now turn maintenance back on
+        [[ $hacloud = 1 ]] && oncontroller set_maintenancemode false
     fi
 
     oncontroller testsetup
