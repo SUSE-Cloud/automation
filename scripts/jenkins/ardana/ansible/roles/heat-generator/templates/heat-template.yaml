@@ -90,10 +90,12 @@ resources:
 {%     endfor %}
 {%   endif  %}
 {%   if network.external and dns_servers is defined %}
+{%   if (ipv6 | default(false)) == false %}
       dns_nameservers:
 {%     for dns_server in dns_servers %}
         - {{ dns_server }}
 {%     endfor %}
+{%   endif  %}
 {%   endif  %}
 
 
