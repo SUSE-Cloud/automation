@@ -140,19 +140,6 @@ proposals:
     elements:
       barbican-controller:
       - @@controller@@
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - @@compute-kvm@@
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - @@controller@@
-      ceilometer-server:
-      - @@controller@@
-      ceilometer-swift-proxy-middleware:
-      - @@controller@@
 - barclamp: magnum
   attributes:
     cert:
