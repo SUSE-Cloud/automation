@@ -4714,16 +4714,18 @@ function onadmin_testsetup
     # use local cache whenever possible
     oncontroller mount_localreposdir
 
+    keystoneret=0
+
+    if iscloudver 7plus && [[ $cloudsource =~ 'develcloud' ]] ; then
+        test_keystone_toggle_ssl
+        keystoneret=$?
+    fi
+
     oncontroller testsetup
     ret=$?
 
-    # Run endpoint toggle after crm failcount check, this is expected to be
-    # disruptive to services.
-    if iscloudver 7plus && [[ $cloudsource =~ 'develcloud' ]] ; then
-        test_keystone_toggle_ssl
-    fi
-
     echo "Tests on controller: $ret"
+    echo "Keystone Toggle SSL: $keystoneret"
     echo "Ceph Tests: $cephret"
     echo "RadosGW S3 Tests: $s3radosgwret"
 
