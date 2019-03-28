@@ -55,6 +55,8 @@ sles_cloud_version:
 rhel_os: CentOS_75
 rhel_os_version: "{{ rhel_os.split('_')[1] }}"
 
+updates_test_enabled: False
+
 update_after_deploy: False
 maintenance_updates_path:
   Cloud: "SUSE_Updates_{{ cloud_repo_path }}_{{ sles_cloud_version[ansible_distribution_version] }}_x86_64"
@@ -62,6 +64,12 @@ maintenance_updates_path:
 
 maint_updates_list: "{{ maint_updates.split(',') if maint_updates is defined and maint_updates | length else [] }}"
 maintenance_updates_server: "dist.suse.de"
+
+sles_sdk_repos:
+  - name: "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Pool"
+  - name: "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Updates"
+  - name: "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Updates-test"
+    enable: "{{ updates_test_enabled }}"
 
 ntp_servers:
   - ntp.suse.de

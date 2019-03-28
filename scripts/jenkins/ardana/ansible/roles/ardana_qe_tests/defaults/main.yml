@@ -40,10 +40,6 @@ ardana_qe_tests_requires:
   - "gcc"
   - "python-devel"
 
-sles_sdk_repos:
-  - "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Pool"
-  - "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Updates"
-
 ardana_qe_test_run_filters: "{{ role_path }}/files/run_filters/{{ test_name }}"
 
 ardana_qe_tests_admin_osrc_values:
