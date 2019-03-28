@@ -3024,6 +3024,10 @@ function crowbar_proposal_commit
     local proposal="$1"
     local proposaltype="${2:-default}"
     safely crowbarctl proposal commit "$proposal" "$proposaltype"
+
+    # crowbar may have changed the install key in /etc/crowbar.install.key,
+    # which is needed for the 'crowbar' command, so refresh it.
+    [ -e /etc/profile.d/crowbar.sh ] && . /etc/profile.d/crowbar.sh
 }
 
 # configure and commit one proposal
