@@ -18,12 +18,13 @@
 
 - name: Ensure SLES-SDK repos {{ ardana_qe_tests_requires_state }}
   zypper_repository:
-    name: "{{ item }}"
-    repo: "http://{{ clouddata_server }}/repos/x86_64/{{ item }}/"
+    name: "{{ item.name }}"
+    repo: "http://{{ clouddata_server }}/repos/x86_64/{{ item.name }}/"
     runrefresh: yes
     priority: 9999
     state: "{{ ardana_qe_tests_requires_state }}"
   loop: "{{ sles_sdk_repos }}"
+  when: item.enabled | default(true)
   become: yes
 
 - name: Ensure requirements for ardana-qe-tests {{ ardana_qe_tests_requires_state }}

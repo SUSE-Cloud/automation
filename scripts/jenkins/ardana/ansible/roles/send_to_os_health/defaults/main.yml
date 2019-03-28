@@ -28,7 +28,3 @@ os_health_requires_state: "present"
 os_health_requires:
   - "gcc"
   - "python-devel"
-
-sles_sdk_repos:
-  - "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Pool"
-  - "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Updates"
