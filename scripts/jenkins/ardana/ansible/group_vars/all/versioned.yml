@@ -42,6 +42,8 @@ versioned_features:
     enabled: "{{ when_cloud9 }}"
   glance-registry:
     enabled: "{{ when_cloud8 }}"
+  manila-share:
+    enabled: "{{ when_cloud8 }}"
 
 input_model_versioned_features:
   - manila
@@ -50,3 +52,4 @@ input_model_versioned_features:
   - nova-console-auth
   - ceilometer-api
   - glance-registry
+  - manila-share

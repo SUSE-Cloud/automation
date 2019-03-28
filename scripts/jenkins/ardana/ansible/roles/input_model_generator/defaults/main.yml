@@ -126,6 +126,7 @@ service_component_groups:
     - octavia-health-manager
     - ops-console-web
     - manila-api
+    - manila-share
   DBMQ:
     - mysql
     - rabbitmq
@@ -172,7 +173,6 @@ service_component_groups:
     - neutron-metadata-agent
     - neutron-openvswitch-agent
     - neutron-lbaasv2-agent
-    - manila-share
   RHEL_COMPUTE:
     - nova-compute-kvm
     - nova-compute
