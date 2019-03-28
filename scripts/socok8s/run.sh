@@ -32,11 +32,14 @@ git --no-pager show | sed 's/^/|@| /'
 export PREFIX=socok8s-ci-${pr_id}-${sha1}
 export OS_CLOUD=engcloud-cloud-ci
 export KEYNAME=engcloud-cloud-ci
+export INTERNAL_SUBNET=ccpci-subnet
+export ANSIBLE_RUNNER_DIR="${HOME}/${PREFIX}-deploy"
 echo "Prefix set to ${PREFIX}"
+echo "ANSIBLE_RUNNER_DIR set to ${ANSIBLE_RUNNER_DIR}"
 ./run.sh
 ret=$?
 
 # cleanup
 popd
-rm -rf "$pr_dir"
+rm -rf "$pr_dir" "$ANSIBLE_RUNNER_DIR"
 exit "$ret"
