@@ -42,7 +42,9 @@ def get_build_params(build):
             if elem.get('_class') == 'hudson.model.ParametersAction':
                 parameters = elem.get('parameters', {})
                 break
-        return set([(str(pair['name']), str(pair.get('value')),)
+
+        return set([(pair['name'],
+                     u"{0}".format(pair.get('value')),)
                     for pair in parameters])
     return set()
 
