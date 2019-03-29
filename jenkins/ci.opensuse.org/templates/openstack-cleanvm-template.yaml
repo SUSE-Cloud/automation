@@ -1,0 +1,26 @@
+- job-template:
+    name: 'openstack-cleanvm-{release}'
+    project-type: matrix
+    disabled: '{obj:disabled|False}'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 10
+
+    axes:
+      - axis:
+          type: user-defined
+          name: image
+          values: "{image}"
+      - axis:
+          type: slave
+          name: slave
+          values:
+            - cloud-cleanvm
+
+    builders:
+      - update-automation
+      - shell: |
+          export openstack_project={release}
+          export automationrepo=~/github.com/SUSE-Cloud/automation
+          exec ${{automationrepo}}/scripts/jenkins/cleanvm/openstack-cleanvm.builder.sh
