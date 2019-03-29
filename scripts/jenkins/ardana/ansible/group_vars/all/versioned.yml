@@ -41,6 +41,10 @@ versioned_features:
     enabled: "{{ when_cloud8 }}"
   manila-share:
     enabled: "{{ when_cloud8 }}"
+  neutron-lbaasv2-agent:
+    enabled: "{{ when_cloud8 }}"
+  octavia-client:
+    enabled: "{{ when_cloud9 }}"
 
 input_model_versioned_features:
   - manila
@@ -50,3 +54,5 @@ input_model_versioned_features:
   - ceilometer-api
   - glance-registry
   - manila-share
+  - neutron-lbaasv2-agent
+  - octavia-client
