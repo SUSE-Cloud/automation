@@ -15,6 +15,18 @@
 #
 ---
 
+- name: Get list of non-deployer nodes
+  shell: |
+    deployer=`grep -A 1 ARD-SVC--first-member hosts/verb_hosts | tail -1`
+    for line in $(awk '/resources/' RS= hosts/verb_hosts); do
+      if [[ $deployer != *$line* ]]; then
+        echo $line
+      fi
+    done
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  register: ardana_nodes
+
 - include_tasks: add_mu_repos.yml
   when: maint_updates_list | length
 

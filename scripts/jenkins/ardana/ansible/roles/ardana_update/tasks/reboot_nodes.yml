@@ -32,19 +32,7 @@
   args:
     chdir: "{{ ardana_scratch_path }}"
 
-- name: Get list of remaining nodes to reboot
-  shell: |
-    deployer=`grep -A 1 ARD-SVC--first-member hosts/verb_hosts | tail -1`
-    for line in $(awk '/resources/' RS= hosts/verb_hosts); do
-      if [[ $deployer != *$line* ]]; then
-        echo $line
-      fi
-    done
-  args:
-    chdir: "{{ ardana_scratch_path }}"
-  register: ardana_nodes
-
-- name: Reboot remaining nodes serially
+- name: Reboot non-deployer nodes serially
   command: |
     ansible-playbook ardana-reboot.yml --limit {{ item }}
   args:
