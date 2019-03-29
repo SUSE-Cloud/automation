@@ -52,18 +52,16 @@
   delegate_to: "{{ ardana_env }}"
   shell: knife node list | tr -d ' '
   register: _register_tmp
-  failed_when: "_register_tmp.rc != 0 or crowbar_node_name not in _register_tmp.stdout_lines"
+  # The more nodes we have, the longer this will take
+  retries: "{{ 2 * ( groups['cloud_virt_hosts'] | length ) }}"
+  until: _register_tmp.rc == 0 and crowbar_node_name in _register_tmp.stdout_lines
+  delay: 10
 
 - name: Check that node is ready
   delegate_to: "{{ ardana_env }}"
   shell: "knife node show -a state {{ crowbar_node_name }} | awk '{ print $2 }'"
   register: _register_tmp
-  failed_when: "_register_tmp.rc != 0 or _register_tmp.stdout != 'ready'"
-
-- name: Set node alias and role
-  shell: |
-    . {{ admin_scripts_path }}/qa_crowbarsetup.sh
-    set_node_alias_and_role {{ crowbar_node_name }} {{ cloud_node_alias }} {{ cloud_node_role }}
-  args:
-    executable: "/bin/bash"
-  delegate_to: "{{ ardana_env }}"
+  # The more nodes we have, the longer this will take
+  retries: "{{ 2 * ( groups['cloud_virt_hosts'] | length ) }}"
+  until: _register_tmp.rc == 0 and _register_tmp.stdout == 'ready'
+  delay: 10
