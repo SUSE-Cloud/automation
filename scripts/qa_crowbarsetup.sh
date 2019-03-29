@@ -1775,7 +1775,7 @@ function onadmin_post_allocate
         done
 
         if [[ $want_sbd = 1 ]] ; then
-            $zypper -p http://download.opensuse.org/repositories/devel:/languages:/python/$slesdist/ install python-sh
+            $zypper -p http://download.opensuse.org/repositories/devel:/languages:/python:/backports/$slesdist/ install python-sh
             chmod +x $SCRIPTS_DIR/iscsictl.py
             $SCRIPTS_DIR/iscsictl.py --service target --host $(hostname) --no-key
 
@@ -3305,6 +3305,12 @@ function set_node_alias
     fi
 }
 
+function get_node_alias
+{
+    local node_name=$1
+    safely crowbarctl node list --plain | grep $node_name | cut -d " " -f 2
+}
+
 function set_node_alias_and_role
 {
     local node_name=$1
@@ -3688,7 +3694,7 @@ function oncontroller_run_integration_test()
     safely $zypper in 'MozillaFirefox<47'
 
     # Add Devel:Languages:Python repo (no GPG checks) to install Selenium
-    local dlp="http://download.opensuse.org/repositories/devel:/languages:/python/$slesdist/"
+    local dlp="http://download.opensuse.org/repositories/devel:/languages:/python:/backports/$slesdist/"
     $zypper ar --no-gpgcheck --refresh $dlp python
     safely $zypper in python-selenium
     safely $zypper in python-nose
@@ -5734,6 +5740,25 @@ function onadmin_install_ca_certificates
 function onadmin_batch
 {
     pre_hook $FUNCNAME
+
+    if [[ $hacloud = 1 ]] ; then
+        onadmin_set_source_variables
+        cluster_node_assignment
+
+        if [[ $want_sbd = 1 ]] ; then
+            local cluster
+            local clustername
+            local nodealias
+            for clustername in data network services ; do
+                eval "cluster=\$clusternodes$clustername"
+                for node in $cluster ; do
+                    nodealias=$(get_node_alias $node)
+                    sbd_device=$(ssh $node echo '/dev/disk/by-id/scsi-$(lsscsi -i |grep LIO|head -n 1| tr -s " " |cut -d " " -f7)')
+                    sed -i "s|##sbd_device_${clustername}_${nodealias}##|${sbd_device}|g" ${scenario}
+                done
+            done
+        fi
+    fi
 
     sed -i "s/##hypervisor_ip##/$admingw/g" ${scenario}
 
