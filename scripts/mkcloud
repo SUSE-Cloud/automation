@@ -59,6 +59,7 @@ rm -f $mkcconf # we dont want to source old info in the line below
 if (( $want_ipv6 > 0 )); then
     echo ">>> WARNING: IPv6 (want_ipv6) is under active development <<<"
     : ${net_admin:='fd00:0:0:3'}
+    firmware_type="uefi"
 else
     : ${net_admin:=192.168.124}
 fi
@@ -1338,6 +1339,9 @@ Optional
         If set, does not use the --insecure flag in openstack CLI commands.
     want_monasca_tsdb (Cloud9+ only)
         Allows setting time-series DB used for Monasca [influxdb|cassandra].
+    want_ipv6 (Currently in development)
+        Prepare crowbar to use a full IPv6 single stack control plane. Enabling will also set
+        the firmware_type to UEFI as it's required to netboot nodes over IPv6.
 EOUSAGE
     qacrowbarsetup_help
     exit 1
