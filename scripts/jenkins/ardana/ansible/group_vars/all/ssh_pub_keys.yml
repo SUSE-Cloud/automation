@@ -168,3 +168,6 @@ ssh_pub_keys:
   - name: hemna
     keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEApEa22fCtBgmN/TSQlU0tvuCkQxumLomtm993Hf6J6C+UGRBBuKmg5UEZi5CbGKxlktGwUfSTXxTS+cns6tt5JySLydi5Z9mrEtvUwIhitXJUhBrxunN+rhn7PsvgUKQnBd8xJ6pOF4DGT2Ucn/utTHUe5yNQaQrxsHhFwLSfoWLSBzF7pdcF71OghHhk8CNGrWR/rXn+73IdhvKTqgTh1lG65jiPKvKbzfkAcRcpCGxiYT/HRfgzMlE9tPvYn4DG3unp/lz8IupQ8vMMWeF1YQ08RKzexlX2lUZX/NdEW4vMDzvvshv8cCmsuQuCA/xavPpr/7tsIcgpcoP8eaQk0w== waboring@wboring
+  - name: esampson
+    keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7SQCJiSWU939kbq2numoPwtBndYtrVmYwQsnCr8G/5RLRZMOBl64nrgpoNorSWUFK3zRTUj1oJE4dlsachJmFNe+Gu52/yCA69UVbAcOpHlWe295E+ko8Ml37Zofv+NEKhhzwxdo2dtj2WwxY3M2AmDkH3AiODpUJ6DqJpP9XCTMMLSszvAmBJJIlbQLbHuTRV2goXQzy3ZiW/qf4U6rdg/mkXfYNVTFE0vr5iTzqpKoJd1TKHVgf3xnVVywAwmFwdYFsVfv9kWER4e6SkjblIk9Y5eOZ1eAYZk5df+SxymslfXArN/APB77IwRiDKS87o8XIZulJhkYQu0+1WsTT earl.sampson@suse.com
