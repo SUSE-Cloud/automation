@@ -23,10 +23,20 @@
         cloud: "{{ os_cloud }}"
         name: "{{ heat_stack_name }}"
         state: absent
-      register: stack_status
-      retries: 2
-      until: stack_status is success
-      delay: 2
+
+  rescue:
+    - name: Force delete servers from stack '{{ heat_stack_name }}'
+      shell: |
+         openstack --os-cloud {{ os_cloud }} stack resource list --filter \
+           type=OS::Nova::Server -f value -c physical_resource_id {{ heat_stack_name }} |\
+           awk '{print "openstack --os-cloud '{{ os_cloud }}' server \
+           delete --wait "$1 }' | sh -x || :
+
+    - name: Retry delete stack '{{ heat_stack_name }}'
+      os_stack:
+        cloud: "{{ os_cloud }}"
+        name: "{{ heat_stack_name }}"
+        state: absent
 
   always:
     - include_tasks: monitor.yml
