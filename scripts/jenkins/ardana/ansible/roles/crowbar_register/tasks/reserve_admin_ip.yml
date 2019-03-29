@@ -25,6 +25,8 @@
       {%- set _ret = admin_network_databag -%}
       {%- set _entry = { hostvars[item]['crowbar_node_name']: hostvars[item]['admin_network_databag_entry'] } -%}
       {%- set _ = admin_network_databag['allocated_by_name'].update( _entry ) -%}
+      {%- set _entry = { hostvars[item]['ansible_host']: hostvars[item]['admin_network_databag_entry'] } -%}
+      {%- set _ = admin_network_databag['allocated'].update( _entry ) -%}
       {{ _ret }}
   loop: "{{ groups['cloud_virt_hosts'] }}"
   run_once: true
