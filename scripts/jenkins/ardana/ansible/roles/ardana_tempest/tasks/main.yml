@@ -18,10 +18,18 @@
 - include_tasks: pre_defcore.yml
   when: tempest_run_filter == 'defcore'
 
+- include_tasks: reconfigure_neutron.yml
+  vars:
+    extra_vars: "-e router_distributed=False"
+  when: tempest_run_filter in ['vpnaas', 'fwaas']
+
 - include_tasks: import_octavia_image.yml
-  when: tempest_run_filter == 'lbaas'
+  when: tempest_run_filter in ['lbaas', 'heat']
 
 - include_tasks: run_tempest.yml
+
+- include_tasks: reconfigure_neutron.yml
+  when: tempest_run_filter in ['vpnaas', 'fwaas']
 
 - include_tasks: post_defcore.yml
   when: tempest_run_filter == 'defcore'
