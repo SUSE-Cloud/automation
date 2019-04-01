@@ -69,7 +69,7 @@ sles_sdk_repos:
   - name: "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Pool"
   - name: "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Updates"
   - name: "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Updates-test"
-    enable: "{{ updates_test_enabled }}"
+    enabled: "{{ updates_test_enabled }}"
 
 ntp_servers:
   - ntp.suse.de
