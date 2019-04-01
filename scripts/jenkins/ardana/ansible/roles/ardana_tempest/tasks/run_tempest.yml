@@ -16,6 +16,13 @@
 ---
 
 - block:
+    - name: Set number of tempest workers to '{{ tempest_run_concurrency }}'
+      lineinfile:
+        path: "/opt/stack/tempest/bin/ardana-tempest.sh"
+        regexp: "^run_concurrency="
+        line: "run_concurrency={{ tempest_run_concurrency }}"
+      become: yes
+
     - name: Drop QE run filters
       copy:
         src: "{{ item }}.txt.j2"

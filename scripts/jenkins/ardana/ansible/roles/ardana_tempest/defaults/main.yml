@@ -19,6 +19,7 @@ ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
 
 tempest_run_filter: smoke
 tempest_retry_failed: False
+tempest_run_concurrency: 4
 tempest_results_log: "/opt/stack/tempest/logs/testr_results_region1.log"
 tempest_results_subunit: "/opt/stack/tempest/logs/testrepository_region1.subunit"
 
