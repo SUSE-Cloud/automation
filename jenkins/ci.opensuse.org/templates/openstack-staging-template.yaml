@@ -1,6 +1,6 @@
 - job-template:
     name: 'openstack-staging-{release}'
-    node: openstack
+    node: cloud-trigger
     disabled: '{obj:disabled|False}'
 
     triggers:
