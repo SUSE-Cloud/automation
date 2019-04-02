@@ -204,25 +204,6 @@ proposals:
     elements:
       heat-server:
       - cluster:services
-- barclamp: ceilometer
-  attributes:
-    api:
-      protocol: https
-    ssl:
-      certfile: ##certfile##
-      keyfile:  ##keyfile##
-      ca_certs: ##cafile##
-  deployment:
-    elements:
-      ceilometer-agent:
-      - "@@compute-kvm1@@"
-      - "@@compute-kvm2@@"
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware: []
 - barclamp: barbican
   attributes:
     api:

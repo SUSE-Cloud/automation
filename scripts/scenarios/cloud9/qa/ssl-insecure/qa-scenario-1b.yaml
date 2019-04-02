@@ -209,22 +209,6 @@ proposals:
       heat-server:
       - cluster:services
 
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - "@@compute-kvm1@@"
-      - "@@compute-xen1@@"
-      - "@@compute-kvm2@@"
-      - "@@compute-xen2@@"
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware: []
-
 - barclamp: manila
   attributes:
     default_share_type: default
