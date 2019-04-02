@@ -83,6 +83,7 @@ service_component_groups:
     - nova-client
     - swift-client
     - manila-client
+    - octavia-client
   CORE:
     - ntp-server
     - ip-cluster
