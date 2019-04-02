@@ -41,10 +41,10 @@
   include_tasks: _update-clm.yml
   when: _clm_pkg_updates is changed
 
-- name: Run ardana-update-pkgs playbook for all nodes except deployer
+- name: Run ardana-update-pkgs playbook for non-deployer nodes serially
   shell: |
     ansible-playbook ardana-update-pkgs.yml \
-      -l 'resources:!ARD-SVC--first-member' -e \
+      --limit {{ item }} -e \
       "zypper_update_method={{ update_method }}
        zypper_update_gpg_checks={{ update_gpg_checks }}
        zypper_update_licenses_agree={{ update_gpg_checks }}
@@ -54,6 +54,7 @@
   environment:
     SKIP_REPO_CHECKS: 1
     SKIP_SINGLE_HOST_CHECKS: 1
+  loop: "{{ ardana_nodes.stdout_lines }}"
 
 - name: Get update status
   shell: |
