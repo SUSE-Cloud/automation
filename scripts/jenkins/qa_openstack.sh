@@ -434,13 +434,11 @@ fi
 
 # run tempest
 if [ -e /etc/tempest/tempest.conf ]; then
-    $crudini --set /etc/tempest/tempest.conf compute image_ssh_user cirros
-    $crudini --set /etc/tempest/tempest.conf compute image_alt_ssh_user cirros
-    $crudini --set /etc/tempest/tempest.conf compute ssh_user cirros
     $crudini --set /etc/tempest/tempest.conf compute image_ref $imgid
     $crudini --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
     $crudini --set /etc/tempest/tempest.conf compute flavor_ref 42
     $crudini --set /etc/tempest/tempest.conf compute flavor_ref_alt 84
+    $crudini --set /etc/tempest/tempest.conf validation image_ssh_user cirros
 
     verbose="-- -v"
     if [ -x "$(type -p testr)" ]; then
