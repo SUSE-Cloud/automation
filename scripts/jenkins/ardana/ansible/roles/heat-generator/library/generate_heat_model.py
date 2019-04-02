@@ -685,6 +685,10 @@ def generate_heat_model(input_model, virt_config):
             heat_network['allocation_pools'] = \
                 [[str(mgmt_net_last - EXTERNAL_MGMT_ADDR_RANGE),
                   str(mgmt_net_last - 1)]]
+        elif True in [('public' in lb['roles'])
+                      for lb in network['network-group'].get('load-balancers',
+                                                             [])]:
+            heat_network['external'] = True
 
         heat_networks[network['name']] = heat_network
 
