@@ -104,7 +104,7 @@
     clm_model: integrated
     controllers: '1'
     sles_computes: '1'
-    disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer|octavia'
+    disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
