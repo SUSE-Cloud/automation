@@ -32,7 +32,10 @@ export cloudsource={{ cloudsource }}
 
 # export mkclouddriver=
 # export adminip=
-# export hacloud=
+{% if controllers | int > 1 %}
+export hacloud=1
+export want_sbd=1
+{% endif %}
 export libvirt_type=physical
 # export firmware_type=
 # export networkingplugin=
@@ -89,8 +92,16 @@ export UPDATEREPOS={{ extra_repos.split(',') | join('+') }}
 export nodenumber={{ controllers | int + computes | int }}
 # export nodenumberlonelynode=
 # export nodenumberironicnode=
-# export clusterconfig=
+{% if controllers | int > 1 %}
+export clusterconfig="services+data+network={{ controllers | int }}"
+{% endif %}
 # export ironicnetmask=
+
+# Use this to override the crowbar node list order in qa_crowbarsetup.sh
+export custom_crowbar_node_order=
+
+export want_node_roles=controller={{ controllers | int }},compute={{ computes | int }}
+export want_node_aliases=controller={{ controllers | int }},compute-kvm={{ computes | int }}
 
 export want_test_updates={{ updates_test_enabled | ternary (1, 0) }}
 export want_swift=1

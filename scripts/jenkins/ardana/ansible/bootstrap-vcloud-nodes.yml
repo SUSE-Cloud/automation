@@ -64,6 +64,7 @@
 
 - name: Bootstrap other virtual nodes for ardana
   hosts: cloud_virt_hosts
+  any_errors_fatal: true
   remote_user: root
   # NOTE: don't gather facts before nodes become accessible
   gather_facts: false

@@ -4,6 +4,7 @@
 
 - name: Register crowbar cloud nodes
   hosts: cloud_virt_hosts
+  any_errors_fatal: true
   remote_user: root
   gather_facts: True
   vars:
@@ -22,8 +23,10 @@
           vars:
             qa_crowbarsetup_cmd: "onadmin_{{ command }}"
           loop:
+            - allocate
             - waitcloud
             - post_allocate
+            - setup_aliases
           loop_control:
             loop_var: command
 
