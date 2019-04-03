@@ -131,20 +131,42 @@
         - '{ardana_job}'
 
 - project:
-    name: cloud-ardana8-job-std-3cp-devel-staging-updates-x86_64
+    name: cloud-ardana8-job-entry-scale-kvm-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud8
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '2'
+    rhel_computes: '0'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    tempest_filter_list: "\
+      keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,vpnaas,\
+      designate,heat,ceilometer,magnum,freezer,monasca"
+    triggers: []
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-entry-scale-kvm-update-x86_64
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
     cloudsource: develcloud8
     update_after_deploy: true
     update_to_cloudsource: stagingcloud8
-    scenario_name: standard
+    scenario_name: entry-scale-kvm
     clm_model: standalone
     controllers: '3'
-    sles_computes: '1'
+    sles_computes: '2'
+    rhel_computes: '0'
     ses_enabled: true
     ses_rgw_enabled: false
-    triggers:
-     - timed: 'H H * * *'
+    tempest_filter_list: "\
+      keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,vpnaas,\
+      designate,heat,ceilometer,magnum,freezer,monasca"
+    triggers: []
     jobs:
         - '{ardana_job}'
 
@@ -176,7 +198,9 @@
     cloudsource: GM8+up
     updates_test_enabled: false
     scenario_name: entry-scale-kvm
-    tempest_filter_list: "smoke,full"
+    tempest_filter_list: "\
+      smoke,keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,vpnaas,\
+      designate,heat,ceilometer,magnum,freezer,monasca"
     qa_test_list: "iverify"
     triggers: []
     jobs:
@@ -214,15 +238,8 @@
     rhel_computes: '0'
     ses_enabled: true
     tempest_filter_list: "\
-      ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,\
-      magnum,manila,monasca,network,neutron-api,swift"
-    qa_test_list: "\
-      iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
-      heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
-      nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,\
-      barbican-functional,horizon,keystone-api,keystone-ldap,\
-      keystone-k2k-config,keystone-websso-config,keystone-x509-config,\
-      service-ansible-playbooks,enable_tls,tempest_cleanup,nova_guest_image"
+      keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,vpnaas,\
+      designate,heat,ceilometer,magnum,freezer,monasca"
     rc_notify: 'true'
     triggers: []
     jobs:
