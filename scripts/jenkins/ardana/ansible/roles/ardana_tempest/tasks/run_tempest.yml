@@ -16,6 +16,13 @@
 ---
 
 - block:
+    - name: Set number of tempest workers to '{{ tempest_run_concurrency }}'
+      lineinfile:
+        path: "/opt/stack/tempest/bin/ardana-tempest.sh"
+        regexp: "^run_concurrency="
+        line: "run_concurrency={{ tempest_run_concurrency }}"
+      become: yes
+
     - name: Drop QE run filters
       copy:
         src: "{{ item }}.txt.j2"
@@ -26,6 +33,14 @@
       become: yes
       with_items: "{{ tempest_qe_run_filters }}"
       when: tempest_run_filter in tempest_qe_run_filters
+
+    - name: Create cert symlink required by Freezer tempest
+      file:
+        src: "/etc/ssl/ca-bundle.pem"
+        dest: "/etc/ssl/certs/ca-certificates.crt"
+        state: link
+      become: yes
+      when: tempest_run_filter == 'freezer'
 
     - name: Ensure subunit tools venv exists
       pip:
