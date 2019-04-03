@@ -2548,6 +2548,9 @@ function custom_configuration
                 fi
                 proposal_set_value glance default "['deployment']['glance']['elements']['glance-server']" "['cluster:$clusternameservices']"
             fi
+            if [[ $want_ironic = 1 && $deployswift ]]; then
+                proposal_set_value glance default "['attributes']['glance']['default_store']" "'swift'"
+            fi
         ;;
         manila)
             if [[ $hacloud = 1 ]] ; then
