@@ -56,10 +56,13 @@
             regex: "^radosgw_urls"
             line: "radosgw_urls: ['http://{{ hostvars['ses-' ~ ses_cluster_id].ansible_host }}:{{ ses_rgw_port }}/swift/v1']"
 
-        - name: Run swift-reconfigure playbook
-          command: "ansible-playbook swift-reconfigure.yml"
+        - name: Enable RADOS GW and reconfigure tempest
+          command: "ansible-playbook {{ item }}"
           args:
             chdir: "~/scratch/ansible/next/ardana/ansible"
+          loop:
+            - "swift-reconfigure.yml"
+            - "tempest-reconfigure.yml"
       rescue:
         - include_role:
             name: rocketchat_notify
