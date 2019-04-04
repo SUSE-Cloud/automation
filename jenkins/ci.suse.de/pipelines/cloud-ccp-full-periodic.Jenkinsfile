@@ -24,6 +24,7 @@ pipeline {
             export OS_CLOUD=${OS_CLOUD:-'engcloud-cloud-ci'}
             export KEYNAME=${KEYNAME:-'engcloud-cloud-ci'}
             export INTERNAL_SUBNET="${PREFIX}-subnet"
+            export ANSIBLE_RUNNER_DIR="${WORKSPACE}/${BUILD_NUMBER}"
 
             # Make sure the job has a cloud available, and environemnt
             # vars are properly defined
@@ -31,11 +32,8 @@ pipeline {
             env
 
             # Get started
-            mkdir ${WORKSPACE}/ccp/ || true
-            pushd ${WORKSPACE}/ccp
-                # No need for branchname, as the full periodic job always tests
-                # latest master branch
-                rm -rf socok8s || true
+            mkdir -p ${ANSIBLE_RUNNER_DIR}/code || true
+            pushd ${ANSIBLE_RUNNER_DIR}/code
                 git clone --recursive ${ccp_repo} socok8s
                 pushd socok8s
                     git checkout ${ccp_branch}
@@ -67,13 +65,12 @@ pipeline {
           export OS_CLOUD=${OS_CLOUD:-'engcloud-cloud-ci'}
           export KEYNAME=${KEYNAME:-'engcloud-cloud-ci'}
           export INTERNAL_SUBNET="${PREFIX}-subnet"
+          export ANSIBLE_RUNNER_DIR="${WORKSPACE}/${BUILD_NUMBER}"
 
-          pushd ${WORKSPACE}/ccp/
-            pushd socok8s
-                ./run.sh teardown
-            popd
-            rm -rf socok8s
+          pushd ${ANSIBLE_RUNNER_DIR}/code/socok8s
+            ./run.sh teardown
           popd
+          rm -rf ${ANSIBLE_RUNNER_DIR}
         ''')
       }
     }
