@@ -211,6 +211,7 @@ pipeline {
             --filter 'Setup workspace' > .artifacts/pipeline-report.txt || :
         ''')
         archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
+        junit testResults: ".artifacts/testr_crowbar.xml", allowEmptyResults: true
       }
       script{
         if (env.DEPLOYER_IP != null) {
