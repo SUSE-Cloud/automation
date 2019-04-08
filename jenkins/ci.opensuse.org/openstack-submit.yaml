@@ -42,6 +42,9 @@
             Cloud:OpenStack:[R]*)
               OSCBUILDDIST=SLE_12_SP4
             ;;
+            Cloud:OpenStack:[S]*)
+              OSCBUILDDIST=SLE_15
+            ;;
             *) echo "Please add support for the project: $openstack_project"
               exit 1
             ;;
