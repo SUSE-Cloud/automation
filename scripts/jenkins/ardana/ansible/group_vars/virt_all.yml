@@ -20,3 +20,16 @@ ses_rgw_port: 8081
 
 ardana_extra_vars:
   nova_migrate_enabled: "{{ ardana_nova_migrate_enabled }}"
+  keystone_wsgi_admin_process_count: 2
+  keystone_wsgi_public_process_count: 6
+  neutron_api_workers: 2
+  neutron_rpc_workers: 1
+  neutron_metadata_workers: 2
+  barbican_api_max_worker_count: 2
+  nova_api_workers: 2
+  nova_metadata_workers: 2
+  nova_conductor_workers: 2
+  osapi_volume_worker_count: 2
+  swift_worker_count: 2
+  num_engine_worker_count: 2
+  glance_worker_count: 2
