@@ -18,6 +18,10 @@
 cloud_product: "ardana"
 #cloud_product: "crowbar"
 
+cloud_admin_user:
+  ardana: ardana
+  crowbar: root
+
 # The cloud release is encoded in the cloudsource value
 cloud_release: "cloud{{ cloudsource | regex_search('\\d') }}"
 cloud_git_branch:

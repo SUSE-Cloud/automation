@@ -85,7 +85,7 @@ proposals:
       - @@controller2@@
 - barclamp: glance
   attributes:
-    default_store: swift
+    default_store: rbd
   deployment:
     elements:
       glance-server:
@@ -93,12 +93,17 @@ proposals:
 - barclamp: cinder
   attributes:
     volumes:
-    - backend_driver: local
-      backend_name: default
-      local:
-        volume_name: cinder-volumes
-        file_name: "/var/lib/cinder/volume.raw"
-        file_size: 2000
+    - backend_driver: rbd
+      backend_name: ses
+      rbd:
+        use_ses: true
+        use_crowbar: false
+        config_file: ''
+        admin_keyring: ''
+        pool: ''
+        user: ''
+        secret_uuid: ''
+        flatten_volume_from_snapshot: false
   deployment:
     elements:
       cinder-controller:
@@ -106,6 +111,8 @@ proposals:
       cinder-volume:
       - @@controller1@@
       - @@controller2@@
+      - @@controller3@@
+
 - barclamp: neutron
   attributes:
     ml2_type_drivers:
@@ -156,27 +163,6 @@ proposals:
     elements:
       barbican-controller:
       - cluster:services
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - @@compute-kvm1@@
-      - @@compute-kvm2@@
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware:
-      - @@controller1@@
-      - @@controller2@@
-- barclamp: aodh
-  attributes:
-  deployment:
-    elements:
-      aodh-server:
-      - cluster:services
 - barclamp: manila
   attributes:
     default_share_type: default
@@ -198,12 +184,6 @@ proposals:
       manila-share:
       - @@controller1@@
       - @@controller2@@
-- barclamp: trove
-  attributes:
-  deployment:
-    elements:
-      trove-server:
-      - @@controller1@@
 - barclamp: magnum
   attributes:
     cert:

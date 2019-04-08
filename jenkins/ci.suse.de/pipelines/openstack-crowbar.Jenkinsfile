@@ -145,33 +145,62 @@ pipeline {
       }
     }
 
-    stage('Install crowbar') {
-      when {
-        expression { deploy_cloud == 'true' }
-      }
-      steps {
-        script {
-           // This step does the following on the admin node:
-           //  - sets up SLES and Cloud repositories
-           //  - installs crowbar
-           ardana_lib.ansible_playbook('install-crowbar')
+    stage('Crowbar & SES') {
+      // abort all stages if one of them fails
+      failFast true
+      parallel {
+
+        stage('Deploy SES') {
+          when {
+            expression { ses_enabled == 'true' && cloud_type == 'virtual' }
+          }
+          steps {
+            script {
+              ardana_lib.trigger_build('openstack-ses', [
+                string(name: 'ses_id', value: "$ardana_env"),
+                string(name: 'network', value: "openstack-ardana-${ardana_env}_management_net"),
+                string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                string(name: 'os_cloud', value: "$os_cloud")
+              ], false)
+            }
+          }
+        }
+
+        stage('Crowbar') {
+          stages {
+            stage('Install crowbar') {
+              when {
+                expression { deploy_cloud == 'true' }
+              }
+              steps {
+                script {
+                   // This step does the following on the admin node:
+                   //  - sets up SLES and Cloud repositories
+                   //  - installs crowbar
+                   ardana_lib.ansible_playbook('install-crowbar')
+                }
+              }
+            }
+
+            stage('Register nodes') {
+              when {
+                expression { deploy_cloud == 'true' }
+              }
+              steps {
+                script {
+                  // This step does the following on the non-admin nodes:
+                  //  - registers nodes with the Crowbar admin
+                  //  - sets up node roles and aliases
+                  ardana_lib.ansible_playbook('register-crowbar-nodes')
+                }
+              }
+            }
+          }
         }
       }
     }
 
-    stage('Register nodes') {
-      when {
-        expression { deploy_cloud == 'true' }
-      }
-      steps {
-        script {
-          // This step does the following on the non-admin nodes:
-          //  - registers nodes with the Crowbar admin
-          //  - sets up node roles and aliases
-          ardana_lib.ansible_playbook('register-crowbar-nodes')
-        }
-      }
-    }
 
     stage('Deploy cloud') {
       when {
@@ -207,8 +236,10 @@ pipeline {
         sh('''
           automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
             --recursive \
+            --filter 'Setup workspace' \
             --filter 'Declarative: Post Actions' \
-            --filter 'Setup workspace' > .artifacts/pipeline-report.txt || :
+            --filter 'Crowbar' \
+            --filter 'Crowbar & SES' > .artifacts/pipeline-report.txt || :
         ''')
         archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
       }

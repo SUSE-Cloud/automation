@@ -15,9 +15,17 @@
 #
 ---
 
-- name: Ensure ses config directory exist
-  file:
-    path: "{{ ses_ardana_config_path }}"
-    state: directory
+- name: Copy ceph keyring files
+  copy:
+    dest: "{{ ses_cloud_config_path }}/ceph.{{ item.item.name }}.keyring"
+    content: "{{ item.content | b64decode }}"
+    mode: 0644
+  when: "item.item.name != 'client.rgw.ses-' ~ ardana_env"
+  loop: "{{ hostvars['ses-' + ses_cluster_id].ceph_files.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
 
-- include_tasks: ses_configure_v{{ ardana_ses_integration_version }}.yml
+- name: Generate ses-config.yml
+  template:
+    src: ses-config.yml.j2
+    dest: "{{ ses_cloud_config_path }}/ses_config.yml"

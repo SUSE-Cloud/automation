@@ -26,6 +26,6 @@ ardana_scratch_playbooks:
   - "ardana-cloud-configure.yml"
 
 ses_salt_api_secret: "salt-api-secret"
-ses_ardana_config_path: "/tmp/ses_config"
+ses_cloud_config_path: "/tmp/ses_config"
 ses_cluster_id: "qe"
 ses_rgw_port: 8080

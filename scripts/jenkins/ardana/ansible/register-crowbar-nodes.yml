@@ -2,6 +2,16 @@
 
 - import_playbook: _create-vcloud-inventory.yml
 
+- name: Disable DHCP on the cloud infra management network
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Disable DHCP on the cloud infra management network
+      command: |
+        openstack --os-cloud {{ os_cloud }} subnet set \
+          --no-dhcp \
+          openstack-ardana-{{ ardana_env }}_management_subnet
+
 - name: Register crowbar cloud nodes
   hosts: cloud_virt_hosts
   any_errors_fatal: true
