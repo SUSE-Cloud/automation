@@ -1102,6 +1102,7 @@ These steps are expanding to the following steps:
         -> $(expand_steps instonly)
 
 Steps:
+    setuphost:      configure the host to run VMs
     cleanup:        kill all running VMs, zero out boot sectors of all LVM volumes
     prepare:        create LVM volumes, setup libvirt networks
     setupadmin:     create the admin node and install the cloud product
