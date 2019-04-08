@@ -6,6 +6,7 @@
       - Pike
       - Queens
       - Rocky
+      - Stein
       - Master
     jobs:
       - 'openstack-staging-{release}'
