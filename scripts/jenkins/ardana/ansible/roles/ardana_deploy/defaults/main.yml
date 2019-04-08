@@ -15,8 +15,6 @@
 #
 ---
 
-ardana_nova_migrate_enabled: True
-
 ardana_openstack_path: "~/openstack/ardana/ansible"
 ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
 
@@ -27,8 +25,8 @@ ardana_openstack_playbooks:
 ardana_scratch_playbooks:
   - play: "wipe_disks.yml -e automate=true"
     when: "{{ is_physical_deploy }}"
-  - play: "site.yml -e nova_migrate_enabled={{ ardana_nova_migrate_enabled }}"
-  - play: "ardana-cloud-configure.yml"
+  - play: "site.yml -e '{{ ardana_extra_vars|to_json }}'"
+  - play: "ardana-cloud-configure.yml -e '{{ ardana_extra_vars|to_json }}'"
 
 ardana_third_party_playbooks:
   - "third-party-deploy.yml"

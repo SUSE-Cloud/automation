@@ -22,7 +22,8 @@
 - name: Import octavia amphora image
   shell: |
     ansible-playbook -i hosts/verb_hosts service-guest-image.yml \
-                 -e service_package=`{{ octavia_amphora_image_rpm }}`
+                 -e service_package=`{{ octavia_amphora_image_rpm }}` \
+                 -e '{{ ardana_extra_vars|to_json }}'
   args:
     chdir: "{{ ardana_scratch_path }}"
   when: octavia_amphora_image_is_present.stdout == ""

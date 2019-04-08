@@ -17,6 +17,7 @@
 
 - name: Run neutron-reconfigure
   shell: |
-    ansible-playbook neutron-reconfigure.yml {{ extra_vars | default('') }}
+    ansible-playbook neutron-reconfigure.yml {{ extra_vars | default('') }} \
+      -e '{{ ardana_extra_vars|to_json }}'
   args:
     chdir: "{{ ardana_scratch_path }}"

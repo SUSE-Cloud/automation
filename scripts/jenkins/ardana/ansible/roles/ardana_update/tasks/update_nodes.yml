@@ -76,7 +76,7 @@
 
 - name: Run ardana-update playbook to update services on all nodes
   command: |
-    ansible-playbook ardana-update.yml
+    ansible-playbook ardana-update.yml -e '{{ ardana_extra_vars|to_json }}'
   args:
     chdir: "{{ ardana_scratch_path }}"
   environment:

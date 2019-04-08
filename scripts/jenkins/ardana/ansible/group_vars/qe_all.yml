@@ -16,3 +16,6 @@
 ---
 
 ses_cluster_id: "qe"
+
+ardana_extra_vars:
+  nova_migrate_enabled: "{{ ardana_nova_migrate_enabled }}"
