@@ -1,5 +1,5 @@
-- job:
-    name: 'openstack-ardana-gerrit-events'
+- job-template:
+    name: '{openstack_ardana_gerrit_events_job}'
     concurrent: false
     triggers:
       - gerrit:
@@ -16,10 +16,9 @@
           silent: true
           projects:
             - project-compare-type: 'REG_EXP'
-              project-pattern: !include-raw: gerrit-project-regexp.txt
+              project-pattern: ardana/.*
               branches:
-                - branch-pattern: master
-                - branch-pattern: stable/pike
+                - branch-pattern: {branch|master}
     wrappers:
       - workspace-cleanup
 
@@ -38,13 +37,13 @@
 
       - string:
           name: git_automation_repo
-          default: https://github.com/SUSE-Cloud/automation.git
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
           description: >-
             The git automation repository to use
 
       - string:
           name: git_automation_branch
-          default: master
+          default: '{git_automation_branch|master}'
           description: >-
             The git automation branch
 
@@ -56,12 +55,16 @@
 
           if [[ -n $GERRIT_EVENT_TYPE ]]; then
               if [[ $GERRIT_EVENT_TYPE == 'change-merged' ]]; then
-                  automation-git/scripts/jenkins/ardana/gerrit/gerrit_handle_event.py ${GERRIT_CHANGE_NUMBER} merged
+                  automation-git/scripts/jenkins/ardana/gerrit/gerrit_handle_event.py ${{GERRIT_CHANGE_NUMBER}} merged
               elif [[ $GERRIT_EVENT_TYPE == 'patchset-created' ]]; then
-                  automation-git/scripts/jenkins/ardana/gerrit/gerrit_handle_event.py ${GERRIT_CHANGE_NUMBER} updated
+                  output=$(automation-git/scripts/jenkins/ardana/gerrit/gerrit_handle_event.py ${{GERRIT_CHANGE_NUMBER}} updated)
+                  echo "$output" | grep "recheck" | while read -r line ; do
+                    parts=($line)
+                    automation-git/scripts/jenkins/jenkins-job-trigger "{gatingjob}" gerrit_change_ids="${{parts[1]}}"" cloudsource="{cloudsource}"
+                  done
               elif [[ $GERRIT_EVENT_TYPE == 'comment-added' ]]; then
-                  automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py ${GERRIT_CHANGE_NUMBER}
+                  automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py ${{GERRIT_CHANGE_NUMBER}}
               fi
           else
-              automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py ${GERRIT_CHANGE_NUMBER}
+              automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py ${{GERRIT_CHANGE_NUMBER}}
           fi
