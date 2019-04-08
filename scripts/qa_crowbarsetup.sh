@@ -2036,6 +2036,12 @@ function proposal_increment_int
     proposal_modify_value "$1" "$2" "$3" "$4" "+="
 }
 
+# wrapper for proposal_modify_value
+function proposal_append_value
+{
+    proposal_modify_value "$1" "$2" "$3" "$4" "<<"
+}
+
 function setup_trusted_cert
 {
     local certfile=$1
@@ -2901,10 +2907,19 @@ function custom_configuration
                 local maybe_direct_interface=''
                 [[ $deployswift ]] && maybe_direct_interface=", 'direct'"
                 proposal_set_value ironic default "['attributes']['ironic']['enabled_deploy_interfaces']" "['iscsi' $maybe_direct_interface]"
+
+                if [[ $want_tempest = 1 ]]; then
+                    proposal_append_value ironic default "['attributes']['ironic']['enabled_hardware_types']" "'fake-hardware'"
+                    for interface in boot console deploy inspect management power raid storage vendor; do
+                        proposal_append_value ironic default "['attributes']['ironic']['enabled_${interface}_interfaces']" "'fake'"
+                    done
+                fi
             else
                 local maybe_agent_driver=''
                 [[ $deployswift ]] && maybe_agent_driver=", 'agent_ipmitool'"
                 proposal_set_value ironic default "['attributes']['ironic']['enabled_drivers']" "['pxe_ipmitool' $maybe_agent_driver]"
+
+                [[ $want_tempest = 1 ]] && proposal_append_value ironic default "['attributes']['ironic']['enabled_drivers']" "'fake_pxe'"
             fi
         ;;
         *) echo "No hooks defined for service: $proposal"
