@@ -1241,7 +1241,11 @@ EOPYTHON
     fi
     if [[ $cloud =~ qa ]] ; then
         # QA clouds have too few IP addrs, so smaller subnets are used
-        wget -O$netfile http://gate.cloud2adm.qa.suse.de/network.json/${cloud}_dual
+        if [[ $want_ironic && $cloud = "qa2" ]] ; then
+            wget -O$netfile http://gate.cloud2adm.qa.suse.de/network.json/${cloud}_dual_ironic
+        else
+            wget -O$netfile http://gate.cloud2adm.qa.suse.de/network.json/${cloud}_dual
+        fi
         sed -i 's/bc-template-network/template-network/' $netfile
     fi
     if [[ $cloud = p1 ]] ; then
