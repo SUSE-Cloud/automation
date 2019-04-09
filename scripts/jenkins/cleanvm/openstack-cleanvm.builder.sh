@@ -29,7 +29,9 @@ set +e
 scp ${automationrepo}/scripts/jenkins/qa_openstack.sh root@cleanvm:
 ssh root@cleanvm "export cloudsource=$cloudsource; export OSHEAD=$oshead; export NONINTERACTIVE=1; bash -x ~/qa_openstack.sh"
 ret=$?
+echo "Exit code of cleanvm run: $ret"
 if [ "$ret" != 0 ] ; then
+  echo "The cleanvm run failed. Now trying to cleanup before we let this job fail."
   virsh shutdown cleanvm
   # wait for clean shutdown
   n=20 ; while [[ $n > 0 ]] && virsh list |grep cleanvm.*running ; do sleep 2 ; n=$(($n-1)) ; done
@@ -41,6 +43,7 @@ if [ "$ret" != 0 ] ; then
   time gzip -c1 /dev/vg0/cleanvm > $file
   du $file
   exec_jtsync ${main_job_name} ${openstack_project} ${BUILD_NUMBER} 1
+  echo "End of cleanup. Now the job will fail."
   exit 1
 fi
 
