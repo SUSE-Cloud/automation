@@ -28,19 +28,19 @@
 
 - name: Run post-reboot playbook on deployer
   command: |
-    ansible-playbook _ardana-post-reboot.yml --limit ARD-SVC--first-member
+    ansible-playbook _ardana-post-reboot.yml --limit ARD-SVC--first-member  -e '{{ ardana_extra_vars|to_json }}'
   args:
     chdir: "{{ ardana_scratch_path }}"
 
 - name: Reboot non-deployer nodes serially
   command: |
-    ansible-playbook ardana-reboot.yml --limit {{ item }}
+    ansible-playbook ardana-reboot.yml --limit {{ item }} -e '{{ ardana_extra_vars|to_json }}'
   args:
     chdir: "{{ ardana_scratch_path }}"
   loop: "{{ ardana_nodes.stdout_lines }}"
 
 - name: Ensure spark running on all nodes (bsc#1091479)
   command: |
-    ansible-playbook spark-start.yml
+    ansible-playbook spark-start.yml -e '{{ ardana_extra_vars|to_json }}'
   args:
     chdir: "{{ ardana_scratch_path }}"

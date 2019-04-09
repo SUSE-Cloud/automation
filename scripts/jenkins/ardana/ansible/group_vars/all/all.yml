@@ -37,6 +37,8 @@ ses_rgw_enabled: False
 ardana_ses_integration_version: 2
 cinder_lvm_enabled: '{{ not ses_enabled }}'
 
+ardana_nova_migrate_enabled: True
+
 workspace_path: "{{ lookup('env', 'WORKSPACE') | default(playbook_dir, true) }}"
 input_model_path: "{{ workspace_path }}/input_model"
 
