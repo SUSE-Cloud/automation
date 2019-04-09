@@ -106,7 +106,7 @@
 
       - string:
           name: scenario_file
-          default: 'cloud9/cloud9-2nodes-default.yml'
+          default: '{scenario_file|cloud9/cloud9-2nodes-default.yml}'
           description: >-
             Crowbar batch scenario yaml file path (relative to scripts/scenarios)
 

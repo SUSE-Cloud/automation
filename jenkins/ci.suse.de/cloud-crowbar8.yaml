@@ -1,0 +1,30 @@
+- project:
+    name: cloud-crowbar8-job-x86_64
+    crowbar_job: '{name}'
+    cloudsource: stagingcloud8
+    ardana_env: cloud-ardana-ci-slot
+    scenario_name: crowbar
+    scenario_file: cloud8/cloud8-2nodes-default.yml
+    controllers: '1'
+    computes: '1'
+    ses_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{crowbar_job}'
+
+- project:
+    name: cloud-crowbar8-job-ha-x86_64
+    crowbar_job: '{name}'
+    cloudsource: stagingcloud8
+    ardana_env: cloud-ardana-ci-slot
+    scenario_name: crowbar
+    scenario_file: cloud8/cloud8-5nodes-default.yml
+    controllers: '3'
+    computes: '2'
+    ses_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{crowbar_job}'
+
