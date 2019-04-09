@@ -161,6 +161,30 @@ proposals:
     elements:
       heat-server:
       - cluster:services
+- barclamp: monasca
+  attributes:
+  deployment:
+    elements:
+      monasca-server:
+      - "@@monasca-server@@"
+      monasca-log-agent:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+      - "@@ceph1@@"
+      - "@@ceph2@@"
+      - "@@ceph3@@"
+      - "@@monasca-server@@"
+      monasca-agent:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@compute1@@"
+      - "@@compute2@@"
+      - "@@ceph1@@"
+      - "@@ceph2@@"
+      - "@@ceph3@@"
+      - "@@monasca-server@@"
 
 - barclamp: ceilometer
   deployment:
@@ -193,33 +217,6 @@ proposals:
       manila-share:
       - @@controller1@@
       - @@controller2@@
-
-- barclamp: monasca
-  attributes:
-  deployment:
-    elements:
-      monasca-master:
-      - "@@crowbar@@"
-      monasca-server:
-      - "@@monasca-server@@"
-      monasca-log-agent:
-      - "@@controller1@@"
-      - "@@controller2@@"
-      - "@@compute1@@"
-      - "@@compute2@@"
-      - "@@ceph1@@"
-      - "@@ceph2@@"
-      - "@@ceph3@@"
-      - "@@monasca-server@@"
-      monasca-agent:
-      - "@@controller1@@"
-      - "@@controller2@@"
-      - "@@compute1@@"
-      - "@@compute2@@"
-      - "@@ceph1@@"
-      - "@@ceph2@@"
-      - "@@ceph3@@"
-      - "@@monasca-server@@"
 
 - barclamp: tempest
   attributes:
