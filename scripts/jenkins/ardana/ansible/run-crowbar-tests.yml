@@ -31,7 +31,8 @@
             state: present
           loop:
             - "python-setuptools"
-            - "python-os-testr" # pulls python-subunit and includes subunit2html.py
+            - "python-os-testr" # pulls python-python-subunit and includes subunit2html.py
+            - "python-virtualenv"
 
         - name: Ensure subunit tools venv exists
           pip:
@@ -39,7 +40,6 @@
             virtualenv: "{{ subunit_tools_venv }}"
           loop:
             - "junitxml"
-            - "python-subunit"
 
         - include_role:
             name: crowbar_setup
