@@ -6,6 +6,10 @@
   gather_facts: True
   vars:
     task: "tempest"
+    subunit_tools_venv: "~/subunit-tools-venv"
+    tempest_results_subunit: "~/tempest.subunit.log"
+    subunit_xml_results: "~/testr_crowbar.xml"
+    subunit_html_results: "~/testr_crowbar.html"
 
   pre_tasks:
     - include_role:
@@ -20,6 +24,22 @@
         - name: Crowbar log stream at
           debug:
             msg: "http://{{ ansible_host }}:9091/"
+
+        - name: Ensure setuptools and virtualenv are installed
+          zypper:
+            name: "{{ item }}"
+            state: present
+          loop:
+            - "python-setuptools"
+            - "python-os-testr" # pulls python-subunit and includes subunit2html.py
+
+        - name: Ensure subunit tools venv exists
+          pip:
+            name: "{{ item }}"
+            virtualenv: "{{ subunit_tools_venv }}"
+          loop:
+            - "junitxml"
+            - "python-subunit"
 
         - include_role:
             name: crowbar_setup
@@ -38,6 +58,29 @@
           fail:
             msg: "{{ task }} failed."
       always:
+        - name: Generate xml subunit results
+          shell: "{{ subunit_tools_venv }}/bin/subunit2junitxml {{ tempest_results_subunit }} > {{ subunit_xml_results }}"
+          changed_when: false
+          failed_when: false
+
+        - name: Generate html subunit results
+          shell: "subunit2html {{ tempest_results_subunit }} {{ subunit_html_results }}"
+          changed_when: false
+          failed_when: false
+
+        - name: Get '{{ tempest_run_filter }}' results from subunit
+          command: "{{ subunit_tools_venv }}/bin/subunit-stats {{ tempest_results_subunit }}"
+          failed_when: false
+          register: _test_results
+
+        - name: Process test results from subunit
+          set_fact:
+            tempest_test_results: "{{ tempest_test_results | default({}) | combine({item.split()[0] | lower: item.split()[-1]}) }}"
+          when: "'tests' in item"
+          loop: "{{ _test_results.stdout_lines }}"
+          loop_control:
+            label: "{{ item.split()[0] | lower }}: {{ item.split()[-1] }}"
+
         - include_role:
             name: jenkins_artifacts
           vars:
@@ -46,6 +89,8 @@
               - src: "{{ qa_crowbarsetup_log }}"
               - src: "~/tempest.log"
               - src: "~/tempest.subunit.log"
+              - src: "~/testr_crowbar.html"
+              - src: "~/testr_crowbar.xml"
           when: lookup("env", "WORKSPACE")
 
   post_tasks:
