@@ -25,21 +25,22 @@
           debug:
             msg: "http://{{ ansible_host }}:9091/"
 
-        - name: Ensure setuptools and virtualenv are installed
+        - name: Ensure setuptools, virtualenv and subunit2html are installed
           zypper:
             name: "{{ item }}"
             state: present
           loop:
             - "python-setuptools"
-            - "python-os-testr" # pulls python-python-subunit and includes subunit2html.py
+            - "python-os-testr" # includes subunit2html.py
             - "python-virtualenv"
 
-        - name: Ensure subunit tools venv exists
+        - name: Ensure subunit and junitxml tools venv exists
           pip:
             name: "{{ item }}"
             virtualenv: "{{ subunit_tools_venv }}"
           loop:
             - "junitxml"
+            - "python-subunit"
 
         - include_role:
             name: crowbar_setup
