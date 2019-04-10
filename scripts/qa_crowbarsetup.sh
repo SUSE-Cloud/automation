@@ -3644,10 +3644,23 @@ function oncontroller_run_tempest
     pushd /var/lib/openstack-tempest-test
     sysctl -e kernel.sysrq=1 net.ipv4.neigh.default.gc_thresh1=0
     local tempestret
+    local blacklist=""
+
+    if iscloudver 9; then
+
+        blacklistfile=/var/lib/openstack-tempest-test/blacklist.txt
+        blacklist="--blacklist-file $blacklistfile"
+        cat - > $blacklistfile << EOF
+id-f5dfcc22-45fd-409f-954c-5bd500d7890b
+id-301f5a30-1c6f-4ea0-be1a-91fd28d44354
+id-bdbb5441-9204-419d-a225-b4fdbfb1a1a8
+id-6bba729b-3fb6-494b-9e1e-82bbd89a1045
+EOF
+    fi
 
     tempest cleanup --init-saved-state
     if iscloudver 7plus; then
-        tempest run $tempestoptions 2>&1 | tee tempest.log
+        tempest run $tempestoptions $blacklist 2>&1 | tee tempest.log
         tempestret=${PIPESTATUS[0]}
     else
         ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
