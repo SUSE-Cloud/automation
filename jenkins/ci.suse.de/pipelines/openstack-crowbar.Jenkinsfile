@@ -217,6 +217,7 @@ pipeline {
           // This step does the following on the non-admin nodes:
           //  - deploys the crowbar batch scenario
           cloud_lib.ansible_playbook('deploy-crowbar')
+          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list")
         }
       }
     }
@@ -227,7 +228,13 @@ pipeline {
       }
       steps {
         script {
+          // This is a mark for fail action 'collect list of installed packages'
+          // to distinguish stages after "Update cloud" and do the diff of installed
+          // packages. Can be removed when jenkins feature (JENKINS-48315) is merged.
+          env.stage_after_update = "true"
+
           cloud_lib.ansible_playbook('crowbar-update')
+          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=diff")
         }
       }
     }
@@ -355,10 +362,15 @@ pipeline {
     failure {
       script {
         cloud_lib.track_failure()
+        if (env.stage_after_update != null) {
+          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list -e state1=after_update")
+        } else {
+          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list")
+        }
         if (collect_supportconfig == 'true') {
           cloud_lib.ansible_playbook('collect-supportconfig')
-          archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
         }
+        archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
       }
     }
     cleanup {
