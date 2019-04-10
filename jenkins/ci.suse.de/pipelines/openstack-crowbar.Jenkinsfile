@@ -211,6 +211,9 @@ pipeline {
           // This step does the following on the non-admin nodes:
           //  - deploys the crowbar batch scenario
           ardana_lib.ansible_playbook('deploy-crowbar')
+          ardana_lib.ansible_playbook('list-installed-packages', "-e state='after_deploy'")
+          ardana_lib.ansible_playbook('list-installed-packages', "-e state='after_update'")
+          ardana_lib.ansible_playbook('diff-installed-packages', "-e state1='after_deploy',state2='after_update'")
         }
       }
     }

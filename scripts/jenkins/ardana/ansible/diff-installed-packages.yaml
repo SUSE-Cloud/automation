@@ -1,0 +1,260 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Diff list of installed packages in all nodes
+  hosts: "{{ ardana_env }},cloud_virt_hosts"
+  remote_user: root
+  gather_facts: True
+  vars:
+    task: "deploy"
+    state1: "default"
+    state2: "default"
+    structurediff_venv: "~/structurediff-tools-venv"
+
+  pre_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "started"
+        rc_state: "Started"
+      when: rc_notify
+
+  tasks:
+    - block:
+        - name: Ensure temporal repo for python-virtualenv is in place
+          zypper_repository:
+            repo: "http://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_{{ \
+              (ansible_distribution_release != '') | \
+              ternary(ansible_distribution_major_version ~ '_SP' ~ \
+              ansible_distribution_release , ansible_distribution_major_version) }}/"
+            name: temporal_python_backports
+            state: present
+            runrefresh: yes
+          when: "'cloud_virt_hosts' not in group_names"
+
+        - name: Ensure setuptools and virtualenv are installed
+          zypper:
+            name: "{{ item }}"
+            state: present
+          loop:
+            - "python-setuptools"
+            - "python-virtualenv"
+          when: "'cloud_virt_hosts' not in group_names"
+
+        - name: Ensure structurediff venv exists
+          pip:
+            name: "{{ item }}"
+            virtualenv: "{{ structurediff_venv }}"
+          loop:
+            - "structurediff"
+          when: "'cloud_virt_hosts' not in group_names"
+
+        - name: Ensure rpms/diffs/ dir exists
+          file:
+            path: "~/rpms/diffs"
+            state: "directory"
+          when: "'cloud_virt_hosts' not in group_names"
+
+        - name: Diff list of installed packages in plaintext
+          shell: |
+            diff -U 0 ~/rpms/rpms_{{ item }}_{{ state1 }}.txt \
+              ~/rpms/rpms_{{ item }}_{{ state2 }}.txt \
+              > ~/rpms/diffs/rpms_{{ item }}.diff
+          args:
+            warn: False
+            creates: "~/rpms/diffs/rpms_{{ item }}.diff"
+          with_items: "{{ groups['cloud_virt_hosts'] }}"
+          when: "'cloud_virt_hosts' not in group_names"
+
+        - name: Diff list of installed packages in yaml
+          shell: |
+            {{ structurediff_venv }}/bin/structurediff \
+              ~/rpms/rpms_{{ item }}_{{ state1 }}.yaml \
+              ~/rpms/rpms_{{ item }}_{{ state2 }}.yaml \
+              > ~/rpms/diffs/rpms_{{ item }}_diff.yaml
+          args:
+            warn: False
+            creates: "~/rpms/diffs/rpms_{{ item }}_diff.yaml"
+          with_items: "{{ groups['cloud_virt_hosts'] }}"
+          when: "'cloud_virt_hosts' not in group_names"
+
+        - name: Concatenate plaintext diffs
+          shell: |
+            for each f in {{ardana_env}},{{groups['cloud_virt_hosts']}} ; do
+                cat ~/rpms/diffs/rpms_$f.diff >> ~/rpms/diffs/rpms_cloud.diff
+            done
+          args:
+            warn: False
+            creates: "~/rpms/diffs/rpms_cloud.diff"
+          with_items: "{{ groups['cloud_virt_hosts'] }}"
+          when: "'cloud_virt_hosts' not in group_names"
+
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
+
+      always:
+        - name: Ensure temporal repo for python-virtualenv is not in place
+          zypper_repository:
+            repo: "http://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_{{ \
+              (ansible_distribution_release != '') | \
+              ternary(ansible_distribution_major_version ~ '_SP' ~ \
+              ansible_distribution_release , ansible_distribution_major_version) }}/"
+            name: temporal_python_backports
+            state: absent
+            runrefresh: yes
+
+        - include_role:
+            name: jenkins_artifacts
+          vars:
+            jenkins_artifacts_to_collect:
+              - src: "~/rpms"
+          when: lookup("env", "WORKSPACE")
+
+
+
+---
+
+- name: Run Crowbar tests and collect results
+  hosts: "{{ ardana_env }}"
+  remote_user: root
+  gather_facts: True
+  vars:
+    task: "tempest"
+    subunit_tools_venv: "~/subunit-tools-venv"
+    tempest_results_subunit: "~/tempest.subunit.log"
+    subunit_xml_results: "~/testr_crowbar.xml"
+    subunit_html_results: "~/testr_crowbar.html"
+
+  pre_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "started"
+        rc_state: "Started"
+      when: rc_notify
+
+  tasks:
+    - block:
+        - name: Crowbar log stream at
+          debug:
+            msg: "http://{{ ansible_host }}:9091/"
+
+        - name: Ensure temporal repo for python-virtualenv is in place
+          zypper_repository:
+            repo: "http://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_{{ \
+              (ansible_distribution_release != '') | \
+              ternary(ansible_distribution_major_version ~ '_SP' ~ \
+              ansible_distribution_release , ansible_distribution_major_version) }}/"
+            name: temporal_python_backports
+            state: present
+            runrefresh: yes
+
+        - name: Ensure setuptools, virtualenv and subunit2html are installed
+          zypper:
+            name: "{{ item }}"
+            state: present
+          loop:
+            - "python-setuptools"
+            - "python-os-testr" # includes subunit2html.py
+            - "python-virtualenv"
+
+        - name: Ensure subunit and junitxml tools venv exists
+          pip:
+            name: "{{ item }}"
+            virtualenv: "{{ subunit_tools_venv }}"
+          loop:
+            - "junitxml"
+            - "python-subunit"
+
+        - include_role:
+            name: crowbar_setup
+          vars:
+            qa_crowbarsetup_cmd: onadmin_testsetup
+
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
+      always:
+        - name: Ensure temporal repo for python-virtualenv is not in place
+          zypper_repository:
+            repo: "http://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_{{ \
+              (ansible_distribution_release != '') | \
+              ternary(ansible_distribution_major_version ~ '_SP' ~ \
+              ansible_distribution_release , ansible_distribution_major_version) }}/"
+            name: temporal_python_backports
+            state: absent
+            runrefresh: yes
+
+        - name: Generate xml subunit results
+          shell: "{{ subunit_tools_venv }}/bin/subunit2junitxml {{ tempest_results_subunit }} > {{ subunit_xml_results }}"
+          changed_when: false
+          failed_when: false
+
+        - name: Generate html subunit results
+          shell: "subunit2html {{ tempest_results_subunit }} {{ subunit_html_results }}"
+          changed_when: false
+          failed_when: false
+
+        - name: Get '{{ tempest_run_filter }}' results from subunit
+          command: "{{ subunit_tools_venv }}/bin/subunit-stats {{ tempest_results_subunit }}"
+          failed_when: false
+          register: _test_results
+
+        - name: Process test results from subunit
+          set_fact:
+            tempest_test_results: "{{ tempest_test_results | default({}) | combine({item.split()[0] | lower: item.split()[-1]}) }}"
+          when: "'tests' in item"
+          loop: "{{ _test_results.stdout_lines }}"
+          loop_control:
+            label: "{{ item.split()[0] | lower }}: {{ item.split()[-1] }}"
+
+        - include_role:
+            name: jenkins_artifacts
+          vars:
+            jenkins_artifacts_to_collect:
+              - src: "{{ admin_mkcloud_config_file }}"
+              - src: "{{ qa_crowbarsetup_log }}"
+              - src: "~/tempest.log"
+              - src: "~/tempest.subunit.log"
+              - src: "~/testr_crowbar.html"
+              - src: "~/testr_crowbar.xml"
+          when: lookup("env", "WORKSPACE")
+
+  post_tasks:
+      - include_role:
+          name: rocketchat_notify
+        vars:
+          rc_action: "finished"
+          rc_state: "{{ (_qa_crowbarsetup_result.rc > 0) | ternary('Failed', 'Success' )}}"
+        when: rc_notify
