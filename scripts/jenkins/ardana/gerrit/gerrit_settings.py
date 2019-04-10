@@ -10,9 +10,9 @@ def gerrit_settings():
     return settings
 
 
-def gerrit_project_map():
-    return gerrit_settings()['project-map']
+def gerrit_project_map(branch):
+    return gerrit_settings()[branch]['project-map']
 
 
-def obs_project_settings():
-    return gerrit_settings()['obs-project']
+def obs_project_settings(branch):
+    return gerrit_settings()[branch]['obs-project']

@@ -2,8 +2,8 @@
 
 export automationrepo=~/github.com/SUSE-Cloud/automation
 
-if [ ! $component ] && [ $GERRIT_PROJECT ]; then
-    component="$($automationrepo/scripts/jenkins/ardana/gerrit/gerrit2obs-name.py $GERRIT_PROJECT)"
+if [ ! $component ] && [ $GERRIT_PROJECT ] && [ $GERRIT_BRANCH ]; then
+    component="$($automationrepo/scripts/jenkins/ardana/gerrit/gerrit2obs-name.py $GERRIT_PROJECT $GERRIT_BRANCH)"
 fi
 if [ ! $project ] && [ $GERRIT_BRANCH ]; then
     case $GERRIT_BRANCH in

@@ -10,7 +10,7 @@ from gerrit_settings import gerrit_project_map  # noqa: E402
 
 
 def gerrit_review(change, label=None, vote=1, message=''):
-    if change.gerrit_project not in gerrit_project_map():
+    if change.gerrit_project not in gerrit_project_map(change.branch):
         print("Skipping - project {} not in the list of "
               "allowed projects ".format(change.gerrit_project))
         return 1
