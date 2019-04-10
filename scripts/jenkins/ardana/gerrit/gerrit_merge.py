@@ -31,7 +31,7 @@ def gerrit_merge(change, dry_run=False):
     :param dry_run:
     :return:
     """
-    project_map = gerrit_project_map()
+    project_map = gerrit_project_map(change.branch)
 
     print('Attempting to merge change {}'.format(change))
 

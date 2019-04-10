@@ -85,7 +85,7 @@
           silent: true
           projects:
             - project-compare-type: 'REG_EXP'
-              project-pattern: !include-raw: gerrit-project-regexp.txt
+              project-pattern: !include-raw: gerrit-project-regexp-cloud9.txt
               branches:
                 - branch-compare-type: 'PLAIN'
                   branch-pattern: 'master'

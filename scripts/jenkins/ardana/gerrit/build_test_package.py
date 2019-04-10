@@ -50,7 +50,7 @@ class OBSPackage:
 
     def __init__(self, gerrit_project, url, target_branch, source_workspace):
         self.gerrit_project = gerrit_project
-        self.name = gerrit_project_map()[gerrit_project]
+        self.name = gerrit_project_map(target_branch)[gerrit_project]
         self.url = url
         self.target_branch = target_branch
         self.test_branch = 'test-merge'
@@ -378,7 +378,7 @@ def build_test_packages(change_ids, obs_linked_project, home_project,
 
     # Use the default OBS linked project and repository configured for
     # the target branch, if not supplied as arguments
-    project_settings = obs_project_settings()[branch]
+    project_settings = obs_project_settings(branch)
     obs_linked_project = obs_linked_project or \
         project_settings['develproject']
     obs_repository = obs_repository or project_settings['repository']
@@ -416,7 +416,7 @@ def build_test_packages(change_ids, obs_linked_project, home_project,
         processed_changes.append(c)
 
         # skip packages that don't have asssociated RPMs
-        if c.gerrit_project not in gerrit_project_map():
+        if c.gerrit_project not in gerrit_project_map(branch):
             print("Warning: Project %s has no RPM, Skipping"
                   % c.gerrit_project)
         else:
@@ -431,7 +431,7 @@ def build_test_packages(change_ids, obs_linked_project, home_project,
             # Merge the change into the package
             packages[c.gerrit_project].add_change(c)
 
-    for project_name, package in gerrit_project_map().items():
+    for project_name, package in gerrit_project_map(branch).items():
         if project_name in packages:
             continue
         url = GERRIT_URL + "/ardana/" + project_name
