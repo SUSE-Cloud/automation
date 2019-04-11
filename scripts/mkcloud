@@ -216,6 +216,7 @@ function show_environment
 
 function pre_exit_cleanup
 {
+    [[ $want_ironic = 1 ]] && teardown_ironic_test_env
     rm $pidfile
 }
 
@@ -825,10 +826,84 @@ function proposal
     return $?
 }
 
+function setup_ironic_test_env
+{
+    local ipmi_user=admin
+    local ipmi_password=ipmipass
+
+    local host_admin_ip=${net_admin}${ip_sep}1
+
+    local deploy_interface=direct
+
+    # install virtualbmc
+    # TODO: virtualbmc package is available in cloud9, switch to that,
+    #       when cloud hosts are upgraded
+    virtualenv $cloud-vbmc
+    . $cloud-vbmc/bin/activate
+    pip install virtualbmc
+
+    local i
+    for i in $(nodes ids ironic) ; do
+        local ironic_node=$cloud-node$i
+        local ipmi_port
+
+        # pick some free port from (arbitrary) 6230-7230 range
+        # NOTE: if some other vbmc was already created for this port,
+        # but it was not started yet, it might cause conflict later
+        for ipmi_port in $(seq 6230 7230); do
+            netstat -atun | grep -q ":$ipmi_port\s" || break;
+        done
+
+        # start vbmc for this ironic node
+        vbmc add $ironic_node --port $ipmi_port \
+            --username $ipmi_user --password $ipmi_password
+
+        # sometimes `vbmc start` returns "BMC instance ... already running"
+        # on first attempt and/or if run to quickly
+        wait_for 5 2 "vbmc start $ironic_node" 'vbmc to start successfully'
+
+        # test if IPMI interface is working
+        ipmitool -I lanplus -H $host_admin_ip -p $ipmi_port -U $ipmi_user -P $ipmi_password power status
+
+        local ram_mb=$(( compute_node_memory / 1024 ))
+        # create node in ironic
+        onadmin create_ironic_node $cloud-node$i \
+            $vcpus $ram_mb $ironicnode_hdd_size $(macfunc $i 1) \
+            $deploy_interface \
+            $host_admin_ip $ipmi_port $ipmi_user $ipmi_password
+    done
+}
+
+function teardown_ironic_test_env
+{
+    # install virtualbmc
+    # TODO: virtualbmc package is available in cloud9, switch to that,
+    #       when cloud hosts are upgraded
+    virtualenv $cloud-vbmc
+    . $cloud-vbmc/bin/activate
+    pip install virtualbmc
+
+    local i
+    for i in $(nodes ids ironic) ; do
+        local ironic_node=$cloud-node$i
+
+        onadmin delete_ironic_node $cloud-node$i
+
+        # cleanup vbmc for this ironic node
+        vbmc stop $ironic_node || true
+        vbmc delete $ironic_node || true
+    done
+}
+
 function testsetup
 {
+    [[ $want_ironic = 1 ]] && setup_ironic_test_env
+
     onadmin testsetup
     local ret=$?
+
+    [[ $want_ironic = 1 ]] && teardown_ironic_test_env
+
     $scp root@$(wrap_ip $adminip):tempest*.log "$artifacts_dir/"
 
     # Register the cloud in Rally and import the results
@@ -904,6 +979,8 @@ function testtype
             type="defcore"
         elif [[ $tempestoptions =~ --load-list ]] ; then
             type="ad-hoc"
+        elif [[ $tempestoptions =~ ironic ]] ; then
+            type="ironic"
         fi
     fi
 

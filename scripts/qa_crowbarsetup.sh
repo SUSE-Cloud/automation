@@ -82,7 +82,10 @@ declare -a unclustered_nodes
 export magnum_k8s_image_name=openstack-magnum-k8s-image
 
 export nodenumber=${nodenumber:-2}
-if iscloudver 7plus; then
+if [[ $want_ironic = 1 ]] ; then
+    # TODO: re-enable BaremetalBFV when Ironic barclamp supports BFV
+    export tempestoptions=${tempestoptions:--r ironic --black-regex BaremetalBFV}
+elif iscloudver 7plus; then
     export tempestoptions=${tempestoptions:---smoke}
 else
     export tempestoptions=${tempestoptions:--t -s}
@@ -4666,6 +4669,75 @@ EOF
         s3radosgwret=1
     fi
     return $s3radosgwret
+}
+
+function oncontroller_create_ironic_node
+{
+    local node_name=$1
+    local cpus=$2
+    local ram_mb=$3
+    local disk_gb=$4
+    local mac=$5
+
+    local deploy_interface=$6
+
+    local ipmi_ip=$7
+    local ipmi_port=$8
+    local ipmi_user=$9
+    local ipmi_pass=${10}
+
+    local deploy_initrd_uuid=$(glance image-list | grep suse-ironic-initrd | awk '{ print $2}')
+    local deploy_vmlinux_uuid=$(glance image-list | grep suse-ironic-vmlinux | awk '{ print $2}')
+
+    openstack baremetal node create \
+        --driver ipmi \
+        --deploy-interface $deploy_interface \
+        --name $node_name \
+        --driver-info ipmi_address=$ipmi_ip \
+        --driver-info ipmi_username=$ipmi_user \
+        --driver-info ipmi_password=$ipmi_pass \
+        --driver-info ipmi_port=$ipmi_port \
+        --driver-info deploy_kernel=$deploy_vmlinux_uuid \
+        --driver-info deploy_ramdisk=$deploy_initrd_uuid \
+        --property cpus=$cpus \
+        --property memory_mb=$ram_mb \
+        --property local_gb=$disk_gb \
+        --property cpu_arch=x86_64
+
+    local ironic_node_id=$(openstack baremetal node list -f value -c UUID -c Name | grep $node_name | cut -d' ' -f1)
+
+    openstack baremetal port create $mac --node $ironic_node_id
+
+    wait_for 10 6 "openstack baremetal node list -f value | grep $node_name | grep enroll" "node to reach enroll state"
+
+    openstack baremetal node manage $node_name
+
+    wait_for 10 6 "openstack baremetal node list -f value | grep $node_name | grep manageable" "node to reach manageable state"
+
+    openstack baremetal node provide $node_name
+
+    # cleaning cycle is done here, wait some more time...
+    wait_for 60 10 "openstack baremetal node list -f value | grep $node_name | grep available" "node to reach available state"
+}
+
+function onadmin_create_ironic_node
+{
+    get_novacontroller
+    oncontroller create_ironic_node "$@"
+}
+
+function oncontroller_delete_ironic_node
+{
+    openstack baremetal node delete "$1" || true
+}
+
+function onadmin_delete_ironic_node
+{
+    get_novacontroller
+    # this function is called from pre_exit_cleanup so we need some
+    # additional checks.
+    test -n "$novacontroller" || return 0
+    oncontroller delete_ironic_node "$@"
 }
 
 function onadmin_testsetup
