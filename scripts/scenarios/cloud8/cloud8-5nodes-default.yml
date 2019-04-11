@@ -44,6 +44,8 @@ proposals:
       - cluster:services
 - barclamp: rabbitmq
   attributes:
+    trove:
+      enabled: true
     client:
       enable_notifications: true
   deployment:
