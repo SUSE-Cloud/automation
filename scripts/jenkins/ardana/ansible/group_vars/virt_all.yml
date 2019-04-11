@@ -33,3 +33,7 @@ ardana_extra_vars:
   swift_worker_count: 2
   num_engine_worker_count: 2
   glance_worker_count: 2
+  # When the mariadb is running on top of shared storage, decouple commit and
+  # flush operations, to account for its high latency and prevent performance
+  # issues
+  innodb_flush_log_at_trx_commit: "{{ ardana_dbmq_use_root_volume | ternary(1, 2) }}"
