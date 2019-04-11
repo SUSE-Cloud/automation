@@ -25,6 +25,16 @@
           debug:
             msg: "http://{{ ansible_host }}:9091/"
 
+        - name: Ensure temporal repo for python-virtualenv is in place
+          zypper_repository:
+            repo: "http://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_{{ \
+              (ansible_distribution_release != '') | \
+              ternary(ansible_distribution_major_version ~ '_SP' ~ \
+              ansible_distribution_release , ansible_distribution_major_version) }}/"
+            name: temporal_python_backports
+            state: present
+            runrefresh: yes
+
         - name: Ensure setuptools, virtualenv and subunit2html are installed
           zypper:
             name: "{{ item }}"
@@ -59,6 +69,16 @@
           fail:
             msg: "{{ task }} failed."
       always:
+        - name: Ensure temporal repo for python-virtualenv is not in place
+          zypper_repository:
+            repo: "http://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_{{ \
+              (ansible_distribution_release != '') | \
+              ternary(ansible_distribution_major_version ~ '_SP' ~ \
+              ansible_distribution_release , ansible_distribution_major_version) }}/"
+            name: temporal_python_backports
+            state: absent
+            runrefresh: yes
+
         - name: Generate xml subunit results
           shell: "{{ subunit_tools_venv }}/bin/subunit2junitxml {{ tempest_results_subunit }} > {{ subunit_xml_results }}"
           changed_when: false
