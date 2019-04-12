@@ -107,7 +107,7 @@
 
 {%         endif %}
 
-{%       elif service_component_group == 'COMPUTE' %}
+{%       elif service_component_group == 'COMPUTE' and not cinder_lvm_enabled %}
 {%         set ns.drive_idx = ns.drive_idx+1 %}
 
       - name: vg-comp
