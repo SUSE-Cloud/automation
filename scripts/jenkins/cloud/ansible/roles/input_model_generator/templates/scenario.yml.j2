@@ -1,0 +1,30 @@
+{% set ns = namespace() %}
+{% include 'barclamps/lib/common.yml.j2' %}
+{% set deployments = ns.deployments %}
+{% set cluster_names = ns.cluster_names %}
+{% set enabled_clusters = ns.enabled_service_groups %}
+
+---
+proposals:
+
+{#
+
+   Generate the pacemaker barclamps, based on the clusters service groups
+   configured in the scenario.
+
+#}
+{% for service_group in scenario.service_groups if service_group.type == 'cluster' and service_group.member_count|int > 1 and enabled_clusters[service_group.name] %}
+{%   include 'barclamps/pacemaker.yml.j2' %}
+
+{% endfor %}
+{#
+
+   Generate the other barclamps, in order, using the `deployments` data
+   structure populated at the top. Every barclamp template expects a
+   `deployment` variable in its context, that describes its deployment.
+
+#}
+{% for barclamp in ordered_barclamps if barclamp in deployments %}
+{%   set deployment = deployments[barclamp] %}
+{%   include 'barclamps/' + barclamp + '.yml.j2' %}
+{% endfor %}

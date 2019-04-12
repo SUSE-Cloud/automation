@@ -83,8 +83,8 @@ homeproject: ''
 # The name of one of the available scenarios that can be used to generate input models.
 # If this parameter is set, the following parameters may also be set to different values,
 # to control various aspects of the generated input model: clm_model, controllers, core_nodes,
-# lmm_nodes, dbmq_nodes, neutron_nodes, swift_nodes, sles_computes (or computes), rhel_computes
-# and disabled_services.
+# lmm_nodes, dbmq_nodes, neutron_nodes, swift_nodes, sles_computes (or computes), rhel_computes,
+# and disabled_services and enabled_services.
 #
 # NOTE: use this parameter only if you want to use a generated input model. To use an existing
 # input model instead, leave this field empty and use the 'model' parameter instead.
@@ -182,6 +182,25 @@ neutron_nodes: ''
 # The number of swift proxy/account/container/object service nodes in the generated input model (0-3).
 # Input model generator scenarios using this parameter: mid-scale-kvm.
 swift_nodes: ''
+
+# The list of services (barclamps) that are enabled in the generated cloud
+# configuration (applicable only for Crowbar). Leave empty to include everything.
+#
+# Possible values are: database,rabbitmq,keystone,swift,monasca,glance,cinder,neutron,nova,
+# horizon,ceilometer,heat,manila,trove,designate,barbican,octavia,magnum,sahara,aodh,tempest
+#
+# NOTE: this list may not reflect what is actually added to the generated
+# cloud configuration. Some services may be filtered out because they are
+# only available in certain cloud versions or because they depend on other
+# disabled services. Other services may not be deployed because they are not
+# included in the scenario or because the number of nodes where they are
+# deployed is set to 0 using the other scenario parameters.
+#
+# Input model generator scenarios using this parameter: all
+# Example for deploying a minimalistic cloud deployment, with only infrastructure
+# and keystone services, set:
+# enabled_services: 'database,rabbitmq,keystone,tempest'
+enabled_services: ''
 
 # Regex matching service components and component groups to exclude from the generated input model.
 # Input model generator scenarios using this parameter: all

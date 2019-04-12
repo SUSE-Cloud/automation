@@ -1,0 +1,33 @@
+  - barclamp: neutron
+    attributes:
+      networking_plugin: ml2
+      ml2_mechanism_drivers:
+        - {{ neutron_networkingplugin }}
+{% if neutron_networkingplugin == 'openvswitch' %}
+      ml2_type_drivers:
+        - vxlan
+        - vlan
+        - gre
+{%   if neutron_use_dvr %}
+      use_dvr: true
+      use_l2pop: true
+{%   endif %}
+{% else %}
+      ml2_type_drivers:
+        - gre
+        - vlan
+      use_dvr: false
+{% endif %}
+      ml2_type_drivers_default_provider_network: {{ neutron_networkingmode }}
+      ml2_type_drivers_default_tenant_network: {{ neutron_networkingmode }}
+      use_lbaas: true
+      l3_ha:
+        use_l3_ha: {{ neutron_use_l3_ha }}
+{% if ssl_enabled %}
+      api:
+        protocol: https
+      ssl:
+        generate_certs: true
+        insecure: true
+{% endif %}
+{% include 'barclamps/lib/deployment.yml.j2' %}

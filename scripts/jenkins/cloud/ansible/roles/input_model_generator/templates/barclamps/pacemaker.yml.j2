@@ -1,0 +1,23 @@
+  - barclamp: pacemaker
+    name: {{ cluster_names[service_group.name]|default(service_group.name) }}
+    attributes:
+      stonith:
+        mode: sbd
+        sbd:
+          nodes:
+{% for idx in range(service_group.member_count|int) %}
+            @@{{ service_group.name }}{{ idx+1 }}@@:
+              devices:
+                - "##sbd_device_{{ service_group.name }}{{ idx+1 }}##"
+{% endfor %}
+          watchdog_module: softdog
+    deployment:
+      elements:
+        pacemaker-cluster-member:
+{% for idx in range(service_group.member_count|int) %}
+          - @@{{ service_group.name }}{{ idx+1 }}@@
+{% endfor %}
+        hawk-server:
+{% for idx in range(service_group.member_count|int) %}
+          - @@{{ service_group.name }}{{ idx+1 }}@@
+{% endfor %}

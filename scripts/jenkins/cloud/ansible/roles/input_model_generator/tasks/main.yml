@@ -72,3 +72,9 @@
     src: "mkcloud.config.j2"
     dest: "{{ mkcloud_config_file }}"
   when: cloud_product == 'crowbar'
+
+- name: Generate crowbar batch
+  template:
+    src: "scenario.yml.j2"
+    dest: "{{ crowbar_batch_file }}"
+  when: cloud_product == 'crowbar'

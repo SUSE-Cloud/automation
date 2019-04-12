@@ -1,3 +1,5 @@
+{% set ns = namespace() %}
+{% include 'barclamps/lib/common.yml.j2' %}
 
 # export debug_qa_crowbarsetup=0
 # export debug_openstack=0
@@ -32,10 +34,6 @@ export cloudsource={{ cloudsource }}
 
 # export mkclouddriver=
 # export adminip=
-{% if controllers | int > 1 %}
-export hacloud=1
-export want_sbd=1
-{% endif %}
 export libvirt_type=physical
 # export firmware_type=
 # export networkingplugin=
@@ -89,19 +87,25 @@ export UPDATEREPOS={{ extra_repos.split(',') | join('+') }}
 # export bmc_password=
 # export upgrade_progress_file=
 
-export nodenumber={{ controllers | int + computes | int }}
+export nodenumber={{ ns.cloud_nodes }}
 # export nodenumberlonelynode=
 # export nodenumberironicnode=
-{% if controllers | int > 1 %}
-export clusterconfig="services+data+network={{ controllers | int }}"
+{% if ns.hacloud %}
+export hacloud=1
+export clusterconfig="{{ ns.cluster_config | join(':') }}"
+export want_sbd=1
 {% endif %}
+{% if ssl_enabled %}
+export want_all_ssl=1
+{% endif %}
+
 # export ironicnetmask=
 
 # Use this to override the crowbar node list order in qa_crowbarsetup.sh
 export custom_crowbar_node_order=
 
-export want_node_roles=controller={{ controllers | int }},compute={{ computes | int }}
-export want_node_aliases=controller={{ controllers | int }},compute-kvm={{ computes | int }}
+export want_node_roles=controller={{ ns.controller_nodes }},compute={{ ns.compute_nodes }}
+export want_node_aliases={{ ns.node_aliases | join(',') }}
 
 export want_test_updates={{ updates_test_enabled | ternary (1, 0) }}
 export want_swift=1

@@ -129,6 +129,29 @@
           description: >-
             Crowbar batch scenario yaml file path (relative to scripts/scenarios)
 
+      - extended-choice:
+          name: enabled_services
+          type: multi-select
+          visible-items: 10
+          multi-select-delimiter: ','
+          # NOTE: keeping designate and octavia disabled by default, until their
+          # implementation is complete
+          default-value: '{enabled_services|database,rabbitmq,keystone,swift,monasca,glance,cinder,neutron,nova,horizon,ceilometer,heat,manila,trove,barbican,magnum,sahara,aodh,tempest}'
+          value: >-
+            database,rabbitmq,keystone,swift,monasca,glance,cinder,neutron,nova,
+            horizon,ceilometer,heat,manila,trove,designate,barbican,octavia,
+            magnum,sahara,aodh,tempest
+          description: >-
+            The list of services (barclamps) that are enabled in the generated cloud
+            configuration. Leave empty to include everything.
+
+            NOTE: this list may not reflect what is actually added to the generated
+            cloud configuration. Some services may be filtered out because they are
+            only available in certain cloud versions or because they depend on other
+            disabled services. Other services may not be deployed because they are not
+            included in the scenario or because the number of nodes where they are
+            deployed is set to 0 using the other scenario parameters.
+
       - validating-string:
           name: controllers
           default: '{controllers|1}'

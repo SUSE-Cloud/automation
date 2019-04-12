@@ -1,0 +1,31 @@
+  - barclamp: swift
+    attributes:
+{% set storage_service_groups = deployment['swift-storage'] %}
+{% set ns = namespace(storage_nodes=0) %}
+{% for service_group in storage_service_groups.values() %}
+{%   set ns.storage_nodes = ns.storage_nodes + service_group.member_count|int %}
+{% endfor %}
+{% if ns.storage_nodes < 3 %}
+      # need at least as many swift-storage nodes as zones (assuming one swift disk per node)
+      zones: 1
+      # swift in Liberty or newer started refusing devicecount < zones*replicas
+      replicas: {{ ns.storage_nodes }}
+{% endif %}
+{% if ssl_enabled %}
+      ssl:
+        enabled: true
+        generate_certs: true
+        insecure: true
+{% endif %}
+      keystone_delay_auth_decision: true
+      allow_versions: true
+      middlewares:
+        crossdomain:
+          enabled: true
+        formpost:
+          enabled: true
+        staticweb:
+          enabled: true
+        tempurl:
+          enabled: true
+{% include 'barclamps/lib/deployment.yml.j2' %}

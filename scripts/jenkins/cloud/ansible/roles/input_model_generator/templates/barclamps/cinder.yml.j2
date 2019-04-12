@@ -1,0 +1,31 @@
+  - barclamp: cinder
+    attributes:
+{% if ssl_enabled %}
+      api:
+        protocol: https
+      ssl:
+        generate_certs: true
+        insecure: true
+{% endif %}
+      volumes:
+{% if ses_enabled %}
+        - backend_driver: rbd
+          backend_name: ses
+          rbd:
+            use_ses: true
+            use_crowbar: false
+            config_file: ''
+            admin_keyring: ''
+            pool: ''
+            user: ''
+            secret_uuid: ''
+            flatten_volume_from_snapshot: false
+{% else %}
+        - backend_driver: local
+          backend_name: default
+          local:
+            volume_name: cinder-volumes
+            file_name: "/var/lib/cinder/volume.raw"
+            file_size: 2000
+{% endif %}
+{% include 'barclamps/lib/deployment.yml.j2' %}

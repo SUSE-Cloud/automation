@@ -1,0 +1,28 @@
+  - barclamp: nova
+    attributes:
+      libvirt_type: kvm
+{% if ssl_enabled %}
+      novnc:
+        ssl:
+          enabled: true
+      ssl:
+        enabled: true
+        generate_certs: true
+        insecure: true
+      ec2-api:
+        ssl:
+          enabled: true
+          generate_certs: true
+          insecure: true
+{% endif %}
+      trusted_flavors: true
+      use_migration: true
+      kvm:
+        ksm_enabled: true
+      metadata:
+        vendordata:
+          json: '{"custom-key": "custom-value"}'
+{% for compute_type in ['qemu', 'vmware', 'xen', 'zvm', 'ironic'] %}
+{%   set _ = deployment.update({'nova-compute-' ~ compute_type: {}}) %}
+{% endfor %}
+{% include 'barclamps/lib/deployment.yml.j2' %}

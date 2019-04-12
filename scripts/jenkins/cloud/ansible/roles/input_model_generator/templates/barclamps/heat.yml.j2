@@ -1,0 +1,10 @@
+  - barclamp: heat
+{% if ssl_enabled %}
+    attributes:
+      api:
+        protocol: https
+      ssl:
+        generate_certs: true
+        insecure: true
+{% endif %}
+{% include 'barclamps/lib/deployment.yml.j2' %}

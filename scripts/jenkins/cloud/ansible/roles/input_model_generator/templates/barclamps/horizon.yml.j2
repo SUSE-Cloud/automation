@@ -1,0 +1,8 @@
+  - barclamp: horizon
+{% if ssl_enabled %}
+    attributes:
+      apache:
+        ssl: true
+        generate_certs: true
+{% endif %}
+{% include 'barclamps/lib/deployment.yml.j2' %}

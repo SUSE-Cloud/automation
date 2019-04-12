@@ -1,0 +1,22 @@
+  - barclamp: manila
+    attributes:
+{% if ssl_enabled %}
+      api:
+        protocol: https
+      ssl:
+        generate_certs: true
+        insecure: true
+{% endif %}
+      default_share_type: default
+      shares:
+        - backend_driver: generic
+          backend_name: backend1
+          generic:
+            service_instance_user: root
+            service_instance_name_or_id: ##manila_instance_name_or_id##
+            service_net_name_or_ip: ##service_net_name_or_ip##
+            tenant_net_name_or_ip: ##tenant_net_name_or_ip##
+            service_instance_password: linux
+            share_volume_fstype: ext3
+            path_to_private_key: ""
+{% include 'barclamps/lib/deployment.yml.j2' %}

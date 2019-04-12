@@ -1,0 +1,104 @@
+{#
+
+   This block populates a `ns.deployments` dictionary that describes the
+   deployment for the barclamps configured in the scenario, by mapping
+   each role in a barclamp to a list of target service groups e.g.:
+
+     keystone:
+       keystone-server:
+         core: <core service-group>
+     ...
+     neutron:
+       neutron-server:
+         core: <core service-group>
+       neutron-network:
+         neutron: <neutron service-group>
+     ...
+     ceilometer:
+       ceilometer-server:
+         core: <core service-group>
+       ceilometer-central:
+         core: <core service-group>
+       ceilometer-agent:
+         core: <core service-group>
+         neutron: <neutron service-group>
+         sles-compute: <sles-compute service-group>
+
+   This data structure will then be used to generate the configuration for each
+   barclamp. It will only include information about the services that are actually
+   configured (i.e. accounts for `enabled_services`, `disabled_services` and
+   versioned features).
+
+   The cluster configuration currently supported by qa_crowbarsetup.sh
+   allows only the following clusters:
+
+    data - database cluster
+    rabbit - rabbitmq cluster
+    network - neutron network services cluster
+    services - cluster for the other OpenStack services
+
+   This block of code also maps the clusters in the scenario's service template
+   to the ones supported by qa_crowbarsetup.sh based on the services that they
+   include. Based on this information, the clusterconfig variable value is then
+   generated.
+
+#}
+{% set ns.deployments={} %}
+{% set ns.cloud_nodes=0 %}
+{% set ns.controller_nodes=0 %}
+{% set ns.compute_nodes=0 %}
+{% set ns.node_aliases=[] %}
+{% set ns.cluster_config=[] %}
+{% set ns.cluster_names={} %}
+{% set ns.enabled_service_groups={} %}
+{% set ns.hacloud=false %}
+{% set ns.enabled_barclamps = ordered_barclamps | select('in', enabled_services|ternary(enabled_services.split(','), ordered_barclamps)) | list %}
+{% set ns.enabled_barclamps = ns.enabled_barclamps | reject('match', disabled_services|ternary(disabled_services, '^$')) | list %}
+{% for service_group in scenario.service_groups if service_group.member_count|int > 0 and 'CLM' not in service_group.service_components %}
+{%   set _ = ns.enabled_service_groups.update({service_group.name: False}) %}
+{%   set ns.sg_has_barclamps = False %}
+{%   set service_component_groups = service_group.service_components | reject('match', disabled_services|ternary(disabled_services, '^$')) | list %}
+{%   for service_component_group in service_component_groups %}
+{%     set barclamp_group = barclamps[service_component_group]|default({}) %}
+{%     for barclamp, barclamp_roles in barclamp_group.items() %}
+{%       if barclamp in ns.enabled_barclamps and (barclamp not in versioned_barclamps or versioned_barclamps[barclamp].enabled ) %}
+{%         set deployment = ns.deployments[barclamp] | default({}) %}
+{%         for role in barclamp_roles %}
+{%           set _updated_roles = deployment[role] | default({}) %}
+{%           set _ = _updated_roles.update({service_group.name: service_group}) %}
+{%           set _ = deployment.update({role: _updated_roles}) %}
+{%         endfor %}
+{%         set _ = ns.deployments.update({barclamp: deployment}) %}
+{%         set _ = ns.enabled_service_groups.update({service_group.name: True}) %}
+{%       endif %}
+{%     endfor %}
+{%   endfor %}
+{%   if service_component_groups|length > 0 %}
+{%     set ns.cloud_nodes = ns.cloud_nodes + service_group.member_count|int %}
+{%     set _ = ns.node_aliases.append(service_group.name + '=' + service_group.member_count) %}
+{%     if service_group.type == 'cluster' %}
+{%       set ns.clusters=[] %}
+{%       if 'CORE' in service_component_groups %}
+{%         set _ = ns.clusters.append('services') %}
+{%       endif %}
+{%       if 'DBMQ' in service_component_groups %}
+{%         set _ = ns.clusters.append('data') %}
+{%         set _ = ns.clusters.append('rabbit') %}
+{%       endif %}
+{%       if 'NEUTRON' in service_component_groups %}
+{%         set _ = ns.clusters.append('network') %}
+{%       endif %}
+{%       if ns.clusters|length == 0 or not ns.enabled_service_groups[service_group.name] %}
+{%         set ns.clusters = [service_group.name] %}
+{%       endif %}
+{%       set _ = ns.cluster_names.update({service_group.name: ns.clusters[0]}) %}
+{%       set _ = ns.cluster_config.append( '+'.join(ns.clusters) + '=' + service_group.member_count) %}
+{%       set ns.controller_nodes = ns.controller_nodes + service_group.member_count|int %}
+{%       if service_group.member_count|int > 1 %}
+{%         set ns.hacloud=true %}
+{%       endif %}
+{%     else %}
+{%       set ns.compute_nodes = ns.compute_nodes + service_group.member_count|int %}
+{%     endif %}
+{%   endif %}
+{% endfor %}

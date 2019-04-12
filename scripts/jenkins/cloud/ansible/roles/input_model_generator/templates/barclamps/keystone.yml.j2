@@ -1,0 +1,19 @@
+  - barclamp: keystone
+    attributes:
+      api:
+        region: CustomRegion
+{% if not is_physical_deploy %}
+        # The default of 8 is a bit too much for our default virtual setup
+        processes: 2
+{% endif %}
+{% if ssl_enabled %}
+        protocol: https
+      ssl:
+        generate_certs: true
+        insecure: true
+{% endif %}
+{% if want_keystone_token_type is defined %}
+      signing:
+        token_format: {{ want_keystone_token_type }}
+{% endif %}
+{% include 'barclamps/lib/deployment.yml.j2' %}
