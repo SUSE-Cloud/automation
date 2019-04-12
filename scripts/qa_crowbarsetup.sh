@@ -4187,7 +4187,7 @@ function oncontroller_testsetup
         nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
     fi
 
-    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
+    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --nic net-name=fixed --security-group testvm testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
