@@ -446,18 +446,46 @@ if [ -e /etc/tempest/tempest.conf ]; then
     fi
 
     pushd /var/lib/openstack-tempest-test/
+
+    # create a file to hold blacklisted tests
+    blacklist=qa_openstack_blacklist.txt
+    touch "${blacklist}"
+
+    # Handle OpenStack release specific blacklisting of known to fail tests
+    case "${cloudsource}" in
+    openstackrocky)
+        # TODO(fmccarthy): Remove once we have addressed issues causing
+        # failures for the neutron_tempest_plugin tests (SCRD-8681)
+        if rpm -q python-neutron-tempest-plugin > /dev/null 2>&1; then
+            # If neutron_tempest_plugin is installed then append list of known
+            # to fail tests to the blacklist file.
+            tee -a ${blacklist} << __EOF__
+# Blacklist the tests matching the pattern: neutron_tempest_plugin\.api\.admin\.test_tag\.Tag(Filter|)(QosPolicy|Trunk)TestJSON
+#neutron_tempest_plugin.api.admin.test_tag.TagFilterQosPolicyTestJSON.test_filter_qos_policy_tags
+id-c2f9a6ae-2529-4cb9-a44b-b16f8ba27832
+#neutron_tempest_plugin.api.admin.test_tag.TagQosPolicyTestJSON.test_qos_policy_tags
+id-e9bac15e-c8bc-4317-8295-4bf1d8d522b8
+#neutron_tempest_plugin.api.admin.test_tag.TagTrunkTestJSON.test_trunk_tags
+id-4c63708b-c4c3-407c-8101-7a9593882f5f
+#neutron_tempest_plugin.api.admin.test_tag.TagFilterTrunkTestJSON.test_filter_trunk_tags
+id-3fb3ca3a-8e3a-4565-ba73-16413d445e25
+__EOF__
+        fi
+        ;;
+    esac
+
     # check that test listing works - otherwise we run 0 tests and everything seems to be fine
     # because run_tempest.sh doesn't catch the error
     if [ -f ".testr.conf" ]; then
         if ! [ -d ".testrepository" ]; then
             testr init
         fi
-        testr list-tests >/dev/null
+        testr list-tests --blacklist-file ${blacklist} >/dev/null
     elif [ -f ".stestr.conf" ]; then
         if ! [ -d ".stestr" ]; then
             stestr init
         fi
-        stestr list >/dev/null
+        stestr list --blacklist-file ${blacklist} >/dev/null
     else
         echo "No .testr.conf or .stestr.conf in $(pwd)"
         exit 5
@@ -470,10 +498,10 @@ if [ -e /etc/tempest/tempest.conf ]; then
     fi
 
     if tempest help run; then
-        tempest run -t -s 2>&1 | tee console.log
+        tempest run -t -s --blacklist-file ${blacklist} 2>&1 | tee console.log
     else
         # run_tempest.sh is no longer available since tempest 16 (~ since Pike)
-        ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
+        ./run_tempest.sh -N -t -s $verbose --blacklist-file ${blacklist} 2>&1 | tee console.log
     fi
     ret=${PIPESTATUS[0]}
     if tempest help cleanup; then
