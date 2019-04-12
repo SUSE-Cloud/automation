@@ -2731,6 +2731,11 @@ function custom_configuration
                 proposal_set_value designate default "['deployment']['designate']['elements']['designate-server']" "['cluster:$clusternameservices']"
             fi
         ;;
+        octavia)
+            if [[ $hacloud = 1 ]] && iscloudver 9plus ; then
+                proposal_set_value octavia default "['deployment']['octavia']['elements']['octavia-api']" "['cluster:$clusternameservices']"
+            fi
+        ;;
         neutron)
             if iscloudver 7plus; then
                 [[ $networkingplugin = linuxbridge && $networkingmode = gre ]] && networkingmode=vlan
@@ -3243,6 +3248,12 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        octavia)
+            if ! iscloudver 9plus ; then
+                echo "Octavia is SOC 9+ only. Skipping"
+                return
+            fi
+            ;;
         ironic)
             [[ $want_ironic = 1 ]] || return
             if ! iscloudver 7plus; then
@@ -3305,7 +3316,7 @@ function onadmin_proposal
     safely oncontroller check_crm_failcounts
     # For all remaining proposals, check for HA failures after each deployment
     for proposal in horizon ceilometer heat manila trove \
-        designate barbican magnum sahara aodh tempest; do
+        designate barbican octavia magnum sahara aodh tempest; do
         deploy_single_proposal $proposal
         safely oncontroller check_crm_failcounts
     done

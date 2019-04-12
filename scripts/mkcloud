@@ -1286,6 +1286,7 @@ Optional
         want_designate_proposal=1 (Cloud9+ only)
         want_magnum_proposal=1
         want_monasca_proposal=1   (Cloud7+ only)
+        want_octavia_proposal=1 (Cloud9+ only)
         want_trove_proposal=1
     want_horizon_integration_test=1 (default='')
         Execute selenium integration tests for Horizon after Tempest. This test is in beta, and
