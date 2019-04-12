@@ -56,7 +56,7 @@
             SES instance flavor
       - string:
           name: volume_size
-          default: "40"
+          default: "70"
           description: >-
             Size of the volume to be attached to the SES instance
 
