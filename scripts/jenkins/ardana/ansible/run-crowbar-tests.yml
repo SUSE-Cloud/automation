@@ -30,9 +30,11 @@
             repo: "http://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_{{ \
               (ansible_distribution_release != '') | \
               ternary(ansible_distribution_major_version ~ '_SP' ~ \
-              ansible_distribution_release , ansible_distribution_major_version) }}/"
-            name: temporal_python_backports
+              ansible_distribution_release , ansible_distribution_major_version\
+              ~ '/devel:languages:python:backports.repo')}}"
+            name: python_backports
             state: present
+            disable_gpg_check: yes
             runrefresh: yes
 
         - name: Ensure setuptools, virtualenv and subunit2html are installed
@@ -74,9 +76,11 @@
             repo: "http://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_{{ \
               (ansible_distribution_release != '') | \
               ternary(ansible_distribution_major_version ~ '_SP' ~ \
-              ansible_distribution_release , ansible_distribution_major_version) }}/"
-            name: temporal_python_backports
+              ansible_distribution_release , ansible_distribution_major_version\
+              ~ '/devel:languages:python:backports.repo')}}"
+            name: python_backports
             state: absent
+            disable_gpg_check: yes
             runrefresh: yes
 
         - name: Generate xml subunit results
