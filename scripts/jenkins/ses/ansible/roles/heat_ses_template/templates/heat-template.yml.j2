@@ -82,19 +82,6 @@ resources:
       networks:
         - port: { get_resource: ses-{{ ses_id }}_port }
 
-  ses-{{ ses_id }}_vol:
-    type: OS::Cinder::Volume
-    properties:
-      name: openstack-ses-{{ ses_id }}
-      size: {{ volume_size }}
-
-  ses-{{ ses_id }}_vol_att:
-    type: OS::Cinder::VolumeAttachment
-    properties:
-      instance_uuid: { get_resource: ses-{{ ses_id }}_server }
-      volume_id: { get_resource: ses-{{ ses_id }}_vol }
-      mountpoint: "{{ volume_mountpoint }}"
-
   ses_floating_ip:
     type: OS::Neutron::FloatingIP
     properties:
