@@ -21,6 +21,15 @@ rhel_image: "centos{{ rhel_os_version }}"
 
 # Versioned virtualized configuration artifacts
 virt_artifacts:
+  cloud7:
+    sles_distro_id: sles12sp2-x86_64
+    rhel_distro_id:
+    sles_image: "{{ vcloud_image_name_prefix }}-SLE12SP2"
+    rhel_image:
+    clm_flavor: cloud-ardana-job-compute
+    controller_flavor: cloud-ardana-job-controller
+    compute_flavor: cloud-ardana-job-compute
+    disk_size: 20
   cloud8:
     sles_distro_id: sles12sp3-x86_64
     rhel_distro_id: "{{ rhel_distro_id }}"
