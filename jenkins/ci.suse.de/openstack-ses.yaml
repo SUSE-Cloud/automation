@@ -51,14 +51,9 @@
 
       - string:
           name: server_flavor
-          default: "m1.large"
+          default: "cloud-ses"
           description: >-
             SES instance flavor
-      - string:
-          name: volume_size
-          default: "40"
-          description: >-
-            Size of the volume to be attached to the SES instance
 
       - string:
           name: floating_net
