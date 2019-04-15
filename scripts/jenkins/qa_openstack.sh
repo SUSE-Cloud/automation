@@ -452,6 +452,9 @@ if [ -e /etc/tempest/tempest.conf ]; then
     touch "${blacklist}"
 
     # Handle OpenStack release specific blacklisting of known to fail tests
+    # NOTE: Currently blacklisting only required for OpenStack Rocky which
+    # is stestr based, so only add blacklisting options to stestr and tempest
+    # command runs below.
     case "${cloudsource}" in
     openstackrocky)
         # TODO(fmccarthy): Remove once we have addressed issues causing
@@ -480,7 +483,7 @@ __EOF__
         if ! [ -d ".testrepository" ]; then
             testr init
         fi
-        testr list-tests --blacklist-file ${blacklist} >/dev/null
+        testr list-tests >/dev/null
     elif [ -f ".stestr.conf" ]; then
         if ! [ -d ".stestr" ]; then
             stestr init
@@ -501,7 +504,7 @@ __EOF__
         tempest run -t -s --blacklist-file ${blacklist} 2>&1 | tee console.log
     else
         # run_tempest.sh is no longer available since tempest 16 (~ since Pike)
-        ./run_tempest.sh -N -t -s $verbose --blacklist-file ${blacklist} 2>&1 | tee console.log
+        ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
     fi
     ret=${PIPESTATUS[0]}
     if tempest help cleanup; then
