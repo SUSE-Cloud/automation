@@ -12,6 +12,7 @@
     previous_version: 6
     arch: x86_64
     tempestoptions: --smoke
+    magnumoptions: --regex '^magnum.tests.functional.api'
     label: openstack-mkcloud-SLE12-x86_64
     database_engine: postgresql
     jobs:

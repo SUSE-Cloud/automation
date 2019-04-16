@@ -12,6 +12,7 @@
     previous_version: 8
     arch: x86_64
     tempestoptions: --smoke
+    magnumoptions: --regex '^magnum_tempest_plugin.tests.api'
     label: openstack-mkcloud-SLE12-x86_64
     database_engine: mysql
     jobs:
@@ -82,5 +83,4 @@
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-btrfs-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
-        - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
