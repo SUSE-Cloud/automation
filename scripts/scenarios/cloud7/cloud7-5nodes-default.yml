@@ -13,6 +13,9 @@ proposals:
           @@controller2@@:
             devices:
             - "##sbd_device_services_controller2##"
+          @@controller3@@:
+            devices:
+            - "##sbd_device_services_controller3##"
         watchdog_module: softdog
       per_node:
         nodes:
@@ -20,38 +23,30 @@ proposals:
             params: ''
           @@controller2@@:
             params: ''
-    drbd:
-      enabled: true
+          @@controller3@@:
+            params: ''
   deployment:
     elements:
       pacemaker-cluster-member:
       - @@controller1@@
       - @@controller2@@
+      - @@controller3@@
       hawk-server:
       - @@controller1@@
       - @@controller2@@
+      - @@controller3@@
 - barclamp: database
   attributes:
-    sql_engine: postgresql
-    postgresql:
-      ha:
-        storage:
-          mode: drbd
-          drbd:
-            size: 5
+    sql_engine: mysql
   deployment:
     elements:
-      database-server:
+      mysql-server:
       - cluster:services
 - barclamp: rabbitmq
   attributes:
+    cluster: true
     trove:
       enabled: true
-    ha:
-      storage:
-        mode: drbd
-        drbd:
-          size: 5
     client:
       enable_notifications: true
   deployment:
