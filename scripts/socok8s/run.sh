@@ -32,6 +32,7 @@ git --no-pager show | sed 's/^/|@| /'
 export PREFIX=socok8s-ci-${pr_id}-${sha1}
 export OS_CLOUD=engcloud-cloud-ci
 export KEYNAME=engcloud-cloud-ci
+export INTERNAL_NETWORK="${PREFIX}-net"
 echo "Prefix set to ${PREFIX}"
 ./run.sh
 ret=$?
