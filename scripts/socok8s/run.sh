@@ -33,6 +33,7 @@ export PREFIX=socok8s-ci-${pr_id}-${sha1}
 export OS_CLOUD=engcloud-cloud-ci
 export KEYNAME=engcloud-cloud-ci
 export INTERNAL_NETWORK="${PREFIX}-net"
+export INTERNAL_SUBNET="${PREFIX}-subnet"
 echo "Prefix set to ${PREFIX}"
 ./run.sh
 ret=$?
