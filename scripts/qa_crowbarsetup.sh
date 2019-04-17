@@ -1778,7 +1778,9 @@ function onadmin_post_allocate
         done
 
         if [[ $want_sbd = 1 ]] ; then
-            $zypper -p http://download.opensuse.org/repositories/devel:/languages:/python:/backports/$slesdist/ install python-sh
+            local backport_slesdist=$slesdist
+            iscloudver 8plus || backport_slesdist=SLE_12
+            $zypper -p http://download.opensuse.org/repositories/devel:/languages:/python:/backports/$backport_slesdist/ install python-sh
             chmod +x $SCRIPTS_DIR/iscsictl.py
             $SCRIPTS_DIR/iscsictl.py --service target --host $(hostname) --no-key
 
