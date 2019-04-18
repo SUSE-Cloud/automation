@@ -401,6 +401,9 @@ FLOATING_IP=$(openstack stack output show teststack server_floating_ip -f value 
 echo "FLOATING IP: $FLOATING_IP"
 if [ -n "$FLOATING_IP" ]; then
     ping -c 2 $FLOATING_IP || true
+
+    # scientifically correct amount of sleeping
+    sleep 60
     ssh -o "StrictHostKeyChecking no" $ssh_user@$FLOATING_IP curl --silent www3.zq1.de/test || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
@@ -418,6 +421,8 @@ if [[ $use_openstack_floating = 1 ]]; then
 else
     for i in $(nova floating-ip-list | grep -P -o "172.31\S+"); do nova floating-ip-delete $i; done
 fi
+
+echo "Tempest.."
 
 # run tempest
 if [ -e /etc/tempest/tempest.conf ]; then
@@ -500,3 +505,5 @@ __EOF__
     [ $ret == 0 ] || exit 4
     popd
 fi
+
+echo "SUCCESS."
