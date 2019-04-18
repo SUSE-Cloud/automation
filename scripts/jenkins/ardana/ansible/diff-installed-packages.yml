@@ -38,7 +38,15 @@
 
   tasks:
     - block:
-        - name: Ensure leap repo for python-virtualenv is in place
+        - name: Ensure python3 installed
+          zypper:
+            name: "{{ item }}"
+            state: present
+          loop:
+            - "python-3"
+          when: "'cloud_virt_hosts' not in group_names"
+
+        - name: Ensure leap repo for python3-virtualenv is in place
           zypper_repository:
             repo: "http://download.opensuse.org/distribution/leap/\
               {{ (ansible_distribution_major_version|int > 12) | ternary(ansible_distribution_major_version, ansible_distribution_major_version|int + 30) }}\
@@ -49,33 +57,35 @@
             runrefresh: yes
           when: "'cloud_virt_hosts' not in group_names"
 
-        - name: Install python-virtualenv
+        - name: Install python3-virtualenv
           zypper:
-            name: python-virtualenv
+            name: python3-virtualenv
             state: present
           when: "'cloud_virt_hosts' not in group_names"
 
-        - name: Remove leap repo for python-virtualenv
+        - name: Remove leap repo for python3-virtualenv
           zypper_repository:
             name: leap
             state: absent
             runrefresh: yes
           when: "'cloud_virt_hosts' not in group_names"
 
-        - name: Ensure setuptools is installed
+        - name: Ensure python3-setuptools is installed
           zypper:
             name: "{{ item }}"
             state: present
           loop:
-            - "python-setuptools"
+            - "python-3setuptools"
           when: "'cloud_virt_hosts' not in group_names"
 
         - name: Ensure structurediff venv exists
           pip:
             name: "{{ item }}"
             virtualenv: "{{ structurediff_venv }}"
+            virtualenv_python: 
           loop:
             - "structurediff"
+            # depends on deepdiff, which is only supported on python3
           when: "'cloud_virt_hosts' not in group_names"
 
         - name: Ensure rpms/diffs/ dir exists
