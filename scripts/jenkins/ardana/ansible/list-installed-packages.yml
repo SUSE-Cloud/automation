@@ -24,6 +24,10 @@
   vars:
     task: "deploy"
     state: "default"
+    ansible_ssh_common_args: >
+      -o ProxyCommand='ssh -o UserKnownHostsFile=/dev/null -o
+      StrictHostKeyChecking=no -W %h:%p -q root@{{ hostvars[ardana_env].ansible_host }}'
+      -o ControlPath='~/.ansible/cp/{{ ardana_env }}-%r@%h:%p'
 
   pre_tasks:
     - include_role:
