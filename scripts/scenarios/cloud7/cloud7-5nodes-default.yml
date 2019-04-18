@@ -40,10 +40,11 @@ proposals:
     sql_engine: mysql
   deployment:
     elements:
-      database-server:
+      mysql-server:
       - cluster:services
 - barclamp: rabbitmq
   attributes:
+    cluster: true
     trove:
       enabled: true
     client:

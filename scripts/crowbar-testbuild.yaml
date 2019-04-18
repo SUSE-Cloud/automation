@@ -27,6 +27,7 @@ parameters_template:
     label: openstack-mkcloud-ha-x86_64
     nodenumber: 5
     hacloud: 1
+    want_all_ssl: 1
     networkingmode: vxlan
     clusterconfig: "data+services+network=3"
   hyperv: &mkcloud_hyperv

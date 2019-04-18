@@ -34,6 +34,15 @@ want_lvm: "{{ cloud_product == 'ardana' }}"
 vcloud_image_name_prefix: "{{ 'cleanvm-jeos-lvm' if want_lvm else 'cleanvm-jeos' }}"
 vcloud_flavor_name_prefix: "{{ 'cloud-ardana-job-lvm' if want_lvm else 'cloud-ardana-job' }}"
 
+# For virtual cloud deployments, all volumes are implemented on top of
+# shared storage, with the exception of the root partition, which uses the
+# ephemeral volume, which could be set up on the underlying cloud compute node
+# instead of also being a shared storage volume. Set this to true to have mariadb
+# and rabbitmq use the root partition rather than a separate volume (which has
+# higher latency and is more prone to performance issues when implemented using
+# shared storage).
+ardana_dbmq_use_root_volume: true
+
 cli_stack_queries:
   - "admin-floating-ip"
   - "admin-conf-ip"

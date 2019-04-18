@@ -948,9 +948,8 @@ function onadmin_set_source_variables
         GM8|GM8+up)
             cs=$cloudsource
             [[ $cs =~ GM8 ]] && cs=GM
-            # TODO: Switch to clouddata when released
             CLOUDISOURL="${want_cloud8_iso_url:=$reposerver/install/SLE-12-SP3-Cloud8-$cs/}"
-            CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-8-${arch}*1.iso"}
+            CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-8-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-official"
         ;;
         GMC*|M?*|RC?)
@@ -1779,7 +1778,9 @@ function onadmin_post_allocate
         done
 
         if [[ $want_sbd = 1 ]] ; then
-            $zypper -p http://download.opensuse.org/repositories/devel:/languages:/python:/backports/$slesdist/ install python-sh
+            local backport_slesdist=$slesdist
+            iscloudver 8plus || backport_slesdist=SLE_12
+            $zypper -p http://download.opensuse.org/repositories/devel:/languages:/python:/backports/$backport_slesdist/ install python-sh
             chmod +x $SCRIPTS_DIR/iscsictl.py
             $SCRIPTS_DIR/iscsictl.py --service target --host $(hostname) --no-key
 
@@ -2171,6 +2172,7 @@ function enable_ssl_generic
         ;;
         keystone)
             $p "$a['ssl']['ca_certs']" "'/etc/ssl/ca-bundle.pem'"
+            $p "$a['api']['protocol']" "'https'"
         ;;
         *)
             $p "$a['api']['protocol']" "'https'"
@@ -2732,6 +2734,11 @@ function custom_configuration
                 proposal_set_value designate default "['deployment']['designate']['elements']['designate-server']" "['cluster:$clusternameservices']"
             fi
         ;;
+        octavia)
+            if [[ $hacloud = 1 ]] && iscloudver 9plus ; then
+                proposal_set_value octavia default "['deployment']['octavia']['elements']['octavia-api']" "['cluster:$clusternameservices']"
+            fi
+        ;;
         neutron)
             if iscloudver 7plus; then
                 [[ $networkingplugin = linuxbridge && $networkingmode = gre ]] && networkingmode=vlan
@@ -2903,6 +2910,10 @@ function custom_configuration
             proposal_set_value provisioner default "['attributes']['provisioner']['root_password_hash']" "\"$(openssl passwd -1 $want_rootpw)\""
             # set discovery root password too
             proposal_set_value provisioner default "['attributes']['provisioner']['discovery']['append']" "\"DISCOVERY_ROOT_PASSWORD=$want_rootpw\""
+
+            # increase chef intervals to 6h to ensure they
+            # don't randomly hit us during tempest run
+            proposal_set_value provisioner default "['attributes']['provisioner']['chef_client_runs']" $((6*60*60))
 
             if [[ $keep_existing_hostname = 1 ]] ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
@@ -3244,6 +3255,12 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        octavia)
+            if ! iscloudver 9plus ; then
+                echo "Octavia is SOC 9+ only. Skipping"
+                return
+            fi
+            ;;
         ironic)
             [[ $want_ironic = 1 ]] || return
             if ! iscloudver 7plus; then
@@ -3306,7 +3323,7 @@ function onadmin_proposal
     safely oncontroller check_crm_failcounts
     # For all remaining proposals, check for HA failures after each deployment
     for proposal in horizon ceilometer heat manila trove \
-        designate barbican magnum sahara aodh tempest; do
+        designate barbican octavia magnum sahara aodh tempest; do
         deploy_single_proposal $proposal
         safely oncontroller check_crm_failcounts
     done
@@ -4035,6 +4052,14 @@ function oncontroller_check_crm_failcounts
     return 0
 }
 
+function oncontroller_set_maintenancemode
+{
+    local mode=$1
+
+    crm configure property maintenance-mode=$mode
+    return 0
+}
+
 function oncontroller_mount_localreposdir
 {
     # use the local cache if available. This is done by mounting the local
@@ -4248,7 +4273,7 @@ function oncontroller_testsetup
         nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
     fi
 
-    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
+    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --nic net-name=fixed --security-group testvm testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
@@ -4704,16 +4729,25 @@ function onadmin_testsetup
     # use local cache whenever possible
     oncontroller mount_localreposdir
 
+    keystoneret=0
+
+    if iscloudver 7plus && [[ $cloudsource =~ 'develcloud' ]] ; then
+        [[ $hacloud = 1 ]] && oncontroller set_maintenancemode true
+        test_keystone_toggle_ssl
+        keystoneret=$?
+
+        # Make sure everything is in sync before continuing
+        crowbar_proposal_commit provisioner
+
+        # Now turn maintenance back on
+        [[ $hacloud = 1 ]] && oncontroller set_maintenancemode false
+    fi
+
     oncontroller testsetup
     ret=$?
 
-    # Run endpoint toggle after crm failcount check, this is expected to be
-    # disruptive to services.
-    if iscloudver 7plus && [[ $cloudsource =~ 'develcloud' ]] ; then
-        test_keystone_toggle_ssl
-    fi
-
     echo "Tests on controller: $ret"
+    echo "Keystone Toggle SSL: $keystoneret"
     echo "Ceph Tests: $cephret"
     echo "RadosGW S3 Tests: $s3radosgwret"
 

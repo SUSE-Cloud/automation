@@ -6,7 +6,6 @@
   gather_facts: True
   vars:
     task: "tempest"
-    subunit_tools_venv: "~/subunit-tools-venv"
     tempest_results_subunit: "~/tempest.subunit.log"
     subunit_xml_results: "~/testr_crowbar.xml"
     subunit_html_results: "~/testr_crowbar.html"
@@ -25,22 +24,35 @@
           debug:
             msg: "http://{{ ansible_host }}:9091/"
 
-        - name: Ensure setuptools, virtualenv and subunit2html are installed
+        - name: Install package dependencies
           zypper:
             name: "{{ item }}"
             state: present
           loop:
             - "python-setuptools"
             - "python-os-testr" # includes subunit2html.py
-            - "python-virtualenv"
+            - "python-python-subunit"
 
-        - name: Ensure subunit and junitxml tools venv exists
-          pip:
-            name: "{{ item }}"
-            virtualenv: "{{ subunit_tools_venv }}"
-          loop:
-            - "junitxml"
-            - "python-subunit"
+        - name: Ensure leap repo for python-junitxml is in place
+          zypper_repository:
+            repo: "http://download.opensuse.org/distribution/leap/\
+              {{ (ansible_distribution_major_version|int > 12) | ternary(ansible_distribution_major_version, ansible_distribution_major_version|int + 30) }}\
+              .{{ ansible_distribution_release }}/repo/oss/"
+            name: leap
+            state: present
+            disable_gpg_check: yes
+            runrefresh: yes
+
+        - name: Install python-junitxml
+          zypper:
+            name: python-junitxml
+            state: present
+
+        - name: Remove leap repo for python-junitxml
+          zypper_repository:
+            name: leap
+            state: absent
+            runrefresh: yes
 
         - include_role:
             name: crowbar_setup
@@ -59,8 +71,9 @@
           fail:
             msg: "{{ task }} failed."
       always:
+
         - name: Generate xml subunit results
-          shell: "{{ subunit_tools_venv }}/bin/subunit2junitxml {{ tempest_results_subunit }} > {{ subunit_xml_results }}"
+          shell: "subunit2junitxml {{ tempest_results_subunit }} > {{ subunit_xml_results }}"
           changed_when: false
           failed_when: false
 
@@ -69,8 +82,8 @@
           changed_when: false
           failed_when: false
 
-        - name: Get '{{ tempest_run_filter }}' results from subunit
-          command: "{{ subunit_tools_venv }}/bin/subunit-stats {{ tempest_results_subunit }}"
+        - name: Get results from subunit
+          command: "subunit-stats {{ tempest_results_subunit }}"
           failed_when: false
           register: _test_results
 

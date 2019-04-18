@@ -24,6 +24,7 @@ pipeline {
             export OS_CLOUD=${OS_CLOUD:-'engcloud-cloud-ci'}
             export KEYNAME=${KEYNAME:-'engcloud-cloud-ci'}
             export INTERNAL_SUBNET="${PREFIX}-subnet"
+            export INTERNAL_NETWORK="${PREFIX}-net"
             export ANSIBLE_RUNNER_DIR="${WORKSPACE}/${BUILD_NUMBER}"
 
             # Make sure the job has a cloud available, and environemnt

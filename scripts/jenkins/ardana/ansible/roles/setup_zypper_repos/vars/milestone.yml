@@ -15,7 +15,7 @@
 #
 ---
 
-milestone: "{{ cloudsource | regex_search('(M\\d+|RC\\d|GMC)$') }}"
+milestone: "{{ cloudsource | regex_search('(M\\d+|RC\\d|GMC\\d?)$') }}"
 built_from: "{{ media[cloud_release].url }}/{{ media[cloud_release].iso }}"
 media_build_version: "{{ media_url.content | regex_search('SUSE-OPENSTACK-CLOUD-\\d-x86_64-Build\\d{4}') }}"
 

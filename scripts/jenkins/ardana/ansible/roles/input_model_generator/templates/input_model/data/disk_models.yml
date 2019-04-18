@@ -107,7 +107,7 @@
 
 {%         endif %}
 
-{%       elif service_component_group == 'COMPUTE' %}
+{%       elif service_component_group == 'COMPUTE' and not cinder_lvm_enabled %}
 {%         set ns.drive_idx = ns.drive_idx+1 %}
 
       - name: vg-comp
@@ -121,7 +121,7 @@
             fstype: ext4
             mkfs-opts: -O large_file
 
-{%       elif service_component_group == 'DBMQ' %}
+{%       elif service_component_group == 'DBMQ' and not ardana_dbmq_use_root_volume %}
 {%         set ns.drive_idx = ns.drive_idx+1 %}
 
       - name: ardana-dbmq

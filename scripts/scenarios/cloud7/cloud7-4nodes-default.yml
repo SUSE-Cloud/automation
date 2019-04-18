@@ -20,6 +20,8 @@ proposals:
             params: ''
           @@controller2@@:
             params: ''
+    drbd:
+      enabled: true
   deployment:
     elements:
       pacemaker-cluster-member:

@@ -11,7 +11,7 @@ from gerrit_settings import gerrit_project_map  # noqa: E402
 def main():
     print('(', end='')
     first = True
-    for project in gerrit_project_map():
+    for project in gerrit_project_map(sys.argv[1]):
         if first:
             first = False
         else:
