@@ -69,14 +69,14 @@
             warn: False
             creates: "~/rpms/rpms_{{ inventory_hostname }}_{{ state }}.yaml"
 
-        - name: Store lists of installed packages from nodes on "{{ ardana_env }}"
+        - name: Fetch lists of installed packages from nodes on "{{ ardana_env }}"
           fetch:
             src: "{{ item }}"
             dest: "{{ item }}"
           with_items:
             - "~/rpms/rpms_{{ inventory_hostname }}_{{ state }}.txt"
             - "~/rpms/rpms_{{ inventory_hostname }}_{{ state }}.yaml"
-          when: "'cloud_virt_hosts' not in group_names"
+          when: "'cloud_virt_hosts' in group_names"
 
       rescue:
         - include_role:
