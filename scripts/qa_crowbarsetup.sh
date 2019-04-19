@@ -2092,7 +2092,7 @@ function setup_trusted_cert
         scp $cn.key $node:$keyfile
     done
     for node in $(get_all_discovered_nodes); do
-        scp rootca.pem $node:/etc/pki/trust/anchors/rootca.pem
+        cat rootca.pem | ssh $node 'cat >> /etc/pki/trust/anchors/rootca.pem'
         ssh $node update-ca-certificates
     done
 }
