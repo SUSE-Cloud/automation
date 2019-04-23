@@ -69,17 +69,25 @@
             warn: False
             creates: "~/rpms/rpms_{{ inventory_hostname }}_{{ state }}.yaml"
 
-        - name: Transfer lists of installed packages from nodes to "{{ ardana_env }}"
-          synchronize:
-            src: "{{ item }}"
-            dest: "{{ item }}"
-          with_items:
-            - "~/rpms/rpms_{{ inventory_hostname }}_{{ state }}.txt"
-            - "~/rpms/rpms_{{ inventory_hostname }}_{{ state }}.yaml"
-          delegate_to: "{{item}}"
-          delegate_facts: True
-          loop: "{{groups['cloud_virt_hosts']}}"
-          when: "'cloud_virt_hosts' not in group_names"
+        # - name: Transfer plaintext lists of installed packages from nodes to "{{ ardana_env }}"
+        #   synchronize:
+        #     src: "~/rpms/rpms_{{ inventory_hostname }}_{{ state }}.txt"
+        #     dest: "~/rpms/rpms_{{ inventory_hostname }}_{{ state }}.txt"
+        #     mode: pull
+        #   delegate_to: "{{item}}"
+        #   delegate_facts: True
+        #   loop: "{{groups['cloud_virt_hosts']}}"
+        #   when: "'cloud_virt_hosts' not in group_names"
+
+        # - name: Transfer yaml lists of installed packages from nodes to "{{ ardana_env }}"
+        #   synchronize:
+        #     src: "~/rpms/rpms_{{ inventory_hostname }}_{{ state }}.yaml"
+        #     dest: "~/rpms/rpms_{{ inventory_hostname }}_{{ state }}.yaml"
+        #     mode: pull
+        #   delegate_to: "{{item}}"
+        #   delegate_facts: True
+        #   loop: "{{groups['cloud_virt_hosts']}}"
+        #   when: "'cloud_virt_hosts' not in group_names"
 
       rescue:
         - include_role:
