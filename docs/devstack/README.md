@@ -87,7 +87,7 @@ e.g.:
     cat <<EOF >devstack-branch-env.yaml
     parameters:
       devstack_extra_config: |
-        NOVA_REPO=https://review.openstack.org/p/openstack/nova
+        NOVA_REPO=https://review.opendev.org/p/openstack/nova
         NOVA_BRANCH=refs/changes/50/5050/1
     EOF
 
