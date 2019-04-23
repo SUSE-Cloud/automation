@@ -26,8 +26,7 @@
           # https://github.com/openstack-infra/project-config/blob/master/jenkins/scripts/gerrit-git-prep.sh
           #
 
-          GERRIT_SITE='https://review.openstack.org'
-          GIT_ORIGIN='git://git.openstack.org'
+          GERRIT_SITE='https://review.opendev.org'
 
           # git can sometimes get itself infinitely stuck with transient network
           # errors or other issues with the remote end.  This wraps git in a
@@ -56,7 +55,7 @@
             done
           }
           if [ -z "$GERRIT_SITE" ]; then
-            echo "The gerrit site name (eg 'https://review.openstack.org') must be the first argument."
+            echo "The gerrit site name (eg 'https://review.opendev.org') must be the first argument."
             exit 1
           fi
 
@@ -67,8 +66,6 @@
 
           if [ -z "$GIT_ORIGIN" ] || [ -n "$ZUUL_NEWREV" ]; then
             GIT_ORIGIN="$GERRIT_SITE/p"
-            # git://git.openstack.org/
-            # https://review.openstack.org/p
           fi
 
           if [ -z "$ZUUL_REF" ]; then
