@@ -70,17 +70,3 @@
     tempestoptions: --smoke
     jobs:
         - 'cloud-mkcloud{version}-job-uefi-{arch}'
-- project:
-    name: cloud-mkcloud9-aarch64
-    disabled: false
-    version: 9
-    previous_version: 8
-    arch: aarch64
-    label: openstack-mkcloud-SLE12-{arch}
-    tempestoptions: --smoke
-    jobs:
-        - 'cloud-mkcloud{version}-job-2nodes-{arch}'
-        - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
-        - 'cloud-mkcloud{version}-job-btrfs-{arch}'
-        - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
-        - 'cloud-mkcloud{version}-job-raid-{arch}'
