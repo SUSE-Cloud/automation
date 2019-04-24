@@ -378,19 +378,15 @@ outputs:
     value: { get_attr: [ my_floating_ip, floating_ip_address ] }
 EOF
 
-use_openstack_stack=1
-# older versions don't have a fully working openstackclient for Heat
+use_openstack_floating=1
+# older versions don't have a fully working openstackclient for FIPs
 case "$cloudsource" in
-    openstackjuno|openstackliberty)
-        use_openstack_stack=
+    openstacknewton|openstackocata)
+        use_openstack_floating=
     ;;
 esac
 
-if [[ $use_openstack_stack ]]; then
-    openstack stack create -t $(readlink -e $PWD/testvm.stack) teststack
-else
-    heat stack-create -f $(readlink -e $PWD/testvm.stack) teststack
-fi
+openstack stack create -t $(readlink -e $PWD/testvm.stack) teststack
 
 sleep 60
 
@@ -401,36 +397,32 @@ if [ "$with_barbican" = "yes" ] ; then
     openstack secret list
 fi
 
-FLOATING_IP=$(eval echo $(heat output-show teststack server_floating_ip))
+FLOATING_IP=$(openstack stack output show teststack server_floating_ip -f value -c output_value)
 echo "FLOATING IP: $FLOATING_IP"
 if [ -n "$FLOATING_IP" ]; then
     ping -c 2 $FLOATING_IP || true
+
+    # scientifically correct amount of sleeping
+    sleep 60
     ssh -o "StrictHostKeyChecking no" $ssh_user@$FLOATING_IP curl --silent www3.zq1.de/test || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
-    if [[ $use_openstack_stack ]]; then
-        openstack stack resource show teststack
-    else
-        heat resource-show teststack
-    fi
+    openstack stack resource show teststack
 
     exit 1
 fi
 
-if [[ $use_openstack_stack ]]; then
-    openstack stack delete --yes teststack || openstack stack delete teststack || :
-else
-    heat stack-delete teststack || :
-fi
+openstack stack delete --yes teststack || openstack stack delete teststack || :
 
 sleep 10
 
-# nova floating-ip-delete was removed in Pike
-if nova help floating-ip-delete; then
-    for i in $(nova floating-ip-list | grep -P -o "172.31\S+"); do nova floating-ip-delete $i; done
-else
+if [[ $use_openstack_floating = 1 ]]; then
     for fip in $(openstack floating ip list -f value -c 'Floating IP Address'); do openstack floating ip delete $fip; done
+else
+    for i in $(nova floating-ip-list | grep -P -o "172.31\S+"); do nova floating-ip-delete $i; done
 fi
+
+echo "Tempest.."
 
 # run tempest
 if [ -e /etc/tempest/tempest.conf ]; then
@@ -447,9 +439,7 @@ if [ -e /etc/tempest/tempest.conf ]; then
 
     pushd /var/lib/openstack-tempest-test/
 
-    # create a file to hold blacklisted tests
-    blacklist=qa_openstack_blacklist.txt
-    touch "${blacklist}"
+    blacklistoptions=
 
     # Handle OpenStack release specific blacklisting of known to fail tests
     # NOTE: Currently blacklisting only required for OpenStack Rocky which
@@ -459,10 +449,7 @@ if [ -e /etc/tempest/tempest.conf ]; then
     openstackrocky)
         # TODO(fmccarthy): Remove once we have addressed issues causing
         # failures for the neutron_tempest_plugin tests (SCRD-8681)
-        if rpm -q python-neutron-tempest-plugin > /dev/null 2>&1; then
-            # If neutron_tempest_plugin is installed then append list of known
-            # to fail tests to the blacklist file.
-            tee -a ${blacklist} << __EOF__
+        tee -a tempest-blacklist.txt << __EOF__
 # Blacklist the tests matching the pattern: neutron_tempest_plugin\.api\.admin\.test_tag\.Tag(Filter|)(QosPolicy|Trunk)TestJSON
 #neutron_tempest_plugin.api.admin.test_tag.TagFilterQosPolicyTestJSON.test_filter_qos_policy_tags
 id-c2f9a6ae-2529-4cb9-a44b-b16f8ba27832
@@ -473,7 +460,7 @@ id-4c63708b-c4c3-407c-8101-7a9593882f5f
 #neutron_tempest_plugin.api.admin.test_tag.TagFilterTrunkTestJSON.test_filter_trunk_tags
 id-3fb3ca3a-8e3a-4565-ba73-16413d445e25
 __EOF__
-        fi
+        blacklistoptions="--blacklist-file tempest-blacklist.txt"
         ;;
     esac
 
@@ -488,7 +475,7 @@ __EOF__
         if ! [ -d ".stestr" ]; then
             stestr init
         fi
-        stestr list --blacklist-file ${blacklist} >/dev/null
+        stestr list >/dev/null
     else
         echo "No .testr.conf or .stestr.conf in $(pwd)"
         exit 5
@@ -501,7 +488,7 @@ __EOF__
     fi
 
     if tempest help run; then
-        tempest run -t -s --blacklist-file ${blacklist} 2>&1 | tee console.log
+        tempest run -t -s $blacklistoptions 2>&1 | tee console.log
     else
         # run_tempest.sh is no longer available since tempest 16 (~ since Pike)
         ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
@@ -513,3 +500,5 @@ __EOF__
     [ $ret == 0 ] || exit 4
     popd
 fi
+
+echo "SUCCESS."
