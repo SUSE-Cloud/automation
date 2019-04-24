@@ -4152,8 +4152,10 @@ function oncontroller_testsetup
 
     local image_name="jeos"
     local flavor="m1.smaller"
+    local network=fixed
     local ssh_user="root"
     local local_image_path=""
+    local config_drive=false
 
     if ! glance_image_exists $image_name ; then
         if [[ $wanthyperv ]] ; then
@@ -4177,6 +4179,20 @@ function oncontroller_testsetup
                     openstack image create --public --disk-format qcow2 \
                     --container-format bare --property hypervisor_type=xen \
                     --property vm_mode=xen  $image_name | tee glance.out
+            fi
+        elif [[ $want_ironic = 1 ]] ; then
+            local image_filename="openstack/SLES12-SP4-JeOS.${arch}-12.4-OpenStack-Cloud-GM.qcow2"
+            [[ -n "${localreposdir_target}" ]] && local_image_path="${localreposdir_target}/images/x86_64/${image_filename}"
+
+            if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
+                openstack image create --public --property hypervisor_type=baremetal \
+                --disk-format qcow2 --container-format bare \
+                --file $local_image_path $image_name | tee glance.out
+            else
+                curl -s \
+                    $imageserver_url/$arch/$image_filename | \
+                    openstack image create --public --property hypervisor_type=baremetal \
+                    --disk-format qcow2 --container-format bare $image_name | tee glance.out
             fi
         else
             local image_filename="SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.${arch}-GM.qcow2"
@@ -4273,12 +4289,21 @@ function oncontroller_testsetup
         nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
     fi
 
-    timeout 10m nova boot --poll --image $image_name --flavor $flavor --key-name testkey --nic net-name=fixed --security-group testvm testvm | tee boot.out
+    if [[ $want_ironic = 1 ]] ; then
+        network=ironic
+        flavor=b1.small
+        ssh_user=sles
+        config_drive=true
+    fi
+
+    timeout 10m nova boot --poll --config-drive $config_drive --image $image_name \
+        --flavor $flavor --key-name testkey --nic net-name=$network \
+        --security-group testvm testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
     nova show "$instanceid"
-    vmip=`nova show "$instanceid" | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
+    vmip=`nova show "$instanceid" | perl -ne "m/$network.network [ |]*([0-9.]+)/ && print \\$1"`
     echo "VM IP address: $vmip"
     if [ -z "$vmip" ] ; then
         echofailed
@@ -4308,25 +4333,30 @@ function oncontroller_testsetup
     local volumeresult=""
     local portresult=0
 
-    # Workaround SLE12SP1 regression
-    iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
-    cinder list | grep -q available || cinder create 1
-    wait_for 9 5 "cinder list | grep available" "volume to become available" "volumecreateret=1"
-    volumeid=`cinder list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
-    nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
-    volumeattachret=$?
-    device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
-    wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
-    ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
-    rand=$RANDOM
-    ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
-    nova volume-detach "$instanceid" "$volumeid"
-    wait_for 29 5 "cinder show $volumeid | grep 'status.*available'" "volume to become available after detach" "volumeattachret=55"
-    nova volume-attach "$instanceid" "$volumeid" /dev/vdb
-    wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become reattached" "volumeattachret=56"
-    ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
-    ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
-    volumeresult="$volumecreateret & $volumeattachret"
+    # Ironic doesn't support attaching volumes (yet)
+    if [[ $want_ironic = 1 ]] ; then
+        volumeresult="skipped"
+    else
+        # Workaround SLE12SP1 regression
+        iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
+        cinder list | grep -q available || cinder create 1
+        wait_for 9 5 "cinder list | grep available" "volume to become available" "volumecreateret=1"
+        volumeid=`cinder list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
+        nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
+        volumeattachret=$?
+        device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
+        wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
+        ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
+        rand=$RANDOM
+        ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
+        nova volume-detach "$instanceid" "$volumeid"
+        wait_for 29 5 "cinder show $volumeid | grep 'status.*available'" "volume to become available after detach" "volumeattachret=55"
+        nova volume-attach "$instanceid" "$volumeid" /dev/vdb
+        wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become reattached" "volumeattachret=56"
+        ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
+        ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
+        volumeresult="$volumecreateret & $volumeattachret"
+    fi
 
     # cleanup so that we can run testvm without leaking volumes, IPs etc
     if iscloudver 7plus; then
@@ -4403,6 +4433,11 @@ function oncontroller_testsetup
     # check that no port is in binding_failed state
     for p in $(openstack port list -f csv -c ID --quote none | grep -v ID); do
         if openstack port show $p -f value | grep -qx binding_failed; then
+            # Ironic barclamp doesn't use ML2 yet so it will always show 'binding_failed'
+            # See: https://docs.openstack.org/ironic/latest/install/configure-networking.html
+            if openstack port show $p -f value -c binding_vnic_type | grep -qx baremetal; then
+                continue
+            fi
             echo "binding for port $p failed.."
             portresult=1
         fi
@@ -4728,7 +4763,12 @@ function onadmin_create_ironic_node
 
 function oncontroller_delete_ironic_node
 {
+    # Maintenance mode enables delete if node is in error state
+    openstack baremetal node maintenance set "$1" || true
     openstack baremetal node delete "$1" || true
+
+    # cleaning cycle is done here, wait some more time...
+    wait_for 60 10 "! openstack baremetal node show $1 > /dev/null" "node to get deleted"
 }
 
 function onadmin_delete_ironic_node
@@ -4738,6 +4778,25 @@ function onadmin_delete_ironic_node
     # additional checks.
     test -n "$novacontroller" || return 0
     oncontroller delete_ironic_node "$@"
+}
+
+function oncontroller_create_flavor
+{
+    local name=$1
+    local ram=$2
+    local vcpus=$3
+    local disk=$4
+
+    if openstack flavor show $name 2> /dev/null ; then
+        openstack flavor delete $name
+    fi
+    openstack flavor create $name --ram $ram --vcpus $vcpus --disk $disk
+}
+
+function onadmin_create_flavor
+{
+    get_novacontroller
+    oncontroller create_flavor "$@"
 }
 
 function onadmin_testsetup

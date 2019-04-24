@@ -872,6 +872,8 @@ function setup_ironic_test_env
             $deploy_interface \
             $host_admin_ip $ipmi_port $ipmi_user $ipmi_password
     done
+
+    onadmin create_flavor b1.small $ram_mb $vcpus $(( $ironicnode_hdd_size - 1 ))
 }
 
 function teardown_ironic_test_env
