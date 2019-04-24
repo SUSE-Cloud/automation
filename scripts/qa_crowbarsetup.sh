@@ -3314,7 +3314,7 @@ function onadmin_proposal
     done
     # Set the $novacontroller global variable so that we
     # can execute actions from the controller
-    get_novacontroller
+    get_controller
 
     # use local cache whenever possible
     oncontroller mount_localreposdir
@@ -3410,6 +3410,16 @@ function get_cluster_name
                         ['elements']['nova-controller']"`
     local cluster=${element#cluster:}
     echo $cluster
+}
+
+function get_controller
+{
+    if [[ $want_nova_proposal != 1 ]]; then
+        get_neutron_server_node
+        novacontroller=$NEUTRON_SERVER
+    else
+        get_novacontroller
+    fi
 }
 
 function get_novacontroller
