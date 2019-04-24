@@ -25,7 +25,7 @@
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
-                cloudsource=susecloud9
+                cloudsource=GM9+up
                 TESTHEAD=
                 want_test_updates=1
                 nodenumber=2
@@ -37,7 +37,7 @@
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
-                cloudsource=susecloud9
+                cloudsource=GM9+up
                 TESTHEAD=
                 want_test_updates=1
                 nodenumber=4
@@ -52,9 +52,9 @@
             - name: openstack-mkcloud
               node-label: cloud-trigger
               predefined-parameters: |
+                cloudsource=GM9+up
                 TESTHEAD=
                 want_test_updates=1
-                cloudsource=susecloud9
                 nodenumber=5
                 networkingmode=vxlan
                 crowbar_networkingmode=team

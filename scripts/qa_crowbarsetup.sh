@@ -670,24 +670,10 @@ function onadmin_prepare_cloud_repos
     fi
 
     case "$cloudsource" in
-        GM6)
+        GM6|GM7|GM8|GM9)
             addcloudpool
             ;;
-        GM6+up)
-            addcloudpool
-            addcloudmaintupdates
-            ;;
-        GM7)
-            addcloudpool
-            ;;
-        GM7+up)
-            addcloudpool
-            addcloudmaintupdates
-            ;;
-        GM8)
-            addcloudpool
-            ;;
-        GM8+up)
+        GM6+up|GM7+up|GM8+up|GM9+up)
             addcloudpool
             addcloudmaintupdates
             ;;
@@ -695,24 +681,10 @@ function onadmin_prepare_cloud_repos
 
     if [[ "$want_test_updates" = 1 ]] ; then
         case "$cloudsource" in
-            GM6)
+            GM6|GM7|GM8|GM9)
                 addslestestupdates
                 ;;
-            GM6+up)
-                addslestestupdates
-                addcloudtestupdates
-                ;;
-            GM7)
-                addslestestupdates
-                ;;
-            GM7+up)
-                addslestestupdates
-                addcloudtestupdates
-                ;;
-            GM8)
-                addslestestupdates
-                ;;
-            GM8+up)
+            GM6+up|GM7+up|GM8+up|GM9+up)
                 addslestestupdates
                 addcloudtestupdates
                 ;;
@@ -926,9 +898,11 @@ function onadmin_set_source_variables
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
         ;;
-        susecloud9)
-            CLOUDISOURL="$susedownload/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/"
-            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
+        GM9|GM9+up)
+            cs=$cloudsource
+            [[ $cs =~ GM9 ]] && cs=GM
+            CLOUDISOURL="${want_cloud9_iso_url:=$reposerver/install/SLE-12-SP4-Cloud9-$cs/}"
+            CLOUDISONAME=${want_cloud9_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-official"
         ;;
         GM6|GM6+up)
