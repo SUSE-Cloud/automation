@@ -489,6 +489,15 @@ def enhance_input_model(input_model):
             neutron_networks,
             ref_list_attr='network-group-routes')
 
+        # Network groups may contain references to control plane load
+        # balancers, which we have to transform into object references
+        # explicitly here
+        for cp in input_model['control-planes'].values():
+            link_elements_by_foreign_key_list(
+                network_group, 'load-balancers',
+                cp['load-balancers'],
+                ref_list_attr=None)
+
     # Based on the collected neutron networks and network tags, identify
     # which network group is linked to which neutron network, by looking
     # at the provider physical network settings
