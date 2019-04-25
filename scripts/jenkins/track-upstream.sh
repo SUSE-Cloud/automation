@@ -40,8 +40,11 @@ case $OBS_TYPE in
             Cloud:OpenStack:Rocky*)
                 OSC_BUILD_DIST=SLE_12_SP4
                 ;;
+            Cloud:OpenStack:Stein*)
+                OSC_BUILD_DIST=SLE_15
+                ;;
             Cloud:OpenStack:Master)
-                OSC_BUILD_DIST=SLE_12_SP4
+                OSC_BUILD_DIST=SLE_15
                 ;;
             *)
                 echo "Support missing"
