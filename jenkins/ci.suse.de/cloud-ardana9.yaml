@@ -15,7 +15,6 @@
     concurrent: False
     version: '9'
     ardana_env: 'cloud-ardana-gate{version}-slot'
-    deploy_and_update: false
     jobs:
         - '{ardana_gating_job}'
 
@@ -223,6 +222,23 @@
     controllers: '2'
     sles_computes: '0'
     rhel_computes: '2'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana9-job-std-min-suse-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    cloudsource: GM9+up
+    updates_test_enabled: false
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
