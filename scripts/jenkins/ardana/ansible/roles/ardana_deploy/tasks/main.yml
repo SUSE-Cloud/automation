@@ -97,9 +97,8 @@
   shell: grep  'public-KEY-API-extapi' /etc/hosts | awk {'print $1'}
   register: public_vip
 
-- name: Update /etc/hosts
-  lineinfile:
-    dest=/etc/hosts
-    line="{{ public_vip.stdout }}    {{ external_name }}"
-  become: yes
+- name: Update /etc/hosts on the deployer and controller nodes
+  shell: ansible -b -m lineinfile -a "dest=/etc/hosts line='{{ public_vip.stdout }}    {{ external_name }}'" OPS-LM--first-member,KEY-API
+  args:
+    chdir:"{{ ardana_scratch_path }}"
   when: external_name | default('') != ''
