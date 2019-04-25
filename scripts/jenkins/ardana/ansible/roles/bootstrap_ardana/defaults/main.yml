@@ -32,7 +32,7 @@ cobbler_requires:
     url: "http://{{ sles_media_server }}/install/SLE-12-SP3-Server-GM/SLE-12-SP3-Server-DVD-x86_64-GM-DVD1.iso"
     download_when: "{{ cloud_release == 'cloud8' and is_physical_deploy }}"
   - name: "sles12sp4.iso"
-    url: "http://{{ sles_media_server }}/install/SLE-12-SP4-Server-RC1/SLE-12-SP4-Server-DVD-x86_64-RC1-DVD1.iso"
+    url: "http://{{ sles_media_server }}/install/SLE-12-SP4-Server-GM/SLE-12-SP4-Server-DVD-x86_64-GM-DVD1.iso"
     download_when: "{{ cloud_release == 'cloud9' and is_physical_deploy }}"
   - name: "rhel7.iso"
     url: "http://10.84.144.252/compute_iso/{{ rhel_iso[rhel_os] }}"

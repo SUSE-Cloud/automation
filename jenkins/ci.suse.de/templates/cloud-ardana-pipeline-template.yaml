@@ -46,24 +46,6 @@
             - develcloud9
             - GM9
             - GM9+up
-            - cloud9M3
-            - cloud9M4
-            - cloud9M5
-            - cloud9M6
-            - cloud9M7
-            - cloud9M8
-            - cloud9M9
-            - cloud9M10
-            - cloud9RC1
-            - cloud9RC2
-            - cloud9RC3
-            - cloud9RC4
-            - cloud9RC5
-            - cloud9RC6
-            - cloud9RC7
-            - cloud9GMC1
-            - cloud9GMC2
-            - cloud9GMC
           description: >-
             The cloud repository (from provo-clouddata) to be used for testing.
             This value can take the following form:
@@ -111,24 +93,8 @@
             - hosGM8+up
             - stagingcloud9
             - develcloud9
-            - cloud9M3
-            - cloud9M4
-            - cloud9M5
-            - cloud9M6
-            - cloud9M7
-            - cloud9M8
-            - cloud9M9
-            - cloud9M10
-            - cloud9RC1
-            - cloud9RC2
-            - cloud9RC3
-            - cloud9RC4
-            - cloud9RC5
-            - cloud9RC6
-            - cloud9RC7
-            - cloud9GMC1
-            - cloud9GMC2
-            - cloud9GMC
+            - GM9
+            - GM9+up
           description: >-
             Only valid if update_after_deploy is true. The cloud repository
             (from provo-clouddata) to be used to update.
