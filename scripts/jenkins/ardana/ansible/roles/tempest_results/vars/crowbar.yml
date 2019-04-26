@@ -1,0 +1,5 @@
+---
+
+tempest_results_subunit: "~/tempest.subunit.log"
+subunit_xml_results: "~/testr_crowbar.xml"
+subunit_html_results: "~/testr_crowbar.html"
