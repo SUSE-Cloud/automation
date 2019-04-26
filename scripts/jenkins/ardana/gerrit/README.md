@@ -74,13 +74,13 @@ Depends-On: I75b266da99e7dcb948f10d182e7f00bb3debfac6
 * Gerrit change URL (recommended):
 
 ```
-Depends-On: https://gerrit.suse.provo.cloud/#/c/1234
+Depends-On: https://gerrit.prv.suse.net/#/c/1234
 ```
 
 or:
 
 ```
-Depends-On: https://gerrit.suse.provo.cloud/1234
+Depends-On: https://gerrit.prv.suse.net/1234
 ```
 
 Explicit dependencies are purely functional. While it is possible to use an explicit dependency between Gerrit changes
@@ -146,7 +146,7 @@ The [gerrit_review.py](gerrit_review.py) script can be used to post comments and
 This script requires [Gerrit credentials](#gerrit-credentials) to be configured on the host.
 
 ```
-machine gerrit.suse.provo.cloud
+machine gerrit.prv.suse.net
   login gerrituser
   password QLvl2Ktft6n3dFGFJ+VbGwvrAdU1kQsNVrzniZt8lA
 ```
@@ -169,7 +169,7 @@ The following criteria must be met by a Gerrit change REST API object in order t
 between the Gerrit change and the target branch.
 3. the `submittable` flag must be set, meaning that the change has been
 approved by the project submit rules configured on the Gerrit server, In the case of
-`gerrit.suse.provo.cloud`, these rules are:
+`gerrit.prv.suse.net`, these rules are:
 
  * at least one `Code-Review+2` label value
  * no `Code-Review-2` label values
@@ -181,7 +181,7 @@ approved by the project submit rules configured on the Gerrit server, In the cas
 *NOTE*: the `submittable` and `mergeable` flags do not reflect the status of [implicit dependencies](#implicit-dependencies),
 when these are present. These flags only reflect the status of the change on its own.
 
-*UPDATE*: with the introduction of the `QE-Review` label, the `gerrit.suse.provo.cloud`
+*UPDATE*: with the introduction of the `QE-Review` label, the `gerrit.prv.suse.net`
 submit rules were modified to also include the following for branches corresponding to released Cloud versions:
 
  * at least one `QE-Review+1` label value
@@ -226,7 +226,7 @@ Scripts that perform any type of update on Gerrit changes require that the `~/.n
 with valid HTTP Gerrit credentials, e.g.:
 
 ```
-machine gerrit.suse.provo.cloud
+machine gerrit.prv.suse.net
   login gerrituser
   password QLvl2Ktft6n3dFGFJ+VbGwvrAdU1kQsNVrzniZt8lA
 ```
