@@ -21,6 +21,8 @@ network_groups:
     tagged_vlan: false
     component_endpoints:
       - CLM
+    routes:
+      - default
 
   - name: MANAGEMENT
     hostname_suffix: mgmt
@@ -29,8 +31,6 @@ network_groups:
       - MANAGEMENT
       - INTERNAL-API
       - NEUTRON-VLAN
-    routes:
-      - default
 
   - name: EXTERNAL-API
     hostname_suffix: extapi
