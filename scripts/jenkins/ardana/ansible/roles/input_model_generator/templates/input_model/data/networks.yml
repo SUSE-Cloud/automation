@@ -37,18 +37,13 @@
       vlanid: {{ ns.net_id }}
 {%   endif %}
       tagged-vlan: {{ network_group['tagged_vlan']|default('False')|lower }}
-{%   if (ipv6 | default(false)) == true %}
-{%   if ns.net_id != gen_subnet_start %}
-      cidr: fd00:0:0:{{ ns.net_id }}::/64
-      gateway-ip: fd00:0:0:{{ ns.net_id }}::1
-{%   else %}
-      cidr: {{ subnet_prefix }}.{{ ns.net_id }}.0/24
-      gateway-ip: {{ subnet_prefix }}.{{ ns.net_id }}.1
-{%   endif %}
-{%   else  %}
-      cidr: {{ subnet_prefix }}.{{ ns.net_id }}.0/24
-      gateway-ip: {{ subnet_prefix }}.{{ ns.net_id }}.1
-{%   endif %}
+{%     if ipv6 and ns.net_id != gen_subnet_start %}
+      cidr: {{ subnet_prefix.ipv6 }}:{{ ns.net_id }}::/64
+      gateway-ip: {{ subnet_prefix.ipv6 }}:{{ ns.net_id }}::1
+{%     else  %}
+      cidr: {{ subnet_prefix.ipv4 }}.{{ ns.net_id }}.0/24
+      gateway-ip: {{ subnet_prefix.ipv4 }}.{{ ns.net_id }}.1
+{%     endif %}
 {%   endif %}
       network-group: {{ network_group.name|upper }}
 

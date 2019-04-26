@@ -61,6 +61,8 @@ sles_cloud_version:
 rhel_os: CentOS_75
 rhel_os_version: "{{ rhel_os.split('_')[1] }}"
 
+ipv6: False
+
 updates_test_enabled: False
 
 update_after_deploy: False

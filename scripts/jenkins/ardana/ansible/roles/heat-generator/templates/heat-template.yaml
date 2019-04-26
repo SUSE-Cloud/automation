@@ -21,11 +21,7 @@ parameters:
     type: string
     label: Default CIDR
     description: Default CIDR value to use for networks which do not have CIDR specified
-{%   if (ipv6 | default(false)) == true %}
-    default: "2001::/64"
-{%    else   %}
-    default: "1.1.1.0/24"
-{%    endif  %}
+    default: {{ ipv6 | ternary("2001::/64", "1.1.1.0/24") }}
 
 resources:
 
@@ -51,11 +47,7 @@ resources:
       name: {{ heat_resource_name_prefix }}_dummy_subnet
       network_id: { get_resource: default_network }
       cidr: { get_param: default_subnet_cidr }
-{%   if (ipv6 | default(false)) == true %}
-      ip_version: 6
-{%    else   %}
-      ip_version: 4
-{%    endif  %}
+      ip_version: {{ ipv6 | ternary(6, 4) }}
       enable_dhcp: False
 
   # networks and subnets
@@ -90,21 +82,15 @@ resources:
 {%     endfor %}
 {%   endif  %}
 {%   if network.external and dns_servers is defined %}
-{%   if (ipv6 | default(false)) == false %}
+{%     if not ipv6 %}
       dns_nameservers:
-{%     for dns_server in dns_servers %}
+{%       for dns_server in dns_servers %}
         - {{ dns_server }}
-{%     endfor %}
+{%       endfor %}
+{%     endif  %}
 {%   endif  %}
-{%   endif  %}
-
-
-{%   if (ipv6 | default(false)) == true %}
-{%   if network.is_conf %}
-      ip_version: 4
-{%   else   %}
+{%   if ipv6 and not network.is_conf %}
       ip_version: 6
-{%   endif  %}
 {%   else   %}
       ip_version: 4
 {%   endif  %}

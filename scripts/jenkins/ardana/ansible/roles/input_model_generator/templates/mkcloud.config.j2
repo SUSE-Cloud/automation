@@ -106,14 +106,19 @@ export want_node_aliases=controller={{ controllers | int }},compute-kvm={{ compu
 export want_test_updates={{ updates_test_enabled | ternary (1, 0) }}
 export want_swift=1
 
+export want_ipv6={{ ipv6 | ternary (1, 0) }}
+
 # FIXME: these need to be generated ouf of the scenario generator
 # for now, set them to match the crowbar scenario
 
-export net_public={{ subnet_prefix }}.{{ gen_subnet_start+1 }}
-export net_sdn={{ subnet_prefix }}.{{ gen_subnet_start+2 }}
-export net_storage={{ subnet_prefix }}.{{ gen_subnet_start+3 }}
-export net_fixed={{ subnet_prefix }}.{{ gen_subnet_start+4 }}
-export net_ceph={{ subnet_prefix }}.{{ gen_subnet_start+5 }}
+{% set ipsep = ipv6 | ternary (':', '.') %}
+{% set subnet_prefix = ipv6 | ternary (subnet_prefix.ipv6, subnet_prefix.ipv4) %}
+
+export net_public={{ subnet_prefix }}{{ ipsep }}{{ gen_subnet_start+1 }}
+export net_sdn={{ subnet_prefix }}{{ ipsep }}{{ gen_subnet_start+2 }}
+export net_storage={{ subnet_prefix }}{{ ipsep }}{{ gen_subnet_start+3 }}
+export net_fixed={{ subnet_prefix }}{{ ipsep }}{{ gen_subnet_start+4 }}
+export net_ceph={{ subnet_prefix }}{{ ipsep }}{{ gen_subnet_start+5 }}
 
 export vlan_public={{ gen_subnet_start+1 }}
 export vlan_sdn={{ gen_subnet_start+2 }}

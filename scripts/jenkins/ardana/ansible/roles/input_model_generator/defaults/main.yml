@@ -46,8 +46,16 @@ cp_prefix: cp1
 max_host_prefix_len: "{{ 33-(cp_prefix|length) }}"
 host_prefix: "{{ ('ardana-' ~ ardana_env)[:max_host_prefix_len|int-1] if ardana_env is defined else 'ardana' }}"
 
-# First two octets of the generated subnet prefixes for Ardana networks
-subnet_prefix: 192.168
+# First octets of the generated subnet prefixes for Ardana networks
+subnet_prefix:
+  ipv4: 192.168
+  ipv6: fd00:0:0
+
+# First octets of the generated subnet prefixes for Ardana neutron networks
+neutron_subnet_prefix:
+  ipv4: 172
+  ipv6: fd00:1:0
+
 # Start value for the third octet for the generated subnet prefixes and also
 # start of generated VLAN IDs for Ardana networks
 gen_subnet_start: 100
