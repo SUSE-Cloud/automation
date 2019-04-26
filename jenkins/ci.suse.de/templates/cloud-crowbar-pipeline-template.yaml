@@ -144,6 +144,12 @@
           default: '{ses_enabled|true}'
           description: Configure SES backend for glance, cinder and nova
 
+      - bool:
+          name: ipv6
+          default: '{ipv6|false}'
+          description: >-
+            Enable ipv6 support in the cloud configuration
+
       - validating-string:
           name: extra_repos
           default: ''

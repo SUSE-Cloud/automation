@@ -14,6 +14,22 @@
         - '{crowbar_job}'
 
 - project:
+    name: cloud-crowbar9-job-ipv6-x86_64
+    crowbar_job: '{name}'
+    cloudsource: stagingcloud9
+    ardana_env: cloud-ardana-ci-slot
+    scenario_name: crowbar
+    scenario_file: cloud9/cloud9-2nodes-ses.yml
+    controllers: '1'
+    computes: '1'
+    ses_enabled: true
+    ipv6: true
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{crowbar_job}'
+
+- project:
     name: cloud-crowbar9-job-ha-x86_64
     crowbar_job: '{name}'
     cloudsource: stagingcloud9
