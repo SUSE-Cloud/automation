@@ -141,7 +141,7 @@
     clm_model: standalone
     controllers: '2'
     sles_computes: '1'
-    ses_enabled: true
+    ses_enabled: false
     ses_rgw_enabled: false
     ipv6: true
     triggers:

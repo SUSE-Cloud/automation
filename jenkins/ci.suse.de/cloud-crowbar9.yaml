@@ -22,7 +22,7 @@
     scenario_file: cloud9/cloud9-2nodes-ses.yml
     controllers: '1'
     computes: '1'
-    ses_enabled: true
+    ses_enabled: false
     ipv6: true
     triggers:
      - timed: 'H H * * *'
