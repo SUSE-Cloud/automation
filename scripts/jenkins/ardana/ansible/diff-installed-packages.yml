@@ -43,7 +43,7 @@
             name: "{{ item }}"
             state: present
           loop:
-            - "python-3"
+            - "python3"
           when: "'cloud_virt_hosts' not in group_names"
 
         - name: Ensure leap repo for python3-virtualenv is in place
@@ -75,14 +75,14 @@
             name: "{{ item }}"
             state: present
           loop:
-            - "python-3setuptools"
+            - "python3-setuptools"
           when: "'cloud_virt_hosts' not in group_names"
 
         - name: Ensure structurediff venv exists
           pip:
             name: "{{ item }}"
             virtualenv: "{{ structurediff_venv }}"
-            virtualenv_python: 
+            virtualenv_python: python3
           loop:
             - "structurediff"
             # depends on deepdiff, which is only supported on python3
