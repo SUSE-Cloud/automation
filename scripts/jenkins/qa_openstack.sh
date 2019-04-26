@@ -73,7 +73,7 @@ function addslesrepos {
         $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER/x86_64/update/" SLES$VERSION-Updates
         ;;
     *)
-        for prod in SLE-Product-SLES SLE-Module-Basesystem SLE-HA SLE-Module-Legacy SLE-Module-Development-Tools SLE-Module-Server-Applications; do
+        for prod in SLE-Product-SLES SLE-Module-Basesystem SLE-HA SLE-Module-Legacy SLE-Module-Development-Tools SLE-Module-Server-Applications SLE-Module-Development-Tools-OBS; do
             $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/$prod/$REPOVER/x86_64/product/" $prod-$VERSION-Pool
             $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/$prod/$REPOVER/x86_64/update/" $prod-$VERSION-Updates
         done
