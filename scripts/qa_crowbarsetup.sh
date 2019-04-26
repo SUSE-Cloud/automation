@@ -4140,19 +4140,15 @@ function oncontroller_testsetup
     local image_name="jeos"
     local flavor="m1.smaller"
     local network=fixed
-    local ssh_user="root"
+    local ssh_user="sles"
     local local_image_path=""
     local config_drive=false
 
     if ! glance_image_exists $image_name ; then
-        if [[ $wanthyperv ]] ; then
-            mount $nfsserver_ip:/srv/nfs/ /mnt/
-            $zypper in virt-utils
-            qemu-img convert -O vpc /mnt/images/SP3-64up.qcow2 /tmp/SP3.vhd
-            openstack image create --public --disk-format vhd --container-format bare --property hypervisor_type=hyperv --file /tmp/SP3.vhd $image_name | tee glance.out
-            rm /tmp/SP3.vhd ; umount /mnt
-        elif [[ $wantxenpv ]] ; then
+        if [[ $wantxenpv ]] ; then
             local image_filename="jeos-64-pv.qcow2"
+            # Broken image
+            ssh_user="root"
             [[ -n "${localreposdir_target}" ]] && local_image_path="${localreposdir_target}/images/${image_filename}"
 
             if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
@@ -4182,7 +4178,7 @@ function oncontroller_testsetup
                     --disk-format qcow2 --container-format bare $image_name | tee glance.out
             fi
         else
-            local image_filename="SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.${arch}-GM.qcow2"
+            local image_filename="SLES12-SP4-JeOS.${arch}-12.4-OpenStack-Cloud-GM.qcow2"
             [[ -n "${localreposdir_target}" ]] && local_image_path="${localreposdir_target}/images/x86_64/${image_filename}"
 
             if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
@@ -4281,7 +4277,6 @@ function oncontroller_testsetup
     if [[ $want_ironic = 1 ]] ; then
         network=ironic
         flavor=b1.small
-        ssh_user=sles
         config_drive=true
     fi
 

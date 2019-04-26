@@ -160,7 +160,7 @@ function onhost_cacheclouddata
                 echo "images/$a/other/Fedora-Atomic-26.qcow2"
                 echo "images/$a/other/manila-service-image.x86_64-0.13.0-Build14.1.qcow2"
                 # need for the testsetup step
-                echo "images/$a/SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.x86_64-GM.qcow2"
+                echo "images/$a/SLES12-SP4-JeOS.x86_64-12.4-OpenStack-Cloud-GM.qcow2"
             fi
 
             # now cache the admin image
