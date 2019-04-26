@@ -57,7 +57,7 @@
     version: 9
     previous_version: 8
     arch: x86_64
-    tempestoptions: --parallel
+    tempestoptions: --parallel --concurrency 3
     label: openstack-mkcloud-SLE12-x86_64
     jobs:
          - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
