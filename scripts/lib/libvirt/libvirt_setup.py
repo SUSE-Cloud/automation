@@ -180,6 +180,11 @@ def get_net_for_nic(args, index):
 def net_interfaces_config(args, nicmodel):
     nic_configs = []
     bootorderoffset = 2
+    nicdriver = ''
+
+    if 'virtio' in nicmodel:
+        nicdriver = '<driver name="vhost" queues="2"/>'
+
     for index, mac in enumerate(args.macaddress):
         mainnicaddress = get_mainnic_address(index)
         values = dict(
@@ -188,6 +193,7 @@ def net_interfaces_config(args, nicmodel):
             nicindex=index,
             net=get_net_for_nic(args, index),
             macaddress=mac,
+            nicdriver=nicdriver,
             nicmodel=nicmodel,
             bootorder=bootorderoffset + (index * 10),
             mainnicaddress=mainnicaddress)
