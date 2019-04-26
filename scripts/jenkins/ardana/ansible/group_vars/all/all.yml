@@ -14,6 +14,9 @@
 # under the License.
 #
 ---
+ardana_env: localhost
+
+cloudsource: stagingcloud9
 
 cloud_product: "ardana"
 #cloud_product: "crowbar"
