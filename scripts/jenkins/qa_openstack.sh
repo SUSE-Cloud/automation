@@ -152,7 +152,7 @@ case "$cloudsource" in
         osrelease=${osrelease^}
         $zypper ar -G -f $cloudopenstackmirror/$osrelease/$REPO/ cloud
         if test -n "$OSHEAD" ; then
-            if [ "Rocky" = "$osrelease" ]; then
+            if [[ "$osrelease" =~ (Rocky|Stein) ]]; then
                 $zypper ar -G -f $cloudopenstackmirror/$osrelease:/ToTest/$REPO/ cloudhead
             else
                 $zypper ar -G -f $cloudopenstackmirror/$osrelease:/Staging/$REPO/ cloudhead
