@@ -8,7 +8,7 @@ import sys
 from functools import partial
 
 try:
-    from pygerrit2 import GerritRestAPI, GerritReview, HTTPDigestAuthFromNetrc
+    from pygerrit2 import GerritRestAPI, GerritReview, HTTPBasicAuthFromNetrc
 except ImportError:
     # Only reviewing and merging functionality depends on pygerrit2
     pass
@@ -23,7 +23,7 @@ GERRIT_VERIFY = os.environ.get('GERRIT_VERIFY', False) in ['true', '1', True]
 # we preserve the order in which they are discovered.
 DEPENDS_ON_RE = re.compile(
     r"^\W*Depends-On: ("
-    r"((http(s)?:\/\/)?gerrit\.suse\.provo\.cloud\/(\/)?(\#\/c\/)?(\d+).*?)"
+    r"((http(s)?:\/\/)?gerrit\.prv\.suse\.net\/(\/)?(\#\/c\/)?(\d+).*?)"
     r"|(I[0-9a-f]{40})"
     r")\s*$",
     re.MULTILINE | re.IGNORECASE)
@@ -314,7 +314,7 @@ class GerritChange(GerritApiCaller):
     def review(self, label=None, vote=1, message=''):
         print_err("Posting {} review for change: {}".format(
             " {}: {}".format(label, vote) if label else '', self))
-        auth = HTTPDigestAuthFromNetrc(url=GERRIT_URL)
+        auth = HTTPBasicAuthFromNetrc(url=GERRIT_URL)
         rest = GerritRestAPI(url=GERRIT_URL, auth=auth, verify=GERRIT_VERIFY)
         rev = GerritReview()
         rev.set_message(message)
@@ -324,7 +324,7 @@ class GerritChange(GerritApiCaller):
         rest.review(self.id, self.patchset, rev)
 
     def merge(self):
-        auth = HTTPDigestAuthFromNetrc(url=GERRIT_URL)
+        auth = HTTPBasicAuthFromNetrc(url=GERRIT_URL)
         rest = GerritRestAPI(url=GERRIT_URL, auth=auth, verify=GERRIT_VERIFY)
         url_path = '/changes/{}/submit'.format(self.id)
         rest.post(url_path)
