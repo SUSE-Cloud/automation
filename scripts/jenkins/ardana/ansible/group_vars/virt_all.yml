@@ -20,6 +20,8 @@ ses_rgw_port: 8081
 
 ardana_extra_vars:
   nova_migrate_enabled: "{{ ardana_nova_migrate_enabled }}"
+  nova_cpu_mode: custom
+  nova_cpu_model: Westmere
   keystone_wsgi_admin_process_count: 2
   keystone_wsgi_public_process_count: 6
   neutron_api_workers: 2
