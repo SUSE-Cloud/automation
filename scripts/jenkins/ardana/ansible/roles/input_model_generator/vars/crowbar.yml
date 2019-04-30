@@ -4,7 +4,10 @@
 controllers: 1
 computes: 1
 
-subnet_prefix: 192.168
+subnet_prefix:
+  ipv4: 192.168
+  ipv6: fd00:0:0
+
 gen_subnet_start: 124
 gen_ip_start: 10
 # The gap to be left between the admin node IP and the rest of the nodes

@@ -32,14 +32,14 @@
 
   baremetal:
     netmask: {{ bm_info.networks.bm_netmask if bm_info is defined else '255.255.255.0' }}
-    subnet: {{ subnet_prefix }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.0
+    subnet: {{ subnet_prefix.ipv4 }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.0
 
   servers:
 {% for service_group in scenario['service_groups'] if service_group['member_count']|int %}
 {%   for idx in range(service_group['member_count']|int) %}
 {%     set server_id = "%s-%04d"|format(service_group.name, idx+1) %}
     - id: {{ bm_info.servers[ns.server_idx].id if bm_info is defined else server_id }}
-      ip-addr: {{ subnet_prefix }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.{{ bm_info.networks.bm_subnet_start + ns.server_idx if bm_info is defined else ns.server_idx + gen_ip_start }}
+      ip-addr: {{ subnet_prefix.ipv4 }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.{{ bm_info.networks.bm_subnet_start + ns.server_idx if bm_info is defined else ns.server_idx + gen_ip_start }}
       role: {{ service_group.name|upper }}-ROLE
       server-group: RACK{{ (idx%3)+1 }}
       nic-mapping: {{ bm_info.servers[ns.server_idx].nic_mapping if bm_info is defined else 'HEAT' }}

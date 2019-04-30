@@ -427,9 +427,9 @@
 
       - bool:
           name: ipv6
-          default: false
+          default: '{ipv6|false}'
           description: >-
-            Use ipv6 networks in the cloud input model.
+            Enable ipv6 support in the cloud configuration
 
       - text:
           name: extra_params
