@@ -27,6 +27,7 @@ $cpuflags
       <target dev='$cloud-a'/>
       <source network='$cloud-admin'/>
       <model type='virtio'/>
+      <driver name="vhost" queues="2"/>
       $mainnicaddress
     </interface>
 $serialdevice

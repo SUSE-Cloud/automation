@@ -45,6 +45,7 @@ pipeline {
               --container-format bare \
               --${image_visibility} \
               --property hw_rng_model='virtio' \
+              --property hw_vif_multiqueue_enabled='True' \
               ${sles_image}-update
 
           if [[ $image_visibility == shared ]]; then

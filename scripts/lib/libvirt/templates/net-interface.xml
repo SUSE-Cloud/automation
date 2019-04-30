@@ -3,6 +3,7 @@
   <target dev='$cloud-$nodecounter-$nicindex'/>
   <source network='$cloud-$net'/>
   <model type='$nicmodel'/>
+  $nicdriver
   $mainnicaddress
   <boot order='$bootorder'/>
 </interface>

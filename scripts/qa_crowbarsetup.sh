@@ -4188,11 +4188,13 @@ function oncontroller_testsetup
             if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
                 openstack image create --public --property hypervisor_type=kvm \
                 --disk-format qcow2 --container-format bare \
+                --property hw_vif_multiqueue_enabled='True' \
                 --file $local_image_path $image_name | tee glance.out
             else
                 curl -s \
                     $imageserver_url/$arch/$image_filename | \
                     openstack image create --public --property hypervisor_type=kvm \
+                    --property hw_vif_multiqueue_enabled='True' \
                     --disk-format qcow2 --container-format bare $image_name | tee glance.out
             fi
         fi
