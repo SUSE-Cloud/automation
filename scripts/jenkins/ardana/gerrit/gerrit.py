@@ -99,7 +99,7 @@ class GerritChange(GerritApiCaller):
         Get a change object from a deterministic numeric change number
         """
         query = '/changes/{}/'.format(change_id)
-        query += '?o=ALL_REVISIONS&o=ALL_COMMITS'
+        query += '?o=ALL_REVISIONS&o=ALL_COMMITS&o=SUBMITTABLE'
         response_json = self._query_gerrit(query)
 
         if branch and response_json['branch'] != branch:
@@ -116,7 +116,7 @@ class GerritChange(GerritApiCaller):
         query = '/changes/?q={}'.format(change_id)
         if branch:
             query += '+branch:{}'.format(branch)
-        query += '&o=ALL_REVISIONS&o=ALL_COMMITS'
+        query += '&o=ALL_REVISIONS&o=ALL_COMMITS&o=SUBMITTABLE'
         response_json = self._query_gerrit(query)
 
         if len(response_json) > 1:
@@ -352,7 +352,7 @@ class GerritChangeSet(GerritApiCaller):
         Get a set of change objects matching the supplied query
         """
         query = '/changes/?q={}'.format(query)
-        query += '&o=ALL_REVISIONS&o=ALL_COMMITS'
+        query += '&o=ALL_REVISIONS&o=ALL_COMMITS&o=SUBMITTABLE'
         response_json = self._query_gerrit(query)
         self._change_objects = response_json
 
