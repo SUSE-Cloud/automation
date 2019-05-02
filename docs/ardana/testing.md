@@ -150,6 +150,10 @@ Setting up a local Ardana test environment:
 * clone the [automation repository](https://github.com/SUSE-Cloud/automation) locally
 * for building test packages from gerrit changes, the osc utility needs to be correctly installed and configured on
 the local host.
+* Install openstack cli client:
+```
+sudo zypper install python-openstackclient
+```
 * set up an OpenStack cloud configuration reflecting your engineering cloud credentials (for virtual Ardana environments).
 To do that, create an `~/.config/openstack/clouds.yaml` file with the following contents reflecting your engineering cloud account:
 
