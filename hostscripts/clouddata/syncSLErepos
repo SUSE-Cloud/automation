@@ -274,7 +274,7 @@ for version in 6 5 4 2.1; do
         # sync version 6 from ibs while in development
         poolsource=
         if [[ $version == 6 ]]; then
-            poolsource=${ibs_source}/SUSE\:/SLE-15\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
+            poolsource=${ibs_source}/SUSE\:/SLE-15-SP1\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
         else
             poolsource=${ibs_source}/SUSE/Products/Storage/$version/$arch/product/
         fi
