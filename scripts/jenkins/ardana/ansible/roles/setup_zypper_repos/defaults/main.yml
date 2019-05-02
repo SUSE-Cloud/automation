@@ -33,6 +33,10 @@ cloudsource_repos:
   develcloud9: "SUSE-OpenStack-Cloud-9-devel"
   GM9: "SUSE-OpenStack-Cloud-9-Pool"
 
+staging_isos:
+  SUSE-OpenStack-Cloud-9-devel-staging:
+    url: "http://repos.prv.suse.net/home:/jzerebecki:/DC9S/images/iso/SUSE-OPENSTACK-CLOUD-9-x86_64-Media1.iso"
+
 cloud_brand: "{{ cloudsource.startswith('hos') | ternary('HPE-Helion-OpenStack', 'SUSE-OpenStack-Cloud') }}"
 
 repository_mnemonics:
@@ -65,7 +69,8 @@ sles_test_repos_enabled: "{{ updates_test_enabled and ((task == 'deploy' and not
 cloud_test_repos_enabled: "{{ updates_test_enabled and 'GM' in cloudsource and ((task == 'deploy' and not update_after_deploy) or (task == 'update')) }}"
 
 repos_to_mount: "{{ repos_to_add | select('search', '.*-Pool$') | list }}"
-repos_to_sync: "{{ repos_to_add | difference(repos_to_mount) }}"
+repo_staging: "{{ repos_to_add | select('search', '.*-staging$') | list }}"
+repos_to_sync: "{{ repos_to_add | difference(repos_to_mount) | difference(repo_staging) }}"
 
 extra_repos_list: "{{ extra_repos.split(',') if extra_repos is defined and extra_repos | length > 0 else [] }}"
 cloudsource_repo: "{{ (task == 'update' and cloudsource is defined and cloudsource != '') | ternary('Updates', 'Pool') }}"

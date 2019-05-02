@@ -51,6 +51,25 @@
   until: sync_result.rc != 24
   delay: 300
 
+- name: Download staging repo iso
+  get_url:
+   url: "{{ staging_isos[item].url }}"
+   dest: "{{ local_repos_base_dir }}/{{ item }}.iso"
+  register: download_staging_repo_iso
+  until: download_staging_repo_iso is succeeded
+  retries: 5
+  delay: 3
+  loop: "{{ repo_staging }}"
+
+- name: Mount staging repo iso
+  mount:
+    src: "{{ local_repos_base_dir }}/{{ item }}.iso"
+    path: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}"
+    opts: loop,ro
+    state: mounted
+    fstype: iso9660
+  loop: "{{ repo_staging }}"
+
 - name: Mount repos that are not frequently updated
   mount:
     src: "{{ clouddata_server }}:/srv/nfs/repos/{{ ansible_architecture }}/{{ item }}"
