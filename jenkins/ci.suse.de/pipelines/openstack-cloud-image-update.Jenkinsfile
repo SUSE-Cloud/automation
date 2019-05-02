@@ -88,6 +88,28 @@ pipeline {
               --name ${sles_image} \
               ${sles_image}-update
       '''
+      sh '''
+          # Check if the old images are still used in any of the projects that the default CI user has access to
+          # and delete those that are no longer used
+
+          projects=$(openstack --os-cloud $os_cloud --os-interface public project list -f value -c ID)
+          old_images=$(openstack --os-cloud $os_cloud image list --status deactivated -f value -c Name|grep "${sles_image}-" || :)
+          for old_image in $old_images; do
+              in_use=false
+              for project in $projects; do
+                  servers_count=$(openstack --os-cloud $os_cloud --os-project-id $project server list -f value -c Name --image $old_image|wc -l)
+                  if [[ $servers_count > 0 ]]; then
+                      echo "Image $old_image is still in use by $servers_count servers in project $project, skipping..."
+                      in_use=true
+                      break
+                  fi
+              done
+              if ! $in_use; then
+                  echo "Image $old_image is no longer in use, deleting..."
+                  openstack --os-cloud $os_cloud image delete $old_image || :
+              fi
+          done
+      '''
     }
     cleanup {
       cleanWs()
