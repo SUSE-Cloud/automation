@@ -58,9 +58,13 @@ pipeline {
             env.qa_test_list = ''
           }
           sh('''
-            git clone $git_automation_repo --branch $git_automation_branch automation-git
-            cd automation-git
+            IFS='/' read -r -a repo_arr <<< "$git_automation_repo"
+            export git_automation_repo="${repo_arr[3]}"
+            # Need a local git clone copy to run from
+            export use_global_clone=false
+            curl https://raw.githubusercontent.com/$git_automation_repo/automation/$git_automation_branch/scripts/jenkins/ardana/openstack-ardana.prep.sh | bash
 
+            cd $WORKSPACE/automation-git
             if [ -n "$github_pr" ] ; then
               scripts/jenkins/ardana/pr-update.sh
             fi
