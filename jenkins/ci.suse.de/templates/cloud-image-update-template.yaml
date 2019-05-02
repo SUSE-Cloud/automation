@@ -1,5 +1,5 @@
 - job-template:
-    name: '{ardana_image_update_job}'
+    name: '{cloud_image_update_job}'
     project-type: pipeline
     disabled: '{obj:disabled|False}'
     concurrent: '{concurrent|False}'
@@ -34,10 +34,10 @@
               - private - installs a private image
 
       - string:
-          name: openstack_ardana_job
-          default: '{openstack_ardana_job|openstack-ardana}'
+          name: openstack_cloud_job
+          default: '{openstack_cloud_job}'
           description: >-
-            The Ardana job to use to validate the updated image
+            The cloud integration Jenkins job to use to validate the updated image
 
       - string:
           name: git_automation_repo
@@ -79,5 +79,5 @@
               - ${{git_automation_branch}}
             browser: auto
             wipe-workspace: false
-      script-path: jenkins/ci.suse.de/pipelines/openstack-ardana-image-update.Jenkinsfile
+      script-path: jenkins/ci.suse.de/pipelines/openstack-cloud-image-update.Jenkinsfile
       lightweight-checkout: false

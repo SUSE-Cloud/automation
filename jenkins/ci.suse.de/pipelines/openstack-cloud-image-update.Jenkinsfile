@@ -1,5 +1,5 @@
 /**
- * The openstack-ardana-image-update Jenkins Pipeline
+ * The openstack-cloud-image-update Jenkins Pipeline
  * This job automates updating the base SLES image used by virtual cloud nodes.
  */
 
@@ -67,7 +67,7 @@ pipeline {
     stage('integration test') {
       steps {
         script {
-          def slaveJob = build job: openstack_ardana_job, parameters: [
+          def slaveJob = build job: openstack_cloud_job, parameters: [
               string(name: 'git_automation_repo', value: "$git_automation_repo"),
               string(name: 'git_automation_branch', value: "$git_automation_branch"),
               text(name: 'extra_params', value: "$extra_params\nsles_image=${sles_image}-update")
