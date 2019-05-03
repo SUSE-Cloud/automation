@@ -1,5 +1,5 @@
 /**
- * The openstack-ardana-image-update Jenkins Pipeline
+ * The openstack-cloud-image-update Jenkins Pipeline
  * This job automates updating the base SLES image used by virtual cloud nodes.
  */
 
@@ -67,7 +67,7 @@ pipeline {
     stage('integration test') {
       steps {
         script {
-          def slaveJob = build job: openstack_ardana_job, parameters: [
+          def slaveJob = build job: openstack_cloud_job, parameters: [
               string(name: 'git_automation_repo', value: "$git_automation_repo"),
               string(name: 'git_automation_branch', value: "$git_automation_branch"),
               text(name: 'extra_params', value: "$extra_params\nsles_image=${sles_image}-update")
@@ -87,6 +87,28 @@ pipeline {
           openstack --os-cloud $os_cloud image set \
               --name ${sles_image} \
               ${sles_image}-update
+      '''
+      sh '''
+          # Check if the old images are still used in any of the projects that the default CI user has access to
+          # and delete those that are no longer used
+
+          projects=$(openstack --os-cloud $os_cloud --os-interface public project list -f value -c ID)
+          old_images=$(openstack --os-cloud $os_cloud image list --status deactivated -f value -c Name|grep "${sles_image}-" || :)
+          for old_image in $old_images; do
+              in_use=false
+              for project in $projects; do
+                  servers_count=$(openstack --os-cloud $os_cloud --os-project-id $project server list -f value -c Name --image $old_image|wc -l)
+                  if [[ $servers_count > 0 ]]; then
+                      echo "Image $old_image is still in use by $servers_count servers in project $project, skipping..."
+                      in_use=true
+                      break
+                  fi
+              done
+              if ! $in_use; then
+                  echo "Image $old_image is no longer in use, deleting..."
+                  openstack --os-cloud $os_cloud image delete $old_image || :
+              fi
+          done
       '''
     }
     cleanup {

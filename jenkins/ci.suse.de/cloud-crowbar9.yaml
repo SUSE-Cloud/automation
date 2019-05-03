@@ -44,3 +44,14 @@
     jobs:
         - '{crowbar_job}'
 
+- project:
+    name: cloud-crowbar9-job-image-update
+    cloud_image_update_job: '{name}'
+    triggers:
+    openstack_cloud_job: cloud-crowbar9-job-x86_64
+    download_image_url: http://download.suse.de/ibs/Devel:/Cloud:/Images/images-SLE_12_SP4/ardana-jeos-SLE12SP4.x86_64.qcow2.xz
+    sles_image: cleanvm-jeos-SLE12SP4
+    triggers:
+     - timed: 'H H * * H(6-7)'
+    jobs:
+        - '{cloud_image_update_job}'
