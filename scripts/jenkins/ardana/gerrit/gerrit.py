@@ -17,7 +17,7 @@ import requests
 
 GERRIT_URL = 'https://gerrit.prv.suse.net'
 
-GERRIT_VERIFY = os.environ.get('GERRIT_VERIFY', False) in ['true', '1', True]
+GERRIT_VERIFY = os.environ.get('GERRIT_VERIFY', True) in ['true', '1', True]
 
 # We use a more complex regex that matches both formats of Depends-On so that
 # we preserve the order in which they are discovered.
