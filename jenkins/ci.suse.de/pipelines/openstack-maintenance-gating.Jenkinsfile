@@ -31,7 +31,7 @@ pipeline {
           currentBuild.displayName = "#${BUILD_NUMBER}: ${maint_updates}"
 
           sh('''
-            git clone $git_automation_repo --branch $git_automation_branch automation-git
+            curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/ardana/openstack-ardana.prep.sh | bash
           ''')
 
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"

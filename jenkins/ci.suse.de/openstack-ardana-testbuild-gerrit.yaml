@@ -48,7 +48,10 @@
       - string:
           name: git_automation_branch
           default: master
-          description: The git automation branch
+          description: >-
+            The git automation branch. To test a GitHub automation pull-request, use the following branch value:
+
+              pr/<pull-request-number>
 
       - text:
           name: extra_params
@@ -72,5 +75,6 @@
               - ${git_automation_branch}
             browser: auto
             wipe-workspace: false
+            refspec: "+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pr/*"
       script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
       lightweight-checkout: false

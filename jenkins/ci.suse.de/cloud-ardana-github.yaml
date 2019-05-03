@@ -1,0 +1,71 @@
+- project:
+    name: cloud-ardana8-job-demo-github-x86_64
+    ardana_job: '{name}'
+    cloudsource: stagingcloud8
+    ardana_env: cloud-ardana-gerrit-slot
+    scenario_name: standard
+    clm_model: integrated
+    controllers: '1'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer|octavia'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana9-job-demo-github-x86_64
+    ardana_job: '{name}'
+    cloudsource: stagingcloud9
+    ardana_env: cloud-ardana-gerrit-slot
+    scenario_name: standard
+    clm_model: integrated
+    controllers: '1'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer|octavia'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-std-min-github-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-gerrit-slot
+    cloudsource: develcloud8
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana9-job-std-min-github-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-gerrit-slot
+    cloudsource: develcloud9
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: openstack-ardana-github
+    ardana_github_job: '{name}'
+    ardana_env: cloud-ardana-gerrit-slot
+    reserve_env: true
+    integration_test_job: cloud-ardana9-job-std-min-github-x86_64
+    triggers:
+    jobs:
+        - '{ardana_github_job}'

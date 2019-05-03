@@ -35,7 +35,9 @@ pipeline {
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${heat_action} ${ardana_env}"
           sh('''
-            git clone $git_automation_repo --branch $git_automation_branch automation-git
+            # Need a local git clone copy to run from
+            export use_global_clone=false
+            curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/ardana/openstack-ardana.prep.sh | bash
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
           ardana_lib.load_extra_params_as_vars(extra_params)

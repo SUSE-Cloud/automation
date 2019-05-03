@@ -30,7 +30,7 @@ pipeline {
           currentBuild.displayName = "#${BUILD_NUMBER}: ${staging_build}"
 
           sh('''
-            git clone $git_automation_repo --branch $git_automation_branch automation-git
+            curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/ardana/openstack-ardana.prep.sh | bash
           ''')
 
           env.starttime = sh (
