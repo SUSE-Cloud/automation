@@ -91,9 +91,8 @@
           multi-select-delimiter: ','
           default-value: ''
           value: >-
-            ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,
-            identity,lbaas,magnum,manila,monasca,network,neutron-api,periodic,
-            periodic-virtual,refstack,swift,tests2skip,tests-ci,upgrade-ci,upgrade
+            ci,smoke,keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,
+            fwaas,vpnaas,designate,heat,ceilometer,magnum,manila,freezer,monasca
           description: >-
             Name of the filter file to use for tempest. Selecting multiple values
             will run tempest for each selected value.

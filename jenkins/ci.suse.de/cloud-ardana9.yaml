@@ -122,14 +122,34 @@
     controllers: '3'
     sles_computes: '2'
     rhel_computes: '0'
-    tempest_filter_list: 'ci'
     ses_enabled: true
     ses_rgw_enabled: false
-    qa_test_list: "\
-      iverify,cinder,heat,magnum,neutron,nova-attach,nova_volume,nova_server,\
-      nova_services,nova_flavor,nova_image,tempest_cleanup,nova_guest_image"
-    triggers:
-     - timed: 'H H * * *'
+    tempest_filter_list: "\
+      keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,\
+      designate,heat,magnum,monasca"
+    triggers: []
+    jobs:
+        - '{ardana_job}'
+
+
+- project:
+    name: cloud-ardana9-job-entry-scale-kvm-update-x86_64
+    ardana_job: '{name}'
+    ardana_env: cloud-ardana-ci-slot
+    cloudsource: develcloud9
+    update_after_deploy: true
+    update_to_cloudsource: stagingcloud9
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '2'
+    rhel_computes: '0'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    tempest_filter_list: "\
+      keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,\
+      designate,heat,magnum,monasca"
+    triggers: []
     jobs:
         - '{ardana_job}'
 
@@ -167,8 +187,8 @@
     ses_enabled: true
     ses_rgw_enabled: false
     tempest_filter_list: "\
-      ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,\
-      magnum,manila,monasca,network,neutron-api,swift"
+      ci,smoke,keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,\
+      designate,heat,magnum,monasca"
     qa_test_list: "\
       iverify,monasca-ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
       heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
@@ -195,8 +215,8 @@
     ses_enabled: true
     ses_rgw_enabled: false
     tempest_filter_list: "\
-      ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,identity,lbaas,\
-      magnum,manila,monasca,network,neutron-api,swift"
+      ci,smoke,keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,\
+      designate,heat,magnum,monasca"
     qa_test_list: "\
       iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,\
       heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,\
@@ -206,25 +226,6 @@
       service-ansible-playbooks,enable_tls,tempest_cleanup,nova_guest_image"
     rc_notify: 'true'
     triggers: []
-    jobs:
-        - '{ardana_job}'
-
-- project:
-    name: cloud-ardana9-job-std-3cp-devel-staging-updates-x86_64
-    ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
-    cloudsource: develcloud9
-    updates_test_enabled: true
-    update_after_deploy: true
-    update_to_cloudsource: stagingcloud9
-    scenario_name: standard
-    clm_model: standalone
-    controllers: '3'
-    sles_computes: '1'
-    ses_enabled: true
-    ses_rgw_enabled: false
-    triggers:
-     - timed: 'H H * * *'
     jobs:
         - '{ardana_job}'
 
