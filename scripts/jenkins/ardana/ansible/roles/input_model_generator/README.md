@@ -35,7 +35,7 @@ Example:
 ```
     ansible-playbook generate-input-model.yml \
       -e scenario_name=standard \
-      -e input_model_dir=/path/to/input-model
+      -e input_model_path=/path/to/input-model
       -e virt_config_file=/path/to/virt-config.yml
 ```
 
