@@ -4710,8 +4710,9 @@ function oncontroller_create_ironic_node
     local ipmi_user=$9
     local ipmi_pass=${10}
 
-    local deploy_initrd_uuid=$(glance image-list | grep suse-ironic-initrd | awk '{ print $2}')
-    local deploy_vmlinux_uuid=$(glance image-list | grep suse-ironic-vmlinux | awk '{ print $2}')
+    # pick latest versions of kernel/ramdisk images
+    local deploy_initrd_uuid=$(openstack image list -f value | grep ir-deploy-ramdisk | sort -V -k 2 | tail -n1 | awk '{print $1}')
+    local deploy_vmlinux_uuid=$(openstack image list -f value | grep ir-deploy-kernel | sort -V -k 2 | tail -n1 | awk '{print $1}')
 
     openstack baremetal node create \
         --driver ipmi \
