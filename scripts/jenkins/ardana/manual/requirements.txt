@@ -1,4 +1,6 @@
 ansible
 netaddr
 openstacksdk
+python-heatclient
+python-openstackclient
 sh
