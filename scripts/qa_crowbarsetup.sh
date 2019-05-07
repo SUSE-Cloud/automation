@@ -3738,6 +3738,14 @@ function oncontroller_setupproduction()
     openstack user create --password demo --email ashish.sodhi@suse.com --project demo demo
     openstack role add --project demo --user demo Member
 
+    openstack flavor create cloud-ardana-job-controller --ram 28672 --disk 120 --vcpus 4 --public --property hw_rng:allowed='True'
+    openstack flavor create cloud-ardana-job-compute --ram 8192 --disk 60 --vcpus 2 --public --property hw_rng:allowed='True'
+    openstack flavor create cloud-ardana-job-minimal --ram 4096 --disk 40 --vcpus 2 --public --property hw_rng:allowed='True'
+    openstack project create cloud-ci
+    openstack user create --email snica@suse.com --project cloud-ci cloud-ci
+    openstack role add --project cloud-ci --user cloud-ci Member
+    openstack role add --project cloud --user cloud-ci Member
+
     # import images
     for img in SLES12.qcow2 SLES12-SP1.qcow2 SLES12-SP2.qcow2 x86_64/SP4-64up.qcow2 cirros-0.3.4-x86_64-disk.img other/openSUSE-Leap-42.1.qcow2 other/openSUSE-Leap-42.1-OpenStack.x86_64-0.0.3-Build1.2.qcow2 Fedora-x86_64-20-20131211.1-sda.qcow2 x86_64/other/debian-jessie.qcow2 x86_64/other/debian-jessie-nopart.qcow2 x86_64/other/openSUSE-Leap-42.2-altimagebuild.qcow2 x86_64/other/openSUSE-Leap-42.2-OpenStack.x86_64-0.0.4-Build3.1.qcow2 ; do
         local bimg=$(basename $img)
