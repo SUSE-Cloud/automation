@@ -1,5 +1,5 @@
 - job-template:
-    name: '{ardana_gating_job}'
+    name: '{cloud_gating_job}'
     project-type: pipeline
     disabled: '{obj:disabled|False}'
     concurrent: '{concurrent|False}'
@@ -78,5 +78,5 @@
               - ${{git_automation_branch}}
             browser: auto
             wipe-workspace: false
-      script-path: jenkins/ci.suse.de/pipelines/openstack-ardana-gating.Jenkinsfile
+      script-path: jenkins/ci.suse.de/pipelines/cloud-gating.Jenkinsfile
       lightweight-checkout: false

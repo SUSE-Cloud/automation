@@ -1,17 +1,17 @@
 - project:
-    name: cloud-ardana8-gating-trigger
-    ardana_url_trigger_job: '{name}'
+    name: cloud-8-gating-trigger
+    cloud_url_trigger_job: '{name}'
     version: '8'
     url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-devel-staging/media.1/build'
     projects:
-      - project: 'cloud-ardana{version}-gating'
+      - project: 'cloud-{version}-gating'
         block: false
     jobs:
-        - '{ardana_url_trigger_job}'
+        - '{cloud_url_trigger_job}'
 
 - project:
     name: cloud-ardana8-updates-test-trigger
-    ardana_url_trigger_job: '{name}'
+    cloud_url_trigger_job: '{name}'
     version: '8'
     url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-Updates-test/SUSE:Maintenance:Test:OpenStack-Cloud:{version}:x86_64.repo'
     check_date: true
@@ -19,16 +19,16 @@
       - project: 'cloud-ardana{version}-job-entry-scale-kvm-pcloud001-x86_64'
         block: false
     jobs:
-        - '{ardana_url_trigger_job}'
+        - '{cloud_url_trigger_job}'
 
 - project:
-    name: cloud-ardana8-gating
-    ardana_gating_job: '{name}'
+    name: cloud-8-gating
+    cloud_gating_job: '{name}'
     concurrent: False
     version: '8'
     ardana_env: 'cloud-ardana-gate{version}-slot'
     jobs:
-        - '{ardana_gating_job}'
+        - '{cloud_gating_job}'
 
 - project:
     name: cloud-ardana8-job-std-3cp-x86_64

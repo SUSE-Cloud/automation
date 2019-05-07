@@ -1,5 +1,5 @@
 - job-template:
-    name: '{ardana_url_trigger_job}'
+    name: '{cloud_url_trigger_job}'
     project-type: multijob
     node: cloud-trigger
 

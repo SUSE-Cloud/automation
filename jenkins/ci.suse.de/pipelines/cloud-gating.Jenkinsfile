@@ -1,5 +1,5 @@
 /**
- * The openstack-ardana-gating Jenkins Pipeline
+ * The cloud-gating Jenkins Pipeline
  */
 
 def ardana_lib = null
