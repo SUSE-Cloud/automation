@@ -6,3 +6,4 @@
     repo-credentials: c2350527-476a-45df-b406-84f028614682
     jobs:
       - '{name}-integration'
+      - '{name}-nightly'
