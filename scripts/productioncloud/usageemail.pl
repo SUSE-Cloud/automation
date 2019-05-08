@@ -1,11 +1,13 @@
 #!/usr/bin/perl -w
+# input productioncloud/usagedump.sh JSON on stdin or via file:
+# username: {id:X, project: Y, ... name: }
 use strict; use JSON;
 my $debug=1;
 my $cloudname=`cat /etc/cloudname`; chomp($cloudname);
 my $shortcloudname=$cloudname; $shortcloudname=~s/\.suse\.de//;
 my $adminaddr=qq,bwiedemann+$shortcloudname\@suse.de,;
 $/=undef; my $userdata=decode_json(<>);
-foreach my $u (keys %$userdata) {
+foreach my $u (sort keys %$userdata) {
   foreach my $e (@{$userdata->{$u}}) { $e->{URI}="https://$cloudname/auth/switch/$e->{project}/?next=/project/instances/$e->{id}/"}
   my $userdb=`openstack user show $u --format shell`;
   $userdb=~m/^name="(.*)"$/m or next;
