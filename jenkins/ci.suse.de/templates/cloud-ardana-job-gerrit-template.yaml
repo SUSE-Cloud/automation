@@ -33,6 +33,22 @@
           description: >-
             Reserve the 'ardana_env' lockable resource throughout the execution of this job
 
+      - choice:
+          name: os_cloud
+          choices:
+            - 'engcloud'
+            - 'susecloud'
+          description: >-
+            The target OpenStack cloud platform used as infrastructure for a
+            virtual cloud deployment. Possible values are:
+
+              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
+            If the 'ardana_env' value (or the the reserved resource, when 'reserve_env' selected),
+            matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
+            the 'os_cloud' parameter is overridden to reflect the OpenStack platform associated with it.
+
       - validating-string:
           name: GERRIT_CHANGE_NUMBER
           default: ''
@@ -104,6 +120,19 @@
           default: '{git_automation_branch|master}'
           description: >-
             The git automation branch
+
+      - string:
+          name: os_project_name
+          default: ''
+          description: >-
+            The name of the OpenStack project that hosts the virtual cloud deployment
+            in the 'os_cloud' OpenStack cloud platform (leave empty to use the
+            default shared 'cloud' account).
+
+            If the 'ardana_env' value (or the reserved resource, when 'reserve_env' selected),
+            matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
+            the 'cloud-ci' OpenStack project used exclusively for the Cloud CI will be used
+            regardless of this parameter.
 
       - text:
           name: extra_params

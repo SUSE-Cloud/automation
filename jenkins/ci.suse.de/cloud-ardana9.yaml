@@ -268,11 +268,15 @@
 - project:
     name: cloud-ardana9-job-image-update
     cloud_image_update_job: '{name}'
-    triggers:
+    os_cloud:
+      - engcloud:
+          image_visibility: shared
+      - susecloud:
+          image_visibility: private
     openstack_cloud_job: cloud-ardana9-job-std-min-x86_64
     download_image_url: http://download.suse.de/ibs/Devel:/Cloud:/Images/images-SLE_12_SP4/ardana-jeos-lvm-SLE12SP4.x86_64.qcow2.xz
     sles_image: cleanvm-jeos-lvm-SLE12SP4
     triggers:
      - timed: 'H H * * H(6-7)'
     jobs:
-        - '{cloud_image_update_job}'
+        - '{cloud_image_update_job}-{os_cloud}'

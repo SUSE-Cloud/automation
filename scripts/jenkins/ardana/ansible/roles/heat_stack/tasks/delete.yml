@@ -20,21 +20,26 @@
 - block:
     - name: Delete stack '{{ heat_stack_name }}'
       os_stack:
-        cloud: "{{ os_cloud }}"
+        cloud:
+          cloud: "{{ os_cloud }}"
+          os_project_name: "{{ os_project_name }}"
         name: "{{ heat_stack_name }}"
         state: absent
 
   rescue:
     - name: Force delete servers from stack '{{ heat_stack_name }}'
       shell: |
-         openstack --os-cloud {{ os_cloud }} stack resource list --filter \
+         openstack --os-cloud {{ os_cloud }} --os-project-name {{ os_project_name }} \
+           stack resource list --filter \
            type=OS::Nova::Server -f value -c physical_resource_id {{ heat_stack_name }} |\
-           awk '{print "openstack --os-cloud '{{ os_cloud }}' server \
+           awk '{print "openstack --os-cloud '{{ os_cloud }}' --os-project-name '{{ os_project_name }}' server \
            delete --wait "$1 }' | sh -x || :
 
     - name: Retry delete stack '{{ heat_stack_name }}'
       os_stack:
-        cloud: "{{ os_cloud }}"
+        cloud:
+          cloud: "{{ os_cloud }}"
+          os_project_name: "{{ os_project_name }}"
         name: "{{ heat_stack_name }}"
         state: absent
 

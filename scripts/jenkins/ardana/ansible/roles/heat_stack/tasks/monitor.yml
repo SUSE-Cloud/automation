@@ -17,7 +17,8 @@
 
 - name: Monitor stack until deleted or not in a pending state
   command: |
-    openstack --os-cloud {{ os_cloud }} stack show {{ heat_stack_name }} \
+    openstack --os-cloud {{ os_cloud }} --os-project-name {{ os_project_name }} \
+      stack show {{ heat_stack_name }} \
       -c stack_status -f value
   register: stack_status
   retries: 60

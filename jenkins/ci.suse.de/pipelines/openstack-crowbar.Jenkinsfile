@@ -54,6 +54,7 @@ pipeline {
             fi
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.load_os_params_from_resource(ardana_env)
           ardana_lib.load_extra_params_as_vars(extra_params)
           ardana_lib.ansible_playbook('load-job-params',
                                       "-e jjb_type=job-template -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-crowbar-pipeline-template.yaml"
@@ -101,11 +102,12 @@ pipeline {
 
           ardana_lib.trigger_build('openstack-ardana-heat', [
             string(name: 'ardana_env', value: "$ardana_env"),
+            string(name: 'os_cloud', value: "$os_cloud"),
             string(name: 'heat_action', value: "create"),
             text(name: 'heat_template', value: heat_template),
             string(name: 'git_automation_repo', value: "$git_automation_repo"),
             string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'os_cloud', value: "$os_cloud"),
+            string(name: 'os_project_name', value: "$os_project_name"),
             text(name: 'extra_params', value: extra_params)
           ], false)
         }
@@ -158,10 +160,11 @@ pipeline {
             script {
               ardana_lib.trigger_build('openstack-ses', [
                 string(name: 'ses_id', value: "$ardana_env"),
+                string(name: 'os_cloud', value: "$os_cloud"),
                 string(name: 'network', value: "openstack-ardana-${ardana_env}_management_net"),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                string(name: 'os_cloud', value: "$os_cloud")
+                string(name: 'os_project_name', value: "$os_project_name")
               ], false)
             }
           }
@@ -253,14 +256,15 @@ pipeline {
 
               build job: 'openstack-ardana-heat', parameters: [
                 string(name: 'ardana_env', value: "$ardana_env"),
+                string(name: 'os_cloud', value: "$os_cloud"),
                 string(name: 'heat_action', value: "delete"),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                string(name: 'os_cloud', value: "$os_cloud"),
+                string(name: 'os_project_name', value: "$os_project_name"),
                 text(name: 'extra_params', value: extra_params)
               ], propagate: false, wait: false
             } else {
-              if (reserve_env == 'true') {
+              if (os_project_name == 'cloud-ci') {
                 echo """
 ******************************************************************************
 ** The admin node for the '${ardana_env}' virtual environment is reachable at:
@@ -281,6 +285,12 @@ pipeline {
 ******************************************************************************
                 """
               } else {
+                def cloud_url_text = "the cloud"
+                if (os_cloud == 'engcloud') {
+                  cloud_url_text="the engineering cloud at https://engcloud.prv.suse.net/project/stacks/"
+                } else if (os_cloud == 'susecloud') {
+                  cloud_url_text="the SUSE cloud at https://cloud.suse.de/project/stacks/"
+                }
                 echo """
 ******************************************************************************
 ** The admin node for the '${ardana_env}' virtual environment is reachable at:
@@ -290,13 +300,13 @@ pipeline {
 ** Please delete the 'openstack-ardana-${ardana_env}' stack when you're done,
 ** by using one of the following methods:
 **
-**  1. log into the ECP at https://engcloud.prv.suse.net/project/stacks/
+**  1. log into ${cloud_url_text}
 **  and delete the stack manually, or
 **
 **  2. (preferred) trigger a manual build for the openstack-ardana-heat job at
 **  https://ci.nue.suse.com/job/openstack-ardana-heat/build and use the
-**  same '${ardana_env}' ardana_env value and the 'delete' action for the
-**  parameters
+**  same '${ardana_env}' ardana_env value and the '${os_cloud}' os_cloud value
+**  and the 'delete' action for the parameters
 **
 ******************************************************************************
                 """

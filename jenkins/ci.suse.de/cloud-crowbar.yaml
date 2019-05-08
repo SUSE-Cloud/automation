@@ -8,6 +8,5 @@
     reserve_env: false
     cleanup: never
     ses_enabled: false
-    os_cloud: ''
     jobs:
         - '{crowbar_job}'

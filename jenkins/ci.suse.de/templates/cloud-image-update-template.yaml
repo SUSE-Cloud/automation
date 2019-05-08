@@ -1,5 +1,5 @@
 - job-template:
-    name: '{cloud_image_update_job}'
+    name: '{cloud_image_update_job}-{os_cloud}'
     project-type: pipeline
     disabled: '{obj:disabled|False}'
     concurrent: '{concurrent|False}'
@@ -11,6 +11,27 @@
     triggers: '{triggers}'
 
     parameters:
+
+      - validating-string:
+          name: ardana_env
+          default: '{os_cloud}-ci-slot'
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied ardana_env already
+            exists, it will be replaced.
+
+      - bool:
+          name: reserve_env
+          default: '{reserve_env|true}'
+          description: >-
+            Reserve the 'ardana_env' lockable resource throughout the execution of this job
+
       - string:
           name: sles_image
           default: '{sles_image|}'
@@ -26,6 +47,7 @@
       - choice:
           name: image_visibility
           choices:
+            - '{image_visibility|shared}'
             - 'shared'
             - 'private'
           description: >-
@@ -53,13 +75,24 @@
 
       - hidden:
           name: os_cloud
-          default: '{os_cloud|engcloud-cloud-ci-private}'
+          default: '{os_cloud}'
           description: >-
-            The OpenStack API credentials for the target OpenStack cloud.
+            The target OpenStack cloud platform. Possible values are:
+
+              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
+      - hidden:
+          name: os_project_name
+          default: '{os_project_name|cloud-ci}'
+          description: >-
+            The name of the OpenStack project used to update the image and to
+            host the virtual cloud deployment used to run integration tests
+            in the 'os_cloud' OpenStack cloud platform.
 
       - text:
           name: extra_params
-          default:
+          default: '{extra_params|}'
           description: >-
             This field may be used to define additional parameters, one per line, in the form:
 

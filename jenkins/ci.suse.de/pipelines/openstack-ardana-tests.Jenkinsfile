@@ -46,6 +46,7 @@ pipeline {
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
           ardana_lib.load_extra_params_as_vars(extra_params)
+          ardana_lib.load_os_params_from_resource(ardana_env)
           ardana_lib.ansible_playbook('load-job-params')
           ardana_lib.ansible_playbook('setup-ssh-access')
           ardana_lib.get_deployer_ip()

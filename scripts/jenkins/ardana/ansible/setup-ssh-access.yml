@@ -25,7 +25,8 @@
     - block:
         - name: Get vcloud node(s) IP(s) when heat output not available and virtual deploy
           command: |
-             openstack --os-cloud "{{ os_cloud }}" stack output show {{ heat_stack_name }} {{ item }} -c output_value -f value
+             openstack --os-cloud "{{ os_cloud }}" --os-project-name {{ os_project_name }} \
+               stack output show {{ heat_stack_name }} {{ item }} -c output_value -f value
           loop: "{{ cli_stack_queries }}"
           register: "os_stack_output"
           when:

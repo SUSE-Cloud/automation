@@ -37,6 +37,17 @@
             WARNING: if a heat stack associated with the supplied ses_id already
             exists, it will be replaced if this job is launched.
 
+      - choice:
+          name: os_cloud
+          choices:
+            - 'engcloud'
+            - 'susecloud'
+          description: >-
+            The target OpenStack cloud platform. Possible values are:
+
+              engcloud - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
       - string:
           name: server_key_name
           default: ""
@@ -88,11 +99,12 @@
             The git automation branch
 
       - string:
-          name: os_cloud
+          name: os_project_name
           default: ''
           description: >-
-            The OpenStack API credentials used to manage virtual clouds (leave
-            empty to use the default shared 'cloud' ECP account).
+            The name of the OpenStack project that hosts the virtual SES deployment
+            in the 'os_cloud' OpenStack cloud platform (leave empty to use the
+            default shared 'cloud' account).
 
     pipeline-scm:
       scm:
