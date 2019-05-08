@@ -679,10 +679,10 @@ def generate_heat_model(input_model, virt_config):
             end_addr = cidr[-2]
             for fixed_ip_addr in sorted(list(set(fixed_ip_addr_list))):
                 if start_addr <= fixed_ip_addr <= end_addr:
-                    if fixed_ip_addr-start_addr < end_addr-fixed_ip_addr:
-                        start_addr = fixed_ip_addr+1
+                    if fixed_ip_addr - start_addr < end_addr - fixed_ip_addr:
+                        start_addr = fixed_ip_addr + 1
                     else:
-                        end_addr = fixed_ip_addr-1
+                        end_addr = fixed_ip_addr - 1
             heat_network['allocation_pools'] = \
                 [[str(start_addr), str(end_addr)]]
 
@@ -949,7 +949,7 @@ def update_input_model(input_model, heat_template):
             physical_ports.append({
                 'logical-name': port['name'],
                 'type': 'simple-port',
-                'bus-address': "0000:00:{:02x}.0".format(port_idx+3)
+                'bus-address': "0000:00:{:02x}.0".format(port_idx + 3)
             })
 
         # Overwrite the mapping, if it's already defined
