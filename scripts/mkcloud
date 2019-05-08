@@ -617,6 +617,7 @@ function prepareinstcrowbar
 {
     echo "connecting to crowbar admin server at $adminip"
     ! [ -e crowbar.patch ] || $scp crowbar.patch root@$(wrap_ip $adminip):
+    ! [ -e network.json.patch ] || $scp network.json.patch root@$(wrap_ip $adminip):
     onadmin prepareinstallcrowbar
     return $?
 }
