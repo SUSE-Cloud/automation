@@ -43,7 +43,7 @@ EXAMPLES = '''
 
 
 def merge_input_model(data, input_model):
-    for key, value in data.iteritems():
+    for key, value in data.items():
         if key in input_model and isinstance(input_model[key], list) and value:
             input_model[key] += value
         else:
