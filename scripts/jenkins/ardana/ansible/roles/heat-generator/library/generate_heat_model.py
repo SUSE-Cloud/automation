@@ -21,6 +21,8 @@ from ansible.module_utils.basic import AnsibleModule
 
 from netaddr import IPAddress, IPNetwork
 
+from six import string_types
+
 DOCUMENTATION = '''
 ---
 module: generate_heat_model
@@ -83,7 +85,7 @@ references. The schema describing an element is structured as follows:
       'key': <name of attribute representing the key (default: name)>
       'foreign-keys': {
           <foreign key attribute>: {
-              'type': <foreign key atrribute data type: list|basestring>,
+              'type': <foreign key atrribute data type: list|string_types>,
               'target': [
                   <name of root element to which the key points>,
                   [<name of root element to which the key points>,]
@@ -110,7 +112,7 @@ input_model_schema = {
             'elements': {
                 'clusters': {
                     'foreign-keys': service_group_foreign_keys,
-                    },
+                },
                 'resources': {
                     'foreign-keys': service_group_foreign_keys,
                 },
@@ -121,13 +123,13 @@ input_model_schema = {
         'server-roles': {
             'foreign-keys': {
                 'disk-model': {
-                    'type': basestring,
+                    'type': string_types,
                     'target': [
                         'disk-models'
                     ]
                 },
                 'interface-model': {
-                    'type': basestring,
+                    'type': string_types,
                     'target': [
                         'interface-models'
                     ]
@@ -160,7 +162,7 @@ input_model_schema = {
         'networks': {
             'foreign-keys': {
                 'network-group': {
-                    'type': basestring,
+                    'type': string_types,
                     'target': [
                         'network-groups'
                     ]
@@ -173,19 +175,19 @@ input_model_schema = {
             'key': 'id',
             'foreign-keys': {
                 'role': {
-                    'type': basestring,
+                    'type': string_types,
                     'target': [
                         'server-roles'
                     ]
                 },
                 'nic-mapping': {
-                    'type': basestring,
+                    'type': string_types,
                     'target': [
                         'nic-mappings'
                     ]
                 },
                 'server-group': {
-                    'type': basestring,
+                    'type': string_types,
                     'target': [
                         'server-groups'
                     ]
@@ -301,7 +303,7 @@ def link_elements(element, target_element,
 def link_elements_by_foreign_key(element, foreign_key_attr, target_element_map,
                                  ref_list_attr, element_key=None):
     foreign_key = element.setdefault(foreign_key_attr)
-    if isinstance(foreign_key, basestring) and \
+    if isinstance(foreign_key, string_types) and \
             foreign_key in target_element_map:
         foreign_element = target_element_map[foreign_key]
         element[foreign_key_attr] = foreign_element
@@ -314,7 +316,7 @@ def link_elements_by_foreign_key_list(element, foreign_key_list_attr,
                                       element_key=None):
     foreign_key_list = element.setdefault(foreign_key_list_attr, [])
     for idx, foreign_key in enumerate(foreign_key_list):
-        if isinstance(foreign_key, basestring) and \
+        if isinstance(foreign_key, string_types) and \
                 foreign_key in target_element_map:
             foreign_element = target_element_map[foreign_key]
             foreign_key_list[idx] = foreign_element
@@ -354,7 +356,7 @@ def map_foreign_keys(root_element, element_name,
             input_model_schema['elements'][target]['prune'] = True
             if foreign_key['type'] == list:
 
-                if isinstance(element.get(attr_name), basestring):
+                if isinstance(element.get(attr_name), string_types):
                     element[attr_name] = [element[attr_name]]
                 link_elements_by_foreign_key_list(
                     element, attr_name,
@@ -362,7 +364,7 @@ def map_foreign_keys(root_element, element_name,
                     ref_list_attr_name,
                     element_key)
 
-            elif foreign_key['type'] == basestring:
+            elif foreign_key['type'] == string_types:
                 link_elements_by_foreign_key(
                     element, attr_name,
                     root_element[target],
