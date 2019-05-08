@@ -1,22 +1,22 @@
 - project:
-    name: cloud-ardana9-gating-trigger
-    ardana_url_trigger_job: '{name}'
+    name: cloud-9-gating-trigger
+    cloud_url_trigger_job: '{name}'
     version: '9'
     url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-devel-staging/media.1/build'
     projects:
-      - project: 'cloud-ardana{version}-gating'
+      - project: 'cloud-{version}-gating'
         block: false
     jobs:
-        - '{ardana_url_trigger_job}'
+        - '{cloud_url_trigger_job}'
 
 - project:
-    name: cloud-ardana9-gating
-    ardana_gating_job: '{name}'
+    name: cloud-9-gating
+    cloud_gating_job: '{name}'
     concurrent: False
     version: '9'
     ardana_env: 'cloud-ardana-gate{version}-slot'
     jobs:
-        - '{ardana_gating_job}'
+        - '{cloud_gating_job}'
 
 - project:
     name: cloud-ardana9-job-std-3cp-x86_64
