@@ -38,7 +38,7 @@ function is_defined {
 
 function setup_ansible_venv {
   if [ ! -d "$ANSIBLE_VENV" ]; then
-    virtualenv $ANSIBLE_VENV
+    virtualenv --python=python2.7 $ANSIBLE_VENV
     $ANSIBLE_VENV/bin/pip install --upgrade pip
     $ANSIBLE_VENV/bin/pip install -r $WORK_DIR/requirements.txt
   fi
