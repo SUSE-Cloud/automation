@@ -16,6 +16,7 @@
 #
 from collections import OrderedDict
 from copy import deepcopy
+from traceback import format_exc
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -978,8 +979,8 @@ def main():
         enhanced_input_model = enhance_input_model(input_model)
         heat_template = generate_heat_model(enhanced_input_model, virt_config)
         input_model = update_input_model(input_model, heat_template)
-    except Exception as e:
-        module.fail_json(msg="generate_heat_model.py: %s" % e)
+    except Exception:
+        module.fail_json(msg="generate_heat_model.py:\n%s" % format_exc())
     module.exit_json(rc=0, changed=False,
                      heat_template=heat_template,
                      input_model=input_model)

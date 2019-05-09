@@ -17,6 +17,7 @@
 
 import os
 from collections import OrderedDict
+from traceback import format_exc
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -90,8 +91,8 @@ def main():
 
     try:
         input_model = load_input_model(input_model_path)
-    except Exception as e:
-        module.fail_json(msg="load_input_model.py: %s" % e)
+    except Exception:
+        module.fail_json(msg="load_input_model.py: %s" % format_exc())
     module.exit_json(rc=0, changed=False, input_model=input_model)
 
 
