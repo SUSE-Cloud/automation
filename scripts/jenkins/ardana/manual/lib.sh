@@ -86,7 +86,7 @@ function ansible_playbook {
       pushd $AUTOMATION_DIR/scripts/jenkins/ardana/ansible
     fi
     echo "Running: ansible-playbook -e @$ARDANA_INPUT ${@}"
-    ansible-playbook -e @$ARDANA_INPUT "${@}"
+    ANSIBLE_STDOUT_CALLBACK=debug ansible-playbook --verbose --extra-vars @$ARDANA_INPUT "${@}"
     popd
   fi
 }
