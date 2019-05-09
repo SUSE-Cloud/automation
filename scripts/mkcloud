@@ -827,6 +827,21 @@ function proposal
     return $?
 }
 
+function start_vbmc
+{
+    local ironic_node=$1
+    local ipmi_port=$2
+    local ipmi_user=$3
+    local ipmi_password=$4
+    # make sure old vbmc is not interfering
+    vbmc stop $ironic_node || true
+    vbmc delete $ironic_node || true
+
+    vbmc add $ironic_node --port $ipmi_port \
+        --username $ipmi_user --password $ipmi_password
+    vbmc start $ironic_node
+}
+
 function setup_ironic_test_env
 {
     local ipmi_user=admin
@@ -855,13 +870,7 @@ function setup_ironic_test_env
             netstat -atun | grep -q ":$ipmi_port\s" || break;
         done
 
-        # start vbmc for this ironic node
-        vbmc add $ironic_node --port $ipmi_port \
-            --username $ipmi_user --password $ipmi_password
-
-        # sometimes `vbmc start` returns "BMC instance ... already running"
-        # on first attempt and/or if run to quickly
-        wait_for 5 2 "vbmc start $ironic_node" 'vbmc to start successfully'
+        wait_for 5 2 "start_vbmc $ironic_node $ipmi_port $ipmi_user $ipmi_password" 'vbmc to start successfully'
 
         # test if IPMI interface is working
         ipmitool -I lanplus -H $host_admin_ip -p $ipmi_port -U $ipmi_user -P $ipmi_password power status
