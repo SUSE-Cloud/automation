@@ -22,6 +22,7 @@ from ansible.module_utils.basic import AnsibleModule
 from netaddr import IPAddress, IPNetwork
 
 from six import string_types
+from six.moves import filter
 
 DOCUMENTATION = '''
 ---
@@ -428,9 +429,9 @@ def enhance_input_model(input_model):
     prune_input_model(input_model, input_model_schema)
 
     # Assume there is at most one neutron configuration data
-    neutron_config_data = filter(
+    neutron_config_data = list(filter(
         lambda config_data: 'neutron' in config_data['services'],
-        input_model['configuration-data'].values())
+        input_model['configuration-data'].values()))
     neutron_config_data = \
         input_model['neutron-config-data'] = \
         neutron_config_data[0] if neutron_config_data else None
@@ -929,8 +930,8 @@ def update_input_model(input_model, heat_template):
     :return:
     """
     for server in input_model['servers']:
-        heat_server = filter(lambda s: server['id'] == s['name'],
-                             heat_template['servers'])
+        heat_server = list(filter(lambda s: server['id'] == s['name'],
+                                  heat_template['servers']))
         if not heat_server:
             # Skip servers that have been filtered out
             # by the heat template generator
@@ -953,9 +954,9 @@ def update_input_model(input_model, heat_template):
             })
 
         # Overwrite the mapping, if it's already defined
-        existing_mapping = filter(lambda mapping:
-                                  mapping[1]['name'] == mapping_name,
-                                  enumerate(input_model['nic-mappings']))
+        existing_mapping = list(filter(lambda mapping:
+                                       mapping[1]['name'] == mapping_name,
+                                       enumerate(input_model['nic-mappings'])))
         if existing_mapping:
             input_model['nic-mappings'][existing_mapping[0][0]] = nic_mapping
         else:
