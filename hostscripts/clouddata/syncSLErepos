@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# provide a constant path for mounting as non-root user
+tmpiso=/srv/nfs/repos/.tmp.iso
+if [[ $UID == 0 ]] ; then
+    grep -q /mnt/cloud /etc/fstab ||
+        echo "$tmpiso /mnt/cloud iso9660 loop,ro,user" >> /etc/fstab
+
+    grep -q ^jenkins: /etc/passwd &&
+        exec sudo -u jenkins "$0" "$@"
+fi
+
 SITE_DEFAULT="nue"
 [[ $(hostname) =~ provo ]] && SITE_DEFAULT="prv"
 
@@ -75,9 +85,11 @@ mount_and_rsync()
     local to=$2
     local oneiso=`ls $from | tail -1`
     if [ -e "$oneiso" ] ; then
-        $M mount -o loop,ro "$oneiso" /mnt/cloud
+        ln -f "$oneiso" "$tmpiso"
+        $M mount /mnt/cloud
         [ $? == 0 ] && $rsync /mnt/cloud/ $to
         $M umount /mnt/cloud
+        rm -f "$tmpiso"
     fi
 }
 
