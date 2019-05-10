@@ -439,7 +439,7 @@ if [ -e /etc/tempest/tempest.conf ]; then
 
     pushd /var/lib/openstack-tempest-test/
 
-    blacklistoptions=
+    blacklistoptions="--black-regex 'slow'"
 
     # Handle OpenStack release specific blacklisting of known to fail tests
     # NOTE: Currently blacklisting only required for OpenStack Rocky which
