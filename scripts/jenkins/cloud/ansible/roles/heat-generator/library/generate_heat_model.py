@@ -22,7 +22,7 @@ from ansible.module_utils.basic import AnsibleModule
 
 from netaddr import IPAddress, IPNetwork
 
-from six import string_types
+from six import itervalues, string_types
 from six.moves import filter
 
 DOCUMENTATION = '''
@@ -474,12 +474,12 @@ def enhance_input_model(input_model):
             'neutron_provider_networks')
         neutron_networks.update(external_networks)
         neutron_networks.update(provider_networks)
-        for network in external_networks.itervalues():
+        for network in itervalues(external_networks):
             network['external'] = True
-        for network in provider_networks.itervalues():
+        for network in itervalues(provider_networks):
             network['external'] = False
 
-    for network_group in input_model['network-groups'].itervalues():
+    for network_group in itervalues(input_model['network-groups']):
         if neutron_config_data and 'tags' in network_group:
             add_neutron_network_tags(
                 network_group['name'],
@@ -506,7 +506,7 @@ def enhance_input_model(input_model):
     # which network group is linked to which neutron network, by looking
     # at the provider physical network settings
     neutron_physnets = dict()
-    for neutron_network in neutron_networks.itervalues():
+    for neutron_network in itervalues(neutron_networks):
         # The only neutron network without a provider is the external
         # "bridge" network.
         # Assume a default 'external' physnet value for this network.
@@ -518,7 +518,7 @@ def enhance_input_model(input_model):
         else:
             physnet = neutron_network['provider'][0]['physical_network']
         neutron_physnets[physnet] = neutron_network
-    for network_tag in neutron_network_tags.itervalues():
+    for network_tag in itervalues(neutron_network_tags):
         for tag in network_tag['tags']:
             if isinstance(tag, dict):
                 tag = tag.values()[0]
@@ -574,7 +574,7 @@ def generate_heat_model(input_model, virt_config):
 
     # First, add L2 neutron provider networks defined in the input
     # model's neutron configuration
-    for neutron_network in input_model['neutron-networks'].itervalues():
+    for neutron_network in itervalues(input_model['neutron-networks']):
         heat_network = dict(
             name=neutron_network['name'],
             is_conf=False,
@@ -604,7 +604,7 @@ def generate_heat_model(input_model, virt_config):
     routers = set()
 
     # Next, add global networks
-    for network in input_model['networks'].itervalues():
+    for network in itervalues(input_model['networks']):
         cidr = None
         vlan = network['vlanid'] if network.get('tagged-vlan', True) else None
         gateway = IPAddress(
@@ -628,8 +628,8 @@ def generate_heat_model(input_model, virt_config):
         # create a heat network based on the global network parameters
         # (i.e. VLAN) and a heat subnet based on the neutron network
         # parameters
-        for neutron_network in network['network-group'].get(
-                'neutron-networks', {}).itervalues():
+        for neutron_network in itervalues(network['network-group'].get(
+                'neutron-networks', {})):
             heat_neutron_network = heat_networks.get(neutron_network['name'])
             if not heat_neutron_network or heat_neutron_network.get('vlan'):
                 # Ignore neutron networks that:
@@ -674,7 +674,7 @@ def generate_heat_model(input_model, virt_config):
             # static IP addresses
             fixed_ip_addr_list = \
                 [IPAddress(server['ip-addr'])
-                 for server in input_model['servers'].itervalues()]
+                 for server in itervalues(input_model['servers'])]
             if gateway:
                 fixed_ip_addr_list.append(gateway)
             start_addr = cidr[1]
@@ -722,7 +722,7 @@ def generate_heat_model(input_model, virt_config):
 
     heat_interface_models = heat_template['interface_models'] = dict()
 
-    for interface_model in input_model['interface-models'].itervalues():
+    for interface_model in itervalues(input_model['interface-models']):
         heat_interface_model = \
             heat_interface_models[interface_model['name']] = \
             dict(
@@ -731,7 +731,7 @@ def generate_heat_model(input_model, virt_config):
             )
         ports = dict()
         clm_ports = dict()
-        for interface in interface_model['network-interfaces'].itervalues():
+        for interface in itervalues(interface_model['network-interfaces']):
             devices = interface['bond-data']['devices'] \
                 if 'bond-data' in interface \
                 else [interface['device']]
@@ -753,15 +753,15 @@ def generate_heat_model(input_model, virt_config):
                         interface.get('forced-network-groups', []):
 
                     port['networks'].extend([network['name'] for network in
-                                             network_group[
-                                                 'networks'].itervalues()])
+                                             itervalues(network_group[
+                                                 'networks'])])
 
                     # Attach the port only to those neutron networks that have
                     # been validated during the previous steps
                     port['networks'].extend([network['name'] for network in
-                                             network_group.get(
+                                             itervalues(network_group.get(
                                                  'neutron-networks',
-                                                 dict()).itervalues() if
+                                                 dict())) if
                                              network['name'] in heat_networks])
 
                     if clm_network['name'] in network_group['networks']:
@@ -794,7 +794,7 @@ def generate_heat_model(input_model, virt_config):
     heat_disk_models = heat_template['disk_models'] = dict()
     disks = virt_config['disks']
 
-    for disk_model in input_model['disk-models'].itervalues():
+    for disk_model in itervalues(input_model['disk-models']):
         heat_disk_model = heat_disk_models[disk_model['name']] = dict(
             name=disk_model['name'],
             volumes=[]
@@ -842,7 +842,7 @@ def generate_heat_model(input_model, virt_config):
     flavors = virt_config['flavors']
 
     clm_server = None
-    for server in input_model['servers'].itervalues():
+    for server in itervalues(input_model['servers']):
         distro_id = server.get('distro-id', virt_config['sles_distro_id'])
 
         image = None
@@ -940,7 +940,7 @@ def update_input_model(input_model, heat_template):
         server['nic-mapping'] = \
             "HEAT-{}".format(heat_server[0]['interface_model'])
 
-    for interface_model in heat_template['interface_models'].itervalues():
+    for interface_model in itervalues(heat_template['interface_models']):
         mapping_name = "HEAT-{}".format(interface_model['name'])
         physical_ports = []
         nic_mapping = {
