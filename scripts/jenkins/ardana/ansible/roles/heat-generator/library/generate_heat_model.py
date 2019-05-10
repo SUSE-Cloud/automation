@@ -883,8 +883,8 @@ def generate_heat_model(input_model, virt_config):
         # and which are computes. This information is used e.g. to determine
         # the reboot order during the MU workflow and to identify flavors
         # unless explicitly specified for each server or server role
-        service_groups = server['role'].get('clusters', {}).values()
-        service_groups += server['role'].get('resources', {}).values()
+        service_groups = list(server['role'].get('clusters', {}).values())
+        service_groups += list(server['role'].get('resources', {}).values())
         for service_group in service_groups:
             # The CLM server is the first server hosting the lifecycle-manager
             # service component.
