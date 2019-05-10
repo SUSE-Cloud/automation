@@ -1,16 +1,39 @@
 - job-template:
+    name: '{name}-nightly-trigger'
+    project-type: multijob
+    node: cloud-trigger
+    triggers:
+      - timed: "@midnight"
+
+    builders:
+      - trigger-builds:
+          - project: '{name}-nightly'
+            condition: ALWAYS
+            predifined-parameters: |
+              deployment=helm
+      - trigger-builds:
+          - project: '{name}-nightly'
+            condition: ALWAYS
+            predifined-parameters: |
+              deployment=airship
+
+- job-template:
     name: '{name}-nightly'
     project-type: pipeline
     number-to-keep: 30
     days-to-keep: 30
     branch: master
-    triggers:
-      - timed: "@midnight"
     parameters:
       - string:
           name: branch
           default: '{branch}'
           description: The branch to checkout
+      - choice:
+          name: deployment
+          choices:
+            - 'helm'
+            - 'airship'
+          description: Whether to deploy with airship or helm directly
     pipeline-scm:
       scm:
         - git:
