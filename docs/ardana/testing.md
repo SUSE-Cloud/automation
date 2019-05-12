@@ -1,25 +1,33 @@
-# Ardana automated testing
+# Unified Cloud automated deployment and testing
 
-Starting with SOC8, Ardana can be deployed and tested using sources coming from the
-[internal build service](https://build.suse.de/project/show/Devel:Cloud:8:Staging),
-automated through jobs running in the [ci.nue.suse.com Jenkins service](https://ci.nue.suse.com/job/openstack-ardana)
-and consuming the virtualized resources in [the engineering cloud](https://engcloud.prv.suse.net/project/stacks/).
-This process is implemented by the [Jenkins pipeline jobs](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/pipelines)
-and the [ansible playbooks](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible) located
-in this repository.
+The unified Cloud test automation toolchain can be used to deploy and run both Crowbar
+and Ardana OpenStack Cloud flavors on top of an OpenStack virtual cloud infrastructure,
+or one of the available Cloud bare-metal infrastructure clusters, with sources
+and SLE disk images coming from the [internal build service](https://build.suse.de/project/show/Devel:Cloud).
 
-The easiest way to experiment with an automated Ardana deployment is by [triggering a customized Ardana Jenkins job build](#deploying-and-testing-ardana-through-jenkins).
-Alternatively, the same ansible playbooks called by the Ardana Jenkins jobs can be used to deploy and test Ardana independently
-from Jenkins, by [setting up a local test environment](#deploying-and-testing-ardana-manually) on any host that
-has access to the engineering cloud and by running the playbooks there.
+The hosting OpenStack cloud platforms that are currently set up for the toolchain are the
+[the engineering cloud](https://engcloud.prv.suse.net) and [the SUSE cloud](https://cloud.suse.de).
 
-## Deploying and testing Ardana through Jenkins
+The toolchain is largely implemented by [ansible playbooks](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible)
+located in this repository, but the process of deploying Ardana and Crowbar clouds is also automated via
+[Jenkins pipeline jobs](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/pipelines)
+running in the [SUSE Jenkins service](https://ci.nue.suse.com).
 
-The [Jenkins pipeline job called `openstack-ardana`](https://ci.nue.suse.com/job/openstack-ardana/) (defined in the
-[`automation` git repo](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/openstack-ardana.yaml))
-can be used to create a new virtual environment in the [engineering cloud](https://engcloud.prv.suse.net/) or to deploy
-a bare-metal environment on one of the QA hardware clusters. The deployment can then be accessed via the IP address
-allocated to the deployer node and used for debugging.
+The easiest way to experiment with an automated Cloud deployment is by [triggering a customized 
+Cloud Jenkins job build](#deploying-and-testing-a-suse-openstack-cloud-through-jenkins).
+Alternatively, the toolchain can be used to deploy and test a Crowbar or Ardana cloud independently
+from Jenkins, by [running the ansible playbooks locally](#deploying-and-testing-a-suse-openstack-cloud-from-your-host),
+from any host that has access to the target cloud or bare-metal infrastructure.
+
+## Deploying and testing a SUSE OpenStack Cloud through Jenkins
+
+The Jenkins pipeline jobs called [`openstack-ardana`](https://ci.nue.suse.com/job/openstack-ardana/) and
+[`openstack-crowbar`](https://ci.nue.suse.com/job/openstack-crowbar/) defined in the 
+[`automation` git repo](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/templates) 
+can be used to deploy a virtual Ardana or Crowbar cloud environment in the [engineering cloud](https://engcloud.prv.suse.net/)
+or the [SUSE cloud](https://cloud.suse.de/) or to deploy a bare-metal Ardana environment on one of the
+Ardana QA hardware clusters. The deployment can then be accessed via the IP address allocated to the
+admin/deployer node and used for debugging.
 
 ### Prerequisites
 
@@ -29,51 +37,89 @@ To be able to use the Jenkins job and login to a deployed environment, the follo
 know what they are, and someone will PM you)
 * your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/group_vars/all/ssh_pub_keys.yml)(via normal github pull requests)
 
-### Deploying a Jenkins Ardana environment
+### Deploying a Jenkins Cloud environment
 
-An Ardana deployment can be started via [Build with
-parameters](https://ci.nue.suse.com/job/openstack-ardana/build). The
-available parameters should be self-descriptive, but the [Customized deployments](#customized-deployments) section
-will provide more information on the provided options. Here are some best
-practices:
+An Ardana deployment can be started by [launching a custom openstack-ardana build](https://ci.nue.suse.com/job/openstack-ardana/build).
+Similarly, a Crowbar deployment can be started by [launching a custom openstack-crowbar build](https://ci.nue.suse.com/job/openstack-crowbar/build).
+The available parameters should be self-descriptive, but the [Customized deployments](#customized-deployments) section
+will provide more information on the provided options. Here are some best practices:
 
-* For a virtual cloud deployment, use your Rocket/irc nickname as ```ardana_env```. If you need to deploy several Ardana setups,
-  use a unique ```ardana_env``` value for each one. Note that ```ardana_env``` values starting with
-  `qe` (e.g `qe101`, `qe102`) are reserved for QA baremetal deployments.
-* Select a ```cleanup``` value to decide what happens with the Ardana virtual cloud deployment after the job completes
-* To test a different input model other than the default `std-min`, adjust the
-  ```model``` parameter in the deployment
+* For a virtual cloud deployment:
+  * use your Rocket/irc nickname as ```ardana_env```. If you need to deploy several Cloud setups,
+  use a unique ```ardana_env``` value for each one
+  * use the `os_cloud`  parameter to choose between the available OpenStack cloud platforms that can host the 
+  virtual environment. Currently only the engineering cloud (`engcloud`) and the SUSE cloud (`susecloud`) are available
+  * by default, the OpenStack virtual resources from the shared `cloud` project will be used. To choose
+  another project, use the `os_project_name` parameter
+* For a bare-metal cloud deployment, use one of the ```ardana_env``` values starting with `qe` (e.g `qe101`, `qe102`)
+  that are reserved for QA bare-metal deployments (ask in the cloud-qe RocketChat channel for one that is available).
+* The `reserve_env` option should not be selected unless the `ardana_env` value corresponds to one of the
+  [shared environments](#shared-environments).
+* Select a ```cleanup``` value to decide what happens with a virtual cloud deployment after the job completes
 * To test a different software media, use another `cloudsource` value. The available values and their meaning are documented
 [here](../../scripts/jenkins/ardana/ansible/roles/setup_zypper_repos/README.md)
+* Select one of the supported deployment scenarios (i.e. the way services are grouped together and deployed onto nodes
+  and/or HA clusters, number of nodes in each cluster, etc) by choosing one of the available ```scenario_name``` values
+  and changing the values of related parameters (e.g. `clm_model`, `controllers`, `sles_computes` or `computes` etc.) to
+  control the number of nodes for each service group. `standard` and `entry-scale-kvm` are the scenarios most widely used
+  for Ardana. Currently, `crowbar` is the only scenario available for Crowbar. Note that only a subset of the available
+  scenarios work with bare-metal environments (`entry-scale-kvm` and `mid-scale-kvm` currently), and the number of nodes
+  is limited to the nodes available in the target bare-metal cluster.
+* SES is the recommended storage back-end for Glance, Cinder and Nova. Selecting `ses_enabled` will also deploy a one-node
+  virtual SES cluster to be used as a storage back-end by your cloud environment (or will use the shared bare-metal SES
+  cluster, for QA bare-metal deployments). Note that the SES back-end isn't available for Crowbar versions 7 and 8 yet.
+* For Crowbar, you also need to select an existing Crowbar batch `scenario_file` that corresponds to the selected
+  cloud release and number of nodes (`controllers` and `computes`)in each service group. The following values are currently
+  known to work:
+  * `cloud9/cloud9-2nodes-default.yml` - 2 nodes deployment (1 controller, 1 compute) for cloud9, without SES back-end
+  (use only with `ses_enabled` disabled, `controllers` set to 1 and `computes` set to 1)
+  * `cloud9/cloud9-2nodes-ses.yml` - 2 nodes deployment (1 controller, 1 compute) for cloud9, with SES back-end
+  (use only with `ses_enabled` enabled, `controllers` set to 1 and `computes` set to 1)
+  * `cloud9/cloud9-5nodes-default.yml` - 5 nodes deployment (3 controllers, 2 computes) for cloud9, without SES back-end
+  (use only with `ses_enabled` disabled, `controllers` set to 3 and `computes` set to 2)
+  * `cloud9/cloud9-5nodes-ses.yml` - 5 nodes deployment (3 controllers, 2 computes) for cloud9, with SES back-end
+  (use only with `ses_enabled` enabled, `controllers` set to 3 and `computes` set to 2)
+  * `cloud8/cloud8-2nodes-default.yml` - 2 nodes deployment (1 controller, 1 compute) for cloud8, without SES back-end
+  (use only with `ses_enabled` disabled, `controllers` set to 1 and `computes` set to 1)
+  * `cloud8/cloud8-5nodes-default.yml` - 5 nodes deployment (3 controllers, 2 computes) for cloud8, without SES back-end
+  (use only with `ses_enabled` disabled, `controllers` set to 3 and `computes` set to 2)
+  * `cloud7/cloud7-2nodes-default.yml` - 2 nodes deployment (1 controller, 1 compute) for cloud7, without SES back-end
+  (use only with `ses_enabled` disabled, `controllers` set to 1 and `computes` set to 1)
+  * `cloud7/cloud7-5nodes-default.yml` - 5 nodes deployment (3 controllers, 2 computes) for cloud7, without SES back-end
+  (use only with `ses_enabled` disabled, `controllers` set to 3 and `computes` set to 2)
+
 * To test a custom automation repository, push to your fork and adjust the
   ```git_automation_repo``` and ```git_automation_branch``` parameter values
 
-The IP address allocated to the deployer node will be available in several places:
+The IP address allocated to the admin/deployer node will be available in several places:
 * the Jenkins job build name will be updated automatically to include it, when it becomes available
 * it will be printed in the Jenkins job log in several places, e.g.:
 
 ```
 10:49:22 [Prepare virtual cloud] ******************************************************************************
-10:49:22 [Prepare virtual cloud] ** The deployer for the 'cloud-ardana-ci-slot1' virtual environment is reachable at:
+10:49:22 [Prepare virtual cloud] ** The admin for the 'cloud-ardana-ci-slot1' virtual environment is reachable at:
 10:49:22 [Prepare virtual cloud] **
 10:49:22 [Prepare virtual cloud] **        ssh root@10.86.1.146
 10:49:22 [Prepare virtual cloud] **
 10:49:22 [Prepare virtual cloud] ******************************************************************************
 ```
 
-* it will also be available as output [in the Heat stack](https://engcloud.prv.suse.net/project/stacks) as the
-variable ```admin-floating-ip```, for virtual cloud deployments
+* for virtual cloud deployments, it will also be available as output as the variable ```admin-floating-ip``` in the
+  Heat stack instantiated in the [engineering cloud](https://engcloud.prv.suse.net/project/stacks)
+  or the [SUSE cloud](https://cloud.suse.de/project/stacks) 
 
 The environment can then accessed by logging in as `root` or `ardana` and using the floating IP.
 
-
-**PLEASE DELETE YOUR ENVIRONMENT IN THE ENGINEERING CLOUD AFTER YOU ARE DONE** otherwise we'll run into quota
-limits in our project. Instructions on how to clean up the environment will be printed in the Jenkins job log
-at the end of the run, e.g.:
+**IMPORTANT**: 
+* if you are unable to access the environment via SSH, it is probably because you didn't add your
+  public SSH key to the repository (see [Prerequisites](#Prerequisites)).
+* **PLEASE DELETE YOUR VIRTUAL CLOUD ENVIRONMENT AFTER YOU ARE DONE** otherwise we'll run into quota
+  limits in our project. Instructions on how to clean up the environment will be printed in the Jenkins job log
+  at the end of the run, e.g.:
 
 ```
 13:34:20 ******************************************************************************
-13:34:20 ** The deployer for the 'alan-turing' virtual environment is reachable at:
+13:34:20 ** The admin for the 'alan-turing' virtual environment is reachable at:
 13:34:20 **
 13:34:20 **        ssh root@10.86.1.235
 13:34:20 **
@@ -128,24 +174,26 @@ QA physical deployment
 custom automation repo fork/branch
 
 
-## Deploying and testing Ardana manually
+## Deploying and testing a SUSE OpenStack Cloud from your host
 
 The ansible playbooks used by the Jenkins job can alternatively be executed manually from any host,
-without involving Jenkins at all, to deploy and test either a virtual Ardana environment hosted in the engineering
-cloud, or an Ardana QA bare-metal environment.
+without involving Jenkins at all, to deploy and test either a virtual Ardana or Crowbar environment
+hosted in the engineering cloud or SUSE cloud, or an Ardana QA bare-metal environment.
 
 ### Prerequisites
 
-To be able to deploy an Ardana environment using the Ardana automation ansible playbooks, the following are needed:
+To be able to deploy a Cloud environment using the toolchain on your host, the following are needed:
 
-* an [engineering cloud](https://engcloud.prv.suse.net) account (for virtual Ardana environments)
-* your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/group_vars/all/ssh_pub_keys.yml)(via normal github pull requests)
-* a host with access to the [engineering cloud](https://engcloud.prv.suse.net) (for virtual Ardana environments)
-* a host with access to the QA hardware clusters (for QA bare-metal Ardana environments)
+* for virtual Cloud deployments, an account for either the [engineering cloud](https://engcloud.prv.suse.net)
+  or [SUSE cloud](https://engcloud.prv.suse.net) with access to the one of the OpenStack projects
+  that are already maintained by the CI automated Jenkins jobs that regularly update SLES images
+  in the ECP and SUSE clouds (currently, only `cloud` and `support`)
+* your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/group_vars/all/ssh_pub_keys.yml)
+  (via normal github pull requests)
 
 ### Test environment setup
 
-Setting up a local Ardana test environment:
+Setting up a local Cloud test environment:
 
 * clone the [automation repository](https://github.com/SUSE-Cloud/automation) locally
 * for building test packages from gerrit changes, the osc utility needs to be correctly installed and configured on
@@ -154,46 +202,63 @@ the local host.
 ```
 sudo zypper install python-openstackclient
 ```
-* set up an OpenStack cloud configuration reflecting your engineering cloud credentials (for virtual Ardana environments).
-To do that, create an `~/.config/openstack/clouds.yaml` file with the following contents reflecting your engineering cloud account:
+* set up an OpenStack cloud configuration reflecting your engineering or SUSE cloud credentials (for virtual Cloud environments).
+To do that, create an `~/.config/openstack/clouds.yaml` file reflecting your OpenStack cloud accounts:
 
 ```
 clouds:
-  engcloud-cloud-ci:
+  engcloud:
     region_name: CustomRegion
     auth:
       auth_url: https://engcloud.prv.suse.net:5000/v3
       username: <your ldap user name>
       password: <your ldap password>
-      project_name: cloud
       project_domain_name: default
       user_domain_name: ldap_users
     identity_api_version: 3
     cacert: /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem
+  susecloud:
+    region_name: CustomRegion
+    auth:
+      auth_url: https://cloud.suse.com:5000/v3
+      username: <your ldap user name>
+      password: <your ldap password>
+      project_domain_name: Default
+      user_domain_name: ldap_users
+    identity_api_version: 3
+    cacert: /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem
 ```
+
+Note the following:
+* the names used for the possible cloud configuration entries (`engcloud` and `susecloud`)
+is also the list of values that can be configured for the `os_cloud` option in the `input.yml` file
+* the `project_name` option is explicitly left out of the configuration, because it is controlled
+separately, through the `os_project_cloud` option in the `input.yml` file
 
 To verify that the test environment is properly set up:
 
 * run an openstack CLI command, e.g.:
 
 ```
-openstack --os-cloud engcloud-cloud-ci stack list
+openstack --os-cloud engcloud stack list
 ```
 
-### Manual Ardana deployment
+### Manual Cloud deployment
 
-A bash script is provided to help deploying Ardana manually. The script sets up a virtual environment with ansible and all
-requirements and mimics the steps of the openstack-ardana job by calling the ansible playbooks in the appropriate
-sequence with the appropriate parameters, which are taken from `input.yml`.
+A bash script is provided to help deploying Ardana or Crowbar manually. The script sets up a virtual environment
+with ansible and all requirements and mimics the steps of the `openstack-ardana` and `openstack-crowbar` jobs by
+calling the ansible playbooks in the appropriate sequence with the appropriate parameters, which are taken
+from `input.yml`.
 
-Before running the script you need to configure the parameters in the `input.yml` file to fit how you want ardana to be
-deployed. The options available are basically a subset of the inputs from the openstack-ardana jenkins job.
+Before running the script you need to configure the parameters in the `input.yml` file to fit how you want the cloud
+to be deployed. The options available are basically a subset of the inputs from the `openstack-ardana` and `openstack-crowbar`
+jenkins jobs.
 
 Deploying Ardana:
 
 * Go to `scripts/jenkins/ardana/manual` directory
 * Edit the `input.yml` file
-* Run `deploy-ardana.sh`
+* Run `deploy-ardana.sh` or `deploy-crowbar.sh`
 
 ```
 cd scripts/jenkins/ardana/manual
