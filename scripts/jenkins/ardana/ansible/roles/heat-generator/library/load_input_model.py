@@ -91,7 +91,7 @@ def main():
     try:
         input_model = load_input_model(input_model_path)
     except Exception as e:
-        module.fail_json(msg=e.message)
+        module.fail_json(msg="load_input_model.py: %s" % e)
     module.exit_json(rc=0, changed=False, input_model=input_model)
 
 

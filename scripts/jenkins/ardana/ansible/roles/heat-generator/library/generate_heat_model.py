@@ -965,7 +965,6 @@ def update_input_model(input_model, heat_template):
 
 
 def main():
-
     argument_spec = dict(
         input_model=dict(type='dict', required=True),
         virt_config=dict(type='dict', required=True)
@@ -979,7 +978,7 @@ def main():
         heat_template = generate_heat_model(enhanced_input_model, virt_config)
         input_model = update_input_model(input_model, heat_template)
     except Exception as e:
-        module.fail_json(msg=e.message)
+        module.fail_json(msg="generate_heat_model.py: %s" % e)
     module.exit_json(rc=0, changed=False,
                      heat_template=heat_template,
                      input_model=input_model)
