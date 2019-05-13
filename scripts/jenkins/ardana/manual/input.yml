@@ -57,6 +57,12 @@ homeproject: ''
 
 
 #============= Input model =============#
+# The name of cloud product which will be deployed. Default is ardana and
+# possible values are:
+# - crowbar
+# - ardana (default)
+cloud_product: 'ardana'
+
 # The name of the one of the available 'ardana-ci' input models to use from
 # the ardana-input-model git repository.
 # NOTE: use this parameter only if you want to use an existing input model.
@@ -77,19 +83,28 @@ model: ''
 #   - standard
 #   - std-lmm
 #   - std-split
+#   - crowbar      (for crowbar deployment)
 scenario_name: 'entry-scale-kvm'
+
+# Crowbar batch scenario yaml file path (relative to scripts/scenarios)
+#  Values examples:
+#    - cloud8/cloud8-2nodes-default.yml
+#    - cloud8/cloud8-5nodes-compute-ha.yml
+#    - cloud9/cloud9-2nodes-default.yml
+#    - cloud9/cloud9-5nodes-compute-ha.yml
+scenario_file: ''
 
 # The type of deployer node deployment to use for the generated input model.
 # Possible values:
-#  - standalone: one node dedicated for CLM
-#  - integrated: the first controller node will also be used as a CLM node
+#   - standalone: one node dedicated for CLM
+#   - integrated: the first controller node will also be used as a CLM node (default)
 # Input model generator scenarios using this parameter : all
 # NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter
 #  about using one of the available input model generator scenarios.
 clm_model: 'integrated'
 
 # The number of controller nodes in the generated input model (0-3).
-# Input model generator scenarios using this parameter: standard, entry-scale-kvm.
+# Input model generator scenarios using this parameter: standard, entry-scale-kvm and crowbar.
 controllers: '3'
 
 # The number of SLES compute nodes in the generated input model.

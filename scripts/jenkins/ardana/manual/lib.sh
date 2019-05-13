@@ -21,7 +21,7 @@ ARDANA_INPUT=${ARDANA_INPUT:-"$WORK_DIR/input.yml"}
 MITOGEN_URL=${MITOGEN_URL:-"https://github.com/dw/mitogen/archive/master.tar.gz"}
 ANSIBLE_CFG_ARDANA=${ANSIBLE_CFG_ARDANA:-"$AUTOMATION_DIR/scripts/jenkins/ardana/ansible/ansible.cfg"}
 ANSIBLE_CFG_SES=${ANSIBLE_CFG_SES:-"$AUTOMATION_DIR/scripts/jenkins/ses/ansible/ansible.cfg"}
-
+CLOUD_PRODUCT=${CLOUD_PRODUCT:-"ardana"}
 
 function get_from_input {
   echo $(grep -v "^#" $ARDANA_INPUT | awk -v var=$1 '$0 ~ var{ print $2 }' | tr -d "'")
@@ -111,6 +111,11 @@ function is_physical_deploy {
   [[ $ardana_env == qe* ]] || [[ $ardana_env == pcloud* ]]
 }
 
+function is_crowbar {
+  ardana_env=$(get_from_input scenario_name)
+  [[ $ardana_env == crowbar* ]]
+}
+
 function get_deployer_ip {
   grep -oP "^$(get_from_input ardana_env)\\s+ansible_host=\\K[0-9\\.]+" \
     $AUTOMATION_DIR/scripts/jenkins/ardana/ansible/inventory
@@ -172,6 +177,12 @@ function bootstrap_clm {
   ansible_playbook bootstrap-clm.yml -e extra_repos="${extra_repos}"
 }
 
+function bootstrap_crowbar {
+  test_repo_url=""
+  extra_repos=$(sed -e "s/^,//" -e "s/,$//" <<< "$(get_from_input extra_repos),${test_repo_url}")
+  ansible_playbook bootstrap-crowbar.yml -e extra_repos="${extra_repos}"
+}
+
 function deploy_ses_vcloud {
   if ! is_physical_deploy && $(get_from_input ses_enabled); then
     ses_id=$(get_from_input ardana_env)
@@ -185,15 +196,26 @@ function deploy_ses_vcloud {
 }
 
 function bootstrap_nodes {
-  if is_physical_deploy; then
-    ansible_playbook bootstrap-pcloud-nodes.yml
+  if is_crowbar; then
+        ansible_playbook bootstrap-crowbar-nodes.yml
+  elif is_physical_deploy; then
+        ansible_playbook bootstrap-pcloud-nodes.yml
   else
     ansible_playbook bootstrap-vcloud-nodes.yml
   fi
 }
 
+function install_crowbar {
+  ansible_playbook install-crowbar.yml
+}
+
+function register_crowbar_nodes {
+  ansible_playbook register-crowbar-nodes.yml
+}
 function deploy_cloud {
-  if $(get_from_input deploy_cloud); then
+  if is_crowbar; then
+    ansible_playbook deploy-crowbar.yml
+  elif $(get_from_input deploy_cloud); then
     ansible_playbook deploy-cloud.yml
   fi
 }
