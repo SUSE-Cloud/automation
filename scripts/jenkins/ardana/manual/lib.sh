@@ -194,7 +194,7 @@ function deploy_ses_vcloud {
 }
 
 function bootstrap_nodes {
-  if [ "$(get_cloud_product)" == "crowbar" ]; then
+  if [[ "$(get_cloud_product)" == "crowbar" ]]; then
     ansible_playbook bootstrap-crowbar-nodes.yml
   elif is_physical_deploy; then
     ansible_playbook bootstrap-pcloud-nodes.yml
