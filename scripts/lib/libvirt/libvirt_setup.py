@@ -229,8 +229,9 @@ def compute_config(args, cpu_flags=cpuflags()):
     localrepomount = _get_localrepomount_config(args)
 
     libvirt_type = args.libvirttype
-    alldevices = it.chain(it.chain(string.lowercase[1:]),
-                          it.product(string.lowercase, string.lowercase))
+    alldevices = it.chain(it.chain(string.ascii_lowercase[1:]),
+                          it.product(string.ascii_lowercase,
+                                     string.ascii_lowercase))
 
     configopts = {
         'nicmodel': 'e1000',
