@@ -348,7 +348,7 @@ def map_foreign_keys(root_element, element_name,
     if element_key and parent_key:
         element_key = "-".join([parent_key, element_key])
 
-    for attr_name, foreign_key in foreign_keys.iteritems():
+    for attr_name, foreign_key in foreign_keys.items():
         for target in foreign_key['target']:
             ref_list_attr_name = foreign_key.get(
                 'reverse-ref-attr',
