@@ -142,13 +142,17 @@ function prepare_heat_template {
   ansible_playbook generate-heat-template.yml
 }
 
+function deploy_heat_template {
+  ansible_playbook heat-stack.yml
+}
+
 function prepare_infra {
   if is_physical_deploy; then
     ansible_playbook start-deployer-vm.yml
   else
     prepare_heat_template
     delete_stack
-    ansible_playbook heat-stack.yml
+    deploy_heat_template
   fi
 }
 
