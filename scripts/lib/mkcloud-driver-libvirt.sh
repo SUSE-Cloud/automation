@@ -372,6 +372,7 @@ function libvirt_do_prepare()
     onhost_add_etchosts_entries
     libvirt_prepare
     onhost_prepareadmin
+    libvirt_start_radvd
 }
 
 function libvirt_do_onhost_deploy_image()
@@ -518,4 +519,21 @@ function libvirt_do_macfunc
     local nodenumber=$1
     local nicnumber=${2:-"1"}
     printf "$macprefix:77:%02x:%02x" $nicnumber $nodenumber
+}
+
+function libvirt_start_radvd
+{
+    if (( $want_ipv6 > 0 )); then
+        if ! pidof radvd >/dev/null; then
+            if ! grep -q $cloudbr /etc/radvd.conf; then
+                snippet=$($scripts_lib_dir/ipv6/radvd-conf-template)
+                radvd_conf=$(mktemp)
+                cat /etc/radvd.conf > $radvd_conf
+                sed -e "s/<INTERFACE>/$cloudbr/" -e "s/<PREFIX>/$net_admin/" < $snippet >> $radvd_conf
+                mv $radvd_conf /etc/radvd.conf
+                rm $snippet
+            fi
+            systemctl start radvd.service || complain 94 "can't start radvd"
+        fi
+    fi
 }
