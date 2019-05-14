@@ -1,5 +1,5 @@
 - job:
-    name: openstack-ardana-heat
+    name: openstack-cloud-heat
     project-type: pipeline
     concurrent: true
     wrappers:

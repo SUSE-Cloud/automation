@@ -83,8 +83,8 @@ at the end of the run, e.g.:
 13:34:20 **  1. log into the ECP at https://engcloud.prv.suse.net/project/stacks/
 13:34:20 **  and delete the stack manually, or
 13:34:20 **
-13:34:20 **  2. (preferred) trigger a manual build for the openstack-ardana-heat job at
-13:34:20 **  https://ci.nue.suse.com/job/openstack-ardana-heat/build and use the
+13:34:20 **  2. (preferred) trigger a manual build for the openstack-cloud-heat job at
+13:34:20 **  https://ci.nue.suse.com/job/openstack-cloud-heat/build and use the
 13:34:20 **  same 'alan-turing' ardana_env value and the 'delete' action for the
 13:34:20 **  parameters
 13:34:20 **

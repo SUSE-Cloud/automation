@@ -128,7 +128,7 @@ pipeline {
                 script: 'cat "$WORKSPACE/heat-stack-${scenario_name}${model}.yml"'
               )
 
-              ardana_lib.trigger_build('openstack-ardana-heat', [
+              ardana_lib.trigger_build('openstack-cloud-heat', [
                 string(name: 'ardana_env', value: "$ardana_env"),
                 string(name: 'os_cloud', value: "$os_cloud"),
                 string(name: 'heat_action', value: "create"),
@@ -281,7 +281,7 @@ pipeline {
                 cleanup == "on success" && currentBuild.currentResult == "SUCCESS" ||
                 cleanup == "on failure" && currentBuild.currentResult != "SUCCESS") {
 
-              build job: 'openstack-ardana-heat', parameters: [
+              build job: 'openstack-cloud-heat', parameters: [
                 string(name: 'ardana_env', value: "$ardana_env"),
                 string(name: 'os_cloud', value: "$os_cloud"),
                 string(name: 'heat_action', value: "delete"),
@@ -330,8 +330,8 @@ pipeline {
 **  1. log into ${cloud_url_text}
 **  and delete the stack manually, or
 **
-**  2. (preferred) trigger a manual build for the openstack-ardana-heat job at
-**  https://ci.nue.suse.com/job/openstack-ardana-heat/build and use the
+**  2. (preferred) trigger a manual build for the openstack-cloud-heat job at
+**  https://ci.nue.suse.com/job/openstack-cloud-heat/build and use the
 **  same '${ardana_env}' ardana_env value and the '${os_cloud}' os_cloud value
 **  and the 'delete' action for the parameters
 **

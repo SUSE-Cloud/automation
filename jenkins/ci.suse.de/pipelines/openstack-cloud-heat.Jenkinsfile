@@ -1,5 +1,5 @@
 /**
- * The openstack-ardana-heat Jenkins Pipeline
+ * The openstack-cloud-heat Jenkins Pipeline
  *
  * This job automates creating/deleting heat stacks.
  */
