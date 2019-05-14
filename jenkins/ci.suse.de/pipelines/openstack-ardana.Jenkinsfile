@@ -128,9 +128,8 @@ pipeline {
                 script: 'cat "$WORKSPACE/heat-stack-${scenario_name}${model}.yml"'
               )
 
-              ardana_lib.trigger_build('openstack-cloud-heat', [
+              ardana_lib.trigger_build("openstack-cloud-heat-$os_cloud", [
                 string(name: 'ardana_env', value: "$ardana_env"),
-                string(name: 'os_cloud', value: "$os_cloud"),
                 string(name: 'heat_action', value: "create"),
                 text(name: 'heat_template', value: heat_template),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
@@ -281,9 +280,8 @@ pipeline {
                 cleanup == "on success" && currentBuild.currentResult == "SUCCESS" ||
                 cleanup == "on failure" && currentBuild.currentResult != "SUCCESS") {
 
-              build job: 'openstack-cloud-heat', parameters: [
+              build job: "openstack-cloud-heat-$os_cloud", parameters: [
                 string(name: 'ardana_env', value: "$ardana_env"),
-                string(name: 'os_cloud', value: "$os_cloud"),
                 string(name: 'heat_action', value: "delete"),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
@@ -330,10 +328,10 @@ pipeline {
 **  1. log into ${cloud_url_text}
 **  and delete the stack manually, or
 **
-**  2. (preferred) trigger a manual build for the openstack-cloud-heat job at
-**  https://ci.nue.suse.com/job/openstack-cloud-heat/build and use the
-**  same '${ardana_env}' ardana_env value and the '${os_cloud}' os_cloud value
-**  and the 'delete' action for the parameters
+**  2. (preferred) trigger a manual build for the openstack-cloud-heat-${os_cloud}
+**  job at https://ci.nue.suse.com/job/openstack-cloud-heat-${os_cloud}/build and
+**  use the same '${ardana_env}' ardana_env value and the 'delete' action for the
+**  parameters
 **
 ******************************************************************************
                 """

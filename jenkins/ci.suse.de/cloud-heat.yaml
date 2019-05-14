@@ -1,0 +1,8 @@
+
+- project:
+    name: openstack-cloud-heat
+    os_cloud:
+      - engcloud
+      - susecloud
+    jobs:
+        - 'openstack-cloud-heat-{os_cloud}'

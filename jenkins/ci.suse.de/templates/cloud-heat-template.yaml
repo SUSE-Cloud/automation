@@ -1,5 +1,5 @@
-- job:
-    name: openstack-cloud-heat
+- job-template:
+    name: 'openstack-cloud-heat-{os_cloud}'
     project-type: pipeline
     concurrent: true
     wrappers:
@@ -45,21 +45,6 @@
             exists, it will be replaced if this job is launched to create it.
 
       - choice:
-          name: os_cloud
-          choices:
-            - 'engcloud'
-            - 'susecloud'
-          description: >-
-            The target OpenStack cloud platform. Possible values are:
-
-              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
-              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
-
-            If the 'ardana_env' value matches one of the virtual cloud slots
-            (https://ci.nue.suse.com/lockable-resources/), the 'os_cloud' parameter is
-            overridden to reflect the OpenStack platform associated with it.
-
-      - choice:
           name: heat_action
           choices:
             -
@@ -81,13 +66,13 @@
 
       - string:
           name: git_automation_repo
-          default: https://github.com/SUSE-Cloud/automation.git
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
           description: >-
             The git automation repository to use
 
       - string:
           name: git_automation_branch
-          default: master
+          default: '{git_automation_branch|master}'
           description: >-
             The git automation branch
 
@@ -103,6 +88,15 @@
             (https://ci.nue.suse.com/lockable-resources/), the 'cloud-ci' OpenStack
             project used exclusively for the Cloud CI will be used regardless of
             this parameter.
+
+      - hidden:
+          name: os_cloud
+          default: '{os_cloud}'
+          description: >-
+            The target OpenStack cloud platform. Possible values are:
+
+              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
 
       - text:
           name: extra_params
@@ -121,10 +115,10 @@
     pipeline-scm:
       scm:
         - git:
-            url: ${git_automation_repo}
+            url: ${{git_automation_repo}}
             branches:
-              - ${git_automation_branch}
+              - ${{git_automation_branch}}
             browser: auto
             wipe-workspace: false
-      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
+      script-path: jenkins/ci.suse.de/pipelines/openstack-cloud-heat.Jenkinsfile
       lightweight-checkout: false
