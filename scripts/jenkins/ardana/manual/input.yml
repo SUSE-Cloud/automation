@@ -1,7 +1,7 @@
 ---
 #============= Eng. Cloud =============#
 # The OpenStack API credentials used to manage virtual clouds
-# (leave empty to use the default shared 'cloud' ECP account).
+# (leave empty to use the default shared 'cloud' ECP account - 'engcloud-cloud-ci')
 os_cloud: 'engcloud-cloud-ci'
 
 # The virtual or hardware environment identifier. This field should either be set to one
@@ -57,6 +57,12 @@ homeproject: ''
 
 
 #============= Input model =============#
+# The name of cloud product which will be deployed. Default is ardana and
+# possible values are:
+# - crowbar
+# - ardana (default)
+cloud_product: ''
+
 # The name of the one of the available 'ardana-ci' input models to use from
 # the ardana-input-model git repository.
 # NOTE: use this parameter only if you want to use an existing input model.
@@ -77,12 +83,23 @@ model: ''
 #   - standard
 #   - std-lmm
 #   - std-split
+#   - crowbar (for crowbar deployment)
 scenario_name: 'entry-scale-kvm'
+
+# Crowbar batch scenario yaml file path (relative to scripts/scenarios)
+#  Values examples:
+#    - cloud8/cloud8-2nodes-default.yml
+#    - cloud8/cloud8-5nodes-compute-ha.yml
+#    - cloud9/cloud9-2nodes-default.yml
+#    - cloud9/cloud9-5nodes-compute-ha.yml
+# NOTE: propably will be removed when input generator works for crowbar
+scenario_file: ''
 
 # The type of deployer node deployment to use for the generated input model.
 # Possible values:
-#  - standalone: one node dedicated for CLM
-#  - integrated: the first controller node will also be used as a CLM node
+#   - standalone: one node dedicated for CLM
+#   - integrated: the first controller node will also be used as a CLM node
+#   - crowbar: right now nothing will happen, it is just to distinguish
 # Input model generator scenarios using this parameter : all
 # NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter
 #  about using one of the available input model generator scenarios.
@@ -94,6 +111,9 @@ controllers: '3'
 
 # The number of SLES compute nodes in the generated input model.
 # Input model generator scenarios using this parameter: all
+# NOTE: Currently all scenarios except crowbar uses 'sles_computes'. When deploying crowbar
+# please change sles_computes into 'computes' variable in stead.
+# computes: '1'
 sles_computes: '2'
 
 # The number of RHEL (CentOS) compute nodes in the generated input model.
