@@ -28,7 +28,7 @@ trap exit_msg EXIT
 
 #build_test_packages
 bootstrap_crowbar
-# deploy_ses_vcloud
+deploy_ses_vcloud
 bootstrap_nodes
 install_crowbar
 register_crowbar_nodes
