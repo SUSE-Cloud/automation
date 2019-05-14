@@ -111,7 +111,7 @@ rsync_and_unpack_iso()
 for version in 9 8 7 6; do
     # fetch latest code from version in development (not just latest beta)
     sync_from_ibs=
-    [ "$version" == "9" ] && sync_from_ibs=1
+    [ "$version" == "10" ] && sync_from_ibs=1
     servicepack=1
     [ "$version" == "7" ] && servicepack=2
     [ "$version" == "8" ] && servicepack=3
