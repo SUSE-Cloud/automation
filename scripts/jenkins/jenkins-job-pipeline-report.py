@@ -150,13 +150,13 @@ def generate_summary(server, job_name, build_number,
                                                          d_job_name)
                         sub_summary = generate_summary(
                             server, d_job_name, d_build_number,
-                            filter_stages, recursive, depth+1)
+                            filter_stages, recursive, depth + 1)
                         stage_url = server.get_pipeline_url(d_job_name,
                                                             d_build_number)
         if stage_url is not None:
             stage_url = stage_url.replace('ci.suse.de', 'ci.nue.suse.com')
         summary += '{}  - {}: {}{}\n'.format(
-            ' '*depth*4, stage['name'], stage['status'],
+            ' ' * depth * 4, stage['name'], stage['status'],
             ' ({})'.format(stage_url) if stage_url else ''
         )
         summary += sub_summary
@@ -190,7 +190,7 @@ def print_pipeline_report(job_name, build_number, filter_stages, recursive):
     summary = generate_summary(server, job_name, build_number,
                                filter_stages, recursive)
 
-    print summary
+    print(summary)
 
 
 def argparse_jenkins_job_type(jenkins_job):
