@@ -71,7 +71,7 @@ pipeline {
           writeFile file: "$WORKSPACE/heat_template.yml", text: params.heat_template
 
           lock(resource: "$os_cloud-API") {
-            timeout(time: 10, unit: 'MINUTES', activity: true) {
+            timeout(time: 20, unit: 'MINUTES', activity: true) {
               ardana_lib.ansible_playbook('heat-stack', "-e heat_template_file=$WORKSPACE/heat_template.yml")
             }
           }
