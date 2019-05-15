@@ -1,14 +1,10 @@
 - job-template:
-    name: '{name}-integration-{deployment}'
+    name: '{name}-integration'
     project-type: multibranch
     periodic-folder-trigger: 5m
     number-to-keep: 30
     days-to-keep: 30
     script-path: Jenkinsfile.integration
-    parameters:
-      - string:
-          name: deployment
-          default: 'airship'
     scm:
       - github:
           repo: '{repo-name}'
