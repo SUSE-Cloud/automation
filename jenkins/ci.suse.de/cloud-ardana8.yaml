@@ -143,7 +143,7 @@
     ses_enabled: true
     ses_rgw_enabled: false
     tempest_filter_list: "\
-      keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,vpnaas,\
+      keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
       designate,heat,ceilometer,magnum,freezer,monasca"
     triggers: []
     jobs:
@@ -164,7 +164,7 @@
     ses_enabled: true
     ses_rgw_enabled: false
     tempest_filter_list: "\
-      keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,vpnaas,\
+      keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
       designate,heat,ceilometer,magnum,freezer,monasca"
     triggers: []
     jobs:
@@ -199,7 +199,7 @@
     updates_test_enabled: false
     scenario_name: entry-scale-kvm
     tempest_filter_list: "\
-      smoke,keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,vpnaas,\
+      smoke,keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
       designate,heat,ceilometer,magnum,freezer,monasca"
     qa_test_list: "iverify"
     triggers: []
