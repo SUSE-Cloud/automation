@@ -155,6 +155,9 @@ swift_nodes: ''
 # disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer|octavia'
 disabled_services: ''
 
+# Enable (true) or disable (false) firewall rules on control plane. Default is enable: true
+firewall_enabled: 'true'
+
 # Use ipv6 networks in the cloud input model.
 ipv6: false
 
