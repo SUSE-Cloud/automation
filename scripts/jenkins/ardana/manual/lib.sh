@@ -192,8 +192,10 @@ function bootstrap_crowbar {
 function deploy_ses_vcloud {
     if ! is_physical_deploy && $(get_from_input ses_enabled); then
         ses_id=$(get_from_input ardana_env)
+        os_cloud=$(get_from_input os_cloud)
+        os_project_name=$(get_from_input os_project_name)
         network="openstack-ardana-${ses_id}_management_net"
-        ansible_playbook_ses ses-heat-stack.yml -e "ses_id=$ses_id network=$network"
+        ansible_playbook_ses ses-heat-stack.yml -e "ses_id=$ses_id network=$network os_cloud=$os_cloud os_project_name=$os_project_name"
         ansible_playbook_ses bootstrap-ses-node.yml -e ses_id=$ses_id
         for i in {1..3}; do
             ansible_playbook_ses ses-deploy.yml -e ses_id=$ses_id && break || sleep 5
@@ -254,6 +256,12 @@ function run_qa_tests {
         for qa_test in "${qa_test_list[@]}"; do
             ansible_playbook run-ardana-qe-tests.yml -e test_name=$qa_test
         done
+    fi
+}
+
+function run_crowbar_tests {
+    if [[ "$(get_cloud_product)" == "crowbar" ]]; then
+        ansible_playbook run-crowbar-tests.yml
     fi
 }
 

@@ -34,5 +34,4 @@ install_crowbar
 register_crowbar_nodes
 deploy_cloud
 # update_cloud
-# run_tempest
-# run_qa_tests
+run_crowbar_tests
