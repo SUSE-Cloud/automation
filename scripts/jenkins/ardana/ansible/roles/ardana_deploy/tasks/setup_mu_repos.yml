@@ -15,10 +15,18 @@
 #
 ---
 
-- name: Copy maintenance update playbook
+- name: Generate maintenance update playbook
   template:
     src: "maint_updates.yml.j2"
     dest: "{{ ardana_scratch_path }}/_maint_updates.yml"
+
+- name: Run version specific playbooks
+  command: "ansible-playbook {{ item }}.yml"
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  when: versioned_features[item].enabled
+  loop:
+    - ardana-ssh-keyscan
 
 - name: Add MU repos to all nodes
   command: "ansible-playbook _maint_updates.yml"

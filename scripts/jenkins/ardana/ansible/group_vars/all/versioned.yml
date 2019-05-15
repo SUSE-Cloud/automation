@@ -45,6 +45,8 @@ versioned_features:
     enabled: "{{ when_cloud8 }}"
   octavia-client:
     enabled: "{{ when_cloud9 }}"
+  ardana-ssh-keyscan:
+    enabled: "{{ when_cloud9 }}"
 
 input_model_versioned_features:
   - manila
