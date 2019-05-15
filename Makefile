@@ -39,7 +39,8 @@ rubycheck:
 pythoncheck:
 	for f in `find -name \*.py` scripts/lib/libvirt/{admin-config,cleanup,compute-config,net-config,net-start,vm-start} scripts/jenkins/jenkins-job-trigger; \
         do \
-	    python -m py_compile $$f || exit 22; \
+	    python2 -m py_compile $$f || exit 22; \
+	    python3 -m py_compile $$f || exit 22; \
 	done
 
 rounduptest:
@@ -50,7 +51,8 @@ flake8:
 	flake8 scripts/ hostscripts/soc-ci/soc-ci
 
 python_unittest:
-	python -m unittest discover -v -s scripts/lib/libvirt/
+	python2 -m unittest discover -v -s scripts/lib/libvirt/
+	python3 -m unittest discover -v -s scripts/lib/libvirt/
 
 gerrit-project-regexp:
 	scripts/jenkins/ardana/gerrit/project-map2project-regexp.py master > jenkins/ci.suse.de/gerrit-project-regexp-cloud9.txt
@@ -71,13 +73,14 @@ install: debianinstall genericinstall
 
 debianinstall:
 	sudo apt-get update -qq
-	sudo apt-get -y install libxml-libxml-perl libjson-perl libjson-xs-perl python-libvirt
+	sudo apt-get -y install libxml-libxml-perl libjson-perl libjson-xs-perl libwww-perl python-pip python3-pip python-setuptools python3-setuptools python-libvirt python3-libvirt
 
 suseinstall:
-	sudo zypper install perl-JSON-XS perl-libxml-perl python-pip libvirt-python
+	sudo zypper install perl-JSON-XS perl-libxml-perl perl-libwww-perl python-pip python3-pip libvirt-python python3-libvirt-python
 
 genericinstall:
-	sudo pip install -U 'pbr>=2.0.0,!=2.1.0' bashate 'flake8<3.0.0' flake8-import-order jenkins-job-builder requests
+	sudo pip2 install -U 'pbr>=2.0.0,!=2.1.0' bashate 'flake8<3.0.0' flake8-import-order jenkins-job-builder requests
+	sudo pip3 install -U 'pbr>=2.0.0,!=2.1.0' bashate 'flake8<3.0.0' flake8-import-order jenkins-job-builder requests
 	git clone https://github.com/SUSE-Cloud/roundup && \
 	cd roundup && \
 	./configure && \
