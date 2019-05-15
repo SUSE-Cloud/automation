@@ -18,16 +18,15 @@
 root_mount: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | first }}"
 
 # List of tools required for partition resizing
-resize_tools: "{{ root_mount.device.startswith('/dev/mapper') | ternary (basic_resize_tools + lvm_resize_tools, basic_resize_tools) }}"
-basic_resize_tools:
-  - fdisk
+resize_packages: "{{ root_mount.device.startswith('/dev/mapper') | ternary (basic_resize_packages + lvm_resize_packages, basic_resize_packages) }}"
+
+basic_resize_packages:
+  - util-linux
   - parted
   - growpart
 
-lvm_resize_tools:
-  - lvdisplay
-  - lvs
-  - vgs
+lvm_resize_packages:
+  - lvm2
 
 # if / is not on bootable partition, updated dynamically otherwise
 vm_fdisk_start_field: 2

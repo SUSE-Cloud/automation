@@ -20,28 +20,9 @@
 # the file system layout settings defined in the input model.
 ---
 
-- name: Check for required tools
-  shell: >
-    command -v {{ item }}
-  register: _which_result
-  changed_when: False
-  failed_when:
-    - _which_result.rc > 1
-  loop: "{{ resize_tools }}"
-
-- name: Fail if required tools not found
-  fail:
-    # NOTE: blank line at start of msg text is intentional
-    msg: |
-
-      Required tools are missing from the SLES VM image:
-      {% for r in _which_result.results %}
-      {%   if r.rc %}
-          {{ r.item }}
-      {%   endif %}
-      {% endfor %}
-  when:
-    - _which_result.results | selectattr("rc") | list | length > 0
+- name: Install required tools
+  zypper:
+    name: "{{ resize_packages }}"
 
 - name: Setup root fs settings for non-LVM
   set_fact:
