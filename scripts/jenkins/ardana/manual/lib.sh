@@ -138,13 +138,17 @@ function prepare_input_model {
   fi
 }
 
+function deploy_heat_template {
+  ansible_playbook heat-stack.yml
+}
+
 function prepare_infra {
   if is_physical_deploy; then
     ansible_playbook start-deployer-vm.yml
   else
     ansible_playbook generate-heat-template.yml
     delete_stack
-    ansible_playbook heat-stack.yml
+    deploy_heat_template
   fi
 }
 
