@@ -32,7 +32,7 @@
 
         # FIXME: remove everything but eth0 ifcfg files from base image
         - name: Remove unused ifcfg files
-          shell: rm /etc/sysconfig/network/ifcfg-eth[1-9]*
+          shell: rm --force --verbose /etc/sysconfig/network/ifcfg-eth[1-9]*
 
         # FIXME: remove when https://github.com/crowbar/crowbar/pull/2371 is
         # available in all crowbar versions
