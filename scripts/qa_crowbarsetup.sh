@@ -4587,9 +4587,12 @@ function test_keystone_toggle_ssl
 {
     prepare_proposal_for_modification keystone default
 
+    # current keystone protocol could come from $want_all_ssl/$want_keystone_ssl or from batch scenario
+    local keystone_protocol=$(proposal_get_value keystone default "['attributes']['keystone']['api']['protocol']")
+
     # If SSL is on, turn it off and turn it back on.
     # If SSL is off, turn it on and turn it back off.
-    if [ "$want_all_ssl" == 1 -o "$want_keystone_ssl" == 1 ] ; then
+    if [ "$keystone_protocol" == "https" ] ; then
         echo "Testing disabling HTTPS on keystone"
         set_keystone_endpoint http
         echo "Testing reenabling HTTPS on keystone"
