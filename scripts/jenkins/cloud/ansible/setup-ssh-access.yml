@@ -56,6 +56,14 @@
             name: "{{ cloud_env }}"
             ansible_host: "{{ is_physical_deploy | ternary(omit, admin_floating_ip) }}"
             ansible_password: "linux"
+
+        - name: Remove local ssh host key for admin floating IP
+          known_hosts:
+            name: "{{ admin_floating_ip }}"
+            state: absent
+          failed_when: False
+          when: not is_physical_deploy
+
       rescue:
         - include_role:
             name: rocketchat_notify
