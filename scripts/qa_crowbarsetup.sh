@@ -4116,8 +4116,16 @@ function oncontroller_testsetup
     fi
 
     # this file is created by the designate barclamp
-    designate_pools="/etc/desigate/pools.crowbar.yaml"
-    [[ -e $designate_pools ]] && designate-manage pool update --file $designate_pools
+    designate_pools="/etc/designate/pools.crowbar.yaml"
+    if [[ -e $designate_pools ]]; then
+        designate-manage pool update --file $designate_pools
+        # default values from the node.neutron.dns_domain
+        openstack tld create --name local
+        openstack zone create --email admin@example.org openstack.local.
+        theport=$(openstack port create --network fixed --dns-name iamgroot thanos -f value -c id)
+        openstack floating ip create floating --port $theport
+        wait_for 30 5 "nslookup iamgroot.openstack.local >> /dev/null" "thanos port is nslookup-able"
+    fi
 
     # Run Tempest Smoketests if configured to do so
     tempestret=0
