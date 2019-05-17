@@ -20,7 +20,7 @@ source lib.sh
 
 validate_input
 setup_ansible_venv
-mitogen_disable
+mitogen_enable
 prepare_input_model
 prepare_infra
 
