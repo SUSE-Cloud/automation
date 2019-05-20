@@ -33,9 +33,12 @@
   tasks:
     - block:
         - name: Wait for cloud nodes to be accessible
-          wait_for_connection:
-            sleep: 10
-            timeout: 300
+          wait_for:
+            host: "{{ ansible_ssh_host }}"
+            port: 22
+            search_regex: OpenSSH
+            state: started
+            delay: 10
           register: _connection
 
         - name: Fail if one or more hosts are unreacheable
