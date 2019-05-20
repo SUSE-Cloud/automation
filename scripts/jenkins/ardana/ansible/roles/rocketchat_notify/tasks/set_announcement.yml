@@ -28,7 +28,7 @@
 
 - name: Get channels list
   uri:
-    url: "{{ rc_url }}/api/v1/channels.list?count=100"
+    url: "{{ rc_url }}/api/v1/channels.list?count=0"
     validate_certs: no
     method: GET
     headers:
