@@ -14,24 +14,16 @@
 # under the License.
 #
 ---
+- name: Fail when no reboot_target specified
+  fail:
+    msg: "{{ reboot_target }} not in {{ reboot_target_list }}"
+  when: reboot_target not in reboot_target_list
 
-- name: Gather variables when milestone cloudsousrce
-  include_vars: "milestone.yml"
-  when: is_milestone
+# reboot deployer/admin node
+- include_tasks: reboot_deployer.yml
+  when: reboot_target == 'deployer'
 
-- include_tasks: setup_sles_cloud_repos.yml
-  when: cloudsource != '' and cloud_product == 'ardana'
+# reboot nodes - CROWBAR
+- include_tasks: reboot_cloud_nodes_crowbar.yml
+  when: cloud_product == 'crowbar' and reboot_target == 'cloud_nodes_crowbar'
 
-- include_tasks: setup_repo_from_iso.yml
-  when: is_milestone and cloud_product == 'ardana'
-
-- include_tasks: setup_maint_update_repos.yml
-  when:
-    - include_maint_update
-    - maint_updates_list | length
-
-- include_tasks: add_extra_repos.yml
-  when: extra_repos_list | length
-
-- include_tasks: set_motd.yml
-  when: task == 'deploy'

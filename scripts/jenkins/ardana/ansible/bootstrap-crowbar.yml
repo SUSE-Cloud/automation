@@ -42,6 +42,13 @@
             regexp: "^ *#"
             state: absent
 
+        # add MU repos
+        - include_role:
+            name: setup_zypper_repos
+          when:
+            - not update_after_deploy
+            - maint_updates_list | length
+
         - include_role:
             name: frontail
 

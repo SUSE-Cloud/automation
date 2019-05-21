@@ -21,9 +21,15 @@
     warn: False
   register: cloud_repo_name
 
-- name: Set cloud MU repo path based on product
+- name: Set cloud MU repo path based on product - Ardana
   set_fact:
     cloud_repo_path: "{{ ('HPE-Helion' in cloud_repo_name.stdout) | ternary('HPE-Helion-OpenStack', 'OpenStack-Cloud') }}"
+  when: cloud_product != 'crowbar'
+
+- name: Set cloud MU repo path based on product - Crowbar
+  set_fact:
+    cloud_repo_path: "OpenStack-Cloud-Crowbar"
+  when: cloud_product == 'crowbar'
 
 - name: Check MU URL
   uri:
@@ -38,7 +44,7 @@
     path: "{{ local_repos_base_dir }}/{{ item }}"
   loop: "{{ maint_updates_list }}"
 
-# This tasks is responsible for fiding to which product the MUs are targeted for.
+# This tasks is responsible for finding to which product the MUs are targeted for.
 # This is done by combining the MU IDs with the MU paths (for Cloud and SLES)
 # and for each combination it checks if the Cloud or SLES MU path is present on
 # the MU page content which registered in the mu_url variable.
@@ -60,13 +66,24 @@
   until: mu_sync_result.rc != 24
   delay: 300
 
-- name: Add MU zypper repositories
+- name: Add MU zypper repositories - Ardana
   zypper_repository:
     name: "{{ item.1 }}-Maint-Update-{{ item.0 }}"
     repo: "{{ local_repos_base_dir }}/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/"
     runrefresh: yes
     state: present
-  when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
+  when: " cloud_product == 'ardana' and maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
   loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
   notify:
     - Refresh all repos
+
+- name: Add MU zypper repositories - Crowbar (admin node)
+  zypper_repository:
+    name: "{{ item.1 }}-Maint-Update-{{ item.0 }}"
+    repo: "{{ local_repos_base_dir }}/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/"
+    runrefresh: yes
+    state: present
+  loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
+  notify:
+    - Refresh all repos
+  when: "inventory_hostname == ardana_env and cloud_product == 'crowbar' and maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"

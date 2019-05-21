@@ -52,7 +52,8 @@ rc_notify: False
 rc_notify_start: True
 
 suse_release: "suse-{{ ansible_distribution_version }}"
-local_repos_base_dir: "/srv/www/{{ suse_release }}/{{ ansible_architecture }}/repos"
+local_repos_web_dir_prefix: "{{ (cloud_product == 'crowbar') | ternary('tftpboot','www') }}"
+local_repos_base_dir: "/srv/{{ local_repos_web_dir_prefix }}/{{ suse_release }}/{{ ansible_architecture }}/repos"
 
 sles_cloud_version:
   "12.3": 8

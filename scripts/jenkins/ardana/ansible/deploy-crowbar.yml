@@ -30,6 +30,15 @@
             name: crowbar_setup
           vars:
             qa_crowbarsetup_cmd: onadmin_batch
+
+        - include_role:
+            name: reboot_node
+          vars:
+            reboot_target: cloud_nodes_crowbar
+          when:
+            - not update_after_deploy
+            - maint_updates_list | length
+
       rescue:
         - include_role:
             name: rocketchat_notify

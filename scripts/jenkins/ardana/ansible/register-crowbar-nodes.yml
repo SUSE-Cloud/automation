@@ -40,6 +40,13 @@
           loop_control:
             loop_var: command
 
+        - include_role:
+            name: crowbar_update
+          when:
+            - not update_after_deploy
+            - maint_updates_list | length
+
+
       rescue:
         - include_role:
             name: rocketchat_notify
