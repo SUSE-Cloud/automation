@@ -78,17 +78,15 @@
   when: item.state == 'file'
   ignore_errors: True
 
+- name: Create DNS update script
+  template:
+    src: dns-update.py.j2
+    dest: "{{ input_model_path }}/dns-update.py"
+    mode: 0755
+    owner: root
+    group: root
+
 - name: Update DNS and NTP servers in input model
-  shell: >
-    python -c "
-       import yaml;
-       f = open('cloudConfig.yml');
-       data = yaml.load(f.read());
-       f.close();
-       data['cloud']['dns-settings']=dict(nameservers = {{ dns_servers }});
-       data['cloud']['ntp-servers'] = {{ ntp_servers }};
-       f = open('cloudConfig.yml', 'w');
-       f.write(yaml.safe_dump(data, default_flow_style=False));
-       f.close();"
+  command: ./dns-update.py
   args:
     chdir: '{{ input_model_path }}'
