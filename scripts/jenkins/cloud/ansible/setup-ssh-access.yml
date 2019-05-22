@@ -88,9 +88,12 @@
   tasks:
     - block:
         - name: Wait for deployer to be accessible
-          wait_for_connection:
-            sleep: 10
-            timeout: 300
+          wait_for:
+            host: "{{ ansible_ssh_host }}"
+            port: 22
+            search_regex: OpenSSH
+            state: started
+            delay: 10
 
         - name: Gather facts
           setup:
