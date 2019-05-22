@@ -90,6 +90,7 @@
   when:
     - item.when | default(True)
     - not (ansible_scratch_plays | default({})) is failed
+    - skip_running_site_yml is not defined
   loop_control:
     label: "{{ item.play }}"
 
