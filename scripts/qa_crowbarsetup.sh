@@ -901,6 +901,12 @@ function onadmin_set_source_variables
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
         ;;
+        upgradecloud9)
+            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Upgrade/images/iso"
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Upgrade/images/iso"
+            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel-upgrade"
+        ;;
         GM9|GM9+up)
             cs=$cloudsource
             [[ $cs =~ GM9 ]] && cs=GM

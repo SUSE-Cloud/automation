@@ -149,6 +149,9 @@ function onhost_cacheclouddata
                 suffix="devel"
                 [ -n "$TESTHEAD" ] && suffix+="-staging"
             fi
+            if [[ $cloudsource =~ (upgradecloud) ]]; then
+                suffix="devel-upgrade"
+            fi
             echo "repos/$a/SUSE-OpenStack-Cloud-$cloudrepover-$suffix/***"
 
             # Now the various test images
