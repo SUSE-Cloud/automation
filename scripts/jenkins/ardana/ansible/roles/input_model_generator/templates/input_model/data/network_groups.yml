@@ -46,7 +46,8 @@
         - rabbitmq
 {%   endif %}
       component-endpoints:
-{%   if 'MANAGEMENT' in network_group['component_endpoints'] %}
+{%   if ('MANAGEMENT'  in network_group['component_endpoints'] 
+          and 'IPV4' not in network_group['component_endpoints']) %}
 
         #
         # Management
