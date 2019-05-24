@@ -88,7 +88,8 @@
 {%   endif %}
 
 {%   set ns.routes=network_group.routes|default([]) %}
-{%   if 'MANAGEMENT' in network_group.component_endpoints %}
+{%   if ('MANAGEMENT' in network_group.component_endpoints
+          and 'IPV4' not in network_group['component_endpoints']) %}
 {%     if bm_info is defined %}
 {%       set _ = ns.routes.append('OCTAVIA-MGMT-NET') %}
 {%       set _ = ns.routes.append('ILO') %}
