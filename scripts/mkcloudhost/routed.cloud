@@ -1,3 +1,4 @@
+#!/bin/sh
 n=$1
 shift
 cloudfunc=~/cloud.d/cloudfunc
@@ -5,8 +6,8 @@ test -e $cloudfunc || cloudfunc=$(dirname $(readlink -e $BASH_SOURCE))/cloudfunc
 . $cloudfunc
 
 if [ "$n" -lt 1 -o "$n" -gt 32 ] ; then
-  echo "$n is out of range [1..32]"
-  exit 1
+    echo "$n is out of range [1..32]"
+    exit 1
 fi
 
 function random_ipv6_prefix {

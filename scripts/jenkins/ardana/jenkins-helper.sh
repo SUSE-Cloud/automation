@@ -19,12 +19,12 @@ AUTOMATION_DIR=${AUTOMATION_DIR:-"$WORKSPACE/automation-git"}
 
 
 function ansible_playbook {
-  set +x
-  export ANSIBLE_FORCE_COLOR=true
-  source $ANSIBLE_VENV/bin/activate
-  if [[ "$PWD" != *scripts/jenkins/ardana/ansible ]]; then
-    cd $AUTOMATION_DIR/scripts/jenkins/ardana/ansible
-  fi
-  echo "Running: ansible-playbook ${@}"
-  ansible-playbook "${@}"
+    set +x
+    export ANSIBLE_FORCE_COLOR=true
+    source $ANSIBLE_VENV/bin/activate
+    if [[ "$PWD" != *scripts/jenkins/ardana/ansible ]]; then
+        cd $AUTOMATION_DIR/scripts/jenkins/ardana/ansible
+    fi
+    echo "Running: ansible-playbook ${@}"
+    ansible-playbook "${@}"
 }
