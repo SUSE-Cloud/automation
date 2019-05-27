@@ -51,11 +51,11 @@ function to_fqdn
 
 function wrap_ip
 {
-  if (( $want_ipv6 > 0 )); then
-    echo "[$1]"
-  else
-    echo $1
-  fi
+    if (( $want_ipv6 > 0 )); then
+        echo "[$1]"
+    else
+        echo $1
+    fi
 }
 
 function max

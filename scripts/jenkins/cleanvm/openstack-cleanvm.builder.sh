@@ -14,10 +14,10 @@ echo "$JOB_BASE_NAME"
 main_job_name=cleanvm
 
 function exec_jtsync {
-  # only enable jtsync when build is not manually triggered
-  if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-    $jtsync_fix "$jtsync --ci opensuse --matrix $1,$2,$3 $4" || :
-  fi
+    # only enable jtsync when build is not manually triggered
+    if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
+        $jtsync_fix "$jtsync --ci opensuse --matrix $1,$2,$3 $4" || :
+    fi
 }
 
 sudo /usr/local/sbin/freshvm cleanvm $image
@@ -31,19 +31,19 @@ ssh root@cleanvm "export cloudsource=$cloudsource; export OSHEAD=$oshead; export
 ret=$?
 echo "Exit code of cleanvm run: $ret"
 if [ "$ret" != 0 ] ; then
-  echo "The cleanvm run failed. Now trying to cleanup before we let this job fail."
-  virsh shutdown cleanvm 2>/dev/null
-  # wait for clean shutdown
-  n=20 ; while [[ $n > 0 ]] && virsh list |grep cleanvm.*running ; do sleep 2 ; n=$(($n-1)) ; done
-  virsh destroy cleanvm 2>/dev/null
-  # cleanup old images
-  find /mnt/cleanvmbackup -mtime +5 -type f | xargs --no-run-if-empty rm
-  # backup /dev/vg0/cleanvm disk image
-  file=/mnt/cleanvmbackup/${BUILD_NUMBER}-${openstack_project}-${image}.raw.gz
-  gzip -c1 /dev/vg0/cleanvm > $file
-  exec_jtsync ${main_job_name} ${openstack_project} ${BUILD_NUMBER} 1
-  echo "End of cleanup. Now the job will fail."
-  exit 1
+    echo "The cleanvm run failed. Now trying to cleanup before we let this job fail."
+    virsh shutdown cleanvm 2>/dev/null
+    # wait for clean shutdown
+    n=20 ; while [[ $n > 0 ]] && virsh list |grep cleanvm.*running ; do sleep 2 ; n=$(($n-1)) ; done
+    virsh destroy cleanvm 2>/dev/null
+    # cleanup old images
+    find /mnt/cleanvmbackup -mtime +5 -type f | xargs --no-run-if-empty rm
+    # backup /dev/vg0/cleanvm disk image
+    file=/mnt/cleanvmbackup/${BUILD_NUMBER}-${openstack_project}-${image}.raw.gz
+    gzip -c1 /dev/vg0/cleanvm > $file
+    exec_jtsync ${main_job_name} ${openstack_project} ${BUILD_NUMBER} 1
+    echo "End of cleanup. Now the job will fail."
+    exit 1
 fi
 
 exec_jtsync ${main_job_name} ${openstack_project} ${BUILD_NUMBER} $ret

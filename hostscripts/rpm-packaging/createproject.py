@@ -97,11 +97,13 @@ Project used: %(ZUUL_PROJECT)s
             # work around build service bug that triggers a database deadlock
             for fail_counter in range(1, 5):
                 try:
-                    sh.osc('api', '-T', meta.name, '/source/%s/_meta' % project)
+                    sh.osc('api', '-T', meta.name,
+                           '/source/%s/_meta' % project)
                     break
                 except sh.ErrorReturnCode_1:
-                    # Sleep a bit and try again. This has not been scientifically
-                    # proven to be the correct sleep factor, but it seems to work
+                    # Sleep a bit and try again. This has not been
+                    # scientifically proven to be the correct sleep factor,
+                    # but it seems to work
                     time.sleep(2)
                     continue
 

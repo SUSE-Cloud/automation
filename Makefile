@@ -11,11 +11,19 @@ filecheck:
 		xargs grep $$'\t'
 
 bashate:
-	cd scripts && \
 	for f in \
-	    *.sh mkcloud mkchroot repochecker \
-	    jenkins/{update_automation,*.sh} \
-	    ../hostscripts/ci1/* ../hostscripts/clouddata/syncSLErepos ../mkcloudruns/*/[^R]*;\
+	    `find -name \*.sh` \
+	    hostscripts/ci1/* \
+	    hostscripts/clouddata/{syncSLErepos,syncgitrepos} \
+	    hostscripts/gatehost/{sudo-freshadminvm,freshadminvm} \
+	    hostscripts/nagios/ci-o-o \
+	    mkcloudruns/*/[^R]*\
+	    scripts/{mkcloud,mkchroot,repochecker} \
+	    scripts/jenkins/update_automation \
+	    scripts/mkcloudhost/{runtestn,mkcloud_free_pool,mkcloude,fixlibvirt,generate-radvd-conf} \
+	    scripts/mkcloudhost/{runtestmulticloud,boot.local,boot.mkcloud,mkcloud_reserve_pool,runtestn} \
+	    scripts/mkcloudhost/{routed.cloud,hacloud.common,cloudrc.host,cloudfunc} \
+	    ; \
 	do \
 	    echo "checking $$f"; \
 	    bash -n $$f || exit 3; \
@@ -25,7 +33,7 @@ bashate:
 
 perlcheck:
 	cd scripts && \
-	for f in `find -name \*.pl` jenkins/{apicheck,grep,japi} mkcloudhost/allocpool ; \
+	for f in `find -name \*.pl` jenkins/{apicheck,grep,japi} mkcloudhost/{allocpool,correlatevirsh} ; \
 	do \
 	    perl -wc $$f || exit 2; \
 	done
@@ -48,11 +56,11 @@ rounduptest:
 	cd scripts/jenkins && roundup
 
 flake8:
-	flake8 scripts/ hostscripts/soc-ci/soc-ci
+	flake8 .
 
 python_unittest:
-	python2 -m unittest discover -v -s scripts/lib/libvirt/
-	python3 -m unittest discover -v -s scripts/lib/libvirt/
+	python2 -m unittest discover -v
+	python3 -m unittest discover -v
 
 gerrit-project-regexp:
 	scripts/jenkins/ardana/gerrit/project-map2project-regexp.py master > jenkins/ci.suse.de/gerrit-project-regexp-cloud9.txt
