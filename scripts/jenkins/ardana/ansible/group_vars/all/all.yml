@@ -83,6 +83,8 @@ sles_sdk_repos:
     enabled: "{{ updates_test_enabled }}"
 
 ntp_servers:
+  - 10.86.32.1
+  - nsprv.provo.novell.com
   - ntp.suse.de
   - ntp0.suse.de
   - ntp1.suse.de
@@ -93,7 +95,8 @@ ntp_servers:
   - 2.us.pool.ntp.org
 
 dns_servers:
-  - 147.2.2.2 # nsnwb.microfocus.com
+  - 10.84.2.20
+  - 10.84.2.21
 
 rc_channels:
   pcloud001: "cloud-qe-pcloud001"
