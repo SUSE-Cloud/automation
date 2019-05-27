@@ -44,7 +44,9 @@
   command: "salt-run state.orch ceph.stage.prep"
   register: stage0
   changed_when: false
-  ignore_errors: yes
+  retries: 3
+  delay: 5
+  until: stage0.rc == 0
 
 - name: Show stage 0 (salt-run state.orch ceph.stage.prep) results
   debug:
