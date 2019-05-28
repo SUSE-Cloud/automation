@@ -43,12 +43,14 @@
     group: salt
     mode: 0644
 
-- name: Ensure deepsea minions are reacheable
-  command: "salt '{{ ses_deepsea_minions }}' test.ping --out=yaml"
-  register: deepsea_minions
+- name: Ensure pillar data available
+  shell: |
+    salt '*' saltutil.refresh_pillar --out=quiet
+    salt '*' pillar.get 'deepsea_minions' --out=yaml
+  register: pillar_data
+  failed_when: not ses_deepsea_minions in pillar_data.stdout
   changed_when: false
-  failed_when: not deepsea_minions.stdout | regex_search(ansible_hostname ~ ':\strue')
-  until: deepsea_minions is succeeded
+  until: pillar_data is succeeded
   retries: 10
   delay: 1
 
