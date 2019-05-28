@@ -41,10 +41,24 @@
 
 - meta: flush_handlers
 
-- name: "Wait for salt-minion to initialize"
-  pause:
-    seconds: 5
+- name: Ensure salt-minion initialized
+  command: "salt-key -L"
+  register: minion
+  changed_when: false
+  failed_when: ansible_hostname not in minion.stdout_lines
+  until: minion is succeeded
+  retries: 10
+  delay: 1
 
 - name: Accept salt keys
   command: "salt-key --accept-all -y"
   changed_when: false
+
+- name: Ensure salt-minion is up
+  command: "salt-run manage.up --out=yaml"
+  register: minion_up
+  changed_when: false
+  failed_when: ansible_hostname not in minion_up.stdout | from_yaml
+  until: minion_up is succeeded
+  retries: 10
+  delay: 1
