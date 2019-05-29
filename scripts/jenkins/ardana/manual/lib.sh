@@ -227,9 +227,9 @@ function deploy_cloud {
 }
 
 function deploy_ardana_but_dont_run_site_yml {
-  if $(get_from_input deploy_cloud); then
-    ansible_playbook deploy-cloud.yml -e "skip_running_site_yml=True"
-  fi
+    if $(get_from_input deploy_cloud); then
+        ansible_playbook deploy-cloud.yml -e "skip_running_site_yml=True"
+    fi
 }
 
 
