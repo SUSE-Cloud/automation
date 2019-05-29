@@ -162,7 +162,8 @@
       rescue:
         - include_role:
             name: rocketchat_notify
-          delegate_to: "{{ cloud_env }}"
+            apply:
+              delegate_to: "{{ cloud_env }}"
           vars:
             rc_action: "finished"
             rc_state: "Failed"
