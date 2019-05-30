@@ -1,0 +1,3 @@
+    <iommu model='intel'>
+      <driver intremap='on' caching_mode='on'/>
+    </iommu>

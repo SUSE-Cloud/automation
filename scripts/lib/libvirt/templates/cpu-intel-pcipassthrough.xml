@@ -1,0 +1,11 @@
+  <features>
+    <acpi/>
+    <apic/>
+    <pae/>
+    <ioapic driver='qemu'/>
+  </features>
+  <cpu mode='custom' match='exact'>
+    <model fallback='allow'>Haswell-noTSX</model>
+    <feature policy='require' name='vmx'/>
+    <feature policy='disable' name='monitor'/>
+  </cpu>
