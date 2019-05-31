@@ -2045,7 +2045,7 @@ function setup_trusted_cert
             -days 365 -nodes \
             -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=root"
         # Generate CSR
-        subj_alt="DNS:${cn},DNS:public-${cn}"
+        subj_alt="DNS:${cn},DNS:public-${cn},DNS:public.${cn}"
         # openssl 1.1.1 supports setting the subjectAltName directly in the command line,
         # but SLES 12 SP4 only has 1.0.2 so we need to read in the config like this
         openssl req -new -newkey rsa:2048 -keyout $cn.key -out $cn.csr \
