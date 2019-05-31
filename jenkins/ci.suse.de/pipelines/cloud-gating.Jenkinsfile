@@ -39,7 +39,7 @@ pipeline {
             script: '''
               rfcdate="$( curl -sI $staging_url | grep 'Last-Modified: ' | head -n1 | cut -d' ' -f2- )"
               epoch=$(date +%s -d "$rfcdate")
-              if test "$epoch" -gt "1400000000"; then
+              if test "$epoch" -lt "1400000000"; then
                 echo "Last-Modified epoch is too low to be valid."
                 exit 1
               fi
