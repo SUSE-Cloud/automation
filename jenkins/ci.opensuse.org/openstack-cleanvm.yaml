@@ -45,6 +45,7 @@
     image:
       - SLE_15
       - openSUSE-Leap-15.0
+      - openSUSE-Leap-15.1
     jobs:
       - 'openstack-cleanvm-{release}'
 
@@ -55,5 +56,6 @@
     image:
       - SLE_15
       - openSUSE-Leap-15.0
+      - openSUSE-Leap-15.1
     jobs:
       - 'openstack-cleanvm-{release}'
