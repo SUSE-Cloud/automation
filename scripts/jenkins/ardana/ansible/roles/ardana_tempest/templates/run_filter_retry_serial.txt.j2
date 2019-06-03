@@ -1,6 +1,7 @@
 {% set regexp = '\[.*]$' %}
-{% set test = tempest_failed_tests.stdout_lines[0] %}
+{% for test in tempest_failed_tests.stdout_lines[1:] %}
 {% if test.startswith('setUpClass') %}
 {% set regexp = '.*\(|\)$' %}
 {% endif %}
 +{{ test | regex_replace(regexp, '') }}
+{% endfor %}
