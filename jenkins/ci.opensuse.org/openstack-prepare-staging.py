@@ -148,7 +148,7 @@ def prepare(branch):
 
 def main():
     branch = os.environ['openstack_project']
-    if 'Rocky' == branch:
+    if branch in ('Rocky', 'Stein'):
         sys.exit(prepare(branch))
     else:
         print("%s not supported for argument openstack_project." % branch)
