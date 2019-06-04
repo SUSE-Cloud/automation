@@ -53,7 +53,7 @@
 
       - text:
           name: extra_params
-          default:
+          default: '{extra_params|}'
           description: >-
             This field may be used to define additional parameters, one per line, in the form:
 
