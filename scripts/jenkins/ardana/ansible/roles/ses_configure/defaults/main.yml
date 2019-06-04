@@ -61,6 +61,15 @@ ses_openstack_keys:
     mode: "0600"
     acls: []
 
+ses_manila_key:
+  name: "client.{{ ardana_env }}-manila"
+  key: "$(ceph-authtool --gen-print-key)"
+  mon_cap: "allow r, allow command 'auth del', allow command 'auth caps', allow command 'auth get', allow command 'auth get-or-create'"
+  osd_cap: "allow rw"
+  mds_cap: "allow *"
+  mode: "0600"
+  acls: []
+
 ses_rgw_key:
   name: "client.rgw.ses-{{ ardana_env }}"
   key: "$(ceph-authtool --gen-print-key)"
