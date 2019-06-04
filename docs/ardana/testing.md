@@ -152,7 +152,7 @@ Setting up a local Ardana test environment:
 the local host.
 * Install openstack cli client:
 ```
-sudo zypper install python-openstackclient
+sudo zypper install python-openstackclient python-heatclient
 ```
 * set up an OpenStack cloud configuration reflecting your engineering cloud credentials (for virtual Ardana environments).
 To do that, create an `~/.config/openstack/clouds.yaml` file with the following contents reflecting your engineering cloud account:
