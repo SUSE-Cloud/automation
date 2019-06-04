@@ -2150,6 +2150,9 @@ function enable_ssl_generic
         keystone)
             $p "$a['ssl']['ca_certs']" "'/etc/ssl/ca-bundle.pem'"
             $p "$a['api']['protocol']" "'https'"
+            if iscloudver 7minus ; then
+                $p "$a['signing']['ca_certs']" "'/etc/ssl/ca-bundle.pem'"
+            fi
         ;;
         *)
             $p "$a['api']['protocol']" "'https'"
