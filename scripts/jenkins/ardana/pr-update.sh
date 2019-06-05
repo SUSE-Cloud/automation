@@ -19,7 +19,7 @@ if ! $ghpr --action is-latest-sha $ghpr_paras --pr $github_pr_id ; then
 fi
 $ghpr --action set-status $ghpr_paras --status "pending" --targeturl $BUILD_URL --message "Started PR gating"
 
-git config --add remote.origin.fetch "+refs/pull/*/head:refs/remotes/origin/pr/*"
+git config --add remote.origin.fetch "+refs/pull/*/head:refs/remotes/origin-pr/*"
 git fetch origin $github_pr_sha
 git checkout -B ardana-ci FETCH_HEAD
 git clean  # remove files deleted from git
