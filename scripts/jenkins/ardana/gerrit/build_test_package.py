@@ -4,7 +4,6 @@
 This file takes in a list of gerrit changes to build into the supplied OBS
 project.
 """
-
 import argparse
 import contextlib
 import glob
@@ -15,6 +14,9 @@ import sys
 import tempfile
 import time
 import urllib
+
+from distutils.version import StrictVersion
+from io import StringIO
 
 import sh
 
@@ -194,11 +196,17 @@ class OBSProject(GerritApiCaller):
             meta.flush()
             print("Creating test project %s linked to project %s" %
                   (self.obs_test_project_name, self.obs_linked_project))
+            buf = StringIO()
+            sh.osc('--version', _out=buf)
+            osc_ver = buf.getvalue()
             sh.osc('-A', 'https://api.suse.de', 'api', '-T', meta.name,
                    '/source/%s/_meta' % self.obs_test_project_name)
-            sh.osc('-A', 'https://api.suse.de', 'deleterequest',
-                   self.obs_test_project_name, '--accept-in-hours', 720,
-                   '-m', 'Auto delete after 30 days.')
+            args = ['-A', 'https://api.suse.de', 'deleterequest',
+                    self.obs_test_project_name, '--accept-in-hours', 720,
+                    '-m', 'Auto delete after 30 days.']
+            if StrictVersion(osc_ver) > StrictVersion('0.164.1'):
+                args.append('--all')
+            sh.osc(*args)
 
     @find_in_osc_file('obs_scm filename')
     def _get_obsinfo_basename(self, service_def):
