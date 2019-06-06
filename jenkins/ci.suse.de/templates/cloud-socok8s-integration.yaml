@@ -11,9 +11,9 @@
           repo-owner: '{repo-owner}'
           credentials-id: '{repo-credentials}'
           branch-discovery: no-pr
-          discover-pr-forks-strategy: merge-current
+          discover-pr-forks-strategy: current
           discover-pr-forks-trust: permission
-          discover-pr-origin: merge-current
+          discover-pr-origin: current
           submodule:
             recursive: true
           notification-context: continuous-integration/jenkins
