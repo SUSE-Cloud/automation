@@ -5780,10 +5780,10 @@ function onadmin_run_cct
         cd cct
         if [[ $want_cct_pr ]] ; then
             git config --get-all remote.origin.fetch | grep -q pull || \
-                git config --add remote.origin.fetch "+refs/pull/*/head:refs/remotes/origin/pr/*"
+                git config --add remote.origin.fetch "+refs/pull/*/head:refs/remotes/origin-pr/*"
             safely git fetch origin
             # checkout the PR
-            safely git checkout -t origin/pr/$want_cct_pr
+            safely git checkout -t origin-pr/$want_cct_pr
             # merge the PR to always test what will end up in $checkout_branch
             safely git merge $checkout_branch -m temp-merge-commit
         fi
