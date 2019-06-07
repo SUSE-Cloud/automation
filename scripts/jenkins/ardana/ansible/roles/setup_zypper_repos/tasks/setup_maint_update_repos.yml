@@ -66,24 +66,13 @@
   until: mu_sync_result.rc != 24
   delay: 300
 
-- name: Add MU zypper repositories - Ardana
+- name: Add MU zypper repositories
   zypper_repository:
     name: "{{ item.1 }}-Maint-Update-{{ item.0 }}"
     repo: "{{ local_repos_base_dir }}/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/"
     runrefresh: yes
     state: present
-  when: " cloud_product == 'ardana' and maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
+  when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
   loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
   notify:
     - Refresh all repos
-
-- name: Add MU zypper repositories - Crowbar (admin node)
-  zypper_repository:
-    name: "{{ item.1 }}-Maint-Update-{{ item.0 }}"
-    repo: "{{ local_repos_base_dir }}/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/"
-    runrefresh: yes
-    state: present
-  loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
-  notify:
-    - Refresh all repos
-  when: "inventory_hostname == ardana_env and cloud_product == 'crowbar' and maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
