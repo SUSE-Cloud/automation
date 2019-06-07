@@ -3741,6 +3741,10 @@ function oncontroller_setupproduction()
     openstack flavor create cloud-ardana-job-controller --ram 28672 --disk 120 --vcpus 4 --public --property hw_rng:allowed='True'
     openstack flavor create cloud-ardana-job-compute --ram 8192 --disk 60 --vcpus 2 --public --property hw_rng:allowed='True'
     openstack flavor create cloud-ardana-job-minimal --ram 4096 --disk 40 --vcpus 2 --public --property hw_rng:allowed='True'
+    openstack flavor create cloud-ses --ram 8192 --disk 15 --ephemeral 80 --vcpus 4 --public --property hw_rng:allowed='True'
+    openstack flavor create cloud-ardana-job-lvm-compute --ram 8192 --disk 60 --vcpus 2 --public --property hw_rng:allowed='True'
+    openstack flavor create cloud-ardana-job-lvm-controller --ram 28672 --disk 80 --vcpus 4 --public --property hw_rng:allowed='True'
+    openstack flavor create cloud-ardana-job-lvm-minimal --ram 4096 --disk 60 --vcpus 2 --public --property hw_rng:allowed='True'
     openstack project create cloud-ci
     openstack user create --email snica@suse.com --project cloud-ci cloud-ci
     openstack role add --project cloud-ci --user cloud-ci Member
