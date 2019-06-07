@@ -89,9 +89,13 @@ resources:
 {%       endfor %}
 {%     endif  %}
 {%   endif  %}
-{%   if ipv6 and not network.is_conf %}
+{%   if ipv6 %}
       ip_version: 6
-{%   else   %}
+{%     if network.is_conf or network.is_mgmt %}
+      ipv6_ra_mode: dhcpv6-stateful
+      ipv6_address_mode: dhcpv6-stateful
+{%     endif %}
+{%   else %}
       ip_version: 4
 {%   endif  %}
       enable_dhcp: {{ network.is_conf or network.is_mgmt }}
