@@ -15,8 +15,9 @@
 #
 ---
 
-- name: 'Check if crowbar product line'
-  fail: msg="the role is intended for crowbar only"
+- name: Check if crowbar product line
+  fail:
+    msg: "the role is intended for crowbar only"
   when: cloud_product != 'crowbar'
 
 - include_tasks: add_mu_repos_crowbar.yml

@@ -24,6 +24,6 @@
   when: reboot_target == 'deployer'
 
 # reboot nodes - CROWBAR
-- include_tasks: reboot_cloud_nodes_crowbar.yml
-  when: cloud_product == 'crowbar' and reboot_target == 'cloud_nodes_crowbar'
+- include_tasks: reboot_cloud_nodes_{{ cloud_product }}.yml
+  when: reboot_target == 'cloud_nodes_{{ cloud_product }}'
 

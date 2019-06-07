@@ -20,14 +20,15 @@
   shell: |
     crowbar_node_state status | awk '/^d/{print $1}'
   register: _list_of_crowbar_nodes
-  when: reboot_target == 'cloud_nodes_crowbar'
 
+- name: Reboot nodes
+  command: crowbarctl node reboot {{ item }}
+  loop: "{{ _list_of_crowbar_nodes.stdout_lines }}"
 
 - name: Wait for nodes to be 'Ready'
-  shell: crowbar_node_state status | awk '/{{item}}/{print $2}'
+  shell: crowbar_node_state status | awk '/{{ item }}/{print $2}'
   register: _cmd_ret
   retries: 10
   delay: 60
   until: _cmd_ret.stdout_lines | reject('search','^Ready$') | list | count == 0
   loop: "{{ _list_of_crowbar_nodes.stdout_lines }}"
-  when: reboot_target == 'cloud_nodes_crowbar'

@@ -23,3 +23,4 @@ update_include_reboot_patches: true
 
 deployer_repo_base_url: "http://{{ deployer_ip }}:8091/{{ suse_release }}/{{ ansible_architecture }}/repos"
 
+cloud_repo_path: "OpenStack-Cloud-Crowbar"

@@ -5,9 +5,9 @@ Built by: {{ lookup('env', 'BUILD_URL') }}
 Media build version: {{ media_build_version }}
 Configured repositories:
 {% if cloud_product == 'ardana'%}
-   {% for repo in repos_to_add | sort %}
+{%   for repo in repos_to_add | sort %}
   - {{ repo }}
-   {% endfor %}
+{%   endfor %}
 {% endif %}
 {% if is_milestone %}
   - {{ media[cloud_release].name }}
