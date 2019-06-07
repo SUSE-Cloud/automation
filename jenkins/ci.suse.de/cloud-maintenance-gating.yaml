@@ -44,17 +44,14 @@
           description: >-
             Reserve the 'ardana_env' lockable resource throughout the execution of this job
 
-      - choice:
-          name: cloudsource
-          choices:
-            - 'GM8+up'
-            - 'hosGM8+up'
-          description: >-
-            The cloud repository (from provo-clouddata) to be used for testing.
-            This value can take the following form:
-
-               GM<X>+up (official GM plus Cloud-Updates)
-               hosGM<X>+up (official HOS GM plus Cloud-Updates)
+      - extended-choice:
+          name: cloudversion
+          type: multi-select
+          visible-items: 2
+          multi-select-delimiter: ','
+          default-value: '{cloudversion|}'
+          value: >-
+            SOC8,SOC9
 
       - validating-string:
           name: maint_updates
