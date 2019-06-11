@@ -57,7 +57,7 @@
         # This is needed because crowbar_register fails if there are
         # ifcfg files configured for non-existing interfaces
         - name: Remove unused ifcfg files
-          shell: rm /etc/sysconfig/network/ifcfg-eth[1-9]*
+          shell: rm --force --verbose /etc/sysconfig/network/ifcfg-eth[1-9]*
 
       rescue:
         - include_role:
