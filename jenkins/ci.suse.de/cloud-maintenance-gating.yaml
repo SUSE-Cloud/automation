@@ -86,7 +86,8 @@
 
       - text:
           name: extra_params
-          default:
+          default: |
+            tempest_retry_failed=True
           description: >-
             This field may be used to define additional parameters, one per line, in the form:
 

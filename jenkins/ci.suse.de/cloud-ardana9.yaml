@@ -200,7 +200,7 @@
     scenario_name: entry-scale-kvm
     clm_model: integrated
     controllers: '3'
-    sles_computes: '1'
+    sles_computes: '2'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -216,10 +216,14 @@
     cloudsource: GM9+up
     updates_test_enabled: false
     scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '2'
+    ses_enabled: true
+    ses_rgw_enabled: false
     tempest_filter_list: "\
       keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
       designate,heat,magnum,monasca"
-    qa_test_list: "iverify"
     triggers: []
     jobs:
         - '{ardana_job}'
