@@ -207,9 +207,11 @@
 
 {%     if ns.service_component_groups | intersect(['SWPAC', 'SWOBJ', 'CORE']) %}
     device-groups:
+{%       set device_groups_idx = ns.drive_idx %}
 {%       for service_component_group in ns.service_component_groups %}
 {%         if service_component_group == 'SWPAC' %}
-{%           set ns.drive_idx = ns.drive_idx+1 %}
+{%           if swiftpac_disk_enabled | bool %}
+{%             set ns.drive_idx = ns.drive_idx+1 %}
 
       # Additional disk group defined for Swift
       # If available, you can add additional disks to the "devices" list.
@@ -223,8 +225,10 @@
             rings:
               - account
               - container
+{%           endif %}
 {%         elif service_component_group == 'SWOBJ' %}
-{%           set ns.drive_idx = ns.drive_idx+1 %}
+{%           if swiftobj_disk_enabled | bool %}
+{%             set ns.drive_idx = ns.drive_idx+1 %}
 
       # Additional disk group defined for Swift
       # If available, you can add additional disks to the "devices" list.
@@ -237,8 +241,9 @@
           attrs:
             rings:
               - object-0
+{%           endif %}
 {%         elif service_component_group == 'CORE' %}
-{%           if cinder_lvm_enabled | bool %}
+{%           if cinder_disk_enabled | bool %}
 {%             set ns.drive_idx = ns.drive_idx+1 %}
 
       - name: cinder-volume
@@ -249,6 +254,9 @@
 {%           endif %}
 {%         endif %}
 {%       endfor %}
+{%       if device_groups_idx == ns.drive_idx %}
+      []
+{%       endif %}
 {%     endif %}
 {%   endif %}
 {% endfor %}
