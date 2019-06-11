@@ -17,7 +17,9 @@
 
 - name: Create stack '{{ heat_stack_name }}'
   ecp_os_stack:
-    cloud: "{{ os_cloud }}"
+    cloud:
+      cloud: "{{ os_cloud }}"
+      os_project_name: "{{ os_project_name }}"
     name: "{{ heat_stack_name }}"
     state: present
     template: "{{ heat_template_file }}"

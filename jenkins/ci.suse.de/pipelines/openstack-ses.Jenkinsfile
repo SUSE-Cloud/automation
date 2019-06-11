@@ -88,6 +88,12 @@ pipeline {
       }
       script{
         if (env.SES_IP != null) {
+          def cloud_url_text = "the cloud"
+          if (os_cloud == 'engcloud') {
+            cloud_url_text="the engineering cloud at https://engcloud.prv.suse.net/project/stacks/"
+          } else if (os_cloud == 'susecloud') {
+            cloud_url_text="the SUSE cloud at https://cloud.suse.de/project/stacks/"
+          }
           echo """
 ******************************************************************************
 ** The '${ses_id}' SES environment is reachable at:
@@ -95,7 +101,7 @@ pipeline {
 **        ssh root@${SES_IP}
 **
 ** Please delete the 'openstack-ses-${ses_id}' stack when you're done,
-** by loging into the ECP at https://engcloud.prv.suse.net/project/stacks/
+** by loging into ${cloud_url_text}
 ** and deleting the heat stack.
 ******************************************************************************
                """

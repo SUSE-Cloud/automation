@@ -1,5 +1,5 @@
 /**
- * The openstack-ardana-heat Jenkins Pipeline
+ * The openstack-cloud-heat Jenkins Pipeline
  *
  * This job automates creating/deleting heat stacks.
  */
@@ -38,18 +38,21 @@ pipeline {
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+          ardana_lib.load_os_params_from_resource(ardana_env)
           ardana_lib.load_extra_params_as_vars(extra_params)
-          ardana_lib.ansible_playbook('load-job-params')
+          ardana_lib.ansible_playbook('load-job-params',
+                                      "-e jjb_type=job-template -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-heat-template.yaml"
+                                      )
         }
       }
     }
     stage('Delete heat stack') {
       steps {
         script {
-          // Run the monitoring bits outside of the ECP-API lock, and lock the
-          // ECP API only while actually deleting the stack
+          // Run the monitoring bits outside of the OpenStack API lock, and lock the
+          // OpenStack API only while actually deleting the stack
           ardana_lib.ansible_playbook('heat-stack', "-e heat_action=monitor")
-          lock(resource: 'cloud-ECP-API') {
+          lock(resource: "$os_cloud-API") {
             timeout(time: 10, unit: 'MINUTES', activity: true) {
               ardana_lib.ansible_playbook('heat-stack', "-e heat_action=delete -e monitor_stack_after_delete=False")
             }
@@ -67,8 +70,8 @@ pipeline {
           // Dump the heat_template multi-string parameter value into a file
           writeFile file: "$WORKSPACE/heat_template.yml", text: params.heat_template
 
-          lock(resource: 'cloud-ECP-API') {
-            timeout(time: 10, unit: 'MINUTES', activity: true) {
+          lock(resource: "$os_cloud-API") {
+            timeout(time: 20, unit: 'MINUTES', activity: true) {
               ardana_lib.ansible_playbook('heat-stack', "-e heat_template_file=$WORKSPACE/heat_template.yml")
             }
           }

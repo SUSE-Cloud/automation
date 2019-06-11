@@ -8,6 +8,5 @@
     reserve_env: false
     tempest_filter_list: ''
     cleanup: never
-    os_cloud: ''
     jobs:
         - '{ardana_job}'

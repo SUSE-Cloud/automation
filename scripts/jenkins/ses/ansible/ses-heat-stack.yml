@@ -23,7 +23,6 @@
     - role: heat_ses_template
     - role: heat_stack
       vars:
-        os_cloud: "engcloud-cloud-ci"
         heat_stack_name: "openstack-ses-{{ ses_id }}"
 
   tasks:

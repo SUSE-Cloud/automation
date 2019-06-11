@@ -14,6 +14,23 @@ def load_extra_params_as_vars(extra_params) {
   }
 }
 
+// When a CI lockable resource slot name is used for the `ardana_env` value,
+// this function overrides the os_cloud and os_project_name values to correspond
+// to the target OpenStack platform associated with the slot and the 'cloud-ci'
+// OpenStack project used exclusively for the Cloud CI
+def load_os_params_from_resource(ardana_env) {
+  if (ardana_env.startsWith("engcloud-ci-slot")) {
+    env.os_cloud = "engcloud"
+    env.os_project_name = "cloud-ci"
+  } else if (ardana_env.startsWith("susecloud-ci-slot")) {
+    env.os_cloud = "susecloud"
+    env.os_project_name = "cloud-ci"
+  } else if (os_project_name == "cloud-ci") {
+    error("""The OpenStack 'cloud-ci' project is reserved and may only be used with
+'ardana_env' values that correspond to CI Lockable Resource slots.
+Please adjust your 'ardana_env' or 'os_project_name' parameter values to avoid this error.""")
+  }
+}
 
 def ansible_playbook(playbook, params='') {
   sh("""
