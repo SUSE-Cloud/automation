@@ -10,18 +10,6 @@
         - '{cloud_url_trigger_job}'
 
 - project:
-    name: cloud-ardana8-updates-test-trigger
-    cloud_url_trigger_job: '{name}'
-    version: '8'
-    url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-Updates-test/SUSE:Maintenance:Test:OpenStack-Cloud:{version}:x86_64.repo'
-    check_date: true
-    projects:
-      - project: 'cloud-ardana{version}-job-entry-scale-kvm-pcloud001-x86_64'
-        block: false
-    jobs:
-        - '{cloud_url_trigger_job}'
-
-- project:
     name: cloud-8-gating
     cloud_gating_job: '{name}'
     concurrent: False
@@ -222,28 +210,6 @@
     ses_rgw_enabled: false
     triggers:
      - timed: 'H H * * *'
-    jobs:
-        - '{ardana_job}'
-
-- project:
-    name: cloud-ardana8-job-entry-scale-kvm-pcloud001-x86_64
-    ardana_job: '{name}'
-    concurrent: false
-    ardana_env: pcloud001
-    reserve_env: true
-    cloudsource: GM8+up
-    updates_test_enabled: true
-    scenario_name: entry-scale-kvm
-    clm_model: standalone
-    controllers: '3'
-    sles_computes: '2'
-    rhel_computes: '0'
-    ses_enabled: true
-    tempest_filter_list: "\
-      keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,fwaas,vpnaas,\
-      designate,heat,ceilometer,magnum,freezer,monasca"
-    rc_notify: 'true'
-    triggers: []
     jobs:
         - '{ardana_job}'
 
