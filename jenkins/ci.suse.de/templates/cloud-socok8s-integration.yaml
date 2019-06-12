@@ -17,4 +17,4 @@
           submodule:
             recursive: true
           notification-context: continuous-integration/jenkins
-          filter-head-regex: ^(master|release\-\d\.\d|PR\-\d+)$
+          filter-head-regex: ^(master|stable\-\d\.\d|PR\-\d+)$
