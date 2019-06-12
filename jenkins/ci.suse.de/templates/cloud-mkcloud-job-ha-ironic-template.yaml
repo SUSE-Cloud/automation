@@ -21,7 +21,7 @@
             cloudsource=develcloud{version}
             storage_method=none
             hacloud=1
-            mkcloudtarget=plain setupironicnodes
+            mkcloudtarget=plain setupironicnodes testsetup
             networkingplugin=openvswitch
             networkingmode=gre
             want_node_aliases=controller={nodenumber_controller},compute=1
