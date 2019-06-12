@@ -105,6 +105,33 @@ def generate_qa_tests_stages(qa_test_list) {
   }
 }
 
+def generate_mu_stages(cloudversion_list, deploy, update, body) {
+  def jobs = [:]
+  for (cv in cloudversion_list) {
+    if (deploy) {
+      jobs["${cv}-deploy"] = {
+        stage("Deploy: ${cv}") {
+          body(cv, false)
+        }
+      }
+    }
+    if (update) {
+      jobs["${cv}-update"] = {
+        stage("Update: ${cv}") {
+          body(cv, true)
+        }
+      }
+    }
+  }
+  return jobs
+}
+
+def get_mu_job_name(cloudversion) {
+ def jobs_map = [
+   "SOC": "cloud-ardana${cloudversion[-1]}-job-entry-scale-kvm-maintenance-update-x86_64"
+ ]
+ return jobs_map[cloudversion[0..-2]]
+}
 
 // Implements a simple closure that executes the supplied function (body) with
 // or without reserving a Lockable Resource identified by the 'resource_label'

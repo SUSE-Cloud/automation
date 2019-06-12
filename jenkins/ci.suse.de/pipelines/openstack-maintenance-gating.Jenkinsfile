@@ -43,65 +43,35 @@ pipeline {
     stage('Trigger jobs') {
       // Do not abort all stages if one of them fails
       failFast false
-      parallel {
-        stage('Run cloud deploy job') {
-          when {
-            expression { deploy == 'true' }
-          }
-          steps {
-            script {
-              // reserve a resource here for the openstack-ardana job, to avoid
-              // keeping a cloud-ardana-ci worker busy while waiting for a
-              // resource to become available.
-              ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), ardana_env, "${ardana_env}-deploy") {
-                reserved_env ->
-                def slaveJob = ardana_lib.trigger_build("cloud-ardana8-job-entry-scale-kvm-maintenance-update-x86_64", [
-                  string(name: 'ardana_env', value: reserved_env),
-                  string(name: 'reserve_env', value: "false"),
-                  string(name: 'cloudsource', value: "$cloudsource"),
-                  string(name: 'maint_updates', value: "$maint_updates"),
-                  string(name: 'update_after_deploy', value: "false"),
-                  string(name: 'rc_notify', value: "true"),
-                  string(name: 'cleanup', value: "on success"),
-                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                  text(name: 'extra_params', value: extra_params)
-                ], false)
-              }
-            }
-          }
-        }
-
-        stage('Run cloud update job') {
-          when {
-            expression { deploy_and_update == 'true' }
-          }
-          steps {
-            script {
-              // reserve a resource here for the openstack-ardana job, to avoid
-              // keeping a cloud-ardana-ci worker busy while waiting for a
-              // resource to become available.
-              ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), ardana_env, "${ardana_env}-update") {
-                reserved_env ->
-                def slaveJob = ardana_lib.trigger_build("cloud-ardana8-job-entry-scale-kvm-maintenance-update-x86_64", [
-                  string(name: 'ardana_env', value: reserved_env),
-                  string(name: 'reserve_env', value: "false"),
-                  string(name: 'cloudsource', value: "$cloudsource"),
-                  string(name: 'maint_updates', value: "$maint_updates"),
-                  string(name: 'update_after_deploy', value: "true"),
-                  string(name: 'rc_notify', value: "true"),
-                  string(name: 'cleanup', value: "on success"),
-                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                  text(name: 'extra_params', value: extra_params)
-                ], false)
-              }
+      steps {
+        script {
+          parallel ardana_lib.generate_mu_stages(cloudversion.split(','), deploy.toBoolean(), deploy_and_update.toBoolean()) {
+            cv, update_after_deploy ->
+            // reserve a resource here for the openstack-ardana job, to avoid
+            // keeping a cloud-ardana-ci worker busy while waiting for a
+            // resource to become available.
+            def suffix = (update_after_deploy) ? "update" : "deploy"
+            ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), ardana_env, "${ardana_env}-${cv}-${suffix}") {
+              reserved_env ->
+              def slaveJob = ardana_lib.trigger_build(ardana_lib.get_mu_job_name(cv), [
+                string(name: 'ardana_env', value: reserved_env),
+                string(name: 'reserve_env', value: "false"),
+                string(name: 'cloudsource', value: "GM${cv[-1]}+up"),
+                string(name: 'maint_updates', value: "$maint_updates"),
+                string(name: 'update_after_deploy', value: "${update_after_deploy}"),
+                string(name: 'rc_notify', value: "true"),
+                string(name: 'cleanup', value: "on success"),
+                string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                text(name: 'extra_params', value: extra_params)
+              ], false)
             }
           }
         }
       }
     }
   }
+
   post{
     cleanup {
       cleanWs()
