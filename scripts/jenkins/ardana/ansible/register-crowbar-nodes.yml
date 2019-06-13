@@ -10,7 +10,7 @@
       command: |
         openstack --os-cloud {{ os_cloud }} --os-project-name {{ os_project_name }} \
           subnet set --no-dhcp \
-          openstack-ardana-{{ cloud_env }}_management_subnet
+          {{ cloud_env }}-cloud_management_subnet
 
 - name: Register crowbar cloud nodes
   hosts: cloud_virt_hosts

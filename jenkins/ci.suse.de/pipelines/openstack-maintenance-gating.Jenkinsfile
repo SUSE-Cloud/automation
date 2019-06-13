@@ -1,5 +1,5 @@
 /**
- * The openstack-ardana-maintenance-gating Jenkins Pipeline
+ * The openstack-maintenance-gating Jenkins Pipeline
  */
 
 def ardana_lib = null
@@ -47,7 +47,7 @@ pipeline {
         script {
           parallel ardana_lib.generate_mu_stages(cloudversion.split(','), deploy.toBoolean(), deploy_and_update.toBoolean()) {
             cv, update_after_deploy ->
-            // reserve a resource here for the openstack-ardana job, to avoid
+            // reserve a resource here for the integration job, to avoid
             // keeping a cloud-ardana-ci worker busy while waiting for a
             // resource to become available.
             def suffix = (update_after_deploy) ? "update" : "deploy"

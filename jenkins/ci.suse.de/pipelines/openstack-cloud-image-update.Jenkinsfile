@@ -90,7 +90,7 @@ pipeline {
     stage('integration test') {
       steps {
         script {
-          // reserve a resource here for the openstack-ardana job, to avoid
+          // reserve a resource here for the integration job, to avoid
           // keeping a cloud-ardana-ci worker busy while waiting for a
           // resource to become available.
           ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, cloud_env) {

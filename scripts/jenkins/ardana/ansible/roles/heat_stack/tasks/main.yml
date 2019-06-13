@@ -15,40 +15,64 @@
 #
 ---
 
-- name: Check if stack already exists
-  command: |
-    openstack --os-cloud {{ os_cloud }} --os-project-name {{ os_project_name }} \
-      stack show {{ heat_stack_name }} \
-      -c stack_status -f value
-  register: get_stack
-  failed_when: false
+  # Ensure backwards compatibility (i.e. heat stacks
+  # created with the old naming scheme are properly deleted).
+- name: Determine old cloud stack name
+  set_fact:
+    old_heat_stack_name: "openstack-ardana-{{ heat_stack_name | regex_replace('-cloud$', '') }}"
+  when: heat_stack_name.endswith('-cloud')
 
-- name: Check if SES stack also exists
-  command: |
-    openstack --os-cloud {{ os_cloud }} --os-project-name {{ os_project_name }} \
-      stack show {{ ses_stack_name }} \
-      -c stack_status -f value
-  register: ses_stack
-  when: heat_action == 'delete'
-  failed_when: false
+- name: Determine old SES stack name
+  set_fact:
+    old_heat_stack_name: "openstack-ses-{{ heat_stack_name | regex_replace('-ses$', '') }}"
+  when: heat_stack_name.endswith('-ses')
 
-- include_tasks: monitor.yml
-  when:
-    - get_stack.stdout != ''
-    - heat_action == 'monitor'
+- name: Determine SES stack name from cloud stack name
+  set_fact:
+    ses_stack_name: "{{ heat_stack_name | regex_replace('-cloud$', '-ses') }}"
+    old_ses_stack_name: "openstack-ses-{{ heat_stack_name | regex_replace('-cloud$', '') }}"
+  when: heat_stack_name.endswith('-cloud')
 
-- include_tasks: delete.yml
+- name: Monitor stack
+  include_tasks: monitor.yml
+  when: heat_action == 'monitor'
+
+- name: Delete SES stack
+  include_tasks: delete.yml
   vars:
     heat_stack_name: "{{ ses_stack_name }}"
   when:
-    - "'skipped' not in ses_stack"
-    - ses_stack.stdout != ''
+    - ses_stack_name is defined
     - heat_action != 'monitor'
 
-- include_tasks: delete.yml
+- name: Delete stack
+  include_tasks: delete.yml
+  when: heat_action != 'monitor'
+
+- name: Monitor old stack
+  include_tasks: monitor.yml
+  vars:
+    heat_stack_name: "{{ old_heat_stack_name }}"
   when:
-    - get_stack.stdout != ''
+    - old_heat_stack_name is defined
+    - heat_action == 'monitor'
+
+- name: Delete old SES stack
+  include_tasks: delete.yml
+  vars:
+    heat_stack_name: "{{ old_ses_stack_name }}"
+  when:
+    - old_ses_stack_name is defined
     - heat_action != 'monitor'
 
-- include_tasks: create.yml
-  when: "heat_action == 'create'"
+- name: Delete old stack
+  include_tasks: delete.yml
+  vars:
+    heat_stack_name: "{{ old_heat_stack_name }}"
+  when:
+    - old_heat_stack_name is defined
+    - heat_action != 'monitor'
+
+- name: Create stack
+  include_tasks: create.yml
+  when: heat_action == 'create'

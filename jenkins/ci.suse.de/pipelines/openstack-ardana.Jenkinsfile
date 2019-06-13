@@ -195,7 +195,7 @@ pipeline {
               ardana_lib.trigger_build('openstack-ses', [
                 string(name: 'ses_id', value: "$cloud_env"),
                 string(name: 'os_cloud', value: "$os_cloud"),
-                string(name: 'network', value: "openstack-ardana-${cloud_env}_management_net"),
+                string(name: 'network', value: "${cloud_env}-cloud_management_net"),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
                 string(name: 'os_project_name', value: "$os_project_name")
@@ -322,7 +322,7 @@ pipeline {
 **
 **        ssh root@${DEPLOYER_IP}
 **
-** Please delete the 'openstack-ardana-${cloud_env}' stack when you're done,
+** Please delete the '${cloud_env}-cloud' stack when you're done,
 ** by using one of the following methods:
 **
 **  1. log into ${cloud_url_text}

@@ -123,7 +123,7 @@ The environment can then accessed by logging in as `root` or `ardana` and using 
 13:34:20 **
 13:34:20 **        ssh root@10.86.1.235
 13:34:20 **
-13:34:20 ** Please delete the 'openstack-ardana-alan-turing' stack when you're done,
+13:34:20 ** Please delete the 'alan-turing-cloud' stack when you're done,
 13:34:20 ** by using one of the following methods:
 13:34:20 **
 13:34:20 **  1. log into the ECP at https://engcloud.prv.suse.net/project/stacks/

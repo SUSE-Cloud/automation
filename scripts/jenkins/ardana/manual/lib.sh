@@ -120,7 +120,7 @@ function get_deployer_ip {
 }
 
 function get_ses_ip {
-    grep -oP "^openstack-ses-$(get_from_input cloud_env)\\s+ansible_host=\\K[0-9\\.]+" \
+    grep -oP "^$(get_from_input cloud_env)-ses\\s+ansible_host=\\K[0-9\\.]+" \
         $AUTOMATION_DIR/scripts/jenkins/ses/ansible/inventory
 }
 
@@ -194,7 +194,7 @@ function deploy_ses_vcloud {
         ses_id=$(get_from_input cloud_env)
         os_cloud=$(get_from_input os_cloud)
         os_project_name=$(get_from_input os_project_name)
-        network="openstack-ardana-${ses_id}_management_net"
+        network="${ses_id}-cloud_management_net"
         ansible_playbook_ses ses-heat-stack.yml -e "ses_id=$ses_id network=$network os_cloud=$os_cloud os_project_name=$os_project_name"
         ansible_playbook_ses bootstrap-ses-node.yml -e ses_id=$ses_id
         for i in {1..3}; do
@@ -294,7 +294,7 @@ function exit_msg {
 **
 **        ssh root@${SES_IP}
 **
-** Please delete the 'openstack-ses-$(get_from_input cloud_env)' stack when you're done,
+** Please delete the '$(get_from_input cloud_env)-ses' stack when you're done,
 ** by loging into the ECP at https://engcloud.prv.suse.net/project/stacks/
 ** and deleting the heat stack.
 *****************************************************************************************
@@ -309,7 +309,7 @@ function exit_msg {
 **        or
 **        ssh root@${DEPLOYER_IP}
 **
-** Please delete the 'openstack-ardana-$(get_from_input cloud_env)' stack when you're done,
+** Please delete the '$(get_from_input cloud_env)-cloud' stack when you're done,
 ** by by using one of the following methods:
 **
 **  1. log into the ECP at https://engcloud.prv.suse.net/project/stacks/
