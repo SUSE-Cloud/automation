@@ -16,12 +16,12 @@
 ---
 
 - name: Configure CephFS backend for manila
-  hosts: "{{ ardana_env }}"
+  hosts: "{{ cloud_env }}"
   remote_user: ardana
   gather_facts: no
   vars:
     task: "deploy"
-    ses_cluster_id: "{{ (ardana_env.startswith('pcloud') or ardana_env.startswith('qe')) | ternary('qe', 'virt') }}"
+    ses_cluster_id: "{{ (cloud_env.startswith('pcloud') or cloud_env.startswith('qe')) | ternary('qe', 'virt') }}"
     ses_cloud_config_path: "/tmp/ses_config"
     ardana_openstack_path: "~/openstack/ardana/ansible"
     ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
@@ -33,14 +33,14 @@
     - block:
         - name: Copy manila keyring to MNL-API hosts
           shell:
-            ansible -m copy -a "src={{ ses_cloud_config_path }}/ceph.client.{{ ardana_env }}-manila.keyring \
+            ansible -m copy -a "src={{ ses_cloud_config_path }}/ceph.client.{{ cloud_env }}-manila.keyring \
               dest=/etc/ceph/ owner=manila group=ceph" -b MNL-API
           args:
             chdir: "{{ ardana_scratch_path }}"
 
         - name: Ensure manila client section on ceph.conf
           shell:
-            ansible -m ini_file -a "dest=/etc/ceph/ceph.conf section=client.{{ ardana_env }}-manila \
+            ansible -m ini_file -a "dest=/etc/ceph/ceph.conf section=client.{{ cloud_env }}-manila \
               option='{{ item.option }}' value={{ item.value }}" -b MNL-API
           args:
             chdir: "{{ ardana_scratch_path }}"
@@ -50,7 +50,7 @@
             - option: "client mount gid"
               value: 0
             - option: "keyring"
-              value: "/etc/ceph/ceph.client.{{ ardana_env }}-manila.keyring"
+              value: "/etc/ceph/ceph.client.{{ cloud_env }}-manila.keyring"
 
         - name: Add CephFS backend section to manila config
           blockinfile:
@@ -62,7 +62,7 @@
               share_driver = manila.share.drivers.cephfs.cephfs_native.CephFSNativeDriver
               cephfs_conf_path = /etc/ceph/ceph.conf
               cephfs_protocol_helper_type = CEPHFS
-              cephfs_auth_id = {{ ardana_env }}-manila
+              cephfs_auth_id = {{ cloud_env }}-manila
               cephfs_cluster_name = ceph
               cephfs_enable_snapshots = False
 

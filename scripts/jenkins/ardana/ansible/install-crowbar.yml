@@ -1,7 +1,7 @@
 ---
 
 - name: Install Crowbar on admin node
-  hosts: "{{ ardana_env }}"
+  hosts: "{{ cloud_env }}"
   remote_user: root
   gather_facts: True
   vars:

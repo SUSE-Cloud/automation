@@ -36,10 +36,10 @@ _msg_fields_started:
     value: "{{ jenkins_build_url_msg }}"
     short: False
   - title: Ardana log stream
-    value: "{{ ansible_log_stream_msg if ardana_env in groups['all'] else 'NA' }}"
+    value: "{{ ansible_log_stream_msg if cloud_env in groups['all'] else 'NA' }}"
     short: False
   - title: Deployer
-    value: "{{ hostvars[ardana_env].ansible_host if ardana_env in groups['all'] else 'NA' }}"
+    value: "{{ hostvars[cloud_env].ansible_host if cloud_env in groups['all'] else 'NA' }}"
     short: True
   - title: cloudsource
     value: "{{ cloudsource }}"
@@ -62,7 +62,7 @@ _msg_fields_finished:
     value: "{{ ansible_log_url_msg if jenkins_build_url else 'Not available' }}"
     short: False
   - title: Deployer
-    value: "{{ hostvars[ardana_env].ansible_host if ardana_env in groups['all'] else 'NA' }}"
+    value: "{{ hostvars[cloud_env].ansible_host if cloud_env in groups['all'] else 'NA' }}"
     short: True
   - title: cloudsource
     value: "{{ cloudsource }}"

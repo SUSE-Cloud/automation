@@ -25,18 +25,18 @@ ses_cluster_configuration:
       ses_public_network: {{ hostvars['ses-' + ses_cluster_id].conf_options.stdout_lines.3 }}
       ses_cluster_network: {{ hostvars['ses-' + ses_cluster_id].conf_options.stdout_lines.4 }}
   cinder:
-      rbd_store_pool: cinder-{{ ardana_env }}
-      rbd_store_pool_user: cinder-{{ ardana_env }}
-      keyring_file_name: ceph.client.cinder-{{ ardana_env }}.keyring
+      rbd_store_pool: cinder-{{ cloud_env }}
+      rbd_store_pool_user: cinder-{{ cloud_env }}
+      keyring_file_name: ceph.client.cinder-{{ cloud_env }}.keyring
   cinder-backup:
-      rbd_store_pool: backups-{{ ardana_env }}
-      rbd_store_pool_user: cinder_backup-{{ ardana_env }}
-      keyring_file_name: ceph.client.cinder_backup-{{ ardana_env }}.keyring
+      rbd_store_pool: backups-{{ cloud_env }}
+      rbd_store_pool_user: cinder_backup-{{ cloud_env }}
+      keyring_file_name: ceph.client.cinder_backup-{{ cloud_env }}.keyring
  # Nova uses the cinder user to access the nova pool, cinder pool
  # So all we need here is the nova pool name.
   nova:
-      rbd_store_pool: nova-{{ ardana_env }}
+      rbd_store_pool: nova-{{ cloud_env }}
   glance:
-      rbd_store_pool: glance-{{ ardana_env }}
-      rbd_store_pool_user: glance-{{ ardana_env }}
-      keyring_file_name: ceph.client.glance-{{ ardana_env }}.keyring
+      rbd_store_pool: glance-{{ cloud_env }}
+      rbd_store_pool_user: glance-{{ cloud_env }}
+      keyring_file_name: ceph.client.glance-{{ cloud_env }}.keyring

@@ -17,12 +17,12 @@
 
 test_results_subunit: "/opt/stack/tempest/logs/testrepository_region1.subunit"
 
-os_health_build_name: "{{ ardana_env }}_tempest_{{ tempest_run_filter }}"
+os_health_build_name: "{{ cloud_env }}_tempest_{{ tempest_run_filter }}"
 
 os_health_metadata:
   - "build_uuid:`uuidgen`"
   - "project:openstack/tempest/{{ tempest_run_filter }}"
-  - "ardana_env:{{ ardana_env }}"
+  - "cloud_env:{{ cloud_env }}"
   - "build_name:{{ os_health_build_name }}"
   - "openstack_service:{{ tempest_run_filter }}"
   - "build_version:{{ os_health_cloud_build }}"

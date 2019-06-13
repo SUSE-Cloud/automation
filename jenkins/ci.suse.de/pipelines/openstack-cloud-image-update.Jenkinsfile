@@ -93,10 +93,10 @@ pipeline {
           // reserve a resource here for the openstack-ardana job, to avoid
           // keeping a cloud-ardana-ci worker busy while waiting for a
           // resource to become available.
-          ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), ardana_env, ardana_env) {
+          ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, cloud_env) {
             reserved_env ->
             ardana_lib.trigger_build(openstack_cloud_job, [
-              string(name: 'ardana_env', value: reserved_env),
+              string(name: 'cloud_env', value: reserved_env),
               string(name: 'reserve_env', value: "false"),
               string(name: 'os_cloud', value: os_cloud),
               string(name: 'git_automation_repo', value: "$git_automation_repo"),

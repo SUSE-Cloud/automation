@@ -15,7 +15,7 @@
 #
 ---
 
-heat_resource_name_prefix: "openstack-ardana-{{ ardana_env }}"
+heat_resource_name_prefix: "openstack-ardana-{{ cloud_env }}"
 rhel_distro_id: "rhel{{ rhel_os_version }}-x86_64"
 rhel_image: "centos{{ rhel_os_version }}"
 

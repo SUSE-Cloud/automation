@@ -22,8 +22,8 @@ pipeline {
     stage('Setup workspace') {
       steps {
         script {
-          if (ardana_env == '') {
-            error("Empty 'ardana_env' parameter value.")
+          if (cloud_env == '') {
+            error("Empty 'cloud_env' parameter value.")
           }
           if (maint_updates == '') {
             error("Empty 'maint_updates' parameter value.")
@@ -51,10 +51,10 @@ pipeline {
             // keeping a cloud-ardana-ci worker busy while waiting for a
             // resource to become available.
             def suffix = (update_after_deploy) ? "update" : "deploy"
-            ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), ardana_env, "${ardana_env}-${cv}-${suffix}") {
+            ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, "${cloud_env}-${cv}-${suffix}") {
               reserved_env ->
               def slaveJob = ardana_lib.trigger_build(ardana_lib.get_mu_job_name(cv), [
-                string(name: 'ardana_env', value: reserved_env),
+                string(name: 'cloud_env', value: reserved_env),
                 string(name: 'reserve_env', value: "false"),
                 string(name: 'cloudsource', value: "GM${cv[-1]}+up"),
                 string(name: 'maint_updates', value: "$maint_updates"),

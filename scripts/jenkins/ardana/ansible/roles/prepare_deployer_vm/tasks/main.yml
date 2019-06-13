@@ -45,6 +45,6 @@
 - name: Wait until VM is reachable
   wait_for:
     port: 22
-    host: "{{ hostvars[ardana_env].ansible_host }}"
+    host: "{{ hostvars[cloud_env].ansible_host }}"
     search_regex: OpenSSH
     delay: 10

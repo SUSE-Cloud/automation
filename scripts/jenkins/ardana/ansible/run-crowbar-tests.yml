@@ -1,7 +1,7 @@
 ---
 
 - name: Run Crowbar tests and collect results
-  hosts: "{{ ardana_env }}"
+  hosts: "{{ cloud_env }}"
   remote_user: root
   gather_facts: True
   vars:

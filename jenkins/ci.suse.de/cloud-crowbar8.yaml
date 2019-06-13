@@ -2,7 +2,7 @@
     name: cloud-crowbar8-job-x86_64
     crowbar_job: '{name}'
     cloudsource: stagingcloud8
-    ardana_env: cloud-crowbar-ci-slot
+    cloud_env: cloud-crowbar-ci-slot
     scenario_name: crowbar
     scenario_file: cloud8/cloud8-2nodes-default.yml
     controllers: '1'
@@ -17,7 +17,7 @@
     name: cloud-crowbar8-job-ha-x86_64
     crowbar_job: '{name}'
     cloudsource: stagingcloud8
-    ardana_env: cloud-crowbar-ci-slot
+    cloud_env: cloud-crowbar-ci-slot
     scenario_name: crowbar
     scenario_file: cloud8/cloud8-5nodes-default.yml
     controllers: '3'

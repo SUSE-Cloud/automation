@@ -45,15 +45,15 @@ The available parameters should be self-descriptive, but the [Customized deploym
 will provide more information on the provided options. Here are some best practices:
 
 * For a virtual cloud deployment:
-  * use your Rocket/irc nickname as ```ardana_env```. If you need to deploy several Cloud setups,
-  use a unique ```ardana_env``` value for each one
+  * use your Rocket/irc nickname as ```cloud_env```. If you need to deploy several Cloud setups,
+  use a unique ```cloud_env``` value for each one
   * use the `os_cloud`  parameter to choose between the available OpenStack cloud platforms that can host the 
   virtual environment. Currently only the engineering cloud (`engcloud`) and the SUSE cloud (`susecloud`) are available
   * by default, the OpenStack virtual resources from the shared `cloud` project will be used. To choose
   another project, use the `os_project_name` parameter
-* For a bare-metal cloud deployment, use one of the ```ardana_env``` values starting with `qe` (e.g `qe101`, `qe102`)
+* For a bare-metal cloud deployment, use one of the ```cloud_env``` values starting with `qe` (e.g `qe101`, `qe102`)
   that are reserved for QA bare-metal deployments (ask in the cloud-qe RocketChat channel for one that is available).
-* The `reserve_env` option should not be selected unless the `ardana_env` value corresponds to one of the
+* The `reserve_env` option should not be selected unless the `cloud_env` value corresponds to one of the
   [shared environments](#shared-environments).
 * Select a ```cleanup``` value to decide what happens with a virtual cloud deployment after the job completes
 * To test a different software media, use another `cloudsource` value. The available values and their meaning are documented
@@ -131,7 +131,7 @@ The environment can then accessed by logging in as `root` or `ardana` and using 
 13:34:20 **
 13:34:20 **  2. (preferred) trigger a manual build for the openstack-cloud-heat-engcloud
 13:34:20 **  job at https://ci.nue.suse.com/job/openstack-cloud-heat-engcloud/build and
-13:34:20 **  use the same 'alan-turing' ardana_env value and the 'delete' action for the
+13:34:20 **  use the same 'alan-turing' cloud_env value and the 'delete' action for the
 13:34:20 **  parameters
 13:34:20 **
 13:34:20 ******************************************************************************
@@ -142,7 +142,7 @@ The environment can then accessed by logging in as `root` or `ardana` and using 
 
 Aside from manual testing, any of the following pipeline Jenkins jobs can be manually triggered via `Build with Parameters`
 to run on an Ardana environment that was previously deployed using the Ardana Jenkins jobs. The target Ardana virtual or
-bare-metal environment must be indicated via the `ardana_env` parameter value:
+bare-metal environment must be indicated via the `cloud_env` parameter value:
 
 * [openstack-ardana-qa-tests](https://ci.nue.suse.com/job/openstack-ardana-tests/build) : runs tempest or QA test cases
 * [openstack-ardana-update](https://ci.nue.suse.com/job/openstack-ardana-update/build) : automates the maintenance update
@@ -378,9 +378,9 @@ situation:
   [manual cloud 8 Gerrit CI build](https://ci.nue.suse.com/job/openstack-ardana-gerrit-cloud8/build)
   with the following parameter values:
 
-    * `ardana_env` set to point to one of the available QA bare-metal
+    * `cloud_env` set to point to one of the available QA bare-metal
     environments (contact the QA team to find one that is available)
-    * `reserve_env` unchecked (unless the `ardana_env` QA environment also
+    * `reserve_env` unchecked (unless the `cloud_env` QA environment also
     has an associated [Lockable Resource](https://ci.nue.suse.com/lockable-resources) )
     * `voting` set, to have the new build replace the official voting CI
     job and determine whether the Gerrit change can be merged or not
@@ -404,7 +404,7 @@ E.g. to have a fully customizable `openstack-ardana` job running for a cloud9 Ge
 change, one might trigger a [manual cloud 9 Gerrit CI build](https://ci.nue.suse.com/job/openstack-ardana-gerrit-cloud9/build)
 with the following parameter values:
 
-  * `ardana_env` set to the IRC or LDAP username of the user (i.e. this
+  * `cloud_env` set to the IRC or LDAP username of the user (i.e. this
   will be a private Ardana ECP deployment environment that remains running
   and can be accessed after the job is done)
   * `reserve_env` unchecked

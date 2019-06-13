@@ -52,7 +52,7 @@ enable_designate_worker_producer: "{{ versioned_features.designate_worker_produc
 
 cp_prefix: cp1
 max_host_prefix_len: "{{ 33-(cp_prefix|length) }}"
-host_prefix: "{{ ('ardana-' ~ ardana_env)[:max_host_prefix_len|int-1] if ardana_env is defined else 'ardana' }}"
+host_prefix: "{{ ('ardana-' ~ cloud_env)[:max_host_prefix_len|int-1] if cloud_env is defined else 'ardana' }}"
 
 # First octets of the generated subnet prefixes for Ardana networks
 subnet_prefix:

@@ -16,7 +16,7 @@
 ---
 
 - name: Shutdown environment baremetal nodes
-  hosts: "{{ ardana_env }}"
+  hosts: "{{ cloud_env }}"
   remote_user: root
   gather_facts: False
   vars:

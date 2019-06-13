@@ -20,9 +20,9 @@ os_project_name: 'cloud'
 
 # The virtual or hardware environment identifier. This field should either be set to one
 # of the value that will identify the created virtual environment.
-# WARNING: if a virtual environment associated with the supplied ardana_env already
+# WARNING: if a virtual environment associated with the supplied cloud_env already
 # exists, it will be replaced.
-ardana_env: ''
+cloud_env: ''
 
 # If set to false, the cloud deployment steps will be skipped. This option can be used
 # if you only need to set up the infrastructure and configure the cloud media and

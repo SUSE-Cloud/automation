@@ -20,7 +20,7 @@
     dest: "{{ ses_cloud_config_path }}/ceph.{{ item.item.name }}.keyring"
     content: "{{ item.content | b64decode }}"
     mode: 0644
-  when: "item.item.name != 'client.rgw.ses-' ~ ardana_env"
+  when: "item.item.name != 'client.rgw.ses-' ~ cloud_env"
   loop: "{{ hostvars['ses-' + ses_cluster_id].ceph_files.results }}"
   loop_control:
     label: "{{ item.item.name }}"

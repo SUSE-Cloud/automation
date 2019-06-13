@@ -7,7 +7,7 @@
     exit ${PIPESTATUS[0]}
   args:
     executable: "/bin/bash"
-  delegate_to: "{{ ardana_env }}"
+  delegate_to: "{{ cloud_env }}"
   register: _qa_crowbarsetup_result
   run_once: true
 

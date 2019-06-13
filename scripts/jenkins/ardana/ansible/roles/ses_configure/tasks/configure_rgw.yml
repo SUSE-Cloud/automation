@@ -39,7 +39,7 @@
 
 - name: Get required info from Cloud
   shell: awk -n -F '=' {{ item }} ~/keystone.osrc
-  delegate_to: "{{ ardana_env }}"
+  delegate_to: "{{ cloud_env }}"
   remote_user: "ardana"
   register: osrc
   with_items:
@@ -49,10 +49,10 @@
 - name: Add environment radosgw config to ceph conf
   blockinfile:
    path: /etc/ceph/ceph.conf
-   marker: "# {mark} ANSIBLE MANAGED BLOCK {{ ardana_env }}"
+   marker: "# {mark} ANSIBLE MANAGED BLOCK {{ cloud_env }}"
    block: |
-     [client.rgw.ses-{{ ardana_env }}]
-     keyring = /etc/ceph/ceph.client.rgw.ses-{{ ardana_env }}.keyring
+     [client.rgw.ses-{{ cloud_env }}]
+     keyring = /etc/ceph/ceph.client.rgw.ses-{{ cloud_env }}.keyring
      rgw frontends = "civetweb port={{ ses_rgw_port }}"
      rgw keystone url = {{ osrc.results.0.stdout }}
      rgw keystone admin user = admin

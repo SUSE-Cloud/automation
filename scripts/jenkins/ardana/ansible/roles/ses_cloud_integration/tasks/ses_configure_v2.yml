@@ -35,7 +35,7 @@
     body:
       client: "runner"
       fun: "openstack.integrate"
-      prefix: "{{ ardana_env }}"
+      prefix: "{{ cloud_env }}"
     body_format: "json"
   register: _ses_conf
 
@@ -56,6 +56,6 @@
 - name: Upload Crowbar SES configuration
   shell: |
     crowbarctl ses upload {{ ses_cloud_config_path }}/ses_config.yml
-  delegate_to: "{{ ardana_env }}"
+  delegate_to: "{{ cloud_env }}"
   run_once: true
   when: cloud_product == 'crowbar'

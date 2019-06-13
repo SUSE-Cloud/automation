@@ -16,7 +16,7 @@
 ---
 
 - name: Start fresh deployer VM
-  hosts: "gate-{{ ardana_env }}"
+  hosts: "gate-{{ cloud_env }}"
   remote_user: root
   gather_facts: no
   vars:

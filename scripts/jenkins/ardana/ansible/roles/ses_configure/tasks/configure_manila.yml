@@ -26,5 +26,5 @@
 
 - name: Get manila keyring file contents
   slurp:
-    src: "/etc/ceph/ceph.client.{{ ardana_env }}-manila.keyring"
+    src: "/etc/ceph/ceph.client.{{ cloud_env }}-manila.keyring"
   register: manila_keyring

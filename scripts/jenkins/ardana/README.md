@@ -54,7 +54,7 @@ high-level work items need to be completed to enable generating the Jenkinsfile 
 implement a virtual resource management and scheduling
 * use fast-fail for parallel stages where applicable to abort all the individual stages
 comprising a parallel block when a single one fails
-* the `ardana_env` parameter determines a unique Jenkins workspace name, which is required to replay stages
+* the `cloud_env` parameter determines a unique Jenkins workspace name, which is required to replay stages
 * the `when` pipeline verb is used to conditionally skip stages (instead of checking conditions
 inside the stage steps, which would show the stage as being always executed, regardless of result)
 

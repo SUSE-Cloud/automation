@@ -1,5 +1,5 @@
 - name: Post deployment checks
-  hosts: ardana-{{ ardana_env }}
+  hosts: ardana-{{ cloud_env }}
   remote_user: root
   gather_facts: False
 

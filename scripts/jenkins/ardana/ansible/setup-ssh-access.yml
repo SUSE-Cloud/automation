@@ -48,12 +48,12 @@
             insertafter: "\\[deployer_virt\\]"
             marker: "# {mark} ANSIBLE MANAGED BLOCK - ARDANA"
             block: |
-              {{ ardana_env }}      ansible_host={{ admin_floating_ip }}
+              {{ cloud_env }}      ansible_host={{ admin_floating_ip }}
           when: not is_physical_deploy
 
         - name: Configure first time deployer access
           add_host:
-            name: "{{ ardana_env }}"
+            name: "{{ cloud_env }}"
             ansible_host: "{{ is_physical_deploy | ternary(omit, admin_floating_ip) }}"
             ansible_password: "linux"
       rescue:
@@ -70,7 +70,7 @@
 
 
 - name: Ensure public keys on deployer
-  hosts: "{{ ardana_env }}"
+  hosts: "{{ cloud_env }}"
   remote_user: root
   # NOTE: don't gather facts before deployer becomes accessible
   gather_facts: false

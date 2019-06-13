@@ -20,7 +20,7 @@
   when: ses_enabled
 
 - name: Configure ardana and deploy OpenStack
-  hosts: "{{ ardana_env }}"
+  hosts: "{{ cloud_env }}"
   remote_user: ardana
   gather_facts: True
   vars:

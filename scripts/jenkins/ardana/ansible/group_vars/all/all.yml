@@ -14,7 +14,7 @@
 # under the License.
 #
 ---
-ardana_env: localhost
+cloud_env: localhost
 
 cloudsource: stagingcloud9
 
@@ -47,7 +47,7 @@ input_model_path: "{{ workspace_path }}/input_model"
 
 automation_scripts_path: "{{ playbook_dir }}/../../.."
 
-is_physical_deploy: "{{ ardana_env in groups['qe_all'] }}"
+is_physical_deploy: "{{ cloud_env in groups['qe_all'] }}"
 rc_notify: False
 rc_notify_start: True
 

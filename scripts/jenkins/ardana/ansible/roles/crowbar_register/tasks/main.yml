@@ -8,7 +8,7 @@
   set_fact:
     crowbar_node_list: "{{ crowbar_node_list | default('crowbar.' + cloud_fqdn) }} {{ hostvars[item]['crowbar_node_name'] }}"
   loop: "{{ groups['cloud_virt_hosts'] }}"
-  delegate_to: "{{ ardana_env }}"
+  delegate_to: "{{ cloud_env }}"
   run_once: true
 
 - name: Fill in custom crowbar node list in mkcloud.conf
@@ -17,7 +17,7 @@
     regexp: "^export custom_crowbar_node_order"
     line: "export custom_crowbar_node_order='{{ crowbar_node_list }}'"
     state: present
-  delegate_to: "{{ ardana_env }}"
+  delegate_to: "{{ cloud_env }}"
   run_once: true
 
 - name: Reserve node admin IP addresses in Crowbar
@@ -49,7 +49,7 @@
     exit ${PIPESTATUS[0]}
 
 - name: Check that node has registered
-  delegate_to: "{{ ardana_env }}"
+  delegate_to: "{{ cloud_env }}"
   shell: knife node list | tr -d ' '
   register: _register_tmp
   # The more nodes we have, the longer this will take
@@ -58,7 +58,7 @@
   delay: 10
 
 - name: Check that node is ready
-  delegate_to: "{{ ardana_env }}"
+  delegate_to: "{{ cloud_env }}"
   shell: "knife node show -a state {{ crowbar_node_name }} | awk '{ print $2 }'"
   register: _register_tmp
   # The more nodes we have, the longer this will take

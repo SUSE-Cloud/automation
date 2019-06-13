@@ -27,11 +27,11 @@ rc_bot:
 rc_auth_info_git_url: "https://gitlab.suse.de/cloud-qe/ardana-bm-info.git"
 rc_auth_info_dir: "{{ workspace_path }}/ardana-bm-info"
 
-rc_channel: "{{ rc_channels[ardana_env] | default('@' ~ ardana_env.split('-')[0]) }}"
+rc_channel: "{{ rc_channels[cloud_env] | default('@' ~ cloud_env.split('-')[0]) }}"
 
-rc_channel_id_query: "json.channels[?name=='{{ rc_channels[ardana_env] }}']._id"
+rc_channel_id_query: "json.channels[?name=='{{ rc_channels[cloud_env] }}']._id"
 
-rc_deploy_announcement_file: "~/deploy_finished-{{ ardana_env }}.rc"
+rc_deploy_announcement_file: "~/deploy_finished-{{ cloud_env }}.rc"
 
 rc_msg_title: "{{ rc_task | upper }} {{ rc_action }}"
 rc_msg_color: "{{ 'danger' if rc_state == 'Failed' else 'good' if rc_state == 'Success' else '#BDC3C7' }}"
@@ -48,7 +48,7 @@ os_health_url_msg: "[{{ os_health_url }}]({{ os_health_url }})"
 
 ansible_log_url: "{{ jenkins_build_url }}artifact/.artifacts/ansible.log"
 ansible_log_url_msg: "[{{ ansible_log_url }}]({{ ansible_log_url }})"
-ansible_log_stream: "http://{{ hostvars[ardana_env].ansible_host if ardana_env in groups['all'] else 'NA' }}:9091/"
+ansible_log_stream: "http://{{ hostvars[cloud_env].ansible_host if cloud_env in groups['all'] else 'NA' }}:9091/"
 ansible_log_stream_msg: "[{{ ansible_log_stream }}]({{ ansible_log_stream }})"
 jenkins_build_url_msg: "{{ (jenkins_build_url != '') | ternary('[' ~ jenkins_build_url ~ '](' ~ jenkins_build_url ~ ')', lookup('env', 'USER')) }}"
 

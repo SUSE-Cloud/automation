@@ -1,7 +1,7 @@
 ---
 
 - name: Deploy CaaSP using heat templates
-  hosts: "{{ ardana_env }}"
+  hosts: "{{ cloud_env }}"
   gather_facts: False
   remote_user: ardana
   vars:

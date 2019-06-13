@@ -3,7 +3,7 @@
 - name: Get crowbar admin_network databag contents
   shell: |
     knife data bag show crowbar admin_network -F json
-  delegate_to: "{{ ardana_env }}"
+  delegate_to: "{{ cloud_env }}"
   register: _register_databag
   run_once: true
 
@@ -35,11 +35,11 @@
   copy:
     content: "{{ admin_network_databag | to_json }}"
     dest: "/tmp/admin_network.json"
-  delegate_to: "{{ ardana_env }}"
+  delegate_to: "{{ cloud_env }}"
   run_once: true
 
 - name: Update databag
   shell: |
     knife data bag from file crowbar /tmp/admin_network.json
-  delegate_to: "{{ ardana_env }}"
+  delegate_to: "{{ cloud_env }}"
   run_once: true

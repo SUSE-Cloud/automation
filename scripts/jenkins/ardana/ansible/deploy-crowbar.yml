@@ -3,7 +3,7 @@
   when: ses_enabled
 
 - name: Configure Crowbar and deploy OpenStack
-  hosts: "{{ ardana_env }}"
+  hosts: "{{ cloud_env }}"
   remote_user: root
   gather_facts: True
   vars:

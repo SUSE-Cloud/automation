@@ -16,7 +16,7 @@
 ---
 
 - name: Run '{{ test_name }}' test and collect results
-  hosts: "{{ ardana_env }}"
+  hosts: "{{ cloud_env }}"
   remote_user: ardana
   gather_facts: True
   vars:

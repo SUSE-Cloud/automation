@@ -17,6 +17,6 @@
 
 - name: Copy manila keyring file
   copy:
-    dest: "{{ ses_cloud_config_path }}/ceph.client.{{ ardana_env }}-manila.keyring"
+    dest: "{{ ses_cloud_config_path }}/ceph.client.{{ cloud_env }}-manila.keyring"
     content: "{{ hostvars['ses-' + ses_cluster_id].manila_keyring.content | b64decode }}"
     mode: 0644

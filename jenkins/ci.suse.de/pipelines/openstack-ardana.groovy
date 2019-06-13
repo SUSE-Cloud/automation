@@ -14,21 +14,21 @@ def load_extra_params_as_vars(extra_params) {
   }
 }
 
-// When a CI lockable resource slot name is used for the `ardana_env` value,
+// When a CI lockable resource slot name is used for the `cloud_env` value,
 // this function overrides the os_cloud and os_project_name values to correspond
 // to the target OpenStack platform associated with the slot and the 'cloud-ci'
 // OpenStack project used exclusively for the Cloud CI
-def load_os_params_from_resource(ardana_env) {
-  if (ardana_env.startsWith("engcloud-ci-slot")) {
+def load_os_params_from_resource(cloud_env) {
+  if (cloud_env.startsWith("engcloud-ci-slot")) {
     env.os_cloud = "engcloud"
     env.os_project_name = "cloud-ci"
-  } else if (ardana_env.startsWith("susecloud-ci-slot")) {
+  } else if (cloud_env.startsWith("susecloud-ci-slot")) {
     env.os_cloud = "susecloud"
     env.os_project_name = "cloud-ci"
   } else if (os_project_name == "cloud-ci") {
     error("""The OpenStack 'cloud-ci' project is reserved and may only be used with
-'ardana_env' values that correspond to CI Lockable Resource slots.
-Please adjust your 'ardana_env' or 'os_project_name' parameter values to avoid this error.""")
+'cloud_env' values that correspond to CI Lockable Resource slots.
+Please adjust your 'cloud_env' or 'os_project_name' parameter values to avoid this error.""")
   }
 }
 
@@ -62,14 +62,14 @@ def get_deployer_ip() {
   env.DEPLOYER_IP = sh (
     returnStdout: true,
     script: '''
-      grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
+      grep -oP "^${cloud_env}\\s+ansible_host=\\K[0-9\\.]+" \\
         $WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
     '''
   ).trim()
-  currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
+  currentBuild.displayName = "#${BUILD_NUMBER}: ${cloud_env} (${DEPLOYER_IP})"
   echo """
 ******************************************************************************
-** The deployer for the '${ardana_env}' environment is reachable at:
+** The deployer for the '${cloud_env}' environment is reachable at:
 **
 **        ssh root@${DEPLOYER_IP}
 **

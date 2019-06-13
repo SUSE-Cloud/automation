@@ -18,7 +18,7 @@
 - import_playbook: setup-ssh-access.yml
 
 - name: Bootstrap Crowbar
-  hosts: "{{ ardana_env }}"
+  hosts: "{{ cloud_env }}"
   remote_user: root
   gather_facts: True
   vars:

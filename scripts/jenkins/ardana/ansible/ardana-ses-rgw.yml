@@ -17,7 +17,7 @@
 ---
 
 - name: Configure SES RGW for ardana
-  hosts: "ses_{{ (ardana_env.startswith('pcloud') or ardana_env.startswith('qe')) | ternary('qe', 'virt') }}"
+  hosts: "ses_{{ (cloud_env.startswith('pcloud') or cloud_env.startswith('qe')) | ternary('qe', 'virt') }}"
   remote_user: root
   gather_facts: no
   vars:
@@ -42,7 +42,7 @@
 
 
 - name: Reconfigure swift
-  hosts: "{{ ardana_env }}"
+  hosts: "{{ cloud_env }}"
   remote_user: ardana
   gather_facts: no
   vars:

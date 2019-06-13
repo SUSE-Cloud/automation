@@ -39,7 +39,7 @@ _msg_fields_started:
     value: "{{ ansible_log_stream_msg }}"
     short: False
   - title: Deployer
-    value: "{{ hostvars[ardana_env].ansible_host }}"
+    value: "{{ hostvars[cloud_env].ansible_host }}"
     short: True
 
 _msg_fields_finished:
@@ -50,7 +50,7 @@ _msg_fields_finished:
     value: "{{ ansible_log_url_msg if jenkins_build_url else 'Not available' }}"
     short: False
   - title: Deployer
-    value: "{{ hostvars[ardana_env].ansible_host }}"
+    value: "{{ hostvars[cloud_env].ansible_host }}"
     short: True
   - title: Status
     value: "{{ rc_state }}"

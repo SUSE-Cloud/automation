@@ -27,15 +27,15 @@ pipeline {
         script {
           // Set this variable to be used by upstream builds
           env.blue_ocean_buildurl = env.RUN_DISPLAY_URL
-          if (ardana_env == '') {
-            error("Empty 'ardana_env' parameter value.")
+          if (cloud_env == '') {
+            error("Empty 'cloud_env' parameter value.")
           }
-          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
+          currentBuild.displayName = "#${BUILD_NUMBER}: ${cloud_env}"
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
-          ardana_lib.load_os_params_from_resource(ardana_env)
+          ardana_lib.load_os_params_from_resource(cloud_env)
           ardana_lib.load_extra_params_as_vars(extra_params)
           ardana_lib.ansible_playbook('load-job-params')
           ardana_lib.ansible_playbook('setup-ssh-access')

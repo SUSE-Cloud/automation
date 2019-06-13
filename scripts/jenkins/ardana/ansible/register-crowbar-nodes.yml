@@ -10,7 +10,7 @@
       command: |
         openstack --os-cloud {{ os_cloud }} --os-project-name {{ os_project_name }} \
           subnet set --no-dhcp \
-          openstack-ardana-{{ ardana_env }}_management_subnet
+          openstack-ardana-{{ cloud_env }}_management_subnet
 
 - name: Register crowbar cloud nodes
   hosts: cloud_virt_hosts
@@ -21,8 +21,8 @@
     task: "register"
     ansible_ssh_common_args: >
       -o ProxyCommand='ssh -o UserKnownHostsFile=/dev/null -o
-      StrictHostKeyChecking=no -W %h:%p -q root@{{ hostvars[ardana_env].ansible_host }}'
-      -o ControlPath='~/.ansible/cp/{{ ardana_env }}-%r@%h:%p'
+      StrictHostKeyChecking=no -W %h:%p -q root@{{ hostvars[cloud_env].ansible_host }}'
+      -o ControlPath='~/.ansible/cp/{{ cloud_env }}-%r@%h:%p'
 
   tasks:
     - block:
@@ -50,7 +50,7 @@
       rescue:
         - include_role:
             name: rocketchat_notify
-          delegate_to: "{{ ardana_env }}"
+          delegate_to: "{{ cloud_env }}"
           vars:
             rc_action: "finished"
             rc_state: "Failed"

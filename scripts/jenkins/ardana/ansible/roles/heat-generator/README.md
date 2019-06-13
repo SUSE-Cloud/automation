@@ -33,14 +33,14 @@ _Step 1._ provide the path of an input model definition:
       -e heat_template_file=heat.yaml
 
 NOTE: optionally, provide a `cloudsource` value (defaults to `stagingcloud9`) to control which flavors and
-images are used and an `ardana_env` value (defaults to `localhost`) to change how the heat stack resources are
+images are used and an `cloud_env` value (defaults to `localhost`) to change how the heat stack resources are
 named:
 
     ansible-playbook generate-heat-template.yml \
       -e input_model_path=./ardana-input-model/2.0/ardana-ci/deployerincloud-lite \
       -e heat_template_file=heat.yaml \
       -e cloudsource=GM8+up \
-      -e ardana_env=my_dev_env
+      -e cloud_env=my_dev_env
 
 _Step 2._ ...
 
