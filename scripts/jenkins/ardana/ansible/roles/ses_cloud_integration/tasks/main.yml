@@ -21,3 +21,6 @@
     state: directory
 
 - include_tasks: ses_configure_v{{ ardana_ses_integration_version }}.yml
+
+- include_tasks: ses_configure_manila.yml
+  when: "'manila' not in disabled_services | default('')"
