@@ -47,6 +47,17 @@
             - installcrowbar
           loop_control:
             loop_var: command
+
+        # reboot node after crowbar install
+        - include_role:
+            name: reboot_node
+          vars:
+            reboot_target: deployer
+          when:
+            - not update_after_deploy
+            - maint_updates_list | length
+
+
       rescue:
         - include_role:
             name: rocketchat_notify

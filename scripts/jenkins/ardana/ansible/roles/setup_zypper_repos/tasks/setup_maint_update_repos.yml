@@ -21,9 +21,15 @@
     warn: False
   register: cloud_repo_name
 
-- name: Set cloud MU repo path based on product
+- name: Set cloud MU repo path based on product - Ardana
   set_fact:
     cloud_repo_path: "{{ ('HPE-Helion' in cloud_repo_name.stdout) | ternary('HPE-Helion-OpenStack', 'OpenStack-Cloud') }}"
+  when: cloud_product != 'crowbar'
+
+- name: Set cloud MU repo path based on product - Crowbar
+  set_fact:
+    cloud_repo_path: "OpenStack-Cloud-Crowbar"
+  when: cloud_product == 'crowbar'
 
 - name: Check MU URL
   uri:
@@ -38,7 +44,7 @@
     path: "{{ local_repos_base_dir }}/{{ item }}"
   loop: "{{ maint_updates_list }}"
 
-# This tasks is responsible for fiding to which product the MUs are targeted for.
+# This tasks is responsible for finding to which product the MUs are targeted for.
 # This is done by combining the MU IDs with the MU paths (for Cloud and SLES)
 # and for each combination it checks if the Cloud or SLES MU path is present on
 # the MU page content which registered in the mu_url variable.

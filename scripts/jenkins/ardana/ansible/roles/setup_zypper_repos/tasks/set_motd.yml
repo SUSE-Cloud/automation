@@ -17,7 +17,7 @@
 
 - name: Get media build version
   slurp:
-    src: "{{ local_repos_base_dir }}/{{ base_repos.0 | regex_replace('devel.*', 'Pool') }}/media.1/build"
+    src: "{{ (cloud_product == 'crowbar') | ternary(crowbar_media_version_src_file, ardana_media_version_src_file) }}"
   register: cloud_media_build_version
   when: not is_milestone
 
