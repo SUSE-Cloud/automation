@@ -23,5 +23,5 @@
     name: "{{ heat_stack_name }}"
     state: present
     template: "{{ heat_template_file }}"
-    timeout: "{{ heat_stack_create_timeout }}"
+    timeout: "{{ heat_stack_timeout }}"
   register: heat_stack_create

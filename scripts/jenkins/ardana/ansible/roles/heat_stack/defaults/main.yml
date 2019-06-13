@@ -17,7 +17,8 @@
 
 heat_action: "create"
 
-heat_stack_create_timeout: 900
+# The timeout used by heat for the create/delete stack operations
+heat_stack_timeout: 900
 heat_stack_name: "openstack-ardana-{{ ardana_env }}"
 ses_stack_name: "openstack-ses-{{ ardana_env }}"
 monitor_stack_after_delete: True
