@@ -2,7 +2,9 @@
 - project:
     name: openstack-cloud-heat
     os_cloud:
-      - engcloud
-      - susecloud
+      - engcloud:
+          heat_stack_timeout: '480'
+      - susecloud:
+          heat_stack_timeout: '900'
     jobs:
         - 'openstack-cloud-heat-{os_cloud}'

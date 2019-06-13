@@ -53,7 +53,8 @@ pipeline {
           // OpenStack API only while actually deleting the stack
           ardana_lib.ansible_playbook('heat-stack', "-e heat_action=monitor")
           lock(resource: "$os_cloud-API") {
-            timeout(time: 10, unit: 'MINUTES', activity: true) {
+            // Use an activity timeout that is higher than the configured OpenStack heat API create/delete timeout
+            timeout(time: heat_stack_timeout.toInteger()+60, unit: 'SECONDS', activity: true) {
               ardana_lib.ansible_playbook('heat-stack', "-e heat_action=delete -e monitor_stack_after_delete=False")
             }
           }
@@ -71,7 +72,8 @@ pipeline {
           writeFile file: "$WORKSPACE/heat_template.yml", text: params.heat_template
 
           lock(resource: "$os_cloud-API") {
-            timeout(time: 20, unit: 'MINUTES', activity: true) {
+            // Use an activity timeout that is higher than the configured OpenStack heat API create/delete timeout
+            timeout(time: heat_stack_timeout.toInteger()+60, unit: 'SECONDS', activity: true) {
               ardana_lib.ansible_playbook('heat-stack', "-e heat_template_file=$WORKSPACE/heat_template.yml")
             }
           }

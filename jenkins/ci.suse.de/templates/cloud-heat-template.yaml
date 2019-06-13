@@ -98,6 +98,12 @@
               engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
               susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
 
+      - hidden:
+          name: heat_stack_timeout
+          default: '{heat_stack_timeout}'
+          description: >-
+            The timeout (seconds) configured for the OpenStack heat API create/delete operations.
+
       - text:
           name: extra_params
           default:
