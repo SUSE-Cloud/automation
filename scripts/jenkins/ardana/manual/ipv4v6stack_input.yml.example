@@ -1,30 +1,16 @@
 ---
-#============= Cloud Product ===========#
-# The cloud product to be deployed. Possible values are:
-# - crowbar
-# - ardana
-cloud_product: 'ardana'
-
-#============= Cloud Platform ===========#
-# The OpenStack API credentials used to manage virtual clouds.
-#
-# This value must correspond to one of the OpenStack configurations that are
-# present in the ~/.config/openstack/clouds.yml file.
-# Note that the OpenStack project name needs to be configured separately
-# via the `os_project_name` configuration option below.
-os_cloud: 'engcloud'
-
-# The OpenStack project that will be used to provide the virtual resources
-# required to deploy the virtual environment.
-os_project_name: 'cloud'
+#============= Eng. Cloud =============#
+# The OpenStack API credentials used to manage virtual clouds
+# (leave empty to use the default shared 'cloud' ECP account - 'engcloud-cloud-ci')
+os_cloud: 'engcloud-cloud-ci'
 
 # The virtual or hardware environment identifier. This field should either be set to one
 # of the value that will identify the created virtual environment.
 # WARNING: if a virtual environment associated with the supplied ardana_env already
 # exists, it will be replaced.
-ardana_env: ''
+ardana_env: 'yournamehere_delete'
 
-# If set to false, the cloud deployment steps will be skipped. This option can be used
+# If left unchecked, the cloud deployment steps will be skipped. This option can be used
 # if you only need to set up the infrastructure and configure the cloud media and
 # repositories, but skip the actual cloud deployment, e.g. for testing purposes.
 deploy_cloud: true
@@ -38,7 +24,7 @@ deploy_cloud: true
 #   GM<X> (official GM)
 #   GM<X>+up (official GM plus Cloud-Updates)
 #   cloud9MX (cloud 9 milestones)
-cloudsource: 'GM8+up'
+cloudsource: 'stagingcloud9'
 
 # Enable SLES/Cloud test update repos (the Cloud test update repos will be enabled only
 # when cloudsource is GM based)
@@ -56,13 +42,9 @@ update_to_cloudsource: ''
 # List of maintenance update IDs separated by comma (eg. 7396,7487)
 maint_updates: ''
 
-# A comma separated list of repository urls to be added on the deployer/admin node.
-# For Ardana, each URL must be supplied in a form that includes the .repo file name.
-# For Crowbar, the .repo filename should be excluded.
-# WARNING: Ardana only installs the extra repositories on the deployer node (see
-# https://jira.suse.com/browse/SOC-7800), so they will not be available on the
-# non-deployer nodes.
+# A comma separated list of repository urls (ending with .repo) to be added on the deployer node.
 extra_repos: ''
+
 
 #============= Gerrit =============#
 # A comma separated list of IDs for changes in gerrit.prv.suse.net to test.
@@ -75,12 +57,24 @@ homeproject: ''
 
 
 #============= Input model =============#
+# The name of cloud product which will be deployed. Default is ardana and
+# possible values are:
+# - crowbar
+# - ardana (default)
+cloud_product: 'ardana'
+
+# The name of the one of the available 'ardana-ci' input models to use from
+# the ardana-input-model git repository.
+# NOTE: use this parameter only if you want to use an existing input model.
+# To generate an input model instead, leave this field empty and use the
+# 'scenario_name' parameter instead.
+model: ''
+
 # The name of one of the available scenarios that can be used to generate input models.
 # If this parameter is set, the following parameters may also be set to different values,
 # to control various aspects of the generated input model: clm_model, controllers, core_nodes,
-# lmm_nodes, dbmq_nodes, neutron_nodes, swift_nodes, sles_computes (or computes), rhel_computes
-# and disabled_services.
-#
+# lmm_nodes, dbmq_nodes, neutron_nodes, swift_nodes, sles_computes, rhel_computes and
+# disabled_services.
 # NOTE: use this parameter only if you want to use a generated input model. To use an existing
 # input model instead, leave this field empty and use the 'model' parameter instead.
 # Possible values:
@@ -90,60 +84,37 @@ homeproject: ''
 #   - std-lmm
 #   - std-split
 #   - crowbar (for crowbar deployment)
-scenario_name: 'entry-scale-kvm'
+scenario_name: 'dualstack'
 
 # Crowbar batch scenario yaml file path (relative to scripts/scenarios)
-# Available scenarios that are known to work:
-#    - cloud7/cloud7-2nodes-default.yml
-#    - cloud7/cloud7-5nodes-default.yml
+#  Values examples:
 #    - cloud8/cloud8-2nodes-default.yml
-#    - cloud8/cloud8-5nodes-default.yml
+#    - cloud8/cloud8-5nodes-compute-ha.yml
 #    - cloud9/cloud9-2nodes-default.yml
-#    - cloud9/cloud9-5nodes-default.yml
-#    - cloud9/cloud9-2nodes-ses.yml
-#    - cloud9/cloud9-5nodes-ses.yml
-#
-# Warning: the chosen scenario file must be correctly aligned with the configured
-# 'cloudsource' value, as well as the number of configured 'controller' and 'compute'
-# nodes and also whether 'ses_enabled' is used to enable the SES storage back-end.
-#
-# NOTE: this parameter will only be required until the toolchain has the ability to
-# generate crowbar batch scenarios
+#    - cloud9/cloud9-5nodes-compute-ha.yml
+# NOTE: propably will be removed when input generator works for crowbar
 scenario_file: ''
-
-# The name of the one of the available 'ardana-ci' input models to use from
-# the ardana-input-model git repository.
-#
-# NOTE: use this parameter only if you want to use an existing input model.
-# The recommended way is to generate an input model instead. To generate an
-# input model, leave this field empty and use the 'scenario_name' parameter
-# instead.
-model: ''
 
 # The type of deployer node deployment to use for the generated input model.
 # Possible values:
-#   - standalone: one node dedicated for deployer/admin
-#   - integrated: the first controller node will also be used as a deployer node
-#   (only valid for Ardana deployments).
-#
-# For crowbar deployments, this should always be set to 'standalone'.
-#
+#   - standalone: one node dedicated for CLM
+#   - integrated: the first controller node will also be used as a CLM node
+#   - crowbar: right now nothing will happen, it is just to distinguish
 # Input model generator scenarios using this parameter : all
 # NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter
-# about using one of the available input model generator scenarios.
+#  about using one of the available input model generator scenarios.
 clm_model: 'integrated'
 
 # The number of controller nodes in the generated input model (0-3).
-# Input model generator scenarios using this parameter: crowbar, standard, entry-scale-kvm.
+# Input model generator scenarios using this parameter: standard, entry-scale-kvm.
 controllers: '3'
 
 # The number of SLES compute nodes in the generated input model.
 # Input model generator scenarios using this parameter: all
-#
-# NOTE: Currently all scenarios except crowbar use 'sles_computes'. When deploying crowbar
-# please use the 'computes' variable instead.
-sles_computes: '2'
-computes: '1'
+# NOTE: Currently all scenarios except crowbar uses 'sles_computes'. When deploying crowbar
+# please change sles_computes into 'computes' variable in stead.
+# computes: '1'
+sles_computes: '1'
 
 # The number of RHEL (CentOS) compute nodes in the generated input model.
 # Input model generator scenarios using this parameter: all
@@ -182,18 +153,18 @@ swift_nodes: ''
 # Input model generator scenarios using this parameter: all
 # Example for disabling monasca, ceilometer, freezer and octavia set:
 # disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer|octavia'
-disabled_services: ''
+disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer|octavia|horizon|swift|magnum|manila|tempest|cinder|barbican|designate|heat|ironic|bind|ops-console-web'
 
 # Enable (true) or disable (false) firewall rules on control plane. Default is enable: true
 firewall_enabled: 'true'
 
 # Use ipv6 networks in the cloud input model.
-ipv6: false
+ipv6: true
 
 
 #============= SES =============#
 # Configure SES backend for glance, cinder, cinder-backup and nova
-ses_enabled: true
+ses_enabled: false
 
 # Configure object-store service with RADOS Gateway. This only takes effect
 # if ses_enabled is set to true.
@@ -201,12 +172,12 @@ ses_rgw_enabled: false
 
 
 #============= Tests =============#
-# Name of the filter file to use for tempest in Ardana.
+# Name of the filter file to use for tempest.
 # Comma separated values will run tempest for each selected value.
 # Use an empty value to skip running tempest.
 tempest_filter_list: ''
 
-# Name of the QA tests to run in Ardana.
+# Name of the QA tests to run.
 # Comma separated values will run QA tests for each selected value.
 # Use an empty value to skip running QA tests.
 qa_test_list: ''
