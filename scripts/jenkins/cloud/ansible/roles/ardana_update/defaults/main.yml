@@ -20,6 +20,7 @@ update_method: "{{ (cloudsource | regex_search('devel|staging.*')) | ternary('up
 update_gpg_checks: true
 update_licenses_agree: true
 update_include_reboot_patches: true
+update_services_serial: False
 
 cloud_brand: "{{ cloudsource.startswith('hos') | ternary('HPE-Helion-OpenStack', 'SUSE-OpenStack-Cloud') }}"
 cloud_update_repo_name: "{{ cloud_brand }}-{{ sles_cloud_version[ansible_distribution_version] }}-Updates"

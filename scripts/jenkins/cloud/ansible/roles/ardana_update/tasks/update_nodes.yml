@@ -74,11 +74,6 @@
     - var: pending_system_reboot
       value: "{{ 'system reboot' in _ardana_update_status.stdout }}"
 
-- name: Run ardana-update playbook to update services on all nodes
-  command: |
-    ansible-playbook ardana-update.yml -e '{{ ardana_extra_vars|to_json }}'
-  args:
-    chdir: "{{ ardana_scratch_path }}"
-  environment:
-    SKIP_REPO_CHECKS: 1
+- name: Update Ardana/OpenStack services if needed
+  include_tasks: update_services_{{ update_services_serial | ternary('serial', 'parallel') }}.yml
   when: pending_service_update
