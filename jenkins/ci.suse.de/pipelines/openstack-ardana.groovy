@@ -35,8 +35,8 @@ Please adjust your 'cloud_env' or 'os_project_name' parameter values to avoid th
 def ansible_playbook(playbook, params='') {
   sh("""
     cd $WORKSPACE
-    source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-    if [[ -e automation-git/scripts/jenkins/ardana/ansible/input.yml ]]; then
+    source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
+    if [[ -e automation-git/scripts/jenkins/cloud/ansible/input.yml ]]; then
       ansible_playbook """+playbook+""".yml -e @input.yml """+params+"""
     else
       ansible_playbook """+playbook+""".yml """+params+"""
@@ -63,7 +63,7 @@ def get_deployer_ip() {
     returnStdout: true,
     script: '''
       grep -oP "^${cloud_env}\\s+ansible_host=\\K[0-9\\.]+" \\
-        $WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
+        $WORKSPACE/automation-git/scripts/jenkins/cloud/ansible/inventory
     '''
   ).trim()
   currentBuild.displayName = "#${BUILD_NUMBER}: ${cloud_env} (${DEPLOYER_IP})"

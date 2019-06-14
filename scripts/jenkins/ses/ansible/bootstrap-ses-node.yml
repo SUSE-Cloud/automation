@@ -31,7 +31,7 @@
       - jq
       - rng-tools
   vars_files:
-    - "../../ardana/ansible/group_vars/all/ssh_pub_keys.yml"
+    - "../../cloud/ansible/group_vars/all/ssh_pub_keys.yml"
 
   tasks:
     - name: Wait for SES node to be acessible

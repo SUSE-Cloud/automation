@@ -50,7 +50,7 @@ pipeline {
             cd automation-git
 
             if [ -n "$github_pr" ] ; then
-              scripts/jenkins/ardana/pr-update.sh
+              scripts/jenkins/cloud/pr-update.sh
             fi
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"

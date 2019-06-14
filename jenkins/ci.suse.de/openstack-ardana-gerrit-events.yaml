@@ -59,12 +59,12 @@
 
           if [[ -n $GERRIT_EVENT_TYPE ]]; then
               if [[ $GERRIT_EVENT_TYPE == 'change-merged' ]]; then
-                  automation-git/scripts/jenkins/ardana/gerrit/gerrit_handle_event.py ${GERRIT_CHANGE_NUMBER} merged
+                  automation-git/scripts/jenkins/cloud/gerrit/gerrit_handle_event.py ${GERRIT_CHANGE_NUMBER} merged
               elif [[ $GERRIT_EVENT_TYPE == 'patchset-created' ]]; then
-                  automation-git/scripts/jenkins/ardana/gerrit/gerrit_handle_event.py ${GERRIT_CHANGE_NUMBER} updated
+                  automation-git/scripts/jenkins/cloud/gerrit/gerrit_handle_event.py ${GERRIT_CHANGE_NUMBER} updated
               elif [[ $GERRIT_EVENT_TYPE == 'comment-added' ]]; then
-                  automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py ${GERRIT_CHANGE_NUMBER}
+                  automation-git/scripts/jenkins/cloud/gerrit/gerrit_merge.py ${GERRIT_CHANGE_NUMBER}
               fi
           else
-              automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py ${GERRIT_CHANGE_NUMBER}
+              automation-git/scripts/jenkins/cloud/gerrit/gerrit_merge.py ${GERRIT_CHANGE_NUMBER}
           fi

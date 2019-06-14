@@ -8,7 +8,7 @@ and SLE disk images coming from the [internal build service](https://build.suse.
 The hosting OpenStack cloud platforms that are currently set up for the toolchain are the
 [the engineering cloud](https://engcloud.prv.suse.net) and [the SUSE cloud](https://cloud.suse.de).
 
-The toolchain is largely implemented by [ansible playbooks](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible)
+The toolchain is largely implemented by [ansible playbooks](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/cloud/ansible)
 located in this repository, but the process of deploying Ardana and Crowbar clouds is also automated via
 [Jenkins pipeline jobs](https://github.com/SUSE-Cloud/automation/blob/master/jenkins/ci.suse.de/pipelines)
 running in the [SUSE Jenkins service](https://ci.nue.suse.com).
@@ -35,7 +35,7 @@ To be able to use the Jenkins job and login to a deployed environment, the follo
 
 * the cloud team login credentials for https://ci.nue.suse.com (ask in the cloud-team RocketChat channel if you don't
 know what they are, and someone will PM you)
-* your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/group_vars/all/ssh_pub_keys.yml)(via normal github pull requests)
+* your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/cloud/ansible/group_vars/all/ssh_pub_keys.yml)(via normal github pull requests)
 
 ### Deploying a Jenkins Cloud environment
 
@@ -57,7 +57,7 @@ will provide more information on the provided options. Here are some best practi
   [shared environments](#shared-environments).
 * Select a ```cleanup``` value to decide what happens with a virtual cloud deployment after the job completes
 * To test a different software media, use another `cloudsource` value. The available values and their meaning are documented
-[here](../../scripts/jenkins/ardana/ansible/roles/setup_zypper_repos/README.md)
+[here](../../scripts/jenkins/cloud/ansible/roles/setup_zypper_repos/README.md)
 * Select one of the supported deployment scenarios (i.e. the way services are grouped together and deployed onto nodes
   and/or HA clusters, number of nodes in each cluster, etc) by choosing one of the available ```scenario_name``` values
   and changing the values of related parameters (e.g. `clm_model`, `controllers`, `sles_computes` or `computes` etc.) to
@@ -188,7 +188,7 @@ To be able to deploy a Cloud environment using the toolchain on your host, the f
   or [SUSE cloud](https://engcloud.prv.suse.net) with access to the one of the OpenStack projects
   that are already maintained by the CI automated Jenkins jobs that regularly update SLES images
   in the ECP and SUSE clouds (currently, only `cloud` and `support`)
-* your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/ardana/ansible/group_vars/all/ssh_pub_keys.yml)
+* your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/cloud/ansible/group_vars/all/ssh_pub_keys.yml)
   (via normal github pull requests)
 
 ### Test environment setup
@@ -256,12 +256,12 @@ jenkins jobs.
 
 Deploying Ardana:
 
-* Go to `scripts/jenkins/ardana/manual` directory
+* Go to `scripts/jenkins/cloud/manual` directory
 * Edit the `input.yml` file
 * Run `deploy-ardana.sh` or `deploy-crowbar.sh`
 
 ```
-cd scripts/jenkins/ardana/manual
+cd scripts/jenkins/cloud/manual
 vim input.yml
 ./deploy-ardana.sh
 ```
@@ -270,7 +270,7 @@ Alternatively you can also call each step individually (after configuring `input
 E.g.:
 
 ```
-cd scripts/jenkins/ardana/manual
+cd scripts/jenkins/cloud/manual
 source lib.sh
 setup_ansible_venv
 mitogen_enable

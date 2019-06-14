@@ -26,12 +26,12 @@ pids/
 screenlog*
 .byebug_history
 
-scripts/jenkins/ardana/manual/ansible-venv
-scripts/jenkins/ardana/manual/mitogen
-scripts/jenkins/ardana/ansible/ansible_facts
-scripts/jenkins/ardana/ansible/*-virt-config.yml
-scripts/jenkins/ardana/ansible/input_model
-scripts/jenkins/ardana/ansible/heat-stack-*.yml
+scripts/jenkins/cloud/manual/ansible-venv
+scripts/jenkins/cloud/manual/mitogen
+scripts/jenkins/cloud/ansible/ansible_facts
+scripts/jenkins/cloud/ansible/*-virt-config.yml
+scripts/jenkins/cloud/ansible/input_model
+scripts/jenkins/cloud/ansible/heat-stack-*.yml
 
 scripts/jenkins/ses/ansible/ansible_facts
 scripts/jenkins/ses/ansible/ses-stack-template.yml

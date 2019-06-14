@@ -39,7 +39,7 @@ pipeline {
             env.GERRIT_PATCHSET_NUMBER = sh (
               returnStdout: true,
               script: '''
-                automation-git/scripts/jenkins/ardana/gerrit/gerrit_get.py \
+                automation-git/scripts/jenkins/cloud/gerrit/gerrit_get.py \
                   --attr patchset \
                   ${GERRIT_CHANGE_NUMBER}
               '''
@@ -105,7 +105,7 @@ The following links can also be used to track the results:
 "
 
             $voting && gerrit_voting_params="--vote 0 --label Verified"
-            automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
+            automation-git/scripts/jenkins/cloud/gerrit/gerrit_review.py \
               --message "$message" \
               $gerrit_voting_params \
               --patch ${GERRIT_PATCHSET_NUMBER} \
@@ -124,7 +124,7 @@ The following links can also be used to track the results:
           if [[ -n $GERRIT_CHANGE_COMMIT_MESSAGE ]]; then
             commit_message=$(echo $GERRIT_CHANGE_COMMIT_MESSAGE | base64 --decode)
           else
-            commit_message=$(automation-git/scripts/jenkins/ardana/gerrit/gerrit_get.py \
+            commit_message=$(automation-git/scripts/jenkins/cloud/gerrit/gerrit_get.py \
               --attr commit_message \
               ${GERRIT_CHANGE_NUMBER}/${GERRIT_PATCHSET_NUMBER})
           fi
@@ -192,7 +192,7 @@ ${build_str} ${message_result} ($gerrit_context): ${BUILD_URL}
 
           $voting && [[ -n $vote ]] && gerrit_voting_params="--vote $vote --label Verified"
 
-          automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
+          automation-git/scripts/jenkins/cloud/gerrit/gerrit_review.py \
             --message "$message" \
             --message-file pipeline-report.txt \
             $gerrit_voting_params \
@@ -200,7 +200,7 @@ ${build_str} ${message_result} ($gerrit_context): ${BUILD_URL}
             $GERRIT_CHANGE_NUMBER
 
           if $voting && [[ $BUILD_RESULT == SUCCESS ]]; then
-            automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py \
+            automation-git/scripts/jenkins/cloud/gerrit/gerrit_merge.py \
               --patch ${GERRIT_PATCHSET_NUMBER} \
               ${GERRIT_CHANGE_NUMBER}
           fi

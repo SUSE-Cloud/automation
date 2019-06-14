@@ -22,8 +22,8 @@ function ansible_playbook {
     set +x
     export ANSIBLE_FORCE_COLOR=true
     source $ANSIBLE_VENV/bin/activate
-    if [[ "$PWD" != *scripts/jenkins/ardana/ansible ]]; then
-        cd $AUTOMATION_DIR/scripts/jenkins/ardana/ansible
+    if [[ "$PWD" != *scripts/jenkins/cloud/ansible ]]; then
+        cd $AUTOMATION_DIR/scripts/jenkins/cloud/ansible
     fi
     echo "Running: ansible-playbook ${@}"
     ansible-playbook "${@}"

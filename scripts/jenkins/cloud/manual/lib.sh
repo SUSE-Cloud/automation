@@ -19,7 +19,7 @@ AUTOMATION_DIR=${AUTOMATION_DIR:-"$(git rev-parse --show-toplevel)"}
 ANSIBLE_VENV=${ANSIBLE_VENV:-"$WORK_DIR/ansible-venv"}
 ARDANA_INPUT=${ARDANA_INPUT:-"$WORK_DIR/input.yml"}
 MITOGEN_URL=${MITOGEN_URL:-"https://github.com/dw/mitogen/archive/master.tar.gz"}
-ANSIBLE_CFG_ARDANA=${ANSIBLE_CFG_ARDANA:-"$AUTOMATION_DIR/scripts/jenkins/ardana/ansible/ansible.cfg"}
+ANSIBLE_CFG_ARDANA=${ANSIBLE_CFG_ARDANA:-"$AUTOMATION_DIR/scripts/jenkins/cloud/ansible/ansible.cfg"}
 ANSIBLE_CFG_SES=${ANSIBLE_CFG_SES:-"$AUTOMATION_DIR/scripts/jenkins/ses/ansible/ansible.cfg"}
 
 function get_from_input {
@@ -81,8 +81,8 @@ function ansible_playbook {
         return 1
     else
         source $ANSIBLE_VENV/bin/activate
-        if [[ "$PWD" != *scripts/jenkins/ardana/ansible ]]; then
-            pushd $AUTOMATION_DIR/scripts/jenkins/ardana/ansible
+        if [[ "$PWD" != *scripts/jenkins/cloud/ansible ]]; then
+            pushd $AUTOMATION_DIR/scripts/jenkins/cloud/ansible
         fi
         echo "Running: ansible-playbook -e @$ARDANA_INPUT ${@}"
         ansible-playbook ${ANSIBLE_VERBOSE:-} --extra-vars @$ARDANA_INPUT "${@}"
@@ -116,7 +116,7 @@ function get_cloud_product {
 
 function get_deployer_ip {
     grep -oP "^$(get_from_input cloud_env)\\s+ansible_host=\\K[0-9\\.]+" \
-        $AUTOMATION_DIR/scripts/jenkins/ardana/ansible/inventory
+        $AUTOMATION_DIR/scripts/jenkins/cloud/ansible/inventory
 }
 
 function get_ses_ip {
@@ -162,7 +162,7 @@ function build_test_packages {
             echo "ERROR: homeproject must be defined - please check all variables on input.yml"
             return 1
         else
-            pushd $AUTOMATION_DIR/scripts/jenkins/ardana/gerrit
+            pushd $AUTOMATION_DIR/scripts/jenkins/cloud/gerrit
             source $ANSIBLE_VENV/bin/activate
             gerrit_change_ids=$(get_from_input gerrit_change_ids)
             GERRIT_VERIFY=0 PYTHONWARNINGS="ignore:Unverified HTTPS request" \

@@ -62,7 +62,7 @@ pipeline {
             cd automation-git
 
             if [ -n "$github_pr" ] ; then
-              scripts/jenkins/ardana/pr-update.sh
+              scripts/jenkins/cloud/pr-update.sh
             fi
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
@@ -353,7 +353,7 @@ pipeline {
     success {
       sh '''
         if [ -n "$github_pr" ] ; then
-          automation-git/scripts/ardana/pr-success.sh
+          automation-git/scripts/cloud/pr-success.sh
         else
           automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 0
         fi
@@ -362,7 +362,7 @@ pipeline {
     failure {
       sh '''
         if [ -n "$github_pr" ] ; then
-          automation-git/scripts/ardana/pr-failure.sh
+          automation-git/scripts/cloud/pr-failure.sh
         else
           automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 1
         fi

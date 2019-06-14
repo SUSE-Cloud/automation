@@ -30,7 +30,7 @@ Ansible role for running tests from [ardana-qa-tests]
 
 3. All necessary changes will be made at the ardana_qe_tests role, go to its directory:
    ```sh
-   cd scripts/jenkins/ardana/ansible/roles/ardana_qe_tests
+   cd scripts/jenkins/cloud/ansible/roles/ardana_qe_tests
    ```
 
 4. Create a bash script template for calling the test from ardana-qe-tests and save it at `templates/tests/<test_name>.sh.j2`
@@ -39,7 +39,7 @@ Try to use predefined ansible variables whenever possible. Example:
    {{ ardana_qe_tests_dir }} is equals to ~/ardana-qe/ardana-qe-tests
    {{ ardana_qe_test_work_dir }} is equals to ~/ardana-qe/<test_name>
    ```
-   Check examples at: https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/ardana/ansible/roles/ardana_qe_tests/templates/tests
+   Check examples at: https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/cloud/ansible/roles/ardana_qe_tests/templates/tests
 
 5. If the test has any run filter put them at the directory `files/run_filters/<test_name>/`
 
@@ -87,7 +87,7 @@ Try to use predefined ansible variables whenever possible. Example:
 
         Those packages will be installed on the test virtual environment by the automation.
 
-    Check examples at: https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/ardana/ansible/roles/ardana_qe_tests/vars
+    Check examples at: https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/cloud/ansible/roles/ardana_qe_tests/vars
 
 7. Commit and push your changes:
 
