@@ -65,13 +65,13 @@ pipeline {
               scripts/jenkins/cloud/pr-update.sh
             fi
           ''')
-          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
-          ardana_lib.load_os_params_from_resource(cloud_env)
-          ardana_lib.load_extra_params_as_vars(extra_params)
-          ardana_lib.ansible_playbook('load-job-params',
+          cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+          cloud_lib.load_os_params_from_resource(cloud_env)
+          cloud_lib.load_extra_params_as_vars(extra_params)
+          cloud_lib.ansible_playbook('load-job-params',
                                       "-e jjb_type=job-template -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml"
                                       )
-          ardana_lib.ansible_playbook('notify-rc-pcloud')
+          cloud_lib.ansible_playbook('notify-rc-pcloud')
         }
       }
     }
@@ -80,9 +80,9 @@ pipeline {
       steps {
         script {
           if (scenario_name != '') {
-            ardana_lib.ansible_playbook('generate-input-model')
+            cloud_lib.ansible_playbook('generate-input-model')
           } else {
-            ardana_lib.ansible_playbook('clone-input-model')
+            cloud_lib.ansible_playbook('clone-input-model')
           }
         }
       }
@@ -94,7 +94,7 @@ pipeline {
       }
       steps {
         script {
-          ardana_lib.ansible_playbook('generate-heat-template')
+          cloud_lib.ansible_playbook('generate-heat-template')
         }
       }
     }
@@ -110,7 +110,7 @@ pipeline {
           }
           steps {
             script {
-              ardana_lib.ansible_playbook('start-deployer-vm')
+              cloud_lib.ansible_playbook('start-deployer-vm')
             }
           }
         }
@@ -128,7 +128,7 @@ pipeline {
                 script: 'cat "$WORKSPACE/heat-stack-${scenario_name}${model}.yml"'
               )
 
-              ardana_lib.trigger_build("openstack-cloud-heat-$os_cloud", [
+              cloud_lib.trigger_build("openstack-cloud-heat-$os_cloud", [
                 string(name: 'cloud_env', value: "$cloud_env"),
                 string(name: 'heat_action', value: "create"),
                 text(name: 'heat_template', value: heat_template),
@@ -147,7 +147,7 @@ pipeline {
           }
           steps {
             script {
-              def slaveJob = ardana_lib.trigger_build('openstack-ardana-testbuild-gerrit', [
+              def slaveJob = cloud_lib.trigger_build('openstack-ardana-testbuild-gerrit', [
                 string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
@@ -169,8 +169,8 @@ pipeline {
     stage('Setup SSH access') {
       steps {
         script {
-          ardana_lib.ansible_playbook('setup-ssh-access')
-          ardana_lib.get_deployer_ip()
+          cloud_lib.ansible_playbook('setup-ssh-access')
+          cloud_lib.get_deployer_ip()
         }
       }
     }
@@ -182,7 +182,7 @@ pipeline {
         stage('Bootstrap CLM') {
           steps {
             script {
-              ardana_lib.ansible_playbook('bootstrap-clm', "-e extra_repos='$extra_repos'")
+              cloud_lib.ansible_playbook('bootstrap-clm', "-e extra_repos='$extra_repos'")
             }
           }
         }
@@ -192,7 +192,7 @@ pipeline {
           }
           steps {
             script {
-              ardana_lib.trigger_build('openstack-ses', [
+              cloud_lib.trigger_build('openstack-ses', [
                 string(name: 'ses_id', value: "$cloud_env"),
                 string(name: 'os_cloud', value: "$os_cloud"),
                 string(name: 'network', value: "${cloud_env}-cloud_management_net"),
@@ -210,9 +210,9 @@ pipeline {
       steps{
         script {
           if (cloud_type == 'virtual') {
-            ardana_lib.ansible_playbook('bootstrap-vcloud-nodes')
+            cloud_lib.ansible_playbook('bootstrap-vcloud-nodes')
           } else {
-            ardana_lib.ansible_playbook('bootstrap-pcloud-nodes')
+            cloud_lib.ansible_playbook('bootstrap-pcloud-nodes')
           }
         }
       }
@@ -224,7 +224,7 @@ pipeline {
       }
       steps {
         script {
-          ardana_lib.ansible_playbook('deploy-cloud')
+          cloud_lib.ansible_playbook('deploy-cloud')
         }
       }
     }
@@ -235,7 +235,7 @@ pipeline {
       }
       steps {
         script {
-          ardana_lib.ansible_playbook('ardana-update', "-e cloudsource=$update_to_cloudsource")
+          cloud_lib.ansible_playbook('ardana-update', "-e cloudsource=$update_to_cloudsource")
         }
       }
     }
@@ -247,13 +247,13 @@ pipeline {
       steps {
         script {
           // Generate stages for Tempest tests
-          ardana_lib.generate_tempest_stages(env.tempest_filter_list)
+          cloud_lib.generate_tempest_stages(env.tempest_filter_list)
           // Generate stages for QA tests
-          ardana_lib.generate_qa_tests_stages(env.qa_test_list)
+          cloud_lib.generate_qa_tests_stages(env.qa_test_list)
           // Generate stage for CaaSP deployment
           if (want_caasp == 'true') {
             stage('Deploy CaaSP') {
-              ardana_lib.ansible_playbook('deploy-caasp')
+              cloud_lib.ansible_playbook('deploy-caasp')
             }
           }
         }

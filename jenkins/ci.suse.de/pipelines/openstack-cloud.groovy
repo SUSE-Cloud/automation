@@ -1,5 +1,5 @@
 /**
- * The openstack-ardana Jenkins pipeline library
+ * The openstack-cloud Jenkins pipeline library
  */
 
 

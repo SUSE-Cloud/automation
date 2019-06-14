@@ -44,17 +44,17 @@ pipeline {
           sh('''
              git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
-          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
-          ardana_lib.load_extra_params_as_vars(extra_params)
-          ardana_lib.load_os_params_from_resource(cloud_env)
-          ardana_lib.ansible_playbook('load-job-params')
-          ardana_lib.ansible_playbook('setup-ssh-access')
-          ardana_lib.get_deployer_ip()
+          cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+          cloud_lib.load_extra_params_as_vars(extra_params)
+          cloud_lib.load_os_params_from_resource(cloud_env)
+          cloud_lib.ansible_playbook('load-job-params')
+          cloud_lib.ansible_playbook('setup-ssh-access')
+          cloud_lib.get_deployer_ip()
 
           // Generate stages for Tempest tests
-          ardana_lib.generate_tempest_stages(env.tempest_filter_list)
+          cloud_lib.generate_tempest_stages(env.tempest_filter_list)
           // Generate stages for QA tests
-          ardana_lib.generate_qa_tests_stages(env.qa_test_list)
+          cloud_lib.generate_qa_tests_stages(env.qa_test_list)
 
         }
       }

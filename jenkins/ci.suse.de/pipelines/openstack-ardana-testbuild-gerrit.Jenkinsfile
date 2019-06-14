@@ -34,8 +34,8 @@ pipeline {
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
-          ardana_lib = load "automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
-          ardana_lib.load_extra_params_as_vars(extra_params)
+          cloud_lib = load "automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+          cloud_lib.load_extra_params_as_vars(extra_params)
         }
       }
     }

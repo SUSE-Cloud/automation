@@ -53,13 +53,13 @@ pipeline {
               scripts/jenkins/cloud/pr-update.sh
             fi
           ''')
-          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
-          ardana_lib.load_os_params_from_resource(cloud_env)
-          ardana_lib.load_extra_params_as_vars(extra_params)
-          ardana_lib.ansible_playbook('load-job-params',
+          cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+          cloud_lib.load_os_params_from_resource(cloud_env)
+          cloud_lib.load_extra_params_as_vars(extra_params)
+          cloud_lib.ansible_playbook('load-job-params',
                                       "-e jjb_type=job-template -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-crowbar-pipeline-template.yaml"
                                       )
-          ardana_lib.ansible_playbook('notify-rc-pcloud')
+          cloud_lib.ansible_playbook('notify-rc-pcloud')
         }
       }
     }
@@ -68,9 +68,9 @@ pipeline {
       steps {
         script {
           if (scenario_name != '') {
-            ardana_lib.ansible_playbook('generate-input-model')
+            cloud_lib.ansible_playbook('generate-input-model')
           } else {
-            ardana_lib.ansible_playbook('clone-input-model')
+            cloud_lib.ansible_playbook('clone-input-model')
           }
         }
       }
@@ -82,7 +82,7 @@ pipeline {
       }
       steps {
         script {
-          ardana_lib.ansible_playbook('generate-heat-template')
+          cloud_lib.ansible_playbook('generate-heat-template')
         }
       }
     }
@@ -100,7 +100,7 @@ pipeline {
             script: 'cat "$WORKSPACE/heat-stack-${scenario_name}${model}.yml"'
           )
 
-          ardana_lib.trigger_build("openstack-cloud-heat-$os_cloud", [
+          cloud_lib.trigger_build("openstack-cloud-heat-$os_cloud", [
             string(name: 'cloud_env', value: "$cloud_env"),
             string(name: 'heat_action', value: "create"),
             text(name: 'heat_template', value: heat_template),
@@ -116,8 +116,8 @@ pipeline {
     stage('Setup SSH access') {
       steps {
         script {
-          ardana_lib.ansible_playbook('setup-ssh-access')
-          ardana_lib.get_deployer_ip()
+          cloud_lib.ansible_playbook('setup-ssh-access')
+          cloud_lib.get_deployer_ip()
         }
       }
     }
@@ -129,7 +129,7 @@ pipeline {
           //  - waits for it to complete boot
           //  - resizes the root partition
           //  - TODO: sets up SLES and Cloud repositories
-          ardana_lib.ansible_playbook('bootstrap-crowbar', "-e extra_repos='$extra_repos'")
+          cloud_lib.ansible_playbook('bootstrap-crowbar', "-e extra_repos='$extra_repos'")
         }
       }
     }
@@ -141,7 +141,7 @@ pipeline {
           //  - waits for them to complete boot
           //  - resizes the root partition
           //  - prepares the nodes for Crowbar registration
-          ardana_lib.ansible_playbook('bootstrap-crowbar-nodes')
+          cloud_lib.ansible_playbook('bootstrap-crowbar-nodes')
         }
       }
     }
@@ -157,7 +157,7 @@ pipeline {
           }
           steps {
             script {
-              ardana_lib.trigger_build('openstack-ses', [
+              cloud_lib.trigger_build('openstack-ses', [
                 string(name: 'ses_id', value: "$cloud_env"),
                 string(name: 'os_cloud', value: "$os_cloud"),
                 string(name: 'network', value: "${cloud_env}-cloud_management_net"),
@@ -180,7 +180,7 @@ pipeline {
                    // This step does the following on the admin node:
                    //  - sets up SLES and Cloud repositories
                    //  - installs crowbar
-                   ardana_lib.ansible_playbook('install-crowbar')
+                   cloud_lib.ansible_playbook('install-crowbar')
                 }
               }
             }
@@ -194,7 +194,7 @@ pipeline {
                   // This step does the following on the non-admin nodes:
                   //  - registers nodes with the Crowbar admin
                   //  - sets up node roles and aliases
-                  ardana_lib.ansible_playbook('register-crowbar-nodes')
+                  cloud_lib.ansible_playbook('register-crowbar-nodes')
                 }
               }
             }
@@ -212,7 +212,7 @@ pipeline {
         script {
           // This step does the following on the non-admin nodes:
           //  - deploys the crowbar batch scenario
-          ardana_lib.ansible_playbook('deploy-crowbar')
+          cloud_lib.ansible_playbook('deploy-crowbar')
         }
       }
     }
@@ -225,7 +225,7 @@ pipeline {
         script {
           // This step does the following on the non-admin nodes:
           //  - runs tempest and other tests on the deployed cloud
-          ardana_lib.ansible_playbook('run-crowbar-tests')
+          cloud_lib.ansible_playbook('run-crowbar-tests')
         }
       }
     }

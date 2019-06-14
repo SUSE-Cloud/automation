@@ -27,8 +27,8 @@ pipeline {
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
 
-          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
-          ardana_lib.load_extra_params_as_vars(extra_params)
+          cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+          cloud_lib.load_extra_params_as_vars(extra_params)
 
           if (GERRIT_CHANGE_NUMBER == '') {
             error("Empty 'GERRIT_CHANGE_NUMBER' parameter value.")
@@ -140,9 +140,9 @@ The following links can also be used to track the results:
           // reserve a resource here for the integration job, to avoid
           // keeping a cloud-ardana-ci worker busy while waiting for a
           // resource to become available.
-          ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, cloud_env) {
+          cloud_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, cloud_env) {
             reserved_env ->
-            ardana_lib.trigger_build(integration_test_job, [
+            cloud_lib.trigger_build(integration_test_job, [
               string(name: 'cloud_env', value: reserved_env),
               string(name: 'reserve_env', value: "false"),
               string(name: 'os_cloud', value: os_cloud),
