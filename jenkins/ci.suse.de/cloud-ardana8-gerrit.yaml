@@ -6,7 +6,7 @@
     scenario_name: standard
     clm_model: standalone
     controllers: '2'
-    sles_computes: '1'
+    computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -21,7 +21,7 @@
     scenario_name: standard
     clm_model: standalone
     controllers: '2'
-    sles_computes: '0'
+    computes: '0'
     rhel_computes: '2'
     ses_enabled: true
     ses_rgw_enabled: false
@@ -37,7 +37,7 @@
     scenario_name: entry-scale-kvm
     clm_model: standalone
     controllers: '3'
-    sles_computes: '2'
+    computes: '2'
     rhel_computes: '0'
     ses_enabled: true
     ses_rgw_enabled: false
@@ -54,7 +54,7 @@
     scenario_name: standard
     clm_model: standalone
     controllers: '3'
-    sles_computes: '1'
+    computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:

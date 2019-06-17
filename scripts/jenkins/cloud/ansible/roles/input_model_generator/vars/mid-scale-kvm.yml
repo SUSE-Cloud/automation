@@ -21,7 +21,7 @@ lmm_nodes: 3
 dbmq_nodes: 3
 swift_nodes: 3
 neutron_nodes: 2
-sles_computes: 2
+computes: 2
 rhel_computes: 0
 
 scenario:
@@ -30,7 +30,7 @@ scenario:
   description: >
     Multi-cluster scenario with all services enabled, {{ clm_model }} CLM node, dedicated
     clusters with {{ core_nodes }} core nodes, {{ dbmq_nodes }} database/rabbitmq nodes, {{ neutron_nodes }} neutron
-    agent nodes, {{ swift_nodes }} swift nodes, {{ lmm_nodes }} LMM nodes and with {{ sles_computes }} SLES compute nodes
+    agent nodes, {{ swift_nodes }} swift nodes, {{ lmm_nodes }} LMM nodes and with {{ computes }} SLES compute nodes
     and {{ rhel_computes }} RHEL compute nodes.
   audit_enabled: False
   use_cinder_volume_disk: False

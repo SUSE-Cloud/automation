@@ -18,7 +18,7 @@
 # Scenario parameters and default values
 controllers: 3
 lmm_nodes: 3
-sles_computes: 3
+computes: 3
 rhel_computes: 0
 swobj_devices: 3
 
@@ -28,7 +28,7 @@ scenario:
   description: >
     Standard scenario with all services enabled and LMM services running in a separate cluster,
     {{ clm_model }} CLM node, {{ controllers }} controller nodes, {{ lmm_nodes }} LMM nodes,
-    {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
+    {{ computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
   audit_enabled: False
   use_cinder_volume_disk: False
   use_glance_cache_disk: False

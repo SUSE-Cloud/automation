@@ -2,7 +2,7 @@
 core_nodes: 2
 lmm_nodes: 3
 dbmq_nodes: 3
-sles_computes: 1
+computes: 1
 rhel_computes: 0
 
 scenario:
@@ -10,7 +10,7 @@ scenario:
   cloud_name: entry-scale-kvm-mml
   description: >
     Multi-cluster scenario with all services enabled, {{ clm_model }} CLM node, {{ core_nodes }} OpenStack core nodes,
-    {{ dbmq_nodes }} database nodes, {{ lmm_nodes }} LMM nodes, {{ sles_computes }} SLES compute nodes and
+    {{ dbmq_nodes }} database nodes, {{ lmm_nodes }} LMM nodes, {{ computes }} SLES compute nodes and
     {{ rhel_computes }} RHEL compute nodes.
   audit_enabled: False
   ses_enabled: "{{ ses_enabled | default(False) }}"

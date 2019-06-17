@@ -27,7 +27,7 @@
     scenario_name: standard
     clm_model: standalone
     controllers: '3'
-    sles_computes: '1'
+    computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -42,7 +42,7 @@
     scenario_name: standard
     clm_model: integrated
     controllers: '3'
-    sles_computes: '1'
+    computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -57,7 +57,7 @@
     scenario_name: standard
     clm_model: standalone
     controllers: '2'
-    sles_computes: '1'
+    computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -73,7 +73,7 @@
     clm_model: standalone
     controllers: '2'
     lmm_nodes: '1'
-    sles_computes: '1'
+    computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -88,7 +88,7 @@
     scenario_name: standard
     clm_model: integrated
     controllers: '1'
-    sles_computes: '1'
+    computes: '1'
     disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm'
     ses_enabled: true
     ses_rgw_enabled: false
@@ -106,7 +106,7 @@
     core_nodes: '1'
     lmm_nodes: '1'
     dbmq_nodes: '1'
-    sles_computes: '1'
+    computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -122,7 +122,7 @@
     scenario_name: entry-scale-kvm
     clm_model: standalone
     controllers: '3'
-    sles_computes: '2'
+    computes: '2'
     rhel_computes: '0'
     ses_enabled: true
     ses_rgw_enabled: false
@@ -144,7 +144,7 @@
     scenario_name: entry-scale-kvm
     clm_model: standalone
     controllers: '3'
-    sles_computes: '2'
+    computes: '2'
     rhel_computes: '0'
     ses_enabled: true
     ses_rgw_enabled: false
@@ -162,7 +162,7 @@
     scenario_name: standard
     clm_model: standalone
     controllers: '2'
-    sles_computes: '1'
+    computes: '1'
     ses_enabled: false
     ses_rgw_enabled: false
     ipv6: true
@@ -179,7 +179,7 @@
     scenario_name: standard
     clm_model: standalone
     controllers: '2'
-    sles_computes: '0'
+    computes: '0'
     rhel_computes: '2'
     ses_enabled: true
     ses_rgw_enabled: false
@@ -200,7 +200,7 @@
     scenario_name: entry-scale-kvm
     clm_model: integrated
     controllers: '3'
-    sles_computes: '2'
+    computes: '2'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:
@@ -218,7 +218,7 @@
     scenario_name: entry-scale-kvm
     clm_model: standalone
     controllers: '3'
-    sles_computes: '2'
+    computes: '2'
     ses_enabled: true
     ses_rgw_enabled: false
     tempest_filter_list: "\
@@ -237,7 +237,7 @@
     scenario_name: standard
     clm_model: standalone
     controllers: '2'
-    sles_computes: '1'
+    computes: '1'
     ses_enabled: true
     ses_rgw_enabled: false
     triggers:

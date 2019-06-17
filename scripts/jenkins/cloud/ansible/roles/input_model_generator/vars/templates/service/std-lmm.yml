@@ -22,7 +22,7 @@
 # Template parameters:
 #   controllers: number of controller nodes (default: 3)
 #   lmm_nodes: number of nodes in the LMM cluster (default: 1)
-#   sles_computes: number of SLES compute nodes (default: 1)
+#   computes: number of SLES compute nodes (default: 1)
 #   rhel_computes: number of RHEL compute nodes (default: 1)
 #
 ---
@@ -54,11 +54,11 @@ service_groups:
     member_count: '{{ lmm_nodes|default(3) }}'
     service_components:
       - LMM
-  - name: sles-compute
+  - name: compute
     type: resource
     prefix: sles-comp
     heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
-    member_count: '{{ sles_computes|default(1) }}'
+    member_count: '{{ computes|default(1) }}'
     min_count: 0
     service_components:
       - COMPUTE

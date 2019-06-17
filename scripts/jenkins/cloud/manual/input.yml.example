@@ -83,8 +83,8 @@ homeproject: ''
 # The name of one of the available scenarios that can be used to generate input models.
 # If this parameter is set, the following parameters may also be set to different values,
 # to control various aspects of the generated input model: clm_model, controllers, core_nodes,
-# lmm_nodes, dbmq_nodes, neutron_nodes, swift_nodes, sles_computes (or computes), rhel_computes,
-# and disabled_services and enabled_services.
+# lmm_nodes, dbmq_nodes, neutron_nodes, swift_nodes, computes, rhel_computes, disabled_services
+# and enabled_services.
 #
 # NOTE: use this parameter only if you want to use a generated input model. To use an existing
 # input model instead, leave this field empty and use the 'model' parameter instead.
@@ -125,10 +125,6 @@ controllers: '3'
 
 # The number of SLES compute nodes in the generated input model.
 # Input model generator scenarios using this parameter: all
-#
-# NOTE: Currently all scenarios except crowbar use 'sles_computes'. When deploying crowbar
-# please use the 'computes' variable instead.
-sles_computes: '2'
 computes: '1'
 
 # The number of RHEL (CentOS) compute nodes in the generated input model.

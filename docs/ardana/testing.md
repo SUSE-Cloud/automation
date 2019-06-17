@@ -60,7 +60,7 @@ will provide more information on the provided options. Here are some best practi
 [here](../../scripts/jenkins/cloud/ansible/roles/setup_zypper_repos/README.md)
 * Select one of the supported deployment scenarios (i.e. the way services are grouped together and deployed onto nodes
   and/or HA clusters, number of nodes in each cluster, etc) by choosing one of the available ```scenario_name``` values
-  and changing the values of related parameters (e.g. `clm_model`, `controllers`, `sles_computes` or `computes` etc.) to
+  and changing the values of related parameters (e.g. `clm_model`, `controllers`, `computes` etc.) to
   control the number of nodes for each service group. `standard` and `entry-scale-kvm` are the scenarios most widely used
   for Ardana. Currently, `crowbar` is the only scenario available for Crowbar. Note that only a subset of the available
   scenarios work with bare-metal environments (`entry-scale-kvm` and `mid-scale-kvm` currently), and the number of nodes
@@ -405,7 +405,7 @@ with the following parameter values:
   scenario_name=standard
   clm_model=integrated
   controllers=1
-  sles_computes=1
+  computes=1
   disabled_services=monasca|logging|ceilometer|cassandra|kafka|spark|storm|octavia
   ses_rgw_enabled=false
   tempest_filter_list=ci

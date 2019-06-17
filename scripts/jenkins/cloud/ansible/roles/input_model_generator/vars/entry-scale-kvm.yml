@@ -16,7 +16,7 @@
 ---
 
 controllers: 3
-sles_computes: 2
+computes: 2
 rhel_computes: 0
 
 scenario:
@@ -24,7 +24,7 @@ scenario:
   cloud_name: entry-scale
   description: >
     Multi-cluster scenario with all services enabled, {{ clm_model }} CLM node,
-    {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
+    {{ computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
   audit_enabled: True
   use_cinder_volume_disk: False
   use_glance_cache_disk: False

@@ -19,7 +19,7 @@
 core_nodes: 1
 lmm_nodes: 1
 dbmq_nodes: 1
-sles_computes: 3
+computes: 3
 rhel_computes: 0
 swobj_devices: 3
 
@@ -28,7 +28,7 @@ scenario:
   cloud_name: standard
   description: >
     Standard split scenario with all services enabled, {{ clm_model }} CLM node, {{ core_nodes }} OpenStack core nodes,
-    {{ dbmq_nodes }} database nodes, {{ lmm_nodes }} LMM nodes, {{ sles_computes }} SLES compute nodes and
+    {{ dbmq_nodes }} database nodes, {{ lmm_nodes }} LMM nodes, {{ computes }} SLES compute nodes and
     {{ rhel_computes }} RHEL compute nodes.
   audit_enabled: False
   use_cinder_volume_disk: False

@@ -19,7 +19,7 @@
 #
 # Template parameters:
 #   controllers: number of controller nodes (default: 3)
-#   sles_computes: number of SLES compute nodes (default: 1)
+#   computes: number of SLES compute nodes (default: 1)
 #   rhel_computes: number of RHEL compute nodes (default: 1)
 #
 ---
@@ -45,11 +45,11 @@ service_groups:
       - SWPAC
       - NEUTRON
       - SWOBJ
-  - name: sles-compute
+  - name: compute
     type: resource
     prefix: sles-comp
     heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
-    member_count: '{{ sles_computes|default(1) }}'
+    member_count: '{{ computes|default(1) }}'
     min_count: 0
     service_components:
       - COMPUTE
