@@ -15,22 +15,9 @@
 #
 ---
 
-  # Ensure backwards compatibility (i.e. heat stacks
-  # created with the old naming scheme are properly deleted).
-- name: Determine old cloud stack name
-  set_fact:
-    old_heat_stack_name: "openstack-ardana-{{ heat_stack_name | regex_replace('-cloud$', '') }}"
-  when: heat_stack_name.endswith('-cloud')
-
-- name: Determine old SES stack name
-  set_fact:
-    old_heat_stack_name: "openstack-ses-{{ heat_stack_name | regex_replace('-ses$', '') }}"
-  when: heat_stack_name.endswith('-ses')
-
 - name: Determine SES stack name from cloud stack name
   set_fact:
     ses_stack_name: "{{ heat_stack_name | regex_replace('-cloud$', '-ses') }}"
-    old_ses_stack_name: "openstack-ses-{{ heat_stack_name | regex_replace('-cloud$', '') }}"
   when: heat_stack_name.endswith('-cloud')
 
 - name: Monitor stack
@@ -48,30 +35,6 @@
 - name: Delete stack
   include_tasks: delete.yml
   when: heat_action != 'monitor'
-
-- name: Monitor old stack
-  include_tasks: monitor.yml
-  vars:
-    heat_stack_name: "{{ old_heat_stack_name }}"
-  when:
-    - old_heat_stack_name is defined
-    - heat_action == 'monitor'
-
-- name: Delete old SES stack
-  include_tasks: delete.yml
-  vars:
-    heat_stack_name: "{{ old_ses_stack_name }}"
-  when:
-    - old_ses_stack_name is defined
-    - heat_action != 'monitor'
-
-- name: Delete old stack
-  include_tasks: delete.yml
-  vars:
-    heat_stack_name: "{{ old_heat_stack_name }}"
-  when:
-    - old_heat_stack_name is defined
-    - heat_action != 'monitor'
 
 - name: Create stack
   include_tasks: create.yml
