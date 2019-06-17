@@ -63,8 +63,8 @@ python_unittest:
 	python3 -m unittest discover -v
 
 gerrit-project-regexp:
-	scripts/jenkins/ardana/gerrit/project-map2project-regexp.py master > jenkins/ci.suse.de/gerrit-project-regexp-cloud9.txt
-	scripts/jenkins/ardana/gerrit/project-map2project-regexp.py stable/pike > jenkins/ci.suse.de/gerrit-project-regexp-cloud8.txt
+	scripts/jenkins/cloud/gerrit/project-map2project-regexp.py master > jenkins/ci.suse.de/gerrit-project-regexp-cloud9.txt
+	scripts/jenkins/cloud/gerrit/project-map2project-regexp.py stable/pike > jenkins/ci.suse.de/gerrit-project-regexp-cloud8.txt
 
 jjb_test: gerrit-project-regexp
 	jenkins-jobs --ignore-cache test jenkins/ci.suse.de:jenkins/ci.suse.de/templates/ cloud* openstack* > /dev/null

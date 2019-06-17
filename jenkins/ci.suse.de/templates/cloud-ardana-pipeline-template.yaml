@@ -12,8 +12,8 @@
 
     parameters:
       - validating-string:
-          name: ardana_env
-          default: '{ardana_env|}'
+          name: cloud_env
+          default: '{cloud_env|}'
           regex: '[A-Za-z0-9-_]+'
           msg: >-
             Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
@@ -22,14 +22,14 @@
             be set to one of the values associated with the known hardware environments
             (e.g. qe101), or to a value that will identify the created virtual environment.
 
-            WARNING: if a virtual environment associated with the supplied ardana_env already
+            WARNING: if a virtual environment associated with the supplied cloud_env already
             exists, it will be replaced.
 
       - bool:
           name: reserve_env
           default: '{reserve_env|true}'
           description: >-
-            Reserve the 'ardana_env' lockable resource throughout the execution of this job.
+            Reserve the 'cloud_env' lockable resource throughout the execution of this job.
 
       - choice:
           name: os_cloud
@@ -43,7 +43,7 @@
               engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
               susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
 
-            If the 'ardana_env' value (or the reserved resource, when 'reserve_env' selected),
+            If the 'cloud_env' value (or the reserved resource, when 'reserve_env' selected),
             matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
             the 'os_cloud' parameter is overridden to reflect the OpenStack platform associated with it.
 
@@ -441,7 +441,7 @@
             in the 'os_cloud' OpenStack cloud platform (leave empty to use the
             default shared 'cloud' account).
 
-            If the 'ardana_env' value (or the reserved resource, when 'reserve_env' selected),
+            If the 'cloud_env' value (or the reserved resource, when 'reserve_env' selected),
             matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
             the 'cloud-ci' OpenStack project used exclusively for the Cloud CI will be used
             regardless of this parameter.

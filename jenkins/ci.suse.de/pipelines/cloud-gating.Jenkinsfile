@@ -47,8 +47,8 @@ pipeline {
             '''
           ).trim()
 
-          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
-          ardana_lib.load_extra_params_as_vars(extra_params)
+          cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+          cloud_lib.load_extra_params_as_vars(extra_params)
         }
       }
     }
@@ -64,13 +64,13 @@ pipeline {
           }
           steps {
             script {
-              // reserve a resource here for the openstack-ardana job, to avoid
+              // reserve a resource here for the integration job, to avoid
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
-              ardana_lib.run_with_reserved_env(true, ardana_env, null) {
+              cloud_lib.run_with_reserved_env(true, cloud_env, null) {
                 reserved_env ->
-                ardana_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-x86_64", [
-                  string(name: 'ardana_env', value: reserved_env),
+                cloud_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-x86_64", [
+                  string(name: 'cloud_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
                   string(name: 'cleanup', value: "never"),
                   string(name: 'rc_notify', value: "true"),
@@ -89,13 +89,13 @@ pipeline {
           }
           steps {
             script {
-              // reserve a resource here for the openstack-ardana job, to avoid
+              // reserve a resource here for the integration job, to avoid
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
-              ardana_lib.run_with_reserved_env(true, ardana_env, null) {
+              cloud_lib.run_with_reserved_env(true, cloud_env, null) {
                 reserved_env ->
-                ardana_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-update-x86_64", [
-                  string(name: 'ardana_env', value: reserved_env),
+                cloud_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-update-x86_64", [
+                  string(name: 'cloud_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
                   string(name: 'cleanup', value: "never"),
                   string(name: 'rc_notify', value: "true"),
@@ -113,7 +113,7 @@ pipeline {
     stage('Submit project') {
       steps {
         script{
-          ardana_lib.trigger_build("openstack-submit-project", [
+          cloud_lib.trigger_build("openstack-submit-project", [
             string(name: 'project', value: "Devel:Cloud:${version}"),
             string(name: 'starttime', value: "${starttime}"),
             string(name: 'subproject', value: "Staging"),

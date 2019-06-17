@@ -1,5 +1,5 @@
 /**
- * The openstack-ardana-maintenance-gating Jenkins Pipeline
+ * The openstack-maintenance-gating Jenkins Pipeline
  */
 
 def ardana_lib = null
@@ -22,8 +22,8 @@ pipeline {
     stage('Setup workspace') {
       steps {
         script {
-          if (ardana_env == '') {
-            error("Empty 'ardana_env' parameter value.")
+          if (cloud_env == '') {
+            error("Empty 'cloud_env' parameter value.")
           }
           if (maint_updates == '') {
             error("Empty 'maint_updates' parameter value.")
@@ -34,8 +34,8 @@ pipeline {
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
 
-          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
-          ardana_lib.load_extra_params_as_vars(extra_params)
+          cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+          cloud_lib.load_extra_params_as_vars(extra_params)
         }
       }
     }
@@ -45,16 +45,16 @@ pipeline {
       failFast false
       steps {
         script {
-          parallel ardana_lib.generate_mu_stages(cloudversion.split(','), deploy.toBoolean(), deploy_and_update.toBoolean()) {
+          parallel cloud_lib.generate_mu_stages(cloudversion.split(','), deploy.toBoolean(), deploy_and_update.toBoolean()) {
             cv, update_after_deploy ->
-            // reserve a resource here for the openstack-ardana job, to avoid
+            // reserve a resource here for the integration job, to avoid
             // keeping a cloud-ardana-ci worker busy while waiting for a
             // resource to become available.
             def suffix = (update_after_deploy) ? "update" : "deploy"
-            ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), ardana_env, "${ardana_env}-${cv}-${suffix}") {
+            cloud_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, "${cloud_env}-${cv}-${suffix}") {
               reserved_env ->
-              def slaveJob = ardana_lib.trigger_build(ardana_lib.get_mu_job_name(cv), [
-                string(name: 'ardana_env', value: reserved_env),
+              def slaveJob = cloud_lib.trigger_build(cloud_lib.get_mu_job_name(cv), [
+                string(name: 'cloud_env', value: reserved_env),
                 string(name: 'reserve_env', value: "false"),
                 string(name: 'cloudsource', value: "GM${cv[-1]}+up"),
                 string(name: 'maint_updates', value: "$maint_updates"),

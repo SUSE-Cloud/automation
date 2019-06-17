@@ -1,7 +1,7 @@
 - project:
     name: cloud-ardana9-job-std-min-gerrit-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-gerrit-slot
+    cloud_env: cloud-ardana-gerrit-slot
     cloudsource: develcloud9
     scenario_name: standard
     clm_model: standalone
@@ -16,7 +16,7 @@
 - project:
     name: cloud-ardana9-job-std-min-centos-gerrit-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-gerrit-slot
+    cloud_env: cloud-ardana-gerrit-slot
     cloudsource: develcloud9
     scenario_name: standard
     clm_model: standalone
@@ -32,7 +32,7 @@
 - project:
     name: cloud-ardana9-job-entry-scale-kvm-gerrit-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
     cloudsource: develcloud9
     scenario_name: entry-scale-kvm
     clm_model: standalone
@@ -48,7 +48,7 @@
 - project:
     name: cloud-ardana9-job-std-3cp-update-gerrit-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-gerrit-slot
+    cloud_env: cloud-ardana-gerrit-slot
     cloudsource: develcloud9
     update_after_deploy: true
     scenario_name: standard
@@ -64,7 +64,7 @@
 - project:
     name: openstack-ardana-gerrit-cloud9
     ardana_gerrit_job: '{name}'
-    ardana_env: cloud-ardana-gerrit-slot
+    cloud_env: cloud-ardana-gerrit-slot
     reserve_env: true
     voting: true
     gerrit_context: std-min

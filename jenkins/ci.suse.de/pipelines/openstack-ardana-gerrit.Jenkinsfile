@@ -27,8 +27,8 @@ pipeline {
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
 
-          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
-          ardana_lib.load_extra_params_as_vars(extra_params)
+          cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+          cloud_lib.load_extra_params_as_vars(extra_params)
 
           if (GERRIT_CHANGE_NUMBER == '') {
             error("Empty 'GERRIT_CHANGE_NUMBER' parameter value.")
@@ -39,7 +39,7 @@ pipeline {
             env.GERRIT_PATCHSET_NUMBER = sh (
               returnStdout: true,
               script: '''
-                automation-git/scripts/jenkins/ardana/gerrit/gerrit_get.py \
+                automation-git/scripts/jenkins/cloud/gerrit/gerrit_get.py \
                   --attr patchset \
                   ${GERRIT_CHANGE_NUMBER}
               '''
@@ -105,7 +105,7 @@ The following links can also be used to track the results:
 "
 
             $voting && gerrit_voting_params="--vote 0 --label Verified"
-            automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
+            automation-git/scripts/jenkins/cloud/gerrit/gerrit_review.py \
               --message "$message" \
               $gerrit_voting_params \
               --patch ${GERRIT_PATCHSET_NUMBER} \
@@ -124,7 +124,7 @@ The following links can also be used to track the results:
           if [[ -n $GERRIT_CHANGE_COMMIT_MESSAGE ]]; then
             commit_message=$(echo $GERRIT_CHANGE_COMMIT_MESSAGE | base64 --decode)
           else
-            commit_message=$(automation-git/scripts/jenkins/ardana/gerrit/gerrit_get.py \
+            commit_message=$(automation-git/scripts/jenkins/cloud/gerrit/gerrit_get.py \
               --attr commit_message \
               ${GERRIT_CHANGE_NUMBER}/${GERRIT_PATCHSET_NUMBER})
           fi
@@ -137,13 +137,13 @@ The following links can also be used to track the results:
     stage('integration test') {
       steps {
         script {
-          // reserve a resource here for the openstack-ardana job, to avoid
+          // reserve a resource here for the integration job, to avoid
           // keeping a cloud-ardana-ci worker busy while waiting for a
           // resource to become available.
-          ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), ardana_env, ardana_env) {
+          cloud_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, cloud_env) {
             reserved_env ->
-            ardana_lib.trigger_build(integration_test_job, [
-              string(name: 'ardana_env', value: reserved_env),
+            cloud_lib.trigger_build(integration_test_job, [
+              string(name: 'cloud_env', value: reserved_env),
               string(name: 'reserve_env', value: "false"),
               string(name: 'os_cloud', value: os_cloud),
               string(name: 'gerrit_change_ids', value: "$GERRIT_CHANGE_NUMBER/$GERRIT_PATCHSET_NUMBER"),
@@ -192,7 +192,7 @@ ${build_str} ${message_result} ($gerrit_context): ${BUILD_URL}
 
           $voting && [[ -n $vote ]] && gerrit_voting_params="--vote $vote --label Verified"
 
-          automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
+          automation-git/scripts/jenkins/cloud/gerrit/gerrit_review.py \
             --message "$message" \
             --message-file pipeline-report.txt \
             $gerrit_voting_params \
@@ -200,7 +200,7 @@ ${build_str} ${message_result} ($gerrit_context): ${BUILD_URL}
             $GERRIT_CHANGE_NUMBER
 
           if $voting && [[ $BUILD_RESULT == SUCCESS ]]; then
-            automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py \
+            automation-git/scripts/jenkins/cloud/gerrit/gerrit_merge.py \
               --patch ${GERRIT_PATCHSET_NUMBER} \
               ${GERRIT_CHANGE_NUMBER}
           fi

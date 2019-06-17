@@ -1,0 +1,60 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+heat_stack_name: "{{ cloud_env }}-cloud"
+heat_template_file: "{{ workspace_path }}/heat-stack-{{ scenario_name | default(model) }}.yml"
+os_cloud: "engcloud"
+os_project_name: "cloud"
+
+want_caasp: False
+virt_config_file_name: "{{ 'caasp.yml' if want_caasp else workspace_path ~ '/' ~ scenario_name ~ '-virt-config.yml' if scenario_name is defined else '' }}"
+virt_config_file: "{{ virt_config_name | default(virt_config_file_name) }}"
+
+# Use the root LVM partition only for Ardana deployments
+want_lvm: "{{ cloud_product == 'ardana' }}"
+# use different flavors and images when LVM support is enabled:
+#  - LVM enabled images have the root partition set up as an LVM volume
+#  - LVM enabled flavors have a smaller disk size for generated input models,
+#  because the generated input models will also include additional volumes for
+#  each service group
+vcloud_image_name_prefix: "{{ 'cleanvm-jeos-lvm' if want_lvm else 'cleanvm-jeos' }}"
+vcloud_flavor_name_prefix: "{{ 'cloud-ardana-job-lvm' if want_lvm else 'cloud-ardana-job' }}"
+
+# For virtual cloud deployments, all volumes are implemented on top of
+# shared storage, with the exception of the root partition, which uses the
+# ephemeral volume, which could be set up on the underlying cloud compute node
+# instead of also being a shared storage volume. Set this to true to have mariadb
+# and rabbitmq use the root partition rather than a separate volume (which has
+# higher latency and is more prone to performance issues when implemented using
+# shared storage).
+ardana_dbmq_use_root_volume: true
+
+cli_stack_queries:
+  - "admin-floating-ip"
+  - "admin-conf-ip"
+  - "controller-conf-ips"
+  - "compute-conf-ips"
+
+heat_stack_output_queries:
+ - item: "admin-floating-ip"
+   stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'admin-floating-ip') | map(attribute='output_value') | list | join('') }}"
+ - item: "admin-conf-ip"
+   stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'admin-conf-ip') | map(attribute='output_value') | list | join('') }}"
+ - item: "controller-conf-ips"
+   stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'controller-conf-ips') | map(attribute='output_value') | list | flatten }}"
+ - item: "compute-conf-ips"
+   stdout: "{{ heat_stack_output | default([]) | selectattr('output_key', 'equalto', 'compute-conf-ips') | map(attribute='output_value') | list | flatten }}"

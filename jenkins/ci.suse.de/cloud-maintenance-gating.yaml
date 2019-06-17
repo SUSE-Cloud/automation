@@ -25,7 +25,7 @@
 
     parameters:
       - validating-string:
-          name: ardana_env
+          name: cloud_env
           default: 'cloud-ardana-maintenance-slot'
           regex: '[A-Za-z0-9-_]+'
           msg: >-
@@ -35,14 +35,14 @@
             be set to one of the values associated with the known hardware environments
             (e.g. qe101), or to a value that will identify the created virtual environment.
 
-            WARNING: if a virtual environment associated with the supplied ardana_env already
+            WARNING: if a virtual environment associated with the supplied cloud_env already
             exists, it will be replaced.
 
       - bool:
           name: reserve_env
           default: true
           description: >-
-            Reserve the 'ardana_env' lockable resource throughout the execution of this job
+            Reserve the 'cloud_env' lockable resource throughout the execution of this job
 
       - extended-choice:
           name: cloudversion

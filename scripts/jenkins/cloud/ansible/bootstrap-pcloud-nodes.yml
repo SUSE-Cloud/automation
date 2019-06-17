@@ -1,0 +1,68 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Shutdown environment baremetal nodes
+  hosts: "{{ cloud_env }}"
+  remote_user: root
+  gather_facts: False
+  vars:
+    task: "deploy"
+
+  tasks:
+    - block:
+        - include_role:
+            name: input_model_generator
+            tasks_from: get_qe_bm_info
+
+        - name: Power off all baremetal nodes
+          shell: |
+            ipmitool -H {{ item.ilo_ip }} -U {{ item.ilo_user }} \
+              -I lanplus -P '{{ item.ilo_password }}' power off
+          register: bm_node_state
+          retries: 5
+          until: bm_node_state is succeeded
+          delay: 2
+          when: "'ilo_user' in item"
+          loop: "{{ bm_info.servers }}"
+          loop_control:
+            label: "{{ item.id }}"
+
+        - name: Ensure all baremetal nodes are powered off
+          shell: |
+            ipmitool -H {{ item.ilo_ip }} -U {{ item.ilo_user }} \
+              -I lanplus -P '{{ item.ilo_password }}' power status
+          register: _node_status
+          failed_when: "not ('off' in _node_status.stdout)"
+          changed_when: False
+          retries: 10
+          until: _node_status is succeeded
+          delay: 5
+          when: "'ilo_user' in item"
+          loop: "{{ bm_info.servers }}"
+          loop_control:
+            label: "{{ item.id }}"
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."

@@ -1,0 +1,78 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+  # Ensure backwards compatibility (i.e. heat stacks
+  # created with the old naming scheme are properly deleted).
+- name: Determine old cloud stack name
+  set_fact:
+    old_heat_stack_name: "openstack-ardana-{{ heat_stack_name | regex_replace('-cloud$', '') }}"
+  when: heat_stack_name.endswith('-cloud')
+
+- name: Determine old SES stack name
+  set_fact:
+    old_heat_stack_name: "openstack-ses-{{ heat_stack_name | regex_replace('-ses$', '') }}"
+  when: heat_stack_name.endswith('-ses')
+
+- name: Determine SES stack name from cloud stack name
+  set_fact:
+    ses_stack_name: "{{ heat_stack_name | regex_replace('-cloud$', '-ses') }}"
+    old_ses_stack_name: "openstack-ses-{{ heat_stack_name | regex_replace('-cloud$', '') }}"
+  when: heat_stack_name.endswith('-cloud')
+
+- name: Monitor stack
+  include_tasks: monitor.yml
+  when: heat_action == 'monitor'
+
+- name: Delete SES stack
+  include_tasks: delete.yml
+  vars:
+    heat_stack_name: "{{ ses_stack_name }}"
+  when:
+    - ses_stack_name is defined
+    - heat_action != 'monitor'
+
+- name: Delete stack
+  include_tasks: delete.yml
+  when: heat_action != 'monitor'
+
+- name: Monitor old stack
+  include_tasks: monitor.yml
+  vars:
+    heat_stack_name: "{{ old_heat_stack_name }}"
+  when:
+    - old_heat_stack_name is defined
+    - heat_action == 'monitor'
+
+- name: Delete old SES stack
+  include_tasks: delete.yml
+  vars:
+    heat_stack_name: "{{ old_ses_stack_name }}"
+  when:
+    - old_ses_stack_name is defined
+    - heat_action != 'monitor'
+
+- name: Delete old stack
+  include_tasks: delete.yml
+  vars:
+    heat_stack_name: "{{ old_heat_stack_name }}"
+  when:
+    - old_heat_stack_name is defined
+    - heat_action != 'monitor'
+
+- name: Create stack
+  include_tasks: create.yml
+  when: heat_action == 'create'

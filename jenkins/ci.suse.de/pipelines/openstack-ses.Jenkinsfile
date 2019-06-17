@@ -45,7 +45,7 @@ pipeline {
           env.SES_IP = sh (
             returnStdout: true,
             script: '''
-              grep -oP "${ses_id}\\s+ansible_host=\\K[0-9\\.]+" \\
+              grep -oP "^${ses_id}-ses\\s+ansible_host=\\K[0-9\\.]+" \\
                 $WORKSPACE/automation-git/scripts/jenkins/ses/ansible/inventory
             '''
           ).trim()
@@ -100,7 +100,7 @@ pipeline {
 **
 **        ssh root@${SES_IP}
 **
-** Please delete the 'openstack-ses-${ses_id}' stack when you're done,
+** Please delete the '${ses_id}-ses' stack when you're done,
 ** by loging into ${cloud_url_text}
 ** and deleting the heat stack.
 ******************************************************************************

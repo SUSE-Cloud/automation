@@ -1,0 +1,66 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Create RADOS GW key
+  shell: |
+    ceph-authtool -C /etc/ceph/ceph.{{ ses_rgw_key.name }}.keyring \
+      --name {{ ses_rgw_key.name }} --add-key {{ ses_rgw_key.key }} \
+      --cap mon "{{ ses_rgw_key.mon_cap|default('') }}" --cap osd \
+      "{{ ses_rgw_key.osd_cap|default('') }}" --cap mds \
+      "{{ ses_rgw_key.mds_cap|default('') }}" \ --cap mgr \
+      "{{ ses_rgw_key.mgr_cap|default('') }}"
+  args:
+    creates: "/etc/ceph/ceph.{{ ses_rgw_key.name }}.keyring"
+
+- name: Check if RADOS GW key already exist
+  command: "ceph auth get {{ ses_rgw_key.name }}"
+  changed_when: false
+  failed_when: false
+  register: rgw_key_exist
+
+- name: Add RADOS GW key to ceph
+  command: "ceph auth import -i /etc/ceph/ceph.{{ ses_rgw_key.name }}.keyring"
+  changed_when: false
+  when: rgw_key_exist.rc != 0
+
+- name: Get required info from Cloud
+  shell: awk -n -F '=' {{ item }} ~/keystone.osrc
+  delegate_to: "{{ cloud_env }}"
+  remote_user: "ardana"
+  register: osrc
+  with_items:
+    - "'/AUTH/ { print substr($2, 0, length($2)-3) }'"
+    - "'/PASSWORD/ { print $2 }'"
+
+- name: Add environment radosgw config to ceph conf
+  blockinfile:
+   path: /etc/ceph/ceph.conf
+   marker: "# {mark} ANSIBLE MANAGED BLOCK {{ cloud_env }}"
+   block: |
+     [client.rgw.ses-{{ cloud_env }}]
+     keyring = /etc/ceph/ceph.client.rgw.ses-{{ cloud_env }}.keyring
+     rgw frontends = "civetweb port={{ ses_rgw_port }}"
+     rgw keystone url = {{ osrc.results.0.stdout }}
+     rgw keystone admin user = admin
+     rgw keystone admin password = {{ osrc.results.1.stdout }}
+     rgw keystone admin project = admin
+     rgw keystone admin domain = Default
+     rgw keystone api version = 3
+     rgw keystone accepted roles = admin,Member,_member_,member
+     rgw keystone accepted admin roles = admin
+     rgw keystone verify ssl = false
+  notify: Restart radosgw

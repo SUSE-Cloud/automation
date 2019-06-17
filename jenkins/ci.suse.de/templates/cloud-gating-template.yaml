@@ -13,8 +13,8 @@
 
     parameters:
       - validating-string:
-          name: ardana_env
-          default: '{ardana_env|}'
+          name: cloud_env
+          default: '{cloud_env|}'
           regex: '[A-Za-z0-9-_]+'
           msg: >-
             Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
