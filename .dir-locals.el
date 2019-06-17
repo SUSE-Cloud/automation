@@ -2,4 +2,4 @@
 ;;; For more information see (info "(emacs) Directory Variables")
 
 ((sh-mode
-  (sh-basic-offset . 4)))
+  ((sh-basic-offset . 4))))
