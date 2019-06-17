@@ -50,9 +50,7 @@ export cephvolumenumber=1
 # export https_proxy=
 # export no_proxy=
 # export cct_tests=
-{% if scenario_file != '' %}
-export scenario={{ admin_scripts_path }}/scenarios/{{ scenario_file }}
-{% endif %}
+export scenario={{ admin_crowbar_batch_file }}
 
 # export host_mtu=
 # export architectures=

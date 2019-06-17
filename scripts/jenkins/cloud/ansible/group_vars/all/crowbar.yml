@@ -2,11 +2,10 @@
 admin_scripts_path: "/root/scripts"
 
 admin_mkcloud_config_file: "/root/mkcloud.config"
+admin_crowbar_batch_file: "/root/scenario.yml"
 qa_crowbarsetup_log: "/root/qa_crowbarsetup.log"
 
 cloud_fqdn: "{{ cloud_env }}.prv.suse.net"
-
-scenario_file: ""
 
 mkcloud_config_file: "{{ workspace_path }}/mkcloud.config"
 crowbar_batch_file: "{{ workspace_path }}/scenario.yml"

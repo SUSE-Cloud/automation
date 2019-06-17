@@ -4,7 +4,6 @@
     cloudsource: stagingcloud7
     cloud_env: cloud-crowbar-ci-slot
     scenario_name: crowbar
-    scenario_file: cloud7/cloud7-2nodes-default.yml
     controllers: '1'
     computes: '1'
     ses_enabled: false
@@ -19,7 +18,6 @@
     cloudsource: stagingcloud7
     cloud_env: cloud-crowbar-ci-slot
     scenario_name: crowbar
-    scenario_file: cloud7/cloud7-5nodes-default.yml
     controllers: '3'
     computes: '2'
     ses_enabled: false

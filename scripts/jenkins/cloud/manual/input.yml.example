@@ -97,25 +97,6 @@ homeproject: ''
 #   - crowbar (for crowbar deployment)
 scenario_name: 'entry-scale-kvm'
 
-# Crowbar batch scenario yaml file path (relative to scripts/scenarios)
-# Available scenarios that are known to work:
-#    - cloud7/cloud7-2nodes-default.yml
-#    - cloud7/cloud7-5nodes-default.yml
-#    - cloud8/cloud8-2nodes-default.yml
-#    - cloud8/cloud8-5nodes-default.yml
-#    - cloud9/cloud9-2nodes-default.yml
-#    - cloud9/cloud9-5nodes-default.yml
-#    - cloud9/cloud9-2nodes-ses.yml
-#    - cloud9/cloud9-5nodes-ses.yml
-#
-# Warning: the chosen scenario file must be correctly aligned with the configured
-# 'cloudsource' value, as well as the number of configured 'controller' and 'compute'
-# nodes and also whether 'ses_enabled' is used to enable the SES storage back-end.
-#
-# NOTE: this parameter will only be required until the toolchain has the ability to
-# generate crowbar batch scenarios
-scenario_file: ''
-
 # The name of the one of the available 'ardana-ci' input models to use from
 # the ardana-input-model git repository.
 #

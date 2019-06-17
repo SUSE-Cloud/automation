@@ -68,25 +68,6 @@ will provide more information on the provided options. Here are some best practi
 * SES is the recommended storage back-end for Glance, Cinder and Nova. Selecting `ses_enabled` will also deploy a one-node
   virtual SES cluster to be used as a storage back-end by your cloud environment (or will use the shared bare-metal SES
   cluster, for QA bare-metal deployments). Note that the SES back-end isn't available for Crowbar versions 7 and 8 yet.
-* For Crowbar, you also need to select an existing Crowbar batch `scenario_file` that corresponds to the selected
-  cloud release and number of nodes (`controllers` and `computes`)in each service group. The following values are currently
-  known to work:
-  * `cloud9/cloud9-2nodes-default.yml` - 2 nodes deployment (1 controller, 1 compute) for cloud9, without SES back-end
-  (use only with `ses_enabled` disabled, `controllers` set to 1 and `computes` set to 1)
-  * `cloud9/cloud9-2nodes-ses.yml` - 2 nodes deployment (1 controller, 1 compute) for cloud9, with SES back-end
-  (use only with `ses_enabled` enabled, `controllers` set to 1 and `computes` set to 1)
-  * `cloud9/cloud9-5nodes-default.yml` - 5 nodes deployment (3 controllers, 2 computes) for cloud9, without SES back-end
-  (use only with `ses_enabled` disabled, `controllers` set to 3 and `computes` set to 2)
-  * `cloud9/cloud9-5nodes-ses.yml` - 5 nodes deployment (3 controllers, 2 computes) for cloud9, with SES back-end
-  (use only with `ses_enabled` enabled, `controllers` set to 3 and `computes` set to 2)
-  * `cloud8/cloud8-2nodes-default.yml` - 2 nodes deployment (1 controller, 1 compute) for cloud8, without SES back-end
-  (use only with `ses_enabled` disabled, `controllers` set to 1 and `computes` set to 1)
-  * `cloud8/cloud8-5nodes-default.yml` - 5 nodes deployment (3 controllers, 2 computes) for cloud8, without SES back-end
-  (use only with `ses_enabled` disabled, `controllers` set to 3 and `computes` set to 2)
-  * `cloud7/cloud7-2nodes-default.yml` - 2 nodes deployment (1 controller, 1 compute) for cloud7, without SES back-end
-  (use only with `ses_enabled` disabled, `controllers` set to 1 and `computes` set to 1)
-  * `cloud7/cloud7-5nodes-default.yml` - 5 nodes deployment (3 controllers, 2 computes) for cloud7, without SES back-end
-  (use only with `ses_enabled` disabled, `controllers` set to 3 and `computes` set to 2)
 
 * To test a custom automation repository, push to your fork and adjust the
   ```git_automation_repo``` and ```git_automation_branch``` parameter values
