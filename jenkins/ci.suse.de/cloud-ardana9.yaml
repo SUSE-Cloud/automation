@@ -128,7 +128,7 @@
     ses_rgw_enabled: false
     tempest_filter_list: "\
       keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-      designate,heat,magnum,monasca"
+      designate,heat,manila,magnum,monasca"
     triggers: []
     jobs:
         - '{ardana_job}'
@@ -150,7 +150,7 @@
     ses_rgw_enabled: false
     tempest_filter_list: "\
       keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-      designate,heat,magnum,monasca"
+      designate,heat,manila,magnum,monasca"
     triggers: []
     jobs:
         - '{ardana_job}'

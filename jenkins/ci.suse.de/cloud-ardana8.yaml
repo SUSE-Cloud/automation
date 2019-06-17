@@ -134,7 +134,7 @@
     ses_rgw_enabled: false
     tempest_filter_list: "\
       keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
-      designate,heat,ceilometer,magnum,freezer,monasca"
+      designate,heat,manila,ceilometer,magnum,freezer,monasca"
     triggers: []
     jobs:
         - '{ardana_job}'
@@ -155,7 +155,7 @@
     ses_rgw_enabled: false
     tempest_filter_list: "\
       keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
-      designate,heat,ceilometer,magnum,freezer,monasca"
+      designate,heat,manila,ceilometer,magnum,freezer,monasca"
     triggers: []
     jobs:
         - '{ardana_job}'
