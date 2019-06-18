@@ -79,14 +79,12 @@
   ignore_errors: True
 
 - name: Create DNS update script
-  template:
-    src: dns-update.py.j2
+  copy:
+    src: dns-update.py
     dest: "{{ input_model_path }}/dns-update.py"
     mode: 0755
-    owner: root
-    group: root
 
 - name: Update DNS and NTP servers in input model
-  command: ./dns-update.py
+  command: "./dns-update.py --dns-servers {{ dns_servers | join(' ') }} --ntp-servers {{ ntp_servers | join(' ') }}"
   args:
     chdir: '{{ input_model_path }}'
