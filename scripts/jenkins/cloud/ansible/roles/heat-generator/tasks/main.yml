@@ -78,13 +78,8 @@
   when: item.state == 'file'
   ignore_errors: True
 
-- name: Create DNS update script
-  copy:
-    src: dns-update.py
-    dest: "{{ input_model_path }}/dns-update.py"
-    mode: 0755
-
 - name: Update DNS and NTP servers in input model
-  command: "./dns-update.py --dns-servers {{ dns_servers | join(' ') }} --ntp-servers {{ ntp_servers | join(' ') }}"
-  args:
-    chdir: '{{ input_model_path }}'
+  dns_update:
+    dns_servers: "{{ dns_servers }}"
+    ntp_servers: "{{ ntp_servers }}"
+    cloud_config: "{{ input_model_path }}/cloudConfig.yml"
