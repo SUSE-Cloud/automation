@@ -827,6 +827,21 @@ function proposal
     return $?
 }
 
+function install_vbmc
+{
+    # vbmc already available?
+    vbmc --version 2> /dev/null && return
+
+    # TODO: virtualbmc package is available in cloud9, switch to that,
+    #       when cloud hosts are upgraded
+    # virtualenv is also not (yet) available in standard repos
+    virtualenv --version 2> /dev/null || \
+        rpm -i http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/standard/noarch/python-virtualenv-15.1.0-3.3.noarch.rpm
+    virtualenv $cloud-vbmc
+    . $cloud-vbmc/bin/activate
+    pip install virtualbmc
+}
+
 function start_vbmc
 {
     local ironic_node=$1
@@ -851,12 +866,7 @@ function setup_ironic_test_env
 
     local deploy_interface=direct
 
-    # install virtualbmc
-    # TODO: virtualbmc package is available in cloud9, switch to that,
-    #       when cloud hosts are upgraded
-    virtualenv $cloud-vbmc
-    . $cloud-vbmc/bin/activate
-    pip install virtualbmc
+    install_vbmc
 
     local i
     for i in $(nodes ids ironic) ; do
@@ -888,12 +898,7 @@ function setup_ironic_test_env
 
 function teardown_ironic_test_env
 {
-    # install virtualbmc
-    # TODO: virtualbmc package is available in cloud9, switch to that,
-    #       when cloud hosts are upgraded
-    virtualenv $cloud-vbmc
-    . $cloud-vbmc/bin/activate
-    pip install virtualbmc
+    install_vbmc
 
     local i
     for i in $(nodes ids ironic) ; do
