@@ -59,10 +59,12 @@ It is also possible to use the role to add extra zypper repositories from the
 URL by overriding the `extra_repos` variable, for example:
 
 ```sh
-extra_repos: "http://download.suse.de/ibs/.../extra-repo1.repo,http://download.suse.de/ibs/.../extra-repo2.repo"
+extra_repos: "http://download.suse.de/ibs/.../,http://download.suse.de/ibs/.../"
 ```
 
-Notice that for `extra_repos` you need the URL containing the `.repo` file.
+The packages from those repositories will be available to all cloud nodes
+through a new repository with a higher priority, meaning that those packages will be
+installed even if there is a newer package available on other repositories.
 
 ### Source Repositories
 
