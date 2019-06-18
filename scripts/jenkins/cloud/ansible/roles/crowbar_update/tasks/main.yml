@@ -15,18 +15,9 @@
 #
 ---
 
-- name: Check if crowbar product line
-  fail:
-    msg: "the role is intended for crowbar only"
-  when: cloud_product != 'crowbar'
-
 - include_tasks: add_mu_repos_crowbar.yml
   when:
     - maint_updates_list | length
+    - inventory_hostname not in groups['deployer_virt']
 
-# TODO: maybe worth to do that in future - upgrading cloud"
-#- include_tasks: pre_cloudsource_update.yml
-#  when:
-#    - cloudsource is defined
-#    - cloudsource != ''
-
+- include_tasks: update_cloud.yml

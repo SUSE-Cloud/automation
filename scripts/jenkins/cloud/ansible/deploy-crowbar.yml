@@ -45,6 +45,7 @@
             qa_crowbarsetup_cmd: onadmin_rebootcloud
           when:
             - reboot_after_deploy
+            - not update_after_deploy
 
       rescue:
         - include_role:

@@ -102,6 +102,24 @@
             Enable SLES/Cloud test update repos (the Cloud test update repos will
             be enabled only when cloudsource is GM based)
 
+      - bool:
+          name: update_after_deploy
+          default: '{update_after_deploy|false}'
+          description: >-
+            If true the Maintenance update repos will be added and updates applied after
+            cloud is deployed.
+
+            NOTE: Maintenance updates = 'maint_updates' option
+
+      - bool:
+          name: reboot_after_deploy
+          default: '{reboot_after_deploy|false}'
+          description: >-
+            If true then cloud will be rebooted after deployment. For example after
+            maintenance updates were installed.
+
+            NOTE: Currently works when 'update_after_deploy' is ticked.
+
       - validating-string:
           name: maint_updates
           default: ''

@@ -56,6 +56,7 @@ local_repos_web_dir_prefix: "{{ (cloud_product == 'crowbar') | ternary('tftpboot
 local_repos_base_dir: "/srv/{{ local_repos_web_dir_prefix }}/{{ suse_release }}/{{ ansible_architecture }}/repos"
 
 sles_cloud_version:
+  "12.2": 7
   "12.3": 8
   "12.4": 9
 
