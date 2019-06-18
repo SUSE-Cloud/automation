@@ -81,8 +81,8 @@ proposals:
       swift-ring-compute:
       - @@controller1@@
       swift-storage:
-      - @@controller1@@
-      - @@controller2@@
+      - @@compute-kvm1@@
+      - @@compute-kvm2@@
 - barclamp: glance
   attributes:
     default_store: rbd
