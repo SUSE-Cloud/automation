@@ -24,6 +24,11 @@ os_project_name: 'cloud'
 # exists, it will be replaced.
 cloud_env: ''
 
+# If true, use a local ssh key for access to the deployer. This
+# setting is only useful if the cloud deployment is deployed manually
+# from an ephemeral machine, e.g. a docker container.
+local_ssh_key: false
+
 # If set to false, the cloud deployment steps will be skipped. This option can be used
 # if you only need to set up the infrastructure and configure the cloud media and
 # repositories, but skip the actual cloud deployment, e.g. for testing purposes.
