@@ -65,11 +65,13 @@ clm_service_components:
   - ironic-client
   - keystone-client
   - magnum-client
+  - manila-client
   - neutron-client
   - nova-client
   - swift-client
   - monasca-client
   - barbican-client
+  - octavia-client
   - ntp-client
 
 virt_config:

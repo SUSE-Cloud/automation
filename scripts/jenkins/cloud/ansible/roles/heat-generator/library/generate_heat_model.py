@@ -902,7 +902,7 @@ def generate_heat_model(input_model, virt_config):
                 ctrl_service_components = filter(
                     lambda sc: sc not in virt_config['clm_service_components'],
                     service_group['service-components'])
-                if ctrl_service_components:
+                if list(ctrl_service_components):
                     heat_server['is_controller'] = True
                     if not heat_server['flavor']:
                         heat_server['flavor'] = \
