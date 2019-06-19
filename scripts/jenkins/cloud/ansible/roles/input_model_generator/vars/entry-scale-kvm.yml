@@ -31,6 +31,6 @@ scenario:
   availability_zones: "{{ availability_zones }}"
 
   service_template: standard
-  network_template: compact
-  interface_template: compact
+  network_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"
+  interface_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"
   disk_template: compact

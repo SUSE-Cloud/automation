@@ -17,7 +17,7 @@
 
 # Scenario parameters and default values
 controllers: 3
-lmm_nodes: 3
+lmm_nodes: "{{ (cloud_product == 'ardana') | ternary(3, 1) }}"
 computes: 3
 rhel_computes: 0
 swobj_devices: 3
@@ -35,6 +35,6 @@ scenario:
   availability_zones: "{{ availability_zones }}"
 
   service_template: std-lmm
-  network_template: standard
+  network_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"
   disk_template: compact
-  interface_template: standard
+  interface_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"

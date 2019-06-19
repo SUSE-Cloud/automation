@@ -15,6 +15,9 @@
 #
 ---
 
+- name: Load variables for {{ cloud_product }}
+  include_vars: "product/{{ cloud_product }}.yml"
+
 - name: Gather variables for scenario '{{ scenario_name }}'
   include_vars: "{{ scenario_name }}.yml"
 

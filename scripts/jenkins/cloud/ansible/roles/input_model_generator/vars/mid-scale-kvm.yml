@@ -17,7 +17,7 @@
 
 # Scenario parameters and default values
 core_nodes: 2
-lmm_nodes: 3
+lmm_nodes: "{{ (cloud_product == 'ardana') | ternary(3, 1) }}"
 dbmq_nodes: 3
 swift_nodes: 3
 neutron_nodes: 2
@@ -39,6 +39,6 @@ scenario:
   rack_networks_enabled: "{{ is_physical_deploy }}"
 
   service_template: full-spread
-  network_template: full-spread
+  network_template: "{{ (cloud_product == 'ardana') | ternary('full-spread', 'crowbar') }}"
   disk_template: full-spread
-  interface_template: full-spread
+  interface_template: "{{ (cloud_product == 'ardana') | ternary('full-spread', 'crowbar') }}"

@@ -1,6 +1,8 @@
+{% if 'monasca-server' in deployment %}
   - barclamp: monasca
-{% include 'barclamps/lib/deployment.yml.j2' %}
-{% if not when_cloud9 %}
+{%   include 'barclamps/lib/deployment.yml.j2' %}
+{%   if not when_cloud9 %}
         monasca-master:
           - @@crowbar@@
+{%   endif %}
 {% endif %}

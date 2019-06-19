@@ -40,7 +40,7 @@ service_groups:
     service_components:
       - '{{ (clm_model == "integrated") | ternary("CLM", '') }}'
       - CORE
-      - LMM
+      - '{{ (cloud_product == "ardana") | ternary("LMM", '') }}'
       - DBMQ
       - SWPAC
       - NEUTRON

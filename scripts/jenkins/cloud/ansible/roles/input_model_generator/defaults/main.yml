@@ -40,12 +40,6 @@ enabled_services: ""
 # in deployed clouds
 enable_extra_volume_groups: "{{ want_lvm }}"
 
-# Disable cinder LVM device group in Crowbar
-cinder_disk_enabled: "{{ cinder_lvm_enabled and cloud_product == 'ardana' }}"
-
-# Disable swiftpac device group in Crowbar
-swiftpac_disk_enabled: "{{ cloud_product == 'ardana' }}"
-
 swiftobj_disk_enabled: True
 
 enable_external_network_bridge: "{{ versioned_features.external_network_bridge.enabled }}"
@@ -65,14 +59,6 @@ subnet_prefix:
 neutron_subnet_prefix:
   ipv4: 172
   ipv6: fd00:1:0
-
-# Start value for the third octet for the generated subnet prefixes and also
-# start of generated VLAN IDs for Ardana networks
-gen_subnet_start: 100
-# Start value for the fourth octet for the generated server IP addresses
-gen_ip_start: 100
-# Gap to be left between the generated IP for the admin node and the rest of the nodes
-gen_ip_gap: 1
 
 service_component_groups:
   COMMON:

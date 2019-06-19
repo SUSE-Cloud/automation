@@ -62,9 +62,8 @@ will provide more information on the provided options. Here are some best practi
   and/or HA clusters, number of nodes in each cluster, etc) by choosing one of the available ```scenario_name``` values
   and changing the values of related parameters (e.g. `clm_model`, `controllers`, `computes` etc.) to
   control the number of nodes for each service group. `standard` and `entry-scale-kvm` are the scenarios most widely used
-  for Ardana. Currently, `crowbar` is the only scenario available for Crowbar. Note that only a subset of the available
-  scenarios work with bare-metal environments (`entry-scale-kvm` and `mid-scale-kvm` currently), and the number of nodes
-  is limited to the nodes available in the target bare-metal cluster.
+  for Ardana. Note that only a subset of the available scenarios work with bare-metal environments (`entry-scale-kvm` and
+  `mid-scale-kvm` currently), and the number of nodes is limited to the nodes available in the target bare-metal cluster.
 * SES is the recommended storage back-end for Glance, Cinder and Nova. Selecting `ses_enabled` will also deploy a one-node
   virtual SES cluster to be used as a storage back-end by your cloud environment (or will use the shared bare-metal SES
   cluster, for QA bare-metal deployments). Note that the SES back-end isn't available for Crowbar versions 7 and 8 yet.

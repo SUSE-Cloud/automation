@@ -7,7 +7,7 @@ service_groups:
     member_count: '{{ (clm_model == "standalone") | ternary(1, 0) }}'
     service_components:
       - CLM
-  - name: mml-core
+  - name: core
     type: cluster
     prefix: c1
     heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-controller"

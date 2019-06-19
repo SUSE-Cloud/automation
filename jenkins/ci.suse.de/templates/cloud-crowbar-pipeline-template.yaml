@@ -112,13 +112,17 @@
       - choice:
           name: scenario_name
           choices:
-            - '{scenario_name|crowbar}'
-            - crowbar
+            - '{scenario_name|standard}'
+            - standard
+            - entry-scale-kvm
+            - mid-scale-kvm
+            - std-lmm
+            - std-split
           description: >-
             The name of one of the available scenarios that can be used to generate input models.
             If this parameter is set, the following parameters may also be set to different values, to control
-            various aspects of the generated input model: controllers, computes.
-
+            various aspects of the generated input model: controllers, computes, core_nodes, dbmq_nodes,
+            neutron_nodes and disabled_services.
 
             NOTE: use this parameter only if you want to use a generated input model. To use an existing input model instead,
             leave this field empty and use the 'model' parameter instead.
@@ -168,6 +172,54 @@
             The number of SLES compute nodes in the generated input model.
 
             Input model generator scenarios using this parameter: all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: core_nodes
+          default: '{core_nodes|2}'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of OpenStack core services nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: dbmq_nodes
+          default: '{dbmq_nodes|3}'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of database & rabbitmq service nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: neutron_nodes
+          default: '3'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of neutron network nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: mid-scale-kvm.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - string:
+          name: disabled_services
+          default: '{disabled_services|}'
+          description: |
+            Regex matching service components and component groups to exclude from the generated input model.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.

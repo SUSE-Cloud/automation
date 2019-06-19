@@ -49,6 +49,7 @@ service_groups:
     service_components:
       - '{{ (clm_model == "integrated") | ternary("CLM", '') }}'
       - CORE
+      - '{{ (cloud_product == "crowbar") | ternary("SWPAC", '') }}'
   - name: lmm
     type: cluster
     prefix: lmm
@@ -69,7 +70,7 @@ service_groups:
     heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-minimal"
     member_count: '{{ swift_nodes|default(3) }}'
     service_components:
-      - SWPAC
+      - '{{ (cloud_product == "ardana") | ternary("SWPAC", '') }}'
       - SWOBJ
   - name: neutron
     type: cluster

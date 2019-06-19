@@ -1,6 +1,6 @@
 ---
 core_nodes: 2
-lmm_nodes: 3
+lmm_nodes: "{{ (cloud_product == 'ardana') | ternary(3, 1) }}"
 dbmq_nodes: 3
 computes: 1
 rhel_computes: 0
@@ -20,6 +20,6 @@ scenario:
 
 
   service_template: mml-core
-  network_template: compact
-  interface_template: mml-core
+  network_template: "{{ (cloud_product == 'ardana') | ternary('compact', 'crowbar') }}"
+  interface_template: "{{ (cloud_product == 'ardana') | ternary('mml-core', 'crowbar') }}"
 

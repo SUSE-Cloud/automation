@@ -3,7 +3,7 @@
     crowbar_job: '{name}'
     cloudsource: stagingcloud9
     cloud_env: cloud-crowbar-ci-slot
-    scenario_name: crowbar
+    scenario_name: standard
     controllers: '1'
     computes: '1'
     ses_enabled: true
@@ -17,7 +17,7 @@
     crowbar_job: '{name}'
     cloudsource: stagingcloud9
     cloud_env: cloud-crowbar-ci-slot
-    scenario_name: crowbar
+    scenario_name: standard
     controllers: '1'
     computes: '1'
     ses_enabled: false
@@ -32,7 +32,7 @@
     crowbar_job: '{name}'
     cloudsource: stagingcloud9
     cloud_env: cloud-crowbar-ci-slot
-    scenario_name: crowbar
+    scenario_name: standard
     controllers: '3'
     computes: '2'
     ses_enabled: true

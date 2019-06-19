@@ -89,13 +89,12 @@ homeproject: ''
 # NOTE: use this parameter only if you want to use a generated input model. To use an existing
 # input model instead, leave this field empty and use the 'model' parameter instead.
 # Possible values:
-#   - entry-scale-kvm
-#   - mid-scale-kvm
-#   - standard
+#   - standard (recommended for most use-cases)
 #   - std-lmm
 #   - std-split
-#   - crowbar (for crowbar deployment)
-scenario_name: 'entry-scale-kvm'
+#   - entry-scale-kvm
+#   - mid-scale-kvm
+scenario_name: 'standard'
 
 # The name of the one of the available 'ardana-ci' input models to use from
 # the ardana-input-model git repository.
@@ -117,10 +116,10 @@ model: ''
 # Input model generator scenarios using this parameter : all
 # NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter
 # about using one of the available input model generator scenarios.
-clm_model: 'integrated'
+clm_model: 'standalone'
 
 # The number of controller nodes in the generated input model (0-3).
-# Input model generator scenarios using this parameter: crowbar, standard, entry-scale-kvm.
+# Input model generator scenarios using this parameter: standard, entry-scale-kvm.
 controllers: '3'
 
 # The number of SLES compute nodes in the generated input model.
