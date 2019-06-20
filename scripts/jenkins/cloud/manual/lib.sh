@@ -194,8 +194,9 @@ function deploy_ses_vcloud {
         ses_id=$(get_from_input cloud_env)
         os_cloud=$(get_from_input os_cloud)
         os_project_name=$(get_from_input os_project_name)
+        [[ -n $os_project_name ]] && os_project_option="os_project_name=$os_project_name"
         network="${ses_id}-cloud_management_net"
-        ansible_playbook_ses ses-heat-stack.yml -e "ses_id=$ses_id network=$network os_cloud=$os_cloud os_project_name=$os_project_name"
+        ansible_playbook_ses ses-heat-stack.yml -e "ses_id=$ses_id network=$network os_cloud=$os_cloud $os_project_option"
         ansible_playbook_ses bootstrap-ses-node.yml -e ses_id=$ses_id
         for i in {1..3}; do
             ansible_playbook_ses ses-deploy.yml -e ses_id=$ses_id && break || sleep 5
