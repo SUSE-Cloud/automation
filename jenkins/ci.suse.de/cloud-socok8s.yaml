@@ -6,4 +6,27 @@
     repo-credentials: c2350527-476a-45df-b406-84f028614682
     jobs:
       - '{name}-integration'
-      - '{name}-nightly-airship-from-rpm'
+
+- project:
+    name: cloud-socok8s-master-nightly
+    triggers:
+      - timed: '@daily'
+    socok8s_source: master
+    jobs:
+      - '{name}-airship-from-rpm'
+
+- project:
+    name: cloud-socok8s-stable-nightly
+    triggers:
+      - timed: '@daily'
+    socok8s_source: stable_1
+    jobs:
+      - '{name}-airship-from-rpm'
+
+- project:
+    name: cloud-socok8s-stable-staging-nightly
+    triggers:
+      - timed: '@daily'
+    socok8s_source: stable_1_staging
+    jobs:
+      - '{name}-airship-from-rpm'

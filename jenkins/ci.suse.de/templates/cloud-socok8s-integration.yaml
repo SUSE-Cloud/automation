@@ -20,7 +20,7 @@
           filter-head-regex: ^(master|stable\-\d\.\d|PR\-\d+)$
 
 - job-template:
-    name: '{name}-nightly-airship-from-rpm'
+    name: '{name}-airship-from-rpm'
     project-type: pipeline
     concurrent: false
 
@@ -28,8 +28,7 @@
       numToKeep: -1
       daysToKeep: 14
 
-    triggers:
-      - timed: '@daily'
+    triggers: '{triggers}'
 
     parameters:
       - string:
@@ -43,6 +42,15 @@
           default: '{git_automation_branch|master}'
           description: >-
             The git automation branch
+
+      - choice:
+          name: socok8s_source
+          choices:
+            - master
+            - stable_1
+            - stable_1_staging
+          description: >-
+            The OBS repository to be used for testing.
 
     pipeline-scm:
       scm:

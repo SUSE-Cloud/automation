@@ -47,6 +47,16 @@ pipeline {
                     sh 'echo ANSIBLE_STDOUT_CALLBACK="yaml" >> jenkins.env'
                     sh 'echo USER="root" >> jenkins.env'
 
+                    if (socok8s_source == 'stable_1') {
+                        su 'echo SOCOK8S_OBS_REPO_URL="https://download.opensuse.org/repositories/Cloud:/socok8s/openSUSE_Leap_15.0/" >> jenkins.env'
+                    }
+                    else if (socok8s_source == 'stable_1_staging') {
+                        su 'echo SOCOK8S_OBS_REPO_URL="https://download.opensuse.org/repositories/Cloud:/socok8s:/staging/openSUSE_Leap_15.0/" >> jenkins.env'
+                    }
+                    else {
+                        su 'echo SOCOK8S_OBS_REPO_URL="https://download.opensuse.org/repositories/Cloud:/socok8s:/master/openSUSE_Leap_15.0/" >> jenkins.env'
+                    }
+
                     // Start container
                     env.CONTAINER_ID = sh(
                         returnStdout: true,
@@ -69,7 +79,7 @@ pipeline {
                     // CA is required for accessing engcloud
                     in_container('zypper addrepo http://download.suse.de/ibs/SUSE:/CA/openSUSE_Leap_15.0/ "SUSE CA"')
                     // Add socok8s repo
-                    in_container('zypper addrepo https://download.opensuse.org/repositories/Cloud:/socok8s/openSUSE_Leap_15.0/ "SUSE OpenStack Cloud on Kubernetes Preview"')
+                    in_container('zypper addrepo ${SOCOK8S_OBS_REPO_URL} "SUSE OpenStack Cloud on Kubernetes Preview"')
                     in_container('zypper --no-gpg-checks refresh')
                     in_container('zypper --no-gpg-checks install -yl ca-certificates-suse socok8s')
                 }
