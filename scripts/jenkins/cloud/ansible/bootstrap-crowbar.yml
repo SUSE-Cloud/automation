@@ -34,14 +34,6 @@
         - name: Remove unused ifcfg files
           shell: rm --force --verbose /etc/sysconfig/network/ifcfg-eth[1-9]*
 
-        # FIXME: remove when https://github.com/crowbar/crowbar/pull/2371 is
-        # available in all crowbar versions
-        - name: Remove comments from authorized_keys file
-          lineinfile:
-            dest: "{{ ansible_env.HOME }}/.ssh/authorized_keys"
-            regexp: "^ *#"
-            state: absent
-
         # add MU repos
         - include_role:
             name: setup_zypper_repos
