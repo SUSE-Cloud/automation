@@ -837,6 +837,10 @@ function install_vbmc
     # virtualenv is also not (yet) available in standard repos
     virtualenv --version 2> /dev/null || \
         rpm -i http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/standard/noarch/python-virtualenv-15.1.0-3.3.noarch.rpm
+    # subprocess32 requires gcc to build the package in venv
+    # install pre-build package globally
+    rpm -q python-subprocess32 > /dev/null || \
+        rpm -i http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/standard/x86_64/python-subprocess32-3.5.1-1.14.x86_64.rpm
     # include global packages to avoid compiling libvirt bindings
     virtualenv --system-site-packages $cloud-vbmc
     . $cloud-vbmc/bin/activate
