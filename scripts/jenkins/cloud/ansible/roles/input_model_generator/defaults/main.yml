@@ -18,8 +18,6 @@
 qe_ardana_bm_info_git_url: "https://gitlab.suse.de/cloud-qe/ardana-bm-info.git"
 qe_ardana_bm_info_dir: "{{ workspace_path }}/ardana-bm-info"
 
-template_file_name: "{{ scenario[item ~ '_template'] }}.yml"
-
 clm_model: standalone
 availability_zones: 3
 

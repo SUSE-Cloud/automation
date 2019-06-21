@@ -73,7 +73,7 @@ reboot_after_deploy: False
 
 update_after_deploy: False
 maintenance_updates_path:
-  Cloud: "SUSE_Updates_{{ cloud_repo_path }}_{{ sles_cloud_version[ansible_distribution_version] }}_x86_64"
+  Cloud: "SUSE_Updates_{{ cloud_repo_path|default('OpenStack-Cloud') }}_{{ sles_cloud_version[ansible_distribution_version]|default('9') }}_x86_64"
   SLES: "SUSE_Updates_SLE-SERVER_{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}_x86_64"
 
 maint_updates_list: "{{ maint_updates.split(',') if maint_updates is defined and maint_updates | length else [] }}"

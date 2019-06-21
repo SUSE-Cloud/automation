@@ -19,7 +19,7 @@
   include_vars: "{{ scenario_name }}.yml"
 
 - set_fact:
-    scenario: "{{ scenario|combine(lookup('template', 'vars/templates/{{ item }}/{{ template_file_name }}') | from_yaml) }}"
+    scenario: "{{ scenario|combine(lookup('template', 'vars/templates/{{ item }}/' ~ scenario[item ~ '_template'] ~ '.yml') | from_yaml) }}"
   loop:
     - "service"
     - "network"
