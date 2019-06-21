@@ -14,9 +14,14 @@ import shutil
 import sys
 import tempfile
 import time
-import urllib
 
 import sh
+
+
+if sys.version_info[0] < 3:
+    from urllib import quote_plus
+else:
+    from urllib.parse import quote_plus
 
 try:
     from xml.etree import cElementTree as ET
@@ -192,16 +197,20 @@ class OBSProject(GerritApiCaller):
             'obs_project_description': self.obs_project_description
         }
 
-        with tempfile.NamedTemporaryFile() as meta:
+        with tempfile.NamedTemporaryFile(mode='w+') as meta:
             meta.write(repo_metadata)
             meta.flush()
             print("Creating test project %s linked to project %s" %
                   (self.obs_test_project_name, self.obs_linked_project))
             sh.osc('-A', 'https://api.suse.de', 'api', '-T', meta.name,
                    '/source/%s/_meta' % self.obs_test_project_name)
-            sh.osc('-A', 'https://api.suse.de', 'deleterequest',
-                   self.obs_test_project_name, '--accept-in-hours', 720,
-                   '-m', 'Auto delete after 30 days.')
+
+        # The '--all' parameter is required starting with v0.164.0
+        osc_version = int(sh.osc('--version').strip().split('.')[1])
+        sh.osc('-A', 'https://api.suse.de', 'deleterequest',
+               self.obs_test_project_name, '--accept-in-hours', 720,
+               '-m', 'Auto delete after 30 days.',
+               '--all' if osc_version > 163 else '')
 
     @find_in_osc_file('obs_scm filename')
     def _get_obsinfo_basename(self, service_def):
@@ -221,8 +230,8 @@ class OBSProject(GerritApiCaller):
 
     def get_target_branch_head(self, package):
         gerrit_query = "/projects/{}/branches/{}".format(
-            urllib.quote_plus('ardana/{}'.format(package.gerrit_project)),
-            urllib.quote_plus(package.target_branch))
+            quote_plus('ardana/{}'.format(package.gerrit_project)),
+            quote_plus(package.target_branch))
         head_commit = self._query_gerrit(gerrit_query)['revision']
         return head_commit
 
