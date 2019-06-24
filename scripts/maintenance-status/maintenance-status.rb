@@ -47,30 +47,38 @@ class ObsHandler
   end
 
   def request_status(id, status, message = "")
+    review_id = maintenance_review(id)
     unless message == ""
       message = " (#{message})"
     end
     if status == :running
       obs_api_call(
-        "/comments/request/#{id}",
+        "/comments/request/#{review_id}",
         "POST",
         "SUSE OpenStack Cloud Jenkins run triggered!#{message}"
       )
     elsif status == :failure
       obs_api_call(
-        "/comments/request/#{id}",
+        "/comments/request/#{review_id}",
         "POST",
         "SUSE OpenStack Cloud Jenkins run failed!#{message}"
       )
     elsif status == :success
       obs_api_call(
-        "/comments/request/#{id}",
+        "/comments/request/#{review_id}",
         "POST",
         "SUSE OpenStack Cloud Jenkins run succeeded!#{message}"
       )
     else
       puts "No valid status gived!"
     end
+  end
+
+  def maintenance_review(maintenance_id)
+    reviews = obs_api_call(
+      "/search/request?match=(state/@name='review')+and+(action/target/@project='SUSE:Maintenance:#{maintenance_id}'+or+submit/target/@project='SUSE:Maintenance:#{maintenance_id}'+or+action/source/@project='SUSE:Maintenance:#{maintenance_id}'+or+submit/source/@project='SUSE:Maintenance:#{maintenance_id}')"
+    )
+    reviews["request"]["id"]
   end
 
   def open_requests()
@@ -140,7 +148,7 @@ optparse = OptionParser.new do |opts|
     options[:group] = group
   end
 
-  opts.on("-r", "--review NUMBER", "Maintenance Review Number") do |review|
+  opts.on("-p", "--project NUMBER", "Maintenance Project ID") do |review|
     options[:review] = review
   end
 
