@@ -1,24 +1,11 @@
 #!/usr/bin/env bash
 
-export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
-# We need a workaround for the cleanvm job.
-# The job will run on a host with SLE11 installed.
-# There are no packages for ruby available to run jtsync.
-export jtsync_fix="ssh root@tu-sle12"
-
 # Workaround to get only the name of the job:
 # https://issues.jenkins-ci.org/browse/JENKINS-39189
 # When the JOB_BASE_NAME contains only in ex. "openstack-cleanvm", this
 # workaround can be removed.
 echo "$JOB_BASE_NAME"
 main_job_name=cleanvm
-
-function exec_jtsync {
-    # only enable jtsync when build is not manually triggered
-    if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-        $jtsync_fix "$jtsync --ci opensuse --matrix $1,$2,$3 $4" || :
-    fi
-}
 
 sudo /usr/local/sbin/freshvm cleanvm $image
 sleep 100
@@ -41,10 +28,8 @@ if [ "$ret" != 0 ] ; then
     # backup /dev/vg0/cleanvm disk image
     file=/mnt/cleanvmbackup/${BUILD_NUMBER}-${openstack_project}-${image}.raw.gz
     gzip -c1 /dev/vg0/cleanvm > $file
-    exec_jtsync ${main_job_name} ${openstack_project} ${BUILD_NUMBER} 1
     echo "End of cleanup. Now the job will fail."
     exit 1
 fi
 
-exec_jtsync ${main_job_name} ${openstack_project} ${BUILD_NUMBER} $ret
 exit $ret

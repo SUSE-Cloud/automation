@@ -28,23 +28,12 @@ PROJECTSOURCE=IBS/${project}
 # zypper in osc obs-service-tar_scm obs-service-github_tarballs obs-service-recompress obs-service-git_tarballs obs-service-set_version obs-service-refresh_patches
 [ -z "$PROJECTSOURCE" ] && ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
 
-export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
-
 # Workaround to get only the name of the job:
 # https://issues.jenkins-ci.org/browse/JENKINS-39189
 # When the JOB_BASE_NAME contains only in ex. "cloud-mediacheck", this
 # workaround can be removed.
 echo "$JOB_BASE_NAME"
 main_job_name=${JOB_NAME%%/*}
-
-function jtsync_trap() {
-    $jtsync --ci suse --matrix ${main_job_name},${project},${BUILD_NUMBER} 1
-}
-
-# only enable jtsync when build is not manually triggered
-if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-    trap jtsync_trap EXIT ERR
-fi
 
 OBS_TYPE=${PROJECTSOURCE%%/*}
 OBS_PROJECT=${PROJECTSOURCE##*/}
@@ -113,11 +102,4 @@ cd "$component"
 grep -q "<linkinfo" .osc/_files || exit 2
 
 ${automationrepo}/scripts/jenkins/track-upstream-and-package.pl
-ret=$?
-
-# only enable jtsync when build is not manually triggered
-if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-    trap - EXIT ERR
-    $jtsync --ci suse --matrix ${main_job_name},${project},${BUILD_NUMBER} $ret || :
-fi
-exit $ret
+exit $?

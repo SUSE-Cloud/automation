@@ -354,8 +354,6 @@ pipeline {
       sh '''
         if [ -n "$github_pr" ] ; then
           automation-git/scripts/cloud/pr-success.sh
-        else
-          automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 0
         fi
       '''
     }
@@ -363,8 +361,6 @@ pipeline {
       sh '''
         if [ -n "$github_pr" ] ; then
           automation-git/scripts/cloud/pr-failure.sh
-        else
-          automation-git/scripts/jtsync/jtsync.rb --ci suse --job $JOB_NAME 1
         fi
       '''
     }
