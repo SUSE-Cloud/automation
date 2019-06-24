@@ -1,5 +1,4 @@
 language: bash
-sudo: required
 dist: xenial
 install:
   - make install
