@@ -1,0 +1,18 @@
+---
+
+os_cloud: "engcloud"
+os_project_name: "cloud-ci"
+
+cloud:
+  cloud: "{{ os_cloud }}"
+  os_project_name: "{{ os_project_name }}"
+
+jenkins_worker_id_list: "{{ (worker_ids is defined and worker_ids | length > 0) | ternary(worker_ids.split(','), []) }}"
+jenkins_worker_server: "cloud-jenkins-worker_{{ item }}"
+jenkins_worker_image: "openSUSE-Leap-15.1-JeOS.x86_64-OpenStack-Cloud"
+jenkins_worker_key_name: ""
+jenkins_worker_flavor: "jenkins-worker"
+jenkins_worker_volume_size: 20
+jenkins_worker_network: "jenkins-worker_net"
+jenkins_worker_security_groups: "jenkins-worker"
+jenkins_worker_fip_network: "floating"

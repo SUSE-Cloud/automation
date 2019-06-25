@@ -1,0 +1,132 @@
+- job:
+    name: cloud-jenkins-worker
+    project-type: pipeline
+    concurrent: true
+
+    logrotate:
+      numToKeep: 300
+      daysToKeep: 90
+
+    properties:
+      - authorization:
+          cloud:
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
+          anonymous:
+            - job-read
+
+    parameters:
+      - validating-string:
+          name: worker_ids
+          default: ''
+          regex: '([A-Za-z0-9-_]+(,[A-Za-z0-9-_]+)*)*'
+          msg: >-
+            The entered value failed validation
+          description: >-
+            The jenkins worker identifier(s). This field should be set to a
+            value that will uniquely identify the jenkins worker instance.
+
+            Passing multiple values (comma separated) will create/setup multiple workers.
+
+      - choice:
+          name: os_cloud
+          choices:
+            - 'engcloud'
+            - 'susecloud'
+          description: >-
+            The target OpenStack cloud platform. Possible values are:
+
+              engcloud - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
+      - hidden:
+          name: os_project_name
+          default: 'cloud-ci'
+          description: >-
+            The name of the OpenStack project that hosts the worker node
+            in the 'os_cloud' OpenStack cloud platform (leave empty to use the
+            default shared 'cloud' account).
+
+      - hidden:
+          name: jenkins_worker_key_name
+          default: "engcloud-cloud-ci"
+          description: >-
+            Keypair to be used on the worker instance
+
+      - hidden:
+          name: jenkins_worker_image
+          default: "openSUSE-Leap-15.1-JeOS.x86_64-OpenStack-Cloud"
+          description: >-
+            Image used to boot the worker instance
+
+      - hidden:
+          name: jenkins_worker_flavor
+          default: "jenkins-worker"
+          description: >-
+            Worker instance flavor
+
+      - string:
+          name: jenkins_worker_labels
+          default: ""
+          description: >-
+            A list of labels for this worker node
+
+      - string:
+          name: jenkins_workers_executors
+          default: "10"
+          description: >-
+            Number of workers configured for this node
+
+      - string:
+          name: jenkins_worker_ansible_version
+          default: "<2.8"
+          description: >-
+            Ansible version setup on the virtual environment
+
+            Leaving it empty will skip creating the virtual environment
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
+
+      - text:
+          name: extra_params
+          default:
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
+      lightweight-checkout: false
