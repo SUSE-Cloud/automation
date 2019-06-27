@@ -65,8 +65,7 @@
           [ -z "$PROJECTSOURCE" ] && ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
 
           export automationrepo=~/github.com/SUSE-Cloud/automation
-          export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
-          
+
           # Workaround to get only the name of the job:
           # https://issues.jenkins-ci.org/browse/JENKINS-39189
           # When the JOB_BASE_NAME contains only in ex. "openstack-repocheck", this
@@ -74,17 +73,8 @@
           echo "$JOB_BASE_NAME"
           main_job_name=${JOB_NAME%%/*}
 
-          function jtsync_trap() {
-            $jtsync --ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} 1
-          }
-
-          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-            trap jtsync_trap EXIT ERR
-          fi
-
           DIST_NAME=$(echo $repository|cut -d "_" -f 1)
           DIST_VERSION=$(echo $repository|cut -d "_" -f 2-)
-
 
           OBS_TYPE=${PROJECTSOURCE%%/*}
           OBS_PROJECT=${PROJECTSOURCE##*/}
@@ -131,11 +121,4 @@
 
           test -e ~/repo || { echo "~/repo needs to have a copy of pre-generated .solv files from internal media" ; exit 55; }
           installcheck $ARCH --withobsoletes --exclude "-kmp-" tmp/repo/primary.xml.gz  --nocheck $EXTRA_NOCHECK ~/repo/${repository}-${ARCH}.solv
-          ret=$?
-
-          # only enable jtsync when build is not manually triggered
-          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-            trap - EXIT ERR
-            $jtsync --ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} $ret || :
-          fi
-          exit $ret
+          exit $?

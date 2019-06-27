@@ -53,7 +53,6 @@
     builders:
       - shell: |
           export automationrepo=~/github.com/SUSE-Cloud/automation
-          export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
 
           # Workaround to get only the name of the job:
           # https://issues.jenkins-ci.org/browse/JENKINS-39189
@@ -70,14 +69,6 @@
           # fetch the latest automation updates
           ${automationrepo}/scripts/jenkins/update_automation
 
-          function jtsync_trap() {
-            $jtsync --ci suse --matrix ${main_job_name},${project},${BUILD_NUMBER} 1 || :
-          }
-
-          # only enable jtsync when build is not manually triggered
-          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-            trap jtsync_trap EXIT ERR
-          fi
           if [[ ! -d /mounts/dist ]] ; then
               zypper -n install git-core rsync make autofs nfs-client ypbind kernel-default -kernel-default-base curl wget libsolv-tools bsdtar
               echo -e 'ypserver 10.160.0.10\nypserver 10.160.0.1\nypserver 10.160.0.150' > /etc/yp.conf
@@ -135,13 +126,6 @@
           fi
 
           OBS_TYPE=IBS OBS_PROJECT=$OBS_PROJECT make -C cloud/scripts/release-mgmt/ mediacheck
-          RETVAL=$?
-
-          # only enable jtsync when build is not manually triggered
-          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-            trap - EXIT ERR
-            $jtsync --ci suse --matrix ${main_job_name},${project},${BUILD_NUMBER} $RETVAL || :
-          fi
     publishers:
       - workspace-cleanup:
           fail-build: false

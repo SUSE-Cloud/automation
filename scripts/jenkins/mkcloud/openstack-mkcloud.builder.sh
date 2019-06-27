@@ -8,7 +8,6 @@ mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 export log_dir=$artifacts_dir/mkcloud_log
 
-jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
 export ghprrepo=~/github.com/openSUSE/github-pr
 export ghpr=${ghprrepo}/github_pr.rb
 
@@ -190,8 +189,6 @@ ret=${PIPESTATUS[0]}
 if [[ $ret != 0 ]] ; then
     if [[ $github_pr_sha ]] ; then
         mkcloudgating_trap
-    else
-        $jtsync --ci suse --job $JOB_NAME 1
     fi
     echo "mkcloud ret=$ret"
     exit $ret # check return code before tee
@@ -201,6 +198,4 @@ fi
 if [[ $github_pr_sha ]] ; then
     $ghpr --action set-status --debugratelimit $ghpr_paras --status "success" --targeturl $BUILD_URL --message "PR gating succeeded"
     trap "-" ERR
-else
-    $jtsync --ci suse --job $JOB_NAME 0
 fi
