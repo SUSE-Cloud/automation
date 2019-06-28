@@ -24,8 +24,11 @@ except ImportError:
     import cElementTree as ET
 
 sys.path.append(os.path.dirname(__file__))
-from gerrit_settings import gerrit_project_map, obs_project_settings  # noqa: E402
-from gerrit import GERRIT_URL, GerritChange, GerritApiCaller  # noqa: E402
+
+from gerrit import GERRIT_URL, GerritApiCaller, GerritChange  # noqa: E402,I100
+
+from gerrit_settings import gerrit_project_map, \
+    obs_project_settings  # noqa: E402,I100
 
 
 @contextlib.contextmanager
@@ -211,7 +214,7 @@ class OBSProject(GerritApiCaller):
 
     @find_in_osc_file('obsinfo commit value')
     def _get_obsinfo_commit(self, obsinfo):
-        matches = re.findall('^commit: (\S+)$', obsinfo, re.MULTILINE)
+        matches = re.findall(r'^commit: (\S+)$', obsinfo, re.MULTILINE)
         if len(matches) != 1:
             return None
         return matches[0]

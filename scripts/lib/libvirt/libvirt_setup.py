@@ -371,10 +371,10 @@ def domain_cleanup(dom):
     print("undefining {0}".format(dom.name()))
     try:
         dom.undefineFlags(flags=libvirt.VIR_DOMAIN_UNDEFINE_NVRAM)
-    except:
+    except Exception:
         try:
             dom.undefine()
-        except:
+        except Exception:
             print("failed to undefine {0}".format(dom.name()))
 
 

@@ -141,7 +141,7 @@ def generate_summary(server, job_name, build_number,
                         job_name, build_number, node['id'])
 
                     downstream_jobs = re.findall(
-                        "href='(/job/([\w-]+)/([\d]+)/)'",
+                        r"href='(/job/([\w-]+)/([\d]+)/)'",
                         log['text'])
                     if downstream_jobs:
                         d_job_name = downstream_jobs[0][1]

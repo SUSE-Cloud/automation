@@ -5,8 +5,11 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(__file__))
+
 from gerrit import GerritChange, GerritChangeSet  # noqa: E402
+
 from gerrit_merge import gerrit_merge  # noqa: E402
+
 from gerrit_review import gerrit_review  # noqa: E402
 
 

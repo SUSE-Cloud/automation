@@ -248,7 +248,7 @@ def create_project(worktree, project, linkproject):
     try:
         existing_pkgs = [x.strip() for x in
                          sh.osc('ls', '-e', project, _iter=True)]
-    except:
+    except Exception:
         existing_pkgs = []
 
     alive_pkgs = set()
