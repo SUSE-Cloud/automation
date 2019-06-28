@@ -13,7 +13,7 @@ pipeline {
 
   agent {
     node {
-      label 'cloud-trigger'
+      label 'cloud-ci-trigger'
       customWorkspace "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
@@ -48,7 +48,7 @@ pipeline {
           parallel cloud_lib.generate_mu_stages(cloudversion.split(','), deploy.toBoolean(), deploy_and_update.toBoolean()) {
             cv, update_after_deploy ->
             // reserve a resource here for the integration job, to avoid
-            // keeping a cloud-ardana-ci worker busy while waiting for a
+            // keeping a cloud-ci worker busy while waiting for a
             // resource to become available.
             def suffix = (update_after_deploy) ? "update" : "deploy"
             cloud_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, "${cloud_env}-${cv}-${suffix}") {

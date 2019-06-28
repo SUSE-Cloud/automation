@@ -1,12 +1,12 @@
 - job-template:
     name: '{cloud_url_trigger_job}'
     project-type: multijob
-    node: cloud-trigger
+    node: cloud-ci-trigger
 
     triggers:
       - pollurl:
           cron: 'H/5 * * * *'
-          polling-node: cloud-trigger
+          polling-node: cloud-ci-trigger
           urls:
             - url: '{url}'
               check-date: '{check_date|false}'
