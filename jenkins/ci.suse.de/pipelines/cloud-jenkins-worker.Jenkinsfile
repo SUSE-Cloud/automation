@@ -11,7 +11,7 @@ pipeline {
 
   agent {
     node {
-      label 'cloud-ardana-ci'
+      label 'cloud-ci-worker'
       customWorkspace "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
@@ -31,7 +31,9 @@ pipeline {
             export ANSIBLE_FORCE_COLOR=true
             cd $WORKSPACE/automation-git/scripts/jenkins/workers
             source /opt/ansible/bin/activate
-            ansible-playbook load-job-params.yml
+            ansible-playbook load-job-params.yml \
+                -e jjb_type=job-template \
+                -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-jenkins-worker-template.yaml
           ''')
         }
       }
