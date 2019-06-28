@@ -236,7 +236,8 @@ pipeline {
     always {
       script{
         sh('''
-          automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
+          source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
+          run_python_script automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
             --recursive \
             --filter 'Setup workspace' \
             --filter 'Declarative: Post Actions' \

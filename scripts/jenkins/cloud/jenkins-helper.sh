@@ -28,3 +28,11 @@ function ansible_playbook {
     echo "Running: ansible-playbook ${@}"
     ansible-playbook "${@}"
 }
+
+
+# this wrapper will choose python3 over python2 when running a python script
+function run_python_script {
+    set +x
+    python_bin=$(command -v python3 || command -v python)
+    $python_bin "${@}"
+}

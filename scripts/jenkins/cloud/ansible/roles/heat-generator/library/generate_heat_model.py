@@ -521,7 +521,7 @@ def enhance_input_model(input_model):
     for network_tag in itervalues(neutron_network_tags):
         for tag in network_tag['tags']:
             if isinstance(tag, dict):
-                tag = tag.values()[0]
+                tag = list(tag.values())[0]
             # The only relevant tag without a provider is the external
             # "bridge" network.
             # Assume a default 'external' physnet value for this network.

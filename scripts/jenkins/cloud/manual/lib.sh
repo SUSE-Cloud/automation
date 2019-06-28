@@ -37,7 +37,7 @@ function is_defined {
 
 function setup_ansible_venv {
     if [ ! -d "$ANSIBLE_VENV" ]; then
-        virtualenv --python=python2.7 $ANSIBLE_VENV
+        virtualenv $ANSIBLE_VENV
         $ANSIBLE_VENV/bin/pip install --upgrade pip
         $ANSIBLE_VENV/bin/pip install -r $WORK_DIR/requirements.txt
     fi
@@ -105,6 +105,13 @@ function ansible_playbook_ses {
     fi
 }
 
+# this wrapper will choose python3 over python2 when running a python script
+function run_python_script {
+    set +x
+    python_bin=$(command -v python3 || command -v python)
+    $python_bin "${@}"
+}
+
 function is_physical_deploy {
     cloud_env=$(get_from_input cloud_env)
     [[ $cloud_env == qe* ]] || [[ $cloud_env == pcloud* ]]
@@ -166,7 +173,7 @@ function build_test_packages {
             source $ANSIBLE_VENV/bin/activate
             gerrit_change_ids=$(get_from_input gerrit_change_ids)
             GERRIT_VERIFY=0 PYTHONWARNINGS="ignore:Unverified HTTPS request" \
-                python -u build_test_package.py --buildnumber local \
+                run_python_script -u build_test_package.py --buildnumber local \
                 --homeproject $(get_from_input homeproject) -c ${gerrit_change_ids//,/ -c }
             popd
         fi

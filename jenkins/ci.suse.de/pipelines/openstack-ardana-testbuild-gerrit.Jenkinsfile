@@ -46,9 +46,10 @@ pipeline {
         sh('echo "zypper repository for test packages: http://download.suse.de/ibs/${homeproject//:/:\\/}:/ardana-ci-${BUILD_NUMBER}/standard/${homeproject}:ardana-ci-${BUILD_NUMBER}.repo"')
         timeout(time: 30, unit: 'MINUTES', activity: true) {
           sh('''
+            source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
             cd automation-git/scripts/jenkins/cloud/gerrit
             set -eux
-            python -u build_test_package.py --homeproject ${homeproject} --buildnumber ${BUILD_NUMBER} -c ${gerrit_change_ids//,/ -c }
+            run_python_script -u build_test_package.py --homeproject ${homeproject} --buildnumber ${BUILD_NUMBER} -c ${gerrit_change_ids//,/ -c }
           ''')
         }
       }

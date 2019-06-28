@@ -7,6 +7,7 @@
     exit ${PIPESTATUS[0]}
   args:
     executable: "/bin/bash"
+    chdir: "/root"
   delegate_to: "{{ cloud_env }}"
   register: _qa_crowbarsetup_result
   run_once: true

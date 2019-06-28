@@ -39,7 +39,8 @@ pipeline {
             env.GERRIT_PATCHSET_NUMBER = sh (
               returnStdout: true,
               script: '''
-                automation-git/scripts/jenkins/cloud/gerrit/gerrit_get.py \
+                source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
+                run_python_script automation-git/scripts/jenkins/cloud/gerrit/gerrit_get.py \
                   --attr patchset \
                   ${GERRIT_CHANGE_NUMBER}
               '''
@@ -55,11 +56,13 @@ pipeline {
       steps {
         script {
           sh('''
+            source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
+
             # If this is a job triggered by Gerrit because a new patchset has
             # been published, abort all other older running builds that
             # target the same change number
             if [[ $GERRIT_EVENT_TYPE == 'patchset-created' ]]; then
-              python -u automation-git/scripts/jenkins/jenkins-job-cancel \
+              run_python_script -u automation-git/scripts/jenkins/jenkins-job-cancel \
                 --older-than ${BUILD_NUMBER} \
                 --with-param GERRIT_CHANGE_NUMBER=${GERRIT_CHANGE_NUMBER} \
                 --wait 600 \
@@ -68,7 +71,7 @@ pipeline {
               if $voting; then
                 # If this is a voting job, abort other older running builds that
                 # target the same change number and are also voting.
-                python -u automation-git/scripts/jenkins/jenkins-job-cancel \
+                run_python_script -u automation-git/scripts/jenkins/jenkins-job-cancel \
                   --older-than ${BUILD_NUMBER} \
                   --with-param GERRIT_CHANGE_NUMBER=${GERRIT_CHANGE_NUMBER} \
                   --with-param voting=True \
@@ -78,7 +81,7 @@ pipeline {
 
               # Also abort other older running builds that target the same change
               # number and gerrit_context value, voting or otherwise.
-              python -u automation-git/scripts/jenkins/jenkins-job-cancel \
+              run_python_script -u automation-git/scripts/jenkins/jenkins-job-cancel \
                 --older-than ${BUILD_NUMBER} \
                 --with-param GERRIT_CHANGE_NUMBER=${GERRIT_CHANGE_NUMBER} \
                 --with-param gerrit_context=${gerrit_context} \
@@ -94,6 +97,7 @@ pipeline {
       steps {
         script {
           sh('''
+            source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
             build_str="Build"
             $voting || build_str="(Non-voting) build"
             message="
@@ -105,7 +109,7 @@ The following links can also be used to track the results:
 "
 
             $voting && gerrit_voting_params="--vote 0 --label Verified"
-            automation-git/scripts/jenkins/cloud/gerrit/gerrit_review.py \
+            run_python_script automation-git/scripts/jenkins/cloud/gerrit/gerrit_review.py \
               --message "$message" \
               $gerrit_voting_params \
               --patch ${GERRIT_PATCHSET_NUMBER} \
@@ -120,11 +124,12 @@ The following links can also be used to track the results:
         sh '''
           export LC_ALL=C.UTF-8
           export LANG=C.UTF-8
+          source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
 
           if [[ -n $GERRIT_CHANGE_COMMIT_MESSAGE ]]; then
             commit_message=$(echo $GERRIT_CHANGE_COMMIT_MESSAGE | base64 --decode)
           else
-            commit_message=$(automation-git/scripts/jenkins/cloud/gerrit/gerrit_get.py \
+            commit_message=$(run_python_script automation-git/scripts/jenkins/cloud/gerrit/gerrit_get.py \
               --attr commit_message \
               ${GERRIT_CHANGE_NUMBER}/${GERRIT_PATCHSET_NUMBER})
           fi
@@ -164,7 +169,9 @@ The following links can also be used to track the results:
       script{
         env.BUILD_RESULT = currentBuild.currentResult
         sh('''
-          automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
+          source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
+
+          run_python_script automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
             --recursive \
             --filter 'Declarative: Post Actions' \
             --filter 'Setup workspace' \
@@ -192,7 +199,7 @@ ${build_str} ${message_result} ($gerrit_context): ${BUILD_URL}
 
           $voting && [[ -n $vote ]] && gerrit_voting_params="--vote $vote --label Verified"
 
-          automation-git/scripts/jenkins/cloud/gerrit/gerrit_review.py \
+          run_python_script automation-git/scripts/jenkins/cloud/gerrit/gerrit_review.py \
             --message "$message" \
             --message-file pipeline-report.txt \
             $gerrit_voting_params \
@@ -200,7 +207,7 @@ ${build_str} ${message_result} ($gerrit_context): ${BUILD_URL}
             $GERRIT_CHANGE_NUMBER
 
           if $voting && [[ $BUILD_RESULT == SUCCESS ]]; then
-            automation-git/scripts/jenkins/cloud/gerrit/gerrit_merge.py \
+            run_python_script automation-git/scripts/jenkins/cloud/gerrit/gerrit_merge.py \
               --patch ${GERRIT_PATCHSET_NUMBER} \
               ${GERRIT_CHANGE_NUMBER}
           fi
