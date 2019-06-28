@@ -44,7 +44,7 @@
   when: item.1.rc != 0
 
 - name: Get ses conf options
-  shell: grep 'fsid\|mon_host\|mon_initial\|network' /etc/ceph/ceph.conf | awk '{ print $3}'
+  shell: grep 'fsid\|mon_host\|mon_initial\|network' /etc/ceph/ceph.conf | awk -F'=' '{ gsub(/ /,"", $2); print $2}'
   register: conf_options
 
 - name: Get ceph conf/key file contents
