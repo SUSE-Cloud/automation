@@ -39,6 +39,16 @@ Example:
       -e virt_config_file=/path/to/virt-config.yml
 ```
 
+NOTE: optionally, provide a `cloudsource` value (defaults to `stagingcloud9`) to control which version specific services
+and features are activated and an `cloud_env` value (defaults to `localhost`) to change how the generated items are named:
+
+    ansible-playbook generate-input-model.yml \
+      -e scenario_name=standard \
+      -e input_model_dir=/path/to/input-model
+      -e virt_config_file=/path/to/virt-config.yml
+      -e cloudsource=GM8+up \
+      -e cloud_env=my_dev_env
+
 The input model described by the `roles/ardana_input_model_generator/vars/templates/standard.yml` scenario template will
 be generated in the `/path/to/input-model` output path.
 
