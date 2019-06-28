@@ -1,0 +1,67 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Create/get jenkins worker node
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Ensure worker instance exists on "{{ os_cloud }}/{{ os_project_name }}"
+      os_server:
+        cloud: "{{ cloud }}"
+        state: present
+        name: "{{ jenkins_worker_server }}"
+        image: "{{ jenkins_worker_image }}"
+        key_name: "{{ jenkins_worker_key_name }}"
+        flavor: "{{ jenkins_worker_flavor }}"
+        boot_from_volume: yes
+        volume_size: "{{ jenkins_worker_volume_size }}"
+        network: "{{ jenkins_worker_network }}"
+        security_groups: "{{ jenkins_worker_security_groups }}"
+      loop: "{{ jenkins_worker_id_list }}"
+
+    - name: Ensure floating IP on worker instance
+      os_floating_ip:
+        cloud: "{{ cloud }}"
+        server: "{{ jenkins_worker_server }}"
+        network: "{{ jenkins_worker_fip_network }}"
+        wait: yes
+      register: _worker_fip
+      loop: "{{ jenkins_worker_id_list }}"
+
+    - name: Wait for node to be accessible
+      wait_for:
+        host: "{{ item.floating_ip.floating_ip_address }}"
+        port: 22
+        search_regex: OpenSSH
+        state: started
+        delay: 10
+      loop: "{{ _worker_fip.results }}"
+      loop_control:
+        label: "{{ item.invocation.module_args.server }}: {{ item.floating_ip.floating_ip_address }}"
+
+    - name: Ensure nodes on ansible inventory file
+      blockinfile:
+        path: "inventory"
+        insertafter: "\\[jenkins_workers\\]"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        block: |
+          {% for server in _worker_fip.results %}
+          {{ server.invocation.module_args.server }}      ansible_host={{ server.floating_ip.floating_ip_address }}
+          {% endfor %}
+
+    - meta: refresh_inventory

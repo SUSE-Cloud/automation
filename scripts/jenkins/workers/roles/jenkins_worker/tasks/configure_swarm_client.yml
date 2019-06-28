@@ -1,0 +1,50 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Configure NTP server
+  lineinfile:
+    path: "/etc/ntp.conf"
+    line: "server {{ jenkins_worker_ntp_server }}"
+  notify:
+    - Restart ntp
+
+- name: Create jenkins user
+  user:
+    name: "jenkins"
+    group: "users"
+    comment: "Jenkins Home"
+    shell: "/bin/bash"
+    createhome: yes
+    home: "/home/jenkins"
+
+- name: Load credentials from agent node
+  set_fact:
+      _swarm_{{ item }}: "{{ lookup('pipe', 'grep -Eo \"' ~ item ~ '\\s[a-z]+\" ' ~ jenkins_worker_swarm_conf_file ~ ' |  cut -d \" \" -f2') }}"
+  no_log: True
+  loop:
+    - "username"
+    - "password"
+
+- name: Configure jenkins swarm client
+  lineinfile:
+    path: "{{ jenkins_worker_swarm_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  no_log: True
+  loop: "{{ jenkins_worker_swarm_config }}"
+  notify:
+    - Restart jenkins swarm client
