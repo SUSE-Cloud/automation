@@ -57,11 +57,11 @@ update_to_cloudsource: ''
 maint_updates: ''
 
 # A comma separated list of repository urls to be added on the deployer/admin node.
-# For Ardana, each URL must be supplied in a form that includes the .repo file name.
-# For Crowbar, the .repo filename should be excluded.
-# WARNING: Ardana only installs the extra repositories on the deployer node (see
-# https://jira.suse.com/browse/SOC-7800), so they will not be available on the
-# non-deployer nodes.
+# WARNING: For ARDANA the packages from those repositories will be availabe to all cloud
+# nodes through a repository with a higher priority, meaning that those packages will be
+# installed even if there is a newer package available on other repositories.
+# For CROWBAR the repository has higher priority only on the deployer node, on the other
+# nodes it has the default priority.
 extra_repos: ''
 
 #============= Gerrit =============#

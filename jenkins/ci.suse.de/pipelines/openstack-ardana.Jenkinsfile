@@ -153,7 +153,7 @@ pipeline {
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
                 text(name: 'extra_params', value: extra_params)
               ], false)
-              env.test_repository_url = "http://download.suse.de/ibs/Devel:/Cloud:/Testbuild:/ardana-ci-${slaveJob.getNumber()}/standard/Devel:Cloud:Testbuild:ardana-ci-${slaveJob.getNumber()}.repo"
+              env.test_repository_url = "http://download.suse.de/ibs/Devel:/Cloud:/Testbuild:/ardana-ci-${slaveJob.getNumber()}/standard"
               if (extra_repos == '') {
                 env.extra_repos = test_repository_url
               } else {

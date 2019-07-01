@@ -15,9 +15,38 @@
 #
 ---
 
-- name: Add extra repos
-  zypper_repository:
-    repo: "{{ item }}"
+- name: Download packages from extra repositories
+  command: |
+    wget --progress=dot:mega -r --directory-prefix {{ local_repos_base_dir }}/extra-repos \
+      -e robots=off  --no-check-certificate --no-parent --no-clobber --accept \
+       x86_64.rpm,noarch.rpm {{ item }}
+  args:
+    warn: false
   loop: "{{ extra_repos_list }}"
+  register: rpm_download_status
+  until: rpm_download_status is succeeded
+  retries: 5
+  delay: 5
+  notify:
+    - Refresh all repos
+
+- name: Ensure createrepo tool installed
+  zypper:
+    name: createrepo
+    disable_gpg_check: true
+
+- name: Create extra-repos repository
+  command: |
+    createrepo -o {{ local_repos_base_dir }}/extra-repos {{ local_repos_base_dir }}/extra-repos
+  args:
+    creates: "{{ local_repos_base_dir }}/extra-repos/repodata/repomd.xml"
+
+- name: Add extra-repos repository
+  zypper_repository:
+    name: "extra-repos"
+    priority: 90
+    repo: "{{ local_repos_base_dir }}/extra-repos"
+    disable_gpg_check: true
+    state: present
   notify:
     - Refresh all repos
