@@ -30,7 +30,7 @@
       numToKeep: -1
       daysToKeep: 30
 
-    node: cloud-ardana-ci-trigger
+    node: cloud-ci-trigger
 
     parameters:
       - string:

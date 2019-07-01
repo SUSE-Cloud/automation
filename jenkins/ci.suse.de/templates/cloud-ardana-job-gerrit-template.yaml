@@ -2,7 +2,6 @@
     name: '{ardana_gerrit_job}'
     project-type: pipeline
     concurrent: true
-    node: cloud-trigger
     disabled: '{obj:disabled|False}'
 
     logrotate:

@@ -38,6 +38,7 @@ jenkins_worker_zypp_requires:
   - osc
   - python3-devel
   - python3-gitlint
+  - python3-openstackclient
   - python3-pygerrit2
   - python3-python-jenkins
   - python3-sh
