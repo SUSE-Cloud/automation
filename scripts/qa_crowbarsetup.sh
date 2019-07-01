@@ -2710,7 +2710,7 @@ function custom_configuration
             fi
         ;;
         designate)
-            if [[ $hacloud = 1 ]] && iscloudver 9plus ; then
+            if [[ $hacloud = 1 ]] && iscloudver 8plus ; then
                 proposal_set_value designate default "['deployment']['designate']['elements']['designate-server']" "['cluster:$clusternameservices']"
             fi
         ;;
@@ -3230,8 +3230,8 @@ function deploy_single_proposal
             fi
             ;;
         designate)
-            if ! iscloudver 9plus ; then
-                echo "Designate is SOC 9+ only. Skipping"
+            if ! iscloudver 8plus ; then
+                echo "Designate is SOC 8+ only. Skipping"
                 return
             fi
             ;;
