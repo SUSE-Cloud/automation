@@ -7,22 +7,6 @@
       numToKeep: 500
       daysToKeep: 90
 
-    properties:
-      - authorization:
-          cloud:
-            - job-build
-            - job-cancel
-            - job-configure
-            - job-delete
-            - job-discover
-            - job-read
-            - job-workspace
-            - run-delete
-            - run-update
-            - scm-tag
-          anonymous:
-            - job-read
-
     parameters:
       - validating-string:
           name: cloud_env
@@ -47,11 +31,11 @@
       - extended-choice:
           name: cloudversion
           type: multi-select
-          visible-items: 2
+          visible-items: 5
           multi-select-delimiter: ','
           default-value: '{cloudversion|}'
           value: >-
-            SOC8,SOC9
+            SOC8,SOC9,SOCC7,SOCC8,SOCC9
 
       - validating-string:
           name: maint_updates
@@ -59,18 +43,6 @@
           regex: '([0-9]+(,[0-9]+)*)*'
           msg: The entered value failed validation
           description: List of maintenance update IDs separated by comma (eg. 7396,7487)
-
-      - bool:
-          name: deploy
-          default: true
-          description: >-
-            Start a job to deploy ardana with MU(s)
-
-      - bool:
-          name: deploy_and_update
-          default: true
-          description: >-
-            Start a job to deploy ardana then update with MU(s)
 
       - string:
           name: git_automation_repo
@@ -86,8 +58,7 @@
 
       - text:
           name: extra_params
-          default: |
-            tempest_retry_failed=True
+          default:
           description: >-
             This field may be used to define additional parameters, one per line, in the form:
 

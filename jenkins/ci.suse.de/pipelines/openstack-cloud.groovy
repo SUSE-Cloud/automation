@@ -112,32 +112,72 @@ def maintenance_status(params='') {
   """)
 }
 
-def generate_mu_stages(cloudversion_list, deploy, update, body) {
-  def jobs = [:]
-  for (cv in cloudversion_list) {
-    if (deploy) {
-      jobs["${cv}-deploy"] = {
-        stage("Deploy: ${cv}") {
-          body(cv, false)
-        }
-      }
+// Converts a map of <param-name>: <param-value> pairs into a list of
+// parameters accepted by the "build job" function that triggers a
+// Jenkins job
+def convert_to_build_params(param_map) {
+  def job_params = []
+  param_map.each { param_name, param_value ->
+    // extra_params is special
+    if (param_name == 'extra_params') {
+      job_params.add(text(name: param_name, value: param_value))
+    } else if (param_value instanceof Boolean) {
+      job_params.add(booleanParam(name: param_name, value: param_value))
+    } else {
+      job_params.add(string(name: param_name, value: "$param_value"))
     }
-    if (update) {
-      jobs["${cv}-update"] = {
-        stage("Update: ${cv}") {
-          body(cv, true)
+  }
+  return job_params
+}
+
+// Generates and returns a set of parallel stages according to the
+// supplied task configuration file and list of task groups.
+// The task configuration file has to be formatted using yaml, as follows:
+//
+// <task-group-name>:
+//   <task-name>:
+//     <attribute>: <value>
+//     <attribute>: <value>
+// <task-group-name>:
+//   <task-name>:
+//     <attribute>: <value>
+//     <attribute>: <value>
+// [...]
+//
+// Stages will be generated only for the tasks that belong to one of the
+// groups supplied in `task_group_list`.
+//
+// Input:
+//  * task_group_list: list of string values indicating which of the
+//    task groups described in the task configuration file should be
+//    included
+//  * task_config_file: filesystem path pointing to a yaml configuration
+//    file describing the tasks
+//  * body: closure that will be called for each of the generated
+//    stages. The closure will be supplied two parameters: the
+//    <task-name> and the map of <attribute>: <value> pairs read from
+//    the task configuration file
+//
+def generate_parallel_stages(task_group_list, task_config_file, body) {
+  def out_stages = [:]
+  task_config = readYaml file: task_config_file
+  for (task_group in task_group_list) {
+    if (task_group in task_config) {
+      task_config[task_group].each { task_name, task_def ->
+        // we need local scope variables, otherwise the closure is
+        // called with the last values that the task_name and task_def
+        // iterator variables get
+        def out_task_def = task_def
+        def out_task_name = task_name
+        out_stages[task_name] = {
+          stage(task_name) {
+            body(out_task_name, out_task_def)
+          }
         }
       }
     }
   }
-  return jobs
-}
-
-def get_mu_job_name(cloudversion) {
- def jobs_map = [
-   "SOC": "cloud-ardana${cloudversion[-1]}-job-entry-scale-kvm-maintenance-update-x86_64"
- ]
- return jobs_map[cloudversion[0..-2]]
+  return out_stages
 }
 
 // Implements a simple closure that executes the supplied function (body) with

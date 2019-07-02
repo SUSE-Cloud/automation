@@ -48,26 +48,28 @@ pipeline {
       failFast false
       steps {
         script {
-          parallel cloud_lib.generate_mu_stages(cloudversion.split(','), deploy.toBoolean(), deploy_and_update.toBoolean()) {
-            cv, update_after_deploy ->
+          parallel cloud_lib.generate_parallel_stages(
+            cloudversion.split(','),
+            "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/cloud-gating-config.yml") {
+            job_title, job_def ->
+
             // reserve a resource here for the integration job, to avoid
             // keeping a cloud-ci worker busy while waiting for a
             // resource to become available.
-            def suffix = (update_after_deploy) ? "update" : "deploy"
-            cloud_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, "${cloud_env}-${cv}-${suffix}") {
+            cloud_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, "${cloud_env}-${job_title}") {
               reserved_env ->
-              def slaveJob = cloud_lib.trigger_build(cloud_lib.get_mu_job_name(cv), [
-                string(name: 'cloud_env', value: reserved_env),
-                string(name: 'reserve_env', value: "false"),
-                string(name: 'cloudsource', value: "GM${cv[-1]}+up"),
-                string(name: 'maint_updates', value: "$maint_updates"),
-                string(name: 'update_after_deploy', value: "${update_after_deploy}"),
-                string(name: 'rc_notify', value: "true"),
-                string(name: 'cleanup', value: "on success"),
-                string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                text(name: 'extra_params', value: extra_params)
-              ], false)
+              def job_params = [
+                cloud_env            : reserved_env,
+                reserve_env          : false,
+                maint_updates        : maint_updates,
+                rc_notify            : false,
+                cleanup              : "on success",
+                git_automation_repo  : git_automation_repo,
+                git_automation_branch: git_automation_branch
+              ]
+              // override default parameters with those loaded from config file
+              job_params.putAll(job_def.job_params)
+              cloud_lib.trigger_build(job_def.job_name, cloud_lib.convert_to_build_params(job_params))
             }
           }
         }

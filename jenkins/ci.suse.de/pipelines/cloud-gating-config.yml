@@ -1,0 +1,59 @@
+SOC8:
+  ardana8-deploy:
+    job_name: cloud-ardana8-job-entry-scale-kvm-maintenance-update-x86_64
+    job_params:
+      cloudsource: GM8+up
+      update_after_deploy: false
+      extra_params: |
+        tempest_retry_failed=True
+  ardana8-update:
+    job_name: cloud-ardana8-job-entry-scale-kvm-maintenance-update-x86_64
+    job_params:
+      cloudsource: GM8+up
+      update_after_deploy: true
+      extra_params: |
+        tempest_retry_failed=True
+        update_services_serial=True
+SOC9:
+  ardana9-deploy:
+    job_name: cloud-ardana9-job-entry-scale-kvm-maintenance-update-x86_64
+    job_params:
+      cloudsource: GM9+up
+      update_after_deploy: false
+      extra_params: |
+        tempest_retry_failed=True
+  ardana9-update:
+    job_name: cloud-ardana9-job-entry-scale-kvm-maintenance-update-x86_64
+    job_params:
+      cloudsource: GM9+up
+      update_after_deploy: true
+      extra_params: |
+        tempest_retry_failed=True
+        update_services_serial=True
+SOCC7:
+  crowbar7-deploy:
+    job_name: cloud-crowbar7-job-x86_64
+    job_params:
+      cloudsource: GM7+up
+  crowbar7-ha-deploy:
+    job_name: cloud-crowbar7-job-ha-x86_64
+    job_params:
+      cloudsource: GM7+up
+SOCC8:
+  crowbar8-deploy:
+    job_name: cloud-crowbar8-job-x86_64
+    job_params:
+      cloudsource: GM8+up
+  crowbar8-ha-deploy:
+    job_name: cloud-crowbar8-job-ha-x86_64
+    job_params:
+      cloudsource: GM8+up
+SOCC9:
+  crowbar9-deploy:
+    job_name: cloud-crowbar9-job-x86_64
+    job_params:
+      cloudsource: GM9+up
+  crowbar9-ha-deploy:
+    job_name: cloud-crowbar9-job-ha-x86_64
+    job_params:
+      cloudsource: GM9+up
