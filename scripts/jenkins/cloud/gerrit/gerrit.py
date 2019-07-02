@@ -146,7 +146,7 @@ class GerritChange(GerritApiCaller):
         if patchset:
             revisions = [
                 r_id
-                for r_id, r in self._change_object['revisions'].iteritems()
+                for r_id, r in self._change_object['revisions'].items()
                 if r['_number'] == int(patchset)]
             if len(revisions) != 1:
                 raise Exception(
