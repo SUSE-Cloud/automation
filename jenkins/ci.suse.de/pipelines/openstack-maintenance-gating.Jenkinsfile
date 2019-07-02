@@ -35,6 +35,9 @@ pipeline {
           ''')
 
           cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+          for (project in maint_updates.split(',')) {
+              cloud_lib.maintenance_status("-a set-status -p ${project} -s running -m ${BUILD_URL}display/redirect")
+          }
           cloud_lib.load_extra_params_as_vars(extra_params)
         }
       }
@@ -71,8 +74,21 @@ pipeline {
       }
     }
   }
-
   post{
+    success {
+      script {
+        for (project in maint_updates.split(',')) {
+            cloud_lib.maintenance_status("-a set-status -p ${project} -s success -m ${BUILD_URL}display/redirect")
+        }
+      }
+    }
+    failure {
+      script {
+        for (project in maint_updates.split(',')) {
+            cloud_lib.maintenance_status("-a set-status -p ${project} -s failure -m ${BUILD_URL}display/redirect")
+        }
+      }
+    }
     cleanup {
       cleanWs()
     }

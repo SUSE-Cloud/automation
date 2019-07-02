@@ -105,6 +105,13 @@ def generate_qa_tests_stages(qa_test_list) {
   }
 }
 
+def maintenance_status(params='') {
+  sh("""
+    cd $WORKSPACE/automation-git/scripts/maintenance-status
+    ./maintenance-status.rb """+params+"""
+  """)
+}
+
 def generate_mu_stages(cloudversion_list, deploy, update, body) {
   def jobs = [:]
   for (cv in cloudversion_list) {
