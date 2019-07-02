@@ -7,7 +7,7 @@ clean:
 
 filecheck:
 	! git ls-tree -r HEAD --name-only | \
-		egrep -v 'Makefile|sample-logs/.*\.txt$$' | \
+		egrep -v 'Makefile|gitconfig|sample-logs/.*\.txt$$' | \
 		xargs grep $$'\t'
 
 bashate:

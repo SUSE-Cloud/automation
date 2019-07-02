@@ -1,0 +1,8 @@
+- name: Configure git for jenkins user
+  copy:
+    src: "gitconfig"
+    dest: "/home/jenkins/.gitconfig"
+    owner: "jenkins"
+    group: "users"
+    mode: "0644"
+
