@@ -37,4 +37,6 @@
 
 - name: Reboot if necessary
   reboot:
-  when: reboot.stdout == 'True'
+  when:
+    - reboot.stdout == 'True'
+    - jenkins_worker_reboot
