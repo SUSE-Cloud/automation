@@ -77,6 +77,12 @@
 
             Leaving it empty will skip creating the virtual environment
 
+      - bool:
+          name: jenkins_worker_reboot
+          default: '{jenkins_worker_reboot|false}'
+          description: >-
+            Reboot the node if there is a pending kernel update
+
       - string:
           name: git_automation_repo
           default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'

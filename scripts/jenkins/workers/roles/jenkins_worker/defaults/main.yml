@@ -15,6 +15,7 @@
 #
 ---
 
+jenkins_worker_reboot: False
 jenkins_worker_zypp_repos:
   - name: "SUSE-CA"
     repo: "http://download.suse.de/ibs/SUSE:/CA/{{ ansible_distribution | replace(' ', '_') }}_{{ ansible_distribution_version }}"
