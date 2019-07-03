@@ -38,6 +38,7 @@
             - openstack-horizon-plugin-designate-ui
             - openstack-horizon-plugin-freezer-ui
             - openstack-horizon-plugin-gbp-ui
+            - openstack-horizon-plugin-heat-ui
             - openstack-horizon-plugin-ironic-ui
             - openstack-horizon-plugin-neutron-fwaas-ui
             - openstack-horizon-plugin-neutron-lbaas-ui
@@ -137,6 +138,10 @@
             [
               "openstack-horizon-plugin-freezer-ui",
               "openstack-nova-virt-zvm"
+            ].contains(component) ||
+            [ "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
+            [
+              "openstack-horizon-plugin-heat-ui"
             ].contains(component)
             )
       sequential: true
