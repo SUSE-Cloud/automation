@@ -1,7 +1,15 @@
 dist: xenial
 
 matrix:
+  allow_failures:
+    - env: ALLOW_FAILURE=true
   include:
+    - name: "Validate Commit Message"
+      language: python
+      env: ALLOW_FAILURE=true
+      script:
+        - pip install gitlint
+        - gitlint --commits master..HEAD -C scripts/jenkins/gitlint.ini
     - name: "Validate Filenames"
       language: minimal
       script:
