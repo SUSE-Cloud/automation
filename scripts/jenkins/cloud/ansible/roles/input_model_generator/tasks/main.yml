@@ -28,7 +28,7 @@
   when: "item ~ '_template' in scenario"
 
 - include_tasks: get_qe_bm_info.yml
-  when: is_physical_deploy
+  when: is_physical_deploy | bool
 
 - name: Create directories
   file:
