@@ -24,3 +24,4 @@
     - jenkins_worker_ansible_version is defined
     - jenkins_worker_ansible_version | length
 - include_tasks: authorized_keys.yml
+- include_tasks: configure_git.yml
