@@ -76,24 +76,15 @@ cisd_deploy: gerrit-project-regexp
 cioo_deploy:
 	jenkins-jobs --conf /etc/jenkins_jobs/jenkins_jobs-cioo.ini update jenkins/ci.opensuse.org:jenkins/ci.opensuse.org/templates/ openstack*
 
-# for travis-CI:
-install: debianinstall genericinstall
+shellcheck:
+	shellcheck `grep -Erl '^#! ?/bin/b?a?sh'`
 
-debianinstall:
-	sudo apt-get update -qq
-	sudo apt-get -y install libxml-libxml-perl libjson-perl libjson-xs-perl libwww-perl python-pip python3-pip python-setuptools python3-setuptools python-libvirt python3-libvirt
-
-suseinstall:
+install:
 	sudo zypper install perl-JSON-XS perl-libxml-perl perl-libwww-perl python-pip python3-pip libvirt-python python3-libvirt-python
-
-genericinstall:
-	sudo pip2 install -U 'pbr>=2.0.0,!=2.1.0' bashate flake8 flake8-import-order jenkins-job-builder requests
-	sudo pip3 install -U 'pbr>=2.0.0,!=2.1.0' bashate flake8 flake8-import-order jenkins-job-builder requests
+	sudo pip2 install -U bashate flake8 flake8-import-order jenkins-job-builder
+	sudo pip3 install -U bashate flake8 flake8-import-order jenkins-job-builder
 	git clone https://github.com/SUSE-Cloud/roundup && \
 	cd roundup && \
 	./configure && \
 	make && \
 	sudo make install
-
-shellcheck:
-	shellcheck `grep -Erl '^#! ?/bin/b?a?sh'`
